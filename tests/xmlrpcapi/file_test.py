@@ -14,8 +14,8 @@ class TestFile:
         file_id = remote.new_file(token)
         filename = "testfile_create"
 
-        remote.modify_file(file_id, "name", filename , token)
-        remote.modify_file(file_id, "is_directory", "False", token)
+        remote.modify_file(file_id, "name", filename, token)
+        remote.modify_file(file_id, "is_directory", False, token)
         remote.modify_file(file_id, "action", "create", token)
         remote.modify_file(file_id, "group", "root", token)
         remote.modify_file(file_id, "mode", "0644", token)
@@ -39,7 +39,7 @@ class TestFile:
         """
         # Arrange
         filename = "testfile_get_files"
-        create_file(filename, "False", "create", "root", "0644", "root", "/root/testfile0", "testtemplate0")
+        create_file(filename, False, "create", "root", "0644", "root", "/root/testfile0", "testtemplate0")
 
         # Act
         result = remote.get_files(token)
@@ -58,7 +58,7 @@ class TestFile:
         """
         # Arrange
         filename = "testfile_get_file"
-        create_file(filename, "False", "create", "root", "0644", "root", "/root/testfile0", "testtemplate0")
+        create_file(filename, False, "create", "root", "0644", "root", "/root/testfile0", "testtemplate0")
 
         # Act
         file = remote.get_file("testfile0")
@@ -75,7 +75,7 @@ class TestFile:
         """
         # Arrange
         filename = "testfile_find"
-        create_file(filename, "False", "create", "root", "0644", "root", "/root/testfile0", "testtemplate0")
+        create_file(filename, False, "create", "root", "0644", "root", "/root/testfile0", "testtemplate0")
 
         # Act
         result = remote.find_file({"name": filename}, token)
@@ -93,7 +93,7 @@ class TestFile:
         # Arrange
         filename_base = "testfile_copy_base"
         filename_copy = "testfile_copy_copied"
-        create_file(filename_base, "False", "create", "root", "0644", "root", "/root/testfile0", "testtemplate0")
+        create_file(filename_base, False, "create", "root", "0644", "root", "/root/testfile0", "testtemplate0")
 
         # Act
         file = remote.get_item_handle("file", filename_base, token)
@@ -113,7 +113,7 @@ class TestFile:
         # Arrange
         filename = "testfile_renamed"
         filename_renamed = "testfile_renamed_successful"
-        create_file(filename, "False", "create", "root", "0644", "root", "/root/testfile0", "testtemplate0")
+        create_file(filename, False, "create", "root", "0644", "root", "/root/testfile0", "testtemplate0")
         file = remote.get_item_handle("file", filename, token)
 
         # Act
@@ -131,7 +131,7 @@ class TestFile:
         """
         # Arrange
         filename = "testfile_remove"
-        create_file(filename, "False", "create", "root", "0644", "root", "/root/testfile0", "testtemplate0")
+        create_file(filename, False, "create", "root", "0644", "root", "/root/testfile0", "testtemplate0")
 
         # Act
         result = remote.remove_file(filename, token)

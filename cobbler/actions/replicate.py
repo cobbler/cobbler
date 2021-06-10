@@ -322,10 +322,6 @@ class Replicate:
                     self.logger.debug("Adding image %s for system %s." % (img, sys))
                     self.must_include["image"][img] = 1
 
-        # FIXME: remove debug
-        for ot in OBJ_TYPES:
-            self.logger.debug("transfer list for %s is %s" % (ot, list(self.must_include[ot].keys())))
-
     # -------------------------------------------------------
 
     def run(self, cobbler_master=None, port: str = "80", distro_patterns=None, profile_patterns=None,

@@ -13,7 +13,7 @@ def create_repo(remote, token):
     repo = remote.new_repo(token)
     remote.modify_repo(repo, "name", "testrepo0", token)
     remote.modify_repo(repo, "mirror", "http://www.sample.com/path/to/some/repo", token)
-    remote.modify_repo(repo, "mirror_locally", "0", token)
+    remote.modify_repo(repo, "mirror_locally", False, token)
     remote.save_repo(repo, token)
 
 
@@ -43,7 +43,7 @@ class TestRepo:
         repo = remote.new_repo(token)
         assert remote.modify_repo(repo, "name", "testrepo0", token)
         assert remote.modify_repo(repo, "mirror", "http://www.sample.com/path/to/some/repo", token)
-        assert remote.modify_repo(repo, "mirror_locally", "0", token)
+        assert remote.modify_repo(repo, "mirror_locally", False, token)
         assert remote.save_repo(repo, token)
 
     def test_get_repos(self, remote):

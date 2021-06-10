@@ -47,8 +47,7 @@ class Images(collection.Collection):
         :raises CX
         """
 
-        # NOTE: with_delete isn't currently meaningful for repos
-        # but is left in for consistancy in the API.  Unused.
+        # NOTE: with_delete isn't currently meaningful for repos but is left in for consistency in the API. Unused.
 
         name = name.lower()
 

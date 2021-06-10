@@ -17,20 +17,20 @@ def create_testbed(create_kernel_initrd):
     def _create_testbed() -> CobblerAPI:
         folder = create_kernel_initrd("vmlinux", "initrd.img")
         test_api = CobblerAPI()
-        test_distro = Distro(test_api._collection_mgr)
+        test_distro = Distro(test_api)
         test_distro.name = "test_configgen_distro"
-        test_distro.set_kernel(os.path.join(folder, "vmlinux"))
-        test_distro.set_initrd(os.path.join(folder, "initrd.img"))
+        test_distro.kernel = os.path.join(folder, "vmlinux")
+        test_distro.initrd = os.path.join(folder, "initrd.img")
         test_api.add_distro(test_distro)
-        test_profile = Profile(test_api._collection_mgr)
+        test_profile = Profile(test_api)
         test_profile.name = "test_configgen_profile"
-        test_profile.set_distro("test_configgen_distro")
+        test_profile.distro = "test_configgen_distro"
         test_api.add_profile(test_profile)
-        test_system = System(test_api._collection_mgr)
+        test_system = System(test_api)
         test_system.name = "test_configgen_system"
-        test_system.set_profile("test_configgen_profile")
-        test_system.set_hostname("testhost.test.de")
-        test_system.set_autoinstall_meta({"test": "teststring"})
+        test_system.profile = "test_configgen_profile"
+        test_system.hostname = "testhost.test.de"
+        test_system.autoinstall_meta = {"test": "teststring"}
         test_api.add_system(test_system)
         return test_api
 

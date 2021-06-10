@@ -17,33 +17,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
-from cobbler import resource
+import uuid
 
 from cobbler import utils
+from cobbler.items import resource
+
 from cobbler.cexceptions import CX
-
-
-# this data structure is described in item.py
-FIELDS = [
-    # non-editable in UI (internal)
-    ["ctime", 0, 0, "", False, "", 0, "float"],
-    ["depth", 2, 0, "", False, "", 0, "float"],
-    ["mtime", 0, 0, "", False, "", 0, "float"],
-    ["uid", "", 0, "", False, "", 0, "str"],
-
-    # editable in UI
-    ["action", "create", 0, "Action", True, "Create or remove file resource", 0, "str"],
-    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["group", "", 0, "Owner group in file system", True, "File owner group in file system", 0, "str"],
-    ["is_dir", False, 0, "Is Directory", True, "Treat file resource as a directory", 0, "bool"],
-    ["mode", "", 0, "Mode", True, "The mode of the file", 0, "str"],
-    ["name", "", 0, "Name", True, "Name of file resource", 0, "str"],
-    ["owner", "", 0, "Owner user in file system", True, "File owner user in file system", 0, "str"],
-    ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [], "list"],
-    ["path", "", 0, "Path", True, "The path for the file", 0, "str"],
-    ["template", "", 0, "Template", True, "The template for the file", 0, "str"]
-]
 
 
 class File(resource.Resource):
@@ -63,6 +42,7 @@ class File(resource.Resource):
         :param kwargs:
         """
         super().__init__(api, *args, **kwargs)
+        self._is_dir = False
 
     #
     # override some base class methods first (item.Item)
@@ -77,15 +57,17 @@ class File(resource.Resource):
         _dict = self.to_dict()
         cloned = File(self.api)
         cloned.from_dict(_dict)
+        cloned.uid = uuid.uuid4().hex
         return cloned
 
-    def get_fields(self):
+    def from_dict(self, dictionary: dict):
         """
-        Return all fields which this class has with its current values.
+        Initializes the object with attributes from the dictionary.
 
-        :return: This is a list with lists.
+        :param dictionary: The dictionary with values.
         """
-        return FIELDS
+        self._remove_depreacted_dict_keys(dictionary)
+        super().from_dict(dictionary)
 
     def check_if_valid(self):
         """
@@ -111,10 +93,23 @@ class File(resource.Resource):
     # specific methods for item.File
     #
 
-    def set_is_dir(self, is_dir: bool):
+    @property
+    def is_dir(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._is_dir
+
+    @is_dir.setter
+    def is_dir(self, is_dir: bool):
         """
         If true, treat file resource as a directory. Templates are ignored.
 
         :param is_dir: This is the path to check if it is a directory.
         """
-        self.is_dir = utils.input_boolean(is_dir)
+        is_dir = utils.input_boolean(is_dir)
+        if not isinstance(is_dir, bool):
+            raise TypeError("Field is_dir in object file needs to be of type bool!")
+        self._is_dir = is_dir

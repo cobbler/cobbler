@@ -6,14 +6,12 @@ from pathlib import Path
 import pytest
 from netaddr.ip import IPAddress
 
-from cobbler.api import CobblerAPI
 from cobbler import utils
+from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
-from cobbler.items.repo import Repo
-from cobbler.items.system import System
-from cobbler.cobbler_collections.manager import CollectionManager
+from cobbler.settings import Settings
 from tests.conftest import does_not_raise
 
 
@@ -47,22 +45,6 @@ def test_is_ip(testvalue, expected_result):
 
     # Act
     result = utils.is_ip(testvalue)
-
-    # Assert
-    assert expected_result == result
-
-
-@pytest.mark.parametrize("testvalue,expected_result", [
-    ("AA:AA:AA:AA:AA:AA", True),
-    ("FF:FF:FF:FF:FF:FF", True),
-    ("FF:FF:FF:FF:FF", False),
-    ("Test", False)
-])
-def test_is_mac(testvalue, expected_result):
-    # Arrange
-
-    # Act
-    result = utils.is_mac(testvalue)
 
     # Assert
     assert expected_result == result
@@ -275,7 +257,7 @@ def test_input_boolean(testinput, expected_result):
 def test_grab_tree():
     # Arrange
     api = CobblerAPI()
-    object_to_check = Distro(api._collection_mgr)
+    object_to_check = Distro(api)
     # TODO: Create some objects and give them some inheritance.
 
     # Act
@@ -286,36 +268,36 @@ def test_grab_tree():
     assert result[-1].server == "127.0.0.1"
 
 
-@pytest.mark.skip("We know this works through the xmlrpc tests. Generating corner cases to test this more, is hard.")
 def test_blender():
     # Arrange
-    # TODO: Create some objects
-    api = CobblerAPI()
-    root_item = None
-    expected = {}
+    test_api = CobblerAPI()
+    root_item = Distro(test_api)
 
     # Act
-    result = utils.blender(api, False, root_item)
+    result = utils.blender(test_api, False, root_item)
 
     # Assert
-    assert expected == result
+    assert len(result) == 149
+    assert "server" in result
+    assert "os_version" in result
 
 
-@pytest.mark.parametrize("testinput,expected_result", [
-    (None, None),
-    ("data", None),
-    (0, None),
-    ({}, {})
+@pytest.mark.parametrize("testinput,expected_result,expected_exception", [
+    (None, None, does_not_raise()),
+    ("data", None, does_not_raise()),
+    (0, None, does_not_raise()),
+    ({}, {}, does_not_raise())
 ])
-def test_flatten(testinput, expected_result):
+def test_flatten(testinput, expected_result, expected_exception):
     # Arrange
     # TODO: Add more examples
 
     # Act
-    result = utils.flatten(testinput)
+    with expected_exception:
+        result = utils.flatten(testinput)
 
-    # Assert
-    assert expected_result == result
+        # Assert
+        assert expected_result == result
 
 
 @pytest.mark.parametrize("testinput,expected_result", [
@@ -605,234 +587,6 @@ def test_path_tail(test_first_path, test_second_path, expected_result):
     assert expected_result == result
 
 
-@pytest.mark.parametrize("test_architecture,test_raise", [
-    ("x86_64", does_not_raise()),
-    ("abc", pytest.raises(CX))
-])
-def test_set_arch(test_architecture, test_raise):
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    testdistro = Distro(test_manager)
-
-    # Act
-    with test_raise:
-        utils.set_arch(testdistro, test_architecture)
-
-        # Assert
-        assert testdistro.arch == test_architecture
-
-
-def test_set_os_version():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    testdistro = Distro(test_manager)
-    testdistro.set_breed("redhat")
-
-    # Act
-    utils.set_os_version(testdistro, "rhel4")
-
-    # Assert
-    assert testdistro.breed == "redhat"
-    assert testdistro.os_version == "rhel4"
-
-
-def test_set_breed():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    testdistro = Distro(test_manager)
-
-    # Act
-    utils.set_breed(testdistro, "redhat")
-
-    # Assert
-    assert testdistro.breed == "redhat"
-
-
-def test_set_repo_os_version():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    testrepo = Repo(test_manager)
-    testrepo.set_breed("yum")
-
-    # Act
-    utils.set_repo_os_version(testrepo, "rhel4")
-
-    # Assert
-    assert testrepo.breed == "yum"
-    assert testrepo.os_version == "rhel4"
-
-
-def test_set_repo_breed():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    testrepo = Repo(test_manager)
-
-    # Act
-    utils.set_repo_breed(testrepo, "yum")
-
-    # Assert
-    assert testrepo.breed == "yum"
-
-
-def test_set_repos():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    testprofile = Profile(test_manager)
-
-    # Act
-    # TODO: Test this also with the bypass check
-    utils.set_repos(testprofile, "testrepo1 testrepo2", bypass_check=True)
-
-    # Assert
-    assert testprofile.repos == ["testrepo1", "testrepo2"]
-
-
-def test_set_virt_file_size():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    testprofile = Profile(test_manager)
-
-    # Act
-    # TODO: Test multiple disks via comma separation
-    utils.set_virt_file_size(testprofile, "8")
-
-    # Assert
-    assert isinstance(testprofile.virt_file_size, int)
-    assert testprofile.virt_file_size == 8
-
-
-@pytest.mark.parametrize("test_driver,expected_result,test_raise", [
-    ("qcow2", "qcow2", does_not_raise()),
-    ("bad_driver", "", pytest.raises(CX))
-])
-def test_set_virt_disk_driver(test_driver, expected_result, test_raise):
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    testprofile = Profile(test_manager)
-
-    # Act
-    with test_raise:
-        utils.set_virt_disk_driver(testprofile, test_driver)
-
-        # Assert
-        assert testprofile.virt_disk_driver == expected_result
-
-
-@pytest.mark.parametrize("test_autoboot,expectation", [
-    (0, does_not_raise()),
-    (1, does_not_raise()),
-    (2, pytest.raises(CX)),
-    ("Test", pytest.raises(CX))
-])
-def test_set_virt_auto_boot(test_autoboot, expectation):
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    testprofile = Profile(test_manager)
-
-    # Act
-    with expectation:
-        utils.set_virt_auto_boot(testprofile, test_autoboot)
-
-        # Assert
-        assert isinstance(testprofile.virt_auto_boot, bool)
-        assert testprofile.virt_auto_boot is True or testprofile.virt_auto_boot is False
-
-
-@pytest.mark.parametrize("test_input,expected_exception", [
-    (0, does_not_raise()),
-    (1, does_not_raise()),
-    (5, pytest.raises(CX)),
-    ("", pytest.raises(CX))
-])
-def test_set_virt_pxe_boot(test_input, expected_exception):
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    test_system = System(test_manager)
-
-    # Act
-    with expected_exception:
-        result = utils.set_virt_pxe_boot(test_system, test_input)
-
-        # Assert
-        assert test_system.virt_pxe_boot == 0 or test_system.virt_pxe_boot == 1
-
-
-def test_set_virt_ram():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    test_system = System(test_manager)
-
-    # Act
-    utils.set_virt_ram(test_system, 1024)
-
-    # Assert
-    assert test_system.virt_ram == 1024
-
-
-def test_set_virt_type():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    test_system = System(test_manager)
-
-    # Act
-    utils.set_virt_type(test_system, "qemu")
-
-    # Assert
-    assert test_system.virt_type == "qemu"
-
-
-def test_set_virt_bridge():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    test_system = System(test_manager)
-
-    # Act
-    utils.set_virt_bridge(test_system, "testbridge")
-
-    # Assert
-    assert test_system.virt_bridge == "testbridge"
-
-
-def test_set_virt_path():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    test_system = System(test_manager)
-    test_location = "/somerandomfakelocation"
-
-    # Act
-    utils.set_virt_path(test_system, test_location)
-
-    # Assert
-    assert test_system.virt_path == test_location
-
-
-def test_set_virt_cpus():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    test_system = System(test_manager)
-
-    # Act -> These are develishly bad tests. Please spare me the lecture and let my joke in here.
-    utils.set_virt_cpus(test_system, 666)
-
-    # Assert
-    assert test_system.virt_cpus == 666
-
-
 @pytest.mark.parametrize("test_input,expected_exception", [
     ("Test", does_not_raise()),
     ("Test;Test", pytest.raises(CX)),
@@ -858,33 +612,6 @@ def test_get_mtab():
 
     # Assert
     assert isinstance(result, list)
-
-
-def test_set_serial_device():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    test_system = System(test_manager)
-
-    # Act
-    result = utils.set_serial_device(test_system, 0)
-
-    # Assert
-    assert result
-    assert test_system.serial_device == 0
-
-
-def test_set_serial_baud_rate():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    test_system = System(test_manager)
-
-    # Act
-    utils.set_serial_baud_rate(test_system, 9600)
-
-    # Assert
-    assert test_system.serial_baud_rate == 9600
 
 
 def test_get_file_device_path():
@@ -959,75 +686,6 @@ def test_get_supported_distro_boot_loaders():
 
     # Assert
     assert result == ["grub", "pxe", "yaboot", "ipxe"]
-
-
-def test_clear_from_fields():
-    # Arrange
-    test_api = CobblerAPI()
-    test_distro = Distro(test_api._collection_mgr)
-    test_distro.name = "Test"
-
-    # Pre Assert to check this works
-    assert test_distro.name == "Test"
-
-    # Act
-    utils.clear_from_fields(test_distro, test_distro.get_fields())
-
-    # Assert
-    assert test_distro.name == ""
-
-
-def test_from_dict_from_fields():
-    # Arrange
-    test_api = CobblerAPI()
-    test_distro = Distro(test_api._collection_mgr)
-
-    # Act
-    utils.from_dict_from_fields(test_distro, {"name": "testname"},
-                                [
-                                    ["name", "", 0, "Name", True, "Ex: Fedora-11-i386", 0, "str"]
-                                ])
-
-    # Assert
-    assert test_distro.name == "testname"
-
-
-def test_to_dict_from_fields():
-    # Arrange
-    test_api = CobblerAPI()
-    test_distro = Distro(test_api._collection_mgr)
-
-    # Act
-    result = utils.to_dict_from_fields(test_distro, test_distro.get_fields())
-
-    # Assert - This test is specific to a Distro object
-    assert len(result.keys()) == 25
-
-
-def test_to_string_from_fields():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    test_distro = Distro(test_manager)
-
-    # Act
-    result = utils.to_string_from_fields(test_distro.__dict__, test_distro.get_fields())
-
-    # Assert - This test is specific to a Distro object
-    assert len(result.splitlines()) == 19
-
-
-def test_get_setter_methods_from_fields():
-    # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    test_distro = Distro(test_manager)
-
-    # Act
-    result = utils.get_setter_methods_from_fields(test_distro, test_distro.get_fields())
-
-    # Assert
-    assert isinstance(result, dict)
 
 
 def test_load_signatures():
@@ -1187,28 +845,28 @@ def test_named_service_name():
 def test_link_distro():
     # Arrange
     test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    test_distro = Distro(test_manager)
+    test_distro = Distro(test_api)
 
     # Act
-    utils.link_distro(test_manager.settings(), test_distro)
+    utils.link_distro(Settings(), test_distro)
 
     # Assert
     assert False
 
 
-def test_find_distro_path():
+def test_find_distro_path(create_testfile, tmp_path):
     # Arrange
     test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    test_distro = Distro(test_manager)
-    test_distro.kernel = "/dev/shm/fakekernelfile"
+    fk_kernel = "vmlinuz1"
+    create_testfile(fk_kernel)
+    test_distro = Distro(test_api)
+    test_distro.kernel = os.path.join(tmp_path, fk_kernel)
 
     # Act
-    result = utils.find_distro_path(test_manager.settings(), test_distro)
+    result = utils.find_distro_path(Settings(), test_distro)
 
     # Assert
-    assert result == "/dev/shm"
+    assert result == tmp_path.as_posix()
 
 
 @pytest.mark.parametrize("test_input_v1,test_input_v2,expected_output,error_expectation", [

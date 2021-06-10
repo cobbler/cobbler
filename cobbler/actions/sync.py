@@ -332,7 +332,7 @@ class CobblerSync:
         # cascade sync
         kids = distro.get_children()
         for k in kids:
-            self.add_single_profile(k.name, rebuild_menu=False)
+            self.add_single_profile(k, rebuild_menu=False)
         self.tftpgen.make_pxe_menu()
 
     def add_single_image(self, name):
@@ -345,7 +345,7 @@ class CobblerSync:
         self.tftpgen.copy_single_image_files(image)
         kids = image.get_children()
         for k in kids:
-            self.add_single_system(k.name)
+            self.add_single_system(k)
         self.tftpgen.make_pxe_menu()
 
     def remove_single_distro(self, name):
@@ -388,12 +388,12 @@ class CobblerSync:
         # Rebuild the yum configuration files for any attached repos generate any templates listed in the distro.
         self.tftpgen.write_templates(profile)
         # Cascade sync
-        kids = profile.get_children()
+        kids = profile.children
         for k in kids:
-            if k.COLLECTION_TYPE == "profile":
-                self.add_single_profile(k.name, rebuild_menu=False)
+            if self.api.find_profile(name=k) is not None:
+                self.add_single_profile(k, rebuild_menu=False)
             else:
-                self.add_single_system(k.name)
+                self.add_single_system(k)
         if rebuild_menu:
             self.tftpgen.make_pxe_menu()
         return True

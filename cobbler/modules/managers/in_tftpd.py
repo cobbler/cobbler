@@ -60,7 +60,7 @@ class _InTftpdManager(ManagerModule):
     def write_boot_files_distro(self, distro):
         # Collapse the object down to a rendered datastructure.
         # The second argument set to false means we don't collapse dicts/arrays into a flat string.
-        target = utils.blender(self.collection_mgr.api, False, distro)
+        target = utils.blender(self.api, False, distro)
 
         # Create metadata for the templar function.
         # Right now, just using local_img_path, but adding more Cobbler variables here would probably be good.

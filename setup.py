@@ -709,7 +709,6 @@ if __name__ == "__main__":
             ("%s/tests/cli" % datadir, glob("tests/cli/*.py")),
             ("%s/tests/modules" % datadir, glob("tests/modules/*.py")),
             ("%s/tests/modules/authentication" % datadir, glob("tests/modules/authentication/*.py")),
-            ("%s/tests/views" % datadir, glob("tests/views/*.py")),
             ("%s/tests/xmlrpcapi" % datadir, glob("tests/xmlrpcapi/*.py")),
         ],
     )

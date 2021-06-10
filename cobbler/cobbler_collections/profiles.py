@@ -63,12 +63,10 @@ class Profiles(collection.Collection):
             if recursive:
                 kids = obj.get_children()
                 for k in kids:
-                    if k.COLLECTION_TYPE == "profile":
-                        self.api.remove_profile(k.name, recursive=recursive, delete=with_delete,
-                                                               with_triggers=with_triggers)
+                    if self.api.find_profile(name=k) is not None:
+                        self.api.remove_profile(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
                     else:
-                        self.api.remove_system(k.name, recursive=recursive, delete=with_delete,
-                                                              with_triggers=with_triggers)
+                        self.api.remove_system(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
 
             if with_delete:
                 if with_triggers:

@@ -14,10 +14,11 @@ class TestNonObjectCalls:
         """
         Wait until a task is finished
         """
-
         timeout = 0
         # "complete" is the constant: EVENT_COMPLETE from cobbler.remote
         while remote.get_task_status(tid)[2] != "complete":
+            if remote.get_task_status(tid)[2] == "failed":
+                pytest.fail("Task failed")
             print("task %s status: %s" % (tid, remote.get_task_status(tid)))
             time.sleep(5)
             timeout += 5

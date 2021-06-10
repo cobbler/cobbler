@@ -79,6 +79,14 @@ cobbler.download\_manager module
     :undoc-members:
     :show-inheritance:
 
+cobbler.enums module
+--------------------------------
+
+.. automodule:: cobbler.enums
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 cobbler.module\_loader module
 -----------------------------
 

@@ -12,7 +12,7 @@ from cobbler.utils import local_get_cobbler_api_url, get_shared_secret
 
 
 @pytest.fixture(scope="session")
-def remote(cobbler_xmlrpc_base):
+def remote(cobbler_xmlrpc_base) -> xmlrpcclient.ServerProxy:
     """
 
     :param cobbler_xmlrpc_base:
@@ -22,7 +22,7 @@ def remote(cobbler_xmlrpc_base):
 
 
 @pytest.fixture(scope="session")
-def token(cobbler_xmlrpc_base):
+def token(cobbler_xmlrpc_base) -> str:
     """
 
     :param cobbler_xmlrpc_base:
@@ -52,27 +52,27 @@ def cobbler_xmlrpc_base():
 
 
 @pytest.fixture(scope="class")
-def testsnippet():
+def testsnippet() -> str:
     return "# This is a small simple testsnippet!"
 
 
 @pytest.fixture()
 def snippet_add(remote, token):
-    def _snippet_add(name, data):
+    def _snippet_add(name: str, data):
         remote.write_autoinstall_snippet(name, data, token)
     return _snippet_add
 
 
 @pytest.fixture()
 def snippet_remove(remote, token):
-    def _snippet_remove(name):
+    def _snippet_remove(name: str):
         remote.remove_autoinstall_snippet(name, token)
     return _snippet_remove
 
 
 @pytest.fixture()
 def create_distro(remote, token):
-    def _create_distro(name, arch, breed, path_kernel, path_initrd):
+    def _create_distro(name: str, arch: str, breed: str, path_kernel: str, path_initrd: str):
         distro = remote.new_distro(token)
         remote.modify_distro(distro, "name", name, token)
         remote.modify_distro(distro, "arch", arch, token)
@@ -86,7 +86,7 @@ def create_distro(remote, token):
 
 @pytest.fixture()
 def remove_distro(remote, token):
-    def _remove_distro(name):
+    def _remove_distro(name: str):
         remote.remove_distro(name, token)
     return _remove_distro
 
@@ -222,94 +222,6 @@ def remove_menu(remote, token):
     def _remove_menu(name):
         remote.remove_menu(name, token)
     return _remove_menu
-
-
-@pytest.fixture(scope="function")
-def fk_initrd():
-    """
-    The path to the first fake initrd.
-
-    :return: A filename as a string.
-    """
-    return "initrd1.img"
-
-
-@pytest.fixture(scope="function")
-def fk_initrd2():
-    """
-    The path to the second fake initrd.
-
-    :return: A filename as a string.
-    """
-    return "initrd2.img"
-
-
-@pytest.fixture(scope="function")
-def fk_initrd3():
-    """
-    The path to the third fake initrd.
-
-    :return: A path as a string.
-    """
-    return "initrd3.img"
-
-
-@pytest.fixture(scope="function")
-def fk_kernel():
-    """
-    The path to the first fake kernel.
-
-    :return: A path as a string.
-    """
-    return "vmlinuz1"
-
-
-@pytest.fixture(scope="function")
-def fk_kernel2():
-    """
-    The path to the second fake kernel.
-
-    :return: A path as a string.
-    """
-    return "vmlinuz2"
-
-
-@pytest.fixture(scope="function")
-def fk_kernel3():
-    """
-    The path to the third fake kernel.
-
-    :return: A path as a string.
-    """
-    return "vmlinuz3"
-
-
-@pytest.fixture(scope="function")
-def redhat_autoinstall():
-    """
-    The path to the test.ks file for redhat autoinstall.
-
-    :return: A path as a string.
-    """
-    return "test.ks"
-
-
-@pytest.fixture(scope="function")
-def suse_autoyast():
-    """
-    The path to the suse autoyast xml-file.
-    :return: A path as a string.
-    """
-    return "test.xml"
-
-
-@pytest.fixture(scope="function")
-def ubuntu_preseed():
-    """
-    The path to the ubuntu preseed file.
-    :return: A path as a string.
-    """
-    return "test.seed"
 
 
 @pytest.fixture(scope="function")
