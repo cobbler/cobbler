@@ -493,15 +493,15 @@ class Collection:
                 for x in match_mac:
                     if x.name != ref.name:
                         raise CX("Can't save system %s. The MAC address (%s) is already used by system %s (%s)"
-                                 % (ref.name, intf["mac_address"], x.name, name))
+                                 % (ref.name, intf.mac_address, x.name, name))
                 for x in match_ip:
                     if x.name != ref.name:
                         raise CX("Can't save system %s. The IP address (%s) is already used by system %s (%s)"
-                                 % (ref.name, intf["ip_address"], x.name, name))
+                                 % (ref.name, intf.ip_address, x.name, name))
                 for x in match_hosts:
                     if x.name != ref.name:
                         raise CX("Can't save system %s.  The dns name (%s) is already used by system %s (%s)"
-                                 % (ref.name, intf["dns_name"], x.name, name))
+                                 % (ref.name, intf.dns_name, x.name, name))
 
     def to_string(self) -> str:
         """

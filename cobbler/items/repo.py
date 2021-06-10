@@ -101,11 +101,11 @@ class Repo(item.Item):
         if not self.breed:
             if self.mirror.startswith("http://") or self.mirror.startswith("https://") \
                     or self.mirror.startswith("ftp://"):
-                self.breed = "yum"
+                self.breed = enums.RepoBreeds.YUM
             elif self.mirror.startswith("rhn://"):
-                self.breed = "rhn"
+                self.breed = enums.RepoBreeds.RHN
             else:
-                self.breed = "rsync"
+                self.breed = enums.RepoBreeds.RSYNC
 
     @property
     def mirror(self) -> str:
