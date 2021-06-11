@@ -609,7 +609,7 @@ def blender(api_handle, remove_dicts: bool, root_obj):
         child_names = results["children"]
         results["children"] = {}
         for key in child_names:
-            results["children"][key] = api_handle.find_items("", {"name": key})[0].to_dict()
+            results["children"][key] = api_handle.find_items("", name=key, return_list=False).to_dict()
 
     # sanitize output for koan and kernel option lines, etc
     if remove_dicts:
@@ -1325,12 +1325,12 @@ mtab_map = []
 
 
 class MntEntObj:
-    mnt_fsname = None   # name of mounted file system
-    mnt_dir = None      # file system path prefix
-    mnt_type = None     # mount type (see mntent.h)
-    mnt_opts = None     # mount options (see mntent.h)
-    mnt_freq = 0        # dump frequency in days
-    mnt_passno = 0      # pass number on parallel fsck
+    mnt_fsname = None  # name of mounted file system
+    mnt_dir = None  # file system path prefix
+    mnt_type = None  # mount type (see mntent.h)
+    mnt_opts = None  # mount options (see mntent.h)
+    mnt_freq = 0  # dump frequency in days
+    mnt_passno = 0  # pass number on parallel fsck
 
     def __init__(self, input: str = None):
         """
