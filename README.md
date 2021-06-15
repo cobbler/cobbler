@@ -26,3 +26,5 @@ configuration.
 If you want to contribute you may find more information under [CONTRIBUTING.md](CONTRIBUTING.md).
 
 The documentation can be found at [Readthedocs](https://cobbler.readthedocs.io)
+
+The OBS test builds can be found here [https://build.opensuse.org/project/show/home:dgedon:cobbler]
