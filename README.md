@@ -24,5 +24,3 @@ To build the RPM, run `make rpms`. Developers, try `make webtest` to do a local 
 configuration.
 
 If you want to contribute you may find more information under [CONTRIBUTING.md](CONTRIBUTING.md).
-
-The documentation can be found at [Readthedocs](https://cobbler.readthedocs.io)
