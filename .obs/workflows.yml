@@ -1,0 +1,5 @@
+workflow:
+  steps:
+    - branch_package:
+        source_project: systemsmanagement:orthos2:github_master_ci
+        source_package: cobbler-master
