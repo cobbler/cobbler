@@ -96,7 +96,7 @@ class _IscManager(ManagerModule):
 
                 # We make a copy because we may modify it before adding it to the dhcp_tags and we don't want to affect
                 # the master copy.
-                interface = copy.deepcopy(system_interface)
+                interface = system_interface.to_dict()
 
                 if interface["if_gateway"]:
                     interface["gateway"] = interface["if_gateway"]
@@ -261,7 +261,7 @@ class _IscManager(ManagerModule):
 
                 # We make a copy because we may modify it before adding it to the dhcp_tags and we don't want to affect
                 # the master copy.
-                interface = copy.deepcopy(system_interface)
+                interface = system_interface.to_dict()
 
                 if interface["if_gateway"]:
                     interface["gateway"] = interface["if_gateway"]
