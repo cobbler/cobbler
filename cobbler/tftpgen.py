@@ -1001,7 +1001,7 @@ class TFTPGen:
             append_line = "%s suite=%s" % (append_line, distro.os_version)
 
         # append necessary kernel args for arm architectures
-        if arch is not None and arch.startswith("arm"):
+        if arch is enums.Archs.ARM:
             append_line = "%s fixrtc vram=48M omapfb.vram=0:24M" % append_line
 
         # do variable substitution on the append line
