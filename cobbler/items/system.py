@@ -165,6 +165,7 @@ class NetworkInterface:
 
         :param truthiness:
         """
+        truthiness = utils.input_boolean(truthiness)
         if not isinstance(truthiness, bool):
             raise TypeError("Field static of NetworkInterface needs to be of Type bool!")
         self._static = truthiness
@@ -185,6 +186,7 @@ class NetworkInterface:
 
         :param truthiness:
         """
+        truthiness = utils.input_boolean(truthiness)
         if not isinstance(truthiness, bool):
             raise TypeError("Field management of object NetworkInterface needs to be of type bool!")
         self._management = truthiness
@@ -1212,6 +1214,7 @@ class System(Item):
 
         :param value:
         """
+        value = utils.input_boolean(value)
         if not isinstance(value, bool):
             raise TypeError("ipv6_autoconfiguration needs to be of type bool")
         self._ipv6_autoconfiguration = value
@@ -1252,6 +1255,7 @@ class System(Item):
         """
         Sets whether or not the system will use iPXE for booting.
         """
+        enable_ipxe = utils.input_boolean(enable_ipxe)
         if not isinstance(enable_ipxe, bool):
             raise TypeError("enable_ipxe needs to be of type bool")
         self._enable_ipxe = enable_ipxe
@@ -1505,6 +1509,7 @@ class System(Item):
         Use of this option does not affect the ability to use PXE menus. If an admin has machines set up to PXE only
         after local boot fails, this option isn't even relevant.
         """
+        netboot_enabled = utils.input_boolean(netboot_enabled)
         if not isinstance(netboot_enabled, bool):
             raise TypeError("netboot_enabled needs to be a bool")
         self._netboot_enabled = netboot_enabled
@@ -1694,6 +1699,7 @@ class System(Item):
 
         :param repos_enabled:
         """
+        repos_enabled = utils.input_boolean(repos_enabled)
         if not isinstance(repos_enabled, bool):
             raise TypeError("Field repos_enabled of object system needs to be of type bool!")
         self._repos_enabled = repos_enabled
