@@ -483,10 +483,10 @@ class TFTPGen:
         for image in image_list:
             if os.path.exists(image.file):
                 arch = image.arch
-                boot_loaders = image.get_boot_loaders()
+                boot_loaders = image.boot_loaders
 
                 for boot_loader in boot_loaders:
-                    if boot_loader not in image.get_boot_loaders():
+                    if boot_loader not in image.boot_loaders:
                         continue
                     contents = self.write_pxe_file(filename=None, system=None, profile=None, distro=None, arch=arch,
                                                    image=image, format=boot_loader)
@@ -627,7 +627,7 @@ class TFTPGen:
 
         boot_loaders = None
         if system:
-            boot_loaders = system.get_boot_loaders()
+            boot_loaders = system.boot_loaders
             metadata["menu_label"] = system.name
             metadata["menu_name"] = system.name
         elif profile:
@@ -635,7 +635,7 @@ class TFTPGen:
             metadata["menu_label"] = profile.name
             metadata["menu_name"] = profile.name
         elif image:
-            boot_loaders = image.get_boot_loaders()
+            boot_loaders = image.boot_loaders
             metadata["menu_label"] = image.name
             metadata["menu_name"] = image.name
         if boot_loaders is None or format not in boot_loaders:

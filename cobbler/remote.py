@@ -2392,7 +2392,7 @@ class CobblerXMLRPCInterface:
         parent = obj.get_conceptual_parent()
 
         if parent and parent.COLLECTION_TYPE == "profile":
-            return parent.get_boot_loaders()
+            return parent.boot_loaders
         return self.api.get_valid_obj_boot_loaders(parent)
 
     def get_repo_config_for_profile(self, profile_name, **rest):
