@@ -30,6 +30,7 @@ from typing import Optional, List
 from cobbler import enums, templar
 from cobbler import utils
 from cobbler.cexceptions import CX
+from cobbler.enums import Archs
 
 
 class TFTPGen:
@@ -261,11 +262,12 @@ class TFTPGen:
                 raise CX("internal error, invalid arch supplied")
 
             # for tftp only ...
-            if working_arch in ["i386", "x86", "x86_64", "arm", "aarch64", "ppc64le", "ppc64el", "standard"]:
+            if working_arch in [Archs.I386, Archs.X86_64, Archs.ARM, Archs.AARCH64,
+                                Archs.PPC64LE, Archs.PPC64EL]:
                 # ToDo: This is old, move this logic into item_system.get_config_filename()
                 pass
 
-            elif working_arch == "ppc" or working_arch == "ppc64":
+            elif working_arch in [Archs.PPC, Archs.PPC64]:
                 # Determine filename for system-specific bootloader config
                 filename = "%s" % system.get_config_filename(interface=name).lower()
                 # to inherit the distro and system's boot_loader values correctly
@@ -285,9 +287,11 @@ class TFTPGen:
             if system.is_management_supported():
                 if not image_based:
                     if pxe_path:
-                        self.write_pxe_file(pxe_path, system, profile, distro, working_arch, metadata=pxe_metadata)
+                        self.write_pxe_file(pxe_path, system, profile, distro,
+                                            working_arch, metadata=pxe_metadata)
                     if grub_path:
-                        self.write_pxe_file(grub_path, system, profile, distro, working_arch, format="grub")
+                        self.write_pxe_file(grub_path, system, profile, distro,
+                                            working_arch, format="grub")
                         # Generate a link named after system to the mac file for easier lookup
                         link_path = os.path.join(self.bootloc, "grub", "system_link", system.name)
                         if os.path.exists(link_path):
@@ -594,7 +598,7 @@ class TFTPGen:
         metadata["menu_labels"] = menu_labels
         return metadata
 
-    def write_pxe_file(self, filename, system, profile, distro, arch: str, image=None, metadata=None,
+    def write_pxe_file(self, filename, system, profile, distro, arch: Archs, image=None, metadata=None,
                        format: str = "pxe") -> str:
         """
         Write a configuration file for the boot loader(s).
@@ -649,42 +653,40 @@ class TFTPGen:
         # just some random variables
         buffer = ""
 
-        if system and format in ['pxe', 'yaboot'] and not system.netboot_enabled and arch in ['ppc', 'ppc64']:
-            # local booting on ppc requires removing the system-specific dhcpd.conf filename
-            if arch is not None and (arch == "ppc" or arch == "ppc64"):
-                # Disable yaboot network booting for all interfaces on the system
-                for (name, interface) in list(system.interfaces.items()):
+        if system and format in ['pxe', 'yaboot'] and not system.netboot_enabled and arch in [Archs.PPC, Archs.PPC64]:
+            # Disable yaboot network booting for all interfaces on the system
+            for (name, interface) in list(system.interfaces.items()):
 
-                    filename = "%s" % system.get_config_filename(interface=name).lower()
+                filename = "%s" % system.get_config_filename(interface=name).lower()
 
-                    # Remove symlink to the yaboot binary
-                    f3 = os.path.join(self.bootloc, "ppc", filename)
-                    if os.path.lexists(f3):
-                        utils.rmfile(f3)
-                    f3 = os.path.join(self.bootloc, "etc", filename)
-                    if os.path.lexists(f3):
-                        utils.rmfile(f3)
+                # Remove symlink to the yaboot binary
+                f3 = os.path.join(self.bootloc, "ppc", filename)
+                if os.path.lexists(f3):
+                    utils.rmfile(f3)
+                f3 = os.path.join(self.bootloc, "etc", filename)
+                if os.path.lexists(f3):
+                    utils.rmfile(f3)
 
-                # Yaboot/OF doesn't support booting locally once you've booted off the network, so nothing left
-                # to do
-                return None
+            # Yaboot/OF doesn't support booting locally once you've booted off the network, so nothing left
+            # to do
+            return None
 
         template = os.path.join(self.settings.boot_loader_conf_template_dir, format + ".template")
         self.build_kernel(metadata, system, profile, distro, image, format)
 
         # generate the kernel options and append line:
         kernel_options = self.build_kernel_options(system, profile, distro,
-                                                   image, arch, metadata["autoinstall"])
+                                                   image, arch.value, metadata["autoinstall"])
         metadata["kernel_options"] = kernel_options
 
         if distro and distro.os_version.startswith("esxi") and filename is not None:
             append_line = "BOOTIF=%s" % (os.path.basename(filename))
-        elif "initrd_path" in metadata and (not arch or arch not in ["ppc", "ppc64", "arm"]):
+        elif "initrd_path" in metadata and arch not in [Archs.PPC, Archs.PPC64, Archs.ARM]:
             append_line = "append initrd=%s" % (metadata["initrd_path"])
         else:
             append_line = "append "
         append_line = "%s%s" % (append_line, kernel_options)
-        if arch == "ppc" or arch == "ppc64":
+        if arch in [Archs.PPC, Archs.PPC64]:
             # remove the prefix "append"
             # TODO: this looks like it's removing more than append, really not sure what's up here...
             append_line = append_line[7:]
@@ -1014,7 +1016,7 @@ class TFTPGen:
         # This could get enhanced for profile/distro via utils.blender (inheritance)
         # This also is architecture specific. E.g: Some ARM consoles need: console=ttyAMAx,BAUDRATE
         # I guess we need a serial_kernel_dev = param, that can be set to "ttyAMA" if needed.
-        if system and arch == "x86_64":
+        if system and arch == Archs.X86_64:
             if system.serial_device or system.serial_baud_rate:
                 if system.serial_device:
                     serial_device = system.serial_device
