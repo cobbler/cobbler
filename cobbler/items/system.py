@@ -1070,7 +1070,7 @@ class System(Item):
         Get the mac address, which may be implicit in the object name or explicit with --mac-address.
         Use the explicit location first.
 
-        :param interface:
+        :param interface: The name of the interface to get the MAC of.
         """
 
         intf = self.__get_interface(interface)
@@ -1084,7 +1084,7 @@ class System(Item):
         """
         Get the IP address for the given interface.
 
-        :param interface:
+        :param interface: The name of the interface to get the IP address of.
         """
         intf = self.__get_interface(interface)
         if intf.ip_address:
