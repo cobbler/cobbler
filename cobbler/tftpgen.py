@@ -700,7 +700,7 @@ class TFTPGen:
                 else:
                     serial_device = 0
                 if system.serial_baud_rate:
-                    serial_baud_rate = system.serial_baud_rate
+                    serial_baud_rate = system.serial_baud_rate.value
                 else:
                     serial_baud_rate = 115200
 
@@ -1021,7 +1021,7 @@ class TFTPGen:
                 else:
                     serial_device = 0
                 if system.serial_baud_rate:
-                    serial_baud_rate = system.serial_baud_rate
+                    serial_baud_rate = system.serial_baud_rate.value
                 else:
                     serial_baud_rate = 115200
 
