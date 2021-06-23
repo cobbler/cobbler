@@ -612,7 +612,11 @@ def blender(api_handle, remove_dicts: bool, root_obj):
         child_names = results["children"]
         results["children"] = {}
         for key in child_names:
-            results["children"][key] = api_handle.find_items("", name=key, return_list=False).to_dict()
+            child = api_handle.find_items("", name=key, return_list=False)
+            if child is None:
+                raise ValueError("Child with the name \"%s\" of parent object \"%s\" did not exist!"
+                                 % (key, root_obj.name))
+            results["children"][key] = child.to_dict()
 
     # sanitize output for koan and kernel option lines, etc
     if remove_dicts:
