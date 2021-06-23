@@ -81,10 +81,10 @@ def test_boot_loaders():
 
 
 @pytest.mark.parametrize("value,expected", [
-    (0, pytest.raises(TypeError)),
+    (0, does_not_raise()),
     (0.0, pytest.raises(TypeError)),
-    ("", pytest.raises(TypeError)),
-    ("Test", pytest.raises(TypeError)),
+    ("", does_not_raise()),
+    ("Test", does_not_raise()),
     ([], pytest.raises(TypeError)),
     ({}, pytest.raises(TypeError)),
     (None, pytest.raises(TypeError)),
@@ -101,7 +101,8 @@ def test_enable_ipxe(value, expected):
         distro.enable_ipxe = value
 
         # Assert
-        assert distro.enable_ipxe == value
+        assert isinstance(distro.enable_ipxe, bool)
+        assert distro.enable_ipxe or not distro.enable_ipxe
 
 
 def test_gateway():
@@ -177,10 +178,10 @@ def test_name_servers_search():
 
 
 @pytest.mark.parametrize("value,expected", [
-    (0, pytest.raises(TypeError)),
+    (0, does_not_raise()),
     (0.0, pytest.raises(TypeError)),
-    ("", pytest.raises(TypeError)),
-    ("Test", pytest.raises(TypeError)),
+    ("", does_not_raise()),
+    ("Test", does_not_raise()),
     ([], pytest.raises(TypeError)),
     ({}, pytest.raises(TypeError)),
     (None, pytest.raises(TypeError)),
@@ -197,7 +198,8 @@ def test_netboot_enabled(value, expected):
         distro.netboot_enabled = value
 
         # Assert
-        assert distro.netboot_enabled == value
+        assert isinstance(distro.netboot_enabled, bool)
+        assert distro.netboot_enabled or not distro.netboot_enabled
 
 
 def test_next_server_v4():

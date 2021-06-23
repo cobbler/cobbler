@@ -100,10 +100,10 @@ def test_set_virt_disk_driver(test_driver, test_raise):
 @pytest.mark.parametrize("test_autoboot,expectation", [
     (True, does_not_raise()),
     (False, does_not_raise()),
-    (0, pytest.raises(TypeError)),
-    (1, pytest.raises(TypeError)),
-    (2, pytest.raises(TypeError)),
-    ("Test", pytest.raises(TypeError))
+    (0, does_not_raise()),
+    (1, does_not_raise()),
+    (2, does_not_raise()),
+    ("Test", does_not_raise())
 ])
 def test_set_virt_auto_boot(test_autoboot, expectation):
     # Arrange
@@ -120,10 +120,10 @@ def test_set_virt_auto_boot(test_autoboot, expectation):
 @pytest.mark.parametrize("test_input,expected_exception", [
     (True, does_not_raise()),
     (False, does_not_raise()),
-    (0, pytest.raises(TypeError)),
-    (1, pytest.raises(TypeError)),
-    (5, pytest.raises(TypeError)),
-    ("", pytest.raises(TypeError))
+    (0, does_not_raise()),
+    (1, does_not_raise()),
+    (5, does_not_raise()),
+    ("", does_not_raise())
 ])
 def test_set_virt_pxe_boot(test_input, expected_exception):
     # Arrange
@@ -133,7 +133,8 @@ def test_set_virt_pxe_boot(test_input, expected_exception):
         result = validate.validate_virt_pxe_boot(test_input)
 
         # Assert
-        assert result == 0 or result == 1
+        assert isinstance(result, bool)
+        assert result or not result
 
 
 def test_set_virt_ram():

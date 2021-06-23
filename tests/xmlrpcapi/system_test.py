@@ -51,6 +51,8 @@ class TestSystem:
         # ("boot_loaders", "pxe ipxe grub"), FIXME: This raises currently but it did not in the past
         ("virt_auto_boot", True),
         ("virt_auto_boot", False),
+        ("virt_auto_boot", "yes"),
+        ("virt_auto_boot", "no"),
         ("virt_cpus", "<<inherit>>"),
         ("virt_cpus", 1),
         ("virt_cpus", 2),
@@ -104,8 +106,6 @@ class TestSystem:
         ("mgmt_parameters", "badyaml"),
         ("profile", "badprofile"),
         ("boot_loaders", "badloader"),
-        ("virt_auto_boot", "yes"),
-        ("virt_auto_boot", "no"),
         ("virt_cpus", "a"),
         ("virt_file_size", "a"),
         ("virt_ram", "a"),

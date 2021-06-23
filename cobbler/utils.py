@@ -535,6 +535,9 @@ def input_boolean(value: Union[str, bool, int]) -> bool:
     :param value: The value to convert to boolean.
     :return: True if the value is in the following list, otherwise false: "true", "1", "on", "yes", "y" .
     """
+    if not isinstance(value, (str, bool, int)):
+        raise TypeError("The value handed to the input_boolean function was not convertable due to a wrong type "
+                        "(found: %s)!" % type(value))
     value = str(value).lower()
     return value in ["true", "1", "on", "yes", "y"]
 
