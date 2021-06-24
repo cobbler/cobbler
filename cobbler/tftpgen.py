@@ -294,10 +294,8 @@ class TFTPGen:
                                             working_arch, format="grub")
                         # Generate a link named after system to the mac file for easier lookup
                         link_path = os.path.join(self.bootloc, "grub", "system_link", system.name)
-                        if os.path.exists(link_path):
-                            utils.rmfile(link_path)
-                        if not os.path.exists(os.path.dirname(link_path)):
-                            utils.mkdir(os.path.dirname(link_path))
+                        utils.rmfile(link_path)
+                        utils.mkdir(os.path.dirname(link_path))
                         os.symlink(os.path.join("..", "system", grub_name), link_path)
                 else:
                     self.write_pxe_file(pxe_path, system, None, None, working_arch, image=profile,
