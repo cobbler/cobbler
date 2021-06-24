@@ -236,7 +236,10 @@ class TFTPGen:
         # generate one record for each described NIC ..
         for (name, _) in list(system.interfaces.items()):
 
-            pxe_name = system.get_config_filename(interface=name)
+            # Passing "pxe" here is a hack, but we need to make sure that
+            # get_config_filename() will return a filename in the pxelinux
+            # format.
+            pxe_name = system.get_config_filename(interface=name, loader="pxe")
             grub_name = system.get_config_filename(interface=name, loader="grub")
 
             if pxe_name is not None:
