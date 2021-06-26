@@ -28,6 +28,7 @@ import yaml
 
 from cobbler import download_manager
 from cobbler.cobbler_collections import manager
+from cobbler.settings import Settings
 
 
 class CobblerSvc:
@@ -55,6 +56,15 @@ class CobblerSvc:
         """
         if self.remote is None:
             self.remote = xmlrpc.client.Server(self.server, allow_none=True)
+
+    def settings(self) -> Settings:
+        """
+        Get the application configuration.
+
+        :return: Settings object.
+        """
+        self.__xmlrpc_setup()
+        return Settings().from_dict(self.remote.get_settings())
 
     def index(self, **args) -> str:
         """

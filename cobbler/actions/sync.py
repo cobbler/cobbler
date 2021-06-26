@@ -452,9 +452,12 @@ class CobblerSync:
         system_record = self.systems.find(name=name)
 
         for (name, interface) in list(system_record.interfaces.items()):
-            filename = system_record.get_config_filename(interface=name)
-            utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
-            utils.rmfile(os.path.join(bootloc, "grub", filename.upper()))
+            pxe_filename = system_record.get_config_filename(interface=name, loader="pxe")
+            grub_filename = system_record.get_config_filename(interface=name, loader="grub")
+            utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", pxe_filename))
+            utils.rmfile(os.path.join(bootloc, "grub", "system", grub_filename))
+            utils.rmfile(os.path.join(bootloc, "grub", "system_link", system_record.name))
+            # FIXME: No cleanup path for yaboot
 
     def remove_single_menu(self, rebuild_menu: bool = True):
         """

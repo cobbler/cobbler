@@ -30,6 +30,7 @@ from typing import Union
 
 from cobbler import utils
 from cobbler import download_manager
+from cobbler.enums import RepoArchs
 from cobbler.utils import os_release
 
 HAS_LIBREPO = True
@@ -432,12 +433,14 @@ class RepoSync:
             utils.die("ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository "
                       "must match the name of the RHN channel" % args)
 
-        if repo.arch == "i386":
-            # Counter-intuitive, but we want the newish kernels too
-            repo.arch = "i686"
+        arch = repo.arch.value
 
-        if repo.arch != "":
-            cmd = "%s -a %s" % (cmd, repo.arch)
+        if arch == "i386":
+            # Counter-intuitive, but we want the newish kernels too
+            arch = "i686"
+
+        if arch != "":
+            cmd = "%s -a %s" % (cmd, arch)
 
         # Now regardless of whether we're doing yumdownloader or reposync or whether the repo was http://, ftp://, or
         # rhn://, execute all queued commands here. Any failure at any point stops the operation.
@@ -525,14 +528,11 @@ class RepoSync:
                   % (cmd, self.rflags, temp_file, pipes.quote(repo.name),
                      pipes.quote(self.settings.webdir + "/repo_mirror"))
             if repo.arch != "":
-                if repo.arch == "x86":
-                    # Fix potential arch errors
-                    repo.arch = "i386"
-                if repo.arch == "i386":
+                if repo.arch == RepoArchs.I386:
                     # Counter-intuitive, but we want the newish kernels too
                     cmd = "%s -a i686" % (cmd)
                 else:
-                    cmd = "%s -a %s" % (cmd, repo.arch)
+                    cmd = "%s -a %s" % (cmd, repo.arch.value)
 
         else:
             # Create the output directory if it doesn't exist
@@ -678,12 +678,10 @@ class RepoSync:
                     rflags += " %s" % x
             cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, dest_path)
             cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, pipes.quote(dest_path))
-            if repo.arch == "src":
+            if repo.arch == RepoArchs.SRC:
                 cmd = "%s --source" % cmd
             else:
-                arch = repo.arch
-                if arch == "x86":
-                    arch = "i386"  # FIX potential arch errors
+                arch = repo.arch.value
                 if arch == "x86_64":
                     arch = "amd64"  # FIX potential arch errors
                 cmd = "%s --nosource -a %s" % (cmd, arch)

@@ -27,6 +27,7 @@ import copy
 from cobbler import utils
 from cobbler.manager import ManagerModule
 from cobbler.cexceptions import CX
+from cobbler.enums import Archs
 
 MANAGER = None
 
@@ -181,11 +182,11 @@ class _IscManager(ManagerModule):
                 # Explicitly declare filename for other (non x86) archs as in DHCP discover package mostly the
                 # architecture cannot be differed due to missing bits...
                 if distro is not None and not interface.get("filename"):
-                    if distro.arch == "ppc" or distro.arch == "ppc64":
+                    if distro.arch in [Archs.PPC,  Archs.PPC64]:
                         interface["filename"] = yaboot
-                    elif distro.arch == "ppc64le":
+                    elif distro.arch == Archs.PPC64LE:
                         interface["filename"] = "grub/grub.ppc64le"
-                    elif distro.arch == "aarch64":
+                    elif distro.arch == Archs.AARCH64:
                         interface["filename"] = "grub/grubaa64.efi"
 
                 if not self.settings.always_write_dhcp_entries:
@@ -342,13 +343,13 @@ class _IscManager(ManagerModule):
                 # Explicitly declare filename for other (non x86) archs as in DHCP discover package mostly the
                 # architecture cannot be differed due to missing bits...
                 if distro is not None and not interface.get("filename"):
-                    if distro.arch == "ppc":
+                    if distro.arch == Archs.PPC:
                         interface["filename"] = "grub/grub.ppc"
-                    elif distro.arch == "ppc64":
+                    elif distro.arch == Archs.PPC64:
                         interface["filename"] = "grub/grub.ppc64"
-                    elif distro.arch == "ppc64le":
+                    elif distro.arch == Archs.PPC64LE:
                         interface["filename"] = "grub/grub.ppc64le"
-                    elif distro.arch == "aarch64":
+                    elif distro.arch == Archs.AARCH64:
                         interface["filename"] = "grub/grubaa64.efi"
 
                 if not self.settings.always_write_dhcp_entries:
