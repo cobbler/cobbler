@@ -156,6 +156,7 @@ class Mgmtclass(item.Item):
 
         :param isdef: The new value for the property.
         """
+        isdef = utils.input_boolean(isdef)
         if not isinstance(isdef, bool):
             raise TypeError("Field is_defintion from mgmtclass must be of type bool.")
         self._is_definition = isdef

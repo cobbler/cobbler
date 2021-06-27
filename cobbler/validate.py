@@ -382,6 +382,7 @@ def validate_virt_auto_boot(value: bool) -> bool:
 
     :param value: May be True or False.
     """
+    value = utils.input_boolean(value)
     if not isinstance(value, bool):
         raise TypeError("virt_auto_boot needs to be of type bool.")
     return value
@@ -395,6 +396,7 @@ def validate_virt_pxe_boot(value: bool) -> bool:
     :param value: May be True or False.
     :return: True or False
     """
+    value = utils.input_boolean(value)
     if not isinstance(value, bool):
         raise TypeError("virt_pxe_boot needs to be of type bool.")
     return value

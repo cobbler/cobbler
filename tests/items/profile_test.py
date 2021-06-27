@@ -130,8 +130,8 @@ def test_enable_ipxe(value, expected_exception):
 @pytest.mark.parametrize("value,expected_exception", [
     (True, does_not_raise()),
     (False, does_not_raise()),
-    ("", pytest.raises(TypeError)),
-    (0, pytest.raises(TypeError))
+    ("", does_not_raise()),
+    (0, does_not_raise())
 ])
 def test_enable_menu(value, expected_exception):
     # Arrange
@@ -143,7 +143,8 @@ def test_enable_menu(value, expected_exception):
         profile.enable_menu = value
 
         # Assert
-        assert profile.enable_menu == value
+        assert isinstance(profile.enable_menu, bool)
+        assert profile.enable_menu or not profile.enable_menu
 
 
 def test_dhcp_tag():
@@ -219,7 +220,7 @@ def test_autoinstall():
 
 
 @pytest.mark.parametrize("value,expected_exception", [
-    ("", pytest.raises(TypeError)),
+    ("", does_not_raise()),
     (False, does_not_raise()),
     (True, does_not_raise())
 ])
@@ -233,7 +234,8 @@ def test_virt_auto_boot(value, expected_exception):
         profile.virt_auto_boot = value
 
         # Assert
-        assert profile.virt_auto_boot == value
+        assert isinstance(profile.virt_auto_boot, bool)
+        assert profile.virt_auto_boot or not profile.virt_auto_boot
 
 
 @pytest.mark.parametrize("value,expected_exception", [

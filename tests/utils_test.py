@@ -234,24 +234,25 @@ def test_input_string_or_dict(testinput, expected_result, possible_exception):
         assert expected_result == result
 
 
-@pytest.mark.parametrize("testinput,expected_result", [
-    (True, True),
-    (1, True),
-    ("oN", True),
-    ("yEs", True),
-    ("Y", True),
-    ("Test", False),
-    (-5, False),
-    (.5, False)
+@pytest.mark.parametrize("testinput,expected_exception,expected_result", [
+    (True, does_not_raise(), True),
+    (1, does_not_raise(), True),
+    ("oN", does_not_raise(), True),
+    ("yEs", does_not_raise(), True),
+    ("Y", does_not_raise(), True),
+    ("Test", does_not_raise(), False),
+    (-5, does_not_raise(), False),
+    (.5, pytest.raises(TypeError), False)
 ])
-def test_input_boolean(testinput, expected_result):
+def test_input_boolean(testinput, expected_exception, expected_result):
     # Arrange
 
     # Act
-    result = utils.input_boolean(testinput)
+    with expected_exception:
+        result = utils.input_boolean(testinput)
 
-    # Assert
-    assert expected_result == result
+        # Assert
+        assert expected_result == result
 
 
 def test_grab_tree():

@@ -177,6 +177,7 @@ class Repo(item.Item):
 
         :param keep_updated: This may be a bool-like value if the repository shall be keept up to date or not.
         """
+        keep_updated = utils.input_boolean(keep_updated)
         if not isinstance(keep_updated, bool):
             raise TypeError("Field keep_updated of object repo needs to be of type bool!")
         self._keep_updated = keep_updated
@@ -413,6 +414,7 @@ class Repo(item.Item):
 
         :param value: The new value for ``mirror_locally``.
         """
+        value = utils.input_boolean(value)
         if not isinstance(value, bool):
             raise TypeError("mirror_locally needs to be of type bool")
         self._mirror_locally = value
