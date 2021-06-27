@@ -1950,10 +1950,12 @@ class CobblerXMLRPCInterface:
                     system_to_edit = self.__get_object(handle)
                     if system_to_edit is None:
                         raise ValueError("No system found with the specified name (name given: \"%s\")!" % object_name)
-                    interface = system_to_edit.interfaces.get(attributes.get("interface"))
-                    if not interface:
-                        interface = system_to_edit.interfaces.get("default")
-                    if not interface:
+                    # If we don't have an explicit interface name use the default interface
+                    interface_name = attributes.get("interface", "default")
+                    self.logger.debug("Interface \"%s\" is being edited.", interface_name)
+                    interface = system_to_edit.interfaces.get(interface_name)
+                    if interface is None:
+                        # If the interface is not existing, create a new one.
                         interface = system.NetworkInterface(self.api)
                     for attribute_key in attributes:
                         if self.__is_interface_field(attribute_key):
@@ -1964,7 +1966,7 @@ class CobblerXMLRPCInterface:
                                                     attribute_key)
                         else:
                             self.logger.debug("Field %s was not an interface field.", attribute_key)
-                    system_to_edit.interfaces.update({attributes.get("interface"): interface})
+                    system_to_edit.interfaces.update({interface_name: interface})
                 elif "delete_interface" in attributes:
                     system_to_edit = self.__get_object(handle)
                     system_to_edit.delete_interface(attributes.get("interface"))
