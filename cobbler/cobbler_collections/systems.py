@@ -70,8 +70,8 @@ class Systems(collection.Collection):
                 lite_sync = self.api.get_sync()
                 lite_sync.remove_single_system(name)
 
-        if obj.parent is not None:
-            obj.parent.remove(obj.name)
+        if obj.parent is not None and obj.name in obj.parent.children:
+            obj.parent.children.remove(obj.name)
 
         self.lock.acquire()
         try:

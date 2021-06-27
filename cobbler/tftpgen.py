@@ -25,7 +25,7 @@ import os
 import os.path
 import re
 import socket
-from typing import Optional, List
+from typing import Dict, Optional, List
 
 from cobbler import enums, templar
 from cobbler import utils
@@ -309,7 +309,7 @@ class TFTPGen:
                 if grub_path:
                     utils.rmfile(grub_path)
 
-    def make_pxe_menu(self):
+    def make_pxe_menu(self) -> Dict[str, str]:
         """
         Generates pxe, ipxe and grub boot menus.
         """
@@ -1032,7 +1032,7 @@ class TFTPGen:
 
         return append_line
 
-    def write_templates(self, obj, write_file: bool = False, path=None):
+    def write_templates(self, obj, write_file: bool = False, path=None) -> Dict[str, str]:
         """
         A semi-generic function that will take an object with a template_files dict {source:destiation}, and generate a
         rendered file. The write_file option allows for generating of the rendered output without actually creating any

@@ -905,7 +905,7 @@ class System(Item):
         Setter of the boot loaders.
 
         :param boot_loaders: The boot loaders for the system.
-        :raises CX
+        :raises CX: This is risen in case the bootloaders set are not valid ones.
         """
         if boot_loaders == enums.VALUE_INHERITED:
             self._boot_loaders = enums.VALUE_INHERITED
