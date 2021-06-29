@@ -6,7 +6,7 @@
 #set runpre = ""
 #if $system_name != ''
     ## RUN PRE TRIGGER
-    #if $run_install_triggers in [ "1", "true", "yes", "y" ]
+    #if $run_install_triggers == "True"
         #if $breed == 'redhat'
             #set runpre = "\ncurl \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -o /dev/null" % (srv, "system", system_name)
         #else if $breed == 'suse'
@@ -19,7 +19,7 @@
     #end if
 #else if $profile_name != ''
     ## RUN PRE TRIGGER
-    #if $run_install_triggers in [ "1", "true", "yes", "y" ]
+    #if $run_install_triggers == "True"
         #if $breed == 'redhat'
             #set runpre = "\ncurl \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -o /dev/null" % (srv, "profile", profile_name)
         #else if $breed == 'suse'
