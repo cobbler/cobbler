@@ -11,7 +11,7 @@
 #set runpost = ""
 #if $system_name != ''
     ## PXE JUST ONCE
-    #if $pxe_just_once in [ "1", "true", "yes", "y" ]
+    #if $pxe_just_once == "True"
         #if $breed == 'redhat'
             #set nopxe = "\ncurl \"http://%s/cblr/svc/op/nopxe/system/%s\" -o /dev/null" % (srv, system_name)
         #else if $breed == 'suse'
@@ -42,7 +42,7 @@
         #end if
     #end if
     ## RUN POST TRIGGER
-    #if $run_install_triggers in [ "1", "true", "yes", "y" ]
+    #if $run_install_triggers == "True"
         #if $breed == 'redhat'
             #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "system", system_name)
         #else if $breed == 'suse'
@@ -71,7 +71,7 @@
         #end if
     #end if
     ## RUN POST TRIGGER
-    #if $run_install_triggers in [ "1", "true", "yes", "y" ]
+    #if $run_install_triggers == "True"
         #if $breed == 'redhat'
             #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "profile", profile_name)
         #else if $breed == 'suse'
