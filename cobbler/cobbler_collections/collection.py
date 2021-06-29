@@ -425,8 +425,8 @@ class Collection:
                 utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type(),
                                    [])
 
-        # update children cache in parent object
-        if ref.parent:
+        # update children cache in parent object in case it is not in there already
+        if ref.parent and ref.name not in ref.parent.children:
             ref.parent.children.append(ref.name)
             self.logger.debug("Added child \"%s\" to parent \"%s\"", ref.name, ref.parent.name)
 

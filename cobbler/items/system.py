@@ -1297,7 +1297,7 @@ class System(Item):
             if self.name in old_parent.children:
                 old_parent.children.remove(self.name)
         new_parent = self.parent
-        if isinstance(new_parent, Item):
+        if isinstance(new_parent, Item) and self.name not in new_parent.children:
             new_parent.children.append(self.name)
 
     @property
@@ -1337,7 +1337,7 @@ class System(Item):
             if isinstance(old_parent, Item):
                 old_parent.children.remove(self.name)
             new_parent = self.parent
-            if isinstance(new_parent, Item):
+            if isinstance(new_parent, Item) and self.name not in new_parent.children:
                 new_parent.children.append(self.name)
             return
         raise CX("invalid image name (%s)" % image_name)

@@ -154,9 +154,9 @@ class Profile(item.Item):
             raise CX("profile %s not found, inheritance not possible" % parent)
         self._parent = parent
         self.depth = found.depth + 1
-        parent = self.parent
-        if isinstance(parent, item.Item):
-            parent.children.append(self.name)
+        new_parent = self.parent
+        if isinstance(new_parent, item.Item) and self.name not in new_parent.children:
+            new_parent.children.append(self.name)
 
     @property
     def arch(self):
@@ -203,7 +203,8 @@ class Profile(item.Item):
             old_parent.children.remove(self.name)
         self._distro = distro_name
         self.depth = distro.depth + 1    # reset depth if previously a subprofile and now top-level
-        distro.children.append(self.name)
+        if self.name not in distro.children:
+            distro.children.append(self.name)
 
     @property
     def name_servers(self) -> list:

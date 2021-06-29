@@ -100,9 +100,9 @@ class Menu(item.Item):
             raise CX("menu %s not found" % value)
         self._parent = value
         self.depth = found.depth + 1
-        parent = self._parent
-        if isinstance(parent, item.Item):
-            parent.children.append(self.name)
+        new_parent = self._parent
+        if isinstance(new_parent, item.Item) and self.name not in new_parent.children:
+            new_parent.children.append(self.name)
 
     @property
     def children(self) -> list:
@@ -126,6 +126,7 @@ class Menu(item.Item):
             if not all(isinstance(x, str) for x in value):
                 raise TypeError("Field children of object menu must be of type list and all items need to be menu "
                                 "names (str).")
+            self._children = []
             for name in value:
                 menu = self.api.find_menu(name=name)
                 if menu is not None:
