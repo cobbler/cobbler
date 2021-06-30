@@ -14,17 +14,10 @@
     #if $pxe_just_once == "True"
         #if $breed == 'redhat'
             #set nopxe = "\ncurl \"http://%s/cblr/svc/op/nopxe/system/%s\" -o /dev/null" % (srv, system_name)
-        #else if $breed == 'suse'
-            #set nopxe = "\nwget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null" % (srv, system_name)
         #else if $breed == 'vmware' and $os_version == 'esx4'
             #set nopxe = "\ncurl \"http://%s/cblr/svc/op/nopxe/system/%s\" -o /dev/null" % (srv, system_name)
-        #else if $breed == 'vmware'
-            #set nopxe = "\nwget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null" % (srv, system_name)
-        #else if $breed == 'debian' or $breed == 'ubuntu'
-            #set nopxe = "\nwget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null" % (srv, system_name)
         #else
-            ## default to wget
-            #set nopxe = "\nwget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null;" % (srv, system_name)
+            #set nopxe = "\nwget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null" % (srv, system_name)
         #end if
     #end if
     ## SAVE AUTO INSTALLATION
@@ -45,13 +38,9 @@
     #if $run_install_triggers == "True"
         #if $breed == 'redhat'
             #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "system", system_name)
-        #else if $breed == 'suse'
-            #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "system", system_name)
         #else if $breed == 'vmware' and $os_version == 'esx4'
             #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "system", system_name)
-        #else if $breed == 'vmware'
-            #set runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null" % (srv, "system", system_name)
-        #else if $breed == 'debian' or $breed == 'ubuntu'
+        #else
             #set runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null" % (srv, "system", system_name)
         #end if
     #end if
@@ -74,13 +63,9 @@
     #if $run_install_triggers == "True"
         #if $breed == 'redhat'
             #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "profile", profile_name)
-        #else if $breed == 'suse'
-            #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "profile", profile_name)
         #else if $breed == 'vmware' and $os_version == 'esx4'
             #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "profile", profile_name)
-        #else if $breed == 'vmware'
-            #set runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null" % (srv, "profile", profile_name)
-        #else if $breed == 'debian' or $breed == 'ubuntu'
+        #else
             #set runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null" % (srv, "profile", profile_name)
         #end if
     #end if
