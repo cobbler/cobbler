@@ -85,6 +85,6 @@
         #end if
     #end if
 #end if
+#echo $nopxe
 #echo $save_autoinstall
 #echo $runpost
-#echo $nopxe
