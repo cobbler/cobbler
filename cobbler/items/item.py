@@ -143,7 +143,7 @@ class Item:
         :param is_subobject: See above extensive description.
         """
         self._parent = ''
-        self._depth = 0.0
+        self._depth = 0
         self._children = []
         self._ctime = 0.0
         self._mtime = 0.0
@@ -460,7 +460,7 @@ class Item:
             self._fetchable_files = value
 
     @property
-    def depth(self) -> float:
+    def depth(self) -> int:
         """
         TODO
 
@@ -469,14 +469,14 @@ class Item:
         return self._depth
 
     @depth.setter
-    def depth(self, depth: float):
+    def depth(self, depth: int):
         """
         Setter for depth.
 
         :param depth: The new value for depth.
         """
-        if not isinstance(depth, float):
-            raise TypeError("depth needs to be of type float")
+        if not isinstance(depth, int):
+            raise TypeError("depth needs to be of type int")
         self._depth = depth
 
     @property
