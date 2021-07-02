@@ -356,9 +356,8 @@ class TFTPGen:
             if 'grub' in arch_menu_items:
                 boot_menu["grub"] = arch_menu_items
                 outfile = os.path.join(self.bootloc, "grub", "{0}_menu_items.cfg".format(arch))
-                fd = open(outfile, "w+")
-                fd.write(arch_menu_items["grub"])
-                fd.close()
+                with open(outfile, "w+") as fd:
+                    fd.write(arch_menu_items["grub"])
         return boot_menu
 
     def get_menu_items(self, arch: Optional[str] = None) -> dict:
@@ -531,9 +530,8 @@ class TFTPGen:
         for boot_loader in boot_loaders:
             template = os.path.join(self.settings.boot_loader_conf_template_dir, "%s_submenu.template" % boot_loader)
             if os.path.exists(template):
-                template_fh = open(template)
-                template_data[boot_loader] = template_fh.read()
-                template_fh.close()
+                with open(template) as template_fh:
+                    template_data[boot_loader] = template_fh.read()
                 if menu:
                     parent_menu = menu.parent
                     metadata["menu_name"] = menu.name
@@ -548,6 +546,9 @@ class TFTPGen:
                     else:
                         metadata["parent_menu_name"] = "Cobbler"
                         metadata["parent menu_label"] = "Cobbler"
+            else:
+                self.logger.warning("Template for building a submenu not found for bootloader \"%s\"! Submenu "
+                                    "structure thus missing for this bootloader.", boot_loader)
 
         self.get_submenus(menu, metadata, arch)
         nested_menu_items = metadata["menu_items"]
