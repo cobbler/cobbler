@@ -88,7 +88,7 @@ class NetworkInterface:
                 continue
             if key.startswith("_"):
                 if isinstance(self.__dict__[key], enum.Enum):
-                    result[key[1:]] = self.__dict__[key].value
+                    result[key[1:]] = self.__dict__[key].name
                 else:
                     result[key[1:]] = self.__dict__[key]
         return result
