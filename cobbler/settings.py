@@ -66,7 +66,7 @@ DEFAULTS = {
     "cobbler_master": ["", "str"],
     "convert_server_to_ip": [False, "bool"],
     "createrepo_flags": ["-c cache -s sha", "str"],
-    "default_autoinstall": ["/var/lib/cobbler/templates/default.ks", "str"],
+    "default_autoinstall": ["default.ks", "str"],
     "default_name_servers": [[], "list"],
     "default_name_servers_search": [[], "list"],
     "default_ownership": [["admin"], "list"],

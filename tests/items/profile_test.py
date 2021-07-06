@@ -204,7 +204,7 @@ def test_filename():
     profile.filename = ""
 
     # Assert
-    assert profile.filename == "<<inherit>>"
+    assert profile.filename == ""
 
 
 def test_autoinstall():

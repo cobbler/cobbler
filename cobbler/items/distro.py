@@ -45,13 +45,12 @@ class Distro(item.Item):
         super().__init__(api, *args, **kwargs)
         self._tree_build_time = 0.0
         self._arch = enums.Archs.X86_64
-        self._boot_loaders = []
+        self._boot_loaders: Union[list, str] = enums.VALUE_INHERITED
         self._breed = ""
         self._initrd = ""
         self._kernel = ""
         self._mgmt_classes = []
         self._os_version = ""
-        self._owners = []
         self._redhat_management_key = ""
         self._source_repos = []
         self._fetchable_files = {}

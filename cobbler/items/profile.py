@@ -24,6 +24,7 @@ from cobbler import autoinstall_manager
 from cobbler.items import item
 from cobbler import utils, validate, enums
 from cobbler.cexceptions import CX
+from cobbler.items.distro import Distro
 
 
 class Profile(item.Item):
@@ -37,30 +38,45 @@ class Profile(item.Item):
     def __init__(self, api, *args, **kwargs):
         super().__init__(api, *args, **kwargs)
         self._template_files = {}
-        self._autoinstall = ""
-        self._boot_loaders = []
+        self._autoinstall = api.settings().default_autoinstall
+        self._boot_loaders: Union[list, str] = enums.VALUE_INHERITED
         self._dhcp_tag = ""
         self._distro = ""
-        self._enable_ipxe = False
-        self._enable_menu = False
-        self._name_servers = []
-        self._name_servers_search = []
-        self._next_server_v4 = ""
-        self._next_server_v6 = ""
-        self._filename = ""
-        self._proxy = ""
-        self._redhat_management_key = ""
+        self._enable_ipxe = api.settings().enable_ipxe
+        self._enable_menu = api.settings().enable_menu
+        self._name_servers = api.settings().default_name_servers
+        self._name_servers_search = api.settings().default_name_servers_search
+        self._next_server_v4 = api.settings().next_server_v4
+        self._next_server_v6 = api.settings().next_server_v6
+        self._filename = enums.VALUE_INHERITED
+        self._proxy = api.settings().proxy_url_int
+        self._redhat_management_key = enums.VALUE_INHERITED
         self._repos = []
         self._server = ""
         self._menu = ""
-        self._virt_auto_boot = False
-        self._virt_bridge = ""
-        self._virt_cpus = 0
+        # FIXME: The virt_* attributes don't support inheritance so far
+        self._virt_auto_boot = api.settings().virt_auto_boot
+        self._virt_bridge = api.settings().default_virt_bridge
+        self._virt_cpus: Union[int, str] = 1
         self._virt_disk_driver = enums.VirtDiskDrivers.RAW
         self._virt_file_size = 0
         self._virt_path = ""
-        self._virt_ram = 0
+        self._virt_ram = api.settings().default_virt_ram
         self._virt_type = enums.VirtType.AUTO
+
+        # Overwrite defaults from item.py
+        self._boot_files = enums.VALUE_INHERITED
+        self._fetchable_files = enums.VALUE_INHERITED
+        self._autoinstall_meta = enums.VALUE_INHERITED
+        self._kernel_options = enums.VALUE_INHERITED
+        self._kernel_options_post = enums.VALUE_INHERITED
+        self._mgmt_classes = enums.VALUE_INHERITED
+        self._mgmt_parameters = enums.VALUE_INHERITED
+        self._mgmt_classes = enums.VALUE_INHERITED
+
+        # Use setters to validate settings
+        self.virt_disk_driver = api.settings().default_virt_disk_driver
+        self.virt_type = api.settings().default_virt_type
 
     def __getattr__(self, name):
         if name == "kickstart":
@@ -114,16 +130,18 @@ class Profile(item.Item):
     #
 
     @property
-    def parent(self):
+    def parent(self) -> Optional[item.Item]:
         """
-        Return object next highest up the tree.
+        Return object next highest up the tree. If this property is not set it falls back to the value of the
+        ``distro``. In case neither distro nor parent is set, it returns None (which would make the profile invalid).
 
         :return:
         """
         if not self._parent:
-            if self.distro is None:
+            parent = self.distro
+            if parent is None:
                 return None
-            result = self.api.distros().find(name=self.distro.name)
+            return parent
         else:
             result = self.api.profiles().find(name=self._parent)
         return result
@@ -213,6 +231,14 @@ class Profile(item.Item):
 
         :return:
         """
+        if self._name_servers == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None and isinstance(parent, Profile):
+                return self.parent.name_servers
+            else:
+                self.logger.info("Profile \"%s\" did not have a valid parent of type Profile but name_servers is set to"
+                                 " \"<<inherit>>\".", self.name)
+                return []
         return self._name_servers
 
     @name_servers.setter
@@ -233,6 +259,14 @@ class Profile(item.Item):
 
         :return:
         """
+        if self._name_servers_search == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None and isinstance(parent, Profile):
+                return self.parent.name_servers_search
+            else:
+                self.logger.info("Profile \"%s\" did not have a valid parent of type Profile but name_servers_search is"
+                                 " set to \"<<inherit>>\".", self.name)
+                return []
         return self._name_servers_search
 
     @name_servers_search.setter
@@ -253,6 +287,14 @@ class Profile(item.Item):
 
         :return:
         """
+        if self._proxy == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None and isinstance(parent, Profile):
+                return self.parent.proxy
+            else:
+                self.logger.info("Profile \"%s\" did not have a valid parent of type Profile but proxy is set to "
+                                 "\"<<inherit>>\".", self.name)
+                return ""
         return self._proxy
 
     @proxy.setter
@@ -273,6 +315,14 @@ class Profile(item.Item):
 
         :return:
         """
+        if self._enable_ipxe == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None and isinstance(parent, Profile):
+                return self.parent.enable_ipxe
+            else:
+                self.logger.info("Profile \"%s\" did not have a valid parent of type Profile but mgmt_parameters is "
+                                 "set to \"<<inherit>>\".", self.name)
+                return False
         return self._enable_ipxe
 
     @enable_ipxe.setter
@@ -294,6 +344,14 @@ class Profile(item.Item):
 
         :return:
         """
+        if self._enable_menu == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None and isinstance(parent, Profile):
+                return self.parent.enable_menu
+            else:
+                self.logger.info("Profile \"%s\" did not have a valid parent of type Profile but enable_menu is set to "
+                                 "\"<<inherit>>\".", self.name)
+                return False
         return self._enable_menu
 
     @enable_menu.setter
@@ -406,6 +464,16 @@ class Profile(item.Item):
 
         :return:
         """
+        if self._filename == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None and isinstance(parent, Profile):
+                return self.parent.filename
+            elif parent is not None and isinstance(parent, Distro):
+                return ""
+            else:
+                self.logger.info("Profile \"%s\" did not have a valid parent of type Profile or Distro but filename is"
+                                 " set to \"<<inherit>>\".", self.name)
+                return ""
         return self._filename
 
     @filename.setter
@@ -429,6 +497,16 @@ class Profile(item.Item):
 
         :return:
         """
+        if self._autoinstall == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None and isinstance(parent, Profile):
+                return self.parent.autoinstall
+            elif parent is not None and isinstance(parent, Distro):
+                return self.api.settings().default_autoinstall
+            else:
+                self.logger.info("Profile \"%s\" did not have a valid parent of type Profile but autoinstall is set to "
+                                 "\"<<inherit>>\".", self.name)
+                return ""
         return self._autoinstall
 
     @autoinstall.setter
@@ -612,6 +690,14 @@ class Profile(item.Item):
 
         :return: Returns the redhat_management_key of the profile.
         """
+        if self._redhat_management_key == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None:
+                return self.parent.redhat_management_key
+            else:
+                self.logger.info("Profile \"%s\" did not have a valid parent but redhat_management_key is set to "
+                                 "\"<<inherit>>\".", self.name)
+                return ""
         return self._redhat_management_key
 
     @redhat_management_key.setter

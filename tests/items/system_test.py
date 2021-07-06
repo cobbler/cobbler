@@ -235,7 +235,7 @@ def test_filename():
     system.filename = ""
 
     # Assert
-    assert system.filename == "<<inherit>>"
+    assert system.filename == ""
 
 
 def test_power_address():
@@ -343,7 +343,7 @@ def test_proxy():
     system.proxy = ""
 
     # Assert
-    assert system.proxy == "<<inherit>>"
+    assert system.proxy == ""
 
 
 def test_redhat_management_key():

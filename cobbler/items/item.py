@@ -150,17 +150,17 @@ class Item:
         self._uid = uuid.uuid4().hex
         self._name = ""
         self._comment = ""
-        self._kernel_options = {}
-        self._kernel_options_post = {}
-        self._autoinstall_meta = {}
-        self._fetchable_files = {}
-        self._boot_files = {}
+        self._kernel_options: Union[dict, str] = {}
+        self._kernel_options_post: Union[dict, str] = {}
+        self._autoinstall_meta: Union[dict, str] = {}
+        self._fetchable_files: Union[dict, str] = {}
+        self._boot_files: Union[dict, str] = {}
         self._template_files = {}
         self._last_cached_mtime = 0
-        self._owners = []
+        self._owners: Union[list, str] = api.settings().default_ownership
         self._cached_dict = ""
-        self._mgmt_classes = []
-        self._mgmt_parameters = {}
+        self._mgmt_classes: Union[list, str] = []
+        self._mgmt_parameters: Union[dict, str] = {}
         self._conceptual_parent = None
         self._is_subobject = is_subobject
 
@@ -284,6 +284,14 @@ class Item:
 
         :return:
         """
+        if self._kernel_options == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None:
+                return self.parent.kernel_options
+            else:
+                self.logger.info("Item \"%s\" did not have a valid parent but kernel_options is set to \"<<inherit>>\"."
+                                 , self.name)
+                return {}
         return self._kernel_options
 
     @kernel_options.setter
@@ -307,6 +315,14 @@ class Item:
 
         :return:
         """
+        if self._kernel_options_post == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None:
+                return self.parent.kernel_options_post
+            else:
+                self.logger.info("Item \"%s\" did not have a valid parent but kernel_options_post is set to "
+                                 "\"<<inherit>>\". ", self.name)
+                return {}
         return self._kernel_options_post
 
     @kernel_options_post.setter
@@ -330,6 +346,14 @@ class Item:
 
         :return: The metadata or an empty dict.
         """
+        if self._autoinstall_meta == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None:
+                return self.parent.autoinstall_meta
+            else:
+                self.logger.info("Item \"%s\" did not have a valid parent but autoinstall_meta is set to "
+                                 "\"<<inherit>>\".", self.name)
+                return {}
         return self._autoinstall_meta
 
     @autoinstall_meta.setter
@@ -354,6 +378,14 @@ class Item:
 
         :return: An empty list or the list of mgmt_classes.
         """
+        if self._mgmt_classes == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None:
+                return self.parent.mgmt_classes
+            else:
+                self.logger.info("Item \"%s\" did not have a valid parent but mgmt_classes is set to "
+                                 "\"<<inherit>>\".", self.name)
+                return []
         return self._mgmt_classes
 
     @mgmt_classes.setter
@@ -373,6 +405,14 @@ class Item:
 
         :return: The mgmt_parameters or an empty dict.
         """
+        if self._mgmt_parameters == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None:
+                return self.parent.mgmt_parameters
+            else:
+                self.logger.info("Item \"%s\" did not have a valid parent but mgmt_parameters is set to "
+                                 "\"<<inherit>>\".", self.name)
+                return {}
         return self._mgmt_parameters
 
     @mgmt_parameters.setter
@@ -424,6 +464,14 @@ class Item:
 
         :return:
         """
+        if self._boot_files == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None:
+                return self.parent.boot_files
+            else:
+                self.logger.info("Item \"%s\" did not have a valid parent but boot_files is set to \"<<inherit>>\".",
+                                 self.name)
+                return {}
         return self._boot_files
 
     @boot_files.setter
@@ -433,9 +481,11 @@ class Item:
 
         :param boot_files: The new value for the boot files used by the item.
         """
-        if not isinstance(boot_files, dict):
-            raise TypeError("boot_files needs to be of type dict")
-        self._boot_files = boot_files
+        (success, value) = utils.input_string_or_dict(boot_files, allow_multiples=False)
+        if not success:
+            raise TypeError("boot_files were handed wrong values")
+        else:
+            self._boot_files = value
 
     @property
     def fetchable_files(self) -> dict:
@@ -444,6 +494,14 @@ class Item:
 
         :return:
         """
+        if self._fetchable_files == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None:
+                return self.parent.fetchable_files
+            else:
+                self.logger.info("Item \"%s\" did not have a valid parent but fetchable_files is set to "
+                                 "\"<<inherit>>\".", self.name)
+                return {}
         return self._fetchable_files
 
     @fetchable_files.setter

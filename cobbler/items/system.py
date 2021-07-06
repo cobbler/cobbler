@@ -659,9 +659,9 @@ class System(Item):
         self._interfaces: Dict[str, NetworkInterface] = {"default": NetworkInterface(api)}
         self._ipv6_autoconfiguration = False
         self._repos_enabled = False
-        self._autoinstall = ""
-        self._boot_loaders = []
-        self._enable_ipxe = False
+        self._autoinstall = enums.VALUE_INHERITED
+        self._boot_loaders: Union[list, str] = enums.VALUE_INHERITED
+        self._enable_ipxe: Union[bool, str] = enums.VALUE_INHERITED
         self._gateway = ""
         self._hostname = ""
         self._image = ""
@@ -669,9 +669,9 @@ class System(Item):
         self._name_servers = []
         self._name_servers_search = []
         self._netboot_enabled = False
-        self._next_server_v4 = ""
-        self._next_server_v6 = ""
-        self._filename = ""
+        self._next_server_v4 = enums.VALUE_INHERITED
+        self._next_server_v6 = enums.VALUE_INHERITED
+        self._filename = enums.VALUE_INHERITED
         self._power_address = ""
         self._power_id = ""
         self._power_pass = ""
@@ -680,20 +680,31 @@ class System(Item):
         self._power_options = ""
         self._power_identity_file = ""
         self._profile = ""
-        self._proxy = ""
-        self._redhat_management_key = ""
+        self._proxy = enums.VALUE_INHERITED
+        self._redhat_management_key = enums.VALUE_INHERITED
         self._server = ""
         self._status = ""
-        self._virt_auto_boot = False
-        self._virt_cpus = 0
+        # FIXME: The virt_* attributes don't support inheritance yet
+        self._virt_auto_boot: Union[bool, str] = enums.VALUE_INHERITED
+        self._virt_cpus: Union[int, str] = enums.VALUE_INHERITED
         self._virt_disk_driver = enums.VirtDiskDrivers.INHERTIED
-        self._virt_file_size = 0.0
-        self._virt_path = ""
+        self._virt_file_size: Union[float, str] = enums.VALUE_INHERITED
+        self._virt_path = enums.VALUE_INHERITED
         self._virt_pxe_boot = False
-        self._virt_ram = 0
-        self._virt_type = enums.VirtType.AUTO
+        self._virt_ram : Union[int, str] = enums.VALUE_INHERITED
+        self._virt_type = enums.VirtType.INHERTIED
         self._serial_device = 0
         self._serial_baud_rate = enums.BaudRates.B0
+
+        # Overwrite defaults from item.py
+        self._owners = enums.VALUE_INHERITED
+        self._boot_files = enums.VALUE_INHERITED
+        self._fetchable_files = enums.VALUE_INHERITED
+        self._autoinstall_meta = enums.VALUE_INHERITED
+        self._kernel_options = enums.VALUE_INHERITED
+        self._kernel_options_post = enums.VALUE_INHERITED
+        self._mgmt_parameters = enums.VALUE_INHERITED
+        self._mgmt_classes = enums.VALUE_INHERITED
 
     def __getattr__(self, name):
         if name == "kickstart":
@@ -725,16 +736,17 @@ class System(Item):
     @property
     def parent(self) -> Optional[Item]:
         """
-        Return object next highest up the tree.
+        Return object next highest up the tree. This may be a profile or an image.
 
         :returns: None when there is no parent or the corresponding Item.
         """
-        if (self._parent is None or self._parent == '') and self.profile:
+        if not self._parent and self.profile:
             return self.api.profiles().find(name=self.profile)
-        elif (self._parent is None or self._parent == '') and self.image:
+        elif not self._parent and self.image:
             return self.api.images().find(name=self.image)
         elif self._parent:
-            return self.api.systems().find(name=self._parent)
+            # We don't know what type this is, so we need to let find_items() do the magic of guessing that.
+            return self.api.find_items(what="", name=self._parent, return_list=False)
         else:
             return None
 
@@ -914,13 +926,12 @@ class System(Item):
         if boot_loaders:
             boot_loaders_split = utils.input_string_or_list(boot_loaders)
 
-            if self.profile:
-                profile = self.api.profiles().find(name=self.profile)
-                parent_boot_loaders = profile.boot_loaders
-            elif self.image:
-                image = self.api.images().find(name=self.image)
-                parent_boot_loaders = image.boot_loaders
+            parent = self.parent
+            if parent is not None:
+                parent_boot_loaders = parent.boot_loaders
             else:
+                self.logger.warning("Parent of System \"%s\" could not be found for resolving the parent bootloaders.",
+                                    self.name)
                 parent_boot_loaders = []
             if not set(boot_loaders_split).issubset(parent_boot_loaders):
                 raise CX("Error with system \"%s\" - not all boot_loaders are supported (given: \"%s\"; supported:"
@@ -957,6 +968,14 @@ class System(Item):
 
         :return:
         """
+        if self._next_server_v4 == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None:
+                return self.parent.next_server_v4
+            else:
+                self.logger.info("System \"%s\" did not have a valid parent but next_server_v4 is set to "
+                                 "\"<<inherit>>\".", self.name)
+                return ""
         return self._next_server_v4
 
     @next_server_v4.setter
@@ -981,6 +1000,14 @@ class System(Item):
 
         :return:
         """
+        if self._next_server_v6 == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None:
+                return self.parent.next_server_v6
+            else:
+                self.logger.info("System \"%s\" did not have a valid parent but next_server_v6 is set to "
+                                 "\"<<inherit>>\".", self.name)
+                return ""
         return self._next_server_v6
 
     @next_server_v6.setter
@@ -1005,6 +1032,14 @@ class System(Item):
 
         :return:
         """
+        if self._filename == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None:
+                return self.parent.filename
+            else:
+                self.logger.info("System \"%s\" did not have a valid parent but filename is set to \"<<inherit>>\".",
+                                 self.name)
+                return ""
         return self._filename
 
     @filename.setter
@@ -1029,6 +1064,14 @@ class System(Item):
 
         :return:
         """
+        if self._proxy == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None:
+                return self.parent.proxy
+            else:
+                self.logger.info("System \"%s\" did not have a valid parent but proxy is set to \"<<inherit>>\".",
+                                 self.name)
+                return ""
         return self._proxy
 
     @proxy.setter
@@ -1041,7 +1084,7 @@ class System(Item):
         """
         if not isinstance(proxy, str):
             raise TypeError("Field proxy of object system needs to be of type str!")
-        if proxy is None or proxy == "":
+        if proxy is None or proxy == "" or proxy == enums.VALUE_INHERITED:
             proxy = enums.VALUE_INHERITED
         self._proxy = proxy
 
@@ -1248,6 +1291,14 @@ class System(Item):
 
         :return:
         """
+        if self._enable_ipxe == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None:
+                return self.parent.enable_ipxe
+            else:
+                self.logger.info("System \"%s\" did not have a valid parent but enable_ipxe is set to \"<<inherit>>\".",
+                                 self.name)
+                return False
         return self._enable_ipxe
 
     @enable_ipxe.setter
@@ -1280,10 +1331,17 @@ class System(Item):
         if not isinstance(profile_name, str):
             raise TypeError("The name of a profile needs to be of type str.")
         old_parent = self.parent
+        if isinstance(old_parent, Item):
+            if self.name in old_parent.children:
+                old_parent.children.remove(self.name)
+            else:
+                self.logger.info("Name of System \"%s\" was not found in the children of Item \"%s\"",
+                                 self.name, self.parent.name)
+        else:
+            self.logger.info("Parent of System \"%s\" not found. Thus skipping removal from children list.", self.name)
+
         if profile_name in ["delete", "None", "~", ""]:
             self._profile = ""
-            if isinstance(old_parent, Item):
-                old_parent.children.remove(self.name)
             return
 
         self.image = ""  # mutual exclusion rule
@@ -1293,9 +1351,6 @@ class System(Item):
             raise ValueError("Profile with the name \"%s\" is not existing" % profile_name)
         self._profile = profile_name
         self.depth = profile.depth + 1  # subprofiles have varying depths.
-        if isinstance(old_parent, Item):
-            if self.name in old_parent.children:
-                old_parent.children.remove(self.name)
         new_parent = self.parent
         if isinstance(new_parent, Item) and self.name not in new_parent.children:
             new_parent.children.append(self.name)
@@ -1521,6 +1576,14 @@ class System(Item):
 
         :return:
         """
+        if self._autoinstall == enums.VALUE_INHERITED:
+            parent = self.parent
+            if parent is not None:
+                return self.parent.autoinstall
+            else:
+                self.logger.info("System \"%s\" did not have a valid parent but autoinstall is set to \"<<inherit>>\".",
+                                 self.name)
+                return ""
         return self._autoinstall
 
     @autoinstall.setter

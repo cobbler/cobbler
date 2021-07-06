@@ -76,8 +76,8 @@ cheetah_import_whitelist:
 # Fedora repos from F11/F12 from EL-4 or EL-5 without python-hashlib installed (which is not available on EL-4)
 createrepo_flags: "-c cache -s sha"
 
-# if no autoinstall template is specified to profile add, use this template
-default_autoinstall: /var/lib/cobbler/templates/default.ks
+# if no autoinstall template is specified to profile add, use this template (path is relative to template root)
+default_autoinstall: "default.ks"
 
 # configure all installed systems to use these nameservers by default
 # unless defined differently in the profile.  For DHCP configurations
