@@ -5,7 +5,6 @@ Wants=@@httpd_service@@
 
 [Service]
 ExecStart=/usr/bin/cobblerd -F
-ExecStartPost=-/usr/bin/touch /usr/share/cobbler/web/cobbler.wsgi
 PrivateTmp=yes
 KillMode=process
 
