@@ -83,7 +83,7 @@ class Profile(item.Item):
             return self.autoinstall
         elif name == "ks_meta":
             return self.autoinstall_meta
-        return self[name]
+        raise AttributeError("Attribute \"%s\" did not exist on object type Profile." % name)
 
     #
     # override some base class methods first (item.Item)
@@ -189,6 +189,7 @@ class Profile(item.Item):
 
         :return:
         """
+        # FIXME: This looks so wrong. It cries: Please open a bug for me!
         parent = self.parent
         if parent:
             return parent.arch
@@ -237,15 +238,10 @@ class Profile(item.Item):
 
         :return:
         """
-        if self._name_servers == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None and isinstance(parent, Profile):
-                return self.parent.name_servers
-            else:
-                self.logger.info("Profile \"%s\" did not have a valid parent of type Profile but name_servers is set to"
-                                 " \"<<inherit>>\".", self.name)
-                return []
-        return self._name_servers
+        parent_result = self._check_parent_none("name_servers", [])
+        if parent_result is None:
+            return self._name_servers
+        return parent_result
 
     @name_servers.setter
     def name_servers(self, data: list):
@@ -265,15 +261,10 @@ class Profile(item.Item):
 
         :return:
         """
-        if self._name_servers_search == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None and isinstance(parent, Profile):
-                return self.parent.name_servers_search
-            else:
-                self.logger.info("Profile \"%s\" did not have a valid parent of type Profile but name_servers_search is"
-                                 " set to \"<<inherit>>\".", self.name)
-                return []
-        return self._name_servers_search
+        parent_result = self._check_parent_none("name_servers_search", [])
+        if parent_result is None:
+            return self._name_servers_search
+        return parent_result
 
     @name_servers_search.setter
     def name_servers_search(self, data: list):
@@ -293,15 +284,10 @@ class Profile(item.Item):
 
         :return:
         """
-        if self._proxy == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None and isinstance(parent, Profile):
-                return self.parent.proxy
-            else:
-                self.logger.info("Profile \"%s\" did not have a valid parent of type Profile but proxy is set to "
-                                 "\"<<inherit>>\".", self.name)
-                return ""
-        return self._proxy
+        parent_result = self._check_parent_none("proxy", [])
+        if parent_result is None:
+            return self._proxy
+        return parent_result
 
     @proxy.setter
     def proxy(self, proxy: str):
@@ -321,15 +307,10 @@ class Profile(item.Item):
 
         :return:
         """
-        if self._enable_ipxe == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None and isinstance(parent, Profile):
-                return self.parent.enable_ipxe
-            else:
-                self.logger.info("Profile \"%s\" did not have a valid parent of type Profile but mgmt_parameters is "
-                                 "set to \"<<inherit>>\".", self.name)
-                return False
-        return self._enable_ipxe
+        parent_result = self._check_parent_none("enable_ipxe", False)
+        if parent_result is None:
+            return self._enable_ipxe
+        return parent_result
 
     @enable_ipxe.setter
     def enable_ipxe(self, enable_ipxe: bool):
@@ -350,15 +331,10 @@ class Profile(item.Item):
 
         :return:
         """
-        if self._enable_menu == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None and isinstance(parent, Profile):
-                return self.parent.enable_menu
-            else:
-                self.logger.info("Profile \"%s\" did not have a valid parent of type Profile but enable_menu is set to "
-                                 "\"<<inherit>>\".", self.name)
-                return False
-        return self._enable_menu
+        parent_result = self._check_parent_none("enable_menu", False)
+        if parent_result is None:
+            return self._enable_menu
+        return parent_result
 
     @enable_menu.setter
     def enable_menu(self, enable_menu: bool):
@@ -470,17 +446,10 @@ class Profile(item.Item):
 
         :return:
         """
-        if self._filename == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None and isinstance(parent, Profile):
-                return self.parent.filename
-            elif parent is not None and isinstance(parent, Distro):
-                return ""
-            else:
-                self.logger.info("Profile \"%s\" did not have a valid parent of type Profile or Distro but filename is"
-                                 " set to \"<<inherit>>\".", self.name)
-                return ""
-        return self._filename
+        parent_result = self._check_parent_none("filename", "")
+        if parent_result is None:
+            return self._filename
+        return parent_result
 
     @filename.setter
     def filename(self, filename: str):
@@ -696,15 +665,10 @@ class Profile(item.Item):
 
         :return: Returns the redhat_management_key of the profile.
         """
-        if self._redhat_management_key == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None:
-                return self.parent.redhat_management_key
-            else:
-                self.logger.info("Profile \"%s\" did not have a valid parent but redhat_management_key is set to "
-                                 "\"<<inherit>>\".", self.name)
-                return ""
-        return self._redhat_management_key
+        parent_result = self._check_parent_none("redhat_management_key", "")
+        if parent_result is None:
+            return self._redhat_management_key
+        return parent_result
 
     @redhat_management_key.setter
     def redhat_management_key(self, management_key: str):
@@ -720,16 +684,14 @@ class Profile(item.Item):
         self._redhat_management_key = management_key
 
     @property
-    def boot_loaders(self) -> Optional[list]:
+    def boot_loaders(self) -> list:
         """
         :return: The bootloaders.
         """
-        if self._boot_loaders == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent:
-                return parent.boot_loaders
-            return None
-        return self._boot_loaders
+        parent_result = self._check_parent_none("redhat_management_key", [])
+        if parent_result is None:
+            return self._boot_loaders
+        return parent_result
 
     @boot_loaders.setter
     def boot_loaders(self, boot_loaders: list):

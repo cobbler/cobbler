@@ -58,7 +58,7 @@ class Image(item.Item):
     def __getattr__(self, name):
         if name == "kickstart":
             return self.autoinstall
-        return self[name]
+        raise AttributeError("Attribute \"%s\" did not exist on object type Image." % name)
 
     #
     # override some base class methods first (item.Item)

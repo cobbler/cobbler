@@ -17,7 +17,7 @@ import logging
 import pprint
 import re
 import uuid
-from typing import List, Union
+from typing import Any, List, Union
 
 import yaml
 
@@ -178,6 +178,37 @@ class Item:
             return self._uid == other.uid
         return False
 
+    def _check_parent_none(self, attribute_name: str, default_value: Any) -> Any:
+        """
+        This method generalizes getting the value from the parent and returning a default in case the parent is not
+        available. In error cases we log this to the log so in case we have a later error this is a starting point.
+
+        :param attribute_name: The name of the attribute to get.
+        :param default_value: The default value which should be returned in case the parent is not available or the
+                              parent doesn't have the required attribute.
+        :raises AttributeError: In case the ``attribute_name`` is not existing on the object.
+        :return: The default value or the value of the parent. None in case the attribute is existing but is not
+                 ``<<inherit>>``.
+        """
+        real_attribute = "_" + attribute_name
+        if hasattr(self, real_attribute):
+            if getattr(self, real_attribute) == enums.VALUE_INHERITED:
+                parent = self.parent
+                if parent is None:
+                    self.logger.info("%s \"%s\" did not have a valid parent but \"%s\" is set to \"<<inherit>>\".",
+                                     type(self), self.name, attribute_name)
+                    return default_value
+                if not hasattr(parent, attribute_name):
+                    self.logger.info("%s \"%s\" did not have a valid parent but \"%s\" is set to \"<<inherit>>\".",
+                                     type(self), self.name, attribute_name)
+                    return default_value
+                return getattr(parent, attribute_name)
+            else:
+                return None
+        else:
+            raise AttributeError("%s \"%s\" did not have the attribute \"%s\""
+                                 % (type(self), self.name, attribute_name))
+
     @property
     def uid(self) -> str:
         """
@@ -284,15 +315,10 @@ class Item:
 
         :return:
         """
-        if self._kernel_options == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None:
-                return self.parent.kernel_options
-            else:
-                self.logger.info("Item \"%s\" did not have a valid parent but kernel_options is set to \"<<inherit>>\"."
-                                 , self.name)
-                return {}
-        return self._kernel_options
+        parent_result = self._check_parent_none("kernel_options", {})
+        if parent_result is None:
+            return self._kernel_options
+        return parent_result
 
     @kernel_options.setter
     def kernel_options(self, options):
@@ -315,15 +341,10 @@ class Item:
 
         :return:
         """
-        if self._kernel_options_post == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None:
-                return self.parent.kernel_options_post
-            else:
-                self.logger.info("Item \"%s\" did not have a valid parent but kernel_options_post is set to "
-                                 "\"<<inherit>>\". ", self.name)
-                return {}
-        return self._kernel_options_post
+        parent_result = self._check_parent_none("kernel_options_post", {})
+        if parent_result is None:
+            return self._kernel_options_post
+        return parent_result
 
     @kernel_options_post.setter
     def kernel_options_post(self, options):
@@ -346,15 +367,10 @@ class Item:
 
         :return: The metadata or an empty dict.
         """
-        if self._autoinstall_meta == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None:
-                return self.parent.autoinstall_meta
-            else:
-                self.logger.info("Item \"%s\" did not have a valid parent but autoinstall_meta is set to "
-                                 "\"<<inherit>>\".", self.name)
-                return {}
-        return self._autoinstall_meta
+        parent_result = self._check_parent_none("autoinstall_meta", {})
+        if parent_result is None:
+            return self._autoinstall_meta
+        return parent_result
 
     @autoinstall_meta.setter
     def autoinstall_meta(self, options: dict):
@@ -378,15 +394,10 @@ class Item:
 
         :return: An empty list or the list of mgmt_classes.
         """
-        if self._mgmt_classes == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None:
-                return self.parent.mgmt_classes
-            else:
-                self.logger.info("Item \"%s\" did not have a valid parent but mgmt_classes is set to "
-                                 "\"<<inherit>>\".", self.name)
-                return []
-        return self._mgmt_classes
+        parent_result = self._check_parent_none("mgmt_classes", [])
+        if parent_result is None:
+            return self._mgmt_classes
+        return parent_result
 
     @mgmt_classes.setter
     def mgmt_classes(self, mgmt_classes: list):
@@ -399,21 +410,16 @@ class Item:
         self._mgmt_classes = utils.input_string_or_list(mgmt_classes)
 
     @property
-    def mgmt_parameters(self):
+    def mgmt_parameters(self) -> dict:
         """
         Parameters which will be handed to your management application (Must be a valid YAML dictionary)
 
         :return: The mgmt_parameters or an empty dict.
         """
-        if self._mgmt_parameters == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None:
-                return self.parent.mgmt_parameters
-            else:
-                self.logger.info("Item \"%s\" did not have a valid parent but mgmt_parameters is set to "
-                                 "\"<<inherit>>\".", self.name)
-                return {}
-        return self._mgmt_parameters
+        parent_result = self._check_parent_none("mgmt_parameters", {})
+        if parent_result is None:
+            return self._mgmt_parameters
+        return parent_result
 
     @mgmt_parameters.setter
     def mgmt_parameters(self, mgmt_parameters: Union[str, dict]):
@@ -464,15 +470,10 @@ class Item:
 
         :return:
         """
-        if self._boot_files == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None:
-                return self.parent.boot_files
-            else:
-                self.logger.info("Item \"%s\" did not have a valid parent but boot_files is set to \"<<inherit>>\".",
-                                 self.name)
-                return {}
-        return self._boot_files
+        parent_result = self._check_parent_none("boot_files", {})
+        if parent_result is None:
+            return self._boot_files
+        return parent_result
 
     @boot_files.setter
     def boot_files(self, boot_files: dict):
@@ -494,15 +495,10 @@ class Item:
 
         :return:
         """
-        if self._fetchable_files == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None:
-                return self.parent.fetchable_files
-            else:
-                self.logger.info("Item \"%s\" did not have a valid parent but fetchable_files is set to "
-                                 "\"<<inherit>>\".", self.name)
-                return {}
-        return self._fetchable_files
+        parent_result = self._check_parent_none("fetchable_files", {})
+        if parent_result is None:
+            return self._fetchable_files
+        return parent_result
 
     @fetchable_files.setter
     def fetchable_files(self, fetchable_files: Union[str, dict]):

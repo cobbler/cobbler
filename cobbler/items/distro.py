@@ -63,7 +63,7 @@ class Distro(item.Item):
     def __getattr__(self, name):
         if name == "ks_meta":
             return self.autoinstall_meta
-        return self[name]
+        raise AttributeError("Attribute \"%s\" did not exist on object type Distro." % name)
 
     #
     # override some base class methods first (item.Item)

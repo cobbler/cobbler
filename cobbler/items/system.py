@@ -711,7 +711,7 @@ class System(Item):
             return self.autoinstall
         elif name == "ks_meta":
             return self.autoinstall_meta
-        return self[name]
+        raise AttributeError("Attribute \"%s\" did not exist on object type System." % name)
 
     #
     # override some base class methods first (item.Item)
@@ -910,14 +910,11 @@ class System(Item):
 
         :return:
         """
-        if self._boot_loaders == enums.VALUE_INHERITED:
-            if self.profile:
-                profile = self.api.profiles().find(name=self.profile)
-                return profile.boot_loaders
-            if self.image:
-                image = self.api.images().find(name=self.image)
-                return image.boot_loaders
-        return self._boot_loaders
+        # The attribute self.parent decides wether this is an image or a profile.
+        parent_result = self._check_parent_none("boot_loaders", [])
+        if parent_result is None:
+            return self._boot_loaders
+        return parent_result
 
     @boot_loaders.setter
     def boot_loaders(self, boot_loaders: str):
@@ -976,15 +973,10 @@ class System(Item):
 
         :return:
         """
-        if self._next_server_v4 == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None:
-                return self.parent.next_server_v4
-            else:
-                self.logger.info("System \"%s\" did not have a valid parent but next_server_v4 is set to "
-                                 "\"<<inherit>>\".", self.name)
-                return ""
-        return self._next_server_v4
+        parent_result = self._check_parent_none("next_server_v4", "")
+        if parent_result is None:
+            return self._next_server_v4
+        return parent_result
 
     @next_server_v4.setter
     def next_server_v4(self, server: str = ""):
@@ -1008,15 +1000,10 @@ class System(Item):
 
         :return:
         """
-        if self._next_server_v6 == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None:
-                return self.parent.next_server_v6
-            else:
-                self.logger.info("System \"%s\" did not have a valid parent but next_server_v6 is set to "
-                                 "\"<<inherit>>\".", self.name)
-                return ""
-        return self._next_server_v6
+        parent_result = self._check_parent_none("next_server_v6", "")
+        if parent_result is None:
+            return self._next_server_v6
+        return parent_result
 
     @next_server_v6.setter
     def next_server_v6(self, server: str = ""):
@@ -1040,15 +1027,10 @@ class System(Item):
 
         :return:
         """
-        if self._filename == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None:
-                return self.parent.filename
-            else:
-                self.logger.info("System \"%s\" did not have a valid parent but filename is set to \"<<inherit>>\".",
-                                 self.name)
-                return ""
-        return self._filename
+        parent_result = self._check_parent_none("filename", "")
+        if parent_result is None:
+            return self._filename
+        return parent_result
 
     @filename.setter
     def filename(self, filename: str):
@@ -1072,15 +1054,10 @@ class System(Item):
 
         :return:
         """
-        if self._proxy == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None:
-                return self.parent.proxy
-            else:
-                self.logger.info("System \"%s\" did not have a valid parent but proxy is set to \"<<inherit>>\".",
-                                 self.name)
-                return ""
-        return self._proxy
+        parent_result = self._check_parent_none("proxy", "")
+        if parent_result is None:
+            return self._proxy
+        return parent_result
 
     @proxy.setter
     def proxy(self, proxy: str):
@@ -1103,7 +1080,10 @@ class System(Item):
 
         :return:
         """
-        return self._redhat_management_key
+        parent_result = self._check_parent_none("redhat_management_key", "")
+        if parent_result is None:
+            return self._redhat_management_key
+        return parent_result
 
     @redhat_management_key.setter
     def redhat_management_key(self, management_key: str):
@@ -1299,15 +1279,10 @@ class System(Item):
 
         :return:
         """
-        if self._enable_ipxe == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None:
-                return self.parent.enable_ipxe
-            else:
-                self.logger.info("System \"%s\" did not have a valid parent but enable_ipxe is set to \"<<inherit>>\".",
-                                 self.name)
-                return False
-        return self._enable_ipxe
+        parent_result = self._check_parent_none("enable_ipxe", False)
+        if parent_result is None:
+            return self._enable_ipxe
+        return parent_result
 
     @enable_ipxe.setter
     def enable_ipxe(self, enable_ipxe: bool):
@@ -1584,15 +1559,10 @@ class System(Item):
 
         :return:
         """
-        if self._autoinstall == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None:
-                return self.parent.autoinstall
-            else:
-                self.logger.info("System \"%s\" did not have a valid parent but autoinstall is set to \"<<inherit>>\".",
-                                 self.name)
-                return ""
-        return self._autoinstall
+        parent_result = self._check_parent_none("autoinstall", "")
+        if parent_result is None:
+            return self._autoinstall
+        return parent_result
 
     @autoinstall.setter
     def autoinstall(self, autoinstall: str):
