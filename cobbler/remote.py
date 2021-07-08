@@ -1919,6 +1919,10 @@ class CobblerXMLRPCInterface:
             # if object type is system and fields add to dict and then modify when done, rather than now.
             imods = {}
             # FIXME: needs to know about how to delete interfaces too!
+            priority_attributes = ["name", "parent", "distro", "profile", "image"]
+            for attr_name in priority_attributes:
+                if attr_name in attributes:
+                    self.modify_item(object_type, handle, attr_name, attributes.pop(attr_name), token)
             for (key, value) in list(attributes.items()):
                 if object_type != "system" or not self.__is_interface_field(key):
                     # in place modifications allow for adding a key/value pair while keeping other k/v pairs intact.

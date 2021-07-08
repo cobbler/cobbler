@@ -100,6 +100,8 @@ class Distro(item.Item):
 
         :param dictionary: The dictionary with values.
         """
+        if "name" in dictionary:
+            self.name = dictionary["name"]
         self._remove_depreacted_dict_keys(dictionary)
         super().from_dict(dictionary)
 

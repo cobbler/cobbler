@@ -82,6 +82,10 @@ class Image(item.Item):
 
         :param dictionary: The dictionary with values.
         """
+        if "name" in dictionary:
+            self.name = dictionary["name"]
+        if "parent" in dictionary:
+            self.parent = dictionary["parent"]
         self._remove_depreacted_dict_keys(dictionary)
         super().from_dict(dictionary)
 
