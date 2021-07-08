@@ -730,6 +730,14 @@ class System(Item):
 
         :param dictionary: The dictionary with values.
         """
+        if "name" in dictionary:
+            self.name = dictionary["name"]
+        if "parent" in dictionary:
+            self.parent = dictionary["parent"]
+        if "profile" in dictionary:
+            self.profile = dictionary["profile"]
+        if "image" in dictionary:
+            self.image = dictionary["image"]
         self._remove_depreacted_dict_keys(dictionary)
         super().from_dict(dictionary)
 
@@ -1378,7 +1386,7 @@ class System(Item):
         old_parent = self.parent
         if image_name in ["delete", "None", "~", ""]:
             self._image = ""
-            if isinstance(old_parent, Item):
+            if isinstance(old_parent, Item) and self.name in old_parent.children:
                 old_parent.children.remove(self.name)
             return
 

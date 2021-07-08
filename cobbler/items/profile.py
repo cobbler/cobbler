@@ -122,6 +122,12 @@ class Profile(item.Item):
 
         :param dictionary: The dictionary with values.
         """
+        if "name" in dictionary:
+            self.name = dictionary["name"]
+        if "parent" in dictionary:
+            self.parent = dictionary["parent"]
+        if "distro" in dictionary:
+            self.distro = dictionary["distro"]
         self._remove_depreacted_dict_keys(dictionary)
         super().from_dict(dictionary)
 
@@ -159,7 +165,7 @@ class Profile(item.Item):
         :raises CX
         """
         old_parent = self.parent
-        if isinstance(old_parent, item.Item):
+        if isinstance(old_parent, item.Item) and self.name in old_parent.children:
             old_parent.children.remove(self.name)
         if not parent:
             self._parent = ''
@@ -217,7 +223,7 @@ class Profile(item.Item):
         if distro is None:
             raise ValueError("distribution not found")
         old_parent = self.parent
-        if isinstance(old_parent, item.Item):
+        if isinstance(old_parent, item.Item) and self.name in old_parent.children:
             old_parent.children.remove(self.name)
         self._distro = distro_name
         self.depth = distro.depth + 1    # reset depth if previously a subprofile and now top-level
