@@ -209,7 +209,7 @@ class NetworkInterface:
         :raises ValueError: In case the DNS name is already existing inside Cobbler
         """
         dns_name = validate.hostname(dns_name)
-        if dns_name != "" and not self.__api.settings().allow_duplicate_hostname:
+        if dns_name != "" and not self.__api.settings().allow_duplicate_hostnames:
             matched = self.__api.find_items("system", {"dns_name": dns_name})
             if len(matched) > 0:
                 raise ValueError("DNS name duplicated: %s" % dns_name)
