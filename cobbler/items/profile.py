@@ -688,7 +688,7 @@ class Profile(item.Item):
         """
         :return: The bootloaders.
         """
-        parent_result = self._check_parent_none("redhat_management_key", [])
+        parent_result = self._check_parent_none("boot_loaders", [])
         if parent_result is None:
             return self._boot_loaders
         return parent_result
@@ -707,15 +707,17 @@ class Profile(item.Item):
 
         if boot_loaders:
             boot_loaders_split = utils.input_string_or_list(boot_loaders)
-            distro = self.get_conceptual_parent()
 
-            if distro:
-                distro_boot_loaders = distro.boot_loaders
+            parent = self.parent
+            if parent is not None:
+                parent_boot_loaders = parent.boot_loaders
             else:
-                distro_boot_loaders = utils.get_supported_system_boot_loaders()
-            if not set(boot_loaders_split).issubset(distro_boot_loaders):
-                raise ValueError("Error with profile %s - not all boot_loaders %s are supported %s" %
-                                 (self.name, boot_loaders_split, distro_boot_loaders))
+                self.logger.warning("Parent of profile \"%s\" could not be found for resolving the parent bootloaders.",
+                                    self.name)
+                parent_boot_loaders = []
+            if not set(boot_loaders_split).issubset(parent_boot_loaders):
+                raise CX("Error with profile \"%s\" - not all boot_loaders are supported (given: \"%s\"; supported:"
+                         "\"%s\")" % (self.name, str(boot_loaders_split), str(parent_boot_loaders)))
             self._boot_loaders = boot_loaders_split
         else:
             self._boot_loaders = []
