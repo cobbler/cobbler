@@ -48,7 +48,7 @@ class Profile(item.Item):
         self._name_servers_search = api.settings().default_name_servers_search
         self._next_server_v4 = api.settings().next_server_v4
         self._next_server_v6 = api.settings().next_server_v6
-        self._filename = enums.VALUE_INHERITED
+        self._filename = ""
         self._proxy = api.settings().proxy_url_int
         self._redhat_management_key = enums.VALUE_INHERITED
         self._repos = []
