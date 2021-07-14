@@ -735,9 +735,6 @@ def __consolidate(node) -> dict:
                 node_data_copy[key] = getattr(type(node), "autoinstall").fget(node)
             elif key == "ks_meta":
                 node_data_copy[key] = getattr(type(node), "autoinstall_meta").fget(node)
-            else:
-                # Normal handling
-                node_data_copy[key] = getattr(type(node), key).fget(node)
 
     for field in node_data_copy:
         data_item = node_data_copy[field]
