@@ -178,6 +178,71 @@ class Item:
             return self._uid == other.uid
         return False
 
+    def _resolve(self, property_name: str) -> Any:
+        """
+        Resolve the ``property_name`` value in the object tree. This function
+        traverses the tree from the object to it's topmost parent and returns
+        the first value that is not inherited. If the the tree does not contain
+        a value the Settings are consulted.
+
+        :param property_name: The property name to resolve.
+        :raises AttributeError: In case one of the objects try to inherit from
+                                a parent that does not have ``property_name``.
+        :return: The resolved value.
+        """
+        attribute = "_" + property_name
+
+        if not hasattr(self, attribute):
+            raise AttributeError("%s \"%s\" does not have property \"%s\""
+                                 % (type(self), self.name, property_name))
+
+        attribute_value = getattr(self, attribute)
+        settings = self.api.settings()
+
+        if attribute_value == enums.VALUE_INHERITED:
+            if self.parent is not None and hasattr(self.parent, property_name):
+                return getattr(self.parent, property_name)
+            elif hasattr(settings, property_name):
+                return getattr(settings, property_name)
+            else:
+                AttributeError("%s \"%s\" inherits property \"%s\", but neither"
+                               " it's parent nor settings have it"
+                               % (type(self), self.name, property_name))
+
+        return attribute_value
+
+    def _resolve_dict(self, property_name: str) -> dict:
+        """
+        Merge the ``property_name`` dictionary of the object with the
+        ``property_name`` of all it's parents. The value of the child takes
+        precedence over the value of the parent.
+
+        :param property_name: The property name to resolve.
+        :return: The merged dictionary.
+        """
+        attribute = "_" + property_name
+
+        if not hasattr(self, attribute):
+            raise AttributeError("%s \"%s\" does not have property \"%s\""
+                                 % (type(self), self.name, property_name))
+
+        attribute_value = getattr(self, attribute)
+        settings = self.api.settings()
+
+        merged_dict = {}
+
+        if self.parent is not None and hasattr(self.parent, property_name):
+            merged_dict.update(getattr(self.parent, property_name))
+        elif hasattr(settings, property_name):
+            merged_dict.update(getattr(settings, property_name))
+
+        if attribute_value != enums.VALUE_INHERITED:
+            merged_dict.update(attribute_value)
+
+        utils.dict_annihilate(merged_dict)
+
+        return merged_dict
+
     def _check_parent_none(self, attribute_name: str, default_value: Any) -> Any:
         """
         This method generalizes getting the value from the parent and returning a default in case the parent is not

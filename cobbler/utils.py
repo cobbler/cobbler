@@ -779,14 +779,23 @@ def dict_removals(results: dict, subkey: str):
     """
     if subkey not in results:
         return
-    # FIXME: If the dict has no subdict then this method fails.
-    scan = list(results[subkey].keys())
-    for k in scan:
+    return dict_annihilate(results[subkey])
+
+
+def dict_annihilate(dictionary: dict):
+    """
+    Annihilate entries marked for removal. This method removes all entries with
+    key names starting with "!". If a ``dictionary`` contains keys "!xxx" and
+    "xxx", then both will be removed.
+
+    :param dictionary: A dictionary to clean up.
+    """
+    for k in list(dictionary.keys()):
         if str(k).startswith("!") and k != "!":
-            remove_me = k[1:]
-            if remove_me in results[subkey]:
-                del results[subkey][remove_me]
-            del results[subkey][k]
+            rk = k[1:]
+            if rk in dictionary:
+                del dictionary[rk]
+            del dictionary[k]
 
 
 def dict_to_string(_dict: dict) -> Union[str, dict]:
