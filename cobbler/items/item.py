@@ -243,37 +243,6 @@ class Item:
 
         return merged_dict
 
-    def _check_parent_none(self, attribute_name: str, default_value: Any) -> Any:
-        """
-        This method generalizes getting the value from the parent and returning a default in case the parent is not
-        available. In error cases we log this to the log so in case we have a later error this is a starting point.
-
-        :param attribute_name: The name of the attribute to get.
-        :param default_value: The default value which should be returned in case the parent is not available or the
-                              parent doesn't have the required attribute.
-        :raises AttributeError: In case the ``attribute_name`` is not existing on the object.
-        :return: The default value or the value of the parent. None in case the attribute is existing but is not
-                 ``<<inherit>>``.
-        """
-        real_attribute = "_" + attribute_name
-        if hasattr(self, real_attribute):
-            if getattr(self, real_attribute) == enums.VALUE_INHERITED:
-                parent = self.parent
-                if parent is None:
-                    self.logger.info("%s \"%s\" did not have a valid parent but \"%s\" is set to \"<<inherit>>\".",
-                                     type(self), self.name, attribute_name)
-                    return default_value
-                if not hasattr(parent, attribute_name):
-                    self.logger.info("%s \"%s\" did not have a valid parent but \"%s\" is set to \"<<inherit>>\".",
-                                     type(self), self.name, attribute_name)
-                    return default_value
-                return getattr(parent, attribute_name)
-            else:
-                return None
-        else:
-            raise AttributeError("%s \"%s\" did not have the attribute \"%s\""
-                                 % (type(self), self.name, attribute_name))
-
     @property
     def uid(self) -> str:
         """
