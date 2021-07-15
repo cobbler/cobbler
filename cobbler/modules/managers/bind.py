@@ -116,10 +116,10 @@ class _BindManager(ManagerModule):
 
         for system in self.systems:
             for (name, interface) in list(system.interfaces.items()):
-                host = interface["dns_name"]
-                ip = interface["ip_address"]
-                ipv6 = interface["ipv6_address"]
-                ipv6_sec_addrs = interface["ipv6_secondaries"]
+                host = interface.dns_name
+                ip = interface.ip_address
+                ipv6 = interface.ipv6_address
+                ipv6_sec_addrs = interface.ipv6_secondaries
                 if not system.is_management_supported(cidr_ok=False):
                     continue
                 if not host:
@@ -207,10 +207,10 @@ class _BindManager(ManagerModule):
 
         for system in self.systems:
             for (name, interface) in list(system.interfaces.items()):
-                host = interface["dns_name"]
-                ip = interface["ip_address"]
-                ipv6 = interface["ipv6_address"]
-                ipv6_sec_addrs = interface["ipv6_secondaries"]
+                host = interface.dns_name
+                ip = interface.ip_address
+                ipv6 = interface.ipv6_address
+                ipv6_sec_addrs = interface.ipv6_secondaries
                 if not system.is_management_supported(cidr_ok=False):
                     continue
                 if not host or ((not ip) and (not ipv6)):
@@ -423,7 +423,7 @@ zone "%(arpa)s." {
 
         for system in self.systems:
             for (name, interface) in list(system.interfaces.items()):
-                if interface["dns_name"] == "":
+                if interface.dns_name == "":
                     self.logger.info("Warning: dns_name unspecified in the system: %s, while writing host records",
                                      system.name)
 
@@ -473,11 +473,11 @@ zone "%(arpa)s." {
 
         for system in self.systems:
             for (name, interface) in list(system.interfaces.items()):
-                cnames = interface.get("cnames", [])
+                cnames = interface.cnames
 
                 try:
                     if interface.get("dns_name", "") != "":
-                        dnsname = interface["dns_name"].split('.')[0]
+                        dnsname = interface.dns_name.split('.')[0]
                         for cname in cnames:
                             s += "%s  %s  %s;\n" % (cname.split('.')[0], rectype, dnsname)
                     else:
