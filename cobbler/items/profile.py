@@ -52,7 +52,7 @@ class Profile(item.Item):
         self._proxy = api.settings().proxy_url_int
         self._redhat_management_key = enums.VALUE_INHERITED
         self._repos = []
-        self._server = ""
+        self._server = enums.VALUE_INHERITED
         self._menu = ""
         # FIXME: The virt_* attributes don't support inheritance so far
         self._virt_auto_boot = api.settings().virt_auto_boot

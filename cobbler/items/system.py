@@ -682,7 +682,7 @@ class System(Item):
         self._profile = ""
         self._proxy = enums.VALUE_INHERITED
         self._redhat_management_key = enums.VALUE_INHERITED
-        self._server = ""
+        self._server = enums.VALUE_INHERITED
         self._status = ""
         # FIXME: The virt_* attributes don't support inheritance yet
         self._virt_auto_boot: Union[bool, str] = enums.VALUE_INHERITED
