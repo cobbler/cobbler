@@ -910,11 +910,7 @@ class System(Item):
 
         :return:
         """
-        # The attribute self.parent decides wether this is an image or a profile.
-        parent_result = self._check_parent_none("boot_loaders", [])
-        if parent_result is None:
-            return self._boot_loaders
-        return parent_result
+        return self._resolve("boot_loaders")
 
     @boot_loaders.setter
     def boot_loaders(self, boot_loaders: str):
@@ -973,10 +969,7 @@ class System(Item):
 
         :return:
         """
-        parent_result = self._check_parent_none("next_server_v4", "")
-        if parent_result is None:
-            return self._next_server_v4
-        return parent_result
+        return self._resolve("next_server_v4")
 
     @next_server_v4.setter
     def next_server_v4(self, server: str = ""):
@@ -1000,10 +993,7 @@ class System(Item):
 
         :return:
         """
-        parent_result = self._check_parent_none("next_server_v6", "")
-        if parent_result is None:
-            return self._next_server_v6
-        return parent_result
+        return self._resolve("next_server_v6")
 
     @next_server_v6.setter
     def next_server_v6(self, server: str = ""):
@@ -1027,10 +1017,7 @@ class System(Item):
 
         :return:
         """
-        parent_result = self._check_parent_none("filename", "")
-        if parent_result is None:
-            return self._filename
-        return parent_result
+        return self._resolve("filename")
 
     @filename.setter
     def filename(self, filename: str):
@@ -1054,10 +1041,7 @@ class System(Item):
 
         :return:
         """
-        parent_result = self._check_parent_none("proxy", "")
-        if parent_result is None:
-            return self._proxy
-        return parent_result
+        return self._resolve("proxy")
 
     @proxy.setter
     def proxy(self, proxy: str):
@@ -1080,10 +1064,7 @@ class System(Item):
 
         :return:
         """
-        parent_result = self._check_parent_none("redhat_management_key", "")
-        if parent_result is None:
-            return self._redhat_management_key
-        return parent_result
+        return self._resolve("redhat_management_key")
 
     @redhat_management_key.setter
     def redhat_management_key(self, management_key: str):
@@ -1279,10 +1260,7 @@ class System(Item):
 
         :return:
         """
-        parent_result = self._check_parent_none("enable_ipxe", False)
-        if parent_result is None:
-            return self._enable_ipxe
-        return parent_result
+        return self._resolve("enable_ipxe")
 
     @enable_ipxe.setter
     def enable_ipxe(self, enable_ipxe: bool):
@@ -1559,10 +1537,7 @@ class System(Item):
 
         :return:
         """
-        parent_result = self._check_parent_none("autoinstall", "")
-        if parent_result is None:
-            return self._autoinstall
-        return parent_result
+        return self._resolve("autoinstall")
 
     @autoinstall.setter
     def autoinstall(self, autoinstall: str):
