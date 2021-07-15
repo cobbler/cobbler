@@ -211,21 +211,32 @@ puppet_parameterized_classes: true
 
 # set to true to enable Cobbler's DHCP management features.
 # the choice of DHCP management engine is in /etc/cobbler/modules.conf
+# See the docs (https://cobbler.readthedocs.io/en/latest/user-guide.html#dhcp-management) for more info
 manage_dhcp: false
 
-# set to 1 to enable DHCP IPv6 address configuration generation.
+# set to true to enable DHCP IPv6 address configuration generation.
 # This currently only works with manager.isc DHCP module (isc dhcpd6 daemon)
 # See /etc/cobbler/modules.conf whether this isc module is chosen for dhcp
 # generation.
 manage_dhcp_v6: false
 
-# set to 1 to enable DHCP IPv4 address configuration generation.
+# set to true to enable DHCP IPv4 address configuration generation.
 # This currently only works with manager.isc DHCP module
 # Other dhcp modules ignore this and above settings
 manage_dhcp_v4: false
 
+# if using Cobbler with manage_dhcp, put the IP address
+# of the Cobbler server here so that PXE booting guests can find it
+# if you do not set this correctly, this will be manifested in TFTP open timeouts.
+next_server_v4: 127.0.0.1
+
+# And the same if you set manage_dhcp_v6 to true.
+# Set the cobbler IPv6 address here so that PXE booting guests can find it
+next_server_v6: "::1"
+
 # set to true to enable Cobbler's DNS management features.
-# the choice of DNS mangement engine is in /etc/cobbler/modules.conf
+# the choice of DNS management engine is in /etc/cobbler/modules.conf
+# needs manage_forward_zones and manage_reverse_zones to be set, too.
 manage_dns: false
 
 # set to path of bind chroot to create bind-chroot compatible bind
@@ -239,8 +250,14 @@ bind_zonefile_path: "@@bind_zonefiles@@"
 # bind configuration files
 bind_master: 127.0.0.1
 
+# if using BIND (named) for DNS management in /etc/cobbler/modules.conf
+# and manage_dns is enabled (above), this lists which zones are managed
+# See the docs (https://cobbler.readthedocs.io/en/latest/user-guide.html#dns-configuration-management) for more info
+manage_forward_zones: []
+manage_reverse_zones: []
+
 # set to true to enable Cobbler's TFTP management features.
-# the choice of TFTP mangement engine is in /etc/cobbler/modules.conf
+# the choice of TFTP management engine is in /etc/cobbler/modules.conf
 manage_tftpd: true
 
 # This variable contains the location of the tftpboot directory. If this directory is not present Cobbler does not
@@ -250,21 +267,6 @@ tftpboot_location: "@@tftproot@@"
 
 # set to true to enable Cobbler's RSYNC management features.
 manage_rsync: false
-
-# if using BIND (named) for DNS management in /etc/cobbler/modules.conf
-# and manage_dns is enabled (above), this lists which zones are managed
-# See the Wiki (https://github.com/cobbler/cobbler/wiki/Dns-management) for more info
-manage_forward_zones: []
-manage_reverse_zones: []
-
-# if using Cobbler with manage_dhcp, put the IP address
-# of the Cobbler server here so that PXE booting guests can find it
-# if you do not set this correctly, this will be manifested in TFTP open timeouts.
-next_server_v4: 127.0.0.1
-
-# And the same if you set "manage_dhcp_v6: 1".
-# Set the cobbler IPv6 address here so that PXE booting guests can find it
-next_server_v6: "::1"
 
 # settings for power management features.  optional.
 # see https://github.com/cobbler/cobbler/wiki/Power-management to learn more
