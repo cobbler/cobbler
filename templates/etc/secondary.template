@@ -1,4 +1,6 @@
 options {
+# The path has to be adjusted for each distro
+# SUSE distros use /var/lib/named
           listen-on port 53 { 127.0.0.1; };
           directory       "/var/named";
           dump-file       "/var/named/data/cache_dump.db";
@@ -8,6 +10,7 @@ options {
           recursion yes;
 };
 
+# does not work on openSUSE Tumbleweed atm
 logging {
         channel default_debug {
                 file "data/named.run";
