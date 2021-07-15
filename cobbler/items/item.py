@@ -380,10 +380,7 @@ class Item:
 
         :return:
         """
-        parent_result = self._check_parent_none("kernel_options", {})
-        if parent_result is None:
-            return self._kernel_options
-        return parent_result
+        return self._resolve_dict("kernel_options")
 
     @kernel_options.setter
     def kernel_options(self, options):
@@ -406,10 +403,7 @@ class Item:
 
         :return:
         """
-        parent_result = self._check_parent_none("kernel_options_post", {})
-        if parent_result is None:
-            return self._kernel_options_post
-        return parent_result
+        return self._resolve_dict("kernel_options_post")
 
     @kernel_options_post.setter
     def kernel_options_post(self, options):
@@ -432,10 +426,7 @@ class Item:
 
         :return: The metadata or an empty dict.
         """
-        parent_result = self._check_parent_none("autoinstall_meta", {})
-        if parent_result is None:
-            return self._autoinstall_meta
-        return parent_result
+        return self._resolve_dict("autoinstall_meta")
 
     @autoinstall_meta.setter
     def autoinstall_meta(self, options: dict):
@@ -459,10 +450,7 @@ class Item:
 
         :return: An empty list or the list of mgmt_classes.
         """
-        parent_result = self._check_parent_none("mgmt_classes", [])
-        if parent_result is None:
-            return self._mgmt_classes
-        return parent_result
+        return self._resolve("mgmt_classes")
 
     @mgmt_classes.setter
     def mgmt_classes(self, mgmt_classes: list):
@@ -481,10 +469,7 @@ class Item:
 
         :return: The mgmt_parameters or an empty dict.
         """
-        parent_result = self._check_parent_none("mgmt_parameters", {})
-        if parent_result is None:
-            return self._mgmt_parameters
-        return parent_result
+        return self._resolve_dict("mgmt_parameters")
 
     @mgmt_parameters.setter
     def mgmt_parameters(self, mgmt_parameters: Union[str, dict]):
@@ -535,10 +520,7 @@ class Item:
 
         :return:
         """
-        parent_result = self._check_parent_none("boot_files", {})
-        if parent_result is None:
-            return self._boot_files
-        return parent_result
+        return self._resolve_dict("boot_files")
 
     @boot_files.setter
     def boot_files(self, boot_files: dict):
@@ -560,10 +542,7 @@ class Item:
 
         :return:
         """
-        parent_result = self._check_parent_none("fetchable_files", {})
-        if parent_result is None:
-            return self._fetchable_files
-        return parent_result
+        return self._resolve_dict("fetchable_files")
 
     @fetchable_files.setter
     def fetchable_files(self, fetchable_files: Union[str, dict]):

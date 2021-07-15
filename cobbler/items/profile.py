@@ -238,10 +238,7 @@ class Profile(item.Item):
 
         :return:
         """
-        parent_result = self._check_parent_none("name_servers", [])
-        if parent_result is None:
-            return self._name_servers
-        return parent_result
+        return self._resolve("name_servers")
 
     @name_servers.setter
     def name_servers(self, data: list):
@@ -261,10 +258,7 @@ class Profile(item.Item):
 
         :return:
         """
-        parent_result = self._check_parent_none("name_servers_search", [])
-        if parent_result is None:
-            return self._name_servers_search
-        return parent_result
+        self._resolve("name_servers_search")
 
     @name_servers_search.setter
     def name_servers_search(self, data: list):
@@ -284,10 +278,7 @@ class Profile(item.Item):
 
         :return:
         """
-        parent_result = self._check_parent_none("proxy", [])
-        if parent_result is None:
-            return self._proxy
-        return parent_result
+        return self._resolve("proxy")
 
     @proxy.setter
     def proxy(self, proxy: str):
@@ -307,10 +298,7 @@ class Profile(item.Item):
 
         :return:
         """
-        parent_result = self._check_parent_none("enable_ipxe", False)
-        if parent_result is None:
-            return self._enable_ipxe
-        return parent_result
+        return self._resolve("enable_ipxe")
 
     @enable_ipxe.setter
     def enable_ipxe(self, enable_ipxe: bool):
@@ -331,10 +319,7 @@ class Profile(item.Item):
 
         :return:
         """
-        parent_result = self._check_parent_none("enable_menu", False)
-        if parent_result is None:
-            return self._enable_menu
-        return parent_result
+        return self._resolve("enable_menu")
 
     @enable_menu.setter
     def enable_menu(self, enable_menu: bool):
@@ -446,10 +431,7 @@ class Profile(item.Item):
 
         :return:
         """
-        parent_result = self._check_parent_none("filename", "")
-        if parent_result is None:
-            return self._filename
-        return parent_result
+        return self._resolve("filename")
 
     @filename.setter
     def filename(self, filename: str):
@@ -665,10 +647,7 @@ class Profile(item.Item):
 
         :return: Returns the redhat_management_key of the profile.
         """
-        parent_result = self._check_parent_none("redhat_management_key", "")
-        if parent_result is None:
-            return self._redhat_management_key
-        return parent_result
+        return self._resolve("redhat_management_key")
 
     @redhat_management_key.setter
     def redhat_management_key(self, management_key: str):
@@ -688,10 +667,7 @@ class Profile(item.Item):
         """
         :return: The bootloaders.
         """
-        parent_result = self._check_parent_none("boot_loaders", [])
-        if parent_result is None:
-            return self._boot_loaders
-        return parent_result
+        return self._resolve("boot_loaders")
 
     @boot_loaders.setter
     def boot_loaders(self, boot_loaders: list):
