@@ -576,7 +576,7 @@ def blender(api_handle, remove_dicts: bool, root_obj):
     tree.reverse()  # start with top of tree, override going down
     results = {}
     for node in tree:
-        results.update(__consolidate(node))
+        __consolidate(node, results)
 
     # Make interfaces accessible without Cheetah-voodoo in the templates
     # EXAMPLE: $ip == $ip0, $ip1, $ip2 and so on.
@@ -706,7 +706,7 @@ def uniquify(seq: list) -> list:
     return result
 
 
-def __consolidate(node) -> dict:
+def __consolidate(node, results: dict) -> dict:
     """
     Merge data from a given node with the aggregate of all data from past scanned nodes. Dictionaries and arrays are
     treated specially.
@@ -714,7 +714,6 @@ def __consolidate(node) -> dict:
     :param node: The object to merge data into. The data from the node always wins.
     :return: A dictionary with the consolidated data.
     """
-    results = {}
     node_data = node.to_dict()
 
     # If the node has any data items labelled <<inherit>> we need to expunge them. So that they do not override the
