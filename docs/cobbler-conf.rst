@@ -242,12 +242,12 @@ Default ``createrepo_flags`` to use for new repositories.
 
 default: ``"-c cache -s sha"``
 
-default_autoinstall
-===================
+autoinstall
+===========
 
 If no autoinstall template is specified to profile add, use this template.
 
-default: ``/var/lib/cobbler/templates/default.ks``
+default: ``default.ks``
 
 default_name_*
 ==============

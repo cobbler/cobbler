@@ -38,7 +38,7 @@ class Profile(item.Item):
     def __init__(self, api, *args, **kwargs):
         super().__init__(api, *args, **kwargs)
         self._template_files = {}
-        self._autoinstall = api.settings().default_autoinstall
+        self._autoinstall = enums.VALUE_INHERITED
         self._boot_loaders: Union[list, str] = enums.VALUE_INHERITED
         self._dhcp_tag = ""
         self._distro = ""
@@ -462,7 +462,7 @@ class Profile(item.Item):
             if parent is not None and isinstance(parent, Profile):
                 return self.parent.autoinstall
             elif parent is not None and isinstance(parent, Distro):
-                return self.api.settings().default_autoinstall
+                return self.api.settings().autoinstall
             else:
                 self.logger.info("Profile \"%s\" did not have a valid parent of type Profile but autoinstall is set to "
                                  "\"<<inherit>>\".", self.name)

@@ -37,7 +37,7 @@ class Image(item.Item):
     def __init__(self, api, *args, **kwargs):
         super().__init__(api, *args, **kwargs)
         self._arch = enums.Archs.X86_64
-        self._autoinstall = ""
+        self._autoinstall = enums.VALUE_INHERITED
         self._breed = ""
         self._file = ""
         self._image_type = enums.ImageTypes.DIRECT

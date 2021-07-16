@@ -71,7 +71,7 @@ cheetah_import_whitelist:
 createrepo_flags: "-c cache -s sha"
 
 # if no autoinstall template is specified to profile add, use this template (path is relative to template root)
-default_autoinstall: "default.ks"
+autoinstall: "default.ks"
 
 # configure all installed systems to use these nameservers by default
 # unless defined differently in the profile.  For DHCP configurations
