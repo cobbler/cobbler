@@ -1315,6 +1315,7 @@ class System(Item):
         new_parent = self.parent
         if isinstance(new_parent, Item) and self.name not in new_parent.children:
             new_parent.children.append(self.name)
+            self.api.serialize()
 
     @property
     def image(self) -> str:
@@ -1341,6 +1342,7 @@ class System(Item):
             self._image = ""
             if isinstance(old_parent, Item) and self.name in old_parent.children:
                 old_parent.children.remove(self.name)
+                self.api.serialize()
             return
 
         self.profile = ""  # mutual exclusion rule
@@ -1355,6 +1357,7 @@ class System(Item):
             new_parent = self.parent
             if isinstance(new_parent, Item) and self.name not in new_parent.children:
                 new_parent.children.append(self.name)
+                self.api.serialize()
             return
         raise CX("invalid image name (%s)" % image_name)
 

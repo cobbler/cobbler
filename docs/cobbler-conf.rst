@@ -190,16 +190,6 @@ persist across reboots and can be easily thrown away but is also fast.
 
 default: ``/var/cache/cobbler/buildiso``
 
-cache_enabled
-=============
-
-If ``cache_enabled`` is ``True``, a cache will keep converted records in memory to make checking them faster. This helps
-with use cases like writing out large numbers of records. There is a known issue with cache and remote XML-RPC API
-calls. If you will use Cobbler with config management or infrastructure-as-code tools such as Terraform, it is
-recommended to disable by setting to ``False``.
-
-default: ``True``
-
 cheetah_import_whitelist
 ========================
 

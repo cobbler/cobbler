@@ -338,7 +338,6 @@ class Collection:
                                             systems.
         :raises TypError or ValueError
         """
-        item_base.Item.remove_from_cache(ref)
         if ref is None:
             raise TypeError("Unable to add a None object")
         if ref.name is None:

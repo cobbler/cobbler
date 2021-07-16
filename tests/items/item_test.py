@@ -5,38 +5,6 @@ from cobbler.items.item import Item
 from tests.conftest import does_not_raise
 
 
-@pytest.mark.skip
-def test_get_from_cache():
-    # Arrange
-    test_api = CobblerAPI()
-
-    # Act
-    Item.get_from_cache(test_api)
-
-    # Assert
-    assert False
-
-
-@pytest.mark.skip
-def test_set_cache():
-    # Arrange
-
-    # Act
-    Item.set_cache()
-
-    # Assert
-    assert False
-
-
-@pytest.mark.skip
-def test_remove_from_cache():
-    # Arrange
-    # Act
-    Item.remove_from_cache()
-    # Assert
-    assert False
-
-
 def test_item_create():
     # Arrange
     test_api = CobblerAPI()

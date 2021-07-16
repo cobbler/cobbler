@@ -35,39 +35,6 @@ class Item:
     # Constants
     TYPE_NAME = "generic"
     COLLECTION_TYPE = "generic"
-    # Class instance variables
-    converted_cache = {}
-
-    @classmethod
-    def get_from_cache(cls, ref):
-        """
-        Get an object from the cache. This may potentially contain not persisted changes.
-
-        :param ref: The object which is in the cache.
-        :return: The object if present or an empty dict.
-        """
-        return cls.converted_cache.get(ref.COLLECTION_TYPE, {}).get(ref.uid)
-
-    @classmethod
-    def set_cache(cls, ref, value):
-        """
-        Add an object to the cache.
-
-        :param ref: An object to identify where to add the item to the cache.
-        :param value: The object to add to the cache.
-        """
-        if ref.COLLECTION_TYPE not in cls.converted_cache:
-            cls.converted_cache[ref.COLLECTION_TYPE] = {}
-        cls.converted_cache[ref.COLLECTION_TYPE][ref.uid] = value
-
-    @classmethod
-    def remove_from_cache(cls, ref):
-        """
-        Remove an item from the cache.
-
-        :param ref: The object reference id to identify the object.
-        """
-        cls.converted_cache.get(ref.COLLECTION_TYPE, {}).pop(ref.uid, None)
 
     @classmethod
     def __find_compare(cls, from_search, from_obj):
@@ -795,28 +762,25 @@ class Item:
 
         :return: A dictionary with all values present in this object.
         """
-        value = Item.get_from_cache(self)
-        if value is None:
-            value = {}
-            for key in self.__dict__:
-                if key.startswith("_") and not key.startswith("__"):
-                    if key in ("_conceptual_parent", "_last_cached_mtime", "_cached_dict", "_supported_boot_loaders"):
-                        continue
-                    new_key = key[1:].lower()
-                    if isinstance(self.__dict__[key], enum.Enum):
-                        value[new_key] = self.__dict__[key].value
-                    elif new_key == "interfaces":
-                        # This is the special interfaces dict. Lets fix it before it gets to the normal process.
-                        serialized_interfaces = {}
-                        interfaces = self.__dict__[key]
-                        for interface_key in interfaces:
-                            serialized_interfaces[interface_key] = interfaces[interface_key].to_dict()
-                        value[new_key] = serialized_interfaces
-                    elif isinstance(self.__dict__[key], (list, dict)):
-                        value[new_key] = copy.deepcopy(self.__dict__[key])
-                    else:
-                        value[new_key] = self.__dict__[key]
-        self.set_cache(self, value)
+        value = {}
+        for key in self.__dict__:
+            if key.startswith("_") and not key.startswith("__"):
+                if key in ("_conceptual_parent", "_last_cached_mtime", "_cached_dict", "_supported_boot_loaders"):
+                    continue
+                new_key = key[1:].lower()
+                if isinstance(self.__dict__[key], enum.Enum):
+                    value[new_key] = self.__dict__[key].value
+                elif new_key == "interfaces":
+                    # This is the special interfaces dict. Lets fix it before it gets to the normal process.
+                    serialized_interfaces = {}
+                    interfaces = self.__dict__[key]
+                    for interface_key in interfaces:
+                        serialized_interfaces[interface_key] = interfaces[interface_key].to_dict()
+                    value[new_key] = serialized_interfaces
+                elif isinstance(self.__dict__[key], (list, dict)):
+                    value[new_key] = copy.deepcopy(self.__dict__[key])
+                else:
+                    value[new_key] = self.__dict__[key]
         if "autoinstall" in value:
             value.update({"kickstart": value["autoinstall"]})
         if "autoinstall_meta" in value:
