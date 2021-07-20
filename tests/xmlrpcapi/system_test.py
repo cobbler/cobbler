@@ -78,7 +78,7 @@ class TestSystem:
         ("virt_path", "/path/to/test"),
         ("virt_pxe_boot", True),
         ("virt_pxe_boot", False),
-        ("power_type", "ipmilan"),
+        ("power_type", "ipmilanplus"),
         ("power_address", "127.0.0.1"),
         ("power_id", "pmachine:lpar1"),
         ("power_pass", "pass"),

@@ -113,7 +113,7 @@ DEFAULTS = {
     "nsupdate_log": ["/var/log/cobbler/nsupdate.log", "str"],
     "nsupdate_tsig_algorithm": ["hmac-sha512", "str"],
     "nsupdate_tsig_key": [[], "list"],
-    "power_management_default_type": ["ipmilan", "str"],
+    "power_management_default_type": ["ipmilanplus", "str"],
     "proxy_url_ext": ["", "str"],
     "proxy_url_int": ["", "str"],
     "puppet_auto_setup": [False, "bool"],
