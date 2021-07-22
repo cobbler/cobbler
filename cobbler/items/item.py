@@ -754,7 +754,7 @@ class Item:
                     raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from error
                 result.pop(key)
         if len(result) > 0:
-            raise KeyError("The following keys supplied could not be set: %s" % dictionary.keys())
+            raise KeyError("The following keys supplied could not be set: %s" % result.keys())
 
     def to_dict(self) -> dict:
         """
