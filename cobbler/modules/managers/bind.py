@@ -115,7 +115,7 @@ class _BindManager(ManagerModule):
             zones[zone] = {}
 
         for system in self.systems:
-            for (name, interface) in list(system.interfaces.items()):
+            for (name, interface) in system.interfaces.items():
                 host = interface.dns_name
                 ip = interface.ip_address
                 ipv6 = interface.ipv6_address
@@ -134,7 +134,7 @@ class _BindManager(ManagerModule):
                 # - b.c.d.e
                 # then a.b.c.d.e should go in b.c.d.e
                 best_match = ''
-                for zone in list(zones.keys()):
+                for zone in zones.keys():
                     if re.search(r'\.%s$' % zone, host) and len(zone) > len(best_match):
                         best_match = zone
 
@@ -206,7 +206,7 @@ class _BindManager(ManagerModule):
             zones[zone] = {}
 
         for system in self.systems:
-            for (name, interface) in list(system.interfaces.items()):
+            for (name, interface) in system.interfaces.items():
                 host = interface.dns_name
                 ip = interface.ip_address
                 ipv6 = interface.ipv6_address
@@ -224,7 +224,7 @@ class _BindManager(ManagerModule):
                     # - 1.2.3
                     # then 1.2.3.4 should go in 1.2.3
                     best_match = ''
-                    for zone in list(zones.keys()):
+                    for zone in zones.keys():
                         if re.search(r'^%s\.' % zone, ip) and len(zone) > len(best_match):
                             best_match = zone
 
@@ -267,7 +267,7 @@ class _BindManager(ManagerModule):
         # forward_zones = self.settings.manage_forward_zones
         # reverse_zones = self.settings.manage_reverse_zones
 
-        metadata = {'forward_zones': list(self.__forward_zones().keys()),
+        metadata = {'forward_zones': self.__forward_zones().keys(),
                     'reverse_zones': [],
                     'zone_include': ''}
 
@@ -280,7 +280,7 @@ zone "%(zone)s." {
 """ % {'zone': zone}
             metadata['zone_include'] = metadata['zone_include'] + txt
 
-        for zone in list(self.__reverse_zones().keys()):
+        for zone in self.__reverse_zones().keys():
             # IPv6 zones are : delimited
             if ":" in zone:
                 # if IPv6, assume xxxx:xxxx:xxxx:xxxx
@@ -324,7 +324,7 @@ zone "%(arpa)s." {
         # forward_zones = self.settings.manage_forward_zones
         # reverse_zones = self.settings.manage_reverse_zones
 
-        metadata = {'forward_zones': list(self.__forward_zones().keys()),
+        metadata = {'forward_zones': self.__forward_zones().keys(),
                     'reverse_zones': [],
                     'zone_include': ''}
 
@@ -340,7 +340,7 @@ zone "%(zone)s." {
 """ % {'zone': zone, 'master': self.settings.bind_master}
             metadata['zone_include'] = metadata['zone_include'] + txt
 
-        for zone in list(self.__reverse_zones().keys()):
+        for zone in self.__reverse_zones().keys():
             # IPv6 zones are : delimited
             if ":" in zone:
                 # if IPv6, assume xxxx:xxxx:xxxx:xxxx for the zone
@@ -422,12 +422,12 @@ zone "%(arpa)s." {
         # particular system
 
         for system in self.systems:
-            for (name, interface) in list(system.interfaces.items()):
+            for (name, interface) in system.interfaces.items():
                 if interface.dns_name == "":
                     self.logger.info("Warning: dns_name unspecified in the system: %s, while writing host records",
                                      system.name)
 
-        names = [k for k, v in list(hosts.items())]
+        names = [k for k, v in hosts.items()]
         if not names:
             return ''  # zones with no hosts
 
@@ -472,7 +472,7 @@ zone "%(arpa)s." {
         # Which results in empty records without any warning to the users
 
         for system in self.systems:
-            for (name, interface) in list(system.interfaces.items()):
+            for (name, interface) in system.interfaces.items():
                 cnames = interface.cnames
 
                 try:
@@ -529,7 +529,7 @@ zone "%(arpa)s." {
 
         zonefileprefix = self.settings.bind_chroot_path + self.zonefile_base
 
-        for (zone, hosts) in list(forward.items()):
+        for (zone, hosts) in forward.items():
             metadata = {
                 'cobbler_server': cobbler_server,
                 'serial': serial,
@@ -571,7 +571,7 @@ zone "%(arpa)s." {
             self.logger.info("generating (forward) %s", zonefilename)
             self.templar.render(template_data, metadata, zonefilename)
 
-        for (zone, hosts) in list(reverse.items()):
+        for (zone, hosts) in reverse.items():
             metadata = {
                 'cobbler_server': cobbler_server,
                 'serial': serial,
