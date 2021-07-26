@@ -1,5 +1,7 @@
+# vim: ft=dockerfile
+
 # WARNING! This is not in any way production ready. It is just for testing!
-FROM registry.opensuse.org/opensuse/leap:15.2
+FROM registry.opensuse.org/opensuse/leap:15.3
 
 # ENV Variables we are using.
 ENV container docker
@@ -20,7 +22,6 @@ RUN zypper install -y          \
     genders                    \
     git                        \
     gzip                       \
-    hardlink                   \
     ipmitool                   \
     make                       \
     python3                    \
@@ -38,6 +39,7 @@ RUN zypper install -y          \
     supervisor                 \
     tftp                       \
     tree                       \
+    util-linux                 \
     vim                        \
     which                      \
     xorriso
