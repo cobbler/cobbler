@@ -81,10 +81,10 @@ def test_name_servers():
     profile = Profile(test_api)
 
     # Act
-    profile.name_servers = ""
+    profile.name_servers = []
 
     # Assert
-    assert profile.name_servers == ""
+    assert profile.name_servers == []
 
 
 def test_name_servers_search():
@@ -96,7 +96,7 @@ def test_name_servers_search():
     profile.name_servers_search = ""
 
     # Assert
-    assert profile.name_servers_search == ""
+    assert profile.name_servers_search is None
 
 
 def test_proxy():
@@ -201,7 +201,7 @@ def test_filename():
     profile = Profile(test_api)
 
     # Act
-    profile.filename = ""
+    profile.filename = "<<inherit>>"
 
     # Assert
     assert profile.filename == "<<inherit>>"

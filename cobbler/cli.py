@@ -271,7 +271,7 @@ PROFILE_FIELDS = [
     ["uid", "", "", "", False, "", 0, "str"],
 
     # editable in UI
-    ["autoinstall", "SETTINGS:default_autoinstall", '<<inherit>>', "Automatic Installation Template", True,
+    ["autoinstall", "SETTINGS:autoinstall", '<<inherit>>', "Automatic Installation Template", True,
      "Path to automatic installation template", 0, "str"],
     ["autoinstall_meta", {}, '<<inherit>>', "Automatic Installation Metadata", True, "Ex: dog=fang agent=86", 0,
      "dict"],

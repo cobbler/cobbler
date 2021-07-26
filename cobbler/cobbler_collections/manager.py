@@ -175,6 +175,7 @@ class CollectionManager:
         :raises CX: if there is an error in deserialization
         """
         for collection in (
+            self._menus,
             self._distros,
             self._repos,
             self._profiles,
@@ -183,7 +184,6 @@ class CollectionManager:
             self._mgmtclasses,
             self._packages,
             self._files,
-            self._menus,
         ):
             try:
                 serializer.deserialize(collection)

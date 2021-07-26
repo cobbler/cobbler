@@ -338,7 +338,6 @@ class Collection:
                                             systems.
         :raises TypError or ValueError
         """
-        item_base.Item.remove_from_cache(ref)
         if ref is None:
             raise TypeError("Unable to add a None object")
         if ref.name is None:
@@ -383,6 +382,11 @@ class Collection:
         finally:
             self.lock.release()
 
+        # update children cache in parent object in case it is not in there already
+        if ref.parent and ref.name not in ref.parent.children:
+            ref.parent.children.append(ref.name)
+            self.logger.debug("Added child \"%s\" to parent \"%s\"", ref.name, ref.parent.name)
+
         # perform filesystem operations
         if save:
             # Save just this item if possible, if not, save the whole collection
@@ -424,11 +428,6 @@ class Collection:
                 utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/change/*", [])
                 utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type(),
                                    [])
-
-        # update children cache in parent object
-        if ref.parent:
-            ref.parent.children.append(ref.name)
-            self.logger.debug("Added child \"%s\" to parent \"%s\"", ref.name, ref.parent.name)
 
     def __duplication_checks(self, ref, check_for_duplicate_names: bool, check_for_duplicate_netinfo: bool):
         """

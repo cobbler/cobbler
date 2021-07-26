@@ -55,12 +55,6 @@ build_reporting_smtp_server: "localhost"
 build_reporting_subject: ""
 build_reporting_ignorelist: []
 
-# If cache_enabled is true, a cache will keep converted records in memory to make checking them faster. This helps with
-# use cases like writing out large numbers of records. There is a known issue with cache and remote XMLRPC API calls.
-# If you will use Cobbler with config management or infrastructure-as-code tools such as Terraform, it is recommended
-# to disable by setting to false.
-cache_enabled: true
-
 # Cheetah-language autoinstall templates can import Python modules. While this is a useful feature, it is not safe to
 # allow them to import anything they want. This whitelists which modules can be imported through Cheetah. Users can
 # expand this as needed but should never allow modules such as subprocess or those that allow access to the filesystem
@@ -76,8 +70,8 @@ cheetah_import_whitelist:
 # Fedora repos from F11/F12 from EL-4 or EL-5 without python-hashlib installed (which is not available on EL-4)
 createrepo_flags: "-c cache -s sha"
 
-# if no autoinstall template is specified to profile add, use this template
-default_autoinstall: /var/lib/cobbler/templates/default.ks
+# if no autoinstall template is specified to profile add, use this template (path is relative to template root)
+autoinstall: "default.ks"
 
 # configure all installed systems to use these nameservers by default
 # unless defined differently in the profile.  For DHCP configurations

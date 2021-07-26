@@ -171,10 +171,10 @@ def test_name_servers_search():
     system = System(test_api)
 
     # Act
-    system.name_servers_search = []
+    system.name_servers_search = ""
 
     # Assert
-    assert system.name_servers_search == []
+    assert system.name_servers_search == ""
 
 
 @pytest.mark.parametrize("value,expected", [
@@ -232,7 +232,7 @@ def test_filename():
     system = System(test_api)
 
     # Act
-    system.filename = ""
+    system.filename = "<<inherit>>"
 
     # Assert
     assert system.filename == "<<inherit>>"

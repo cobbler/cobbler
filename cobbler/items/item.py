@@ -17,7 +17,7 @@ import logging
 import pprint
 import re
 import uuid
-from typing import List, Union
+from typing import Any, List, Union
 
 import yaml
 
@@ -35,39 +35,6 @@ class Item:
     # Constants
     TYPE_NAME = "generic"
     COLLECTION_TYPE = "generic"
-    # Class instance variables
-    converted_cache = {}
-
-    @classmethod
-    def get_from_cache(cls, ref):
-        """
-        Get an object from the cache. This may potentially contain not persisted changes.
-
-        :param ref: The object which is in the cache.
-        :return: The object if present or an empty dict.
-        """
-        return cls.converted_cache.get(ref.COLLECTION_TYPE, {}).get(ref.uid)
-
-    @classmethod
-    def set_cache(cls, ref, value):
-        """
-        Add an object to the cache.
-
-        :param ref: An object to identify where to add the item to the cache.
-        :param value: The object to add to the cache.
-        """
-        if ref.COLLECTION_TYPE not in cls.converted_cache:
-            cls.converted_cache[ref.COLLECTION_TYPE] = {}
-        cls.converted_cache[ref.COLLECTION_TYPE][ref.uid] = value
-
-    @classmethod
-    def remove_from_cache(cls, ref):
-        """
-        Remove an item from the cache.
-
-        :param ref: The object reference id to identify the object.
-        """
-        cls.converted_cache.get(ref.COLLECTION_TYPE, {}).pop(ref.uid, None)
 
     @classmethod
     def __find_compare(cls, from_search, from_obj):
@@ -150,17 +117,17 @@ class Item:
         self._uid = uuid.uuid4().hex
         self._name = ""
         self._comment = ""
-        self._kernel_options = {}
-        self._kernel_options_post = {}
-        self._autoinstall_meta = {}
-        self._fetchable_files = {}
-        self._boot_files = {}
+        self._kernel_options: Union[dict, str] = {}
+        self._kernel_options_post: Union[dict, str] = {}
+        self._autoinstall_meta: Union[dict, str] = {}
+        self._fetchable_files: Union[dict, str] = {}
+        self._boot_files: Union[dict, str] = {}
         self._template_files = {}
         self._last_cached_mtime = 0
-        self._owners = []
+        self._owners: Union[list, str] = api.settings().default_ownership
         self._cached_dict = ""
-        self._mgmt_classes = []
-        self._mgmt_parameters = {}
+        self._mgmt_classes: Union[list, str] = []
+        self._mgmt_parameters: Union[dict, str] = {}
         self._conceptual_parent = None
         self._is_subobject = is_subobject
 
@@ -177,6 +144,67 @@ class Item:
         if isinstance(other, Item):
             return self._uid == other.uid
         return False
+
+    def _resolve(self, property_name: str) -> Any:
+        """
+        Resolve the ``property_name`` value in the object tree. This function traverses the tree from the object to its
+        topmost parent and returns the first value that is not inherited. If the the tree does not contain a value the
+        settings are consulted.
+
+        :param property_name: The property name to resolve.
+        :raises AttributeError: In case one of the objects try to inherit from a parent that does not have
+                                ``property_name``.
+        :return: The resolved value.
+        """
+        attribute = "_" + property_name
+
+        if not hasattr(self, attribute):
+            raise AttributeError("%s \"%s\" does not have property \"%s\"" % (type(self), self.name, property_name))
+
+        attribute_value = getattr(self, attribute)
+        settings = self.api.settings()
+
+        if attribute_value == enums.VALUE_INHERITED:
+            if self.parent is not None and hasattr(self.parent, property_name):
+                return getattr(self.parent, property_name)
+            elif hasattr(settings, property_name):
+                return getattr(settings, property_name)
+            else:
+                AttributeError("%s \"%s\" inherits property \"%s\", but neither its parent nor settings have it"
+                               % (type(self), self.name, property_name))
+
+        return attribute_value
+
+    def _resolve_dict(self, property_name: str) -> dict:
+        """
+        Merge the ``property_name`` dictionary of the object with the ``property_name`` of all its parents. The value
+        of the child takes precedence over the value of the parent.
+
+        :param property_name: The property name to resolve.
+        :return: The merged dictionary.
+        """
+        attribute = "_" + property_name
+
+        if not hasattr(self, attribute):
+            raise AttributeError("%s \"%s\" does not have property \"%s\""
+                                 % (type(self), self.name, property_name))
+
+        attribute_value = getattr(self, attribute)
+        settings = self.api.settings()
+
+        merged_dict = {}
+
+        if self.parent is not None and hasattr(self.parent, property_name):
+            merged_dict.update(getattr(self.parent, property_name))
+        elif hasattr(settings, property_name):
+            merged_dict.update(getattr(settings, property_name))
+
+        if attribute_value != enums.VALUE_INHERITED:
+            merged_dict.update(attribute_value)
+
+        utils.dict_annihilate(merged_dict)
+
+        return merged_dict
 
     @property
     def uid(self) -> str:
@@ -284,7 +312,7 @@ class Item:
 
         :return:
         """
-        return self._kernel_options
+        return self._resolve_dict("kernel_options")
 
     @kernel_options.setter
     def kernel_options(self, options):
@@ -307,7 +335,7 @@ class Item:
 
         :return:
         """
-        return self._kernel_options_post
+        return self._resolve_dict("kernel_options_post")
 
     @kernel_options_post.setter
     def kernel_options_post(self, options):
@@ -330,7 +358,7 @@ class Item:
 
         :return: The metadata or an empty dict.
         """
-        return self._autoinstall_meta
+        return self._resolve_dict("autoinstall_meta")
 
     @autoinstall_meta.setter
     def autoinstall_meta(self, options: dict):
@@ -354,7 +382,7 @@ class Item:
 
         :return: An empty list or the list of mgmt_classes.
         """
-        return self._mgmt_classes
+        return self._resolve("mgmt_classes")
 
     @mgmt_classes.setter
     def mgmt_classes(self, mgmt_classes: list):
@@ -367,13 +395,13 @@ class Item:
         self._mgmt_classes = utils.input_string_or_list(mgmt_classes)
 
     @property
-    def mgmt_parameters(self):
+    def mgmt_parameters(self) -> dict:
         """
         Parameters which will be handed to your management application (Must be a valid YAML dictionary)
 
         :return: The mgmt_parameters or an empty dict.
         """
-        return self._mgmt_parameters
+        return self._resolve_dict("mgmt_parameters")
 
     @mgmt_parameters.setter
     def mgmt_parameters(self, mgmt_parameters: Union[str, dict]):
@@ -424,7 +452,7 @@ class Item:
 
         :return:
         """
-        return self._boot_files
+        return self._resolve_dict("boot_files")
 
     @boot_files.setter
     def boot_files(self, boot_files: dict):
@@ -433,9 +461,11 @@ class Item:
 
         :param boot_files: The new value for the boot files used by the item.
         """
-        if not isinstance(boot_files, dict):
-            raise TypeError("boot_files needs to be of type dict")
-        self._boot_files = boot_files
+        (success, value) = utils.input_string_or_dict(boot_files, allow_multiples=False)
+        if not success:
+            raise TypeError("boot_files were handed wrong values")
+        else:
+            self._boot_files = value
 
     @property
     def fetchable_files(self) -> dict:
@@ -444,7 +474,7 @@ class Item:
 
         :return:
         """
-        return self._fetchable_files
+        return self._resolve_dict("fetchable_files")
 
     @fetchable_files.setter
     def fetchable_files(self, fetchable_files: Union[str, dict]):
@@ -724,7 +754,7 @@ class Item:
                     raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from error
                 result.pop(key)
         if len(result) > 0:
-            raise KeyError("The following keys supplied could not be set: %s" % dictionary.keys())
+            raise KeyError("The following keys supplied could not be set: %s" % result.keys())
 
     def to_dict(self) -> dict:
         """
@@ -732,28 +762,25 @@ class Item:
 
         :return: A dictionary with all values present in this object.
         """
-        value = Item.get_from_cache(self)
-        if value is None:
-            value = {}
-            for key in self.__dict__:
-                if key.startswith("_") and not key.startswith("__"):
-                    if key in ("_conceptual_parent", "_last_cached_mtime", "_cached_dict", "_supported_boot_loaders"):
-                        continue
-                    new_key = key[1:].lower()
-                    if isinstance(self.__dict__[key], enum.Enum):
-                        value[new_key] = self.__dict__[key].value
-                    elif new_key == "interfaces":
-                        # This is the special interfaces dict. Lets fix it before it gets to the normal process.
-                        serialized_interfaces = {}
-                        interfaces = self.__dict__[key]
-                        for interface_key in interfaces:
-                            serialized_interfaces[interface_key] = interfaces[interface_key].to_dict()
-                        value[new_key] = serialized_interfaces
-                    elif isinstance(self.__dict__[key], (list, dict)):
-                        value[new_key] = copy.deepcopy(self.__dict__[key])
-                    else:
-                        value[new_key] = self.__dict__[key]
-        self.set_cache(self, value)
+        value = {}
+        for key in self.__dict__:
+            if key.startswith("_") and not key.startswith("__"):
+                if key in ("_conceptual_parent", "_last_cached_mtime", "_cached_dict", "_supported_boot_loaders"):
+                    continue
+                new_key = key[1:].lower()
+                if isinstance(self.__dict__[key], enum.Enum):
+                    value[new_key] = self.__dict__[key].value
+                elif new_key == "interfaces":
+                    # This is the special interfaces dict. Lets fix it before it gets to the normal process.
+                    serialized_interfaces = {}
+                    interfaces = self.__dict__[key]
+                    for interface_key in interfaces:
+                        serialized_interfaces[interface_key] = interfaces[interface_key].to_dict()
+                    value[new_key] = serialized_interfaces
+                elif isinstance(self.__dict__[key], (list, dict)):
+                    value[new_key] = copy.deepcopy(self.__dict__[key])
+                else:
+                    value[new_key] = self.__dict__[key]
         if "autoinstall" in value:
             value.update({"kickstart": value["autoinstall"]})
         if "autoinstall_meta" in value:

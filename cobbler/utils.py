@@ -576,7 +576,7 @@ def blender(api_handle, remove_dicts: bool, root_obj):
     tree.reverse()  # start with top of tree, override going down
     results = {}
     for node in tree:
-        results.update(__consolidate(node))
+        __consolidate(node, results)
 
     # Make interfaces accessible without Cheetah-voodoo in the templates
     # EXAMPLE: $ip == $ip0, $ip1, $ip2 and so on.
@@ -611,8 +611,13 @@ def blender(api_handle, remove_dicts: bool, root_obj):
     if "children" in results:
         child_names = results["children"]
         results["children"] = {}
+        logger.info("Children: %s", child_names)
         for key in child_names:
-            results["children"][key] = api_handle.find_items("", name=key, return_list=False).to_dict()
+            child = api_handle.find_items("", name=key, return_list=False)
+            if child is None:
+                raise ValueError("Child with the name \"%s\" of parent object \"%s\" did not exist!"
+                                 % (key, root_obj.name))
+            results["children"][key] = child.to_dict()
 
     # sanitize output for koan and kernel option lines, etc
     if remove_dicts:
@@ -701,7 +706,7 @@ def uniquify(seq: list) -> list:
     return result
 
 
-def __consolidate(node) -> dict:
+def __consolidate(node, results: dict) -> dict:
     """
     Merge data from a given node with the aggregate of all data from past scanned nodes. Dictionaries and arrays are
     treated specially.
@@ -709,7 +714,6 @@ def __consolidate(node) -> dict:
     :param node: The object to merge data into. The data from the node always wins.
     :return: A dictionary with the consolidated data.
     """
-    results = {}
     node_data = node.to_dict()
 
     # If the node has any data items labelled <<inherit>> we need to expunge them. So that they do not override the
@@ -724,6 +728,12 @@ def __consolidate(node) -> dict:
                 node_data_copy[key] = value[:]
             else:
                 node_data_copy[key] = value
+        else:
+            # Old keys should have no inherit and thus are not a real property
+            if key == "kickstart":
+                node_data_copy[key] = getattr(type(node), "autoinstall").fget(node)
+            elif key == "ks_meta":
+                node_data_copy[key] = getattr(type(node), "autoinstall_meta").fget(node)
 
     for field in node_data_copy:
         data_item = node_data_copy[field]
@@ -768,14 +778,23 @@ def dict_removals(results: dict, subkey: str):
     """
     if subkey not in results:
         return
-    # FIXME: If the dict has no subdict then this method fails.
-    scan = list(results[subkey].keys())
-    for k in scan:
+    return dict_annihilate(results[subkey])
+
+
+def dict_annihilate(dictionary: dict):
+    """
+    Annihilate entries marked for removal. This method removes all entries with
+    key names starting with "!". If a ``dictionary`` contains keys "!xxx" and
+    "xxx", then both will be removed.
+
+    :param dictionary: A dictionary to clean up.
+    """
+    for k in list(dictionary.keys()):
         if str(k).startswith("!") and k != "!":
-            remove_me = k[1:]
-            if remove_me in results[subkey]:
-                del results[subkey][remove_me]
-            del results[subkey][k]
+            rk = k[1:]
+            if rk in dictionary:
+                del dictionary[rk]
+            del dictionary[k]
 
 
 def dict_to_string(_dict: dict) -> Union[str, dict]:

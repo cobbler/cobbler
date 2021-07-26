@@ -1919,6 +1919,10 @@ class CobblerXMLRPCInterface:
             # if object type is system and fields add to dict and then modify when done, rather than now.
             imods = {}
             # FIXME: needs to know about how to delete interfaces too!
+            priority_attributes = ["name", "parent", "distro", "profile", "image"]
+            for attr_name in priority_attributes:
+                if attr_name in attributes:
+                    self.modify_item(object_type, handle, attr_name, attributes.pop(attr_name), token)
             for (key, value) in list(attributes.items()):
                 if object_type != "system" or not self.__is_interface_field(key):
                     # in place modifications allow for adding a key/value pair while keeping other k/v pairs intact.
@@ -1943,37 +1947,7 @@ class CobblerXMLRPCInterface:
 
             if object_type == "system":
                 # FIXME: Don't call this tree if we are not doing any interface stuff.
-                if "delete_interface" not in attributes and "rename_interface" not in attributes:
-                    # This if is taking care of interface logic. The interfaces are a dict, thus when we get the obj via
-                    # the api we get references to the original interfaces dict. Thus this trick saves us the pain of
-                    # writing the modified obj back to the collection. Always remember that dicts are mutable.
-                    system_to_edit = self.__get_object(handle)
-                    if system_to_edit is None:
-                        raise ValueError("No system found with the specified name (name given: \"%s\")!" % object_name)
-                    # If we don't have an explicit interface name use the default interface
-                    interface_name = attributes.get("interface", "default")
-                    self.logger.debug("Interface \"%s\" is being edited.", interface_name)
-                    interface = system_to_edit.interfaces.get(interface_name)
-                    if interface is None:
-                        # If the interface is not existing, create a new one.
-                        interface = system.NetworkInterface(self.api)
-                    for attribute_key in attributes:
-                        if self.__is_interface_field(attribute_key):
-                            if hasattr(interface, attribute_key):
-                                setattr(interface, attribute_key, attributes[attribute_key])
-                            else:
-                                self.logger.warning("Network interface field \"%s\" could not be set. Skipping it.",
-                                                    attribute_key)
-                        else:
-                            self.logger.debug("Field %s was not an interface field.", attribute_key)
-                    system_to_edit.interfaces.update({interface_name: interface})
-                elif "delete_interface" in attributes:
-                    system_to_edit = self.__get_object(handle)
-                    system_to_edit.delete_interface(attributes.get("interface"))
-                elif "rename_interface" in attributes:
-                    system_to_edit = self.__get_object(handle)
-                    system_to_edit.rename_interface(attributes.get("interface", ""),
-                                                    attributes.get("rename_interface", ""))
+                self.__interface_edits(handle, attributes, object_name)
         else:
             # remove item
             recursive = attributes.get("recursive", False)
@@ -1989,6 +1963,39 @@ class CobblerXMLRPCInterface:
         # FIXME: use the bypass flag or not?
         self.save_item(object_type, handle, token)
         return True
+
+    def __interface_edits(self, handle, attributes, object_name):
+        if "delete_interface" not in attributes and "rename_interface" not in attributes:
+            # This if is taking care of interface logic. The interfaces are a dict, thus when we get the obj via
+            # the api we get references to the original interfaces dict. Thus this trick saves us the pain of
+            # writing the modified obj back to the collection. Always remember that dicts are mutable.
+            system_to_edit = self.__get_object(handle)
+            if system_to_edit is None:
+                raise ValueError("No system found with the specified name (name given: \"%s\")!" % object_name)
+            # If we don't have an explicit interface name use the default interface
+            interface_name = attributes.get("interface", "default")
+            self.logger.debug("Interface \"%s\" is being edited.", interface_name)
+            interface = system_to_edit.interfaces.get(interface_name)
+            if interface is None:
+                # If the interface is not existing, create a new one.
+                interface = system.NetworkInterface(self.api)
+            for attribute_key in attributes:
+                if self.__is_interface_field(attribute_key):
+                    if hasattr(interface, attribute_key):
+                        setattr(interface, attribute_key, attributes[attribute_key])
+                    else:
+                        self.logger.warning("Network interface field \"%s\" could not be set. Skipping it.",
+                                            attribute_key)
+                else:
+                    self.logger.debug("Field %s was not an interface field.", attribute_key)
+            system_to_edit.interfaces.update({interface_name: interface})
+        elif "delete_interface" in attributes:
+            system_to_edit = self.__get_object(handle)
+            system_to_edit.delete_interface(attributes.get("interface"))
+        elif "rename_interface" in attributes:
+            system_to_edit = self.__get_object(handle)
+            system_to_edit.rename_interface(attributes.get("interface", ""),
+                                            attributes.get("rename_interface", ""))
 
     def save_item(self, what, object_id, token, editmode: str = "bypass"):
         """
