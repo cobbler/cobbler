@@ -541,11 +541,14 @@ if __name__ == "__main__":
             'webroot': os.path.normpath(webroot),
             'tftproot': os.path.normpath(tftproot),
             'httpd_service': httpd_service,
+            'bind_zonefiles': bind_zonefiles,
         },
         configure_files=[
             "config/cobbler/settings.yaml",
             "config/apache/cobbler.conf",
             "config/service/cobblerd.service",
+            "templates/etc/named.template",
+            "templates/etc/secondary.template",
         ],
         man_pages=[
             'docs/cobblerd.rst',

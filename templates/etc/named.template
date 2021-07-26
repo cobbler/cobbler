@@ -1,13 +1,14 @@
 options {
           listen-on port 53 { 127.0.0.1; };
-          directory       "/var/named";
-          dump-file       "/var/named/data/cache_dump.db";
-          statistics-file "/var/named/data/named_stats.txt";
-          memstatistics-file "/var/named/data/named_mem_stats.txt";
+          directory       "@@bind_zonefiles@@";
+          dump-file       "@@bind_zonefiles@@/data/cache_dump.db";
+          statistics-file "@@bind_zonefiles@@/data/named_stats.txt";
+          memstatistics-file "@@bind_zonefiles@@/data/named_mem_stats.txt";
           allow-query     { localhost; };
           recursion yes;
 };
 
+# does not work on openSUSE Tumbleweed atm
 logging {
         channel default_debug {
                 file "data/named.run";
