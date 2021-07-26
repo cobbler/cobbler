@@ -547,6 +547,8 @@ if __name__ == "__main__":
             "config/cobbler/settings.yaml",
             "config/apache/cobbler.conf",
             "config/service/cobblerd.service",
+            "templates/etc/named.template",
+            "templates/etc/secondary.template",
         ],
         man_pages=[
             'docs/cobblerd.rst',
