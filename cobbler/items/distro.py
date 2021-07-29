@@ -55,9 +55,9 @@ class Distro(item.Item):
         self._source_repos = []
         self._fetchable_files = {}
         self._remote_boot_kernel = ""
-        self._remote_grub_kernel = ""
         self._remote_boot_initrd = ""
-        self._remote_grub_initrd = ""
+        self.remote_grub_kernel = ""
+        self.remote_grub_initrd = ""
         self._supported_boot_loaders = []
 
     def __getattr__(self, name):
@@ -177,7 +177,6 @@ class Distro(item.Item):
         """
         URL to a remote kernel. If the bootloader supports this feature, it directly tries to retrieve the kernel and
         boot it. (grub supports tftp and http protocol and server must be an IP).
-        TODO: Obsolete it and merge with kernel property
         """
         if not isinstance(remote_boot_kernel, str):
             raise TypeError("Field remote_boot_kernel of distro needs to be of type str!")
@@ -185,11 +184,10 @@ class Distro(item.Item):
             parsed_url = grub.parse_grub_remote_file(remote_boot_kernel)
             if parsed_url is None:
                 raise ValueError("Invalid URL for remote boot kernel: %s" % remote_boot_kernel)
-            self._remote_grub_kernel = parsed_url
+            self.remote_grub_kernel = parsed_url
             self._remote_boot_kernel = remote_boot_kernel
             return
-        self._remote_grub_kernel = remote_boot_kernel
-        self._remote_boot_kernel = remote_boot_kernel
+        self._remote_boot_kernel = self.remote_grub_kernel = None
 
     @property
     def tree_build_time(self) -> float:
@@ -276,32 +274,6 @@ class Distro(item.Item):
         raise ValueError("initrd not found")
 
     @property
-    def remote_grub_initrd(self) -> str:
-        """
-        TODO
-
-        :return:
-        """
-        return self._remote_grub_initrd
-
-    @remote_grub_initrd.setter
-    def remote_grub_initrd(self, value: str):
-        """
-        TODO
-
-        :param value:
-        """
-        if not isinstance(value, str):
-            raise TypeError("remote_grub_initrd must be of type str")
-        if not value:
-            self._remote_grub_initrd = ""
-            return
-        parsed_url = grub.parse_grub_remote_file(value)
-        if parsed_url is None:
-            raise ValueError("Invalid URL for remote boot initrd: %s" % value)
-        self._remote_grub_initrd = parsed_url
-
-    @property
     def remote_boot_initrd(self) -> str:
         """
         TODO
@@ -318,8 +290,14 @@ class Distro(item.Item):
         """
         if not isinstance(remote_boot_initrd, str):
             raise TypeError("remote_boot_initrd must be of type str!")
-        self.remote_grub_initrd = remote_boot_initrd
-        self._remote_boot_initrd = remote_boot_initrd
+        if remote_boot_initrd:
+            parsed_url = grub.parse_grub_remote_file(remote_boot_initrd)
+            if parsed_url is None:
+                raise ValueError("Invalid URL for remote boot kernel: %s" % remote_boot_initrd)
+            self.remote_grub_initrd = parsed_url
+            self._remote_boot_initrd = remote_boot_initrd
+            return
+        self._remote_boot_initrd = self.remote_grub_initrd = None
 
     @property
     def source_repos(self) -> list:
