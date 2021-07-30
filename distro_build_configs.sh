@@ -25,7 +25,7 @@ if [ "$DISTRO" = "" ] && [ -r /etc/os-release ];then
 	sle*|*suse*)
 	    DISTRO="SUSE"
 	    ;;
-	fedora*|centos*|rhel*)
+	fedora*|centos*|rhel*|ol*)
 	    DISTRO="FEDORA"
 	    ;;
 	ubuntu*|debian*)
