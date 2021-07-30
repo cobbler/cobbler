@@ -561,7 +561,7 @@ class Profile(item.Item):
         return self._virt_ram
 
     @virt_ram.setter
-    def virt_ram(self, num: Union[str, int, float]):
+    def virt_ram(self, num: Union[str, int]):
         """
         Setter for the virtual RAM used for the VM.
 

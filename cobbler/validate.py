@@ -325,32 +325,33 @@ def validate_virt_file_size(num: Union[str, int, float]):
     "don't care". Newer versions (x>=0.6.4) interpret 0 as "no disks"
 
     :param num: is a non-negative integer (0 means default). Can also be a comma seperated list -- for usage with
-                multiple disks
+                multiple disks (not working at the moment)
     """
 
-    if num is None or num == "":
-        return 0
+    # FIXME: Data structure does not allow this (yet)
+    # if isinstance(num, str) and num.find(",") != -1:
+    #    tokens = num.split(",")
+    #    for token in tokens:
+    #        # hack to run validation on each
+    #        validate_virt_file_size(token)
+    #    # if no exceptions raised, good enough
+    #    return num
 
-    if num == enums.VALUE_INHERITED:
-        return enums.VALUE_INHERITED
-
-    if isinstance(num, str) and num.find(",") != -1:
-        tokens = num.split(",")
-        for token in tokens:
-            # hack to run validation on each
-            validate_virt_file_size(token)
-        # if no exceptions raised, good enough
-        return num
-
-    try:
-        inum = int(num)
-        if inum != float(num):
-            raise ValueError("invalid virt file size (%s)" % num)
-        if inum >= 0:
-            return inum
-        raise ValueError("invalid virt file size (%s)" % num)
-    except:
-        raise ValueError("invalid virt file size (%s)" % num)
+    if isinstance(num, str):
+        if num == enums.VALUE_INHERITED:
+            return enums.VALUE_INHERITED
+        if num == "":
+            return 0
+        if not utils.is_str_float(num):
+            raise TypeError("virt_file_size needs to be a float")
+        num = float(num)
+    if isinstance(num, int):
+        num = float(num)
+    if not isinstance(num, float):
+        raise TypeError("virt_file_size needs to be a float")
+    if num < 0:
+        raise ValueError("invalid virt_file_size (%s)" % num)
+    return num
 
 
 def validate_virt_disk_driver(driver: Union[enums.VirtDiskDrivers, str]):
@@ -402,7 +403,7 @@ def validate_virt_pxe_boot(value: bool) -> bool:
     return value
 
 
-def validate_virt_ram(value: Union[int, float]) -> Union[str, int]:
+def validate_virt_ram(value: Union[int, str]) -> Union[str, int]:
     """
     For Virt only.
     Specifies the size of the Virt RAM in MB.
@@ -410,19 +411,21 @@ def validate_virt_ram(value: Union[int, float]) -> Union[str, int]:
     :param value: 0 tells Koan to just choose a reasonable default.
     :returns: An integer in all cases, except when ``value`` is the magic inherit string.
     """
-    if not isinstance(value, (str, int, float)):
-        raise TypeError("virt_ram must be of type int, float or the str '<<inherit>>'!")
+    if not isinstance(value, (str, int)):
+        raise TypeError("virt_ram must be of type int or the str '<<inherit>>'!")
 
     if isinstance(value, str):
-        if value != enums.VALUE_INHERITED:
-            raise ValueError("str numbers are not allowed for virt_ram")
-        return enums.VALUE_INHERITED
+        if value == enums.VALUE_INHERITED:
+            # FIXME: The default value is 0 instead of enums.VALUE_INHERITED.
+            return enums.VALUE_INHERITED
+        if value == "":
+            return 0
+        if not utils.is_str_int(value):
+            raise TypeError("virt_ram needs to be an integer")
+        value = int(value)
 
     # value is a non-negative integer (0 means default)
     interger_number = int(value)
-    if interger_number != float(value):
-        raise ValueError("The virt_ram needs to be an integer. The float conversion changed its value and is thus "
-                         "invalid. Value was: \"%s\"" % value)
     if interger_number < 0:
         raise ValueError("The virt_ram needs to have a value greater or equal to zero. Zero means default RAM."
                          % str(value))
@@ -493,6 +496,11 @@ def validate_virt_cpus(num: Union[str, int]) -> int:
     if isinstance(num, str):
         if num == enums.VALUE_INHERITED:
             return 0
+        if num == "":
+            return 0
+        if not utils.is_str_int(num):
+            raise TypeError("virt_cpus needs to be an integer")
+        num = int(num)
     if not isinstance(num, int):
         raise TypeError("virt_cpus needs to be an integer")
     if num < 0:
@@ -500,22 +508,22 @@ def validate_virt_cpus(num: Union[str, int]) -> int:
     return int(num)
 
 
-def validate_serial_device(device_number: int) -> int:
+def validate_serial_device(value: Union[str, int]) -> int:
     """
     Set the serial device for an object.
 
-    :param device_number: The number of the serial device.
+    :param value: The number of the serial device.
     :return: The validated device number
     """
-    if device_number == "" or device_number is None:
-        device_number = None
-    else:
-        try:
-            device_number = int(str(device_number))
-        except:
-            raise ValueError("invalid value for serial device (%s)" % device_number)
-
-    return device_number
+    if isinstance(value, str):
+        if not utils.is_str_int(value):
+            raise TypeError("serial_device needs to be an integer")
+        value = int(value)
+    if not isinstance(value, int):
+        raise TypeError("serial_device needs to be an integer")
+    if value < 0:
+        raise ValueError("serial_device needs to be 0 or greater")
+    return int(value)
 
 
 def validate_serial_baud_rate(baud_rate: Union[int, enums.BaudRates]) -> enums.BaudRates:

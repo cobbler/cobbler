@@ -1954,3 +1954,41 @@ def kopts_overwrite(kopts: dict, cobbler_server_hostname: str = "", distro_breed
         if system_name and cobbler_server_hostname:
             # only works if pxe_just_once is enabled in global settings
             kopts['info'] = 'http://%s/cblr/svc/op/nopxe/system/%s' % (cobbler_server_hostname, system_name)
+
+
+def is_str_int(value: str) -> bool:
+    """
+    Checks if the string value could be converted into an integer.
+    This is necessary since the CLI only works with strings but many methods and checks expects an integer.
+
+    :param value: The value to check
+    :return: True if conversion is successful
+    """
+    if not isinstance(value, str):
+        raise TypeError("value needs to be of type string")
+    try:
+        converted = int(value)
+        return str(converted) == value
+    except ValueError:
+        pass
+    return False
+
+
+def is_str_float(value: str) -> bool:
+    """
+    Checks if the string value could be converted into a float.
+    This is necessary since the CLI only works with strings but many methods and checks expects a float.
+
+    :param value: The value to check
+    :return: True if conversion is successful
+    """
+    if not isinstance(value, str):
+        raise TypeError("value needs to be of type string")
+    if is_str_int(value):
+        return True
+    try:
+        converted = float(value)
+        return str(converted) == value
+    except ValueError:
+        pass
+    return False

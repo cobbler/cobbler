@@ -69,7 +69,7 @@ def test_set_virt_file_size():
     result = validate.validate_virt_file_size("8")
 
     # Assert
-    assert isinstance(result, int)
+    assert isinstance(result, float)
     assert result == 8
 
 

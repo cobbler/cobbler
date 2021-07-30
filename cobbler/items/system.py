@@ -1461,7 +1461,7 @@ class System(Item):
         return self._virt_ram
 
     @virt_ram.setter
-    def virt_ram(self, num: Union[int, float]):
+    def virt_ram(self, num: Union[int, str]):
         """
         TODO
 
