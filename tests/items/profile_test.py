@@ -238,14 +238,14 @@ def test_virt_auto_boot(value, expected_exception):
         assert profile.virt_auto_boot or not profile.virt_auto_boot
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ("", pytest.raises(TypeError)),
+@pytest.mark.parametrize("value,expected_exception, expected_result", [
+    ("", does_not_raise(), 0),
     # FIXME: (False, pytest.raises(TypeError)), --> does not raise
-    (-5, pytest.raises(ValueError)),
-    (0, does_not_raise()),
-    (5, does_not_raise())
+    (-5, pytest.raises(ValueError), -5),
+    (0, does_not_raise(), 0),
+    (5, does_not_raise(), 5)
 ])
-def test_virt_cpus(value, expected_exception):
+def test_virt_cpus(value, expected_exception, expected_result):
     # Arrange
     test_api = CobblerAPI()
     profile = Profile(test_api)
@@ -255,7 +255,7 @@ def test_virt_cpus(value, expected_exception):
         profile.virt_cpus = value
 
         # Assert
-        assert profile.virt_cpus == value
+        assert profile.virt_cpus == expected_result
 
 
 @pytest.mark.parametrize("value,expected_exception", [
@@ -303,7 +303,7 @@ def test_virt_disk_driver(value, expected_exception):
 @pytest.mark.parametrize("value,expected_exception", [
     ("", pytest.raises(ValueError)),
     (0, does_not_raise()),
-    (0.0, does_not_raise())
+    (0.0, pytest.raises(TypeError))
 ])
 def test_virt_ram(value, expected_exception):
     # Arrange
