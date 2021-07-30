@@ -343,21 +343,22 @@ def test_remote_boot_kernel(value, expected_exception):
         assert distro.remote_boot_kernel == value
 
 
-@pytest.mark.parametrize("value", [
-    [""],
-    ["Test"]
+@pytest.mark.parametrize("value,expected_exception", [
+    ([""], pytest.raises(TypeError)),
+    (["Test"], pytest.raises(TypeError)),
+    ("", does_not_raise())
 ])
-def test_remote_grub_kernel(value):
+def test_remote_grub_kernel(value, expected_exception):
     # Arrange
-    # FIXME: This shouldn't succeed
     test_api = CobblerAPI()
     distro = Distro(test_api)
 
     # Act
-    distro.remote_grub_kernel = value
+    with expected_exception:
+        distro.remote_grub_kernel = value
 
-    # Assert
-    assert distro.remote_grub_kernel == value
+        # Assert
+        assert distro.remote_grub_kernel == value
 
 
 @pytest.mark.parametrize("value,expected_exception", [

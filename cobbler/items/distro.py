@@ -182,6 +182,12 @@ class Distro(item.Item):
         if not isinstance(remote_boot_kernel, str):
             raise TypeError("Field remote_boot_kernel of distro needs to be of type str!")
         if remote_boot_kernel:
+            if remote_boot_kernel == "":
+                self._remote_boot_kernel = ""
+                self._remote_grub_kernel = ""
+                return
+            if not validate.validate_boot_remote_file(remote_boot_kernel):
+                raise ValueError("remote_boot_kernel needs to be a valid URL starting with tftp or http!")
             parsed_url = grub.parse_grub_remote_file(remote_boot_kernel)
             if parsed_url is None:
                 raise ValueError("Invalid URL for remote boot kernel: %s" % remote_boot_kernel)
@@ -296,11 +302,13 @@ class Distro(item.Item):
             raise TypeError("remote_grub_initrd must be of type str")
         if not value:
             self._remote_grub_kernel = ""
+            self._remote_boot_kernel = ""
             return
-        parsed_url = grub.parse_grub_remote_file(value)
-        if parsed_url is None:
-            raise ValueError("Invalid URL for remote boot initrd: %s" % value)
-        self._remote_grub_kernel = parsed_url
+        if validate.validate_boot_remote_file(value):
+            value = grub.parse_grub_remote_file(value)
+        if not validate.validate_grub_remote_file(value):
+            raise ValueError("Invalid format passed to remote_grub_initrd!")
+        self._remote_grub_kernel = value
 
     @property
     def remote_grub_initrd(self) -> str:
@@ -322,11 +330,13 @@ class Distro(item.Item):
             raise TypeError("remote_grub_initrd must be of type str")
         if not value:
             self._remote_grub_initrd = ""
+            self._remote_boot_initrd = ""
             return
-        parsed_url = grub.parse_grub_remote_file(value)
-        if parsed_url is None:
-            raise ValueError("Invalid URL for remote boot initrd: %s" % value)
-        self._remote_grub_initrd = parsed_url
+        if validate.validate_boot_remote_file(value):
+            value = grub.parse_grub_remote_file(value)
+        if not validate.validate_grub_remote_file(value):
+            raise ValueError("Invalid format passed to remote_grub_initrd!")
+        self._remote_grub_initrd = value
 
     @property
     def remote_boot_initrd(self) -> str:
@@ -345,6 +355,12 @@ class Distro(item.Item):
         """
         if not isinstance(remote_boot_initrd, str):
             raise TypeError("remote_boot_initrd must be of type str!")
+        if remote_boot_initrd == "":
+            self._remote_boot_initrd = ""
+            self._remote_grub_initrd = ""
+            return
+        if not validate.validate_boot_remote_file(remote_boot_initrd):
+            raise ValueError("remote_boot_initrd needs to be a valid URL starting with tftp or http!")
         self.remote_grub_initrd = remote_boot_initrd
         self._remote_boot_initrd = remote_boot_initrd
 

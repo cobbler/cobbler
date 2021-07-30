@@ -95,10 +95,20 @@ class NetworkInterface:
 
     # These two methods are currently not used but we do want to use them in the future, so let's define them.
     def serialize(self):
-        pass
+        """
+        TODO
 
-    def deserialize(self):
-        pass
+        :return:
+        """
+        self.to_dict()
+
+    def deserialize(self, interface_dict: dict):
+        """
+        TODO
+
+        :return:
+        """
+        self.from_dict(interface_dict)
 
     @property
     def dhcp_tag(self) -> str:

@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import re
 import shlex
+from urllib.parse import urlparse
 from ipaddress import AddressValueError, NetmaskValueError
 from typing import Union
 
@@ -27,6 +28,8 @@ import netaddr
 from cobbler import enums, utils
 
 RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
+RE_URL_GRUB = re.compile(r"^\((?P<protocol>http|tftp),(?P<server>.*)\)/(?P<path>.*)$")
+RE_URL = re.compile(r'^[a-zA-Z\d-]{,63}(\.[a-zA-Z\d-]{,63})*$')  # https://stackoverflow.com/a/2894918
 
 # blacklist invalid values to the repo statement in autoinsts
 AUTOINSTALL_REPO_BLACKLIST = ['enabled', 'gpgcheck', 'gpgkey']
@@ -538,3 +541,57 @@ def validate_serial_baud_rate(baud_rate: Union[int, enums.BaudRates]) -> enums.B
     if baud_rate not in enums.BaudRates:
         raise ValueError("invalid value for serial baud Rate (%s)" % baud_rate)
     return baud_rate
+
+
+def validate_boot_remote_file(value: str) -> bool:
+    """
+    This validates if the passed value is a valid value for ``remote_boot_{kernel,initrd}``.
+
+    :param value: Must be a valid URI starting with http or tftp. ftp is not supported and thus invalid.
+    :return: False in any case. If value is valid, ``True`` is returned.
+    """
+    if not isinstance(value, str):
+        return False
+    parsed_url = urlparse(value)
+    # Check that it starts with http / tftp
+    if parsed_url.scheme not in ("http", "tftp"):
+        return False
+    # Check the port
+    # FIXME: Allow ports behind the hostname and check if they are allowed
+    # Check we have magic @@server@@
+    if parsed_url.netloc.startswith("@@") and parsed_url.netloc.endswith("server@@"):
+        return True
+    # If not magic @@server@@ then assume IPv4/v6
+    if netaddr.valid_ipv4(parsed_url.netloc) or netaddr.valid_ipv6(parsed_url.netloc):
+        return True
+    # If not magic or IPv4/v6 then it must be a valid hostname
+    # To check that we remove the protocol and get then everything to the first slash
+    host = value[7:].split("/", 1)[0]
+    if RE_URL.match(host):
+        return True
+    return False
+
+
+def validate_grub_remote_file(value: str) -> bool:
+    """
+    This validates if the passed value is a valid value for ``remote_grub_{kernel,initrd}``.
+
+    :param value: Must be a valid grub formatted URI starting with http or tftp. ftp is not supported and thus invalid.
+    :return: False in any case. If value is valid, ``True`` is returned.
+    """
+    if not isinstance(value, str):
+        return False
+    # Format: "(%s,%s)/%s" % (prot, server, path)
+    grub_match_result = RE_URL_GRUB.match(value)
+    success = False
+    if grub_match_result:
+        # grub_match_result.group("protocol") -> No further processing needing if the match is there.
+        server = grub_match_result.group("server")
+        # FIXME: Disallow invalid port specifications in the URL
+        success_server_ip = (netaddr.valid_ipv4(server) or netaddr.valid_ipv6(server))
+        # FIXME: Disallow invalid URLs (e.g.: underscore in URL)
+        success_server_name = urlparse("https://%s" % server).netloc == server
+        path = grub_match_result.group("path")
+        success_path = urlparse("https://fake.local/%s" % path).path[1:] == path
+        success = (success_server_ip or success_server_name) and success_path
+    return success
