@@ -786,3 +786,13 @@ class Item:
         if "autoinstall_meta" in value:
             value.update({"ks_meta": value["autoinstall_meta"]})
         return value
+
+    def serialize(self) -> dict:
+        keys_to_drop = ["kickstart", "ks_meta", "remote_grub_kernel", "remote_grub_initrd"]
+        result = self.to_dict()
+        for key in keys_to_drop:
+            result.pop(key, "")
+        return result
+
+    def deserialize(self):
+        pass

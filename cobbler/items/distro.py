@@ -276,6 +276,33 @@ class Distro(item.Item):
         raise ValueError("initrd not found")
 
     @property
+    def remote_grub_kernel(self) -> str:
+        """
+        TODO
+
+        :return:
+        """
+        return self._remote_grub_kernel
+
+    @remote_grub_kernel.setter
+    def remote_grub_kernel(self, value):
+        """
+        TODO
+
+        :param value:
+        :return:
+        """
+        if not isinstance(value, str):
+            raise TypeError("remote_grub_initrd must be of type str")
+        if not value:
+            self._remote_grub_kernel = ""
+            return
+        parsed_url = grub.parse_grub_remote_file(value)
+        if parsed_url is None:
+            raise ValueError("Invalid URL for remote boot initrd: %s" % value)
+        self._remote_grub_kernel = parsed_url
+
+    @property
     def remote_grub_initrd(self) -> str:
         """
         TODO

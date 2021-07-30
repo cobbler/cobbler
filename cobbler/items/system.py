@@ -93,6 +93,13 @@ class NetworkInterface:
                     result[key[1:]] = self.__dict__[key]
         return result
 
+    # These two methods are currently not used but we do want to use them in the future, so let's define them.
+    def serialize(self):
+        pass
+
+    def deserialize(self):
+        pass
+
     @property
     def dhcp_tag(self) -> str:
         """

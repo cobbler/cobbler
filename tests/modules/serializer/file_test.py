@@ -78,7 +78,7 @@ def test_serialize_item(tmpdir: pathlib.Path):
     mitem.name = "test_serializer"
     mcollection = Mock()
     mcollection.collection_types.return_value = "distros"
-    mitem.to_dict.return_value = {"name": mitem.name}
+    mitem.serialize.return_value = {"name": mitem.name}
 
     # Act
     file.serialize_item(mcollection, mitem)
@@ -86,7 +86,7 @@ def test_serialize_item(tmpdir: pathlib.Path):
     # Assert
     assert os.path.exists(expected_file)
     with open(expected_file, "r") as json_file:
-        assert json.load(json_file) == mitem.to_dict()
+        assert json.load(json_file) == mitem.serialize()
 
 
 def test_serialize_delete(tmpdir: pathlib.Path):

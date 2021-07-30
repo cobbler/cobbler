@@ -1,6 +1,7 @@
 import pytest
 
 from cobbler.api import CobblerAPI
+from cobbler.items.distro import Distro
 from cobbler.items.item import Item
 from tests.conftest import does_not_raise
 
@@ -338,3 +339,19 @@ def test_to_dict():
 
     # Assert
     assert isinstance(result, dict)
+
+
+def test_serialize():
+    # Arrange
+    kernel_url = "http://10.0.0.1/custom-kernels-are-awesome"
+    test_api = CobblerAPI()
+    titem = Distro(test_api)
+    titem.remote_boot_kernel = kernel_url
+
+    # Act
+    result = titem.serialize()
+
+    # Assert
+    assert titem.remote_boot_kernel == kernel_url
+    assert titem.remote_grub_kernel.startswith("(http,")
+    assert "remote_grub_kernel" not in result

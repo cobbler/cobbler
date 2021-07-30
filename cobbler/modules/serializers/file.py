@@ -84,7 +84,7 @@ def serialize_item(collection, item):
         sort_keys = False
         indent = None
 
-    _dict = item.to_dict()
+    _dict = item.serialize()
     with open(filename, "w+") as file_descriptor:
         data = json.dumps(_dict, sort_keys=sort_keys, indent=indent)
         file_descriptor.write(data)
