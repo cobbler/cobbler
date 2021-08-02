@@ -37,6 +37,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from functools import reduce
+from pathlib import Path
 from typing import List, Optional, Pattern, Union
 
 import distro
@@ -1225,24 +1226,19 @@ def copyfile_pattern(pattern, dst, require_match: bool = True, symlink_ok: bool 
         linkfile(file, dst1, symlink_ok=symlink_ok, cache=cache, api=api)
 
 
-def rmfile(path: str) -> bool:
+def rmfile(path: str):
     """
     Delete a single file.
 
     :param path: The file to delete.
-    :return: True if the action succeeded.
-    :raises CX
     """
     try:
-        logger.info("removing: %s", path)
-        os.unlink(path)
-        return True
-    except OSError as ioe:
-        # doesn't exist
-        if not ioe.errno == errno.ENOENT:
-            log_exc()
-            raise CX("Error deleting %s" % path)
-        return True
+        os.remove(path)
+        logger.info("Successfully removed \"%s\"", path)
+    except FileNotFoundError:
+        logger.warning("File to remove not found \"%s\"", path)
+    except OSError:
+        logger.warning("Could not remove file \"%s\"", path)
 
 
 def rmtree_contents(path: str):
@@ -1264,6 +1260,7 @@ def rmtree(path: str) -> Optional[bool]:
     :return: May possibly return true on success or may return None on success.
     :raises CX
     """
+    # TODO: Obsolete bool return value
     try:
         if os.path.isfile(path):
             return rmfile(path)
@@ -1275,6 +1272,17 @@ def rmtree(path: str) -> Optional[bool]:
         if not ioe.errno == errno.ENOENT:  # doesn't exist
             raise CX("Error deleting %s" % path)
         return True
+
+
+def rmglob_files(path: str, glob_pattern: str):
+    """
+    Deletes all files in ``path`` with ``glob_pattern`` with the help of ``rmfile()``.
+
+    :param path: The folder of the files to remove.
+    :param glob_pattern: The glob pattern for the files to remove in ``path``.
+    """
+    for p in Path(path).glob(glob_pattern):
+        rmfile(str(p))
 
 
 def mkdir(path, mode=0o755):
