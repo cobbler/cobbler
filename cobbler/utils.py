@@ -961,7 +961,8 @@ def get_family() -> str:
              returned.
     """
     # TODO: Refactor that this is purely reliant on the distro module or obsolete it.
-    redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos", "virtuozzo", "almalinux", "rocky linux")
+    redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos", "virtuozzo", "almalinux",
+                   "rocky linux", "oracle linux server")
 
     distro_name = distro.name().lower()
     for item in redhat_list:
@@ -994,6 +995,8 @@ def os_release():
             make = "centos"
         elif "virtuozzo" in distro_name:
             make = "virtuozzo"
+        elif "oracle linux server" in distro_name:
+            make = "centos"
         else:
             make = "redhat"
         return make, float(distro_version)
