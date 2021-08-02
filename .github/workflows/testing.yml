@@ -18,14 +18,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build Docker Test Container
-        run: docker build -t cobbler -f docker/testing/testing.dockerfile .
+        run: docker build -t cobbler -f docker/develop/develop.dockerfile .
       - name: Run previously built Docker Container
-        run: docker run -d --name cobbler cobbler
-      - name: Wait for startup
-        run: sleep 10
-      - name: Get the logs for debugging if things go south
-        run: docker logs cobbler
+        run: docker run -t -d -v $PWD:/code --name cobbler cobbler
+      - name: Setup Cobbler in the Container
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          docker exec -u 0 -it cobbler bash -c "./docker/develop/scripts/setup-supervisor.sh"
       - name: Run the Tests inside the Docker Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
           docker exec -u 0 -it cobbler bash -c "pytest --cov=./cobbler && codecov --token=1064928c-6477-41be-9ac2-7ce5e6d1fd8b --commit=${GITHUB_SHA}"
+      - name: Stop and remove the container
+        run: docker stop cobbler && docker rm cobbler
