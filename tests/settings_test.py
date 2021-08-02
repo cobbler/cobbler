@@ -184,7 +184,7 @@ def test_settingsfile_migration_content(tmpdir: pathlib.Path):
 def test_settingsfile_migrate_gpxe_ipxe():
     # Arrange
     new_settings = "/etc/cobbler/settings.yaml"
-    old_settings = "/test_dir/tests/test_data/settings_old"  # adjust for test container %s/code/test_dir/
+    old_settings = "/code/tests/test_data/settings_old"  # adjust for test container %s/code/test_dir/
 
     # Act
     with open(new_settings) as main_settingsfile:
