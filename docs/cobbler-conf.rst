@@ -36,7 +36,7 @@ Starting with 3.2.1:
   basis.
 - We enforce the types of values to the keys. Additional unexpected keys will throw errors. If you have those used in
   Cobbler please report this in our issue tracker. We have decided to go this way to be able to rely on the existence
-  of the values. This gives us the freedom to write less access checks to the settings without loosing stability.
+  of the values. This gives us the freedom to write fewer access checks to the settings without losing stability.
 
 ``settings.yaml``
 #################
