@@ -1,6 +1,16 @@
 name: Linting
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+      - release30
+      - release32
+  pull_request:
+    branches:
+      - master
+      - release30
+      - release32
 
 jobs:
   lint_docs:
