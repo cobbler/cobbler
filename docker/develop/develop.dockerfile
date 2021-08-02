@@ -11,7 +11,7 @@ ENV DISTRO SUSE
 RUN zypper update -y
 
 # Runtime & dev dependencies
-RUN zypper install -y          \
+RUN zypper install --no-recommends -y \
     acl                        \
     apache2                    \
     apache2-devel              \
@@ -31,7 +31,6 @@ RUN zypper install -y          \
     python3-distro             \
     python3-schema             \
     python3-setuptools         \
-    python3-simplejson         \
     python3-pip                \
     python3-wheel              \
     rpm-build                  \
