@@ -676,7 +676,7 @@ def test_get_supported_system_boot_loaders():
     result = utils.get_supported_system_boot_loaders()
 
     # Assert
-    assert result == ["grub", "pxe", "yaboot", "ipxe"]
+    assert result == ["grub", "pxe", "ipxe"]
 
 
 def test_get_supported_distro_boot_loaders():
@@ -686,7 +686,7 @@ def test_get_supported_distro_boot_loaders():
     result = utils.get_supported_distro_boot_loaders(None)
 
     # Assert
-    assert result == ["grub", "pxe", "yaboot", "ipxe"]
+    assert result == ["grub", "pxe", "ipxe"]
 
 
 def test_load_signatures():

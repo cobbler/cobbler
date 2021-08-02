@@ -383,7 +383,6 @@ fi
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxe.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxe_menu.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxe_submenu.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/yaboot.template
 %config(noreplace) %{_sysconfdir}/cobbler/cheetah_macros
 %config(noreplace) %{_sysconfdir}/cobbler/dhcp.template
 %config(noreplace) %{_sysconfdir}/cobbler/dhcp6.template

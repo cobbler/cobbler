@@ -20,12 +20,14 @@ config/grub
 -----------
 
 grub.cfg
--> This file in the main tftp directory is a fallback for
-   broken firmware. Normally grub should already set the
-   prefix to the directory where it has been loaded from
-   (grub subdirectory in our case).
-   It is known for (specific versions?) KVM and ppc64le
-   that grub may end up loading this as first grub.cfg.
+-> This file is loaded when Client Architecture Support
+   negotiation in the kernel stub on ppc64(le) requires
+   a reboot and grub is reloaded.
+   It is not clear if the firmware interface has a problem
+   or grub or Linux call it incorrectly.
+   Normally grub should already set the prefix to the
+   directory where it has been loaded from (grub
+   subdirectory in our case).
    We simply set prefix="grub" and manually load the
    main config file grub/grub.cfg
 

@@ -90,7 +90,7 @@ If you want to be explicit with distribution definition, however, here's how it 
 
 .. code-block:: shell
 
-    $ cobbler distro add --name=string --kernel=path --initrd=path [--kernel-options=string] [--kernel-options-post=string] [--autoinstall-meta=string] [--arch=i386|x86_64|ppc|ppc64] [--breed=redhat|debian|suse] [--template-files=string]
+    $ cobbler distro add --name=string --kernel=path --initrd=path [--kernel-options=string] [--kernel-options-post=string] [--autoinstall-meta=string] [--arch=i386|x86_64|ppc|ppc64|ppc64le|arm64] [--breed=redhat|debian|suse] [--template-files=string]
 
 +-----------------+-----------------------------------------------------------------------------------------------------+
 | Name            | Description                                                                                         |
@@ -98,8 +98,7 @@ If you want to be explicit with distribution definition, however, here's how it 
 | arch            | Sets the architecture for the PXE bootloader and also controls how Koan's ``--replace-self`` option |
 |                 | will operate.                                                                                       |
 |                 |                                                                                                     |
-|                 | The default setting (``standard``) will use ``pxelinux``. Set to ``ppc`` and ``ppc64`` to use       |
-|                 | ``yaboot``.                                                                                         |
+|                 | The default setting (``standard``) will use ``pxelinux``.                                           |
 |                 |                                                                                                     |
 |                 | ``x86`` and ``x86_64`` effectively do the same thing as standard.                                   |
 |                 |                                                                                                     |
@@ -116,7 +115,7 @@ If you want to be explicit with distribution definition, however, here's how it 
 | boot-files      | TFTP Boot Files (Files copied into tftpboot beyond the kernel/initrd).                              |
 +-----------------+-----------------------------------------------------------------------------------------------------+
 | boot-loaders    | Boot loader space delimited list (Network installation boot loaders).                               |
-|                 | Valid options for list items are <<inherit>>, `grub`, `pxe`, `ipxe`, `yaboot`.                      |
+|                 | Valid options for list items are <<inherit>>, `grub`, `pxe`, `ipxe`.                                |
 +-----------------+-----------------------------------------------------------------------------------------------------+
 | breed           | Controls how various physical and virtual parameters, including kernel arguments for automatic      |
 |                 | installation, are to be treated. Defaults to ``redhat``, which is a suitable value for Fedora and   |
@@ -223,7 +222,7 @@ listed below:
 | boot-files          | TFTP Boot Files (Files copied into tftpboot beyond the kernel/initrd).                         |
 +---------------------+------------------------------------------------------------------------------------------------+
 | boot-loaders        | Boot loader space delimited list (Network installation boot loaders).                          |
-|                     | Valid options for list items are <<inherit>>, `grub`, `pxe`, `ipxe`, `yaboot`.                 |
+|                     | Valid options for list items are <<inherit>>, `grub`, `pxe`, `ipxe`.                           |
 +---------------------+------------------------------------------------------------------------------------------------+
 | comment             | Simple attach a description (Free form text) to your distro.                                   |
 +---------------------+------------------------------------------------------------------------------------------------+
@@ -392,7 +391,7 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 | boot-files          | TFTP Boot Files (Files copied into tftpboot beyond the kernel/initrd).                         |
 +---------------------+------------------------------------------------------------------------------------------------+
 | boot-loaders        | Boot loader space delimited list (Network installation boot loaders).                          |
-|                     | Valid options for list items are <<inherit>>, `grub`, `pxe`, `ipxe`, `yaboot`.                 |
+|                     | Valid options for list items are <<inherit>>, `grub`, `pxe`, `ipxe`.                           |
 +---------------------+------------------------------------------------------------------------------------------------+
 | comment             | Simple attach a description (Free form text) to your distro.                                   |
 +---------------------+------------------------------------------------------------------------------------------------+
