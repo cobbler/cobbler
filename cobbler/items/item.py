@@ -786,3 +786,24 @@ class Item:
         if "autoinstall_meta" in value:
             value.update({"ks_meta": value["autoinstall_meta"]})
         return value
+
+    def serialize(self) -> dict:
+        """
+        This method is a proxy for ``to_dict()`` and contains additional logic for serialization to a persistent
+        location.
+
+        :return: The dictionary with the information for serialization.
+        """
+        keys_to_drop = ["kickstart", "ks_meta", "remote_grub_kernel", "remote_grub_initrd"]
+        result = self.to_dict()
+        for key in keys_to_drop:
+            result.pop(key, "")
+        return result
+
+    def deserialize(self, item_dict: dict):
+        """
+        This is currently a proxy for ``from_dict()``.
+
+        :param item_dict: The dictionary with the data to deserialize.
+        """
+        self.from_dict(item_dict)

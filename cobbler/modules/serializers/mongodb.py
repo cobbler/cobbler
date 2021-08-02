@@ -89,9 +89,9 @@ def serialize_item(collection, item):
     collection = mongodb[collection.collection_type()]
     data = collection.find_one({'name': item.name})
     if data:
-        collection.update({'name': item.name}, item.to_dict())
+        collection.update({'name': item.name}, item.serialize())
     else:
-        collection.insert(item.to_dict())
+        collection.insert(item.serialize())
 
 
 def serialize_delete(collection, item):
