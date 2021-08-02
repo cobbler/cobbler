@@ -71,6 +71,8 @@ class CobblerSync:
         self.images_dir = os.path.join(self.bootloc, "images")
         self.ipxe_dir = os.path.join(self.bootloc, "ipxe")
         self.rendered_dir = os.path.join(self.settings.webdir, "rendered")
+        self.links = os.path.join(self.settings.webdir, "links")
+        self.distromirror_config = os.path.join(self.settings.webdir, "distro_mirror/config")
         # FIXME: See https://github.com/cobbler/cobbler/issues/2453
         # Move __create_tftpboot_dirs() outside of sync.py.
         self.__create_tftpboot_dirs()
@@ -194,6 +196,10 @@ class CobblerSync:
             utils.mkdir(self.rendered_dir)
         if not os.path.exists(self.ipxe_dir):
             utils.mkdir(self.ipxe_dir)
+        if not os.path.exists(self.links):
+            utils.mkdir(self.links)
+        if not os.path.exists(self.distromirror_config):
+            utils.mkdir(self.distromirror_config)
 
     def clean_trees(self):
         """
@@ -353,6 +359,8 @@ class CobblerSync:
         utils.rmtree(os.path.join(bootloc, "images", name))
         # delete potential symlink to tree in webdir/links
         utils.rmfile(os.path.join(self.settings.webdir, "links", name))
+        # delete potential distro config files
+        utils.rmglob_files(os.path.join(self.settings.webdir, "distro_mirror", "config"), name + "*.repo")
 
     def remove_single_image(self, name):
         """

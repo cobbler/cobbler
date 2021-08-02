@@ -508,19 +508,28 @@ def test_copyfile_pattern():
     assert False
 
 
-def test_rmfile():
+def test_rmfile(tmpdir: Path):
     # Arrange
-    filepath = "/dev/shm/testfile"
-    Path(filepath).touch()
-
-    assert os.path.exists(filepath)
+    tfile = tmpdir.join("testfile")
 
     # Act
-    result = utils.rmfile(filepath)
+    utils.rmfile(tfile)
 
     # Assert
-    assert result
-    assert not os.path.exists(filepath)
+    assert not os.path.exists(tfile)
+
+
+def test_rmglob_files(tmpdir: Path):
+    # Arrange
+    tfile1 = tmpdir.join("file1.tfile")
+    tfile2 = tmpdir.join("file2.tfile")
+
+    # Act
+    utils.rmglob_files(tmpdir, "*.tfile")
+
+    # Assert
+    assert not os.path.exists(tfile1)
+    assert not os.path.exists(tfile2)
 
 
 def test_rmtree_contents():
