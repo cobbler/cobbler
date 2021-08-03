@@ -537,7 +537,6 @@ def validate_serial_baud_rate(baud_rate: Union[int, str, enums.BaudRates]) -> en
     :param baud_rate: The baud rate to set.
     :return: The validated baud rate.
     """
-
     if not isinstance(baud_rate, (int, str, enums.BaudRates)):
         raise TypeError("serial baud rate needs to be of type int or enums.BaudRates")
     # Convert the baud rate which came in as an int or str
