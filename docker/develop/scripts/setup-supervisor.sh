@@ -14,3 +14,8 @@ sleep 2
 
 echo "Show Cobbler version"
 cobbler version
+
+# only execute locally and not in the CI
+if [ ! "$CI" ]; then
+    /bin/bash
+fi

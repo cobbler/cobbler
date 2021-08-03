@@ -17,15 +17,15 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - name: Build Docker Test Container
+      - name: Build Docker test container
         run: docker build -t cobbler -f docker/develop/develop.dockerfile .
-      - name: Run previously built Docker Container
-        run: docker run -t -d -v $PWD:/code --name cobbler cobbler
+      - name: Run previously built Docker container
+        run: docker run -t -e CI -d -v $PWD:/code --name cobbler cobbler
       - name: Setup Cobbler in the Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
           docker exec -u 0 -it cobbler bash -c "./docker/develop/scripts/setup-supervisor.sh"
-      - name: Run the Tests inside the Docker Container
+      - name: Run the tests inside the Docker container
         shell: 'script -q -e -c "bash {0}"'
         run: |
           docker exec -u 0 -it cobbler bash -c "pytest --cov=./cobbler && codecov --token=1064928c-6477-41be-9ac2-7ce5e6d1fd8b --commit=${GITHUB_SHA}"

@@ -82,4 +82,4 @@ VOLUME ["/code"]
 WORKDIR "/code"
 
 # Set this as an entrypoint
-CMD ["/bin/bash"]
+CMD ["./docker/develop/scripts/setup-supervisor.sh"]
