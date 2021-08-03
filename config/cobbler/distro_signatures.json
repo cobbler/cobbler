@@ -1645,11 +1645,83 @@
         "kernel_options_post": "",
         "boot_files": []
       },
-      "opensuse15generic": {
+      "opensuse15.0": {
         "signatures": [
           ""
         ],
-        "version_file": "openSUSE-release-15.(.*).rpm",
+        "version_file": "openSUSE-release-15.0-(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "x86_64",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd(.*)",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample_autoyast.xml",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "opensuse15.1": {
+        "signatures": [
+          ""
+        ],
+        "version_file": "openSUSE-release-15.1-(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "x86_64",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd(.*)",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample_autoyast.xml",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "opensuse15.2": {
+        "signatures": [
+          ""
+        ],
+        "version_file": "openSUSE-release-15.2-(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "x86_64",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd(.*)",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample_autoyast.xml",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "opensuse15.3": {
+        "signatures": [
+          ""
+        ],
+        "version_file": "openSUSE-release-15.3-(.*).rpm",
         "version_file_regex": null,
         "kernel_arch": "kernel-(.*)\\.rpm",
         "kernel_arch_regex": null,
