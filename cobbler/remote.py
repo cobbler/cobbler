@@ -1990,6 +1990,8 @@ class CobblerXMLRPCInterface:
                     self.logger.debug("Field %s was not an interface field.", attribute_key)
             system_to_edit.interfaces.update({interface_name: interface})
         elif "delete_interface" in attributes:
+            if attributes.get("interface") is None:
+                raise ValueError("Interface is required for deletion.")
             system_to_edit = self.__get_object(handle)
             system_to_edit.delete_interface(attributes.get("interface"))
         elif "rename_interface" in attributes:

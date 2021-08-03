@@ -529,7 +529,7 @@ def validate_serial_device(value: Union[str, int]) -> int:
     return int(value)
 
 
-def validate_serial_baud_rate(baud_rate: Union[int, enums.BaudRates]) -> enums.BaudRates:
+def validate_serial_baud_rate(baud_rate: Union[int, str, enums.BaudRates]) -> enums.BaudRates:
     """
     The baud rate is very import that the communication between the two devices can be established correctly. This is
     the setter for this parameter. This effectively is the speed of the connection.
@@ -537,10 +537,10 @@ def validate_serial_baud_rate(baud_rate: Union[int, enums.BaudRates]) -> enums.B
     :param baud_rate: The baud rate to set.
     :return: The validated baud rate.
     """
-    if not isinstance(baud_rate, (int, enums.BaudRates)):
+    if not isinstance(baud_rate, (int, str, enums.BaudRates)):
         raise TypeError("serial baud rate needs to be of type int or enums.BaudRates")
-    # Convert the baud rate which came in as an int
-    if isinstance(baud_rate, int):
+    # Convert the baud rate which came in as an int or str
+    if isinstance(baud_rate, (int, str)):
         try:
             baud_rate = enums.BaudRates["B" + str(baud_rate)]
         except KeyError as key_error:
