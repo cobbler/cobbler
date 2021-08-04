@@ -21,10 +21,6 @@ def test_copy_single_distro_file():
 
     # Act
     generator.copy_single_distro_file(distro_file, distro_dir, symlink_ok)
-    if os.path.isfile(initrd_dst_path):
-        result = "copied"
-    else:
-        result = "not copied"
 
     # Assert
-    assert result == "copied"
+    assert os.path.isfile(initrd_dst_path)
