@@ -1813,11 +1813,27 @@ class CobblerXMLRPCInterface:
         """
         self._log("modify_setting(%s)" % setting_name, token=token)
         self.check_access(token, "modify_setting")
+        if not hasattr(self.api.settings(), setting_name):
+            return 1
         try:
-            self.api.settings().set(setting_name, value)
-            return 0
+            if isinstance(getattr(self.api.settings(), setting_name), str):
+                value = str(value)
+            elif isinstance(getattr(self.api.settings(), setting_name), int):
+                value = int(value)
+            elif isinstance(getattr(self.api.settings(), setting_name), bool):
+                value = utils.input_boolean(value)
+            elif isinstance(getattr(self.api.settings(), setting_name), float):
+                value = float(value)
+            elif isinstance(getattr(self.api.settings(), setting_name), list):
+                value = utils.input_string_or_list(value)
+            elif isinstance(getattr(self.api.settings(), setting_name), dict):
+                value = utils.input_string_or_dict(value)[1]
         except:
             return 1
+
+        setattr(self.api.settings(), setting_name, value)
+        self.api.settings().save()
+        return 0
 
     def auto_add_repos(self, token):
         """

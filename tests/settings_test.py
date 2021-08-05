@@ -13,21 +13,6 @@ from tests.conftest import does_not_raise
 
 
 class TestSettings:
-    @pytest.mark.parametrize("test_name,test_value,expected_exception,expected_result", [
-        ("server", "127.0.0.1", does_not_raise(), "127.0.0.1"),
-        ("manage_forward_zones", True, pytest.raises(AttributeError), []),
-        ("does_not_exist", None, pytest.raises(KeyError), None)
-    ])
-    def test_set(self, test_name, test_value, expected_exception, expected_result):
-        # Arrange
-        test_settings = Settings()
-
-        # Act
-        with expected_exception:
-            test_settings.set(test_name, test_value)
-
-            # Assert
-            assert test_settings.__dict__[test_name] == expected_result
 
     def test_to_string(self):
         # Arrange
