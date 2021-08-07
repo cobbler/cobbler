@@ -236,12 +236,9 @@ class Collection:
         if newname == ref.name:
             return
 
-        # make a copy of the object, but give it a new name.
+        # Save the old name and rename object
         oldname = ref.name
-        newref = ref.make_clone()
-        newref.name = newname
-
-        self.add(newref, with_triggers=with_triggers, save=True)
+        ref.name = newname
 
         # for mgmt classes, update all objects that use it
         if ref.COLLECTION_TYPE == "mgmtclass":
@@ -263,22 +260,23 @@ class Collection:
 
         # for a repo, rename the mirror directory
         if ref.COLLECTION_TYPE == "repo":
-            path = "/var/www/cobbler/repo_mirror/%s" % ref.name
-            if os.path.exists(path):
-                newpath = "/var/www/cobbler/repo_mirror/%s" % newref.name
-                os.renames(path, newpath)
+            path = "/var/www/cobbler/repo_mirror/"
+            old_path = os.path.join(path, oldname)
+            if os.path.exists(old_path):
+                new_path = os.path.join(path, ref.name)
+                os.renames(old_path, new_path)
 
         # for a distro, rename the mirror and references to it
         if ref.COLLECTION_TYPE == 'distro':
             path = utils.find_distro_path(self.api.settings(), ref)
 
             # create a symlink for the new distro name
-            utils.link_distro(self.api.settings(), newref)
+            utils.link_distro(self.api.settings(), ref)
 
             # Test to see if the distro path is based directly on the name of the distro. If it is, things need to
             # updated accordingly.
-            if os.path.exists(path) and path == "/var/www/cobbler/distro_mirror/%s" % ref.name:
-                newpath = "/var/www/cobbler/distro_mirror/%s" % newref.name
+            if os.path.exists(path) and path == str(os.path.join("/var/www/cobbler/distro_mirror/", ref.name)):
+                newpath = os.path.join("/var/www/cobbler/distro_mirror/", ref.name)
                 os.renames(path, newpath)
 
                 # update any reference to this path ...
@@ -288,6 +286,10 @@ class Collection:
                         d.kernel = d.kernel.replace(path, newpath)
                         d.initrd = d.initrd.replace(path, newpath)
                         self.collection_mgr.serialize_item(self, d)
+
+        if ref.COLLECTION_TYPE in ('profile', 'system'):
+            if ref.parent is not None:
+                ref.parent.children.remove(oldname)
 
         # Now descend to any direct ancestors and point them at the new object allowing the original object to be
         # removed without orphanage. Direct ancestors will either be profiles or systems. Note that we do have to
@@ -313,9 +315,9 @@ class Collection:
             else:
                 raise CX("Internal error, unknown child type for child \"%s\"!" % k)
 
-        # now delete the old version
+        # now delete the old version and add the new one
         self.remove(oldname, with_delete=True, with_triggers=with_triggers)
-        return
+        self.add(ref, with_triggers=with_triggers, save=True)
 
     def add(self, ref, save: bool = False, with_copy: bool = False, with_triggers: bool = True, with_sync: bool = True,
             quick_pxe_update: bool = False, check_for_duplicate_names: bool = False,
