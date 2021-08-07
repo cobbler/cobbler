@@ -23,4 +23,4 @@ def test_copy_single_distro_file():
     generator.copy_single_distro_file(distro_file, distro_dir, symlink_ok)
 
     # Assert
-    assert os.path.isfile(initrd_dst_path)
+    assert os.path.isfile(initramfs_dst_path)
