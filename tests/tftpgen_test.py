@@ -14,10 +14,10 @@ def test_copy_single_distro_file():
     generator = tftpgen.TFTPGen(test_collection_mgr)
 
     # Arrange
-    distro_file = "/code/tests/test_data/initramfs-4.18.0-240.el8.x86_64.img"
+    distro_file = "/code/tests/test_data/dummy_initramfs"
     distro_dir = "/srv/tftpboot/images/"
     symlink_ok = True
-    initrd_dst_path = "/srv/tftpboot/images/initramfs-4.18.0-240.el8.x86_64.img"
+    initramfs_dst_path = "/srv/tftpboot/images/dummy_initramfs"
 
     # Act
     generator.copy_single_distro_file(distro_file, distro_dir, symlink_ok)
