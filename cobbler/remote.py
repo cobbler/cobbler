@@ -153,10 +153,7 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
-        # FIXME: better use webdir from the settings?
-        webdir = "/var/www/cobbler/"
-        if os.path.exists("/srv/www"):
-            webdir = "/srv/www/cobbler/"
+        webdir = self.api.settings().webdir
 
         def runner(self):
             self.remote.api.build_iso(
