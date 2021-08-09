@@ -19,15 +19,17 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from cobbler.settings import migrations
 import glob
 import logging
 import os.path
+from pathlib import Path
 import re
 import traceback
-from typing import Union, Dict, Hashable, Any
+from typing import Any, Dict, Hashable, Union
 
 import yaml
-from schema import Schema, Optional, SchemaError, SchemaMissingKeyError, SchemaWrongKeyError
+from schema import Optional, Schema, SchemaError, SchemaMissingKeyError, SchemaWrongKeyError
 
 from cobbler import utils
 
@@ -279,129 +281,8 @@ def validate_settings(settings_content: dict) -> dict:
     :raises SchemaError: In case the data given is invalid.
     :return: The Settings of Cobbler which can be safely used inside this instance.
     """
-    schema = Schema({
-        "allow_duplicate_hostnames": bool,
-        "allow_duplicate_ips": bool,
-        "allow_duplicate_macs": bool,
-        "allow_dynamic_settings": bool,
-        "always_write_dhcp_entries": bool,
-        "anamon_enabled": bool,
-        "auth_token_expiration": int,
-        "authn_pam_service": str,
-        "autoinstall_snippets_dir": str,
-        "autoinstall_templates_dir": str,
-        "bind_chroot_path": str,
-        "bind_zonefile_path": str,
-        "bind_master": str,
-        "boot_loader_conf_template_dir": str,
-        Optional("bootloaders_dir", default="/var/lib/cobbler/loaders"): str,
-        Optional("grubconfig_dir", default="/var/lib/cobbler/grub_config"): str,
-        "build_reporting_enabled": bool,
-        "build_reporting_email": [str],
-        "build_reporting_ignorelist": [str],
-        "build_reporting_sender": str,
-        "build_reporting_smtp_server": str,
-        "build_reporting_subject": str,
-        Optional("buildisodir", default="/var/cache/cobbler/buildiso"): str,
-        "cheetah_import_whitelist": [str],
-        "client_use_https": bool,
-        "client_use_localhost": bool,
-        Optional("cobbler_master", default=""): str,
-        Optional("convert_server_to_ip", default=False): bool,
-        "createrepo_flags": str,
-        "autoinstall": str,
-        "default_name_servers": [str],
-        "default_name_servers_search": [str],
-        "default_ownership": [str],
-        "default_password_crypted": str,
-        "default_template_type": str,
-        "default_virt_bridge": str,
-        Optional("default_virt_disk_driver", default="raw"): str,
-        "default_virt_file_size": int,
-        "default_virt_ram": int,
-        "default_virt_type": str,
-        "enable_ipxe": bool,
-        "enable_menu": bool,
-        "http_port": int,
-        "include": [str],
-        Optional("iso_template_dir", default="/etc/cobbler/iso"): str,
-        Optional("jinja2_includedir", default="/var/lib/cobbler/jinja2"): str,
-        "kernel_options": dict,
-        "ldap_anonymous_bind": bool,
-        "ldap_base_dn": str,
-        "ldap_port": int,
-        "ldap_search_bind_dn": str,
-        "ldap_search_passwd": str,
-        "ldap_search_prefix": str,
-        "ldap_server": str,
-        "ldap_tls": bool,
-        "ldap_tls_cacertfile": str,
-        "ldap_tls_certfile": str,
-        "ldap_tls_keyfile": str,
-        Optional("bind_manage_ipmi", default=False): bool,
-        # TODO: Remove following line
-        "manage_dhcp": bool,
-        "manage_dhcp_v4": bool,
-        "manage_dhcp_v6": bool,
-        "manage_dns": bool,
-        "manage_forward_zones": [str],
-        "manage_reverse_zones": [str],
-        Optional("manage_genders", False): bool,
-        "manage_rsync": bool,
-        "manage_tftpd": bool,
-        "mgmt_classes": [str],
-        # TODO: Validate Subdict
-        "mgmt_parameters": dict,
-        "next_server_v4": str,
-        "next_server_v6": str,
-        Optional("nsupdate_enabled", False): bool,
-        Optional("nsupdate_log", default="/var/log/cobbler/nsupdate.log"): str,
-        Optional("nsupdate_tsig_algorithm", default="hmac-sha512"): str,
-        Optional("nsupdate_tsig_key", default=[]): [str],
-        "power_management_default_type": str,
-        "proxy_url_ext": str,
-        "proxy_url_int": str,
-        "puppet_auto_setup": bool,
-        Optional("puppet_parameterized_classes", default=True): bool,
-        Optional("puppet_server", default="puppet"): str,
-        Optional("puppet_version", default=2): int,
-        "puppetca_path": str,
-        "pxe_just_once": bool,
-        "nopxe_with_triggers": bool,
-        "redhat_management_permissive": bool,
-        "redhat_management_server": str,
-        "redhat_management_key": str,
-        "register_new_installs": bool,
-        "remove_old_puppet_certs_automatically": bool,
-        "replicate_repo_rsync_options": str,
-        "replicate_rsync_options": str,
-        "reposync_flags": str,
-        "reposync_rsync_flags": str,
-        "restart_dhcp": bool,
-        "restart_dns": bool,
-        "run_install_triggers": bool,
-        "scm_track_enabled": bool,
-        "scm_track_mode": str,
-        "scm_track_author": str,
-        "scm_push_script": str,
-        "serializer_pretty_json": bool,
-        "server": str,
-        "sign_puppet_certs_automatically": bool,
-        Optional("signature_path", default="/var/lib/cobbler/distro_signatures.json"): str,
-        Optional("signature_url", default="https://cobbler.github.io/signatures/3.0.x/latest.json"): str,
-        "tftpboot_location": str,
-        "virt_auto_boot": bool,
-        "webdir": str,
-        "webdir_whitelist": [str],
-        "xmlrpc_port": int,
-        "yum_distro_priority": int,
-        "yum_post_install_mirror": bool,
-        "yumdownloader_flags": str,
-        Optional("windows_enabled", default=False): bool,
-        Optional("windows_template_dir", default="/etc/cobbler/windows"): str,
-        Optional("samba_distro_share", default="DISTRO"): str,
-    }, ignore_extra_keys=False)
-    return schema.validate(settings_content)
+    # TODO: This should call migrations.validate(...) in the future
+    return migrations.validate(settings_content)
 
 
 def parse_bind_config(configpath: str):
@@ -451,37 +332,6 @@ def autodetect_bind_chroot():
         parse_bind_config(bind_config_filename)
 
 
-def __migrate_settingsfile_name(filename="/etc/cobbler/settings") -> str:
-    if filename[-8:] == "settings" and os.path.exists(filename):
-        os.rename(filename, filename + ".yaml")
-        filename += ".yaml"
-    return filename
-
-
-def __migrate_settingsfile_gpxe_ipxe(settings_dict: dict) -> dict:
-    """
-    Replaces the old ``enable_gpxe`` key nmae with the new ``enable_ipxe`` one.
-
-    :param settings_dict: A dictionary with the settings.
-    :return A dictionary with the changed settings.
-    """
-    if "enable_gpxe" in settings_dict:
-        settings_dict["enable_ipxe"] = settings_dict.pop("enable_gpxe")
-    return settings_dict
-
-
-def __migrate_settingsfile_int_bools(settings_dict: dict) -> dict:
-    for key in settings_dict:
-        if isinstance(getattr(Settings(), key), bool):
-            settings_dict[key] = utils.input_boolean(settings_dict[key])
-    mgmt_parameters = "mgmt_parameters"
-    if mgmt_parameters in settings_dict and "from_cobbler" in settings_dict[mgmt_parameters]:
-        settings_dict[mgmt_parameters]["from_cobbler"] = utils.input_boolean(
-            settings_dict[mgmt_parameters]["from_cobbler"]
-        )
-    return settings_dict
-
-
 def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Union[Dict[Hashable, Any], list, None]:
     """
     Reads the settings file from the default location or the given one. This method then also recursively includes all
@@ -494,7 +344,6 @@ def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Union[Dict[Hash
     :raises yaml.YAMLError: If the YAML file is not syntactically valid or could not be read.
     :raises FileNotFoundError: If the file handed to the function does not exist.
     """
-    filepath = __migrate_settingsfile_name(filepath)
     if not os.path.exists(filepath):
         raise FileNotFoundError("Given path \"%s\" does not exist." % filepath)
     try:
@@ -508,8 +357,6 @@ def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Union[Dict[Hash
     except yaml.YAMLError as error:
         traceback.print_exc()
         raise yaml.YAMLError("\"%s\" is not a valid YAML file" % filepath) from error
-    filecontent = __migrate_settingsfile_gpxe_ipxe(filecontent)
-    filecontent = __migrate_settingsfile_int_bools(filecontent)
     try:
         validate_settings(filecontent)
     except SchemaMissingKeyError:
@@ -539,7 +386,6 @@ def update_settings_file(data: dict, filepath="/etc/cobbler/settings.yaml") -> b
     """
     try:
         validated_data = validate_settings(data)
-        filepath = __migrate_settingsfile_name(filepath)
         with open(filepath, "w") as settings_file:
             yaml_dump = yaml.safe_dump(validated_data)
             header = "# Cobbler settings file\n"
@@ -556,6 +402,17 @@ def update_settings_file(data: dict, filepath="/etc/cobbler/settings.yaml") -> b
         logging.exception("Settings file was not written to the disc due to an error in the schema.")
         logging.debug("The settings to write were: \"%s\"", data)
         return False
+
+
+def migrate(yaml_dict: dict, settings_path: Path) -> dict:
+    """
+    Migrates the current settings
+
+    :param yaml_dict: The settings dict
+    :param settings_path: The settings path
+    :return: The migrated settings
+    """
+    return migrations.migrate(yaml_dict, settings_path)
 
 
 # Initialize Settings module for manipulating the global DEFAULTS variable

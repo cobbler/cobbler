@@ -69,6 +69,8 @@ def main():
                   help='file to log to')
     op.add_option('-l', '--log-level', dest='log_level', metavar='LEVEL',
                   help='log level (ie. INFO, WARNING, ERROR, CRITICAL)')
+    # TODO: New flag for settings file
+    # TODO: Migrate to argparse
 
     options, args = op.parse_args()
 
