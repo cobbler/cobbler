@@ -520,14 +520,13 @@ if __name__ == "__main__":
             "pyyaml",
             "netaddr",
             "Cheetah3",
-            "pymongo",
             "distro",
-            "ldap3",
             "dnspython",
             "file-magic",
             "schema"
         ],
         extras_require={
+            "full": ["ldap3", "pymongo"],
             "lint": ["pyflakes", "pycodestyle"],
             "test": ["pytest", "pytest-cov", "codecov", "pytest-mock"]
         },
