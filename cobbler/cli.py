@@ -53,7 +53,7 @@ OBJECT_ACTIONS = []
 for actions in list(OBJECT_ACTIONS_MAP.values()):
     OBJECT_ACTIONS += actions
 DIRECT_ACTIONS = ["aclsetup", "buildiso", "import", "list", "replicate", "report", "reposync", "sync",
-                  "validate-autoinstalls", "version", "signature", "hardlink"]
+                  "validate-autoinstalls", "version", "signature", "hardlink", "mkgrub"]
 
 ####################################################
 
@@ -1249,6 +1249,9 @@ class CobblerCLI:
             list_items(self.remote, "file")
             print("\nmenus:")
             list_items(self.remote, "menu")
+        elif action_name == "mkgrub":
+            (options, _) = self.parser.parse_args(self.args)
+            task_id = self.start_task("mkgrub", options)
         else:
             print("No such command: %s" % action_name)
             return 1
