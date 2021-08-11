@@ -3096,10 +3096,7 @@ class CobblerXMLRPCInterface:
         :param length: The length of the
         :return: A random string of the desired length from ``/dev/urandom``.
         """
-        # FIXME: Use random class instead of /dev/urandom
-        urandom = open("/dev/urandom", 'rb')
-        b64 = base64.b64encode(urandom.read(length))
-        urandom.close()
+        b64 = base64.b64encode(os.urandom(length))
         return b64.decode()
 
     def __make_token(self, user) -> str:
