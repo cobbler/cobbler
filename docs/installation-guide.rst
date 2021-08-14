@@ -24,7 +24,10 @@ four sources or from source with Git Tags.
     - ``dnf install cobbler``
 - `openSUSE Tumbleweed <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
 - `openSUSE Leap 15.x <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
-  --> This gives you Cobbler 2.8.x sadly for now.
+
+If you get a `Distribution "x" not found` error from setuptools when using the Cobbler CLI, you can fix this by the
+following command: ``pip install x``. This may occur in cases where the distro did not package Python Bindings for the
+tool. Currently known examples are ``mod_wsgi`` on Debian 10 and openSUSE Leap 15.x
 
 
 Prerequisites

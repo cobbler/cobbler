@@ -4,7 +4,9 @@ Cobbler CLI
 
 This page contains a description for commands which can be used from the CLI.
 
-.. Go Client: https://github.com/jtopjian/cobblerclient
+If you get a `Distribution "x" not found` error from setuptools when using the Cobbler CLI, you can fix this by the
+following command: ``pip install x``. This may occur in cases where the distro did not package Python Bindings for the
+tool. Currently known examples are ``mod_wsgi`` on Debian 10 and openSUSE Leap 15.x
 
 General Principles
 ##################
