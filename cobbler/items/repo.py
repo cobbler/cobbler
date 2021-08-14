@@ -313,8 +313,6 @@ class Repo(item.Item):
         """
         if not isinstance(createrepo_flags, str):
             raise TypeError("Field createrepo_flags of object repo needs to be of type str!")
-        if createrepo_flags is None or createrepo_flags == "":
-            createrepo_flags = enums.VALUE_INHERITED
         self._createrepo_flags = createrepo_flags
 
     @property
