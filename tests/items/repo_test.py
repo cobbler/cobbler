@@ -47,10 +47,10 @@ def test_mirror_type():
     repo = Repo(test_api)
 
     # Act
-    repo.mirror_type = enums.MirrorType.NONE
+    repo.mirror_type = enums.MirrorType.BASEURL
 
     # Assert
-    assert repo.mirror_type == enums.MirrorType.NONE
+    assert repo.mirror_type == enums.MirrorType.BASEURL
 
 
 def test_keep_updated():
@@ -131,10 +131,10 @@ def test_createrepo_flags():
     testrepo = Repo(test_api)
 
     # Act
-    testrepo.createrepo_flags = {}
+    testrepo.createrepo_flags = ""
 
     # Assert
-    assert testrepo.createrepo_flags == {}
+    assert testrepo.createrepo_flags == ""
 
 
 def test_breed():
