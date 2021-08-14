@@ -47,6 +47,7 @@ class RepoArchs(enum.Enum):
     This enum describes all repository architectures Cobbler is able to serve in case the content of the repository is
     serving the same architecture.
     """
+    NONE = VALUE_NONE
     I386 = "i386"
     X86_64 = "x86_64"
     IA64 = "ia64"
@@ -140,7 +141,6 @@ class MirrorType(enum.Enum):
     """
     This enum represents all mirror types which Cobbler can manage.
     """
-    NONE = VALUE_NONE
     METALINK = "metalink"
     MIRRORLIST = "mirrorlist"
     BASEURL = "baseurl"

@@ -156,6 +156,9 @@ class Item:
                                 ``property_name``.
         :return: The resolved value.
         """
+        settings_name = property_name
+        if property_name.startswith("proxy_url_"):
+            property_name = "proxy"
         attribute = "_" + property_name
 
         if not hasattr(self, attribute):
@@ -167,8 +170,8 @@ class Item:
         if attribute_value == enums.VALUE_INHERITED:
             if self.parent is not None and hasattr(self.parent, property_name):
                 return getattr(self.parent, property_name)
-            elif hasattr(settings, property_name):
-                return getattr(settings, property_name)
+            elif hasattr(settings, settings_name):
+                return getattr(settings, settings_name)
             else:
                 AttributeError("%s \"%s\" inherits property \"%s\", but neither its parent nor settings have it"
                                % (type(self), self.name, property_name))

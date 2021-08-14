@@ -30,7 +30,7 @@ from typing import Union
 
 from cobbler import utils
 from cobbler import download_manager
-from cobbler.enums import RepoArchs
+from cobbler.enums import RepoArchs, RepoBreeds, MirrorType
 from cobbler.utils import os_release
 
 HAS_LIBREPO = True
@@ -196,18 +196,18 @@ class RepoSync:
         :param repo: The repo to sync.
         """
 
-        if repo.breed == "rhn":
+        if repo.breed == RepoBreeds.RHN:
             self.rhn_sync(repo)
-        elif repo.breed == "yum":
+        elif repo.breed == RepoBreeds.YUM:
             self.yum_sync(repo)
-        elif repo.breed == "apt":
+        elif repo.breed == RepoBreeds.APT:
             self.apt_sync(repo)
-        elif repo.breed == "rsync":
+        elif repo.breed == RepoBreeds.RSYNC:
             self.rsync_sync(repo)
-        elif repo.breed == "wget":
+        elif repo.breed == RepoBreeds.WGET:
             self.wget_sync(repo)
         else:
-            utils.die("unable to sync repo (%s), unknown or unsupported repo type (%s)" % (repo.name, repo.breed))
+            utils.die("unable to sync repo (%s), unknown or unsupported repo type (%s)" % (repo.name, repo.breed.value))
 
     # ====================================================================================
 
@@ -439,14 +439,14 @@ class RepoSync:
             # Counter-intuitive, but we want the newish kernels too
             arch = "i686"
 
-        if arch != "":
+        if arch != "none":
             cmd = "%s -a %s" % (cmd, arch)
 
         # Now regardless of whether we're doing yumdownloader or reposync or whether the repo was http://, ftp://, or
         # rhn://, execute all queued commands here. Any failure at any point stops the operation.
 
         if repo.mirror_locally:
-            utils.subprocess_call(self.logger, cmd)
+            utils.subprocess_call(cmd)
 
         # Some more special case handling for RHN. Create the config file now, because the directory didn't exist
         # earlier.
@@ -522,17 +522,18 @@ class RepoSync:
 
         temp_file = self.create_local_file(temp_path, repo, output=False)
 
+        arch = repo.arch.value
+        if arch == "i386":
+            # Counter-intuitive, but we want the newish kernels too
+            arch = "i686"
+
         if not has_rpm_list:
             # If we have not requested only certain RPMs, use reposync
             cmd = "%s %s --config=%s --repoid=%s -p %s" \
                   % (cmd, self.rflags, temp_file, pipes.quote(repo.name),
                      pipes.quote(self.settings.webdir + "/repo_mirror"))
-            if repo.arch != "":
-                if repo.arch == RepoArchs.I386:
-                    # Counter-intuitive, but we want the newish kernels too
-                    cmd = "%s -a i686" % (cmd)
-                else:
-                    cmd = "%s -a %s" % (cmd, repo.arch.value)
+            if arch != "none":
+                cmd = "%s -a %s" % (cmd, arch)
 
         else:
             # Create the output directory if it doesn't exist
@@ -540,7 +541,7 @@ class RepoSync:
                 os.makedirs(dest_path)
 
             use_source = ""
-            if repo.arch == "src":
+            if arch == "src":
                 use_source = "--source"
 
             # Older yumdownloader sometimes explodes on --resolvedeps if this happens to you, upgrade yum & yum-utils
@@ -553,21 +554,19 @@ class RepoSync:
         # Now regardless of whether we're doing yumdownloader or reposync or whether the repo was http://, ftp://, or
         # rhn://, execute all queued commands here.  Any failure at any point stops the operation.
 
-        rc = utils.subprocess_call(self.logger, cmd)
+        rc = utils.subprocess_call(cmd)
         if rc != 0:
             utils.die("cobbler reposync failed")
 
         # download any metadata we can use
         proxy = None
-        if repo.proxy == '<<inherit>>':
-            proxy = self.settings.proxy_url_ext
-        elif repo.proxy != '<<None>>' and repo.proxy != '':
+        if repo.proxy != '<<None>>' and repo.proxy != '':
             proxy = repo.proxy
         (cert, verify) = self.gen_urlgrab_ssl_opts(repo.yumopts)
 
-        # FIXME: These two variables were deleted
-        repodata_path = ""
-        repomd_path = ""
+        repodata_path = os.path.join(dest_path, "repodata")
+        repomd_path = os.path.join(repodata_path, "repomd.xml")
+
         if os.path.exists(repodata_path) and not os.path.isfile(repomd_path):
             shutil.rmtree(repodata_path, ignore_errors=False, onerror=None)
 
@@ -593,11 +592,11 @@ class RepoSync:
 
         h.setopt(librepo.LRO_DESTDIR, temp_path)
 
-        if repo.mirror_type == "metalink":
+        if repo.mirror_type == MirrorType.METALINK:
             h.setopt(librepo.LRO_METALINKURL, repo_mirror)
-        elif repo.mirror_type == "mirrorlist":
+        elif repo.mirror_type == MirrorType.MIRRORLIST:
             h.setopt(librepo.LRO_MIRRORLISTURL, repo_mirror)
-        elif repo.mirror_type == "baseurl":
+        elif repo.mirror_type == MirrorType.BASEURL:
             h.setopt(librepo.LRO_URLS, [repo_mirror])
 
         if verify:
@@ -643,7 +642,7 @@ class RepoSync:
         if repo.rpm_list != "" and repo.rpm_list != []:
             utils.die("has_rpm_list not yet supported on apt repos")
 
-        if not repo.arch:
+        if repo.arch == RepoArchs.NONE:
             utils.die("Architecture is required for apt repositories")
 
         # built destination path for the repo
@@ -749,7 +748,7 @@ class RepoSync:
             mstr = repo.mirror
             if mstr.startswith("/"):
                 mstr = "file://%s" % mstr
-            line = repo.mirror_type + "=%s\n" % mstr
+            line = repo.mirror_type.value + "=%s\n" % mstr
             if self.settings.http_port not in (80, '80'):
                 http_server = "%s:%s" % (self.settings.server, self.settings.http_port)
             else:
