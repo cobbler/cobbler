@@ -49,7 +49,7 @@ class Profile(item.Item):
         self._next_server_v4 = api.settings().next_server_v4
         self._next_server_v6 = api.settings().next_server_v6
         self._filename = ""
-        self._proxy = api.settings().proxy_url_int
+        self._proxy = enums.VALUE_INHERITED
         self._redhat_management_key = enums.VALUE_INHERITED
         self._repos = []
         self._server = enums.VALUE_INHERITED
@@ -281,7 +281,7 @@ class Profile(item.Item):
 
         :return:
         """
-        return self._resolve("proxy")
+        return self._resolve("proxy_url_int")
 
     @proxy.setter
     def proxy(self, proxy: str):

@@ -317,9 +317,9 @@ redhat_management_key: ""
 # records.
 register_new_installs: false
 
-# Flags to use for yum's reposync.  If your version of yum reposync
-# does not support -l, you may need to remove that option.
-reposync_flags: "-l -n -d"
+# Flags to use for dnf's reposync. You can exclude some packages by adding --exclude.
+# For example exclude source packages: --exclude=\\*.src
+reposync_flags: "--newest-only --delete --refresh --remote-time"
 
 # Flags to use for rysync's reposync. If flag 'a' is used then createrepo
 # is not ran after the rsync

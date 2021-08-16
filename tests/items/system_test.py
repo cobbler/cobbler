@@ -343,7 +343,7 @@ def test_proxy():
     system.proxy = ""
 
     # Assert
-    assert system.proxy == "<<inherit>>"
+    assert system.proxy == ""
 
 
 def test_redhat_management_key():

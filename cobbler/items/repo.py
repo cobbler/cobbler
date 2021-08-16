@@ -37,19 +37,19 @@ class Repo(item.Item):
     def __init__(self, api, *args, **kwargs):
         super().__init__(api, *args, **kwargs)
         self._breed = enums.RepoBreeds.NONE
-        self._arch = enums.RepoArchs.X86_64
+        self._arch = enums.RepoArchs.NONE
         self._environment = {}
         self._yumopts = {}
         self._rsyncopts = {}
-        self._mirror_type = enums.MirrorType.NONE
+        self._mirror_type = enums.MirrorType.BASEURL
         self._apt_components = []
         self._apt_dists = []
-        self._createrepo_flags = {}
+        self._createrepo_flags = enums.VALUE_INHERITED
         self._keep_updated = False
         self._mirror = ""
         self._mirror_locally = False
         self._priority = 0
-        self._proxy = ""
+        self._proxy = enums.VALUE_INHERITED
         self._rpm_list = []
         self._os_version = ""
 
@@ -295,24 +295,24 @@ class Repo(item.Item):
         self._rpm_list = utils.input_string_or_list(rpms)
 
     @property
-    def createrepo_flags(self) -> dict:
+    def createrepo_flags(self) -> str:
         """
         TODO
 
         :return:
         """
-        return self._createrepo_flags
+        return self._resolve("createrepo_flags")
 
     @createrepo_flags.setter
-    def createrepo_flags(self, createrepo_flags: dict):
+    def createrepo_flags(self, createrepo_flags: str):
         """
         Flags passed to createrepo when it is called. Common flags to use would be ``-c cache`` or ``-g comps.xml`` to
         generate group information.
 
         :param createrepo_flags: The createrepo flags which are passed additionally to the default ones.
         """
-        if not isinstance(createrepo_flags, dict):
-            raise TypeError("Field createrepo_flags of object repo needs to be of type dict!")
+        if not isinstance(createrepo_flags, str):
+            raise TypeError("Field createrepo_flags of object repo needs to be of type str!")
         self._createrepo_flags = createrepo_flags
 
     @property
@@ -462,7 +462,7 @@ class Repo(item.Item):
 
         :return:
         """
-        return self._proxy
+        return self._resolve("proxy_url_ext")
 
     @proxy.setter
     def proxy(self, value: str):

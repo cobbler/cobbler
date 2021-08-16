@@ -1058,7 +1058,7 @@ class System(Item):
 
         :return:
         """
-        return self._resolve("proxy")
+        return self._resolve("proxy_url_int")
 
     @proxy.setter
     def proxy(self, proxy: str):
@@ -1070,8 +1070,6 @@ class System(Item):
         """
         if not isinstance(proxy, str):
             raise TypeError("Field proxy of object system needs to be of type str!")
-        if proxy is None or proxy == "" or proxy == enums.VALUE_INHERITED:
-            proxy = enums.VALUE_INHERITED
         self._proxy = proxy
 
     @property
