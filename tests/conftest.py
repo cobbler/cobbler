@@ -54,6 +54,7 @@ def cleanup_leftover_items():
             os.remove(json_file)
             logger.info("Removed file: " + json_file)
 
+
 @pytest.fixture(scope="function")
 def fk_initrd():
     """

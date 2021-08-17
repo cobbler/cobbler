@@ -178,6 +178,7 @@ class CobblerAPI:
 
         :returns: 0 if there is no file where the information required for this method is saved.
         """
+        # FIXME: This fails in case the file required is not available
         if not os.path.exists("/var/lib/cobbler/.mtime"):
             fd = open("/var/lib/cobbler/.mtime", 'w')
             fd.write("0")
