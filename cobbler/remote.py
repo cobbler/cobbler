@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import base64
 import errno
 import fcntl
+import keyword
 import logging
 import os
 import random
@@ -41,7 +42,7 @@ from cobbler.items import item, package, system, image, profile, repo, mgmtclass
 from cobbler import tftpgen
 from cobbler import utils
 from cobbler.cexceptions import CX
-from cobbler.validate import validate_autoinstall_script_name
+from cobbler.validate import validate_autoinstall_script_name, validate_obj_id, validate_obj_name
 
 EVENT_TIMEOUT = 7 * 24 * 60 * 60  # 1 week
 CACHE_TIMEOUT = 10 * 60  # 10 minutes
@@ -552,21 +553,22 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The username if the token was valid.
         :raises CX: If the token supplied to the function is invalid.
+        :raises ValueError: In case "token" did not fulfil the requirements to be a token.
         """
+        if not CobblerXMLRPCInterface.__is_token(token):
+            raise ValueError("\"token\" did not have the correct format or type!")
         if token not in self.token_cache:
             raise CX("invalid token: %s" % token)
         else:
             return self.token_cache[token][1]
 
-    def _log(self, msg: str, user: Optional[str] = None, token: Optional[str] = None, name: Optional[str] = None,
-             object_id: Optional[str] = None, attribute: Optional[str] = None, debug: bool = False,
-             error: bool = False):
+    def _log(self, msg: str, token: Optional[str] = None, name: Optional[str] = None, object_id: Optional[str] = None,
+             attribute: Optional[str] = None, debug: bool = False, error: bool = False):
         """
         Helper function to write data to the log file from the XMLRPC remote implementation.
         Takes various optional parameters that should be supplied when known.
 
         :param msg: The message to log.
-        :param user: When a user is associated with the action it should be supplied.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :param name: The name of the object should be supplied when it is known.
         :param object_id: The object id should be supplied when it is known.
@@ -574,10 +576,10 @@ class CobblerXMLRPCInterface:
         :param debug: If the message logged is a debug message.
         :param error: If the message logged is an error message.
         """
+        if not (isinstance(error, bool) or isinstance(debug, bool) or isinstance(msg, str)):
+            return
         # add the user editing the object, if supplied
         m_user = "?"
-        if user is not None:
-            m_user = user
         if token is not None:
             try:
                 m_user = self.get_user_from_token(token)
@@ -587,13 +589,21 @@ class CobblerXMLRPCInterface:
         msg = "REMOTE %s; user(%s)" % (msg, m_user)
 
         if name is not None:
+            if not isinstance(name, str):
+                return
+            if not validate_obj_name(name):
+                return
             msg = "%s; name(%s)" % (msg, name)
 
         if object_id is not None:
+            if not validate_obj_id(object_id):
+                return
             msg = "%s; object_id(%s)" % (msg, object_id)
 
         # add any attributes being modified, if any
         if attribute:
+            if not (isinstance(attribute, str) and attribute.isidentifier()) or keyword.iskeyword(attribute):
+                return
             msg = "%s; attribute(%s)" % (msg, attribute)
 
         # log to the correct logger
@@ -2646,7 +2656,7 @@ class CobblerXMLRPCInterface:
 
         :param sys_name: The name of the system for which to upload log data.
         :param file: The file where the log data should be put.
-        :param size: The size of the data which will be recieved.
+        :param size: The size of the data which will be received.
         :param offset: The offset in the file where the data will be written to.
         :param data: The data that should be logged.
         :param token: The API-token obtained via the login() method.
@@ -2684,7 +2694,7 @@ class CobblerXMLRPCInterface:
             self.logger.warning("upload_log_data - token was given but had an invalid type.")
             return False
         # Validate sys_name with item regex
-        if not re.match(item.RE_OBJECT_NAME, sys_name):
+        if not re.fullmatch(item.RE_OBJECT_NAME, sys_name):
             self.logger.warning("upload_log_data - The provided sys_name contained invalid characters!")
             return False
         # Validate logfile_name - this uses the script name validation, possibly we need our own for this one later
@@ -2738,7 +2748,7 @@ class CobblerXMLRPCInterface:
                 raise CX("destination not a file: %s" % file_name)
 
         # TODO: See if we can simplify this at a later point
-        fd = os.open(file_name, os.O_RDWR | os.O_CREAT, 0o644)
+        fd = os.open(file_name, os.O_RDWR | os.O_CREAT | os.O_CLOEXEC, 0o644)
         # log_error("fd=%r" %fd)
         try:
             if offset == 0 or (offset == -1 and size == len(contents)):
@@ -3198,6 +3208,20 @@ class CobblerXMLRPCInterface:
         b64 = self.__get_random(25)
         self.token_cache[b64] = (time.time(), user)
         return b64
+
+    @staticmethod
+    def __is_token(token: str) -> bool:
+        """
+        Simple check to validate if it is a token.
+
+        __make_token() uses 25 as the length of bytes that means we need to padding bytes to have a 34 character str.
+        Because base64 specifies that the number of padding bytes are shown via equal characters, we have a 46 character
+        long str in the end in every case.
+
+        :param token: The str which should be checked.
+        :return: True in case the validation succeeds, otherwise False.
+        """
+        return isinstance(token, str) and len(token) == 36
 
     def __invalidate_expired_tokens(self):
         """

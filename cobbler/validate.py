@@ -22,15 +22,17 @@ import shlex
 from urllib.parse import urlparse
 from ipaddress import AddressValueError, NetmaskValueError
 from typing import Union
+from uuid import UUID
 
 import netaddr
 
 from cobbler import enums, utils
+from cobbler.items import item
 
 RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
 RE_URL_GRUB = re.compile(r"^\((?P<protocol>http|tftp),(?P<server>.*)\)/(?P<path>.*)$")
 RE_URL = re.compile(r'^[a-zA-Z\d-]{,63}(\.[a-zA-Z\d-]{,63})*$')  # https://stackoverflow.com/a/2894918
-RE_SCRIPT_NAME = re.compile(r"[a-zA-Z0-9_.]+")
+RE_SCRIPT_NAME = re.compile(r"[a-zA-Z0-9_\-.]+")
 
 # blacklist invalid values to the repo statement in autoinsts
 AUTOINSTALL_REPO_BLACKLIST = ['enabled', 'gpgcheck', 'gpgkey']
@@ -619,6 +621,59 @@ def validate_autoinstall_script_name(name: str) -> bool:
     """
     if not isinstance(name, str):
         return False
-    if re.match(RE_SCRIPT_NAME, name):
+    if re.fullmatch(RE_SCRIPT_NAME, name):
         return True
     return False
+
+
+def validate_uuid(possible_uuid: str) -> bool:
+    """
+    Validate if the handed string is a valid UUIDv4.
+
+    :param possible_uuid: The str with the UUID.
+    :return: True in case it is one, False otherwise.
+    """
+    if not isinstance(possible_uuid, str):
+        return False
+    # Taken from: https://stackoverflow.com/a/33245493/4730773
+    try:
+        uuid_obj = UUID(possible_uuid, version=4)
+    except ValueError:
+        return False
+    return str(uuid_obj) == possible_uuid
+
+
+def validate_obj_type(object_type: str) -> bool:
+    """
+
+    :param object_type:
+    :return:
+    """
+    if not isinstance(object_type, str):
+        return False
+    return object_type in ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file", "menu"]
+
+
+def validate_obj_name(object_name: str) -> bool:
+    """
+
+    :param object_name:
+    :return:
+    """
+    if not isinstance(object_name, str):
+        return False
+    return bool(re.match(item.RE_OBJECT_NAME, object_name))
+
+
+def validate_obj_id(object_id: str) -> bool:
+    """
+
+    :param object_id:
+    :return: True in case it is one, False otherwise.
+    """
+    if not isinstance(object_id, str):
+        return False
+    if object_id.startswith("___NEW___"):
+        object_id = object_id[9:]
+    (otype, oname) = object_id.split("::", 1)
+    return validate_obj_type(otype) and validate_obj_name(oname)
