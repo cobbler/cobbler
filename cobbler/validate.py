@@ -30,6 +30,7 @@ from cobbler import enums, utils
 RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
 RE_URL_GRUB = re.compile(r"^\((?P<protocol>http|tftp),(?P<server>.*)\)/(?P<path>.*)$")
 RE_URL = re.compile(r'^[a-zA-Z\d-]{,63}(\.[a-zA-Z\d-]{,63})*$')  # https://stackoverflow.com/a/2894918
+RE_SCRIPT_NAME = re.compile(r"[a-zA-Z0-9_.]+")
 
 # blacklist invalid values to the repo statement in autoinsts
 AUTOINSTALL_REPO_BLACKLIST = ['enabled', 'gpgcheck', 'gpgkey']
@@ -606,3 +607,18 @@ def validate_grub_remote_file(value: str) -> bool:
         success_path = urlparse("https://fake.local/%s" % path).path[1:] == path
         success = (success_server_ip or success_server_name) and success_path
     return success
+
+
+def validate_autoinstall_script_name(name: str) -> bool:
+    """
+    This validates if the name given for the script is valid in the context of the API call made. It will be handed to
+    tftpgen.py#generate_script in the end.
+
+    :param name: The name of the script. Will end up being a filename. May have an extension but should never be a path.
+    :return: If this is a valid script name or not.
+    """
+    if not isinstance(name, str):
+        return False
+    if re.match(RE_SCRIPT_NAME, name):
+        return True
+    return False
