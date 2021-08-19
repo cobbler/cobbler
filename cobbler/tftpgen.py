@@ -31,6 +31,7 @@ from typing import Optional
 from cobbler import templar
 from cobbler import utils
 from cobbler.cexceptions import CX
+from cobbler.validate import validate_autoinstall_script_name
 
 
 class TFTPGen:
@@ -1109,11 +1110,16 @@ class TFTPGen:
         """
         if what == "profile":
             obj = self.api.find_profile(name=objname)
-        else:
+        elif what == "system":
             obj = self.api.find_system(name=objname)
+        else:
+            raise ValueError("\"what\" needs to be either \"profile\" or \"system\"!")
+
+        if not validate_autoinstall_script_name(script_name):
+            raise ValueError("\"script_name\" handed to generate_script was not valid!")
 
         if not obj:
-            return "# %s named %s not found" % (what, objname)
+            return "# \"%s\" named \"%s\" not found" % (what, objname)
 
         distro = obj.get_conceptual_parent()
         while distro.get_conceptual_parent():
@@ -1135,12 +1141,14 @@ class TFTPGen:
         else:
             blended['img_path'] = os.path.join("/images", distro.name)
 
-        template = os.path.normpath(os.path.join("/var/lib/cobbler/scripts", script_name))
+        scripts_root = "/var/lib/cobbler/scripts"
+        template = os.path.normpath(os.path.join(scripts_root, script_name))
+        if not template.startswith(scripts_root):
+            return "# script template \"%s\" could not be found in the script root" % script_name
         if not os.path.exists(template):
-            return "# script template %s not found" % script_name
+            return "# script template \"%s\" not found" % script_name
 
-        template_fh = open(template)
-        template_data = template_fh.read()
-        template_fh.close()
+        with open(template) as template_fh:
+            template_data = template_fh.read()
 
         return self.templar.render(template_data, blended, None)
