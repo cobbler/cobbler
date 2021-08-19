@@ -20,13 +20,13 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'Cobbler'
-copyright = '2020, Enno Gotthold'
+copyright = '2021, Enno Gotthold'
 author = 'Enno Gotthold'
 
 # The short X.Y version
-version = '3.2'
+version = '3.3'
 # The full version, including alpha/beta/rc tags
-release = '3.2.1'
+release = '3.3.0'
 
 
 # -- General configuration ---------------------------------------------------

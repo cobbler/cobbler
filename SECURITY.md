@@ -5,8 +5,8 @@
 | Version   | Supported                   |
 | --------- | --------------------------- |
 | 4.0.X     | Next API breaking Release   |
-| 3.3.x     | Next Release                |
-| 3.2.x     | Current Version: 3.2.1      |
+| 3.3.x     | Current Version: 3.3.0      |
+| 3.2.x     | Security only               |
 | 3.1.x     | EOL                         |
 | 3.0.x     | EOL                         |
 | 2.8.x     | EOL - we accept PR's for it |
@@ -31,7 +31,7 @@ Since there is no funding for Cobbler, we can't offer you anything but our deepe
 ## Known problems
 
 All open security problems which are publicly known are to be found at:
- 
+
 > https://github.com/cobbler/cobbler/issues?q=is%3Aissue+is%3Aopen+label%3Asecurity
 
 ## Remarks
