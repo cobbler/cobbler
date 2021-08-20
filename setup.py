@@ -536,6 +536,7 @@ if __name__ == "__main__":
             "bin/cobbler",
             "bin/cobblerd",
             "bin/cobbler-ext-nodes",
+            "bin/cobbler-settings"
         ],
         configure_values={
             'webroot': os.path.normpath(webroot),

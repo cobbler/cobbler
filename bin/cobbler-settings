@@ -1,0 +1,65 @@
+#!/usr/bin/python3
+"""
+Tool to manage the Settings of Cobbler without the demon running.
+"""
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
+# SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
+# SPDX-FileCopyrightText: Copyright SUSE LLC
+
+
+import argparse
+import sys
+
+from typing import List
+
+# https://docs.python.org/3.6/howto/argparse.html#id1
+# https://docs.python.org/3.6/library/argparse.html
+
+
+parser = argparse.ArgumentParser(description='Manage the settings of Cobbler without a running demon.')
+parser.add_argument('--config', "-c",
+                    help="The location of the Cobbler configuration file.",
+                    type=argparse.FileType('r', encoding='UTF-8'),
+                    default="/etc/cobbler/settings.yaml")
+subparsers = parser.add_subparsers(title="Subcommands", help="some help")
+parser_validate = subparsers.add_parser('validate',
+                                        description="Validates if Cobbler would start with the current settings file.")
+parser_migrate = subparsers.add_parser('migrate',
+                                       description="Migrates from version \"old\" to version \"new\".")
+parser_migrate.add_argument("--diff", "-d",
+                            help="Whether to produce a diff output or not.",
+                            action="store_true",
+                            default=False)
+parser_migrate.add_argument("--target", "-t",
+                            help="Write the resulting settings to the target path given in this argument.",
+                            type=argparse.FileType('w', encoding='UTF-8'))
+parser_automigrate = subparsers.add_parser('automigrate',
+                                           description="Enables or disables the automigration on startup of the demon.")
+parser_automigrate.add_argument("--enable", "-e",
+                                help="Enables settings automigration.",
+                                dest='enable_automigration',
+                                default=True,
+                                action='store_true')
+parser_automigrate.add_argument("--disable", "-d",
+                                help="Disables settings automigration.",
+                                dest='enable_automigration',
+                                default=False,
+                                action='store_true')
+parser_modify = subparsers.add_parser('modify', description="Modify the value of a key in the config file.")
+parser_modify.add_argument("--key", "-k",
+                           help="The name of the key in file to edit. If the key is nested use the format "
+                                "\"parent_key.key\".",
+                           required=True)
+parser_modify.add_argument("--value", "-v",
+                           help="The new value of the key.",
+                           required=True)
+
+
+def main(args: List[str]) -> int:
+    parser.parse_args(args[1:])
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
