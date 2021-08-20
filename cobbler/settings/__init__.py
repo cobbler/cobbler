@@ -281,8 +281,7 @@ def validate_settings(settings_content: dict) -> dict:
     :raises SchemaError: In case the data given is invalid.
     :return: The Settings of Cobbler which can be safely used inside this instance.
     """
-    # TODO: This should call migrations.validate(...) in the future
-    return migrations.validate(settings_content)
+    return migrations.normalize(settings_content)
 
 
 def parse_bind_config(configpath: str):

@@ -53,7 +53,7 @@ class TestSettings:
 
 
 @pytest.mark.parametrize("parameter,expected_exception,expected_result", [
-    ({}, pytest.raises(SchemaError), None)
+    ({}, pytest.raises(SchemaError), False)
 ])
 def test_validate_settings(parameter, expected_exception, expected_result):
     # Arrange
@@ -178,12 +178,10 @@ def test_settingsfile_migrate_gpxe_ipxe():
         content_old = yaml.safe_load(old_settingsfile.read())
 
     new_settings_file = settings.read_settings_file(new_settings)
-    direct_settings = settings.__migrate_settingsfile_gpxe_ipxe(content_new)
 
     # Assert
     assert isinstance(content_old, dict) and "enable_gpxe" in content_old
-    assert isinstance(direct_settings, dict) and "enable_ipxe" in direct_settings
-    assert "enable_gpxe" not in direct_settings
+    assert isinstance(content_new, dict) and "enable_ipxe" in content_new
+    assert "enable_gpxe" not in content_new
     assert isinstance(new_settings_file, dict) and "enable_ipxe" in new_settings_file
     assert "enable_gpxe" not in new_settings_file
-    # assert False
