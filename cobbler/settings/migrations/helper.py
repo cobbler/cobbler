@@ -6,7 +6,6 @@ Helper module which contains shared logic for adjusting the settings.
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
-
 from typing import List, Union
 
 
@@ -82,7 +81,10 @@ def key_delete(delete: str, settings: dict):
     :param setting: The settings dict where the the key should be deleted.
     """
     delete = Setting(delete, None)
-    del key_get(delete.location[:-1], settings).value[delete.key_name]
+    if len(delete.location) == 1:
+        del settings[delete.key_name]
+    else:
+        del key_get(delete.location[:-1], settings).value[delete.key_name]
 
 
 def key_get(key: str, settings: dict) -> Setting:
@@ -94,10 +96,12 @@ def key_get(key: str, settings: dict) -> Setting:
     :return: The desired key from the settings dict
     TODO: Check if key does not exist
     """
+    if not key:
+        raise ValueError("Key must not be empty!")
     new = Setting(key, None)
     nested = new.location
-    for key in nested[:-1]:
-        settings = settings[key]
+    for keys in nested[:-1]:
+        settings = settings[keys]
     new.value = settings[nested[-1]]
     return new
 

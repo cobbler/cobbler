@@ -160,17 +160,12 @@ def migrate(settings: dict) -> dict:
     :param settings: The settings dict to migrate
     :return: The migrated dict
     """
-    if not validate(settings):
-        raise SchemaError("V3.2.1: Schema error while validating")
-    else:
-        normalize(settings)
-
     # int bool to real bool conversion
     bool_values = ["allow_duplicate_hostnames", "allow_duplicate_ips", "allow_duplicate_macs",
                    "allow_duplicate_macs", "allow_dynamic_settings", "always_write_dhcp_entries",
-                   "anamon_enabled", "bind_manage_ipmi", "build_reporting_enabled", "client_use_https",
+                   "anamon_enabled", "bind_manage_ipmi", "build_reporting_enabled", "cache_enabled","client_use_https",
                    "client_use_localhost", "convert_server_to_ip", "enable_gpxe", "enable_menu",
-                   "ldap_anonymous_bind", "manage_dhcp", "manage_dns", "manage_genders",
+                   "ldap_anonymous_bind", "ldap_tls", "manage_dhcp", "manage_dns", "manage_genders",
                    "manage_rsync", "manage_tftp", "manage_tftpd", "nopxe_with_triggers",
                    "nsupdate_enabled", "puppet_auto_setup", "puppet_parameterized_classes",
                    "pxe_just_once", "redhat_management_permissive", "register_new_installs",
@@ -178,7 +173,8 @@ def migrate(settings: dict) -> dict:
                    "run_install_triggers", "scm_track_enabled", "serializer_pretty_json",
                    "sign_puppet_certs_automatically", "virt_auto_boot", "yum_post_install_mirror"]
     for key in bool_values:
-        settings[key] = utils.input_boolean(settings[key])
+        if key in settings:
+            settings[key] = utils.input_boolean(settings[key])
     mgmt_parameters = "mgmt_parameters"
     if mgmt_parameters in settings and "from_cobbler" in settings[mgmt_parameters]:
         settings[mgmt_parameters]["from_cobbler"] = utils.input_boolean(
@@ -190,3 +186,7 @@ def migrate(settings: dict) -> dict:
     if os.path.exists(filename):
         os.rename(filename, filename + ".yaml")
         filename += ".yaml"
+
+    if not validate(settings):
+        raise SchemaError("V3.2.1: Schema error while validating")
+    return normalize(settings)

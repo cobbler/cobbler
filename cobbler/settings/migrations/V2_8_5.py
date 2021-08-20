@@ -148,5 +148,6 @@ def migrate(settings: dict) -> dict:
     :param settings: The settings dict to migrate
     :return: The migrated dict
     """
-    # Use the functions from helper.py to achieve this!
-    pass
+    if not validate(settings):
+        raise SchemaError("V2.8.5: Schema error while validating")
+    return normalize(settings)

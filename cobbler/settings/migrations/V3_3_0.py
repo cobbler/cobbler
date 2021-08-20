@@ -166,12 +166,36 @@ def migrate(settings: dict) -> dict:
     :param settings: The settings dict to migrate
     :return: The migrated dict
     """
-    if not validate(settings):
-        raise SchemaError("V3.3.0: Schema error while validating")
-    else:
-        normalize(settings)
 
     # migrate gpxe -> ipxe
     if "enable_gpxe" in settings:
         gpxe = helper.key_get("enable_gpxe", settings)
         helper.key_rename(gpxe, "enable_ipxe", settings)
+
+    # rename keys and update their value
+    old_setting = helper.Setting("default_autoinstall", "/var/lib/cobbler/autoinstall_templates/default.ks")
+    new_setting = helper.Setting("autoinstall", "default.ks")
+    helper.key_rename(old_setting, "autoinstall", settings)
+    helper.key_set_value(new_setting, settings)
+
+    old_setting = helper.Setting("next_server", "127.0.0.1")
+    new_setting = helper.Setting("next_server_v4", "127.0.0.1")
+    helper.key_rename(old_setting, "next_server_v4", settings)
+    helper.key_set_value(new_setting, settings)
+
+    # add missing keys
+    # name - value pairs
+    missing_keys = {'bind_zonefile_path': "@@bind_zonefiles@@",
+                    'manage_dhcp_v4': False,
+                    'manage_dhcp_v6': False,
+                    'next_server_v6': "::1"}
+    for (key, value) in missing_keys.items():
+        new_setting = helper.Setting(key, value)
+        helper.key_add(new_setting, settings)
+
+    # delete removed keys
+    helper.key_delete("cache_enabled", settings)
+
+    if not validate(settings):
+        raise SchemaError("V3.3.0: Schema error while validating")
+    return normalize(settings)

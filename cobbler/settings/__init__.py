@@ -383,6 +383,8 @@ def update_settings_file(data: dict, filepath="/etc/cobbler/settings.yaml") -> b
     :param filepath: This sets the path of the settingsfile to write.
     :return: True if the action succeeded. Otherwise return False.
     """
+    # TODO: Save old settings file
+
     try:
         validated_data = validate_settings(data)
         with open(filepath, "w") as settings_file:

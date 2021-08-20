@@ -1,6 +1,11 @@
 """
 Tests for the Cobbler settings migration helpers
 """
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
+# SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
+# SPDX-FileCopyrightText: Copyright SUSE LLC
+
 import copy
 import pytest
 from cobbler.settings.migrations import helper
