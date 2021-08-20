@@ -1860,6 +1860,10 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: 0 on success, 1 on error.
         """
+        if not self.api.settings().allow_dynamic_settings:
+            self._log("modify_setting - feature turned off but was tried to be accessed", token=token)
+            return 1
+        self._log("modify_setting(%s)" % setting_name, token=token)
         if not hasattr(self.api.settings(), setting_name):
             self.logger.warning("Setting did not exist!")
             return 1
