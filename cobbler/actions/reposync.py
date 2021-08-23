@@ -238,7 +238,7 @@ class RepoSync:
         :param dirname: The directory to run in.
         :param fnames: Not known what this is for.
         """
-        if os.path.exists(dirname) or repo['breed'] == 'rsync':
+        if os.path.exists(dirname) or repo.breed == RepoBreeds.RSYNC:
             utils.remove_yum_olddata(dirname)
 
             # add any repo metadata we can use
@@ -288,6 +288,9 @@ class RepoSync:
 
         repo_mirror = repo.mirror.strip()
 
+        if repo.mirror_type != MirrorType.BASEURL:
+            utils.die("mirrorlist and metalink mirror types is not supported for wget'd repositories")
+
         if repo.rpm_list != "" and repo.rpm_list != []:
             self.logger.warning("--rpm-list is not supported for wget'd repositories")
 
@@ -315,6 +318,9 @@ class RepoSync:
 
         if not repo.mirror_locally:
             utils.die("rsync:// urls must be mirrored locally, yum cannot access them directly")
+
+        if repo.mirror_type != MirrorType.BASEURL:
+            utils.die("mirrorlist and metalink mirror types is not supported for rsync'd repositories")
 
         if repo.rpm_list != "" and repo.rpm_list != []:
             self.logger.warning("--rpm-list is not supported for rsync'd repositories")
@@ -419,7 +425,7 @@ class RepoSync:
         # This is the somewhat more-complex RHN case.
         # NOTE: this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
         if not repo.mirror_locally:
-            utils.die("rhn:// repos do not work with --mirror-locally=1")
+            utils.die("rhn:// repos do not work with --mirror-locally=False")
 
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
@@ -473,9 +479,12 @@ class RepoSync:
         """
         # use SSL options if specified in yum opts
         cert = None
+        sslcacert = None
         verify = False
+        if 'sslcacert' in yumopts:
+            sslcacert = yumopts['sslcacert']
         if 'sslclientkey' and 'sslclientcert' in yumopts:
-            cert = (yumopts['sslclientcert'], yumopts['sslclientkey'])
+            cert = (sslcacert, yumopts['sslclientcert'], yumopts['sslclientkey'])
         # Note that the default of requests is to verify the peer and host but the default here is NOT to verify them
         # unless sslverify is explicitly set to 1 in yumopts.
         if 'sslverify' in yumopts:
@@ -604,7 +613,8 @@ class RepoSync:
             h.setopt(librepo.LRO_SSLVERIFYHOST, True)
 
         if cert:
-            sslclientcert, sslclientkey = cert
+            sslcacert, sslclientcert, sslclientkey = cert
+            h.setopt(librepo.LRO_SSLCACERT, sslcacert)
             h.setopt(librepo.LRO_SSLCLIENTCERT, sslclientcert)
             h.setopt(librepo.LRO_SSLCLIENTKEY, sslclientkey)
 
@@ -645,6 +655,9 @@ class RepoSync:
         if repo.arch == RepoArchs.NONE:
             utils.die("Architecture is required for apt repositories")
 
+        if repo.mirror_type != MirrorType.BASEURL:
+            utils.die("mirrorlist and metalink mirror types is not supported for apt repositories")
+
         # built destination path for the repo
         dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
 
@@ -672,7 +685,7 @@ class RepoSync:
             rflags = "--nocleanup"
             for x in repo.yumopts:
                 if repo.yumopts[x]:
-                    rflags += " %s %s" % (x, repo.yumopts[x])
+                    rflags += " %s=%s" % (x, repo.yumopts[x])
                 else:
                     rflags += " %s" % x
             cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, dest_path)
@@ -734,12 +747,11 @@ class RepoSync:
                 mstr = repo.mirror
                 if mstr.startswith("/"):
                     mstr = "file://%s" % mstr
-                line = "baseurl=%s\n" % mstr
+                line = "%s=%s\n" % (repo.mirror_type.value, mstr)
 
             config_file.write(line)
             # User may have options specific to certain yum plugins add them to the file
             for x in repo.yumopts:
-                config_file.write("%s=%s\n" % (x, repo.yumopts[x]))
                 if x == "enabled":
                     optenabled = True
                 if x == "gpgcheck":
@@ -774,14 +786,11 @@ class RepoSync:
         # FIXME: potentially might want a way to turn this on/off on a per-repo basis
         if not optgpgcheck:
             config_file.write("gpgcheck=0\n")
-            # user may have options specific to certain yum plugins
-            # add them to the file
-            for x in repo.yumopts:
+        # user may have options specific to certain yum plugins
+        # add them to the file
+        for x in repo.yumopts:
+            if not (output and repo.mirror_locally and x.startswith("ssl")):
                 config_file.write("%s=%s\n" % (x, repo.yumopts[x]))
-                if x == "enabled":
-                    optenabled = True
-                if x == "gpgcheck":
-                    optgpgcheck = True
         config_file.close()
         return fname
 
