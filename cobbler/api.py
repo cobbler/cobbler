@@ -140,6 +140,9 @@ class CobblerAPI:
         new_settings = settings.Settings()
         new_settings.from_dict(migrated_settings)
 
+        # save to disk
+        new_settings.save(settings_path)
+
         # Return object
         return new_settings
 

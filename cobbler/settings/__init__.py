@@ -19,19 +19,20 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-from cobbler.settings import migrations
+import datetime
 import glob
 import logging
 import os.path
-from pathlib import Path
 import re
+import shutil
 import traceback
+from pathlib import Path
 from typing import Any, Dict, Hashable, Union
-
 import yaml
-from schema import Optional, Schema, SchemaError, SchemaMissingKeyError, SchemaWrongKeyError
+from schema import SchemaError, SchemaMissingKeyError, SchemaWrongKeyError
 
 from cobbler import utils
+from cobbler.settings import migrations
 
 # TODO: Only log settings dict on error and not always!
 
@@ -264,11 +265,11 @@ class Settings:
             else:
                 raise AttributeError(f"no settings attribute named '{name}' found") from error
 
-    def save(self):
+    def save(self, filepath="/etc/cobbler/settings.yaml"):
         """
         Saves the settings to the disk.
         """
-        update_settings_file(self.to_dict())
+        update_settings_file(self.to_dict(), filepath)
 
 
 def validate_settings(settings_content: dict) -> dict:
@@ -383,7 +384,16 @@ def update_settings_file(data: dict, filepath="/etc/cobbler/settings.yaml") -> b
     :param filepath: This sets the path of the settingsfile to write.
     :return: True if the action succeeded. Otherwise return False.
     """
-    # TODO: Save old settings file
+    # Backup old settings file
+    if os.path.exists(filepath):
+        path = {"base": os.path.dirname(filepath),
+                "file": os.path.basename(filepath),
+                "file_split": os.path.basename(filepath).split(".")
+                }
+        timestamp = str(datetime.datetime.now().strftime("%Y%m%d_%H-%M-%S"))
+        new_filepath = os.path.normpath(os.path.join(path["base"], "%s_%s.%s" % (path["file_split"][0], timestamp,
+                                                                                path["file_split"][1])))
+        shutil.copy(filepath, new_filepath)
 
     try:
         validated_data = validate_settings(data)
