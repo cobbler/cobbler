@@ -62,13 +62,13 @@ def main():
     op = argparse.ArgumentParser()
     op.set_defaults(daemonize=True, log_level=None)
     op.add_argument('-B', '--daemonize', dest='daemonize', action='store_true',
-                  help='run in background (default)')
+                    help='run in background (default)')
     op.add_argument('-F', '--no-daemonize', dest='daemonize', action='store_false',
-                  help='run in foreground (do not daemonize)')
+                    help='run in foreground (do not daemonize)')
     op.add_argument('-f', '--log-file', dest='log_file', metavar='NAME',
-                  help='file to log to')
+                    help='file to log to')
     op.add_argument('-l', '--log-level', dest='log_level', metavar='LEVEL',
-                  help='log level (ie. INFO, WARNING, ERROR, CRITICAL)')
+                    help='log level (ie. INFO, WARNING, ERROR, CRITICAL)')
     op.add_argument('--config', "-c",
                     help="The location of the Cobbler configuration file.",
                     default="/etc/cobbler/settings.yaml")

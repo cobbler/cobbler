@@ -226,12 +226,10 @@ def auto_migrate(yaml_dict: dict, settings_path: Path) -> dict:
     settings_version = get_settings_file_version(yaml_dict)
     if settings_version == EMPTY_VERSION:
         raise RuntimeError("Automigration not possible due to undiscoverable settings!")
-    try:
-        sorted_version_list = sorted(list(VERSION_LIST.keys()))
-        migrations = sorted_version_list[sorted_version_list.index(settings_version):]
-    except ValueError:
-        # TODO: raised when index() could not found settings_version
-        pass
+
+    sorted_version_list = sorted(list(VERSION_LIST.keys()))
+    migrations = sorted_version_list[sorted_version_list.index(settings_version):]
+
     for index in range(0, len(migrations) - 1):
         if index == len(migrations) - 1:
             break
@@ -265,7 +263,6 @@ def migrate(yaml_dict: dict, settings_path: Path,
     if old > new:
         raise ValueError("Downgrades are not supported!")
 
-    # TODO: Test the correct behaviour of this
     sorted_version_list = sorted(list(VERSION_LIST.keys()))
     migration_list = sorted_version_list[sorted_version_list.index(old) + 1:sorted_version_list.index(new) + 1]
     for key in migration_list:
