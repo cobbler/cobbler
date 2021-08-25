@@ -279,7 +279,7 @@ def test_blender():
 
     # Assert
     # The number results in the number of settings and everything the test dest distro has.
-    assert len(result) == 147
+    assert len(result) == 148
     assert "server" in result
     assert "os_version" in result
 

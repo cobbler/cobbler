@@ -58,6 +58,18 @@ def test_get_installed_version():
     assert version.major >= 3
 
 
+def test_get_settings_file_version():
+    # Arrange
+    old_settings_dict = settings.read_yaml_file("/code/tests/test_data/V2_8_5.yaml")
+    v285 = migrations.CobblerVersion(2, 8, 5)
+
+    # Act
+    result = migrations.get_settings_file_version(old_settings_dict)
+
+    # Assert
+    assert result == v285
+
+
 @pytest.mark.skip("Outdated test. FIXME")
 def test_settingsfile_migration_extension(tmpdir: pathlib.Path):
     # TODO: Fix the fact that we have more keys in settings.yaml
@@ -136,7 +148,7 @@ def test_normalize_v3_0_0():
     new_settings = V3_0_0.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_0_0.normalize(new_settings)) == 107
+    assert len(V3_0_0.normalize(new_settings)) == 108
 
 
 def test_migrate_v3_0_1():
@@ -160,7 +172,7 @@ def test_normalize_v3_0_1():
     new_settings = V3_0_1.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_0_1.normalize(new_settings)) == 107
+    assert len(V3_0_1.normalize(new_settings)) == 108
 
 
 def test_migrate_v3_1_0():
@@ -184,7 +196,7 @@ def test_normalize_v3_1_0():
     new_settings = V3_1_0.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_1_0.normalize(new_settings)) == 107
+    assert len(V3_1_0.normalize(new_settings)) == 108
 
 
 def test_migrate_v3_1_1():
@@ -208,7 +220,7 @@ def test_normalize_v3_1_1():
     new_settings = V3_1_1.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_1_1.normalize(new_settings)) == 107
+    assert len(V3_1_1.normalize(new_settings)) == 108
 
 
 def test_migrate_v3_1_2():
@@ -232,7 +244,7 @@ def test_normalize_v3_1_2():
     new_settings = V3_1_2.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_1_2.normalize(new_settings)) == 106
+    assert len(V3_1_2.normalize(new_settings)) == 107
 
 
 def test_migrate_v3_2_0():
@@ -256,7 +268,7 @@ def test_normalize_v3_2_0():
     new_settings = V3_2_0.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_2_0.normalize(new_settings)) == 108
+    assert len(V3_2_0.normalize(new_settings)) == 109
 
 
 def test_migrate_v3_2_1():
@@ -280,7 +292,7 @@ def test_normalize_v3_2_1():
     new_settings = V3_2_1.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_2_1.normalize(new_settings)) == 110
+    assert len(V3_2_1.normalize(new_settings)) == 111
 
 
 def test_migrate_v3_3_0():
@@ -304,4 +316,4 @@ def test_normalize_v3_3_0():
     new_settings = V3_3_0.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_3_0.normalize(new_settings)) == 116
+    assert len(V3_3_0.normalize(new_settings)) == 117

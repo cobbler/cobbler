@@ -332,18 +332,7 @@ def autodetect_bind_chroot():
         parse_bind_config(bind_config_filename)
 
 
-def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Union[Dict[Hashable, Any], list, None]:
-    """
-    Reads the settings file from the default location or the given one. This method then also recursively includes all
-    files in the ``include`` directory. Any key may be overwritten in a later loaded settings file. The last loaded file
-    wins. If the read settings file is invalid in the context of Cobbler we will return an empty Dictionary.
-
-    :param filepath: The path to the settings file.
-    :return: A dictionary with the settings. As a word of caution: This may not represent a correct settings object, it
-             will only contain a correct YAML representation.
-    :raises yaml.YAMLError: If the YAML file is not syntactically valid or could not be read.
-    :raises FileNotFoundError: If the file handed to the function does not exist.
-    """
+def read_yaml_file(filepath ="/ect/cobbler/settings.yaml") -> Union[Dict[Hashable, Any], list, None]:
     if not os.path.exists(filepath):
         raise FileNotFoundError("Given path \"%s\" does not exist." % filepath)
     try:
@@ -357,6 +346,24 @@ def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Union[Dict[Hash
     except yaml.YAMLError as error:
         traceback.print_exc()
         raise yaml.YAMLError("\"%s\" is not a valid YAML file" % filepath) from error
+    return filecontent
+
+
+def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Union[Dict[Hashable, Any], list, None]:
+    """
+    Reads the settings file from the default location or the given one. This method then also recursively includes all
+    files in the ``include`` directory. Any key may be overwritten in a later loaded settings file. The last loaded file
+    wins. If the read settings file is invalid in the context of Cobbler we will return an empty Dictionary.
+
+    :param filepath: The path to the settings file.
+    :return: A dictionary with the settings. As a word of caution: This may not represent a correct settings object, it
+             will only contain a correct YAML representation.
+    :raises yaml.YAMLError: If the YAML file is not syntactically valid or could not be read.
+    :raises FileNotFoundError: If the file handed to the function does not exist.
+    """
+    filecontent = read_yaml_file(filepath)
+
+    # FIXME: Do not call validate_settings() because of chicken - egg problem
     try:
         validate_settings(filecontent)
     except SchemaMissingKeyError:

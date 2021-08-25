@@ -17,7 +17,7 @@ import logging
 import sys
 import os
 import traceback
-import optparse
+import argparse
 import cobbler.cobblerd as app
 import cobbler.api as cobbler_api
 
@@ -59,26 +59,32 @@ def daemonize_self():
 
 
 def main():
-    op = optparse.OptionParser()
+    op = argparse.ArgumentParser()
     op.set_defaults(daemonize=True, log_level=None)
-    op.add_option('-B', '--daemonize', dest='daemonize', action='store_true',
+    op.add_argument('-B', '--daemonize', dest='daemonize', action='store_true',
                   help='run in background (default)')
-    op.add_option('-F', '--no-daemonize', dest='daemonize', action='store_false',
+    op.add_argument('-F', '--no-daemonize', dest='daemonize', action='store_false',
                   help='run in foreground (do not daemonize)')
-    op.add_option('-f', '--log-file', dest='log_file', metavar='NAME',
+    op.add_argument('-f', '--log-file', dest='log_file', metavar='NAME',
                   help='file to log to')
-    op.add_option('-l', '--log-level', dest='log_level', metavar='LEVEL',
+    op.add_argument('-l', '--log-level', dest='log_level', metavar='LEVEL',
                   help='log level (ie. INFO, WARNING, ERROR, CRITICAL)')
-    # TODO: New flag for settings file
-    # TODO: Migrate to argparse
+    op.add_argument('--config', "-c",
+                    help="The location of the Cobbler configuration file.",
+                    default="/etc/cobbler/settings.yaml")
+    op.add_argument('--disable-automigration',
+                    help="If given, do no execute automigration",
+                    dest="disable_automigration",
+                    action='store_false')
 
-    options, args = op.parse_args()
+    options = op.parse_args()
 
     # load the API now rather than later, to ensure cobblerd
     # startup time is done before the service returns
     api = None
     try:
-        api = cobbler_api.CobblerAPI(is_cobblerd=True)
+        api = cobbler_api.CobblerAPI(is_cobblerd=True, settingsfile_location=options.config,
+                                     execute_settings_automigration=options.disable_automigration)
     except Exception as exc:
         if sys.exc_info()[0] == SystemExit:
             return exc.code

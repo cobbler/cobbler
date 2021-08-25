@@ -6,11 +6,11 @@ Migration from V2.8.5 to V3.0.0
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
-
-from cobbler.settings.migrations import helper
 from schema import Optional, Or, Schema, SchemaError
+from cobbler.settings.migrations import helper
 
 schema = Schema({
+    Optional("auto_migrate_settings", default=True): bool,
     "allow_duplicate_hostnames": int,
     "allow_duplicate_ips": int,
     "allow_duplicate_macs": int,

@@ -10,6 +10,7 @@ Migration from V3.1.0 to V3.1.1
 from schema import Optional, Or, Schema, SchemaError
 
 schema = Schema({
+    Optional("auto_migrate_settings", default=True): bool,
     "allow_duplicate_hostnames": int,
     "allow_duplicate_ips": int,
     "allow_duplicate_macs": int,

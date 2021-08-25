@@ -12,6 +12,7 @@ from schema import Optional, Schema, SchemaError
 from cobbler.settings.migrations import helper
 
 schema = Schema({
+    "auto_migrate_settings": bool,
     "allow_duplicate_hostnames": bool,
     "allow_duplicate_ips": bool,
     "allow_duplicate_macs": bool,
@@ -185,7 +186,8 @@ def migrate(settings: dict) -> dict:
 
     # add missing keys
     # name - value pairs
-    missing_keys = {'bind_zonefile_path': "@@bind_zonefiles@@",
+    missing_keys = {'auto_migrate_settings': True,
+                    'bind_zonefile_path': "@@bind_zonefiles@@",
                     'manage_dhcp_v4': False,
                     'manage_dhcp_v6': False,
                     'next_server_v6': "::1"}

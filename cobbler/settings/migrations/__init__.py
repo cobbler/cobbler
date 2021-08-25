@@ -24,6 +24,9 @@ from pathlib import Path
 from types import ModuleType
 from typing import Dict, List, Union
 
+from schema import Schema
+import yaml
+
 import cobbler
 
 logger = logging.getLogger()
@@ -35,16 +38,13 @@ class CobblerVersion:
     """
     Specifies a Cobbler Version
     """
-
-    # TODO: Implement greater, less, etc. methods
-
-    def __init__(self):
+    def __init__(self, major: int = 0, minor: int = 0, patch = 0):
         """
         Constructor
         """
-        self.major: int = 0
-        self.minor: int = 0
-        self.patch: int = 0
+        self.major = major
+        self.minor = minor
+        self.patch = patch
 
     def __eq__(self, other: object):
         """
@@ -158,6 +158,13 @@ def __load_migration_modules(name: str, version: List[str]):
         logger.exception(e)
 
 
+def get_settings_file_version(yaml_dict: dict) -> CobblerVersion:
+    for version in VERSION_LIST:
+        if VERSION_LIST[version].validate(yaml_dict):
+            return version
+    return EMPTY_VERSION
+
+
 def get_installed_version(filepath: Union[str, Path] = "/etc/cobbler/version") -> CobblerVersion:
     """
     Retrieve the current Cobbler version. Normally it can be read from /etc/cobbler/version
@@ -178,6 +185,10 @@ def get_installed_version(filepath: Union[str, Path] = "/etc/cobbler/version") -
         # filepath does not exists
         return EMPTY_VERSION
     return __fill_version_list(config["cobbler"]["version"].split("."))
+
+
+def get_schema(version: CobblerVersion) -> Schema:
+    return VERSION_LIST[version].schema
 
 
 def discover_migrations(path: str = migrations_path):
@@ -210,10 +221,9 @@ def auto_migrate(yaml_dict: dict, settings_path: Path) -> dict:
     :param settings_path: The path of the settings dict.
     :return: The migrated dict.
     """
-    settings_version = EMPTY_VERSION
-    for version in VERSION_LIST:
-        if VERSION_LIST[version].validate(yaml_dict):
-            settings_version = version
+    if not yaml_dict.get("auto_migrate_settings", True):
+        raise RuntimeError("Settings automigration disabled but requiered for starting the daemon!")
+    settings_version = get_settings_file_version(yaml_dict)
     if settings_version == EMPTY_VERSION:
         raise RuntimeError("Automigration not possible due to undiscoverable settings!")
     try:
@@ -244,6 +254,12 @@ def migrate(yaml_dict: dict, settings_path: Path,
     # If no version supplied do auto migrations
     if old == EMPTY_VERSION and new == EMPTY_VERSION:
         return auto_migrate(yaml_dict, settings_path)
+
+    if old == EMPTY_VERSION or new == EMPTY_VERSION:
+        raise ValueError("Either both or no versions must be specified for a migration!")
+
+    if old == new:
+        return VERSION_LIST[old].normalize(yaml_dict)
 
     # If both versions are present, check if old < new and then migrate the appropriate versions.
     if old > new:

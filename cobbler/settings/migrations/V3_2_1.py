@@ -13,6 +13,7 @@ from schema import Optional, Schema, SchemaError
 from cobbler import utils
 
 schema = Schema({
+    Optional("auto_migrate_settings", default=True): bool,
     "allow_duplicate_hostnames": bool,
     "allow_duplicate_ips": bool,
     "allow_duplicate_macs": bool,
