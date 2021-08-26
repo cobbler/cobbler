@@ -81,6 +81,9 @@ schema = Schema({
     "next_server": str,
     "nopxe_with_triggers": int,
     Optional("nsupdate_enabled", default=0): int,
+    Optional("nsupdate_log", default="/var/log/cobbler/nsupdate.log"): str,
+    Optional("nsupdate_tsig_algorithm", default="hmac-sha512"): str,
+    Optional("nsupdate_tsig_key", default=[ "cobbler_update_key.","hvnK54HFJXFasHjzjEn09ASIkCOGYSnofRq4ejsiBHz3udVyGiuebFGAswSjKUxNuhmllPrkI0HRSSmM2qvZug==" ]): list,
     "power_management_default_type": str,
     Optional("proxy_url_ext", default=""): Or(None, str),
     "proxy_url_int": str,
@@ -148,7 +151,7 @@ def normalize(settings: dict) -> dict:
 
 def migrate(settings: dict) -> dict:
     """
-    Migration of the settings ``settings`` to the V3.2.1 settings
+    Migration of the settings ``settings`` to the V3.2.0 settings
 
     :param settings: The settings dict to migrate
     :return: The migrated dict
