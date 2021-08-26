@@ -100,11 +100,13 @@ html_theme_options = {
     'navigation_depth': 4,
 }
 
+html_css_files = ['extend_width.css']
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 # see https://github.com/readthedocs/readthedocs.org/issues/1776
-html_static_path = []
+html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.

@@ -26,7 +26,23 @@ main file.
 Updates to the yaml-settings-file
 #################################
 
-Starting with 3.2.1:
+Starting with 3.3.0
+===================
+
+- The setting ``enable_gpxe`` was replaced with ``enable_ipxe``.
+
+- The ``settings.d`` directory (``/etc/cobbler/settings.d/``) was depreaced and will be removed in the future.
+
+- There is a new CLI tool called ``cobbler-settings`` which can be used to validate and migrate settings files from
+  differente versions and to modify keys in the current settings file. Have a look at the migration matrix in the next
+  paragraph to see the supported migration paths.
+  Furthermore the auto migration feature can be enabled or disabled.
+
+- A new settings auto migration feature was implemented which automatically updates the settings when installing a new
+  version. A backup of the old settings file will be created in the same folder beforehand.
+
+Starting with 3.2.1
+===================
 
 - We require the extension ``.yaml`` on our settings file to indicate the format of the file to editors and comply to
   standards of the YAML specification.
@@ -38,8 +54,39 @@ Starting with 3.2.1:
   Cobbler please report this in our issue tracker. We have decided to go this way to be able to rely on the existence
   of the values. This gives us the freedom to write fewer access checks to the settings without losing stability.
 
+Migration matrix
+################
+
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======
+To/From  <2.8.5   2.8.5   3.0.0   3.0.1   3.1.0   3.1.1   3.1.2   3.2.0   3.2.1   3.3.0
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======
+2.8.5      x        o       --      --      --      --      --      --      --      --
+3.0.0      x        x       o       --      --      --      --      --      --      --
+3.0.1      x        x       x       o       --      --      --      --      --      --
+3.1.0      x        x       x       x       o       --      --      --      --      --
+3.1.1      x        x       x       x       x       o       --      --      --      --
+3.1.2      x        x       x       x       x       x       o       --      --      --
+3.2.0      x        x       x       x       x       x       x       o       --      --
+3.2.1      x        x       x       x       x       x       x       x       o       --
+3.3.0      x        x       x       x       x       x       x       x       x       0
+master     --      --      --      --      --      --      --      --       --      --
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======
+
+**Legend**: x: supported, o: same version, -: not supported
+
+.. note::
+   Downgrades are not supported!
+
 ``settings.yaml``
 #################
+
+auto_migrate_settings
+=====================
+
+If ``True`` Cobbler will auto migrate the settings file after upgrading from older versions. The current settings
+are backed up in the same folder before the upgrade.
+
+default: ``True``
 
 allow_duplicate_hostnames
 =========================
@@ -107,6 +154,13 @@ tested against.
 
 default: ``"login"``
 
+autoinstall
+===========
+
+If no autoinstall template is specified to profile add, use this template.
+
+default: ``default.ks``
+
 autoinstall_snippets_dir
 ========================
 
@@ -138,19 +192,19 @@ Set to the ip address of the master bind DNS server for creating secondary bind 
 
 default: ``127.0.0.1``
 
+bind_zonefile_path
+==================
+
+Set to path where zonefiles of bind/named server are located.
+
+default: ``"@@bind_zonefiles@@"``
+
 boot_loader_conf_template_dir
 =============================
 
 Location of templates used for boot loader config generation.
 
 default: ``"/etc/cobbler/boot_loader_conf"``
-
-bootloaders_dir
-===============
-
-The location where Cobbler searches for the bootloaders to copy into the web directory.
-
-default: ``/var/lib/cobbler/loaders``
 
 grubconfig_dir
 ==============
@@ -241,13 +295,6 @@ createrepo_flags
 Default ``createrepo_flags`` to use for new repositories.
 
 default: ``"-c cache -s sha"``
-
-autoinstall
-===========
-
-If no autoinstall template is specified to profile add, use this template.
-
-default: ``default.ks``
 
 default_name_*
 ==============
@@ -349,8 +396,6 @@ enable_ipxe
 Enable iPXE booting? Enabling this option will cause Cobbler to copy the ``undionly.kpxe`` file to the TFTP root
 directory, and if a profile/system is configured to boot via iPXE it will chain load off ``pxelinux.0``.
 
-.. note:: We now gPXE is not active anymore and try to transition the code, settings and guide we have to iPXE.
-
 default: ``False``
 
 enable_menu
@@ -376,6 +421,9 @@ include
 Include other configuration snippets with this regular expression. This is a list of folders.
 
 default: ``[ "/etc/cobbler/settings.d/*.settings" ]``
+
+.. note::
+   Will be deprecated in future releases.
 
 iso_template_dir
 ================
@@ -436,6 +484,22 @@ Set to ``True`` to enable Cobbler's DHCP management features. The choice of DHCP
 
 default: ``True``
 
+manage_dhcp_v4
+==============
+
+Set to ``true`` to enable DHCP IPv6 address configuration generation. This currently only works with manager.isc DHCP
+module (isc dhcpd6 daemon). See ``/etc/cobbler/modules.conf`` whether this isc module is chosen for dhcp generation.
+
+default: ``False``
+
+manage_dhcp_v6
+==============
+
+Set to ``true`` to enable DHCP IPv4 address configuration generation. This currently only works with manager.isc DHCP
+module (isc dhcpd6 daemon). See ``/etc/cobbler/modules.conf`` whether this isc module is chosen for dhcp generation.
+
+default: ``False``
+
 manage_dns
 ==========
 
@@ -493,13 +557,21 @@ parameters work in conjunction with ``--mgmt-classes`` and are described in furt
     mgmt_parameters:
         from_cobbler: true
 
-next_server
-===========
+next_server_v4
+==============
 
-If using Cobbler with ``manage_dhcp``, put the IP address of the Cobbler server here so that PXE booting guests can find
+If using Cobbler with ``manage_dhcp_v4``, put the IP address of the Cobbler server here so that PXE booting guests can find
 it. If you do not set this correctly, this will be manifested in TFTP open timeouts.
 
 default: ``127.0.0.1``
+
+next_server_v6
+==============
+
+If using Cobbler with ``manage_dhcp_v6``, put the IP address of the Cobbler server here so that PXE booting guests can find
+it. If you do not set this correctly, this will be manifested in TFTP open timeouts.
+
+default: ``::1``
 
 nsupdate_enabled
 ================
@@ -849,6 +921,33 @@ default:
       - rendered
       - .link_cache
 
+windows_enabled
+===============
+
+Set to true to enable the generation of Windows boot files in Cobbler.
+
+default: ``False``
+
+For more information see :ref:`wingen`.
+
+windows_template_dir
+====================
+
+Location of templates used for Windows.
+
+default: ``/etc/cobbler/windows``
+
+For more information see :ref:`wingen`.
+
+samba_distro_share
+==================
+
+Samba share name for distros
+
+default: ``DISTRO``
+
+For more information see :ref:`wingen`.
+
 xmlrpc_port
 ===========
 
@@ -988,30 +1087,3 @@ Choices:
 - manage_in_tftpd -- default, uses the system's TFTP server
 
 default: ``manage_in_tftpd``
-
-windows_enabled
-===============
-
-Set to true to enable the generation of Windows boot files in Cobbler.
-
-default: ``False``
-
-For more information see :ref:`wingen`.
-
-windows_template_dir
-====================
-
-Location of templates used for Windows.
-
-default: ``/etc/cobbler/windows``
-
-For more information see :ref:`wingen`.
-
-samba_distro_share
-==================
-
-Samba share name for distros
-
-default: ``DISTRO``
-
-For more information see :ref:`wingen`.
