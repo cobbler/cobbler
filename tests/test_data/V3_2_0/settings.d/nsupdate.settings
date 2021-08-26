@@ -1,0 +1,11 @@
+# set to 1 to enable Cobbler's dynamic DNS updates.
+nsupdate_enabled: 0
+
+# define tsig key
+# please don't use this one, instead generate your own:
+#   dnssec-keygen -a HMAC-SHA512 -b 512 -n USER cobbler_update_key
+nsupdate_tsig_algorithm: "hmac-sha512"
+nsupdate_tsig_key: [ "cobbler_update_key.", "hvnK54HFJXFasHjzjEn09ASIkCOGYSnofRq4ejsiBHz3udVyGiuebFGAswSjKUxNuhmllPrkI0HRSSmM2qvZug==" ]
+
+# if set, enables logging to that file
+nsupdate_log: "/var/log/cobbler/nsupdate.log"

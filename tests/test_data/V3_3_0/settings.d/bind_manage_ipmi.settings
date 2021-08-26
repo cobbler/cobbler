@@ -1,0 +1,2 @@
+# bind_manage_ipmi - used to let bind manage IPMI addresses if the power management address is an IP and if manage_bind is set.
+bind_manage_ipmi: true

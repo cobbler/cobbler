@@ -64,12 +64,6 @@ build_reporting_smtp_server: "localhost"
 build_reporting_subject: ""
 build_reporting_ignorelist: [ "" ]
 
-# If cache_enabled is 1, a cache will keep converted records in memory to make checking them faster.  This helps with
-# use cases like writing out large numbers of records.  There is a known issue with cache and remote XMLRPC API calls.
-# If you will use Cobbler with config management or infrastructure-as-code tools such as Terraform, it is recommended
-# to disable by setting to 0.
-cache_enabled: 1
-
 # Cheetah-language autoinstall templates can import Python modules.
 # while this is a useful feature, it is not safe to allow them to
 # import anything they want. This whitelists which modules can be
@@ -252,8 +246,8 @@ manage_tftpd: 1
 
 # This variable contains the location of the tftpboot directory. If this directory is not present cobbler does not
 # start.
-# Default: @@tftproot@@
-tftpboot_location: "@@tftproot@@"
+# Default: /var/lib/tftpboot
+tftpboot_location: "/var/lib/tftpboot"
 
 # set to 1 to enable Cobbler's RSYNC management features.
 manage_rsync: 0
@@ -321,10 +315,6 @@ register_new_installs: 0
 # Flags to use for yum's reposync.  If your version of yum reposync
 # does not support -l, you may need to remove that option.
 reposync_flags: "-l -n -d"
-
-# Flags to use for rysync's reposync. If flag 'a' is used then createrepo
-# is not ran after the rsync
-reposync_rsync_flags: "-rltDv --copy-unsafe-links"
 
 # when DHCP and DNS management are enabled, cobbler sync can automatically
 # restart those services to apply changes.  The exception for this is
@@ -456,12 +446,5 @@ proxy_url_int: ""
 # files into Jinja2 templates
 #jinja2_includedir: /var/lib/cobbler/jinja2
 
-# Up to now, cobblerd used $server's IP address instead of the DNS name in autoinstallation
-# file settings (pxelinux.cfg files) to save bytes, which seemed required for S/390 systems.
-# This behavior can have negative impact on installs with multi-homed cobbler servers, because
-# not all of the IP addresses may be reachable during system install.
-# This behavior was now made conditional, with default being "off".
-#convert_server_to_ip: 0
-
 # include other configuration snippets
-include: [ "/etc/cobbler/settings.d/*.settings" ]
+include: [ "/code/tests/test_data/V3_1_2/settings.d/*.settings" ]
