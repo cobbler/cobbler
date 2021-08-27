@@ -1,40 +1,28 @@
 """
 Cobbler app-wide settings
-
-Copyright 2006-2008, Red Hat, Inc and Others
-Michael DeHaan <michael.dehaan AT gmail>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301  USA
 """
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Copyright 2006-2008, Red Hat, Inc and Others
+# SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
+# SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
+# SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
+# SPDX-FileCopyrightText: Copyright SUSE LLC
+
 import datetime
 import glob
 import logging
 import os.path
+import pathlib
 import re
 import shutil
 import traceback
 from pathlib import Path
-from typing import Any, Dict, Hashable, Union
+from typing import Any, Dict, Hashable
 import yaml
 from schema import SchemaError, SchemaMissingKeyError, SchemaWrongKeyError
 
 from cobbler import utils
 from cobbler.settings import migrations
-
-# TODO: Only log settings dict on error and not always!
 
 BIND_CHROOT_PATH = ""
 
@@ -332,9 +320,19 @@ def autodetect_bind_chroot():
         parse_bind_config(bind_config_filename)
 
 
-def read_yaml_file(filepath ="/ect/cobbler/settings.yaml") -> Union[Dict[Hashable, Any], list, None]:
-    if not os.path.exists(filepath):
-        raise FileNotFoundError("Given path \"%s\" does not exist." % filepath)
+def read_yaml_file(filepath ="/ect/cobbler/settings.yaml") -> Dict[Hashable, Any]:
+    """
+    Reads settings files from ``filepath`` and all paths in `include` (which is read from the settings file) and saves
+    the content in a dictionary.
+    Any key may be overwritten in a later loaded settings file. The last loaded file wins.
+
+    :param filepath: Settings file path, defaults to "/ect/cobbler/settings.yaml"
+    :raises FileNotFoundError: In case file does not exist or is a directory.
+    :raises yaml.YAMLError: In case the file is not a valid YAML file.
+    :return: The aggregated dict of all settings.
+    """
+    if not os.path.isfile(filepath):
+        raise FileNotFoundError('Given path "%s" does not exist or is a directory.' % filepath)
     try:
         with open(filepath) as main_settingsfile:
             filecontent = yaml.safe_load(main_settingsfile.read())
@@ -345,21 +343,21 @@ def read_yaml_file(filepath ="/ect/cobbler/settings.yaml") -> Union[Dict[Hashabl
                         filecontent.update(yaml.safe_load(extra_settingsfile.read()))
     except yaml.YAMLError as error:
         traceback.print_exc()
-        raise yaml.YAMLError("\"%s\" is not a valid YAML file" % filepath) from error
+        raise yaml.YAMLError('"%s" is not a valid YAML file' % filepath) from error
     return filecontent
 
 
-def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Union[Dict[Hashable, Any], list, None]:
+def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Dict[Hashable, Any]:
     """
-    Reads the settings file from the default location or the given one. This method then also recursively includes all
-    files in the ``include`` directory. Any key may be overwritten in a later loaded settings file. The last loaded file
-    wins. If the read settings file is invalid in the context of Cobbler we will return an empty Dictionary.
+    Utilizes ``read_yaml_file()``. If the read settings file is invalid in the context of Cobbler we will return an
+    empty dictionary.
 
     :param filepath: The path to the settings file.
+    :raises SchemaMissingKeyError: In case keys are minssing.
+    :raises SchemaWrongKeyError: In case keys are not listed in the schema.
+    :raises SchemaError: In case the schema is wrong.
     :return: A dictionary with the settings. As a word of caution: This may not represent a correct settings object, it
              will only contain a correct YAML representation.
-    :raises yaml.YAMLError: If the YAML file is not syntactically valid or could not be read.
-    :raises FileNotFoundError: If the file handed to the function does not exist.
     """
     filecontent = read_yaml_file(filepath)
 
@@ -368,15 +366,15 @@ def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Union[Dict[Hash
         validate_settings(filecontent)
     except SchemaMissingKeyError:
         logging.exception("Settings file was not returned due to missing keys.")
-        logging.debug("The settings to read were: \"%s\"", filecontent)
+        logging.debug('The settings to read were: "%s"', filecontent)
         return {}
     except SchemaWrongKeyError:
         logging.exception("Settings file was returned due to an error in the schema.")
-        logging.debug("The settings to read were: \"%s\"", filecontent)
+        logging.debug('The settings to read were: "%s"', filecontent)
         return {}
     except SchemaError:
         logging.exception("Settings file was returned due to an error in the schema.")
-        logging.debug("The settings to read were: \"%s\"", filecontent)
+        logging.debug('The settings to read were: "%s"', filecontent)
         return {}
     return filecontent
 
@@ -392,15 +390,10 @@ def update_settings_file(data: dict, filepath="/etc/cobbler/settings.yaml") -> b
     :return: True if the action succeeded. Otherwise return False.
     """
     # Backup old settings file
-    if os.path.exists(filepath):
-        path = {"base": os.path.dirname(filepath),
-                "file": os.path.basename(filepath),
-                "file_split": os.path.basename(filepath).split(".")
-                }
+    path = pathlib.Path(filepath)
+    if path.exists():
         timestamp = str(datetime.datetime.now().strftime("%Y%m%d_%H-%M-%S"))
-        new_filepath = os.path.normpath(os.path.join(path["base"], "%s_%s.%s" % (path["file_split"][0], timestamp,
-                                                                                path["file_split"][1])))
-        shutil.copy(filepath, new_filepath)
+        shutil.copy(path, path.parent.joinpath(f"{path.stem}_{timestamp}{path.suffix}"))
 
     try:
         validated_data = validate_settings(data)
@@ -414,11 +407,11 @@ def update_settings_file(data: dict, filepath="/etc/cobbler/settings.yaml") -> b
         return True
     except SchemaMissingKeyError:
         logging.exception("Settings file was not written to the disc due to missing keys.")
-        logging.debug("The settings to write were: \"%s\"", data)
+        logging.debug('The settings to write were: "%s"', data)
         return False
     except SchemaError:
         logging.exception("Settings file was not written to the disc due to an error in the schema.")
-        logging.debug("The settings to write were: \"%s\"", data)
+        logging.debug('The settings to write were: "%s"', data)
         return False
 
 

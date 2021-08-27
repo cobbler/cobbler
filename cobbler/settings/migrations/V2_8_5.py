@@ -148,7 +148,7 @@ def normalize(settings: dict) -> dict:
 
 def migrate(settings: dict) -> dict:
     """
-    Migration of the settings ``settings`` to the V3.2.1 settings
+    Migration of the settings ``settings`` to the V2.8.5 settings
 
     :param settings: The settings dict to migrate
     :return: The migrated dict

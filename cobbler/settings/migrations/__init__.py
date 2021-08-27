@@ -25,7 +25,6 @@ from types import ModuleType
 from typing import Dict, List, Union
 
 from schema import Schema
-import yaml
 
 import cobbler
 
@@ -38,13 +37,13 @@ class CobblerVersion:
     """
     Specifies a Cobbler Version
     """
-    def __init__(self, major: int = 0, minor: int = 0, patch = 0):
+    def __init__(self, major: int = 0, minor: int = 0, patch: int = 0):
         """
         Constructor
         """
-        self.major = major
-        self.minor = minor
-        self.patch = patch
+        self.major = int(major)
+        self.minor = int(minor)
+        self.patch = int(patch)
 
     def __eq__(self, other: object):
         """
@@ -107,16 +106,7 @@ EMPTY_VERSION = CobblerVersion()
 VERSION_LIST: Dict[CobblerVersion, ModuleType] = {}
 
 
-def __fill_version_list(version_list: List[str]) -> CobblerVersion:
-    version = CobblerVersion()
-    version.major = int(version_list[0])
-    version.minor = int(version_list[1])
-    version.patch = int(version_list[2])
-
-    return version
-
-
-def __validate_module(name: ModuleType, version: List[str]) -> bool:
+def __validate_module(name: ModuleType) -> bool:
     """
     Validates a given module according to certain criteria:
         * module must have certain methods implemented
@@ -135,32 +125,33 @@ def __validate_module(name: ModuleType, version: List[str]) -> bool:
         sig = str(signature(getattr(name, key))).replace(" ", "")
         if value != sig:
             return False
-    VERSION_LIST[__fill_version_list(version)] = name
     return True
 
 
 def __load_migration_modules(name: str, version: List[str]):
     """
-    Load migration specific modules
+    Loads migration specific modules and if valid adds it to ``VERSION_LIST``.
 
     :param name: The name of the module to load.
     :param version: The migration version as list.
     """
-    try:
-        module = import_module("cobbler.settings.migrations.%s" % name)
-        logger.info("Loaded migrations: %s", name)
-        # return value could be checked if necessary
-        valid = __validate_module(module, version)
-        if not valid:
-            raise Exception("Module %s not valid!" % name)
-    except Exception as e:
-        logger.warning("Exception raised when loading migrations module %s", name)
-        logger.exception(e)
+    module = import_module("cobbler.settings.migrations.%s" % name)
+    logger.info("Loaded migrations: %s", name)
+    if __validate_module(module):
+        VERSION_LIST[CobblerVersion(*version)] = module
+    else:
+        logger.warning('Exception raised when loading migrations module "%s"', name)
 
 
 def get_settings_file_version(yaml_dict: dict) -> CobblerVersion:
-    for version in VERSION_LIST:
-        if VERSION_LIST[version].validate(yaml_dict):
+    """
+    Return the correspondig version of the given settings dict.
+
+    :param yaml_dict: The settings dict to get the version from.
+    :return: The discovered Cobbler Version or ``EMPTY_VERSION``
+    """
+    for (version, module_name) in VERSION_LIST.items():
+        if module_name.validate(yaml_dict):
             return version
     return EMPTY_VERSION
 
@@ -184,10 +175,17 @@ def get_installed_version(filepath: Union[str, Path] = "/etc/cobbler/version") -
     if not config.read(filepath):
         # filepath does not exists
         return EMPTY_VERSION
-    return __fill_version_list(config["cobbler"]["version"].split("."))
+    version = config["cobbler"]["version"].split(".")
+    return CobblerVersion(version[0], version[1], version[2])
 
 
 def get_schema(version: CobblerVersion) -> Schema:
+    """
+    Returns a schema to a given Cobbler version
+
+    :param version: The Cobbler version object
+    :return: The schema of the Cobbler version
+    """
     return VERSION_LIST[version].schema
 
 
@@ -203,9 +201,9 @@ def discover_migrations(path: str = migrations_path):
     for files in filenames:
         basename = files.replace(path, "")
         migration_name = ""
-        if basename[0] == "/":
+        if basename.startswith("/"):
             basename = basename[1:]
-        if basename[-3:] == ".py":
+        if basename.endswith(".py"):
             migration_name = basename[:-3]
         # migration_name should now be something like V3_0_0
         # Remove leading V. Necessary to save values into CobblerVersion object
@@ -222,7 +220,7 @@ def auto_migrate(yaml_dict: dict, settings_path: Path) -> dict:
     :return: The migrated dict.
     """
     if not yaml_dict.get("auto_migrate_settings", True):
-        raise RuntimeError("Settings automigration disabled but requiered for starting the daemon!")
+        raise RuntimeError("Settings automigration disabled but required for starting the daemon!")
     settings_version = get_settings_file_version(yaml_dict)
     if settings_version == EMPTY_VERSION:
         raise RuntimeError("Automigration not possible due to undiscoverable settings!")
