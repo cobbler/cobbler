@@ -29,11 +29,9 @@ import stat
 import time
 import re
 import xmlrpc.server
-from typing import Dict, Optional, Union
-from xmlrpc.server import SimpleXMLRPCRequestHandler
 from socketserver import ThreadingMixIn
 from threading import Thread
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 
 from cobbler import autoinstall_manager
