@@ -34,6 +34,7 @@ from cobbler.utils import log_exc
 # add cobbler/modules to python path
 import cobbler
 
+# TODO: add os.path.normpath()
 mod_path = os.path.join(os.path.abspath(os.path.dirname(cobbler.__file__)), 'modules')
 
 MODULE_CACHE: Dict[str, Any] = {}
@@ -60,6 +61,7 @@ def load_modules(module_path: str = mod_path):
     filenames += glob.glob("%s/**/*.pyo" % module_path)
 
     for fn in filenames:
+        # FIXME: Use module_path instead of mod_path
         basename = fn.replace(mod_path, '')
         modname = ""
 
@@ -76,6 +78,7 @@ def load_modules(module_path: str = mod_path):
         elif basename[-4:] in [".pyc", ".pyo"]:
             modname = basename[:-4]
 
+        # FIXME: Use module_path instead of mod_path
         __import_module(mod_path, modname)
 
     return MODULE_CACHE, MODULES_BY_CATEGORY

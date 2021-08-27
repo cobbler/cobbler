@@ -1,0 +1,182 @@
+#!/usr/bin/python3
+"""
+Tool to manage the settings of Cobbler without the daemon running.
+"""
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
+# SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
+# SPDX-FileCopyrightText: Copyright SUSE LLC
+
+
+import argparse
+import sys
+from typing import List
+import yaml
+from cobbler import settings
+from cobbler.settings import migrations
+from cobbler.settings.migrations import EMPTY_VERSION, helper
+from cobbler.utils import input_boolean, input_string_or_dict, input_string_or_list
+
+# https://docs.python.org/3.6/howto/argparse.html#id1
+# https://docs.python.org/3.6/library/argparse.html
+
+
+# TODO: Transform this into a lamda/list comprehension
+def __generate_version_choices() -> List[str]:
+    versions = migrations.VERSION_LIST.keys()
+    result = []
+    for version in versions:
+        result.append("%s.%s.%s" % (version.major, version.minor, version.patch))
+
+    return result
+
+
+def __check_settings(filepath: str) -> dict:
+    try:
+        result = settings.read_yaml_file(filepath)
+    except (FileNotFoundError, yaml.YAMLError) as error:
+        print(str(error))
+        return {}
+
+    if migrations.get_settings_file_version(result) == EMPTY_VERSION:
+        raise ValueError("Error detecting settings file version!")
+    return result
+
+
+def __update_settings(yaml_dict: dict, filepath) -> int:
+    if not settings.update_settings_file(yaml_dict, filepath):
+        print("Modification would make settings invalid!")
+        return 1
+    print("Updated settings file successfully!")
+    return 0
+
+
+def validate(args: argparse.Namespace) -> int:
+    if not __check_settings(args.config):
+        return 1
+    print("Settingsfile successfully validated!")
+    return 0
+
+
+def migrate(args: argparse.Namespace) -> int:
+    settings_dict = __check_settings(args.config)
+    if not settings_dict:
+        print("Settingsfile invalid!")
+        return 1
+
+    old = migrations.get_settings_file_version(settings_dict)
+    if old == migrations.EMPTY_VERSION:
+        print("Settings file version could not be discovered!")
+        return 1
+
+    new_list = args.new.split(".")
+
+    new = migrations.CobblerVersion()
+    new.major = int(new_list[0])
+    new.minor = int(new_list[1])
+    new.patch = int(new_list[2])
+
+    result_settings = migrations.migrate(settings_dict, args.config, old, new)
+
+    # only if --target supplied
+    if args.target is not None:
+        return __update_settings(result_settings, args.target)
+
+    # if --target not supplied
+    print(yaml.dump(result_settings))
+    return 0
+
+
+def automigrate(args: argparse.Namespace) -> int:
+    settings_dict = __check_settings(args.config)
+    if not settings_dict:
+        print("Settingsfile invalid!")
+        return 1
+    setting_obj = helper.Setting("auto_migrate_settings", args.enable_automigration)
+    helper.key_set_value(setting_obj, settings_dict)
+
+    return __update_settings(settings_dict, args.config)
+
+
+def modify(args: argparse.Namespace) -> int:
+    settings_dict = __check_settings(args.config)
+    if not settings_dict:
+        print("Settingsfile invalid!")
+        return 1
+    schema = migrations.get_schema(migrations.get_installed_version())
+    setting_obj = helper.Setting(args.key, args.value)
+    # _schema used due to old version of python3-schema in Leap
+    key_type = schema._schema[setting_obj.key_name]
+    if key_type == bool:
+        setting_obj.value = input_boolean(setting_obj.value)
+    elif key_type == int:
+        setting_obj.value = int(setting_obj.value)
+    elif key_type == list:
+        setting_obj.value = input_string_or_list(setting_obj.value)
+    elif key_type == dict:
+        setting_obj.value = input_string_or_dict(setting_obj.value)
+    else:
+        print("Unsupported type!")
+        return 1
+    helper.key_set_value(setting_obj, settings_dict)
+
+    return __update_settings(settings_dict, args.config)
+
+
+parser = argparse.ArgumentParser(description="Manage the settings of Cobbler without a running daemon.")
+parser.add_argument("--config", "-c",
+                    help="The location of the Cobbler configuration file.",
+                    default="/etc/cobbler/settings.yaml")
+subparsers = parser.add_subparsers(title="Subcommands", help="One of these commands is required.")
+parser_validate = subparsers.add_parser("validate",
+                                        description="Validates if Cobbler would start with the current settings file.")
+parser_validate.set_defaults(func=validate)
+parser_migrate = subparsers.add_parser("migrate",
+                                       description='Migrates from the current version to the version provided with '
+                                                   '"--new".')
+parser_migrate.set_defaults(func=migrate)
+# TODO: Implement in the future
+# parser_migrate.add_argument("--diff", "-d",
+#                            help="Whether to produce a diff output or not.",
+#                            action="store_true",
+#                            default=False)
+parser_migrate.add_argument("--target", "-t",
+                            help="Write the resulting settings to the target path given in this argument.")
+parser_migrate.add_argument("--new",
+                            help="The new version to migrate to, e.g. 3.3.0",
+                            dest="new",
+                            choices=sorted(__generate_version_choices()),
+                            default=sorted(__generate_version_choices())[-1])
+parser_automigrate = subparsers.add_parser("automigrate",
+                                           description="Enables or disables the automigration on startup of the daemon. "
+                                                       'If no flag is provided, the default is "--disable".')
+parser_automigrate.set_defaults(func=automigrate)
+parser_automigrate.add_argument("--enable", "-e",
+                                help="Enables settings automigration.",
+                                dest="enable_automigration",
+                                action="store_true")
+parser_automigrate.add_argument("--disable", "-d",
+                                help="Disables settings automigration.",
+                                dest="enable_automigration",
+                                action="store_false")
+parser_modify = subparsers.add_parser("modify", description="Modify the value of a key in the config file.")
+parser_modify.set_defaults(func=modify)
+parser_modify.add_argument("--key", "-k",
+                           help='The name of the key in file to edit. If the key is nested use the format '
+                                '"parent_key.key".',
+                           required=True)
+parser_modify.add_argument("--value", "-v",
+                           help="The new value of the key.",
+                           required=True)
+
+
+def main(args: List[str]) -> int:
+    parsed_args = parser.parse_args(args[1:])
+    if hasattr(parsed_args, "func"):
+        return parsed_args.func(parsed_args)
+    parser.print_help()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

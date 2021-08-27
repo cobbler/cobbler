@@ -1,7 +1,6 @@
 import os
 import pathlib
 import shutil
-import time
 
 import pytest
 import yaml
@@ -13,21 +12,6 @@ from tests.conftest import does_not_raise
 
 
 class TestSettings:
-    @pytest.mark.parametrize("test_name,test_value,expected_exception,expected_result", [
-        ("server", "127.0.0.1", does_not_raise(), "127.0.0.1"),
-        ("manage_forward_zones", True, pytest.raises(AttributeError), []),
-        ("does_not_exist", None, pytest.raises(KeyError), None)
-    ])
-    def test_set(self, test_name, test_value, expected_exception, expected_result):
-        # Arrange
-        test_settings = Settings()
-
-        # Act
-        with expected_exception:
-            test_settings.set(test_name, test_value)
-
-            # Assert
-            assert test_settings.__dict__[test_name] == expected_result
 
     def test_to_string(self):
         # Arrange
@@ -68,7 +52,7 @@ class TestSettings:
 
 
 @pytest.mark.parametrize("parameter,expected_exception,expected_result", [
-    ({}, pytest.raises(SchemaError), None)
+    ({}, pytest.raises(SchemaError), False)
 ])
 def test_validate_settings(parameter, expected_exception, expected_result):
     # Arrange
@@ -143,62 +127,3 @@ def test_update_settings_file_emtpy_dict(tmpdir: pathlib.Path):
 
     # Assert
     assert not result
-
-
-@pytest.mark.skip("Outdated test. Will be fixed in a future PR with updated migration mechanism.")
-def test_settingsfile_migration_extension(tmpdir: pathlib.Path):
-    # TODO: Fix the fact the we have more keys in settings.yaml
-    # Arrange
-    src = "/test_dir/tests/test_data/settings_old"
-    dst = os.path.join(tmpdir, "settings")
-    shutil.copyfile(src, dst)
-    expected_path = os.path.join(tmpdir, "settings.yaml")
-
-    # Act
-    result_settings = settings.read_settings_file(filepath=dst)
-
-    # Assert
-    assert os.path.exists(expected_path)
-    assert isinstance(result_settings, dict)
-    assert "include" in result_settings
-
-
-@pytest.mark.skip("Outdated test. Will be fixed in a future PR with updated migration mechanism.")
-def test_settingsfile_migration_content(tmpdir: pathlib.Path):
-    # TODO: Fix the fact the we have more keys in settings.yaml
-    # Arrange
-    src = "/test_dir/tests/test_data/settings_old"
-    dst = os.path.join(tmpdir, "settings")
-    shutil.copyfile(src, dst)
-
-    # Act
-    result_settings = settings.read_settings_file(filepath=dst)
-    settings_obj = Settings().from_dict(result_settings)
-    clean_settings = settings.validate_settings(settings_obj.to_dict())
-
-    # Assert
-    assert isinstance(clean_settings, dict)
-    assert "include" in result_settings
-
-
-def test_settingsfile_migrate_gpxe_ipxe():
-    # Arrange
-    new_settings = "/etc/cobbler/settings.yaml"
-    old_settings = "/code/tests/test_data/settings_old"  # adjust for test container %s/code/test_dir/
-
-    # Act
-    with open(new_settings) as main_settingsfile:
-        content_new = yaml.safe_load(main_settingsfile.read())
-    with open(old_settings) as old_settingsfile:
-        content_old = yaml.safe_load(old_settingsfile.read())
-
-    new_settings_file = settings.read_settings_file(new_settings)
-    direct_settings = settings.__migrate_settingsfile_gpxe_ipxe(content_new)
-
-    # Assert
-    assert isinstance(content_old, dict) and "enable_gpxe" in content_old
-    assert isinstance(direct_settings, dict) and "enable_ipxe" in direct_settings
-    assert "enable_gpxe" not in direct_settings
-    assert isinstance(new_settings_file, dict) and "enable_ipxe" in new_settings_file
-    assert "enable_gpxe" not in new_settings_file
-    # assert False

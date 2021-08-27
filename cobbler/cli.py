@@ -30,7 +30,6 @@ from typing import Optional
 
 from cobbler import enums
 from cobbler import power_manager
-from cobbler import settings
 from cobbler import utils
 
 OBJECT_ACTIONS_MAP = {
@@ -466,6 +465,11 @@ NETWORK_INTERFACE_FIELDS = [
     ["static", False, 0, "Static", True, "Is this interface static? Should be used with --interface", 0, "bool"],
     ["static_routes", [], 0, "Static Routes", True, "Should be used with --interface", 0, "list"],
     ["virt_bridge", "", 0, "Virt Bridge", True, "Should be used with --interface", 0, "str"],
+]
+
+SETTINGS_FIELDS = [
+    ["name", "", "", "Name", True, "Ex: server", 0, "str"],
+    ["value", "", "", "Value", True, "Ex: 127.0.0.1", 0, "str"],
 ]
 
 
@@ -948,7 +952,7 @@ class CobblerCLI:
         elif object_type == "menu":
             return MENU_FIELDS
         elif object_type == "setting":
-            return settings.FIELDS
+            return SETTINGS_FIELDS
 
     def object_command(self, object_type: str, object_action: str):
         """

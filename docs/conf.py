@@ -20,13 +20,13 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'Cobbler'
-copyright = '2020, Enno Gotthold'
+copyright = '2021, Enno Gotthold'
 author = 'Enno Gotthold'
 
 # The short X.Y version
-version = '3.2'
+version = '3.3'
 # The full version, including alpha/beta/rc tags
-release = '3.2.1'
+release = '3.3.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -100,11 +100,13 @@ html_theme_options = {
     'navigation_depth': 4,
 }
 
+html_css_files = ['extend_width.css']
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 # see https://github.com/readthedocs/readthedocs.org/issues/1776
-html_static_path = []
+html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.

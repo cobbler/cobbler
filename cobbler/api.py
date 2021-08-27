@@ -25,6 +25,7 @@ import os
 import random
 import tempfile
 import threading
+from pathlib import Path
 from typing import Optional, List, Union
 
 from cobbler.actions import status, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
@@ -58,7 +59,8 @@ class CobblerAPI:
     __shared_state = {}
     __has_loaded = False
 
-    def __init__(self, is_cobblerd: bool = False, settingsfile_location: str = "/etc/cobbler/settings.yaml"):
+    def __init__(self, is_cobblerd: bool = False, settingsfile_location: str = "/etc/cobbler/settings.yaml",
+                 execute_settings_automigration: bool = True):
         """
         Constructor
 
@@ -87,9 +89,7 @@ class CobblerAPI:
 
             self.selinux_enabled = utils.is_selinux_enabled()
             self.dist, self.os_version = utils.os_release()
-            self._settings = settings.Settings()
-            # FIXME: Take argument from the constructor and make this as a cli switch into the Server CLI.
-            self._settings.from_dict(settings.read_settings_file(settingsfile_location))
+            self._settings = self.__generate_settings(settingsfile_location, execute_settings_automigration)
 
             CobblerAPI.__has_loaded = True
 
@@ -129,6 +129,27 @@ class CobblerAPI:
             self.power_mgr = power_manager.PowerManager(self, self._collection_mgr)
             self.logger.debug("API handle initialized")
             self.perms_ok = True
+
+    def __generate_settings(self, settings_path: Path,
+                            execute_settings_automigration: bool = True) -> settings.Settings:
+        # Read in YAML file and get dict
+        yaml_dict = settings.read_yaml_file(settings_path)
+
+        # Add or update auto migrate settings value
+        yaml_dict["auto_migrate_settings"] = execute_settings_automigration
+
+        # Take dict and use it in migrations
+        migrated_settings = settings.migrate(yaml_dict, settings_path)
+
+        # After the migration is done, save result in the settings object
+        new_settings = settings.Settings()
+        new_settings.from_dict(migrated_settings)
+
+        # save to disk
+        new_settings.save(settings_path)
+
+        # Return object
+        return new_settings
 
     # ==========================================================
 

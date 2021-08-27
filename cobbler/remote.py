@@ -1811,13 +1811,35 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: 0 on success, 1 on error.
         """
-        self._log("modify_setting(%s)" % setting_name, token=token)
-        self.check_access(token, "modify_setting")
-        try:
-            self.api.settings().set(setting_name, value)
-            return 0
-        except:
+        if not hasattr(self.api.settings(), setting_name):
+            self.logger.warning("Setting did not exist!")
             return 1
+        self.check_access(token, "modify_setting")
+        self._log("modify_setting(%s)" % setting_name, token=token)
+        try:
+            if isinstance(getattr(self.api.settings(), setting_name), str):
+                value = str(value)
+            elif isinstance(getattr(self.api.settings(), setting_name), int):
+                value = int(value)
+            elif isinstance(getattr(self.api.settings(), setting_name), bool):
+                value = utils.input_boolean(value)
+            elif isinstance(getattr(self.api.settings(), setting_name), float):
+                value = float(value)
+            elif isinstance(getattr(self.api.settings(), setting_name), list):
+                value = utils.input_string_or_list(value)
+            elif isinstance(getattr(self.api.settings(), setting_name), dict):
+                value = utils.input_string_or_dict(value)[1]
+            else:
+                self.logger.error("modify_setting(%s) - Wrong type for value", setting_name)
+                return 1
+        except TypeError:
+            return 1
+        except ValueError:
+            return 1
+
+        setattr(self.api.settings(), setting_name, value)
+        self.api.settings().save()
+        return 0
 
     def auto_add_repos(self, token):
         """

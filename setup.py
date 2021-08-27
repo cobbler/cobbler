@@ -24,7 +24,7 @@ import shutil
 import subprocess
 
 
-VERSION = "3.2.1"
+VERSION = "3.3.0"
 OUTPUT_DIR = "config"
 
 log = logging.getLogger("setup.py")
@@ -536,6 +536,7 @@ if __name__ == "__main__":
             "bin/cobbler",
             "bin/cobblerd",
             "bin/cobbler-ext-nodes",
+            "bin/cobbler-settings"
         ],
         configure_values={
             'webroot': os.path.normpath(webroot),

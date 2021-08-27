@@ -8,9 +8,9 @@ echo "Install Cobbler"
 cd /code || exit
 make install
 
-echo "Load supervisord configuration file and wait 2s"
+echo "Load supervisord configuration file and wait 5s"
 supervisord -c /etc/supervisord.conf
-sleep 2
+sleep 5
 
 echo "Show Cobbler version"
 cobbler version
