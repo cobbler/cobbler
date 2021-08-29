@@ -2880,48 +2880,183 @@
     },
     "windows": {
       "2003": {
+        "signatures": [
+          "amd64",
+          "i386",
+          "autorun.inf"
+        ],
+        "version_file": "relnotes\\.htm",
+        "version_file_regex": "^.*Microsoft Windows Server 2003.*$",
+        "kernel_arch": "(amd64|i386)",
+        "kernel_arch_regex": null,
         "supported_arches":["i386","x86_64"],
         "boot_loaders":{"x86_64":["pxe","ipxe"]},
+        "supported_repo_breeds": [],
+        "kernel_file": "pxeboot\\.n12",
+        "initrd_file": "boot\\.sdi",
+        "default_autoinstall": "win.ks",
+        "kernel_options": "",
+        "kernel_options_post": "",
         "boot_files": [
           "i386/*.*",
           "amd64/*.*"
         ]
       },
       "2008": {
-        "supported_arches":["i386","x86_64"],
-        "boot_loaders":{"x86_64":["pxe","ipxe"]}
-      },
-      "2012": {
-        "supported_arches":["x86_64"],
-        "boot_loaders":{"x86_64":["pxe","ipxe"]}
-      },
-      "2016": {
-        "supported_arches":["x86_64"],
-        "boot_loaders":{"x86_64":["pxe","ipxe"]}
-      },
-      "2019": {
-        "supported_arches":["x86_64"],
-        "boot_loaders":{"x86_64":["pxe","ipxe"]}
-      },
-      "XP": {
+        "signatures": [
+          "sources",
+          "autorun.inf"
+        ],
+        "version_file": "install\\.wim",
+        "version_file_regex": "^Name:.*Windows Server 2008.*$",
+        "kernel_arch": "install\\.wim",
+        "kernel_arch_regex": "^Architecture:.*(x86|x86_64)$",
         "supported_arches":["i386","x86_64"],
         "boot_loaders":{"x86_64":["pxe","ipxe"]},
+        "supported_repo_breeds": [],
+        "kernel_file": "pxeboot\\.n12",
+        "initrd_file": "boot\\.sdi",
+        "default_autoinstall": "win.ks",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "2012": {
+        "signatures": [
+          "sources",
+          "autorun.inf"
+        ],
+        "version_file": "install\\.wim",
+        "version_file_regex": "^Name:.*Windows Server 2012.*$",
+        "kernel_arch": "install\\.wim",
+        "kernel_arch_regex": "^Architecture:.*(x86|x86_64)$",
+        "supported_arches":["x86_64"],
+        "boot_loaders":{"x86_64":["pxe","ipxe"]},
+        "supported_repo_breeds": [],
+        "kernel_file": "pxeboot\\.n12",
+        "initrd_file": "boot\\.sdi",
+        "default_autoinstall": "win.ks",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "2016": {
+        "signatures": [
+          "sources",
+          "autorun.inf"
+        ],
+        "version_file": "install\\.wim",
+        "version_file_regex": "^Name:.*Windows Server 2016.*$",
+        "kernel_arch": "install\\.wim",
+        "kernel_arch_regex": "^Architecture:.*(x86|x86_64)$",
+        "supported_arches":["x86_64"],
+        "boot_loaders":{"x86_64":["pxe","ipxe"]},
+        "supported_repo_breeds": [],
+        "kernel_file": "pxeboot\\.n12",
+        "initrd_file": "boot\\.sdi",
+        "default_autoinstall": "win.ks",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "2019": {
+        "signatures": [
+          "sources",
+          "autorun.inf"
+        ],
+        "version_file": "install\\.wim",
+        "version_file_regex": "^Name:.*Windows Server 2019.*$",
+        "kernel_arch": "install\\.wim",
+        "kernel_arch_regex": "^Architecture:.*(x86|x86_64)$",
+        "supported_arches":["x86_64"],
+        "boot_loaders":{"x86_64":["pxe","ipxe"]},
+        "supported_repo_breeds": [],
+        "kernel_file": "pxeboot\\.n12",
+        "initrd_file": "boot\\.sdi",
+        "default_autoinstall": "win.ks",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "XP": {
+        "signatures": [
+          "amd64",
+          "i386",
+          "autorun.inf"
+        ],
+        "version_file": "readme\\.htm",
+        "version_file_regex": "^Version of Microsoft Windows&nbsp;XP.*$",
+        "kernel_arch": "(amd64|i386)",
+        "kernel_arch_regex": null,
+        "supported_arches":["i386","x86_64"],
+        "boot_loaders":{"x86_64":["pxe","ipxe"]},
+        "supported_repo_breeds": [],
+        "kernel_file": "pxeboot\\.n12",
+        "initrd_file": "boot\\.sdi",
+        "default_autoinstall": "win.ks",
+        "kernel_options": "",
+        "kernel_options_post": "",
         "boot_files": [
           "i386/*.*",
           "amd64/*.*"
         ]
       },
       "7": {
+        "signatures": [
+          "sources",
+          "autorun.inf"
+        ],
+        "version_file": "install\\.wim",
+        "version_file_regex": "^Name:.*Windows 7.*$",
+        "kernel_arch": "install\\.wim",
+        "kernel_arch_regex": "^Architecture:.*(x86|x86_64)$",
         "supported_arches":["i386","x86_64"],
-        "boot_loaders":{"x86_64":["pxe","ipxe"]}
+        "boot_loaders":{"x86_64":["pxe","ipxe"]},
+        "supported_repo_breeds": [],
+        "kernel_file": "pxeboot\\.n12",
+        "initrd_file": "boot\\.sdi",
+        "default_autoinstall": "win.ks",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
       },
       "8": {
+        "signatures": [
+          "sources",
+          "autorun.inf"
+        ],
+        "version_file": "install\\.wim",
+        "version_file_regex": "^Name:.*Windows 8.*$",
+        "kernel_arch": "install\\.wim",
+        "kernel_arch_regex": "^Architecture:.*(x86|x86_64)$",
         "supported_arches":["i386","x86_64"],
-        "boot_loaders":{"x86_64":["pxe","ipxe"]}
+        "boot_loaders":{"x86_64":["pxe","ipxe"]},
+        "supported_repo_breeds": [],
+        "kernel_file": "pxeboot\\.n12",
+        "initrd_file": "boot\\.sdi",
+        "default_autoinstall": "win.ks",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
       },
       "10": {
+        "signatures": [
+          "sources",
+          "autorun.inf"
+        ],
+        "version_file": "install\\.wim",
+        "version_file_regex": "^Name:.*Windows 10.*$",
+        "kernel_arch": "install\\.wim",
+        "kernel_arch_regex": "^Architecture:.*(x86|x86_64)$",
         "supported_arches":["i386","x86_64"],
-        "boot_loaders":{"x86_64":["pxe","ipxe"]}
+        "boot_loaders":{"x86_64":["pxe","ipxe"]},
+        "supported_repo_breeds": [],
+        "kernel_file": "pxeboot\\.n12",
+        "initrd_file": "boot\\.sdi",
+        "default_autoinstall": "win.ks",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
       }
     },
     "powerkvm": {
