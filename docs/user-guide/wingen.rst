@@ -73,18 +73,18 @@ The ``sync_post_wingen`` trigger uses the following set of metadata:
 
 - bcd
 
-    This key is used to pass the value of the ``BCD` file name in case of using Micrisoft ADK/WAIK. Any ``BCD`` file from the Windows distribution can be used as a source for this file. The trigger copies it, then removes all boot information from the copy and adds new data from the ``initrd`` value of the distro and the value passed through the ``winpe`` metadata key.
+    This key is used to pass the value of the ``BCD`` file name in case of using Micrisoft ADK/WAIK. Any ``BCD`` file from the Windows distribution can be used as a source for this file. The trigger copies it, then removes all boot information from the copy and adds new data from the ``initrd`` value of the distro and the value passed through the ``winpe`` metadata key.
 
 - winpe
 
-    This metadata key allows you to specify the name of the WinPE image. The image is copied by the cp utility trigger with the ``--reflink=auto` option, which allows to reduce copying time and the size of the disk space on CoW file systems.
+    This metadata key allows you to specify the name of the WinPE image. The image is copied by the cp utility trigger with the ``--reflink=auto`` option, which allows to reduce copying time and the size of the disk space on CoW file systems.
     In the copy of the file, the tribger changes the ``/Windows/System32/startnet.cmd`` script to the script generated from the ``startnet.template`` template.
 
 - answerfile
 
-    This is the name of the answer file for the Windows installation. This file is generated from the answerfile.template template and is used in:
-    - startnet.cmd to start WinPE installation
-    - the file name is written to the binary file setupldr.exe for RIS
+    This is the name of the answer file for the Windows installation. This file is generated from the ``answerfile.template`` template and is used in:
+    - ``startnet.cmd`` to start WinPE installation
+    - the file name is written to the binary file ``setupldr.exe`` for RIS
 
 - post_install_script
 
@@ -102,61 +102,28 @@ Preparing for an unattended network installation of Windows
 ===========================================================
 
 - ``dnf install python3-pefile python3-hivex wimlib-utils``
-- enable Windows support in settings /etc/cobbler/settings.d/windows.settings:
+- enable Windows support in settings ``/etc/cobbler/settings.d/windows.settings``:
 
 .. code::
 
     windows_enabled: true
 
-- copy the Windows distributions to ``/var/www/cobbler/distro_mirror``:
+- import the Windows distributions to ``/var/www/cobbler/distro_mirror``:
 
 .. code::
 
-    dr-xr-xr-x. 1 root   root         200 Mar 23  2017 Win10_EN-x64
-    dr-xr-xr-x. 1 root   root         238 Aug  7  2015 Win2012-Server_EN-x64
-    dr-xr-xr-x. 1 root   root         220 May 17  2019 Win2016-Server_EN-x64
-    drwxr-xr-x. 1 root   root         236 Dec  3 22:42 Win2019-Server_EN-x64
-    dr-xr-xr-x. 1 root   root         788 Aug  8  2015 Win2k3-Server_EN-x64
-    dr-xr-xr-x. 1 root   root         196 Sep 24  2017 Win2k8-Server_EN-x64
-    dr-xr-xr-x. 1 root   root         132 Aug  8  2015 Win7_EN-x64
-    dr-xr-xr-x. 1 root   root         238 Aug  7  2015 Win8_EN-x64
-    dr-xr-xr-x. 1 root   root         456 Aug  8  2015 WinXp_EN-i386
+    cobbler import --name=Win10_EN-x64 --path=/mnt
 
-Copy the following files to the distributions directories (for Windows 7 and newer):
+This command will determine the version and architecture of the Windows distribution, will extract the necessary boot files from the distribution and create a distro and profile named ``Win10_EN-x64``.
 
-PXE + Legacy BIOS Boot
-    - Boot/pxeboot.n12
-    - Boot/bootmgr.exe
-    - Boot/bcd
-    - Boot/boot.sdi
-
-iPXE + UEFI/BIOS Boot
-    - /var/lib/tftpboot/wimboot from https://ipxe.org/wimboot
-    - Boot/bootmgr.exe
-    - Boot/bcd
-    - Boot/boot.sdi
-
-Example:
-
-.. code::
-
-    cd /var/www/cobbler/distro_mirror/Win10_EN-x64
-    mkdir -p Boot
-    wimextract sources/boot.wim 1 /windows/Boot/PXE/{pxeboot.n12,bootmgr.exe} \
-                                  /windows/Boot/DVD/EFI/{BCD,boot.sdi} \
-                                  --dest-dir=Boot
-    mv Boot/BCD Boot/bcd
-
-- To get winpe.win you need:
-
+- For customization winpe.win you need
   - ADK for Windows 10 / 8.1
 
 .. code::
 
     Start -> Apps -> Windows Kits -> Deployment and Imaging Tools Environment
 
-    or
-
+or
   - WAIK for Windows 7
 
 .. code::
@@ -167,11 +134,10 @@ Example:
 
     copype.cmd <amd64|x86|arm> c:\winpe
 
-    After executing the command, the WinPE image will be located in ``.\winpe.wim`` for WAIK and in ``media\sources\boot.wim`` for ADK
-
+After executing the command, the WinPE image will be located in ``.\winpe.wim`` for WAIK and in ``media\sources\boot.wim`` for ADK. You can use either it or replace it with the one that has been obtained as a result of the import of the Windows distribution.
   - If necessary, add drivers to the image
 
-    Example:
+Example:
 
 .. code-block:: shell
 
@@ -180,7 +146,7 @@ Example:
     dism /image:mount /add-driver /driver:D:\viostor\w10\amd64
     dism /unmount-wim /mountdir:mount /commit
 
-- Copy the resulting WiNPE image from Windows to the ``Boot`` directory of the distro
+- Copy the resulting WiNPE image from Windows to the ``boot`` directory of the distro
 - Share ```/var/www/cobbler/distro_mirror``` via Samba:
 
 .. code-block:: shell
@@ -195,7 +161,7 @@ Example:
             printable = no
 
 
-- You can use ``tftpd.rules`` to indicate the actual locations of the bootmgr.exe and BCD files generated by the trigger.
+- You can use ``tftpd.rules`` to indicate the actual locations of the ``bootmgr.exe`` and ``BCD`` files generated by the trigger.
 
 .. code-block:: shell
 
@@ -209,7 +175,7 @@ Replace the line in the ``/etc/systemd/system/tftp.service``
         to:
     ExecStart=/usr/sbin/in.tftpd -m /etc/tftpd.rules -s /var/lib/tftpboot
 
-Create a file /etc/tftpd.rules:
+Create a file ``/etc/tftpd.rules``:
 
 .. code-block:: shell
 
@@ -263,13 +229,13 @@ Final steps
     systemctl restart smb
     systemctl restart nmb
 
-- add distros for PXE boot:
+- add additional distros for PXE boot:
 
 .. code-block:: shell
 
     cobbler distro add --name=Win10_EN-x64 \
-    --kernel=/var/www/cobbler/distro_mirror/Win10_EN-x64/Boot/pxeboot.n12 \
-    --initrd=/var/www/cobbler/distro_mirror/Win10_EN-x64/Boot/boot.sdi \
+    --kernel=/var/www/cobbler/distro_mirror/Win10_EN-x64/boot/pxeboot.n12 \
+    --initrd=/var/www/cobbler/distro_mirror/Win10_EN-x64/boot/boot.sdi \
     --arch=x86_64 --breed=windows --os-version=10
 
 or for iPXE:
@@ -278,13 +244,13 @@ or for iPXE:
 
     cobbler distro add --name=Win10_EN-x64 \
     --kernel=/var/lib/tftpboot/wimboot \
-    --initrd=/var/www/cobbler/distro_mirror/Win10_EN-x64/Boot/boot.sdi \
+    --initrd=/var/www/cobbler/distro_mirror/Win10_EN-x64/boot/boot.sdi \
     --remote-boot-kernel=http://@@http_server@@/cobbler/images/@@distro_name@@/wimboot \
     --remote-boot-initrd=http://@@http_server@@/cobbler/images/@@distro_name@@/boot.sdi \
     --arch=x86_64 --breed=windows --os-version=10 \
     --boot-loaders=ipxe
 
-- and profiles for PXE boot:
+- and additional profiles for PXE boot:
 
 .. code-block:: shell
 
@@ -365,15 +331,15 @@ The boot menu will look like this:
 Legacy Windows XP and Windows 2003 Server
 =========================================
 
-- WinPE 3.0 and winboot can be used to install legacy versions of Windows. ``startnet.template`` contains the code for starting such an installation via winnt32.exe.
+- WinPE 3.0 and winboot can be used to install legacy versions of Windows. ``startnet.template`` contains the code for starting such an installation via ``winnt32.exe``.
 
-  - copy ``bootmgr.exe``, ``bcd``, ``boot.sdi`` from Windows 7 and winpe.wim from WAIK to the ``/var/www/cobbler/distro_mirror/WinXp_EN-i386/Boot``
+  - copy ``bootmgr.exe``, ``bcd``, ``boot.sdi`` from Windows 7 and ``winpe.wim`` from WAIK to the ``/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot``
 
 .. code-block:: shell
 
     cobbler distro add --name=WinXp_EN-i386 \
     --kernel=/var/lib/tftpboot/wimboot \
-    --initrd=/var/www/cobbler/distro_mirror/WinXp_EN-i386/Boot/boot.sdi \
+    --initrd=/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot/boot.sdi \
     --remote-boot-kernel=http://@@http_server@@/cobbler/images/@@distro_name@@/wimboot \
     --remote-boot-initrd=http://@@http_server@@/cobbler/images/@@distro_name@@/boot.sdi \
     --arch=i386 --breed=windows --os-version=XP \
@@ -381,7 +347,7 @@ Legacy Windows XP and Windows 2003 Server
 
     cobbler distro add --name=Win2k3-Server_EN-x64 \
     --kernel=/var/lib/tftpboot/wimboot \
-    --initrd=/var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/Boot/boot.sdi \
+    --initrd=/var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/boot/boot.sdi \
     --remote-boot-kernel=http://@@http_server@@/cobbler/images/@@distro_name@@/wimboot \
     --remote-boot-initrd=http://@@http_server@@/cobbler/images/@@distro_name@@/boot.sdi \
     --arch=x86_64 --breed=windows --os-version=2003 \
@@ -393,21 +359,21 @@ Legacy Windows XP and Windows 2003 Server
     cobbler profile add --name=Win2k3-Server_EN-x64 --distro=Win2k3-Server_EN-x64 --autoinstall=win.ks \
     --autoinstall-meta='bootmgr=boot3ea.exe bcd=3Ea winpe=winpe.wim answerfile=wi2k3.sif post_install_script=post_install.cmd'
 
-- WinPE 3.0 without winboot also can be used to install legacy versions of Windows.
+- WinPE 3.0 without ``winboot`` also can be used to install legacy versions of Windows.
 
-  - copy ``pxeboot.n12``, ``bootmgr.exe``, ``bcd``, ``boot.sdi`` from Windows 7 and winpe.wim from WAIK to the ``/var/www/cobbler/distro_mirror/WinXp_EN-i386/Boot``
+  - copy ``pxeboot.n12``, ``bootmgr.exe``, ``bcd``, ``boot.sdi`` from Windows 7 and ``winpe.wim`` from WAIK to the ``/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot``
 
 .. code-block:: shell
 
     cobbler distro add --name=WinXp_EN-i386 \
-    --kernel=/var/www/cobbler/distro_mirror/WinXp_EN-i386/Boot/pxeboot.n12 \
-    --initrd=/var/www/cobbler/distro_mirror/WinXp_EN-i386/Boot/boot.sdi \
+    --kernel=/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot/pxeboot.n12 \
+    --initrd=/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot/boot.sdi \
     --arch=i386 --breed=windows --os-version=XP \
     --autoinstall-meta='clean_disk'
 
     cobbler distro add --name=Win2k3-Server_EN-x64 \
-    --kernel=/var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/Boot/pxeboot.n12 \
-    --initrd=/var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/Boot/boot.sdi \
+    --kernel=/var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/boot/pxeboot.n12 \
+    --initrd=/var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/boot/boot.sdi \
     --arch=x86_64 --breed=windows --os-version=2003 \
     --autoinstall-meta='clean_disk'
 
@@ -451,7 +417,7 @@ To support 64 bit distributions:
     systemctl daemon-reload
     mkdir -p /var/lib/tftpboot/winos/inf64
 
-copy the Windows network drivers to ``/var/lib/tftpboot/winos/inf[64]`` and start ris-linuxd[64]:
+copy the Windows network drivers to ``/var/lib/tftpboot/winos/inf[64]`` and start ``ris-linuxd[64]``:
 
 .. code-block:: shell
 
@@ -465,40 +431,40 @@ Preparing boot files for RIS and legacy Windows XP and Windows 2003 Server
 
     dnf install cabextract
     cd /var/www/cobbler/distro_mirror/<distro_name>
-    mkdir Boot
+    mkdir boot
     cp i386/ntdetect.com /var/lib/tftpboot
-    cabextract -dBoot i386/setupldr.ex_
+    cabextract -dboot i386/setupldr.ex_
 
-If you need to install Windows 2003 Server in addition to Windows XP, then to avoid a conflict, you can rename the ntdetect.com file:
+If you need to install Windows 2003 Server in addition to Windows XP, then to avoid a conflict, you can rename the ``ntdetect.com`` file:
 
 .. code-block:: shell
 
     mv /var/lib/tftpboot/ntdetect.com /var/lib/tftpboot/ntdetect.wxp
-    sed -i -e 's/ntdetect\.com/ntdetect\.wxp/g' Boot/setupldr.exe
+    sed -i -e 's/ntdetect\.com/ntdetect\.wxp/g' boot/setupldr.exe
 
     cp /var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/i386/ntdetect.com /var/lib/tftpboot/ntdetect.2k3
-    sed -i -e 's/ntdetect\.com/ntdetect\.2k3/g' /var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/Boot/setupldr.exe
-    sed -bi "s/\x0F\xAB\x00\x00/\x0F\xAC\x00\x00/" /var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/Boot/setupldr.exe
+    sed -i -e 's/ntdetect\.com/ntdetect\.2k3/g' /var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/boot/setupldr.exe
+    sed -bi "s/\x0F\xAB\x00\x00/\x0F\xAC\x00\x00/" /var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/boot/setupldr.exe
 
 .. code-block:: shell
 
-    cabextract -dBoot i386/startrom.n1_
-    mv Boot/startrom.n12 Boot/pxeboot.n12
-    touch Boot/boot.sdi
+    cabextract -dboot i386/startrom.n1_
+    mv Boot/startrom.n12 boot/pxeboot.n12
+    touch boot/boot.sdi
 
 Copy the required drivers to the ``i386``
 
 .. code-block:: shell
 
     cobbler distro add --name=WinXp_EN-i386 \
-    --kernel=/var/www/cobbler/distro_mirror/WinXp_EN-i386/Boot/pxeboot.n12 \
-    --initrd=/var/www/cobbler/distro_mirror/WinXp_EN-i386/Boot/boot.sdi \
+    --kernel=/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot/pxeboot.n12 \
+    --initrd=/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot/boot.sdi \
     --boot-files='@@local_img_path@@/i386/=@@web_img_path@@/i386/*.*' \
     --arch=i386 --breed=windows –os-version=XP
 
     cobbler distro add --name=Win2k3-Server_EN-x64 \
-    --kernel=/var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/Boot/pxeboot.n12 \
-    --initrd=/var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/Boot/boot.sdi \
+    --kernel=/var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/boot/pxeboot.n12 \
+    --initrd=/var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/boot/boot.sdi \
     --boot-files='@@local_img_path@@/i386/=@@web_img_path@@/[ia][3m][8d]6*/*.*' \
     --arch=x86_64 --breed=windows --os-version=2003
 

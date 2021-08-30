@@ -169,7 +169,7 @@ def run(api, args):
 
         if is_wimboot:
             distro_path = os.path.join(settings.webdir, "distro_mirror", distro.name)
-            kernel_path = os.path.join(distro_path, "Boot")
+            kernel_path = os.path.join(distro_path, "boot")
 
             if "kernel" in meta and "wimboot" not in distro.kernel:
                 tgen.copy_single_distro_file(os.path.join(settings.tftpboot_location, kernel_name), distro_dir, False)
@@ -301,7 +301,7 @@ def run(api, args):
             wim_pl_name = os.path.join(kernel_path, "winpe.wim")
 
             cmd = ["/usr/bin/cp", "--reflink=auto", wim_pl_name, ps_file_name]
-            utils.subprocess_call(logger, cmd, shell=False)
+            utils.subprocess_call(cmd, shell=False)
             tgen.copy_single_distro_file(ps_file_name, web_dir, True)
 
             if os.path.exists(wimupdate):
@@ -309,7 +309,9 @@ def run(api, args):
                 pi_file = tempfile.NamedTemporaryFile()
                 pi_file.write(bytes(data, 'utf-8'))
                 pi_file.flush()
-                cmd = [wimupdate, ps_file_name, "--command=add " + pi_file.name + " /Windows/System32/startnet.cmd"]
+                cmd = ["/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/System32/startnet.cmd$'" % ps_file_name]
+                startnet_path = utils.subprocess_get(cmd, shell=True)[0:-1]
+                cmd = [wimupdate, ps_file_name, "--command=add %s %s" % (pi_file.name, startnet_path)]
                 utils.subprocess_call(cmd, shell=False)
                 pi_file.close()
 

@@ -67,8 +67,8 @@ CHEETAH_ERROR_DISCLAIMER = """
 MODULE_CACHE = {}
 SIGNATURE_CACHE = {}
 
-_re_kernel = re.compile(r'(vmlinu[xz]|(kernel|linux(\.img)?))')
-_re_initrd = re.compile(r'(initrd(.*)\.img|ramdisk\.image\.gz)')
+_re_kernel = re.compile(r'(vmlinu[xz]|(kernel|linux(\.img)?)|pxeboot\.n12|wimboot)')
+_re_initrd = re.compile(r'(initrd(.*)\.img|ramdisk\.image\.gz|boot\.sdi)')
 
 
 class DHCP(enum.Enum):
@@ -1580,11 +1580,11 @@ def get_supported_distro_boot_loaders(distro, api_handle=None):
     """
     try:
         # Try to read from the signature
-        return api_handle.get_signatures()["breeds"][distro.breed][distro.os_version]["boot_loaders"][distro.arch]
+        return api_handle.get_signatures()["breeds"][distro.breed][distro.os_version]["boot_loaders"][distro.arch.value]
     except:
         try:
             # Try to read directly from the cache
-            return SIGNATURE_CACHE["breeds"][distro.breed][distro.os_version]["boot_loaders"][distro.arch]
+            return SIGNATURE_CACHE["breeds"][distro.breed][distro.os_version]["boot_loaders"][distro.arch.value]
         except:
             try:
                 # Else use some well-known defaults
@@ -1594,7 +1594,7 @@ def get_supported_distro_boot_loaders(distro, api_handle=None):
                         "ppc64el": ["grub", "pxe"],
                         "aarch64": ["grub"],
                         "i386": ["grub", "pxe", "ipxe"],
-                        "x86_64": ["grub", "pxe", "ipxe"]}[distro.arch]
+                        "x86_64": ["grub", "pxe", "ipxe"]}[distro.arch.value]
             except:
                 # Else return the globally known list
                 return get_supported_system_boot_loaders()

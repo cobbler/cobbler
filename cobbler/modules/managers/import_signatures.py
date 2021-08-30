@@ -31,6 +31,13 @@ import stat
 
 import magic
 
+HAS_HIVEX = True
+try:
+    import hivex
+    from hivex.hive_types import REG_SZ
+except Exception:
+    HAS_HIVEX = False
+
 from cobbler.items import profile, distro
 from cobbler.cexceptions import CX
 from cobbler import enums, utils
@@ -120,13 +127,20 @@ class _ImportSignatureManager(ManagerModule):
                     return f.readlines()
             except:
                 pass
+        if ftype.mime_type == "application/x-ms-wim":
+            cmd = "/usr/bin/wiminfo"
+            if os.path.exists(cmd):
+                cmd = "%s %s" % (cmd, filename)
+                return utils.subprocess_get(cmd).splitlines()
+
+            self.logger.info("no %s found, please install wimlib-utils", cmd)
         elif ftype.mime_type == "text/plain":
             with open(filename, 'r') as f:
                 return f.readlines()
         else:
-            self.logger.info("Could not detect the filetype and read the content of file \"%s\". Returning nothing." %
+            self.logger.info('Could not detect the filetype and read the content of file "%s". Returning nothing.',
                              filename)
-            return []
+        return []
 
     def run(self, path: str, name: str, network_root=None, autoinstall_file=None, arch: Optional[str] = None,
             breed=None, os_version=None):
@@ -184,6 +198,70 @@ class _ImportSignatureManager(ManagerModule):
         import_walker(self.path, self.distro_adder, distros_added)
 
         if len(distros_added) == 0:
+            if self.breed == "windows":
+                cmd_path = "/usr/bin/wimexport"
+                bootwim_path = os.path.join(self.path, "sources", "boot.wim")
+                dest_path = os.path.join(self.path, "boot")
+                if os.path.exists(cmd_path) and os.path.exists(bootwim_path):
+                    winpe_path = os.path.join(dest_path, "winpe.wim")
+                    if not os.path.exists(dest_path):
+                        utils.mkdir(dest_path)
+                    rc = utils.subprocess_call([cmd_path, bootwim_path, "1",
+                                               winpe_path, "--boot"], shell=False)
+                    if rc == 0:
+                        cmd = ["/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/Boot/PXE$'" % winpe_path]
+                        pxe_path = utils.subprocess_get(cmd, shell=True)[0:-1]
+                        cmd = ["/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/System32/config/SOFTWARE$'"
+                               % winpe_path]
+                        config_path = utils.subprocess_get(cmd, shell=True)[0:-1]
+                        cmd_path = "/usr/bin/wimextract"
+                        rc = utils.subprocess_call([cmd_path, bootwim_path, "1",
+                                                    "%s/pxeboot.n12" % pxe_path,
+                                                    "%s/bootmgr.exe" % pxe_path,
+                                                    config_path,
+                                                    "--dest-dir=%s" % dest_path,
+                                                    "--no-acls", "--no-attributes"], shell=False)
+                        if rc == 0:
+                            if HAS_HIVEX:
+                                software = os.path.join(dest_path, os.path.basename(config_path))
+                                h = hivex.Hivex(software, write=True)
+                                root = h.root()
+                                node = h.node_get_child(root, "Microsoft")
+                                node = h.node_get_child(node, "Windows NT")
+                                node = h.node_get_child(node, "CurrentVersion")
+                                h.node_set_value(node, {"key": "SystemRoot", "t": REG_SZ,
+                                                        "value": "x:\\Windows\0".encode(encoding="utf-16le")})
+                                node = h.node_get_child(node, "WinPE")
+
+                                # remove the key InstRoot from the registry
+                                values = h.node_values(node)
+                                new_values = []
+
+                                for value in values:
+                                    keyname = h.value_key(value)
+
+                                    if keyname == "InstRoot":
+                                        continue
+
+                                    val = h.node_get_value(node, keyname)
+                                    valtype = h.value_type(val)[0]
+                                    value2 = h.value_value(val)[1]
+                                    valobject = {"key": keyname, "t": int(valtype), "value": value2}
+                                    new_values.append(valobject)
+
+                                h.node_set_values(node, new_values)
+                                h.commit(software)
+
+                                cmd_path = "/usr/bin/wimupdate"
+                                rc = utils.subprocess_call([cmd_path, winpe_path, "--command=add %s %s"
+                                                           % (software, config_path)], shell=False)
+                                os.remove(software)
+                            else:
+                                self.logger.info("python3-hivex not found. If you need Automatic Windows "
+                                                 "Installation support, please install.")
+                            import_walker(self.path, self.distro_adder, distros_added)
+
+        if len(distros_added) == 0:
             self.logger.warning("No distros imported, bailing out")
             return
 
@@ -213,27 +291,24 @@ class _ImportSignatureManager(ManagerModule):
                         for (root, subdir, fnames) in os.walk(self.path):
                             for fname in fnames + subdir:
                                 if f_re.match(fname):
-                                    # if the version file regex exists, we use it
-                                    # to scan the contents of the target version file
-                                    # to ensure it's the right version
+                                    # if the version file regex exists, we use it to scan the contents of the target
+                                    # version file to ensure it's the right version
                                     if sigdata["breeds"][breed][version]["version_file_regex"]:
                                         vf_re = re.compile(sigdata["breeds"][breed][version]["version_file_regex"])
                                         vf_lines = self.get_file_lines(os.path.join(root, fname))
                                         for line in vf_lines:
                                             if vf_re.match(line):
-                                                break
-                                        else:
-                                            continue
-                                    self.logger.debug(
-                                        "Found a matching signature: breed=%s, version=%s" % (breed, version))
-                                    if not self.breed:
-                                        self.breed = breed
-                                    if not self.os_version:
-                                        self.os_version = version
-                                    if not self.autoinstall_file:
-                                        self.autoinstall_file = sigdata["breeds"][breed][version]["default_autoinstall"]
-                                    self.pkgdir = pkgdir
-                                    return sigdata["breeds"][breed][version]
+                                                self.logger.debug("Found a matching signature: breed=%s, version=%s",
+                                                                  breed, version)
+                                                if not self.breed:
+                                                    self.breed = breed
+                                                if not self.os_version:
+                                                    self.os_version = version
+                                                if not self.autoinstall_file:
+                                                    self.autoinstall_file = sigdata["breeds"][breed][version]["default_autoinstall"]
+                                                self.pkgdir = pkgdir
+                                                return sigdata["breeds"][breed][version]
+                        break
         return None
 
     # required function for import modules
@@ -370,8 +445,6 @@ class _ImportSignatureManager(ManagerModule):
             new_distro.kernel_options = self.signature.get("kernel_options", "")
             new_distro.kernel_options_post = self.signature.get("kernel_options_post", "")
             new_distro.template_files = self.signature.get("template_files", "")
-            supported_distro_boot_loaders = utils.get_supported_distro_boot_loaders(new_distro, self.api)
-            new_distro.boot_loaders = supported_distro_boot_loaders[0]
 
             boot_files: Dict[str, str] = {}
             for boot_file in self.signature["boot_files"]:
@@ -407,6 +480,18 @@ class _ImportSignatureManager(ManagerModule):
                 new_profile.virt_type = enums.VirtType.VMWARE
             else:
                 new_profile.virt_type = enums.VirtType.KVM
+
+            if self.breed == "windows":
+                dest_path = os.path.join(self.path, "boot")
+                bootmgr_path = os.path.join(dest_path, "bootmgr.exe")
+                bcd_path = os.path.join(dest_path, "bcd")
+                winpe_path = os.path.join(dest_path, "winpe.wim")
+                if os.path.exists(bootmgr_path) and os.path.exists(bcd_path) and os.path.exists(winpe_path):
+                    new_profile.autoinstall_meta = {"kernel": os.path.basename(kernel),
+                                                    "bootmgr": "bootmgr.exe",
+                                                    "bcd": "bcd",
+                                                    "winpe": "winpe.wim",
+                                                    "answerfile": "autounattended.xml"}
 
             self.profiles.add(new_profile, save=True)
 
