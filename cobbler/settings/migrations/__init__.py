@@ -163,7 +163,7 @@ def get_installed_version(filepath: Union[str, Path] = "/etc/cobbler/version") -
     :param filepath: The filepath of the version file, defaults to "/etc/cobbler/version"
     """
     # The format of the version file is the following:
-
+    # $ cat /etc/cobbler/version
     # [cobbler]
     # gitdate = Fri Aug 13 13:52:40 2021 +0200
     # gitstamp = 610d30d1

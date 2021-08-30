@@ -11,6 +11,7 @@ Tool to manage the settings of Cobbler without the daemon running.
 import argparse
 import sys
 from typing import List
+from schema import SchemaError
 import yaml
 from cobbler import settings
 from cobbler.settings import migrations
@@ -39,7 +40,8 @@ def __check_settings(filepath: str) -> dict:
         return {}
 
     if migrations.get_settings_file_version(result) == EMPTY_VERSION:
-        raise ValueError("Error detecting settings file version!")
+        print("Error detecting settings file version!")
+        return {}
     return result
 
 
@@ -52,16 +54,29 @@ def __update_settings(yaml_dict: dict, filepath) -> int:
 
 
 def validate(args: argparse.Namespace) -> int:
-    if not __check_settings(args.config):
+    try:
+        result = settings.read_yaml_file(args.config)
+    except (FileNotFoundError, yaml.YAMLError) as error:
+        print(str(error))
         return 1
-    print("Settingsfile successfully validated!")
+
+    version_split = args.version.split(".")
+    version = migrations.CobblerVersion(*version_split)
+
+    try:
+        migrations.VERSION_LIST[version].normalize(result)
+    except SchemaError as error:
+        print("Settings file invalid!")
+        print(str(error))
+        return 1
+    print("Settings file successfully validated!")
     return 0
 
 
 def migrate(args: argparse.Namespace) -> int:
     settings_dict = __check_settings(args.config)
     if not settings_dict:
-        print("Settingsfile invalid!")
+        print("Settings file invalid!")
         return 1
 
     old = migrations.get_settings_file_version(settings_dict)
@@ -70,11 +85,7 @@ def migrate(args: argparse.Namespace) -> int:
         return 1
 
     new_list = args.new.split(".")
-
-    new = migrations.CobblerVersion()
-    new.major = int(new_list[0])
-    new.minor = int(new_list[1])
-    new.patch = int(new_list[2])
+    new = migrations.CobblerVersion(*new_list)
 
     result_settings = migrations.migrate(settings_dict, args.config, old, new)
 
@@ -90,7 +101,7 @@ def migrate(args: argparse.Namespace) -> int:
 def automigrate(args: argparse.Namespace) -> int:
     settings_dict = __check_settings(args.config)
     if not settings_dict:
-        print("Settingsfile invalid!")
+        print("Settings file invalid!")
         return 1
     setting_obj = helper.Setting("auto_migrate_settings", args.enable_automigration)
     helper.key_set_value(setting_obj, settings_dict)
@@ -101,7 +112,7 @@ def automigrate(args: argparse.Namespace) -> int:
 def modify(args: argparse.Namespace) -> int:
     settings_dict = __check_settings(args.config)
     if not settings_dict:
-        print("Settingsfile invalid!")
+        print("Settings file invalid!")
         return 1
     schema = migrations.get_schema(migrations.get_installed_version())
     setting_obj = helper.Setting(args.key, args.value)
@@ -131,6 +142,10 @@ subparsers = parser.add_subparsers(title="Subcommands", help="One of these comma
 parser_validate = subparsers.add_parser("validate",
                                         description="Validates if Cobbler would start with the current settings file.")
 parser_validate.set_defaults(func=validate)
+parser_validate.add_argument("--version", "-v",
+                             help="The version to validate against.",
+                             choices=sorted(__generate_version_choices()),
+                             default=sorted(__generate_version_choices())[-1])
 parser_migrate = subparsers.add_parser("migrate",
                                        description='Migrates from the current version to the version provided with '
                                                    '"--new".')
