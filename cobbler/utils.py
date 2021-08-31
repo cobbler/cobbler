@@ -1538,7 +1538,7 @@ def subprocess_call(cmd, shell: bool = True, input=None):
     A simple subprocess call with no output capturing.
 
     :param cmd: The command to execute.
-    :param shell: Whether to use a shell or not for the execution of the commmand.
+    :param shell: Whether to use a shell or not for the execution of the command.
     :param input: If there is any input needed for that command to stdin.
     :return: The return code of the process
     """
@@ -1551,7 +1551,7 @@ def subprocess_get(cmd, shell: bool = True, input=None):
     A simple subprocess call with no return code capturing.
 
     :param cmd: The command to execute.
-    :param shell: Whether to use a shell or not for the execution of the commmand.
+    :param shell: Whether to use a shell or not for the execution of the command.
     :param input: If there is any input needed for that command to stdin.
     :return: The data which the subprocess returns.
     """
