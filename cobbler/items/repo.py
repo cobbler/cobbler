@@ -35,6 +35,12 @@ class Repo(item.Item):
     COLLECTION_TYPE = "repo"
 
     def __init__(self, api, *args, **kwargs):
+        """
+
+        :param api: The Cobbler API object which is used for resolving information.
+        :param args: The arguments which should be passed additionally to the base Item class constructor.
+        :param kwargs: The keyword arguments which should be passed additionally to the base Item class constructor.
+        """
         super().__init__(api, *args, **kwargs)
         self._breed = enums.RepoBreeds.NONE
         self._arch = enums.RepoArchs.NONE
@@ -82,7 +88,7 @@ class Repo(item.Item):
         """
         Checks if the object is valid. Currently checks for name and mirror to be present.
 
-        :raises CX
+        :raises CX: In case the name or mirror is missing.
         """
         if self.name is None:
             raise CX("name is required")
@@ -460,7 +466,8 @@ class Repo(item.Item):
         """
         TODO
 
-        :return:
+        :getter:
+        :setter:
         """
         return self._resolve("proxy_url_ext")
 

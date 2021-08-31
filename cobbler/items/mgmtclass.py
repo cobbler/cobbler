@@ -27,7 +27,7 @@ from cobbler.cexceptions import CX
 
 class Mgmtclass(item.Item):
     """
-    TODO Explain purpose of the class
+    This represents a group of systems which are related in Puppet through ``Classes``.
     """
 
     TYPE_NAME = "mgmtclass"
@@ -37,8 +37,9 @@ class Mgmtclass(item.Item):
         """
         Constructor.
 
-        :param api:
-        :type api:
+        :param api: The Cobbler API object which is used for resolving information.
+        :param args: The arguments which should be passed additionally to the base Item class constructor.
+        :param kwargs: The keyword arguments which should be passed additionally to the base Item class constructor.
         """
         super().__init__(api, *args, **kwargs)
         self._is_definition = False

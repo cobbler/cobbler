@@ -26,8 +26,7 @@ from cobbler.cexceptions import CX
 
 class Package(resource.Resource):
     """
-    TODO Explanation of this class
-    TODO Type Checks in method bodys
+    This class represents a package which is being installed on a system.
     """
 
     TYPE_NAME = "package"
@@ -37,9 +36,9 @@ class Package(resource.Resource):
         """
         Constructor
 
-        :param api:
-        :param args:
-        :param kwargs:
+        :param api: The Cobbler API object which is used for resolving information.
+        :param args: The arguments which should be passed additionally to a Resource.
+        :param kwargs: The keyword arguments which should be passed additionally to a Resource.
         """
         super().__init__(api, *args, **kwargs)
         self._installer = ""

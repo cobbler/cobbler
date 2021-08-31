@@ -37,9 +37,9 @@ class File(resource.Resource):
         """
         Constructor.
 
-        :param api:
-        :param args:
-        :param kwargs:
+        :param api: The Cobbler API object which is used for resolving information.
+        :param args: The arguments which should be passed additionally to a Resource.
+        :param kwargs: The keyword arguments which should be passed additionally to a Resource.
         """
         super().__init__(api, *args, **kwargs)
         self._is_dir = False

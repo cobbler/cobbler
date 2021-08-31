@@ -35,6 +35,10 @@ class NetworkInterface:
     """
 
     def __init__(self, api):
+        """
+
+        :param api: The Cobbler API object which is used for resolving information.
+        """
         self.__logger = logging.getLogger()
         self.__api = api
         self._bonding_opts = ""

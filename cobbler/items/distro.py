@@ -39,6 +39,7 @@ class Distro(item.Item):
         """
         This creates a Distro object.
 
+        :param api: The Cobbler API object which is used for resolving information.
         :param args: Place for extra parameters in this distro object.
         :param kwargs: Place for extra parameters in this distro object.
         """

@@ -36,6 +36,12 @@ class Profile(item.Item):
     COLLECTION_TYPE = "profile"
 
     def __init__(self, api, *args, **kwargs):
+        """
+
+        :param api: The Cobbler API object which is used for resolving information.
+        :param args:
+        :param kwargs:
+        """
         super().__init__(api, *args, **kwargs)
         self._template_files = {}
         self._autoinstall = enums.VALUE_INHERITED

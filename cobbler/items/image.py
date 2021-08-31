@@ -27,14 +27,20 @@ from cobbler.items import item
 
 class Image(item.Item):
     """
-    A Cobbler Image.  Tracks a virtual or physical image, as opposed to a answer
-    file (autoinst) led installation.
+    A Cobbler Image. Tracks a virtual or physical image, as opposed to a answer file (autoinst) led installation.
     """
 
     TYPE_NAME = "image"
     COLLECTION_TYPE = "image"
 
     def __init__(self, api, *args, **kwargs):
+        """
+        Constructor
+
+        :param api: The Cobbler API object which is used for resolving information.
+        :param args: The arguments which should be passed additionally to the base Item class constructor.
+        :param kwargs: The keyword arguments which should be passed additionally to the base Item class constructor.
+        """
         super().__init__(api, *args, **kwargs)
         self._arch = enums.Archs.X86_64
         self._autoinstall = enums.VALUE_INHERITED
@@ -96,9 +102,12 @@ class Image(item.Item):
     @property
     def arch(self) -> enums.Archs:
         """
-        TODO
+        Represents the architecture the image has. If deployed to a physical host this should be enforced, a virtual
+        image may be deployed on a host with any architecture.
 
-        :return:
+        :getter: The current architecture. Default is ``X86_64``.
+        :setter: Should be of the enum type or str. May raise an exception in case the architecture is not known to
+                 Cobbler.
         """
         return self._arch
 
@@ -115,9 +124,16 @@ class Image(item.Item):
     @property
     def autoinstall(self) -> str:
         """
-        TODO
+        Property for the automatic installation file path, this must be a local file.
 
-        :return:
+        It may not make sense for images to have automatic installation templates. It really doesn't. However if the
+        image type is 'iso' koan can create a virtual floppy and shove an answer file on it, to script an installation.
+        This may not be a automatic installation template per se, it might be a Windows answer file (SIF) etc.
+
+        This property can inherit from a parent. Which is actually the default value.
+
+        :getter: The path relative to the template directory.
+        :setter: The location of the template relative to the template base directory.
         """
         return self._autoinstall
 
@@ -125,12 +141,6 @@ class Image(item.Item):
     def autoinstall(self, autoinstall: str):
         """
         Set the automatic installation file path, this must be a local file.
-
-        It may not make sense for images to have automatic installation templates.
-        It really doesn't. However if the image type is 'iso' koan can create a virtual
-        floppy and shove an answer file on it, to script an installation.  This may
-        not be a automatic installation template per se, it might be a Windows answer
-        file (SIF) etc.
 
         :param autoinstall: local automatic installation template file path
         """
@@ -140,15 +150,6 @@ class Image(item.Item):
     @property
     def file(self) -> str:
         """
-        TODO
-
-        :return:
-        """
-        return self._file
-
-    @file.setter
-    def file(self, filename: str):
-        """
         Stores the image location. This should be accessible on all nodes that need to access it.
 
         Format: can be one of the following:
@@ -157,8 +158,18 @@ class Image(item.Item):
         * hostname:/path/to/the/filename.ext
         * /path/to/the/filename.ext
 
+        :getter: The path to the image location or an emtpy string.
+        :setter: May raise a TypeError or SyntaxError in case the validation of the location fails.
+        """
+        return self._file
+
+    @file.setter
+    def file(self, filename: str):
+        """
+        The setter for the image location.
+
         :param filename: The location where the image is stored.
-        :raises SyntaxError
+        :raises SyntaxError: In case a protocol was found.
         """
         if not isinstance(filename, str):
             raise TypeError("file must be of type str to be parsable.")
@@ -235,22 +246,25 @@ class Image(item.Item):
     @property
     def image_type(self) -> enums.ImageTypes:
         """
-        TODO
-
-        :return:
-        """
-        return self._image_type
-
-    @image_type.setter
-    def image_type(self, image_type: Union[enums.ImageTypes, str]):
-        """
         Indicates what type of image this is.
         direct     = something like "memdisk", physical only
         iso        = a bootable ISO that pxe's or can be used for virt installs, virtual only
         virt-clone = a cloned virtual disk (FIXME: not yet supported), virtual only
         memdisk    = hdd image (physical only)
 
+        :getter: The enum type value of the image type.
+        :setter: Accepts str like and enum type values and raises a TypeError or ValueError in the case of a problem.
+        """
+        return self._image_type
+
+    @image_type.setter
+    def image_type(self, image_type: Union[enums.ImageTypes, str]):
+        """
+        The setter which accepts enum type or str type values. Latter ones will be automatically converted if possible.
+
         :param image_type: One of the four options from above.
+        :raises TypeError: In case a disallowed type was found.
+        :raises ValueError: In case the conversion from str could not successfully executed.
         """
         if not isinstance(image_type, (enums.ImageTypes, str)):
             raise TypeError("image_type must be of type str or enum.ImageTypes")
@@ -440,20 +454,20 @@ class Image(item.Item):
     @property
     def menu(self) -> str:
         """
-        TODO
+        Property to represent the menu which this image should be put into.
 
-        :return:
+        :getter: The name of the menu or an emtpy str.
+        :setter: Should only be the name of the menu not the object. May raise ``CX`` in case the menu does not exist.
         """
         return self._menu
 
     @menu.setter
     def menu(self, menu: str):
         """
-        TODO
+        Setter for the menu property.
 
         :param menu: The menu for the image.
-        :raises CX
-
+        :raises CX: In case the menu to be set could not be found.
         """
         if menu and menu != "":
             menu_list = self.api.menus()
@@ -464,7 +478,9 @@ class Image(item.Item):
     @property
     def supported_boot_loaders(self):
         """
-        :return: The bootloaders which are available for being set.
+        Read only property which represents the subset of settable bootloaders.
+
+        :getter: The bootloaders which are available for being set.
         """
         try:
             # If we have already loaded the supported boot loaders from the signature, use that data
@@ -477,7 +493,10 @@ class Image(item.Item):
     @property
     def boot_loaders(self) -> list:
         """
-        :return: The bootloaders.
+        Represents the boot loaders which are able to boot this image.
+
+        :getter: The bootloaders. May be an emtpy list.
+        :setter: A list with the supported boot loaders for this image.
         """
         if self._boot_loaders == enums.VALUE_INHERITED:
             return self.supported_boot_loaders
@@ -489,7 +508,8 @@ class Image(item.Item):
         Setter of the boot loaders.
 
         :param boot_loaders: The boot loaders for the image.
-        :raises CX
+        :raises TypeError: In case this was of a not allowed type.
+        :raises ValueError: In case the str which contained the list could not be successfully split.
         """
         # allow the magic inherit string to persist
         if boot_loaders == enums.VALUE_INHERITED:
