@@ -99,7 +99,7 @@ Then (illustrating a Red Hat/Puppet combination) set up the kickstart file to sa
     /sbin/chkconfig --add puppet
 
 The detail may need to be more substantial, requiring some other associated local packages, files and configuration. You
-may wish to manage this through [Kickstart snippets](Kickstart Snippets).
+may wish to manage this through kickstart snippets.
 
 David Lutterkort has a `walkthrough for kickstart <http://watzmann.net/blog/2006/12/kickstarting-into-puppet.html>`_.
 While his example is written for Red Hat (Fedora) and Puppet, the principles are useful for other OS/CMS combinations.
@@ -111,8 +111,7 @@ Cobbler is not just an installation server, it can also enable two different typ
 system (CMS):
 
 * integration with an established external CMS such as `cfengine3 <http://cfengine.com/>`_, `bcfg2 <http://bcfg2.org>`_,
-  `Chef <http://wiki.opscode.com/display/chef/Home>`_, or `puppet <http://puppetlabs.com/>`_, discussed
-  [elsewhere](Using cobbler with a configuration management system);
+  `Chef <http://wiki.opscode.com/display/chef/Home>`_, or `puppet <http://puppetlabs.com/>`_.
 * its own, much simpler, lighter-weight, internal CMS, discussed here.
 
 Setting up
@@ -122,7 +121,7 @@ Cobbler's internal CMS is focused around packages and templated configuration fi
 systems.
 
 This all works using the same `Cheetah-powered <http://cheetahtemplate.org>`_ templating engine used in
-[Kickstart Templating](Kickstart Templating), so once you learn about the power of treating your distribution answer
+kickstart templating, so once you learn about the power of treating your distribution answer
 files as templates, you can use the same templating to drive your CMS configuration files.
 
 For example:
@@ -143,7 +142,7 @@ Template files
 ==============
 
 Because the template files will be parsed by the Cheetah parser, they must conform to the guidelines described in
-[Kickstart Templating](Kickstart Templating). This is particularly important when the file is generated outside a
+kickstart templating. This is particularly important when the file is generated outside a
 Cheetah environment. Look for, and act on, Cheetah 'ParseError' errors in the Cobbler logs.
 
 Template files follows general Cheetah syntax, so can include Cheetah variables. Any variables you define anywhere in
@@ -191,8 +190,8 @@ Leveraging Mod Python
 =====================
 
 All template files are generated dynamically at run-time. If a change is made to a template, a ``--ks-meta`` variable or
-some other variable in cobbler, the result of template rendering will be different on subsequent runs. This is covered
-in more depth in the [Developer documentation](Developer documentation).
+some other variable in Cobbler, the result of template rendering will be different on subsequent runs. This is covered
+in more depth in the `Developer documentation <https://github.com/cobbler/cobbler/wiki>_`.
 
 Possible future developments
 ============================
@@ -211,7 +210,11 @@ The code for the Terraform-Provider can be found at: https://github.com/cobbler/
 Ansible
 #######
 
-Although we currently can not provide something official we can indeed link some community work here:
+Official integration:
+
+- https://github.com/cobbler/ansible
+
+Community provided integration:
 
 - https://github.com/ac427/my_cm
 - https://github.com/AnKosteck/ansible-cluster

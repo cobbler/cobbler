@@ -24,7 +24,6 @@ four sources or from source with Git Tags.
     - ``dnf install cobbler``
 - `openSUSE Tumbleweed <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
 - `openSUSE Leap 15.x <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
-  --> This gives you Cobbler 2.8.x sadly for now.
 
 
 Prerequisites
@@ -188,6 +187,10 @@ Source
              are working hard to get there but it is not possible yet. If you try this and it works, please report to our
              GitHub repository and tell us what is left to support this conveniently.
 
+
+Installation
+============
+
 The latest source code is available through git:
 
 .. code-block:: shell
@@ -229,6 +232,22 @@ To install Cobbler, finish the installation in any of both cases, use these step
 Be advised that we don't copy the service file into the correct directory and that the path to the binary may be wrong
 depending on the location of the binary on your system. Do this manually and then you should be good to go. The same is
 valid for the Apache webserver config.
+
+Uninstallation
+==============
+
+#. Stop the ``cobblerd`` and ``apache2`` daemon
+#. Remove Cobbler related files from the following paths:
+
+   #. ``/usr/lib/python3.x/site-packages/cobbler/``
+   #. ``/etc/apache2/``
+   #. ``/etc/cobbler/``
+   #. ``/etc/systemd/system/``
+   #. ``/usr/local/bin/``
+   #. ``/var/lib/cobbler/``
+   #. ``/var/log/cobbler/``
+
+#. Do a ``systemctl daemon-reload``.
 
 .. _relocating-your-installation:
 

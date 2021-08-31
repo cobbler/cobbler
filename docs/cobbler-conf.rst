@@ -996,25 +996,36 @@ What users can log into the WebUI and Read-Write XML-RPC?
 
 Choices:
 
-- authn_denyall    -- no one (default)
-- authn_configfile -- use /etc/cobbler/users.digest (for basic setups)
-- authn_passthru   -- ask Apache to handle it (used for kerberos)
-- authn_ldap       -- authenticate against LDAP
-- authn_spacewalk  -- ask Spacewalk/Satellite (experimental)
-- authn_pam        -- use PAM facilities
-- authn_testing    -- username/password is always testing/testing (debug)
-- (user supplied)  -- you may write your own module
+- authentication.denyall    -- No one
+- authentication.configfile -- Use /etc/cobbler/users.digest (default)
+- authentication.passthru   -- Ask Apache to handle it (used for kerberos)
+- authentication.ldap       -- Authenticate against LDAP
+- authentication.spacewalk  -- Ask Spacewalk/Satellite (experimental)
+- authentication.pam        -- Use PAM facilities
+- authentication.testing    -- Username/password is always testing/testing (debug)
+- (user supplied)  -- You may write your own module
 
-WARNING: this is a security setting, do not choose an option blindly.
-
-For more information:
-
-- :ref:`web-interface`
-- https://cobbler.readthedocs.io/en/release28/5_web-interface/security_overview.html
-- https://cobbler.readthedocs.io/en/release28/5_web-interface/web_authentication.html#defer-to-apache-kerberos
-- https://cobbler.readthedocs.io/en/release28/5_web-interface/web_authentication.html#ldap
+.. note:: A new web interface is in the making. At the moment we do not have any documention, yet.
 
 default: ``authn_configfile``
+
+Hash algorithms:
+
+This parameter has currently only a meaning when the option ``authentication.configfile`` is used.
+The parameter decides what hashfunction algorithm is used for checking the passwords.
+
+Choices:
+
+- blake2b
+- blake2s
+- sha3_512
+- sha3_384
+- sha3_256
+- sha3_224
+- shake_128
+- shake_256
+
+default: ``sha3_512``
 
 authorization
 =============
@@ -1023,21 +1034,15 @@ Once a user has been cleared by the WebUI/XML-RPC, what can they do?
 
 Choices:
 
-- authz_allowall   -- full access for all authenticated users (default)
-- authz_ownership  -- use users.conf, but add object ownership semantics
+- authorization.allowall   -- full access for all authenticated users (default)
+- authorization.ownership  -- use users.conf, but add object ownership semantics
 - (user supplied)  -- you may write your own module
 
-**WARNING**: this is a security setting, do not choose an option blindly.
-If you want to further restrict Cobbler with ACLs for various groups,
-pick authz_ownership.  authz_allowall does not support ACLs. Configuration
-file does but does not support object ownership which is useful as an
-additional layer of control.
+.. warning:: If you want to further restrict Cobbler with ACLs for various groups, pick ``authorization.ownership``.
+             ``authorization.allowall`` does not support ACLs. Configuration file does but does not support object
+             ownership which is useful as an additional layer of control.
 
-For more information:
-
-- :ref:`web-interface`
-- https://cobbler.readthedocs.io/en/release28/5_web-interface/security_overview.html
-- https://cobbler.readthedocs.io/en/release28/5_web-interface/web_authentication.html
+.. note:: A new web interface is in the making. At the moment we do not have any documention, yet.
 
 default: ``authz_allowall``
 
@@ -1049,15 +1054,15 @@ default.
 
 Choices:
 
-- manage_bind    -- default, uses BIND/named
-- manage_dnsmasq -- uses dnsmasq, also must select dnsmasq for DHCP below
-- manage_ndjbdns -- uses ndjbdns
+- managers.bind    -- default, uses BIND/named
+- managers.dnsmasq -- uses dnsmasq, also must select dnsmasq for DHCP below
+- managers.ndjbdns -- uses ndjbdns
 
-**NOTE**: More configuration is still required in ``/etc/cobbler``
+.. note:: More configuration is still required in ``/etc/cobbler``
 
 For more information see :ref:`dns-management`.
 
-default: ``manage_bind``
+default: ``managers.bind``
 
 dhcp
 ====
@@ -1067,14 +1072,14 @@ default.
 
 Choices:
 
-- manage_isc     -- default, uses ISC dhcpd
-- manage_dnsmasq -- uses dnsmasq, also must select dnsmasq for DNS above
+- managers.isc     -- default, uses ISC dhcpd
+- managers.dnsmasq -- uses dnsmasq, also must select dnsmasq for DNS above
 
-**NOTE**: More configuration is still required in ``/etc/cobbler``
+.. note:: More configuration is still required in ``/etc/cobbler``
 
 For more information see :ref:`dhcp-management`.
 
-default: ``manage_isc``
+default: ``managers.isc``
 
 tftpd
 =====
@@ -1084,6 +1089,6 @@ default.
 
 Choices:
 
-- manage_in_tftpd -- default, uses the system's TFTP server
+- managers.in_tftpd -- default, uses the system's TFTP server
 
-default: ``manage_in_tftpd``
+default: ``managers.in_tftpd``
