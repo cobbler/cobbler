@@ -37,17 +37,18 @@ class Item:
     COLLECTION_TYPE = "generic"
 
     @classmethod
-    def __find_compare(cls, from_search, from_obj):
+    def __find_compare(cls, from_search: Union[str, list, dict, bool], from_obj: Union[str, list, dict, bool]):
         """
         Only one of the two parameters shall be given in this method. If you give both ``from_obj`` will be preferred.
 
         :param from_search: Tries to parse this str in the format as a search result string.
         :param from_obj: Tries to parse this str in the format of an obj str.
         :return: True if the comparison succeeded, False otherwise.
-        :raises CX
+        :raises TypeError: In case the type of one of the two variables is wrong or could not be converted
+                           intelligently.
         """
         if isinstance(from_obj, str):
-            # FIXME: fnmatch is only used for string to string comparisions which should cover most major usage, if
+            # FIXME: fnmatch is only used for string to string comparisons which should cover most major usage, if
             #        not, this deserves fixing
             from_obj_lower = from_obj.lower()
             from_search_lower = from_search.lower()
@@ -185,6 +186,7 @@ class Item:
 
         :param property_name: The property name to resolve.
         :return: The merged dictionary.
+        :raises AttributeError: In case the the the object had no attribute with the name :py:property_name: .
         """
         attribute = "_" + property_name
 
@@ -233,7 +235,8 @@ class Item:
         """
         TODO
 
-        :return:
+        :getter:
+        :setter:
         """
         return self._ctime
 
@@ -254,7 +257,8 @@ class Item:
         """
         The objects name.
 
-        :return: The name of the object
+        :getter: The name of the object
+        :setter:
         """
         return self._name
 
@@ -276,7 +280,8 @@ class Item:
         """
         For every object you are able to set a unique comment which will be persisted on the object.
 
-        :return: The comment or an emtpy string.
+        :getter: The comment or an emtpy string.
+        :setter:
         """
         return self._comment
 
@@ -294,7 +299,8 @@ class Item:
         """
         TODO
 
-        :return:
+        :getter:
+        :setter:
         """
         return self._owners
 
@@ -313,7 +319,8 @@ class Item:
         """
         TODO
 
-        :return:
+        :getter:
+        :setter:
         """
         return self._resolve_dict("kernel_options")
 
@@ -336,7 +343,8 @@ class Item:
         """
         TODO
 
-        :return:
+        :getter:
+        :setter:
         """
         return self._resolve_dict("kernel_options_post")
 
@@ -359,7 +367,8 @@ class Item:
         """
         Automatic Installation Template Metadata
 
-        :return: The metadata or an empty dict.
+        :getter: The metadata or an empty dict.
+        :setter:
         """
         return self._resolve_dict("autoinstall_meta")
 
@@ -383,7 +392,8 @@ class Item:
         """
         For external config management
 
-        :return: An empty list or the list of mgmt_classes.
+        :getter: An empty list or the list of mgmt_classes.
+        :setter:
         """
         return self._resolve("mgmt_classes")
 
@@ -402,7 +412,8 @@ class Item:
         """
         Parameters which will be handed to your management application (Must be a valid YAML dictionary)
 
-        :return: The mgmt_parameters or an empty dict.
+        :getter: The mgmt_parameters or an empty dict.
+        :setter:
         """
         return self._resolve_dict("mgmt_parameters")
 
@@ -430,7 +441,8 @@ class Item:
         """
         File mappings for built-in configuration management
 
-        :return:
+        :getter:
+        :setter:
         """
         return self._template_files
 
@@ -453,7 +465,8 @@ class Item:
         """
         Files copied into tftpboot beyond the kernel/initrd
 
-        :return:
+        :getter:
+        :setter:
         """
         return self._resolve_dict("boot_files")
 
@@ -475,7 +488,8 @@ class Item:
         """
         A comma seperated list of ``virt_name=path_to_template`` that should be fetchable via tftp or a webserver
 
-        :return:
+        :getter:
+        :setter:
         """
         return self._resolve_dict("fetchable_files")
 
@@ -596,18 +610,20 @@ class Item:
     @property
     def is_subobject(self) -> bool:
         """
-        TODO
+        Weather the object is a subobject of another object or not.
 
-        :return: True in case the object is a subobject, False otherwise.
+        :getter: True in case the object is a subobject, False otherwise.
+        :setter: Sets the value. If this is not a bool, this will raise a ``TypeError``.
         """
         return self._is_subobject
 
     @is_subobject.setter
     def is_subobject(self, value: bool):
         """
-        TODO
+        Setter for the property ``is_subobject``.
 
         :param value: The boolean value whether this is a subobject or not.
+        :raises TypeError: In case the value was not of type bool.
         """
         if not isinstance(value, bool):
             raise TypeError("Field is_subobject of object item needs to be of type bool!")
@@ -713,9 +729,9 @@ class Item:
 
     def check_if_valid(self):
         """
-        Raise exceptions if the object state is inconsistent
+        Raise exceptions if the object state is inconsistent.
 
-        :raises CX
+        :raises CX: In case the name of the item is not set.
         """
         if not self.name:
             raise CX("Name is required")
@@ -729,8 +745,8 @@ class Item:
     @classmethod
     def _remove_depreacted_dict_keys(cls, dictionary: dict):
         """
-        This method does remove keys which should not be deserialized and are only there for API compability in
-        ``to_dict()``.
+        This method does remove keys which should not be deserialized and are only there for API compatibility in
+        :meth:`~cobbler.items.item.Item.to_dict`.
 
         :param dictionary: The dict to update
         """
@@ -744,6 +760,8 @@ class Item:
         Modify this object to take on values in ``dictionary``.
 
         :param dictionary: This should contain all values which should be updated.
+        :raises AttributeError: In case during the process of setting a value for an attribute an error occurred.
+        :raises KeyError: In case there were keys which could not be set in the item dictionary.
         """
         result = copy.deepcopy(dictionary)
         for key in dictionary:
@@ -792,8 +810,8 @@ class Item:
 
     def serialize(self) -> dict:
         """
-        This method is a proxy for ``to_dict()`` and contains additional logic for serialization to a persistent
-        location.
+        This method is a proxy for :meth:`~cobbler.items.item.Item.to_dict` and contains additional logic for
+        serialization to a persistent location.
 
         :return: The dictionary with the information for serialization.
         """
@@ -805,7 +823,7 @@ class Item:
 
     def deserialize(self, item_dict: dict):
         """
-        This is currently a proxy for ``from_dict()``.
+        This is currently a proxy for :py:meth:`~cobbler.items.item.Item.from_dict` .
 
         :param item_dict: The dictionary with the data to deserialize.
         """
