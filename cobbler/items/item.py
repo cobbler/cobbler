@@ -217,7 +217,8 @@ class Item:
         The uid is the internal unique representation of a Cobbler object. It should never be used twice, even after an
         object was deleted.
 
-        :return:
+        :getter: The uid for the item. Should be unique across a running Cobbler instance.
+        :setter: The new uid for the object. Should only be used by the Cobbler Item Factory.
         """
         return self._uid
 
@@ -233,20 +234,20 @@ class Item:
     @property
     def ctime(self) -> float:
         """
-        TODO
+        Property which represents the creation time of the object.
 
-        :getter:
-        :setter:
+        :getter: The float which can be passed to Python time stdlib.
+        :setter: Should only be used by the Cobbler Item Factory.
         """
         return self._ctime
 
     @ctime.setter
     def ctime(self, ctime: float):
         """
-        TODO
+        Setter for the ctime property.
 
-        :param ctime:
-        :return:
+        :param ctime: The time the object was created.
+        :raises TypeError: In case ``ctime`` was not of type float.
         """
         if not isinstance(ctime, float):
             raise TypeError("ctime needs to be of type float")
@@ -255,10 +256,11 @@ class Item:
     @property
     def name(self):
         """
-        The objects name.
+        Property which represents the objects name.
 
-        :getter: The name of the object
-        :setter:
+        :getter: The name of the object.
+        :setter: Updating this has broad implications. Please try to use the ``rename()`` functionality from the
+                 corresponding collection.
         """
         return self._name
 
@@ -268,6 +270,8 @@ class Item:
         The objects name.
 
         :param name: object name string
+        :raises TypeError: In case ``name`` was not of type str.
+        :raises ValueError: In case there were disallowed characters in the name.
         """
         if not isinstance(name, str):
             raise TypeError("name must of be type str")
@@ -281,7 +285,7 @@ class Item:
         For every object you are able to set a unique comment which will be persisted on the object.
 
         :getter: The comment or an emtpy string.
-        :setter:
+        :setter: The new comment for the item.
         """
         return self._comment
 
@@ -297,40 +301,44 @@ class Item:
     @property
     def owners(self):
         """
-        TODO
+        This is a feature which is related to the ownership module of Cobbler which gives only specific people access
+        to specific records. Otherwise this is just a cosmetic feature to allow assigning records to specific users.
 
-        :getter:
-        :setter:
+        .. warning:: This is never validated against a list of existing users. Thus you can lock yourself out of a
+                     record.
+
+        :getter: Return the list of users which are currently assigned to the record.
+        :setter: The list of people which should be new owners. May lock you out if you are using the ownership
+                 authorization module.
         """
         return self._owners
 
     @owners.setter
     def owners(self, owners: list):
         """
-        TODO
+        Setter for the ``owners`` property.
 
-        :param owners:
-        :return:
+        :param owners: The new list of owners. Will not be validated for existence.
         """
         self._owners = utils.input_string_or_list(owners)
 
     @property
     def kernel_options(self) -> dict:
         """
-        TODO
+        Kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
 
-        :getter:
-        :setter:
+        :getter: The parsed kernel options.
+        :setter: The new kernel options as a space delimited list. May raise ``ValueError`` in case of parsing problems.
         """
         return self._resolve_dict("kernel_options")
 
     @kernel_options.setter
     def kernel_options(self, options):
         """
-        Kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
+        Setter for ``kernel_options``.
 
         :param options: The new kernel options as a space delimited list.
-        :raises CX
+        :raises ValueError: In case the values set could not be parsed successfully.
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
@@ -341,20 +349,20 @@ class Item:
     @property
     def kernel_options_post(self) -> dict:
         """
-        TODO
+        Post kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
 
-        :getter:
-        :setter:
+        :getter: The dictionary with the parsed values.
+        :setter: Accepts str in above mentioned format or directly a dict.
         """
         return self._resolve_dict("kernel_options_post")
 
     @kernel_options_post.setter
     def kernel_options_post(self, options):
         """
-        Post kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
+        Setter for ``kernel_options_post``.
 
         :param options: The new kernel options as a space delimited list.
-        :raises CX
+        :raises ValueError: In case the options could not be split successfully.
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
@@ -365,21 +373,21 @@ class Item:
     @property
     def autoinstall_meta(self) -> dict:
         """
-        Automatic Installation Template Metadata
+        A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a dict.
+        The meta tags are used as input to the templating system to preprocess automatic installation template files.
 
         :getter: The metadata or an empty dict.
-        :setter:
+        :setter: Accepts anything which can be split by :meth:`~cobbler.utils.input_string_or_dict`.
         """
         return self._resolve_dict("autoinstall_meta")
 
     @autoinstall_meta.setter
     def autoinstall_meta(self, options: dict):
         """
-        A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a dict.
-        The meta tags are used as input to the templating system to preprocess automatic installation template files.
+        Setter for the ``autoinstall_meta`` property.
 
         :param options: The new options for the automatic installation meta options.
-        :return: False if this does not succeed.
+        :raises ValueError: If splitting the value does not succeed.
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
@@ -390,18 +398,18 @@ class Item:
     @property
     def mgmt_classes(self) -> list:
         """
-        For external config management
+        Assigns a list of configuration management classes that can be assigned to any object, such as those used by
+        Puppet's external_nodes feature.
 
         :getter: An empty list or the list of mgmt_classes.
-        :setter:
+        :setter: Will split this according to :meth:`~cobbler.utils.input_string_or_list`.
         """
         return self._resolve("mgmt_classes")
 
     @mgmt_classes.setter
     def mgmt_classes(self, mgmt_classes: list):
         """
-        Assigns a list of configuration management classes that can be assigned to any object, such as those used by
-        Puppet's external_nodes feature.
+        Setter for the ``mgmt_classes`` property.
 
         :param mgmt_classes: The new options for the management classes of an item.
         """
@@ -413,7 +421,7 @@ class Item:
         Parameters which will be handed to your management application (Must be a valid YAML dictionary)
 
         :getter: The mgmt_parameters or an empty dict.
-        :setter:
+        :setter: A YAML string which can be assigned to any object, this is used by Puppet's external_nodes feature.
         """
         return self._resolve_dict("mgmt_parameters")
 
@@ -441,8 +449,9 @@ class Item:
         """
         File mappings for built-in configuration management
 
-        :getter:
-        :setter:
+        :getter: The dictionary with name-path key-value pairs.
+        :setter: A dict. If not a dict must be a str which is split by :meth:`~cobbler.utils.input_string_or_dict`.
+                 Raises ``TypeError`` otherwise.
         """
         return self._template_files
 
@@ -465,8 +474,9 @@ class Item:
         """
         Files copied into tftpboot beyond the kernel/initrd
 
-        :getter:
-        :setter:
+        :getter: The dictionary with name-path key-value pairs.
+        :setter: A dict. If not a dict must be a str which is split by :meth:`~cobbler.utils.input_string_or_dict`.
+                 Raises ``TypeError`` otherwise.
         """
         return self._resolve_dict("boot_files")
 
@@ -488,8 +498,9 @@ class Item:
         """
         A comma seperated list of ``virt_name=path_to_template`` that should be fetchable via tftp or a webserver
 
-        :getter:
-        :setter:
+        :getter: The dictionary with name-path key-value pairs.
+        :setter: A dict. If not a dict must be a str which is split by :meth:`~cobbler.utils.input_string_or_dict`.
+                 Raises ``TypeError`` otherwise.
         """
         return self._resolve_dict("fetchable_files")
 
@@ -509,9 +520,11 @@ class Item:
     @property
     def depth(self) -> int:
         """
-        TODO
+        This represents the logical depth of an object in the category of the same items. Important for the order of
+        loading items from the disk and other related features where the alphabetical order is incorrect for sorting.
 
-        :return:
+        :getter: The logical depth of the object.
+        :setter: The new int for the logical object-depth.
         """
         return self._depth
 
@@ -529,9 +542,10 @@ class Item:
     @property
     def mtime(self) -> float:
         """
-        Represents the last modification time of the object via the API.
+        Represents the last modification time of the object via the API. This is not updated automagically.
 
-        :return: The float which can be fed into a Python time object.
+        :getter: The float which can be fed into a Python time object.
+        :setter: The new time something was edited via the API.
         """
         return self._mtime
 
@@ -549,9 +563,11 @@ class Item:
     @property
     def parent(self):
         """
-        TODO
+        This property contains the name of the logical parent of an object. In case there is not parent this return
+        None.
 
-        :return:
+        :getter: Returns the parent object or None if it can't be resolved via the Cobbler API.
+        :setter: The name of the new logical parent.
         """
         return None
 
@@ -564,11 +580,12 @@ class Item:
         """
 
     @property
-    def children(self) -> list:
+    def children(self) -> List[str]:
         """
-        TODO
+        The list of logical children of any depth.
 
-        :return: An empty list.
+        :getter: An empty list in case of items which don't have logical children.
+        :setter: Replace the list of children completely with the new provided one.
         """
         return []
 
@@ -577,15 +594,16 @@ class Item:
         """
         This is an empty setter to not throw on setting it accidentally.
 
-        :param value:
+        :param value: The list with children names to replace the current one with.
         """
         self.logger.warning("Tried to set the children property on object \"%s\" without logical children.", self.name)
 
     def get_children(self, sort_list: bool = False) -> List[str]:
         """
-        TODO
+        Get the list of children names.
 
-        :return:
+        :param sort_list: If the list should be sorted alphabetically or not.
+        :return: A copy of the list of children names.
         """
         result = copy.deepcopy(self.children)
         if sort_list:
@@ -597,7 +615,9 @@ class Item:
         """
         Get objects that depend on this object, i.e. those that would be affected by a cascading delete, etc.
 
-        :return: This is a list of all descendants. May be empty if none exist.
+        .. note:: This is a read only property.
+
+        :getter: This is a list of all descendants. May be empty if none exist.
         """
         results = []
         kids = self.children
