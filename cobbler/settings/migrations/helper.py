@@ -94,8 +94,9 @@ def key_get(key: str, settings: dict) -> Setting:
     :param key: The key to get in the form "a.b.c"
     :param settings: The dict to operate on
     :return: The desired key from the settings dict
-    TODO: Check if key does not exist
     """
+    # TODO: Check if key does not exist
+
     if not key:
         raise ValueError("Key must not be empty!")
     new = Setting(key, None)

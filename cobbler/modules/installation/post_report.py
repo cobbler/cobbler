@@ -34,7 +34,7 @@ def run(api, args) -> int:
                  1: name of target or profile
                  2: ip or "?"
     :return: ``0`` or ``1``.
-    :raises CX
+    :raises CX: Raised if the blender result is empty.
     """
     # FIXME: make everything use the logger
 

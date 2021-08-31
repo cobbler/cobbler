@@ -26,13 +26,12 @@ import cobbler.templar as templar
 
 class ManagerModule():
     """
-    Base class for Manager modules located in modules/manager/*.py
+    Base class for Manager modules located in ``modules/manager/*.py``
 
-    These are typically, but not necessarily used to manage systemd services.
-    Enabling can be done via settings manage_* (e.g. manage_dhcp) and restart_*
-    (e.g. restart_dhcp).
-    Different modules could manage same functionality like dhcp can be
-    managed via isc.py or dnsmasq.py (compare with /etc/cobbler/modules.py)
+    These are typically but not necessarily used to manage systemd services.
+    Enabling can be done via settings ``manage_*`` (e.g. ``manage_dhcp``) and ``restart_*`` (e.g. ``restart_dhcp``).
+    Different modules could manage the same functionality like dhcp can be managed via isc.py or dnsmasq.py
+    (compare with ``/etc/cobbler/modules.py``).
     """
 
     @staticmethod
@@ -62,13 +61,13 @@ class ManagerModule():
     def write_configs(self):
         """
         Write module specific config files.
-        E.g. dhcp manager would write /etc/dhcpd.conf here
+        E.g. dhcp manager would write ``/etc/dhcpd.conf`` here
         """
 
     def restart_service(self):
         """
         Write module specific config files.
-        E.g. dhcp manager would write /etc/dhcpd.conf here
+        E.g. dhcp manager would write ``/etc/dhcpd.conf`` here
         """
 
     def regen_ethers(self):

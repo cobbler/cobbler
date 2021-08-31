@@ -68,12 +68,12 @@ def mac_address(mac: str, for_item=True) -> str:
     :param mac: MAC address
     :param for_item: If the check should be performed for an item or not.
     :returns: MAC address
-    :raises ValueError
+    :raises ValueError: Raised in case ``mac`` has an invalid format.
+    :raises TypeError: Raised in case ``mac`` is not a string.
     """
     if not isinstance(mac, str):
         raise TypeError("Invalid input, mac must be a string")
-    else:
-        mac = mac.lower().strip()
+    mac = mac.lower().strip()
 
     if for_item is True:
         # this value has special meaning for items
@@ -97,12 +97,13 @@ def ipv4_address(addr: str) -> str:
 
     :param addr: IPv4 address
     :returns: IPv4 address
-    :raises TypeError, AddressValueError or NetmaskValueError
+    :raises TypeError: Raised if ``addr`` is not a string.
+    :raises AddressValueError: Raised in case ``addr`` is not a valid IPv4 address.
+    :raises NetmaskValueError: Raised in case ``addr`` is not a valid IPv4 netmask.
     """
     if not isinstance(addr, str):
         raise TypeError("Invalid input, addr must be a string")
-    else:
-        addr = addr.strip()
+    addr = addr.strip()
 
     if addr == "":
         return addr
@@ -122,12 +123,13 @@ def ipv4_netmask(addr: str) -> str:
 
     :param addr: IPv4 netmask
     :returns: IPv4 netmask
-    :raises TypeError, AddressValueError or NetmaskValueError
+    :raises TypeError: Raised if ``addr`` is not a string.
+    :raises AddressValueError: Raised in case ``addr`` is not a valid IPv4 address.
+    :raises NetmaskValueError: Raised in case ``addr`` is not a valid IPv4 netmask.
     """
     if not isinstance(addr, str):
         raise TypeError("Invalid input, addr must be a string")
-    else:
-        addr = addr.strip()
+    addr = addr.strip()
 
     if addr == "":
         return addr
@@ -147,12 +149,12 @@ def ipv6_address(addr: str) -> str:
 
     :param addr: IPv6 address
     :returns: The IPv6 address.
-    :raises TypeError or AddressValueError
+    :raises TypeError: Raised if ``addr`` is not a string.
+    :raises AddressValueError: Raised in case ``addr`` is not a valid IPv6 address.
     """
     if not isinstance(addr, str):
         raise TypeError("Invalid input, addr must be a string")
-    else:
-        addr = addr.strip()
+    addr = addr.strip()
 
     if addr == "":
         return addr
@@ -170,7 +172,8 @@ def name_servers(nameservers: Union[str, list], for_item: bool = True) -> Union[
     :param nameservers: string or list of nameserver addresses
     :param for_item: enable/disable special handling for Item objects
     :return: The list of valid nameservers.
-    :raises TypeError or AddressValueError
+    :raises TypeError: Raised if ``nameservers`` is not a string or list.
+    :raises AddressValueError: Raised in case ``nameservers`` is not a valid address.
     """
     if isinstance(nameservers, str):
         nameservers = nameservers.strip()
@@ -204,7 +207,7 @@ def name_servers_search(search: Union[str, list], for_item: bool = True) -> Unio
     :param search: One or more search domains to validate.
     :param for_item: (enable/disable special handling for Item objects)
     :return: The list of valid nameservers.
-    :raises TypeError
+    :raises TypeError: Raised if ``search`` is not a string or list.
     """
     if isinstance(search, str):
         search = search.strip()

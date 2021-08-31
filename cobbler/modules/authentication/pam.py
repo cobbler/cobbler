@@ -117,8 +117,10 @@ PAM_AUTHENTICATE.argtypes = [PamHandle, c_int]
 
 def authenticate(api_handle, username: str, password: str) -> bool:
     """
+    Validate PAM authentication, returning whether the authentication was successful or not.
+
     :param api_handle: Used for resolving the the pam service name and getting the Logger.
-    :param username:The username to log in with.
+    :param username: The username to log in with.
     :param password: The password to log in with.
     :returns: True if the given username and password authenticate for the given service. Otherwise False
     """

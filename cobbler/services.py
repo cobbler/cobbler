@@ -114,14 +114,13 @@ class CobblerSvc:
 
     def ipxe(self, profile=None, image=None, system=None, mac=None, **rest):
         """
-        Generate a iPXE config
+        Generates an iPXE configuration.
 
-        :param profile:
-        :param image
-        :param system:
-        :param mac:
+        :param profile: A profile.
+        :param image: An image.
+        :param system: A system.
+        :param mac: A MAC address.
         :param rest: This parameter is unused.
-        :return:
         """
         self.__xmlrpc_setup()
         if not system and mac:

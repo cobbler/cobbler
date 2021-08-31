@@ -43,7 +43,7 @@ def authenticate(api_handle, username, password) -> bool:
     :param username: The username to authenticate.
     :param password: The password to authenticate.
     :return: True if the ldap server authentication was a success, otherwise false.
-    :raises CX
+    :raises CX: Raised in case the LDAP search bind credentials are missing in the settings.
     """
 
     if not password:

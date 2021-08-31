@@ -90,12 +90,11 @@ class TFTPGen:
         """
         Copy a single file (kernel/initrd) to distro's images directory
 
-        :param  d_file:     distro's kernel/initrd absolut or remote file path value
-        :param  distro_dir: directory (typically in {www,tftp}/images) where to copy the file
-        :param  symlink_ok: whethere it is ok to symlink the file. Typically false in case the file is used by daemons
+        :param d_file:     distro's kernel/initrd absolut or remote file path value
+        :param distro_dir: directory (typically in {www,tftp}/images) where to copy the file
+        :param symlink_ok: whethere it is ok to symlink the file. Typically false in case the file is used by daemons
                             run in chroot environments (tftpd,..)
-        :raises FileNotFoundError
-        :return:            None
+        :raises FileNotFoundError: Raised in case no kernel was found.
         """
         full_path = utils.find_kernel(d_file)
 
@@ -178,13 +177,13 @@ class TFTPGen:
         if not image_based and distro.arch in (enums.Archs.S390, enums.Archs.S390X):
             short_name = system.name.split('.')[0]
             s390_name = 'linux' + short_name[7:10]
-            self.logger.info("Writing s390x pxe config for %s" % short_name)
+            self.logger.info("Writing s390x pxe config for %s", short_name)
             # Always write a system specific _conf and _parm file
             pxe_f = os.path.join(self.bootloc, "s390x", "s_%s" % s390_name)
             conf_f = "%s_conf" % pxe_f
             parm_f = "%s_parm" % pxe_f
 
-            self.logger.info("Files: (conf,param) - (%s,%s)" % (conf_f, parm_f))
+            self.logger.info("Files: (conf,param) - (%s,%s)", conf_f, parm_f)
             blended = utils.blender(self.api, True, system)
             # FIXME: profiles also need this data!
             # gather default kernel_options and default kernel_options_s390x
@@ -229,7 +228,7 @@ class TFTPGen:
                 utils.rmfile(pxe_f)
                 utils.rmfile(conf_f)
                 utils.rmfile(parm_f)
-            self.logger.info("S390x: pxe: [%s], conf: [%s], parm: [%s]" % (pxe_f, conf_f, parm_f))
+            self.logger.info("S390x: pxe: [%s], conf: [%s], parm: [%s]", pxe_f, conf_f, parm_f)
 
             return
 
@@ -253,7 +252,7 @@ class TFTPGen:
                 grub_path = ""
 
             if grub_path == "" and pxe_path == "":
-                self.logger.warning("invalid interface recorded for system (%s,%s)" % (system.name, name))
+                self.logger.warning("invalid interface recorded for system (%s,%s)", system.name, name)
                 continue
 
             if image_based:
@@ -688,7 +687,7 @@ class TFTPGen:
         buffer += self.templar.render(template_data, metadata, None)
 
         if filename is not None:
-            self.logger.info("generating: %s" % filename)
+            self.logger.info("generating: %s", filename)
             # Ensure destination path exists to avoid race condition
             if not os.path.exists(os.path.dirname(filename)):
                 utils.mkdir(os.path.dirname(filename))
@@ -989,7 +988,7 @@ class TFTPGen:
         :param path: TODO: A useless parameter?
         :return: A dict of the destination file names (after variable substitution is done) and the data in the file.
         """
-        self.logger.info("Writing template files for %s" % obj.name)
+        self.logger.info("Writing template files for %s", obj.name)
 
         results = {}
 
@@ -1079,7 +1078,7 @@ class TFTPGen:
             results[dest] = buffer
 
             if write_file:
-                self.logger.info("generating: %s" % dest)
+                self.logger.info("generating: %s", dest)
                 fd = open(dest, "w")
                 fd.write(buffer)
                 fd.close()

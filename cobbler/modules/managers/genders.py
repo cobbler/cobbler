@@ -32,7 +32,7 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
     :param profiles_genders: The profiles which should be included.
     :param distros_genders: The distros which should be included.
     :param mgmtcls_genders: The management classes which should be included.
-    :raises OSError
+    :raises OSError: Raised in case the template could not be read.
     """
 
     templar_inst = cobbler.templar.Templar(config)

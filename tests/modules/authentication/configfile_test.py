@@ -10,9 +10,9 @@ def adjust_hashfunction():
         with open(modulesconf, 'r') as file:
             data = file.readlines()
 
-        print(data[26])
-        data[26] = "hash_algorithm = %s\n" % hashfunction
-        print(data[26])
+        print(data[6])
+        data[6] = "hash_algorithm = %s\n" % hashfunction
+        print(data[6])
 
         with open(modulesconf, 'w') as file:
             file.writelines(data)

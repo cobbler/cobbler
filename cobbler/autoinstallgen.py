@@ -257,7 +257,7 @@ class AutoInstallationGen:
 
         :param sys_name: The system name to generate an autoinstall script for.
         :return: The generated output or an error message with a human readable description.
-        :raises CX
+        :raises CX: Raised in case the system references a missing profile.
         """
         s = self.api.find_system(name=sys_name)
         if s is None:
@@ -342,7 +342,7 @@ class AutoInstallationGen:
 
         :param g: The Profile to generate the script/config for.
         :return: The generated output or an error message with a human readable description.
-        :raises CX
+        :raises CX: Raised in case the profile references a missing distro.
         """
         g = self.api.find_profile(name=g)
         if g is None:

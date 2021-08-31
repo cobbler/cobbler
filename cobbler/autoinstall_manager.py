@@ -40,13 +40,14 @@ class AutoInstallationManager:
         :param for_item: enable/disable special handling for Item objects
         :param new_autoinstall: when set to true new filenames are allowed
         :returns: automatic installation template relative file path
-        :raises ImportError, OSError or ValueError
+        :raises TypeError: Raised in case ``autoinstall`` is not a string.
+        :raises OSError: Raised in case template file not found.
+        :raises ValueError: Raised in case template file is invalid.
         """
 
         if not isinstance(autoinstall, str):
             raise TypeError("Invalid input, autoinstall must be a string")
-        else:
-            autoinstall = autoinstall.strip()
+        autoinstall = autoinstall.strip()
 
         if autoinstall == "":
             # empty autoinstall is allowed (interactive installations)
@@ -150,13 +151,14 @@ class AutoInstallationManager:
         :param snippet: automatic installation snippet relative file path
         :param new_snippet: when set to true new filenames are allowed
         :returns: Snippet if successful otherwise raises an exception.
-        :raises TypeError, ValueError or OSError
+        :raises TypeError: Raised in case ``snippet`` is not a string.
+        :raises ValueError: Raised in case snippet file is invalid.
+        :raises OSError: Raised in case snippet file location is not found.
         """
 
         if not isinstance(snippet, str):
             raise TypeError("Invalid input, snippet must be a string")
-        else:
-            snippet = snippet.strip()
+        snippet = snippet.strip()
 
         if snippet.find("..") != -1:
             raise ValueError("Invalid automated installation snippet file location %s, it must not contain .."
@@ -279,10 +281,9 @@ class AutoInstallationManager:
             for error in errors:
                 (line, col) = error["lineCol"]
                 line -= 1   # we add some lines to the template data, so numbering is off
-                self.logger.warning("Unknown variable found at line %d, column %d: '%s'"
-                                    % (line, col, error["rawCode"]))
+                self.logger.warning("Unknown variable found at line %d, column %d: '%s'", line, col, error["rawCode"])
         elif errors_type == KICKSTART_ERROR:
-            self.logger.warning("Kickstart validation errors: %s" % errors[0])
+            self.logger.warning("Kickstart validation errors: %s", errors[0])
 
     def validate_autoinstall_file(self, obj, is_profile: bool) -> list:
         """
@@ -299,13 +300,13 @@ class AutoInstallationManager:
         # get automatic installation template
         autoinstall = blended["autoinstall"]
         if autoinstall is None or autoinstall == "":
-            self.logger.info("%s has no automatic installation template set, skipping" % obj.name)
+            self.logger.info("%s has no automatic installation template set, skipping", obj.name)
             return [True, 0, ()]
 
         # generate automatic installation file
         os_version = blended["os_version"]
         self.logger.info("----------------------------")
-        self.logger.debug("osversion: %s" % os_version)
+        self.logger.debug("osversion: %s", os_version)
         if is_profile:
             self.generate_autoinstall(profile=obj)
         else:
@@ -313,8 +314,7 @@ class AutoInstallationManager:
         last_errors = self.autoinstallgen.get_last_errors()
         if len(last_errors) > 0:
             return [False, TEMPLATING_ERROR, last_errors]
-        else:
-            return [True, 0, ()]
+        return [True, 0, ()]
 
     def validate_autoinstall_files(self) -> bool:
         """
