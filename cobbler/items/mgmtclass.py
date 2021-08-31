@@ -34,6 +34,12 @@ class Mgmtclass(item.Item):
     COLLECTION_TYPE = "mgmtclass"
 
     def __init__(self, api, *args, **kwargs):
+        """
+        Constructor.
+
+        :param api:
+        :type api:
+        """
         super().__init__(api, *args, **kwargs)
         self._is_definition = False
         self._params = {}
@@ -83,16 +89,17 @@ class Mgmtclass(item.Item):
     @property
     def packages(self) -> list:
         """
-        TODO
+        Packages property.
 
-        :return:
+        :getter: Returns the value for ``packages``.
+        :setter: Sets the value for the property ``packagges``.
         """
         return self._packages
 
     @packages.setter
     def packages(self, packages: list):
         """
-        Setter for the packages of the managementclass.
+        Setter for the packages of the management class.
 
         :param packages: A string or list which contains the new packages.
         """
@@ -101,9 +108,10 @@ class Mgmtclass(item.Item):
     @property
     def files(self) -> list:
         """
-        TODO
+        Files property.
 
-        :return:
+        :getter: Returns the value for ``files``.
+        :setter: Sets the value for the property ``files``.
         """
         return self._files
 
@@ -119,32 +127,33 @@ class Mgmtclass(item.Item):
     @property
     def params(self) -> dict:
         """
-        TODO
+        Params property.
 
-        :return:
+        :getter: Returns the value for ``params``.
+        :setter: Sets the value for the property ``params``. Raises a TypeError in case of invalid parameters.
         """
         return self._params
 
     @params.setter
     def params(self, params: dict):
         """
-        Setter for the params of the managementclass.
+        Setter for the params of the management class.
 
         :param params: The new params for the object.
-        :raises TypeError
+        :raises TypeError: Raised in case ``params`` is invalid.
         """
         (success, value) = utils.input_string_or_dict(params, allow_multiples=True)
         if not success:
             raise TypeError("invalid parameters")
-        else:
-            self._params = value
+        self._params = value
 
     @property
     def is_definition(self) -> bool:
         """
-        TODO
+        Is_definition property.
 
-        :return:
+        :getter: Returns the value for ``is_definition``.
+        :setter: Sets the value for property ``is_defintion``. Raises a TypeError if not from type boolean.
         """
         return self._is_definition
 
@@ -154,6 +163,7 @@ class Mgmtclass(item.Item):
         Setter for property ``is_defintion``.
 
         :param isdef: The new value for the property.
+        :raises TypeError: Raised in case ``isdef`` is not a boolean.
         """
         isdef = utils.input_boolean(isdef)
         if not isinstance(isdef, bool):
@@ -163,19 +173,21 @@ class Mgmtclass(item.Item):
     @property
     def class_name(self) -> str:
         """
-        TODO
+        The name of the management class.
 
-        :return:
+        :getter: Returns the class name.
+        :setter: Sets the name of the management class. Raises a TypeError or a Value Error.
         """
         return self._class_name
 
     @class_name.setter
     def class_name(self, name: str):
         """
-        Setter for the name of the managementclass.
+        Setter for the name of the management class.
 
         :param name: The new name of the class. This must not contain "_", "-", ".", ":" or "+".
-        :raises TypeError or ValueError
+        :raises TypeError: Raised in case ``name`` is not a string.
+        :raises ValueError: Raised in case ``name`` contains invalid characters.
         """
         if not isinstance(name, str):
             raise TypeError("class name must be a string")
