@@ -28,6 +28,9 @@ class Resource(item.Item):
     """
 
     def __init__(self, api, *args, **kwargs):
+        """
+        Constructor.
+        """
         super().__init__(api, *args, **kwargs)
         self._action = enums.ResourceAction.CREATE
         self._mode = ""
@@ -68,9 +71,10 @@ class Resource(item.Item):
     @property
     def action(self) -> enums.ResourceAction:
         """
-        TODO
+        Action property.
 
-        :return:
+        :getter: Return the value for ``action``.
+        :setter: Sets the value for property ``action``. Raises a ValueError or a TypeError.
         """
         return self._action
 
@@ -82,6 +86,8 @@ class Resource(item.Item):
 
         :param action: The action which should be executed for the management resource. Must be of "create" or
                        "remove". Parameter is case-insensitive.
+        :raise ValueError: Raised in case wrong value is provided.
+        :raise TypeError: Raised in case ``action`` is no ``enums.ResourceAction``.
         """
         # Convert an action which came in as a string
         if isinstance(action, str):
@@ -97,9 +103,10 @@ class Resource(item.Item):
     @property
     def group(self) -> str:
         """
-        TODO
+        Group property.
 
-        :return:
+        :getter: Return the value for ``group``.
+        :setter: Sets the value for property ``group``.
         """
         return self._group
 
@@ -109,6 +116,7 @@ class Resource(item.Item):
         Unix group ownership of a file or directory.
 
         :param group: The group which the resource will belong to.
+        :raise TypeError: Raised in case ``group`` is no string. Raises a TypeError.
         """
         if not isinstance(group, str):
             raise TypeError("Field group of object resource needs to be of type str!")
@@ -117,9 +125,10 @@ class Resource(item.Item):
     @property
     def mode(self) -> str:
         """
-        TODO
+        Mode property.
 
-        :return:
+        :getter: Return the value for ``mode``.
+        :setter: Sets the value for property ``mode``. Raises a TypeError.
         """
         return self._mode
 
@@ -129,6 +138,7 @@ class Resource(item.Item):
         Unix file permission mode ie: '0644' assigned to file and directory resources.
 
         :param mode: The mode which the resource will have.
+        :raise TypeError: Raised in case ``mode`` is no string.
         """
         if not isinstance(mode, str):
             raise TypeError("Field mode in object resource needs to be of type str!")
@@ -137,9 +147,10 @@ class Resource(item.Item):
     @property
     def owner(self) -> str:
         """
-        TODO
+        Owner property.
 
-        :return:
+        :getter: Return the value for ``owner``.
+        :setter: Sets the value for property ``owner``. Raises a TypeError.
         """
         return self._owner
 
@@ -149,6 +160,7 @@ class Resource(item.Item):
         Unix owner of a file or directory.
 
         :param owner: The owner whom the resource will belong to.
+        :raise TypeError: Raised in case ``owner`` is no string.
         """
         if not isinstance(owner, str):
             raise TypeError("Field owner in object resource needs to be of type str!")
@@ -157,9 +169,10 @@ class Resource(item.Item):
     @property
     def path(self) -> str:
         """
-        TODO
+        Path property.
 
-        :return:
+        :getter: Return the value for ``path``.
+        :setter: Sets the value for property ``path``. Raises a TypeError.
         """
         return self._path
 
@@ -169,6 +182,7 @@ class Resource(item.Item):
         File path used by file and directory resources.
 
         :param path: Normally an absolute path of the file or directory to create or manage.
+        :raise TypeError: Raised in case ``path`` is no string.
         """
         if not isinstance(path, str):
             raise TypeError("Field path in object resource needs to be of type str!")
@@ -177,9 +191,10 @@ class Resource(item.Item):
     @property
     def template(self) -> str:
         """
-        TODO
+        Template property.
 
-        :return:
+        :getter: Return the value for ``template``.
+        :setter: Sets the value for property ``template``. Raises a TypeError.
         """
         return self._template
 
@@ -190,6 +205,7 @@ class Resource(item.Item):
         All templates have access to flatten autoinstall_meta data.
 
         :param template: The template to use for the resource.
+        :raise TypeError: Raised in case ``template`` is no string.
         """
         if not isinstance(template, str):
             raise TypeError("Field template in object resource needs to be of type str!")
