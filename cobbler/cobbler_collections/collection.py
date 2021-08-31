@@ -338,7 +338,8 @@ class Collection:
         :param check_for_duplicate_names: If the name of an object should be unique or not.
         :param check_for_duplicate_netinfo: This checks for duplicate network information. This only has an effect on
                                             systems.
-        :raises TypError or ValueError
+        :raises TypError: Raised in case ``ref`` is None.
+        :raises ValueError: Raised in case the name of ``ref`` is empty.
         """
         if ref is None:
             raise TypeError("Unable to add a None object")

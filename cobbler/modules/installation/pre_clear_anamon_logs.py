@@ -30,7 +30,7 @@ def register() -> str:
     This pure python trigger acts as if it were a legacy shell-trigger, but is much faster. The return of this method
     indicates the trigger type.
 
-    :return: Always: "/var/lib/cobbler/triggers/install/pre/*"
+    :return: Always ``/var/lib/cobbler/triggers/install/pre/*``
     """
     return "/var/lib/cobbler/triggers/install/pre/*"
 
@@ -43,7 +43,7 @@ def run(api, args) -> int:
     :param api: The api to resolve metadata with.
     :param args: This should be a list as described above.
     :return: "0" on success.
-    :raises CX
+    :raises CX: Raised in case of missing arguments.
     """
 
     # FIXME: use the logger

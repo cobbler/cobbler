@@ -71,7 +71,7 @@ class Templar:
         whitelist the imports that we allow.
 
         :param data: The Cheetah code to check.
-        :raises CX
+        :raises CX: Raised in case there could be a pontentially insecure import in the template.
         """
         lines = data.split("\n")
         for line in lines:
@@ -166,7 +166,8 @@ class Templar:
         :param raw_data: Is the template code which is not rendered into the result.
         :param search_table: is a dict of metadata keys and values (though results are always returned)
         :return: The rendered Cheetah Template.
-        :raises SyntaxError or CX
+        :raises SyntaxError: Raised in case the NFS paths has an invalid syntax.
+        :raises CX: Raised in case there was an error when templating.
         """
 
         self.check_for_invalid_imports(raw_data)
@@ -183,9 +184,9 @@ class Templar:
                     rest = search_table["tree"][6:]  # strip off "nfs://" part
                     try:
                         (server, directory) = rest.split(":", 2)
-                    except Exception as e:
+                    except Exception as error:
                         raise SyntaxError("Invalid syntax for NFS path given during import: %s" % search_table["tree"])\
-                            from e
+                            from error
                     line = "nfs --server %s --dir %s" % (server, directory)
                     # But put the URL part back in so koan can still see what the original value was
                     line += "\n" + "#url --url=%s" % search_table["tree"]
@@ -221,8 +222,8 @@ class Templar:
             if self.last_errors:
                 self.logger.warning("errors were encountered rendering the template")
                 self.logger.warning("\n" + pprint.pformat(self.last_errors))
-        except Exception as e:
-            self.logger.error(utils.cheetah_exc(e))
+        except Exception as error:
+            self.logger.error(utils.cheetah_exc(error))
             raise CX("Error templating file, check cobbler.log for more details")
 
         return data_out

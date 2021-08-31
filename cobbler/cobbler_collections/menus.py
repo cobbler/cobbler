@@ -41,9 +41,9 @@ class Menus(collection.Collection):
         """
         Return a Menu forged from item_dict
 
-        :param api: TODO
-        :param item_dict: TODO
-        :return:
+        :param api: The cobblerd API.
+        :param item_dict: The seed data.
+        :return: A new menu instance.
         """
         new_menu = menu.Menu(api)
         new_menu.from_dict(item_dict)
@@ -59,7 +59,7 @@ class Menus(collection.Collection):
         :param with_sync: TODO
         :param with_triggers: TODO
         :param recursive: TODO
-        :raises CX
+        :raises CX: Raised in case you want to delete a none existing menu.
         """
         name = name.lower()
         for profile in self.api.profiles():

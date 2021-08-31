@@ -64,7 +64,7 @@ def __check_auth_token(xmlrpc_client, api_handle, username, password):
     except Error:
         logger = api_handle.logger
         logger.error("Error while checking authentication token.")
-        log_exc(logger)
+        log_exc()
         return False
 
 
@@ -88,7 +88,7 @@ def __check_user_login(xmlrpc_client, api_handle, user_enabled: bool, username, 
     except Error:
         logger = api_handle.logger
         logger.error("Error while checking user authentication data.")
-        log_exc(logger)
+        log_exc()
     return False
 
 
@@ -103,7 +103,7 @@ def authenticate(api_handle, username: str, password: str) -> bool:
     :param username: The username to authenticate against spacewalk/uyuni/SUSE Manager
     :param password: The password to authenticate against spacewalk/uyuni/SUSE Manager
     :return: True if it succeeded, False otherwise.
-    :raises CX
+    :raises CX: Raised in case ``api_handle`` is missing.
     """
 
     if api_handle is None:
@@ -124,7 +124,6 @@ def authenticate(api_handle, username: str, password: str) -> bool:
             if __check_auth_token(client, api_handle, username, password) != 1:
                 return __check_user_login(client, api_handle, user_enabled, username, password)
             return True
-        else:
-            # It's an older version of spacewalk, so just try the username/pass.
-            # OR: We know for sure it's not a token because it's not lowercase hex.
-            return __check_user_login(client, api_handle, user_enabled, username, password)
+        # It's an older version of spacewalk, so just try the username/pass.
+        # OR: We know for sure it's not a token because it's not lowercase hex.
+        return __check_user_login(client, api_handle, user_enabled, username, password)

@@ -201,6 +201,7 @@ class CobblerAPI:
         :param msg: The message to log.
         :param args: Optional message which gets appended to the main msg with a ';'.
         :param debug: Weather the logged message is a debug message (true) or info (false).
+
         .. deprecated:: 3.3.0
            We should use the standard logger.
         """

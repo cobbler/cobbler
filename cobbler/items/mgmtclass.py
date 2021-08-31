@@ -63,7 +63,6 @@ class Mgmtclass(item.Item):
         Initializes the object with attributes from the dictionary.
 
         :param dictionary: The dictionary with values.
-        raises CX
         """
         self._remove_depreacted_dict_keys(dictionary)
         super().from_dict(dictionary)
@@ -72,7 +71,7 @@ class Mgmtclass(item.Item):
         """
         Check if this object is in a valid state. This currently checks only if the name is present.
 
-        :raises CX
+        :raises CX: Raised in case no name is given.
         """
         if not self.name:
             raise CX("name is required")

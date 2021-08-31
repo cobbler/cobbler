@@ -67,12 +67,12 @@ are not interested in network booting via PXE and just want to use Koan to insta
 ones, DHCP configuration can be totally ignored. Koan also has a live CD (see Koan's manpage) capability that can be
 used to simulate PXE environments.
 
-Autoinstallation (Autoyast/Kickstart)
+Autoinstallation (AutoYaST/Kickstart)
 #####################################
 
 For help in building kickstarts, try using the ``system-config-kickstart`` tool, or install a new system and look at the
 ``/root/anaconda-ks.cfg`` file left over from the installer. General kickstart questions can also be asked at
-kickstart-list@redhat.com. Cobbler ships some autoinstall templates in /etc/cobbler that may also be helpful.
+kickstart-list@redhat.com. Cobbler ships some autoinstall templates in ``/etc/cobbler`` that may also be helpful.
 
 For AutoYaST guides and help please refer to `the opensuse project <https://doc.opensuse.org/projects/autoyast/>`_.
 
@@ -92,3 +92,9 @@ Options
 
 -l --log-level
     Choose a loglevel for the application (currently has no effect).
+
+--c --config
+    The location of the Cobbler configuration file.
+
+--disable-automigration
+    If given, do no execute automigration from older settings filles to the most recent.

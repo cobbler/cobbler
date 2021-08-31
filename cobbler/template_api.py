@@ -142,7 +142,7 @@ class CobblerTemplate(generate_cheetah_macros()):
 
     def read_snippet(self, file: str) -> Optional[str]:
         """
-        Locate the appropriate snippet for the current system and profile and read it's contents.
+        Locate the appropriate snippet for the current system and profile and read its contents.
 
         This file could be located in a remote location.
 
@@ -150,10 +150,11 @@ class CobblerTemplate(generate_cheetah_macros()):
 
         :param file: The name of the file to read. Depending on the context this gets expanded automatically.
         :return: None (if the snippet file was not found) or the string with the read snippet.
-        :raises AttributeError or FileNotFoundError
+        :raises AttributeError: Raised in case ``autoinstall_snippets_dir`` is missing.
+        :raises FileNotFoundError: Raised in case some files are not found.
         """
         if not self.varExists('autoinstall_snippets_dir'):
-            raise AttributeError("\"autoinstall_snippets_dir\" is required to find Snippets")
+            raise AttributeError("\"autoinstall_snippets_dir\" is required to find snippets")
 
         for snippet_class in ('system', 'profile', 'distro'):
             if self.varExists('%s_name' % snippet_class):

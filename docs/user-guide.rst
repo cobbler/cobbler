@@ -5,7 +5,6 @@ User Guide
 .. toctree::
    :maxdepth: 2
 
-   Web User Interface <user-guide/web-interface>
    Configuration Management Integrations <user-guide/configuration-management-integrations>
    Automatic Windows installation with Cobbler <user-guide/wingen>
    Extending Cobbler <user-guide/extending-cobbler>
@@ -418,3 +417,10 @@ Containerization
 
 We have a test-image which you can find in the Cobbler repository and an old image made by the community:
 https://github.com/osism/docker-cobbler
+
+
+Web-Interface
+#############
+
+Please be patient until we have time with the 4.0.0 release to create a new web UI. The old Django based was preventing
+needed change inside the internals in Cobbler.

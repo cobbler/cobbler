@@ -87,13 +87,13 @@ def die(msg: str):
     this is not a background op.
 
     :param msg: The message to send for raising the exception
-    :raises CX
+    :raises CX: Raised in all cases with ``msg``.
     """
 
     # log the exception once in the per-task log or the main log if this is not a background op.
     try:
         raise CX(msg)
-    except:
+    except CX:
         log_exc()
 
     # now re-raise it so the error can fail the operation
@@ -230,7 +230,7 @@ def get_random_mac(api_handle, virt_type="xenpv") -> str:
     :param api_handle: The main Cobbler api instance.
     :param virt_type: The virtualization provider. Currently possible is 'vmware', 'xen', 'qemu', 'kvm'.
     :returns: MAC address string
-    :raises CX
+    :raises CX: Raised in case unsupported ``virt_type`` given.
     """
     if virt_type.startswith("vmware"):
         mac = [
@@ -460,7 +460,7 @@ def input_string_or_list(options: Union[str, list]) -> Union[list, str]:
     :param options: The object to split into a list.
     :return: str when this functions get's passed <<inherit>>. if option is delete then an empty list is returned.
              Otherwise this function tries to return the arg option or tries to split it into a list.
-             :raises TypeError
+    :raises TypeError: Raised in case the input type is wrong.
     """
     if options == enums.VALUE_INHERITED:
         return enums.VALUE_INHERITED
@@ -484,7 +484,7 @@ def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
     :param options: The str or dict to convert.
     :param allow_multiples: True (default) to allow multiple identical keys, otherwise set this false explicitly.
     :return: A tuple of True and a dict.
-    :raises TypeError
+    :raises TypeError: Raised in case the input type is wrong.
     """
 
     if options == "<<inherit>>":
@@ -903,7 +903,7 @@ def run_triggers(api, ref, globber, additional: list = None):
                 will be called with no argumenets.
     :param globber: is a wildcard expression indicating which triggers to run.
     :param additional: Additional arguments to run the triggers with.
-    :raises CX
+    :raises CX: Raised in case the trigger failed.
     """
     logger.debug("running python triggers from %s", globber)
     modules = api.get_modules_in_category(globber)
@@ -1115,7 +1115,7 @@ def linkfile(src: str, dst: str, symlink_ok: bool = False, cache: bool = True, a
     :param cache: If it is okay to use a cached file instead of the real one.
     :param api: This parameter is needed to check if a file can be hardlinked. This method fails if this parameter is
                 not present.
-    :raises CX
+    :raises CX: Raised in case the API is not given.
     """
 
     if api is None:
@@ -1172,7 +1172,7 @@ def copyfile(src: str, dst: str):
 
     :param src: The source file. This may also be a folder.
     :param dst: The destination for the file or folder.
-    :raises OSError
+    :raises OSError: Raised in case ``src`` could not be read.
     """
     try:
         logger.info("copying: %s -> %s", src, dst)
@@ -1198,15 +1198,15 @@ def copyremotefile(src: str, dst1: str, api=None):
     :param src: The remote file URI.
     :param dst1: The copy destination on the local filesystem.
     :param api: This parameter is not used currently.
-    :raises OSError
+    :raises OSError: Raised in case an error occurs when fetching or writing the file.
     """
     try:
         logger.info("copying: %s -> %s", src, dst1)
         srcfile = urllib.request.urlopen(src)
         with open(dst1, 'wb') as output:
             output.write(srcfile.read())
-    except Exception as e:
-        raise OSError("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e))
+    except Exception as error:
+        raise OSError("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, error)) from error
 
 
 def copyfile_pattern(pattern, dst, require_match: bool = True, symlink_ok: bool = False, cache: bool = True, api=None):
@@ -1218,8 +1218,8 @@ def copyfile_pattern(pattern, dst, require_match: bool = True, symlink_ok: bool 
     :param require_match: If the glob pattern does not find files should an error message be thrown or not.
     :param symlink_ok: If it is okay to just use a symlink to link the file to the destination.
     :param cache: If it is okay to use a file from the cache (which could be possibly newer) or not.
-    :param api:
-    :raises CX
+    :param api: Passed to ``linkfile()``.
+    :raises CX: Raised in case files not found according to ``pattern``.
     """
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
@@ -1261,19 +1261,18 @@ def rmtree(path: str) -> Optional[bool]:
 
     :param path: The directory or folder to delete.
     :return: May possibly return true on success or may return None on success.
-    :raises CX
+    :raises CX: Raised in case ``path`` does not exist.
     """
     # TODO: Obsolete bool return value
     try:
         if os.path.isfile(path):
             return rmfile(path)
-        else:
-            logger.info("removing: %s", path)
-            return shutil.rmtree(path, ignore_errors=True)
+        logger.info("removing: %s", path)
+        return shutil.rmtree(path, ignore_errors=True)
     except OSError as ioe:
         log_exc()
-        if not ioe.errno == errno.ENOENT:  # doesn't exist
-            raise CX("Error deleting %s" % path)
+        if ioe.errno != errno.ENOENT:  # doesn't exist
+            raise CX("Error deleting %s" % path) from ioe
         return True
 
 
@@ -1294,16 +1293,16 @@ def mkdir(path, mode=0o755):
 
     :param path: The path to create the directory at.
     :param mode: The mode to create the directory with.
-    :raises CX
+    :raises CX: Raised in case creating the directory fails with error code 17.
     """
     try:
         logger.info("mkdir: %s", path)
-        return os.makedirs(path, mode)
-    except OSError as oe:
+        os.makedirs(path, mode)
+    except OSError as os_error:
         # already exists (no constant for 17?)
-        if not oe.errno == 17:
+        if os_error.errno != 17:
             log_exc()
-            raise CX("Error creating %s" % path)
+            raise CX("Error creating %s" % path) from os_error
 
 
 def path_tail(apath, bpath) -> str:

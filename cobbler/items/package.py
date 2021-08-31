@@ -75,7 +75,6 @@ class Package(resource.Resource):
         Initializes the object with attributes from the dictionary.
 
         :param dictionary: The dictionary with values.
-        raises CX
         """
         self._remove_depreacted_dict_keys(dictionary)
         super().from_dict(dictionary)

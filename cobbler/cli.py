@@ -961,7 +961,8 @@ class CobblerCLI:
         :param object_type: The object type to execute an action for.
         :param object_action: The action to execute.
         :return: Depending on the object and action.
-        :raises NotImplementedError or RuntimeError
+        :raises NotImplementedError:
+        :raises RuntimeError:
         """
         # if assigned, we must tail the logfile
         task_id = -1
