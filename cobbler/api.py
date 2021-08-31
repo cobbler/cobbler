@@ -1746,7 +1746,7 @@ class CobblerAPI:
 
         :return: The return code of the subprocess call which actually hardlinks the files.
         """
-        linker = hardlink.HardLinker()
+        linker = hardlink.HardLinker(api=self)
         return linker.run()
 
     # ==========================================================================

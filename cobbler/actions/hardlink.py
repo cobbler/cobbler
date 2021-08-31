@@ -1,38 +1,33 @@
 """
 Hard links Cobbler content together to save space.
-
-Copyright 2009, Red Hat, Inc and Others
-Michael DeHaan <michael.dehaan AT gmail>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301  USA
 """
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Copyright 2009, Red Hat, Inc and Others
+# SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
+# SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
+# SPDX-FileCopyrightText: Copyright SUSE LLC
+
 import logging
 import os
+
 from cobbler import utils
 
 
 class HardLinker:
 
-    def __init__(self):
+    def __init__(self, api=None):
         """
         Constructor
+
+        :param api: The API to resolve information with.
         """
-        self.hardlink = None
+        if api is None:
+            raise ValueError("cobbler hardlink requires the Cobbler-API for resolving the root folders.")
+        self.api = api
+        self.hardlink = ""
         self.logger = logging.getLogger()
         self.family = utils.get_family()
+        self.webdir = self.api.settings().webdir
 
         # Getting the path to hardlink
         for possible_location in ["/usr/bin/hardlink", "/usr/sbin/hardlink"]:
@@ -41,33 +36,23 @@ class HardLinker:
         if not self.hardlink:
             utils.die("please install 'hardlink' to use this feature")
 
-        # Setting the args for hardlink accodring to the distribution
+        # Setting the args for hardlink according to the distribution. Must end with a space!
         if self.family == "debian":
-            self.hardlink_args = "-f -p -o -t -v /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror"
+            hardlink_args = "-f -p -o -t -v "
         elif self.family == "suse":
-            self.hardlink_args = "-f -v /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror"
+            hardlink_args = "-f -v "
         else:
-            self.hardlink_args = "-c -v /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror"
-        self.hardlink_cmd = "%s %s" % (self.hardlink, self.hardlink_args)
+            hardlink_args = "-c -v "
+        self.hardlink_cmd = "%s %s %s/distro_mirror %s/repo_mirror" \
+                            % (self.hardlink, hardlink_args, self.webdir, self.webdir)
 
     def run(self):
         """
         Simply hardlinks directories that are Cobbler managed.
-        This is a /very/ simple command but may grow more complex
-        and intelligent over time.
         """
-
-        # FIXME: if these directories become configurable some changes will be required here.
-
         self.logger.info("now hardlinking to save space, this may take some time.")
 
-        rc = utils.subprocess_call(self.hardlink_cmd, shell=True)
-        # FIXME: how about settings? (self.settings.webdir)
-        webdir = "/var/www/cobbler"
-        if os.path.exists("/srv/www"):
-            webdir = "/srv/www/cobbler"
+        utils.subprocess_call(self.hardlink_cmd, shell=True)
+        hardlink_cmd = "%s -c -v %s/distro_mirror %s/repo_mirror" % (self.hardlink, self.webdir, self.webdir)
 
-        rc = utils.subprocess_call(self.hardlink + " -c -v " + webdir + "/distro_mirror /var/www/cobbler/repo_mirror",
-                                   shell=True)
-
-        return rc
+        return utils.subprocess_call(hardlink_cmd, shell=True)
