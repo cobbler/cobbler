@@ -357,7 +357,7 @@ echo "nameserver $nameserver" >>/etc/resolv.conf
 ## the old files with the new ones in the working directory
 ## This stops unneccesary (and time consuming) DHCP queries
 ## during the network initialization
-sed -i 's/ONBOOT=yes/ONBOOT=no/g' /etc/sysconfig/network-scripts/ifcfg-eth*
+sed -i 's/ONBOOT=\("\)\?yes\("\)\?/ONBOOT=\1no\2/g' /etc/sysconfig/network-scripts/ifcfg-eth*
 
 ## Move all staged files to their final location
     #for $iname in $ikeys
