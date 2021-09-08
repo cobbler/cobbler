@@ -111,7 +111,7 @@ class Profile(item.Item):
         """
         Check if the profile is valid. This checks for an existing name and a distro as a conceptual parent.
 
-        :raises CX
+        :raises CX: In case the distro or name is not present.
         """
         # name validation
         if not self.name:
@@ -143,11 +143,19 @@ class Profile(item.Item):
 
     @property
     def parent(self) -> Optional[item.Item]:
-        """
+        r"""
+        Instead of a ``--distro``, set the parent of this object to another profile and use the values from the parent
+        instead of this one where the values for this profile aren't filled in, and blend them together where they
+        are dictionaries. Basically this enables profile inheritance. To use this, the object MUST have been
+        constructed with ``is_subobject=True`` or the default values for everything will be screwed up and this will
+        likely NOT work. So, API users -- make sure you pass ``is_subobject=True`` into the constructor when using this.
+
         Return object next highest up the tree. If this property is not set it falls back to the value of the
         ``distro``. In case neither distro nor parent is set, it returns None (which would make the profile invalid).
 
-        :return:
+        :getter: The parent object which can be either another profile, a distro or None in case the object could not be
+                 resolved.
+        :setter: The name of the parent object. Might throw a ``CX`` in case the object could not be found.
         """
         if not self._parent:
             parent = self.distro
@@ -161,14 +169,10 @@ class Profile(item.Item):
     @parent.setter
     def parent(self, parent: str):
         r"""
-        Instead of a ``--distro``, set the parent of this object to another profile and use the values from the parent
-        instead of this one where the values for this profile aren't filled in, and blend them together where they
-        are dictionaries. Basically this enables profile inheritance. To use this, the object MUST have been
-        constructed with ``is_subobject=True`` or the default values for everything will be screwed up and this will
-        likely NOT work. So, API users -- make sure you pass ``is_subobject=True`` into the constructor when using this.
+        Setter for the ``parent`` property.
 
         :param parent: The name of the parent object.
-        :raises CX
+        :raises CX: In case self parentage is found or the profile given could not be found.
         """
         old_parent = self.parent
         if isinstance(old_parent, item.Item) and self.name in old_parent.children:

@@ -781,8 +781,8 @@ class System(Item):
 
     @parent.setter
     def parent(self, value: str):
-        """
-        TODO
+        r"""
+        Setter for the ``parent`` property.
 
         :param value: The name of a profile, an image or another System.
         :raises TypeError: In case value was not of type ``str``.
@@ -811,7 +811,9 @@ class System(Item):
 
     def check_if_valid(self):
         """
-        :raises CX
+        Checks if the current item passes logical validation.
+
+        :raises CX: In case name is missing. Additionally either image or profile is required.
         """
         if self.name is None or self.name == "":
             raise CX("name is required")
@@ -825,10 +827,12 @@ class System(Item):
 
     @property
     def interfaces(self) -> Dict[str, NetworkInterface]:
-        """
-        TODO
+        r"""
+        Represents all interfaces owned by the system.
 
-        :return:
+        :getter: The interfaces present. Has at least the ``default`` one.
+        :setter: Accepts not only the correct type but also a dict with dicts which will then be converted by the
+                 setter.
         """
         return self._interfaces
 
@@ -837,7 +841,7 @@ class System(Item):
         """
         This methods needs to be able to take a dictionary from ``make_clone()``
 
-        :param value:
+        :param value: The new interfaces.
         """
         if not isinstance(value, dict):
             raise TypeError("interfaces must be of type dict")
@@ -868,10 +872,11 @@ class System(Item):
             self.interfaces.pop(name)
 
     def rename_interface(self, old_name: str, new_name: str):
-        """
+        r"""
         Used to rename an interface.
 
-        :raises CX
+        :raises TypeError: In case on of the params was not a ``str``.
+        :raises ValueError: In case the name for the old interface does not exist or the new name does.
         """
         if not isinstance(old_name, str):
             raise TypeError("The old_name of the interface must be of type str")

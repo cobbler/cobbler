@@ -115,20 +115,22 @@ class Repo(item.Item):
 
     @property
     def mirror(self) -> str:
-        """
-        TODO
+        r"""
+        A repo is (initially, as in right now) is something that can be rsynced. reposync/repotrack integration over
+        HTTP might come later.
 
-        :return:
+        :getter: The mirror uri.
+        :setter: May raise a ``TypeError`` in case we run into
         """
         return self._mirror
 
     @mirror.setter
     def mirror(self, mirror: str):
-        """
-        A repo is (initially, as in right now) is something that can be rsynced.
-        reposync/repotrack integration over HTTP might come later.
+        r"""
+        Setter for the mirror property.
 
         :param mirror: The mirror URI.
+        :raises TypeError: In case mirror is not of type ``str``.
         """
         if not isinstance(mirror, str):
             raise TypeError("Field mirror of object repo needs to be of type str!")
@@ -142,19 +144,23 @@ class Repo(item.Item):
 
     @property
     def mirror_type(self) -> enums.MirrorType:
-        """
-        TODO
+        r"""
+        Override the mirror_type used for reposync
 
-        :return:
+        :getter: The mirror type. Is one of the predefined ones.
+        :setter: Hand over a str or enum type value to this. May raise ``TypeError`` or ``ValueError`` in case there are
+                 conversion or type problems.
         """
         return self._mirror_type
 
     @mirror_type.setter
     def mirror_type(self, mirror_type: Union[str, enums.MirrorType]):
-        """
-        Override the mirror_type used for reposync
+        r"""
+        Setter for the ``mirror_type`` property.
 
         :param mirror_type: The new mirror_type which will be used.
+        :raises TypeError: In case the value was not of the enum type.
+        :raises ValueError: In case the conversion from str to enum type was not possible.
         """
         # Convert an mirror_type which came in as a string
         if isinstance(mirror_type, str):
@@ -169,19 +175,21 @@ class Repo(item.Item):
 
     @property
     def keep_updated(self) -> bool:
-        """
-        TODO
+        r"""
+        This allows the user to disable updates to a particular repo for whatever reason.
 
-        :return:
+        :getter: True in case the repo is updated automatically and False otherwise.
+        :setter: Is auto-converted to a bool via multiple types. Raises a ``TypeError`` if this was not possible.
         """
         return self._keep_updated
 
     @keep_updated.setter
     def keep_updated(self, keep_updated: bool):
         """
-        This allows the user to disable updates to a particular repo for whatever reason.
+        Setter for the keep_updated property.
 
-        :param keep_updated: This may be a bool-like value if the repository shall be keept up to date or not.
+        :param keep_updated: This may be a bool-like value if the repository shall be kept up to date or not.
+        :raises TypeError: In case the conversion to a bool was unsuccessful.
         """
         keep_updated = utils.input_boolean(keep_updated)
         if not isinstance(keep_updated, bool):
@@ -190,10 +198,11 @@ class Repo(item.Item):
 
     @property
     def yumopts(self) -> dict:
-        """
-        TODO
+        r"""
+        Options for the yum tool. Should be presented in the same way as the ``kernel_options``.
 
-        :return:
+        :getter: The dict with the parsed options.
+        :setter: Either the dict or a str which is then parsed. If parsing is unsuccessful then a ValueError is raised.
         """
         return self._yumopts
 
@@ -202,8 +211,8 @@ class Repo(item.Item):
         """
         Kernel options are a space delimited list.
 
-        :param options: Something like 'a=b c=d e=f g h i=j' or a dictionary.
-        :raises CX
+        :param options: Something like ``a=b c=d e=f g h i=j`` or a dictionary.
+        :raises ValueError: In case the presented data could not be parsed into a dictionary.
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
@@ -213,20 +222,21 @@ class Repo(item.Item):
 
     @property
     def rsyncopts(self) -> dict:
-        """
-        TODO
+        r"""
+        Options for ``rsync`` when being used for repo management.
 
-        :return:
+        :getter: The options to apply to the generated ones.
+        :setter: A str or dict to replace the old options with. If the str can't be parsed we throw a ``ValueError``.
         """
         return self._rsyncopts
 
     @rsyncopts.setter
     def rsyncopts(self, options: Union[str, dict]):
         """
-        rsync options are a space delimited list
+        Setter for the ``rsyncopts`` property.
 
         :param options: Something like '-a -S -H -v'
-        :raises CX
+        :raises ValueError: In case the options provided can't be parsed.
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
@@ -237,19 +247,20 @@ class Repo(item.Item):
     @property
     def environment(self) -> dict:
         """
-        TODO
+        Yum can take options from the environment. This puts them there before each reposync.
 
-        :return:
+        :getter: The options to be attached to the environment.
+        :setter: May raise a ``ValueError`` in case the data provided is not parsable.
         """
         return self._environment
 
     @environment.setter
     def environment(self, options: Union[str, dict]):
-        """
-        Yum can take options from the environment. This puts them there before each reposync.
+        r"""
+        Setter for the ``environment`` property.
 
         :param options: These are environment variables which are set before each reposync.
-        :raises CX
+        :raises ValueError: In case the variables provided could not be parsed.
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
@@ -260,19 +271,21 @@ class Repo(item.Item):
     @property
     def priority(self) -> int:
         """
-        TODO
+        Set the priority of the repository. Only works if host is using priorities plugin for yum.
 
-        :return:
+        :getter: The priority of the repo.
+        :setter: A number between 1 & 99. May raise otherwise ``TypeError`` or ``ValueError``.
         """
         return self._priority
 
     @priority.setter
     def priority(self, priority: int):
-        """
-        Set the priority of the repository. Only works if host is using priorities plugin for yum.
+        r"""
+        Setter for the ``priority`` property.
 
         :param priority: Must be a value between 1 and 99. 1 is the highest whereas 99 is the default and lowest.
-        :raises CX
+        :raises TypeError: Raised in case the value is not of type ``int``.
+        :raises ValueError: In case the priority is not between 1 and 99.
         """
         if not isinstance(priority, int):
             raise TypeError("Repository priority must be of type int.")
@@ -283,18 +296,19 @@ class Repo(item.Item):
     @property
     def rpm_list(self) -> list:
         """
-        TODO
+        Rather than mirroring the entire contents of a repository (Fedora Extras, for instance, contains games, and we
+        probably don't want those), make it possible to list the packages one wants out of those repos, so only those
+        packages and deps can be mirrored.
 
-        :return:
+        :getter: The list of packages to be mirrored.
+        :setter: May be a space delimited list or a real one.
         """
         return self._rpm_list
 
     @rpm_list.setter
     def rpm_list(self, rpms: Union[str, list]):
         """
-        Rather than mirroring the entire contents of a repository (Fedora Extras, for instance, contains games, and we
-        probably don't want those), make it possible to list the packages one wants out of those repos, so only those
-        packages and deps can be mirrored.
+        Setter for the ``rpm_list`` property.
 
         :param rpms: The rpm to mirror. This may be a string or list.
         """
@@ -302,20 +316,22 @@ class Repo(item.Item):
 
     @property
     def createrepo_flags(self) -> str:
-        """
-        TODO
+        r"""
+        Flags passed to createrepo when it is called. Common flags to use would be ``-c cache`` or ``-g comps.xml`` to
+        generate group information.
 
-        :return:
+        :getter: The createrepo_flags to apply to the repo.
+        :setter: The new flags. May raise a ``TypeError`` in case the options are not a ``str``.
         """
         return self._resolve("createrepo_flags")
 
     @createrepo_flags.setter
     def createrepo_flags(self, createrepo_flags: str):
         """
-        Flags passed to createrepo when it is called. Common flags to use would be ``-c cache`` or ``-g comps.xml`` to
-        generate group information.
+        Setter for the ``createrepo_flags`` property.
 
         :param createrepo_flags: The createrepo flags which are passed additionally to the default ones.
+        :raises TypeError: In case the flags were not of the correct type.
         """
         if not isinstance(createrepo_flags, str):
             raise TypeError("Field createrepo_flags of object repo needs to be of type str!")
@@ -324,18 +340,21 @@ class Repo(item.Item):
     @property
     def breed(self) -> enums.RepoBreeds:
         """
-        TODO
+        The repository system breed. This decides some defaults for most actions with a repo in Cobbler.
 
-        :return:
+        :getter: The breed detected.
+        :setter: May raise a ``ValueError`` or ``TypeError`` in case the given value is wrong.
         """
         return self._breed
 
     @breed.setter
     def breed(self, breed: Union[str, enums.RepoBreeds]):
         """
-        Setter for the operating system breed.
+        Setter for the repository system breed.
 
         :param breed: The new breed to set. If this argument evaluates to false then nothing will be done.
+        :raises TypeError: In case the value was not of the corresponding enum type.
+        :raises ValueError: In case a ``str`` with could not be converted to a valid breed.
         """
         # Convert an arch which came in as a string
         if isinstance(breed, str):

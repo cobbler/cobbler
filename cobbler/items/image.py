@@ -208,10 +208,11 @@ class Image(item.Item):
 
     @property
     def os_version(self) -> str:
-        """
-        TODO
+        r"""
+        The operating system version which the image contains.
 
-        :return:
+        :getter: The sanitized operating system version.
+        :setter: Accepts a str which will be validated against the ``distro_signatures.json``.
         """
         return self._os_version
 
@@ -239,7 +240,6 @@ class Image(item.Item):
         Set the operating system breed with this setter.
 
         :param breed: The breed of the operating system which is available in the image.
-        :raises CX
         """
         self._breed = validate.validate_breed(breed)
 
