@@ -197,9 +197,9 @@ class Profile(item.Item):
     @property
     def arch(self):
         """
-        TODO
+        This represents the architecture of a profile. It is read only.
 
-        :return:
+        :getter: ``None`` or the parent architecture.
         """
         # FIXME: This looks so wrong. It cries: Please open a bug for me!
         parent = self.parent
@@ -247,9 +247,10 @@ class Profile(item.Item):
     @property
     def name_servers(self) -> list:
         """
-        TODO
+        Represents the list of nameservers to set for the profile.
 
-        :return:
+        :getter: The nameservers.
+        :setter: Comma delimited ``str`` or list with the nameservers.
         """
         return self._resolve("name_servers")
 
@@ -259,19 +260,18 @@ class Profile(item.Item):
         Set the DNS servers.
 
         :param data: string or list of nameservers
-        :returns: True or throws exception
-        :raises CX: If the nameservers are not valid.
         """
         self._name_servers = validate.name_servers(data)
 
     @property
     def name_servers_search(self) -> list:
         """
-        TODO
+        Represents the list of DNS search paths.
 
-        :return:
+        :getter: The list of DNS search paths.
+        :setter: Comma delimited ``str`` or list with the nameservers search paths.
         """
-        self._resolve("name_servers_search")
+        return self._resolve("name_servers_search")
 
     @name_servers_search.setter
     def name_servers_search(self, data: list):
@@ -279,26 +279,26 @@ class Profile(item.Item):
         Set the DNS search paths.
 
         :param data: string or list of search domains
-        :returns: True or throws exception
-        :raises CX: If the search domains are not valid.
         """
         self._name_servers_search = validate.name_servers_search(data)
 
     @property
     def proxy(self) -> str:
         """
-        TODO
+        Override the default external proxy which is used for accessing the internet.
 
-        :return:
+        :getter: Returns the default one or the specific one for this repository.
+        :setter: May raise a ``TypeError`` in case the wrong value is given.
         """
         return self._resolve("proxy_url_int")
 
     @proxy.setter
     def proxy(self, proxy: str):
         """
-        Setter for the proxy.
+        Setter for the proxy setting of the repository.
 
-        :param proxy: The new proxy for the profile.
+        :param proxy: The new proxy which will be used for the repository.
+        :raises TypeError: In case the new value is not of type ``str``.
         """
         if not isinstance(proxy, str):
             raise TypeError("Field proxy of object profile needs to be of type str!")
@@ -306,19 +306,21 @@ class Profile(item.Item):
 
     @property
     def enable_ipxe(self) -> bool:
-        """
-        TODO
+        r"""
+        Sets whether or not the profile will use iPXE for booting.
 
-        :return:
+        :getter: If set to inherit then this returns the parent value, otherwise it returns the real value.
+        :setter: May throw a ``TypeError`` in case the new value cannot be cast to ``bool``.
         """
         return self._resolve("enable_ipxe")
 
     @enable_ipxe.setter
     def enable_ipxe(self, enable_ipxe: bool):
-        """
-        Sets whether or not the profile will use iPXE for booting.
+        r"""
+        Setter for the ``enable_ipxe`` property.
 
         :param enable_ipxe: New boolean value for enabling iPXE.
+        :raises TypeError: In case after the conversion, the new value is not of type ``bool``.
         """
         enable_ipxe = utils.input_boolean(enable_ipxe)
         if not isinstance(enable_ipxe, bool):
@@ -328,19 +330,21 @@ class Profile(item.Item):
     @property
     def enable_menu(self) -> bool:
         """
-        TODO
+        Sets whether or not the profile will be listed in the default PXE boot menu. This is pretty forgiving for
+        YAML's sake.
 
-        :return:
+        :getter: The value resolved from the defaults or the value specific to the profile.
+        :setter: May raise a ``TypeError`` in case the boolean could not be converted.
         """
         return self._resolve("enable_menu")
 
     @enable_menu.setter
     def enable_menu(self, enable_menu: bool):
         """
-        Sets whether or not the profile will be listed in the default PXE boot menu. This is pretty forgiving for
-        YAML's sake.
+        Setter for the ``enable_menu`` property.
 
         :param enable_menu: New boolean value for enabling the menu.
+        :raises TypeError: In case the boolean could not be converted successfully.
         """
         enable_menu = utils.input_boolean(enable_menu)
         if not isinstance(enable_menu, bool):
@@ -350,18 +354,20 @@ class Profile(item.Item):
     @property
     def dhcp_tag(self) -> str:
         """
-        TODO
+        Represents the VLAN tag the DHCP Server is in/answering to.
 
-        :return:
+        :getter: The VLAN tag or nothing if a system with the profile should not be in a VLAN.
+        :setter: The new VLAN tag.
         """
         return self._dhcp_tag
 
     @dhcp_tag.setter
     def dhcp_tag(self, dhcp_tag: str):
-        """
-        Setter for the dhcp tag property.
+        r"""
+        Setter for the ``dhcp_tag`` property.
 
-        :param dhcp_tag:
+        :param dhcp_tag: The new VLAN tag.
+        :raises TypeError: Raised in case the tag was not of type ``str``.
         """
         if not isinstance(dhcp_tag, str):
             raise TypeError("Field dhcp_tag of object profile needs to be of type str!")
@@ -370,9 +376,10 @@ class Profile(item.Item):
     @property
     def server(self) -> str:
         """
-        TODO
+        Represents the hostname the Cobbler server is reachable by a client.
 
-        :return:
+        :getter: The hostname of the Cobbler server.
+        :setter: May raise a ``TypeError`` in case the new value is not a ``str``.
         """
         return self._server
 
@@ -382,6 +389,7 @@ class Profile(item.Item):
         Setter for the server property.
 
         :param server: If this is None or an emtpy string this will be reset to be inherited from the parent object.
+        :raises TypeError: In case the new value was not of type ``str``.
         """
         if not isinstance(server, str):
             raise TypeError("Field server of object profile needs to be of type str!")
@@ -392,9 +400,10 @@ class Profile(item.Item):
     @property
     def next_server_v4(self) -> str:
         """
-        TODO
+        Represents the next server for IPv4.
 
-        :return:
+        :getter: The IP for the next server.
+        :setter: May raise a ``TypeError`` if the new value is not of type ``str``.
         """
         return self._next_server_v4
 
@@ -414,11 +423,12 @@ class Profile(item.Item):
             self._next_server_v4 = validate.ipv4_address(server)
 
     @property
-    def next_server_v6(self):
-        """
-        TODO
+    def next_server_v6(self) -> str:
+        r"""
+        Represents the next server for IPv6.
 
-        :return:
+        :getter: The IP for the next server.
+        :setter: May raise a ``TypeError`` if the new value is not of type ``str``.
         """
         return self._next_server_v6
 
@@ -463,9 +473,10 @@ class Profile(item.Item):
     @property
     def autoinstall(self) -> str:
         """
-        TODO
+        Represents the automatic OS installation template file path, this must be a local file.
 
-        :return:
+        :getter: Either the inherited name or the one specific to this profile.
+        :setter: The name of the new autoinstall template is validated. The path should come in the format of a ``str``.
         """
         if self._autoinstall == enums.VALUE_INHERITED:
             parent = self.parent
@@ -482,7 +493,7 @@ class Profile(item.Item):
     @autoinstall.setter
     def autoinstall(self, autoinstall: str):
         """
-        Set the automatic OS installation template file path, this must be a local file.
+        Setter for the ``autoinstall`` property.
 
         :param autoinstall: local automatic installation template path
         """
@@ -600,9 +611,10 @@ class Profile(item.Item):
     @property
     def virt_bridge(self) -> str:
         """
-        TODO
+        Represents the name of the virtual bridge to use.
 
-        :return:
+        :getter: Either the default name for the bridge or the specific one for this profile.
+        :setter: The new name. Does not overwrite the default one.
         """
         if not self._virt_bridge:
             return self.api.settings().default_virt_bridge
@@ -620,16 +632,17 @@ class Profile(item.Item):
     @property
     def virt_path(self) -> str:
         """
-        TODO
+        The path to the place where the image will be stored.
 
-        :return:
+        :getter: The path to the image.
+        :setter: The new path for the image.
         """
         return self._virt_path
 
     @virt_path.setter
     def virt_path(self, path: str):
         """
-        Setter of the path to the place where the image will be stored.
+        Setter for the ``virt_path`` property.
 
         :param path: The path to where the image will be stored.
         """
@@ -638,9 +651,10 @@ class Profile(item.Item):
     @property
     def repos(self) -> list:
         """
-        TODO
+        The repositories to add once the system is provisioned.
 
-        :return:
+        :getter: The names of the repositories the profile has assigned.
+        :setter: The new names of the repositories for the profile. Validated against existing repositories.
         """
         return self._repos
 
@@ -658,7 +672,8 @@ class Profile(item.Item):
         """
         Getter of the redhat management key of the profile or it's parent.
 
-        :return: Returns the redhat_management_key of the profile.
+        :getter: Returns the redhat_management_key of the profile.
+        :setter: May raise a ``TypeError`` in case of a validation error.
         """
         return self._resolve("redhat_management_key")
 
@@ -678,7 +693,10 @@ class Profile(item.Item):
     @property
     def boot_loaders(self) -> list:
         """
-        :return: The bootloaders.
+        This represents all boot loaders for which Cobbler will try to generate bootloader configuration for.
+
+        :getter: The bootloaders.
+        :setter: The new bootloaders. Will be validates against a list of well known ones.
         """
         return self._resolve("boot_loaders")
 
@@ -713,20 +731,21 @@ class Profile(item.Item):
 
     @property
     def menu(self) -> str:
-        """
-        TODO
+        r"""
+        Property to represent the menu which this image should be put into.
 
-        :return:
+        :getter: The name of the menu or an emtpy str.
+        :setter: Should only be the name of the menu not the object. May raise ``CX`` in case the menu does not exist.
         """
         return self._menu
 
     @menu.setter
     def menu(self, menu: str):
         """
-        TODO
+        Setter for the menu property.
 
-        :param menu: The menu for the profile.
-        :raises CX
+        :param menu: The menu for the image.
+        :raises CX: In case the menu to be set could not be found.
         """
         if not isinstance(menu, str):
             raise TypeError("Field menu of object profile needs to be of type str!")
@@ -739,17 +758,18 @@ class Profile(item.Item):
     @property
     def children(self) -> list:
         """
-        TODO
+        This property represents all children of a distribution. It should not be set manually.
 
-        :return:
+        :getter: The children of the distro.
+        :setter: No validation is done because this is a Cobbler internal property.
         """
         return self._children
 
     @children.setter
     def children(self, value: list):
         """
-        TODO
+        Setter for the children property.
 
-        :param value:
+        :param value: The new children of the distro.
         """
         self._children = value
