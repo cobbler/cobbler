@@ -370,20 +370,22 @@ class Repo(item.Item):
 
     @property
     def os_version(self) -> str:
-        """
-        TODO
+        r"""
+        The operating system version which is compatible with this repository.
 
-        :return:
+        :getter: The os version.
+        :setter: The version as a ``str``.
         """
         return self._os_version
 
     @os_version.setter
     def os_version(self, os_version: str):
-        """
+        r"""
         Setter for the operating system version.
 
         :param os_version: The new operating system version. If this argument evaluates to false then nothing will be
                            done.
+        :raises CX: In case ``breed`` has not been set before.
         """
         if not os_version:
             self._os_version = ""
@@ -398,19 +400,22 @@ class Repo(item.Item):
 
     @property
     def arch(self) -> enums.RepoArchs:
-        """
-        TODO
+        r"""
+        Override the arch used for reposync
 
-        :return:
+        :getter: The repo arch enum object.
+        :setter: May throw a ``ValueError`` or ``TypeError`` in case the conversion of the value is unsuccessful.
         """
         return self._arch
 
     @arch.setter
     def arch(self, arch: Union[str, enums.RepoArchs]):
-        """
+        r"""
         Override the arch used for reposync
 
         :param arch: The new arch which will be used.
+        :raises TypeError: In case the wrong type is given.
+        :raises ValueError: In case the value could not be converted from ``str`` to the enum type.
         """
         # Convert an arch which came in as a string
         if isinstance(arch, str):
@@ -425,10 +430,12 @@ class Repo(item.Item):
 
     @property
     def mirror_locally(self) -> bool:
-        """
-        TODO
+        r"""
+        If this property is set to ``True`` then all content of the source is mirrored locally. This may take up a lot
+        of disk space.
 
-        :return:
+        :getter: Whether the mirror is locally available or not.
+        :setter: Raises a ``TypeError`` in case after the conversion of the value is not of type ``bool``.
         """
         return self._mirror_locally
 
@@ -438,6 +445,7 @@ class Repo(item.Item):
         Setter for the local mirror property.
 
         :param value: The new value for ``mirror_locally``.
+        :raises TypeError: In case the value is not of type ``bool``.
         """
         value = utils.input_boolean(value)
         if not isinstance(value, bool):
@@ -447,9 +455,10 @@ class Repo(item.Item):
     @property
     def apt_components(self) -> list:
         """
-        TODO
+        Specify the section of Debian to mirror. Defaults to "main,contrib,non-free,main/debian-installer".
 
-        :return:
+        :getter: If empty the default is used.
+        :setter: May be a comma delimited ``str`` or a real ``list``.
         """
         return self._apt_components
 
@@ -464,10 +473,12 @@ class Repo(item.Item):
 
     @property
     def apt_dists(self) -> list:
-        """
-        TODO
+        r"""
+        This decides which installer images are downloaded. For more information please see:
+        https://www.debian.org/CD/mirroring/index.html or the manpage of ``debmirror``.
 
-        :return:
+        :getter: Per default no images are mirrored.
+        :setter: Either a comma delimited ``str`` or a real ``list``.
         """
         return self._apt_dists
 
@@ -483,19 +494,20 @@ class Repo(item.Item):
     @property
     def proxy(self) -> str:
         """
-        TODO
+        Override the default external proxy which is used for accessing the internet.
 
-        :getter:
-        :setter:
+        :getter: Returns the default one or the specific one for this repository.
+        :setter: May raise a ``TypeError`` in case the wrong value is given.
         """
         return self._resolve("proxy_url_ext")
 
     @proxy.setter
     def proxy(self, value: str):
-        """
+        r"""
         Setter for the proxy setting of the repository.
 
         :param value: The new proxy which will be used for the repository.
+        :raises TypeError: In case the new value is not of type ``str``.
         """
         if not isinstance(value, str):
             raise TypeError("Field proxy in object repo needs to be of type str!")
