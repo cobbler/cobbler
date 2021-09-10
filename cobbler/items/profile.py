@@ -450,18 +450,20 @@ class Profile(item.Item):
     @property
     def filename(self) -> str:
         """
-        TODO
+        The filename which is fetched by the client from TFTP.
 
-        :return:
+        :getter: Either the default/inherited one, or the one specific to this profile.
+        :setter: The new filename which is fetched on boot. May raise a ``TypeError`` when the wrong type was given.
         """
         return self._resolve("filename")
 
     @filename.setter
     def filename(self, filename: str):
         """
-        TODO
+        The setter for the ``filename`` property.
 
-        :param filename:
+        :param filename: The new ``filename`` for the profile.
+        :raises TypeError: In case the new value was not of type ``str``.
         """
         if not isinstance(filename, str):
             raise TypeError("Field filename of object profile needs to be of type str!")
@@ -503,9 +505,10 @@ class Profile(item.Item):
     @property
     def virt_auto_boot(self) -> bool:
         """
-        TODO
+        Whether the VM should be booted when booting the host or not.
 
-        :return:
+        :getter: ``True`` means autoboot is enabled, otherwise VM is not booted automatically.
+        :setter: The new state for the property.
         """
         return self._virt_auto_boot
 
@@ -521,9 +524,10 @@ class Profile(item.Item):
     @property
     def virt_cpus(self) -> int:
         """
-        TODO
+        The amount of vCPU cores used in case the image is being deployed on top of a VM host.
 
-        :return:
+        :getter: The cores used.
+        :setter: The new number of cores.
         """
         return self._virt_cpus
 
@@ -538,10 +542,14 @@ class Profile(item.Item):
 
     @property
     def virt_file_size(self) -> int:
-        """
-        TODO
+        r"""
+        The size of the image and thus the usable size for the guest.
 
-        :return:
+        .. warning:: There is a regression which makes the usage of multiple disks not possible right now. This will be
+                     fixed in a future release.
+
+        :getter: The size of the image(s) in GB.
+        :setter: The float with the new size in GB.
         """
         return self._virt_file_size
 
@@ -557,9 +565,10 @@ class Profile(item.Item):
     @property
     def virt_disk_driver(self) -> enums.VirtDiskDrivers:
         """
-        TODO
+        The type of disk driver used for storing the image.
 
-        :return:
+        :getter: The enum type representation of the disk driver.
+        :setter: May be a ``str`` with the name of the disk driver or from the enum type directly.
         """
         return self._virt_disk_driver
 
@@ -575,9 +584,10 @@ class Profile(item.Item):
     @property
     def virt_ram(self) -> int:
         """
-        TODO
+        The amount of RAM given to the guest in MB.
 
-        :return:
+        :getter: The amount of RAM currently assigned to the image.
+        :setter: The new amount of ram. Must be an integer.
         """
         return self._virt_ram
 
@@ -593,9 +603,10 @@ class Profile(item.Item):
     @property
     def virt_type(self) -> enums.VirtType:
         """
-        TODO
+        The type of image used.
 
-        :return:
+        :getter: The value of the virtual machine.
+        :setter: May be of the enum type or a str which is then converted to the enum type.
         """
         return self._virt_type
 
