@@ -1254,15 +1254,16 @@ class System(Item):
 
     def __create_interface(self, interface: str):
         """
-        TODO
+        Create or overwrites a network interface.
 
-        :param interface:
+        :param interface: The name of the interface
         """
         self.interfaces[interface] = NetworkInterface(self.api)
 
     def __get_interface(self, interface_name: str = "default") -> NetworkInterface:
         """
-        TODO
+        Tries to retrieve an interface and creates it in case the interface doesn't exist. If no name is given the
+        default interface is retrieved.
 
         :param interface_name: The name of the interface. If ``None`` is given then ``default`` is used.
         :raises TypeError: In case interface_name is no string.
