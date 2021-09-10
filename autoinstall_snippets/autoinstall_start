@@ -12,11 +12,11 @@
 #end if
 #set breed = $getVar('breed','')
 #set srv = $getVar('http_server','')
-#set run_install_triggers = $str($getVar('run_install_triggers',''))
+#set run_install_triggers = $getVar('run_install_triggers','')
 #set runpre = ""
 #if $object_type != ''
     ## RUN PRE TRIGGER
-    #if $run_install_triggers == "True"
+    #if $run_install_triggers
         #if $breed == 'redhat'
             #set runpre = "\ncurl \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -o /dev/null" % (srv, object_type, object_name)
         #else
