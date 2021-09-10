@@ -333,11 +333,11 @@ class Image(item.Item):
 
     @property
     def virt_auto_boot(self) -> bool:
-        """
+        r"""
         Whether the VM should be booted when booting the host or not.
 
-        :getter:
-        :setter:
+        :getter: ``True`` means autoboot is enabled, otherwise VM is not booted automatically.
+        :setter: The new state for the property.
         """
         return self._virt_auto_boot
 
