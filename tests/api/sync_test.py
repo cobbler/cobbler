@@ -10,7 +10,7 @@ from tests.conftest import does_not_raise
 
 
 @pytest.mark.parametrize("input_verbose,input_what,expected_exception", [
-    (None, None, does_not_raise()),
+    (True, None, does_not_raise()),
     (True, [], does_not_raise()),
     (False, [], does_not_raise()),
     (True, ["dhcp"], does_not_raise()),

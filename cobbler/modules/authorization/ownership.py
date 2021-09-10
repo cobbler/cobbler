@@ -147,7 +147,7 @@ def __is_user_allowed(obj, groups, user, resource, arg1, arg2) -> Union[int, boo
     return 0
 
 
-def authorize(api_handle, user, resource, arg1=None, arg2=None) -> Union[bool, int]:
+def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> Union[bool, int]:
     """
     Validate a user against a resource. All users in the file are permitted by this module.
 

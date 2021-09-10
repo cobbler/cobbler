@@ -1185,7 +1185,7 @@ class TFTPGen:
 
         return self.templar.render(template_data, blended, None)
 
-    def generate_script(self, what: str, objname: str, script_name) -> str:
+    def generate_script(self, what: str, objname: str, script_name: str) -> str:
         """
         Generate a script from a autoinstall script template for a given profile or system.
 

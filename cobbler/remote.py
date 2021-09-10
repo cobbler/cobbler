@@ -24,24 +24,20 @@ import fcntl
 import logging
 import os
 import random
-import xmlrpc.server
-from typing import Optional, Union
-from xmlrpc.server import SimpleXMLRPCRequestHandler
-from socketserver import ThreadingMixIn
 import stat
-from threading import Thread
 import time
+import xmlrpc.server
+from socketserver import ThreadingMixIn
+from threading import Thread
+from typing import Dict, List, Optional, Tuple, Union
+from xmlrpc.server import SimpleXMLRPCRequestHandler
 
-from cobbler import autoinstall_manager
-from cobbler import configgen
-from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file, menu
-from cobbler import tftpgen
-from cobbler import utils
+from cobbler import autoinstall_manager, configgen, tftpgen, utils
 from cobbler.cexceptions import CX
+from cobbler.items import distro, file, image, menu, mgmtclass, package, profile, repo, system
 
-
-EVENT_TIMEOUT = 7 * 24 * 60 * 60        # 1 week
-CACHE_TIMEOUT = 10 * 60                 # 10 minutes
+EVENT_TIMEOUT = 7 * 24 * 60 * 60  # 1 week
+CACHE_TIMEOUT = 10 * 60  # 10 minutes
 
 # task codes
 EVENT_RUNNING = "running"
@@ -56,6 +52,7 @@ class CobblerThread(Thread):
     """
     Code for Cobbler's XMLRPC API.
     """
+
     def __init__(self, event_id, remote, options: dict, task_name: str, api):
         """
         This constructor creates a Cobbler thread which then may be run by calling ``run()``.
@@ -107,6 +104,7 @@ class CobblerThread(Thread):
             self.remote._set_task_state(self, self.event_id, EVENT_FAILED)
             return False
 
+
 # *********************************************************************
 
 
@@ -116,6 +114,7 @@ class CobblerXMLRPCInterface:
 
     Most read-write operations require a token returned from "login". Read operations do not.
     """
+
     def __init__(self, api):
         """
         Constructor. Requires a Cobbler API handle.
@@ -124,7 +123,7 @@ class CobblerXMLRPCInterface:
         """
         self.api = api
         self.logger = self.api.logger
-        self.token_cache = {}
+        self.token_cache: Dict[str, Tuple] = {}
         self.object_cache = {}
         self.timestamp = self.api.last_modified_time()
         self.events = {}
@@ -133,7 +132,7 @@ class CobblerXMLRPCInterface:
         self.tftpgen = tftpgen.TFTPGen(api._collection_mgr)
         self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api._collection_mgr)
 
-    def check(self, token) -> Union[None, list]:
+    def check(self, token: str) -> Union[None, list]:
         """
         Returns a list of all the messages/warnings that are things that admin may want to correct about the
         configuration of the Cobbler server. This has nothing to do with "check_access" which is an auth/authz function
@@ -145,7 +144,7 @@ class CobblerXMLRPCInterface:
         self.check_access(token, "check")
         return self.api.check()
 
-    def background_buildiso(self, options, token) -> str:
+    def background_buildiso(self, options: dict, token: str) -> str:
         """
         Generates an ISO in /var/www/cobbler/pub that can be used to install profiles without using PXE.
 
@@ -173,9 +172,10 @@ class CobblerXMLRPCInterface:
             if self.options.get("iso", "") == webdir + "/pub/generated.iso":
                 msg = "ISO now available for <A HREF=\"/cobbler/pub/generated.iso\">download</A>"
                 self.remote._new_event(msg)
+
         return self.__start_task(runner, token, "buildiso", "Build Iso", options, on_done)
 
-    def background_aclsetup(self, options, token) -> str:
+    def background_aclsetup(self, options: dict, token: str) -> str:
         """
         Get the acl configuration from the config and set the acls in the backgroud.
 
@@ -183,6 +183,7 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
+
         def runner(self):
             self.remote.api.acl_config(
                 self.options.get("adduser", None),
@@ -190,9 +191,10 @@ class CobblerXMLRPCInterface:
                 self.options.get("removeuser", None),
                 self.options.get("removegroup", None),
             )
+
         return self.__start_task(runner, token, "aclsetup", "(CLI) ACL Configuration", options)
 
-    def background_sync(self, options: dict, token) -> str:
+    def background_sync(self, options: dict, token: str) -> str:
         """
         Run a full Cobbler sync in the background.
 
@@ -200,6 +202,7 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
+
         def runner(self):
             what = []
             if self.options.get("dhcp", False):
@@ -207,9 +210,10 @@ class CobblerXMLRPCInterface:
             if self.options.get("dns", False):
                 what.append('dns')
             self.remote.api.sync(self.options.get("verbose", False), what=what)
+
         return self.__start_task(runner, token, "sync", "Sync", options)
 
-    def background_syncsystems(self, options, token) -> str:
+    def background_syncsystems(self, options: dict, token: str) -> str:
         """
         Run a lite Cobbler sync in the background with only systems specified.
 
@@ -217,11 +221,13 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: The id of the task that was started.
         """
+
         def runner(self):
             self.remote.api.sync_systems(self.options.get("systems", []), self.options.get("verbose", False))
+
         return self.__start_task(runner, token, "syncsystems", "Syncsystems", options)
 
-    def background_hardlink(self, options, token) -> str:
+    def background_hardlink(self, options: dict, token: str) -> str:
         """
         Hardlink all files as a background task.
 
@@ -229,11 +235,13 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
+
         def runner(self):
             self.remote.api.hardlink()
+
         return self.__start_task(runner, token, "hardlink", "Hardlink", options)
 
-    def background_validate_autoinstall_files(self, options, token) -> str:
+    def background_validate_autoinstall_files(self, options: dict, token: str) -> str:
         """
         Validate all autoinstall files in the background.
 
@@ -241,12 +249,14 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
+
         def runner(self):
             return self.remote.api.validate_autoinstall_files()
+
         return self.__start_task(runner, token, "validate_autoinstall_files", "Automated installation files validation",
                                  options)
 
-    def background_replicate(self, options, token) -> str:
+    def background_replicate(self, options: dict, token: str) -> str:
         """
         Replicate Cobbler in the background to another Cobbler instance.
 
@@ -254,6 +264,7 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
+
         def runner(self):
             # FIXME: defaults from settings here should come from views, fix in views.py
             self.remote.api.replicate(
@@ -272,9 +283,10 @@ class CobblerXMLRPCInterface:
                 self.options.get("sync_all", False),
                 self.options.get("use_ssl", False),
             )
+
         return self.__start_task(runner, token, "replicate", "Replicate", options)
 
-    def background_import(self, options, token) -> str:
+    def background_import(self, options: dict, token: str) -> str:
         """
         Import an ISO image in the background.
 
@@ -282,6 +294,7 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
+
         def runner(self):
             self.remote.api.import_tree(
                 self.options.get("path", None),
@@ -293,9 +306,10 @@ class CobblerXMLRPCInterface:
                 self.options.get("breed", None),
                 self.options.get("os_version", None),
             )
+
         return self.__start_task(runner, token, "import", "Media import", options)
 
-    def background_reposync(self, options, token) -> str:
+    def background_reposync(self, options: dict, token: str) -> str:
         """
         Run a reposync in the background.
 
@@ -303,6 +317,7 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
+
         def runner(self):
             # NOTE: WebUI passes in repos here, CLI passes only:
             repos = options.get("repos", [])
@@ -320,9 +335,10 @@ class CobblerXMLRPCInterface:
                 self.remote.api.reposync(
                     tries=self.options.get("tries", 3),
                     name=None, nofail=nofail)
+
         return self.__start_task(runner, token, "reposync", "Reposync", options)
 
-    def background_power_system(self, options, token) -> str:
+    def background_power_system(self, options: dict, token: str) -> str:
         """
         Power a system asynchronously in the background.
 
@@ -330,6 +346,7 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
+
         def runner(self):
             for x in self.options.get("systems", []):
                 try:
@@ -338,10 +355,11 @@ class CobblerXMLRPCInterface:
                     self.remote.api.power_system(system, self.options.get("power", ""))
                 except Exception as e:
                     self.logger.warning("failed to execute power task on %s, exception: %s" % (str(x), str(e)))
+
         self.check_access(token, "power_system")
         return self.__start_task(runner, token, "power", "Power management (%s)" % options.get("power", ""), options)
 
-    def power_system(self, system_id, power, token) -> bool:
+    def power_system(self, system_id: str, power: str, token: str) -> bool:
         """Execute power task synchronously.
 
         Returns true if the operation succeeded or if the system is powered on (in case of status).
@@ -357,7 +375,7 @@ class CobblerXMLRPCInterface:
         result = self.api.power_system(system, power)
         return True if result is None else result
 
-    def background_signature_update(self, options, token) -> str:
+    def background_signature_update(self, options: dict, token: str) -> str:
         """
         Run a signature update in the background.
 
@@ -365,8 +383,10 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
+
         def runner(self):
             self.remote.api.signature_update()
+
         self.check_access(token, "sigupdate")
         return self.__start_task(runner, token, "sigupdate", "Updating Signatures", options)
 
@@ -403,7 +423,7 @@ class CobblerXMLRPCInterface:
 
         return self.events_filtered
 
-    def get_event_log(self, event_id) -> str:
+    def get_event_log(self, event_id: str) -> str:
         """
         Returns the contents of a task log. Events that are not task-based do not have logs.
 
@@ -442,7 +462,7 @@ class CobblerXMLRPCInterface:
         event_id = str(event_id)
         self.events[event_id] = [float(time.time()), str(name), EVENT_INFO, []]
 
-    def __start_task(self, thr_obj_fn, token, role_name, name: str, args: dict, on_done=None):
+    def __start_task(self, thr_obj_fn, token: str, role_name: str, name: str, args: dict, on_done=None):
         """
         Starts a new background task.
 
@@ -456,7 +476,7 @@ class CobblerXMLRPCInterface:
         :return: a task id.
         """
         self.check_access(token, role_name)
-        event_id = self.__generate_event_id(role_name)          # use short form for logfile suffix
+        event_id = self.__generate_event_id(role_name)  # use short form for logfile suffix
         event_id = str(event_id)
         self.events[event_id] = [float(time.time()), str(name), EVENT_RUNNING, []]
 
@@ -469,7 +489,7 @@ class CobblerXMLRPCInterface:
         thr_obj.start()
         return event_id
 
-    def _set_task_state(self, thread_obj, event_id, new_state):
+    def _set_task_state(self, thread_obj, event_id: str, new_state):
         """
         Set the state of the task. (For internal use only)
 
@@ -480,14 +500,14 @@ class CobblerXMLRPCInterface:
         event_id = str(event_id)
         if event_id in self.events:
             self.events[event_id][2] = new_state
-            self.events[event_id][3] = []           # clear the list of who has read it
+            self.events[event_id][3] = []  # clear the list of who has read it
         if thread_obj is not None:
             if new_state == EVENT_COMPLETE:
                 thread_obj.logger.info("### TASK COMPLETE ###")
             if new_state == EVENT_FAILED:
                 thread_obj.logger.error("### TASK FAILED ###")
 
-    def get_task_status(self, event_id):
+    def get_task_status(self, event_id: str):
         """
         Get the current status of the task.
 
@@ -518,7 +538,7 @@ class CobblerXMLRPCInterface:
         """
         return True
 
-    def get_user_from_token(self, token):
+    def get_user_from_token(self, token: str):
         """
         Given a token returned from login, return the username that logged in with it.
 
@@ -598,7 +618,7 @@ class CobblerXMLRPCInterface:
             sortdata.sort()
         return [x for (key, x) in sortdata]
 
-    def __paginate(self, data, page=None, items_per_page: int = None, token=None):
+    def __paginate(self, data, page=1, items_per_page=25, token=None):
         """
         Helper function to support returning parts of a selection, for example, for use in a web app where only a part
         of the results are to be presented on each screen.
@@ -925,7 +945,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_items("menu")
 
-    def find_items(self, what, criteria: dict = None, sort_field=None, expand: bool = True) -> list:
+    def find_items(self, what: str, criteria: Optional[dict] = None, sort_field=None, expand: bool = True) -> list:
         """Works like get_items but also accepts criteria as a dict to search on.
 
         Example: ``{ "name" : "*.example.org" }``
@@ -938,6 +958,8 @@ class CobblerXMLRPCInterface:
         :param expand: Not only get the names but also the complete object in form of a dict.
         :returns: A list of dicts.
         """
+        if criteria is None:
+            criteria = {}
         self._log("find_items(%s); criteria(%s); sort(%s)" % (what, criteria, sort_field))
         if "name" in criteria:
             name = criteria.pop("name")
@@ -951,7 +973,7 @@ class CobblerXMLRPCInterface:
             items = [x.to_dict() for x in items]
         return self.xmlrpc_hacks(items)
 
-    def find_distro(self, criteria=None, expand=False, token=None, **rest):
+    def find_distro(self, criteria: Optional[dict] = None, expand=False, token=None, **rest):
         """
         Find a distro matching certain criteria.
 
@@ -963,7 +985,7 @@ class CobblerXMLRPCInterface:
         """
         return self.find_items("distro", criteria, expand=expand)
 
-    def find_profile(self, criteria=None, expand=False, token=None, **rest):
+    def find_profile(self, criteria: Optional[dict] = None, expand=False, token=None, **rest):
         """
         Find a profile matching certain criteria.
 
@@ -975,7 +997,7 @@ class CobblerXMLRPCInterface:
         """
         return self.find_items("profile", criteria, expand=expand)
 
-    def find_system(self, criteria=None, expand=False, token=None, **rest):
+    def find_system(self, criteria: Optional[dict] = None, expand=False, token=None, **rest):
         """
         Find a system matching certain criteria.
 
@@ -987,7 +1009,7 @@ class CobblerXMLRPCInterface:
         """
         return self.find_items("system", criteria, expand=expand)
 
-    def find_repo(self, criteria=None, expand=False, token=None, **rest):
+    def find_repo(self, criteria: Optional[dict] = None, expand=False, token=None, **rest):
         """
         Find a repository matching certain criteria.
 
@@ -999,7 +1021,7 @@ class CobblerXMLRPCInterface:
         """
         return self.find_items("repo", criteria, expand=expand)
 
-    def find_image(self, criteria=None, expand=False, token=None, **rest):
+    def find_image(self, criteria: Optional[dict] = None, expand=False, token=None, **rest):
         """
         Find an image matching certain criteria.
 
@@ -1011,7 +1033,7 @@ class CobblerXMLRPCInterface:
         """
         return self.find_items("image", criteria, expand=expand)
 
-    def find_mgmtclass(self, criteria=None, expand=False, token=None, **rest):
+    def find_mgmtclass(self, criteria: Optional[dict] = None, expand=False, token=None, **rest):
         """
         Find a management class matching certain criteria.
 
@@ -1023,7 +1045,7 @@ class CobblerXMLRPCInterface:
         """
         return self.find_items("mgmtclass", criteria, expand=expand)
 
-    def find_package(self, criteria=None, expand=False, token=None, **rest):
+    def find_package(self, criteria: Optional[dict] = None, expand=False, token=None, **rest):
         """
         Find a package matching certain criteria.
 
@@ -1035,7 +1057,7 @@ class CobblerXMLRPCInterface:
         """
         return self.find_items("package", criteria, expand=expand)
 
-    def find_file(self, criteria=None, expand=False, token=None, **rest):
+    def find_file(self, criteria: Optional[dict] = None, expand=False, token=None, **rest):
         """
         Find a file matching certain criteria.
 
@@ -1047,7 +1069,7 @@ class CobblerXMLRPCInterface:
         """
         return self.find_items("file", criteria, expand=expand)
 
-    def find_menu(self, criteria=None, expand=False, token=None, **rest):
+    def find_menu(self, criteria: Optional[dict] = None, expand=False, token=None, **rest):
         """
         Find a menu matching certain criteria.
 
@@ -1059,7 +1081,8 @@ class CobblerXMLRPCInterface:
         """
         return self.find_items("menu", criteria, expand=expand)
 
-    def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page: int = None, token=None):
+    def find_items_paged(self, what: str, criteria: Optional[dict] = None, sort_field: Optional[str] = None,
+                         page=1, items_per_page=25, token: Optional[str] = None):
         """
         Returns a list of dicts as with find_items but additionally supports returning just a portion of the total
         list, for instance in supporting a web app that wants to show a limited amount of items per page.
@@ -1085,7 +1108,7 @@ class CobblerXMLRPCInterface:
             'pageinfo': pageinfo
         })
 
-    def has_item(self, what, name, token=None):
+    def has_item(self, what: str, name: str, token: Optional[str] = None):
         """
         Returns True if a given collection has an item with a given name, otherwise returns False.
 
@@ -1101,7 +1124,7 @@ class CobblerXMLRPCInterface:
         else:
             return True
 
-    def get_item_handle(self, what, name, token=None):
+    def get_item_handle(self, what: str, name: str, token=None):
         """
         Given the name of an object (or other search parameters), return a reference (object id) that can be used with
         ``modify_*`` functions or ``save_*`` functions to manipulate that object.
@@ -1116,7 +1139,7 @@ class CobblerXMLRPCInterface:
             raise CX("internal error, unknown %s name %s" % (what, name))
         return "%s::%s" % (what, found.name)
 
-    def get_distro_handle(self, name, token):
+    def get_distro_handle(self, name: str, token: str):
         """
         Get a handle for a distribution which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate
         it.
@@ -1127,7 +1150,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item_handle("distro", name, token)
 
-    def get_profile_handle(self, name, token):
+    def get_profile_handle(self, name: str, token: str):
         """
         Get a handle for a profile which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
 
@@ -1137,7 +1160,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item_handle("profile", name, token)
 
-    def get_system_handle(self, name, token):
+    def get_system_handle(self, name: str, token: str):
         """
         Get a handle for a system which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
 
@@ -1147,7 +1170,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item_handle("system", name, token)
 
-    def get_repo_handle(self, name, token):
+    def get_repo_handle(self, name: str, token: str):
         """
         Get a handle for a repository which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
 
@@ -1157,7 +1180,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item_handle("repo", name, token)
 
-    def get_image_handle(self, name, token):
+    def get_image_handle(self, name: str, token: str):
         """
         Get a handle for an image which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
 
@@ -1167,7 +1190,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item_handle("image", name, token)
 
-    def get_mgmtclass_handle(self, name, token):
+    def get_mgmtclass_handle(self, name: str, token: str):
         """
         Get a handle for a management class which allows you to use the functions ``modify_*`` or ``save_*`` to
         manipulate it.
@@ -1178,7 +1201,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item_handle("mgmtclass", name, token)
 
-    def get_package_handle(self, name, token):
+    def get_package_handle(self, name: str, token: str):
         """
         Get a handle for a package which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
 
@@ -1188,7 +1211,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item_handle("package", name, token)
 
-    def get_file_handle(self, name, token):
+    def get_file_handle(self, name: str, token: str):
         """
         Get a handle for a file which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
 
@@ -1198,7 +1221,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item_handle("file", name, token)
 
-    def get_menu_handle(self, name, token):
+    def get_menu_handle(self, name: str, token: str):
         """
         Get a handle for a menu which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
 
@@ -1208,7 +1231,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item_handle("menu", name, token)
 
-    def remove_item(self, what, name, token, recursive: bool = True):
+    def remove_item(self, what: str, name: str, token: str, recursive: bool = True):
         """
         Deletes an item from a collection.
         Note that this requires the name of the distro, not an item handle.
@@ -1225,7 +1248,7 @@ class CobblerXMLRPCInterface:
         self.api.remove_item(what, name, delete=True, with_triggers=True, recursive=recursive)
         return True
 
-    def remove_distro(self, name, token, recursive: bool = True):
+    def remove_distro(self, name: str, token: str, recursive: bool = True):
         """
         Deletes a distribution from Cobbler.
 
@@ -1236,7 +1259,7 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("distro", name, token, recursive)
 
-    def remove_profile(self, name, token, recursive: bool = True):
+    def remove_profile(self, name: str, token: str, recursive: bool = True):
         """
         Deletes a profile from Cobbler.
 
@@ -1247,7 +1270,7 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("profile", name, token, recursive)
 
-    def remove_system(self, name, token, recursive: bool = True):
+    def remove_system(self, name: str, token: str, recursive: bool = True):
         """
         Deletes a system from Cobbler.
 
@@ -1258,7 +1281,7 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("system", name, token, recursive)
 
-    def remove_repo(self, name, token, recursive: bool = True):
+    def remove_repo(self, name: str, token: str, recursive: bool = True):
         """
         Deletes a repository from Cobbler.
 
@@ -1269,7 +1292,7 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("repo", name, token, recursive)
 
-    def remove_image(self, name, token, recursive: bool = True):
+    def remove_image(self, name: str, token: str, recursive: bool = True):
         """
         Deletes an image from Cobbler.
 
@@ -1280,7 +1303,7 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("image", name, token, recursive)
 
-    def remove_mgmtclass(self, name, token, recursive: bool = True):
+    def remove_mgmtclass(self, name: str, token: str, recursive: bool = True):
         """
         Deletes a managementclass from Cobbler.
 
@@ -1291,7 +1314,7 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("mgmtclass", name, token, recursive)
 
-    def remove_package(self, name, token, recursive: bool = True):
+    def remove_package(self, name: str, token: str, recursive: bool = True):
         """
         Deletes a package from Cobbler.
 
@@ -1302,7 +1325,7 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("package", name, token, recursive)
 
-    def remove_file(self, name, token, recursive: bool = True):
+    def remove_file(self, name: str, token: str, recursive: bool = True):
         """
         Deletes a file from Cobbler.
 
@@ -1313,7 +1336,7 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("file", name, token, recursive)
 
-    def remove_menu(self, name, token, recursive: bool = True):
+    def remove_menu(self, name: str, token: str, recursive: bool = True):
         """
         Deletes a menu from Cobbler.
 
@@ -1324,7 +1347,7 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("menu", name, token, recursive)
 
-    def copy_item(self, what, object_id, newname, token=None):
+    def copy_item(self, what: str, object_id: str, newname: str, token: str):
         """
         Creates a new object that matches an existing object, as specified by an id.
 
@@ -1340,7 +1363,7 @@ class CobblerXMLRPCInterface:
         self.api.copy_item(what, obj, newname)
         return True
 
-    def copy_distro(self, object_id, newname, token=None):
+    def copy_distro(self, object_id: str, newname: str, token=None):
         """
         Copies a distribution and renames it afterwards.
 
@@ -1591,7 +1614,7 @@ class CobblerXMLRPCInterface:
         self.object_cache[key] = (time.time(), d)
         return key
 
-    def new_distro(self, token):
+    def new_distro(self, token: str):
         """
         See ``new_item()``.
 
@@ -1600,7 +1623,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("distro", token)
 
-    def new_profile(self, token):
+    def new_profile(self, token: str):
         """
         See ``new_item()``.
 
@@ -1609,7 +1632,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("profile", token)
 
-    def new_subprofile(self, token):
+    def new_subprofile(self, token: str):
         """
         See ``new_item()``.
 
@@ -1618,7 +1641,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("profile", token, is_subobject=True)
 
-    def new_system(self, token):
+    def new_system(self, token: str):
         """
         See ``new_item()``.
 
@@ -1627,7 +1650,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("system", token)
 
-    def new_repo(self, token):
+    def new_repo(self, token: str):
         """
         See ``new_item()``.
 
@@ -1636,7 +1659,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("repo", token)
 
-    def new_image(self, token):
+    def new_image(self, token: str):
         """
         See ``new_item()``.
 
@@ -1645,7 +1668,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("image", token)
 
-    def new_mgmtclass(self, token):
+    def new_mgmtclass(self, token: str):
         """
         See ``new_item()``.
 
@@ -1654,7 +1677,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("mgmtclass", token)
 
-    def new_package(self, token):
+    def new_package(self, token: str):
         """
         See ``new_item()``.
 
@@ -1663,7 +1686,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("package", token)
 
-    def new_file(self, token):
+    def new_file(self, token: str):
         """
         See ``new_item()``.
 
@@ -1672,7 +1695,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("file", token)
 
-    def new_menu(self, token):
+    def new_menu(self, token: str):
         """
         See ``new_item()``.
 
@@ -1681,7 +1704,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("menu", token)
 
-    def modify_item(self, what, object_id, attribute, arg, token) -> bool:
+    def modify_item(self, what, object_id, attribute, arg, token: str) -> bool:
         """
         Adjusts the value of a given field, specified by 'what' on a given object id. Allows modification of certain
         attributes on newly created or existing distro object handle.
@@ -1702,7 +1725,7 @@ class CobblerXMLRPCInterface:
             return True
         return False
 
-    def modify_distro(self, object_id, attribute, arg, token):
+    def modify_distro(self, object_id, attribute, arg, token: str):
         """
         Modify a single attribute of a distribution.
 
@@ -1714,7 +1737,7 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("distro", object_id, attribute, arg, token)
 
-    def modify_profile(self, object_id, attribute, arg, token):
+    def modify_profile(self, object_id, attribute, arg, token: str):
         """
         Modify a single attribute of a profile.
 
@@ -1726,7 +1749,7 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("profile", object_id, attribute, arg, token)
 
-    def modify_system(self, object_id, attribute, arg, token):
+    def modify_system(self, object_id, attribute, arg, token: str):
         """
         Modify a single attribute of a system.
 
@@ -1738,7 +1761,7 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("system", object_id, attribute, arg, token)
 
-    def modify_image(self, object_id, attribute, arg, token):
+    def modify_image(self, object_id, attribute, arg, token: str):
         """
         Modify a single attribute of an image.
 
@@ -1750,7 +1773,7 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("image", object_id, attribute, arg, token)
 
-    def modify_repo(self, object_id, attribute, arg, token):
+    def modify_repo(self, object_id, attribute, arg, token: str):
         """
         Modify a single attribute of a repository.
 
@@ -1762,7 +1785,7 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("repo", object_id, attribute, arg, token)
 
-    def modify_mgmtclass(self, object_id, attribute, arg, token):
+    def modify_mgmtclass(self, object_id, attribute, arg, token: str):
         """
         Modify a single attribute of a managementclass.
 
@@ -1774,7 +1797,7 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("mgmtclass", object_id, attribute, arg, token)
 
-    def modify_package(self, object_id, attribute, arg, token):
+    def modify_package(self, object_id, attribute, arg, token: str):
         """
         Modify a single attribute of a package.
 
@@ -1786,7 +1809,7 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("package", object_id, attribute, arg, token)
 
-    def modify_file(self, object_id, attribute, arg, token):
+    def modify_file(self, object_id, attribute, arg, token: str):
         """
         Modify a single attribute of a file.
 
@@ -1798,7 +1821,7 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("file", object_id, attribute, arg, token)
 
-    def modify_menu(self, object_id, attribute, arg, token):
+    def modify_menu(self, object_id, attribute, arg, token: str):
         """
         Modify a single attribute of a menu.
 
@@ -1810,7 +1833,7 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("menu", object_id, attribute, arg, token)
 
-    def modify_setting(self, setting_name: str, value, token) -> int:
+    def modify_setting(self, setting_name: str, value, token: str) -> int:
         """
         Modify a single attribute of a setting.
 
@@ -1849,7 +1872,7 @@ class CobblerXMLRPCInterface:
         self.api.settings().save()
         return 0
 
-    def auto_add_repos(self, token):
+    def auto_add_repos(self, token: str):
         """
         :param token: The API-token obtained via the login() method.
         """
@@ -2228,7 +2251,7 @@ class CobblerXMLRPCInterface:
         """
         return self.generate_autoinstall(system=system)
 
-    def generate_ipxe(self, profile=None, image=None, system=None, **rest):
+    def generate_ipxe(self, profile=None, image=None, system=None, **rest) -> str:
         """
         Generate the ipxe configuration.
 
@@ -2241,7 +2264,7 @@ class CobblerXMLRPCInterface:
         self._log("generate_ipxe")
         return self.api.generate_ipxe(profile, image, system)
 
-    def generate_bootcfg(self, profile=None, system=None, **rest):
+    def generate_bootcfg(self, profile: str = None, system: str = None, **rest) -> str:
         """
         This generates the bootcfg for a system which is related to a certain profile.
 
@@ -2253,7 +2276,7 @@ class CobblerXMLRPCInterface:
         self._log("generate_bootcfg")
         return self.api.generate_bootcfg(profile, system)
 
-    def generate_script(self, profile=None, system=None, name=None, **rest):
+    def generate_script(self, profile: str = None, system: str = None, name: str = None, **rest) -> str:
         """
         Not known what this does exactly.
 
@@ -2287,7 +2310,7 @@ class CobblerXMLRPCInterface:
         data = utils.blender(self.api, True, obj)
         return self.xmlrpc_hacks(data)
 
-    def get_settings(self, token=None, **rest):
+    def get_settings(self, token=None, **rest) -> dict:
         """
         Return the contents of our settings file, which is a dict.
 
@@ -2300,7 +2323,7 @@ class CobblerXMLRPCInterface:
         # self._log("my settings are: %s" % results, debug=True)
         return self.xmlrpc_hacks(results)
 
-    def get_signatures(self, token=None, **rest):
+    def get_signatures(self, token=None, **rest) -> dict:
         """
         Return the contents of the API signatures
 
@@ -2312,7 +2335,7 @@ class CobblerXMLRPCInterface:
         results = self.api.get_signatures()
         return self.xmlrpc_hacks(results)
 
-    def get_valid_breeds(self, token=None, **rest):
+    def get_valid_breeds(self, token=None, **rest) -> list:
         """
         Return the list of valid breeds as read in from the distro signatures data
 
@@ -2325,7 +2348,7 @@ class CobblerXMLRPCInterface:
         results.sort()
         return self.xmlrpc_hacks(results)
 
-    def get_valid_os_versions_for_breed(self, breed, token=None, **rest):
+    def get_valid_os_versions_for_breed(self, breed, token=None, **rest) -> list:
         """
         Return the list of valid os_versions for the given breed
 
@@ -2339,7 +2362,7 @@ class CobblerXMLRPCInterface:
         results.sort()
         return self.xmlrpc_hacks(results)
 
-    def get_valid_os_versions(self, token=None, **rest):
+    def get_valid_os_versions(self, token=None, **rest) -> list:
         """
         Return the list of valid os_versions as read in from the distro signatures data
 
@@ -2352,7 +2375,7 @@ class CobblerXMLRPCInterface:
         results.sort()
         return self.xmlrpc_hacks(results)
 
-    def get_valid_archs(self, token=None):
+    def get_valid_archs(self, token=None) -> list:
         """
         Return the list of valid architectures as read in from the distro signatures data
 
@@ -2364,7 +2387,7 @@ class CobblerXMLRPCInterface:
         results.sort()
         return self.xmlrpc_hacks(results)
 
-    def get_valid_distro_boot_loaders(self, distro_name, token=None):
+    def get_valid_distro_boot_loaders(self, distro_name: str, token=None):
         """
         Return the list of valid boot loaders for the distro
 
@@ -2380,7 +2403,7 @@ class CobblerXMLRPCInterface:
             return "# object not found: %s" % distro_name
         return self.api.get_valid_obj_boot_loaders(obj)
 
-    def get_valid_image_boot_loaders(self, image_name, token=None):
+    def get_valid_image_boot_loaders(self, image_name: str, token=None):
         """
         Return the list of valid boot loaders for the image
 
@@ -2413,13 +2436,13 @@ class CobblerXMLRPCInterface:
         distro = obj.get_conceptual_parent()
         return self.api.get_valid_obj_boot_loaders(distro)
 
-    def get_valid_system_boot_loaders(self, system_name, token=None):
+    def get_valid_system_boot_loaders(self, system_name: str, token=None) -> List[str]:
         """
         Return the list of valid boot loaders for the system
 
         :param token: The API-token obtained via the login() method.
         :param system_name: The name of the system for which the boot loaders should be looked up.
-        :return: Get a list of all valid boot loaders.
+        :return: Get a list of all valid boot loaders.get_valid_archs
         """
         self._log("get_valid_system_boot_loaders", token=token)
         if system_name is None:
@@ -3129,7 +3152,7 @@ class CobblerXMLRPCInterface:
         b64 = base64.b64encode(os.urandom(length))
         return b64.decode()
 
-    def __make_token(self, user) -> str:
+    def __make_token(self, user: str) -> str:
         """
         Returns a new random token.
 
@@ -3176,7 +3199,7 @@ class CobblerXMLRPCInterface:
         """
         return self.api.authenticate(input_user, input_password)
 
-    def __validate_token(self, token):
+    def __validate_token(self, token: str):
         """
         Checks to see if an API method can be called when the given token is passed in. Updates the timestamp of the
         token automatically to prevent the need to repeatedly call login(). Any method that needs access control should
@@ -3192,7 +3215,7 @@ class CobblerXMLRPCInterface:
             if user == "<system>":
                 # system token is only valid over Unix socket
                 return False
-            self.token_cache[token] = (time.time(), user)       # update to prevent timeout
+            self.token_cache[token] = (time.time(), user)  # update to prevent timeout
             return True
         else:
             self._log("invalid token", token=token)
@@ -3245,7 +3268,7 @@ class CobblerXMLRPCInterface:
             utils.log_exc()
             return False
 
-    def check_access(self, token, resource, arg1=None, arg2=None):
+    def check_access(self, token: str, resource: str, arg1=None, arg2=None):
         """
         Check if the token which was provided has access.
 
@@ -3265,7 +3288,7 @@ class CobblerXMLRPCInterface:
             raise CX("authorization failure for user %s" % user)
         return rc
 
-    def get_authn_module_name(self, token):
+    def get_authn_module_name(self, token: str):
         """
         Get the name of the currently used authentication module.
 
@@ -3277,7 +3300,7 @@ class CobblerXMLRPCInterface:
             raise CX("authorization failure for user %s attempting to access authn module name" % user)
         return self.api.get_module_name_from_file("authentication", "module")
 
-    def login(self, login_user, login_password):
+    def login(self, login_user: str, login_password: str) -> str:
         """
         Takes a username and password, validates it, and if successful returns a random login token which must be used
         on subsequent method calls. The token will time out after a set interval if not used. Re-logging in permitted.
@@ -3301,7 +3324,7 @@ class CobblerXMLRPCInterface:
         else:
             utils.die("login failed (%s)" % login_user)
 
-    def logout(self, token) -> bool:
+    def logout(self, token: str) -> bool:
         """
         Retires a token ahead of the timeout.
 
@@ -3314,7 +3337,7 @@ class CobblerXMLRPCInterface:
             return True
         return False
 
-    def token_check(self, token) -> bool:
+    def token_check(self, token: str) -> bool:
         """
         Checks to make sure a token is valid or not.
 
@@ -3323,7 +3346,7 @@ class CobblerXMLRPCInterface:
         """
         return self.__validate_token(token)
 
-    def sync_dhcp(self, token):
+    def sync_dhcp(self, token: str):
         """
         Run sync code, which should complete before XMLRPC timeout. We can't do reposync this way. Would be nice to
         send output over AJAX/other later.
@@ -3336,7 +3359,7 @@ class CobblerXMLRPCInterface:
         self.api.sync_dhcp()
         return True
 
-    def sync(self, token):
+    def sync(self, token: str):
         """
         Run sync code, which should complete before XMLRPC timeout. We can't do reposync this way. Would be nice to
         send output over AJAX/other later.
@@ -3350,7 +3373,7 @@ class CobblerXMLRPCInterface:
         self.api.sync()
         return True
 
-    def read_autoinstall_template(self, file_path: str, token) -> str:
+    def read_autoinstall_template(self, file_path: str, token: str) -> str:
         """
         Read an automatic OS installation template file
 
@@ -3364,7 +3387,7 @@ class CobblerXMLRPCInterface:
 
         return self.autoinstall_mgr.read_autoinstall_template(file_path)
 
-    def write_autoinstall_template(self, file_path: str, data: str, token):
+    def write_autoinstall_template(self, file_path: str, data: str, token: str):
         """
         Write an automatic OS installation template file
 
@@ -3382,7 +3405,7 @@ class CobblerXMLRPCInterface:
 
         return True
 
-    def remove_autoinstall_template(self, file_path: str, token):
+    def remove_autoinstall_template(self, file_path: str, token: str):
         """
         Remove an automatic OS installation template file
 
@@ -3398,7 +3421,7 @@ class CobblerXMLRPCInterface:
 
         return True
 
-    def read_autoinstall_snippet(self, file_path: str, token) -> str:
+    def read_autoinstall_snippet(self, file_path: str, token: str) -> str:
         """
         Read an automatic OS installation snippet file
 
@@ -3412,7 +3435,7 @@ class CobblerXMLRPCInterface:
 
         return self.autoinstall_mgr.read_autoinstall_snippet(file_path)
 
-    def write_autoinstall_snippet(self, file_path: str, data: str, token) -> bool:
+    def write_autoinstall_snippet(self, file_path: str, data: str, token: str) -> bool:
         """
         Write an automatic OS installation snippet file
 
@@ -3430,7 +3453,7 @@ class CobblerXMLRPCInterface:
 
         return True
 
-    def remove_autoinstall_snippet(self, file_path: str, token):
+    def remove_autoinstall_snippet(self, file_path: str, token: str):
         """
         Remove an automated OS installation snippet file
 
@@ -3447,7 +3470,7 @@ class CobblerXMLRPCInterface:
 
         return True
 
-    def get_config_data(self, hostname) -> str:
+    def get_config_data(self, hostname: str) -> str:
         """
         Generate configuration data for the system specified by hostname.
 
@@ -3458,7 +3481,7 @@ class CobblerXMLRPCInterface:
         obj = configgen.ConfigGen(self.api, hostname)
         return obj.gen_config_data_for_koan()
 
-    def clear_system_logs(self, object_id, token=None):
+    def clear_system_logs(self, object_id: str, token: str):
         """
         clears console logs of a system
 
@@ -3470,6 +3493,7 @@ class CobblerXMLRPCInterface:
         self.check_access(token, "clear_system_logs", obj)
         self.api.clear_logs(obj)
         return True
+
 
 # *********************************************************************************
 
@@ -3501,6 +3525,7 @@ class CobblerXMLRPCServer(ThreadingMixIn, xmlrpc.server.SimpleXMLRPCServer):
         """
         self.allow_reuse_address = True
         xmlrpc.server.SimpleXMLRPCServer.__init__(self, args, requestHandler=RequestHandler)
+
 
 # *********************************************************************************
 

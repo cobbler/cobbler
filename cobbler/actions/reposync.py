@@ -26,7 +26,7 @@ import os.path
 import pipes
 import stat
 import shutil
-from typing import Union
+from typing import Optional, Union
 
 from cobbler import utils
 from cobbler import download_manager
@@ -105,7 +105,7 @@ class RepoSync:
 
     # ===================================================================
 
-    def run(self, name=None, verbose: bool = True):
+    def run(self, name: Optional[str] = None, verbose: bool = True):
         """
         Syncs the current repo configuration file with the filesystem.
 

@@ -22,6 +22,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from typing import Optional
 
 from cobbler import utils
 from cobbler.cexceptions import CX
@@ -39,7 +40,8 @@ class AclConfig:
         self.api = collection_mgr.api
         self.settings = collection_mgr.settings()
 
-    def run(self, adduser=None, addgroup=None, removeuser=None, removegroup=None):
+    def run(self, adduser: Optional[str] = None, addgroup: Optional[str] = None, removeuser: Optional[str] = None,
+            removegroup: Optional[str] = None):
         """
         Automate setfacl commands. Only one of the four may be specified but one option also must be specified.
 
@@ -66,7 +68,7 @@ class AclConfig:
         if not ok:
             raise CX("no arguments specified, nothing to do")
 
-    def modacl(self, isadd: bool, isuser: bool, who):
+    def modacl(self, isadd: bool, isuser: bool, who: str):
         """
         Modify the acls for Cobbler on the filesystem.
 
