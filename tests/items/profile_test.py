@@ -96,7 +96,7 @@ def test_name_servers_search():
     profile.name_servers_search = ""
 
     # Assert
-    assert profile.name_servers_search is None
+    assert profile.name_servers_search == ""
 
 
 def test_proxy():

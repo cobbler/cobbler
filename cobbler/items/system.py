@@ -35,6 +35,11 @@ class NetworkInterface:
     """
 
     def __init__(self, api):
+        """
+        Constructor.
+
+        :param api: The Cobbler API object which is used for resolving information.
+        """
         self.__logger = logging.getLogger()
         self.__api = api
         self._bonding_opts = ""
@@ -63,9 +68,9 @@ class NetworkInterface:
 
     def from_dict(self, dictionary: dict):
         """
-        TODO
+        Initializes the object with attributes from the dictionary.
 
-        :param dictionary:
+        :param dictionary: The dictionary with values.
         """
         dictionary_keys = list(dictionary.keys())
         for key in dictionary:
@@ -78,9 +83,9 @@ class NetworkInterface:
 
     def to_dict(self) -> dict:
         """
-        TODO
+        This converts everything in this object to a dictionary.
 
-        :return:
+        :return: A dictionary with all values present in this object.
         """
         result = {}
         for key in self.__dict__:
@@ -96,25 +101,28 @@ class NetworkInterface:
     # These two methods are currently not used but we do want to use them in the future, so let's define them.
     def serialize(self):
         """
-        TODO
+        This method is a proxy for :meth:`~cobbler.items.item.Item.to_dict` and contains additional logic for
+        serialization to a persistent location.
 
-        :return:
+        :return: The dictionary with the information for serialization.
         """
         self.to_dict()
 
     def deserialize(self, interface_dict: dict):
         """
-        TODO
+        This is currently a proxy for :py:meth:`~cobbler.items.item.Item.from_dict` .
 
-        :return:
+        :param item_dict: The dictionary with the data to deserialize.
         """
         self.from_dict(interface_dict)
 
     @property
     def dhcp_tag(self) -> str:
         """
-        TODO
+        dhcp_tag property.
 
+        :getter: Returns the value for ``dhcp_tag``.
+        :setter: Sets the value for the property ``dhcp_tag``.
         :return:
         """
         return self._dhcp_tag
@@ -122,7 +130,8 @@ class NetworkInterface:
     @dhcp_tag.setter
     def dhcp_tag(self, dhcp_tag: str):
         """
-        TODO
+        Setter for the dhcp_tag of the NetworkInterface class.
+
 
         :param dhcp_tag:
         """
@@ -133,8 +142,10 @@ class NetworkInterface:
     @property
     def cnames(self) -> list:
         """
-        TODO
+        cnames property.
 
+        :getter: Returns the value for ``cnames``.
+        :setter: Sets the value for the property ``cnames``.
         :return:
         """
         return self._cnames
@@ -142,7 +153,8 @@ class NetworkInterface:
     @cnames.setter
     def cnames(self, cnames: list):
         """
-        TODO
+        Setter for the cnames of the NetworkInterface class.
+
 
         :param cnames:
         """
@@ -151,8 +163,10 @@ class NetworkInterface:
     @property
     def static_routes(self) -> list:
         """
-        TODO
+        static_routes property.
 
+        :getter: Returns the value for ``static_routes``.
+        :setter: Sets the value for the property ``static_routes``.
         :return:
         """
         return self._static_routes
@@ -160,7 +174,8 @@ class NetworkInterface:
     @static_routes.setter
     def static_routes(self, routes: list):
         """
-        TODO
+        Setter for the static_routes of the NetworkInterface class.
+
 
         :param routes:
         """
@@ -169,8 +184,10 @@ class NetworkInterface:
     @property
     def static(self) -> bool:
         """
-        TODO
+        static property.
 
+        :getter: Returns the value for ``static``.
+        :setter: Sets the value for the property ``static``.
         :return:
         """
         return self._static
@@ -178,7 +195,8 @@ class NetworkInterface:
     @static.setter
     def static(self, truthiness: bool):
         """
-        TODO
+        Setter for the static of the NetworkInterface class.
+
 
         :param truthiness:
         """
@@ -190,8 +208,10 @@ class NetworkInterface:
     @property
     def management(self) -> bool:
         """
-        TODO
+        management property.
 
+        :getter: Returns the value for ``management``.
+        :setter: Sets the value for the property ``management``.
         :return:
         """
         return self._management
@@ -199,7 +219,8 @@ class NetworkInterface:
     @management.setter
     def management(self, truthiness: bool):
         """
-        TODO
+        Setter for the management of the NetworkInterface class.
+
 
         :param truthiness:
         """
@@ -211,8 +232,10 @@ class NetworkInterface:
     @property
     def dns_name(self) -> str:
         """
-        TODO
+        dns_name property.
 
+        :getter: Returns the value for ``dns_name`.
+        :setter: Sets the value for the property ``dns_name``.
         :return:
         """
         return self._dns_name
@@ -235,8 +258,10 @@ class NetworkInterface:
     @property
     def ip_address(self) -> str:
         """
-        TODO
+        ip_address property.
 
+        :getter: Returns the value for ``ip_address``.
+        :setter: Sets the value for the property ``ip_address``.
         :return:
         """
         return self._ip_address
@@ -259,8 +284,10 @@ class NetworkInterface:
     @property
     def mac_address(self) -> str:
         """
-        TODO
+        mac_address property.
 
+        :getter: Returns the value for ``mac_address``.
+        :setter: Sets the value for the property ``mac_address``.
         :return:
         """
         return self._mac_address
@@ -285,8 +312,10 @@ class NetworkInterface:
     @property
     def netmask(self) -> str:
         """
-        TODO
+        netmask property.
 
+        :getter: Returns the value for ``netmask``.
+        :setter: Sets the value for the property ``netmask``.
         :return:
         """
         return self._netmask
@@ -303,8 +332,10 @@ class NetworkInterface:
     @property
     def if_gateway(self) -> str:
         """
-        TODO
+        if_gateway property.
 
+        :getter: Returns the value for ``if_gateway``.
+        :setter: Sets the value for the property ``if_gateway``.
         :return:
         """
         return self._if_gateway
@@ -322,8 +353,10 @@ class NetworkInterface:
     @property
     def virt_bridge(self) -> str:
         """
-        TODO
+        virt_bridge property.
 
+        :getter: Returns the value for ``virt_bridge``.
+        :setter: Sets the value for the property ``virt_bridge``.
         :return:
         """
         return self._virt_bridge
@@ -331,7 +364,8 @@ class NetworkInterface:
     @virt_bridge.setter
     def virt_bridge(self, bridge: str):
         """
-        TODO
+        Setter for the virt_bridge of the NetworkInterface class.
+
 
         :param bridge:
         """
@@ -344,8 +378,10 @@ class NetworkInterface:
     @property
     def interface_type(self) -> enums.NetworkInterfaceType:
         """
-        TODO
+        interface_type property.
 
+        :getter: Returns the value for ``interface_type``.
+        :setter: Sets the value for the property ``interface_type``.
         :return:
         """
         return self._interface_type
@@ -353,7 +389,8 @@ class NetworkInterface:
     @interface_type.setter
     def interface_type(self, intf_type: Union[enums.NetworkInterfaceType, int, str]):
         """
-        TODO
+        Setter for the interface_type of the NetworkInterface class.
+
 
         :param intf_type:
         """
@@ -380,8 +417,10 @@ class NetworkInterface:
     @property
     def interface_master(self) -> str:
         """
-        TODO
+        interface_master property.
 
+        :getter: Returns the value for ``interface_master``.
+        :setter: Sets the value for the property ``interface_master``.
         :return:
         """
         return self._interface_master
@@ -389,7 +428,8 @@ class NetworkInterface:
     @interface_master.setter
     def interface_master(self, interface_master: str):
         """
-        TODO
+        Setter for the interface_master of the NetworkInterface class.
+
 
         :param interface_master:
         """
@@ -400,8 +440,10 @@ class NetworkInterface:
     @property
     def bonding_opts(self) -> str:
         """
-        TODO
+        bonding_opts property.
 
+        :getter: Returns the value for ``bonding_opts``.
+        :setter: Sets the value for the property ``bonding_opts``.
         :return:
         """
         return self._bonding_opts
@@ -409,7 +451,8 @@ class NetworkInterface:
     @bonding_opts.setter
     def bonding_opts(self, bonding_opts: str):
         """
-        TODO
+        Setter for the bonding_opts of the NetworkInterface class.
+
 
         :param bonding_opts:
         """
@@ -420,8 +463,10 @@ class NetworkInterface:
     @property
     def bridge_opts(self) -> str:
         """
-        TODO
+        bridge_opts property.
 
+        :getter: Returns the value for ``bridge_opts``.
+        :setter: Sets the value for the property ``bridge_opts``.
         :return:
         """
         return self._bridge_opts
@@ -429,7 +474,8 @@ class NetworkInterface:
     @bridge_opts.setter
     def bridge_opts(self, bridge_opts: str):
         """
-        TODO
+        Setter for the bridge_opts of the NetworkInterface class.
+
 
         :param bridge_opts:
         """
@@ -440,8 +486,10 @@ class NetworkInterface:
     @property
     def ipv6_address(self) -> str:
         """
-        TODO
+        ipv6_address property.
 
+        :getter: Returns the value for ``ipv6_address``.
+        :setter: Sets the value for the property ``ipv6_address``.
         :return:
         """
         return self._ipv6_address
@@ -464,8 +512,10 @@ class NetworkInterface:
     @property
     def ipv6_prefix(self) -> str:
         """
-        TODO
+        ipv6_prefix property.
 
+        :getter: Returns the value for ``ipv6_prefix``.
+        :setter: Sets the value for the property ``ipv6_prefix``.
         :return:
         """
         return self._ipv6_address
@@ -484,8 +534,10 @@ class NetworkInterface:
     @property
     def ipv6_secondaries(self) -> list:
         """
-        TODO
+        ipv6_secondaries property.
 
+        :getter: Returns the value for ``ipv6_secondaries``.
+        :setter: Sets the value for the property ``ipv6_secondaries``.
         :return:
         """
         return self._ipv6_secondaries
@@ -493,7 +545,8 @@ class NetworkInterface:
     @ipv6_secondaries.setter
     def ipv6_secondaries(self, addresses: list):
         """
-        TODO
+        Setter for the ipv6_secondaries of the NetworkInterface class.
+
 
         :param addresses:
         """
@@ -509,8 +562,10 @@ class NetworkInterface:
     @property
     def ipv6_default_gateway(self) -> str:
         """
-        TODO
+        ipv6_default_gateway property.
 
+        :getter: Returns the value for ``ipv6_default_gateway``.
+        :setter: Sets the value for the property ``ipv6_default_gateway``.
         :return:
         """
         return self._ipv6_default_gateway
@@ -518,7 +573,8 @@ class NetworkInterface:
     @ipv6_default_gateway.setter
     def ipv6_default_gateway(self, address: str):
         """
-        TODO
+        Setter for the ipv6_default_gateway of the NetworkInterface class.
+
 
         :param address:
         """
@@ -532,8 +588,10 @@ class NetworkInterface:
     @property
     def ipv6_static_routes(self) -> list:
         """
-        TODO
+        ipv6_static_routes property.
 
+        :getter: Returns the value for ``ipv6_static_routes``.
+        :setter: Sets the value for the property `ipv6_static_routes``.
         :return:
         """
         return self._ipv6_static_routes
@@ -541,7 +599,8 @@ class NetworkInterface:
     @ipv6_static_routes.setter
     def ipv6_static_routes(self, routes: list):
         """
-        TODO
+        Setter for the ipv6_static_routes of the NetworkInterface class.
+
 
         :param routes:
         """
@@ -550,8 +609,10 @@ class NetworkInterface:
     @property
     def ipv6_mtu(self) -> str:
         """
-        TODO
+        ipv6_mtu property.
 
+        :getter: Returns the value for ``ipv6_mtu``.
+        :setter: Sets the value for the property ``ipv6_mtu``.
         :return:
         """
         return self._ipv6_mtu
@@ -559,7 +620,8 @@ class NetworkInterface:
     @ipv6_mtu.setter
     def ipv6_mtu(self, mtu: str):
         """
-        TODO
+        Setter for the ipv6_mtu of the NetworkInterface class.
+
 
         :param mtu:
         """
@@ -570,8 +632,10 @@ class NetworkInterface:
     @property
     def mtu(self) -> str:
         """
-        TODO
+        mtu property.
 
+        :getter: Returns the value for ``mtu``.
+        :setter: Sets the value for the property ``mtu``.
         :return:
         """
         return self._mtu
@@ -579,7 +643,8 @@ class NetworkInterface:
     @mtu.setter
     def mtu(self, mtu: str):
         """
-        TODO
+        Setter for the mtu of the NetworkInterface class.
+
 
         :param mtu:
         """
@@ -590,8 +655,10 @@ class NetworkInterface:
     @property
     def connected_mode(self) -> bool:
         """
-        TODO
+        connected_mode property.
 
+        :getter: Returns the value for ``connected_mode``.
+        :setter: Sets the value for the property ``connected_mode``.
         :return:
         """
         return self._connected_mode
@@ -599,7 +666,8 @@ class NetworkInterface:
     @connected_mode.setter
     def connected_mode(self, truthiness: bool):
         """
-        TODO
+        Setter for the connected_mode of the NetworkInterface class.
+
 
         :param truthiness:
         """
@@ -610,7 +678,9 @@ class NetworkInterface:
 
     def modify_interface(self, _dict: dict):
         """
-        TODO
+        Modify the interface
+
+        :param _dict: The dict with the parameter.
         """
         for (key, value) in list(_dict.items()):
             (field, _) = key.split("-", 1)
@@ -672,6 +742,11 @@ class System(Item):
     COLLECTION_TYPE = "system"
 
     def __init__(self, api, *args, **kwargs):
+        """
+        Constructor
+
+        :param api: The Cobbler API
+        """
         super().__init__(api, *args, **kwargs)
         self._interfaces: Dict[str, NetworkInterface] = {"default": NetworkInterface(api)}
         self._ipv6_autoconfiguration = False
@@ -763,6 +838,8 @@ class System(Item):
         """
         Return object next highest up the tree. This may be a profile or an image.
 
+        :getter: Returns the value for ``parent``.
+        :setter: Sets the value for the property ``parent``.
         :returns: None when there is no parent or the corresponding Item.
         """
         if not self._parent and self.profile:
@@ -777,8 +854,8 @@ class System(Item):
 
     @parent.setter
     def parent(self, value: str):
-        """
-        TODO
+        r"""
+        Setter for the ``parent`` property.
 
         :param value: The name of a profile, an image or another System.
         :raises TypeError: In case value was not of type ``str``.
@@ -807,7 +884,9 @@ class System(Item):
 
     def check_if_valid(self):
         """
-        :raises CX
+        Checks if the current item passes logical validation.
+
+        :raises CX: In case name is missing. Additionally either image or profile is required.
         """
         if self.name is None or self.name == "":
             raise CX("name is required")
@@ -821,10 +900,12 @@ class System(Item):
 
     @property
     def interfaces(self) -> Dict[str, NetworkInterface]:
-        """
-        TODO
+        r"""
+        Represents all interfaces owned by the system.
 
-        :return:
+        :getter: The interfaces present. Has at least the ``default`` one.
+        :setter: Accepts not only the correct type but also a dict with dicts which will then be converted by the
+                 setter.
         """
         return self._interfaces
 
@@ -833,7 +914,7 @@ class System(Item):
         """
         This methods needs to be able to take a dictionary from ``make_clone()``
 
-        :param value:
+        :param value: The new interfaces.
         """
         if not isinstance(value, dict):
             raise TypeError("interfaces must be of type dict")
@@ -864,10 +945,11 @@ class System(Item):
             self.interfaces.pop(name)
 
     def rename_interface(self, old_name: str, new_name: str):
-        """
+        r"""
         Used to rename an interface.
 
-        :raises CX
+        :raises TypeError: In case on of the params was not a ``str``.
+        :raises ValueError: In case the name for the old interface does not exist or the new name does.
         """
         if not isinstance(old_name, str):
             raise TypeError("The old_name of the interface must be of type str")
@@ -883,8 +965,10 @@ class System(Item):
     @property
     def hostname(self) -> str:
         """
-        TODO
+        hostname property.
 
+        :getter: Returns the value for ``hostname``.
+        :setter: Sets the value for the property ``hostname``.
         :return:
         """
         return self._hostname
@@ -892,7 +976,8 @@ class System(Item):
     @hostname.setter
     def hostname(self, value: str):
         """
-        TODO
+        Setter for the hostname of the System class.
+
 
         :param value:
         """
@@ -903,8 +988,10 @@ class System(Item):
     @property
     def status(self) -> str:
         """
-        TODO
+        status property.
 
+        :getter: Returns the value for ``status``.
+        :setter: Sets the value for the property ``status``.
         :return:
         """
         return self._status
@@ -912,7 +999,8 @@ class System(Item):
     @status.setter
     def status(self, status: str):
         """
-        TODO
+        Setter for the status of the System class.
+
 
         :param status:
         """
@@ -923,8 +1011,10 @@ class System(Item):
     @property
     def boot_loaders(self) -> list:
         """
-        TODO
+        boot_loaders property.
 
+        :getter: Returns the value for ``boot_loaders``.
+        :setter: Sets the value for the property ``boot_loaders``.
         :return:
         """
         return self._resolve("boot_loaders")
@@ -961,8 +1051,10 @@ class System(Item):
     @property
     def server(self) -> str:
         """
-        TODO
+        server property.
 
+        :getter: Returns the value for ``server``.
+        :setter: Sets the value for the property ``server``.
         :return:
         """
         return self._server
@@ -972,6 +1064,9 @@ class System(Item):
         """
         If a system can't reach the boot server at the value configured in settings
         because it doesn't have the same name on it's subnet this is there for an override.
+
+        :param server:
+        :raises TypeError: In case server is no string.
         """
         if not isinstance(server, str):
             raise TypeError("Field server of object system needs to be of type str!")
@@ -982,8 +1077,10 @@ class System(Item):
     @property
     def next_server_v4(self) -> str:
         """
-        TODO
+        next_server_v4 property.
 
+        :getter: Returns the value for ``next_server_v4``.
+        :setter: Sets the value for the property ``next_server_v4``.
         :return:
         """
         return self._resolve("next_server_v4")
@@ -1006,8 +1103,10 @@ class System(Item):
     @property
     def next_server_v6(self) -> str:
         """
-        TODO
+        next_server_v6 property.
 
+        :getter: Returns the value for ``next_server_v6``.
+        :setter: Sets the value for the property ``next_server_v6``.
         :return:
         """
         return self._resolve("next_server_v6")
@@ -1030,8 +1129,10 @@ class System(Item):
     @property
     def filename(self) -> str:
         """
-        TODO
+        filename property.
 
+        :getter: Returns the value for ``filename``.
+        :setter: Sets the value for the property ``filename``.
         :return:
         """
         return self._resolve("filename")
@@ -1039,9 +1140,11 @@ class System(Item):
     @filename.setter
     def filename(self, filename: str):
         """
-        TODO
+        Setter for the filename of the System class.
+
 
         :param filename:
+        :raises TypeError: In case filename is no string.
         :return:
         """
         if not isinstance(filename, str):
@@ -1054,8 +1157,10 @@ class System(Item):
     @property
     def proxy(self) -> str:
         """
-        TODO
+        proxy property.
 
+        :getter: Returns the value for ``proxy``.
+        :setter: Sets the value for the property ``proxy``.
         :return:
         """
         return self._resolve("proxy_url_int")
@@ -1063,9 +1168,11 @@ class System(Item):
     @proxy.setter
     def proxy(self, proxy: str):
         """
-        TODO
+        Setter for the proxy of the System class.
+
 
         :param proxy:
+        :raises TypeError: In case proxy is no string.
         :return:
         """
         if not isinstance(proxy, str):
@@ -1075,8 +1182,10 @@ class System(Item):
     @property
     def redhat_management_key(self) -> str:
         """
-        TODO
+        redhat_management_key property.
 
+        :getter: Returns the value for ``redhat_management_key``.
+        :setter: Sets the value for the property ``redhat_management_key``.
         :return:
         """
         return self._resolve("redhat_management_key")
@@ -1084,9 +1193,11 @@ class System(Item):
     @redhat_management_key.setter
     def redhat_management_key(self, management_key: str):
         """
-        TODO
+        Setter for the redhat_management_key of the System class.
+
 
         :param management_key:
+        :raises TypeError: In case management_key is no string.
         """
         if not isinstance(management_key, str):
             raise TypeError("Field redhat_management_key of object system needs to be of type str!")
@@ -1143,17 +1254,19 @@ class System(Item):
 
     def __create_interface(self, interface: str):
         """
-        TODO
+        Create or overwrites a network interface.
 
-        :param interface:
+        :param interface: The name of the interface
         """
         self.interfaces[interface] = NetworkInterface(self.api)
 
     def __get_interface(self, interface_name: str = "default") -> NetworkInterface:
         """
-        TODO
+        Tries to retrieve an interface and creates it in case the interface doesn't exist. If no name is given the
+        default interface is retrieved.
 
         :param interface_name: The name of the interface. If ``None`` is given then ``default`` is used.
+        :raises TypeError: In case interface_name is no string.
         :return: The requested interface.
         """
         if interface_name is None:
@@ -1169,8 +1282,10 @@ class System(Item):
     @property
     def gateway(self):
         """
-        TODO
+        gateway property.
 
+        :getter: Returns the value for ``gateway``.
+        :setter: Sets the value for the property ``gateway``.
         :return:
         """
         return self._gateway
@@ -1188,9 +1303,11 @@ class System(Item):
     @property
     def name_servers(self) -> list:
         """
-        TODO
+        name_servers property.
         FIXME: Differentiate between IPv4/6
 
+        :getter: Returns the value for ``name_servers``.
+        :setter: Sets the value for the property ``name_servers``.
         :return:
         """
         return self._name_servers
@@ -1209,8 +1326,10 @@ class System(Item):
     @property
     def name_servers_search(self) -> list:
         """
-        TODO
+        name_servers_search property.
 
+        :getter: Returns the value for ``name_servers_search``.
+        :setter: Sets the value for the property ``name_servers_search``.
         :return:
         """
         return self._name_servers_search
@@ -1228,8 +1347,10 @@ class System(Item):
     @property
     def ipv6_autoconfiguration(self) -> bool:
         """
-        TODO
+        ipv6_autoconfiguration property.
 
+        :getter: Returns the value for ``ipv6_autoconfiguration``.
+        :setter: Sets the value for the property ``ipv6_autoconfiguration``.
         :return:
         """
         return self._ipv6_autoconfiguration
@@ -1237,7 +1358,8 @@ class System(Item):
     @ipv6_autoconfiguration.setter
     def ipv6_autoconfiguration(self, value: bool):
         """
-        TODO
+        Setter for the ipv6_autoconfiguration of the System class.
+
 
         :param value:
         """
@@ -1249,8 +1371,10 @@ class System(Item):
     @property
     def ipv6_default_device(self) -> str:
         """
-        TODO
+        ipv6_default_device property.
 
+        :getter: Returns the value for ``ipv6_default_device``.
+        :setter: Sets the value for the property ``ipv6_default_device``.
         :return:
         """
         return self._ipv6_default_device
@@ -1258,7 +1382,8 @@ class System(Item):
     @ipv6_default_device.setter
     def ipv6_default_device(self, interface_name: str):
         """
-        TODO
+        Setter for the ipv6_default_device of the System class.
+
 
         :param interface_name:
         """
@@ -1271,8 +1396,10 @@ class System(Item):
     @property
     def enable_ipxe(self) -> bool:
         """
-        TODO
+        enable_ipxe property.
 
+        :getter: Returns the value for ``enable_ipxe``.
+        :setter: Sets the value for the property ``enable_ipxe``.
         :return:
         """
         return self._resolve("enable_ipxe")
@@ -1281,6 +1408,9 @@ class System(Item):
     def enable_ipxe(self, enable_ipxe: bool):
         """
         Sets whether or not the system will use iPXE for booting.
+
+        :param enable_ipxe: If ipxe should be enabled or not.
+        :raises TypeError: In case enable_ipxe is not a boolean.
         """
         enable_ipxe = utils.input_boolean(enable_ipxe)
         if not isinstance(enable_ipxe, bool):
@@ -1290,8 +1420,10 @@ class System(Item):
     @property
     def profile(self) -> str:
         """
-        TODO
+        profile property.
 
+        :getter: Returns the value for ``profile``.
+        :setter: Sets the value for the property ``profile``.
         :return:
         """
         return self._profile
@@ -1303,6 +1435,8 @@ class System(Item):
         collection.
 
         :param profile_name: The name of the profile which the system is underneath.
+        :raises TypeError: In case profile_name is no string.
+        :raises ValueError: In case profile_name does not exist.
         """
         if not isinstance(profile_name, str):
             raise TypeError("The name of a profile needs to be of type str.")
@@ -1335,8 +1469,10 @@ class System(Item):
     @property
     def image(self) -> str:
         """
-        TODO
+        image property.
 
+        :getter: Returns the value for ``image``.
+        :setter: Sets the value for the property ``image``.
         :return:
         """
         return self._image
@@ -1349,6 +1485,7 @@ class System(Item):
 
         :param image_name: The name of the image which will act as a parent.
         :raises CX: In case the image name was invalid.
+        :raises TypeError: In case image_name is no string.
         """
         if not isinstance(image_name, str):
             raise TypeError("The name of an image must be of type str.")
@@ -1379,8 +1516,10 @@ class System(Item):
     @property
     def virt_cpus(self) -> int:
         """
-        TODO
+        virt_cpus property.
 
+        :getter: Returns the value for ``virt_cpus``.
+        :setter: Sets the value for the property ``virt_cpus``.
         :return:
         """
         return self._virt_cpus
@@ -1388,7 +1527,8 @@ class System(Item):
     @virt_cpus.setter
     def virt_cpus(self, num: int):
         """
-        TODO
+        Setter for the virt_cpus of the System class.
+
 
         :param num:
         """
@@ -1397,8 +1537,10 @@ class System(Item):
     @property
     def virt_file_size(self) -> float:
         """
-        TODO
+        virt_file_size property.
 
+        :getter: Returns the value for ``virt_file_size``.
+        :setter: Sets the value for the property ``virt_file_size``.
         :return:
         """
         return self._virt_file_size
@@ -1406,7 +1548,8 @@ class System(Item):
     @virt_file_size.setter
     def virt_file_size(self, num: float):
         """
-        TODO
+        Setter for the virt_file_size of the System class.
+
 
         :param num:
         """
@@ -1415,8 +1558,10 @@ class System(Item):
     @property
     def virt_disk_driver(self) -> enums.VirtDiskDrivers:
         """
-        TODO
+        virt_disk_driver property.
 
+        :getter: Returns the value for ``virt_disk_driver``.
+        :setter: Sets the value for the property ``virt_disk_driver``.
         :return:
         """
         return self._virt_disk_driver
@@ -1424,7 +1569,8 @@ class System(Item):
     @virt_disk_driver.setter
     def virt_disk_driver(self, driver: Union[str, enums.VirtDiskDrivers]):
         """
-        TODO
+        Setter for the virt_disk_driver of the System class.
+
 
         :param driver:
         """
@@ -1433,8 +1579,10 @@ class System(Item):
     @property
     def virt_auto_boot(self) -> bool:
         """
-        TODO
+        virt_auto_boot property.
 
+        :getter: Returns the value for ``virt_auto_boot``.
+        :setter: Sets the value for the property ``virt_auto_boot``.
         :return:
         """
         return self._virt_auto_boot
@@ -1442,7 +1590,8 @@ class System(Item):
     @virt_auto_boot.setter
     def virt_auto_boot(self, num: bool):
         """
-        TODO
+        Setter for the virt_auto_boot of the System class.
+
 
         :param num:
         """
@@ -1451,8 +1600,10 @@ class System(Item):
     @property
     def virt_pxe_boot(self) -> bool:
         """
-        TODO
+        virt_pxe_boot property.
 
+        :getter: Returns the value for ``virt_pxe_boot``.
+        :setter: Sets the value for the property ``virt_pxe_boot``.
         :return:
         """
         return self._virt_pxe_boot
@@ -1460,7 +1611,8 @@ class System(Item):
     @virt_pxe_boot.setter
     def virt_pxe_boot(self, num: bool):
         """
-        TODO
+        Setter for the virt_pxe_boot of the System class.
+
 
         :param num:
         """
@@ -1469,8 +1621,10 @@ class System(Item):
     @property
     def virt_ram(self) -> int:
         """
-        TODO
+        virt_ram property.
 
+        :getter: Returns the value for ``virt_ram``.
+        :setter: Sets the value for the property ``virt_ram``.
         :return:
         """
         return self._virt_ram
@@ -1478,7 +1632,8 @@ class System(Item):
     @virt_ram.setter
     def virt_ram(self, num: Union[int, str]):
         """
-        TODO
+        Setter for the virt_ram of the System class.
+
 
         :param num:
         """
@@ -1487,8 +1642,10 @@ class System(Item):
     @property
     def virt_type(self) -> enums.VirtType:
         """
-        TODO
+        virt_type property.
 
+        :getter: Returns the value for ``virt_type``.
+        :setter: Sets the value for the property ``virt_type``.
         :return:
         """
         return self._virt_type
@@ -1496,7 +1653,8 @@ class System(Item):
     @virt_type.setter
     def virt_type(self, vtype: Union[enums.VirtType, str]):
         """
-        TODO
+        Setter for the virt_type of the System class.
+
 
         :param vtype:
         """
@@ -1505,8 +1663,10 @@ class System(Item):
     @property
     def virt_path(self) -> str:
         """
-        TODO
+        virt_path property.
 
+        :getter: Returns the value for ``virt_path``.
+        :setter: Sets the value for the property ``virt_path``.
         :return:
         """
         return self._virt_path
@@ -1514,7 +1674,8 @@ class System(Item):
     @virt_path.setter
     def virt_path(self, path: str):
         """
-        TODO
+        Setter for the virt_path of the System class.
+
 
         :param path:
         """
@@ -1523,8 +1684,10 @@ class System(Item):
     @property
     def netboot_enabled(self) -> bool:
         """
-        TODO
+        netboot_enabled property.
 
+        :getter: Returns the value for ``netboot_enabled``.
+        :setter: Sets the value for the property ``netboot_enabled``.
         :return:
         """
         return self._netboot_enabled
@@ -1542,6 +1705,9 @@ class System(Item):
 
         Use of this option does not affect the ability to use PXE menus. If an admin has machines set up to PXE only
         after local boot fails, this option isn't even relevant.
+
+        :param: netboot_enabled:
+        :raises TypeError: In case netboot_enabled is not a boolean.
         """
         netboot_enabled = utils.input_boolean(netboot_enabled)
         if not isinstance(netboot_enabled, bool):
@@ -1551,8 +1717,10 @@ class System(Item):
     @property
     def autoinstall(self) -> str:
         """
-        TODO
+        autoinstall property.
 
+        :getter: Returns the value for ``autoinstall``.
+        :setter: Sets the value for the property ``autoinstall``.
         :return:
         """
         return self._resolve("autoinstall")
@@ -1570,8 +1738,10 @@ class System(Item):
     @property
     def power_type(self) -> str:
         """
-        TODO
+        power_type property.
 
+        :getter: Returns the value for ``power_type``.
+        :setter: Sets the value for the property ``power_type``.
         :return:
         """
         return self._power_type
@@ -1579,9 +1749,11 @@ class System(Item):
     @power_type.setter
     def power_type(self, power_type: str):
         """
-        TODO
+        Setter for the power_type of the System class.
+
 
         :param power_type:
+        :raises TypeError: In case power_type is no string.
         """
         if not isinstance(power_type, str):
             raise TypeError("power_type must be of type str")
@@ -1594,8 +1766,10 @@ class System(Item):
     @property
     def power_identity_file(self) -> str:
         """
-        TODO
+        power_identity_file property.
 
+        :getter: Returns the value for ``power_identity_file``.
+        :setter: Sets the value for the property ``power_identity_file``.
         :return:
         """
         return self._power_identity_file
@@ -1603,9 +1777,11 @@ class System(Item):
     @power_identity_file.setter
     def power_identity_file(self, power_identity_file: str):
         """
-        TODO
+        Setter for the power_identity_file of the System class.
+
 
         :param power_identity_file:
+        :raises TypeError: In case power_identity_file is no string.
         """
         if not isinstance(power_identity_file, str):
             raise TypeError("Field power_identity_file of object system needs to be of type str!")
@@ -1615,8 +1791,10 @@ class System(Item):
     @property
     def power_options(self) -> str:
         """
-        TODO
+        power_options property.
 
+        :getter: Returns the value for ``power_options``.
+        :setter: Sets the value for the property ``power_options``.
         :return:
         """
         return self._power_options
@@ -1624,9 +1802,11 @@ class System(Item):
     @power_options.setter
     def power_options(self, power_options: str):
         """
-        TODO
+        Setter for the power_options of the System class.
+
 
         :param power_options:
+        :raises TypeError: In case power_options is no string.
         """
         if not isinstance(power_options, str):
             raise TypeError("Field power_options of object system needs to be of type str!")
@@ -1636,8 +1816,10 @@ class System(Item):
     @property
     def power_user(self) -> str:
         """
-        TODO
+        power_user property.
 
+        :getter: Returns the value for ``power_user``.
+        :setter: Sets the value for the property ``power_user``.
         :return:
         """
         return self._power_user
@@ -1645,9 +1827,11 @@ class System(Item):
     @power_user.setter
     def power_user(self, power_user: str):
         """
-        TODO
+        Setter for the power_user of the System class.
+
 
         :param power_user:
+        :raises TypeError: In case power_user is no string.
         """
         if not isinstance(power_user, str):
             raise TypeError("Field power_user of object system needs to be of type str!")
@@ -1657,8 +1841,10 @@ class System(Item):
     @property
     def power_pass(self) -> str:
         """
-        TODO
+        power_pass property.
 
+        :getter: Returns the value for ``power_pass``.
+        :setter: Sets the value for the property ``power_pass``.
         :return:
         """
         return self._power_pass
@@ -1666,9 +1852,11 @@ class System(Item):
     @power_pass.setter
     def power_pass(self, power_pass: str):
         """
-        TODO
+        Setter for the power_pass of the System class.
+
 
         :param power_pass:
+        :raises TypeError: In case power_pass is no string.
         """
         if not isinstance(power_pass, str):
             raise TypeError("Field power_pass of object system needs to be of type str!")
@@ -1678,8 +1866,10 @@ class System(Item):
     @property
     def power_address(self) -> str:
         """
-        TODO
+        power_address property.
 
+        :getter: Returns the value for ``power_address``.
+        :setter: Sets the value for the property ``power_address``.
         :return:
         """
         return self._power_address
@@ -1687,9 +1877,11 @@ class System(Item):
     @power_address.setter
     def power_address(self, power_address: str):
         """
-        TODO
+        Setter for the power_address of the System class.
+
 
         :param power_address:
+        :raises TypeError: In case power_address is no string.
         """
         if not isinstance(power_address, str):
             raise TypeError("Field power_address of object system needs to be of type str!")
@@ -1699,8 +1891,10 @@ class System(Item):
     @property
     def power_id(self) -> str:
         """
-        TODO
+        power_id property.
 
+        :getter: Returns the value for ``power_id``.
+        :setter: Sets the value for the property ``power_id``.
         :return:
         """
         return self._power_id
@@ -1708,9 +1902,11 @@ class System(Item):
     @power_id.setter
     def power_id(self, power_id: str):
         """
-        TODO
+        Setter for the power_id of the System class.
+
 
         :param power_id:
+        :raises TypeError: In case power_id is no string.
         """
         if not isinstance(power_id, str):
             raise TypeError("Field power_id of object system needs to be of type str!")
@@ -1720,8 +1916,10 @@ class System(Item):
     @property
     def repos_enabled(self) -> bool:
         """
-        TODO
+        repos_enabled property.
 
+        :getter: Returns the value for ``repos_enabled``.
+        :setter: Sets the value for the property ``repos_enabled``.
         :return:
         """
         return self._repos_enabled
@@ -1729,9 +1927,11 @@ class System(Item):
     @repos_enabled.setter
     def repos_enabled(self, repos_enabled: bool):
         """
-        TODO
+        Setter for the repos_enabled of the System class.
+
 
         :param repos_enabled:
+        :raises TypeError: In case is no string.
         """
         repos_enabled = utils.input_boolean(repos_enabled)
         if not isinstance(repos_enabled, bool):
@@ -1741,8 +1941,10 @@ class System(Item):
     @property
     def serial_device(self) -> int:
         """
-        TODO
+        serial_device property.
 
+        :getter: Returns the value for ``serial_device``.
+        :setter: Sets the value for the property ``serial_device``.
         :return:
         """
         return self._serial_device
@@ -1750,7 +1952,8 @@ class System(Item):
     @serial_device.setter
     def serial_device(self, device_number: int):
         """
-        TODO
+        Setter for the serial_device of the System class.
+
 
         :param device_number:
         """
@@ -1759,8 +1962,10 @@ class System(Item):
     @property
     def serial_baud_rate(self) -> enums.BaudRates:
         """
-        TODO
+        serial_baud_rate property.
 
+        :getter: Returns the value for ``serial_baud_rate``.
+        :setter: Sets the value for the property ``serial_baud_rate``.
         :return:
         """
         return self._serial_baud_rate
@@ -1768,7 +1973,8 @@ class System(Item):
     @serial_baud_rate.setter
     def serial_baud_rate(self, baud_rate: int):
         """
-        TODO
+        Setter for the serial_baud_rate of the System class.
+
 
         :param baud_rate:
         """
@@ -1777,8 +1983,10 @@ class System(Item):
     @property
     def children(self) -> List[str]:
         """
-        TODO
+        children property.
 
+        :getter: Returns the value for ``children``.
+        :setter: Sets the value for the property ``children``.
         :return:
         """
         return self._children
@@ -1786,7 +1994,8 @@ class System(Item):
     @children.setter
     def children(self, value: List[str]):
         """
-        TODO
+        Setter for the children of the System class.
+
 
         :param value:
         """

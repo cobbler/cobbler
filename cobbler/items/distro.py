@@ -39,6 +39,7 @@ class Distro(item.Item):
         """
         This creates a Distro object.
 
+        :param api: The Cobbler API object which is used for resolving information.
         :param args: Place for extra parameters in this distro object.
         :param kwargs: Place for extra parameters in this distro object.
         """
@@ -84,11 +85,10 @@ class Distro(item.Item):
 
     @classmethod
     def _remove_depreacted_dict_keys(cls, dictionary: dict):
-        """
-        TODO
+        r"""
+        See :meth:`~cobbler.items.item.Item._remove_depreacted_dict_keys`.
 
-        :param dictionary:
-        :return:
+        :param dictionary: The dict to update
         """
         if "parent" in dictionary:
             dictionary.pop("parent")
@@ -130,28 +130,28 @@ class Distro(item.Item):
     @parent.setter
     def parent(self, value):
         """
-        TODO
+        Setter for the parent property.
 
-        :param value:
-        :return:
+        :param value: Is ignored.
         """
         self.logger.warning("Setting the parent of a distribution is not supported. Ignoring action!")
 
     @property
     def kernel(self) -> str:
         """
-        TODO
+        Specifies a kernel. The kernel parameter is a full path, a filename in the configured kernel directory or a
+        directory path that would contain a selectable kernel. Kernel naming conventions are checked, see docs in the
+        utils module for ``find_kernel``.
 
-        :return:
+        :getter: The last successfully validated kernel path.
+        :setter: May raise a ``ValueError`` or ``TypeError`` in case of validation errors.
         """
         return self._kernel
 
     @kernel.setter
     def kernel(self, kernel: str):
         """
-        Specifies a kernel. The kernel parameter is a full path, a filename in the configured kernel directory or a
-        directory path that would contain a selectable kernel. Kernel naming conventions are checked, see docs in the
-        utils module for ``find_kernel``.
+        Setter for the ``kernel`` property.
 
         :param kernel: The path to the kernel.
         :raises TypeError: If kernel was not of type str.
@@ -166,18 +166,23 @@ class Distro(item.Item):
     @property
     def remote_boot_kernel(self) -> str:
         """
-        TODO
+        URL to a remote kernel. If the bootloader supports this feature, it directly tries to retrieve the kernel and
+        boot it. (grub supports tftp and http protocol and server must be an IP).
 
-        :return:
+        :getter: Returns the current remote URL to boot from.
+        :setter: Raises a ``TypeError`` or ``ValueError`` in case the provided value was not correct.
         """
+        # TODO: Obsolete it and merge with kernel property
         return self._remote_boot_kernel
 
     @remote_boot_kernel.setter
     def remote_boot_kernel(self, remote_boot_kernel: str):
         """
-        URL to a remote kernel. If the bootloader supports this feature, it directly tries to retrieve the kernel and
-        boot it. (grub supports tftp and http protocol and server must be an IP).
-        TODO: Obsolete it and merge with kernel property
+        Setter for the ``remote_boot_kernel`` property.
+
+        :param remote_boot_kernel: The new URL to the remote booted kernel.
+        :raises TypeError: Raised in case the URL is not of type str.
+        :raises ValueError: Raised in case the validation is not succeeding.
         """
         if not isinstance(remote_boot_kernel, str):
             raise TypeError("Field remote_boot_kernel of distro needs to be of type str!")
@@ -200,19 +205,21 @@ class Distro(item.Item):
     @property
     def tree_build_time(self) -> float:
         """
-        TODO
+        Represents the import time of the distro. If not imported, this field is not meaningful.
 
-        :return:
+        :getter:
+        :setter:
         """
         return self._tree_build_time
 
     @tree_build_time.setter
     def tree_build_time(self, datestamp: float):
-        """
-        Sets the import time of the distro. If not imported, this field is not meaningful.
+        r"""
+        Setter for the ``tree_build_time`` property.
 
         :param datestamp: The datestamp to save the builddate. There is an attempt to convert it to a float, so please
                           make sure it is compatible to this.
+        :raises TypeError: In case the value was not of type ``float``.
         """
         if isinstance(datestamp, int):
             datestamp = float(datestamp)
@@ -223,9 +230,10 @@ class Distro(item.Item):
     @property
     def breed(self) -> str:
         """
-        TODO
+        The repository system breed. This decides some defaults for most actions with a repo in Cobbler.
 
-        :return:
+        :getter: The breed detected.
+        :setter: May raise a ``ValueError`` or ``TypeError`` in case the given value is wrong.
         """
         return self._breed
 
@@ -240,10 +248,11 @@ class Distro(item.Item):
 
     @property
     def os_version(self) -> str:
-        """
-        TODO
+        r"""
+        The operating system version which the image contains.
 
-        :return:
+        :getter: The sanitized operating system version.
+        :setter: Accepts a str which will be validated against the ``distro_signatures.json``.
         """
         return self._os_version
 
@@ -259,18 +268,21 @@ class Distro(item.Item):
     @property
     def initrd(self) -> str:
         """
-        TODO
+        Specifies an initrd image. Path search works as in set_kernel. File must be named appropriately.
 
-        :return:
+        :getter: The current path to the initrd.
+        :setter: May raise a ``TypeError`` or ``ValueError`` in case the validation is not successful.
         """
         return self._initrd
 
     @initrd.setter
     def initrd(self, initrd: str):
-        """
-        Specifies an initrd image. Path search works as in set_kernel. File must be named appropriately.
+        r"""
+        Setter for the ``initrd`` property.
 
         :param initrd: The new path to the ``initrd``.
+        :raises TypeError: In case the value was not of type ``str``.
+        :raises ValueError: In case the new value was not found or specified.
         """
         if not isinstance(initrd, str):
             raise TypeError("initrd must be of type str")
@@ -284,19 +296,22 @@ class Distro(item.Item):
     @property
     def remote_grub_kernel(self) -> str:
         """
-        TODO
+        This is tied to the ``remote_boot_kernel`` property. It contains the URL of that field in a format which grub
+        can use directly.
 
-        :return:
+        :getter: The computed URL from ``remote_boot_kernel``.
+        :setter: Will update ``remote_boot_kernel`` also. May raise ``TypeError`` or ``ValueError`` on problems.
         """
         return self._remote_grub_kernel
 
     @remote_grub_kernel.setter
     def remote_grub_kernel(self, value):
-        """
-        TODO
+        r"""
+        Setter for the ``remote_grub_kernel`` property.
 
-        :param value:
-        :return:
+        :param value: The new value for the property.
+        :raises TypeError: In case ``value`` was not of type ``str``.
+        :raises ValueError: In case the format was invalid.
         """
         if not isinstance(value, str):
             raise TypeError("remote_grub_initrd must be of type str")
@@ -312,19 +327,23 @@ class Distro(item.Item):
 
     @property
     def remote_grub_initrd(self) -> str:
-        """
-        TODO
+        r"""
+        This is tied to the ``remote_boot_initrd`` property. It contains the URL of that field in a format which grub
+        can use directly.
 
-        :return:
+        :getter: The computed URL from ``remote_boot_initrd``.
+        :setter: Will update ``remote_boot_initrd`` also. May raise ``TypeError`` or ``ValueError`` on problems.
         """
         return self._remote_grub_initrd
 
     @remote_grub_initrd.setter
     def remote_grub_initrd(self, value: str):
         """
-        TODO
+        Setter for the ``remote_grub_initrd`` property.
 
-        :param value:
+        :param value: The new value for the property.
+        :raises TypeError: In case the value was not of type ``str``.
+        :raises ValueError: In case the format of the URL was invalid.
         """
         if not isinstance(value, str):
             raise TypeError("remote_grub_initrd must be of type str")
@@ -340,18 +359,23 @@ class Distro(item.Item):
 
     @property
     def remote_boot_initrd(self) -> str:
-        """
-        TODO
+        r"""
+        URL to a remote initrd. If the bootloader supports this feature, it directly tries to retrieve the initrd and
+        boot it. (grub supports tftp and http protocol and server must be an IP).
 
-        :return:
+        :getter: Returns the current remote URL to boot from.
+        :setter: Raises a ``TypeError`` or ``ValueError`` in case the provided value was not correct.
         """
         return self._remote_boot_initrd
 
     @remote_boot_initrd.setter
     def remote_boot_initrd(self, remote_boot_initrd: str):
         """
-        URL to a remote initrd. If the bootloader supports this feature, it directly tries to retrieve the initrd and
-        boot it. (grub supports tftp and http protocol and server must be an IP).
+        The setter for the ``remote_boot_initrd`` property.
+
+        :param remote_boot_initrd: The new value for the property.
+        :raises TypeError: In case the value was not of type ``str``.
+        :raises ValueError: In case the new value could not be validated successfully.
         """
         if not isinstance(remote_boot_initrd, str):
             raise TypeError("remote_boot_initrd must be of type str!")
@@ -367,19 +391,21 @@ class Distro(item.Item):
     @property
     def source_repos(self) -> list:
         """
-        TODO
+        A list of http:// URLs on the Cobbler server that point to yum configuration files that can be used to
+        install core packages. Use by ``cobbler import`` only.
 
-        :return:
+        :getter: The source repos used.
+        :setter: The new list of source repos to use.
         """
         return self._source_repos
 
     @source_repos.setter
     def source_repos(self, repos: list):
-        """
-        A list of http:// URLs on the Cobbler server that point to yum configuration files that can be used to
-        install core packages. Use by ``cobbler import`` only.
+        r"""
+        Setter for the ``source_repos`` property.
 
         :param repos: The list of URLs.
+        :raises TypeError: In case the value was not of type ``str``.
         """
         if not isinstance(repos, list):
             raise TypeError("Field source_repos in object distro needs to be of type list.")
@@ -387,15 +413,6 @@ class Distro(item.Item):
 
     @property
     def arch(self):
-        """
-        Return the architecture of the distribution
-
-        :return: Return the current architecture.
-        """
-        return self._arch
-
-    @arch.setter
-    def arch(self, arch: Union[str, enums.Archs]):
         """
         The field is mainly relevant to PXE provisioning.
 
@@ -405,6 +422,15 @@ class Distro(item.Item):
 
         This field is named "arch" because mainly on Linux, we only care about the architecture, though if (in the
         future) new provisioning types are added, an arch value might be something like "bsd_x86".
+
+        :return: Return the current architecture.
+        """
+        return self._arch
+
+    @arch.setter
+    def arch(self, arch: Union[str, enums.Archs]):
+        """
+        The setter for the arch property.
 
         :param arch: The architecture of the operating system distro.
         """
@@ -422,11 +448,13 @@ class Distro(item.Item):
         return self._supported_boot_loaders
 
     @property
-    def boot_loaders(self):
+    def boot_loaders(self) -> list:
         """
-        TODO
+        All boot loaders for which Cobbler generates entries for.
 
-        :return: The bootloaders.
+        :getter: The bootloaders.
+        :setter: Validates this against the list of well-known bootloaders and raises a ``TypeError`` or ``ValueError``
+                 in case the validation goes south.
         """
         if self._boot_loaders == enums.VALUE_INHERITED:
             return self.supported_boot_loaders
@@ -438,6 +466,8 @@ class Distro(item.Item):
         Set the bootloader for the distro.
 
         :param boot_loaders: The list with names of the bootloaders. Must be one of the supported ones.
+        :raises TypeError: In case the value could not be converted to a list or was not of type list.
+        :raises ValueError: In case the boot loader is not in the list of valid boot loaders.
         """
         if isinstance(boot_loaders, str):
             # allow the magic inherit string to persist, otherwise split the string.
@@ -478,19 +508,20 @@ class Distro(item.Item):
         self._redhat_management_key = management_key
 
     @property
-    def children(self) -> dict:
+    def children(self) -> list:
         """
-        TODO
+        This property represents all children of a distribution. It should not be set manually.
 
-        :return:
+        :getter: The children of the distro.
+        :setter: No validation is done because this is a Cobbler internal property.
         """
         return self._children
 
     @children.setter
-    def children(self, value):
+    def children(self, value: list):
         """
-        TODO
+        Setter for the children property.
 
-        :param value:
+        :param value: The new children of the distro.
         """
         self._children = value

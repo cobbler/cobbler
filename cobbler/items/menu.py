@@ -32,6 +32,9 @@ class Menu(item.Item):
     COLLECTION_TYPE = "menu"
 
     def __init__(self, api, *args, **kwargs):
+        """
+        Constructor
+        """
         super().__init__(api, *args, **kwargs)
         self._display_name = ""
 
@@ -54,6 +57,8 @@ class Menu(item.Item):
     def check_if_valid(self):
         """
         Check if the profile is valid. This checks for an existing name and a distro as a conceptual parent.
+
+        :raises CX: Raised in case name is empty or not set.
         """
         # name validation
         if not self.name:
@@ -71,9 +76,10 @@ class Menu(item.Item):
     @property
     def parent(self) -> Optional['Menu']:
         """
-        Parent Menu of a menu instance.
+        Parent menu of a menu instance.
 
-        :return: The menu object or None
+        :getter: The menu object or None.
+        :setter: Sets the parent.
         """
         if not self._parent:
             return None
@@ -85,6 +91,7 @@ class Menu(item.Item):
         Setter for the parent menu of a menu.
 
         :param value: The name of the parent to set.
+        :raises CX: Raised in case of self parenting or if the menu with value ``value`` is not found.
         """
         old_parent = self._parent
         if isinstance(old_parent, item.Item):
@@ -107,18 +114,20 @@ class Menu(item.Item):
     @property
     def children(self) -> list:
         """
-        TODO
+        Child menu of a menu instance.
 
-        :return:
+        :getter: Returns the children.
+        :setter: Sets the children. Raises a TypeError if children have the wrong type.
         """
         return self._children
 
     @children.setter
     def children(self, value: List[str]):
         """
-        TODO
+        Setter for the children.
 
-        :param value:
+        :param value: The value to set the children to.
+        :raises TypeError: Raised in case the children of menu have the wrong type.
         """
         if not isinstance(value, list):
             raise TypeError("Field children of object menu must be of type list.")
@@ -141,9 +150,10 @@ class Menu(item.Item):
     @property
     def display_name(self) -> str:
         """
-        TODO
+        Returns the display name.
 
-        :return:
+        :getter: Returns the display name.
+        :setter: Sets the display name.
         """
         return self._display_name
 

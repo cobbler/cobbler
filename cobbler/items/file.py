@@ -35,11 +35,11 @@ class File(resource.Resource):
 
     def __init__(self, api, *args, **kwargs):
         """
-        TODO
+        Constructor.
 
-        :param api:
-        :param args:
-        :param kwargs:
+        :param api: The Cobbler API object which is used for resolving information.
+        :param args: The arguments which should be passed additionally to a Resource.
+        :param kwargs: The keyword arguments which should be passed additionally to a Resource.
         """
         super().__init__(api, *args, **kwargs)
         self._is_dir = False
@@ -71,10 +71,10 @@ class File(resource.Resource):
 
     def check_if_valid(self):
         """
-        Insure name, path, owner, group, and mode are set.
-        Templates are only required for files, is_dir = False
+        Checks if the object is valid. This is the case if name, path, owner, group, and mode are set.
+        Templates are only required for files if ``is_dir`` is true then template is not required.
 
-        :raises CX
+        :raises CX: Raised in case a required argument is missing
         """
         if not self.name:
             raise CX("name is required")
@@ -96,9 +96,10 @@ class File(resource.Resource):
     @property
     def is_dir(self):
         """
-        TODO
+        Is this a directory or not.
 
-        :return:
+        :getter: Returns the value of ``is_dir``
+        :setter: Sets the value of ``is_dir``. Raises a TypeError in case value is not a boolean.
         """
         return self._is_dir
 
@@ -108,6 +109,7 @@ class File(resource.Resource):
         If true, treat file resource as a directory. Templates are ignored.
 
         :param is_dir: This is the path to check if it is a directory.
+        :raises TypeError: Raised in case ``is_dir`` is not a boolean.
         """
         is_dir = utils.input_boolean(is_dir)
         if not isinstance(is_dir, bool):

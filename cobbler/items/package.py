@@ -26,8 +26,7 @@ from cobbler.cexceptions import CX
 
 class Package(resource.Resource):
     """
-    TODO Explanation of this class
-    TODO Type Checks in method bodys
+    This class represents a package which is being installed on a system.
     """
 
     TYPE_NAME = "package"
@@ -35,11 +34,11 @@ class Package(resource.Resource):
 
     def __init__(self, api, *args, **kwargs):
         """
-        TODO
+        Constructor
 
-        :param api:
-        :param args:
-        :param kwargs:
+        :param api: The Cobbler API object which is used for resolving information.
+        :param args: The arguments which should be passed additionally to a Resource.
+        :param kwargs: The keyword arguments which should be passed additionally to a Resource.
         """
         super().__init__(api, *args, **kwargs)
         self._installer = ""
@@ -65,7 +64,7 @@ class Package(resource.Resource):
         """
         Checks if the object is in a valid state. This only checks currently if the name is present.
 
-        :raises CX
+        :raises CX: Raised in case name is not given.
         """
         if not self.name:
             raise CX("name is required")
@@ -86,9 +85,10 @@ class Package(resource.Resource):
     @property
     def installer(self) -> str:
         """
-        TODO
+        Installer property.
 
-        :return:
+        :getter: Returns the value for ``installer``.
+        :setter: Sets the value for property ``installer``. Raises a TypeError if ``installer`` is no string.
         """
         return self._installer
 
@@ -98,6 +98,7 @@ class Package(resource.Resource):
         Setter for the installer parameter.
 
         :param installer: This parameter will be lowercased regardless of what string you give it.
+        :raises TypeError: Raised in case ``installer`` is no string.
         """
         if not isinstance(installer, str):
             raise TypeError("Field installer of package object needs to be of type str!")
@@ -106,9 +107,10 @@ class Package(resource.Resource):
     @property
     def version(self) -> str:
         """
-        TODO
+        Version property.
 
-        :return:
+        :getter: Returns the value for ``version``.
+        :setter: Sets the value for property ``version``. Raises a TypeError in case ``version`` is no string.
         """
         return self._version
 
@@ -119,6 +121,7 @@ class Package(resource.Resource):
 
         :param version: They may be anything which is suitable for describing the version of a package. Internally this
                         is a string.
+        :raises TypeError: Raised in case ``version`` is no string.
         """
         if not isinstance(version, str):
             raise TypeError("Field version of package object needs to be of type str!")
