@@ -10,10 +10,10 @@ import typing
 from cobbler import utils
 
 
-# NOTE: does not warrant being a class, but all cobbler actions use a class's
+# NOTE: does not warrant being a class, but all Cobbler actions use a class's
 # .run() as the entrypoint
 class GrubImage:
-    """Action to create bootable Grub2 images."""
+    """Action to create bootable GRUB 2 images."""
 
     COMMON_LINKS = {
         pathlib.Path("/usr/share/efi/x86_64/shim.efi"): pathlib.Path("grub/shim.efi"),
@@ -61,8 +61,8 @@ class GrubImage:
                 # don't create module symlinks if grub2-mkimage is unsuccessful
                 continue
 
-            # Create a symlink for grub2 modules
-            # assumes a single grub can be used to boot all kinds of distros
+            # Create a symlink for GRUB 2 modules
+            # assumes a single GRUB can be used to boot all kinds of distros
             # if this assumption turns out incorrect, individual "grub" subdirectories are needed
             symlink(
                 self.grub2_mod_dir.joinpath(bl_mod_dir),

@@ -1849,7 +1849,7 @@ class CobblerAPI:
 
     def create_grub_images(self):
         """
-        Create the Grub installer images via this API call. It utilizes ``grub2-mkimage`` behind the curtain.
+        Create the GRUB installer images via this API call. It utilizes ``grub2-mkimage`` behind the curtain.
         """
         action = grubimage.GrubImage(self)
         action.run()
