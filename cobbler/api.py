@@ -28,7 +28,7 @@ import threading
 from pathlib import Path
 from typing import Optional, List, Union
 
-from cobbler.actions import status, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
+from cobbler.actions import status, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync, grubimage
 from cobbler import autoinstall_manager, enums, settings
 from cobbler.cobbler_collections import manager
 from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file, menu
@@ -1845,3 +1845,12 @@ class CobblerAPI:
         :return: Get a list of all valid boot loaders.
         """
         return obj.supported_boot_loaders
+
+    # ==========================================================================
+
+    def create_grub_images(self):
+        """
+        Create the GRUB installer images via this API call. It utilizes ``grub2-mkimage`` behind the curtain.
+        """
+        action = grubimage.GrubImage(self)
+        action.run()

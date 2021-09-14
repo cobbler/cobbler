@@ -45,6 +45,91 @@ autoinstall_templates_dir: /var/lib/cobbler/templates
 
 # location of templates used for boot loader config generation
 boot_loader_conf_template_dir: "/etc/cobbler/boot_loader_conf"
+bootloaders_dir: "/var/lib/cobbler/loaders"
+bootloaders_formats:
+  aarch64:
+    binary_name: grubaa64.efi
+  arm:
+    binary_name: bootarm.efi
+  arm64-efi:
+    binary_name: grubaa64.efi
+    extra_modules:
+      - efinet
+  i386:
+    binary_name: bootia32.efi
+  i386-pc-pxe:
+    binary_name: grub.0
+    mod_dir: i386-pc
+    extra_modules:
+      - chain
+      - pxe
+      - biosdisk
+  i686:
+    binary_name: bootia32.efi
+  IA64:
+    binary_name: bootia64.efi
+  powerpc-ieee1275:
+    binary_name: grub.ppc64le
+    extra_modules:
+      - net
+      - ofnet
+  x86_64-efi:
+    binary_name: grubx86.efi
+    extra_modules:
+      - chain
+      - efinet
+bootloaders_modules:
+  - btrfs
+  - ext2
+  - xfs
+  - jfs
+  - reiserfs
+  - all_video
+  - boot
+  - cat
+  - configfile
+  - echo
+  - fat
+  - font
+  - gfxmenu
+  - gfxterm
+  - gzio
+  - halt
+  - iso9660
+  - jpeg
+  - linux
+  - loadenv
+  - minicmd
+  - normal
+  - part_apple
+  - part_gpt
+  - part_msdos
+  - password_pbkdf2
+  - png
+  - reboot
+  - search
+  - search_fs_file
+  - search_fs_uuid
+  - search_label
+  - sleep
+  - test
+  - "true"
+  - video
+  - mdraid09
+  - mdraid1x
+  - lvm
+  - serial
+  - regexp
+  - tr
+  - tftp
+  - http
+  - luks
+  - gcry_rijndael
+  - gcry_sha1
+  - gcry_sha256
+# TODO: Check that these two settings work for all distributions
+syslinux_dir: /usr/share/syslinux
+grub2_mod_dir: /usr/share/grub2
 
 # Email out a report when Cobbler finishes installing a system.
 # enabled: set to true to turn this feature on
@@ -464,7 +549,6 @@ jinja2_includedir: "/var/lib/cobbler/jinja2"
 convert_server_to_ip: false
 
 # Leftover settings
-bootloaders_dir: "/var/lib/cobbler/loaders"
 buildisodir: "/var/cache/cobbler/buildiso"
 cobbler_master: ""
 default_virt_disk_driver: "raw"

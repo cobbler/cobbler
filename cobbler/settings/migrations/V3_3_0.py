@@ -28,6 +28,30 @@ schema = Schema({
     "bind_master": str,
     "boot_loader_conf_template_dir": str,
     Optional("bootloaders_dir", default="/var/lib/cobbler/loaders"): str,
+    Optional("bootloaders_formats", default={
+        'aarch64': {'binary_name': 'grubaa64.efi'},
+        'arm': {'binary_name': 'bootarm.efi'},
+        'arm64-efi': {'binary_name': 'grubaa64.efi', 'extra_modules': ['efinet']},
+        'i386': {'binary_name': 'bootia32.efi'},
+        'i386-pc-pxe': {'binary_name': 'grub.0', 'mod_dir': 'i386-pc',
+                        'extra_modules': ['chain', 'pxe', 'biosdisk']},
+        'i686': {'binary_name': 'bootia32.efi'},
+        'IA64': {'binary_name': 'bootia64.efi'},
+        'powerpc-ieee1275': {'binary_name': 'grub.ppc64le', 'extra_modules': ['net', 'ofnet']},
+        'x86_64-efi': {'binary_name': 'grubx86.efi', 'extra_modules': ['chain', 'efinet']}}
+             ): dict,
+    Optional("bootloaders_modules", default=[
+        'btrfs', 'ext2', 'xfs', 'jfs', 'reiserfs', 'all_video', 'boot',
+        'cat', 'configfile', 'echo', 'fat', 'font', 'gfxmenu', 'gfxterm',
+        'gzio', 'halt', 'iso9660', 'jpeg', 'linux', 'loadenv', 'minicmd',
+        'normal', 'part_apple', 'part_gpt', 'part_msdos', 'password_pbkdf2',
+        'png', 'reboot', 'search', 'search_fs_file', 'search_fs_uuid',
+        'search_label', 'sleep', 'test', 'true', 'video', 'mdraid09',
+        'mdraid1x', 'lvm', 'serial', 'regexp', 'tr', 'tftp', 'http', 'luks',
+        'gcry_rijndael', 'gcry_sha1', 'gcry_sha256'
+    ]): list,
+    Optional("syslinux_dir", default="/usr/share/syslinux"): str,
+    Optional("grub2_mod_dir", default="/usr/share/grub"): str,
     Optional("grubconfig_dir", default="/var/lib/cobbler/grub_config"): str,
     "build_reporting_enabled": bool,
     "build_reporting_email": [str],
@@ -188,9 +212,33 @@ def migrate(settings: dict) -> dict:
     # name - value pairs
     missing_keys = {'auto_migrate_settings': True,
                     'bind_zonefile_path': "@@bind_zonefiles@@",
+                    'bootloaders_formats': {
+                        "aarch64": {"binary_name": "grubaa64.efi"},
+                        "arm": {"binary_name": "bootarm.efi"},
+                        "arm64-efi": {"binary_name": "grubaa64.efi", "extra_modules": ["efinet"]},
+                        "i386": {"binary_name": "bootia32.efi"},
+                        "i386-pc-pxe": {
+                            "binary_name": "grub.0",
+                            "mod_dir": "i386-pc",
+                            "extra_modules": ["chain", "pxe", "biosdisk"]},
+                        "i686": {"binary_name": "bootia32.efi"},
+                        "IA64": {"binary_name": "bootia64.efi"},
+                        "powerpc-ieee1275": {"binary_name": "grub.ppc64le", "extra_modules": ["net", "ofnet"], },
+                        "x86_64-efi": {"binary_name": "grubx86.efi", "extra_modules": ["chain", "efinet"]}
+                    },
+                    'bootloaders_modules': ["btrfs", "ext2", "xfs", "jfs", "reiserfs",
+                                            "all_video", "boot", "cat", "configfile", "echo", "fat", "font", "gfxmenu",
+                                            "gfxterm", "gzio", "halt", "iso9660", "jpeg", "linux", "loadenv", "minicmd",
+                                            "normal", "part_apple", "part_gpt", "part_msdos", "password_pbkdf2", "png",
+                                            "reboot", "search", "search_fs_file", "search_fs_uuid", "search_label",
+                                            "sleep", "test", "true", "video", "mdraid09", "mdraid1x", "lvm", "serial",
+                                            "regexp", "tr", "tftp", "http", "luks", "gcry_rijndael", "gcry_sha1",
+                                            "gcry_sha256"],
+                    'grub2_mod_dir': "/usr/share/grub2",
                     'manage_dhcp_v4': False,
                     'manage_dhcp_v6': False,
-                    'next_server_v6': "::1"}
+                    'next_server_v6': "::1",
+                    'syslinux_dir': "/usr/share/syslinux"}
     for (key, value) in missing_keys.items():
         new_setting = helper.Setting(key, value)
         helper.key_add(new_setting, settings)

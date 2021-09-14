@@ -370,6 +370,14 @@ class CobblerXMLRPCInterface:
         self.check_access(token, "sigupdate")
         return self.__start_task(runner, token, "sigupdate", "Updating Signatures", options)
 
+    def background_mkgrub(self, options, token) -> str:
+        def runner(self):
+            return self.api.create_grub_images()
+
+        return self.__start_task(
+            runner, token, "create_grub_images", "Create bootable GRUB images", options
+        )
+
     def get_events(self, for_user: str = "") -> dict:
         """
         Returns a dict(key=event id) = [ statetime, name, state, [read_by_who] ]
