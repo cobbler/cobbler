@@ -18,8 +18,7 @@ class GrubImage:
     COMMON_LINKS = {
         pathlib.Path("/usr/share/efi/x86_64/shim.efi"): pathlib.Path("grub/shim.efi"),
         pathlib.Path("/usr/share/efi/x86_64/grub.efi"): pathlib.Path("grub/grub.efi"),
-        # TODO: do this properly if still used
-        pathlib.Path("/usr/share/*pxe/undionly.kpxe"): pathlib.Path("undionly.pxe"),
+        pathlib.Path("/usr/share/ipxe/undionly.kpxe"): pathlib.Path("undionly.pxe"),
     }
 
     def __init__(self, api):
