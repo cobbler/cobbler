@@ -120,8 +120,7 @@ class AutoInstallationManager:
         try:
             utils.mkdir(os.path.dirname(file_full_path))
         except:
-            utils.die(self.logger, "unable to create directory for automatic OS installation template at %s"
-                      % file_path)
+            utils.die("unable to create directory for automatic OS installation template at %s" % file_path)
 
         fileh = open(file_full_path, "w+")
         fileh.write(data)
@@ -142,7 +141,7 @@ class AutoInstallationManager:
         if not self.is_autoinstall_in_use(file_path):
             os.remove(file_full_path)
         else:
-            utils.die(self.logger, "attempt to delete in-use file")
+            utils.die("attempt to delete in-use file")
 
     def validate_autoinstall_snippet_file_path(self, snippet: str, new_snippet: bool = False) -> str:
         """
@@ -219,7 +218,7 @@ class AutoInstallationManager:
         try:
             utils.mkdir(os.path.dirname(file_full_path))
         except:
-            utils.die(self.logger, "unable to create directory for automatic OS installation snippet at %s" % file_path)
+            utils.die("unable to create directory for automatic OS installation snippet at %s" % file_path)
 
         fileh = open(file_full_path, "w+")
         fileh.write(data)
@@ -294,7 +293,6 @@ class AutoInstallationManager:
         :returns: [bool, int, list] list with validation result, errors type and list of errors
         """
 
-        last_errors = []
         blended = utils.blender(self.collection_mgr.api, False, obj)
 
         # get automatic installation template
