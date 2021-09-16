@@ -1,7 +1,9 @@
 #if $varExists('system_name')
 set system="$system_name"
 set timeout=1
-#if not $netboot_enabled
+#if $netboot_enabled
+set default='$menu_name'
+#else
 set default='local'
 #end if
 #end if
