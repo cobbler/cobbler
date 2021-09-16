@@ -12,4 +12,5 @@ menuentry '$menu_name' --class gnu-linux --class gnu --class os {
   clinux $kernel_path $kernel_options
   echo 'Loading initial ramdisk ...'
   cinitrd $initrd_path
+  echo '...done'
 }
