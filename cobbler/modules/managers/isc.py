@@ -287,7 +287,7 @@ class _IscManager(ManagerModule):
                     dhcp_tag = system.interfaces[interface["interface_master"]]["dhcp_tag"]
                     host = system.interfaces[interface["interface_master"]]["dns_name"]
 
-                    if ip_v6 is None or ip_v6 == "":
+                    if not ip_v6:
                         # TODO: Clarify variable names
                         for (nam2, int2) in list(system.interfaces.items()):
                             if nam2.startswith(interface["interface_master"] + ".") \
@@ -305,14 +305,14 @@ class _IscManager(ManagerModule):
                 if distro is not None:
                     interface["distro"] = distro.to_dict()
 
-                if mac is None or mac == "":
+                if not mac or not ip_v6:
                     # can't write a DHCP entry for this system
+                    self.logger.warning("%s has no IPv6 or MAC address", system.name)
                     continue
-
                 counter = counter + 1
 
                 # the label the entry after the hostname if possible
-                if host is not None and host != "":
+                if host:
                     if name != "eth0":
                         interface["name"] = "%s-%s" % (host, name)
                     else:
