@@ -38,7 +38,7 @@ class Report:
         self.report_noheaders = None
         self.array_re = re.compile(r'([^[]+)\[([^]]+)\]')
 
-    def fielder(self, structure, fields_list):
+    def fielder(self, structure: dict, fields_list: list):
         """
         Return data from a subset of fields of some item
 
@@ -66,7 +66,7 @@ class Report:
                         item[field] = device + ': ' + structure['interfaces'][device][field]
         return item
 
-    def reporting_csv(self, info, order, noheaders: bool) -> str:
+    def reporting_csv(self, info, order: list, noheaders: bool) -> str:
         """
         Formats data on 'info' for csv output
 
@@ -105,7 +105,7 @@ class Report:
 
         return outputheaders + outputbody
 
-    def reporting_trac(self, info, order, noheaders: bool) -> str:
+    def reporting_trac(self, info, order: list, noheaders: bool) -> str:
         """
         Formats data on 'info' for trac wiki table output
 
@@ -144,7 +144,7 @@ class Report:
 
         return outputheaders + outputbody
 
-    def reporting_doku(self, info, order, noheaders: bool) -> str:
+    def reporting_doku(self, info, order: list, noheaders: bool) -> str:
         """
         Formats data on 'info' for doku wiki table output
 
@@ -184,7 +184,7 @@ class Report:
 
         return outputheaders + outputbody
 
-    def reporting_mediawiki(self, info, order, noheaders: bool) -> str:
+    def reporting_mediawiki(self, info, order: list, noheaders: bool) -> str:
         """
         Formats data on 'info' for mediawiki table output
 
@@ -235,7 +235,7 @@ class Report:
 
         return opentable + outputheaders + outputbody + closetable
 
-    def print_formatted_data(self, data, order, report_type, noheaders: bool):
+    def print_formatted_data(self, data, order: list, report_type: str, noheaders: bool):
         """
         Used for picking the correct format to output data as
 
@@ -264,7 +264,7 @@ class Report:
         for x in collection:
             print(x.to_string())
 
-    def reporting_list_names2(self, collection, name):
+    def reporting_list_names2(self, collection, name: str):
         """
         Prints a specific object in a collection.
 
@@ -275,7 +275,7 @@ class Report:
         if obj is not None:
             print(obj.to_string())
 
-    def reporting_print_all_fields(self, collection, report_name, report_type, report_noheaders: bool) -> str:
+    def reporting_print_all_fields(self, collection, report_name: str, report_type: str, report_noheaders: bool) -> str:
         """
         Prints all fields in a collection as a table given the report type
 
@@ -326,7 +326,8 @@ class Report:
 
         self.print_formatted_data(data=data, order=out_order, report_type=report_type, noheaders=report_noheaders)
 
-    def reporting_print_x_fields(self, collection, report_name, report_type, report_fields, report_noheaders: bool):
+    def reporting_print_x_fields(self, collection, report_name: str, report_type: str, report_fields: str,
+                                 report_noheaders: bool):
         """
         Prints specific fields in a collection as a table given the report type
 
@@ -361,7 +362,8 @@ class Report:
 
     # -------------------------------------------------------
 
-    def run(self, report_what=None, report_name=None, report_type: Optional[str] = None, report_fields=None,
+    def run(self, report_what: Optional[str] = None, report_name: Optional[str] = None,
+            report_type: Optional[str] = None, report_fields: Optional[str] = None,
             report_noheaders: Optional[bool] = None):
         """
         Get remote profiles and distros and sync them locally

@@ -19,26 +19,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import logging
-from configparser import ConfigParser
-
 import os
+import pathlib
 import random
 import tempfile
 import threading
+from configparser import ConfigParser
 from pathlib import Path
-from typing import Optional, List, Union
+from typing import Dict, List, Optional, Union
 
 from cobbler.actions import status, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync, grubimage
-from cobbler import autoinstall_manager, enums, settings
+from cobbler import autoinstall_manager, autoinstallgen, download_manager, enums, module_loader, power_manager
+from cobbler import settings, tftpgen, utils, yumgen
 from cobbler.cobbler_collections import manager
-from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file, menu
-from cobbler import module_loader
-from cobbler import power_manager
-from cobbler import tftpgen
-from cobbler import utils
-from cobbler import yumgen
-from cobbler import autoinstallgen
-from cobbler import download_manager
+from cobbler.items import distro, file, image, menu, mgmtclass, package, profile, repo, system
 
 # FIXME: add --quiet depending on if not --verbose?
 RSYNC_CMD = "rsync -a %s '%s' %s --progress"
@@ -89,7 +83,8 @@ class CobblerAPI:
 
             self.selinux_enabled = utils.is_selinux_enabled()
             self.dist, self.os_version = utils.os_release()
-            self._settings = self.__generate_settings(settingsfile_location, execute_settings_automigration)
+            self._settings = self.__generate_settings(pathlib.Path(settingsfile_location),
+                                                      execute_settings_automigration)
 
             CobblerAPI.__has_loaded = True
 
@@ -216,7 +211,7 @@ class CobblerAPI:
 
     # ==========================================================
 
-    def version(self, extended: bool = False):
+    def version(self, extended: bool = False) -> Union[float, Dict[str, Union[str, list]]]:
         """
         What version is Cobbler?
 
@@ -233,13 +228,14 @@ class CobblerAPI:
         """
         config = ConfigParser()
         config.read("/etc/cobbler/version")
-        data = {}
-        data["gitdate"] = config.get("cobbler", "gitdate")
-        data["gitstamp"] = config.get("cobbler", "gitstamp")
-        data["builddate"] = config.get("cobbler", "builddate")
-        data["version"] = config.get("cobbler", "version")
+        data: Dict[str, Union[str, list]] = {
+            "gitdate": config.get("cobbler", "gitdate"),
+            "gitstamp": config.get("cobbler", "gitstamp"),
+            "builddate": config.get("cobbler", "builddate"),
+            "version": config.get("cobbler", "version"),
+            "version_tuple": []
+        }
         # dont actually read the version_tuple from the version file
-        data["version_tuple"] = []
         for num in data["version"].split("."):
             data["version_tuple"].append(int(num))
 
@@ -339,7 +335,7 @@ class CobblerAPI:
 
     # =======================================================================
 
-    def copy_item(self, what, ref, newname):
+    def copy_item(self, what: str, ref, newname: str):
         """
         General copy method which is called by the specific methods.
 
@@ -350,7 +346,7 @@ class CobblerAPI:
         self.log("copy_item(%s)" % what, [ref.name, newname])
         self.get_items(what).copy(ref, newname)
 
-    def copy_distro(self, ref, newname):
+    def copy_distro(self, ref, newname: str):
         """
         This method copies a distro which is just different in the name of the object.
 
@@ -359,7 +355,7 @@ class CobblerAPI:
         """
         self.copy_item("distro", ref, newname)
 
-    def copy_profile(self, ref, newname):
+    def copy_profile(self, ref, newname: str):
         """
         This method copies a profile which is just different in the name of the object.
 
@@ -368,7 +364,7 @@ class CobblerAPI:
         """
         self.copy_item("profile", ref, newname)
 
-    def copy_system(self, ref, newname):
+    def copy_system(self, ref, newname: str):
         """
         This method copies a system which is just different in the name of the object.
 
@@ -377,7 +373,7 @@ class CobblerAPI:
         """
         self.copy_item("system", ref, newname)
 
-    def copy_repo(self, ref, newname):
+    def copy_repo(self, ref, newname: str):
         """
         This method copies a repository which is just different in the name of the object.
 
@@ -386,7 +382,7 @@ class CobblerAPI:
         """
         self.copy_item("repo", ref, newname)
 
-    def copy_image(self, ref, newname):
+    def copy_image(self, ref, newname: str):
         """
         This method copies an image which is just different in the name of the object.
 
@@ -395,7 +391,7 @@ class CobblerAPI:
         """
         self.copy_item("image", ref, newname)
 
-    def copy_mgmtclass(self, ref, newname):
+    def copy_mgmtclass(self, ref, newname: str):
         """
         This method copies a management class which is just different in the name of the object.
 
@@ -404,7 +400,7 @@ class CobblerAPI:
         """
         self.copy_item("mgmtclass", ref, newname)
 
-    def copy_package(self, ref, newname):
+    def copy_package(self, ref, newname: str):
         """
         This method copies a package which is just different in the name of the object.
 
@@ -413,7 +409,7 @@ class CobblerAPI:
         """
         self.copy_item("package", ref, newname)
 
-    def copy_file(self, ref, newname):
+    def copy_file(self, ref, newname: str):
         """
         This method copies a file which is just different in the name of the object.
 
@@ -422,7 +418,7 @@ class CobblerAPI:
         """
         self.copy_item("file", ref, newname)
 
-    def copy_menu(self, ref, newname):
+    def copy_menu(self, ref, newname: str):
         """
         This method copies a file which is just different in the name of the object.
 
@@ -433,8 +429,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def remove_item(self, what: str, ref: str, recursive: bool = False, delete: bool = True,
-                    with_triggers: bool = True):
+    def remove_item(self, what: str, ref, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a general item. This method should not be used by an external api. Please use the specific
         remove_<itemtype> methods.
@@ -453,7 +448,7 @@ class CobblerAPI:
         self.log("remove_item(%s)" % what, [ref.name])
         self.get_items(what).remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
 
-    def remove_distro(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
+    def remove_distro(self, ref, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a distribution from Cobbler.
 
@@ -464,7 +459,7 @@ class CobblerAPI:
         """
         self.remove_item("distro", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
-    def remove_profile(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
+    def remove_profile(self, ref, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a profile from Cobbler.
 
@@ -475,7 +470,7 @@ class CobblerAPI:
         """
         self.remove_item("profile", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
-    def remove_system(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
+    def remove_system(self, ref, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a system from Cobbler.
 
@@ -486,7 +481,7 @@ class CobblerAPI:
         """
         self.remove_item("system", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
-    def remove_repo(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
+    def remove_repo(self, ref, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a repository from Cobbler.
 
@@ -497,7 +492,7 @@ class CobblerAPI:
         """
         self.remove_item("repo", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
-    def remove_image(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
+    def remove_image(self, ref, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a image from Cobbler.
 
@@ -508,7 +503,7 @@ class CobblerAPI:
         """
         self.remove_item("image", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
-    def remove_mgmtclass(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
+    def remove_mgmtclass(self, ref, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a management class from Cobbler.
 
@@ -519,7 +514,7 @@ class CobblerAPI:
         """
         self.remove_item("mgmtclass", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
-    def remove_package(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
+    def remove_package(self, ref, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a package from Cobbler.
 
@@ -530,7 +525,7 @@ class CobblerAPI:
         """
         self.remove_item("package", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
-    def remove_file(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
+    def remove_file(self, ref, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a file from Cobbler.
 
@@ -554,7 +549,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def rename_item(self, what, ref, newname):
+    def rename_item(self, what: str, ref, newname: str):
         """
         Remove a general item. This method should not be used by an external api. Please use the specific
         rename_<itemtype> methods.
@@ -566,7 +561,7 @@ class CobblerAPI:
         self.log("rename_item(%s)" % what, [ref.name, newname])
         self.get_items(what).rename(ref, newname)
 
-    def rename_distro(self, ref, newname):
+    def rename_distro(self, ref, newname: str):
         """
         Rename a distro to a new name.
 
@@ -575,7 +570,7 @@ class CobblerAPI:
         """
         self.rename_item("distro", ref, newname)
 
-    def rename_profile(self, ref, newname):
+    def rename_profile(self, ref, newname: str):
         """
         Rename a profile to a new name.
 
@@ -584,7 +579,7 @@ class CobblerAPI:
         """
         self.rename_item("profile", ref, newname)
 
-    def rename_system(self, ref, newname):
+    def rename_system(self, ref, newname: str):
         """
         Rename a system to a new name.
 
@@ -593,7 +588,7 @@ class CobblerAPI:
         """
         self.rename_item("system", ref, newname)
 
-    def rename_repo(self, ref, newname):
+    def rename_repo(self, ref, newname: str):
         """
         Rename a repository to a new name.
 
@@ -611,7 +606,7 @@ class CobblerAPI:
         """
         self.rename_item("image", ref, newname)
 
-    def rename_mgmtclass(self, ref, newname):
+    def rename_mgmtclass(self, ref, newname: str):
         """
         Rename a management class to a new name.
 
@@ -620,7 +615,7 @@ class CobblerAPI:
         """
         self.rename_item("mgmtclass", ref, newname)
 
-    def rename_package(self, ref, newname):
+    def rename_package(self, ref, newname: str):
         """
         Rename a package to a new name.
 
@@ -629,7 +624,7 @@ class CobblerAPI:
         """
         self.rename_item("package", ref, newname)
 
-    def rename_file(self, ref, newname):
+    def rename_file(self, ref, newname: str):
         """
         Rename a file to a new name.
 
@@ -638,7 +633,7 @@ class CobblerAPI:
         """
         self.rename_item("file", ref, newname)
 
-    def rename_menu(self, ref, newname):
+    def rename_menu(self, ref, newname: str):
         """
         Rename a menu to a new name.
 
@@ -653,7 +648,7 @@ class CobblerAPI:
 
     def new_distro(self, is_subobject: bool = False):
         """
-        Returns a new empty distro object. This distro is not automatically persited. Persistance is achieved via
+        Returns a new empty distro object. This distro is not automatically persisted. Persistance is achieved via
         ``save()``.
 
         :param is_subobject: If the object created is a subobject or not.
@@ -752,7 +747,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def add_item(self, what, ref, check_for_duplicate_names: bool = False, save: bool = True):
+    def add_item(self, what: str, ref, check_for_duplicate_names: bool = False, save: bool = True):
         """
         Add an abstract item to a collection of its specific items. This is not meant for external use. Please reefer
         to one of the specific methods ``add_<type>``.
@@ -860,7 +855,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def find_items(self, what: str, criteria: dict = None, name: Optional[str] = None, return_list: bool = True,
+    def find_items(self, what: str, criteria: dict = None, name: str = "", return_list: bool = True,
                    no_errors: bool = False):
         """
         This is the abstract base method for finding object int the api. It should not be used by external resources.
@@ -902,7 +897,7 @@ class CobblerAPI:
                 return match
         return None
 
-    def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):
+    def find_distro(self, name: str = "", return_list=False, no_errors=False, **kargs):
         """
         Find a distribution via a name or keys specified in the ``**kargs``.
 
@@ -914,7 +909,7 @@ class CobblerAPI:
         """
         return self._collection_mgr.distros().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
-    def find_profile(self, name=None, return_list=False, no_errors=False, **kargs):
+    def find_profile(self, name: str = "", return_list=False, no_errors=False, **kargs):
         """
         Find a profile via a name or keys specified in the ``**kargs``.
 
@@ -926,7 +921,7 @@ class CobblerAPI:
         """
         return self._collection_mgr.profiles().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
-    def find_system(self, name=None, return_list=False, no_errors=False, **kargs):
+    def find_system(self, name: str = "", return_list=False, no_errors=False, **kargs):
         """
         Find a system via a name or keys specified in the ``**kargs``.
 
@@ -938,7 +933,7 @@ class CobblerAPI:
         """
         return self._collection_mgr.systems().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
-    def find_repo(self, name=None, return_list=False, no_errors=False, **kargs):
+    def find_repo(self, name: str = "", return_list=False, no_errors=False, **kargs):
         """
         Find a repository via a name or keys specified in the ``**kargs``.
 
@@ -950,7 +945,7 @@ class CobblerAPI:
         """
         return self._collection_mgr.repos().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
-    def find_image(self, name=None, return_list=False, no_errors=False, **kargs):
+    def find_image(self, name: str = "", return_list=False, no_errors=False, **kargs):
         """
         Find an image via a name or keys specified in the ``**kargs``.
 
@@ -962,7 +957,7 @@ class CobblerAPI:
         """
         return self._collection_mgr.images().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
-    def find_mgmtclass(self, name=None, return_list=False, no_errors=False, **kargs):
+    def find_mgmtclass(self, name: str = "", return_list=False, no_errors=False, **kargs):
         """
         Find a management class via a name or keys specified in the ``**kargs``.
 
@@ -974,7 +969,7 @@ class CobblerAPI:
         """
         return self._collection_mgr.mgmtclasses().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
-    def find_package(self, name=None, return_list=False, no_errors=False, **kargs):
+    def find_package(self, name: str = "", return_list=False, no_errors=False, **kargs):
         """
         Find a package via a name or keys specified in the ``**kargs``.
 
@@ -986,7 +981,7 @@ class CobblerAPI:
         """
         return self._collection_mgr.packages().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
-    def find_file(self, name=None, return_list=False, no_errors=False, **kargs):
+    def find_file(self, name: str = "", return_list=False, no_errors=False, **kargs):
         """
         Find a file via a name or keys specified in the ``**kargs``.
 
@@ -998,7 +993,7 @@ class CobblerAPI:
         """
         return self._collection_mgr.files().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
-    def find_menu(self, name=None, return_list=False, no_errors=False, **kargs):
+    def find_menu(self, name: str = "", return_list=False, no_errors=False, **kargs):
         """
         Find a menu via a name or keys specified in the ``**kargs``.
 
@@ -1284,9 +1279,9 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def generate_ipxe(self, profile, image, system):
+    def generate_ipxe(self, profile: str, image: str, system: str) -> str:
         """
-        Generate the ipxe configuration files. The system wins over the profile.
+        Generate the ipxe configuration files. The system wins over the profile. Profile and System win over Image.
 
         :param profile: The profile to return the configuration for.
         :param image: The image to return the configuration for.
@@ -1309,7 +1304,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def generate_bootcfg(self, profile, system):
+    def generate_bootcfg(self, profile: str, system: str) -> str:
         """
         Generate a boot configuration. The system wins over the profile.
 
@@ -1325,7 +1320,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def generate_script(self, profile, system, name):
+    def generate_script(self, profile: str, system: str, name: str) -> str:
         """
         Generate an autoinstall script for the specified profile or system. The system wins over the profile.
 
@@ -1385,7 +1380,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def sync(self, verbose: bool = False, what: list = []):
+    def sync(self, verbose: bool = False, what: Optional[list] = None):
         """
         Take the values currently written to the configuration files in /etc, and /var, and build out the information
         tree found in /tftpboot. Any operations done in the API that have not been saved with serialize() will NOT be
@@ -1453,6 +1448,8 @@ class CobblerAPI:
         :param verbose: If the action should be just logged as needed or (if True) as much verbose as possible.
         :return: An instance of the CobblerSync class to execute the sync with.
         """
+        if not isinstance(verbose, bool):
+            raise TypeError("get_sync: verbose parameter needs to be of type bool!")
         dhcp = self.get_module_from_file(
             "dhcp",
             "module",
@@ -1473,7 +1470,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def reposync(self, name=None, tries: int = 1, nofail: bool = False):
+    def reposync(self, name: Optional[str] = None, tries: int = 1, nofail: bool = False):
         """
         Take the contents of ``/var/lib/cobbler/repos`` and update them -- or create the initial copy if no contents
         exist yet.
@@ -1489,7 +1486,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def status(self, mode):
+    def status(self, mode: str):
         """
         Get the status of the current Cobbler instance.
 
@@ -1502,7 +1499,7 @@ class CobblerAPI:
     # ==========================================================================
 
     def import_tree(self, mirror_url: str, mirror_name: str, network_root=None, autoinstall_file=None, rsync_flags=None,
-                    arch=None, breed=None, os_version=None) -> Optional[bool]:
+                    arch=None, breed=None, os_version=None) -> bool:
         """
         Automatically import a directory tree full of distribution files.
 
@@ -1600,10 +1597,12 @@ class CobblerAPI:
         import_module = self.get_module_by_name("managers.import_signatures") \
             .get_import_manager(self._collection_mgr)
         import_module.run(path, mirror_name, network_root, autoinstall_file, arch, breed, os_version)
+        return True
 
     # ==========================================================================
 
-    def acl_config(self, adduser=None, addgroup=None, removeuser=None, removegroup=None):
+    def acl_config(self, adduser: Optional[str] = None, addgroup: Optional[str] = None,
+                   removeuser: Optional[str] = None, removegroup: Optional[str] = None):
         """
         Configures users/groups to run the Cobbler CLI as non-root.
         Pass in only one option at a time. Powers ``cobbler aclconfig``.
@@ -1639,7 +1638,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def get_module_by_name(self, module_name):
+    def get_module_by_name(self, module_name: str):
         """
         Returns a loaded Cobbler module named 'name', if one exists, else None.
         Cobbler internal use only.
@@ -1649,7 +1648,7 @@ class CobblerAPI:
         """
         return module_loader.get_module_by_name(module_name)
 
-    def get_module_from_file(self, section, name, fallback=None):
+    def get_module_from_file(self, section: str, name: str, fallback: Optional[str] = None):
         """
         Looks in ``/etc/cobbler/modules.conf`` for a section called 'section' and a key called 'name', and then returns
         the module that corresponds to the value of that key.
@@ -1662,7 +1661,7 @@ class CobblerAPI:
         """
         return module_loader.get_module_from_file(section, name, fallback)
 
-    def get_module_name_from_file(self, section, name, fallback=None):
+    def get_module_name_from_file(self, section: str, name: str, fallback: Optional[str] = None):
         """
         Looks up a module the same as ``get_module_from_file`` but returns the module name rather than the module
         itself.
@@ -1674,7 +1673,7 @@ class CobblerAPI:
         """
         return module_loader.get_module_name(section, name, fallback)
 
-    def get_modules_in_category(self, category):
+    def get_modules_in_category(self, category: str):
         """
         Returns all modules in a given category, for instance "serializer", or "cli".
         Cobbler internal use only.
@@ -1686,7 +1685,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def authenticate(self, user, password):
+    def authenticate(self, user: str, password: str):
         """
         (Remote) access control. This depends on the chosen authentication module.
         Cobbler internal use only.
@@ -1699,7 +1698,7 @@ class CobblerAPI:
         self.log("authenticate", [user, rc])
         return rc
 
-    def authorize(self, user, resource, arg1=None, arg2=None):
+    def authorize(self, user: str, resource: str, arg1=None, arg2=None):
         """
         (Remote) access control. This depends on the chosen authorization module.
         Cobbler internal use only.
@@ -1785,7 +1784,9 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def report(self, report_what=None, report_name=None, report_type=None, report_fields=None, report_noheaders=None):
+    def report(self, report_what: Optional[str] = None, report_name: Optional[str] = None,
+               report_type: Optional[str] = None, report_fields: Optional[str] = None,
+               report_noheaders: Optional[bool] = None):
         """
         Report functionality for Cobbler.
 
@@ -1837,7 +1838,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def get_valid_obj_boot_loaders(self, obj):
+    def get_valid_obj_boot_loaders(self, obj) -> List[str]:
         """
         Return the list of valid boot loaders for the object
 

@@ -876,7 +876,7 @@ def rsync_files(src: str, dst: str, args: str, quiet: bool = True):
     return True
 
 
-def run_this(cmd: str, args: str):
+def run_this(cmd: str, args: Union[str, tuple]):
     """
     A simple wrapper around subprocess calls.
 

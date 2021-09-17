@@ -84,7 +84,7 @@ class Collection:
         """
         raise NotImplementedError("Please implement this in a child class of this class.")
 
-    def get(self, name):
+    def get(self, name: str):
         """
         Return object with name in the collection
 

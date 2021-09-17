@@ -51,7 +51,7 @@ def __parse_config() -> Dict[str, dict]:
     return alldata
 
 
-def authorize(api_handle, user, resource, arg1=None, arg2=None) -> int:
+def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int:
     """
     Validate a user against a resource. All users in the file are permitted by this module.
 

@@ -37,7 +37,7 @@ STATE = 5
 
 class CobblerStatusReport:
 
-    def __init__(self, collection_mgr, mode):
+    def __init__(self, collection_mgr, mode: str):
         """
         Constructor
 
