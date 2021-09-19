@@ -612,7 +612,7 @@ def blender(api_handle, remove_dicts: bool, root_obj):
     if "children" in results:
         child_names = results["children"]
         results["children"] = {}
-        logger.info("Children: %s", child_names)
+        # logger.info("Children: %s", child_names)
         for key in child_names:
             child = api_handle.find_items("", name=key, return_list=False)
             if child is None:
