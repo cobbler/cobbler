@@ -574,7 +574,7 @@ class CobblerXMLRPCInterface:
         :param debug: If the message logged is a debug message.
         :param error: If the message logged is an error message.
         """
-        if not (isinstance(error, bool) or isinstance(debug, bool) or isinstance(msg, str)):
+        if not all((isinstance(error, bool), isinstance(debug, bool), isinstance(msg, str))):
             return
         # add the user editing the object, if supplied
         m_user = "?"
@@ -587,8 +587,6 @@ class CobblerXMLRPCInterface:
         msg = "REMOTE %s; user(%s)" % (msg, m_user)
 
         if name is not None:
-            if not isinstance(name, str):
-                return
             if not validate_obj_name(name):
                 return
             msg = "%s; name(%s)" % (msg, name)
@@ -600,7 +598,7 @@ class CobblerXMLRPCInterface:
 
         # add any attributes being modified, if any
         if attribute:
-            if not (isinstance(attribute, str) and attribute.isidentifier()) or keyword.iskeyword(attribute):
+            if (isinstance(attribute, str) and attribute.isidentifier()) or keyword.iskeyword(attribute):
                 return
             msg = "%s; attribute(%s)" % (msg, attribute)
 
@@ -3217,7 +3215,7 @@ class CobblerXMLRPCInterface:
         Simple check to validate if it is a token.
 
         __make_token() uses 25 as the length of bytes that means we need to padding bytes to have a 34 character str.
-        Because base64 specifies that the number of padding bytes are shown via equal characters, we have a 46 character
+        Because base64 specifies that the number of padding bytes are shown via equal characters, we have a 36 character
         long str in the end in every case.
 
         :param token: The str which should be checked.

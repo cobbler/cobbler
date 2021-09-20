@@ -662,7 +662,7 @@ def validate_obj_name(object_name: str) -> bool:
     """
     if not isinstance(object_name, str):
         return False
-    return bool(re.match(item.RE_OBJECT_NAME, object_name))
+    return bool(re.fullmatch(item.RE_OBJECT_NAME, object_name))
 
 
 def validate_obj_id(object_id: str) -> bool:
