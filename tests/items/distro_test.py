@@ -355,7 +355,7 @@ def test_remote_grub_kernel(value, expected_exception):
 
     # Act
     with expected_exception:
-        distro.remote_grub_kernel = value
+        distro.remote_boot_kernel = value
 
         # Assert
         assert distro.remote_grub_kernel == value
@@ -390,7 +390,7 @@ def test_remote_grub_initrd(value, expected_exception):
 
     # Act
     with expected_exception:
-        distro.remote_grub_initrd = value
+        distro.remote_boot_initrd = value
 
         # Assert
         assert distro.remote_grub_initrd == value

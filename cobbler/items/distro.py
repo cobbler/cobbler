@@ -78,6 +78,10 @@ class Distro(item.Item):
         """
         # FIXME: Change unique base attributes
         _dict = self.to_dict()
+        # Drop attributes which are computed from other attributes
+        computed_properties = ["remote_grub_initrd", "remote_grub_kernel"]
+        for property_name in computed_properties:
+            _dict.pop(property_name, None)
         cloned = Distro(self.api)
         cloned.from_dict(_dict)
         cloned.uid = uuid.uuid4().hex
@@ -300,30 +304,8 @@ class Distro(item.Item):
         can use directly.
 
         :getter: The computed URL from ``remote_boot_kernel``.
-        :setter: Will update ``remote_boot_kernel`` also. May raise ``TypeError`` or ``ValueError`` on problems.
         """
         return self._remote_grub_kernel
-
-    @remote_grub_kernel.setter
-    def remote_grub_kernel(self, value):
-        r"""
-        Setter for the ``remote_grub_kernel`` property.
-
-        :param value: The new value for the property.
-        :raises TypeError: In case ``value`` was not of type ``str``.
-        :raises ValueError: In case the format was invalid.
-        """
-        if not isinstance(value, str):
-            raise TypeError("remote_grub_initrd must be of type str")
-        if not value:
-            self._remote_grub_kernel = ""
-            self._remote_boot_kernel = ""
-            return
-        if validate.validate_boot_remote_file(value):
-            value = grub.parse_grub_remote_file(value)
-        if not validate.validate_grub_remote_file(value):
-            raise ValueError("Invalid format passed to remote_grub_initrd!")
-        self._remote_grub_kernel = value
 
     @property
     def remote_grub_initrd(self) -> str:
@@ -332,30 +314,8 @@ class Distro(item.Item):
         can use directly.
 
         :getter: The computed URL from ``remote_boot_initrd``.
-        :setter: Will update ``remote_boot_initrd`` also. May raise ``TypeError`` or ``ValueError`` on problems.
         """
         return self._remote_grub_initrd
-
-    @remote_grub_initrd.setter
-    def remote_grub_initrd(self, value: str):
-        """
-        Setter for the ``remote_grub_initrd`` property.
-
-        :param value: The new value for the property.
-        :raises TypeError: In case the value was not of type ``str``.
-        :raises ValueError: In case the format of the URL was invalid.
-        """
-        if not isinstance(value, str):
-            raise TypeError("remote_grub_initrd must be of type str")
-        if not value:
-            self._remote_grub_initrd = ""
-            self._remote_boot_initrd = ""
-            return
-        if validate.validate_boot_remote_file(value):
-            value = grub.parse_grub_remote_file(value)
-        if not validate.validate_grub_remote_file(value):
-            raise ValueError("Invalid format passed to remote_grub_initrd!")
-        self._remote_grub_initrd = value
 
     @property
     def remote_boot_initrd(self) -> str:
@@ -385,7 +345,10 @@ class Distro(item.Item):
             return
         if not validate.validate_boot_remote_file(remote_boot_initrd):
             raise ValueError("remote_boot_initrd needs to be a valid URL starting with tftp or http!")
-        self.remote_grub_initrd = remote_boot_initrd
+        parsed_url = grub.parse_grub_remote_file(remote_boot_initrd)
+        if parsed_url is None:
+            raise ValueError("Invalid URL for remote boot initrd: %s" % remote_boot_initrd)
+        self._remote_grub_initrd = parsed_url
         self._remote_boot_initrd = remote_boot_initrd
 
     @property

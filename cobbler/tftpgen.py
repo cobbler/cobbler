@@ -732,10 +732,10 @@ class TFTPGen:
             # not image based, it's something normalish
             img_path = os.path.join("/images", distro.name)
             if boot_loader in ["grub", "ipxe"]:
-                if distro.remote_boot_kernel:
-                    kernel_path = distro.remote_boot_kernel
-                if distro.remote_boot_initrd:
-                    initrd_path = distro.remote_boot_initrd
+                if distro.remote_grub_kernel:
+                    kernel_path = distro.remote_grub_kernel
+                if distro.remote_grub_initrd:
+                    initrd_path = distro.remote_grub_initrd
 
             if 'http' in distro.kernel and 'http' in distro.initrd:
                 if not kernel_path:
