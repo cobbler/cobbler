@@ -256,9 +256,8 @@ class CobblerAPI:
         :param name: The name of the item to retrieve.
         :return: An item of the desired type.
         """
-        self.log("get_item", [what, name], debug=True)
+        # self.log("get_item", [what, name], debug=True)
         item = self._collection_mgr.get_items(what).get(name)
-        self.log("done with get_item", [what, name], debug=True)
         return item
 
     def get_items(self, what: str):
@@ -268,9 +267,8 @@ class CobblerAPI:
         :param what: The collection to query.
         :return: The items which were queried. May return no items.
         """
-        self.log("get_items", [what], debug=True)
+        # self.log("get_items", [what], debug=True)
         items = self._collection_mgr.get_items(what)
-        self.log("done with get_items", [what], debug=True)
         return items
 
     def distros(self):
@@ -868,8 +866,7 @@ class CobblerAPI:
         :param no_errors: Silence some errors which would raise if this turned to False.
         :return: The list of items witch match the search criteria.
         """
-        self.log("find_items", [what])
-
+        # self.log("find_items", [what])
         if criteria is None:
             criteria = {}
 

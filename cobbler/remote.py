@@ -960,7 +960,7 @@ class CobblerXMLRPCInterface:
         """
         if criteria is None:
             criteria = {}
-        self._log("find_items(%s); criteria(%s); sort(%s)" % (what, criteria, sort_field))
+        # self._log("find_items(%s); criteria(%s); sort(%s)" % (what, criteria, sort_field))
         if "name" in criteria:
             name = criteria.pop("name")
             items = self.api.find_items(what, criteria=criteria, name=name)
@@ -2318,7 +2318,7 @@ class CobblerXMLRPCInterface:
         :param rest: Unused parameter.
         :return: Get the settings which are currently in Cobbler present.
         """
-        self._log("get_settings", token=token)
+        # self._log("get_settings", token=token)
         results = self.api.settings().to_dict()
         # self._log("my settings are: %s" % results, debug=True)
         return self.xmlrpc_hacks(results)
