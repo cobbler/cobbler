@@ -424,7 +424,7 @@ class TestMiscellaneous:
         result = remote.modify_setting("auth_token_expiration", 7200, token)
 
         # Assert
-        assert result == 0
+        assert result == 1
 
     def test_read_autoinstall_template(self, remote, token, create_autoinstall_template, remove_autoinstall_template):
         # Arrange
@@ -562,3 +562,16 @@ class TestMiscellaneous:
 
         # Assert --> Let the test pass if the call is okay.
         assert True
+
+    @pytest.mark.skip("Functionality is broken!")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_testprofile", "create_testsystem",
+                             "remove_testdistro", "remove_testmenu", "remove_testprofile", "remove_testsystem")
+    def test_upload_log_data(self, remote):
+        # Arrange
+
+        # Act
+        result = remote.upload_log_data("testsystem0", "testinstall.log", 0, 0, b"asdas")
+
+        # Assert
+        assert isinstance(result, bool)
+        assert result

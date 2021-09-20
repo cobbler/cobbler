@@ -178,6 +178,7 @@ class CobblerAPI:
 
         :returns: 0 if there is no file where the information required for this method is saved.
         """
+        # FIXME: This fails in case the file required is not available
         if not os.path.exists("/var/lib/cobbler/.mtime"):
             fd = open("/var/lib/cobbler/.mtime", 'w')
             fd.write("0")
@@ -1317,13 +1318,14 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def generate_script(self, profile: str, system: str, name: str) -> str:
+    def generate_script(self, profile: Optional[str], system: Optional[str], name: str):
         """
         Generate an autoinstall script for the specified profile or system. The system wins over the profile.
 
-        :param profile: The profile to generate the script for.
-        :param system: The system to generate the script for.
-        :param name: The name of the script which should be generated.
+        :param profile: The profile name to generate the script for.
+        :param system: The system name to generate the script for.
+        :param name: The name of the script which should be generated. Must only contain alphanumeric characters, dots
+                     and underscores.
         :return: The generated script or an error message.
         """
         self.log("generate_script")
