@@ -375,7 +375,7 @@ class TestMiscellaneous:
         result = remote.modify_setting("auth_token_expiration", 7200, token)
 
         # Assert
-        assert result == 0
+        assert result == 1
 
     def test_read_autoinstall_template(self, remote, token, create_autoinstall_template, remove_autoinstall_template):
         # Arrange

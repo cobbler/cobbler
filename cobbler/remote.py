@@ -21,22 +21,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import base64
 import errno
 import fcntl
+import keyword
 import os
 import random
+import re
 import xmlrpc.server
 from socketserver import ThreadingMixIn
 import stat
 from threading import Thread
 import time
+from typing import Optional
 
-from cobbler import autoinstall_manager
+from cobbler import autoinstall_manager, validate
 from cobbler import clogger
 from cobbler import configgen
 from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file
 from cobbler import tftpgen
 from cobbler import utils
 from cobbler.cexceptions import CX
-
+from cobbler.validate import validate_autoinstall_script_name
 
 EVENT_TIMEOUT = 7 * 24 * 60 * 60        # 1 week
 CACHE_TIMEOUT = 10 * 60                 # 10 minutes
@@ -522,12 +525,14 @@ class CobblerXMLRPCInterface:
         :return: The username if the token was valid.
         :raises CX: If the token supplied to the function is invalid.
         """
+        if not CobblerXMLRPCInterface.__is_token(token):
+            raise ValueError("\"token\" did not have the correct format or type!")
         if token not in self.token_cache:
             raise CX("invalid token: %s" % token)
         else:
             return self.token_cache[token][1]
 
-    def _log(self, msg, user=None, token=None, name=None, object_id=None, attribute=None, debug: bool = False,
+    def _log(self, msg, token=None, name=None, object_id=None, attribute=None, debug: bool = False,
              error: bool = False):
         """
         Helper function to write data to the log file from the XMLRPC remote implementation.
@@ -542,10 +547,10 @@ class CobblerXMLRPCInterface:
         :param debug: If the message logged is a debug message.
         :param error: If the message logged is an error message.
         """
+        if not all((isinstance(error, bool), isinstance(debug, bool), isinstance(msg, str))):
+            return
         # add the user editing the object, if supplied
         m_user = "?"
-        if user is not None:
-            m_user = user
         if token is not None:
             try:
                 m_user = self.get_user_from_token(token)
@@ -555,13 +560,19 @@ class CobblerXMLRPCInterface:
         msg = "REMOTE %s; user(%s)" % (msg, m_user)
 
         if name is not None:
+            if not validate.validate_obj_name(name):
+                return
             msg = "%s; name(%s)" % (msg, name)
 
         if object_id is not None:
+            if not validate.validate_obj_id(object_id):
+                return
             msg = "%s; object_id(%s)" % (msg, object_id)
 
         # add any attributes being modified, if any
         if attribute:
+            if (isinstance(attribute, str) and attribute.isidentifier()) or keyword.iskeyword(attribute):
+                return
             msg = "%s; attribute(%s)" % (msg, attribute)
 
         # log to the correct logger
@@ -1712,6 +1723,9 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: 0 on success, 1 on error.
         """
+        if not self.api.settings().allow_dynamic_settings:
+            self._log("modify_setting - feature turned off but was tried to be accessed", token=token)
+            return 1
         self._log("modify_setting(%s)" % setting_name, token=token)
         self.check_access(token, "modify_setting")
         try:
@@ -2088,7 +2102,10 @@ class CobblerXMLRPCInterface:
         :param rest: This is dropped in this method since it is not needed here.
         :return: Some generated script.
         """
-        self._log("generate_script, name is %s" % str(name))
+        # This is duplicated from tftpgen.py to prevent log poisoning via a template engine (Cheetah, Jinja2).
+        if not validate_autoinstall_script_name(name):
+            raise ValueError("\"name\" handed to generate_script was not valid!")
+        self._log("generate_script, name is \"%s\"" % name)
         return self.api.generate_script(profile, system, name)
 
     def get_blended_data(self, profile=None, system=None):
@@ -2359,7 +2376,7 @@ class CobblerXMLRPCInterface:
         self.api.sync_dhcp(logger=self.logger)
         return True
 
-    def upload_log_data(self, sys_name, file, size, offset, data, token=None, **rest):
+    def upload_log_data(self, sys_name, file, size, offset, data, token=None):
         """
         This is a logger function used by the "anamon" logging system to upload all sorts of misc data from Anaconda.
         As it's a bit of a potential log-flooder, it's off by default and needs to be enabled in our settings.
@@ -2370,9 +2387,10 @@ class CobblerXMLRPCInterface:
         :param offset: The offset in the file where the data will be written to.
         :param data: The data that should be logged.
         :param token: The API-token obtained via the login() method.
-        :param rest: This is dropped in this method since it is not needed here.
         :return: True if everything succeeded.
         """
+        if not self.__validate_log_data_params(sys_name, file, size, offset, data, token):
+            return False
         self._log("upload_log_data (file: '%s', size: %s, offset: %s)" % (file, size, offset), token=token, name=sys_name)
 
         # Check if enabled in self.api.settings()
@@ -2381,48 +2399,63 @@ class CobblerXMLRPCInterface:
             return False
 
         # Find matching system record
-        systems = self.api.systems()
-        obj = systems.find(name=sys_name)
+        obj = self.api.find_system(name=sys_name)
         if obj is None:
             # system not found!
             self._log("upload_log_data - WARNING - system '%s' not found in Cobbler" % sys_name, token=token, name=sys_name)
+            return False
 
-        return self.__upload_file(sys_name, file, size, offset, data)
+        return self.__upload_file(obj.name, file, size, offset, data)
 
-    def __upload_file(self, sys_name, file, size, offset, data):
+    def __validate_log_data_params(self, sys_name: str, logfile_name: str, size: int, offset: int, data: bytes,
+                                   token: Optional[str] = None) -> bool:
+        # Validate all types
+        if not (isinstance(sys_name, str) and isinstance(logfile_name, str) and isinstance(size, int)
+                and isinstance(offset, int) and isinstance(data, bytes)):
+            self.logger.warning("upload_log_data - One of the parameters handed over had an invalid type!")
+            return False
+        if token is not None and not isinstance(token, str):
+            self.logger.warning("upload_log_data - token was given but had an invalid type.")
+            return False
+        # Validate sys_name with item regex
+        if not re.fullmatch(validate.RE_OBJECT_NAME, sys_name):
+            self.logger.warning("upload_log_data - The provided sys_name contained invalid characters!")
+            return False
+        # Validate logfile_name - this uses the script name validation, possibly we need our own for this one later
+        if not validate_autoinstall_script_name(logfile_name):
+            self.logger.warning("upload_log_data - The provided file contained invalid characters!")
+            return False
+        return True
+
+    def __upload_file(self, sys_name, logfile_name, size, offset, data):
         """
         Files can be uploaded in chunks, if so the size describes the chunk rather than the whole file. The offset
         indicates where the chunk belongs the special offset -1 is used to indicate the final chunk.
 
         :param sys_name: the name of the system
-        :param file: the name of the file
+        :param logfile_name: the name of the file
         :param size: size of contents (bytes)
         :param offset: the offset of the chunk
         :param data: base64 encoded file contents
         :return: True if the action succeeded.
         """
-        contents = base64.decodestring(data)
-        del data
-        if offset != -1:
-            if size is not None:
-                if size != len(contents):
-                    return False
+        contents = base64.decodebytes(data)
+        # FIXME: Get the base directory from Cobbler app-settings
+        anamon_base_directory = "/var/log/cobbler/anamon"
+        anamon_sys_directory = os.path.join(anamon_base_directory, sys_name)
 
-        # XXX - have an incoming dir and move after upload complete
-        # SECURITY - ensure path remains under uploadpath
-        tt = str.maketrans("/", "+")
-        fn = str.translate(file, tt)
-        if fn.startswith('..'):
-            raise CX("invalid filename used: %s" % fn)
+        file_name = os.path.join(anamon_sys_directory, logfile_name)
+        normalized_path = os.path.normpath(file_name)
+        if not normalized_path.startswith(anamon_sys_directory):
+            self.logger.warning("upload_log_data: built path for the logfile was outside of the Cobbler-Anamon log "
+                                "directory!")
+            return False
 
-        # FIXME ... get the base dir from cobbler settings()
-        udir = "/var/log/cobbler/anamon/%s" % sys_name
-        if not os.path.isdir(udir):
-            os.mkdir(udir, 0o755)
+        if not os.path.isdir(anamon_sys_directory):
+            os.mkdir(anamon_sys_directory, 0o755)
 
-        fn = "%s/%s" % (udir, fn)
         try:
-            st = os.lstat(fn)
+            st = os.lstat(file_name)
         except OSError as e:
             if e.errno == errno.ENOENT:
                 pass
@@ -2430,9 +2463,9 @@ class CobblerXMLRPCInterface:
                 raise
         else:
             if not stat.S_ISREG(st.st_mode):
-                raise CX("destination not a file: %s" % fn)
+                raise CX("destination not a file: %s" % file_name)
 
-        fd = os.open(fn, os.O_RDWR | os.O_CREAT, 0o644)
+        fd = os.open(file_name, os.O_RDWR | os.O_CREAT | os.O_CLOEXEC, 0o644)
         # log_error("fd=%r" %fd)
         try:
             if offset == 0 or (offset == -1 and size == len(contents)):
@@ -3026,6 +3059,20 @@ class CobblerXMLRPCInterface:
         b64 = self.__get_random(25)
         self.token_cache[b64] = (time.time(), user)
         return b64
+
+    @staticmethod
+    def __is_token(token: str) -> bool:
+        """
+        Simple check to validate if it is a token.
+
+        __make_token() uses 25 as the length of bytes that means we need to padding bytes to have a 34 character str.
+        Because base64 specifies that the number of padding bytes are shown via equal characters, we have a 36 character
+        long str in the end in every case.
+
+        :param token: The str which should be checked.
+        :return: True in case the validation succeeds, otherwise False.
+        """
+        return isinstance(token, str) and len(token) == 36
 
     def __invalidate_expired_tokens(self):
         """
