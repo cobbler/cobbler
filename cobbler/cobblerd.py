@@ -82,10 +82,18 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port):
     server.logRequests = 0      # don't print stuff
     logger.debug("XMLRPC running on %s", port)
     server.register_instance(xinterface)
+    start_time = ""
+    try:
+        import psutil
+        p = psutil.Process(os.getpid())
+        start_time = " in %s seconds" % str(time.time() - p.create_time())
+    except ModuleNotFoundError:
+        # This is not critical, but debug only - just install python3-psutil
+        pass
 
     while True:
         try:
-            logger.info("Cobbler startup complete")
+            logger.info("Cobbler startup completed" + start_time)
             server.serve_forever()
         except IOError:
             # interrupted? try to serve again
