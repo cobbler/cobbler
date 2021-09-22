@@ -55,6 +55,9 @@ RUN zypper install --no-recommends -y \
 # Add Testuser for the PAM tests
 RUN useradd -p $(perl -e 'print crypt("test", "password")') test
 
+# Add Developer scripts to PATH
+ENV PATH="/code/docker/develop/scripts:${PATH}"
+
 # Update pip
 RUN pip3 install --upgrade pip
 
