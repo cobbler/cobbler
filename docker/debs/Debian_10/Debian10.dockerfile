@@ -37,7 +37,6 @@ RUN apt-get update -qq && \
     python3-pycodestyle \
     python3-pytest \
     python3-setuptools \
-    python3-simplejson  \
     python3-sphinx \
     python3-tz \
     python3-yaml \
