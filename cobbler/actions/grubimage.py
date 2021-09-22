@@ -3,6 +3,7 @@
 This action calls grub2-mkimage for all bootloader formats configured in
 Cobbler's settings. See man(1) grub2-mkimage for available formats.
 """
+import os.path
 import pathlib
 import subprocess
 import typing
@@ -41,6 +42,8 @@ class GrubImage:
     ):
         """Run GrubImages action."""
 
+        self.create_directories()
+
         for target, link in GrubImage.COMMON_LINKS.items():
             symlink(target, self.bootloaders_dir.joinpath(link), skip_existing=True)
 
@@ -67,6 +70,17 @@ class GrubImage:
                 self.grub2_mod_dir.joinpath(bl_mod_dir),
                 self.bootloaders_dir.joinpath("grub", bl_mod_dir),
             )
+
+    def create_directories(self):
+        """
+        Create the required directories so that this succeeds. If existing, do nothing.
+        """
+        if not self.bootloaders_dir.exists():
+            raise FileNotFoundError("Main bootloader directory not found! Please create it yourself!")
+
+        grub_dir = self.bootloaders_dir.joinpath("grub")
+        if not grub_dir.exists():
+            os.mkdir(grub_dir, 0o644)
 
 
 # NOTE: move this to cobbler.utils?
