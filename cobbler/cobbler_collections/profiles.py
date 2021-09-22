@@ -76,7 +76,6 @@ class Profiles(collection.Collection):
 
         if obj.parent is not None and obj.name in obj.parent.children:
             obj.parent.children.remove(obj.name)
-            self.api.serialize()
 
         self.lock.acquire()
         try:
