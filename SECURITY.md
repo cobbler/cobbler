@@ -5,11 +5,11 @@
 | Version   | Supported                   |
 | --------- | --------------------------- |
 | 4.0.X     | Next API breaking Release   |
-| 3.3.x     | Current Version: 3.3.0      |
+| 3.3.x     | Current Version: 3.3.1      |
 | 3.2.x     | Security only               |
 | 3.1.x     | EOL                         |
 | 3.0.x     | EOL                         |
-| 2.8.x     | EOL - we accept PR's for it |
+| 2.8.x     | EOL                         |
 | 2.6.x     | EOL                         |
 | 2.4.x     | EOL                         |
 | 2.2.x     | EOL                         |
