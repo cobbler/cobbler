@@ -1457,10 +1457,10 @@ class System(Item):
             if self.name in old_parent.children:
                 old_parent.children.remove(self.name)
             else:
-                self.logger.info("Name of System \"%s\" was not found in the children of Item \"%s\"",
+                self.logger.debug("Name of System \"%s\" was not found in the children of Item \"%s\"",
                                  self.name, self.parent.name)
         else:
-            self.logger.info("Parent of System \"%s\" not found. Thus skipping removal from children list.", self.name)
+            self.logger.debug("Parent of System \"%s\" not found. Thus skipping removal from children list.", self.name)
 
         if profile_name in ["delete", "None", "~", ""]:
             self._profile = ""
