@@ -43,6 +43,15 @@ RUN zypper install --no-recommends -y \
     which                      \
     xorriso
 
+# Add bootloader packages
+RUN zypper install --no-recommends -y \
+    syslinux \
+    shim \
+    ipxe-bootimgs \
+    grub2 \
+    grub2-i386-efi \
+    grub2-x86_64-efi
+
 # Add Testuser for the PAM tests
 RUN useradd -p $(perl -e 'print crypt("test", "password")') test
 
