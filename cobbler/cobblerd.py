@@ -93,7 +93,7 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port):
 
     while True:
         try:
-            logger.info("Cobbler startup completed" + start_time)
+            logger.info("Cobbler startup completed %s", start_time)
             server.serve_forever()
         except IOError:
             # interrupted? try to serve again
