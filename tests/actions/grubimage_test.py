@@ -32,8 +32,8 @@ def test_grubimage_run(api, mocker):
     test_image_creator.run()
 
     # Assert
-    # 3 common formats, 4 syslinux links and 9 common bootloader formats
-    assert grubimage.symlink.call_count == 16
+    # 3 common formats, 4 syslinux links (three in case we have syslinux 4 or less) and 9 common bootloader formats
+    assert grubimage.symlink.call_count == 15
     # 9 common bootloader formats
     assert grubimage.mkimage.call_count == 9
 
@@ -58,6 +58,7 @@ def test_mkimage(mocker):
             mkimage_args["image_format"],
             "--output",
             str(mkimage_args["image_filename"]),
+            "--prefix=",
             *mkimage_args["modules"],
         ],
         check=True,
