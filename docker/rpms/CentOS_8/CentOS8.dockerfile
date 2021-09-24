@@ -44,7 +44,6 @@ RUN touch /var/lib/rpm/* &&   \
     python3-mod_wsgi          \
     python3-pyyaml            \
     python3-netaddr           \
-    python3-simplejson        \
     python3-cheetah           \
     python3-magic             \
     python3-dns               \

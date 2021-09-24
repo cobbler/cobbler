@@ -32,7 +32,6 @@ RUN yum install -y          \
     python3-PyYAML          \
     python3-cheetah         \
     python3-netaddr         \
-    python3-simplejson      \
     python3-dns             \
     python3-file-magic      \
     python3-ldap3           \
