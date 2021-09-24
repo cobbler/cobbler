@@ -3,9 +3,11 @@
 This action calls grub2-mkimage for all bootloader formats configured in
 Cobbler's settings. See man(1) grub2-mkimage for available formats.
 """
+import logging
 import os.path
 import pathlib
 import subprocess
+import sys
 import typing
 
 from cobbler import utils
@@ -26,6 +28,7 @@ class GrubImage:
 
         :param api: CobblerAPI instance for accessing settings
         """
+        self.logger = logging.getLogger()
         self.bootloaders_dir = pathlib.Path(api.settings().bootloaders_dir)
         self.grub2_mod_dir = pathlib.Path(api.settings().grub2_mod_dir)
         self.boot_loaders_formats: typing.Dict = api.settings().bootloaders_formats
@@ -45,7 +48,12 @@ class GrubImage:
             symlink(target, self.bootloaders_dir.joinpath(link), skip_existing=True)
 
         for target, link in self.syslinux_links.items():
-            symlink(target, self.bootloaders_dir.joinpath(link), skip_existing=True)
+            if link.name == "ldlinux.c32" and get_syslinux_version() < 5:
+                # This file is only required for Syslinux 5 and newer.
+                # Source: https://wiki.syslinux.org/wiki/index.php?title=Library_modules
+                self.logger.info('syslinux version 4 detected! Skip making symlink of "ldlinux.c32" file!')
+                continue
+            symlink(target, link, skip_existing=True)
 
         for image_format, options in self.boot_loaders_formats.items():
             bl_mod_dir = options.get("mod_dir", image_format)
@@ -56,9 +64,12 @@ class GrubImage:
                     self.modules + options.get("extra_modules", []),
                 )
             except subprocess.CalledProcessError:
+                self.logger.info('grub2-mkimage failed for arch "%s"! Maybe you did forget to install the grub modules '
+                                 'for the architecture?', image_format)
                 utils.log_exc()
                 # don't create module symlinks if grub2-mkimage is unsuccessful
                 continue
+            self.logger.info('Successfully built bootloader for arch "%s"!', image_format)
 
             # Create a symlink for GRUB 2 modules
             # assumes a single GRUB can be used to boot all kinds of distros
@@ -122,9 +133,23 @@ def mkimage(image_format: str, image_filename: pathlib.Path, modules: typing.Lis
     cmd = ["grub2-mkimage"]
     cmd.extend(("--format", image_format))
     cmd.extend(("--output", str(image_filename)))
+    cmd.append("--prefix=")
     cmd.extend(modules)
 
-    # The Exception raised by subprocess already contains everything useful,
-    # it's simpler to use that than roll our own custom exception together
-    # with cobbler.utils.subprocess_* functions
+    # The Exception raised by subprocess already contains everything useful, it's simpler to use that than roll our
+    # own custom exception together with cobbler.utils.subprocess_* functions
     subprocess.run(cmd, check=True)
+
+
+def get_syslinux_version() -> int:
+    """
+    This calls syslinux and asks for the version number.
+
+    :return: The major syslinux release number.
+    """
+    # Example output: "syslinux 4.04  Copyright 1994-2011 H. Peter Anvin et al"
+    cmd = ["syslinux", "-v"]
+    completed_process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                       encoding=sys.getdefaultencoding())
+    output = completed_process.stdout.split()
+    return int(float(output[1]))

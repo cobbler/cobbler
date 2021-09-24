@@ -102,3 +102,11 @@ def test_symlink_target_missing(tmp_path):
     # Act & Assert
     with pytest.raises(FileNotFoundError):
         grubimage.symlink(target, link)
+
+
+def test_get_syslinux_version():
+    # Arrange & Act
+    result = grubimage.get_syslinux_version()
+
+    # Assert
+    assert result == 4
