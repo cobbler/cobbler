@@ -50,7 +50,8 @@ RUN zypper install --no-recommends -y \
     ipxe-bootimgs \
     grub2 \
     grub2-i386-efi \
-    grub2-x86_64-efi
+    grub2-x86_64-efi \
+    grub2-arm64-efi
 
 # Add Testuser for the PAM tests
 RUN useradd -p $(perl -e 'print crypt("test", "password")') test
