@@ -11,8 +11,7 @@ import typing
 from cobbler import utils
 
 
-# NOTE: does not warrant being a class, but all Cobbler actions use a class's
-# .run() as the entrypoint
+# NOTE: does not warrant being a class, but all Cobbler actions use a class's ".run()" as the entrypoint
 class GrubImage:
     """Action to create bootable GRUB 2 images."""
 
@@ -37,9 +36,7 @@ class GrubImage:
             for f in ["pxelinux.0", "menu.c32", "ldlinux.c32", "memdisk"]
         }
 
-    def run(
-        self,
-    ):
+    def run(self):
         """Run GrubImages action."""
 
         self.create_directories()
@@ -86,9 +83,7 @@ class GrubImage:
 # NOTE: move this to cobbler.utils?
 # cobbler.utils.linkfile does a lot of things, it might be worth it to have a
 # function just for symbolic links
-def symlink(
-    target: pathlib.Path, link: pathlib.Path, skip_existing: bool = False
-) -> None:
+def symlink(target: pathlib.Path, link: pathlib.Path, skip_existing: bool = False):
     """Create a symlink LINK pointing to TARGET.
 
     :param target: File/directory that the link will point to. The file/directory must exist.
@@ -110,9 +105,7 @@ def symlink(
             raise
 
 
-def mkimage(
-    image_format: str, image_filename: pathlib.Path, modules: typing.List
-) -> None:
+def mkimage(image_format: str, image_filename: pathlib.Path, modules: typing.List):
     """Create a bootable image of GRUB using grub2-mkimage.
 
     :param image_format: Format of the image that is being created. See man(1)
