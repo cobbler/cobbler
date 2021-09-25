@@ -7,6 +7,26 @@ from cobbler import tftpgen
 from cobbler.items.distro import Distro
 from tests.conftest import does_not_raise
 
+# Tests copying the bootloaders from the bootloaders_dir (setting specified in /etc/cobbler/settings.yaml) to the tftpboot directory.
+def test_copy_bootloaders():
+    # Instantiate TFTPGen class with collection_mgr parameter
+    test_api = CobblerAPI()
+    test_collection_mgr = CollectionManager(test_api)
+    generator = tftpgen.TFTPGen(test_collection_mgr)
+
+    # Arrange
+    ## Dummy/empty bootloader files are staged in 'test_data'. See the below 'cp' command.
+    os.system("cp -f /code/tests/test_data/dummy_bootloaders/* /var/lib/cobbler/loaders/")
+    bootloader1_dst = "/srv/tftpboot/bootloader1"
+    bootloader2_dst = "/srv/tftpboot/bootloader2"
+
+    # Act
+    generator.copy_bootloaders("/srv/tftpboot")
+
+    # Assert
+    assert os.path.isfile(bootloader1_dst)
+    assert os.path.isfile(bootloader2_dst)
+
 # Tests copy_single_distro_file() method using a sample initrd file pulled from Centos 8
 def test_copy_single_distro_file():
     # Instantiate TFTPGen class with collection_mgr parameter
