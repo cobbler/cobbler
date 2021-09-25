@@ -15,7 +15,7 @@ def test_copy_bootloaders():
     generator = tftpgen.TFTPGen(test_collection_mgr)
 
     # Arrange
-    ## Dummy/empty bootloader files are staged in 'test_data'. See the below 'cp' command.
+    ## Dummy/empty bootloader files are staged in 'test_data'. See below "cp" command.
     os.system("cp -f /code/tests/test_data/dummy_bootloaders/* /var/lib/cobbler/loaders/")
     bootloader1_dst = "/srv/tftpboot/bootloader1"
     bootloader2_dst = "/srv/tftpboot/bootloader2"
