@@ -495,7 +495,7 @@ default: ``False``
 manage_dhcp_v6
 ==============
 
-Set to ``true`` to enable DHCP IPv4 address configuration generation. This currently only works with manager.isc DHCP
+Set to ``true`` to enable DHCP IPv6 address configuration generation. This currently only works with manager.isc DHCP
 module (isc dhcpd6 daemon). See ``/etc/cobbler/modules.conf`` whether this isc module is chosen for dhcp generation.
 
 default: ``False``
