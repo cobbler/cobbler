@@ -251,8 +251,11 @@ class NetworkInterface:
         dns_name = validate.hostname(dns_name)
         if dns_name != "" and not self.__api.settings().allow_duplicate_hostnames:
             matched = self.__api.find_items("system", {"dns_name": dns_name})
-            if len(matched) > 0:
-                raise ValueError("DNS name duplicated: %s" % dns_name)
+            for match in matched:
+                if self in match.interfaces.values():
+                    continue
+                else:
+                    raise ValueError("DNS duplicate found: %s" % dns_name)
         self._dns_name = dns_name
 
     @property
@@ -277,8 +280,11 @@ class NetworkInterface:
         address = validate.ipv4_address(address)
         if address != "" and not self.__api.settings().allow_duplicate_ips:
             matched = self.__api.find_items("system", {"ip_address": address})
-            if len(matched) > 0:
-                raise ValueError("IP address duplicated: %s" % address)
+            for match in matched:
+                if self in match.interfaces.values():
+                    continue
+                else:
+                    raise ValueError("IP address duplicate found: %s" % address)
         self._ip_address = address
 
     @property
@@ -305,8 +311,11 @@ class NetworkInterface:
             address = utils.get_random_mac(self.__api)
         if address != "" and not self.__api.settings().allow_duplicate_macs:
             matched = self.__api.find_items("system", {"mac_address": address})
-            if len(matched) > 0:
-                raise ValueError("MAC address duplicated: %s" % address)
+            for match in matched:
+                if self in match.interfaces.values():
+                    continue
+                else:
+                    raise ValueError("MAC address duplicate found: %s" % address)
         self._mac_address = address
 
     @property
@@ -503,10 +512,13 @@ class NetworkInterface:
         :raises CX
         """
         address = validate.ipv6_address(address)
-        if address != "" and self.__api.settings().allow_duplicate_ips is False:
+        if address != "" and not self.__api.settings().allow_duplicate_ips:
             matched = self.__api.find_items("system", {"ipv6_address": address})
-            if len(matched) > 0:
-                raise CX("IP address duplicated: %s" % address)
+            for match in matched:
+                if self in match.interfaces.values():
+                    continue
+                else:
+                    raise ValueError("IPv6 address duplicated: %s" % address)
         self._ipv6_address = address
 
     @property
