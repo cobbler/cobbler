@@ -1,5 +1,7 @@
-import pytest
+import glob
 import os
+import pytest
+import shutil
 
 from cobbler.api import CobblerAPI
 from cobbler.cobbler_collections.manager import CollectionManager
@@ -15,17 +17,17 @@ def test_copy_bootloaders():
     generator = tftpgen.TFTPGen(test_collection_mgr)
 
     # Arrange
-    ## Dummy/empty bootloader files are staged in 'test_data'. See below "cp" command.
-    os.system("cp -f /code/tests/test_data/dummy_bootloaders/* /var/lib/cobbler/loaders/")
-    bootloader1_dst = "/srv/tftpboot/bootloader1"
-    bootloader2_dst = "/srv/tftpboot/bootloader2"
+    ## Dummy/empty bootloader files are staged in 'test_data'. Files are named 'bootloader#'
+    dest_dir = "/var/lib/cobbler/loaders/"
+    for file in glob.glob(r'/code/tests/test_data/dummy_bootloaders/*'):
+        shutil.copy(file, dest_dir)
 
     # Act
     generator.copy_bootloaders("/srv/tftpboot")
 
     # Assert
-    assert os.path.isfile(bootloader1_dst)
-    assert os.path.isfile(bootloader2_dst)
+    assert os.path.isfile("/srv/tftpboot/bootloader1")
+    assert os.path.isfile("/srv/tftpboot/bootloader2")
 
 # Tests copy_single_distro_file() method using a sample initrd file pulled from Centos 8
 def test_copy_single_distro_file():
