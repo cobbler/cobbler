@@ -177,7 +177,6 @@ class Profile(item.Item):
         old_parent = self.parent
         if isinstance(old_parent, item.Item) and self.name in old_parent.children:
             old_parent.children.remove(self.name)
-            self.api.serialize()
         if not parent:
             self._parent = ''
             return
@@ -192,7 +191,6 @@ class Profile(item.Item):
         new_parent = self.parent
         if isinstance(new_parent, item.Item) and self.name not in new_parent.children:
             new_parent.children.append(self.name)
-            self.api.serialize()
 
     @property
     def arch(self):
@@ -242,7 +240,6 @@ class Profile(item.Item):
         self.depth = distro.depth + 1    # reset depth if previously a subprofile and now top-level
         if self.name not in distro.children:
             distro.children.append(self.name)
-            self.api.serialize()
 
     @property
     def name_servers(self) -> list:

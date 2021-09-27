@@ -388,7 +388,10 @@ class Collection:
 
         # perform filesystem operations
         if save:
+            # Save just this item if possible, if not, save the whole collection
             self.collection_mgr.serialize_one_item(ref)
+            if ref.parent:
+                self.collection_mgr.serialize_one_item(ref.parent)
 
             if with_sync:
                 if isinstance(ref, system.System):
