@@ -285,7 +285,7 @@ class Collection:
                     if d.kernel.find(path) == 0:
                         d.kernel = d.kernel.replace(path, newpath)
                         d.initrd = d.initrd.replace(path, newpath)
-                        self.collection_mgr.serialize_item(self, d)
+                        self.collection_mgr.serialize_one_item(d)
 
         if ref.COLLECTION_TYPE in ('profile', 'system'):
             if ref.parent is not None:
@@ -392,8 +392,7 @@ class Collection:
 
         # perform filesystem operations
         if save:
-            # Save just this item if possible, if not, save the whole collection
-            self.collection_mgr.serialize_item(self, ref)
+            self.collection_mgr.serialize_one_item(ref)
 
             if with_sync:
                 if isinstance(ref, system.System):
