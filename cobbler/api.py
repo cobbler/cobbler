@@ -28,7 +28,7 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
-from cobbler.actions import status, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync, grubimage
+from cobbler.actions import status, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync, mkloaders
 from cobbler import autoinstall_manager, autoinstallgen, download_manager, enums, module_loader, power_manager
 from cobbler import settings, tftpgen, utils, yumgen
 from cobbler.cobbler_collections import manager
@@ -1850,9 +1850,9 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def create_grub_images(self):
+    def mkloaders(self):
         """
         Create the GRUB installer images via this API call. It utilizes ``grub2-mkimage`` behind the curtain.
         """
-        action = grubimage.GrubImage(self)
+        action = mkloaders.MkLoaders(self)
         action.run()

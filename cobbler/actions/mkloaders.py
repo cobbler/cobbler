@@ -14,7 +14,7 @@ from cobbler import utils
 
 
 # NOTE: does not warrant being a class, but all Cobbler actions use a class's ".run()" as the entrypoint
-class GrubImage:
+class MkLoaders:
     """Action to create bootable GRUB 2 images."""
 
     COMMON_LINKS = {
@@ -24,7 +24,7 @@ class GrubImage:
     }
 
     def __init__(self, api):
-        """GrubImage constructor.
+        """MkLoaders constructor.
 
         :param api: CobblerAPI instance for accessing settings
         """
@@ -44,7 +44,7 @@ class GrubImage:
 
         self.create_directories()
 
-        for target, link in GrubImage.COMMON_LINKS.items():
+        for target, link in MkLoaders.COMMON_LINKS.items():
             symlink(target, self.bootloaders_dir.joinpath(link), skip_existing=True)
 
         for target, link in self.syslinux_links.items():
