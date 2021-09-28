@@ -60,7 +60,7 @@ class GrubImage:
             try:
                 mkimage(
                     image_format,
-                    self.bootloaders_dir.joinpath(options["binary_name"]),
+                    self.bootloaders_dir.joinpath("grub", options["binary_name"]),
                     self.modules + options.get("extra_modules", []),
                 )
             except subprocess.CalledProcessError:
