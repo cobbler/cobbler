@@ -4,7 +4,6 @@ This action calls grub2-mkimage for all bootloader formats configured in
 Cobbler's settings. See man(1) grub2-mkimage for available formats.
 """
 import logging
-import os.path
 import pathlib
 import subprocess
 import sys
@@ -15,24 +14,23 @@ from cobbler import utils
 
 # NOTE: does not warrant being a class, but all Cobbler actions use a class's ".run()" as the entrypoint
 class MkLoaders:
-    """Action to create bootable GRUB 2 images."""
-
-    COMMON_LINKS = {
-        pathlib.Path("/usr/share/efi/x86_64/shim.efi"): pathlib.Path("grub/shim.efi"),
-        pathlib.Path("/usr/share/efi/x86_64/grub.efi"): pathlib.Path("grub/grub.efi"),
-        pathlib.Path("/usr/share/ipxe/undionly.kpxe"): pathlib.Path("undionly.pxe"),
-    }
+    """
+    Action to create bootloader images.
+    """
 
     def __init__(self, api):
-        """MkLoaders constructor.
+        """
+        MkLoaders constructor.
 
         :param api: CobblerAPI instance for accessing settings
         """
         self.logger = logging.getLogger()
         self.bootloaders_dir = pathlib.Path(api.settings().bootloaders_dir)
+        # GRUB 2
         self.grub2_mod_dir = pathlib.Path(api.settings().grub2_mod_dir)
         self.boot_loaders_formats: typing.Dict = api.settings().bootloaders_formats
         self.modules: typing.List = api.settings().bootloaders_modules
+        # Syslinux
         self.syslinux_dir = pathlib.Path(api.settings().syslinux_dir)
         self.syslinux_links = {
             self.syslinux_dir.joinpath(f): self.bootloaders_dir.joinpath(f)
@@ -40,13 +38,51 @@ class MkLoaders:
         }
 
     def run(self):
-        """Run GrubImages action."""
-
+        """
+        Run GrubImages action. If the files or executables for the bootloader is not available we bail out and skip the
+        creation after it is logged that this is not available.
+        """
         self.create_directories()
 
-        for target, link in MkLoaders.COMMON_LINKS.items():
-            symlink(target, self.bootloaders_dir.joinpath(link), skip_existing=True)
+        self.make_shim()
+        self.make_ipxe()
+        self.make_syslinux()
+        self.make_grub()
 
+    def make_shim(self):
+        """
+        TODO
+        """
+        if not utils.command_existing("shim-install --help", 0):
+            self.logger.info("shim-install missing. This means we are probably also missing the file we require. "
+                             "Bailing out of linking the shim!")
+            return
+        symlink(
+            pathlib.Path("/usr/share/efi/x86_64/shim.efi"),
+            self.bootloaders_dir.joinpath(pathlib.Path("undionly.pxe")),
+            skip_existing=True
+        )
+
+    def make_ipxe(self):
+        """
+        TODO
+        """
+        if not pathlib.Path("/usr/share/ipxe").exists():
+            self.logger.info("ipxe directory did not exist. Bailing out of iPXE setup!")
+            return
+        symlink(
+            pathlib.Path("/usr/share/ipxe/undionly.kpxe"),
+            self.bootloaders_dir.joinpath(pathlib.Path("grub/shim.efi")),
+            skip_existing=True
+        )
+
+    def make_syslinux(self):
+        """
+        TODO
+        """
+        if not utils.command_existing("syslinux", 64):
+            self.logger.info("syslinux command not available. Bailing out of syslinux setup!")
+            return
         for target, link in self.syslinux_links.items():
             if link.name == "ldlinux.c32" and get_syslinux_version() < 5:
                 # This file is only required for Syslinux 5 and newer.
@@ -55,8 +91,29 @@ class MkLoaders:
                 continue
             symlink(target, link, skip_existing=True)
 
+    def make_grub(self):
+        """
+        TODO
+        """
+        symlink(
+            pathlib.Path("/usr/share/efi/x86_64/grub.efi"),
+            self.bootloaders_dir.joinpath(pathlib.Path("grub/grub.efi")),
+            skip_existing=True
+        )
+
+        if not utils.command_existing("grub2-mkimage --help", 0):
+            self.logger.info("grub2-mkimage command not available. Bailing out of GRUB2 generation!")
+            return
+
         for image_format, options in self.boot_loaders_formats.items():
             bl_mod_dir = options.get("mod_dir", image_format)
+            mod_dir = self.grub2_mod_dir.joinpath(bl_mod_dir)
+            if not mod_dir.exists():
+                self.logger.info(
+                    'GRUB2 modules directory for arch "%s" did no exist. Skipping GRUB2 creation',
+                    image_format
+                )
+                continue
             try:
                 mkimage(
                     image_format,
@@ -75,7 +132,7 @@ class MkLoaders:
             # assumes a single GRUB can be used to boot all kinds of distros
             # if this assumption turns out incorrect, individual "grub" subdirectories are needed
             symlink(
-                self.grub2_mod_dir.joinpath(bl_mod_dir),
+                mod_dir,
                 self.bootloaders_dir.joinpath("grub", bl_mod_dir),
             )
 
@@ -88,7 +145,7 @@ class MkLoaders:
 
         grub_dir = self.bootloaders_dir.joinpath("grub")
         if not grub_dir.exists():
-            os.mkdir(grub_dir, 0o644)
+            grub_dir.mkdir(mode=0o644)
 
 
 # NOTE: move this to cobbler.utils?
