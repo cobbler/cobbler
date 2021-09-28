@@ -106,8 +106,19 @@ def test_symlink_target_missing(tmp_path):
         mkloaders.symlink(target, link)
 
 
-def test_get_syslinux_version():
-    # Arrange & Act
+def test_get_syslinux_version(mocker):
+    # Arrange
+    mocker.patch(
+        "cobbler.actions.mkloaders.subprocess.run",
+        autospec=True,
+        return_value=subprocess.CompletedProcess(
+            "",
+            0,
+            stdout="syslinux 4.04  Copyright 1994-2011 H. Peter Anvin et al"
+        )
+    )
+
+    # Act
     result = mkloaders.get_syslinux_version()
 
     # Assert
