@@ -25,17 +25,18 @@ def test_grubimage_object(api):
 def test_grubimage_run(api, mocker):
     # Arrange
     test_image_creator = mkloaders.MkLoaders(api)
-    mocker.patch("cobbler.actions.grubimage.symlink", spec=cobbler.actions.mkloaders.symlink)
-    mocker.patch("cobbler.actions.grubimage.mkimage", spec=cobbler.actions.mkloaders.mkimage)
+    mocker.patch("cobbler.actions.mkloaders.symlink", spec=cobbler.actions.mkloaders.symlink)
+    mocker.patch("cobbler.actions.mkloaders.mkimage", spec=cobbler.actions.mkloaders.mkimage)
 
     # Act
     test_image_creator.run()
 
     # Assert
-    # 3 common formats, 4 syslinux links (three in case we have syslinux 4 or less) and 9 common bootloader formats
-    assert mkloaders.symlink.call_count == 15
-    # 9 common bootloader formats
-    assert mkloaders.mkimage.call_count == 9
+    # On a full install: 3 common formats, 4 syslinux links and 9 bootloader formats
+    # In our test container we have: shim (1x), ipxe (1x), syslinux v4 (3x) and 4 grubs (5x)
+    assert mkloaders.symlink.call_count == 10
+    # In our test container we have: x86_64, arm64-efi, i386-efi & i386-pc-pxe
+    assert mkloaders.mkimage.call_count == 4
 
 
 def test_mkimage(mocker):
@@ -45,7 +46,7 @@ def test_mkimage(mocker):
         "image_filename": pathlib.Path("/var/cobbler/loaders/grub/grubx64.efi"),
         "modules": ["btrfs", "ext2", "luks", "serial"],
     }
-    mocker.patch("cobbler.actions.grubimage.subprocess.run", spec=subprocess.run)
+    mocker.patch("cobbler.actions.mkloaders.subprocess.run", spec=subprocess.run)
 
     # Act
     mkloaders.mkimage(**mkimage_args)
