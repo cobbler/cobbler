@@ -55,7 +55,7 @@ bootloaders_formats:
     binary_name: grubaa64.efi
     extra_modules:
       - efinet
-  i386:
+  i386-efi:
     binary_name: bootia32.efi
   i386-pc-pxe:
     binary_name: grub.0

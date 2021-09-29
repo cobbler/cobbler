@@ -3,8 +3,8 @@ import subprocess
 
 import pytest
 
-import cobbler.actions.grubimage
-from cobbler.actions import grubimage
+import cobbler.actions.mkloaders
+from cobbler.actions import mkloaders
 from cobbler.api import CobblerAPI
 
 
@@ -15,27 +15,28 @@ def api():
 
 def test_grubimage_object(api):
     # Arrange & Act
-    test_image_creator = grubimage.GrubImage(api)
+    test_image_creator = mkloaders.MkLoaders(api)
 
     # Assert
-    assert isinstance(test_image_creator, grubimage.GrubImage)
+    assert isinstance(test_image_creator, mkloaders.MkLoaders)
     assert str(test_image_creator.syslinux_dir) == "/usr/share/syslinux"
 
 
 def test_grubimage_run(api, mocker):
     # Arrange
-    test_image_creator = grubimage.GrubImage(api)
-    mocker.patch("cobbler.actions.grubimage.symlink", spec=cobbler.actions.grubimage.symlink)
-    mocker.patch("cobbler.actions.grubimage.mkimage", spec=cobbler.actions.grubimage.mkimage)
+    test_image_creator = mkloaders.MkLoaders(api)
+    mocker.patch("cobbler.actions.mkloaders.symlink", spec=cobbler.actions.mkloaders.symlink)
+    mocker.patch("cobbler.actions.mkloaders.mkimage", spec=cobbler.actions.mkloaders.mkimage)
 
     # Act
     test_image_creator.run()
 
     # Assert
-    # 3 common formats, 4 syslinux links and 9 common bootloader formats
-    assert grubimage.symlink.call_count == 16
-    # 9 common bootloader formats
-    assert grubimage.mkimage.call_count == 9
+    # On a full install: 3 common formats, 4 syslinux links and 9 bootloader formats
+    # In our test container we have: shim (1x), ipxe (1x), syslinux v4 (3x) and 4 grubs (5x)
+    assert mkloaders.symlink.call_count == 10
+    # In our test container we have: x86_64, arm64-efi, i386-efi & i386-pc-pxe
+    assert mkloaders.mkimage.call_count == 4
 
 
 def test_mkimage(mocker):
@@ -45,19 +46,20 @@ def test_mkimage(mocker):
         "image_filename": pathlib.Path("/var/cobbler/loaders/grub/grubx64.efi"),
         "modules": ["btrfs", "ext2", "luks", "serial"],
     }
-    mocker.patch("cobbler.actions.grubimage.subprocess.run", spec=subprocess.run)
+    mocker.patch("cobbler.actions.mkloaders.subprocess.run", spec=subprocess.run)
 
     # Act
-    grubimage.mkimage(**mkimage_args)
+    mkloaders.mkimage(**mkimage_args)
 
     # Assert
-    grubimage.subprocess.run.assert_called_once_with(
+    mkloaders.subprocess.run.assert_called_once_with(
         [
             "grub2-mkimage",
             "--format",
             mkimage_args["image_format"],
             "--output",
             str(mkimage_args["image_filename"]),
+            "--prefix=",
             *mkimage_args["modules"],
         ],
         check=True,
@@ -71,7 +73,7 @@ def test_symlink(tmp_path: pathlib.Path):
     link = tmp_path / "link"
 
     # Run
-    grubimage.symlink(target, link)
+    mkloaders.symlink(target, link)
 
     # Assert
     assert link.exists()
@@ -88,10 +90,10 @@ def test_symlink_link_exists(tmp_path):
 
     # Act
     with pytest.raises(FileExistsError):
-        grubimage.symlink(link, target, skip_existing=False)
+        mkloaders.symlink(link, target, skip_existing=False)
 
     # Assert: must not raise an exception
-    grubimage.symlink(link, target, skip_existing=True)
+    mkloaders.symlink(link, target, skip_existing=True)
 
 
 def test_symlink_target_missing(tmp_path):
@@ -101,4 +103,23 @@ def test_symlink_target_missing(tmp_path):
 
     # Act & Assert
     with pytest.raises(FileNotFoundError):
-        grubimage.symlink(target, link)
+        mkloaders.symlink(target, link)
+
+
+def test_get_syslinux_version(mocker):
+    # Arrange
+    mocker.patch(
+        "cobbler.actions.mkloaders.subprocess.run",
+        autospec=True,
+        return_value=subprocess.CompletedProcess(
+            "",
+            0,
+            stdout="syslinux 4.04  Copyright 1994-2011 H. Peter Anvin et al"
+        )
+    )
+
+    # Act
+    result = mkloaders.get_syslinux_version()
+
+    # Assert
+    assert result == 4

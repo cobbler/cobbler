@@ -1503,6 +1503,17 @@ def is_remote_file(file) -> bool:
         return False
 
 
+def command_existing(cmd: str) -> bool:
+    r"""
+    This takes a command which should be known to the system and checks if it is available.
+
+    :param cmd: The executable to check
+    :return: If the binary does not exist ``False``, otherwise ``True``.
+    """
+    # https://stackoverflow.com/a/28909933
+    return shutil.which(cmd) is not None
+
+
 def subprocess_sp(cmd, shell: bool = True, input=None):
     """
     Call a shell process and redirect the output for internal usage.

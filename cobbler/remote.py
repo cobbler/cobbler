@@ -165,13 +165,13 @@ class CobblerXMLRPCInterface:
                 self.options.get("iso", webdir + "/pub/generated.iso"),
                 self.options.get("profiles", None),
                 self.options.get("systems", None),
-                self.options.get("buildisodir", None),
+                self.options.get("buildisodir", ""),
                 self.options.get("distro", None),
                 self.options.get("standalone", False),
                 self.options.get("airgapped", False),
                 self.options.get("source", None),
                 self.options.get("exclude_dns", False),
-                self.options.get("xorrisofs_opts", None),
+                self.options.get("xorrisofs_opts", ""),
             )
 
         def on_done(self):
@@ -396,12 +396,12 @@ class CobblerXMLRPCInterface:
         self.check_access(token, "sigupdate")
         return self.__start_task(runner, token, "sigupdate", "Updating Signatures", options)
 
-    def background_mkgrub(self, options, token) -> str:
+    def background_mkloaders(self, options: dict, token: str) -> str:
         def runner(self):
-            return self.api.create_grub_images()
+            return self.api.mkloaders()
 
         return self.__start_task(
-            runner, token, "create_grub_images", "Create bootable GRUB images", options
+            runner, token, "mkloaders", "Create bootable bootloader images", options
         )
 
     def get_events(self, for_user: str = "") -> dict:
