@@ -149,9 +149,23 @@ class CollectionManager:
         serializer.serialize(self._menus)
 
     # pylint: disable=R0201
+    def serialize_one_item(self, item):
+        """
+        Save a collection item to disk
+
+        :param collection: Collection
+        :param item: collection item
+        """
+        collection = self.get_items(item.COLLECTION_TYPE)
+        serializer.serialize_item(collection, item)
+
+    # pylint: disable=R0201
     def serialize_item(self, collection, item):
         """
         Save a collection item to disk
+
+        Deprecated - Use above serialize_one_item function instead
+        collection param can be retrieved
 
         :param collection: Collection
         :param item: collection item

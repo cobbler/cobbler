@@ -251,8 +251,10 @@ class NetworkInterface:
         dns_name = validate.hostname(dns_name)
         if dns_name != "" and not self.__api.settings().allow_duplicate_hostnames:
             matched = self.__api.find_items("system", {"dns_name": dns_name})
-            if len(matched) > 0:
-                raise ValueError("DNS name duplicated: %s" % dns_name)
+            for match in matched:
+                if self in match.interfaces.values():
+                    continue
+                raise ValueError("DNS duplicate found: %s" % dns_name)
         self._dns_name = dns_name
 
     @property
@@ -277,8 +279,11 @@ class NetworkInterface:
         address = validate.ipv4_address(address)
         if address != "" and not self.__api.settings().allow_duplicate_ips:
             matched = self.__api.find_items("system", {"ip_address": address})
-            if len(matched) > 0:
-                raise ValueError("IP address duplicated: %s" % address)
+            for match in matched:
+                if self in match.interfaces.values():
+                    continue
+                else:
+                    raise ValueError("IP address duplicate found: %s" % address)
         self._ip_address = address
 
     @property
@@ -305,8 +310,11 @@ class NetworkInterface:
             address = utils.get_random_mac(self.__api)
         if address != "" and not self.__api.settings().allow_duplicate_macs:
             matched = self.__api.find_items("system", {"mac_address": address})
-            if len(matched) > 0:
-                raise ValueError("MAC address duplicated: %s" % address)
+            for match in matched:
+                if self in match.interfaces.values():
+                    continue
+                else:
+                    raise ValueError("MAC address duplicate found: %s" % address)
         self._mac_address = address
 
     @property
@@ -503,10 +511,13 @@ class NetworkInterface:
         :raises CX
         """
         address = validate.ipv6_address(address)
-        if address != "" and self.__api.settings().allow_duplicate_ips is False:
+        if address != "" and not self.__api.settings().allow_duplicate_ips:
             matched = self.__api.find_items("system", {"ipv6_address": address})
-            if len(matched) > 0:
-                raise CX("IP address duplicated: %s" % address)
+            for match in matched:
+                if self in match.interfaces.values():
+                    continue
+                else:
+                    raise ValueError("IPv6 address duplicated: %s" % address)
         self._ipv6_address = address
 
     @property
@@ -1445,10 +1456,10 @@ class System(Item):
             if self.name in old_parent.children:
                 old_parent.children.remove(self.name)
             else:
-                self.logger.info("Name of System \"%s\" was not found in the children of Item \"%s\"",
+                self.logger.debug("Name of System \"%s\" was not found in the children of Item \"%s\"",
                                  self.name, self.parent.name)
         else:
-            self.logger.info("Parent of System \"%s\" not found. Thus skipping removal from children list.", self.name)
+            self.logger.debug("Parent of System \"%s\" not found. Thus skipping removal from children list.", self.name)
 
         if profile_name in ["delete", "None", "~", ""]:
             self._profile = ""
@@ -1464,7 +1475,6 @@ class System(Item):
         new_parent = self.parent
         if isinstance(new_parent, Item) and self.name not in new_parent.children:
             new_parent.children.append(self.name)
-            self.api.serialize()
 
     @property
     def image(self) -> str:
@@ -1494,7 +1504,6 @@ class System(Item):
             self._image = ""
             if isinstance(old_parent, Item) and self.name in old_parent.children:
                 old_parent.children.remove(self.name)
-                self.api.serialize()
             return
 
         self.profile = ""  # mutual exclusion rule
@@ -1509,7 +1518,6 @@ class System(Item):
             new_parent = self.parent
             if isinstance(new_parent, Item) and self.name not in new_parent.children:
                 new_parent.children.append(self.name)
-                self.api.serialize()
             return
         raise CX("invalid image name (%s)" % image_name)
 

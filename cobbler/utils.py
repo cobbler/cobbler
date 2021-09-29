@@ -1296,7 +1296,6 @@ def mkdir(path, mode=0o755):
     :raises CX: Raised in case creating the directory fails with error code 17.
     """
     try:
-        logger.info("mkdir: %s", path)
         os.makedirs(path, mode)
     except OSError as os_error:
         # already exists (no constant for 17?)

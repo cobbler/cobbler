@@ -781,15 +781,12 @@ class CobblerAPI:
         """
         self.add_item("profile", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
 
-    def add_system(self, ref, check_for_duplicate_names: bool = False, check_for_duplicate_netinfo=False,
-                   save: bool = True):
+    def add_system(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
         """
         Add a system to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
-        :param check_for_duplicate_netinfo: If the name of the network interface should be unique or can be present
-                                            multiple times.
         :param save: If the item should be persisted.
         """
         self.add_item("system", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
