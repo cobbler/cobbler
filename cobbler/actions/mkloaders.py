@@ -51,7 +51,7 @@ class MkLoaders:
 
     def make_shim(self):
         """
-        TODO
+        Create symlink of the shim bootloader in case it is available on the system.
         """
         if not utils.command_existing("shim-install"):
             self.logger.info("shim-install missing. This means we are probably also missing the file we require. "
@@ -65,7 +65,7 @@ class MkLoaders:
 
     def make_ipxe(self):
         """
-        TODO
+        Create symlink of the iPXE bootloader in case it is available on the system.
         """
         if not pathlib.Path("/usr/share/ipxe").exists():
             self.logger.info("ipxe directory did not exist. Bailing out of iPXE setup!")
@@ -78,7 +78,7 @@ class MkLoaders:
 
     def make_syslinux(self):
         """
-        TODO
+        Create symlink of the important syslinux bootloader files in case they are available on the system.
         """
         if not utils.command_existing("syslinux"):
             self.logger.info("syslinux command not available. Bailing out of syslinux setup!")
@@ -93,7 +93,8 @@ class MkLoaders:
 
     def make_grub(self):
         """
-        TODO
+        Create symlink of the GRUB 2 bootloader in case it is available on the system. Additionally build the loaders
+        for other architectures if the modules to do so are available.
         """
         symlink(
             pathlib.Path("/usr/share/efi/x86_64/grub.efi"),
@@ -138,7 +139,8 @@ class MkLoaders:
 
     def create_directories(self):
         """
-        Create the required directories so that this succeeds. If existing, do nothing.
+        Create the required directories so that this succeeds. If existing, do nothing. This should create the tree for
+        all supported bootloaders, regardless of the capabilities to symlink/install/build them.
         """
         if not self.bootloaders_dir.exists():
             raise FileNotFoundError("Main bootloader directory not found! Please create it yourself!")
@@ -159,7 +161,6 @@ def symlink(target: pathlib.Path, link: pathlib.Path, skip_existing: bool = Fals
     :param skip_existing: Controls if existing links are skipped, defaults to False.
     :raises FileNotFoundError: ``target`` is not an existing file.
     :raises FileExistsError: ``skip_existing`` is False and ``link`` already exists.
-    :return: None
     """
 
     if not target.exists():
@@ -181,7 +182,6 @@ def mkimage(image_format: str, image_filename: pathlib.Path, modules: typing.Lis
     :param image_filename: Location of the image that is being created.
     :param modules: List of GRUB modules to include into the image
     :raises subprocess.CalledProcessError: Error raised by ``subprocess.run``.
-    :return: None
     """
 
     if not image_filename.parent.exists():
