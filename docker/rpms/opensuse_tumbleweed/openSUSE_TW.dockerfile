@@ -6,9 +6,6 @@ FROM registry.opensuse.org/opensuse/tumbleweed:latest
 ENV container docker
 ENV DISTRO SUSE
 
-# Update Leap to most current packages
-RUN zypper dup -y
-
 # Runtime & dev dependencies
 RUN zypper install -y          \
     acl                        \

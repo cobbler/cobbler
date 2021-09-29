@@ -6,9 +6,6 @@ FROM registry.opensuse.org/opensuse/leap:15.3
 ENV container docker
 ENV DISTRO SUSE
 
-# Update Leap to most current packages
-RUN zypper update -y
-
 # Runtime & dev dependencies
 RUN zypper install -y          \
     acl                        \
