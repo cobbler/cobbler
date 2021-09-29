@@ -254,8 +254,7 @@ class NetworkInterface:
             for match in matched:
                 if self in match.interfaces.values():
                     continue
-                else:
-                    raise ValueError("DNS duplicate found: %s" % dns_name)
+                raise ValueError("DNS duplicate found: %s" % dns_name)
         self._dns_name = dns_name
 
     @property
