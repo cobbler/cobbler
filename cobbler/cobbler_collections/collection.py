@@ -366,7 +366,10 @@ class Collection:
             with_sync = False
 
         # Avoid adding objects to the collection with the same name
-        self.__duplication_checks(ref, check_for_duplicate_names)
+        if check_for_duplicate_names:
+            for item in self.listing.values():
+                if item.name == ref.name:
+                    raise CX("An object already exists with that name. Try 'edit'?")
 
         if ref.COLLECTION_TYPE != self.collection_type():
             raise TypeError("API error: storing wrong data type in collection")
@@ -430,43 +433,6 @@ class Collection:
                 utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type(),
                                    [])
 
-    def __duplication_checks(self, ref, check_for_duplicate_names: bool):
-        """
-        Prevents adding objects with the same name. Prevents adding or editing to provide the same IP, or MAC.
-        Enforcement is based on whether the API caller requests it.
-
-        :param ref: The refernce to the object.
-        :param check_for_duplicate_names: If the name of an object should be unique or not.
-        :raises CX: If a duplicate is found
-        """
-        # ToDo: Use return bool type to indicate duplicates and only throw CX in real error case.
-        # always protect against duplicate names
-        if check_for_duplicate_names:
-            match = None
-            if isinstance(ref, system.System):
-                match = self.api.find_system(ref.name)
-            elif isinstance(ref, profile.Profile):
-                match = self.api.find_profile(ref.name)
-            elif isinstance(ref, distro.Distro):
-                match = self.api.find_distro(ref.name)
-            elif isinstance(ref, repo.Repo):
-                match = self.api.find_repo(ref.name)
-            elif isinstance(ref, image.Image):
-                match = self.api.find_image(ref.name)
-            elif isinstance(ref, mgmtclass.Mgmtclass):
-                match = self.api.find_mgmtclass(ref.name)
-            elif isinstance(ref, package.Package):
-                match = self.api.find_package(ref.name)
-            elif isinstance(ref, file.File):
-                match = self.api.find_file(ref.name)
-            elif isinstance(ref, menu.Menu):
-                match = self.api.find_menu(ref.name)
-            else:
-                raise CX("internal error, unknown object type")
-
-            if match:
-                raise CX("An object already exists with that name. Try 'edit'?")
-
     def to_string(self) -> str:
         """
         Creates a printable representation of the collection suitable for reading by humans or parsing from scripts.
@@ -474,6 +440,7 @@ class Collection:
 
         :return: The object as a string representation.
         """
+        # FIXME: No to_string() method in any of the items present!
         values = list(self.listing.values())[:]   # copy the values
         values.sort()                       # sort the copy (2.3 fix)
         results = []
