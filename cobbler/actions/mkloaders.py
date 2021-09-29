@@ -53,7 +53,7 @@ class MkLoaders:
         """
         TODO
         """
-        if not utils.command_existing("shim-install --help", 0):
+        if not utils.command_existing("shim-install"):
             self.logger.info("shim-install missing. This means we are probably also missing the file we require. "
                              "Bailing out of linking the shim!")
             return
@@ -80,7 +80,7 @@ class MkLoaders:
         """
         TODO
         """
-        if not utils.command_existing("syslinux", 64):
+        if not utils.command_existing("syslinux"):
             self.logger.info("syslinux command not available. Bailing out of syslinux setup!")
             return
         for target, link in self.syslinux_links.items():
@@ -101,7 +101,7 @@ class MkLoaders:
             skip_existing=True
         )
 
-        if not utils.command_existing("grub2-mkimage --help", 0):
+        if not utils.command_existing("grub2-mkimage"):
             self.logger.info("grub2-mkimage command not available. Bailing out of GRUB2 generation!")
             return
 

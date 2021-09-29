@@ -1504,30 +1504,15 @@ def is_remote_file(file) -> bool:
         return False
 
 
-def command_existing(cmd: str, expected_return_code: Optional[int]) -> bool:
+def command_existing(cmd: str) -> bool:
     r"""
     This takes a command which should be known to the system and checks if it is available.
 
-    Bash defines the exit code 127 if the command is not known to the system, so this function checks if the return
-    code is NOT 127 and then returns ``True``.
-
-    All subprocess errors are interpreted as "command not found", thus ``False`` is returned.
-
-    .. warning:: Do not use this command for things with user input. Only use hardcoded fixed commands for security
-                 reasons!
-
     :param cmd: The executable to check
-    :param expected_return_code: If this is an integer it will be checked if the int is equal to the return code by the
-                                 shell.
     :return: If the binary does not exist ``False``, otherwhise ``True``.
     """
-    try:
-        result = subprocess.run(cmd, shell=True)
-        if expected_return_code is not None and isinstance(expected_return_code, int):
-            return result.returncode == expected_return_code
-        return result.returncode != 127
-    except subprocess.SubprocessError:
-        return False
+    # https://stackoverflow.com/a/28909933
+    return shutil.which(cmd) is not None
 
 
 def subprocess_sp(cmd, shell: bool = True, input=None):

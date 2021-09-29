@@ -645,14 +645,13 @@ def test_is_remote_file():
     assert not result
 
 
-@pytest.mark.parametrize("input_cmd,input_exit_code,expected_result", [
-    ("foobaz", None, False),
-    ("echo", None, True),
-    ("echo", -1, False),
+@pytest.mark.parametrize("input_cmd,expected_result", [
+    ("foobaz", False),
+    ("echo", True)
 ])
-def test_command_existing(input_cmd, input_exit_code, expected_result):
+def test_command_existing(input_cmd, expected_result):
     # Arrange & Act
-    result = utils.command_existing(input_cmd, input_exit_code)
+    result = utils.command_existing(input_cmd)
 
     # Assert
     assert result == expected_result
