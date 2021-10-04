@@ -1239,9 +1239,9 @@ def rmfile(path: str):
         os.remove(path)
         logger.info("Successfully removed \"%s\"", path)
     except FileNotFoundError:
-        logger.warning("File to remove not found \"%s\"", path)
-    except OSError:
-        logger.warning("Could not remove file \"%s\"", path)
+        pass
+    except OSError as ioe:
+        logger.warning("Could not remove file \"%s\": %s", path, ioe.strerror)
 
 
 def rmtree_contents(path: str):
