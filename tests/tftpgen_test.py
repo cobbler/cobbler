@@ -10,17 +10,23 @@ from cobbler.items.distro import Distro
 from tests.conftest import does_not_raise
 
 # Tests copying the bootloaders from the bootloaders_dir (setting specified in /etc/cobbler/settings.yaml) to the tftpboot directory.
-def test_copy_bootloaders():
+def test_copy_bootloaders(tmpdir):
     # Instantiate TFTPGen class with collection_mgr parameter
     test_api = CobblerAPI()
     test_collection_mgr = CollectionManager(test_api)
     generator = tftpgen.TFTPGen(test_collection_mgr)
 
     # Arrange
-    ## Dummy/empty bootloader files are staged in 'test_data'. Files are named 'bootloader#'
-    dest_dir = "/var/lib/cobbler/loaders/"
-    for file in glob.glob(r'/code/tests/test_data/dummy_bootloaders/*'):
-        shutil.copy(file, dest_dir)
+    ## Create temporary bootloader files using tmpdir fixture
+    file_contents = "I am a bootloader"
+    sub_path = tmpdir.mkdir("loaders")
+    sub_path.join("bootloader1").write(file_contents)
+    sub_path.join("bootloader2").write(file_contents)
+
+    ## Copy temporary bootloader files from tmpdir to expected source directory
+    for file in glob.glob(str(sub_path + "/*")):
+        bootloader_src = "/var/lib/cobbler/loaders/"
+        shutil.copy(file, bootloader_src + file.split("/")[-1])
 
     # Act
     generator.copy_bootloaders("/srv/tftpboot")
