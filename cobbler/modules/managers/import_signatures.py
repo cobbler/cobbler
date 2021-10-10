@@ -298,17 +298,19 @@ class _ImportSignatureManager(ManagerModule):
                                         vf_lines = self.get_file_lines(os.path.join(root, fname))
                                         for line in vf_lines:
                                             if vf_re.match(line):
-                                                self.logger.debug("Found a matching signature: breed=%s, version=%s",
-                                                                  breed, version)
-                                                if not self.breed:
-                                                    self.breed = breed
-                                                if not self.os_version:
-                                                    self.os_version = version
-                                                if not self.autoinstall_file:
-                                                    self.autoinstall_file = sigdata["breeds"][breed][version]["default_autoinstall"]
-                                                self.pkgdir = pkgdir
-                                                return sigdata["breeds"][breed][version]
-                        break
+                                                break
+                                        else:
+                                            continue
+                                    self.logger.debug("Found a matching signature: breed=%s, version=%s",
+                                                      breed, version)
+                                    if not self.breed:
+                                        self.breed = breed
+                                    if not self.os_version:
+                                        self.os_version = version
+                                    if not self.autoinstall_file:
+                                        self.autoinstall_file = sigdata["breeds"][breed][version]["default_autoinstall"]
+                                    self.pkgdir = pkgdir
+                                    return sigdata["breeds"][breed][version]
         return None
 
     # required function for import modules
