@@ -519,6 +519,8 @@ class _ImportSignatureManager(ManagerModule):
             result["i386"] = 1
         if result.pop("x86", False):
             result["i386"] = 1
+        if result.pop("arm64", False):
+            result["aarch64"] = 1
 
         return list(result.keys())
 
