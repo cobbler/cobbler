@@ -1,11 +1,39 @@
-import pytest
+import glob
 import os
+import pytest
+import shutil
 
 from cobbler.api import CobblerAPI
 from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler import tftpgen
 from cobbler.items.distro import Distro
 from tests.conftest import does_not_raise
+
+# Tests copying the bootloaders from the bootloaders_dir (setting specified in /etc/cobbler/settings.yaml) to the tftpboot directory.
+def test_copy_bootloaders(tmpdir):
+    # Instantiate TFTPGen class with collection_mgr parameter
+    test_api = CobblerAPI()
+    test_collection_mgr = CollectionManager(test_api)
+    generator = tftpgen.TFTPGen(test_collection_mgr)
+
+    # Arrange
+    ## Create temporary bootloader files using tmpdir fixture
+    file_contents = "I am a bootloader"
+    sub_path = tmpdir.mkdir("loaders")
+    sub_path.join("bootloader1").write(file_contents)
+    sub_path.join("bootloader2").write(file_contents)
+
+    ## Copy temporary bootloader files from tmpdir to expected source directory
+    for file in glob.glob(str(sub_path + "/*")):
+        bootloader_src = "/var/lib/cobbler/loaders/"
+        shutil.copy(file, bootloader_src + file.split("/")[-1])
+
+    # Act
+    generator.copy_bootloaders("/srv/tftpboot")
+
+    # Assert
+    assert os.path.isfile("/srv/tftpboot/bootloader1")
+    assert os.path.isfile("/srv/tftpboot/bootloader2")
 
 # Tests copy_single_distro_file() method using a sample initrd file pulled from Centos 8
 def test_copy_single_distro_file():
