@@ -124,6 +124,7 @@ This command will determine the version and architecture of the Windows distribu
     Start -> Apps -> Windows Kits -> Deployment and Imaging Tools Environment
 
 or
+
   - WAIK for Windows 7
 
 .. code::
@@ -135,6 +136,7 @@ or
     copype.cmd <amd64|x86|arm> c:\winpe
 
 After executing the command, the WinPE image will be located in ``.\winpe.wim`` for WAIK and in ``media\sources\boot.wim`` for ADK. You can use either it or replace it with the one that has been obtained as a result of the import of the Windows distribution.
+
   - If necessary, add drivers to the image
 
 Example:
