@@ -1,0 +1,4 @@
+#!/bin/sh
+# Dispatch DHCP events
+
+exec /etc/udhcpc.${1}

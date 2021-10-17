@@ -1,0 +1,15 @@
+#!/bin/sh
+# Configure an interface
+
+resolv_conf="/etc/resolv.conf"
+
+ip address add ${ip}/${mask} dev ${interface}
+
+for route in ${router}; do
+	ip route add default via ${route} dev ${interface}
+done
+
+[ -n "${domain}" ] && echo "domain ${domain}" >${resolv_conf}
+for address in ${dns}; do
+	echo "nameserver ${address}" >>${resolv_conf}
+done
