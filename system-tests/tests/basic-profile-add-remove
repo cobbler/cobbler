@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Check that Cobbler can add and remove profiles
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+cobbler distro add --name fake --arch x86_64 --kernel ${fake_kernel} \
+	--initrd ${fake_initramfs}
+
+for i in $(seq 1 2); do
+	cobbler profile add --name fake-${i} --distro fake
+	for k in $(seq 1 2); do
+		cobbler profile add --name fake-${i}-child-${k} --parent fake-${i}
+		for j in $(seq 1 2); do
+			cobbler profile add --name fake-${i}-grandchild-${k}-${j} \
+				--parent fake-${i}-child-${k}
+		done
+	done
+done
+
+[ $(cobbler profile list | wc -l) = 14 ]
+
+for i in $(seq 1 2); do
+	for k in $(seq 1 2); do
+		for j in $(seq 1 2); do
+			cobbler profile remove --name fake-${i}-grandchild-${k}-${j}
+		done
+		cobbler profile remove --name fake-${i}-child-${k}
+	done
+	cobbler profile remove --name fake-${i}
+done
+
+[ $(cobbler profile list | wc -l) = 0 ]

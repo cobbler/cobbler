@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# Run the system tests
+
+topdir=$(realpath $(dirname ${0}))
+
+if [ ${#} -ge 1 ]; then
+	patterns=${@}
+else
+	patterns=(basic-*)
+fi
+
+echo "Patterns: ${patterns[@]}"
+echo "Running tests:"
+echo
+
+list_selected_tests() {
+	local expression=()
+	for pattern in ${patterns[@]}; do
+		expression+=('-e' "^${pattern}")
+	done
+	find ${topdir}/tests ! -type d -executable | sed 's|^.*/||' | \
+		grep -vE -e '^\.' -e '*-@$' | grep "${expression[@]}" | sort
+}
+
+failed_tests=()
+
+export SYSTESTS_ROOT=${topdir}
+export SYSTESTS_PRELUDE=${topdir}/prelude
+export SYSTESTS_TMP=${topdir}/workspace
+
+rm -rf ${SYSTESTS_TMP}
+
+for test in $(list_selected_tests); do
+	mkdir -p ${SYSTESTS_TMP}/${test}
+	printf '  %s... ' ${test}
+	TEST_NAME=${test} ${topdir}/tests/${test} >${SYSTESTS_TMP}/${test}/output 2>&1
+	if [ $? -eq 0 ]; then
+		echo ok
+	else
+		echo fail
+		failed_tests+=(${test})
+	fi
+done
+
+if [ ${#failed_tests[@]} != 0 ]; then
+	echo
+	echo "The following tests have failed:"
+	echo
+	for test in ${failed_tests[@]}; do
+		echo "  - ${test}"
+	done
+	echo
+	echo "The outputs of the failed tests below."
+ 	echo "The last command is the one that failed."
+	echo
+	for test in ${failed_tests[@]}; do
+		echo "==> ${SYSTESTS_TMP}/${test}/output <=="
+		echo
+		cat ${SYSTESTS_TMP}/${test}/output
+		echo
+		echo
+	done
+	exit 1
+fi

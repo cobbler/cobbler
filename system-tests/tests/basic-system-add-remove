@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Check that Cobbler can add and remove systems
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+cobbler distro add --name fake --arch x86_64 --kernel ${fake_kernel} \
+	--initrd ${fake_initramfs}
+cobbler profile add --name fake --distro fake
+
+for i in $(seq 1 3); do
+	cobbler system add --name testbed-${i} --profile fake
+done
+
+[ $(cobbler system list | wc -l) = 3 ]
+
+for i in $(seq 1 3); do
+	cobbler system remove --name testbed-${i}
+done
+
+[ $(cobbler system list | wc -l) = 0 ]

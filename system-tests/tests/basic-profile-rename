@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Check that Cobbler can rename profiles
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+cobbler distro add --name fake --arch x86_64 --kernel ${fake_kernel} \
+	--initrd ${fake_initramfs}
+cobbler profile add --name fake --distro fake
+cobbler profile add --name fake-child --parent fake
+cobbler profile rename --name fake --newname fake-renamed
+
+[ ! -e ${path_collections}/profiles/fake.json ]
+[   -e ${path_collections}/profiles/fake-renamed.json ]
+
+echo fake-renamed >${tmp}/a
+cobbler profile dumpvars --name fake-child | awk '/^parent:/{print $2}' >${tmp}/b
+diff ${tmp}/{a,b}
