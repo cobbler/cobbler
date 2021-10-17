@@ -3,13 +3,19 @@
 
 set -eo pipefail
 
-if [ "$1" == "--with-tests" ]
-then
-    RUN_TESTS=true
-    shift
-else
-    RUN_TESTS=false
-fi
+RUN_TESTS=false
+RUN_SYSTEM_TESTS=false
+
+case ${1} in
+    --with-tests)
+        RUN_TESTS=true
+        shift
+        ;;
+    --with-system-tests)
+        RUN_SYSTEM_TESTS=true
+        shift
+        ;;
+esac
 
 TAG=$1
 DOCKERFILE=$2
@@ -60,6 +66,13 @@ then
     docker exec -it cobbler bash -c 'pip3 install pyyaml netaddr Cheetah3 pymongo distro ldap3 librepo'
     docker exec -it cobbler bash -c 'pip3 install dnspython pyflakes pycodestyle pytest pytest-cov codecov'
     docker exec -it cobbler bash -c 'pytest'
+fi
+
+if $RUN_SYSTEM_TESTS
+then
+    echo "==> Running system tests ..."
+    docker exec --privileged -it cobbler ./system-tests/scripts/bootstrap-rhel
+    docker exec --privileged -it cobbler ./system-tests/run-tests
 fi
 
 # Clean up
