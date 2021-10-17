@@ -1,0 +1,16 @@
+#!/bin/sh -e
+# List the contents of an ISO image
+
+iso=${1}
+mp=$(mktemp -dt cobbler-distro-iso.XXXX)
+
+trap cleanup EXIT
+
+cleanup() {
+	mountpoint -q ${mp} && umount ${mp}
+	rmdir ${mp}
+}
+
+mkdir -p ${mp}
+mount -o loop "${iso}" ${mp}
+(cd ${mp} && find . -type f | sed 's|^./||')
