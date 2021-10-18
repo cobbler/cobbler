@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Check that Cobbler can install a dummy OS
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+cobbler distro add \
+	--name dummy \
+	--arch x86_64 \
+	--kernel ${SYSTESTS_ROOT}/images/dummy/vmlinuz \
+	--initrd ${SYSTESTS_ROOT}/images/dummy/initramfs.gz
+
+cobbler profile add --name dummy --distro dummy
+
+cat >${path_templates}/${autoinstall_template} <<-EOF
+	\$SNIPPET('autoinstall_start')
+	\$SNIPPET('autoinstall_done')
+EOF
+
+script_url='http://${server}/cblr/svc/op/autoinstall/system/testbed'
+
+cobbler system add \
+	--name testbed \
+	--profile dummy \
+	--autoinstall ${autoinstall_template} \
+	--kernel-options "console=ttyS0 pci=noacpi noapic script=${script_url}" \
+	--ip-address 192.168.1.101 \
+	--mac-address 52:54:00:00:00:01 \
+	--netboot 1
+
+cobbler sync
+
+${qemu} -nographic -nic bridge,br=${bridge},mac=52:54:00:00:00:01 -boot n \
+	-drive file=${SYSTESTS_ROOT}/images/dummy/bios-disk,format=raw

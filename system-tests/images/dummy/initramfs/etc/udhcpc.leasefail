@@ -1,0 +1,4 @@
+#!/bin/sh
+# React on lease failure
+
+exit 0

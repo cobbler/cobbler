@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Check that Cobbler can properly inherit template variables
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+cat <<-END >${path_templates}/${autoinstall_template}
+	\${name_servers} \${server} \${kernel_options}
+END
+
+cobbler distro add --name fake --arch x86_64 --kernel ${fake_kernel} \
+	--initrd ${fake_initramfs}
+
+# The following part is kinda complex. The idea is to check how Cobbler treats
+# all three kinds of variables: scalar, list and dict.
+
+# Let's create a basic profile with server and name-servers set.
+cobbler profile add --name fake-0 --distro fake --autoinstall ${autoinstall_template} \
+	--server 10.0.0.1 --name-servers 8.8.4.4
+
+# Then we start adding descendants. The first one, fake-1, inherits from fake-0
+# and adds key 'foo' to the kernel-options dictionary. Then it's child fake-2
+# adds 'bar' and 'not-wanted'. The next offspring removes 'not-wanted' and
+# finally its own child fake-4 overrides 'bar'.
+cobbler profile add --name fake-1 --parent fake-0 --kernel-options 'foo=1'
+cobbler profile add --name fake-2 --parent fake-1 --kernel-options 'bar=3 not-wanted'
+cobbler profile add --name fake-3 --parent fake-2 --kernel-options '!not-wanted'
+cobbler profile add --name fake-4 --parent fake-3 --kernel-options 'bar=2'
+
+# Now we create two systems: testbed-1 and testbed-2.
+#
+# The first system inherits from fake-2 and shall not see any modifications
+# done to the kernel-options by fake-3 and fake-4. It also adds an additional
+# server to the name-servers list.
+#
+# The second one should see all the modifications and have a single name
+# server.
+cobbler system add --name testbed-1 --profile fake-2 --name-servers 8.8.8.8
+cobbler system add --name testbed-2 --profile fake-4 --kernel-options 'baz=3'
+
+# Let's compare.
+
+cat >${tmp}/a <<-EOF
+	['8.8.4.4', '8.8.8.8'] 10.0.0.1 foo=1 bar=3 not-wanted 
+	
+	['8.8.4.4'] 10.0.0.1 foo=1 bar=2 baz=3 
+	
+EOF
+
+cobbler system get-autoinstall --name testbed-1 >>${tmp}/b
+cobbler system get-autoinstall --name testbed-2 >>${tmp}/b
+
+diff ${tmp}/{a,b}

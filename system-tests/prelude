@@ -1,0 +1,56 @@
+#
+# Helpers
+#
+
+srvctl() {
+	$(which supervisorctl systemctl 2>/dev/null | head -1) ${@}
+}
+
+stop_cobblerd() {
+	srvctl stop cobblerd
+}
+
+restart_cobblerd() {
+	srvctl restart cobblerd
+	sleep 1
+}
+
+prepare() {
+	mkdir -p ${tmp}
+	stop_cobblerd
+	rm -f ${path_templates}/${autoinstall_template}
+	rm -f ${path_collections}/*/*.json
+	rm -rf ${path_distro_mirrors}/*
+	restart_cobblerd
+	cobbler sync >/dev/null
+}
+
+#
+# Cobbler paths
+#
+
+path_collections=/var/lib/cobbler/collections
+path_distro_mirrors=/var/www/cobbler/distro_mirrors
+path_templates=/var/lib/cobbler/templates
+path_tftp=/var/lib/tftpboot
+
+#
+# Variables
+#
+
+# Empty vmlinuz and initramfs for tests that don't require real images
+fake_kernel=${SYSTESTS_ROOT}/images/fake/vmlinuz
+fake_initramfs=${SYSTESTS_ROOT}/images/fake/initramfs
+
+# Autoinstall template for system tests
+autoinstall_template=test.sh
+
+# Bridge for autoinstall tests
+bridge=pxe
+
+# Usually QEMU binary is called qemu-system-<arch>, but RHEL names it qemu-kvm
+# and hides it in /usr/libexec
+qemu=$(which qemu-system-$(uname -m) 2>/dev/null || echo /usr/libexec/qemu-kvm)
+
+# Temporary per-test directory
+tmp=${SYSTESTS_TMP}/${TEST_NAME}

@@ -1,0 +1,23 @@
+#!/bin/sh -e
+# Create a small disk image that shuts down a BIOS VM
+
+rm -f bios-disk
+truncate -s 32M bios-disk
+
+printf "o\nn\n\n\n\n\np\na\nw\n" | fdisk bios-disk >/dev/null
+
+blkdev=$(losetup -Pf --show bios-disk)
+mkfs.ext2 -q ${blkdev}p1
+mp=$(mktemp -dt)
+mount ${blkdev}p1 ${mp}
+grub-install --target i386-pc --boot-directory ${mp}/boot ${blkdev}
+cat <<-EOF >${mp}/boot/grub/grub.cfg
+	set timeout=1
+	
+	menuentry "Shutdown" {
+	  halt
+	}
+EOF
+umount ${mp}
+rmdir ${mp}
+losetup -d ${blkdev}

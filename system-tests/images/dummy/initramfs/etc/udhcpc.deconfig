@@ -1,0 +1,6 @@
+#!/bin/sh
+# Re-initialize interface configuration
+
+ip address flush dev ${interface}
+ip route flush dev ${interface}
+ip link set up dev ${interface}

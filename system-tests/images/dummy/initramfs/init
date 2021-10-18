@@ -1,0 +1,13 @@
+#!/bin/busybox sh
+# Execute given script and reboot
+
+/bin/busybox --install -s /bin
+
+mkdir proc sys
+mount -t devtmpfs none /dev
+mount -t proc none /proc
+mount -t sysfs none /sys
+
+udhcpc -qf -i eth0 -s /etc/udhcpc.script
+wget ${script} -O - | sh -
+reboot -nf
