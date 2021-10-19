@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
 # Run the system tests
 
-topdir=$(realpath $(dirname ${0}))
+topdir=$(realpath $(dirname ${0})/..)
 
 if [ ${#} -ge 1 ]; then
 	patterns=${@}
 else
 	patterns=(basic-* import-*)
 fi
-
-echo "Patterns: ${patterns[@]}"
-echo "Running tests:"
-echo
 
 list_selected_tests() {
 	local expression=()
@@ -30,6 +26,14 @@ export SYSTESTS_TMP=${topdir}/workspace
 
 rm -rf ${SYSTESTS_TMP}
 
+echo
+echo "Patterns:"
+for pattern in ${patterns[@]}; do
+	echo "  ${pattern}"
+done
+
+echo
+echo "Running tests:"
 for test in $(list_selected_tests); do
 	mkdir -p ${SYSTESTS_TMP}/${test}
 	printf '  %s... ' ${test}
@@ -45,9 +49,8 @@ done
 if [ ${#failed_tests[@]} != 0 ]; then
 	echo
 	echo "The following tests have failed:"
-	echo
 	for test in ${failed_tests[@]}; do
-		echo "  - ${test}"
+		echo "  ${test}"
 	done
 	echo
 	echo "The outputs of the failed tests below."
@@ -57,7 +60,6 @@ if [ ${#failed_tests[@]} != 0 ]; then
 		echo "==> ${SYSTESTS_TMP}/${test}/output <=="
 		echo
 		cat ${SYSTESTS_TMP}/${test}/output
-		echo
 		echo
 	done
 	exit 1

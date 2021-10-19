@@ -1,0 +1,10 @@
+#!/bin/sh -e
+# Create an initramfs for our dummy OS
+
+initramfs=${1}
+src=${initramfs%%.*}
+busybox=$(command -v busybox-static busybox | head -1)
+
+install -m 0755 ${busybox} ${src}/bin/busybox
+(cd ${src} && find . -print0 | cpio --quiet -o0 -H newc -R +0:+0) | \
+	gzip -9 >${initramfs}
