@@ -40,6 +40,7 @@ RUN zypper install --no-recommends -y \
     tree                       \
     util-linux                 \
     vim                        \
+    wget                       \
     which                      \
     xorriso
 
