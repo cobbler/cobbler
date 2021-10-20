@@ -43,7 +43,7 @@ fake_kernel=${SYSTESTS_ROOT}/images/fake/vmlinuz
 fake_initramfs=${SYSTESTS_ROOT}/images/fake/initramfs
 
 # Autoinstall template for system tests
-autoinstall_template=test.sh
+autoinstall_template=system-tests.sh
 
 # Bridge for autoinstall tests
 bridge=pxe
