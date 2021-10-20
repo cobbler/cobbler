@@ -3,7 +3,7 @@
 #
 
 srvctl() {
-	$(which supervisorctl systemctl 2>/dev/null | head -1) ${@}
+	$(command -v supervisorctl systemctl | head -1) ${@}
 }
 
 stop_cobblerd() {
@@ -50,7 +50,7 @@ bridge=pxe
 
 # Usually QEMU binary is called qemu-system-<arch>, but RHEL names it qemu-kvm
 # and hides it in /usr/libexec
-qemu=$(which qemu-system-$(uname -m) 2>/dev/null || echo /usr/libexec/qemu-kvm)
+qemu=$(command -v qemu-system-$(uname -m) /usr/libexec/qemu-kvm | head -1)
 
 # Temporary per-test directory
 tmp=${SYSTESTS_TMP}/${TEST_NAME}
