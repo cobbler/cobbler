@@ -15,6 +15,16 @@ restart_cobblerd() {
 	sleep 1
 }
 
+_make_system_id() {
+	local id=$(cat ${tmp}/_next-system-id 2>/dev/null)
+	echo $((id + 1)) | tee ${tmp}/_next-system-id
+}
+
+make_mac_address() {
+	printf "52:54:00"
+	printf "%06x\n" $(_make_system_id) | sed 's/\(..\)/:\1/g'
+}
+
 prepare() {
 	mkdir -p ${tmp}
 	stop_cobblerd
