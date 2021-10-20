@@ -70,9 +70,10 @@ fi
 
 if $RUN_SYSTEM_TESTS
 then
+    echo "==> Preparing the container for system tests..."
+    docker exec --privileged -t cobbler make system-test-env
     echo "==> Running system tests ..."
-    docker exec --privileged -t cobbler ./system-tests/scripts/bootstrap-rhel
-    docker exec --privileged -t cobbler ./system-tests/run-tests
+    docker exec --privileged -t cobbler make system-test
 fi
 
 # Clean up
