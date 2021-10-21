@@ -12,5 +12,5 @@ cleanup() {
 }
 
 mkdir -p ${mp}
-mount -o loop "${iso}" ${mp}
-(cd ${mp} && find . -type f | sed 's|^./||')
+mount -o loop,ro "${iso}" ${mp}
+find ${mp} -type f | sed "s|^${mp}/||"

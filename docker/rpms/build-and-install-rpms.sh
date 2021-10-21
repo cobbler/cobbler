@@ -33,7 +33,10 @@ docker run -t -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "$IMAGE"
 
 # Launch container and install cobbler
 echo "==> Start container ..."
-docker run -t -d --name cobbler -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "$IMAGE" /bin/bash
+docker run -t -d --name cobbler \
+    -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" \
+    -v "$PWD/system-tests:/usr/src/cobbler/system-tests" \
+    "$IMAGE" /bin/bash
 
 echo "==> Install fresh RPMs ..."
 docker exec -t cobbler bash -c 'rpm -Uvh rpm-build/cobbler-*.noarch.rpm'
@@ -70,9 +73,10 @@ fi
 
 if $RUN_SYSTEM_TESTS
 then
+    echo "==> Preparing the container for system tests..."
+    docker exec --privileged -t cobbler make system-test-env
     echo "==> Running system tests ..."
-    docker exec --privileged -t cobbler ./system-tests/scripts/bootstrap-rhel
-    docker exec --privileged -t cobbler ./system-tests/run-tests
+    docker exec --privileged -t cobbler make system-test
 fi
 
 # Clean up

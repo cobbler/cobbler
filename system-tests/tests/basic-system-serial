@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Check that Cobbler can configure serial console
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+cobbler distro add --name fake --arch x86_64 --kernel ${fake_kernel} \
+	--initrd ${fake_initramfs}
+cobbler profile add --name fake --distro fake
+
+# Create three systems per bootloader:
+#
+#   1. With the serial device set to 0
+#   2. With the serial baud rate set to 115200
+#   3. With disabled serial console
+#
+# Cases #1 and #2 shall be equal w.r.t. the serial console configuration as
+# Cobbler defaults to 0 and 115200 for device and baud rate respectively.
+for boot_loader in grub pxe; do
+	cobbler system add --name testbed-1-${boot_loader} --profile fake \
+		--boot-loader ${boot_loader} --mac-address $(make_mac_address) \
+		--serial-device 0
+	cobbler system add --name testbed-2-${boot_loader} --profile fake \
+		--boot-loader ${boot_loader} --mac-address $(make_mac_address) \
+		--serial-baud-rate 115200
+	cobbler system add --name testbed-3-${boot_loader} --profile fake \
+		--boot-loader ${boot_loader} --mac-address $(make_mac_address)
+done
+
+cobbler sync
+
+# Let's check. There shall be two systems with identical serial console
+# configurations. The third shall not have any serial console parameters set.
+
+# PXELINUX
+cat >>${tmp}/a <<-EOF
+	serial 0 115200
+	serial 0 115200
+EOF
+
+# Grub
+cat >>${tmp}/a <<-EOF
+	set serial_baud=115200
+	set serial_baud=115200
+	set serial_line=0
+	set serial_line=0
+EOF
+
+grep -hE '^serial ' ${path_tftp}/pxelinux.cfg/01-* | sort >>${tmp}/b
+grep -hE '^set serial_(baud|line)=' ${path_tftp}/grub/system/* | sort >>${tmp}/b
+
+diff -y ${tmp}/{a,b}

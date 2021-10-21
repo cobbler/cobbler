@@ -3,7 +3,7 @@
 #
 
 srvctl() {
-	$(which supervisorctl systemctl 2>/dev/null | head -1) ${@}
+	$(command -v supervisorctl systemctl | head -1) ${@}
 }
 
 stop_cobblerd() {
@@ -13,6 +13,16 @@ stop_cobblerd() {
 restart_cobblerd() {
 	srvctl restart cobblerd
 	sleep 1
+}
+
+_make_system_id() {
+	local id=$(cat ${tmp}/_next-system-id 2>/dev/null)
+	echo $((id + 1)) | tee ${tmp}/_next-system-id
+}
+
+make_mac_address() {
+	printf "52:54:00"
+	printf "%06x\n" $(_make_system_id) | sed 's/\(..\)/:\1/g'
 }
 
 prepare() {
@@ -43,14 +53,14 @@ fake_kernel=${SYSTESTS_ROOT}/images/fake/vmlinuz
 fake_initramfs=${SYSTESTS_ROOT}/images/fake/initramfs
 
 # Autoinstall template for system tests
-autoinstall_template=test.sh
+autoinstall_template=system-tests.sh
 
 # Bridge for autoinstall tests
 bridge=pxe
 
 # Usually QEMU binary is called qemu-system-<arch>, but RHEL names it qemu-kvm
 # and hides it in /usr/libexec
-qemu=$(which qemu-system-$(uname -m) 2>/dev/null || echo /usr/libexec/qemu-kvm)
+qemu=$(command -v qemu-system-$(uname -m) /usr/libexec/qemu-kvm | head -1)
 
 # Temporary per-test directory
 tmp=${SYSTESTS_TMP}/${TEST_NAME}

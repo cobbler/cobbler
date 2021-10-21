@@ -61,6 +61,13 @@ RUN touch /var/lib/rpm/* &&   \
     fence-agents              \
     supervisor
 
+# Dependencies for system tests
+RUN touch /var/lib/rpm/* &&   \
+    dnf install -y            \
+    dhcp-server               \
+    qemu-kvm                  \
+    time
+
 COPY ./docker/rpms/Fedora_34/supervisord/supervisord.conf /etc/supervisord.conf
 COPY ./docker/rpms/Fedora_34/supervisord/conf.d /etc/supervisord/conf.d
 

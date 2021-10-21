@@ -1,0 +1,23 @@
+name: System testing
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  run_system_test:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Run the test suite
+        run: ./docker/rpms/build-and-install-rpms.sh --with-system-tests el8 docker/rpms/CentOS_8/CentOS8.dockerfile
+
+      - name: Publish the test results
+        uses: actions/upload-artifact@v2
+        if: success() || failure()
+        with:
+          name: system-test-results
+          path: system-tests/workspace/results.xml

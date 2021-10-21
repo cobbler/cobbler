@@ -1,3 +1,5 @@
+MAKEFLAGS += --no-print-directory
+
 #
 # Setup Makefile to match your environment
 #
@@ -102,6 +104,12 @@ test-fedora34: ## Executes the testscript for testing cobbler in a docker contai
 test-debian10: ## Executes the testscript for testing cobbler in a docker container on Debian 10.
 	./docker/debs/build-and-install-debs.sh deb10 docker/debs/Debian_10/Debian10.dockerfile
 
+system-test: ## Runs the system tests
+	$(MAKE) -C system-tests
+
+system-test-env: ## Configures the environment for system tests
+	$(MAKE) -C system-tests bootstrap
+
 build: ## Runs the Python Build.
 	@source distro_build_configs.sh; \
 	${PYTHON} setup.py build -f
@@ -183,3 +191,4 @@ eraseconfig: ## Deletes the cobbler data jsons which are created when using the 
 	-rm /var/lib/cobbler/cobbler_collections/packages/*
 	-rm /var/lib/cobbler/cobbler_collections/menus/*
 
+.PHONY: system-test

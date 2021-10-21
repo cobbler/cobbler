@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
 # Run the system tests
 
-topdir=$(realpath $(dirname ${0}))
+topdir=$(realpath $(dirname ${0})/..)
 
 if [ ${#} -ge 1 ]; then
 	patterns=${@}
 else
 	patterns=(basic-* import-*)
 fi
-
-echo "Patterns: ${patterns[@]}"
-echo "Running tests:"
-echo
 
 list_selected_tests() {
 	local expression=()
@@ -30,24 +26,36 @@ export SYSTESTS_TMP=${topdir}/workspace
 
 rm -rf ${SYSTESTS_TMP}
 
+echo
+echo "Patterns:"
+for pattern in ${patterns[@]}; do
+	echo "  ${pattern}"
+done
+
+echo
+echo "Running tests:"
 for test in $(list_selected_tests); do
-	mkdir -p ${SYSTESTS_TMP}/${test}
+	test_dir=${SYSTESTS_TMP}/${test}
 	printf '  %s... ' ${test}
-	TEST_NAME=${test} ${topdir}/tests/${test} >${SYSTESTS_TMP}/${test}/output 2>&1
-	if [ $? -eq 0 ]; then
+	mkdir -p ${test_dir}
+	env time -f '%e' -o ${test_dir}/_runtime \
+		env TEST_NAME=${test} ${topdir}/tests/${test} >${test_dir}/_output 2>&1
+	if [ ${?} -eq 0 ]; then
 		echo ok
 	else
 		echo fail
 		failed_tests+=(${test})
+		touch ${test_dir}/_failed
 	fi
 done
+${topdir}/scripts/xunit-results ${SYSTESTS_TMP} \
+	>${SYSTESTS_TMP}/results.xml
 
 if [ ${#failed_tests[@]} != 0 ]; then
 	echo
 	echo "The following tests have failed:"
-	echo
 	for test in ${failed_tests[@]}; do
-		echo "  - ${test}"
+		echo "  ${test}"
 	done
 	echo
 	echo "The outputs of the failed tests below."
@@ -56,8 +64,7 @@ if [ ${#failed_tests[@]} != 0 ]; then
 	for test in ${failed_tests[@]}; do
 		echo "==> ${SYSTESTS_TMP}/${test}/output <=="
 		echo
-		cat ${SYSTESTS_TMP}/${test}/output
-		echo
+		cat ${SYSTESTS_TMP}/${test}/_output
 		echo
 	done
 	exit 1
