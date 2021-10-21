@@ -33,7 +33,10 @@ docker run -t -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "$IMAGE"
 
 # Launch container and install cobbler
 echo "==> Start container ..."
-docker run -t -d --name cobbler -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "$IMAGE" /bin/bash
+docker run -t -d --name cobbler \
+    -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" \
+    -v "$PWD/system-tests:/usr/src/cobbler/system-tests" \
+    "$IMAGE" /bin/bash
 
 echo "==> Install fresh RPMs ..."
 docker exec -t cobbler bash -c 'rpm -Uvh rpm-build/cobbler-*.noarch.rpm'

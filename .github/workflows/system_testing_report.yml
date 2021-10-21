@@ -1,0 +1,19 @@
+name: System testing report
+
+on:
+  workflow_run:
+    workflows: ['System testing']
+    types:
+      - completed
+
+jobs:
+  report:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Process the system test results
+        uses: dorny/test-reporter@v1.5.0
+        with:
+          artifact: system-test-results
+          name: Create the system testing report
+          path: results.xml
+          reporter: java-junit

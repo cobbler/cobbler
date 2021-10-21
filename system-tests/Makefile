@@ -13,4 +13,4 @@ images/dummy/bios-disk:
 images/dummy/initramfs.gz:
 	scripts/create-dummy-bios-disk $@
 
-.PHONY: run bootstrap-* listing-*
+.PHONY: run bootstrap results listing-*
