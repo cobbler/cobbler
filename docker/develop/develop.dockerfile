@@ -53,6 +53,21 @@ RUN zypper install --no-recommends -y \
     grub2-x86_64-efi \
     grub2-arm64-efi
 
+# Required for dhcpd
+RUN zypper install --no-recommends -y \
+    system-user-nobody                \
+    sysvinit-tools
+
+# Dependencies for system-tests
+RUN zypper install --no-recommends -y \
+    dhcp-server                       \
+    iproute2                          \
+    qemu-kvm                          \
+    time
+
+# Allow dhcpd to listen on any interface
+RUN sed -i 's/DHCPD_INTERFACE=""/DHCPD_INTERFACE="ANY"/' /etc/sysconfig/dhcpd
+
 # Add Testuser for the PAM tests
 RUN useradd -p $(perl -e 'print crypt("test", "password")') test
 
