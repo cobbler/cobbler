@@ -2,6 +2,12 @@
 # Helpers
 #
 
+_dir() {
+	for dir in ${@}; do
+		test -e ${dir} && echo ${dir} && return
+	done
+}
+
 srvctl() {
 	$(command -v supervisorctl systemctl | head -1) ${@}
 }
@@ -42,7 +48,7 @@ prepare() {
 path_collections=/var/lib/cobbler/collections
 path_distro_mirrors=/var/www/cobbler/distro_mirrors
 path_templates=/var/lib/cobbler/templates
-path_tftp=/var/lib/tftpboot
+path_tftp=$(_dir /var/lib/tftpboot /srv/tftpboot)
 
 #
 # Variables
