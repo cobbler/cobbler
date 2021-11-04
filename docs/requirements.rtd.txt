@@ -1,3 +1,4 @@
+Sphinx>4
 netaddr
 Cheetah3
 dnspython
