@@ -1472,7 +1472,8 @@ SYSTEM_FIELDS = [
     ],
     ["serial_device", "", 0, "Serial Device #", True, "Serial Device Number", 0, "int"],
     [
-        "serial_baud_rate",
+        "serial_driver", "", 0, "Serial Driver #", True, "Serial Kernel Driver", 0, "str"],
+    ["serial_baud_rate",
         "",
         0,
         "Serial Baud Rate",

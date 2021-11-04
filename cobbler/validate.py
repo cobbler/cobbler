@@ -505,6 +505,25 @@ def validate_serial_baud_rate(
         raise ValueError("invalid value for serial baud Rate (%s)" % baud_rate)
     return baud_rate
 
+def validate_serial_driver(driver: Union[str, str, enums.SerialDrivers]) -> enums.SerialDrivers:
+    """
+    The serial kernel driver as it can/has to be used via console= kernel parameter, e.g. ttyS
+
+    :param driver: The kernel serial driver to set.
+    :return: The validated kernel serial driver.
+    """
+    if not isinstance(driver, (str, str, enums.SerialDrivers)):
+        raise TypeError("serial kernel driver needs to be of type str or enums.SerialDrivers")
+    if isinstance(driver, str):
+        try:
+            driver = enums.SerialDrivers[driver.upper()]
+        except KeyError as error:
+            raise ValueError("Serial kernel driver choices include: %s" % list(map(str, enums.SerialDrivers))) from error
+    # Now it must be of the enum Type
+    if driver not in enums.SerialDrivers:
+        raise ValueError("invalid value for serial kernel driver (%s)" % driver)
+    return driver
+
 
 def validate_boot_remote_file(value: str) -> bool:
     """

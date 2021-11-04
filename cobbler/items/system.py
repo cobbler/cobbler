@@ -811,6 +811,7 @@ class System(Item):
         self._virt_pxe_boot = False
         self._virt_ram: Union[int, str] = enums.VALUE_INHERITED
         self._virt_type = enums.VirtType.INHERITED
+        self._serial_driver = enums.SerialDrivers.UNSET
         self._serial_device = -1
         self._serial_baud_rate = enums.BaudRates.DISABLED
         self._display_name = ""
@@ -2042,6 +2043,26 @@ class System(Item):
         :param baud_rate: The new value for the ``baud_rate`` property.
         """
         self._serial_baud_rate = validate.validate_serial_baud_rate(baud_rate)
+
+    @property
+    def serial_driver(self) -> enums.SerialDrivers:
+        """
+        serial_driver property.
+
+        :getter: Returns the value for ``serial_driver``.
+        :setter: Sets the value for the property ``serial_driver``.
+        :return:
+        """
+        return self._serial_driver
+
+    @serial_driver.setter
+    def serial_driver(self, driver: str):
+        """
+        Setter for the serial_driver of the System class.
+
+        :param driver:
+        """
+        self._serial_driver = validate.validate_serial_driver(driver)
 
     @property
     def children(self) -> List[str]:

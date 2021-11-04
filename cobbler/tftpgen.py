@@ -935,6 +935,48 @@ class TFTPGen:
             autoinstall_meta, kernel_path, initrd_path, boot_loader
         )
 
+    def get_serial_kernel_options(self, append_line: str, arch: Archs, system = None):
+        """
+        Builds the console= kernel command line arguement
+
+        If system is none or serial options are not set, defaults are applied:
+        driver -> arch dependent
+        device -> 0
+        baud_rate -> 115200
+
+        If none of the serial options are set (may also happen for machine
+        unspecific boot menus), console= is only attached if:
+        always_enable_serial_console = true
+
+        Ideally all your servers stick to the defaults, then also unknown
+        systems and generic profile menus do work. Unfortunately for some x86
+        servers you may be forced to use ttyS1 (default would be ttyS0).
+
+        :param append_line:
+        :param arch:
+        :param system:
+        :type system: System
+        """
+
+        driver = enums.SerialDrivers.UNSET
+        if system:
+            driver = system.serial_driver
+            if driver == enums.SerialDrivers.NONE:
+                return append_line
+            device = system.serial_device
+            baud_rate = system.serial_baud_rate
+
+        if driver == enums.SerialDrivers.UNSET:
+            if self.settings.always_enable_serial_console:
+                driver = utils.get_default_serial_drivers(arch)
+
+        if driver == enums.SerialDrivers.NONE or enums.SerialDrivers.UNSET:
+            return append_line
+
+        append_line = "%s console=%s%s,%s" % (append_line, driver, device, baud_rate)
+        return append_line
+
+
     def build_kernel_options(
         self, system, profile, distro, image, arch: enums.Archs, autoinstall_path
     ) -> str:
@@ -1140,25 +1182,7 @@ class TFTPGen:
         # This could get enhanced for profile/distro via utils.blender (inheritance)
         # This also is architecture specific. E.g: Some ARM consoles need: console=ttyAMAx,BAUDRATE
         # I guess we need a serial_kernel_dev = param, that can be set to "ttyAMA" if needed.
-        if system and arch == Archs.X86_64:
-            if (
-                system.serial_device > -1
-                or system.serial_baud_rate != enums.BaudRates.DISABLED
-            ):
-                if system.serial_device == -1:
-                    serial_device = 0
-                else:
-                    serial_device = system.serial_device
-                if system.serial_baud_rate == enums.BaudRates.DISABLED:
-                    serial_baud_rate = 115200
-                else:
-                    serial_baud_rate = system.serial_baud_rate.value
-
-                append_line = "%s console=ttyS%s,%s" % (
-                    append_line,
-                    serial_device,
-                    serial_baud_rate,
-                )
+        append_line = self.get_serial_kernel_options(append_line, arch, profile, system)
 
         # FIXME - the append_line length limit is architecture specific
         if len(append_line) >= 1023:

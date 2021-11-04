@@ -368,6 +368,10 @@ manage_tftpd: true
 # Default: @@tftproot@@
 tftpboot_location: "@@tftproot@@"
 
+# Always create console= kernel boot parameter in boot loader entries
+# based on some sane defaults. E.g. on x86 it would be console=ttyS0,115200
+always_enable_serial_console: false
+
 # set to true to enable Cobbler's RSYNC management features.
 manage_rsync: false
 

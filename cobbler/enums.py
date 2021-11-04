@@ -244,6 +244,17 @@ class BaudRates(enum.Enum):
     B128000 = 128000
     B256000 = 256000
 
+class SerialDrivers(enum.Enum):
+    """
+    This enum describes all serial kernel drivers as they
+    can/have to be used via console= kernel parameter
+    """
+    UNSET = "unset"
+    NONE = "none"
+    TTYS = "ttyS"
+    TTYAMA = "ttyAMA"
+    HVC = "hvc"
+    TTYUSB = "ttyUSB"
 
 class ImageTypes(ConvertableEnum):
     """

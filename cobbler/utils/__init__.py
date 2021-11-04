@@ -979,6 +979,21 @@ def subprocess_get(cmd, shell: bool = True, input=None):
     return data
 
 
+def get_default_serial_drivers(arch: enums.Archs):
+    """
+    Returns the default kernel serial console driver (console= kernel param)
+    for arch
+    :return: Returns a valid default or enums.SerialDrivers.NONE if arch is unknown
+    """
+    if arch in (enums.Archs.X86_64, enums.Archs.i386):
+        return enums.SerialDrivers.TTYS
+    elif arch in (enums.Archs.PPC, enums.Archs.PPC64, enums.Archs.PPC64LE, enums.Archs.PPC64EL):
+        return enums.SerialDrivers.HVC
+    elif arch in (enums.Archs.ARM, enums.Archs.AARCH64):
+        return enums.SerialDrivers.TTYAMA
+    else:
+        enums.SerialDrivers.NONE
+
 def get_supported_system_boot_loaders() -> List[str]:
     """
     Return the list of currently supported bootloaders.
