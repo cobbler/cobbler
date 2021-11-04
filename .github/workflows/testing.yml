@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - name: Build Docker Test Container
-        run: docker build -t cobbler -f docker/develop/develop.dockerfile .
+      - name: Pull Docker Test Container
+        run: docker pull registry.opensuse.org/home/schoolguy/branches/opensuse/templates/images/tumbleweed/containers/opensuse/cobbler-github-ci:latest
       - name: Run previously built Docker Container
-        run: docker run -t -d -v $PWD:/code --name cobbler cobbler
+        run: docker run -t -d -v $PWD:/code --name cobbler registry.opensuse.org/home/schoolguy/branches/opensuse/templates/images/tumbleweed/containers/opensuse/cobbler-github-ci:latest
       - name: Setup Cobbler in the Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
