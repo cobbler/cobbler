@@ -185,7 +185,7 @@ class Profile(item.Item):
             raise CX("self parentage is weird")
         found = self.api.profiles().find(name=parent)
         if found is None:
-            raise CX("profile %s not found, inheritance not possible" % parent)
+            raise CX('profile "%s" not found, inheritance not possible' % parent)
         self._parent = parent
         self.depth = found.depth + 1
         new_parent = self.parent
@@ -232,7 +232,7 @@ class Profile(item.Item):
             return
         distro = self.api.distros().find(name=distro_name)
         if distro is None:
-            raise ValueError("distribution not found")
+            raise ValueError('distribution "%s" not found' % distro_name)
         old_parent = self.parent
         if isinstance(old_parent, item.Item) and self.name in old_parent.children:
             old_parent.children.remove(self.name)
