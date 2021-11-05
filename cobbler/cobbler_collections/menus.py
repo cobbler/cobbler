@@ -55,13 +55,17 @@ class Menus(collection.Collection):
         Remove element named 'name' from the collection
 
         :param name: The name of the menu
-        :param with_delete: TODO
-        :param with_sync: TODO
-        :param with_triggers: TODO
-        :param recursive: TODO
+        :param with_delete: In case the deletion triggers are executed for this menu.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        :param with_triggers: In case the Cobbler Trigger mechanism should be executed.
+        :param recursive: In case you want to delete all objects this menu references.
         :raises CX: Raised in case you want to delete a none existing menu.
         """
         name = name.lower()
+        obj = self.find(name=name)
+        if obj is None:
+            raise CX("cannot delete an object that does not exist: %s" % name)
+
         for profile in self.api.profiles():
             if profile.menu and profile.menu.lower() == name:
                 profile.menu = ""
@@ -69,28 +73,24 @@ class Menus(collection.Collection):
             if image.menu and image.menu.lower() == name:
                 image.menu = ""
 
-        obj = self.find(name=name)
-        if obj is not None:
-            if recursive:
-                kids = obj.get_children()
-                for kid in kids:
-                    self.remove(kid, with_delete=with_delete, with_sync=False, recursive=recursive)
+        if recursive:
+            kids = obj.get_children()
+            for kid in kids:
+                self.remove(kid, with_delete=with_delete, with_sync=False, recursive=recursive)
 
-            if with_delete:
-                if with_triggers:
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/menu/pre/*", [])
-            self.lock.acquire()
-            try:
-                del self.listing[name]
-            finally:
-                self.lock.release()
-            self.collection_mgr.serialize_delete(self, obj)
-            if with_delete:
-                if with_triggers:
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/menu/post/*", [])
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
-                if with_sync:
-                    lite_sync = self.api.get_sync()
-                    lite_sync.remove_single_menu()
-            return
-        raise CX("cannot delete an object that does not exist: %s" % name)
+        if with_delete:
+            if with_triggers:
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/menu/pre/*", [])
+        self.lock.acquire()
+        try:
+            del self.listing[name]
+        finally:
+            self.lock.release()
+        self.collection_mgr.serialize_delete(self, obj)
+        if with_delete:
+            if with_triggers:
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/menu/post/*", [])
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+            if with_sync:
+                lite_sync = self.api.get_sync()
+                lite_sync.remove_single_menu()

@@ -235,9 +235,18 @@ class Collection:
         if newname == ref.name:
             return
 
-        # Save the old name and rename object
+        # Save the old name
         oldname = ref.name
+        # Reserve the new name
+        self.listing[newname] = None
+        # Delete the old item
+        self.collection_mgr.serialize_delete_one_item(ref)
+        self.listing.pop(oldname)
+        # Change the name of the object
         ref.name = newname
+        # Save just this item
+        self.collection_mgr.serialize_one_item(ref)
+        self.listing[newname] = ref
 
         # for mgmt classes, update all objects that use it
         if ref.COLLECTION_TYPE == "mgmtclass":
@@ -259,7 +268,7 @@ class Collection:
 
         # for a repo, rename the mirror directory
         if ref.COLLECTION_TYPE == "repo":
-            path = "/var/www/cobbler/repo_mirror/"
+            path = os.path.join(self.api.settings().webdir, "repo_mirror")
             old_path = os.path.join(path, oldname)
             if os.path.exists(old_path):
                 new_path = os.path.join(path, ref.name)
@@ -274,8 +283,9 @@ class Collection:
 
             # Test to see if the distro path is based directly on the name of the distro. If it is, things need to
             # updated accordingly.
-            if os.path.exists(path) and path == str(os.path.join("/var/www/cobbler/distro_mirror/", ref.name)):
-                newpath = os.path.join("/var/www/cobbler/distro_mirror/", ref.name)
+            if os.path.exists(path) \
+                    and path == str(os.path.join(self.api.settings().webdir, "distro_mirror", ref.name)):
+                newpath = os.path.join(self.api.settings().webdir, "distro_mirror", ref.name)
                 os.renames(path, newpath)
 
                 # update any reference to this path ...
@@ -298,10 +308,10 @@ class Collection:
         for k in kids:
             if self.api.find_profile(name=k) is not None:
                 k = self.api.find_profile(name=k)
-                if k.parent != "":
-                    k.parent = newname
-                else:
+                if ref.COLLECTION_TYPE == "distro":
                     k.distro = newname
+                else:
+                    k.parent = newname
                 self.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
             elif self.api.find_menu(name=k) is not None:
                 k = self.api.find_menu(name=k)
@@ -313,10 +323,6 @@ class Collection:
                 self.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
             else:
                 raise CX("Internal error, unknown child type for child \"%s\"!" % k)
-
-        # now delete the old version and add the new one
-        self.remove(oldname, with_delete=True, with_triggers=with_triggers)
-        self.add(ref, with_triggers=with_triggers, save=True)
 
     def add(self, ref, save: bool = False, with_copy: bool = False, with_triggers: bool = True, with_sync: bool = True,
             quick_pxe_update: bool = False, check_for_duplicate_names: bool = False):
@@ -339,8 +345,6 @@ class Collection:
         """
         if ref is None:
             raise TypeError("Unable to add a None object")
-        if ref.name is None:
-            raise ValueError("Unable to add an object without a name")
 
         ref.check_if_valid()
 

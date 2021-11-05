@@ -50,27 +50,28 @@ class Files(collection.Collection):
         """
         Remove element named 'name' from the collection
 
-        :raises CX
+        :raises CX: In case a non existent object should be deleted.
         """
         name = name.lower()
         obj = self.find(name=name)
-        if obj is not None:
-            if with_delete:
-                if with_triggers:
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/file/*", [])
 
-            self.lock.acquire()
-            try:
-                del self.listing[name]
-            finally:
-                self.lock.release()
-            self.collection_mgr.serialize_delete(self, obj)
+        if obj is None:
+            raise CX("cannot delete an object that does not exist: %s" % name)
 
-            if with_delete:
-                if with_triggers:
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/file/post/*", [])
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+        if with_delete:
+            if with_triggers:
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/file/*", [])
 
-            return
+        self.lock.acquire()
+        try:
+            del self.listing[name]
+        finally:
+            self.lock.release()
+        self.collection_mgr.serialize_delete(self, obj)
 
-        raise CX("cannot delete an object that does not exist: %s" % name)
+        if with_delete:
+            if with_triggers:
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/file/post/*", [])
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+
+        return

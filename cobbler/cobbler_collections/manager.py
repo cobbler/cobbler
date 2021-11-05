@@ -153,7 +153,6 @@ class CollectionManager:
         """
         Save a collection item to disk
 
-        :param collection: Collection
         :param item: collection item
         """
         collection = self.get_items(item.COLLECTION_TYPE)
@@ -171,6 +170,16 @@ class CollectionManager:
         :param item: collection item
         """
         serializer.serialize_item(collection, item)
+
+    # pylint: disable=R0201
+    def serialize_delete_one_item(self, item):
+        """
+        Save a collection item to disk
+
+        :param item: collection item
+        """
+        collection = self.get_items(item.COLLECTION_TYPE)
+        serializer.serialize_delete(collection, item)
 
     # pylint: disable=R0201
     def serialize_delete(self, collection, item):

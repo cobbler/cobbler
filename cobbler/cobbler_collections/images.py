@@ -44,12 +44,13 @@ class Images(collection.Collection):
         """
         Remove element named 'name' from the collection
 
-        :raises CX
+        :raises CX: In case object does not exist or it would orhan a system.
         """
-
         # NOTE: with_delete isn't currently meaningful for repos but is left in for consistency in the API. Unused.
-
         name = name.lower()
+        obj = self.find(name=name)
+        if obj is None:
+            raise CX("cannot delete an object that does not exist: %s" % name)
 
         # first see if any Groups use this distro
         if not recursive:
@@ -57,34 +58,26 @@ class Images(collection.Collection):
                 if v.image is not None and v.image.lower() == name:
                     raise CX("removal would orphan system: %s" % v.name)
 
-        obj = self.find(name=name)
+        if recursive:
+            kids = obj.get_children()
+            for k in kids:
+                self.api.remove_system(k, recursive=True)
 
-        if obj is not None:
+        if with_delete:
+            if with_triggers:
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/image/pre/*", [])
+            if with_sync:
+                lite_sync = self.api.get_sync()
+                lite_sync.remove_single_image(name)
 
-            if recursive:
-                kids = obj.get_children()
-                for k in kids:
-                    self.api.remove_system(k, recursive=True)
+        self.lock.acquire()
+        try:
+            del self.listing[name]
+        finally:
+            self.lock.release()
+        self.collection_mgr.serialize_delete(self, obj)
 
-            if with_delete:
-                if with_triggers:
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/image/pre/*", [])
-                if with_sync:
-                    lite_sync = self.api.get_sync()
-                    lite_sync.remove_single_image(name)
-
-            self.lock.acquire()
-            try:
-                del self.listing[name]
-            finally:
-                self.lock.release()
-            self.collection_mgr.serialize_delete(self, obj)
-
-            if with_delete:
-                if with_triggers:
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/image/post/*", [])
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
-
-            return
-
-        raise CX("cannot delete an object that does not exist: %s" % name)
+        if with_delete:
+            if with_triggers:
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/image/post/*", [])
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])

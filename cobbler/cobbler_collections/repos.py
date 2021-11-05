@@ -53,36 +53,31 @@ class Repos(collection.Collection):
         """
         Remove element named 'name' from the collection
 
-        :raises CX
+        :raises CX: In case the object does not exist.
         """
         # NOTE: with_delete isn't currently meaningful for repos
         # but is left in for consistancy in the API.  Unused.
         name = name.lower()
         obj = self.find(name=name)
-        if obj is not None:
-            if with_delete:
-                if with_triggers:
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*", [])
+        if obj is None:
+            raise CX("cannot delete an object that does not exist: %s" % name)
 
-            self.lock.acquire()
-            try:
-                del self.listing[name]
-            finally:
-                self.lock.release()
-            self.collection_mgr.serialize_delete(self, obj)
+        if with_delete:
+            if with_triggers:
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*", [])
 
-            if with_delete:
-                if with_triggers:
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", [])
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+        self.lock.acquire()
+        try:
+            del self.listing[name]
+        finally:
+            self.lock.release()
+        self.collection_mgr.serialize_delete(self, obj)
 
-                # FIXME: better use config.settings() webdir?
-                path = "/var/www/cobbler/repo_mirror/%s" % obj.name
-                if os.path.exists("/srv/www/"):
-                    path = "/srv/www/cobbler/repo_mirror/%s" % obj.name
-                if os.path.exists(path):
-                    utils.rmtree(path)
+        if with_delete:
+            if with_triggers:
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", [])
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
 
-            return
-
-        raise CX("cannot delete an object that does not exist: %s" % name)
+            path = os.path.join(self.api.settings().webdir, "repo_mirror", obj.name)
+            if os.path.exists(path):
+                utils.rmtree(path)
