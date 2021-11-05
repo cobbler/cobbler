@@ -259,7 +259,7 @@ class Collection:
 
         # for a repo, rename the mirror directory
         if ref.COLLECTION_TYPE == "repo":
-            path = "/var/www/cobbler/repo_mirror/"
+            path = os.path.join(self.api.settings().webdir, "repo_mirror")
             old_path = os.path.join(path, oldname)
             if os.path.exists(old_path):
                 new_path = os.path.join(path, ref.name)
@@ -274,8 +274,9 @@ class Collection:
 
             # Test to see if the distro path is based directly on the name of the distro. If it is, things need to
             # updated accordingly.
-            if os.path.exists(path) and path == str(os.path.join("/var/www/cobbler/distro_mirror/", ref.name)):
-                newpath = os.path.join("/var/www/cobbler/distro_mirror/", ref.name)
+            if os.path.exists(path) \
+                    and path == str(os.path.join(self.api.settings().webdir, "distro_mirror", ref.name)):
+                newpath = os.path.join(self.api.settings().webdir, "distro_mirror", ref.name)
                 os.renames(path, newpath)
 
                 # update any reference to this path ...
