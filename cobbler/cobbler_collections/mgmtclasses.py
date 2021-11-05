@@ -54,28 +54,25 @@ class Mgmtclasses(collection.Collection):
         """
         Remove element named 'name' from the collection
 
-        :raises CX
+        :raises CX: In case the object does not exist.
         """
-
         name = name.lower()
         obj = self.find(name=name)
-        if obj is not None:
-            if with_delete:
-                if with_triggers:
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/pre/*", [])
+        if obj is None:
+            raise CX("cannot delete an object that does not exist: %s" % name)
 
-            self.lock.acquire()
-            try:
-                del self.listing[name]
-            finally:
-                self.lock.release()
-            self.collection_mgr.serialize_delete(self, obj)
+        if with_delete:
+            if with_triggers:
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/pre/*", [])
 
-            if with_delete:
-                if with_triggers:
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/post/*", [])
-                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+        self.lock.acquire()
+        try:
+            del self.listing[name]
+        finally:
+            self.lock.release()
+        self.collection_mgr.serialize_delete(self, obj)
 
-            return
-
-        raise CX("cannot delete an object that does not exist: %s" % name)
+        if with_delete:
+            if with_triggers:
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/post/*", [])
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
