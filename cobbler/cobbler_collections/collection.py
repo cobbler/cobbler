@@ -339,8 +339,6 @@ class Collection:
         """
         if ref is None:
             raise TypeError("Unable to add a None object")
-        if ref.name is None:
-            raise ValueError("Unable to add an object without a name")
 
         ref.check_if_valid()
 
