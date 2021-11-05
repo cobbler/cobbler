@@ -1964,7 +1964,8 @@ class CobblerXMLRPCInterface:
 
         if edit_type == "rename":
             self.rename_item(object_type, handle, attributes["newname"], token)
-            handle = self.get_item_handle(object_type, attributes["newname"], token)
+            # After we did the rename we don't want to do anything anymore. Saving the item is done during renaming.
+            return True
 
         if edit_type == "copy":
             is_subobject = object_type == "profile" and "parent" in attributes
@@ -1978,7 +1979,7 @@ class CobblerXMLRPCInterface:
                 self.copy_item(object_type, handle, attributes["newname"], token)
                 handle = self.get_item_handle(object_type, attributes["newname"], token)
 
-        if edit_type in ["copy", "rename"]:
+        if edit_type in ["copy"]:
             del attributes["name"]
             del attributes["newname"]
 
