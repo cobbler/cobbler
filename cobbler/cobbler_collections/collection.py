@@ -235,9 +235,18 @@ class Collection:
         if newname == ref.name:
             return
 
-        # Save the old name and rename object
+        # Save the old name
         oldname = ref.name
+        # Reserve the new name
+        self.listing[newname] = None
+        # Delete the old item
+        self.collection_mgr.serialize_delete_one_item(ref)
+        self.listing.pop(oldname)
+        # Change the name of the object
         ref.name = newname
+        # Save just this item
+        self.collection_mgr.serialize_one_item(ref)
+        self.listing[newname] = ref
 
         # for mgmt classes, update all objects that use it
         if ref.COLLECTION_TYPE == "mgmtclass":
@@ -299,10 +308,10 @@ class Collection:
         for k in kids:
             if self.api.find_profile(name=k) is not None:
                 k = self.api.find_profile(name=k)
-                if k.parent != "":
-                    k.parent = newname
-                else:
+                if ref.COLLECTION_TYPE == "distro":
                     k.distro = newname
+                else:
+                    k.parent = newname
                 self.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
             elif self.api.find_menu(name=k) is not None:
                 k = self.api.find_menu(name=k)
@@ -314,10 +323,6 @@ class Collection:
                 self.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
             else:
                 raise CX("Internal error, unknown child type for child \"%s\"!" % k)
-
-        # now delete the old version and add the new one
-        self.remove(oldname, with_delete=True, with_triggers=with_triggers)
-        self.add(ref, with_triggers=with_triggers, save=True)
 
     def add(self, ref, save: bool = False, with_copy: bool = False, with_triggers: bool = True, with_sync: bool = True,
             quick_pxe_update: bool = False, check_for_duplicate_names: bool = False):
