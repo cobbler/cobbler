@@ -102,7 +102,7 @@ def authenticate(api_handle, username, password) -> bool:
                 return False
 
     # if we're not allowed to search anonymously, grok the search bind settings and attempt to bind
-    if api_handle.settings().ldap_anonymous_bind:
+    if not api_handle.settings().ldap_anonymous_bind:
         searchdn = api_handle.settings().ldap_search_bind_dn
         searchpw = api_handle.settings().ldap_search_passwd
 
