@@ -11,7 +11,6 @@ import typing
 
 from cobbler import utils
 
-
 # NOTE: does not warrant being a class, but all Cobbler actions use a class's ".run()" as the entrypoint
 class MkLoaders:
     """
@@ -26,6 +25,8 @@ class MkLoaders:
         """
         self.logger = logging.getLogger()
         self.bootloaders_dir = pathlib.Path(api.settings().bootloaders_dir)
+        self.bootloc = api.settings().tftpboot_location
+        self.grubconfig_dir = api.settings().grubconfig_dir
         # GRUB 2
         self.grub2_mod_dir = pathlib.Path(api.settings().grub2_mod_dir)
         self.boot_loaders_formats: typing.Dict = api.settings().bootloaders_formats
@@ -36,6 +37,9 @@ class MkLoaders:
             self.syslinux_dir.joinpath(f): self.bootloaders_dir.joinpath(f)
             for f in ["pxelinux.0", "menu.c32", "ldlinux.c32", "memdisk"]
         }
+        self.success = [ ]
+        self.fail = [ ]
+
 
     def run(self):
         """
@@ -44,52 +48,67 @@ class MkLoaders:
         """
         self.create_directories()
 
+        # These generate links from the bootloaders scattered over the fs to /var/lib/cobbler/loaders
         self.make_shim()
         self.make_ipxe()
         self.make_syslinux()
+
+        # grub executables are not linked, but are created via grub2-mkimage
         self.make_grub()
+
+        # Copy all: linked and created loaders from /var/lib/cobbler/loaders to /srv/tftpboot/...
+        self.sync()
+
+        self.logger.info("Successfully installed bootloaders: [%s]", ", ".join(self.success))
+        self.logger.info("Failed to link or install bootloaders: [%s]", ", ".join(self.fail))
 
     def make_shim(self):
         """
         Create symlink of the shim bootloader in case it is available on the system.
         """
         if not utils.command_existing("shim-install"):
-            self.logger.info("shim-install missing. This means we are probably also missing the file we require. "
-                             "Bailing out of linking the shim!")
+            self.logger.debug("shim-install missing.")
+            self.fail.append("shim")
             return
         symlink(
             pathlib.Path("/usr/share/efi/x86_64/shim.efi"),
             self.bootloaders_dir.joinpath(pathlib.Path("grub/shim.efi")),
             skip_existing=True
         )
+        self.success.append("shim")
 
     def make_ipxe(self):
         """
         Create symlink of the iPXE bootloader in case it is available on the system.
         """
-        if not pathlib.Path("/usr/share/ipxe").exists():
-            self.logger.info("ipxe directory did not exist. Bailing out of iPXE setup!")
+        ipxe_dir = "/usr/share/ipxe"
+        if not pathlib.Path(ipxe_dir).exists():
+            self.logger.debug("ipxe directory does not exist [%s]", ipxe_dir)
+            self.fail.append("ipxe")
             return
         symlink(
             pathlib.Path("/usr/share/ipxe/undionly.kpxe"),
             self.bootloaders_dir.joinpath(pathlib.Path("undionly.pxe")),
             skip_existing=True
         )
+        self.success.append("ipxe")
 
     def make_syslinux(self):
         """
         Create symlink of the important syslinux bootloader files in case they are available on the system.
         """
         if not utils.command_existing("syslinux"):
-            self.logger.info("syslinux command not available. Bailing out of syslinux setup!")
+            self.logger.debug("syslinux command not available.")
+            self.fail.append("syslinux")
             return
         for target, link in self.syslinux_links.items():
             if link.name == "ldlinux.c32" and get_syslinux_version() < 5:
                 # This file is only required for Syslinux 5 and newer.
                 # Source: https://wiki.syslinux.org/wiki/index.php?title=Library_modules
-                self.logger.info('syslinux version 4 detected! Skip making symlink of "ldlinux.c32" file!')
+                self.logger.debug('syslinux version 4 detected! Skip making symlink of "ldlinux.c32" file!')
                 continue
             symlink(target, link, skip_existing=True)
+        self.success.append("syslinux")
 
     def make_grub(self):
         """
@@ -110,10 +129,11 @@ class MkLoaders:
             bl_mod_dir = options.get("mod_dir", image_format)
             mod_dir = self.grub2_mod_dir.joinpath(bl_mod_dir)
             if not mod_dir.exists():
-                self.logger.info(
-                    'GRUB2 modules directory for arch "%s" did no exist. Skipping GRUB2 creation',
-                    image_format
+                self.logger.debug(
+                    'GRUB2 modules directory [%s] for arch "%s" did no exist',
+                    mod_dir, image_format
                 )
+                self.fail.append(options["binary_name"])
                 continue
             try:
                 mkimage(
@@ -125,18 +145,14 @@ class MkLoaders:
                 self.logger.info('grub2-mkimage failed for arch "%s"! Maybe you did forget to install the grub modules '
                                  'for the architecture?', image_format)
                 utils.log_exc()
-                # don't create module symlinks if grub2-mkimage is unsuccessful
+                self.fail.append(options["binary_name"])
                 continue
-            self.logger.info('Successfully built bootloader for arch "%s"!', image_format)
-
-            # Create a symlink for GRUB 2 modules
-            # assumes a single GRUB can be used to boot all kinds of distros
-            # if this assumption turns out incorrect, individual "grub" subdirectories are needed
             symlink(
                 mod_dir,
                 self.bootloaders_dir.joinpath("grub", bl_mod_dir),
                 skip_existing=True
             )
+            self.success.append(options["binary_name"])
 
     def create_directories(self):
         """
@@ -150,6 +166,27 @@ class MkLoaders:
         if not grub_dir.exists():
             grub_dir.mkdir(mode=0o644)
 
+    def sync(self):
+        """
+        Copy bootloaders to the configured tftpboot directory, e.g.:
+        /var/lib/cobbler/loaders/* -> /srv/tftpboot/
+        Also sync/copy static bootloader configuration, e.g.:
+        /var/lib/cobbler/grub_config/* -> /srv/tftpboot/
+        """
+        self.logger.info("copying bootloaders")
+        src = self.bootloaders_dir
+        dest = self.bootloc
+        # Unfortunately using shutils copy_tree the dest directory must not exist, but we must not delete an already
+        # partly synced /srv/tftp dir here. rsync is very convenient here, being very fast on an already copied folder.
+        utils.subprocess_call(
+            ["rsync", "-rpt", "--copy-links", "{src}/".format(src=src), dest],
+            shell=False
+        )
+        src = self.grubconfig_dir
+        utils.subprocess_call(
+            ["rsync", "-rpt", "--copy-links", "--exclude=README.grubconfig", "{src}/".format(src=src), dest],
+            shell=False
+        )
 
 # NOTE: move this to cobbler.utils?
 # cobbler.utils.linkfile does a lot of things, it might be worth it to have a

@@ -55,25 +55,6 @@ class TFTPGen:
         self.templar = templar.Templar(collection_mgr)
         self.bootloc = self.settings.tftpboot_location
 
-    def copy_bootloaders(self, dest):
-        """
-        Copy bootloaders to the configured tftpboot directory
-        NOTE: we support different arch's if defined in our settings file.
-        """
-        src = self.settings.bootloaders_dir
-        dest = self.bootloc
-        # Unfortunately using shutils copy_tree the dest directory must not exist, but we must not delete an already
-        # partly synced /srv/tftp dir here. rsync is very convenient here, being very fast on an already copied folder.
-        utils.subprocess_call(
-            ["rsync", "-rpt", "--copy-links", "--exclude=.cobbler_postun_cleanup", "{src}/".format(src=src), dest],
-            shell=False
-        )
-        src = self.settings.grubconfig_dir
-        utils.subprocess_call(
-            ["rsync", "-rpt", "--copy-links", "--exclude=README.grubconfig", "{src}/".format(src=src), dest],
-            shell=False
-        )
-
     def copy_images(self):
         """
         Like copy_distros except for images.

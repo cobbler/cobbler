@@ -25,6 +25,7 @@ from typing import List
 from cobbler import templar
 from cobbler import utils
 from cobbler import tftpgen
+from cobbler.actions.mkloaders import MkLoaders
 
 from cobbler.cexceptions import CX
 from cobbler.manager import ManagerModule
@@ -155,9 +156,8 @@ class _InTftpdManager(ManagerModule):
         :param verbose: Whether the tftp server should log this verbose or not.
         """
         self.tftpgen.verbose = verbose
-        self.logger.info("copying bootloaders")
-        self.tftpgen.copy_bootloaders(self.bootloc)
-
+        bootloaders = MkLoaders(self.api)
+        bootloaders.run()
         self.logger.info("copying distros to tftpboot")
 
         # Adding in the exception handling to not blow up if files have been moved (or the path references an NFS
