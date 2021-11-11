@@ -38,7 +38,7 @@ schema = Schema({
         'i686': {'binary_name': 'bootia32.efi'},
         'IA64': {'binary_name': 'bootia64.efi'},
         'powerpc-ieee1275': {'binary_name': 'grub.ppc64le', 'extra_modules': ['net', 'ofnet']},
-        'x86_64-efi': {'binary_name': 'grubx86.efi', 'extra_modules': ['chain', 'efinet']}}
+        'x86_64-efi': {'binary_name': 'grubx64.efi', 'extra_modules': ['chain', 'efinet']}}
              ): dict,
     Optional("bootloaders_modules", default=[
         'btrfs', 'ext2', 'xfs', 'jfs', 'reiserfs', 'all_video', 'boot',
@@ -224,7 +224,7 @@ def migrate(settings: dict) -> dict:
                         "i686": {"binary_name": "bootia32.efi"},
                         "IA64": {"binary_name": "bootia64.efi"},
                         "powerpc-ieee1275": {"binary_name": "grub.ppc64le", "extra_modules": ["net", "ofnet"], },
-                        "x86_64-efi": {"binary_name": "grubx86.efi", "extra_modules": ["chain", "efinet"]}
+                        "x86_64-efi": {"binary_name": "grubx64.efi", "extra_modules": ["chain", "efinet"]}
                     },
                     'bootloaders_modules': ["btrfs", "ext2", "xfs", "jfs", "reiserfs",
                                             "all_video", "boot", "cat", "configfile", "echo", "fat", "font", "gfxmenu",

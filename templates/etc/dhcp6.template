@@ -35,7 +35,7 @@ option dhcp6.bootfile-url code 59 = string ;
 class "pxeclients" {
     match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
     if substring (option vendor-class-identifier, 15, 5) = "00007" {
-        option dhcp6.bootfile-url "tftp://[$next_server_v6]/grub/grubx86.efi";
+        option dhcp6.bootfile-url "tftp://[$next_server_v6]/grub/grubx64.efi";
     }
     else if substring (option vendor-class-identifier, 15, 5) = "00000" {
         option dhcp6.bootfile-url "tftp://[$next_server_v6]/grub/grub.0";
