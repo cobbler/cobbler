@@ -354,11 +354,6 @@ fi
 
 %else
 %post
-%if 0%{?suse_version}
-# Create bootloders into /var/lib/cobbler/loaders
-# Other distros might also want to do that
-%{_datadir}/%{name}/bin/mkgrub.sh >/dev/null 2>&1
-%endif
 %systemd_post cobblerd.service
 
 %preun
@@ -366,14 +361,6 @@ fi
 
 %postun
 %if 0%{?suse_version}
-# This is mkgrub.sh cleanup (exeucted above in post):
-# remove linked and installed grub loader executables again
-if [ -e %{_localstatedir}/lib/cobbler/loaders/.cobbler_postun_cleanup ];then
-   for file in $(cat %{_localstatedir}/lib/cobbler/loaders/.cobbler_postun_cleanup);do
-       rm -f %{_localstatedir}/lib/cobbler/loaders/$file
-   done
-   rm -rf %{_localstatedir}/lib/cobbler/loaders/.cobbler_postun_cleanup
-fi
 %endif
 %systemd_postun_with_restart cobblerd.service
 %endif

@@ -63,26 +63,20 @@ grub/grub/system_link.*
 
 This directory holds network bootloaders (or links to them) and is also
 synced to /srv/tftp root directory 1 to 1.
-Its contents is created in the post (removed in postun) section of the
-cobbler.spec file.
-This is done via scripts/mkgrub.sh shell script.
+Its contents is created as part of a full sync (``cobbler sync``)
+or explicitly created/updated via:
+``cobbler mkloaders``
 It creates grub executables for each installed grub2-$arch via:
 grub2-mkimage and links in the corresponding grub2 modules and other
 supported bootloaders (pxelinux.0,...)
 
 If you have installed e.g. a new grub or syslinux version, you should
-re-run mkgrub.sh to build new grub executables.
-For other, static or already compiled/linked bootloaders like, shim,
-pxelinux.0 or a precompiled, signed grub.efi executable, it is enough
-to call "cobbler sync" now (we store links to these now).
-
-The grub specific files generated/linked via mkgrub.sh are also described
-here:
-
-.cobbler_postun_cleanup
--> Filled up with generated grub2-mkimage binaries and created links
-   This is need in postun cobbler.spec section to remove things again.
-   This is the only, not synced file.
+re-run:
+``cobbler mkloaders``
+to build new grub executables.
+Also others: static or already compiled/linked bootloaders like, shim,
+pxelinux.0 or a precompiled, signed grub.efi executable ``cobbler mkloaders``
+should be called when an updated version got installed on the system.
 
 grub/grub.0
 -> 32 bit PXE (x86 legacy) grub executable.
@@ -99,7 +93,7 @@ grub/{grubaa64.efi,grub.ppc64le,grubx64.efi}
    architecture. Please have a look at the dhcpd.conf template for
    getting an idea how architecture differing (via dhcp request network
    packets) works.
-   On grub-${arch} package updates, please call scripts/mkgrub.sh to get
+   On grub-${arch} package updates, please call ``cobbler mkloaders`` to get
    up-to-date exectubles.
    The names of these executables are derived from grub2 sources.
    These are the default names as they should get generated on all
