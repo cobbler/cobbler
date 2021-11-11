@@ -112,15 +112,8 @@ class MkLoaders:
 
     def make_grub(self):
         """
-        Create symlink of the GRUB 2 bootloader in case it is available on the system. Additionally build the loaders
-        for other architectures if the modules to do so are available.
+        Build grub boot loader executables all available architectures.
         """
-        symlink(
-            pathlib.Path("/usr/share/efi/x86_64/grub.efi"),
-            self.bootloaders_dir.joinpath(pathlib.Path("grub/grub.efi")),
-            skip_existing=True
-        )
-
         if not utils.command_existing("grub2-mkimage"):
             self.logger.info("grub2-mkimage command not available. Bailing out of GRUB2 generation!")
             return
