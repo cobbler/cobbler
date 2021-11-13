@@ -104,6 +104,9 @@ test-fedora34: ## Executes the testscript for testing cobbler in a docker contai
 test-debian10: ## Executes the testscript for testing cobbler in a docker container on Debian 10.
 	./docker/debs/build-and-install-debs.sh deb10 docker/debs/Debian_10/Debian10.dockerfile
 
+test-debian11: ## Executes the testscript for testing cobbler in a docker container on Debian 11.
+	./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile
+
 system-test: ## Runs the system tests
 	$(MAKE) -C system-tests
 
