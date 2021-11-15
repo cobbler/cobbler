@@ -103,6 +103,7 @@ However we provide docker files for
 - Fedora 34
 - CentOS 8
 - Debian 10 Buster
+- Debian 11 Bullseye
 
 which will give you packages which will work better then building from source yourself.
 
@@ -114,6 +115,7 @@ To build the packages you to need to execute the following in the root folder of
 - Fedora 34: ``./docker/rpms/build-and-install-rpms.sh fc34 docker/rpms/Fedora_34/Fedora34.dockerfile``
 - CentOS 8: ``./docker/rpms/build-and-install-rpms.sh el8 docker/rpms/CentOS_8/CentOS8.dockerfile``
 - Debian 10: ``./docker/debs/build-and-install-debs.sh deb10 docker/debs/Debian_10/Debian10.dockerfile``
+- Debian 11: ``./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile``
 
 After executing the scripts you should have one folder owned by ``root`` which was created during the build. It is
 either called ``rpm-build`` or ``deb-build``. In these directories you should find the built packages. They are

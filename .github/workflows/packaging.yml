@@ -45,7 +45,7 @@ jobs:
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/rpms/build-and-install-rpms.sh opensuse-tumbleweed docker/rpms/opensuse_tumbleweed/openSUSE_TW.dockerfile
-  build-debian-debs:
+  build-debian10-debs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -53,3 +53,11 @@ jobs:
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/debs/build-and-install-debs.sh deb10 docker/debs/Debian_10/Debian10.dockerfile
+  build-debian11-debs:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build a Debian 11 Package
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          ./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile
