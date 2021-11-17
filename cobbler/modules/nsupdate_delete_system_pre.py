@@ -91,9 +91,9 @@ def run(api, args):
     system = api.find_system(args[0])
 
     # process all interfaces and perform dynamic update for those with --dns-name
-    for (name, interface) in list(system.interfaces.items()):
-        host = interface["dns_name"]
-        host_ip = interface["ip_address"]
+    for (name, interface) in system.interfaces.items():
+        host = interface.dns_name
+        host_ip = interface.ip_address
 
         if not system.is_management_supported(cidr_ok=False):
             continue
