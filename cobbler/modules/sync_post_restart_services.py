@@ -38,39 +38,38 @@ def run(api, args) -> int:
     # special handling as we don't want to restart it twice
     has_restarted_dnsmasq = False
 
-    rc = 0
+    ret_code = 0
     if settings.manage_dhcp:
         if which_dhcp_module == "managers.isc":
             if settings.restart_dhcp:
-                rc = utils.subprocess_call("dhcpd -t -q", shell=True)
-                if rc != 0:
+                ret_code = utils.subprocess_call("dhcpd -t -q", shell=True)
+                if ret_code != 0:
                     logger.error("dhcpd -t failed")
                     return 1
                 dhcp_service_name = utils.dhcp_service_name()
-                dhcp_restart_command = "service %s restart" % dhcp_service_name
-                rc = utils.subprocess_call(dhcp_restart_command, shell=True)
+                ret_code = utils.service_restart(dhcp_service_name)
         elif which_dhcp_module == "managers.dnsmasq":
             if settings.restart_dhcp:
-                rc = utils.subprocess_call("service dnsmasq restart")
+                service_name = "dnsmasq"
+                ret_code = utils.service_restart(service_name)
                 has_restarted_dnsmasq = True
         else:
             logger.error("unknown DHCP engine: %s" % which_dhcp_module)
-            rc = 411
+            ret_code = 411
 
     if settings.manage_dns and settings.restart_dns:
         if which_dns_module == "managers.bind":
             named_service_name = utils.named_service_name()
-            dns_restart_command = "service %s restart" % named_service_name
-            rc = utils.subprocess_call(dns_restart_command, shell=True)
+            ret_code = utils.service_restart(named_service_name)
         elif which_dns_module == "managers.dnsmasq" and not has_restarted_dnsmasq:
-            rc = utils.subprocess_call("service dnsmasq restart", shell=True)
+            ret_code = utils.service_restart("dnsmasq")
         elif which_dns_module == "managers.dnsmasq" and has_restarted_dnsmasq:
-            rc = 0
+            ret_code = 0
         elif which_dns_module == "managers.ndjbdns":
             # N-DJBDNS picks up configuration changes automatically and does not need to be restarted.
             pass
         else:
             logger.error("unknown DNS engine: %s" % which_dns_module)
-            rc = 412
+            ret_code = 412
 
-    return rc
+    return ret_code

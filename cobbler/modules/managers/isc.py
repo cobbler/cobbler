@@ -388,6 +388,7 @@ class _IscManager(ManagerModule):
 
         :param service_name: TODO
         """
+        # TODO: Reuse the utils method for service restarts
         return_code_service_restart = 0
         return_code_service_restart = utils.subprocess_call("{} -t -q".format(service_name), shell=True)
         if return_code_service_restart != 0:

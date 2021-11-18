@@ -24,6 +24,8 @@ import logging
 import os
 import re
 
+from xmlrpc.client import ServerProxy
+
 from cobbler import utils
 
 
@@ -130,12 +132,22 @@ class CobblerCheck:
         :param which: The service to check for.
         :param notes: A manual not to attach.
         """
-        # TODO: This should be improved. Removing would be hard has we need execute multiple service restarts, so this
-        #       needs to work.
         if notes != "":
             notes = " (NOTE: %s)" % notes
         return_code = 0
-        if self.checked_family in ("redhat", "suse"):
+        if utils.is_supervisord():
+            with ServerProxy('http://localhost:9001/RPC2') as server:
+                process_info = server.supervisor.getProcessInfo(which)
+                if process_info['statename'] != "RUNNING":
+                    status.append("service %s is not running%s" % (which, notes))
+                    return
+        elif utils.is_systemd():
+            return_code = utils.subprocess_call("systemctl status %s > /dev/null 2>/dev/null" % which,
+                                                shell=True)
+            if return_code != 0:
+                status.append("service %s is not running%s" % (which, notes))
+                return
+        elif self.checked_family in ("redhat", "suse"):
             if os.path.exists("/etc/rc.d/init.d/%s" % which):
                 return_code = utils.subprocess_call("/sbin/service %s status > /dev/null 2>/dev/null" % which,
                                                     shell=True)
@@ -162,6 +174,7 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
+        # TODO: Rewrite check to be able to verify this is in more cases
         if os.path.exists("/etc/rc.d/init.d/iptables"):
             return_code = utils.subprocess_call("/sbin/service iptables status >/dev/null 2>/dev/null",
                                                 shell=True)
