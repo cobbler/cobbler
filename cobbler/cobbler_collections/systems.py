@@ -47,7 +47,9 @@ class Systems(collection.Collection):
         :returns: TODO
         """
         new_system = system.System(api)
+        new_system.is_deserialize = True
         new_system.from_dict(item_dict)
+        new_system.is_deserialize = False
         return new_system
 
     def remove(
