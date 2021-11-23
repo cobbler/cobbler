@@ -69,13 +69,6 @@ def authenticate(api_handle, username, password) -> bool:
     # to get ldap working with Active Directory
     ldap.set_option(ldap.OPT_REFERRALS, 0)
 
-    if tls_cacertfile:
-        ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
-    if tls_keyfile:
-        ldap.set_option(ldap.OPT_X_TLS_KEYFILE, tls_keyfile)
-    if tls_certfile:
-        ldap.set_option(ldap.OPT_X_TLS_CERTFILE, tls_certfile)
-
     uri = ""
     for server in servers:
         # form our ldap uri based on connection port
@@ -92,14 +85,29 @@ def authenticate(api_handle, username, password) -> bool:
     # connect to LDAP host
     dir = ldap.initialize(uri)
 
+    if port == '636':
+        ldaps_tls = ldap
+    else:
+        ldaps_tls = dir
+
+    if tls_cacertfile:
+        ldaps_tls.set_option(ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
+    if tls_keyfile:
+        ldaps_tls.set_option(ldap.OPT_X_TLS_KEYFILE, tls_keyfile)
+    if tls_certfile:
+        ldaps_tls.set_option(ldap.OPT_X_TLS_CERTFILE, tls_certfile)
+
     # start_tls if tls is 'on', 'true' or 'yes' and we're not already using old-SSL
     if port != '636':
         if api_handle.settings().ldap_tls:
             try:
+                dir.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
                 dir.start_tls_s()
             except:
                 traceback.print_exc()
                 return False
+    else:
+        ldap.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
 
     # if we're not allowed to search anonymously, grok the search bind settings and attempt to bind
     if not api_handle.settings().ldap_anonymous_bind:
