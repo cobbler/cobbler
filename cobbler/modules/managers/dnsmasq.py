@@ -190,6 +190,7 @@ class _DnsmasqManager(ManagerModule):
 
         :raises CX
         """
+        # TODO: Reuse the utils method for service restarts
         if self.settings.restart_dhcp:
             rc = utils.subprocess_call("service dnsmasq restart")
             if rc != 0:

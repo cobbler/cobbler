@@ -39,6 +39,7 @@ import urllib.request
 from functools import reduce
 from pathlib import Path
 from typing import List, Optional, Pattern, Union
+from xmlrpc.client import ServerProxy
 
 import distro
 import netaddr
@@ -216,9 +217,57 @@ def is_systemd() -> bool:
 
     This method currently checks if the path ``/usr/lib/systemd/systemd`` exists.
     """
-    if os.path.exists("/usr/lib/systemd/systemd"):
+    return os.path.exists("/usr/lib/systemd/systemd")
+
+
+def is_supervisord() -> bool:
+    """
+    Return whether or not this system uses supervisod.
+
+    This method currently checks if there is a running supervisord instance on ``localhost``.
+    """
+    with ServerProxy('http://localhost:9001/RPC2') as server:
+        try:
+            server.supervisor.getState()
+        except OSError:
+            return False
         return True
-    return False
+
+
+def is_service() -> bool:
+    """
+    Return whether or not this system uses service.
+
+    This method currently checks if the path ``/usr/sbin/service`` exists.
+    """
+    return os.path.exists("/usr/sbin/service")
+
+
+def service_restart(service_name: str):
+    """
+    Restarts a daemon service independent of the underlining process manager. Currently SupervisorD, systemd and SysV
+    are supported. Checks which manager is present is done in the order just described.
+
+    :param service_name: The name of the service
+    :returns: If the system is SystemD or SysV based the return code of the restart command.
+    """
+    if is_supervisord():
+        with ServerProxy('http://localhost:9001/RPC2') as server:
+            server.supervisor.stopProcess(service_name)
+            server.supervisor.startProcess(service_name)
+        return
+    elif is_systemd():
+        restart_command = "systemctl restart " + service_name
+    elif is_service():
+        restart_command = "service " + service_name + " restart"
+    else:
+        logger.warning('We could not restart service "%s" due to an unsupported process manager!', service_name)
+        return
+
+    ret = subprocess_call(restart_command, True)
+    if ret != 0:
+        logger.error("%s service failed", service_name)
+    return ret
 
 
 def get_random_mac(api_handle, virt_type="xenpv") -> str:

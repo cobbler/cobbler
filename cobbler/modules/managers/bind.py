@@ -610,6 +610,7 @@ zone "%(arpa)s." {
         This syncs the bind server with it's new config files.
         Basically this restarts the service to apply the changes.
         """
+        # TODO: Reuse the utils method for service restarts
         named_service_name = utils.named_service_name()
         dns_restart_command = "service %s restart" % named_service_name
         ret = utils.subprocess_call(dns_restart_command, True)
