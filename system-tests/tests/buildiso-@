@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# Check that Cobbler is able to build customized ISOs by the "cobbler buildiso" command with the addition of the
+# airgapped flag
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+build_iso_test=${TEST_NAME#buildiso-}
+
+trap cleanup EXIT
+
+cleanup() {
+	mountpoint -q ${mp} && umount ${mp}
+	rmdir ${mp}
+}
+
+set -x -e -o pipefail
+
+wget -P "${tmp}/" https://download.opensuse.org/distribution/leap/15.3/iso/openSUSE-Leap-15.3-DVD-x86_64-Current.iso
+mp=$(mktemp -dt leap-mp-XXX)
+mount -o loop,ro "${tmp}/openSUSE-Leap-15.3-DVD-x86_64-Current.iso" "${mp}"
+cobbler import --name leap --path "${mp}"
+
+# Preparations
+cobbler system add --name testbed --profile leap-x86_64
+
+# Tmp: Create "/var/cache/cobbler" because it does not exist per default
+mkdir -p /var/cache/cobbler/buildiso
+
+# Real test
+case ${build_iso_test} in
+    airgapped)
+        cobbler buildiso --airgapped \
+                         --distro=leap-x86_64 \
+                         --tempdir="/var/cache/cobbler/buildiso" \
+                         --iso ${tmp}/autoinst.iso
+        ;;
+    full)
+        cobbler buildiso --standalone \
+                         --distro=leap-x86_64 \
+                         --tempdir="/var/cache/cobbler/buildiso" \
+                         --iso ${tmp}/autoinst.iso
+        ;;
+    net)
+        cobbler buildiso --tempdir="/var/cache/cobbler/buildiso" --iso ${tmp}/autoinst.iso
+        ;;
+esac
+
+# Check ISO exists & is bootable
+cat >${tmp}/a <<-EOF
+BIOS
+UEFI
+EOF
+xorriso -indev ${tmp}/autoinst.iso -report_el_torito 2>/dev/null \
+    | awk '/^El Torito boot img[[:space:]]+:[[:space:]]+[0-9]+[[:space:]]+[a-zA-Z]+[[:space:]]+y/{print $7}' >>${tmp}/b
+
+diff ${tmp}/{a,b}
