@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Dependencies for LDAP tests
-zypper install -y openldap2 openldap2-client hostname openssl-1_1
+zypper install -y openldap2 openldap2-client hostname openssl-1_1 python38-ldap
 
 echo "Copy openLDAP confiuration file"
 cp  /code/docker/develop/openldap/slapd.conf /etc/openldap
