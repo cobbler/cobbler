@@ -7,8 +7,8 @@ echo "Copy openLDAP confiuration file"
 cp  /code/docker/develop/openldap/slapd.conf /etc/openldap
 
 # Allow slapd to listen ldaps
-sed -i 's/OPENLDAP_START_LDAPS="no"/OPENLDAP_START_LDAPS="yes"/' /etc/sysconfig/openldp
-sed -i 's/OPENLDAP_SLAPD_PARAMS=""/OPENLDAP_SLAPD_PARAMS="-d 1"/' /etc/sysconfig/openldp
+sed -i 's/OPENLDAP_START_LDAPS="no"/OPENLDAP_START_LDAPS="yes"/' /etc/sysconfig/openldap
+sed -i 's/OPENLDAP_SLAPD_PARAMS=""/OPENLDAP_SLAPD_PARAMS="-d 1"/' /etc/sysconfig/openldap
 
 echo "Create SSL certificates"
 FQDN=`hostname`
