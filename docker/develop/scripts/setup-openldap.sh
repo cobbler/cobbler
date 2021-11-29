@@ -11,7 +11,7 @@ sed -i 's/OPENLDAP_START_LDAPS="no"/OPENLDAP_START_LDAPS="yes"/' /etc/sysconfig/
 sed -i 's/OPENLDAP_SLAPD_PARAMS=""/OPENLDAP_SLAPD_PARAMS="-d 1"/' /etc/sysconfig/openldap
 
 echo "Create SSL certificates"
-FQDN=`hostname`
+FQDN=$(hostname)
 cd /etc/ssl
 cat << EOF > ca.conf
 [req]
