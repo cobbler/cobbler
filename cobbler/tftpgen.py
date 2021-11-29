@@ -867,11 +867,9 @@ class TFTPGen:
             if distro.breed in [None, "redhat", "redhatlegacy"]:
 
                 if distro.breed == "redhatlegacy":
-                    append_line += " kssendmac"
-                    append_line += "%s ks=%s" % (append_line, autoinstall_path)
+                    append_line += " kssendmac ks=%s" % autoinstall_path
                 else:
-                    append_line += " inst.ks.sendmac"
-                    append_line += "%s inst.ks=%s" % (append_line, autoinstall_path)
+                    append_line += " inst.ks.sendmac inst.ks=%s" % autoinstall_path
                 ipxe = blended["enable_ipxe"]
                 if ipxe:
                     append_line = append_line.replace('ksdevice=bootif', 'ksdevice=${net0/mac}')
