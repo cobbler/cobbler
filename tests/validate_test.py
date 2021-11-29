@@ -32,7 +32,7 @@ def test_validate_os_version():
     utils.load_signatures("/var/lib/cobbler/distro_signatures.json")
 
     # Act
-    result = validate.validate_os_version("rhel4", "redhat")
+    result = validate.validate_os_version("rhel4", "redhatlegacy")
 
     # Assert
     assert result == "rhel4"
