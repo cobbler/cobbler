@@ -3,20 +3,23 @@ from cobbler.api import CobblerAPI
 from cobbler.settings import Settings
 from cobbler.modules.authentication import ldap
 
+@pytest.fixture()
+def api():
+    return CobblerAPI()
+
 class TestLdap:
     @pytest.mark.parametrize("anonymous_bind, username, password", [
         (True, "test", "test")
     ])
-    def test_anon_bind_positive(self, anonymous_bind, username, password):
+    def test_anon_bind_positive(self, api, anonymous_bind, username, password):
         # Arrange
-        test_api = CobblerAPI()
-        test_settings = test_api.settings()
+        test_settings = api.settings()
         test_settings.ldap_server = "localhost"
         test_settings.ldap_anonymous_bind = anonymous_bind
         test_settings.ldap_tls = False
 
         # Act
-        result = ldap.authenticate(test_api, username, password)
+        result = ldap.authenticate(api, username, password)
 
         # Assert
         assert result
@@ -24,16 +27,15 @@ class TestLdap:
     @pytest.mark.parametrize("anonymous_bind, username, password", [
         (True, "test", "bad")
     ])
-    def test_anon_bind_negative(self, anonymous_bind, username, password):
+    def test_anon_bind_negative(self, api, anonymous_bind, username, password):
         # Arrange
-        test_api = CobblerAPI()
-        test_settings = test_api.settings()
+        test_settings = api.settings()
         test_settings.ldap_server = "localhost"
         test_settings.ldap_anonymous_bind = anonymous_bind
         test_settings.ldap_tls = False
 
         # Act
-        result = ldap.authenticate(test_api, username, password)
+        result = ldap.authenticate(api, username, password)
 
         # Assert
         assert not result
@@ -41,10 +43,9 @@ class TestLdap:
     @pytest.mark.parametrize("anonymous_bind, bind_user, bind_password, username, password", [
         (False, "uid=user,dc=example,dc=com", "test", "test", "test")
     ])
-    def test_user_bind_positive(self, anonymous_bind, bind_user, bind_password, username, password):
+    def test_user_bind_positive(self, api, anonymous_bind, bind_user, bind_password, username, password):
         # Arrange
-        test_api = CobblerAPI()
-        test_settings = test_api.settings()
+        test_settings = api.settings()
         test_settings.ldap_server = "localhost"
         test_settings.ldap_anonymous_bind = anonymous_bind
         test_settings.ldap_search_bind_dn = bind_user
@@ -52,7 +53,7 @@ class TestLdap:
         test_settings.ldap_tls = False
 
         # Act
-        result = ldap.authenticate(test_api, username, password)
+        result = ldap.authenticate(api, username, password)
 
         # Assert
         assert result
@@ -60,10 +61,10 @@ class TestLdap:
     @pytest.mark.parametrize("anonymous_bind, bind_user, bind_password, username, password", [
         (False, "uid=user,dc=example,dc=com", "bad", "test", "test")
     ])
-    def test_user_bind_negative(self, anonymous_bind, bind_user, bind_password, username, password):
+    def test_user_bind_negative(self, api, anonymous_bind, bind_user, bind_password, username, password):
         # Arrange
         test_api = CobblerAPI()
-        test_settings = test_api.settings()
+        test_settings = api.settings()
         test_settings.ldap_server = "localhost"
         test_settings.ldap_anonymous_bind = anonymous_bind
         test_settings.ldap_search_bind_dn = bind_user
@@ -71,20 +72,19 @@ class TestLdap:
         test_settings.ldap_tls = False
 
         # Act
-        result = ldap.authenticate(test_api, username, password)
+        result = ldap.authenticate(api, username, password)
 
         # Assert
         assert not result
 
     @pytest.mark.parametrize("tls_ca, tls_cert, tls_key", [
-        ("/etc/pki/tls/certs/ca-slapd.crt",
-         "/etc/pki/tls/certs/ldap.crt",
-         "/etc/pki/tls/private/ldap.key")
+        ("/etc/ssl/ca-slapd.crt",
+         "/etc/ssl/ldap.crt",
+         "/etc/ssl/ldap.key")
     ])
-    def test_tls_positive(self, tls_ca, tls_cert, tls_key):
+    def test_tls_positive(self, api, tls_ca, tls_cert, tls_key):
         # Arrange
-        test_api = CobblerAPI()
-        test_settings = test_api.settings()
+        test_settings = api.settings()
         test_settings.ldap_server = "localhost"
         test_settings.ldap_base_dn = "dc=example,dc=com"
         test_settings.ldap_anonymous_bind = True
@@ -94,20 +94,19 @@ class TestLdap:
         test_settings.ldap_tls_keyfile = tls_key
 
         # Act
-        result = ldap.authenticate(test_api, "test", "test")
+        result = ldap.authenticate(api, "test", "test")
 
         # Assert
         assert result
 
     @pytest.mark.parametrize("tls_ca, tls_cert, tls_key", [
-        ("/etc/pki/tls/certs/ca-slapd.crt",
-         "/etc/pki/tls/certs/ldap-bad.crt",
-         "/etc/pki/tls/private/ldap-bad.key")
+        ("/etc/ssl/ca-slapd.crt",
+         "/etc/ssl/bad.crt",
+         "/etc/ssl/bad.key")
     ])
-    def test_tls_negative(self, tls_ca, tls_cert, tls_key):
+    def test_tls_negative(self, api, tls_ca, tls_cert, tls_key):
         # Arrange
-        test_api = CobblerAPI()
-        test_settings = test_api.settings()
+        test_settings = api.settings()
         test_settings.ldap_server = "localhost"
         test_settings.ldap_anonymous_bind = True
         test_settings.ldap_tls = True
@@ -116,20 +115,19 @@ class TestLdap:
         test_settings.ldap_tls_keyfile = tls_key
 
         # Act
-        result = ldap.authenticate(test_api, "test", "test")
+        result = ldap.authenticate(api, "test", "test")
 
         # Assert
         assert not result
 
     @pytest.mark.parametrize("tls_ca, tls_cert, tls_key", [
-        ("/etc/pki/tls/certs/ca-slapd.crt",
-         "/etc/pki/tls/certs/ldap.crt",
-         "/etc/pki/tls/private/ldap.key")
+        ("/etc/ssl/ca-slapd.crt",
+         "/etc/ssl/ldap.crt",
+         "/etc/ssl/ldap.key")
     ])
-    def test_ldaps_positive(self, tls_ca, tls_cert, tls_key):
+    def test_ldaps_positive(self, api, tls_ca, tls_cert, tls_key):
         # Arrange
-        test_api = CobblerAPI()
-        test_settings = test_api.settings()
+        test_settings = api.settings()
         test_settings.ldap_server = "localhost"
         test_settings.ldap_tls = False
         test_settings.ldap_port = 636
@@ -140,20 +138,19 @@ class TestLdap:
         test_settings.ldap_tls_keyfile = tls_key
 
         # Act
-        result = ldap.authenticate(test_api, "test", "test")
+        result = ldap.authenticate(api, "test", "test")
 
         # Assert
         assert result
 
     @pytest.mark.parametrize("tls_ca, tls_cert, tls_key", [
-        ("/etc/pki/tls/certs/ca-slapd.crt",
-         "/etc/pki/tls/certs/ldap-bad.crt",
-         "/etc/pki/tls/private/ldap-bad.key")
+        ("/etc/ssl/ca-slapd.crt",
+         "/etc/ssl/bad.crt",
+         "/etc/ssl/bad.key")
     ])
-    def test_ldaps_negative(self, tls_ca, tls_cert, tls_key):
+    def test_ldaps_negative(self, api, tls_ca, tls_cert, tls_key):
         # Arrange
-        test_api = CobblerAPI()
-        test_settings = test_api.settings()
+        test_settings = api.settings()
         test_settings.ldap_server = "localhost"
         test_settings.ldap_tls = False
         test_settings.ldap_port = 636
@@ -164,4 +161,4 @@ class TestLdap:
 
         # Act & Assert
         with pytest.raises(ValueError):
-            result = ldap.authenticate(test_api, "test", "test")
+            result = ldap.authenticate(api, "test", "test")

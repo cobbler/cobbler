@@ -60,23 +60,6 @@ RUN dnf install -y          \
 COPY ./docker/rpms/Fedora_34/supervisord/supervisord.conf /etc/supervisord.conf
 COPY ./docker/rpms/Fedora_34/supervisord/conf.d /etc/supervisord/conf.d
 
-ENV FQDN=`hostname`
-RUN sscg -f -v \
-     --ca-file=/etc/pki/tls/certs/ca-slapd.crt \
-     --ca-key-file=/etc/pki/tls/private/ca-slapd.key \
-     --ca-key-password=cobbler \
-     --cert-file=/etc/pki/tls/certs/slapd.crt \
-     --cert-key-file=/etc/pki/tls/private/slapd.key \
-     --client-file=/etc/pki/tls/certs/ldap.crt \
-     --client-key-file=/etc/pki/tls/private/ldap.key \
-     --lifetime=365 \
-     --hostname=$FQDN \
-     --email=root@$FQDN \
-RUN chown ldap:ldap /etc/pki/tls/{certs/slapd.crt,private/slapd.key}
-RUN cp /etc/pki/tls/certs/ca-slapd.crt /etc/pki/ca-trust/source/anchors
-RUN update-ca-trust
-RUN supervisorctl start slapd && ldapadd -Y EXTERNAL -H ldapi:/// -f /test_dir/tests/test_data/ldap_test.ldif
-
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler
 
