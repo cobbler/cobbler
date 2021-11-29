@@ -47,7 +47,7 @@ then
     # Also on Debian mod_wsgi is installed as "libapache2-mod-wsgi-py3"
     echo "==> Running tests ..."
     docker exec -it cobbler bash -c 'pip3 install coverage distro future setuptools sphinx requests future'
-    docker exec -it cobbler bash -c 'pip3 install pyyaml netaddr Cheetah3 pymongo distro ldap3 librepo'
+    docker exec -it cobbler bash -c 'pip3 install pyyaml netaddr Cheetah3 pymongo distro ldap librepo'
     docker exec -it cobbler bash -c 'pip3 install dnspython pyflakes pycodestyle pytest pytest-cov codecov'
     docker exec -it cobbler bash -c 'pytest-3'
 fi

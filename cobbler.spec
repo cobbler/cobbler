@@ -234,9 +234,9 @@ Requires:       python%{python3_pkgversion}-distro
 Requires:       python%{python3_pkgversion}-schema
 Requires:       %{py3_module_file}
 %if 0%{?suse_version}
-Recommends:     python%{python3_pkgversion}-ldap3
+Recommends:     python%{python3_pkgversion}-ldap
 %else
-Requires:       python%{python3_pkgversion}-ldap3
+Requires:       python%{python3_pkgversion}-ldap
 %endif
 %endif
 
