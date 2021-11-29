@@ -217,10 +217,13 @@ class BuildIso:
                 else:
                     append_line += " autoyast=%s" % data["autoinstall"]
 
-            if dist.breed == "redhat":
+            if dist.breed in ["redhat", "redhatlegacy"]:
                 if "proxy" in data and data["proxy"] != "":
                     append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
-                append_line += " inst.ks=%s" % data["autoinstall"]
+                if dist.breed == "redhat":
+                    append_line += " inst.ks=%s" % data["autoinstall"]
+                else:
+                    append_line += " ks=%s" % data["autoinstall"]
 
             if dist.breed in ["ubuntu", "debian"]:
                 append_line += " auto-install/enable=true url=%s" % data["autoinstall"]
@@ -267,10 +270,13 @@ class BuildIso:
                 else:
                     append_line += " autoyast=%s" % data["autoinstall"]
 
-            if dist.breed == "redhat":
+            if dist.breed in ["redhat", "redhatlegacy"]:
                 if "proxy" in data and data["proxy"] != "":
                     append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
-                append_line += " inst.ks=%s" % data["autoinstall"]
+                if dist.breed == "redhat":
+                    append_line += " inst.ks=%s" % data["autoinstall"]
+                else:
+                    append_line += " ks=%s" % data["autoinstall"]
 
             if dist.breed in ["ubuntu", "debian"]:
                 append_line += " auto-install/enable=true url=%s netcfg/disable_autoconfig=true" % data["autoinstall"]
@@ -537,6 +543,8 @@ class BuildIso:
             cfg.write("  kernel %s\n" % os.path.basename(distro.kernel))
 
             append_line = "  append initrd=%s" % os.path.basename(distro.initrd)
+            if distro.breed == "redhatlegacy":
+                append_line += " ks=cdrom:/isolinux/%s.cfg" % descendant.name
             if distro.breed == "redhat":
                 append_line += " inst.ks=cdrom:/isolinux/%s.cfg" % descendant.name
             if distro.breed == "suse":

@@ -1,6 +1,6 @@
 {
   "breeds": {
-    "redhat": {
+    "redhatlegacy": {
       "rhel4": {
         "signatures": [
           "RedHat/RPMS",
@@ -84,7 +84,9 @@
         "kernel_options": "",
         "kernel_options_post": "",
         "boot_files": []
-      },
+      }
+    },
+    "redhat": {
       "rhel7": {
         "signatures": [
           "Packages"

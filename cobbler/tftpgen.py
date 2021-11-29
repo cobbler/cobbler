@@ -864,10 +864,13 @@ class TFTPGen:
                     autoinstall_path = "http://%s/cblr/svc/op/autoinstall/profile/%s" \
                                        % (httpserveraddress, profile.name)
 
-            if distro.breed is None or distro.breed == "redhat":
+            if distro.breed in [None, "redhat", "redhatlegacy"]:
 
                 append_line += " kssendmac"
-                append_line = "%s inst.ks=%s" % (append_line, autoinstall_path)
+                if distro.breed == "redhatlegacy":
+                    append_line = "%s ks=%s" % (append_line, autoinstall_path)
+                else:
+                    append_line = "%s inst.ks=%s" % (append_line, autoinstall_path)
                 ipxe = blended["enable_ipxe"]
                 if ipxe:
                     append_line = append_line.replace('ksdevice=bootif', 'ksdevice=${net0/mac}')
