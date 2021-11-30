@@ -53,6 +53,7 @@ RUN yum install -y          \
 
 # Dependencies for system tests
 RUN dnf install -y          \
+    ipxe-bootimgs           \
     dhcp-server             \
     qemu-kvm                \
     time
