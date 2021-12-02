@@ -14,7 +14,7 @@ import yaml
 
 from cobbler import settings
 from cobbler.settings import migrations
-from cobbler.settings.migrations import V3_3_0, V3_2_1, V3_2_0, V3_1_2, V3_1_1, V3_1_0, V3_0_1, V3_0_0
+from cobbler.settings.migrations import V3_3_0, V3_2_1, V3_2_0, V3_1_2, V3_1_1, V3_1_0, V3_0_1, V3_0_0, V3_3_1
 
 
 def test_cobbler_version_logic():
@@ -281,3 +281,27 @@ def test_normalize_v3_3_0():
 
     # Assert
     assert len(V3_3_0.normalize(new_settings)) == 121
+
+
+def test_migrate_v3_3_1():
+    # Arrange
+    with open("/code/tests/test_data/V3_3_0/settings.yaml") as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+
+    # Act
+    new_settings = V3_3_1.migrate(old_settings_dict)
+
+    # Assert
+    assert V3_3_1.validate(new_settings)
+
+
+def test_normalize_v3_3_1():
+    # Arrange
+    with open("/code/tests/test_data/V3_3_1/settings.yaml") as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+
+    # Act
+    new_settings = V3_3_1.normalize(old_settings_dict)
+
+    # Assert
+    assert len(V3_3_1.normalize(new_settings)) == 122

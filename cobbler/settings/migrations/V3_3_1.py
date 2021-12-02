@@ -49,6 +49,8 @@ schema = Schema({
         'mdraid1x', 'lvm', 'serial', 'regexp', 'tr', 'tftp', 'http', 'luks',
         'gcry_rijndael', 'gcry_sha1', 'gcry_sha256'
     ]): list,
+    Optional("bootloaders_shim_folder", default="@@shim_folder@@"): str,
+    Optional("bootloaders_shim_file", default="@@shim_file@@"): str,
     Optional("syslinux_dir", default="/usr/share/syslinux"): str,
     Optional("grub2_mod_dir", default="/usr/share/grub"): str,
     Optional("grubconfig_dir", default="/var/lib/cobbler/grub_config"): str,
@@ -197,10 +199,14 @@ def migrate(settings: dict) -> dict:
     # rename keys and update their value
     # add missing keys
     # name - value pairs
-    missing_keys = {'auto_migrate_settings': True,
-                    'ldap_tls_cacertdir': "",
-                    'ldap_tls_reqcert': "hard",
-                    'ldap_tls_cipher_suite': ""}
+    missing_keys = {
+        'auto_migrate_settings': True,
+        'ldap_tls_cacertdir': "",
+        'ldap_tls_reqcert': "hard",
+        'ldap_tls_cipher_suite': "",
+        'bootloaders_shim_folder': "@@shim_folder@@",
+        'bootloaders_shim_file': "@@shim_file@@"
+    }
     for (key, value) in missing_keys.items():
         new_setting = helper.Setting(key, value)
         helper.key_add(new_setting, settings)

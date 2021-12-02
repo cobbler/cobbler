@@ -15,6 +15,8 @@ export WEBROOTCONFIG="/etc/apache2";
 export TFTPROOT="/srv/tftpboot"
 export ZONEFILES="/var/lib/named"
 export DEFAULTPATH="etc/sysconfig"
+export SHIM_FOLDER="/usr/share/efi/*/"
+export SHIM_FILE="shim\.efi"
 
 # First parameter is DISTRO if provided
 [ $# -ge 2 ] && DISTRO="$1"
@@ -25,7 +27,7 @@ if [ "$DISTRO" = "" ] && [ -r /etc/os-release ];then
 	sle*|*suse*)
 	    DISTRO="SUSE"
 	    ;;
-	fedora*|centos*|rhel*|ol*)
+	fedora*|ol*|centos*|rhel*)
 	    DISTRO="FEDORA"
 	    ;;
 	ubuntu*|debian*)
@@ -45,6 +47,8 @@ elif [ "$DISTRO" = "UBUNTU" ];then
     export WEBCONFIG="/etc/apache2/conf-available"
     export ZONEFILES="/etc/bind/db."
     export DEFAULTPATH="etc/default"
+    export SHIM_FOLDER="/usr/lib/shim/"
+    export SHIM_FILE="shim*\.efi\.signed"
 elif [ "$DISTRO" = "FEDORA" ];then
     export APACHE_USER="apache"
     export HTTP_USER=$APACHE_USER # overrule setup.py
@@ -55,6 +59,8 @@ elif [ "$DISTRO" = "FEDORA" ];then
     export WEBROOTCONFIG="/etc/httpd"
     export TFTPROOT="/var/lib/tftpboot"
     export ZONEFILES="/var/named"
+    export SHIM_FOLDER="/boot/efi/EFI/*/"
+    export SHIM_FILE="shim[a-zA-Z0-9]*\.efi"
 else
     echo "ERROR, unknown distro $DISTRO"
     # ToDo: Should we loudly warn here?

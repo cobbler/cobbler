@@ -43,6 +43,8 @@ webconfig = os.environ.get('WEBCONFIG', "/etc/apache2/vhosts.d")
 webroot = os.environ.get('WEBROOT', "/srv/www")
 tftproot = os.environ.get('TFTPROOT', "/srv/tftpboot")
 bind_zonefiles = os.environ.get('ZONEFILES', "/var/lib/named/")
+shim_folder = os.environ.get('SHIM_FOLDER', "/usr/share/efi/*/")
+shim_file = os.environ.get('SHIM_FILE', r"shim\.efi")
 
 
 #####################################################################
@@ -543,10 +545,13 @@ if __name__ == "__main__":
             'tftproot': os.path.normpath(tftproot),
             'httpd_service': httpd_service,
             'bind_zonefiles': bind_zonefiles,
+            'shim_folder': shim_folder,
+            'shim_file': shim_file
         },
         configure_files=[
-            "config/cobbler/settings.yaml",
+            "cobbler/settings/migrations/V3_3_1.py",
             "config/apache/cobbler.conf",
+            "config/cobbler/settings.yaml",
             "config/service/cobblerd.service",
             "templates/etc/named.template",
             "templates/etc/secondary.template",

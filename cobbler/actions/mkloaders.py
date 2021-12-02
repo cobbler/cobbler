@@ -5,6 +5,7 @@ Cobbler's settings. See man(1) grub2-mkimage for available formats.
 """
 import logging
 import pathlib
+import re
 import subprocess
 import sys
 import typing
@@ -36,6 +37,9 @@ class MkLoaders:
             self.syslinux_dir.joinpath(f): self.bootloaders_dir.joinpath(f)
             for f in ["pxelinux.0", "menu.c32", "ldlinux.c32", "memdisk"]
         }
+        # Shim
+        self.shim_glob = pathlib.Path(api.settings().bootloaders_shim_folder)
+        self.shim_regex = re.compile(api.settings().bootloaders_shim_file)
 
     def run(self):
         """
@@ -53,12 +57,30 @@ class MkLoaders:
         """
         Create symlink of the shim bootloader in case it is available on the system.
         """
-        if not utils.command_existing("shim-install"):
-            self.logger.info("shim-install missing. This means we are probably also missing the file we require. "
-                             "Bailing out of linking the shim!")
+        # Check well-known locations
+        # Absolute paths are not supported BUT we can get around that: https://stackoverflow.com/a/51108375/4730773
+        bootloader_path_parts = pathlib.Path(*self.shim_glob.parts[self.shim_glob.is_absolute():])
+        results = sorted(pathlib.Path(self.shim_glob.root).glob(str(bootloader_path_parts)))
+        # If no match, then report and bail out.
+        if len(results) <= 0:
+            self.logger.info('Unable to find the folder which should be scanned for "shim.efi"! Bailing out of linking '
+                             'the shim!')
             return
+        # Now scan the folders with the regex
+        target_shim = None
+        for possible_folder in results:
+            for child in possible_folder.iterdir():
+                if self.shim_regex.search(str(child)):
+                    target_shim = child.resolve()
+                    break
+        # If no match is found report and return
+        if target_shim is None:
+            self.logger.info('Unable to find "shim.efi" file. Please adjust "bootloaders_shim_file" regex. Bailing out '
+                             'of linking the shim!')
+            return
+        # Symlink the absolute target of the match
         symlink(
-            pathlib.Path("/usr/share/efi/x86_64/shim.efi"),
+            target_shim,
             self.bootloaders_dir.joinpath(pathlib.Path("grub/shim.efi")),
             skip_existing=True
         )
