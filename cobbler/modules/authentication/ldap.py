@@ -56,9 +56,13 @@ def authenticate(api_handle, username, password) -> bool:
     prefix = api_handle.settings().ldap_search_prefix
 
     # Support for LDAP client certificates
+    tls = api_handle.settings().ldap_tls
+    tls_cacertdir = api_handle.settings().ldap_tls_cacertfile
     tls_cacertfile = api_handle.settings().ldap_tls_cacertfile
     tls_keyfile = api_handle.settings().ldap_tls_keyfile
     tls_certfile = api_handle.settings().ldap_tls_certfile
+    tls_cipher_suite = api_handle.settings().ldap_tls_cipher_suite
+    tls_reqcert = api_handle.settings().ldap_tls_reqcert
 
     # allow multiple servers split by a space
     if server.find(" "):
@@ -90,16 +94,33 @@ def authenticate(api_handle, username, password) -> bool:
     else:
         ldaps_tls = dir
 
-    if tls_cacertfile:
-        ldaps_tls.set_option(ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
-    if tls_keyfile:
-        ldaps_tls.set_option(ldap.OPT_X_TLS_KEYFILE, tls_keyfile)
-    if tls_certfile:
-        ldaps_tls.set_option(ldap.OPT_X_TLS_CERTFILE, tls_certfile)
+    if tls or port == '636':
+        if tls_cacertdir:
+            ldaps_tls.set_option(ldap.OPT_X_TLS_CACERTDIR, tls_cacertdir)
+        if tls_cacertfile:
+            ldaps_tls.set_option(ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
+        if tls_keyfile:
+            ldaps_tls.set_option(ldap.OPT_X_TLS_KEYFILE, tls_keyfile)
+        if tls_certfile:
+            ldaps_tls.set_option(ldap.OPT_X_TLS_CERTFILE, tls_certfile)
+        if tls_reqcert:
+            if tls_reqcert == "never":
+                ldaps_tls.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
+            elif tls_reqcert == "allow":
+                ldaps_tls.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_ALLOW)
+            elif tls_reqcert == "demand":
+                ldaps_tls.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
+            elif tls_reqcert == "hard":
+                ldaps_tls.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_HARD)
+            else:
+                api_handle.logger.error("authn_ldap: ldap_tls_reqcert choices include: %s" %
+                                        "never, allow, demand, hard")
+        if tls_cipher_suite:
+            ldaps_tls.set_option(ldap.OPT_X_TLS_CIPHER_SUITE, tls_cipher_suite)
 
     # start_tls if tls is 'on', 'true' or 'yes' and we're not already using old-SSL
     if port != '636':
-        if api_handle.settings().ldap_tls:
+        if tls:
             try:
                 dir.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
                 dir.start_tls_s()
