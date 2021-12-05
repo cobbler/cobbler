@@ -278,7 +278,7 @@ def test_blender():
     result = utils.blender(test_api, False, root_item)
 
     # Assert
-    assert len(result) == 152
+    assert len(result) == 155
     assert "server" in result
     assert "os_version" in result
 
