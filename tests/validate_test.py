@@ -276,3 +276,23 @@ def test_validate_grub_remote_file(test_value, expected_result):
 
     # Assert
     assert expected_result == result
+
+@pytest.mark.parametrize("value,expected_exception", [
+    ("allow", does_not_raise()),
+    (enums.TlsRequireCert.ALLOW, does_not_raise()),
+    (0, pytest.raises(TypeError))
+])
+def test_validate_ldap_tls_reqcert(value, expected_exception):
+    # Arrange
+
+    # Act
+    with expected_exception:
+        result = validate.validate_ldap_tls_reqcert("allow")
+
+        # Assert
+        if isinstance(value, str):
+            assert result.value == value
+        elif isinstance(value, enums.TlsRequireCert):
+            assert result == value
+        else:
+            raise TypeError("Unexpected type for value!")

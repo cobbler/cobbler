@@ -104,17 +104,12 @@ def authenticate(api_handle, username, password) -> bool:
         if tls_certfile:
             ldaps_tls.set_option(ldap.OPT_X_TLS_CERTFILE, tls_certfile)
         if tls_reqcert:
-            if tls_reqcert == "never":
-                ldaps_tls.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
-            elif tls_reqcert == "allow":
-                ldaps_tls.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_ALLOW)
-            elif tls_reqcert == "demand":
-                ldaps_tls.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
-            elif tls_reqcert == "hard":
-                ldaps_tls.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_HARD)
-            else:
-                api_handle.logger.error("authn_ldap: ldap_tls_reqcert choices include: %s" %
-                                        "never, allow, demand, hard")
+            reqcert = validate_ldap_tls_reqcert(tls_reqcert)
+            reqcert_types = { TlsRequireCert.NEVER: ldap.OPT_X_TLS_NEVER,
+                              TlsRequireCert.ALLOW: ldap.OPT_X_TLS_ALLOW,
+                              TlsRequireCert.DEMAND: ldap.OPT_X_TLS_DEMAND,
+                              TlsRequireCert.HARD: ldap.OPT_X_TLS_HARD }
+            ldaps_tls.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, reqcert_types[reqcert])
         if tls_cipher_suite:
             ldaps_tls.set_option(ldap.OPT_X_TLS_CIPHER_SUITE, tls_cipher_suite)
 
