@@ -679,7 +679,7 @@ def validate_obj_id(object_id: str) -> bool:
     return validate_obj_type(otype) and validate_obj_name(oname)
 
 
-def validate_ldap_tls_reqcert(ldap_tls_reqcert: str) -> bool:
+def validate_ldap_tls_reqcert(ldap_tls_reqcert: Union[enums.TlsRequireCert, str]) -> bool:
     """
     Validation strategy for server cert
 

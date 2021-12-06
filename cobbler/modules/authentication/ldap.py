@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import traceback
 
 from cobbler.cexceptions import CX
+from cobbler.validate import validate_ldap_tls_reqcert
+from cobbler.enums import TlsRequireCert
 
 
 def register() -> str:
@@ -105,10 +107,10 @@ def authenticate(api_handle, username, password) -> bool:
             ldaps_tls.set_option(ldap.OPT_X_TLS_CERTFILE, tls_certfile)
         if tls_reqcert:
             reqcert = validate_ldap_tls_reqcert(tls_reqcert)
-            reqcert_types = { TlsRequireCert.NEVER: ldap.OPT_X_TLS_NEVER,
-                              TlsRequireCert.ALLOW: ldap.OPT_X_TLS_ALLOW,
-                              TlsRequireCert.DEMAND: ldap.OPT_X_TLS_DEMAND,
-                              TlsRequireCert.HARD: ldap.OPT_X_TLS_HARD }
+            reqcert_types = {TlsRequireCert.NEVER: ldap.OPT_X_TLS_NEVER,
+                             TlsRequireCert.ALLOW: ldap.OPT_X_TLS_ALLOW,
+                             TlsRequireCert.DEMAND: ldap.OPT_X_TLS_DEMAND,
+                             TlsRequireCert.HARD: ldap.OPT_X_TLS_HARD}
             ldaps_tls.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, reqcert_types[reqcert])
         if tls_cipher_suite:
             ldaps_tls.set_option(ldap.OPT_X_TLS_CIPHER_SUITE, tls_cipher_suite)
