@@ -127,7 +127,9 @@ bootloaders_modules:
   - gcry_rijndael
   - gcry_sha1
   - gcry_sha256
-syslinux_dir: /usr/share/syslinux
+syslinux_dir: '@@syslinux_dir@@'
+syslinux_memdisk_folder: '@@memdisk_folder@@'
+syslinux_pxelinux_folder: '@@pxelinux_folder@@'
 grub2_mod_dir: /usr/share/grub2
 bootloaders_shim_folder: '@@shim_folder@@'
 bootloaders_shim_file: '@@shim_file@@'

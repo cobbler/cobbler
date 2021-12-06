@@ -166,6 +166,9 @@ class Settings:
         self.sign_puppet_certs_automatically = False
         self.signature_path = "/var/lib/cobbler/distro_signatures.json"
         self.signature_url = "https://cobbler.github.io/signatures/3.0.x/latest.json"
+        self.syslinux_dir = "/usr/share/syslinux"
+        self.syslinux_memdisk_folder = "/usr/share/syslinux"
+        self.syslinux_pxelinux_folder = "/usr/share/syslinux"
         self.tftpboot_location = "/var/lib/tftpboot"
         self.virt_auto_boot = False
         self.webdir = "/var/www/cobbler"

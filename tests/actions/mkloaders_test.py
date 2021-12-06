@@ -19,7 +19,7 @@ def test_grubimage_object(api):
 
     # Assert
     assert isinstance(test_image_creator, mkloaders.MkLoaders)
-    assert str(test_image_creator.syslinux_dir) == "/usr/share/syslinux"
+    assert str(test_image_creator.syslinux_folder) == "/usr/share/syslinux"
 
 
 def test_grubimage_run(api, mocker):

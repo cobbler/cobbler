@@ -18,6 +18,9 @@ export DEFAULTPATH="etc/sysconfig"
 export SHIM_FOLDER="/usr/share/efi/*/"
 export SHIM_FILE="shim\.efi"
 export IPXE_FOLDER="/usr/share/ipxe/"
+export PXELINUX_FOLDER="/usr/share/syslinux"
+export MEMDISK_FOLDER="/usr/share/syslinux"
+export SYSLINUX_DIR="/usr/share/syslinux"
 
 # First parameter is DISTRO if provided
 [ $# -ge 2 ] && DISTRO="$1"
@@ -51,6 +54,9 @@ elif [ "$DISTRO" = "UBUNTU" ];then
     export SHIM_FOLDER="/usr/lib/shim/"
     export SHIM_FILE="shim*\.efi\.signed"
     export IPXE_FOLDER="/usr/lib/ipxe/"
+    export PXELINUX_FOLDER="/usr/lib/PXELINUX/"
+    export MEMDISK_FOLDER="/usr/lib/syslinux/"
+    export SYSLINUX_DIR="/usr/lib/syslinux/modules/bios/"
 elif [ "$DISTRO" = "FEDORA" ];then
     export APACHE_USER="apache"
     export HTTP_USER=$APACHE_USER # overrule setup.py

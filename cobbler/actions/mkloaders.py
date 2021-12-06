@@ -32,11 +32,9 @@ class MkLoaders:
         self.boot_loaders_formats: typing.Dict = api.settings().bootloaders_formats
         self.modules: typing.List = api.settings().bootloaders_modules
         # Syslinux
-        self.syslinux_dir = pathlib.Path(api.settings().syslinux_dir)
-        self.syslinux_links = {
-            self.syslinux_dir.joinpath(f): self.bootloaders_dir.joinpath(f)
-            for f in ["pxelinux.0", "menu.c32", "ldlinux.c32", "memdisk"]
-        }
+        self.syslinux_folder = pathlib.Path(api.settings().syslinux_dir)
+        self.syslinux_memdisk_folder = pathlib.Path(api.settings().syslinux_memdisk_folder)
+        self.syslinux_pxelinux_folder = pathlib.Path(api.settings().syslinux_pxelinux_folder)
         # Shim
         self.shim_glob = pathlib.Path(api.settings().bootloaders_shim_folder)
         self.shim_regex = re.compile(api.settings().bootloaders_shim_file)
@@ -108,13 +106,34 @@ class MkLoaders:
         if not utils.command_existing("syslinux"):
             self.logger.info("syslinux command not available. Bailing out of syslinux setup!")
             return
-        for target, link in self.syslinux_links.items():
-            if link.name == "ldlinux.c32" and get_syslinux_version() < 5:
-                # This file is only required for Syslinux 5 and newer.
-                # Source: https://wiki.syslinux.org/wiki/index.php?title=Library_modules
-                self.logger.info('syslinux version 4 detected! Skip making symlink of "ldlinux.c32" file!')
-                continue
-            symlink(target, link, skip_existing=True)
+        # Make modules
+        symlink(
+            self.syslinux_folder.joinpath("menu.c32"),
+            self.bootloaders_dir.joinpath("menu.c32"),
+            skip_existing=True
+        )
+        if get_syslinux_version() < 5:
+            # This file is only required for Syslinux 5 and newer.
+            # Source: https://wiki.syslinux.org/wiki/index.php?title=Library_modules
+            self.logger.info('syslinux version 4 detected! Skip making symlink of "ldlinux.c32" file!')
+        else:
+            symlink(
+                self.syslinux_folder.joinpath("ldlinux.c32"),
+                self.bootloaders_dir.joinpath("ldlinux.c32"),
+                skip_existing=True
+            )
+        # Make memdisk
+        symlink(
+            self.syslinux_memdisk_folder.joinpath("memdisk"),
+            self.bootloaders_dir.joinpath("memdisk"),
+            skip_existing=True
+        )
+        # Make pxelinux.0
+        symlink(
+            self.syslinux_pxelinux_folder.joinpath("pxelinux.0"),
+            self.bootloaders_dir.joinpath("pxelinux.0"),
+            skip_existing=True
+        )
 
     def make_grub(self):
         """
