@@ -45,6 +45,7 @@ tftproot = os.environ.get('TFTPROOT', "/srv/tftpboot")
 bind_zonefiles = os.environ.get('ZONEFILES', "/var/lib/named/")
 shim_folder = os.environ.get('SHIM_FOLDER', "/usr/share/efi/*/")
 shim_file = os.environ.get('SHIM_FILE', r"shim\.efi")
+ipxe_folder = os.environ.get('IPXE_FOLDER', '/usr/share/ipxe/')
 
 
 #####################################################################
@@ -546,7 +547,8 @@ if __name__ == "__main__":
             'httpd_service': httpd_service,
             'bind_zonefiles': bind_zonefiles,
             'shim_folder': shim_folder,
-            'shim_file': shim_file
+            'shim_file': shim_file,
+            'ipxe_folder': ipxe_folder
         },
         configure_files=[
             "cobbler/settings/migrations/V3_3_1.py",

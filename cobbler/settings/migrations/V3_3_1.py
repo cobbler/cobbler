@@ -51,6 +51,7 @@ schema = Schema({
     ]): list,
     Optional("bootloaders_shim_folder", default="@@shim_folder@@"): str,
     Optional("bootloaders_shim_file", default="@@shim_file@@"): str,
+    Optional("bootloaders_ipxe_folder", default="@@ipxe_folder@@"): str,
     Optional("syslinux_dir", default="/usr/share/syslinux"): str,
     Optional("grub2_mod_dir", default="/usr/share/grub"): str,
     Optional("grubconfig_dir", default="/var/lib/cobbler/grub_config"): str,

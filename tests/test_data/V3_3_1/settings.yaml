@@ -129,8 +129,9 @@ bootloaders_modules:
   - gcry_sha256
 syslinux_dir: /usr/share/syslinux
 grub2_mod_dir: /usr/share/grub2
-bootloaders_shim_folder: "@@shim_folder@@"
-bootloaders_shim_file: "@@shim_file"
+bootloaders_shim_folder: '@@shim_folder@@'
+bootloaders_shim_file: '@@shim_file@@'
+bootloaders_ipxe_folder: '@@ipxe_folder@@'
 
 # Email out a report when Cobbler finishes installing a system.
 # enabled: set to true to turn this feature on

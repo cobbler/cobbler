@@ -10,6 +10,7 @@ find /var/lib/cobbler/loaders -mindepth 1 -delete
 
 cat /etc/cobbler/settings.yaml | grep bootloaders_shim_folder
 cat /etc/cobbler/settings.yaml | grep bootloaders_shim_file
+cat /etc/cobbler/settings.yaml | grep bootloaders_ipxe_folder
 
 cobbler mkloaders
 

@@ -69,6 +69,7 @@ class Settings:
         self.bootloaders_dir = "/var/lib/cobbler/loaders"
         self.bootloaders_shim_folder = "/usr/share/efi/*/"
         self.bootloaders_shim_file = r"shim\.efi$"
+        self.bootloaders_ipxe_folder = "/usr/share/ipxe/"
         self.grubconfig_dir = "/var/lib/cobbler/grub_config"
         self.build_reporting_enabled = False
         self.build_reporting_email = []

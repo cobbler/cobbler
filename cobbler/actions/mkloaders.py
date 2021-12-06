@@ -40,6 +40,8 @@ class MkLoaders:
         # Shim
         self.shim_glob = pathlib.Path(api.settings().bootloaders_shim_folder)
         self.shim_regex = re.compile(api.settings().bootloaders_shim_file)
+        # iPXE
+        self.ipxe_folder = pathlib.Path(api.settings().bootloaders_ipxe_folder)
 
     def run(self):
         """
@@ -89,11 +91,12 @@ class MkLoaders:
         """
         Create symlink of the iPXE bootloader in case it is available on the system.
         """
-        if not pathlib.Path("/usr/share/ipxe").exists():
-            self.logger.info("ipxe directory did not exist. Bailing out of iPXE setup!")
+        if not self.ipxe_folder.exists():
+            self.logger.info('ipxe directory did not exist. Please adjust the "bootloaders_ipxe_folder". Bailing out '
+                             'of iPXE setup!')
             return
         symlink(
-            pathlib.Path("/usr/share/ipxe/undionly.kpxe"),
+            self.ipxe_folder.joinpath(pathlib.Path("undionly.kpxe")),
             self.bootloaders_dir.joinpath(pathlib.Path("undionly.pxe")),
             skip_existing=True
         )

@@ -17,6 +17,7 @@ export ZONEFILES="/var/lib/named"
 export DEFAULTPATH="etc/sysconfig"
 export SHIM_FOLDER="/usr/share/efi/*/"
 export SHIM_FILE="shim\.efi"
+export IPXE_FOLDER="/usr/share/ipxe/"
 
 # First parameter is DISTRO if provided
 [ $# -ge 2 ] && DISTRO="$1"
@@ -49,6 +50,7 @@ elif [ "$DISTRO" = "UBUNTU" ];then
     export DEFAULTPATH="etc/default"
     export SHIM_FOLDER="/usr/lib/shim/"
     export SHIM_FILE="shim*\.efi\.signed"
+    export IPXE_FOLDER="/usr/lib/ipxe/"
 elif [ "$DISTRO" = "FEDORA" ];then
     export APACHE_USER="apache"
     export HTTP_USER=$APACHE_USER # overrule setup.py
