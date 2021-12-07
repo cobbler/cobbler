@@ -257,6 +257,9 @@ ldap_search_prefix: 'uid='
 ldap_tls_cacertfile: ''
 ldap_tls_keyfile: ''
 ldap_tls_certfile: ''
+ldap_tls_cacertdir: ''
+ldap_tls_cipher_suite: ''
+ldap_tls_reqcert: ''
 
 # Cobbler has a feature that allows for integration with config management
 # systems such as Puppet.  The following parameters work in conjunction with
