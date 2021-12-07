@@ -31,7 +31,7 @@ RUN apt-get update -qq && \
     python3-dns  \
     python3-dnsq  \
     python3-magic  \
-    python3-ldap3 \
+    python3-ldap \
     python3-netaddr \
     python3-pip \
     python3-pycodestyle \

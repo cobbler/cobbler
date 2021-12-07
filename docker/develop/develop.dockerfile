@@ -86,7 +86,6 @@ RUN pip3 install      \
     dnspython         \
     file-magic        \
     Jinja2            \
-    ldap3             \
     netaddr           \
     pycodestyle       \
     pyflakes          \

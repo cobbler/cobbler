@@ -107,9 +107,12 @@ class Settings:
         self.ldap_search_prefix = 'uid='
         self.ldap_server = "grimlock.devel.redhat.com"
         self.ldap_tls = True
+        self.ldap_tls_cacertdir = ""
         self.ldap_tls_cacertfile = ""
         self.ldap_tls_certfile = ""
         self.ldap_tls_keyfile = ""
+        self.ldap_tls_reqcert = "hard"
+        self.ldap_tls_cipher_suite = ""
         self.bind_manage_ipmi = False
         # TODO: Remove following line
         self.manage_dhcp = False

@@ -522,7 +522,7 @@ if __name__ == "__main__":
             "Cheetah3",
             "pymongo",
             "distro",
-            "ldap3",
+            "python-ldap",
             "dnspython",
             "file-magic",
             "schema"

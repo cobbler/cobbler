@@ -1,0 +1,18 @@
+dn: dc=example,dc=com
+dc: example
+objectClass: top
+objectClass: domain
+
+dn: uid=user,dc=example,dc=com
+objectClass: account
+objectClass: simpleSecurityObject
+objectClass: top
+uid: user
+userPassword:: e1NTSEF9S2xaeVlvR2hxcHdwQUFLMld3emhPa1VPejFYL05lSnU=
+
+dn: uid=test,dc=example,dc=com
+objectClass: account
+objectClass: simpleSecurityObject
+objectClass: top
+uid: test
+userPassword:: e1NTSEF9S2xaeVlvR2hxcHdwQUFLMld3emhPa1VPejFYL05lSnU=

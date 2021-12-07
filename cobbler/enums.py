@@ -144,3 +144,13 @@ class MirrorType(enum.Enum):
     METALINK = "metalink"
     MIRRORLIST = "mirrorlist"
     BASEURL = "baseurl"
+
+
+class TlsRequireCert(enum.Enum):
+    """
+    This enum represents all TLS validation server cert types which Cobbler can manage.
+    """
+    NEVER = "never"
+    ALLOW = "allow"
+    DEMAND = "demand"
+    HARD = "hard"

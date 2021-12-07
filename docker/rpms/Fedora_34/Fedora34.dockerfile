@@ -34,7 +34,7 @@ RUN yum install -y          \
     python3-netaddr         \
     python3-dns             \
     python3-file-magic      \
-    python3-ldap3           \
+    python3-ldap            \
     python3-librepo         \
     python3-pymongo         \
     python3-schema          \
@@ -47,6 +47,8 @@ RUN yum install -y          \
     syslinux                \
     tftp-server             \
     fence-agents            \
+    openldap-servers        \
+    openldap-clients        \
     supervisor
 
 # Dependencies for system tests

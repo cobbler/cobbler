@@ -57,7 +57,7 @@ of the following packages:
 
 If you decide to use the LDAP authentication, please also install manually in any case:
 
-- python3-ldap3 (or via PyPi: ldap3)
+- python3-ldap (or via PyPi: ldap)
 
 Koan can be installed apart from Cobbler. Please visit the `Koan documentation <https://koan.readthedocs.io/en/latest/>`_ for details.
 
