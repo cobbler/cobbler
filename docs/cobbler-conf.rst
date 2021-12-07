@@ -233,7 +233,7 @@ bootloaders_shim_file
 =====================
 
 This is a `Python Regex <https://docs.python.org/3/library/re.html>`_ which is responsible to find exactly a single
-match in all files found by the Python Glob in ``bootloaders_shim_folder``. If more or less files are found a message
+match in all files found by the Python Glob in ``bootloaders_shim_folder``. If more or fewer files are found a message
 will be logged.
 
 default: Depending on your distro. See values below.
