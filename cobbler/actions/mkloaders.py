@@ -94,7 +94,7 @@ class MkLoaders:
                              'of iPXE setup!')
             return
         symlink(
-            self.ipxe_folder.joinpath(pathlib.Path("undionly.kpxe")),
+            self.ipxe_folder.joinpath("undionly.kpxe"),
             self.bootloaders_dir.joinpath(pathlib.Path("undionly.pxe")),
             skip_existing=True
         )
