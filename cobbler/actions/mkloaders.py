@@ -59,7 +59,9 @@ class MkLoaders:
         """
         # Check well-known locations
         # Absolute paths are not supported BUT we can get around that: https://stackoverflow.com/a/51108375/4730773
-        bootloader_path_parts = pathlib.Path(*self.shim_glob.parts[self.shim_glob.is_absolute():])
+        parts = self.shim_glob.parts
+        start_at = 1 if self.shim_glob.is_absolute() else 0
+        bootloader_path_parts = pathlib.Path(*parts[start_at:])
         results = sorted(pathlib.Path(self.shim_glob.root).glob(str(bootloader_path_parts)))
         # If no match, then report and bail out.
         if len(results) <= 0:
