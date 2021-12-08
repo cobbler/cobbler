@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Check that Cobbler can make bootloaders
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+# Delete mkloaders directory content completely if present
+find /var/lib/cobbler/loaders -mindepth 1 -delete
+
+cat /etc/cobbler/settings.yaml | grep bootloaders_shim_folder
+cat /etc/cobbler/settings.yaml | grep bootloaders_shim_file
+cat /etc/cobbler/settings.yaml | grep bootloaders_ipxe_folder
+
+cobbler mkloaders
+
+# Check all expected files are present
+[ -d /var/lib/cobbler/loaders/grub ]
+# All other files in the GRUB dir are dependant on the installed GRUBs. We check only shim.
+[ -f /var/lib/cobbler/loaders/grub/shim.efi ]
+[ -f /var/lib/cobbler/loaders/memdisk ]
+[ -f /var/lib/cobbler/loaders/menu.c32 ]
+[ -f /var/lib/cobbler/loaders/pxelinux.0 ]
+[ -f /var/lib/cobbler/loaders/undionly.pxe ]

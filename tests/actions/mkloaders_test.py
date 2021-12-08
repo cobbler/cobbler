@@ -19,7 +19,7 @@ def test_grubimage_object(api):
 
     # Assert
     assert isinstance(test_image_creator, mkloaders.MkLoaders)
-    assert str(test_image_creator.syslinux_dir) == "/usr/share/syslinux"
+    assert str(test_image_creator.syslinux_folder) == "/usr/share/syslinux"
 
 
 def test_grubimage_run(api, mocker):
@@ -33,9 +33,9 @@ def test_grubimage_run(api, mocker):
 
     # Assert
     # On a full install: 3 common formats, 4 syslinux links and 9 bootloader formats
-    # In our test container we have: shim (1x), ipxe (1x), syslinux v4 (3x) and 3 grubs (5x)
-    # On GH we have: shim (1x), ipxe (1x), syslinux v4 (3x) and 3 grubs (4x)
-    assert mkloaders.symlink.call_count == 9
+    # In our test container we have: shim (1x), ipxe (1x), syslinux v4 (3x) and 3 grubs (4x)
+    # On GH we have: shim (1x), ipxe (1x), syslinux v4 (3x) and 3 grubs (3x)
+    assert mkloaders.symlink.call_count == 8
     # In our test container we have: x86_64, arm64-efi, i386-efi & i386-pc-pxe
     # On GH we have: x86_64, i386-efi & i386-pc-pxe
     assert mkloaders.mkimage.call_count == 3

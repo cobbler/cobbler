@@ -61,6 +61,7 @@ jobs:
           apache2-dev
           libapache2-mod-wsgi-py3
           systemd
+          libsasl2-dev
       - name: Install Deps for installing project
         run: pip install Sphinx coverage wheel
       - name: Fetch date for version bump

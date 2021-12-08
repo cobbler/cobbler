@@ -67,6 +67,9 @@ class Settings:
         self.bind_master = "127.0.0.1"
         self.boot_loader_conf_template_dir = "/etc/cobbler/boot_loader_conf"
         self.bootloaders_dir = "/var/lib/cobbler/loaders"
+        self.bootloaders_shim_folder = "/usr/share/efi/*/"
+        self.bootloaders_shim_file = r"shim\.efi$"
+        self.bootloaders_ipxe_folder = "/usr/share/ipxe/"
         self.grubconfig_dir = "/var/lib/cobbler/grub_config"
         self.build_reporting_enabled = False
         self.build_reporting_email = []
@@ -163,6 +166,9 @@ class Settings:
         self.sign_puppet_certs_automatically = False
         self.signature_path = "/var/lib/cobbler/distro_signatures.json"
         self.signature_url = "https://cobbler.github.io/signatures/3.0.x/latest.json"
+        self.syslinux_dir = "/usr/share/syslinux"
+        self.syslinux_memdisk_folder = "/usr/share/syslinux"
+        self.syslinux_pxelinux_folder = "/usr/share/syslinux"
         self.tftpboot_location = "/var/lib/tftpboot"
         self.virt_auto_boot = False
         self.webdir = "/var/www/cobbler"
@@ -323,7 +329,7 @@ def autodetect_bind_chroot():
         parse_bind_config(bind_config_filename)
 
 
-def read_yaml_file(filepath ="/ect/cobbler/settings.yaml") -> Dict[Hashable, Any]:
+def read_yaml_file(filepath="/ect/cobbler/settings.yaml") -> Dict[Hashable, Any]:
     """
     Reads settings files from ``filepath`` and all paths in `include` (which is read from the settings file) and saves
     the content in a dictionary.

@@ -43,6 +43,12 @@ webconfig = os.environ.get('WEBCONFIG', "/etc/apache2/vhosts.d")
 webroot = os.environ.get('WEBROOT', "/srv/www")
 tftproot = os.environ.get('TFTPROOT', "/srv/tftpboot")
 bind_zonefiles = os.environ.get('ZONEFILES', "/var/lib/named/")
+shim_folder = os.environ.get('SHIM_FOLDER', "/usr/share/efi/*/")
+shim_file = os.environ.get('SHIM_FILE', r"shim\.efi")
+ipxe_folder = os.environ.get('IPXE_FOLDER', '/usr/share/ipxe/')
+memdisk_folder = os.environ.get('MEMDISK_FOLDER', '/usr/share/syslinux')
+pxelinux_folder = os.environ.get('PXELINUX_FOLDER', '/usr/share/syslinux')
+syslinux_dir = os.environ.get('SYSLINUX_DIR', '/usr/share/syslinux')
 
 
 #####################################################################
@@ -543,10 +549,17 @@ if __name__ == "__main__":
             'tftproot': os.path.normpath(tftproot),
             'httpd_service': httpd_service,
             'bind_zonefiles': bind_zonefiles,
+            'shim_folder': shim_folder,
+            'shim_file': shim_file,
+            'ipxe_folder': ipxe_folder,
+            'memdisk_folder': memdisk_folder,
+            'pxelinux_folder': pxelinux_folder,
+            'syslinux_dir': syslinux_dir
         },
         configure_files=[
-            "config/cobbler/settings.yaml",
+            "cobbler/settings/migrations/V3_3_1.py",
             "config/apache/cobbler.conf",
+            "config/cobbler/settings.yaml",
             "config/service/cobblerd.service",
             "templates/etc/named.template",
             "templates/etc/secondary.template",

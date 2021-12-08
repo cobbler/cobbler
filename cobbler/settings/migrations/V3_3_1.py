@@ -49,7 +49,12 @@ schema = Schema({
         'mdraid1x', 'lvm', 'serial', 'regexp', 'tr', 'tftp', 'http', 'luks',
         'gcry_rijndael', 'gcry_sha1', 'gcry_sha256'
     ]): list,
-    Optional("syslinux_dir", default="/usr/share/syslinux"): str,
+    Optional("bootloaders_shim_folder", default="@@shim_folder@@"): str,
+    Optional("bootloaders_shim_file", default="@@shim_file@@"): str,
+    Optional("bootloaders_ipxe_folder", default="@@ipxe_folder@@"): str,
+    Optional("syslinux_dir", default="@@syslinux_dir@@"): str,
+    Optional("syslinux_memdisk_folder", default="@@memdisk_folder@@"): str,
+    Optional("syslinux_pxelinux_folder", default="@@pxelinux_folder@@"): str,
     Optional("grub2_mod_dir", default="/usr/share/grub"): str,
     Optional("grubconfig_dir", default="/var/lib/cobbler/grub_config"): str,
     "build_reporting_enabled": bool,
@@ -83,20 +88,20 @@ schema = Schema({
     Optional("iso_template_dir", default="/etc/cobbler/iso"): str,
     Optional("jinja2_includedir", default="/var/lib/cobbler/jinja2"): str,
     "kernel_options": dict,
-    "ldap_anonymous_bind": bool,
-    "ldap_base_dn": str,
-    "ldap_port": int,
-    "ldap_search_bind_dn": str,
-    "ldap_search_passwd": str,
-    "ldap_search_prefix": str,
-    "ldap_server": str,
-    "ldap_tls": bool,
-    "ldap_tls_cacertdir": str,
-    "ldap_tls_cacertfile": str,
-    "ldap_tls_certfile": str,
-    "ldap_tls_keyfile": str,
-    "ldap_tls_reqcert": str,
-    "ldap_tls_cipher_suite": str,
+    Optional("ldap_anonymous_bind", default=True): bool,
+    Optional("ldap_base_dn", default="DC=devel,DC=redhat,DC=com"): str,
+    Optional("ldap_port", default=389): int,
+    Optional("ldap_search_bind_dn", default=""): str,
+    Optional("ldap_search_passwd", default=""): str,
+    Optional("ldap_search_prefix", default="uid="): str,
+    Optional("ldap_server", default="grimlock.devel.redhat.com"): str,
+    Optional("ldap_tls", default=True): bool,
+    Optional("ldap_tls_cacertdir", default=""): str,
+    Optional("ldap_tls_cacertfile", default=""): str,
+    Optional("ldap_tls_certfile", default=""): str,
+    Optional("ldap_tls_keyfile", default=""): str,
+    Optional("ldap_tls_reqcert", default=""): str,
+    Optional("ldap_tls_cipher_suite", default=""): str,
     Optional("bind_manage_ipmi", default=False): bool,
     # TODO: Remove following line
     "manage_dhcp": bool,
@@ -197,10 +202,17 @@ def migrate(settings: dict) -> dict:
     # rename keys and update their value
     # add missing keys
     # name - value pairs
-    missing_keys = {'auto_migrate_settings': True,
-                    'ldap_tls_cacertdir': "",
-                    'ldap_tls_reqcert': "hard",
-                    'ldap_tls_cipher_suite': ""}
+    missing_keys = {
+        'auto_migrate_settings': True,
+        'ldap_tls_cacertdir': "",
+        'ldap_tls_reqcert': "hard",
+        'ldap_tls_cipher_suite': "",
+        'bootloaders_shim_folder': "@@shim_folder@@",
+        'bootloaders_shim_file': "@@shim_file@@",
+        'bootloaders_ipxe_folder': "@@ipxe_folder@@",
+        'syslinux_memdisk_folder': "@@memdisk_folder@@",
+        'syslinux_pxelinux_folder': "@@pxelinux_folder@@",
+    }
     for (key, value) in missing_keys.items():
         new_setting = helper.Setting(key, value)
         helper.key_add(new_setting, settings)

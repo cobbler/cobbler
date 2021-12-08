@@ -26,12 +26,17 @@ main file.
 Updates to the yaml-settings-file
 #################################
 
+Starting with 3.3.1
+===================
+
+- There is a new setting ``bootloaders_shim_location``. For details please refer to the appropriate section below.
+
 Starting with 3.3.0
 ===================
 
 - The setting ``enable_gpxe`` was replaced with ``enable_ipxe``.
 
-- The ``settings.d`` directory (``/etc/cobbler/settings.d/``) was depreaced and will be removed in the future.
+- The ``settings.d`` directory (``/etc/cobbler/settings.d/``) was deprecated and will be removed in the future.
 
 - There is a new CLI tool called ``cobbler-settings`` which can be used to validate and migrate settings files from
   differente versions and to modify keys in the current settings file. Have a look at the migration matrix in the next
@@ -205,6 +210,55 @@ boot_loader_conf_template_dir
 Location of templates used for boot loader config generation.
 
 default: ``"/etc/cobbler/boot_loader_conf"``
+
+bootloaders_dir
+===============
+
+TODO
+
+bootloaders_shim_folder
+=======================
+
+This `Python Glob <https://docs.python.org/3/library/glob.html>`_ will be responsible for finding the installed shim
+folder. If you haven't have shim installed this bootloader link will be skipped. If the Glob is not precise enough a
+message will be logged and the link will also be skipped.
+
+default: Depending on your distro. See values below.
+
+* (open)SUSE: ``"/usr/share/efi/*/"``
+* Debian/Ubuntu: ``"/usr/lib/shim/"``
+* CentOS/Fedora: ``"/boot/efi/EFI/*/"``
+
+bootloaders_shim_file
+=====================
+
+This is a `Python Regex <https://docs.python.org/3/library/re.html>`_ which is responsible to find exactly a single
+match in all files found by the Python Glob in ``bootloaders_shim_folder``. If more or fewer files are found a message
+will be logged.
+
+default: Depending on your distro. See values below.
+
+* (open)SUSE: ``"shim\.efi"``
+* Debian/Ubuntu: ``"shim*.efi.signed"``
+* CentOS/Fedora: ``"shim*.efi"``
+
+grub2_mod_dir
+=============
+
+TODO
+
+syslinux_dir
+============
+
+TODO
+
+bootloaders_modules
+===================
+
+TODO
+
+bootloaders_formats
+===================
 
 grubconfig_dir
 ==============

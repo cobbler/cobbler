@@ -64,6 +64,8 @@ RUN touch /var/lib/rpm/* &&   \
 # Dependencies for system tests
 RUN touch /var/lib/rpm/* &&   \
     dnf install -y            \
+    shim                      \
+    ipxe-bootimgs             \
     dhcp-server               \
     qemu-kvm                  \
     time

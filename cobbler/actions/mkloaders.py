@@ -5,6 +5,7 @@ Cobbler's settings. See man(1) grub2-mkimage for available formats.
 """
 import logging
 import pathlib
+import re
 import subprocess
 import sys
 import typing
@@ -31,11 +32,14 @@ class MkLoaders:
         self.boot_loaders_formats: typing.Dict = api.settings().bootloaders_formats
         self.modules: typing.List = api.settings().bootloaders_modules
         # Syslinux
-        self.syslinux_dir = pathlib.Path(api.settings().syslinux_dir)
-        self.syslinux_links = {
-            self.syslinux_dir.joinpath(f): self.bootloaders_dir.joinpath(f)
-            for f in ["pxelinux.0", "menu.c32", "ldlinux.c32", "memdisk"]
-        }
+        self.syslinux_folder = pathlib.Path(api.settings().syslinux_dir)
+        self.syslinux_memdisk_folder = pathlib.Path(api.settings().syslinux_memdisk_folder)
+        self.syslinux_pxelinux_folder = pathlib.Path(api.settings().syslinux_pxelinux_folder)
+        # Shim
+        self.shim_glob = pathlib.Path(api.settings().bootloaders_shim_folder)
+        self.shim_regex = re.compile(api.settings().bootloaders_shim_file)
+        # iPXE
+        self.ipxe_folder = pathlib.Path(api.settings().bootloaders_ipxe_folder)
 
     def run(self):
         """
@@ -53,12 +57,32 @@ class MkLoaders:
         """
         Create symlink of the shim bootloader in case it is available on the system.
         """
-        if not utils.command_existing("shim-install"):
-            self.logger.info("shim-install missing. This means we are probably also missing the file we require. "
-                             "Bailing out of linking the shim!")
+        # Check well-known locations
+        # Absolute paths are not supported BUT we can get around that: https://stackoverflow.com/a/51108375/4730773
+        parts = self.shim_glob.parts
+        start_at = 1 if self.shim_glob.is_absolute() else 0
+        bootloader_path_parts = pathlib.Path(*parts[start_at:])
+        results = sorted(pathlib.Path(self.shim_glob.root).glob(str(bootloader_path_parts)))
+        # If no match, then report and bail out.
+        if len(results) <= 0:
+            self.logger.info('Unable to find the folder which should be scanned for "shim.efi"! Bailing out of linking '
+                             'the shim!')
             return
+        # Now scan the folders with the regex
+        target_shim = None
+        for possible_folder in results:
+            for child in possible_folder.iterdir():
+                if self.shim_regex.search(str(child)):
+                    target_shim = child.resolve()
+                    break
+        # If no match is found report and return
+        if target_shim is None:
+            self.logger.info('Unable to find "shim.efi" file. Please adjust "bootloaders_shim_file" regex. Bailing out '
+                             'of linking the shim!')
+            return
+        # Symlink the absolute target of the match
         symlink(
-            pathlib.Path("/usr/share/efi/x86_64/shim.efi"),
+            target_shim,
             self.bootloaders_dir.joinpath(pathlib.Path("grub/shim.efi")),
             skip_existing=True
         )
@@ -67,11 +91,12 @@ class MkLoaders:
         """
         Create symlink of the iPXE bootloader in case it is available on the system.
         """
-        if not pathlib.Path("/usr/share/ipxe").exists():
-            self.logger.info("ipxe directory did not exist. Bailing out of iPXE setup!")
+        if not self.ipxe_folder.exists():
+            self.logger.info('ipxe directory did not exist. Please adjust the "bootloaders_ipxe_folder". Bailing out '
+                             'of iPXE setup!')
             return
         symlink(
-            pathlib.Path("/usr/share/ipxe/undionly.kpxe"),
+            self.ipxe_folder.joinpath("undionly.kpxe"),
             self.bootloaders_dir.joinpath(pathlib.Path("undionly.pxe")),
             skip_existing=True
         )
@@ -83,25 +108,40 @@ class MkLoaders:
         if not utils.command_existing("syslinux"):
             self.logger.info("syslinux command not available. Bailing out of syslinux setup!")
             return
-        for target, link in self.syslinux_links.items():
-            if link.name == "ldlinux.c32" and get_syslinux_version() < 5:
-                # This file is only required for Syslinux 5 and newer.
-                # Source: https://wiki.syslinux.org/wiki/index.php?title=Library_modules
-                self.logger.info('syslinux version 4 detected! Skip making symlink of "ldlinux.c32" file!')
-                continue
-            symlink(target, link, skip_existing=True)
+        # Make modules
+        symlink(
+            self.syslinux_folder.joinpath("menu.c32"),
+            self.bootloaders_dir.joinpath("menu.c32"),
+            skip_existing=True
+        )
+        if get_syslinux_version() < 5:
+            # This file is only required for Syslinux 5 and newer.
+            # Source: https://wiki.syslinux.org/wiki/index.php?title=Library_modules
+            self.logger.info('syslinux version 4 detected! Skip making symlink of "ldlinux.c32" file!')
+        else:
+            symlink(
+                self.syslinux_folder.joinpath("ldlinux.c32"),
+                self.bootloaders_dir.joinpath("ldlinux.c32"),
+                skip_existing=True
+            )
+        # Make memdisk
+        symlink(
+            self.syslinux_memdisk_folder.joinpath("memdisk"),
+            self.bootloaders_dir.joinpath("memdisk"),
+            skip_existing=True
+        )
+        # Make pxelinux.0
+        symlink(
+            self.syslinux_pxelinux_folder.joinpath("pxelinux.0"),
+            self.bootloaders_dir.joinpath("pxelinux.0"),
+            skip_existing=True
+        )
 
     def make_grub(self):
         """
         Create symlink of the GRUB 2 bootloader in case it is available on the system. Additionally build the loaders
         for other architectures if the modules to do so are available.
         """
-        symlink(
-            pathlib.Path("/usr/share/efi/x86_64/grub.efi"),
-            self.bootloaders_dir.joinpath(pathlib.Path("grub/grub.efi")),
-            skip_existing=True
-        )
-
         if not utils.command_existing("grub2-mkimage"):
             self.logger.info("grub2-mkimage command not available. Bailing out of GRUB2 generation!")
             return
