@@ -519,9 +519,12 @@ defaults:
     ldap_search_bind_dn: ''
     ldap_search_passwd: ''
     ldap_search_prefix: 'uid='
+    ldap_tls_cacertdir: ''
     ldap_tls_cacertfile: ''
-    ldap_tls_keyfile: ''
     ldap_tls_certfile: ''
+    ldap_tls_keyfile: ''
+    ldap_tls_reqcert: 'hard'
+    ldap_tls_cipher_suite: ''
 
 bind_manage_ipmi
 ================
