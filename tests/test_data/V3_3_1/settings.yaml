@@ -130,7 +130,7 @@ bootloaders_modules:
 syslinux_dir: /usr/share/syslinux
 syslinux_memdisk_folder: '@@memdisk_folder@@'
 syslinux_pxelinux_folder: '@@pxelinux_folder@@'
-grub2_mod_dir: /usr/share/grub2
+grub2_mod_dir: '@@grub_mod_folder@@'
 bootloaders_shim_folder: '@@shim_folder@@'
 bootloaders_shim_file: '@@shim_file@@'
 bootloaders_ipxe_folder: '@@ipxe_folder@@'
