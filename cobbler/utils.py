@@ -1215,7 +1215,7 @@ def linkfile(src: str, dst: str, symlink_ok: bool = False, cache: bool = True, a
     copyfile(src, dst)
 
 
-def copyfile(src: str, dst: str):
+def copyfile(src: str, dst: str, symlink=False):
     """
     Copy a file from source to the destination.
 
@@ -1226,9 +1226,9 @@ def copyfile(src: str, dst: str):
     try:
         logger.info("copying: %s -> %s", src, dst)
         if os.path.isdir(src):
-            shutil.copytree(src, dst)
+            shutil.copytree(src, dst, symlinks=symlink)
         else:
-            shutil.copyfile(src, dst)
+            shutil.copyfile(src, dst, follow_symlinks=symlink)
     except:
         if not os.access(src, os.R_OK):
             raise OSError("Cannot read: %s" % src)
