@@ -795,7 +795,7 @@ Example:
 
     $ cobbler image
 
-cobbler mgmtclass
+Cobbler mgmtclass
 =================
 
 Management classes allows Cobbler to function as an configuration management system. Cobbler currently supports the
@@ -921,7 +921,7 @@ then such a submenu will not be displayed in the boot menu.
 | parent           | This value can be set to indicate the nesting of this submenu in another.                         |
 +------------------+---------------------------------------------------------------------------------------------------+
 
-cobbler aclsetup
+Cobbler aclsetup
 ================
 
 Example:
@@ -933,7 +933,34 @@ Example:
 Cobbler buildiso
 ================
 
-Example:
+All parameters are optional on the CLI. This command may not behave like you expect it without installing additional
+dependencies and configuration. The in depth explanation can be found at :ref:`building-isos`.
+
++--------------+-------------------------------------------------------------------------------------------------------+
+| Name         | Description                                                                                           |
++--------------+-------------------------------------------------------------------------------------------------------+
+| iso          | Output ISO to this file. If the file exists it will be truncated to zero before.                      |
++--------------+-------------------------------------------------------------------------------------------------------+
+| profiles     | Use these profiles only for information collection.                                                   |
++--------------+-------------------------------------------------------------------------------------------------------+
+| systems      | Use these systems only for information collection.                                                    |
++--------------+-------------------------------------------------------------------------------------------------------+
+| tempdir      | Working directory for building the ISO.                                                               |
++--------------+-------------------------------------------------------------------------------------------------------+
+| distro       | Used to detect the architecture of the ISO you are building.                                          |
++--------------+-------------------------------------------------------------------------------------------------------+
+| standalone   | Creates a standalone ISO with all required distribution files but without any added repositories.     |
++--------------+-------------------------------------------------------------------------------------------------------+
+| airgapped    | Creates a standalone ISO with all distro and repo files for disconnected system installations.        |
++--------------+-------------------------------------------------------------------------------------------------------+
+| source       | Used with --standalone to specify a source for the distribution files.                                |
++--------------+-------------------------------------------------------------------------------------------------------+
+| exclude-dns  | Prevents addition of name server addresses to the kernel boot options.                                |
++--------------+-------------------------------------------------------------------------------------------------------+
+| xorriso-opts | Extra options for xorriso.                                                                            |
++--------------+-------------------------------------------------------------------------------------------------------+
+
+Example: The following command builds ISO files for all profiles and systems present inside Cobbler.
 
 .. code-block:: shell
 

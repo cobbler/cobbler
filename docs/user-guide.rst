@@ -9,6 +9,8 @@ User Guide
    Automatic Windows installation with Cobbler <user-guide/wingen>
    Extending Cobbler <user-guide/extending-cobbler>
    Terraform Provider for Cobbler <user-guide/terraform-provider>
+   Building ISOs <user-guide/building-isos>
+   GRUB and everything related <user-guide/grub>
 
 
 API
