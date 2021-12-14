@@ -884,7 +884,7 @@ def dict_to_string(_dict: dict) -> Union[str, dict]:
     return buffer
 
 
-def rsync_files(src: str, dst: str, args: str, quiet: bool = True):
+def rsync_files(src: str, dst: str, args: str, quiet: bool = True) -> bool:
     r"""
     Sync files from src to dst. The extra arguments specified by args are appended to the command.
 
