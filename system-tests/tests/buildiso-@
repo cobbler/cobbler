@@ -15,7 +15,7 @@ cleanup() {
 
 set -x -e -o pipefail
 
-wget -P "${tmp}/" https://download.opensuse.org/distribution/leap/15.3/iso/openSUSE-Leap-15.3-DVD-x86_64-Current.iso
+wget -nv -P "${tmp}/" https://download.opensuse.org/distribution/leap/15.3/iso/openSUSE-Leap-15.3-DVD-x86_64-Current.iso
 mp=$(mktemp -dt leap-mp-XXX)
 mount -o loop,ro "${tmp}/openSUSE-Leap-15.3-DVD-x86_64-Current.iso" "${mp}"
 cobbler import --name leap --path "${mp}"
@@ -31,17 +31,19 @@ case ${build_iso_test} in
     airgapped)
         cobbler buildiso --airgapped \
                          --distro=leap-x86_64 \
+                         --source="${mp}" \
                          --tempdir="/var/cache/cobbler/buildiso" \
                          --iso ${tmp}/autoinst.iso
         ;;
     full)
         cobbler buildiso --standalone \
                          --distro=leap-x86_64 \
+                         --source="${mp}" \
                          --tempdir="/var/cache/cobbler/buildiso" \
                          --iso ${tmp}/autoinst.iso
         ;;
     net)
-        cobbler buildiso --tempdir="/var/cache/cobbler/buildiso" --iso ${tmp}/autoinst.iso
+        cobbler buildiso --tempdir="/var/cache/cobbler/buildiso" --iso ${tmp}/autoinst.iso --distro=leap-x86_64
         ;;
 esac
 
