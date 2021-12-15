@@ -1449,6 +1449,32 @@
         "template_files": "",
         "boot_files": [],
         "boot_loaders": {}
+      },
+      "impish": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: impish|Ubuntu-Server 21\\.10",
+        "kernel_arch": "linux-headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
       }
     },
     "suse": {
