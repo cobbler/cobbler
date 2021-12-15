@@ -1,16 +1,74 @@
 #!/bin/sh -e
 # List the contents of an ISO image
 
+if [ $# -ne 2 ]; then
+	echo "usage: ${0##*/} <iso> <distro>" 1>&2
+	exit 1
+fi
+
 iso=${1}
-mp=$(mktemp -dt cobbler-distro-iso.XXXX)
+distro=${2}
+out=listings/${distro}/$(basename ${iso})
+index=${out}/index
+files=${out}/files
+signatures=../config/cobbler/distro_signatures.json
 
-trap cleanup EXIT
-
-cleanup() {
-	mountpoint -q ${mp} && umount ${mp}
-	rmdir ${mp}
+create_index() {
+	mkdir -p $(dirname ${index})
+	xorriso -ecma119_map lowercase -indev ${iso} -sh_style_result on \
+		-find . -type f 2>/dev/null | sed 's|^./||' | sort -V >${index}
 }
 
-mkdir -p ${mp}
-mount -o loop,ro "${iso}" ${mp}
-find ${mp} -type f | sed "s|^${mp}/||"
+parse_signatures() {
+	jq -r ".breeds.$(echo ${distro} | tr '-' '.')
+			| (.signatures | @tsv)
+			, .version_file
+			, .version_file_regex
+			, .kernel_arch
+			, .kernel_arch_regex" \
+		${signatures}
+}
+
+cat_iso() {
+	xorriso -osirrox on -ecma119_map lowercase -indev ${iso} \
+		-concat append - "${1}" 2>/dev/null
+}
+
+grep_iso() {
+	sed 's|^.*/||' ${index} | while read file; do
+		if echo "${file}" | grep -qE "${1}"; then
+			if cat_iso "${file}" | grep -qE "${2}"; then
+				mkdir -p $(dirname "${files}/${file}")
+				cat_iso "${file}" | grep -E "${2}" >"${files}/${file}"
+			fi
+		fi
+	done
+}
+
+find_signatures() {
+	while read file; do
+		grep -q "^${file}" ${index} && break
+	done
+	return ${?}
+}
+
+find_regex_files() {
+	read -r signatures
+	read -r version_file
+	read -r version_file_regex
+	read -r kernel_arch
+	read -r kernel_arch_regex
+
+	echo "${signatures}" | tr $'\t' $'\n' | find_signatures || return 0
+
+	if [ "${version_file_regex}" != null ]; then
+		grep_iso "${version_file}" "${version_file_regex}"
+	fi
+
+	if [ "${kernel_arch_regex}" != null ]; then
+		grep_iso "${kernel_arch}" "${kernel_arch_regex}"
+	fi
+}
+
+create_index
+parse_signatures | find_regex_files
