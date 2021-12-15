@@ -5,12 +5,12 @@ source ${SYSTESTS_PRELUDE} && prepare
 
 set -x -e -o pipefail
 
-version=${TEST_NAME#import-}
+distro=${TEST_NAME#import-}
 
-for listing in ${SYSTESTS_ROOT}/listings/${version}/*; do
-	iso_root=${tmp}/$(basename ${listing})
-	mkdir -p ${iso_root}
-	cat ${listing} | xargs -I {} -P 64 install -D -m 0644 \
-		/dev/null ${iso_root}/{}
-	cobbler import --name imported --path ${iso_root}
+for iso in ${SYSTESTS_ROOT}/listings/${distro}/*; do
+	root=${tmp}/$(basename ${iso})
+	mkdir -p ${root}
+	cat ${iso}/index | xargs -I {} -P 64 install -D -m 0644 /dev/null ${root}/{}
+	cp -a ${iso}/. ${root}
+	cobbler import --name imported --path ${root}
 done

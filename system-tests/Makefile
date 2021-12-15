@@ -4,8 +4,8 @@ run:
 bootstrap:
 	scripts/bootstrap
 
-listing-%:
-	scripts/list-iso $(ISO) >listings/$(@:listing-%=%)/$(basename $(ISO))
+listing:
+	scripts/list-iso $(ISO) $(DISTRO)
 
 images/dummy/bios-disk:
 	scripts/create-dummy-initramfs $@
@@ -13,4 +13,4 @@ images/dummy/bios-disk:
 images/dummy/initramfs.gz:
 	scripts/create-dummy-bios-disk $@
 
-.PHONY: run bootstrap results listing-*
+.PHONY: run bootstrap results listing
