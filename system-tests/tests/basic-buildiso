@@ -7,16 +7,14 @@ set -x -e -o pipefail
 
 # Preparations
 cobbler distro add --name fake --arch x86_64 --kernel ${fake_kernel} --initrd ${fake_initramfs}
-
 cobbler profile add --name fake --distro fake
-
 cobbler system add --name testbed --profile fake
 
 # Tmp: Create "/var/cache/cobbler" because it does not exist per default
 mkdir -p /var/cache/cobbler/buildiso
 
 # Real test
-cobbler buildiso --tempdir="/var/cache/cobbler/buildiso" --iso ${tmp}/autoinst.iso
+cobbler buildiso --tempdir="/var/cache/cobbler/buildiso" --iso ${tmp}/autoinst.iso --distro=fake
 
 # Check ISO exists
 [ -f ${tmp}/autoinst.iso ]

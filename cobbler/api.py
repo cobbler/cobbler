@@ -28,7 +28,9 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
-from cobbler.actions import status, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync, mkloaders
+from cobbler.actions import status, hardlink, sync, replicate, report, log, acl, check, reposync, mkloaders
+from cobbler.actions.buildiso.standalone import StandaloneBuildiso
+from cobbler.actions.buildiso.netboot import NetbootBuildiso
 from cobbler import autoinstall_manager, autoinstallgen, download_manager, enums, module_loader, power_manager
 from cobbler import settings, tftpgen, utils, yumgen
 from cobbler.cobbler_collections import manager
@@ -58,7 +60,7 @@ class CobblerAPI:
         """
         Constructor
 
-        :param is_cobblerd: Wether this API is run as a daemon or not.
+        :param is_cobblerd: Whether this API is run as a daemon or not.
         :param settingsfile_location: The location of the settings file on the disk.
         """
 
@@ -1713,27 +1715,38 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def build_iso(self, iso=None, profiles=None, systems=None, buildisodir=None, distro=None, standalone=None,
-                  airgapped=None, source=None, exclude_dns=None, xorrisofs_opts=None):
-        """
+    def build_iso(self, iso: str = "autoinst.iso", profiles=None, systems=None, buildisodir: str = "",
+                  distro_name: str = "", standalone: bool = False, airgapped: bool = False, source: str = "",
+                  exclude_dns: bool = False, xorrisofs_opts: str = ""):
+        r"""
         Build an iso image which may be network bootable or not.
 
-        :param iso:
-        :param profiles:
-        :param systems:
-        :param buildisodir:
-        :param distro:
-        :param standalone:
-        :param airgapped:
-        :param source:
-        :param exclude_dns:
-        :param xorrisofs_opts:
+        :param iso: The name of the ISO. Defaults to ``autoinst.iso``.
+        :param profiles: Use these profiles only
+        :param systems: Use these systems only
+        :param buildisodir: This overwrites the directory from the settings in which the iso is built in.
+        :param distro_name: Used with ``--standalone`` and ``--airgapped`` to create a distro-based ISO including all
+                       associated.
+        :param standalone: This means that no network connection is needed to install the generated iso.
+        :param airgapped: This option implies ``standalone=True``.
+        :param source: If the iso should be offline available this is the path to the sources of the image.
+        :param exclude_dns: Whether the repositories have to be locally available or the internet is reachable.
+        :param xorrisofs_opts: ``xorrisofs`` options to include additionally.
         """
-        builder = buildiso.BuildIso(self._collection_mgr)
-        builder.run(
-            iso=iso, profiles=profiles, systems=systems, buildisodir=buildisodir, distro=distro, standalone=standalone,
-            airgapped=airgapped, source=source, exclude_dns=exclude_dns, xorrisofs_opts=xorrisofs_opts
-        )
+        if not isinstance(standalone, bool):
+            raise TypeError("Argument \"standalone\" needs to be of type bool!")
+        if not isinstance(airgapped, bool):
+            raise TypeError("Argument \"airgapped\" needs to be of type bool!")
+        if airgapped:
+            standalone = True
+        if standalone:
+            standalone_builder = StandaloneBuildiso(self)
+            standalone_builder.run(iso=iso, buildisodir=buildisodir, profiles=profiles, xorrisofs_opts=xorrisofs_opts,
+                                   distro_name=distro_name, airgapped=airgapped, source=source)
+        else:
+            netboot_builder = NetbootBuildiso(self)
+            netboot_builder.run(iso=iso, buildisodir=buildisodir, profiles=profiles, xorrisofs_opts=xorrisofs_opts,
+                                distro_name=distro_name, systems=systems, exclude_dns=exclude_dns)
 
     # ==========================================================================
 

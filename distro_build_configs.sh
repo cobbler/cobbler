@@ -21,6 +21,7 @@ export IPXE_FOLDER="/usr/share/ipxe/"
 export PXELINUX_FOLDER="/usr/share/syslinux"
 export MEMDISK_FOLDER="/usr/share/syslinux"
 export SYSLINUX_DIR="/usr/share/syslinux"
+export GRUB_MOD_FOLDER="/usr/share/grub2"
 
 # First parameter is DISTRO if provided
 [ $# -ge 2 ] && DISTRO="$1"
@@ -57,6 +58,7 @@ elif [ "$DISTRO" = "UBUNTU" ];then
     export PXELINUX_FOLDER="/usr/lib/PXELINUX/"
     export MEMDISK_FOLDER="/usr/lib/syslinux/"
     export SYSLINUX_DIR="/usr/lib/syslinux/modules/bios/"
+    export GRUB_MOD_FOLDER="/usr/lib/grub"
 elif [ "$DISTRO" = "FEDORA" ];then
     export APACHE_USER="apache"
     export HTTP_USER=$APACHE_USER # overrule setup.py
@@ -69,6 +71,7 @@ elif [ "$DISTRO" = "FEDORA" ];then
     export ZONEFILES="/var/named"
     export SHIM_FOLDER="/boot/efi/EFI/*/"
     export SHIM_FILE="shim[a-zA-Z0-9]*\.efi"
+    export GRUB_MOD_FOLDER="/usr/lib/grub"
 else
     echo "ERROR, unknown distro $DISTRO"
     # ToDo: Should we loudly warn here?

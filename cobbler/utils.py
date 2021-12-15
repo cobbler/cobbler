@@ -502,17 +502,15 @@ def file_is_remote(file_location) -> bool:
     return False
 
 
-def input_string_or_list(options: Union[str, list]) -> Union[list, str]:
+def input_string_or_list_no_inherit(options: Optional[Union[str, list]]) -> list:
     """
     Accepts a delimited list of stuff or a list, but always returns a list.
 
     :param options: The object to split into a list.
-    :return: str when this functions get's passed <<inherit>>. if option is delete then an empty list is returned.
-             Otherwise this function tries to return the arg option or tries to split it into a list.
-    :raises TypeError: Raised in case the input type is wrong.
+    :return: If ``option`` is ``delete``, ``None`` (object not literal) or an empty str, then an empty list is returned.
+             Otherwise, this function tries to return the arg option or tries to split it into a list.
+    :raises TypeError: In case the type of ``options`` was neither ``None``, str or list.
     """
-    if options == enums.VALUE_INHERITED:
-        return enums.VALUE_INHERITED
     if not options or options == "delete":
         return []
     elif isinstance(options, list):
@@ -522,6 +520,19 @@ def input_string_or_list(options: Union[str, list]) -> Union[list, str]:
         return tokens
     else:
         raise TypeError("invalid input type")
+
+
+def input_string_or_list(options: Optional[Union[str, list]]) -> Union[list, str]:
+    """
+    Accepts a delimited list of stuff or a list, but always returns a list.
+    :param options: The object to split into a list.
+    :return: str when this functions get's passed ``<<inherit>>``. if option is delete then an empty list is returned.
+             Otherwise, this function tries to return the arg option or tries to split it into a list.
+    :raises TypeError: In case the type of ``options`` was neither ``None``, str or list.
+    """
+    if options == enums.VALUE_INHERITED:
+        return enums.VALUE_INHERITED
+    return input_string_or_list_no_inherit(options)
 
 
 def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
@@ -884,7 +895,7 @@ def dict_to_string(_dict: dict) -> Union[str, dict]:
     return buffer
 
 
-def rsync_files(src: str, dst: str, args: str, quiet: bool = True):
+def rsync_files(src: str, dst: str, args: str, quiet: bool = True) -> bool:
     r"""
     Sync files from src to dst. The extra arguments specified by args are appended to the command.
 
@@ -1215,7 +1226,7 @@ def linkfile(src: str, dst: str, symlink_ok: bool = False, cache: bool = True, a
     copyfile(src, dst)
 
 
-def copyfile(src: str, dst: str):
+def copyfile(src: str, dst: str, symlink=False):
     """
     Copy a file from source to the destination.
 
@@ -1226,9 +1237,9 @@ def copyfile(src: str, dst: str):
     try:
         logger.info("copying: %s -> %s", src, dst)
         if os.path.isdir(src):
-            shutil.copytree(src, dst)
+            shutil.copytree(src, dst, symlinks=symlink)
         else:
-            shutil.copyfile(src, dst)
+            shutil.copyfile(src, dst, follow_symlinks=symlink)
     except:
         if not os.access(src, os.R_OK):
             raise OSError("Cannot read: %s" % src)

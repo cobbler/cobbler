@@ -49,6 +49,7 @@ ipxe_folder = os.environ.get('IPXE_FOLDER', '/usr/share/ipxe/')
 memdisk_folder = os.environ.get('MEMDISK_FOLDER', '/usr/share/syslinux')
 pxelinux_folder = os.environ.get('PXELINUX_FOLDER', '/usr/share/syslinux')
 syslinux_dir = os.environ.get('SYSLINUX_DIR', '/usr/share/syslinux')
+grub_mod_folder = os.environ.get('GRUB_MOD_FOLDER', '/usr/share/grub2')
 
 
 #####################################################################
@@ -554,7 +555,8 @@ if __name__ == "__main__":
             'ipxe_folder': ipxe_folder,
             'memdisk_folder': memdisk_folder,
             'pxelinux_folder': pxelinux_folder,
-            'syslinux_dir': syslinux_dir
+            'syslinux_dir': syslinux_dir,
+            'grub_mod_folder': grub_mod_folder
         },
         configure_files=[
             "cobbler/settings/migrations/V3_3_1.py",
