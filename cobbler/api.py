@@ -28,6 +28,8 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
+from schema import SchemaError
+
 from cobbler.actions import status, hardlink, sync, replicate, report, log, acl, check, reposync, mkloaders
 from cobbler.actions.buildiso.standalone import StandaloneBuildiso
 from cobbler.actions.buildiso.netboot import NetbootBuildiso
@@ -129,18 +131,26 @@ class CobblerAPI:
 
     def __generate_settings(self, settings_path: Path,
                             execute_settings_automigration: bool = True) -> settings.Settings:
-        # Read in YAML file and get dict
         yaml_dict = settings.read_yaml_file(settings_path)
 
-        # Add or update auto migrate settings value
-        yaml_dict["auto_migrate_settings"] = execute_settings_automigration
+        if execute_settings_automigration is not None:
+            self.logger.info('Daemon flag overwriting other possible values from "settings.yaml" for automigration!')
+            yaml_dict["auto_migrate_settings"] = execute_settings_automigration
 
-        # Take dict and use it in migrations
-        migrated_settings = settings.migrate(yaml_dict, settings_path)
-
-        # After the migration is done, save result in the settings object
+        if yaml_dict.get("auto_migrate_settings", True):
+            self.logger.info("Automigration executed")
+            normalized_settings = settings.migrate(yaml_dict, settings_path)
+        else:
+            self.logger.info("Automigration NOT executed")
+            # In case we have disabled the auto-migration, we still check if the settings are valid.
+            try:
+                normalized_settings = settings.validate_settings(yaml_dict)
+            except SchemaError as error:
+                raise ValueError("Settings are invalid and auto-migration is disabled. Please correct this manually!") \
+                    from error
+        # Use normalized or migrated dict and create settings object
         new_settings = settings.Settings()
-        new_settings.from_dict(migrated_settings)
+        new_settings.from_dict(normalized_settings)
 
         # save to disk
         new_settings.save(settings_path)

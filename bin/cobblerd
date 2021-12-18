@@ -72,10 +72,15 @@ def main():
     op.add_argument("--config", "-c",
                     help="The location of the Cobbler configuration file.",
                     default="/etc/cobbler/settings.yaml")
+    op.add_argument("--enable-automigration",
+                    help='If given, overrule setting from "settings.yaml" and execute automigration.',
+                    dest="automigration",
+                    action="store_true")
     op.add_argument("--disable-automigration",
-                    help="If given, do no execute automigration",
-                    dest="disable_automigration",
+                    help='If given, overrule setting from "settings.yaml" and do not execute automigration.',
+                    dest="automigration",
                     action="store_false")
+    op.set_defaults(automigration=None)
 
     options = op.parse_args()
 
@@ -84,7 +89,7 @@ def main():
     api = None
     try:
         api = cobbler_api.CobblerAPI(is_cobblerd=True, settingsfile_location=options.config,
-                                     execute_settings_automigration=options.disable_automigration)
+                                     execute_settings_automigration=options.automigration)
     except Exception as exc:
         if sys.exc_info()[0] == SystemExit:
             return exc.code
