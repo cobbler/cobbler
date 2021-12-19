@@ -25,8 +25,9 @@ RUN zypper install -y          \
     fence-agents               \
     rsync                      \
     createrepo_c               \
-    python3-Sphinx             \
+    python-rpm-macros          \
     python3                    \
+    python3-Sphinx             \
     python3-Cheetah3           \
     python3-Sphinx             \
     python3-dnspython          \
