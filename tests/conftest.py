@@ -7,18 +7,18 @@ from pathlib import Path
 import pytest
 
 
-def pytest_addoption(parser):
-    parser.addoption("-E", action="store", metavar="NAME", help="only run tests matching the environment NAME.")
-
-
-def pytest_configure(config):
-    # register an additional marker
-    config.addinivalue_line("markers", "env(name): mark test to run only on named environment")
-
-
 @contextmanager
 def does_not_raise():
     yield
+
+
+@pytest.fixture(scope="function", autouse=True)
+def reset_settings_yaml(tmp_path):
+    filename = "settings.yaml"
+    filepath = "/etc/cobbler/%s" % filename
+    shutil.copy(filepath, tmp_path.joinpath(filename))
+    yield
+    shutil.copy(tmp_path.joinpath(filename), filepath)
 
 
 @pytest.fixture(scope="function")
