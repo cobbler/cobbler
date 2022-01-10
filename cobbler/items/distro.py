@@ -190,20 +190,16 @@ class Distro(item.Item):
         """
         if not isinstance(remote_boot_kernel, str):
             raise TypeError("Field remote_boot_kernel of distro needs to be of type str!")
-        if remote_boot_kernel:
-            if remote_boot_kernel == "":
-                self._remote_boot_kernel = ""
-                self._remote_grub_kernel = ""
-                return
-            if not validate.validate_boot_remote_file(remote_boot_kernel):
-                raise ValueError("remote_boot_kernel needs to be a valid URL starting with tftp or http!")
-            parsed_url = grub.parse_grub_remote_file(remote_boot_kernel)
-            if parsed_url is None:
-                raise ValueError("Invalid URL for remote boot kernel: %s" % remote_boot_kernel)
-            self._remote_grub_kernel = parsed_url
+        if not remote_boot_kernel:
+            self._remote_grub_kernel = remote_boot_kernel
             self._remote_boot_kernel = remote_boot_kernel
             return
-        self._remote_grub_kernel = remote_boot_kernel
+        if not validate.validate_boot_remote_file(remote_boot_kernel):
+            raise ValueError("remote_boot_kernel needs to be a valid URL starting with tftp or http!")
+        parsed_url = grub.parse_grub_remote_file(remote_boot_kernel)
+        if parsed_url is None:
+            raise ValueError("Invalid URL for remote boot kernel: %s" % remote_boot_kernel)
+        self._remote_grub_kernel = parsed_url
         self._remote_boot_kernel = remote_boot_kernel
 
     @property
