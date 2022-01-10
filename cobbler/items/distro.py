@@ -335,9 +335,9 @@ class Distro(item.Item):
         """
         if not isinstance(remote_boot_initrd, str):
             raise TypeError("remote_boot_initrd must be of type str!")
-        if remote_boot_initrd == "":
-            self._remote_boot_initrd = ""
-            self._remote_grub_initrd = ""
+        if not remote_boot_initrd:
+            self._remote_boot_initrd = remote_boot_initrd
+            self._remote_grub_initrd = remote_boot_initrd
             return
         if not validate.validate_boot_remote_file(remote_boot_initrd):
             raise ValueError("remote_boot_initrd needs to be a valid URL starting with tftp or http!")
