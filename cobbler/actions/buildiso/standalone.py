@@ -25,7 +25,10 @@ def _generate_append_line_standalone(data: dict, distro, descendant) -> str:
     """
     append_line = "  append initrd=%s" % os.path.basename(distro.initrd)
     if distro.breed == "redhat":
-        append_line += " inst.ks=cdrom:/isolinux/%s.cfg" % descendant.name
+        if distro.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
+            append_line += " ks=cdrom:/isolinux/%s.cfg" % descendant.name
+        else:
+            append_line += " inst.ks=cdrom:/isolinux/%s.cfg" % descendant.name
     elif distro.breed == "suse":
         append_line += (
             " autoyast=file:///isolinux/%s.cfg install=cdrom:///" % descendant.name

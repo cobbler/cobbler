@@ -211,7 +211,10 @@ class AppendLineBuilder:
                 self.data["proxy"],
                 self.data["proxy"],
             )
-        self.append_line += " inst.ks=%s" % self.data["autoinstall"]
+        if self.dist.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
+            self.append_line += " ks=%s" % self.data["autoinstall"]
+        else:
+            self.append_line += " inst.ks=%s" % self.data["autoinstall"]
 
     def _generate_append_debian(self, system):
         """
@@ -406,7 +409,10 @@ class AppendLineBuilder:
                     self.data["proxy"],
                     self.data["proxy"],
                 )
-            self.append_line += " inst.ks=%s" % self.data["autoinstall"]
+            if os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
+                self.append_line += " ks=%s" % self.data["autoinstall"]
+            else:
+                self.append_line += " inst.ks=%s" % self.data["autoinstall"]
         elif distro_breed in ["ubuntu", "debian"]:
             self.append_line += (
                 " auto-install/enable=true url=%s" % self.data["autoinstall"]
