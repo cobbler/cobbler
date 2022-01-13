@@ -208,10 +208,14 @@
         "kernel_arch": "kernel-(.*)\\.rpm",
         "kernel_arch_regex": null,
         "supported_arches": [
+          "arm",
+          "armhfp",
           "i386",
           "x86_64",
           "ppc",
-          "ppc64"
+          "ppc64",
+          "s390",
+          "s390x"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -235,10 +239,14 @@
         "kernel_arch": "kernel-(.*)\\.rpm",
         "kernel_arch_regex": null,
         "supported_arches": [
+          "arm",
+          "armhfp",
           "i386",
-          "x86_64",
           "ppc",
-          "ppc64"
+          "ppc64",
+          "x86_64",
+          "s390",
+          "s390x"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -262,10 +270,13 @@
         "kernel_arch": "kernel-(.*)\\.rpm",
         "kernel_arch_regex": null,
         "supported_arches": [
+          "arm",
           "i386",
-          "x86_64",
           "ppc",
-          "ppc64"
+          "ppc64",
+          "s390",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -289,10 +300,13 @@
         "kernel_arch": "kernel-(.*)\\.rpm",
         "kernel_arch_regex": null,
         "supported_arches": [
+          "armhfp",
           "i386",
-          "x86_64",
           "ppc",
-          "ppc64"
+          "ppc64",
+          "s390",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -321,11 +335,14 @@
         "kernel_arch": "kernel-(.*)\\.rpm",
         "kernel_arch_regex": null,
         "supported_arches": [
+          "aarch64",
+          "armhfp",
           "i386",
-          "x86_64",
-          "ppc",
           "ppc64",
-          "ppc64le"
+          "ppc64le",
+          "s390",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -354,11 +371,14 @@
         "kernel_arch": "kernel-(.*)\\.rpm",
         "kernel_arch_regex": null,
         "supported_arches": [
+          "aarch64",
+          "armhfp",
           "i386",
-          "x86_64",
-          "ppc",
           "ppc64",
-          "ppc64le"
+          "ppc64le",
+          "s390",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -387,11 +407,14 @@
         "kernel_arch": "kernel-(.*)\\.rpm",
         "kernel_arch_regex": null,
         "supported_arches": [
+          "aarch64",
+          "armhfp",
           "i386",
-          "x86_64",
-          "ppc",
           "ppc64",
-          "ppc64le"
+          "ppc64le",
+          "s390",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -420,11 +443,13 @@
         "kernel_arch": "kernel-(.*)\\.rpm",
         "kernel_arch_regex": null,
         "supported_arches": [
+          "aarch64",
+          "armhfp",
           "i386",
-          "x86_64",
-          "ppc",
           "ppc64",
-          "ppc64le"
+          "ppc64le",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -453,11 +478,13 @@
         "kernel_arch": "kernel-(.*)\\.rpm",
         "kernel_arch_regex": null,
         "supported_arches": [
+          "aarch64",
+          "armhfp",
           "i386",
-          "x86_64",
-          "ppc",
           "ppc64",
-          "ppc64le"
+          "ppc64le",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -487,10 +514,12 @@
         "kernel_arch_regex": null,
         "supported_arches": [
           "aarch64",
+          "armhfp",
           "i386",
-          "x86_64",
           "ppc64",
-          "ppc64le"
+          "ppc64le",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -520,10 +549,12 @@
         "kernel_arch_regex": null,
         "supported_arches": [
           "aarch64",
+          "armhfp",
           "i386",
-          "x86_64",
           "ppc64",
-          "ppc64le"
+          "ppc64le",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -553,10 +584,12 @@
         "kernel_arch_regex": null,
         "supported_arches": [
           "aarch64",
+          "armhfp",
           "i386",
-          "x86_64",
           "ppc64",
-          "ppc64le"
+          "ppc64le",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -586,10 +619,11 @@
         "kernel_arch_regex": null,
         "supported_arches": [
           "aarch64",
+          "armhfp",
           "i386",
-          "x86_64",
-          "ppc64",
-          "ppc64le"
+          "ppc64le",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -619,9 +653,11 @@
         "kernel_arch_regex": null,
         "supported_arches": [
           "aarch64",
+          "armhfp",
           "i386",
-          "x86_64",
-          "ppc64le"
+          "ppc64le",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -651,9 +687,10 @@
         "kernel_arch_regex": null,
         "supported_arches": [
           "aarch64",
-          "i386",
-          "x86_64",
-          "ppc64le"
+          "armhfp",
+          "ppc64le",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -683,9 +720,10 @@
         "kernel_arch_regex": null,
         "supported_arches": [
           "aarch64",
-          "i386",
-          "x86_64",
-          "ppc64le"
+          "armhfp",
+          "ppc64le",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -715,9 +753,10 @@
         "kernel_arch_regex": null,
         "supported_arches": [
           "aarch64",
-          "i386",
-          "x86_64",
-          "ppc64le"
+          "armhfp",
+          "ppc64le",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -747,9 +786,10 @@
         "kernel_arch_regex": null,
         "supported_arches": [
           "aarch64",
-          "i386",
-          "x86_64",
-          "ppc64le"
+          "armhfp",
+          "ppc64le",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
