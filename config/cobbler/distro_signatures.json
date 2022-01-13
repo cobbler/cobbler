@@ -12,9 +12,11 @@
         "kernel_arch_regex": null,
         "supported_arches": [
           "i386",
-          "x86_64",
+          "ia64",
           "ppc",
-          "ppc64"
+          "s390",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
