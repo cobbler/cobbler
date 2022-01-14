@@ -371,7 +371,7 @@ class AppendLineBuilder:
         self.append_line += buildiso.add_remaining_kopts(self.data["kernel_options"])
         return self.append_line
 
-    def generate_profile(self, distro_breed: str) -> str:
+    def generate_profile(self, distro_breed: str, os_version: str) -> str:
         """
         Generate the append line for the kernel for a network installation.
         :param distro_breed: The name of the distribution breed.
@@ -509,7 +509,7 @@ class NetbootBuildiso(buildiso.BuildIso):
             )
 
         append_builder = AppendLineBuilder(distro_name=distname, data=data)
-        append_line = append_builder.generate_profile(dist.breed)
+        append_line = append_builder.generate_profile(dist.breed, dist.os_version)
         cfglines.append(append_line)
 
     def generate_netboot_iso(

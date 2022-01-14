@@ -302,7 +302,7 @@ class TestAppendLineBuilder:
         test_builder = AppendLineBuilder(test_distro.name, blendered_data)
 
         # Act
-        result = test_builder.generate_profile("suse")
+        result = test_builder.generate_profile("suse", "opensuse15generic")
 
         # Assert
         # Very basic test yes but this is the expected result atm
