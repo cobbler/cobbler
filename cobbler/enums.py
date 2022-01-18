@@ -1,17 +1,46 @@
 """
-TODO
+This module is responsible for containing all enums we use in Cobbler. It should not be dependent upon any other module
+except the Python standard library.
 """
 
 import enum
+from typing import Union
 
 VALUE_INHERITED = "<<inherit>>"
 VALUE_NONE = "none"
 
 
-class ResourceAction(enum.Enum):
+class ConvertableEnum(enum.Enum):
+    """
+    Abstract class to convert the enum via our convert method.
+    """
+
+    @classmethod
+    def to_enum(cls, value: Union[str, "ConvertableEnum"]) -> "ConvertableEnum":
+        """
+        This method converts the chosen str to the corresponding enum type.
+
+        :param value: str which contains the to be converted value.
+        :returns: The enum value.
+        :raises TypeError: In case value was not of type str.
+        :raises ValueError: In case value was not in the range of valid values.
+        """
+        try:
+            if isinstance(value, str):
+                return cls[value.upper()]
+            elif isinstance(value, cls):
+                return value
+            else:
+                raise TypeError(f"{value} must be a str or Enum")
+        except KeyError:
+            raise ValueError(f"{value} must be one of {list(cls)}")
+
+
+class ResourceAction(ConvertableEnum):
     """
     This enum represents all actions a resource may execute.
     """
+
     CREATE = "create"
     REMOVE = "remove"
 
@@ -20,6 +49,7 @@ class NetworkInterfaceType(enum.Enum):
     """
     This enum represents all interface types Cobbler is able to set up on a target host.
     """
+
     NA = 0
     BOND = 1
     BOND_SLAVE = 2
@@ -30,10 +60,11 @@ class NetworkInterfaceType(enum.Enum):
     INFINIBAND = 7
 
 
-class RepoBreeds(enum.Enum):
+class RepoBreeds(ConvertableEnum):
     """
     This enum describes all repository breeds Cobbler is able to manage.
     """
+
     NONE = VALUE_NONE
     RSYNC = "rsync"
     RHN = "rhn"
@@ -42,11 +73,12 @@ class RepoBreeds(enum.Enum):
     WGET = "wget"
 
 
-class RepoArchs(enum.Enum):
+class RepoArchs(ConvertableEnum):
     """
     This enum describes all repository architectures Cobbler is able to serve in case the content of the repository is
     serving the same architecture.
     """
+
     NONE = VALUE_NONE
     I386 = "i386"
     X86_64 = "x86_64"
@@ -62,10 +94,11 @@ class RepoArchs(enum.Enum):
     SRC = "src"
 
 
-class Archs(enum.Enum):
+class Archs(ConvertableEnum):
     """
     This enum describes all system architectures which Cobbler is able to provision.
     """
+
     I386 = "i386"
     X86_64 = "x86_64"
     IA64 = "ia64"
@@ -79,11 +112,12 @@ class Archs(enum.Enum):
     AARCH64 = "aarch64"
 
 
-class VirtType(enum.Enum):
+class VirtType(ConvertableEnum):
     """
     This enum represents all known types of virtualization Cobbler is able to handle via Koan.
     """
-    INHERTIED = VALUE_INHERITED
+
+    INHERITED = VALUE_INHERITED
     QEMU = "qemu"
     KVM = "kvm"
     XENPV = "xenpv"
@@ -94,10 +128,11 @@ class VirtType(enum.Enum):
     AUTO = "auto"
 
 
-class VirtDiskDrivers(enum.Enum):
+class VirtDiskDrivers(ConvertableEnum):
     """
     This enum represents all virtual disk driver Cobbler can handle.
     """
+
     INHERTIED = VALUE_INHERITED
     RAW = "raw"
     QCOW2 = "qcow2"
@@ -110,6 +145,7 @@ class BaudRates(enum.Enum):
     """
     This enum describes all baud rates which are commonly used.
     """
+
     B0 = 0
     B110 = 110
     B300 = 300
@@ -127,29 +163,32 @@ class BaudRates(enum.Enum):
     B256000 = 256000
 
 
-class ImageTypes(enum.Enum):
+class ImageTypes(ConvertableEnum):
     """
     This enum represents all image types which Cobbler can manage.
     """
+
     DIRECT = "direct"
     ISO = "iso"
     MEMDISK = "memdisk"
     VIRT_CLONE = "virt-clone"
 
 
-class MirrorType(enum.Enum):
+class MirrorType(ConvertableEnum):
     """
     This enum represents all mirror types which Cobbler can manage.
     """
+
     METALINK = "metalink"
     MIRRORLIST = "mirrorlist"
     BASEURL = "baseurl"
 
 
-class TlsRequireCert(enum.Enum):
+class TlsRequireCert(ConvertableEnum):
     """
     This enum represents all TLS validation server cert types which Cobbler can manage.
     """
+
     NEVER = "never"
     ALLOW = "allow"
     DEMAND = "demand"

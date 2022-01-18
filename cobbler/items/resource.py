@@ -89,16 +89,7 @@ class Resource(item.Item):
         :raise ValueError: Raised in case wrong value is provided.
         :raise TypeError: Raised in case ``action`` is no ``enums.ResourceAction``.
         """
-        # Convert an action which came in as a string
-        if isinstance(action, str):
-            try:
-                action = enums.ResourceAction[action.upper()]
-            except KeyError as error:
-                raise ValueError("action choices include: %s" % list(map(str, enums.ResourceAction))) from error
-        # Now the action MUST be of the type of enums.
-        if not isinstance(action, enums.ResourceAction):
-            raise TypeError("action needs to be of type enums.ResourceAction")
-        self._action = action
+        self._action = enums.ResourceAction.to_enum(action)
 
     @property
     def group(self) -> str:

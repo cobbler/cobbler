@@ -393,7 +393,7 @@ class Distro(item.Item):
 
         :param arch: The architecture of the operating system distro.
         """
-        self._arch = validate.validate_arch(arch)
+        self._arch = enums.Archs.to_enum(arch)
 
     @property
     def supported_boot_loaders(self):

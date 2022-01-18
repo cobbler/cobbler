@@ -576,7 +576,7 @@ class Profile(item.Item):
 
         :param driver: The new driver.
         """
-        self._virt_disk_driver = validate.validate_virt_disk_driver(driver)
+        self._virt_disk_driver = enums.VirtDiskDrivers.to_enum(driver)
 
     @property
     def virt_ram(self) -> int:
@@ -614,7 +614,7 @@ class Profile(item.Item):
 
         :param vtype: May be on out of "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz" or "auto".
         """
-        self._virt_type = validate.validate_virt_type(vtype)
+        self._virt_type = enums.VirtType.to_enum(vtype)
 
     @property
     def virt_bridge(self) -> str:
