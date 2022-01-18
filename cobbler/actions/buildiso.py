@@ -223,7 +223,10 @@ class BuildIso:
             if dist.breed == "redhat":
                 if "proxy" in data and data["proxy"] != "":
                     append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
-                append_line += " inst.ks=%s" % data["autoinstall"]
+                if dist.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
+                    append_line += " ks=%s" % self.data["autoinstall"]
+                else:
+                    append_line += " inst.ks=%s" % self.data["autoinstall"]
 
             if dist.breed in ["ubuntu", "debian"]:
                 append_line += " auto-install/enable=true url=%s" % data["autoinstall"]
@@ -273,7 +276,10 @@ class BuildIso:
             if dist.breed == "redhat":
                 if "proxy" in data and data["proxy"] != "":
                     append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
-                append_line += " inst.ks=%s" % data["autoinstall"]
+                if os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
+                    append_line += " ks=%s" % self.data["autoinstall"]
+                else:
+                    append_line += " inst.ks=%s" % self.data["autoinstall"]
 
             if dist.breed in ["ubuntu", "debian"]:
                 append_line += " auto-install/enable=true url=%s netcfg/disable_autoconfig=true" % data["autoinstall"]
@@ -540,7 +546,10 @@ class BuildIso:
 
             append_line = "  append initrd=%s" % os.path.basename(distro.initrd)
             if distro.breed == "redhat":
-                append_line += " inst.ks=cdrom:/isolinux/%s.cfg" % descendant.name
+                if distro.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
+                    append_line += " ks=cdrom:/isolinux/%s.cfg" % descendant.name
+                else:
+                    append_line += " inst.ks=cdrom:/isolinux/%s.cfg" % descendant.name
             if distro.breed == "suse":
                 append_line += " autoyast=file:///isolinux/%s.cfg install=cdrom:///" % descendant.name
                 if "install" in data["kernel_options"]:
