@@ -1,5 +1,7 @@
 import time
 
+from cobbler import validate
+
 
 def register() -> str:
     """
@@ -28,10 +30,18 @@ def run(api, args: list) -> int:
     name = args[1]
     ip = args[2]
 
+    if not validate.validate_obj_type(objtype):
+        return 1
+
+    if not api.find_items(objtype, name=name, return_list=False):
+        return 1
+
+    if not (ip == "?" or validate.ipv4_address(ip) or validate.ipv6_address(ip)):
+        return 1
+
     # FIXME: use the logger
 
-    fd = open("/var/log/cobbler/install.log", "a+")
-    fd.write("%s\t%s\t%s\tstart\t%s\n" % (objtype, name, ip, time.time()))
-    fd.close()
+    with open("/var/log/cobbler/install.log", "a+") as fd:
+        fd.write("%s\t%s\t%s\tstart\t%s\n" % (objtype, name, ip, time.time()))
 
     return 0
