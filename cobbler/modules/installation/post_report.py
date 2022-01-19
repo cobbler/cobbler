@@ -30,7 +30,7 @@ def run(api, args) -> int:
 
     :param api: The api to resolve information with.
     :param args: This is an array with three elements.
-                 0: "target" or "profile"
+                 0: "system" or "profile"
                  1: name of target or profile
                  2: ip or "?"
     :return: ``0`` or ``1``.
@@ -50,8 +50,10 @@ def run(api, args) -> int:
 
     if objtype == "system":
         target = api.find_system(name)
-    else:
+    elif objtype == "profile":
         target = api.find_profile(name)
+    else:
+        return 1
 
     # collapse the object down to a rendered datastructure
     target = utils.blender(api, False, target)
@@ -75,32 +77,34 @@ def run(api, args) -> int:
 
     subject = settings.build_reporting_subject
     if subject == "":
-        subject = '[Cobbler] install complete '
+        subject = "[Cobbler] install complete "
 
     to_addr = ",".join(to_addr)
     metadata = {
         "from_addr": from_addr,
         "to_addr": to_addr,
         "subject": subject,
-        "boot_ip": boot_ip
+        "boot_ip": boot_ip,
     }
     metadata.update(target)
 
     with open("/etc/cobbler/reporting/build_report_email.template") as input_template:
         input_data = input_template.read()
 
-        message = templar.Templar(api._collection_mgr).render(input_data, metadata, None)
+        message = templar.Templar(api._collection_mgr).render(
+            input_data, metadata, None
+        )
 
         sendmail = True
         for prefix in settings.build_reporting_ignorelist:
-            if prefix != '' and name.lower().startswith(prefix):
+            if prefix != "" and name.lower().startswith(prefix):
                 sendmail = False
 
         if sendmail:
             # Send the mail
             # FIXME: on error, return non-zero
             server_handle = smtplib.SMTP(smtp_server)
-            server_handle.sendmail(from_addr, to_addr.split(','), message)
+            server_handle.sendmail(from_addr, to_addr.split(","), message)
             server_handle.quit()
 
     return 0
