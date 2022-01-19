@@ -52,14 +52,6 @@ cobbler.modules.authentication.spacewalk module
    :undoc-members:
    :show-inheritance:
 
-cobbler.modules.authentication.testing module
----------------------------------------------
-
-.. automodule:: cobbler.modules.authentication.testing
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 
