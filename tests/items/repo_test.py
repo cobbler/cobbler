@@ -1,7 +1,12 @@
 from cobbler import enums
 from cobbler.api import CobblerAPI
 from cobbler.items.repo import Repo
+import pytest
+from contextlib import contextmanager
 
+@contextmanager
+def does_not_raise():
+    yield
 
 def test_object_creation():
     # Arrange
@@ -162,18 +167,27 @@ def test_os_version():
     assert testrepo.breed == enums.RepoBreeds.YUM
     assert testrepo.os_version == "rhel4"
 
-
-def test_arch():
+@pytest.mark.parametrize("value,expected_exception", [
+    ("x86_64", does_not_raise()),
+    (enums.RepoArchs.X86_64, does_not_raise()),
+    (enums.Archs.X86_64, pytest.raises(AssertionError)),
+    (False, pytest.raises(TypeError)),
+    ("", pytest.raises(ValueError))
+])
+def test_arch(value, expected_exception):
     # Arrange
     test_api = CobblerAPI()
     testrepo = Repo(test_api)
 
     # Act
-    testrepo.arch = "x86_64"
+    with expected_exception:
+        testrepo.arch = value
 
     # Assert
-    assert testrepo.arch == enums.RepoArchs.X86_64
-
+        if isinstance(value, str):
+            assert testrepo.arch.value == value
+        else:
+            assert testrepo.arch == value
 
 def test_mirror_locally():
     # Arrange

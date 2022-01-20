@@ -423,7 +423,13 @@ class Repo(item.Item):
                 arch = enums.RepoArchs[arch.upper()]
             except KeyError as error:
                 raise ValueError("arch choices include: %s" % list(map(str, enums.RepoArchs))) from error
-        # Now the arch MUST be of the type of enums.
+        # Convert an arch which came in as an enums.Archs
+        if isinstance(arch, enums.Archs):
+            try:
+                arch = enums.RepoArchs[arch.name.upper()]
+            except KeyError as error:
+                raise ValueError("arch choices include: %s" % list(map(str, enums.RepoArchs))) from error
+        # Now the arch MUST be of the type of enums.RepoArchs
         if not isinstance(arch, enums.RepoArchs):
             raise TypeError("arch needs to be of type enums.RepoArchs")
         self._arch = arch
