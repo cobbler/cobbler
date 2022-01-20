@@ -26,30 +26,6 @@ Author
 
 `Orion Poplawski <https://github.com/opoplawski>`_
 
-mkgrub.sh
-#########
-
-Description
-===========
-
-This script will try to generate UEFI bootable bootloaders for your Cobbler installation. The script was written for Bash
-but should be POSIX compliant. Be advised that only executing this script won't make your Cobbler installation UEFI
-ready.
-
-Execution examples
-==================
-
-.. code-block:: shell
-
-   export SYSLINUX_DIR=/usr/share/...;./mkgrub.sh
-   export $GRUB2_MOD_DIR=/usr/share/...;./mkgrub.sh
-   ./mkgrub.sh
-
-Author
-======
-
-`Thomas Renninger <https://github.com/watologo1>`_
-
 settings-migration-v1-to-v2.sh
 ##############################
 
