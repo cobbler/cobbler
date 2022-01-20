@@ -4,7 +4,8 @@ Cobbler CLI
 
 This page contains a description for commands which can be used from the CLI.
 
-.. Go Client: https://github.com/jtopjian/cobblerclient
+.. note:: We are currently developing a new CLI which is independent from the server.
+          This document redirects you to the new documentation once the new CLI is ready.
 
 General Principles
 ##################
