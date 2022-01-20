@@ -1035,6 +1035,8 @@ most of the other Cobbler commands (currently: distro, profile, system, repo, im
 
 Optional parameter which filters for object with the given name.
 
+.. _cobbler-cli-reposync:
+
 Cobbler reposync
 ================
 
