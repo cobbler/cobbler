@@ -1074,6 +1074,8 @@ The flags ``--tries=N`` (for example, ``--tries=3``) and ``--no-fail`` should li
 crontab. They ensure network glitches in one repo can be retried and also that a failure to synchronize one repo does
 not stop other repositories from being synchronized.
 
+.. _cli-cobbler-sync:
+
 Cobbler sync
 ============
 

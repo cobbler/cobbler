@@ -12,6 +12,8 @@ User Guide
    Building ISOs <user-guide/building-isos>
    GRUB and everything related <user-guide/grub>
    Repository Management <user-guide/repository-management>
+   The TFTP Directory <user-guide/tftp>
+   Internal Database <user-guide/internal-database>
 
 
 API
