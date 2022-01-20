@@ -206,6 +206,8 @@ class Image(item.Item):
         if len(auth) > 0 and len(hostname) == 0:
             raise SyntaxError("a hostname must be specified with authentication details")
 
+        self._file = uri
+
     @property
     def os_version(self) -> str:
         r"""

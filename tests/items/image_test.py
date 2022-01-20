@@ -56,10 +56,10 @@ def test_file():
     image = Image(test_api)
 
     # Act
-    image.file = ""
+    image.file = "/tmp/test"
 
     # Assert
-    assert image.file == ""
+    assert image.file == "/tmp/test"
 
 
 def test_os_version():
