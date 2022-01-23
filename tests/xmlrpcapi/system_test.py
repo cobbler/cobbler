@@ -142,6 +142,24 @@ class TestSystem:
         # Assert --> A not exiting system returns an empty list
         assert result == []
 
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_testprofile", "remove_testdistro",
+                             "remove_testmenu", "remove_testprofile", "remove_testsystem")
+    def test_add_interface_to_system(self, remote, token):
+        """
+        Test: add an interface to a system
+        """
+
+        # Arrange
+        system = remote.new_system(token)
+        remote.modify_system(system, "name", "testsystem0", token)
+        remote.modify_system(system, "profile", "testprofile0", token)
+
+        # Act
+        result = remote.modify_system(system, "modify_interface", {"macaddress-eth0": "aa:bb:cc:dd:ee:ff"}, token)
+
+        # Assert --> returns true if successful
+        assert result
+
     @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_testprofile", "create_testsystem",
                              "remove_testdistro",
                              "remove_testmenu", "remove_testprofile", "remove_testsystem")
