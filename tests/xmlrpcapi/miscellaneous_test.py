@@ -13,8 +13,18 @@ class TestMiscellaneous:
     Class to test remote calls to cobbler which do not belong into a specific category.
     """
 
-    def test_clear_system_logs(self, remote, token, create_kernel_initrd, create_distro, create_profile, create_system,
-                               remove_distro, remove_profile, remove_system):
+    def test_clear_system_logs(
+        self,
+        remote,
+        token,
+        create_kernel_initrd,
+        create_distro,
+        create_profile,
+        create_system,
+        remove_distro,
+        remove_profile,
+        remove_system,
+    ):
         # Arrange
         fk_kernel = "vmlinuz1"
         fk_initrd = "initrd1.img"
@@ -40,8 +50,18 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    def test_disable_netboot(self, remote, token, create_distro, remove_distro, create_profile, remove_profile,
-                             create_system, remove_system, create_kernel_initrd):
+    def test_disable_netboot(
+        self,
+        remote,
+        token,
+        create_distro,
+        remove_distro,
+        create_profile,
+        remove_profile,
+        create_system,
+        remove_system,
+        create_kernel_initrd,
+    ):
         # Arrange
         fk_kernel = "vmlinuz1"
         fk_initrd = "initrd1.img"
@@ -79,7 +99,9 @@ class TestMiscellaneous:
         assert type(result.get("version_tuple")) == list
         assert [3, 3, 1] == result.get("version_tuple")
 
-    def test_find_items_paged(self, remote, token, create_distro, remove_distro, create_kernel_initrd):
+    def test_find_items_paged(
+        self, remote, token, create_distro, remove_distro, create_kernel_initrd
+    ):
         # Arrange
         fk_kernel = "vmlinuz1"
         fk_initrd = "initrd1.img"
@@ -115,10 +137,22 @@ class TestMiscellaneous:
         assert "pages" in result["pageinfo"]
         assert result["pageinfo"]["pages"] == [1, 2]
 
-    @pytest.mark.skip("This functionality was implemented very quickly. The test for this needs to be fixed at a "
-                      "later point!")
-    def test_find_system_by_dns_name(self, remote, token, create_distro, remove_distro, create_profile, remove_profile,
-                                     create_system, remove_system, create_kernel_initrd):
+    @pytest.mark.skip(
+        "This functionality was implemented very quickly. The test for this needs to be fixed at a "
+        "later point!"
+    )
+    def test_find_system_by_dns_name(
+        self,
+        remote,
+        token,
+        create_distro,
+        remove_distro,
+        create_profile,
+        remove_profile,
+        create_system,
+        remove_system,
+        create_kernel_initrd,
+    ):
         # Arrange
         fk_kernel = "vmlinuz1"
         fk_initrd = "initrd1.img"
@@ -146,8 +180,17 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    def test_generate_script(self, remote, create_distro, remove_distro, create_profile, remove_profile,
-                             create_system, remove_system, create_kernel_initrd):
+    def test_generate_script(
+        self,
+        remote,
+        create_distro,
+        remove_distro,
+        create_profile,
+        remove_profile,
+        create_system,
+        remove_system,
+        create_kernel_initrd,
+    ):
         # Arrange
         fk_kernel = "vmlinuz1"
         fk_initrd = "initrd1.img"
@@ -171,7 +214,9 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    def test_get_item_as_rendered(self, remote, token, create_distro, remove_distro, create_kernel_initrd):
+    def test_get_item_as_rendered(
+        self, remote, token, create_distro, remove_distro, create_kernel_initrd
+    ):
         # Arrange
         fk_kernel = "vmlinuz1"
         fk_initrd = "initrd1.img"
@@ -190,7 +235,9 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    def test_get_s_since(self, remote, create_distro, remove_distro, create_kernel_initrd):
+    def test_get_s_since(
+        self, remote, create_distro, remove_distro, create_kernel_initrd
+    ):
         # Arrange
         fk_kernel = "vmlinuz1"
         fk_initrd = "initrd1.img"
@@ -223,8 +270,17 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    def test_get_blended_data(self, remote, create_distro, remove_distro, create_profile, remove_profile,
-                              create_system, remove_system, create_kernel_initrd):
+    def test_get_blended_data(
+        self,
+        remote,
+        create_distro,
+        remove_distro,
+        create_profile,
+        remove_profile,
+        create_system,
+        remove_system,
+        create_kernel_initrd,
+    ):
         # Arrange
         fk_kernel = "vmlinuz1"
         fk_initrd = "initrd1.img"
@@ -249,8 +305,18 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    def test_get_config_data(self, remote, token, create_distro, remove_distro, create_profile, remove_profile,
-                             create_system, remove_system, create_kernel_initrd):
+    def test_get_config_data(
+        self,
+        remote,
+        token,
+        create_distro,
+        remove_distro,
+        create_profile,
+        remove_profile,
+        create_system,
+        remove_system,
+        create_kernel_initrd,
+    ):
         # Arrange
         fk_kernel = "vmlinuz1"
         fk_initrd = "initrd1.img"
@@ -278,8 +344,18 @@ class TestMiscellaneous:
         # Assert
         assert json.loads(result)
 
-    def test_get_repos_compatible_with_profile(self, remote, token, create_distro, remove_distro, create_profile,
-                                               remove_profile, create_repo, remove_repo, create_kernel_initrd):
+    def test_get_repos_compatible_with_profile(
+        self,
+        remote,
+        token,
+        create_distro,
+        remove_distro,
+        create_profile,
+        remove_profile,
+        create_repo,
+        remove_repo,
+        create_kernel_initrd,
+    ):
         # Arrange
         fk_kernel = "vmlinuz1"
         fk_initrd = "initrd1.img"
@@ -293,7 +369,9 @@ class TestMiscellaneous:
         create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
         create_profile(name_profile, name_distro, "text")
         repo_compatible = create_repo(name_repo_compatible, "http://localhost", False)
-        repo_incompatible = create_repo(name_repo_incompatible, "http://localhost", False)
+        repo_incompatible = create_repo(
+            name_repo_incompatible, "http://localhost", False
+        )
         remote.modify_repo(repo_compatible, "arch", "x86_64", token)
         remote.save_repo(repo_compatible, token)
         remote.modify_repo(repo_incompatible, "arch", "ppc64le", token)
@@ -320,10 +398,20 @@ class TestMiscellaneous:
         # Assert
         assert result == {}
 
-    @pytest.mark.skip("The function under test appears to have a bug. For now we skip the test.")
-    def test_get_template_file_for_profile(self, remote, create_distro, remove_distro, create_profile, remove_profile,
-                                           create_autoinstall_template, remove_autoinstall_template,
-                                           create_kernel_initrd):
+    @pytest.mark.skip(
+        "The function under test appears to have a bug. For now we skip the test."
+    )
+    def test_get_template_file_for_profile(
+        self,
+        remote,
+        create_distro,
+        remove_distro,
+        create_profile,
+        remove_profile,
+        create_autoinstall_template,
+        remove_autoinstall_template,
+        create_kernel_initrd,
+    ):
         # Arrange
         fk_kernel = "vmlinuz1"
         fk_initrd = "initrd1.img"
@@ -350,9 +438,19 @@ class TestMiscellaneous:
         # Assert
         assert result == content_template
 
-    def test_get_template_file_for_system(self, remote, create_distro, remove_distro, create_profile, remove_profile,
-                                          create_system, remove_system, create_autoinstall_template,
-                                          remove_autoinstall_template, create_kernel_initrd):
+    def test_get_template_file_for_system(
+        self,
+        remote,
+        create_distro,
+        remove_distro,
+        create_profile,
+        remove_profile,
+        create_system,
+        remove_system,
+        create_autoinstall_template,
+        remove_autoinstall_template,
+        create_kernel_initrd,
+    ):
         # Arrange
         fk_kernel = "vmlinuz1"
         fk_initrd = "initrd1.img"
@@ -381,8 +479,16 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    def test_is_autoinstall_in_use(self, remote, token, create_distro, remove_distro, create_profile, remove_profile,
-                                   create_kernel_initrd):
+    def test_is_autoinstall_in_use(
+        self,
+        remote,
+        token,
+        create_distro,
+        remove_distro,
+        create_profile,
+        remove_profile,
+        create_kernel_initrd,
+    ):
         # Arrange
         fk_kernel = "vmlinuz1"
         fk_initrd = "initrd1.img"
@@ -426,7 +532,9 @@ class TestMiscellaneous:
         # Assert
         assert result == 1
 
-    def test_read_autoinstall_template(self, remote, token, create_autoinstall_template, remove_autoinstall_template):
+    def test_read_autoinstall_template(
+        self, remote, token, create_autoinstall_template, remove_autoinstall_template
+    ):
         # Arrange
         name = "test_template_name"
         create_autoinstall_template(name, "# Testtemplate")
@@ -440,7 +548,9 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    def test_write_autoinstall_template(self, remote, token, remove_autoinstall_template):
+    def test_write_autoinstall_template(
+        self, remote, token, remove_autoinstall_template
+    ):
         # Arrange
         name = "testtemplate"
 
@@ -453,7 +563,9 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    def test_remove_autoinstall_template(self, remote, token, create_autoinstall_template):
+    def test_remove_autoinstall_template(
+        self, remote, token, create_autoinstall_template
+    ):
         # Arrange
         name = "test_template_remove"
         create_autoinstall_template(name, "# Testtemplate")
@@ -464,7 +576,9 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    def test_read_autoinstall_snippet(self, remote, token, testsnippet, snippet_add, snippet_remove):
+    def test_read_autoinstall_snippet(
+        self, remote, token, testsnippet, snippet_add, snippet_remove
+    ):
         # Arrange
         snippet_name = "testsnippet_read"
         snippet_add(snippet_name, testsnippet)
@@ -478,7 +592,9 @@ class TestMiscellaneous:
         # Cleanup
         snippet_remove(snippet_name)
 
-    def test_write_autoinstall_snippet(self, remote, token, testsnippet, snippet_remove):
+    def test_write_autoinstall_snippet(
+        self, remote, token, testsnippet, snippet_remove
+    ):
         # Arrange
         # See fixture: testsnippet
         name = "testsnippet_write"
@@ -503,13 +619,44 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    def test_run_install_triggers(self, remote, token):
+    def test_run_install_triggers(
+        self,
+        remote,
+        token,
+        create_kernel_initrd,
+        create_distro,
+        create_profile,
+        create_system,
+        remove_distro,
+        remove_profile,
+        remove_system,
+    ):
         # Arrange
-        # TODO: Needs a system as a target
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        name_distro = "testdistro_run_install_triggers"
+        name_profile = "testprofile_run_install_triggers"
+        name_system = "testsystem_run_install_triggers"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
+
+        distro = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+        profile = create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
+        system = create_system(name_system, name_profile)
 
         # Act
-        result_pre = remote.run_install_triggers("pre", "system", "systemname", "10.0.0.2", token)
-        result_post = remote.run_install_triggers("post", "system", "systemname", "10.0.0.2", token)
+        result_pre = remote.run_install_triggers(
+            "pre", "system", name_system, "10.0.0.2", token
+        )
+        result_post = remote.run_install_triggers(
+            "post", "system", name_system, "10.0.0.2", token
+        )
+
+        # Cleanup
+        remove_distro(name_distro)
+        remove_profile(name_profile)
+        remove_system(name_system)
 
         # Assert
         assert result_pre
@@ -535,9 +682,19 @@ class TestMiscellaneous:
         name = "testdistro_xapi_edit"
 
         # Act
-        result = remote.xapi_object_edit("distro", name, "add",
-                                         {"name": name, "arch": "x86_64", "breed": "suse", "kernel": path_kernel,
-                                          "initrd": path_initrd}, token)
+        result = remote.xapi_object_edit(
+            "distro",
+            name,
+            "add",
+            {
+                "name": name,
+                "arch": "x86_64",
+                "breed": "suse",
+                "kernel": path_kernel,
+                "initrd": path_initrd,
+            },
+            token,
+        )
 
         # Cleanup
         remove_distro(name)
@@ -545,8 +702,14 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "remove_testdistro",
-                             "remove_testmenu", "remove_testprofile")
+    @pytest.mark.usefixtures(
+        "create_testdistro",
+        "create_testmenu",
+        "create_profile",
+        "remove_testdistro",
+        "remove_testmenu",
+        "remove_testprofile",
+    )
     def test_render_vars(self, remote, token):
         """
         Test: string replacements for @@xyz@@
@@ -564,13 +727,23 @@ class TestMiscellaneous:
         assert True
 
     @pytest.mark.skip("Functionality is broken!")
-    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_testprofile", "create_testsystem",
-                             "remove_testdistro", "remove_testmenu", "remove_testprofile", "remove_testsystem")
+    @pytest.mark.usefixtures(
+        "create_testdistro",
+        "create_testmenu",
+        "create_testprofile",
+        "create_testsystem",
+        "remove_testdistro",
+        "remove_testmenu",
+        "remove_testprofile",
+        "remove_testsystem",
+    )
     def test_upload_log_data(self, remote):
         # Arrange
 
         # Act
-        result = remote.upload_log_data("testsystem0", "testinstall.log", 0, 0, b"asdas")
+        result = remote.upload_log_data(
+            "testsystem0", "testinstall.log", 0, 0, b"asdas"
+        )
 
         # Assert
         assert isinstance(result, bool)
