@@ -33,6 +33,15 @@ RUN zypper install --no-recommends -y \
     python3-setuptools         \
     python3-pip                \
     python3-wheel              \
+    python3-Cheetah3           \
+    python3-distro             \
+    python3-dnspython          \
+    python3-Jinja2             \
+    python3-requests           \
+    python3-PyYAML             \
+    python3-pykickstart        \
+    python3-netaddr            \
+    python3-pymongo            \
     rpm-build                  \
     rsync                      \
     supervisor                 \
@@ -59,6 +68,13 @@ RUN zypper install --no-recommends -y \
     system-user-nobody                \
     sysvinit-tools
 
+# Required for ldap tests
+RUN zypper install --no-recommends -y \
+    openldap2                         \
+    openldap2-client                  \
+    hostname                          \
+    python3-ldap
+
 # Dependencies for system-tests
 RUN zypper install --no-recommends -y \
     dhcp-server                       \
@@ -80,23 +96,14 @@ RUN pip3 install --upgrade pip
 
 # Install packages and dependencies via pip
 RUN pip3 install      \
-    Cheetah3          \
     codecov           \
-    distro            \
-    dnspython         \
     file-magic        \
-    Jinja2            \
-    netaddr           \
     pycodestyle       \
     pyflakes          \
-    pykickstart       \
-    pymongo           \
     pytest            \
     pytest-cov        \
     pytest-mock       \
-    pytest-pythonpath \
-    pyyaml            \
-    requests
+    pytest-pythonpath
 
 # Enable the Apache Modules
 RUN ["a2enmod", "version"]
