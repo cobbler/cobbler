@@ -208,7 +208,7 @@ def name_servers_search(search: Union[str, list], for_item: bool = True) -> Unio
     Validate nameservers search domains.
 
     :param search: One or more search domains to validate.
-    :param for_item: (enable/disable special handling for Item objects)
+    :param for_item: enable/disable special handling for Item objects
     :return: The list of valid nameservers.
     :raises TypeError: Raised if ``search`` is not a string or list.
     """
@@ -282,26 +282,6 @@ def validate_os_version(os_version: str, breed: str) -> str:
     return os_version
 
 
-def validate_arch(arch: Union[str, enums.Archs]) -> enums.Archs:
-    """
-    This is a validator for system architectures. If the arch is not valid then an exception is raised.
-
-    :param arch: The desired architecture to set for the object.
-    :raises TypeError: In case the any type other then str or enums.Archs was supplied.
-    :raises ValueError: In case the supplied str could not be converted.
-    """
-    # Convert an arch which came in as a string
-    if isinstance(arch, str):
-        try:
-            arch = enums.Archs[arch.upper()]
-        except KeyError as error:
-            raise ValueError("arch choices include: %s" % list(map(str, enums.Archs))) from error
-    # Now the arch MUST be from the type for the enum.
-    if not isinstance(arch, enums.Archs):
-        raise TypeError("arch needs to be of type enums.Archs")
-    return arch
-
-
 def validate_repos(repos: list, api, bypass_check: bool = False):
     """
     This is a setter for the repository.
@@ -363,28 +343,6 @@ def validate_virt_file_size(num: Union[str, int, float]):
     return num
 
 
-def validate_virt_disk_driver(driver: Union[enums.VirtDiskDrivers, str]):
-    """
-    For Virt only. Specifies the on-disk format for the virtualized disk
-
-    :param driver: The virt driver to set.
-    """
-    if not isinstance(driver, (str, enums.VirtDiskDrivers)):
-        raise TypeError("driver needs to be of type str or enums.VirtDiskDrivers")
-    # Convert an driver which came in as a string
-    if isinstance(driver, str):
-        if driver == enums.VALUE_INHERITED:
-            return enums.VirtDiskDrivers.INHERTIED
-        try:
-            driver = enums.VirtDiskDrivers[driver.upper()]
-        except KeyError as error:
-            raise ValueError("driver choices include: %s" % list(map(str, enums.VirtDiskDrivers))) from error
-    # Now the arch MUST be from the type for the enum.
-    if driver not in enums.VirtDiskDrivers:
-        raise ValueError("invalid virt disk driver type (%s)" % driver)
-    return driver
-
-
 def validate_virt_auto_boot(value: bool) -> bool:
     """
     For Virt only.
@@ -439,28 +397,6 @@ def validate_virt_ram(value: Union[int, str]) -> Union[str, int]:
         raise ValueError("The virt_ram needs to have a value greater or equal to zero. Zero means default RAM."
                          % str(value))
     return interger_number
-
-
-def validate_virt_type(vtype: Union[enums.VirtType, str]):
-    """
-    Virtualization preference, can be overridden by koan.
-
-    :param vtype: May be one of "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz" or "auto"
-    """
-    if not isinstance(vtype, (str, enums.VirtType)):
-        raise TypeError("driver needs to be of type str or enums.VirtDiskDrivers")
-    # Convert an arch which came in as a string
-    if isinstance(vtype, str):
-        if vtype == enums.VALUE_INHERITED:
-            return enums.VALUE_INHERITED
-        try:
-            vtype = enums.VirtType[vtype.upper()]
-        except KeyError as error:
-            raise ValueError("vtype choices include: %s" % list(map(str, enums.VirtType))) from error
-    # Now it must be of the enum Type
-    if vtype not in enums.VirtType:
-        raise ValueError("invalid virt type (%s)" % vtype)
-    return vtype
 
 
 def validate_virt_bridge(vbridge: str) -> str:
@@ -677,23 +613,3 @@ def validate_obj_id(object_id: str) -> bool:
         object_id = object_id[9:]
     (otype, oname) = object_id.split("::", 1)
     return validate_obj_type(otype) and validate_obj_name(oname)
-
-
-def validate_ldap_tls_reqcert(ldap_tls_reqcert: Union[enums.TlsRequireCert, str]) -> enums.TlsRequireCert:
-    """
-    Validation strategy for server cert
-
-    :param ldap_tls_reqcert: May be one of "never", "allow", "demand" or "hard"
-    """
-    if not isinstance(ldap_tls_reqcert, (str, enums.TlsRequireCert)):
-        raise TypeError("TLS require cert needs to be of type str or enums.TlsRequireCert")
-    # Convert an tls_reqcert which came in as a string
-    if isinstance(ldap_tls_reqcert, str):
-        try:
-            ldap_tls_reqcert = enums.TlsRequireCert[ldap_tls_reqcert.upper()]
-        except KeyError as error:
-            raise ValueError("ldap_tls_reqcert choices include: %s" % list(map(str, enums.TlsRequireCert))) from error
-    # Now it must be of the enum Type
-    if ldap_tls_reqcert not in enums.TlsRequireCert:
-        raise ValueError("invalid TLS require cert type (%s)" % ldap_tls_reqcert)
-    return ldap_tls_reqcert

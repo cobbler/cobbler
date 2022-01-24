@@ -119,7 +119,7 @@ class Image(item.Item):
 
         :param arch: The new architecture to set.
         """
-        self._arch = validate.validate_arch(arch)
+        self._arch = enums.Archs.to_enum(arch)
 
     @property
     def autoinstall(self) -> str:
@@ -392,7 +392,7 @@ class Image(item.Item):
 
         :param driver: The virtual disk driver which will be set.
         """
-        self._virt_disk_driver = validate.validate_virt_disk_driver(driver)
+        self._virt_disk_driver = enums.VirtDiskDrivers.to_enum(driver)
 
     @property
     def virt_ram(self) -> int:
@@ -430,7 +430,7 @@ class Image(item.Item):
 
         :param vtype: May be one of "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz" or "auto".
         """
-        self._virt_type = validate.validate_virt_type(vtype)
+        self._virt_type = enums.VirtType.to_enum(vtype)
 
     @property
     def virt_bridge(self) -> str:

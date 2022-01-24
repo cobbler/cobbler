@@ -356,17 +356,7 @@ class Repo(item.Item):
         :raises TypeError: In case the value was not of the corresponding enum type.
         :raises ValueError: In case a ``str`` with could not be converted to a valid breed.
         """
-        # Convert an arch which came in as a string
-        if isinstance(breed, str):
-            try:
-                breed = enums.RepoBreeds[breed.upper()]
-            except KeyError as error:
-                raise ValueError("invalid value for --breed (%s), must be one of %s, different breeds have different "
-                                 "levels of support " % (breed, list(map(str, enums.RepoBreeds)))) from error
-        # Now the arch MUST be of the type of enums.
-        if not isinstance(breed, enums.RepoBreeds):
-            raise TypeError("breed needs to be of type enums.RepoBreeds")
-        self._breed = breed
+        self._breed = enums.RepoBreeds.to_enum(breed)
 
     @property
     def os_version(self) -> str:
@@ -417,22 +407,13 @@ class Repo(item.Item):
         :raises TypeError: In case the wrong type is given.
         :raises ValueError: In case the value could not be converted from ``str`` to the enum type.
         """
-        # Convert an arch which came in as a string
-        if isinstance(arch, str):
-            try:
-                arch = enums.RepoArchs[arch.upper()]
-            except KeyError as error:
-                raise ValueError("arch choices include: %s" % list(map(str, enums.RepoArchs))) from error
         # Convert an arch which came in as an enums.Archs
         if isinstance(arch, enums.Archs):
             try:
                 arch = enums.RepoArchs[arch.name.upper()]
             except KeyError as error:
                 raise ValueError("arch choices include: %s" % list(map(str, enums.RepoArchs))) from error
-        # Now the arch MUST be of the type of enums.RepoArchs
-        if not isinstance(arch, enums.RepoArchs):
-            raise TypeError("arch needs to be of type enums.RepoArchs")
-        self._arch = arch
+        self._arch = enums.RepoArchs.to_enum(arch)
 
     @property
     def mirror_locally(self) -> bool:

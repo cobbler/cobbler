@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import traceback
 
 from cobbler.cexceptions import CX
-from cobbler import validate
 from cobbler import enums
 
 
@@ -106,7 +105,7 @@ def authenticate(api_handle, username, password) -> bool:
         if tls_certfile:
             ldaps_tls.set_option(ldap.OPT_X_TLS_CERTFILE, tls_certfile)
         if tls_reqcert:
-            req_cert = validate.validate_ldap_tls_reqcert(tls_reqcert)
+            req_cert = enums.TlsRequireCert.to_enum(tls_reqcert)
             reqcert_types = {enums.TlsRequireCert.NEVER: ldap.OPT_X_TLS_NEVER,
                              enums.TlsRequireCert.ALLOW: ldap.OPT_X_TLS_ALLOW,
                              enums.TlsRequireCert.DEMAND: ldap.OPT_X_TLS_DEMAND,

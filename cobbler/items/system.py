@@ -399,8 +399,7 @@ class NetworkInterface:
         """
         Setter for the interface_type of the NetworkInterface class.
 
-
-        :param intf_type:
+        :param intf_type: The interface type to be set. Will be autoconverted to the enum type if possible.
         """
         if not isinstance(intf_type, (enums.NetworkInterfaceType, int, str)):
             raise TypeError("interface intf_type type must be of int, str or enums.NetworkInterfaceType")
@@ -795,7 +794,7 @@ class System(Item):
         self._virt_path = enums.VALUE_INHERITED
         self._virt_pxe_boot = False
         self._virt_ram : Union[int, str] = enums.VALUE_INHERITED
-        self._virt_type = enums.VirtType.INHERTIED
+        self._virt_type = enums.VirtType.INHERITED
         self._serial_device = 0
         self._serial_baud_rate = enums.BaudRates.B0
 
@@ -1582,7 +1581,7 @@ class System(Item):
 
         :param driver:
         """
-        self._virt_disk_driver = validate.validate_virt_disk_driver(driver)
+        self._virt_disk_driver = enums.VirtDiskDrivers.to_enum(driver)
 
     @property
     def virt_auto_boot(self) -> bool:
@@ -1666,7 +1665,7 @@ class System(Item):
 
         :param vtype:
         """
-        self._virt_type = validate.validate_virt_type(vtype)
+        self._virt_type = enums.VirtType.to_enum(vtype)
 
     @property
     def virt_path(self) -> str:
