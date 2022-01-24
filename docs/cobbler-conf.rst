@@ -1059,7 +1059,6 @@ Choices:
 - authentication.ldap       -- Authenticate against LDAP
 - authentication.spacewalk  -- Ask Spacewalk/Satellite (experimental)
 - authentication.pam        -- Use PAM facilities
-- authentication.testing    -- Username/password is always testing/testing (debug)
 - (user supplied)  -- You may write your own module
 
 .. note:: A new web interface is in the making. At the moment we do not have any documention, yet.

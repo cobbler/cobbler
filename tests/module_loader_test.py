@@ -110,8 +110,7 @@ def test_get_module_from_file(module_section, fallback_name, expected_exception)
                "cobbler.modules.authorization.ownership"]),
     ("authn", ["cobbler.modules.authentication.configfile", "cobbler.modules.authentication.denyall",
                "cobbler.modules.authentication.ldap", "cobbler.modules.authentication.pam",
-               "cobbler.modules.authentication.passthru", "cobbler.modules.authentication.spacewalk",
-               "cobbler.modules.authentication.testing"]),
+               "cobbler.modules.authentication.passthru", "cobbler.modules.authentication.spacewalk"]),
 ])
 def test_get_modules_in_category(category, expected_names):
     # Arrange -> Done in fixtures
