@@ -52,7 +52,7 @@ class _BindManager(ManagerModule):
         Expands an IPv6 address to long format i.e. ``xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx``
 
         This function was created by Chris Miller, approved for GLP use, taken verbatim from:
-        http://forrst.com/posts/Python_Expand_Abbreviated_IPv6_Addresses-1kQ
+        https://forrst.com/posts/Python_Expand_Abbreviated_IPv6_Addresses-1kQ
 
         :param address: Shortened IPv6 address.
         :return: The full IPv6 address.

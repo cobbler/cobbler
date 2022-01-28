@@ -2724,7 +2724,7 @@ class CobblerCLI:
         :param task_id: The id of the task to follow.
         """
         logfile = "/var/log/cobbler/cobbler.log"
-        # adapted from:  http://code.activestate.com/recipes/157035/
+        # adapted from:  https://code.activestate.com/recipes/157035/
         with open(logfile, "r") as file:
             # Find the size of the file and move to the end
             # st_results = os.stat(filename)
