@@ -27,6 +27,11 @@ class ConvertableEnum(enum.Enum):
         """
         try:
             if isinstance(value, str):
+                if value == VALUE_INHERITED:
+                    try:
+                        return cls["INHERITED"]
+                    except KeyError as key_error:
+                        raise ValueError("The enum given does not support inheritance!") from key_error
                 return cls[value.upper()]
             elif isinstance(value, cls):
                 return value
@@ -133,7 +138,7 @@ class VirtDiskDrivers(ConvertableEnum):
     This enum represents all virtual disk driver Cobbler can handle.
     """
 
-    INHERTIED = VALUE_INHERITED
+    INHERITED = VALUE_INHERITED
     RAW = "raw"
     QCOW2 = "qcow2"
     QED = "qed"

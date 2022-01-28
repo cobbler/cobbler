@@ -789,7 +789,7 @@ class System(Item):
         # FIXME: The virt_* attributes don't support inheritance yet
         self._virt_auto_boot: Union[bool, str] = enums.VALUE_INHERITED
         self._virt_cpus: Union[int, str] = enums.VALUE_INHERITED
-        self._virt_disk_driver = enums.VirtDiskDrivers.INHERTIED
+        self._virt_disk_driver = enums.VirtDiskDrivers.INHERITED
         self._virt_file_size: Union[float, str] = enums.VALUE_INHERITED
         self._virt_path = enums.VALUE_INHERITED
         self._virt_pxe_boot = False

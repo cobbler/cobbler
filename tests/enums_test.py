@@ -33,6 +33,7 @@ def test_validate_arch(test_architecture, test_raise):
     ("qemu", does_not_raise()),
     ("<<inherit>>", does_not_raise()),
     (enums.VirtType.QEMU, does_not_raise()),
+    (enums.VirtType.INHERITED, does_not_raise()),
     (0, pytest.raises(TypeError))
 ])
 def test_set_virt_type(value, expected_exception):
@@ -40,7 +41,7 @@ def test_set_virt_type(value, expected_exception):
 
     # Act
     with expected_exception:
-        result = enums.VirtType.to_enum("qemu")
+        result = enums.VirtType.to_enum(value)
 
         # Assert
         if isinstance(value, str):
@@ -54,6 +55,7 @@ def test_set_virt_type(value, expected_exception):
 @pytest.mark.parametrize("value,expected_exception", [
     ("allow", does_not_raise()),
     (enums.TlsRequireCert.ALLOW, does_not_raise()),
+    (enums.VALUE_INHERITED, pytest.raises(ValueError)),
     (0, pytest.raises(TypeError))
 ])
 def test_validate_ldap_tls_reqcert(value, expected_exception):
@@ -75,7 +77,7 @@ def test_validate_ldap_tls_reqcert(value, expected_exception):
 @pytest.mark.parametrize("test_driver,test_raise", [
     (enums.VirtDiskDrivers.RAW, does_not_raise()),
     (enums.VALUE_INHERITED, does_not_raise()),
-    (enums.VirtDiskDrivers.INHERTIED, does_not_raise()),
+    (enums.VirtDiskDrivers.INHERITED, does_not_raise()),
     ("qcow2", does_not_raise()),
     ("<<inherit>>", does_not_raise()),
     ("bad_driver", pytest.raises(ValueError)),
