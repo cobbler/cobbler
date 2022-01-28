@@ -21,7 +21,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import configparser
+import pathlib
 from configparser import ConfigParser
 
 from cobbler import settings
@@ -30,6 +31,7 @@ from cobbler.cexceptions import CX
 try:
     from pymongo import MongoClient
     from pymongo.errors import ConnectionFailure, ConfigurationError
+
     pymongo_loaded = True
 except ModuleNotFoundError:
     # FIXME: log message
@@ -42,22 +44,34 @@ def __connect(configfile: str = "/etc/cobbler/mongodb.conf"):
     """
     Reads the config file for mongodb and then connects to the mongodb.
     """
-    cp = ConfigParser()
-    cp.read(configfile)
+    if not pathlib.Path(configfile).is_file():
+        raise FileNotFoundError(
+            "Specified Cobbler MongoDB config file could not be found!"
+        )
 
-    host = cp.get("connection", "host")
-    port = int(cp.get("connection", "port"))
+    cp = ConfigParser()
+    try:
+        cp.read(configfile)
+    except configparser.Error as cp_error:
+        raise configparser.Error(
+            "Could not read Cobbler MongoDB config file!"
+        ) from cp_error
+
+    host = cp.get("connection", "host", fallback="localhost")
+    port = cp.getint("connection", "port", fallback=27017)
     # pylint: disable=global-statement
     global mongodb
-    mongodb = MongoClient(host, port)['cobbler']
+    mongodb = MongoClient(host, port)["cobbler"]
     try:
         # The ismaster command is cheap and doesn't require auth.
-        mongodb.admin.command('ismaster')
+        mongodb.admin.command("ismaster")
     except ConnectionFailure as e:
         # FIXME: log error
-        raise CX("Unable to connect to Mongo database or get database \"cobbler\"") from e
+        raise CX('Unable to connect to Mongo database or get database "cobbler"') from e
     except ConfigurationError as e:
-        raise CX("The configuration of the MongoDB connection isn't correct, please check the Cobbler settings.") from e
+        raise CX(
+            "The configuration of the MongoDB connection isn't correct, please check the Cobbler settings."
+        ) from e
 
 
 def register() -> str:
@@ -87,9 +101,9 @@ def serialize_item(collection, item):
 
     __connect()
     collection = mongodb[collection.collection_type()]
-    data = collection.find_one({'name': item.name})
+    data = collection.find_one({"name": item.name})
     if data:
-        collection.update({'name': item.name}, item.serialize())
+        collection.update({"name": item.name}, item.serialize())
     else:
         collection.insert(item.serialize())
 
@@ -104,7 +118,7 @@ def serialize_delete(collection, item):
 
     __connect()
     collection = mongodb[collection.collection_type()]
-    collection.remove({'name': item.name})
+    collection.remove({"name": item.name})
 
 
 def serialize(collection):
