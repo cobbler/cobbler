@@ -793,10 +793,10 @@ class System(Item):
         self._virt_file_size: Union[float, str] = enums.VALUE_INHERITED
         self._virt_path = enums.VALUE_INHERITED
         self._virt_pxe_boot = False
-        self._virt_ram : Union[int, str] = enums.VALUE_INHERITED
+        self._virt_ram: Union[int, str] = enums.VALUE_INHERITED
         self._virt_type = enums.VirtType.INHERITED
-        self._serial_device = 0
-        self._serial_baud_rate = enums.BaudRates.B0
+        self._serial_device = -1
+        self._serial_baud_rate = enums.BaudRates.DISABLED
 
         # Overwrite defaults from item.py
         self._owners = enums.VALUE_INHERITED
@@ -1963,11 +1963,10 @@ class System(Item):
     @property
     def serial_device(self) -> int:
         """
-        serial_device property.
+        serial_device property. "-1" disables the serial device functionality completely.
 
         :getter: Returns the value for ``serial_device``.
         :setter: Sets the value for the property ``serial_device``.
-        :return:
         """
         return self._serial_device
 
@@ -1976,19 +1975,17 @@ class System(Item):
         """
         Setter for the serial_device of the System class.
 
-
-        :param device_number:
+        :param device_number: The number of the device which is going
         """
         self._serial_device = validate.validate_serial_device(device_number)
 
     @property
     def serial_baud_rate(self) -> enums.BaudRates:
         """
-        serial_baud_rate property.
+        serial_baud_rate property. The value "disabled" will disable the functionality completely.
 
         :getter: Returns the value for ``serial_baud_rate``.
         :setter: Sets the value for the property ``serial_baud_rate``.
-        :return:
         """
         return self._serial_baud_rate
 

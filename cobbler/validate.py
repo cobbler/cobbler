@@ -466,8 +466,8 @@ def validate_serial_device(value: Union[str, int]) -> int:
         value = int(value)
     if not isinstance(value, int):
         raise TypeError("serial_device needs to be an integer")
-    if value < 0:
-        raise ValueError("serial_device needs to be 0 or greater")
+    if value < -1:
+        raise ValueError("serial_device needs to be -1 or greater")
     return int(value)
 
 
@@ -484,7 +484,10 @@ def validate_serial_baud_rate(baud_rate: Union[int, str, enums.BaudRates]) -> en
     # Convert the baud rate which came in as an int or str
     if isinstance(baud_rate, (int, str)):
         try:
-            baud_rate = enums.BaudRates["B" + str(baud_rate)]
+            if str(baud_rate).upper() == "DISABLED" or baud_rate == -1:
+                baud_rate = enums.BaudRates.DISABLED
+            else:
+                baud_rate = enums.BaudRates["B" + str(baud_rate)]
         except KeyError as key_error:
             raise ValueError("vtype choices include: %s" % list(map(str, enums.BaudRates))) from key_error
     # Now it must be of the enum Type

@@ -658,15 +658,15 @@ class TFTPGen:
 
         # store variables for templating
         if system:
-            if system.serial_device or system.serial_baud_rate:
-                if system.serial_device:
-                    serial_device = system.serial_device
-                else:
+            if system.serial_device > -1 or system.serial_baud_rate != enums.BaudRates.DISABLED:
+                if system.serial_device == -1:
                     serial_device = 0
-                if system.serial_baud_rate:
-                    serial_baud_rate = system.serial_baud_rate.value
                 else:
+                    serial_device = system.serial_device
+                if system.serial_baud_rate == enums.BaudRates.DISABLED:
                     serial_baud_rate = 115200
+                else:
+                    serial_baud_rate = system.serial_baud_rate.value
 
                 if format == "pxe":
                     buffer += "serial %d %d\n" % (serial_device, serial_baud_rate)

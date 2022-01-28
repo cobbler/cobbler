@@ -151,6 +151,7 @@ class BaudRates(enum.Enum):
     This enum describes all baud rates which are commonly used.
     """
 
+    DISABLED = -1
     B0 = 0
     B110 = 110
     B300 = 300
