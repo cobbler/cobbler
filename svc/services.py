@@ -36,7 +36,7 @@ def application(environ, start_response):
 
     if "VIRTUALENV" in environ and environ["VIRTUALENV"] != "":
         # VIRTUALENV Support
-        # see http://code.google.com/p/modwsgi/wiki/VirtualEnvironments
+        # see https://code.google.com/p/modwsgi/wiki/VirtualEnvironments
         import site
         import distutils.sysconfig
 

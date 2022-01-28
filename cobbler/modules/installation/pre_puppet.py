@@ -4,7 +4,7 @@ reinstalling a machine if the puppet master is running on the Cobbler
 server.
 
 Based on:
-http://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
+https://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
 """
 import logging
 import re

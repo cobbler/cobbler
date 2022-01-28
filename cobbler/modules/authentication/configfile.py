@@ -80,7 +80,7 @@ def authenticate(api_handle, username: str, password: str) -> bool:
     """
     Validate a username/password combo.
 
-    Thanks to http://trac.edgewall.org/ticket/845 for supplying the algorithm info.
+    Thanks to https://trac.edgewall.org/ticket/845 for supplying the algorithm info.
 
     :param api_handle: Unused in this implementation.
     :param username: The username to log in with. Must be contained in /etc/cobbler/users.digest
