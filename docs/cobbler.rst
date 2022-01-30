@@ -74,7 +74,7 @@ Long Usage:
 .. code-block:: shell
 
     cobbler <distro|profile|system|repo|image|mgmtclass|package|file|menu> ... [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]
-    cobbler <aclsetup|buildiso|import|list|mkgrub|replicate|report|reposync|sync|validate-autoinstalls|version|signature|hardlink> [options|--help]
+    cobbler <aclsetup|buildiso|import|list|mkloaders|replicate|report|reposync|sync|validate-autoinstalls|version|signature|hardlink> [options|--help]
 
 Cobbler distro
 ==============
@@ -1148,8 +1148,8 @@ Example:
 
     $ cobbler hardlink
 
-Cobbler mkgrub
-==============
+Cobbler mkloaders
+=================
 
 This command is used for generating UEFI bootable GRUB 2 bootloaders. This command has no options and is configured via
 the settings file of Cobbler. If available on the operating system Cobbler is running on, then this also generates
@@ -1162,7 +1162,7 @@ Example:
 
 .. code-block:: shell
 
-    $ cobbler mkgrub
+    $ cobbler mkloaders
 
 EXIT_STATUS
 ###########

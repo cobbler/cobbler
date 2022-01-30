@@ -11,10 +11,10 @@ Additional dependencies
 #######################
 
 If you wish to generate GRUB2 bootloaders in the EFI format please install the dependencies according to the arches you
-wish to boot with your Cobbler installation: ``grob2-ARCH-efi-modules``.
+wish to boot with your Cobbler installation: ``grub2-ARCH-efi-modules``.
 
-The command "cobbler mkloders"
-##############################
+The command "cobbler mkloaders"
+###############################
 
 This command can create a bootable GRUB2 bootloader in the EFI format. Thus it collects all modules and creates a
 bootable GRUB2 bootloader. The folder where this is executed is not relevant.
