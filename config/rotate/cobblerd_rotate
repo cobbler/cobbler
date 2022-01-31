@@ -10,7 +10,7 @@
    weekly
    create 644 root root
    postrotate
-      /sbin/service cobblerd condrestart > /dev/null 2>&1
+      /usr/bin/systemctl try-reload-or-restart cobblerd
    endscript
 }
 
