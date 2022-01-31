@@ -4,7 +4,8 @@ Cobbler CLI
 
 This page contains a description for commands which can be used from the CLI.
 
-.. Go Client: https://github.com/jtopjian/cobblerclient
+.. note:: We are currently developing a new CLI which is independent from the server.
+          This document redirects you to the new documentation once the new CLI is ready.
 
 General Principles
 ##################
@@ -1035,6 +1036,8 @@ most of the other Cobbler commands (currently: distro, profile, system, repo, im
 
 Optional parameter which filters for object with the given name.
 
+.. _cobbler-cli-reposync:
+
 Cobbler reposync
 ================
 
@@ -1070,6 +1073,8 @@ updates on multiple networks.
 The flags ``--tries=N`` (for example, ``--tries=3``) and ``--no-fail`` should likely be used when putting re-posync on a
 crontab. They ensure network glitches in one repo can be retried and also that a failure to synchronize one repo does
 not stop other repositories from being synchronized.
+
+.. _cli-cobbler-sync:
 
 Cobbler sync
 ============
