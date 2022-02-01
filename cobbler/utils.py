@@ -254,8 +254,11 @@ def service_restart(service_name: str):
     if is_supervisord():
         with ServerProxy('http://localhost:9001/RPC2') as server:
             server.supervisor.stopProcess(service_name)
-            server.supervisor.startProcess(service_name)
-        return
+            if server.supervisor.startProcess(service_name):  # returns a boolean
+                return 0
+            else:
+                logger.error("%s service failed", service_name)
+                return 1
     elif is_systemd():
         restart_command = "systemctl restart " + service_name
     elif is_service():
