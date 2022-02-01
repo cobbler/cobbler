@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - name: Build a CentOS 8 Package
+      - name: Build a Rocky Linux 8 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          ./docker/rpms/build-and-install-rpms.sh el8 docker/rpms/CentOS_8/CentOS8.dockerfile
+          ./docker/rpms/build-and-install-rpms.sh rl8 docker/rpms/Rocky_Linux_8/Rocky_Linux_8.dockerfile
   build-fedora34-rpms:
     runs-on: ubuntu-20.04
     steps:
