@@ -10,7 +10,6 @@ from cobbler import utils
 from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
-from cobbler.items.profile import Profile
 from cobbler.settings import Settings
 from tests.conftest import does_not_raise
 
@@ -918,3 +917,100 @@ def test_kopts_overwrite():
     # Assert
     assert "textmode" in kopts
     assert "info" in kopts
+
+
+def test_service_restart_no_manager(mocker):
+    # Arrange
+    mocker.patch(
+        "cobbler.utils.is_supervisord",
+        autospec=True,
+        return_value=False
+    )
+    mocker.patch(
+        "cobbler.utils.is_systemd",
+        autospec=True,
+        return_value=False
+    )
+    mocker.patch(
+        "cobbler.utils.is_service",
+        autospec=True,
+        return_value=False
+    )
+
+    # Act
+    result = utils.service_restart("testservice")
+
+    # Assert
+    assert result == 1
+
+
+def test_service_restart_supervisord(mocker):
+    mocker.patch(
+        "cobbler.utils.is_supervisord",
+        autospec=True,
+        return_value=True
+    )
+    # TODO Mock supervisor API and return value
+
+    # Act
+    result = utils.service_restart("dhcpd")
+
+    # Assert
+    # Currently we check for 1 because dhcpd is not running.
+    assert result == 1
+
+
+def test_service_restart_systemctl(mocker):
+    mocker.patch(
+        "cobbler.utils.is_supervisord",
+        autospec=True,
+        return_value=False
+    )
+    mocker.patch(
+        "cobbler.utils.is_systemd",
+        autospec=True,
+        return_value=True
+    )
+    mocker.patch(
+        "cobbler.utils.subprocess_call",
+        autospec=True,
+        return_value=0
+    )
+
+    # Act
+    result = utils.service_restart("testservice")
+
+    # Assert
+    assert result == 0
+    utils.subprocess_call.assert_called_with("systemctl restart testservice", True)
+
+
+def test_service_restart_service(mocker):
+    # Arrange
+    mocker.patch(
+        "cobbler.utils.is_supervisord",
+        autospec=True,
+        return_value=False
+    )
+    mocker.patch(
+        "cobbler.utils.is_systemd",
+        autospec=True,
+        return_value=False
+    )
+    mocker.patch(
+        "cobbler.utils.is_service",
+        autospec=True,
+        return_value=True
+    )
+    mocker.patch(
+        "cobbler.utils.subprocess_call",
+        autospec=True,
+        return_value=0
+    )
+
+    # Act
+    result = utils.service_restart("testservice")
+
+    # Assert
+    assert result == 0
+    utils.subprocess_call.assert_called_with("service testservice restart", True)
