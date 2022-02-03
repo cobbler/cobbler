@@ -36,6 +36,7 @@ import traceback
 import urllib.error
 import urllib.parse
 import urllib.request
+import xmlrpc.client
 from functools import reduce
 from pathlib import Path
 from typing import List, Optional, Pattern, Union
@@ -253,23 +254,24 @@ def service_restart(service_name: str):
     """
     if is_supervisord():
         with ServerProxy('http://localhost:9001/RPC2') as server:
-            server.supervisor.stopProcess(service_name)
-            if server.supervisor.startProcess(service_name):  # returns a boolean
-                return 0
-            else:
-                logger.error("%s service failed", service_name)
+            try:
+                server.supervisor.stopProcess(service_name)
+                if server.supervisor.startProcess(service_name):  # returns a boolean
+                    return 0
+            except xmlrpc.client.Fault as clientFault:
+                logger.error('Restarting service "%s" failed', service_name, exc_info=clientFault)
                 return 1
     elif is_systemd():
-        restart_command = "systemctl restart " + service_name
+        restart_command = "systemctl restart %s" % service_name
     elif is_service():
-        restart_command = "service " + service_name + " restart"
+        restart_command = "service %s restart" % service_name
     else:
         logger.warning('We could not restart service "%s" due to an unsupported process manager!', service_name)
-        return
+        return 1
 
     ret = subprocess_call(restart_command, True)
     if ret != 0:
-        logger.error("%s service failed", service_name)
+        logger.error('Restarting service "%s" failed', service_name)
     return ret
 
 
