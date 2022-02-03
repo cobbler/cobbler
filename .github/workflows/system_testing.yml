@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run the test suite
-        run: ./docker/rpms/build-and-install-rpms.sh --with-system-tests el8 docker/rpms/CentOS_8/CentOS8.dockerfile
+        run: ./docker/rpms/build-and-install-rpms.sh --with-system-tests rl8 docker/rpms/Rocky_Linux_8/Rocky_Linux_8.dockerfile
 
       - name: Publish the test results
         uses: actions/upload-artifact@v2

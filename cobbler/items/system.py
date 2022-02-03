@@ -941,18 +941,33 @@ class System(Item):
         raise ValueError("The values of the interfaces must be fully of type dict (one level with values) or "
                          "NetworkInterface objects")
 
-    def delete_interface(self, name: str):
+    def modify_interface(self, interface_values: dict):
+        """
+        Modifies a magic interface dictionary in the form of: {"macaddress-eth0" : "aa:bb:cc:dd:ee:ff"}
+        """
+        for key in interface_values.keys():
+            (_, interface) = key.split("-", 1)
+            if interface not in self.interfaces:
+                self.__create_interface(interface)
+            self.interfaces[interface].modify_interface({key: interface_values[key]})
+
+    def delete_interface(self, name: Union[str, dict]):
         """
         Used to remove an interface.
 
-        :raises TypeError: If the name of the interface is not of type str
+        :raises TypeError: If the name of the interface is not of type str or dict.
         """
-        if not isinstance(name, str):
-            raise TypeError("The name of the interface must be of type str")
-        if not name:
+        if isinstance(name, str):
+            if not name:
+                return
+            if name in self.interfaces:
+                self.interfaces.pop(name)
+                return
+        if isinstance(name, dict):
+            interface_name = name.get("interface", "")
+            self.interfaces.pop(interface_name)
             return
-        if name in self.interfaces:
-            self.interfaces.pop(name)
+        raise TypeError("The name of the interface must be of type str or dict")
 
     def rename_interface(self, old_name: str, new_name: str):
         r"""

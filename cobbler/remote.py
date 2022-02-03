@@ -1718,7 +1718,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("menu", token)
 
-    def modify_item(self, what, object_id, attribute, arg, token: str) -> bool:
+    def modify_item(self, what: str, object_id, attribute, arg, token: str) -> bool:
         """
         Adjusts the value of a given field, specified by 'what' on a given object id. Allows modification of certain
         attributes on newly created or existing distro object handle.
@@ -1733,6 +1733,20 @@ class CobblerXMLRPCInterface:
         self._log("modify_item(%s)" % what, object_id=object_id, attribute=attribute, token=token)
         obj = self.__get_object(object_id)
         self.check_access(token, "modify_%s" % what, obj, attribute)
+
+        if what == "system":
+            if attribute == "modify_interface":
+                obj.modify_interface(arg)
+                return True
+            elif attribute == "delete_interface":
+                obj.delete_interface(arg)
+                return True
+            elif attribute == "rename_interface":
+                obj.rename_interface(
+                    old_name=arg.get("interface", ""),
+                    new_name=arg.get("rename_interface", "")
+                )
+                return True
 
         if hasattr(obj, attribute):
             setattr(obj, attribute, arg)
