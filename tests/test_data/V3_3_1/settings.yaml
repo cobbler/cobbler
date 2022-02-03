@@ -336,7 +336,7 @@ next_server_v6: "::1"
 manage_dns: false
 
 # set to path of bind chroot to create bind-chroot compatible bind
-# configuration files.  This should be automatically detected.
+# configuration files.
 bind_chroot_path: ""
 
 # set to path where zonefiles of bind/named server are located.
