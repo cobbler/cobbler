@@ -47,3 +47,7 @@ covhtml/
 
 # Docs
 docs/_build
+
+# Misc
+.dmypy.json
+supervisord.pid
