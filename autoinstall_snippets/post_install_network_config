@@ -124,6 +124,7 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         #set $bonding_opts         = $idata.get("bonding_opts", "")
         #set $bridge_opts          = $idata.get("bridge_opts", "").split(" ")
         #set $ipv6_address         = $idata.get("ipv6_address", "")
+        #set $ipv6_prefix          = $idata.get("ipv6_prefix", "")
         #set $ipv6_secondaries     = $idata.get("ipv6_secondaries", "")
         #set $ipv6_default_gateway = $idata.get("ipv6_default_gateway", "")
         #set $ipv6_static_routes   = $idata.get("ipv6_static_routes", "")
@@ -246,7 +247,7 @@ echo "NETMASK=$netmask" >> $devfile
             #if $enableipv6 == True and $ipv6_autoconfiguration == False
                 #if $ipv6_address != ""
 echo "IPV6INIT=yes" >> $devfile
-echo "IPV6ADDR=$ipv6_address" >> $devfile
+echo "IPV6ADDR=$ipv6_address/$ipv6_prefix" >> $devfile
                 #end if
                 #if $ipv6_secondaries != ""
                     #set ipv6_secondaries = ' '.join(ipv6_secondaries)
