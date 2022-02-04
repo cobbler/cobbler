@@ -2867,6 +2867,81 @@
         "kernel_options": "",
         "kernel_options_post": "",
         "boot_files": []
+      },
+      "freebsd12.2": {
+        "signatures": [
+          "boot"
+        ],
+        "version_file": "freebsd-version",
+        "version_file_regex": "USERLAND_VERSION=\"12.2-RELEASE.*\"",
+        "kernel_arch": "device\\.hints",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64",
+          "ppc64",
+          "ppc64le",
+          "ppc64el",
+          "aarch64"
+        ],
+        "supported_repo_breeds": [],
+        "kernel_file": "base.txz",
+        "initrd_file": "base.txz",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "freebsd12.3": {
+        "signatures": [
+          "boot"
+        ],
+        "version_file": "freebsd-version",
+        "version_file_regex": "USERLAND_VERSION=\"12.3-RELEASE.*\"",
+        "kernel_arch": "device\\.hints",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64",
+          "ppc64",
+          "ppc64le",
+          "ppc64el",
+          "aarch64"
+        ],
+        "supported_repo_breeds": [],
+        "kernel_file": "base.txz",
+        "initrd_file": "base.txz",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "freebsd13.0": {
+        "signatures": [
+          "boot"
+        ],
+        "version_file": "freebsd-version",
+        "version_file_regex": "USERLAND_VERSION=\"13.0-RELEASE.*\"",
+        "kernel_arch": "device\\.hints",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64",
+          "ppc64",
+          "ppc64le",
+          "ppc64el",
+          "aarch64"
+        ],
+        "supported_repo_breeds": [],
+        "kernel_file": "base.txz",
+        "initrd_file": "base.txz",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
       }
     },
     "xen": {
