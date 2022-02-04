@@ -1891,6 +1891,30 @@
         "kernel_options_post": "",
         "boot_files": []
       },
+      "opensuse15.4": {
+        "signatures": [
+          ""
+        ],
+        "version_file": "openSUSE-release-15.4-(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "x86_64",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd(.*)",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample_autoyast.xml",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
       "sles10generic": {
         "signatures": [
           "suse"
@@ -2873,7 +2897,7 @@
           "boot"
         ],
         "version_file": "freebsd-version",
-        "version_file_regex": "USERLAND_VERSION=\"12.2-RELEASE.*\"",
+        "version_file_regex": "USERLAND_VERSION=\"12.2-RELEASE\"",
         "kernel_arch": "device\\.hints",
         "kernel_arch_regex": null,
         "supported_arches": [
@@ -2898,7 +2922,7 @@
           "boot"
         ],
         "version_file": "freebsd-version",
-        "version_file_regex": "USERLAND_VERSION=\"12.3-RELEASE.*\"",
+        "version_file_regex": "USERLAND_VERSION=\"12.3-RELEASE\"",
         "kernel_arch": "device\\.hints",
         "kernel_arch_regex": null,
         "supported_arches": [
@@ -2923,7 +2947,7 @@
           "boot"
         ],
         "version_file": "freebsd-version",
-        "version_file_regex": "USERLAND_VERSION=\"13.0-RELEASE.*\"",
+        "version_file_regex": "USERLAND_VERSION=\"13.0-RELEASE\"",
         "kernel_arch": "device\\.hints",
         "kernel_arch_regex": null,
         "supported_arches": [

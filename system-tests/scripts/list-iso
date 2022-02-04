@@ -1,14 +1,15 @@
 #!/bin/sh -e
 # List the contents of an ISO image
 
-if [ $# -ne 2 ]; then
-	echo "usage: ${0##*/} <iso> <distro>" 1>&2
+if [ $# -ne 3 ]; then
+	echo "usage: ${0##*/} <iso> <breed> <distro>" 1>&2
 	exit 1
 fi
 
 iso=${1}
-distro=${2}
-out=listings/${distro}/$(basename ${iso})
+breed=${2}
+distro=${3}
+out=listings/${breed}/${distro}/$(basename ${iso})
 index=${out}/index
 files=${out}/files
 signatures=../config/cobbler/distro_signatures.json
@@ -20,7 +21,7 @@ create_index() {
 }
 
 parse_signatures() {
-	jq -r ".breeds.$(echo ${distro} | tr '-' '.')
+	jq -r ".breeds.${breed}.\"${distro}\"
 			| (.signatures | @tsv)
 			, .version_file
 			, .version_file_regex
@@ -30,19 +31,19 @@ parse_signatures() {
 }
 
 cat_iso() {
-	xorriso -osirrox on -ecma119_map lowercase -indev ${iso} \
+	xorriso -osirrox on -ecma119_map lowercase -indev "${iso}" \
 		-concat append - "${1}" 2>/dev/null
 }
 
 grep_iso() {
-	sed 's|^.*/||' ${index} | while read file; do
+	while read file; do
 		if echo "${file}" | grep -qE "${1}"; then
 			if cat_iso "${file}" | grep -qE "${2}"; then
-				mkdir -p $(dirname "${files}/${file}")
+				mkdir -p "$(dirname "${files}/${file}")"
 				cat_iso "${file}" | grep -E "${2}" >"${files}/${file}"
 			fi
 		fi
-	done
+	done < "${index}"
 }
 
 find_signatures() {
