@@ -649,6 +649,8 @@ class TFTPGen:
 
         if distro and distro.os_version.startswith("esxi") and filename is not None:
             append_line = "BOOTIF=%s" % (os.path.basename(filename))
+        elif "initrd_path" in metadata and arch not in [Archs.PPC, Archs.PPC64, Archs.ARM]:
+            append_line = "append initrd=%s" % (metadata["initrd_path"])
         else:
             append_line = "append "
         append_line = "%s%s" % (append_line, kernel_options)
