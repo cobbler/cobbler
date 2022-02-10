@@ -65,26 +65,6 @@ def test_validate_settings(parameter, expected_exception, expected_result):
         assert result == expected_result
 
 
-def test_parse_bind_config():
-    # Arrange
-
-    # Act
-    settings.parse_bind_config("/test_dir/tests/test_data/named.conf")
-
-    # Assert
-    assert True
-
-
-def test_autodect_bind_chroot():
-    # Arrange
-
-    # Act
-    settings.autodetect_bind_chroot()
-
-    # Assert
-    assert True
-
-
 def test_read_settings_file():
     # Arrange
     # Default path should be fine for the tests.

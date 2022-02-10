@@ -24,8 +24,6 @@ from schema import SchemaError, SchemaMissingKeyError, SchemaWrongKeyError
 from cobbler import utils
 from cobbler.settings import migrations
 
-BIND_CHROOT_PATH = ""
-
 
 class Settings:
     """
@@ -62,7 +60,7 @@ class Settings:
         self.authn_pam_service = "login"
         self.autoinstall_snippets_dir = "/var/lib/cobbler/snippets"
         self.autoinstall_templates_dir = "/var/lib/cobbler/templates"
-        self.bind_chroot_path = BIND_CHROOT_PATH
+        self.bind_chroot_path = ""
         self.bind_zonefile_path = "/var/lib/named"
         self.bind_master = "127.0.0.1"
         self.boot_loader_conf_template_dir = "/etc/cobbler/boot_loader_conf"
@@ -282,53 +280,6 @@ def validate_settings(settings_content: dict) -> dict:
     return migrations.normalize(settings_content)
 
 
-def parse_bind_config(configpath: str):
-    """
-    Parse the Bind9 configuration file and adjust the Cobbler default settings according to the readings.
-
-    :param configpath: The path in the filesystem where the file can be read.
-    """
-    global BIND_CHROOT_PATH
-    bind_config = {}
-    # When running as a webapp we can't access this, but don't need it
-    try:
-        bind_config_file = open(configpath, "r")
-    except (IOError, OSError):
-        pass
-    else:
-        for line in bind_config_file:
-            if re.match(r"[a-zA-Z]+=", line):
-                (name, value) = line.rstrip().split("=")
-                bind_config[name] = value.strip('"')
-        # RHEL, SysV Fedora
-        if "ROOTDIR" in bind_config:
-            BIND_CHROOT_PATH = bind_config["ROOTDIR"]
-        # Debian, Systemd Fedora
-        if "OPTIONS" in bind_config:
-            rootdirmatch = re.search(r"-t ([/\w]+)", bind_config["OPTIONS"])
-            if rootdirmatch is not None:
-                BIND_CHROOT_PATH = rootdirmatch.group(1)
-
-
-def autodetect_bind_chroot():
-    """
-    Autodetect bind chroot configuration
-    """
-    bind_config_filename = None
-    if os.path.exists("/etc/sysconfig/named"):
-        # RHEL/Fedora
-        bind_config_filename = "/etc/sysconfig/named"
-    else:
-        # Debian
-        bind_config_files = glob.glob("/etc/default/bind*")
-        for filename in bind_config_files:
-            if os.path.exists(filename):
-                bind_config_filename = filename
-    # Parse the config file if available
-    if bind_config_filename:
-        parse_bind_config(bind_config_filename)
-
-
 def read_yaml_file(filepath="/ect/cobbler/settings.yaml") -> Dict[Hashable, Any]:
     """
     Reads settings files from ``filepath`` and all paths in `include` (which is read from the settings file) and saves
@@ -433,7 +384,3 @@ def migrate(yaml_dict: dict, settings_path: Path) -> dict:
     :return: The migrated settings
     """
     return migrations.migrate(yaml_dict, settings_path)
-
-
-# Initialize Settings module for manipulating the global DEFAULTS variable
-autodetect_bind_chroot()

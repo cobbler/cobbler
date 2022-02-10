@@ -185,8 +185,7 @@ default: ``/var/lib/cobbler/templates``
 bind_chroot_path
 ================
 
-Set to path of bind chroot to create bind-chroot compatible bind configuration files. This should be automatically
-detected.
+Set to path of bind chroot to create bind-chroot compatible bind configuration files.
 
 default: ``""``
 
