@@ -11,13 +11,5 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-
       - name: Run the test suite
         run: ./docker/rpms/build-and-install-rpms.sh --with-system-tests rl8 docker/rpms/Rocky_Linux_8/Rocky_Linux_8.dockerfile
-
-      - name: Publish the test results
-        uses: actions/upload-artifact@v2
-        if: success() || failure()
-        with:
-          name: system-test-results
-          path: system-tests/workspace/results.xml
