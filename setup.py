@@ -342,25 +342,6 @@ class install(_install):
         if self.root is None:
             self.root = "/usr/local"
 
-        # Hand over some directories to the webserver user
-        path = os.path.join(self.install_data, 'share/cobbler/web')
-        try:
-            self.change_owner(path, http_user)
-        except Exception as e:
-            # building RPMs in a mock chroot, user 'apache' won't exist
-            log.warning("Error in 'chown apache %s': %s" % (path, e))
-        if not os.path.abspath(libpath):
-            # The next line only works for absolute libpath
-            raise Exception("libpath is not absolute.")
-        # libpath is hardcoded in the code everywhere
-        # therefor cant relocate using self.root
-        path = os.path.join(self.root + libpath, 'webui_sessions')
-        try:
-            self.change_owner(path, http_user)
-        except Exception as e:
-            # building RPMs in a mock chroot, user 'apache' won't exist
-            log.warning("Error in 'chown apache %s': %s" % (path, e))
-
 
 #####################################################################
 # # Test Command #####################################################
@@ -579,8 +560,6 @@ if __name__ == "__main__":
             ("%s/scripts" % libpath, glob("autoinstall_scripts/*")),
             ("%s" % libpath, ["config/cobbler/distro_signatures.json"]),
             ("share/cobbler/bin", glob("scripts/*")),
-            ("share/cobbler/web/templates", glob("web/templates/*")),
-            ("%s/webui_sessions" % libpath, []),
             ("%s/loaders" % libpath, []),
             ("%s/cobbler/misc" % webroot, glob("misc/*")),
             # Configuration

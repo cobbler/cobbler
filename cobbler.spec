@@ -441,7 +441,6 @@ fi
 %{tftpboot_dir}/*
 %{apache_dir}/cobbler
 %{_sharedstatedir}/cobbler
-%exclude %{_sharedstatedir}/cobbler/webui_sessions
 %{_localstatedir}/log/cobbler
 
 %files tests
