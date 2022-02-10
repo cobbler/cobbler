@@ -255,7 +255,8 @@ def service_restart(service_name: str):
     if is_supervisord():
         with ServerProxy('http://localhost:9001/RPC2') as server:
             try:
-                server.supervisor.stopProcess(service_name)
+                if server.supervisor.getProcessInfo(service_name).get("state") in (10, 20):
+                    server.supervisor.stopProcess(service_name)
                 if server.supervisor.startProcess(service_name):  # returns a boolean
                     return 0
             except xmlrpc.client.Fault as clientFault:
