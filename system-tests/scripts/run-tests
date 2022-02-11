@@ -38,8 +38,6 @@ for test in $(list_selected_tests); do
 	test_dir=${SYSTESTS_TMP}/${test}
 	printf '  %s... ' ${test}
 	mkdir -p ${test_dir}
-	env time -f '%e' -o ${test_dir}/_runtime \
-		env TEST_NAME=${test} ${topdir}/tests/${test} >${test_dir}/_output 2>&1
 	if [ ${?} -eq 0 ]; then
 		echo ok
 	else
@@ -48,8 +46,6 @@ for test in $(list_selected_tests); do
 		touch ${test_dir}/_failed
 	fi
 done
-${topdir}/scripts/xunit-results ${SYSTESTS_TMP} \
-	>${SYSTESTS_TMP}/results.xml
 
 if [ ${#failed_tests[@]} != 0 ]; then
 	echo
