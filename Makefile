@@ -138,18 +138,8 @@ restorestate: ## This restores a state which was previously saved via the target
 	@source distro_build_configs.sh; \
 	${PYTHON} setup.py -v restorestate --root $(DESTDIR); \
 	find $(DESTDIR)/var/lib/cobbler/triggers | xargs chmod +x
-	if [ -n "`getent passwd apache`" ] ; then \
-		chown -R apache $(DESTDIR)/var/www/cobbler; \
-	elif [ -n "`getent passwd wwwrun`" ] ; then \
-		chown -R wwwrun $(DESTDIR)/usr/share/cobbler/web; \
-	elif [ -n "`getent passwd www-data`"] ; then \
-		chown -R www-data $(DESTDIR)/usr/share/cobbler/web; \
-	fi
 	if [ -d $(DESTDIR)/var/www/cobbler ] ; then \
 		chmod -R +x $(DESTDIR)/var/www/cobbler/svc; \
-	fi
-	if [ -d $(DESTDIR)/usr/share/cobbler/web ] ; then \
-		chmod -R +x $(DESTDIR)/usr/share/cobbler/web; \
 	fi
 	if [ -d $(DESTDIR)/srv/www/cobbler/svc ]; then \
 		chmod -R +x $(DESTDIR)/srv/www/cobbler/svc; \
