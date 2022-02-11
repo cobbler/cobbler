@@ -48,6 +48,33 @@ RUN zypper install -y          \
     rpm-build                  \
     which
 
+# Add bootloader packages
+RUN zypper install --no-recommends -y \
+    syslinux \
+    shim \
+    ipxe-bootimgs \
+    grub2 \
+    grub2-i386-efi \
+    grub2-x86_64-efi
+
+# Required for dhcpd
+RUN zypper install --no-recommends -y \
+    system-user-nobody                \
+    sysvinit-tools
+
+# Required for ldap tests
+RUN zypper install --no-recommends -y \
+    openldap2                         \
+    openldap2-client                  \
+    hostname
+
+# Dependencies for system-tests
+RUN zypper install --no-recommends -y \
+    dhcp-server                       \
+    iproute2                          \
+    qemu-kvm                          \
+    time
+
 COPY ./docker/rpms/opensuse_leap/supervisord/supervisord.conf /etc/supervisord.conf
 COPY ./docker/rpms/opensuse_leap/supervisord/conf.d /etc/supervisord/conf.d
 

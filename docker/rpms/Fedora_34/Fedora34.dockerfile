@@ -53,10 +53,12 @@ RUN yum install -y          \
 
 # Dependencies for system tests
 RUN dnf install -y          \
+    shim-x64                \
     ipxe-bootimgs           \
     dhcp-server             \
     qemu-kvm                \
-    time
+    time                    \
+    iproute
 
 COPY ./docker/rpms/Fedora_34/supervisord/supervisord.conf /etc/supervisord.conf
 COPY ./docker/rpms/Fedora_34/supervisord/conf.d /etc/supervisord/conf.d

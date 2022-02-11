@@ -70,6 +70,7 @@ RUN touch /var/lib/rpm/* &&   \
     dhcp-server               \
     qemu-kvm                  \
     time
+RUN dnf --enablerepo=plus -y install openldap-servers
 
 COPY ./docker/rpms/Fedora_34/supervisord/supervisord.conf /etc/supervisord.conf
 COPY ./docker/rpms/Fedora_34/supervisord/conf.d /etc/supervisord/conf.d
