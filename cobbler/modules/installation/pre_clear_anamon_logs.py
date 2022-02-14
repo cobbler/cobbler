@@ -29,6 +29,8 @@ from cobbler.cexceptions import CX
 
 PATH_PREFIX = "/var/log/cobbler/anamon/"
 
+logger = logging.getLogger()
+
 
 def register() -> str:
     """
