@@ -382,6 +382,20 @@ fi
 %{_datadir}/%{name}/bin/mkgrub.sh >/dev/null 2>&1
 %endif
 %systemd_post cobblerd.service
+# Fixup permission for world readable settings files
+chmod 640 %{_sysconfdir}/cobbler/settings.yaml
+chmod 600 %{_sysconfdir}/cobbler/mongodb.conf
+chmod 600 %{_sysconfdir}/cobbler/modules.conf
+chmod 640 %{_sysconfdir}/cobbler/users.conf
+chmod 640 %{_sysconfdir}/cobbler/users.digest
+chmod 750 %{_sysconfdir}/cobbler/settings.d
+chmod 640 %{_sysconfdir}/cobbler/settings.d/*
+chgrp %{apache_group} %{_sysconfdir}/cobbler/settings
+chgrp %{apache_group} %{_sysconfdir}/cobbler/users.conf
+chgrp %{apache_group} %{_sysconfdir}/cobbler/users.digest
+chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.d
+chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.d/*
+
 
 %preun
 %systemd_preun cobblerd.service
@@ -461,8 +475,8 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %dir %{_sysconfdir}/cobbler/iso
 %config(noreplace) %{_sysconfdir}/cobbler/iso/buildiso.template
 %config(noreplace) %{_sysconfdir}/cobbler/logging_config.conf
-%config(noreplace) %{_sysconfdir}/cobbler/modules.conf
-%config(noreplace) %{_sysconfdir}/cobbler/mongodb.conf
+%attr(600, root, root) %config(noreplace) %{_sysconfdir}/cobbler/modules.conf
+%attr(600, root, root) %config(noreplace) %{_sysconfdir}/cobbler/mongodb.conf
 %config(noreplace) %{_sysconfdir}/cobbler/named.template
 %config(noreplace) %{_sysconfdir}/cobbler/ndjbdns.template
 %dir %{_sysconfdir}/cobbler/reporting
@@ -470,13 +484,13 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %config(noreplace) %{_sysconfdir}/cobbler/rsync.exclude
 %config(noreplace) %{_sysconfdir}/cobbler/rsync.template
 %config(noreplace) %{_sysconfdir}/cobbler/secondary.template
-%config(noreplace) %{_sysconfdir}/cobbler/settings.yaml
-%dir %{_sysconfdir}/cobbler/settings.d
-%config(noreplace) %{_sysconfdir}/cobbler/settings.d/bind_manage_ipmi.settings
-%config(noreplace) %{_sysconfdir}/cobbler/settings.d/manage_genders.settings
-%config(noreplace) %{_sysconfdir}/cobbler/settings.d/nsupdate.settings
-%config(noreplace) %{_sysconfdir}/cobbler/users.conf
-%config(noreplace) %{_sysconfdir}/cobbler/users.digest
+%attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/settings.yaml
+%attr(750, root, %{apache_group}) %dir %{_sysconfdir}/cobbler/settings.d
+%attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/settings.d/bind_manage_ipmi.settings
+%attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/settings.d/manage_genders.settings
+%attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/settings.d/nsupdate.settings
+%attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/users.conf
+%attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/users.digest
 %config(noreplace) %{_sysconfdir}/cobbler/version
 %config(noreplace) %{_sysconfdir}/cobbler/zone.template
 %dir %{_sysconfdir}/cobbler/zone_templates
