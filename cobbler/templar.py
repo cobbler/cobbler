@@ -75,10 +75,10 @@ class Templar:
         """
         lines = data.split("\n")
         for line in lines:
-            if line.find("#import") != -1:
-                rest = line.replace("#import", "").replace(" ", "").strip()
+            if "#import" in line or "#from" in line:
+                rest = line.replace("#import", "").replace("#from", "").replace("import", ".").replace(" ", "").strip()
                 if self.settings and rest not in self.settings.cheetah_import_whitelist:
-                    raise CX("potentially insecure import in template: %s" % rest)
+                    raise CX(f"Potentially insecure import in template: {rest}")
 
     def render(self, data_input: Union[TextIO, str], search_table: dict, out_path: Optional[str],
                template_type="default") -> str:
