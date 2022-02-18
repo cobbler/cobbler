@@ -369,7 +369,7 @@ chmod 640 %{_sysconfdir}/cobbler/users.conf
 chmod 640 %{_sysconfdir}/cobbler/users.digest
 chmod 750 %{_sysconfdir}/cobbler/settings.d
 chmod 640 %{_sysconfdir}/cobbler/settings.d/*
-chgrp %{apache_group} %{_sysconfdir}/cobbler/settings
+chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
 chgrp %{apache_group} %{_sysconfdir}/cobbler/users.conf
 chgrp %{apache_group} %{_sysconfdir}/cobbler/users.digest
 chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.d
