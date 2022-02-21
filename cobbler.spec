@@ -350,6 +350,19 @@ fi
 %{py3_bytecompile_post %{name}}
 %{systemd_post cobblerd.service}
 %{apache2_module_post proxy_http}
+# Fixup permission for world readable settings files
+chmod 640 %{_sysconfdir}/cobbler/settings.yaml
+chmod 600 %{_sysconfdir}/cobbler/mongodb.conf
+chmod 600 %{_sysconfdir}/cobbler/modules.conf
+chmod 640 %{_sysconfdir}/cobbler/users.conf
+chmod 640 %{_sysconfdir}/cobbler/users.digest
+chmod 750 %{_sysconfdir}/cobbler/settings.d
+chmod 640 %{_sysconfdir}/cobbler/settings.d/*
+chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
+chgrp %{apache_group} %{_sysconfdir}/cobbler/users.conf
+chgrp %{apache_group} %{_sysconfdir}/cobbler/users.digest
+chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.d
+chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.d/*
 
 %preun
 %{py3_bytecompile_preun %{name}}
@@ -418,6 +431,19 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.d/*
 %config(noreplace) %{_sysconfdir}/cobbler/rsync.exclude
 %config(noreplace) %{_sysconfdir}/cobbler/rsync.template
 %config(noreplace) %{_sysconfdir}/cobbler/secondary.template
+%if "%{_vendor}" == "debbuild"
+# Work around broken attr support
+# Cf. https://github.com/debbuild/debbuild/issues/160
+%attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/settings.yaml
+%dir %{_sysconfdir}/cobbler/settings.d
+%attr(750, root, root) %{_sysconfdir}/cobbler/settings.d
+%attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/settings.d/bind_manage_ipmi.settings
+%attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/settings.d/manage_genders.settings
+%attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/settings.d/nsupdate.settings
+%attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/settings.d/windows.settings
+%attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/users.conf
+%attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/users.digest
+%else
 %attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/settings.yaml
 %attr(750, root, %{apache_group}) %dir %{_sysconfdir}/cobbler/settings.d
 %attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/settings.d/bind_manage_ipmi.settings
@@ -426,6 +452,7 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.d/*
 %attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/settings.d/windows.settings
 %attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/users.conf
 %attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/users.digest
+%endif
 %config(noreplace) %{_sysconfdir}/cobbler/version
 %config(noreplace) %{_sysconfdir}/cobbler/zone.template
 %dir %{_sysconfdir}/cobbler/zone_templates
