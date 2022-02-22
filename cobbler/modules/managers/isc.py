@@ -22,12 +22,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import time
-import copy
 
 from cobbler import utils
-from cobbler.manager import ManagerModule
-from cobbler.cexceptions import CX
 from cobbler.enums import Archs
+from cobbler.manager import ManagerModule
 
 MANAGER = None
 
@@ -56,23 +54,17 @@ class _IscManager(ManagerModule):
         self.settings_file_v4 = utils.dhcpconf_location(utils.DHCP.V4)
         self.settings_file_v6 = utils.dhcpconf_location(utils.DHCP.V6)
 
-    def write_v4_config(self):
+    def write_v4_config(self, template_file="/etc/cobbler/dhcp.template"):
         """
         DHCPv4 files are written when ``manage_dhcp_v4`` is set in our settings.
+
+        :param template_file: The location of the DHCP template.
         """
 
-        template_file = "/etc/cobbler/dhcp.template"
         blender_cache = {}
 
-        # TODO: Has to be refactored.
-        try:
-            f2 = open(template_file, "r")
-        except Exception:
-            raise CX("error reading template: %s" % template_file)
-
-        template_data = ""
-        template_data = f2.read()
-        f2.close()
+        with open(template_file, "r") as f2:
+            template_data = f2.read()
 
         # Use a simple counter for generating generic names where a hostname is not available.
         counter = 0
@@ -127,12 +119,11 @@ class _IscManager(ManagerModule):
                     host = system.interfaces[interface["interface_master"]]["dns_name"]
 
                     if ip is None or ip == "":
-                        # TODO: Clarify variable names
-                        for (nam2, int2) in list(system.interfaces.items()):
-                            if nam2.startswith(interface["interface_master"] + ".") \
-                                    and int2["ip_address"] is not None \
-                                    and int2["ip_address"] != "":
-                                ip = int2["ip_address"]
+                        for (interface_name, interface_object) in list(system.interfaces.items()):
+                            if interface_name.startswith(interface["interface_master"] + ".") \
+                                    and interface_object.ip_address is not None \
+                                    and interface_object.ip_address != "":
+                                ip = interface_object.ip_address
                                 break
 
                     interface["ip_address"] = ip
@@ -157,12 +148,11 @@ class _IscManager(ManagerModule):
                     if name != "eth0":
                         interface["name"] = "%s-%s" % (host, name)
                     else:
-                        interface["name"] = "%s" % (host)
+                        interface["name"] = "%s" % host
                 else:
                     interface["name"] = "generic%d" % counter
 
-                # add references to the system, profile, and distro
-                # for use in the template
+                # add references to the system, profile, and distro for use in the template
                 if system.name in blender_cache:
                     blended_system = blender_cache[system.name]
                 else:
@@ -219,22 +209,17 @@ class _IscManager(ManagerModule):
         self.logger.info("generating %s", self.settings_file_v4)
         self.templar.render(template_data, metadata, self.settings_file_v4)
 
-    def write_v6_config(self):
+    def write_v6_config(self, template_file="/etc/cobbler/dhcp6.template"):
         """
         DHCPv6 files are written when ``manage_dhcp_v6`` is set in our settings.
+
+        :param template_file: The location of the DHCP template.
         """
 
-        template_file = "/etc/cobbler/dhcp6.template"
         blender_cache = {}
 
-        # TODO: Has to be refactored.
-        try:
-            f2 = open(template_file, "r")
-        except Exception:
-            raise CX("error reading template: %s" % template_file)
-        template_data = ""
-        template_data = f2.read()
-        f2.close()
+        with open(template_file, "r") as f2:
+            template_data = f2.read()
 
         # Use a simple counter for generating generic names where a hostname is not available.
         counter = 0
@@ -288,12 +273,11 @@ class _IscManager(ManagerModule):
                     host = system.interfaces[interface["interface_master"]]["dns_name"]
 
                     if not ip_v6:
-                        # TODO: Clarify variable names
-                        for (nam2, int2) in list(system.interfaces.items()):
-                            if nam2.startswith(interface["interface_master"] + ".") \
-                                    and int2["ipv6_address"] is not None \
-                                    and int2["ipv6_address"] != "":
-                                ip_v6 = int2["ipv6_address"]
+                        for (interface_name, interface_object) in list(system.interfaces.items()):
+                            if interface_name.startswith(interface["interface_master"] + ".") \
+                                    and interface_object.ipv6_address is not None \
+                                    and interface_object.ipv6_address != "":
+                                ip_v6 = interface_object.ipv6_address
                                 break
 
                     interface["ipv6_address"] = ip_v6
@@ -316,12 +300,11 @@ class _IscManager(ManagerModule):
                     if name != "eth0":
                         interface["name"] = "%s-%s" % (host, name)
                     else:
-                        interface["name"] = "%s" % (host)
+                        interface["name"] = "%s" % host
                 else:
                     interface["name"] = "generic%d" % counter
 
-                # add references to the system, profile, and distro
-                # for use in the template
+                # add references to the system, profile, and distro for use in the template
                 if system.name in blender_cache:
                     blended_system = blender_cache[system.name]
                 else:
@@ -381,40 +364,37 @@ class _IscManager(ManagerModule):
             self.logger.info("generating %s" % self.settings_file_v6)
         self.templar.render(template_data, metadata, self.settings_file_v6)
 
-    def restart_dhcp(self, service_name):
+    def restart_dhcp(self, service_name: str) -> int:
         """
         This syncs the dhcp server with it's new config files.
         Basically this restarts the service to apply the changes.
 
-        :param service_name: TODO
+        :param service_name: The name of the DHCP service.
         """
-        # TODO: Reuse the utils method for service restarts
-        return_code_service_restart = 0
-        return_code_service_restart = utils.subprocess_call("{} -t -q".format(service_name), shell=True)
+        return_code_service_restart = utils.subprocess_call("{} -t -q".format(service_name), shell=False)
         if return_code_service_restart != 0:
             self.logger.error("Testing config - {} -t failed".format(service_name))
-        service_restart = "service {} restart".format(service_name)
-        return_code_service_restart = utils.subprocess_call(service_restart, shell=True)
+        return_code_service_restart = utils.service_restart(service_name)
         if return_code_service_restart != 0:
             self.logger.error("{} service failed".format(service_name))
         return return_code_service_restart
 
     def write_configs(self):
-        if self.settings.manage_dhcp_v4 != "0":
+        if self.settings.manage_dhcp_v4:
             self.write_v4_config()
-        if self.settings.manage_dhcp_v6 != "0":
+        if self.settings.manage_dhcp_v6:
             self.write_v6_config()
 
-    def restart_service(self):
-        if self.settings.restart_dhcp == "0":
+    def restart_service(self) -> int:
+        if not self.settings.restart_dhcp:
             return 0
-        service_v4 = utils.dhcp_service_name()
 
         # Even if one fails, try both and return an error
         ret = 0
-        if self.settings.manage_dhcp_v4 != "0":
+        if self.settings.manage_dhcp_v4:
+            service_v4 = utils.dhcp_service_name()
             ret |= self.restart_dhcp(service_v4)
-        if self.settings.manage_dhcp_v6 != "0":
+        if self.settings.manage_dhcp_v6:
             # TODO: Fix hard coded string
             ret |= self.restart_dhcp("dhcpd6")
         return ret
