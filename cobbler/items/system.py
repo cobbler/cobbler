@@ -1432,7 +1432,7 @@ class System(Item):
     @enable_ipxe.setter
     def enable_ipxe(self, enable_ipxe: bool):
         """
-        Sets whether or not the system will use iPXE for booting.
+        Sets whether the system will use iPXE for booting.
 
         :param enable_ipxe: If ipxe should be enabled or not.
         :raises TypeError: In case enable_ipxe is not a boolean.
