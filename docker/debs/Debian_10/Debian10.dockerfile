@@ -14,7 +14,7 @@ ENV OSCODENAME buster
 RUN apt-get update -qq && \
     apt-get install -qqy gnupg curl && \
     /bin/sh -c "echo 'deb http://download.opensuse.org/repositories/Debian:/debbuild/Debian_10/ /' > /etc/apt/sources.list.d/debbuild.list" && \
-    curl -sL http://download.opensuse.org/repositories/Debian:/debbuild/Debian_11/Release.key | apt-key add - && \
+    curl -sL http://download.opensuse.org/repositories/Debian:/debbuild/Debian_10/Release.key | apt-key add - && \
     apt-get update -qq && \
     apt-get install -qqy \
     debbuild \
