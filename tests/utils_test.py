@@ -9,7 +9,6 @@ from netaddr.ip import IPAddress
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
-from cobbler.settings import Settings
 from tests.conftest import does_not_raise
 
 
@@ -861,7 +860,7 @@ def test_link_distro(cobbler_api):
     test_distro = Distro(cobbler_api)
 
     # Act
-    utils.link_distro(Settings(), test_distro)
+    utils.link_distro(cobbler_api.settings(), test_distro)
 
     # Assert
     assert False
@@ -875,7 +874,7 @@ def test_find_distro_path(cobbler_api, create_testfile, tmp_path):
     test_distro.kernel = os.path.join(tmp_path, fk_kernel)
 
     # Act
-    result = utils.find_distro_path(Settings(), test_distro)
+    result = utils.find_distro_path(cobbler_api.settings(), test_distro)
 
     # Assert
     assert result == tmp_path.as_posix()

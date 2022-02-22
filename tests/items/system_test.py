@@ -504,6 +504,27 @@ def test_from_dict_with_network_interface(cobbler_api):
     assert "default" in system.interfaces
 
 
+@pytest.mark.parametrize("input_mac,input_ipv4,input_ipv6,expected_result", [
+    ("AA:BB:CC:DD:EE:FF", "192.168.1.2", "::1", True),
+    ("", "192.168.1.2", "", True),
+    ("", "", "::1", True),
+    ("AA:BB:CC:DD:EE:FF", "", "", True),
+    ("", "", "", False),
+])
+def test_is_management_supported(cobbler_api, input_mac, input_ipv4, input_ipv6, expected_result):
+    # Arrange
+    system = System(cobbler_api)
+    system.interfaces["default"].mac_address = input_mac
+    system.interfaces["default"].ip_address = input_ipv4
+    system.interfaces["default"].ipv6_address = input_ipv6
+
+    # Act
+    result = system.is_management_supported()
+
+    # Assert
+    assert result is expected_result
+
+
 ############################################################################################
 
 

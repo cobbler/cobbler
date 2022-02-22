@@ -13,7 +13,7 @@ from cobbler.settings import Settings
 
 @pytest.fixture
 def api_isc_mock():
-    settings_mock = MagicMock(spec=Settings)
+    settings_mock = MagicMock(name="isc_setting_mock", spec=Settings)
     settings_mock.server = "127.0.0.1"
     settings_mock.default_template_type = "cheetah"
     settings_mock.cheetah_import_whitelist = ["re"]
@@ -52,6 +52,13 @@ def api_isc_mock():
     return api_mock
 
 
+@pytest.fixture(scope="function", autouse=True)
+def reset_singleton():
+    isc.MANAGER = None
+    yield
+    isc.MANAGER = None
+
+
 def test_register():
     # Arrange & Act
     result = isc.register()
@@ -60,7 +67,7 @@ def test_register():
     assert result == "manage"
 
 
-def test_get_manager(api_isc_mock):
+def test_get_manager(api_isc_mock, reset_singleton):
     # Arrange
     isc.MANAGER = None
 
@@ -76,7 +83,7 @@ def test_manager_what():
     assert isc._IscManager.what() == "isc"
 
 
-def test_manager_write_v4_config(mocker, api_isc_mock):
+def test_manager_write_v4_config(mocker, api_isc_mock, reset_singleton):
     # Arrange
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
     mocker.patch(
@@ -104,7 +111,7 @@ def test_manager_write_v4_config(mocker, api_isc_mock):
     )
 
 
-def test_manager_write_v6_config(mocker, api_isc_mock):
+def test_manager_write_v6_config(mocker, api_isc_mock, reset_singleton):
     # Arrange
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
     mocker.patch(
@@ -131,7 +138,7 @@ def test_manager_write_v6_config(mocker, api_isc_mock):
     )
 
 
-def test_manager_restart_dhcp(mocker, api_isc_mock):
+def test_manager_restart_dhcp(mocker, api_isc_mock, reset_singleton):
     # Arrange
     isc.MANAGER = None
     mocked_subprocess = mocker.patch(
@@ -153,7 +160,7 @@ def test_manager_restart_dhcp(mocker, api_isc_mock):
     assert result == 0
 
 
-def test_manager_write_configs(mocker, api_isc_mock):
+def test_manager_write_configs(mocker, api_isc_mock, reset_singleton):
     # Arrange
     isc.MANAGER = None
     manager = isc.get_manager(api_isc_mock)
@@ -168,7 +175,7 @@ def test_manager_write_configs(mocker, api_isc_mock):
     assert mocked_v6.call_count == 1
 
 
-def test_manager_restart_service(mocker, api_isc_mock):
+def test_manager_restart_service(mocker, api_isc_mock, reset_singleton):
     # Arrange
     isc.MANAGER = None
     manager = isc.get_manager(api_isc_mock)

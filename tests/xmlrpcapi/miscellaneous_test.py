@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 import time
 
 import pytest
@@ -52,7 +53,6 @@ def cleanup_run_install_triggers(remove_distro, remove_profile, remove_system):
     remove_distro("testdistro_run_install_triggers")
 
 
-@pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestMiscellaneous:
     """
     Class to test remote calls to cobbler which do not belong into a specific category.
@@ -413,6 +413,9 @@ class TestMiscellaneous:
 
     def test_get_status(self, remote, token):
         # Arrange
+        logfile = pathlib.Path("/var/log/cobbler/install.log")
+        if logfile.exists():
+            logfile.unlink()
 
         # Act
         result = remote.get_status("normal", token)

@@ -17,7 +17,6 @@ def remove_item(remote, token):
     return _remove_item
 
 
-@pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestImage:
 
     def test_create_image(self, remote, token):
