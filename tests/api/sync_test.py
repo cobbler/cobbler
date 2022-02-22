@@ -107,7 +107,9 @@ def test_get_sync(mocker):
     (None, ["t1.systems.de"], does_not_raise()),
     (True, ["t1.systems.de"], does_not_raise()),
     (False, ["t1.systems.de"], does_not_raise()),
+    (False, [], does_not_raise()),
     (False, [42], pytest.raises(TypeError)),
+    (False, None, pytest.raises(TypeError)),
     (False, "t1.systems.de", pytest.raises(TypeError))
 ])
 def test_sync_systems(input_systems, input_verbose, expected_exception, mocker):
@@ -121,8 +123,11 @@ def test_sync_systems(input_systems, input_verbose, expected_exception, mocker):
         test_api.sync_systems(input_systems, input_verbose)
 
         # Assert
-        stub.run_sync_systems.assert_called_once()
-        stub.run_sync_systems.assert_called_with(input_systems)
+        if len(input_systems) > 0:
+            stub.run_sync_systems.assert_called_once()
+            stub.run_sync_systems.assert_called_with(input_systems)
+        else:
+            assert stub.run_sync_systems.call_count == 0
 
 
 def test_image_rename():

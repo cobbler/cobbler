@@ -1382,8 +1382,15 @@ class CobblerAPI:
         :param systems: List of specified systems that needs to be synced
         :param verbose: If the action should be just logged as needed or (if True) as much verbose as possible.
         """
-        self.log("sync_systems")
-        if not (systems and isinstance(systems, list) and all(isinstance(sys_name, str) for sys_name in systems)):
+        self.logger.info("sync_systems")
+        if not (
+                systems
+                and isinstance(systems, list)
+                and all(isinstance(sys_name, str) for sys_name in systems)
+        ):
+            if len(systems) < 1:
+                self.logger.debug("sync_systems needs at least one system to do something. Bailing out early.")
+                return
             raise TypeError('Systems must be a list of one or more strings.')
         sync_obj = self.get_sync(verbose=verbose)
         sync_obj.run_sync_systems(systems)
