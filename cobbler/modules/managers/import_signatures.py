@@ -106,8 +106,8 @@ class _ImportSignatureManager(ManagerModule):
         """
         return "import/signatures"
 
-    def __init__(self, collection_mgr):
-        super().__init__(collection_mgr)
+    def __init__(self, api):
+        super().__init__(api)
 
         self.signature = None
         self.found_repos = {}
@@ -814,7 +814,7 @@ class _ImportSignatureManager(ManagerModule):
         if not mirror:
             mirror = "http://archive.ubuntu.com/ubuntu"
 
-        repo = item_repo.Repo(self.collection_mgr)
+        repo = item_repo.Repo(self.api)
         repo.breed = enums.RepoBreeds.APT
         repo.arch = distribution.arch
         repo.keep_updated = True
@@ -830,8 +830,7 @@ class _ImportSignatureManager(ManagerModule):
             repo.mirror = "http://ftp.%s.debian.org/debian/dists/%s" % ('us', distribution.os_version)
 
         self.logger.info("Added repos for %s" % distribution.name)
-        repos = self.collection_mgr.repos()
-        repos.add(repo, save=True)
+        self.api.add_repo(repo)
         # FIXME: Add the found/generated repos to the profiles that were created during the import process
 
     def get_repo_mirror_from_apt(self):
@@ -878,16 +877,16 @@ class _ImportSignatureManager(ManagerModule):
 # ==========================================================================
 
 
-def get_import_manager(collection_mgr):
+def get_import_manager(api):
     """
     Get an instance of the import manager which enables you to import various things.
 
-    :param collection_mgr: The collection Manager instance of Cobbler
+    :param api: The API instance of Cobbler
     :return: The object to import data with.
     """
     # Singleton used, therefore ignoring 'global'
     global MANAGER  # pylint: disable=global-statement
 
     if not MANAGER:
-        MANAGER = _ImportSignatureManager(collection_mgr)
+        MANAGER = _ImportSignatureManager(api)
     return MANAGER

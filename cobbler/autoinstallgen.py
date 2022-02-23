@@ -34,21 +34,16 @@ class AutoInstallationGen:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
-    def __init__(self, collection_mgr):
+    def __init__(self, api):
         """
         Constructor
 
-        :param collection_mgr: The collection manager instance which is used for this object. Normally there is only one
+        :param api: The API instance which is used for this object. Normally there is only one
                                instance of the collection manager.
         """
-        self.collection_mgr = collection_mgr
-        self.api = collection_mgr.api
-        self.distros = collection_mgr.distros()
-        self.profiles = collection_mgr.profiles()
-        self.systems = collection_mgr.systems()
-        self.settings = collection_mgr.settings()
-        self.repos = collection_mgr.repos()
-        self.templar = templar.Templar(collection_mgr)
+        self.api = api
+        self.settings = api.settings()
+        self.templar = templar.Templar(self.api)
 
     def createAutoYaSTScript(self, document, script, name):
         """

@@ -25,14 +25,13 @@ import requests
 
 class DownloadManager:
 
-    def __init__(self, collection_mgr):
+    def __init__(self, api):
         """
         Constructor
 
-        :param collection_mgr: This is the current collection manager instance which holds the settings.
+        :param api: This is the current API instance which holds the settings.
         """
-        self.collection_mgr = collection_mgr
-        self.settings = collection_mgr.settings()
+        self.settings = api.settings()
         self.logger = logging.getLogger()
         self.cert = ()
         if self.settings.proxy_url_ext:

@@ -24,7 +24,7 @@ import logging
 import cobbler.templar as templar
 
 
-class ManagerModule():
+class ManagerModule:
     """
     Base class for Manager modules located in ``modules/manager/*.py``
 
@@ -42,21 +42,20 @@ class ManagerModule():
         """
         return "undefined"
 
-    def __init__(self, collection_mgr):
+    def __init__(self, api):
         """
         Constructor
 
-        :param collection_mgr: The collection manager to resolve all information with.
+        :param api: The API instance to resolve all information with.
         """
         self.logger = logging.getLogger()
-        self.collection_mgr = collection_mgr
-        self.api = collection_mgr.api
-        self.distros = collection_mgr.distros()
-        self.profiles = collection_mgr.profiles()
-        self.systems = collection_mgr.systems()
-        self.settings = collection_mgr.settings()
-        self.repos = collection_mgr.repos()
-        self.templar = templar.Templar(collection_mgr)
+        self.api = api
+        self.distros = self.api.distros()
+        self.profiles = self.api.profiles()
+        self.systems = self.api.systems()
+        self.settings = self.api.settings()
+        self.repos = self.api.repos()
+        self.templar = templar.Templar(self.api)
 
     def write_configs(self):
         """

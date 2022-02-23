@@ -1,29 +1,29 @@
 import glob
 import os
-import pytest
 import shutil
 
 from cobbler.api import CobblerAPI
-from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler import tftpgen
 from cobbler.items.distro import Distro
-from tests.conftest import does_not_raise
 
-# Tests copying the bootloaders from the bootloaders_dir (setting specified in /etc/cobbler/settings.yaml) to the tftpboot directory.
+
 def test_copy_bootloaders(tmpdir):
+    """
+    Tests copying the bootloaders from the bootloaders_dir (setting specified in /etc/cobbler/settings.yaml) to the
+    tftpboot directory.
+    """
     # Instantiate TFTPGen class with collection_mgr parameter
     test_api = CobblerAPI()
-    test_collection_mgr = CollectionManager(test_api)
-    generator = tftpgen.TFTPGen(test_collection_mgr)
+    generator = tftpgen.TFTPGen(test_api)
 
     # Arrange
-    ## Create temporary bootloader files using tmpdir fixture
+    # Create temporary bootloader files using tmpdir fixture
     file_contents = "I am a bootloader"
     sub_path = tmpdir.mkdir("loaders")
     sub_path.join("bootloader1").write(file_contents)
     sub_path.join("bootloader2").write(file_contents)
 
-    ## Copy temporary bootloader files from tmpdir to expected source directory
+    # Copy temporary bootloader files from tmpdir to expected source directory
     for file in glob.glob(str(sub_path + "/*")):
         bootloader_src = "/var/lib/cobbler/loaders/"
         shutil.copy(file, bootloader_src + file.split("/")[-1])
@@ -35,12 +35,14 @@ def test_copy_bootloaders(tmpdir):
     assert os.path.isfile("/srv/tftpboot/bootloader1")
     assert os.path.isfile("/srv/tftpboot/bootloader2")
 
-# Tests copy_single_distro_file() method using a sample initrd file pulled from Centos 8
+
 def test_copy_single_distro_file():
+    """
+    Tests copy_single_distro_file() method using a sample initrd file pulled from CentOS 8
+    """
     # Instantiate TFTPGen class with collection_mgr parameter
     test_api = CobblerAPI()
-    test_collection_mgr = CollectionManager(test_api)
-    generator = tftpgen.TFTPGen(test_collection_mgr)
+    generator = tftpgen.TFTPGen(test_api)
 
     # Arrange
     distro_file = "/code/tests/test_data/dummy_initramfs"
@@ -61,8 +63,6 @@ def test_copy_single_distro_files(create_kernel_initrd, fk_initrd, fk_kernel):
     directory = create_kernel_initrd(fk_kernel, fk_initrd)
     # Create test API        
     test_api = CobblerAPI()
-    # Get Collection Manager used by the API
-    test_collection_mgr = test_api._collection_mgr
     # Create a test Distro
     test_distro = Distro(test_api)
     test_distro.name = "test_copy_single_distro_files"
@@ -71,7 +71,7 @@ def test_copy_single_distro_files(create_kernel_initrd, fk_initrd, fk_kernel):
     # Add test distro to the API
     test_api.add_distro(test_distro)
     # Create class under test
-    test_gen = tftpgen.TFTPGen(test_collection_mgr)
+    test_gen = tftpgen.TFTPGen(test_api)
 
     # Act
     test_gen.copy_single_distro_files(test_distro, directory, False)

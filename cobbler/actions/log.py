@@ -23,6 +23,7 @@ import glob
 import os
 import os.path
 import logging
+import pathlib
 
 
 class LogTool:
@@ -30,23 +31,22 @@ class LogTool:
     Helpers for dealing with System logs, anamon, etc..
     """
 
-    def __init__(self, collection_mgr, system, api):
+    def __init__(self, system, api):
         """
         Log library constructor requires a Cobbler system object.
         """
         self.system = system
-        self.collection_mgr = collection_mgr
-        self.settings = collection_mgr.settings()
         self.api = api
+        self.settings = api.settings()
         self.logger = logging.getLogger()
 
     def clear(self):
         """
         Clears the system logs
         """
-        anamon_dir = '/var/log/cobbler/anamon/%s' % self.system.name
-        if os.path.isdir(anamon_dir):
-            logs = list(filter(os.path.isfile, glob.glob('%s/*' % anamon_dir)))
+        anamon_dir = pathlib.Path('/var/log/cobbler/anamon/').joinpath(self.system.name)
+        if anamon_dir.is_dir():
+            logs = list(filter(os.path.isfile, glob.glob(str(anamon_dir.joinpath('*')))))
         else:
             logs = []
             logging.info("No log-files found to delete for system: %s", self.system.name)

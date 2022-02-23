@@ -199,16 +199,16 @@ class _DnsmasqManager(ManagerModule):
                 raise CX(error_msg)
 
 
-def get_manager(collection_mgr):
+def get_manager(api):
     """
     Creates a manager object to manage a dnsmasq server.
 
-    :param collection_mgr: The collection manager to resolve all information with.
+    :param api: The API to resolve all information with.
     :return: The object generated from the class.
     """
     # Singleton used, therefore ignoring 'global'
     global MANAGER  # pylint: disable=global-statement
 
     if not MANAGER:
-        MANAGER = _DnsmasqManager(collection_mgr)
+        MANAGER = _DnsmasqManager(api)
     return MANAGER

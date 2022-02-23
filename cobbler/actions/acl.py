@@ -30,15 +30,14 @@ from cobbler.cexceptions import CX
 
 class AclConfig:
 
-    def __init__(self, collection_mgr):
+    def __init__(self, api):
         """
         Constructor
 
-        :param collection_mgr: The collection manager which holds all information about Cobbler.
+        :param api: The API which holds all information about Cobbler.
         """
-        self.collection_mgr = collection_mgr
-        self.api = collection_mgr.api
-        self.settings = collection_mgr.settings()
+        self.api = api
+        self.settings = api.settings()
 
     def run(self, adduser: Optional[str] = None, addgroup: Optional[str] = None, removeuser: Optional[str] = None,
             removegroup: Optional[str] = None):

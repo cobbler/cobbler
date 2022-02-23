@@ -78,28 +78,23 @@ class RepoSync:
 
     # ==================================================================================
 
-    def __init__(self, collection_mgr, tries: int = 1, nofail: bool = False):
+    def __init__(self, api, tries: int = 1, nofail: bool = False):
         """
         Constructor
 
-        :param collection_mgr: The object which holds all information in Cobbler.
+        :param api: The object which holds all information in Cobbler.
         :param tries: The number of tries before the operation fails.
         :param nofail: This sets the strictness of the reposync result handling.
-        :param logger: The logger to audit all actions with.
         """
         self.verbose = True
-        self.api = collection_mgr.api
-        self.collection_mgr = collection_mgr
-        self.distros = collection_mgr.distros()
-        self.profiles = collection_mgr.profiles()
-        self.systems = collection_mgr.systems()
-        self.settings = collection_mgr.settings()
-        self.repos = collection_mgr.repos()
+        self.api = api
+        self.settings = api.settings()
+        self.repos = api.repos()
         self.rflags = self.settings.reposync_flags
         self.tries = tries
         self.nofail = nofail
         self.logger = logging.getLogger()
-        self.dlmgr = download_manager.DownloadManager(self.collection_mgr)
+        self.dlmgr = download_manager.DownloadManager(self.api)
 
         self.logger.info("hello, reposync")
 

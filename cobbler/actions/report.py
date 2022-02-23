@@ -22,15 +22,14 @@ from cobbler import utils
 
 class Report:
 
-    def __init__(self, collection_mgr):
+    def __init__(self, api):
         """
         Constructor
 
-        :param collection_mgr: The collection manager to hold all information in Cobbler available.
+        :param api: The API to hold all information in Cobbler available.
         """
-        self.collection_mgr = collection_mgr
-        self.settings = collection_mgr.settings()
-        self.api = collection_mgr.api
+        self.settings = api.settings()
+        self.api = api
         self.report_type = None
         self.report_what = None
         self.report_name = None

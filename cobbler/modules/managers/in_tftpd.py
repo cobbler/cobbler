@@ -50,12 +50,12 @@ class _InTftpdManager(ManagerModule):
         """
         return "in_tftpd"
 
-    def __init__(self, collection_mgr):
-        super().__init__(collection_mgr)
+    def __init__(self, api):
+        super().__init__(api)
 
-        self.tftpgen = tftpgen.TFTPGen(collection_mgr)
-        self.bootloc = collection_mgr.settings().tftpboot_location
-        self.webdir = collection_mgr.settings().webdir
+        self.tftpgen = tftpgen.TFTPGen(api)
+        self.bootloc = api.settings().tftpboot_location
+        self.webdir = api.settings().webdir
 
     def write_boot_files_distro(self, distro):
         # Collapse the object down to a rendered datastructure.
@@ -68,7 +68,7 @@ class _InTftpdManager(ManagerModule):
         metadata["local_img_path"] = os.path.join(self.bootloc, "images", distro.name)
         metadata["web_img_path"] = os.path.join(self.webdir, "distro_mirror", distro.name)
         # Create the templar instance.  Used to template the target directory
-        templater = templar.Templar(self.collection_mgr)
+        templater = templar.Templar(self.api)
 
         # Loop through the dict of boot files, executing a cp for each one
         self.logger.info("processing boot_files for distro: %s" % distro.name)
@@ -90,7 +90,7 @@ class _InTftpdManager(ManagerModule):
                             utils.mkdir(rnd_path)
                     if not os.path.isfile(filedst):
                         shutil.copyfile(file, filedst)
-                    self.collection_mgr.api.log("copied file %s to %s for %s" % (file, filedst, distro.name))
+                    self.logger.info("copied file %s to %s for %s", file, filedst, distro.name)
             except:
                 self.logger.error("failed to copy file %s to %s for %s", file, filedst, distro.name)
 
@@ -98,18 +98,18 @@ class _InTftpdManager(ManagerModule):
 
     def write_boot_files(self):
         """
-        Copy files in ``profile["boot_files"]`` into ``/tftpboot``. Used for vmware currently.
+        Copy files in ``profile["boot_files"]`` into the TFTP server folder. Used for vmware currently.
 
         :return: ``0`` on success.
         """
-        for distro in self.collection_mgr.distros():
+        for distro in self.distros:
             self.write_boot_files_distro(distro)
 
         return 0
 
     def sync_single_system(self, system, menu_items=None):
         """
-        Write out new ``pxelinux.cfg`` files to ``/tftpboot`` (or grub/system/<mac> in grub case)
+        Write out new ``pxelinux.cfg`` files to the TFTP server folder (or grub/system/<mac> in grub case)
 
         :param system: The system to be added.
         """
@@ -125,7 +125,7 @@ class _InTftpdManager(ManagerModule):
 
     def sync_systems(self, systems: List[str], verbose: bool = True):
         """
-        Write out specified systems as separate files to /tftpdboot
+        Write out specified systems as separate files to the TFTP server folder.
 
         :param systems: List of systems to write PXE configuration files for.
         :param verbose: Whether the TFTP server should log this verbose or not.
@@ -162,7 +162,7 @@ class _InTftpdManager(ManagerModule):
 
         # Adding in the exception handling to not blow up if files have been moved (or the path references an NFS
         # directory that's no longer mounted)
-        for d in self.collection_mgr.distros():
+        for d in self.distros:
             try:
                 self.logger.info("copying files for distro: %s", d.name)
                 self.tftpgen.copy_single_distro_files(d, self.bootloc, False)
@@ -182,16 +182,16 @@ class _InTftpdManager(ManagerModule):
         self.tftpgen.make_pxe_menu()
 
 
-def get_manager(collection_mgr):
+def get_manager(api):
     """
     Creates a manager object to manage an in_tftp server.
 
-    :param collection_mgr: The collection manager which holds all information in the current Cobbler instance.
+    :param api: The API which holds all information in the current Cobbler instance.
     :return: The object to manage the server with.
     """
     # Singleton used, therefore ignoring 'global'
     global MANAGER  # pylint: disable=global-statement
 
     if not MANAGER:
-        MANAGER = _InTftpdManager(collection_mgr)
+        MANAGER = _InTftpdManager(api)
     return MANAGER

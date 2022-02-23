@@ -49,8 +49,8 @@ class _BindManager(ManagerModule):
         """
         return "bind"
 
-    def __init__(self, collection_mgr):
-        super().__init__(collection_mgr)
+    def __init__(self, api):
+        super().__init__(api)
 
         self.settings_file = utils.namedconf_location()
         self.zonefile_base = self.settings.bind_zonefile_path + "/"
@@ -619,16 +619,16 @@ zone "%(arpa)s." {
         return ret
 
 
-def get_manager(collection_mgr):
+def get_manager(api):
     """
     This returns the object to manage a BIND server located locally on the Cobbler server.
 
-    :param collection_mgr: The collection manager to resolve all information with.
+    :param api: The API to resolve all information with.
     :return: The BindManger object to manage bind with.
     """
     # Singleton used, therefore ignoring 'global'
     global MANAGER  # pylint: disable=global-statement
 
     if not MANAGER:
-        MANAGER = _BindManager(collection_mgr)
+        MANAGER = _BindManager(api)
     return MANAGER

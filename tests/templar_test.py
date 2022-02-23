@@ -2,7 +2,6 @@ import pytest
 
 from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
-from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.templar import Templar
 
 
@@ -24,8 +23,7 @@ def setup_cheetah_macros_file():
 def test_check_for_invalid_imports():
     # Arrange
     test_api = CobblerAPI()
-    test_collection_mgr = CollectionManager(test_api)
-    test_templar = Templar(test_collection_mgr)
+    test_templar = Templar(test_api)
     testdata = "#import json"
 
     # Act & Assert
@@ -36,8 +34,7 @@ def test_check_for_invalid_imports():
 def test_render():
     # Arrange
     test_api = CobblerAPI()
-    test_collection_mgr = CollectionManager(test_api)
-    test_templar = Templar(test_collection_mgr)
+    test_templar = Templar(test_api)
 
     # Act
     result = test_templar.render("", {}, None, template_type="cheetah")
@@ -49,8 +46,7 @@ def test_render():
 def test_render_cheetah():
     # Arrange
     test_api = CobblerAPI()
-    test_collection_mgr = CollectionManager(test_api)
-    test_templar = Templar(test_collection_mgr)
+    test_templar = Templar(test_api)
 
     # Act
     result = test_templar.render_cheetah("$test", {"test": 5})
@@ -64,8 +60,7 @@ def test_render_cheetah():
 def test_cheetah_macros():
     # Arrange
     test_api = CobblerAPI()
-    test_collection_mgr = CollectionManager(test_api)
-    templar = Templar(test_collection_mgr)
+    templar = Templar(test_api)
 
     # Act
     result = templar.render_cheetah("$myMethodInMacros(5)", {})
@@ -77,8 +72,7 @@ def test_cheetah_macros():
 def test_render_jinja2():
     # Arrange
     test_api = CobblerAPI()
-    test_collection_mgr = CollectionManager(test_api)
-    test_templar = Templar(test_collection_mgr)
+    test_templar = Templar(test_api)
 
     # Act
     result = test_templar.render_jinja2("{{ foo }}", {"foo": "Test successful"})

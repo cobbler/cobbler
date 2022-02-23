@@ -38,11 +38,11 @@ class CobblerSync:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self, collection_mgr, verbose: bool = True, dhcp=None, dns=None, tftpd=None):
+    def __init__(self, api, verbose: bool = True, dhcp=None, dns=None, tftpd=None):
         """
         Constructor
 
-        :param collection_mgr: The collection manager instance which holds all information about cobbler.
+        :param api: The API instance which holds all information about cobbler.
         :param verbose: Whether to log the actions performed in this module verbose or not.
         :param dhcp: The DHCP manager which can update the DHCP config.
         :param dns: The DNS manager which can update the DNS config.
@@ -51,16 +51,15 @@ class CobblerSync:
         self.logger = logging.getLogger()
 
         self.verbose = verbose
-        self.collection_mgr = collection_mgr
-        self.api = collection_mgr.api
-        self.distros = collection_mgr.distros()
-        self.profiles = collection_mgr.profiles()
-        self.systems = collection_mgr.systems()
-        self.images = collection_mgr.images()
-        self.settings = collection_mgr.settings()
-        self.repos = collection_mgr.repos()
-        self.templar = templar.Templar(collection_mgr)
-        self.tftpgen = tftpgen.TFTPGen(collection_mgr)
+        self.api = api
+        self.distros = api.distros()
+        self.profiles = api.profiles()
+        self.systems = api.systems()
+        self.images = api.images()
+        self.settings = api.settings()
+        self.repos = api.repos()
+        self.templar = templar.Templar(self.api)
+        self.tftpgen = tftpgen.TFTPGen(api)
         self.dns = dns
         self.dhcp = dhcp
         self.tftpd = tftpd
@@ -89,11 +88,11 @@ class CobblerSync:
         # run pre-triggers...
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/pre/*")
 
-        self.distros = self.collection_mgr.distros()
-        self.profiles = self.collection_mgr.profiles()
-        self.systems = self.collection_mgr.systems()
-        self.settings = self.collection_mgr.settings()
-        self.repos = self.collection_mgr.repos()
+        self.distros = self.api.distros()
+        self.profiles = self.api.profiles()
+        self.systems = self.api.systems()
+        self.settings = self.api.settings()
+        self.repos = self.api.repos()
 
         # Have the tftpd module handle copying bootloaders, distros, images, and all_system_files
         self.tftpd.sync_systems(systems)
@@ -130,11 +129,11 @@ class CobblerSync:
         # run pre-triggers...
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/pre/*")
 
-        self.distros = self.collection_mgr.distros()
-        self.profiles = self.collection_mgr.profiles()
-        self.systems = self.collection_mgr.systems()
-        self.settings = self.collection_mgr.settings()
-        self.repos = self.collection_mgr.repos()
+        self.distros = self.api.distros()
+        self.profiles = self.api.profiles()
+        self.systems = self.api.systems()
+        self.settings = self.api.settings()
+        self.repos = self.api.repos()
 
         # execute the core of the sync operation
         self.logger.info("cleaning trees")

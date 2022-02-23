@@ -37,15 +37,14 @@ class Replicate:
     This class contains the magic to replicate a Cobbler instance to another Cobbler instance.
     """
 
-    def __init__(self, collection_mgr):
+    def __init__(self, api):
         """
         Constructor
 
-        :param collection_mgr: The collection manager which holds all information available in Cobbler.
+        :param api: The API which holds all information available in Cobbler.
         """
-        self.collection_mgr = collection_mgr
-        self.settings = collection_mgr.settings()
-        self.api = collection_mgr.api
+        self.settings = api.settings()
+        self.api = api
         self.remote = None
         self.uri = None
         self.logger = logging.getLogger()

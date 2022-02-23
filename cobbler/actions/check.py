@@ -35,14 +35,14 @@ class CobblerCheck:
     serving up content. This is the code behind 'cobbler check'.
     """
 
-    def __init__(self, collection_mgr):
+    def __init__(self, api):
         """
         Constructor
 
-        :param collection_mgr: The collection manager which holds all information.
+        :param api: The API which holds all information.
         """
-        self.collection_mgr = collection_mgr
-        self.settings = collection_mgr.settings()
+        self.api = api
+        self.settings = api.settings()
         self.logger = logging.getLogger()
         self.checked_family = ""
 
@@ -58,7 +58,7 @@ class CobblerCheck:
         self.check_name(status)
         self.check_selinux(status)
         if self.settings.manage_dhcp:
-            mode = self.collection_mgr.api.get_sync().dhcp.what()
+            mode = self.api.get_sync().dhcp.what()
             if mode == "isc":
                 self.check_dhcpd_bin(status)
                 self.check_dhcpd_conf(status)
@@ -68,7 +68,7 @@ class CobblerCheck:
                 self.check_service(status, "dnsmasq")
 
         if self.settings.manage_dns:
-            mode = self.collection_mgr.api.get_sync().dns.what()
+            mode = self.api.get_sync().dns.what()
             if mode == "bind":
                 self.check_bind_bin(status)
                 self.check_service(status, "named")
@@ -76,7 +76,7 @@ class CobblerCheck:
                 self.check_dnsmasq_bin(status)
                 self.check_service(status, "dnsmasq")
 
-        mode = self.collection_mgr.api.get_sync().tftpd.what()
+        mode = self.api.get_sync().tftpd.what()
         if mode == "in_tftpd":
             self.check_tftpd_dir(status)
         elif mode == "tftpd_py":
@@ -260,7 +260,7 @@ class CobblerCheck:
         if self.checked_family == "debian":
             return
 
-        enabled = self.collection_mgr.api.is_selinux_enabled()
+        enabled = self.api.is_selinux_enabled()
         if enabled:
             status.append("SELinux is enabled. Please review the following wiki page for details on ensuring Cobbler "
                           "works correctly in your SELinux environment:\n    "
@@ -288,9 +288,9 @@ class CobblerCheck:
         repos = []
         referenced = []
         not_found = []
-        for r in self.collection_mgr.api.repos():
+        for r in self.api.repos():
             repos.append(r.name)
-        for p in self.collection_mgr.api.profiles():
+        for p in self.api.profiles():
             my_repos = p.repos
             if my_repos != "<<inherit>>":
                 referenced.extend(my_repos)
@@ -308,7 +308,7 @@ class CobblerCheck:
         :param status: The status list with possible problems.
         """
         need_sync = []
-        for r in self.collection_mgr.repos():
+        for r in self.api.repos():
             if r.mirror_locally == 1:
                 lookfor = os.path.join(self.settings.webdir, "repo_mirror", r.name)
                 if not os.path.exists(lookfor):

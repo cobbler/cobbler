@@ -38,21 +38,20 @@ class TFTPGen:
     Generate files provided by TFTP server
     """
 
-    def __init__(self, collection_mgr):
+    def __init__(self, api):
         """
         Constructor
         """
-        self.collection_mgr = collection_mgr
         self.logger = logging.getLogger()
-        self.api = collection_mgr.api
-        self.distros = collection_mgr.distros()
-        self.profiles = collection_mgr.profiles()
-        self.systems = collection_mgr.systems()
-        self.settings = collection_mgr.settings()
-        self.repos = collection_mgr.repos()
-        self.images = collection_mgr.images()
-        self.menus = collection_mgr.menus()
-        self.templar = templar.Templar(collection_mgr)
+        self.api = api
+        self.distros = api.distros()
+        self.profiles = api.profiles()
+        self.systems = api.systems()
+        self.settings = api.settings()
+        self.repos = api.repos()
+        self.images = api.images()
+        self.menus = api.menus()
+        self.templar = templar.Templar(self.api)
         self.bootloc = self.settings.tftpboot_location
 
     def copy_bootloaders(self, dest):
