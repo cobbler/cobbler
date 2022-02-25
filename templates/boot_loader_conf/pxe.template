@@ -23,10 +23,7 @@ LABEL $menu_name
 	localboot -1
 #else
 	kernel $kernel_path
-#if $initrd_path and ($arch in ["ppc", "ppc64"] or $arch.startswith("arm"))
-	initrd $initrd_path
-	$append_line
-#elif $breed != "windows"
+#if $breed != "windows"
 	$append_line
 	ipappend 2
 #end if
