@@ -212,7 +212,7 @@ Ansible
 
 Official integration:
 
-- https://github.com/cobbler/ansible
+- https://docs.ansible.com/ansible/latest/collections/community/general/cobbler_inventory.html#ansible-collections-community-general-cobbler-inventory
 
 Community provided integration:
 
