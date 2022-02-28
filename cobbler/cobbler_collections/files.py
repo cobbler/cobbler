@@ -60,7 +60,7 @@ class Files(collection.Collection):
 
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/file/*", [])
+                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/file/pre/*", [])
 
         self.lock.acquire()
         try:
