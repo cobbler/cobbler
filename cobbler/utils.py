@@ -966,7 +966,7 @@ def run_triggers(api, ref, globber, additional: list = None):
 
     :param api: The api object to use for resolving the actions.
     :param ref: Can be a Cobbler object, if not None, the name will be passed to the script. If ref is None, the script
-                will be called with no argumenets.
+                will be called with no arguments.
     :param globber: is a wildcard expression indicating which triggers to run.
     :param additional: Additional arguments to run the triggers with.
     :raises CX: Raised in case the trigger failed.
