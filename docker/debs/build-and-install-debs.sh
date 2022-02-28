@@ -49,8 +49,8 @@ $EXECUTOR exec -it cobbler bash -c 'a2enconf cobbler'
 echo "==> Start Supervisor"
 $EXECUTOR exec -it cobbler bash -c 'supervisord -c /etc/supervisord.conf'
 
-echo "==> Wait 5 sec. and show Cobbler version ..."
-$EXECUTOR exec -it cobbler bash -c 'sleep 5 && cobbler --version'
+echo "==> Wait 20 sec. and show Cobbler version ..."
+$EXECUTOR exec -it cobbler bash -c 'sleep 20 && cobbler --version'
 
 if $RUN_TESTS
 then
