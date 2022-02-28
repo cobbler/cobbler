@@ -81,6 +81,8 @@ def authenticate(api_handle, username, password) -> bool:
             uri += 'ldap://' + server
         elif port == '636':
             uri += 'ldaps://' + server
+        elif port == '3269':
+            uri += 'ldaps://' + "%s:%s" % (server, port)
         else:
             uri += 'ldap://' + "%s:%s" % (server, port)
         uri += ' '
@@ -90,12 +92,12 @@ def authenticate(api_handle, username, password) -> bool:
     # connect to LDAP host
     dir = ldap.initialize(uri)
 
-    if port == '636':
+    if port in ('636', '3269'):
         ldaps_tls = ldap
     else:
         ldaps_tls = dir
 
-    if tls or port == '636':
+    if tls or port in ('636', '3269'):
         if tls_cacertdir:
             ldaps_tls.set_option(ldap.OPT_X_TLS_CACERTDIR, tls_cacertdir)
         if tls_cacertfile:
@@ -115,7 +117,7 @@ def authenticate(api_handle, username, password) -> bool:
             ldaps_tls.set_option(ldap.OPT_X_TLS_CIPHER_SUITE, tls_cipher_suite)
 
     # start_tls if tls is 'on', 'true' or 'yes' and we're not already using old-SSL
-    if port != '636':
+    if port not in ('636', '3269'):
         if tls:
             try:
                 dir.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
