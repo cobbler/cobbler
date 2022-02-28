@@ -1,4 +1,4 @@
-# Cobbler
+# Cobbler-test
 
 [![Publish Python distributions to TestPyPI](https://github.com/cobbler/cobbler/actions/workflows/release_master.yml/badge.svg?branch=master)](https://github.com/cobbler/cobbler/actions/workflows/release_master.yml)
 [![PyPI version](https://badge.fury.io/py/cobbler.svg)](https://badge.fury.io/py/cobbler)
