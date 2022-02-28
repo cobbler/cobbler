@@ -59,6 +59,7 @@ RUN apt-get update -qq && \
     hardlink \
     apache2 \
     libapache2-mod-wsgi-py3 \
+    iproute2 \
     systemd \
     systemd-sysv \
     supervisor && \
