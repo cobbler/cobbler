@@ -135,8 +135,8 @@ class CobblerXMLRPCInterface:
         self.events = {}
         self.shared_secret = utils.get_shared_secret()
         random.seed(time.time())
-        self.tftpgen = tftpgen.TFTPGen(api._collection_mgr)
-        self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api._collection_mgr)
+        self.tftpgen = tftpgen.TFTPGen(api)
+        self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api)
 
     def check(self, token: str) -> Union[None, list]:
         """

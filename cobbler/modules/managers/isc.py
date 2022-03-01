@@ -50,8 +50,8 @@ class _IscManager(ManagerModule):
         """
         return "isc"
 
-    def __init__(self, collection_mgr):
-        super().__init__(collection_mgr)
+    def __init__(self, api):
+        super().__init__(api)
 
         self.settings_file_v4 = utils.dhcpconf_location(utils.DHCP.V4)
         self.settings_file_v6 = utils.dhcpconf_location(utils.DHCP.V6)
@@ -420,16 +420,16 @@ class _IscManager(ManagerModule):
         return ret
 
 
-def get_manager(collection_mgr):
+def get_manager(api):
     """
     Creates a manager object to manage an isc dhcp server.
 
-    :param collection_mgr: The collection manager which holds all information in the current Cobbler instance.
+    :param api: The API which holds all information in the current Cobbler instance.
     :return: The object to manage the server with.
     """
     # Singleton used, therefore ignoring 'global'
     global MANAGER  # pylint: disable=global-statement
 
     if not MANAGER:
-        MANAGER = _IscManager(collection_mgr)
+        MANAGER = _IscManager(api)
     return MANAGER

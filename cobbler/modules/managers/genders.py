@@ -28,7 +28,7 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
     """
     Genders file is over-written when ``manage_genders`` is set in our settings.
 
-    :param config: The config file to template with the data.
+    :param config: The API instance to template the data with.
     :param profiles_genders: The profiles which should be included.
     :param distros_genders: The distros which should be included.
     :param mgmtcls_genders: The management classes which should be included.
@@ -115,5 +115,5 @@ def run(api, args) -> int:
         logger.info("Please run: touch " + settings_file + " as root and try again.")
         return 1
 
-    write_genders_file(api._collection_mgr, profiles_genders, distros_genders, mgmtcls_genders)
+    write_genders_file(api, profiles_genders, distros_genders, mgmtcls_genders)
     return 0

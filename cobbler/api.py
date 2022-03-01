@@ -122,10 +122,10 @@ class CobblerAPI:
             # FIXME: pass more loggers around, and also see that those using things via tasks construct their own
             #  yumgen/tftpgen versus reusing this one, which has the wrong logger (most likely) for background tasks.
 
-            self.autoinstallgen = autoinstallgen.AutoInstallationGen(self._collection_mgr)
-            self.yumgen = yumgen.YumGen(self._collection_mgr)
-            self.tftpgen = tftpgen.TFTPGen(self._collection_mgr)
-            self.power_mgr = power_manager.PowerManager(self, self._collection_mgr)
+            self.autoinstallgen = autoinstallgen.AutoInstallationGen(self)
+            self.yumgen = yumgen.YumGen(self)
+            self.tftpgen = tftpgen.TFTPGen(self)
+            self.power_mgr = power_manager.PowerManager(self)
             self.logger.debug("API handle initialized")
             self.perms_ok = True
 
@@ -668,7 +668,7 @@ class CobblerAPI:
         :return: An empty Distro object.
         """
         self.log("new_distro", [is_subobject])
-        return distro.Distro(self._collection_mgr, is_subobject=is_subobject)
+        return distro.Distro(self, is_subobject=is_subobject)
 
     def new_profile(self, is_subobject: bool = False):
         """
@@ -679,7 +679,7 @@ class CobblerAPI:
         :return: An empty Profile object.
         """
         self.log("new_profile", [is_subobject])
-        return profile.Profile(self._collection_mgr, is_subobject=is_subobject)
+        return profile.Profile(self, is_subobject=is_subobject)
 
     def new_system(self, is_subobject: bool = False):
         """
@@ -690,7 +690,7 @@ class CobblerAPI:
         :return: An empty System object.
         """
         self.log("new_system", [is_subobject])
-        return system.System(self._collection_mgr, is_subobject=is_subobject)
+        return system.System(self, is_subobject=is_subobject)
 
     def new_repo(self, is_subobject: bool = False):
         """
@@ -701,7 +701,7 @@ class CobblerAPI:
         :return: An empty repo object.
         """
         self.log("new_repo", [is_subobject])
-        return repo.Repo(self._collection_mgr, is_subobject=is_subobject)
+        return repo.Repo(self, is_subobject=is_subobject)
 
     def new_image(self, is_subobject: bool = False):
         """
@@ -712,7 +712,7 @@ class CobblerAPI:
         :return: An empty image object.
         """
         self.log("new_image", [is_subobject])
-        return image.Image(self._collection_mgr, is_subobject=is_subobject)
+        return image.Image(self, is_subobject=is_subobject)
 
     def new_mgmtclass(self, is_subobject: bool = False):
         """
@@ -723,7 +723,7 @@ class CobblerAPI:
         :return: An empty mgmtclass object.
         """
         self.log("new_mgmtclass", [is_subobject])
-        return mgmtclass.Mgmtclass(self._collection_mgr, is_subobject=is_subobject)
+        return mgmtclass.Mgmtclass(self, is_subobject=is_subobject)
 
     def new_package(self, is_subobject: bool = False):
         """
@@ -734,7 +734,7 @@ class CobblerAPI:
         :return: An empty Package object.
         """
         self.log("new_package", [is_subobject])
-        return package.Package(self._collection_mgr, is_subobject=is_subobject)
+        return package.Package(self, is_subobject=is_subobject)
 
     def new_file(self, is_subobject: bool = False):
         """
@@ -745,7 +745,7 @@ class CobblerAPI:
         :return: An empty File object.
         """
         self.log("new_file", [is_subobject])
-        return file.File(self._collection_mgr, is_subobject=is_subobject)
+        return file.File(self, is_subobject=is_subobject)
 
     def new_menu(self, is_subobject: bool = False):
         """
@@ -756,7 +756,7 @@ class CobblerAPI:
         :return: An empty File object.
         """
         self.log("new_menu", [is_subobject])
-        return menu.Menu(self._collection_mgr, is_subobject=is_subobject)
+        return menu.Menu(self, is_subobject=is_subobject)
 
     # ==========================================================================
 
@@ -1150,7 +1150,7 @@ class CobblerAPI:
         """
         try:
             url = self.settings().signature_url
-            dlmgr = download_manager.DownloadManager(self._collection_mgr)
+            dlmgr = download_manager.DownloadManager(self)
             # write temp json file
             tmpfile = tempfile.NamedTemporaryFile()
             sigjson = dlmgr.urlread(url)
@@ -1357,7 +1357,7 @@ class CobblerAPI:
         :return: None or a list of things to address.
         """
         self.log("check")
-        action_check = check.CobblerCheck(self._collection_mgr)
+        action_check = check.CobblerCheck(self)
         return action_check.run()
 
     # ==========================================================================
@@ -1368,7 +1368,7 @@ class CobblerAPI:
 
         """
         self.log("validate_autoinstall_files")
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self._collection_mgr)
+        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self)
         autoinstall_mgr.validate_autoinstall_files()
 
     # ==========================================================================
@@ -1428,7 +1428,7 @@ class CobblerAPI:
             "module",
             "managers.bind"
         )
-        dns = dns_module.get_manager(self._collection_mgr)
+        dns = dns_module.get_manager(self)
         dns.sync()
 
     # ==========================================================================
@@ -1446,7 +1446,7 @@ class CobblerAPI:
             "module",
             "managers.isc"
         )
-        dhcp = dhcp_module.get_manager(self._collection_mgr)
+        dhcp = dhcp_module.get_manager(self)
         dhcp.sync()
 
     # ==========================================================================
@@ -1464,19 +1464,19 @@ class CobblerAPI:
             "dhcp",
             "module",
             "managers.isc"
-        ).get_manager(self._collection_mgr)
+        ).get_manager(self)
         dns = self.get_module_from_file(
             "dns",
             "module",
             "managers.bind"
-        ).get_manager(self._collection_mgr)
+        ).get_manager(self)
         tftpd = self.get_module_from_file(
             "tftpd",
             "module",
             "managers.in_tftpd",
-        ).get_manager(self._collection_mgr)
+        ).get_manager(self)
 
-        return sync.CobblerSync(self._collection_mgr, dhcp=dhcp, dns=dns, tftpd=tftpd, verbose=verbose)
+        return sync.CobblerSync(self, dhcp=dhcp, dns=dns, tftpd=tftpd, verbose=verbose)
 
     # ==========================================================================
 
@@ -1491,7 +1491,7 @@ class CobblerAPI:
                        ``tries`` parameter.
         """
         self.log("reposync", [name])
-        action_reposync = reposync.RepoSync(self._collection_mgr, tries=tries, nofail=nofail)
+        action_reposync = reposync.RepoSync(self, tries=tries, nofail=nofail)
         action_reposync.run(name)
 
     # ==========================================================================
@@ -1503,7 +1503,7 @@ class CobblerAPI:
         :param mode: "text" or anything else. Meaning whether the output is thought for the terminal or not.
         :return: The current status of Cobbler.
         """
-        statusifier = status.CobblerStatusReport(self._collection_mgr, mode)
+        statusifier = status.CobblerStatusReport(self, mode)
         return statusifier.run()
 
     # ==========================================================================
@@ -1605,7 +1605,7 @@ class CobblerAPI:
                     return False
 
         import_module = self.get_module_by_name("managers.import_signatures") \
-            .get_import_manager(self._collection_mgr)
+            .get_import_manager(self)
         import_module.run(path, mirror_name, network_root, autoinstall_file, arch, breed, os_version)
         return True
 
@@ -1622,7 +1622,7 @@ class CobblerAPI:
         :param removeuser:
         :param removegroup:
         """
-        action_acl = acl.AclConfig(self._collection_mgr)
+        action_acl = acl.AclConfig(self)
         action_acl.run(
             adduser=adduser,
             addgroup=addgroup,
@@ -1795,7 +1795,7 @@ class CobblerAPI:
                          if False then only some things are synced.
         :param use_ssl: Whether SSL should be used (True) or not (False).
         """
-        replicator = replicate.Replicate(self._collection_mgr)
+        replicator = replicate.Replicate(self)
         return replicator.run(
             cobbler_master=cobbler_master, port=port, distro_patterns=distro_patterns,
             profile_patterns=profile_patterns, system_patterns=system_patterns, repo_patterns=repo_patterns,
@@ -1817,7 +1817,7 @@ class CobblerAPI:
         :param report_fields: Specify "all" or the fields you want to be reported.
         :param report_noheaders: If the column headers should be included in the output or not.
         """
-        reporter = report.Report(self._collection_mgr)
+        reporter = report.Report(self)
         return reporter.run(report_what=report_what, report_name=report_name, report_type=report_type,
                             report_fields=report_fields, report_noheaders=report_noheaders)
 
@@ -1855,7 +1855,7 @@ class CobblerAPI:
 
         :param system: The system to clear logs of.
         """
-        log.LogTool(self._collection_mgr, system, self).clear()
+        log.LogTool(system, self).clear()
 
     # ==========================================================================
 

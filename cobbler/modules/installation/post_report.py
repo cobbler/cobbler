@@ -91,7 +91,7 @@ def run(api, args) -> int:
     with open("/etc/cobbler/reporting/build_report_email.template") as input_template:
         input_data = input_template.read()
 
-        message = templar.Templar(api._collection_mgr).render(
+        message = templar.Templar(api).render(
             input_data, metadata, None
         )
 

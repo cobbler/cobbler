@@ -27,7 +27,7 @@ import xmlrpc.client
 import yaml
 
 from cobbler import download_manager
-from cobbler.cobbler_collections import manager
+from cobbler.api import CobblerAPI
 from cobbler.settings import Settings
 
 
@@ -36,6 +36,7 @@ class CobblerSvc:
     Interesting mod python functions are all keyed off the parameter mode, which defaults to index. All options are
     passed as parameters into the function.
     """
+
     def __init__(self, server=None, req=None):
         """
         Default constructor which sets up everything to be ready.
@@ -47,8 +48,8 @@ class CobblerSvc:
         self.server = server
         self.remote = None
         self.req = req
-        self.collection_mgr = manager.CollectionManager(self)
-        self.dlmgr = download_manager.DownloadManager(self.collection_mgr)
+        self.api = CobblerAPI()
+        self.dlmgr = download_manager.DownloadManager(self.api)
 
     def __xmlrpc_setup(self):
         """
@@ -356,7 +357,7 @@ class CobblerSvc:
         """
         self.__xmlrpc_setup()
 
-        serverseg = "http://%s" % self.collection_mgr._settings.server
+        serverseg = "http://%s" % self.api.settings().server
 
         name = "?"
         if system is not None:
@@ -386,7 +387,7 @@ class CobblerSvc:
         """
         self.__xmlrpc_setup()
 
-        serverseg = "http://%s" % self.collection_mgr._settings.server
+        serverseg = "http://%s" % self.api.settings().server
 
         name = "?"
         if system is not None:

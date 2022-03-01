@@ -48,21 +48,14 @@ class Templar:
     via our self-defined API in this class.
     """
 
-    def __init__(self, collection_mgr):
+    def __init__(self, api):
         """
         Constructor
 
-        :param collection_mgr: The main collection manager instance which is used by the current running server.
+        :param api: The main API instance which is used by the current running server.
         """
-
-        self.collection_mgr = None
-        self.settings = None
-        if collection_mgr:
-            self.collection_mgr = collection_mgr
-            self.settings = collection_mgr.settings()
-
+        self.settings = api.settings()
         self.last_errors = []
-
         self.logger = logging.getLogger()
 
     def check_for_invalid_imports(self, data: str):

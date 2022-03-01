@@ -18,17 +18,16 @@ class AutoInstallationManager:
     Manage automatic installation templates, snippets and final files
     """
 
-    def __init__(self, collection_mgr):
+    def __init__(self, api):
         """
         Constructor for the autoinstall manager.
 
-        :param collection_mgr: The collection manager which has all objects.
+        :param api: The collection manager which has all objects.
         """
-
-        self.collection_mgr = collection_mgr
-        self.snippets_base_dir = self.collection_mgr.settings().autoinstall_snippets_dir
-        self.templates_base_dir = self.collection_mgr.settings().autoinstall_templates_dir
-        self.autoinstallgen = autoinstallgen.AutoInstallationGen(self.collection_mgr)
+        self.api = api
+        self.snippets_base_dir = api.settings().autoinstall_snippets_dir
+        self.templates_base_dir = api.settings().autoinstall_templates_dir
+        self.autoinstallgen = autoinstallgen.AutoInstallationGen(api)
         self.logger = logging.getLogger()
 
     def validate_autoinstall_template_file_path(self, autoinstall: str, for_item: bool = True,
@@ -245,10 +244,10 @@ class AutoInstallationManager:
         :param name: The name of the system.
         :return: Whether the system is in install mode or not.
         """
-        for x in self.collection_mgr.profiles():
+        for x in self.api.profiles():
             if x.autoinstall is not None and x.autoinstall == name:
                 return True
-        for x in self.collection_mgr.systems():
+        for x in self.api.systems():
             if x.autoinstall is not None and x.autoinstall == name:
                 return True
         return False
@@ -293,7 +292,7 @@ class AutoInstallationManager:
         :returns: [bool, int, list] list with validation result, errors type and list of errors
         """
 
-        blended = utils.blender(self.collection_mgr.api, False, obj)
+        blended = utils.blender(self.api, False, obj)
 
         # get automatic installation template
         autoinstall = blended["autoinstall"]
@@ -325,13 +324,13 @@ class AutoInstallationManager:
         """
         overall_success = True
 
-        for x in self.collection_mgr.profiles():
+        for x in self.api.profiles():
             (success, errors_type, errors) = self.validate_autoinstall_file(x, True)
             if not success:
                 overall_success = False
             if len(errors) > 0:
                 self.log_autoinstall_validation_errors(errors_type, errors)
-        for x in self.collection_mgr.systems():
+        for x in self.api.systems():
             (success, errors_type, errors) = self.validate_autoinstall_file(x, False)
             if not success:
                 overall_success = False

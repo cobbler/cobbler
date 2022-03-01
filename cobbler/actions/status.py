@@ -37,16 +37,15 @@ STATE = 5
 
 class CobblerStatusReport:
 
-    def __init__(self, collection_mgr, mode: str):
+    def __init__(self, api, mode: str):
         """
         Constructor
 
-        :param collection_mgr: The collection manager which holds all information.
+        :param api: The API which holds all information.
         :param mode: This describes how Cobbler should report. Currently there only the option ``text`` can be set
                      explicitly.
         """
-        self.collection_mgr = collection_mgr
-        self.settings = collection_mgr.settings()
+        self.settings = api.settings()
         self.ip_data = {}
         self.mode = mode
 

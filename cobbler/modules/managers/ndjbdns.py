@@ -47,8 +47,8 @@ class _NDjbDnsManager(ManagerModule):
         """
         return "ndjbdns"
 
-    def __init__(self, collection_mgr):
-        super().__init__(collection_mgr)
+    def __init__(self, api):
+        super().__init__(api)
 
     def write_configs(self):
         """
@@ -86,16 +86,16 @@ class _NDjbDnsManager(ManagerModule):
             raise Exception('Could not regenerate tinydns data file.')
 
 
-def get_manager(collection_mgr):
+def get_manager(api):
     """
     Creates a manager object to manage an isc dhcp server.
 
-    :param collection_mgr: The collection manager which holds all information in the current Cobbler instance.
+    :param api: The API which holds all information in the current Cobbler instance.
     :return: The object to manage the server with.
     """
     # Singleton used, therefore ignoring 'global'
     global MANAGER  # pylint: disable=global-statement
 
     if not MANAGER:
-        MANAGER = _NDjbDnsManager(collection_mgr)
+        MANAGER = _NDjbDnsManager(api)
     return MANAGER

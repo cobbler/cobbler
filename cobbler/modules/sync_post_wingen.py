@@ -141,8 +141,8 @@ def run(api, args):
 
     profiles = api.profiles()
     systems = api.systems()
-    templ = templar.Templar(api._collection_mgr)
-    tgen = tftpgen.TFTPGen(api._collection_mgr)
+    templ = templar.Templar(api)
+    tgen = tftpgen.TFTPGen(api)
 
     with open(os.path.join(settings.windows_template_dir, post_inst_cmd_template_name)) as template_win:
         post_tmpl_data = template_win.read()

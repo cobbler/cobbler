@@ -94,19 +94,14 @@ class PowerManager:
     Handles power management in systems
     """
 
-    def __init__(self, api, collection_mgr):
+    def __init__(self, api):
         """
         Constructor
 
         :param api: Cobbler API
-        :type api: CobblerAPI
-        :param collection_mgr: collection manager
-        :type collection_mgr: CollectionManager
         """
-
-        self.collection_mgr = collection_mgr
-        self.settings = collection_mgr.settings()
         self.api = api
+        self.settings = api.settings()
         self.logger = logging.getLogger()
 
     def _check_power_conf(self, system, user, password):
