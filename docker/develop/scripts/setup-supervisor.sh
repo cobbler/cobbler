@@ -18,5 +18,11 @@ sleep 5
 echo "Load openLDAP database"
 ldapadd -Y EXTERNAL -H ldapi:/// -f /code/docker/develop/openldap/test.ldif
 
+echo "Create DHCPD leases file"
+touch /var/lib/dhcp/db/dhcpd.leases
+
 echo "Show Cobbler version"
 cobbler version
+
+echo "Execute system-test-env"
+make system-test-env
