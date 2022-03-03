@@ -38,7 +38,7 @@ $EXECUTOR run -ti -v "$PWD/deb-build:/usr/src/cobbler/deb-build" -v "$PWD/tmp:/v
 
 # Launch container and install cobbler
 echo "==> Start container ..."
-$EXECUTOR run -t -d --name cobbler -v "$PWD/deb-build:/usr/src/cobbler/deb-build" "$IMAGE" /bin/bash
+$EXECUTOR run --cap-add=NET_ADMIN -t -d --name cobbler -v "$PWD/deb-build:/usr/src/cobbler/deb-build" "$IMAGE" /bin/bash
 
 echo "==> Install fresh packages ..."
 $EXECUTOR exec -it cobbler bash -c 'dpkg -i deb-build/DEBS/all/cobbler*.deb'

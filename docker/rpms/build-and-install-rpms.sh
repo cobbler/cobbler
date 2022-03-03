@@ -39,7 +39,7 @@ $EXECUTOR run -t -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "$IMAGE"
 
 # Launch container and install cobbler
 echo "==> Start container ..."
-$EXECUTOR run -t -d --name cobbler \
+$EXECUTOR run --cap-add=NET_ADMIN -t -d --name cobbler \
     -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" \
     -v "$PWD/system-tests:/usr/src/cobbler/system-tests" \
     "$IMAGE" /bin/bash
