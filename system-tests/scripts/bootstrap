@@ -16,8 +16,11 @@ cat >/etc/cobbler/settings.d/system-tests.settings <<-EOF
 	server: ${server}
 	next_server_v4: ${server}
 	manage_dhcp: true
+	manage_dhcp_v4: true
 	manage_dhcp_v6: false
 	power_management_default_type: 'ipmilan'
 EOF
+
+supervisorctl restart cobblerd
 
 cobbler mkloaders
