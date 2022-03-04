@@ -38,7 +38,7 @@ for test in $(list_selected_tests); do
 	test_dir=${SYSTESTS_TMP}/${test}
 	printf '  %s... ' ${test}
 	mkdir -p ${test_dir}
-	${topdir}/tests/${test} >${test_dir}/_output 2>&1
+	env TEST_NAME=${test} ${topdir}/tests/${test} >${test_dir}/_output 2>&1
 	if [ ${?} -eq 0 ]; then
 		echo ok
 	else
