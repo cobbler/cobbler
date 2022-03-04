@@ -265,7 +265,7 @@ def test_grab_tree():
 
     # Assert
     assert isinstance(result, list)
-    assert result[-1].server == "127.0.0.1"
+    assert result[-1].server == "192.168.1.1"
 
 
 def test_blender():
@@ -739,7 +739,7 @@ def test_local_get_cobbler_api_url():
     result = utils.local_get_cobbler_api_url()
 
     # Assert
-    assert result == "http://127.0.0.1:80/cobbler_api"
+    assert result == "http://192.168.1.1:80/cobbler_api"
 
 
 def test_local_get_cobbler_xmlrpc_url():
@@ -956,8 +956,7 @@ def test_service_restart_supervisord(mocker):
     result = utils.service_restart("dhcpd")
 
     # Assert
-    # Currently we check for 1 because dhcpd is not running.
-    assert result == 1
+    assert result == 0
 
 
 def test_service_restart_systemctl(mocker):

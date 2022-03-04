@@ -279,7 +279,7 @@ class TestAppendLineBuilder:
         # TODO: Make tests more sophisticated
         assert (
             result
-            == " append initrd=testdistro.img install=http://127.0.0.1:80/cblr/links/testdistro autoyast=default.ks"
+            == " append initrd=testdistro.img install=http://192.168.1.1:80/cblr/links/testdistro autoyast=default.ks"
         )
 
     def test_generate_profile(
@@ -309,5 +309,5 @@ class TestAppendLineBuilder:
         # TODO: Make tests more sophisticated
         assert (
             result
-            == " append initrd=testdistro.img install=http://127.0.0.1:80/cblr/links/testdistro autoyast=default.ks"
+            == " append initrd=testdistro.img install=http://192.168.1.1:80/cblr/links/testdistro autoyast=default.ks"
         )

@@ -147,7 +147,7 @@ def test_manager_restart_dhcp(mocker, api_isc_mock):
 
     # Assert
     assert mocked_subprocess.call_count == 1
-    mocked_subprocess.assert_called_with("dhcpd -t -q", shell=False)
+    mocked_subprocess.assert_called_with(["/usr/sbin/dhcpd", "-t", "-q"], shell=False)
     assert mocked_service_restart.call_count == 1
     mocked_service_restart.assert_called_with("dhcpd")
     assert result == 0
