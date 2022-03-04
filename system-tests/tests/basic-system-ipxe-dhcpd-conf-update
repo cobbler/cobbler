@@ -17,4 +17,5 @@ cobbler system edit --name testbed --netboot-enabled 1 --enable-ipxe 1
 # Assert
 # We assume that the existence of a single http URL is a successful iPXE group creation.
 # See dhcp.template for reference how we generate this.
-grep 'filename "http://' /etc/dhcpd.conf
+dhcpd_conf=$(_dir /etc/dhcpd.conf /etc/dhcp/dhcpd.conf)
+grep 'filename "http://' $dhcpd_conf
