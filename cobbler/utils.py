@@ -255,11 +255,14 @@ def service_restart(service_name: str):
     if is_supervisord():
         with ServerProxy('http://localhost:9001/RPC2') as server:
             try:
+                process_state = -1  # Not redundant because we could run otherwise in an UnboundLocalError
                 process_state = server.supervisor.getProcessInfo(service_name).get("state")
                 if process_state in (10, 20):
                     server.supervisor.stopProcess(service_name)
                 if server.supervisor.startProcess(service_name):  # returns a boolean
                     return 0
+                logger.error('Restarting service "%s" failed', service_name)
+                return 1
             except xmlrpc.client.Fault as clientFault:
                 logger.error(
                     'Restarting service "%s" failed (supervisord process state was "%s")',
