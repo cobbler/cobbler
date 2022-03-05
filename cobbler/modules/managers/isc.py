@@ -20,7 +20,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import shutil
 import time
 
 from cobbler import utils
@@ -371,7 +371,8 @@ class _IscManager(ManagerModule):
 
         :param service_name: The name of the DHCP service.
         """
-        return_code_service_restart = utils.subprocess_call("{} -t -q".format(service_name), shell=False)
+        dhcpd_path = shutil.which(service_name)
+        return_code_service_restart = utils.subprocess_call([dhcpd_path, "-t", "-q"], shell=False)
         if return_code_service_restart != 0:
             self.logger.error("Testing config - {} -t failed".format(service_name))
         return_code_service_restart = utils.service_restart(service_name)

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Check that Cobbler can add and remove systems
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+# Arrange
+cobbler distro add --name fake --arch x86_64 --kernel ${fake_kernel} \
+	--initrd ${fake_initramfs}
+cobbler profile add --name fake --distro fake
+cobbler system add --name testbed --profile fake --mac "aa:bb:cc:dd:ee:ff"
+
+# Act
+cobbler system edit --name testbed --netboot-enabled 1 --enable-ipxe 1
+
+# Assert
+# We assume that the existence of a single http URL is a successful iPXE group creation.
+# See dhcp.template for reference how we generate this.
+dhcpd_conf=$(_dir /etc/dhcpd.conf /etc/dhcp/dhcpd.conf)
+grep 'filename "http://' $dhcpd_conf

@@ -30,7 +30,7 @@ class ManagerModule:
 
     These are typically but not necessarily used to manage systemd services.
     Enabling can be done via settings ``manage_*`` (e.g. ``manage_dhcp``) and ``restart_*`` (e.g. ``restart_dhcp``).
-    Different modules could manage the same functionality like dhcp can be managed via isc.py or dnsmasq.py
+    Different modules could manage the same functionality as dhcp can be managed via isc.py or dnsmasq.py
     (compare with ``/etc/cobbler/modules.py``).
     """
 
@@ -63,7 +63,7 @@ class ManagerModule:
         E.g. dhcp manager would write ``/etc/dhcpd.conf`` here
         """
 
-    def restart_service(self):
+    def restart_service(self) -> int:
         """
         Write module specific config files.
         E.g. dhcp manager would write ``/etc/dhcpd.conf`` here
@@ -71,10 +71,10 @@ class ManagerModule:
 
     def regen_ethers(self):
         """
-        ISC/BIND doesn't use this. It is there for compability reasons with other managers.
+        ISC/BIND doesn't use this. It is there for compatibility reasons with other managers.
         """
 
-    def sync(self):
+    def sync(self) -> int:
         """
         This syncs the manager's server (systemd service) with it's new config files.
         Basically this restarts the service to apply the changes.
