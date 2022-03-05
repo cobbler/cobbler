@@ -58,34 +58,34 @@ subnet6 2001:db8:0:1::/64 {
 group {
     #for mac in $dhcp_tags[$dhcp_tag].keys():
         #set iface = $dhcp_tags[$dhcp_tag][$mac]
-    host $iface.name {
-        ##
-        ## dhcp-client-identifier
-        #if $iface.interface_type == "infiniband":
-        option dhcp-client-identifier = $mac;
-        #else
-        hardware ethernet $mac;
-        #end if
-        ##
-        ## fixed-address6
-        fixed-address6 $iface.ipv6_address;
-        ##
-        ## host-name
-        #if $iface.hostname:
-        option host-name "$iface.hostname";
-        #else if $iface.dns_name:
-        option host-name "$iface.dns_name";
-        #end if
-        ##
-        ## dhcp6.bootfile-url
-        ## Do we have a host specific next_server or filename
-        ## In DHCPv6 that means: Do we point to a host specific boot loader
-        #set host_filename = $iface.get("filename", None)
-        #set host_next_server_v6 = $iface.get("next_server_v6", $next_server_v6)
-        #if $host_next_server_v6 != $next_server_v6 or $host_filename:
-        option dhcp6.bootfile-url "tftp://[$host_next_server_v6]/$host_filename";
-        #end if
-    }
+host $iface.name {
+    ##
+    ## dhcp-client-identifier
+    #if $iface.interface_type == "infiniband":
+    option dhcp-client-identifier = $mac;
+    #else
+    hardware ethernet $mac;
+    #end if
+    ##
+    ## fixed-address6
+    fixed-address6 $iface.ipv6_address;
+    ##
+    ## host-name
+    #if $iface.hostname:
+    option host-name "$iface.hostname";
+    #else if $iface.dns_name:
+    option host-name "$iface.dns_name";
+    #end if
+    ##
+    ## dhcp6.bootfile-url
+    ## Do we have a host specific next_server or filename
+    ## In DHCPv6 that means: Do we point to a host specific boot loader
+    #set host_filename = $iface.get("filename", None)
+    #set host_next_server_v6 = $iface.get("next_server_v6", $next_server_v6)
+    #if $host_next_server_v6 != $next_server_v6 or $host_filename:
+    option dhcp6.bootfile-url "tftp://[$host_next_server_v6]/$host_filename";
+    #end if
+}
     #end for
 }
 #end for

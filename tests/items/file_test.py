@@ -1,25 +1,22 @@
 import pytest
 
-from cobbler.api import CobblerAPI
 from cobbler.items.file import File
 from tests.conftest import does_not_raise
 
 
-def test_object_creation():
+def test_object_creation(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
 
     # Act
-    distro = File(test_api)
+    distro = File(cobbler_api)
 
     # Arrange
     assert isinstance(distro, File)
 
 
-def test_make_clone():
+def test_make_clone(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    file = File(test_api)
+    file = File(cobbler_api)
 
     # Act
     clone = file.make_clone()
@@ -34,10 +31,9 @@ def test_make_clone():
 @pytest.mark.parametrize("value,expected_exception", [
     (False, does_not_raise())
 ])
-def test_is_dir(value, expected_exception):
+def test_is_dir(cobbler_api, value, expected_exception):
     # Arrange
-    test_api = CobblerAPI()
-    file = File(test_api)
+    file = File(cobbler_api)
 
     # Act
     with expected_exception:

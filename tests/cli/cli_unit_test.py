@@ -3,7 +3,6 @@ import optparse
 import pytest
 
 from cobbler import cli
-from unittest.mock import patch, MagicMock
 
 
 @pytest.mark.parametrize("input_data,expected_result", [

@@ -7,7 +7,6 @@ import pytest
 from netaddr.ip import IPAddress
 
 from cobbler import utils
-from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 from cobbler.settings import Settings
@@ -59,12 +58,11 @@ def test_is_systemd():
     assert result
 
 
-def test_get_random_mac():
+def test_get_random_mac(cobbler_api):
     # Arrange
-    api = CobblerAPI()
 
     # Act
-    result = utils.get_random_mac(api)
+    result = utils.get_random_mac(cobbler_api)
 
     # Assert
     # TODO: Check for MAC validity
@@ -254,27 +252,25 @@ def test_input_boolean(testinput, expected_exception, expected_result):
         assert expected_result == result
 
 
-def test_grab_tree():
+def test_grab_tree(cobbler_api):
     # Arrange
-    api = CobblerAPI()
-    object_to_check = Distro(api)
+    object_to_check = Distro(cobbler_api)
     # TODO: Create some objects and give them some inheritance.
 
     # Act
-    result = utils.grab_tree(api, object_to_check)
+    result = utils.grab_tree(cobbler_api, object_to_check)
 
     # Assert
     assert isinstance(result, list)
     assert result[-1].server == "192.168.1.1"
 
 
-def test_blender():
+def test_blender(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    root_item = Distro(test_api)
+    root_item = Distro(cobbler_api)
 
     # Act
-    result = utils.blender(test_api, False, root_item)
+    result = utils.blender(cobbler_api, False, root_item)
 
     # Assert
     assert len(result) == 160
@@ -372,13 +368,12 @@ def test_run_this():
 
 
 @pytest.mark.skip("This method does magic. Since we havn't had the time to break it down, this test is skipped.")
-def test_run_triggers():
+def test_run_triggers(cobbler_api):
     # Arrange
-    api = CobblerAPI()
     globber = ""
 
     # Act
-    utils.run_triggers(api, None, globber)
+    utils.run_triggers(cobbler_api, None, globber)
 
     # Assert
     # TODO: How the heck do we check that this actually did what it is supposed to do?
@@ -412,13 +407,12 @@ def test_os_release():
     ("/usr/bin/os-release", "/tmp", True),
     ("/etc/os-release", "/tmp", False)
 ])
-def test_is_safe_to_hardlink(test_src, test_dst, expected_result):
+def test_is_safe_to_hardlink(cobbler_api, test_src, test_dst, expected_result):
     # Arrange
     # TODO: Generate cases
-    api = CobblerAPI()
 
     # Act
-    result = utils.is_safe_to_hardlink(test_src, test_dst, api)
+    result = utils.is_safe_to_hardlink(test_src, test_dst, cobbler_api)
 
     # Assert
     assert expected_result == result
@@ -455,14 +449,13 @@ def test_cachefile():
 
 
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
-def test_linkfile():
+def test_linkfile(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
     test_source = ""
     test_destination = ""
 
     # Act
-    utils.linkfile(test_source, test_destination, api=test_api)
+    utils.linkfile(test_source, test_destination, api=cobbler_api)
 
     # Assert
     assert False
@@ -863,10 +856,9 @@ def test_named_service_name():
 
 
 @pytest.mark.skip("This is hard to test as we are creating a symlink in the method. For now we skip it.")
-def test_link_distro():
+def test_link_distro(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    test_distro = Distro(test_api)
+    test_distro = Distro(cobbler_api)
 
     # Act
     utils.link_distro(Settings(), test_distro)
@@ -875,12 +867,11 @@ def test_link_distro():
     assert False
 
 
-def test_find_distro_path(create_testfile, tmp_path):
+def test_find_distro_path(cobbler_api, create_testfile, tmp_path):
     # Arrange
-    test_api = CobblerAPI()
     fk_kernel = "vmlinuz1"
     create_testfile(fk_kernel)
-    test_distro = Distro(test_api)
+    test_distro = Distro(cobbler_api)
     test_distro.kernel = os.path.join(tmp_path, fk_kernel)
 
     # Act

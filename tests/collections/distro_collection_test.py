@@ -20,18 +20,18 @@ def test_obj_create(collection_mgr):
     assert isinstance(distro_collection, distros.Distros)
 
 
-def test_factory_produce(api, distro_collection):
+def test_factory_produce(cobbler_api, distro_collection):
     # Arrange & Act
-    result_distro = distro_collection.factory_produce(api, {})
+    result_distro = distro_collection.factory_produce(cobbler_api, {})
 
     # Assert
     assert isinstance(result_distro, distro.Distro)
 
 
-def test_get(api, distro_collection):
+def test_get(cobbler_api, distro_collection):
     # Arrange
     name = "test_get"
-    item1 = distro.Distro(api)
+    item1 = distro.Distro(cobbler_api)
     item1.name = name
     distro_collection.add(item1)
 
@@ -43,10 +43,10 @@ def test_get(api, distro_collection):
     assert item.name == name
 
 
-def test_find(api, distro_collection):
+def test_find(cobbler_api, distro_collection):
     # Arrange
     name = "test_find"
-    item1 = distro.Distro(api)
+    item1 = distro.Distro(cobbler_api)
     item1.name = name
     distro_collection.add(item1)
 
@@ -59,10 +59,10 @@ def test_find(api, distro_collection):
     assert result[0].name == name
 
 
-def test_to_list(api, distro_collection):
+def test_to_list(cobbler_api, distro_collection):
     # Arrange
     name = "test_to_list"
-    item1 = distro.Distro(api)
+    item1 = distro.Distro(cobbler_api)
     item1.name = name
     distro_collection.add(item1)
 
@@ -85,11 +85,11 @@ def test_from_list(distro_collection):
     assert len(distro_collection.listing) == 1
 
 
-def test_copy(api, distro_collection, create_kernel_initrd, fk_initrd, fk_kernel):
+def test_copy(cobbler_api, distro_collection, create_kernel_initrd, fk_initrd, fk_kernel):
     # Arrange
     folder = create_kernel_initrd(fk_kernel, fk_initrd)
     name = "test_copy"
-    item1 = distro.Distro(api)
+    item1 = distro.Distro(cobbler_api)
     item1.name = name
     item1.initrd = os.path.join(folder, fk_initrd)
     item1.kernel = os.path.join(folder, fk_kernel)
@@ -105,10 +105,10 @@ def test_copy(api, distro_collection, create_kernel_initrd, fk_initrd, fk_kernel
     assert new_item_name in distro_collection.listing
 
 
-def test_rename(api, distro_collection):
+def test_rename(cobbler_api, distro_collection):
     # Arrange
     name = "to_be_renamed"
-    item1 = distro.Distro(api)
+    item1 = distro.Distro(cobbler_api)
     item1.name = name
     distro_collection.add(item1)
 
@@ -121,10 +121,10 @@ def test_rename(api, distro_collection):
     assert distro_collection.listing.get(new_name).name == new_name
 
 
-def test_collection_add(api, distro_collection):
+def test_collection_add(cobbler_api, distro_collection):
     # Arrange
     name = "collection_add"
-    item1 = distro.Distro(api)
+    item1 = distro.Distro(cobbler_api)
     item1.name = name
 
     # Act
@@ -134,13 +134,13 @@ def test_collection_add(api, distro_collection):
     assert name in distro_collection.listing
 
 
-def test_duplicate_add(api, distro_collection):
+def test_duplicate_add(cobbler_api, distro_collection):
     # Arrange
     name = "duplicate_name"
-    item1 = distro.Distro(api)
+    item1 = distro.Distro(cobbler_api)
     item1.name = name
     distro_collection.add(item1)
-    item2 = distro.Distro(api)
+    item2 = distro.Distro(cobbler_api)
     item2.name = name
 
     # Act & Assert
@@ -148,10 +148,10 @@ def test_duplicate_add(api, distro_collection):
         distro_collection.add(item2, check_for_duplicate_names=True)
 
 
-def test_remove(api, distro_collection):
+def test_remove(cobbler_api, distro_collection):
     # Arrange
     name = "to_be_removed"
-    item1 = distro.Distro(api)
+    item1 = distro.Distro(cobbler_api)
     item1.name = name
     distro_collection.add(item1)
     assert name in distro_collection.listing
@@ -164,10 +164,10 @@ def test_remove(api, distro_collection):
 
 
 @pytest.mark.skip("Method which is under test is broken!")
-def test_to_string(api, distro_collection):
+def test_to_string(cobbler_api, distro_collection):
     # Arrange
     name = "to_string"
-    item1 = distro.Distro(api)
+    item1 = distro.Distro(cobbler_api)
     item1.name = name
     distro_collection.add(item1)
 

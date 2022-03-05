@@ -1,23 +1,20 @@
 from cobbler import enums
-from cobbler.api import CobblerAPI
 from cobbler.items.resource import Resource
 
 
-def test_object_creation():
+def test_object_creation(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
 
     # Act
-    distro = Resource(test_api)
+    distro = Resource(cobbler_api)
 
     # Arrange
     assert isinstance(distro, Resource)
 
 
-def test_make_clone():
+def test_make_clone(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    resource = Resource(test_api)
+    resource = Resource(cobbler_api)
 
     # Act
     result = resource.make_clone()
@@ -28,10 +25,9 @@ def test_make_clone():
 # Properties Tests
 
 
-def test_action():
+def test_action(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    resource = Resource(test_api)
+    resource = Resource(cobbler_api)
 
     # Act
     resource.action = "create"
@@ -40,10 +36,9 @@ def test_action():
     assert resource.action == enums.ResourceAction.CREATE
 
 
-def test_group():
+def test_group(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    resource = Resource(test_api)
+    resource = Resource(cobbler_api)
 
     # Act
     resource.group = "test"
@@ -52,10 +47,9 @@ def test_group():
     assert resource.group == "test"
 
 
-def test_mode():
+def test_mode(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    resource = Resource(test_api)
+    resource = Resource(cobbler_api)
 
     # Act
     resource.mode = "test"
@@ -64,10 +58,9 @@ def test_mode():
     assert resource.mode == "test"
 
 
-def test_owner():
+def test_owner(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    resource = Resource(test_api)
+    resource = Resource(cobbler_api)
 
     # Act
     resource.owner = "test"
@@ -76,10 +69,9 @@ def test_owner():
     assert resource.owner == "test"
 
 
-def test_path():
+def test_path(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    resource = Resource(test_api)
+    resource = Resource(cobbler_api)
 
     # Act
     resource.path = "test"
@@ -88,10 +80,9 @@ def test_path():
     assert resource.path == "test"
 
 
-def test_template():
+def test_template(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    resource = Resource(test_api)
+    resource = Resource(cobbler_api)
 
     # Act
     resource.template = "test"

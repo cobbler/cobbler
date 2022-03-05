@@ -1,22 +1,19 @@
-from cobbler.api import CobblerAPI
 from cobbler.items.package import Package
 
 
-def test_object_creation():
+def test_object_creation(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
 
     # & Act
-    package = Package(test_api)
+    package = Package(cobbler_api)
 
     # Arrange
     assert isinstance(package, Package)
 
 
-def test_make_clone():
+def test_make_clone(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    package = Package(test_api)
+    package = Package(cobbler_api)
 
     # Act
     result = package.make_clone()
@@ -25,10 +22,9 @@ def test_make_clone():
     assert package != result
 
 
-def test_installer():
+def test_installer(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    package = Package(test_api)
+    package = Package(cobbler_api)
 
     # Act
     package.installer = ""
@@ -37,10 +33,9 @@ def test_installer():
     assert package.installer == ""
 
 
-def test_version():
+def test_version(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    package = Package(test_api)
+    package = Package(cobbler_api)
 
     # Act
     package.version = ""

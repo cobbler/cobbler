@@ -1,26 +1,23 @@
 import pytest
 
 from cobbler import enums
-from cobbler.api import CobblerAPI
 from cobbler.items.system import NetworkInterface, System
 from tests.conftest import does_not_raise
 
 
-def test_object_creation():
+def test_object_creation(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
 
     # Act
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Arrange
     assert isinstance(system, System)
 
 
-def test_make_clone():
+def test_make_clone(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     result = system.make_clone()
@@ -32,10 +29,9 @@ def test_make_clone():
 # Properties Tests
 
 
-def test_ipv6_autoconfiguration():
+def test_ipv6_autoconfiguration(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.ipv6_autoconfiguration = False
@@ -44,10 +40,9 @@ def test_ipv6_autoconfiguration():
     assert not system.ipv6_autoconfiguration
 
 
-def test_repos_enabled():
+def test_repos_enabled(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.repos_enabled = False
@@ -56,10 +51,9 @@ def test_repos_enabled():
     assert not system.repos_enabled
 
 
-def test_autoinstall():
+def test_autoinstall(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.autoinstall = ""
@@ -68,10 +62,9 @@ def test_autoinstall():
     assert system.autoinstall == ""
 
 
-def test_boot_loaders():
+def test_boot_loaders(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.boot_loaders = []
@@ -91,10 +84,9 @@ def test_boot_loaders():
     (False, does_not_raise()),
     (True, does_not_raise())
 ])
-def test_enable_ipxe(value, expected):
+def test_enable_ipxe(cobbler_api, value, expected):
     # Arrange
-    test_api = CobblerAPI()
-    distro = System(test_api)
+    distro = System(cobbler_api)
 
     # Act
     with expected:
@@ -105,10 +97,9 @@ def test_enable_ipxe(value, expected):
         assert distro.enable_ipxe or not distro.enable_ipxe
 
 
-def test_gateway():
+def test_gateway(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.gateway = ""
@@ -117,10 +108,9 @@ def test_gateway():
     assert system.gateway == ""
 
 
-def test_hostname():
+def test_hostname(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.hostname = ""
@@ -129,10 +119,9 @@ def test_hostname():
     assert system.hostname == ""
 
 
-def test_image():
+def test_image(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.image = ""
@@ -141,10 +130,9 @@ def test_image():
     assert system.image == ""
 
 
-def test_ipv6_default_device():
+def test_ipv6_default_device(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.ipv6_default_device = ""
@@ -153,10 +141,9 @@ def test_ipv6_default_device():
     assert system.ipv6_default_device == ""
 
 
-def test_name_servers():
+def test_name_servers(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.name_servers = []
@@ -165,10 +152,9 @@ def test_name_servers():
     assert system.name_servers == []
 
 
-def test_name_servers_search():
+def test_name_servers_search(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.name_servers_search = ""
@@ -188,10 +174,9 @@ def test_name_servers_search():
     (False, does_not_raise()),
     (True, does_not_raise())
 ])
-def test_netboot_enabled(value, expected):
+def test_netboot_enabled(cobbler_api, value, expected):
     # Arrange
-    test_api = CobblerAPI()
-    distro = System(test_api)
+    distro = System(cobbler_api)
 
     # Act
     with expected:
@@ -202,10 +187,9 @@ def test_netboot_enabled(value, expected):
         assert distro.netboot_enabled or not distro.netboot_enabled
 
 
-def test_next_server_v4():
+def test_next_server_v4(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.next_server_v4 = ""
@@ -214,10 +198,9 @@ def test_next_server_v4():
     assert system.next_server_v4 == ""
 
 
-def test_next_server_v6():
+def test_next_server_v6(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.next_server_v6 = ""
@@ -226,10 +209,9 @@ def test_next_server_v6():
     assert system.next_server_v6 == ""
 
 
-def test_filename():
+def test_filename(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.filename = "<<inherit>>"
@@ -238,10 +220,9 @@ def test_filename():
     assert system.filename == "<<inherit>>"
 
 
-def test_power_address():
+def test_power_address(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.power_address = ""
@@ -250,10 +231,9 @@ def test_power_address():
     assert system.power_address == ""
 
 
-def test_power_id():
+def test_power_id(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.power_id = ""
@@ -262,10 +242,9 @@ def test_power_id():
     assert system.power_id == ""
 
 
-def test_power_pass():
+def test_power_pass(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.power_pass = ""
@@ -274,10 +253,9 @@ def test_power_pass():
     assert system.power_pass == ""
 
 
-def test_power_type():
+def test_power_type(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.power_type = "docker"
@@ -286,10 +264,9 @@ def test_power_type():
     assert system.power_type == "docker"
 
 
-def test_power_user():
+def test_power_user(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.power_user = ""
@@ -298,10 +275,9 @@ def test_power_user():
     assert system.power_user == ""
 
 
-def test_power_options():
+def test_power_options(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.power_options = ""
@@ -310,10 +286,9 @@ def test_power_options():
     assert system.power_options == ""
 
 
-def test_power_identity_file():
+def test_power_identity_file(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.power_identity_file = ""
@@ -322,10 +297,9 @@ def test_power_identity_file():
     assert system.power_identity_file == ""
 
 
-def test_profile():
+def test_profile(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.profile = ""
@@ -334,10 +308,9 @@ def test_profile():
     assert system.profile == ""
 
 
-def test_proxy():
+def test_proxy(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.proxy = ""
@@ -346,10 +319,9 @@ def test_proxy():
     assert system.proxy == ""
 
 
-def test_redhat_management_key():
+def test_redhat_management_key(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.redhat_management_key = ""
@@ -358,10 +330,9 @@ def test_redhat_management_key():
     assert system.redhat_management_key == ""
 
 
-def test_server():
+def test_server(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.server = ""
@@ -370,10 +341,9 @@ def test_server():
     assert system.server == "<<inherit>>"
 
 
-def test_status():
+def test_status(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.status = ""
@@ -382,10 +352,9 @@ def test_status():
     assert system.status == ""
 
 
-def test_virt_auto_boot():
+def test_virt_auto_boot(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.virt_auto_boot = False
@@ -394,10 +363,9 @@ def test_virt_auto_boot():
     assert not system.virt_auto_boot
 
 
-def test_virt_cpus():
+def test_virt_cpus(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.virt_cpus = 5
@@ -412,10 +380,9 @@ def test_virt_cpus():
     (False, pytest.raises(TypeError)),
     ("", pytest.raises(ValueError))
 ])
-def test_virt_disk_driver(value, expected_exception):
+def test_virt_disk_driver(cobbler_api, value, expected_exception):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     with expected_exception:
@@ -428,10 +395,9 @@ def test_virt_disk_driver(value, expected_exception):
             assert system.virt_disk_driver == value
 
 
-def test_virt_file_size():
+def test_virt_file_size(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.virt_file_size = 1.0
@@ -440,10 +406,9 @@ def test_virt_file_size():
     assert system.virt_file_size == 1.0
 
 
-def test_virt_path():
+def test_virt_path(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.virt_path = ""
@@ -452,10 +417,9 @@ def test_virt_path():
     assert system.virt_path == "<<inherit>>"
 
 
-def test_virt_pxe_boot():
+def test_virt_pxe_boot(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.virt_pxe_boot = False
@@ -464,10 +428,9 @@ def test_virt_pxe_boot():
     assert not system.virt_pxe_boot
 
 
-def test_virt_ram():
+def test_virt_ram(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.virt_ram = 5
@@ -483,10 +446,9 @@ def test_virt_ram():
     ("", pytest.raises(ValueError)),
     (False, pytest.raises(TypeError))
 ])
-def test_virt_type(value, expected_exception):
+def test_virt_type(cobbler_api, value, expected_exception):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     with expected_exception:
@@ -499,10 +461,9 @@ def test_virt_type(value, expected_exception):
             assert system.virt_type == value
 
 
-def test_serial_device():
+def test_serial_device(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     system.serial_device = 5
@@ -516,10 +477,9 @@ def test_serial_device():
     (110, does_not_raise()),
     # FIXME: (False, pytest.raises(TypeError)) --> This does not raise a TypeError but instead a value Error.
 ])
-def test_serial_baud_rate(value, expected_exception):
+def test_serial_baud_rate(cobbler_api, value, expected_exception):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
 
     # Act
     with expected_exception:
@@ -532,10 +492,9 @@ def test_serial_baud_rate(value, expected_exception):
             assert system.serial_baud_rate == value
 
 
-def test_from_dict_with_network_interface():
+def test_from_dict_with_network_interface(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    system = System(test_api)
+    system = System(cobbler_api)
     sys_dict = system.to_dict()
 
     # Act
@@ -548,21 +507,19 @@ def test_from_dict_with_network_interface():
 ############################################################################################
 
 
-def test_network_interface_object_creation():
+def test_network_interface_object_creation(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
 
     # Act
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Assert
     assert isinstance(interface, NetworkInterface)
 
 
-def test_network_interface_to_dict():
+def test_network_interface_to_dict(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     result = interface.to_dict()
@@ -574,10 +531,9 @@ def test_network_interface_to_dict():
     assert len(result) == 23
 
 
-def test_network_interface_from_dict():
+def test_network_interface_from_dict(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
     intf_dict = interface.to_dict()
 
     # Act
@@ -587,10 +543,9 @@ def test_network_interface_from_dict():
     assert True
 
 
-def test_dhcp_tag():
+def test_dhcp_tag(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.dhcp_tag = ""
@@ -600,10 +555,9 @@ def test_dhcp_tag():
     assert interface.dhcp_tag == ""
 
 
-def test_cnames():
+def test_cnames(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.cnames = []
@@ -613,10 +567,9 @@ def test_cnames():
     assert interface.cnames == []
 
 
-def test_static_routes():
+def test_static_routes(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.static_routes = []
@@ -626,10 +579,9 @@ def test_static_routes():
     assert interface.static_routes == []
 
 
-def test_static():
+def test_static(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.static = True
@@ -639,10 +591,9 @@ def test_static():
     assert interface.static is True
 
 
-def test_management():
+def test_management(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.management = True
@@ -652,10 +603,9 @@ def test_management():
     assert interface.management is True
 
 
-def test_dns_name():
+def test_dns_name(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.dns_name = ""
@@ -665,10 +615,9 @@ def test_dns_name():
     assert interface.dns_name == ""
 
 
-def test_mac_address():
+def test_mac_address(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.mac_address = ""
@@ -678,10 +627,9 @@ def test_mac_address():
     assert interface.mac_address == ""
 
 
-def test_netmask():
+def test_netmask(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.netmask = ""
@@ -691,10 +639,9 @@ def test_netmask():
     assert interface.netmask == ""
 
 
-def test_if_gateway():
+def test_if_gateway(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.if_gateway = ""
@@ -704,10 +651,9 @@ def test_if_gateway():
     assert interface.if_gateway == ""
 
 
-def test_virt_bridge():
+def test_virt_bridge(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.virt_bridge = ""
@@ -717,10 +663,9 @@ def test_virt_bridge():
     assert interface.virt_bridge == "xenbr0"
 
 
-def test_interface_type():
+def test_interface_type(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.interface_type = enums.NetworkInterfaceType.NA
@@ -730,10 +675,9 @@ def test_interface_type():
     assert interface.interface_type == enums.NetworkInterfaceType.NA
 
 
-def test_interface_master():
+def test_interface_master(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.interface_master = ""
@@ -743,10 +687,9 @@ def test_interface_master():
     assert interface.interface_master == ""
 
 
-def test_bonding_opts():
+def test_bonding_opts(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.bonding_opts = ""
@@ -756,10 +699,9 @@ def test_bonding_opts():
     assert interface.bonding_opts == ""
 
 
-def test_bridge_opts():
+def test_bridge_opts(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.bridge_opts = ""
@@ -769,10 +711,9 @@ def test_bridge_opts():
     assert interface.bridge_opts == ""
 
 
-def test_ipv6_address():
+def test_ipv6_address(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.ipv6_address = ""
@@ -782,10 +723,9 @@ def test_ipv6_address():
     assert interface.ipv6_address == ""
 
 
-def test_ipv6_prefix():
+def test_ipv6_prefix(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.ipv6_prefix = ""
@@ -795,10 +735,9 @@ def test_ipv6_prefix():
     assert interface.ipv6_prefix == ""
 
 
-def test_ipv6_secondaries():
+def test_ipv6_secondaries(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.ipv6_secondaries = []
@@ -808,10 +747,9 @@ def test_ipv6_secondaries():
     assert interface.ipv6_secondaries == []
 
 
-def test_ipv6_default_gateway():
+def test_ipv6_default_gateway(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.ipv6_default_gateway = ""
@@ -821,10 +759,9 @@ def test_ipv6_default_gateway():
     assert interface.ipv6_default_gateway == ""
 
 
-def test_ipv6_static_routes():
+def test_ipv6_static_routes(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.ipv6_static_routes = []
@@ -834,10 +771,9 @@ def test_ipv6_static_routes():
     assert interface.ipv6_static_routes == []
 
 
-def test_ipv6_mtu():
+def test_ipv6_mtu(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.ipv6_mtu = ""
@@ -847,10 +783,9 @@ def test_ipv6_mtu():
     assert interface.ipv6_mtu == ""
 
 
-def test_mtu():
+def test_mtu(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.mtu = ""
@@ -860,10 +795,9 @@ def test_mtu():
     assert interface.mtu == ""
 
 
-def test_connected_mode():
+def test_connected_mode(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    interface = NetworkInterface(test_api)
+    interface = NetworkInterface(cobbler_api)
 
     # Act
     interface.connected_mode = True

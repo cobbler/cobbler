@@ -3,48 +3,43 @@ import os
 import pytest
 
 from cobbler import enums, utils
-from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from tests.conftest import does_not_raise
 
 
-def test_object_creation():
+def test_object_creation(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
 
     # Act
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Arrange
     assert isinstance(distro, Distro)
 
 
-def test_non_equality():
+def test_non_equality(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    distro1 = Distro(test_api)
-    distro2 = Distro(test_api)
+    distro1 = Distro(cobbler_api)
+    distro2 = Distro(cobbler_api)
 
     # Act & Assert
     assert distro1 != distro2
     assert "" != distro1
 
 
-def test_equality():
+def test_equality(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act & Assert
     assert distro == distro
 
 
-def test_make_clone(create_kernel_initrd, fk_kernel, fk_initrd):
+def test_make_clone(cobbler_api, create_kernel_initrd, fk_kernel, fk_initrd):
     # Arrange
-    test_api = CobblerAPI()
     folder = create_kernel_initrd(fk_kernel, fk_initrd)
     utils.load_signatures("/var/lib/cobbler/distro_signatures.json")
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
     distro.breed = "suse"
     distro.os_version = "sles15generic"
     distro.kernel = os.path.join(folder, "vmlinuz1")
@@ -58,19 +53,17 @@ def test_make_clone(create_kernel_initrd, fk_kernel, fk_initrd):
     assert result != distro
 
 
-def test_parent():
+def test_parent(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act & Assert
     assert distro.parent is None
 
 
-def test_check_if_valid():
+def test_check_if_valid(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
     distro.name = "testname"
 
     # Act
@@ -80,10 +73,9 @@ def test_check_if_valid():
     assert True
 
 
-def test_to_dict():
+def test_to_dict(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    titem = Distro(test_api)
+    titem = Distro(cobbler_api)
 
     # Act
     result = titem.to_dict()
@@ -106,10 +98,9 @@ def test_to_dict():
     ({}, pytest.raises(TypeError)),
     (None, pytest.raises(TypeError))
 ])
-def test_tree_build_time(value, expected):
+def test_tree_build_time(cobbler_api, value, expected):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     with expected:
@@ -130,10 +121,9 @@ def test_tree_build_time(value, expected):
     ("x86_64", does_not_raise()),
     (enums.Archs.X86_64, does_not_raise())
 ])
-def test_arch(value, expected):
+def test_arch(cobbler_api, value, expected):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     with expected:
@@ -152,10 +142,9 @@ def test_arch(value, expected):
     (0, pytest.raises(TypeError)),
     (["grub"], does_not_raise())
 ])
-def test_boot_loaders(value, expected_exception):
+def test_boot_loaders(cobbler_api, value, expected_exception):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -173,11 +162,10 @@ def test_boot_loaders(value, expected_exception):
     (0, pytest.raises(TypeError)),
     ("suse", does_not_raise())
 ])
-def test_breed(value, expected_exception):
+def test_breed(cobbler_api, value, expected_exception):
     # Arrange
-    test_api = CobblerAPI()
     utils.load_signatures("/var/lib/cobbler/distro_signatures.json")
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -192,11 +180,10 @@ def test_breed(value, expected_exception):
     (False, pytest.raises(TypeError)),
     ("", pytest.raises(ValueError))
 ])
-def test_initrd(value, expected_exception):
+def test_initrd(cobbler_api, value, expected_exception):
     # TODO: Create fake initrd so we can set it successfully
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -211,11 +198,10 @@ def test_initrd(value, expected_exception):
     (False, pytest.raises(TypeError)),
     ("", pytest.raises(ValueError))
 ])
-def test_kernel(value, expected_exception):
+def test_kernel(cobbler_api, value, expected_exception):
     # TODO: Create fake kernel so we can set it successfully
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -229,10 +215,9 @@ def test_kernel(value, expected_exception):
     [""],
     ["Test"]
 ])
-def test_mgmt_classes(value):
+def test_mgmt_classes(cobbler_api, value):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     distro.mgmt_classes = value
@@ -245,10 +230,9 @@ def test_mgmt_classes(value):
     ([""], pytest.raises(TypeError)),
     (False, pytest.raises(TypeError))
 ])
-def test_os_version(value, expected_exception):
+def test_os_version(cobbler_api, value, expected_exception):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -262,10 +246,9 @@ def test_os_version(value, expected_exception):
     [""],
     ["Test"]
 ])
-def test_owners(value):
+def test_owners(cobbler_api, value):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     distro.owners = value
@@ -278,10 +261,9 @@ def test_owners(value):
     ("", does_not_raise()),
     (["Test"], pytest.raises(TypeError))
 ])
-def test_redhat_management_key(value, expected_exception):
+def test_redhat_management_key(cobbler_api, value, expected_exception):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -295,10 +277,9 @@ def test_redhat_management_key(value, expected_exception):
     [""],
     ["Test"]
 ])
-def test_source_repos(value):
+def test_source_repos(cobbler_api, value):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     distro.source_repos = value
@@ -312,10 +293,9 @@ def test_source_repos(value):
     # ("test=test test1 test2=0", does_not_raise()), --> Fix this. It works but we can't compare
     ({"test": "test", "test2": 0}, does_not_raise())
 ])
-def test_fetchable_files(value, expected_exception):
+def test_fetchable_files(cobbler_api, value, expected_exception):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -329,11 +309,10 @@ def test_fetchable_files(value, expected_exception):
     ([""], pytest.raises(TypeError)),
     ("", does_not_raise()),
 ])
-def test_remote_boot_kernel(value, expected_exception):
+def test_remote_boot_kernel(cobbler_api, value, expected_exception):
     # Arrange
     # TODO: Create fake kernel so we can test positive paths
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -348,10 +327,9 @@ def test_remote_boot_kernel(value, expected_exception):
     (["Test"], pytest.raises(TypeError)),
     ("", does_not_raise())
 ])
-def test_remote_grub_kernel(value, expected_exception):
+def test_remote_grub_kernel(cobbler_api, value, expected_exception):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -365,11 +343,10 @@ def test_remote_grub_kernel(value, expected_exception):
     ([""], pytest.raises(TypeError)),
     ("", does_not_raise())
 ])
-def test_remote_boot_initrd(value, expected_exception):
+def test_remote_boot_initrd(cobbler_api, value, expected_exception):
     # TODO: Create fake initrd to have a real test
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -383,10 +360,9 @@ def test_remote_boot_initrd(value, expected_exception):
     ([""], pytest.raises(TypeError)),
     ("", does_not_raise())
 ])
-def test_remote_grub_initrd(value, expected_exception):
+def test_remote_grub_initrd(cobbler_api, value, expected_exception):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -396,10 +372,9 @@ def test_remote_grub_initrd(value, expected_exception):
         assert distro.remote_grub_initrd == value
 
 
-def test_supported_boot_loaders():
+def test_supported_boot_loaders(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    distro = Distro(test_api)
+    distro = Distro(cobbler_api)
 
     # Assert
     assert isinstance(distro.supported_boot_loaders, list)

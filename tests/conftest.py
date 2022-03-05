@@ -1,4 +1,3 @@
-import logging
 import os
 import shutil
 from contextlib import contextmanager
@@ -6,10 +5,17 @@ from pathlib import Path
 
 import pytest
 
+from cobbler.api import CobblerAPI
+
 
 @contextmanager
 def does_not_raise():
     yield
+
+
+@pytest.fixture
+def cobbler_api():
+    return CobblerAPI()
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -39,12 +45,11 @@ def create_kernel_initrd(create_testfile):
     return _create_kernel_initrd
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def cleanup_leftover_items():
     """
     Will delete all JSON files which are left in Cobbler before a testrun!
     """
-    logger = logging.getLogger("session-cleanup")
     cobbler_collections = ["distros", "files", "images", "menus", "mgmtclasses", "packages", "profiles", "repos",
                            "systems"]
     for collection in cobbler_collections:
@@ -52,7 +57,6 @@ def cleanup_leftover_items():
         for file in os.listdir(path):
             json_file = os.path.join(path, file)
             os.remove(json_file)
-            logger.info("Removed file: " + json_file)
 
 
 @pytest.fixture(scope="function")

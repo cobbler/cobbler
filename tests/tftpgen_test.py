@@ -2,19 +2,19 @@ import glob
 import os
 import shutil
 
-from cobbler.api import CobblerAPI
+import pytest
+
 from cobbler import tftpgen
 from cobbler.items.distro import Distro
 
 
-def test_copy_bootloaders(tmpdir):
+def test_copy_bootloaders(tmpdir, cobbler_api):
     """
     Tests copying the bootloaders from the bootloaders_dir (setting specified in /etc/cobbler/settings.yaml) to the
     tftpboot directory.
     """
     # Instantiate TFTPGen class with collection_mgr parameter
-    test_api = CobblerAPI()
-    generator = tftpgen.TFTPGen(test_api)
+    generator = tftpgen.TFTPGen(cobbler_api)
 
     # Arrange
     # Create temporary bootloader files using tmpdir fixture
@@ -36,13 +36,12 @@ def test_copy_bootloaders(tmpdir):
     assert os.path.isfile("/srv/tftpboot/bootloader2")
 
 
-def test_copy_single_distro_file():
+def test_copy_single_distro_file(cobbler_api):
     """
     Tests copy_single_distro_file() method using a sample initrd file pulled from CentOS 8
     """
     # Instantiate TFTPGen class with collection_mgr parameter
-    test_api = CobblerAPI()
-    generator = tftpgen.TFTPGen(test_api)
+    generator = tftpgen.TFTPGen(cobbler_api)
 
     # Arrange
     distro_file = "/code/tests/test_data/dummy_initramfs"
@@ -57,21 +56,25 @@ def test_copy_single_distro_file():
     assert os.path.isfile(initramfs_dst_path)
 
 
-def test_copy_single_distro_files(create_kernel_initrd, fk_initrd, fk_kernel):
+@pytest.fixture(autouse=True)
+def cleanup_copy_single_distro_files(cobbler_api):
+    yield
+    cobbler_api.remove_distro("test_copy_single_distro_files")
+
+
+def test_copy_single_distro_files(create_kernel_initrd, fk_initrd, fk_kernel, cobbler_api, cleanup_copy_single_distro_files):
     # Arrange
     # Create fake files
     directory = create_kernel_initrd(fk_kernel, fk_initrd)
-    # Create test API        
-    test_api = CobblerAPI()
     # Create a test Distro
-    test_distro = Distro(test_api)
+    test_distro = Distro(cobbler_api)
     test_distro.name = "test_copy_single_distro_files"
     test_distro.kernel = str(os.path.join(directory, fk_kernel))
     test_distro.initrd = str(os.path.join(directory, fk_initrd))
     # Add test distro to the API
-    test_api.add_distro(test_distro)
+    cobbler_api.add_distro(test_distro)
     # Create class under test
-    test_gen = tftpgen.TFTPGen(test_api)
+    test_gen = tftpgen.TFTPGen(cobbler_api)
 
     # Act
     test_gen.copy_single_distro_files(test_distro, directory, False)

@@ -35,13 +35,12 @@ def test_settings_migration(caplog, mocker, input_automigration, result_migrate_
     assert spy_validate.call_count == result_validate_count
 
 
-def test_buildiso(mocker):
+def test_buildiso(mocker, cobbler_api):
     # Arrange
     netboot_stub = create_autospec(spec=NetbootBuildiso)
     standalone_stub = create_autospec(spec=StandaloneBuildiso)
     mocker.patch("cobbler.api.StandaloneBuildiso", return_value=standalone_stub)
     mocker.patch("cobbler.api.NetbootBuildiso", return_value=netboot_stub)
-    cobbler_api = CobblerAPI()
 
     # Act
     cobbler_api.build_iso()

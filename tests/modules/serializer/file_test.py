@@ -10,6 +10,11 @@ from cobbler.cexceptions import CX
 from cobbler.settings import Settings
 
 
+@pytest.fixture(scope="function", autouse=True)
+def restore_libpath():
+    file.libpath = "/var/lib/cobbler/collections"
+
+
 def test_register():
     # Arrange
     # Act

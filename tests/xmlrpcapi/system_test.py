@@ -1,6 +1,6 @@
-from xmlrpc.client import Fault
-
 import pytest
+
+from cobbler.cexceptions import CX
 
 
 @pytest.mark.usefixtures("cobbler_xmlrpc_base")
@@ -146,7 +146,7 @@ class TestSystem:
         # Act & Assert
         try:
             remote.modify_system(system, field_name, field_value, token)
-        except Fault:
+        except (CX, TypeError, ValueError, OSError):
             assert True
         else:
             pytest.fail("Bad field did not raise an exception!")
