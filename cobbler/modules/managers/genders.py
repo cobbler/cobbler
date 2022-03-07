@@ -3,8 +3,7 @@ import logging
 import sys
 import os
 import time
-import cobbler.templar
-from cobbler.cexceptions import CX
+from cobbler.templar import Templar
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path = "%s/cobbler" % plib
@@ -34,8 +33,6 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
     :param mgmtcls_genders: The management classes which should be included.
     :raises OSError: Raised in case the template could not be read.
     """
-
-    templar_inst = cobbler.templar.Templar(config)
     try:
         f2 = open(template_file, "r")
     except:
@@ -51,6 +48,7 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
         "mgmtcls_genders": mgmtcls_genders
     }
 
+    templar_inst = Templar(config)
     templar_inst.render(template_data, metadata, settings_file)
 
 
