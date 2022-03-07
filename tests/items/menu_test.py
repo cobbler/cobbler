@@ -1,22 +1,19 @@
-from cobbler.api import CobblerAPI
 from cobbler.items.menu import Menu
 
 
-def test_object_creation():
+def test_object_creation(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
 
     # Act
-    distro = Menu(test_api)
+    distro = Menu(cobbler_api)
 
     # Arrange
     assert isinstance(distro, Menu)
 
 
-def test_make_clone():
+def test_make_clone(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    menu = Menu(test_api)
+    menu = Menu(cobbler_api)
 
     # Act
     result = menu.make_clone()
@@ -25,10 +22,9 @@ def test_make_clone():
     assert menu != result
 
 
-def test_display_name():
+def test_display_name(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    menu = Menu(test_api)
+    menu = Menu(cobbler_api)
 
     # Act
     menu.display_name = ""

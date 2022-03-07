@@ -2,7 +2,6 @@ import os
 
 import pytest
 
-from cobbler.api import CobblerAPI
 from cobbler.configgen import ConfigGen
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
@@ -13,37 +12,43 @@ from cobbler.items.system import System
 
 
 @pytest.fixture
-def create_testbed(create_kernel_initrd):
-    def _create_testbed() -> CobblerAPI:
+def create_testbed(create_kernel_initrd, cobbler_api, cleanup_testbed):
+    def _create_testbed():
         folder = create_kernel_initrd("vmlinux", "initrd.img")
-        test_api = CobblerAPI()
-        test_distro = Distro(test_api)
+        test_distro = Distro(cobbler_api)
         test_distro.name = "test_configgen_distro"
         test_distro.kernel = os.path.join(folder, "vmlinux")
         test_distro.initrd = os.path.join(folder, "initrd.img")
-        test_api.add_distro(test_distro)
-        test_profile = Profile(test_api)
+        cobbler_api.add_distro(test_distro)
+        test_profile = Profile(cobbler_api)
         test_profile.name = "test_configgen_profile"
         test_profile.distro = "test_configgen_distro"
-        test_api.add_profile(test_profile)
-        test_system = System(test_api)
+        cobbler_api.add_profile(test_profile)
+        test_system = System(cobbler_api)
         test_system.name = "test_configgen_system"
         test_system.profile = "test_configgen_profile"
         test_system.hostname = "testhost.test.de"
         test_system.autoinstall_meta = {"test": "teststring"}
-        test_api.add_system(test_system)
-        return test_api
+        cobbler_api.add_system(test_system)
 
+        return cobbler_api
     return _create_testbed
 
 
-def test_object_value_error():
+@pytest.fixture(autouse=True)
+def cleanup_testbed(cobbler_api):
+    yield
+    cobbler_api.remove_system("test_configgen_system")
+    cobbler_api.remove_profile("test_configgen_profile")
+    cobbler_api.remove_distro("test_configgen_distro")
+
+
+def test_object_value_error(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
 
     # Act & Assert
     with pytest.raises(ValueError):
-        ConfigGen(test_api, "nonexistant")
+        ConfigGen(cobbler_api, "nonexistant")
 
 
 def test_object_creation(create_testbed):

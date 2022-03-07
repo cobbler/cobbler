@@ -19,8 +19,8 @@ def api_isc_mock():
     settings_mock.cheetah_import_whitelist = ["re"]
     settings_mock.always_write_dhcp_entries = True
     settings_mock.http_port = 80
-    settings_mock.next_server_v4 = ""
-    settings_mock.next_server_v6 = "127.0.0.1"
+    settings_mock.next_server_v4 = "127.0.0.1"
+    settings_mock.next_server_v6 = "::1"
     settings_mock.default_ownership = ""
     settings_mock.default_virt_bridge = ""
     settings_mock.default_virt_type = "auto"
@@ -98,7 +98,7 @@ def test_manager_write_v4_config(mocker, api_isc_mock):
             "cobbler_server": "127.0.0.1:80",
             "date": "Mon Jan  1 00:00:00 2000",
             "dhcp_tags": {"default": {}},
-            "next_server_v4": "",
+            "next_server_v4": "127.0.0.1",
         },
         "/etc/dhcpd.conf",
     )
@@ -124,7 +124,7 @@ def test_manager_write_v6_config(mocker, api_isc_mock):
         "test",
         {
             "date": "Mon Jan  1 00:00:00 2000",
-            "next_server_v6": "127.0.0.1",
+            "next_server_v6": "::1",
             "dhcp_tags": {"default": {}},
         },
         "/etc/dhcpd6.conf",

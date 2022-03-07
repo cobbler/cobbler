@@ -1,16 +1,11 @@
 import pytest
-from cobbler.api import CobblerAPI
-from cobbler.settings import Settings
+
 from cobbler.modules.authentication import ldap
 
-#@pytest.fixture(scope="class")
-@pytest.fixture()
-def api():
-    return CobblerAPI()
 
 @pytest.fixture()
-def test_settings(api):
-    settings = api.settings()
+def test_settings(cobbler_api):
+    settings = cobbler_api.settings()
     settings.ldap_server = "localhost"
     settings.ldap_port = 389
     settings.ldap_base_dn = "dc=example,dc=com"
@@ -19,17 +14,18 @@ def test_settings(api):
     settings.ldap_reqcert = "hard"
     return settings
 
+
 class TestLdap:
     @pytest.mark.parametrize("anonymous_bind, username, password", [
         (True, "test", "test")
     ])
-    def test_anon_bind_positive(self, api, test_settings, anonymous_bind, username, password):
+    def test_anon_bind_positive(self, cobbler_api, test_settings, anonymous_bind, username, password):
         # Arrange
         test_settings.ldap_anonymous_bind = anonymous_bind
         test_settings.ldap_tls = False
 
         # Act
-        result = ldap.authenticate(api, username, password)
+        result = ldap.authenticate(cobbler_api, username, password)
 
         # Assert
         assert result
@@ -37,13 +33,13 @@ class TestLdap:
     @pytest.mark.parametrize("anonymous_bind, username, password", [
         (True, "test", "bad")
     ])
-    def test_anon_bind_negative(self, api, test_settings, anonymous_bind, username, password):
+    def test_anon_bind_negative(self, cobbler_api, test_settings, anonymous_bind, username, password):
         # Arrange
         test_settings.ldap_anonymous_bind = anonymous_bind
         test_settings.ldap_tls = False
 
         # Act
-        result = ldap.authenticate(api, username, password)
+        result = ldap.authenticate(cobbler_api, username, password)
 
         # Assert
         assert not result
@@ -51,7 +47,7 @@ class TestLdap:
     @pytest.mark.parametrize("anonymous_bind, bind_user, bind_password, username, password", [
         (False, "uid=user,dc=example,dc=com", "test", "test", "test")
     ])
-    def test_user_bind_positive(self, api, test_settings, anonymous_bind, bind_user, bind_password, username, password):
+    def test_user_bind_positive(self, cobbler_api, test_settings, anonymous_bind, bind_user, bind_password, username, password):
         # Arrange
         test_settings.ldap_anonymous_bind = anonymous_bind
         test_settings.ldap_search_bind_dn = bind_user
@@ -59,7 +55,7 @@ class TestLdap:
         test_settings.ldap_tls = False
 
         # Act
-        result = ldap.authenticate(api, username, password)
+        result = ldap.authenticate(cobbler_api, username, password)
 
         # Assert
         assert result
@@ -67,7 +63,7 @@ class TestLdap:
     @pytest.mark.parametrize("anonymous_bind, bind_user, bind_password, username, password", [
         (False, "uid=user,dc=example,dc=com", "bad", "test", "test")
     ])
-    def test_user_bind_negative(self, api, test_settings, anonymous_bind, bind_user, bind_password, username, password):
+    def test_user_bind_negative(self, cobbler_api, test_settings, anonymous_bind, bind_user, bind_password, username, password):
         # Arrange
         test_settings.ldap_anonymous_bind = anonymous_bind
         test_settings.ldap_search_bind_dn = bind_user
@@ -75,7 +71,7 @@ class TestLdap:
         test_settings.ldap_tls = False
 
         # Act
-        result = ldap.authenticate(api, username, password)
+        result = ldap.authenticate(cobbler_api, username, password)
 
         # Assert
         assert not result
@@ -85,7 +81,7 @@ class TestLdap:
          "/etc/ssl/ldap.crt",
          "/etc/ssl/ldap.key")
     ])
-    def test_cadir_positive(self, api, test_settings, tls_cadir, tls_cert, tls_key):
+    def test_cadir_positive(self, cobbler_api, test_settings, tls_cadir, tls_cert, tls_key):
         # Arrange
         test_settings.ldap_tls = True
         test_settings.ldap_tls_cacertdir = tls_cadir
@@ -94,7 +90,7 @@ class TestLdap:
         test_settings.ldap_tls_keyfile = tls_key
 
         # Act
-        result = ldap.authenticate(api, "test", "test")
+        result = ldap.authenticate(cobbler_api, "test", "test")
 
         # Assert
         assert result
@@ -104,7 +100,7 @@ class TestLdap:
          "/etc/ssl/bad.crt",
          "/etc/ssl/bad.key")
     ])
-    def test_cadir_negative(self, api, test_settings, tls_cadir, tls_cert, tls_key):
+    def test_cadir_negative(self, cobbler_api, test_settings, tls_cadir, tls_cert, tls_key):
         # Arrange
         test_settings.ldap_tls = True
         test_settings.ldap_tls_cacertdir = tls_cadir
@@ -113,7 +109,7 @@ class TestLdap:
         test_settings.ldap_tls_keyfile = tls_key
 
         # Act
-        result = ldap.authenticate(api, "test", "test")
+        result = ldap.authenticate(cobbler_api, "test", "test")
 
         # Assert
         assert not result
@@ -123,7 +119,7 @@ class TestLdap:
          "/etc/ssl/ldap.crt",
          "/etc/ssl/ldap.key")
     ])
-    def test_cafile_positive(self, api, test_settings, tls_cafile, tls_cert, tls_key):
+    def test_cafile_positive(self, cobbler_api, test_settings, tls_cafile, tls_cert, tls_key):
         # Arrange
         test_settings.ldap_tls = True
         test_settings.ldap_tls_cacertdir = None
@@ -132,7 +128,7 @@ class TestLdap:
         test_settings.ldap_tls_keyfile = tls_key
 
         # Act
-        result = ldap.authenticate(api, "test", "test")
+        result = ldap.authenticate(cobbler_api, "test", "test")
 
         # Assert
         assert result
@@ -142,7 +138,7 @@ class TestLdap:
          "/etc/ssl/bad.crt",
          "/etc/ssl/bad.key")
     ])
-    def test_cafile_negative(self, api, test_settings, tls_cafile, tls_cert, tls_key):
+    def test_cafile_negative(self, cobbler_api, test_settings, tls_cafile, tls_cert, tls_key):
         # Arrange
         test_settings.ldap_tls = True
         test_settings.ldap_tls_cacertdir = None
@@ -151,7 +147,7 @@ class TestLdap:
         test_settings.ldap_tls_keyfile = tls_key
 
         # Act
-        result = ldap.authenticate(api, "test", "test")
+        result = ldap.authenticate(cobbler_api, "test", "test")
 
         # Assert
         assert not result
@@ -161,7 +157,7 @@ class TestLdap:
          "/etc/ssl/ldap.crt",
          "/etc/ssl/ldap.key")
     ])
-    def test_ldaps_positive(self, api, test_settings, tls_cafile, tls_cert, tls_key):
+    def test_ldaps_positive(self, cobbler_api, test_settings, tls_cafile, tls_cert, tls_key):
         # Arrange
         test_settings.ldap_tls = False
         test_settings.ldap_port = 636
@@ -171,7 +167,7 @@ class TestLdap:
         test_settings.ldap_tls_keyfile = tls_key
 
         # Act
-        result = ldap.authenticate(api, "test", "test")
+        result = ldap.authenticate(cobbler_api, "test", "test")
 
         # Assert
         assert result
@@ -181,7 +177,7 @@ class TestLdap:
          "/etc/ssl/bad.crt",
          "/etc/ssl/bad.key")
     ])
-    def test_ldaps_negative(self, api, test_settings, tls_cafile, tls_cert, tls_key):
+    def test_ldaps_negative(self, cobbler_api, test_settings, tls_cafile, tls_cert, tls_key):
         # Arrange
         test_settings.ldap_tls = False
         test_settings.ldap_port = 636
@@ -192,4 +188,4 @@ class TestLdap:
 
         # Act & Assert
         with pytest.raises(ValueError):
-            result = ldap.authenticate(api, "test", "test")
+            result = ldap.authenticate(cobbler_api, "test", "test")

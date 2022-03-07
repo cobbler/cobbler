@@ -1,22 +1,19 @@
-from cobbler.api import CobblerAPI
 from cobbler.items.mgmtclass import Mgmtclass
 
 
-def test_object_creation():
+def test_object_creation(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
 
     # Act
-    mgmtclass = Mgmtclass(test_api)
+    mgmtclass = Mgmtclass(cobbler_api)
 
     # Arrange
     assert isinstance(mgmtclass, Mgmtclass)
 
 
-def test_make_clone():
+def test_make_clone(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    mgmtclass = Mgmtclass(test_api)
+    mgmtclass = Mgmtclass(cobbler_api)
 
     # Act
     result = mgmtclass.make_clone()
@@ -25,10 +22,9 @@ def test_make_clone():
     assert result != mgmtclass
 
 
-def test_check_if_valid():
+def test_check_if_valid(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    mgmtclass = Mgmtclass(test_api)
+    mgmtclass = Mgmtclass(cobbler_api)
     mgmtclass.name = "unittest_mgmtclass"
 
     # Act
@@ -38,10 +34,9 @@ def test_check_if_valid():
     assert True
 
 
-def test_packages():
+def test_packages(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    mgmtclass = Mgmtclass(test_api)
+    mgmtclass = Mgmtclass(cobbler_api)
 
     # Act
     mgmtclass.packages = ""
@@ -50,10 +45,9 @@ def test_packages():
     assert mgmtclass.packages == []
 
 
-def test_files():
+def test_files(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    mgmtclass = Mgmtclass(test_api)
+    mgmtclass = Mgmtclass(cobbler_api)
 
     # Act
     mgmtclass.files = ""
@@ -62,10 +56,9 @@ def test_files():
     assert mgmtclass.files == []
 
 
-def test_params():
+def test_params(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    mgmtclass = Mgmtclass(test_api)
+    mgmtclass = Mgmtclass(cobbler_api)
 
     # Act
     mgmtclass.params = ""
@@ -74,10 +67,9 @@ def test_params():
     assert mgmtclass.params == {}
 
 
-def test_is_definition():
+def test_is_definition(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    mgmtclass = Mgmtclass(test_api)
+    mgmtclass = Mgmtclass(cobbler_api)
 
     # Act
     mgmtclass.is_definition = False
@@ -86,10 +78,9 @@ def test_is_definition():
     assert not mgmtclass.is_definition
 
 
-def test_class_name():
+def test_class_name(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    mgmtclass = Mgmtclass(test_api)
+    mgmtclass = Mgmtclass(cobbler_api)
 
     # Act
     mgmtclass.class_name = ""

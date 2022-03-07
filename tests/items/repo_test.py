@@ -1,28 +1,23 @@
 from cobbler import enums
-from cobbler.api import CobblerAPI
 from cobbler.items.repo import Repo
 import pytest
-from contextlib import contextmanager
 
-@contextmanager
-def does_not_raise():
-    yield
+from tests.conftest import does_not_raise
 
-def test_object_creation():
+
+def test_object_creation(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
 
     # Act
-    repo = Repo(test_api)
+    repo = Repo(cobbler_api)
 
     # Arrange
     assert isinstance(repo, Repo)
 
 
-def test_make_clone():
+def test_make_clone(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    repo = Repo(test_api)
+    repo = Repo(cobbler_api)
 
     # Act
     result = repo.make_clone()
@@ -34,10 +29,9 @@ def test_make_clone():
 # Properties Tests
 
 
-def test_mirror():
+def test_mirror(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    repo = Repo(test_api)
+    repo = Repo(cobbler_api)
 
     # Act
     repo.mirror = "https://mymirror.com"
@@ -46,10 +40,9 @@ def test_mirror():
     assert repo.mirror == "https://mymirror.com"
 
 
-def test_mirror_type():
+def test_mirror_type(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    repo = Repo(test_api)
+    repo = Repo(cobbler_api)
 
     # Act
     repo.mirror_type = enums.MirrorType.BASEURL
@@ -58,10 +51,9 @@ def test_mirror_type():
     assert repo.mirror_type == enums.MirrorType.BASEURL
 
 
-def test_keep_updated():
+def test_keep_updated(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    repo = Repo(test_api)
+    repo = Repo(cobbler_api)
 
     # Act
     repo.keep_updated = False
@@ -70,10 +62,9 @@ def test_keep_updated():
     assert not repo.keep_updated
 
 
-def test_yumopts():
+def test_yumopts(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    testrepo = Repo(test_api)
+    testrepo = Repo(cobbler_api)
 
     # Act
     testrepo.yumopts = {}
@@ -82,10 +73,9 @@ def test_yumopts():
     assert testrepo.yumopts == {}
 
 
-def test_rsyncopts():
+def test_rsyncopts(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    testrepo = Repo(test_api)
+    testrepo = Repo(cobbler_api)
 
     # Act
     testrepo.rsyncopts = {}
@@ -94,10 +84,9 @@ def test_rsyncopts():
     assert testrepo.rsyncopts == {}
 
 
-def test_environment():
+def test_environment(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    testrepo = Repo(test_api)
+    testrepo = Repo(cobbler_api)
 
     # Act
     testrepo.environment = {}
@@ -106,10 +95,9 @@ def test_environment():
     assert testrepo.environment == {}
 
 
-def test_priority():
+def test_priority(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    testrepo = Repo(test_api)
+    testrepo = Repo(cobbler_api)
 
     # Act
     testrepo.priority = 5
@@ -118,10 +106,9 @@ def test_priority():
     assert testrepo.priority == 5
 
 
-def test_rpm_list():
+def test_rpm_list(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    testrepo = Repo(test_api)
+    testrepo = Repo(cobbler_api)
 
     # Act
     testrepo.rpm_list = []
@@ -130,10 +117,9 @@ def test_rpm_list():
     assert testrepo.rpm_list == []
 
 
-def test_createrepo_flags():
+def test_createrepo_flags(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    testrepo = Repo(test_api)
+    testrepo = Repo(cobbler_api)
 
     # Act
     testrepo.createrepo_flags = ""
@@ -142,10 +128,9 @@ def test_createrepo_flags():
     assert testrepo.createrepo_flags == ""
 
 
-def test_breed():
+def test_breed(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    repo = Repo(test_api)
+    repo = Repo(cobbler_api)
 
     # Act
     repo.breed = "yum"
@@ -154,10 +139,9 @@ def test_breed():
     assert repo.breed == enums.RepoBreeds.YUM
 
 
-def test_os_version():
+def test_os_version(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    testrepo = Repo(test_api)
+    testrepo = Repo(cobbler_api)
     testrepo.breed = "yum"
 
     # Act
@@ -167,6 +151,7 @@ def test_os_version():
     assert testrepo.breed == enums.RepoBreeds.YUM
     assert testrepo.os_version == "rhel4"
 
+
 @pytest.mark.parametrize("value,expected_exception", [
     ("x86_64", does_not_raise()),
     (enums.RepoArchs.X86_64, does_not_raise()),
@@ -174,10 +159,9 @@ def test_os_version():
     (False, pytest.raises(TypeError)),
     ("", pytest.raises(ValueError))
 ])
-def test_arch(value, expected_exception):
+def test_arch(cobbler_api, value, expected_exception):
     # Arrange
-    test_api = CobblerAPI()
-    testrepo = Repo(test_api)
+    testrepo = Repo(cobbler_api)
 
     # Act
     with expected_exception:
@@ -189,10 +173,10 @@ def test_arch(value, expected_exception):
         else:
             assert testrepo.arch == value
 
-def test_mirror_locally():
+
+def test_mirror_locally(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    testrepo = Repo(test_api)
+    testrepo = Repo(cobbler_api)
 
     # Act
     testrepo.mirror_locally = False
@@ -201,10 +185,9 @@ def test_mirror_locally():
     assert not testrepo.mirror_locally
 
 
-def test_apt_components():
+def test_apt_components(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    testrepo = Repo(test_api)
+    testrepo = Repo(cobbler_api)
 
     # Act
     testrepo.apt_components = []
@@ -213,10 +196,9 @@ def test_apt_components():
     assert testrepo.apt_components == []
 
 
-def test_apt_dists():
+def test_apt_dists(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    testrepo = Repo(test_api)
+    testrepo = Repo(cobbler_api)
 
     # Act
     testrepo.apt_dists = []
@@ -225,10 +207,9 @@ def test_apt_dists():
     assert testrepo.apt_dists == []
 
 
-def test_proxy():
+def test_proxy(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    testrepo = Repo(test_api)
+    testrepo = Repo(cobbler_api)
 
     # Act
     testrepo.proxy = ""

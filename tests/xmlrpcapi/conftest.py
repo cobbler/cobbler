@@ -1,18 +1,16 @@
 import logging
 import os
 import sys
-import xmlrpc.client as xmlrpcclient
 from pathlib import Path
 
 import pytest
 
-from cobbler.utils import local_get_cobbler_api_url, get_shared_secret
+from cobbler.utils import get_shared_secret
+from cobbler.remote import CobblerXMLRPCInterface
 
-# "import xmlrpc.client" does currently not work. No explanation found anywhere.
 
-
-@pytest.fixture(scope="session")
-def remote(cobbler_xmlrpc_base) -> xmlrpcclient.ServerProxy:
+@pytest.fixture
+def remote(cobbler_xmlrpc_base) -> CobblerXMLRPCInterface:
     """
 
     :param cobbler_xmlrpc_base:
@@ -21,7 +19,7 @@ def remote(cobbler_xmlrpc_base) -> xmlrpcclient.ServerProxy:
     return cobbler_xmlrpc_base[0]
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def token(cobbler_xmlrpc_base) -> str:
     """
 
@@ -31,19 +29,13 @@ def token(cobbler_xmlrpc_base) -> str:
     return cobbler_xmlrpc_base[1]
 
 
-@pytest.fixture(scope="session")
-def cobbler_xmlrpc_base():
+@pytest.fixture
+def cobbler_xmlrpc_base(cobbler_api):
     """
     Initialises the api object and makes it available to the test.
     """
-    # create logger
-    logging.basicConfig(stream=sys.stderr)
-    logger = logging.getLogger("xobbler_xmlrpc_base")
-    logger.setLevel(logging.DEBUG)
-
     # create XML-RPC client and connect to server
-    api_url = local_get_cobbler_api_url()
-    remote = xmlrpcclient.Server(api_url, allow_none=True)
+    remote = CobblerXMLRPCInterface(cobbler_api)
     shared_secret = get_shared_secret()
     token = remote.login("", shared_secret)
     if not token:

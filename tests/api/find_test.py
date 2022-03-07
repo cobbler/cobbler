@@ -1,16 +1,12 @@
 import pytest
 
-from cobbler.api import CobblerAPI
 from tests.conftest import does_not_raise
-
-# TODO: Extend the fillup and add more testcases
 
 
 @pytest.fixture
-def find_fillup():
-    test_api = CobblerAPI()
-
-    return test_api
+def find_fillup(cobbler_api):
+    # TODO: Extend the fillup and add more testcases
+    return cobbler_api
 
 
 @pytest.mark.parametrize("what,criteria,name,return_list,no_errors,expected_exception,expected_result", [
@@ -97,7 +93,7 @@ def test_find_system(find_fillup, name, return_list, no_errors, criteria, expect
 ])
 def test_find_repo(find_fillup, name, return_list, no_errors, criteria, expected_exception, expected_result):
     # Arrange
-    test_api = CobblerAPI()
+    test_api = find_fillup
 
     # Act
     with expected_exception:
@@ -116,7 +112,7 @@ def test_find_repo(find_fillup, name, return_list, no_errors, criteria, expected
 ])
 def test_find_image(find_fillup, name, return_list, no_errors, criteria, expected_exception, expected_result):
     # Arrange
-    test_api = CobblerAPI()
+    test_api = find_fillup
 
     # Act
     with expected_exception:
@@ -135,7 +131,7 @@ def test_find_image(find_fillup, name, return_list, no_errors, criteria, expecte
 ])
 def test_find_mgmtclass(find_fillup, name, return_list, no_errors, criteria, expected_exception, expected_result):
     # Arrange
-    test_api = CobblerAPI()
+    test_api = find_fillup
 
     # Act
     with expected_exception:
@@ -154,7 +150,7 @@ def test_find_mgmtclass(find_fillup, name, return_list, no_errors, criteria, exp
 ])
 def test_find_package(find_fillup, name, return_list, no_errors, criteria, expected_exception, expected_result):
     # Arrange
-    test_api = CobblerAPI()
+    test_api = find_fillup
 
     # Act
     with expected_exception:
@@ -173,7 +169,7 @@ def test_find_package(find_fillup, name, return_list, no_errors, criteria, expec
 ])
 def test_find_file(find_fillup, name, return_list, no_errors, criteria, expected_exception, expected_result):
     # Arrange
-    test_api = CobblerAPI()
+    test_api = find_fillup
 
     # Act
     with expected_exception:
@@ -194,7 +190,7 @@ def test_find_file(find_fillup, name, return_list, no_errors, criteria, expected
 ])
 def test_find_menu(find_fillup, name, return_list, no_errors, criteria, expected_exception, expected_result):
     # Arrange
-    test_api = CobblerAPI()
+    test_api = find_fillup
 
     # Act
     with expected_exception:

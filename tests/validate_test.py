@@ -1,7 +1,6 @@
 import pytest
 
 from cobbler import enums, utils, validate
-from cobbler.api import CobblerAPI
 from tests.conftest import does_not_raise
 
 
@@ -27,13 +26,12 @@ def test_validate_breed():
     assert result == "redhat"
 
 
-def test_set_repos():
+def test_set_repos(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
 
     # Act
     # TODO: Test this also with the bypass check
-    result = validate.validate_repos("testrepo1 testrepo2", test_api, bypass_check=True)
+    result = validate.validate_repos("testrepo1 testrepo2", cobbler_api, bypass_check=True)
 
     # Assert
     assert result == ["testrepo1", "testrepo2"]

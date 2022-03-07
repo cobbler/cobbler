@@ -5,26 +5,20 @@ import pytest
 
 import cobbler.actions.mkloaders
 from cobbler.actions import mkloaders
-from cobbler.api import CobblerAPI
 
 
-@pytest.fixture()
-def api():
-    return CobblerAPI()
-
-
-def test_grubimage_object(api):
+def test_grubimage_object(cobbler_api):
     # Arrange & Act
-    test_image_creator = mkloaders.MkLoaders(api)
+    test_image_creator = mkloaders.MkLoaders(cobbler_api)
 
     # Assert
     assert isinstance(test_image_creator, mkloaders.MkLoaders)
     assert str(test_image_creator.syslinux_folder) == "/usr/share/syslinux"
 
 
-def test_grubimage_run(api, mocker):
+def test_grubimage_run(cobbler_api, mocker):
     # Arrange
-    test_image_creator = mkloaders.MkLoaders(api)
+    test_image_creator = mkloaders.MkLoaders(cobbler_api)
     mocker.patch("cobbler.actions.mkloaders.symlink", spec=cobbler.actions.mkloaders.symlink)
     mocker.patch("cobbler.actions.mkloaders.mkimage", spec=cobbler.actions.mkloaders.mkimage)
 

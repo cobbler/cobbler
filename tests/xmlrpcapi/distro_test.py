@@ -1,7 +1,14 @@
 import os
-from xmlrpc.client import Fault
 
 import pytest
+
+from cobbler.cexceptions import CX
+
+
+@pytest.fixture(autouse=True)
+def cleanup_create_distro_positive(cobbler_api):
+    yield
+    cobbler_api.remove_distro("create_distro_positive")
 
 
 @pytest.mark.usefixtures("cobbler_xmlrpc_base")
@@ -47,14 +54,14 @@ class TestDistro:
         ("boot_loaders", "pxe ipxe grub")
     ])
     def test_create_distro_positive(self, remote, token, create_kernel_initrd, fk_kernel, fk_initrd, field_name,
-                                    field_value):
+                                    field_value, cleanup_create_distro_positive):
         """
         Test: create/edit a distro with valid values
         """
         # Arrange --> Nothing to do.
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         distro = remote.new_distro(token)
-        remote.modify_distro(distro, "name", "testdistro", token)
+        remote.modify_distro(distro, "name", "create_distro_positive", token)
 
         # Act
         if field_name == "kernel":
@@ -82,7 +89,7 @@ class TestDistro:
         # Act & Assert
         try:
             remote.modify_distro(distro, field_name, field_value, token)
-        except Fault:
+        except (CX, TypeError, ValueError):
             assert True
         else:
             pytest.fail("Bad field did not raise an exception!")

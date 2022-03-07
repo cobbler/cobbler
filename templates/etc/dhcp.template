@@ -91,50 +91,50 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
     ## or really any valid dhcpd.conf construct ... if you only use the
     ## default dhcp tag in cobbler, the group block can be deleted for a
     ## flat configuration
-    # group for Cobbler DHCP tag: $dhcp_tag
-    group {
-        #for mac in $dhcp_tags[$dhcp_tag].keys():
-            #set iface = $dhcp_tags[$dhcp_tag][$mac]
-        host $iface.name {
-            #if $iface.interface_type == "infiniband":
-                option dhcp-client-identifier = $mac;
-            #else
-                hardware ethernet $mac;
-            #end if
-            #if $iface.ip_address:
-                fixed-address $iface.ip_address;
-            #end if
-            #if $iface.dns_name:
-               option host-name "$iface.dns_name";
-            #else if $iface.hostname:
-                option host-name "$iface.hostname";
-            #end if
-            #if $iface.netmask:
-                option subnet-mask $iface.netmask;
-            #end if
-            #if $iface.if_gateway:
-                option routers $iface.if_gateway;
-            #else if $iface.gateway:
-                option routers $iface.gateway;
-            #end if
-            #if $iface.enable_ipxe:
-                if exists user-class and option user-class = "iPXE" {
-                    filename "http://$cobbler_server/cblr/svc/op/ipxe/system/$iface.owner";
-                } else {
-                    filename "undionly.kpxe";
-                }
-            #end if
-            #if $iface.next_server_v4:
-                next-server $iface.next_server_v4;
-            #end if
-            #if $iface.filename:
-                filename "$iface.filename";
-            #end if
-            #if $iface.name_servers:
-                #set $mynameservers = ','.join($iface.name_servers)
-                option domain-name-servers $mynameservers;
-            #end if
-        }
+# group for Cobbler DHCP tag: $dhcp_tag
+group {
+    #for mac in $dhcp_tags[$dhcp_tag].keys():
+        #set iface = $dhcp_tags[$dhcp_tag][$mac]
+    host $iface.name {
+        #if $iface.interface_type == "infiniband":
+            option dhcp-client-identifier = $mac;
+        #else
+            hardware ethernet $mac;
+        #end if
+        #if $iface.ip_address:
+            fixed-address $iface.ip_address;
+        #end if
+        #if $iface.dns_name:
+           option host-name "$iface.dns_name";
+        #else if $iface.hostname:
+            option host-name "$iface.hostname";
+        #end if
+        #if $iface.netmask:
+            option subnet-mask $iface.netmask;
+        #end if
+        #if $iface.if_gateway:
+            option routers $iface.if_gateway;
+        #else if $iface.gateway:
+            option routers $iface.gateway;
+        #end if
+        #if $iface.enable_ipxe:
+            if exists user-class and option user-class = "iPXE" {
+                filename "http://$cobbler_server/cblr/svc/op/ipxe/system/$iface.owner";
+            } else {
+                filename "undionly.kpxe";
+            }
+        #end if
+        #if $iface.next_server_v4:
+            next-server $iface.next_server_v4;
+        #end if
+        #if $iface.filename:
+            filename "$iface.filename";
+        #end if
+        #if $iface.name_servers:
+            #set $mynameservers = ','.join($iface.name_servers)
+            option domain-name-servers $mynameservers;
+        #end if
+    }
     #end for
 }
 #end for

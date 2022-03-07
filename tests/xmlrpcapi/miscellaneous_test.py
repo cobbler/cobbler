@@ -7,6 +7,51 @@ import pytest
 from cobbler.utils import get_shared_secret
 
 
+@pytest.fixture(autouse=True)
+def cleanup_clear_system_logs(remove_distro, remove_profile, remove_system):
+    yield
+    remove_system("testsystem_clearsystemlog")
+    remove_profile("testprofile_clearsystemlog")
+    remove_distro("testdistro_clearsystemlog")
+
+
+@pytest.fixture(autouse=True)
+def cleanup_disable_netboot(remove_distro, remove_profile, remove_system):
+    yield
+    remove_system("test_distro_template_for_system")
+    remove_profile("test_profile_template_for_system")
+    remove_distro("test_system_template_for_system")
+
+
+@pytest.fixture(autouse=True)
+def cleanup_find_system_by_dns_name(remove_distro, remove_profile, remove_system):
+    yield
+    remove_system("test_system_template_for_system")
+    remove_profile("test_profile_template_for_system")
+    remove_distro("test_distro_template_for_system")
+
+
+@pytest.fixture(autouse=True)
+def cleanup_find_items_paged(remove_distro):
+    yield
+    remove_distro("test_distro_template_for_system")
+    remove_distro("test_system_template_for_system")
+
+
+@pytest.fixture(autouse=True)
+def cleanup_get_blended_data(remove_distro, remove_profile, remove_system):
+    remove_system("test_system_blended")
+    remove_profile("test_profile_blended")
+    remove_distro("test_distro_blended")
+
+
+@pytest.fixture(autouse=True)
+def cleanup_run_install_triggers(remove_distro, remove_profile, remove_system):
+    remove_system("testsystem_run_install_triggers")
+    remove_profile("testprofile_run_install_triggers")
+    remove_distro("testdistro_run_install_triggers")
+
+
 @pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestMiscellaneous:
     """
@@ -24,6 +69,7 @@ class TestMiscellaneous:
         remove_distro,
         remove_profile,
         remove_system,
+        cleanup_clear_system_logs,
     ):
         # Arrange
         fk_kernel = "vmlinuz1"
@@ -35,17 +81,12 @@ class TestMiscellaneous:
         path_kernel = os.path.join(basepath, fk_kernel)
         path_initrd = os.path.join(basepath, fk_initrd)
 
-        distro = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-        profile = create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+        create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
         system = create_system(name_system, name_profile)
 
         # Act
         result = remote.clear_system_logs(system, token)
-
-        # Cleanup
-        remove_distro(name_distro)
-        remove_profile(name_profile)
-        remove_system(name_system)
 
         # Assert
         assert result
@@ -61,6 +102,7 @@ class TestMiscellaneous:
         create_system,
         remove_system,
         create_kernel_initrd,
+        cleanup_disable_netboot,
     ):
         # Arrange
         fk_kernel = "vmlinuz1"
@@ -79,11 +121,6 @@ class TestMiscellaneous:
         # Act
         result = remote.disable_netboot(name_system, token)
 
-        # Cleanup
-        remove_system(name_system)
-        remove_profile(name_profile)
-        remove_distro(name_distro)
-
         # Assert
         assert result
 
@@ -100,7 +137,7 @@ class TestMiscellaneous:
         assert [3, 3, 2] == result.get("version_tuple")
 
     def test_find_items_paged(
-        self, remote, token, create_distro, remove_distro, create_kernel_initrd
+        self, remote, token, create_distro, remove_distro, create_kernel_initrd, cleanup_find_items_paged
     ):
         # Arrange
         fk_kernel = "vmlinuz1"
@@ -115,10 +152,6 @@ class TestMiscellaneous:
 
         # Act
         result = remote.find_items_paged("distro", None, "name", 1, 1)
-
-        # Cleanup
-        remove_distro(name_distro_1)
-        remove_distro(name_distro_2)
 
         # Assert
         # Example output
@@ -152,6 +185,7 @@ class TestMiscellaneous:
         create_system,
         remove_system,
         create_kernel_initrd,
+        cleanup_find_system_by_dns_name,
     ):
         # Arrange
         fk_kernel = "vmlinuz1"
@@ -171,11 +205,6 @@ class TestMiscellaneous:
 
         # Act
         result = remote.find_system_by_dns_name(dns_name)
-
-        # Cleanup
-        remove_system(name_system)
-        remove_profile(name_profile)
-        remove_distro(name_distro)
 
         # Assert
         assert result
@@ -274,12 +303,10 @@ class TestMiscellaneous:
         self,
         remote,
         create_distro,
-        remove_distro,
         create_profile,
-        remove_profile,
         create_system,
-        remove_system,
         create_kernel_initrd,
+        cleanup_get_blended_data
     ):
         # Arrange
         fk_kernel = "vmlinuz1"
@@ -296,11 +323,6 @@ class TestMiscellaneous:
 
         # Act
         result = remote.get_blended_data(name_profile, name_system)
-
-        # Cleanup
-        remove_system(name_system)
-        remove_profile(name_profile)
-        remove_distro(name_distro)
 
         # Assert
         assert result
@@ -627,9 +649,7 @@ class TestMiscellaneous:
         create_distro,
         create_profile,
         create_system,
-        remove_distro,
-        remove_profile,
-        remove_system,
+        cleanup_run_install_triggers
     ):
         # Arrange
         fk_kernel = "vmlinuz1"
@@ -641,9 +661,9 @@ class TestMiscellaneous:
         path_kernel = os.path.join(basepath, fk_kernel)
         path_initrd = os.path.join(basepath, fk_initrd)
 
-        distro = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-        profile = create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
-        system = create_system(name_system, name_profile)
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+        create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
+        create_system(name_system, name_profile)
 
         # Act
         result_pre = remote.run_install_triggers(
@@ -652,11 +672,6 @@ class TestMiscellaneous:
         result_post = remote.run_install_triggers(
             "post", "system", name_system, "10.0.0.2", token
         )
-
-        # Cleanup
-        remove_distro(name_distro)
-        remove_profile(name_profile)
-        remove_system(name_system)
 
         # Assert
         assert result_pre

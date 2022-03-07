@@ -1,26 +1,23 @@
 import pytest
 
-from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.item import Item
 from tests.conftest import does_not_raise
 
 
-def test_item_create():
+def test_item_create(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
 
     # Act
-    titem = Item(test_api)
+    titem = Item(cobbler_api)
 
     # Assert
     assert isinstance(titem, Item)
 
 
-def test_make_clone():
+def test_make_clone(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    titem = Item(test_api)
+    titem = Item(cobbler_api)
 
     # Act & Assert
     with pytest.raises(NotImplementedError):
@@ -28,20 +25,20 @@ def test_make_clone():
 
 
 @pytest.mark.skip
-def test_from_dict():
+def test_from_dict(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.from_dict()
+
     # Assert
     assert False
 
 
-def test_uid():
+def test_uid(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    titem = Item(test_api)
+    titem = Item(cobbler_api)
 
     # Act
     titem.uid = "uid"
@@ -50,10 +47,9 @@ def test_uid():
     assert titem.uid == "uid"
 
 
-def test_children():
+def test_children(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    titem = Item(test_api)
+    titem = Item(cobbler_api)
 
     # Act
     titem.children = []
@@ -62,10 +58,9 @@ def test_children():
     assert titem.children == []
 
 
-def test_get_children():
+def test_get_children(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    titem = Item(test_api)
+    titem = Item(cobbler_api)
 
     # Act
     result = titem.get_children()
@@ -75,31 +70,32 @@ def test_get_children():
 
 
 @pytest.mark.skip
-def test_get_descendatns():
+def test_get_descendatns(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.get_descendants()
+
     # Assert
     assert False
 
 
 @pytest.mark.skip
-def test_get_conceptual_parent():
+def test_get_conceptual_parent(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.get_conceptual_parent()
+
     # Assert
     assert False
 
 
-def test_name():
+def test_name(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    titem = Item(test_api)
+    titem = Item(cobbler_api)
 
     # Act
     titem.name = "testname"
@@ -108,10 +104,9 @@ def test_name():
     assert titem.name == "testname"
 
 
-def test_comment():
+def test_comment(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    titem = Item(test_api)
+    titem = Item(cobbler_api)
 
     # Act
     titem.comment = "my comment"
@@ -121,75 +116,80 @@ def test_comment():
 
 
 @pytest.mark.skip
-def test_set_owners():
+def test_set_owners(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.set_owners()
+
     # Assert
     assert False
 
 
 @pytest.mark.skip
-def test_set_kernel_options():
+def test_set_kernel_options(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.set_kernel_options_post()
+
     # Assert
     assert False
 
 
 @pytest.mark.skip
-def test_set_kernel_options_post():
+def test_set_kernel_options_post(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.set_kernel_options()
+
     # Assert
     assert False
 
 
 @pytest.mark.skip
-def test_set_autoinstall_meta():
+def test_set_autoinstall_meta(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.set_autoinstall_meta()
+
     # Assert
     assert False
 
 
 @pytest.mark.skip
-def test_set_mgmt_classes():
+def test_set_mgmt_classes(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.set_mgmt_classes()
+
     # Assert
     assert False
 
 
 @pytest.mark.skip
-def test_set_mgmt_parameters():
+def test_set_mgmt_parameters(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.set_mgmt_parameters()
+
     # Assert
     assert False
 
 
-def test_template_files():
+def test_template_files(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    titem = Item(test_api)
+    titem = Item(cobbler_api)
 
     # Act
     titem.template_files = {}
@@ -198,10 +198,9 @@ def test_template_files():
     assert titem.template_files == {}
 
 
-def test_boot_files():
+def test_boot_files(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    titem = Item(test_api)
+    titem = Item(cobbler_api)
 
     # Act
     titem.boot_files = {}
@@ -210,10 +209,9 @@ def test_boot_files():
     assert titem.boot_files == {}
 
 
-def test_fetchable_files():
+def test_fetchable_files(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    titem = Item(test_api)
+    titem = Item(cobbler_api)
 
     # Act
     titem.fetchable_files = {}
@@ -223,67 +221,73 @@ def test_fetchable_files():
 
 
 @pytest.mark.skip
-def test_sort_key():
+def test_sort_key(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.sort_key()
+
     # Assert
     assert False
 
 
 @pytest.mark.skip
-def test_find_match():
+def test_find_match(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.find_match()
+
     # Assert
     assert False
 
 
 @pytest.mark.skip
-def test_find_match_signle_key():
+def test_find_match_signle_key(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.find_match_single_key()
+
     # Assert
     assert False
 
 
 @pytest.mark.skip
-def test_dump_vars():
+def test_dump_vars(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.dump_vars()
+
     # Assert
     assert False
 
 
 @pytest.mark.skip
-def test_set_depth():
+def test_set_depth(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.set_depth()
+
     # Assert
     assert False
 
 
 @pytest.mark.skip
-def test_set_ctime():
+def test_set_ctime(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.set_ctime()
+
     # Assert
     assert False
 
@@ -293,10 +297,9 @@ def test_set_ctime():
     (0, pytest.raises(TypeError)),
     ("", pytest.raises(TypeError))
 ])
-def test_mtime(value, expected_exception):
+def test_mtime(cobbler_api, value, expected_exception):
     # Arrange
-    test_api = CobblerAPI()
-    titem = Item(test_api)
+    titem = Item(cobbler_api)
 
     # Act
     with expected_exception:
@@ -307,20 +310,21 @@ def test_mtime(value, expected_exception):
 
 
 @pytest.mark.skip
-def test_parent():
+def test_parent(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.parent = ""
+
     # Assert
     assert False
 
 
 @pytest.mark.skip
-def test_check_if_valid():
+def test_check_if_valid(cobbler_api):
     # Arrange
-    titem = Item()
+    titem = Item(cobbler_api)
 
     # Act
     titem.check_if_valid()
@@ -329,10 +333,9 @@ def test_check_if_valid():
     assert False
 
 
-def test_to_dict():
+def test_to_dict(cobbler_api):
     # Arrange
-    test_api = CobblerAPI()
-    titem = Item(test_api)
+    titem = Item(cobbler_api)
 
     # Act
     result = titem.to_dict()
@@ -341,11 +344,10 @@ def test_to_dict():
     assert isinstance(result, dict)
 
 
-def test_serialize():
+def test_serialize(cobbler_api):
     # Arrange
     kernel_url = "http://10.0.0.1/custom-kernels-are-awesome"
-    test_api = CobblerAPI()
-    titem = Distro(test_api)
+    titem = Distro(cobbler_api)
     titem.remote_boot_kernel = kernel_url
 
     # Act
