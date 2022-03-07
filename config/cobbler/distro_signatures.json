@@ -99,7 +99,6 @@
         "kernel_arch_regex": null,
         "supported_arches": [
           "aarch64",
-          "ppc",
           "ppc64",
           "ppc64le",
           "s390x",
