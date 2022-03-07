@@ -112,6 +112,7 @@ class _InTftpdManager(ManagerModule):
         Write out new ``pxelinux.cfg`` files to the TFTP server folder (or grub/system/<mac> in grub case)
 
         :param system: The system to be added.
+        :param menu_items: The menu items to add
         """
         if not menu_items:
             menu_items = self.tftpgen.get_menu_items()
@@ -130,12 +131,18 @@ class _InTftpdManager(ManagerModule):
         :param systems: List of systems to write PXE configuration files for.
         :param verbose: Whether the TFTP server should log this verbose or not.
         """
+        if not (isinstance(systems, list) and all(isinstance(sys_name, str) for sys_name in systems)):
+            raise TypeError("systems needs to be a list of strings")
+
+        if not isinstance(verbose, bool):
+            raise TypeError("verbose needs to be of type bool")
+
         self.tftpgen.verbose = verbose
 
         system_objs = []
         for system_name in systems:
             # get the system object:
-            system_obj = self.systems.find(name=system_name)
+            system_obj = self.api.find_system(name=system_name)
             if system_obj is None:
                 self.logger.info("did not find any system named %s", system_name)
                 continue
