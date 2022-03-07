@@ -41,7 +41,8 @@ def register() -> str:
 
 class _BindManager(ManagerModule):
 
-    def what(self) -> str:
+    @staticmethod
+    def what() -> str:
         """
         Identifies what this class is managing.
 
