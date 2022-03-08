@@ -1261,19 +1261,15 @@ class System(Item):
         """
         Can only add system PXE records if a MAC or IP address is available, else it's a koan only record.
 
-        :param cidr_ok:
+        :param cidr_ok: Deprecated parameter which is not used anymore.
         """
         if self.name == "default":
             return True
-        for (_, interface) in list(self.interfaces.items()):
+        for interface in self.interfaces.values():
             mac = interface.mac_address
-            # FIXME: Differentiate between IPv4/6
-            ip = interface.ip_address
-            if ip is not None and not cidr_ok and ip.find("/") != -1:
-                # ip is in CIDR notation
-                return False
-            if mac is not None or ip is not None:
-                # has ip and/or mac
+            ip_v4 = interface.ip_address
+            ip_v6 = interface.ipv6_address
+            if mac or ip_v4 or ip_v6:
                 return True
         return False
 
