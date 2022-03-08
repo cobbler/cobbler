@@ -72,7 +72,6 @@ class _DnsmasqManager(ManagerModule):
         f2.close()
 
         system_definitions = {}
-        counter = 0
 
         # we used to just loop through each system, but now we must loop
         # through each network interface of each system.
@@ -84,18 +83,16 @@ class _DnsmasqManager(ManagerModule):
 
             profile = system.get_conceptual_parent()
             distro = profile.get_conceptual_parent()
-            for (name, interface) in list(system.interfaces.items()):
+            for interface in system.interfaces.values():
 
-                mac = interface["mac_address"]
-                ip = interface["ip_address"]
-                host = interface["dns_name"]
-                ipv6 = interface["ipv6_address"]
+                mac = interface.mac_address
+                ip = interface.ip_address
+                host = interface.dns_name
+                ipv6 = interface.ipv6_address
 
                 if not mac:
                     # can't write a DHCP entry for this system
                     continue
-
-                counter += 1
 
                 # In many reallife situations there is a need to control the IP address and hostname for a specific
                 # client when only the MAC address is available. In addition to that in some scenarios there is a need
@@ -103,19 +100,19 @@ class _DnsmasqManager(ManagerModule):
                 # where we need something other than ``pxelinux.0``. So we always write a dhcp-host entry with as much
                 # info as possible to allow maximum control and flexibility within the dnsmasq config.
 
-                systxt = "dhcp-host=net:" + distro.arch.lower() + "," + mac
+                systxt = "dhcp-host=net:" + distro.arch.value.lower() + "," + mac
 
-                if host is not None and host != "":
+                if host != "":
                     systxt += "," + host
 
-                if ip is not None and ip != "":
+                if ip != "":
                     systxt += "," + ip
-                if ipv6 is not None and ipv6 != "":
+                if ipv6 != "":
                     systxt += ",[%s]" % ipv6
 
                 systxt += "\n"
 
-                dhcp_tag = interface["dhcp_tag"]
+                dhcp_tag = interface.dhcp_tag
                 if dhcp_tag == "":
                     dhcp_tag = "default"
 
@@ -152,9 +149,9 @@ class _DnsmasqManager(ManagerModule):
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
                 continue
-            for (name, interface) in list(system.interfaces.items()):
-                mac = interface["mac_address"]
-                ip = interface["ip_address"]
+            for interface in system.interfaces.values():
+                mac = interface.mac_address
+                ip = interface.ip_address
                 if not mac:
                     # can't write this w/o a MAC address
                     continue
@@ -171,11 +168,11 @@ class _DnsmasqManager(ManagerModule):
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
                 continue
-            for (name, interface) in list(system.interfaces.items()):
-                mac = interface["mac_address"]
-                host = interface["dns_name"]
-                ip = interface["ip_address"]
-                ipv6 = interface["ipv6_address"]
+            for (_, interface) in system.interfaces.items():
+                mac = interface.mac_address
+                host = interface.dns_name
+                ip = interface.ip_address
+                ipv6 = interface.ipv6_address
                 if not mac:
                     continue
                 if host is not None and host != "" and ipv6 is not None and ipv6 != "":
@@ -192,7 +189,7 @@ class _DnsmasqManager(ManagerModule):
         if self.settings.restart_dhcp:
             return_code_service_restart = utils.service_restart(service_name)
             if return_code_service_restart != 0:
-                self.logger.error("{} service failed".format(service_name))
+                self.logger.error("%s service failed", service_name)
             return return_code_service_restart
 
 
