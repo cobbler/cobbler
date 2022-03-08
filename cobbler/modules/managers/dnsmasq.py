@@ -187,16 +187,13 @@ class _DnsmasqManager(ManagerModule):
     def restart_service(self):
         """
         This restarts the dhcp server and thus applied the newly written config files.
-
-        :raises CX
         """
-        # TODO: Reuse the utils method for service restarts
+        service_name = "dnsmasq"
         if self.settings.restart_dhcp:
-            rc = utils.subprocess_call("service dnsmasq restart")
-            if rc != 0:
-                error_msg = "service dnsmasq restart failed"
-                self.logger.error(error_msg)
-                raise CX(error_msg)
+            return_code_service_restart = utils.service_restart(service_name)
+            if return_code_service_restart != 0:
+                self.logger.error("{} service failed".format(service_name))
+            return return_code_service_restart
 
 
 def get_manager(api):
