@@ -41,7 +41,7 @@ def run(api, args) -> int:
     if settings.manage_dhcp:
         if which_dhcp_module == "managers.isc":
             if settings.restart_dhcp:
-                ret_code = utils.subprocess_call("dhcpd -t -q", shell=True)
+                ret_code = utils.subprocess_call(["dhcpd", "-t", "-q"], shell=False)
                 if ret_code != 0:
                     logger.error("dhcpd -t failed")
                     return 1

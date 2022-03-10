@@ -51,7 +51,7 @@ def test_run_git():
     assert result == 0
 
 
-def test_run_hg():
+def test_run_hg(mocker):
     # Arrange
     settings_mock = MagicMock(name="scm_track_hg_setting_mock", spec=Settings)
     settings_mock.scm_track_enabled = True
@@ -61,10 +61,18 @@ def test_run_hg():
     api = MagicMock(spec=CobblerAPI)
     api.settings.return_value = settings_mock
     args = None
+    subprocess_call = mocker.patch("cobbler.utils.subprocess_call")
 
     # Act
     result = scm_track.run(api, args)
 
     # Assert
-    # FIXME improve assert
+    subprocess_call.assert_has_calls(
+        [mocker.call(["hg", "init"], shell=False),
+         mocker.call(["hg", "add collections"], shell=False),
+         mocker.call(["hg", "add templates"], shell=False),
+         mocker.call(["hg", "add snippets"], shell=False),
+         mocker.call(["hg", "commit", "-m", "API", "update", "--user", settings_mock.scm_track_author], shell=False),
+         mocker.call(["/bin/true"], shell=False)]
+    )
     assert result == 0

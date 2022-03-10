@@ -971,7 +971,7 @@ def test_service_restart_systemctl(mocker):
 
     # Assert
     assert result == 0
-    utils.subprocess_call.assert_called_with("systemctl restart testservice", True)
+    utils.subprocess_call.assert_called_with(["systemctl", "restart", "testservice"], shell=False)
 
 
 def test_service_restart_service(mocker):
@@ -1002,4 +1002,4 @@ def test_service_restart_service(mocker):
 
     # Assert
     assert result == 0
-    utils.subprocess_call.assert_called_with("service testservice restart", True)
+    utils.subprocess_call.assert_called_with(["service", "testservice", "restart"], shell=False)
