@@ -272,14 +272,14 @@ def service_restart(service_name: str):
                 )
                 return 1
     elif is_systemd():
-        restart_command = "systemctl restart %s" % service_name
+        restart_command = ["systemctl", "restart", service_name]
     elif is_service():
-        restart_command = "service %s restart" % service_name
+        restart_command = ["service", service_name, "restart"]
     else:
         logger.warning('We could not restart service "%s" due to an unsupported process manager!', service_name)
         return 1
 
-    ret = subprocess_call(restart_command, True)
+    ret = subprocess_call(restart_command, shell=False)
     if ret != 0:
         logger.error('Restarting service "%s" failed', service_name)
     return ret
@@ -1418,7 +1418,7 @@ def is_selinux_enabled() -> bool:
     """
     if not os.path.exists("/usr/sbin/selinuxenabled"):
         return False
-    selinuxenabled = subprocess_call("/usr/sbin/selinuxenabled")
+    selinuxenabled = subprocess_call(["/usr/sbin/selinuxenabled"], shell=False)
     if selinuxenabled == 0:
         return True
     else:

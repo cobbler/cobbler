@@ -171,12 +171,12 @@ def test_deserialize(input_collection_type, input_collection, input_topological,
     mocker.patch("cobbler.modules.serializers.file.deserialize_raw", return_value=input_collection)
     if input_collection_type == "settings":
         stub_from = mocker.stub(name="from_dict_stub")
-        mocker.patch.object(Settings, "from_dict", new=stub_from)
         mock = Settings()
+        mocker.patch.object(mock, "from_dict", new=stub_from)
     else:
         stub_from = mocker.stub(name="from_list_stub")
-        mocker.patch.object(Collection, "from_list", new=stub_from)
         mock = Collection(MagicMock())
+        mocker.patch.object(mock, "from_list", new=stub_from)
         mocker.patch("cobbler.cobbler_collections.collection.Collection.collection_types",
                      return_value=input_collection_type)
 

@@ -3,7 +3,6 @@ import pytest
 from cobbler.cexceptions import CX
 
 
-@pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestProfile:
     """
     Test remote calls related to profiles.

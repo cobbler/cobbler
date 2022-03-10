@@ -1,7 +1,6 @@
 import pytest
 
 
-@pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestMgmtClass:
 
     def test_create_mgmtclass(self, remote, token, remove_mgmt_class):

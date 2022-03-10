@@ -6,7 +6,6 @@ TEST_POWER_MANAGEMENT = True
 TEST_SYSTEM = ""
 
 
-@pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestNonObjectCalls:
 
     # TODO: Obsolete this method via a unittest method

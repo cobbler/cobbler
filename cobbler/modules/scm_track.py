@@ -61,16 +61,16 @@ def run(api, args):
             raise CX("danger will robinson")
 
         if not os.path.exists("/var/lib/cobbler/.git"):
-            utils.subprocess_call("git init", shell=True)
+            utils.subprocess_call(["git", "init"], shell=False)
 
         # FIXME: If we know the remote user of an XMLRPC call use them as the author
-        utils.subprocess_call("git add --all collections", shell=True)
-        utils.subprocess_call("git add --all templates", shell=True)
-        utils.subprocess_call("git add --all snippets", shell=True)
-        utils.subprocess_call("git commit -m 'API update' --author '{0}'".format(author), shell=True)
+        utils.subprocess_call(["git", "add", "--all", "collections"], shell=False)
+        utils.subprocess_call(["git", "add", "--all", "templates"], shell=False)
+        utils.subprocess_call(["git", "add", "--all", "snippets"], shell=False)
+        utils.subprocess_call(["git", "commit", "-m", "API", "update", "--author", author], shell=False)
 
         if push_script:
-            utils.subprocess_call(push_script, shell=True)
+            utils.subprocess_call([push_script], shell=False)
 
         os.chdir(old_dir)
         return 0
@@ -83,16 +83,16 @@ def run(api, args):
             raise CX("danger will robinson")
 
         if not os.path.exists("/var/lib/cobbler/.hg"):
-            utils.subprocess_call("hg init", shell=True)
+            utils.subprocess_call(["hg", "init"], shell=False)
 
         # FIXME: If we know the remote user of an XMLRPC call use them as the user
-        utils.subprocess_call("hg add collections", shell=True)
-        utils.subprocess_call("hg add templates", shell=True)
-        utils.subprocess_call("hg add snippets", shell=True)
-        utils.subprocess_call("hg commit -m 'API update' --user '{0}'".format(author), shell=True)
+        utils.subprocess_call(["hg", "add collections"], shell=False)
+        utils.subprocess_call(["hg", "add templates"], shell=False)
+        utils.subprocess_call(["hg", "add snippets"], shell=False)
+        utils.subprocess_call(["hg", "commit", "-m", "API", "update", "--user", author], shell=False)
 
         if push_script:
-            utils.subprocess_call(push_script, shell=True)
+            utils.subprocess_call([push_script], shell=False)
 
         os.chdir(old_dir)
         return 0

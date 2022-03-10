@@ -29,7 +29,6 @@ def remove_repo(remote, token):
     remote.remove_repo("testrepo0", token)
 
 
-@pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestRepo:
     @pytest.mark.usefixtures("remove_repo")
     def test_create_repo(self, remote, token):

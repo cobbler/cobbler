@@ -1,7 +1,6 @@
 import pytest
 
 
-@pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestFile:
     """
     Test remote calls related to files

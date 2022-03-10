@@ -35,7 +35,6 @@ def remove_package(remote, token):
     remote.remove_package("testpackage0", token)
 
 
-@pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestPackage:
 
     @pytest.mark.usefixtures("remove_package")

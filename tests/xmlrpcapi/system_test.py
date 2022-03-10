@@ -3,7 +3,6 @@ import pytest
 from cobbler.cexceptions import CX
 
 
-@pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestSystem:
     """
     Test remote calls related to systems.
@@ -296,7 +295,6 @@ class TestSystem:
         """
         Test: copy a system object
         """
-
         # Arrange
         system = remote.get_item_handle("system", "testsystem0", token)
 

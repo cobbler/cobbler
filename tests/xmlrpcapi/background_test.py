@@ -1,7 +1,6 @@
 import pytest
 
 
-@pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestBackground:
     """
     Class to test various background jobs

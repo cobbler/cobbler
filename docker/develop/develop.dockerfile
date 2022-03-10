@@ -7,9 +7,6 @@ FROM registry.opensuse.org/opensuse/leap:15.3
 ENV container docker
 ENV DISTRO SUSE
 
-# Update Leap to most current packages
-RUN zypper update -y
-
 # Runtime & dev dependencies
 RUN zypper install --no-recommends -y \
     acl                        \
@@ -52,6 +49,14 @@ RUN zypper install --no-recommends -y \
     wget                       \
     which                      \
     xorriso
+
+# Add virtualization repository
+RUN zypper ar https://download.opensuse.org/repositories/Virtualization/15.3/Virtualization.repo
+RUN zypper --gpg-auto-import-keys install -y --from "Virtualization (15.3)" python3-hivex
+RUN zypper rr "Virtualization (15.3)"
+RUN zypper ar https://download.opensuse.org/repositories/devel:/languages:/python/15.3/devel:languages:python.repo
+RUN zypper --gpg-auto-import-keys install -y --from "Python Modules (15.3)" python3-pefile
+RUN zypper rr "Python Modules (15.3)"
 
 # Add bootloader packages
 RUN zypper install --no-recommends -y \

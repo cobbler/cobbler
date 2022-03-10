@@ -4,7 +4,6 @@ Restarts the DHCP and/or DNS after a Cobbler sync to apply changes to the config
 
 import logging
 
-import cobbler.module_loader as module_loader
 import cobbler.utils as utils
 
 logger = logging.getLogger()
@@ -32,8 +31,8 @@ def run(api, args) -> int:
     """
     settings = api.settings()
 
-    which_dhcp_module = module_loader.get_module_name("dhcp", "module").strip()
-    which_dns_module = module_loader.get_module_name("dns", "module").strip()
+    which_dhcp_module = api.get_module_name_from_file("dhcp", "module")
+    which_dns_module = api.get_module_name_from_file("dns", "module")
 
     # special handling as we don't want to restart it twice
     has_restarted_dnsmasq = False
@@ -42,7 +41,7 @@ def run(api, args) -> int:
     if settings.manage_dhcp:
         if which_dhcp_module == "managers.isc":
             if settings.restart_dhcp:
-                ret_code = utils.subprocess_call("dhcpd -t -q", shell=True)
+                ret_code = utils.subprocess_call(["dhcpd", "-t", "-q"], shell=False)
                 if ret_code != 0:
                     logger.error("dhcpd -t failed")
                     return 1

@@ -782,9 +782,8 @@ class _ImportSignatureManager(ManagerModule):
 
             elif comps_path not in self.found_repos:
                 utils.remove_yum_olddata(comps_path)
-                cmd = "createrepo %s --groupfile %s %s" % (
-                    self.settings.createrepo_flags, os.path.join(comps_path, masterdir, comps_file), comps_path)
-                utils.subprocess_call(cmd, shell=True)
+                cmd = ["createrepo", self.settings.createrepo_flags, "--groupfile", os.path.join(comps_path, masterdir, comps_file), comps_path]
+                utils.subprocess_call(cmd, shell=False)
                 self.found_repos[comps_path] = 1
                 # For older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up
                 # one...

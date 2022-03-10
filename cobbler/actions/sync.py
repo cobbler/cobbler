@@ -254,8 +254,8 @@ class CobblerSync:
         for dirtree in [os.path.join(self.bootloc, 'images'), self.settings.webdir]:
             cachedir = os.path.join(dirtree, '.link_cache')
             if os.path.isdir(cachedir):
-                cmd = "find %s -maxdepth 1 -type f -links 1 -exec rm -f '{}' ';'" % cachedir
-                utils.subprocess_call(cmd)
+                cmd = ["find", cachedir, "-maxdepth", "1", "-type", "f", "-links", "1", "-exec", "rm", "-f"]
+                utils.subprocess_call(cmd, shell=False)
 
     def rsync_gen(self):
         """

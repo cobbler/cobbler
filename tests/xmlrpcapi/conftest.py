@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 from pathlib import Path
@@ -9,7 +8,7 @@ from cobbler.utils import get_shared_secret
 from cobbler.remote import CobblerXMLRPCInterface
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def remote(cobbler_xmlrpc_base) -> CobblerXMLRPCInterface:
     """
 
@@ -19,7 +18,7 @@ def remote(cobbler_xmlrpc_base) -> CobblerXMLRPCInterface:
     return cobbler_xmlrpc_base[0]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def token(cobbler_xmlrpc_base) -> str:
     """
 
@@ -29,7 +28,7 @@ def token(cobbler_xmlrpc_base) -> str:
     return cobbler_xmlrpc_base[1]
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def cobbler_xmlrpc_base(cobbler_api):
     """
     Initialises the api object and makes it available to the test.
@@ -40,29 +39,29 @@ def cobbler_xmlrpc_base(cobbler_api):
     token = remote.login("", shared_secret)
     if not token:
         sys.exit(1)
-    yield remote, token
+    return remote, token
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def testsnippet() -> str:
     return "# This is a small simple testsnippet!"
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def snippet_add(remote, token):
     def _snippet_add(name: str, data):
         remote.write_autoinstall_snippet(name, data, token)
     return _snippet_add
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def snippet_remove(remote, token):
     def _snippet_remove(name: str):
         remote.remove_autoinstall_snippet(name, token)
     return _snippet_remove
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def create_distro(remote, token):
     def _create_distro(name: str, arch: str, breed: str, path_kernel: str, path_initrd: str):
         distro = remote.new_distro(token)
@@ -76,14 +75,14 @@ def create_distro(remote, token):
     return _create_distro
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def remove_distro(remote, token):
     def _remove_distro(name: str):
         remote.remove_distro(name, token)
     return _remove_distro
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def create_profile(remote, token):
     def _create_profile(name, distro, kernel_options):
         profile = remote.new_profile(token)
@@ -95,14 +94,14 @@ def create_profile(remote, token):
     return _create_profile
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def remove_profile(remote, token):
     def _remove_profile(name):
         remote.remove_profile(name, token)
     return _remove_profile
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def create_system(remote, token):
     def _create_system(name, profile):
         system = remote.new_system(token)
@@ -113,14 +112,14 @@ def create_system(remote, token):
     return _create_system
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def remove_system(remote, token):
     def _remove_system(name):
         remote.remove_system(name, token)
     return _remove_system
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def create_file(remote, token):
     def _create_file(name, is_directory, action, group, mode, owner, path, template):
         file_id = remote.new_file(token)
@@ -139,7 +138,7 @@ def create_file(remote, token):
     return _create_file
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def remove_file(remote, token):
     def _remove_file(name):
         remote.remove_file(name, token)
@@ -156,28 +155,28 @@ def create_mgmt_class(remote, token):
     return _create_mgmt_class
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def remove_mgmt_class(remote, token):
     def _remove_mgmt_class(name):
         remote.remove_mgmtclass(name, token)
     return _remove_mgmt_class
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def create_autoinstall_template(remote, token):
     def _create_autoinstall_template(filename, content):
         remote.write_autoinstall_template(filename, content, token)
     return _create_autoinstall_template
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def remove_autoinstall_template(remote, token):
     def _remove_autoinstall_template(name):
         remote.remove_autoinstall_template(name, token)
     return _remove_autoinstall_template
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def create_repo(remote, token):
     def _create_repo(name, mirror, mirror_locally):
         repo = remote.new_repo(token)
@@ -189,14 +188,14 @@ def create_repo(remote, token):
     return _create_repo
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def remove_repo(remote, token):
     def _remove_repo(name):
         remote.remove_repo(name, token)
     return _remove_repo
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def create_menu(remote, token):
     def _create_menu(name, display_name):
         menu_id = remote.new_menu(token)
@@ -209,7 +208,7 @@ def create_menu(remote, token):
     return _create_menu
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def remove_menu(remote, token):
     def _remove_menu(name):
         remote.remove_menu(name, token)

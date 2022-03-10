@@ -37,6 +37,12 @@ def register() -> str:
 
 
 class _NDjbDnsManager(ManagerModule):
+    """
+    Support for Dr. D J Bernstein DNS server.
+
+    This DNS server has a lot of forks with IPv6 support. However, the original has no support for IPv6 and thus we
+    can't add support for it at the moment.
+    """
 
     @staticmethod
     def what() -> str:
@@ -65,8 +71,8 @@ class _NDjbDnsManager(ManagerModule):
 
         for system in self.systems:
             for (name, interface) in list(system.interfaces.items()):
-                host = interface['dns_name']
-                ip = interface['ip_address']
+                host = interface.dns_name
+                ip = interface.ip_address
 
                 if host:
                     if host in a_records:

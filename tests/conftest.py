@@ -13,8 +13,10 @@ def does_not_raise():
     yield
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def cobbler_api():
+    CobblerAPI.__shared_state = {}
+    CobblerAPI.__has_loaded = False
     return CobblerAPI()
 
 

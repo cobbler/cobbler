@@ -11,7 +11,6 @@ def cleanup_create_distro_positive(cobbler_api):
     cobbler_api.remove_distro("create_distro_positive")
 
 
-@pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestDistro:
     """
     Test remote calls related to distros.

@@ -27,7 +27,6 @@ def remove_menu(remote, token):
     remote.remove_menu("testmenu0", token)
 
 
-@pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestMenu:
     @pytest.mark.usefixtures("create_testmenu", "remove_testmenu")
     def test_create_submenu(self, remote, token):
