@@ -5,7 +5,7 @@
 
 # if "true" Cobbler will auto migrate the settings file after upgrading from older versions. The current settings
 # are backed up in the same folder before the upgrade.
-auto_migrate_settings: true
+auto_migrate_settings: false
 
 # If "true", Cobbler will allow insertions of system records that duplicate the "--dns-name" information of other system
 # records. In general, this is undesirable and should be left "false".

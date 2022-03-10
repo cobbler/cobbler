@@ -10,7 +10,7 @@ from cobbler.actions.buildiso.standalone import StandaloneBuildiso
 
 
 @pytest.mark.parametrize("input_automigration,result_migrate_count,result_validate_count", [
-    (None, 1, 2),
+    (None, 0, 3),
     (True, 1, 2),
     (False, 0, 3),
 ])
