@@ -11,8 +11,8 @@ There are two main settings files which are located per default at ``/etc/cobble
 .. note:: Since we are cleaning a lot of tech-debt this may change over time. We are trying to find the balance which
           format is the best for us to handle in the code and the best for admins to handle in the config files.
 
-.. warning:: If you are using ``allow_dynamic_settings``, then the comments in the YAML file will vanish after the first
-             change due to the fact that PyYAML doesn't support comments
+.. warning:: If you are using ``allow_dynamic_settings`` or ``auto_migrate_settings``, then the comments in the YAML
+             file will vanish after the first change due to the fact that PyYAML doesn't support comments
              (`Source <https://github.com/yaml/pyyaml/issues/90>`_)
 
 There are additional configuration file locations which need to follow the YAML Syntax. These are loaded from the
@@ -25,6 +25,13 @@ main file.
 
 Updates to the yaml-settings-file
 #################################
+
+Starting with 3.3.2
+===================
+
+- After community feedback we changed the default of the auto-migration to be disabled. It can be re-enabled via the
+  already known methods ``cobbler-settings``-Tool, the settings file key ``auto_migrate_settings`` and the Daemon flag.
+  We have decided to not change the flag for existing installations.
 
 Starting with 3.3.1
 ===================

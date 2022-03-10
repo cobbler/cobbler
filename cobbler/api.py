@@ -58,7 +58,7 @@ class CobblerAPI:
     __has_loaded = False
 
     def __init__(self, is_cobblerd: bool = False, settingsfile_location: str = "/etc/cobbler/settings.yaml",
-                 execute_settings_automigration: bool = True):
+                 execute_settings_automigration: bool = False):
         """
         Constructor
 

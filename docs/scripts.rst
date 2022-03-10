@@ -48,3 +48,28 @@ Author
 ======
 
 `Enno Gotthold <https://github.com/SchoolGuy>`_
+
+cobbler-settings
+################
+
+Description
+===========
+
+This script will enable you to manage the settings of Cobbler.
+
+Execution examples
+==================
+
+.. code-block:: shell
+
+   cobbler-settings -c /etc/cobbler/settings migrate # Prints updated settings file to stdout
+   cobbler-settings -c /etc/cobbler/settings.yaml migrate -t /etc/cobbler/settings.new.yaml # Writes migrated result to file
+   cobbler-settings validate # Validates the file at /etc/cobbler/settings.yaml
+   cobbler-settings automigrate --enable # Enables settings auto-migration
+   cobbler-settings automigrate # Disables settings auto-migration
+   cobbler-settings modify --key="next_server_v4" --value="127.0.0.1" # Changes the key to the new value
+
+Author
+======
+
+`Enno Gotthold <https://github.com/SchoolGuy>`_ & `Dominik Gedon <https://github.com/nodeg>`_

@@ -58,7 +58,7 @@ def daemonize_self():
         os.dup2(dev_null.fileno(), sys.stderr.fileno())
 
 
-def main():
+def main() -> int:
     op = argparse.ArgumentParser()
     op.set_defaults(daemonize=True, log_level=None)
     op.add_argument("-B", "--daemonize", dest="daemonize", action="store_true",
@@ -109,4 +109,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
