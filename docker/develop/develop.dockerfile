@@ -80,6 +80,21 @@ RUN zypper install --no-recommends -y \
     hostname                          \
     python3-ldap
 
+# Required for reposync tests
+RUN zypper install --no-recommends -y \
+    python3-librepo                   \
+    dnf                               \
+    dnf-plugins-core                  \
+    wget
+
+# Required for reposync apt test
+RUN zypper install --no-recommends -y \
+    perl-LockFile-Simple              \
+    perl-Net-INET6Glue                \
+    perl-LWP-Protocol-https           \
+    ed
+RUN dnf install -y http://download.fedoraproject.org/pub/fedora/linux/releases/35/Everything/x86_64/os/Packages/d/debmirror-2.35-2.fc35.noarch.rpm
+
 # Dependencies for system-tests
 RUN zypper install --no-recommends -y \
     dhcp-server                       \
