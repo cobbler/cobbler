@@ -182,6 +182,7 @@ class TestRepoSync:
                 assert glob.glob(os.path.join(repo_path, "**", "dpkg") + "*", recursive=True) != []
             assert result
 
+    @pytest.mark.skip("To flaky and thus not reliable. Needs to be mocked to be of use.")
     @pytest.mark.usefixtures("remove_repo")
     @pytest.mark.parametrize(
         "input_mirror_type,input_mirror,expected_exception",
@@ -233,12 +234,14 @@ class TestRepoSync:
                 assert glob.glob(os.path.join(repo_path, "**", "2") + "*", recursive=True) != []
             assert result
 
+
 @pytest.mark.skip("TODO")
 def test_reposync_rhn():
     # Arrange
     # Act
     # Assert
     assert False
+
 
 @pytest.mark.skip("TODO")
 def test_reposync_rsync():
