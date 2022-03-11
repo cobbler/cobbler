@@ -25,19 +25,24 @@ from cobbler import utils, enums
 from cobbler.cexceptions import CX
 
 
-RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
+RE_OBJECT_NAME = re.compile(r"[a-zA-Z0-9_\-.:]*$")
 
 
 class Item:
     """
     An Item is a serializable thing that can appear in a Collection
     """
+
     # Constants
     TYPE_NAME = "generic"
     COLLECTION_TYPE = "generic"
 
     @classmethod
-    def __find_compare(cls, from_search: Union[str, list, dict, bool], from_obj: Union[str, list, dict, bool]):
+    def __find_compare(
+        cls,
+        from_search: Union[str, list, dict, bool],
+        from_obj: Union[str, list, dict, bool],
+    ):
         """
         Only one of the two parameters shall be given in this method. If you give both ``from_obj`` will be preferred.
 
@@ -53,7 +58,11 @@ class Item:
             from_obj_lower = from_obj.lower()
             from_search_lower = from_search.lower()
             # It's much faster to not use fnmatch if it's not needed
-            if '?' not in from_search_lower and '*' not in from_search_lower and '[' not in from_search_lower:
+            if (
+                "?" not in from_search_lower
+                and "*" not in from_search_lower
+                and "[" not in from_search_lower
+            ):
                 match = from_obj_lower == from_search_lower
             else:
                 match = fnmatch.fnmatch(from_obj_lower, from_search_lower)
@@ -67,7 +76,9 @@ class Item:
                             return False
                     return True
                 if isinstance(from_obj, dict):
-                    (junk, from_search) = utils.input_string_or_dict(from_search, allow_multiples=True)
+                    (junk, from_search) = utils.input_string_or_dict(
+                        from_search, allow_multiples=True
+                    )
                     for x in list(from_search.keys()):
                         y = from_search[x]
                         if x not in from_obj:
@@ -110,7 +121,7 @@ class Item:
         :param api: The Cobbler API object which is used for resolving information.
         :param is_subobject: See above extensive description.
         """
-        self._parent = ''
+        self._parent = ""
         self._depth = 0
         self._children = []
         self._ctime = 0.0
@@ -163,7 +174,10 @@ class Item:
         attribute = "_" + property_name
 
         if not hasattr(self, attribute):
-            raise AttributeError("%s \"%s\" does not have property \"%s\"" % (type(self), self.name, property_name))
+            raise AttributeError(
+                '%s "%s" does not have property "%s"'
+                % (type(self), self.name, property_name)
+            )
 
         attribute_value = getattr(self, attribute)
         settings = self.api.settings()
@@ -174,8 +188,10 @@ class Item:
             elif hasattr(settings, settings_name):
                 return getattr(settings, settings_name)
             else:
-                AttributeError("%s \"%s\" inherits property \"%s\", but neither its parent nor settings have it"
-                               % (type(self), self.name, property_name))
+                AttributeError(
+                    '%s "%s" inherits property "%s", but neither its parent nor settings have it'
+                    % (type(self), self.name, property_name)
+                )
 
         return attribute_value
 
@@ -191,8 +207,10 @@ class Item:
         attribute = "_" + property_name
 
         if not hasattr(self, attribute):
-            raise AttributeError("%s \"%s\" does not have property \"%s\""
-                                 % (type(self), self.name, property_name))
+            raise AttributeError(
+                '%s "%s" does not have property "%s"'
+                % (type(self), self.name, property_name)
+            )
 
         attribute_value = getattr(self, attribute)
         settings = self.api.settings()
@@ -441,7 +459,9 @@ class Item:
             else:
                 mgmt_parameters = yaml.safe_load(mgmt_parameters)
                 if not isinstance(mgmt_parameters, dict):
-                    raise TypeError("Input YAML in Puppet Parameter field must evaluate to a dictionary.")
+                    raise TypeError(
+                        "Input YAML in Puppet Parameter field must evaluate to a dictionary."
+                    )
         self._mgmt_parameters = mgmt_parameters
 
     @property
@@ -463,7 +483,9 @@ class Item:
         :param template_files: The new value for the template files which are used for the item.
         :raises ValueError: In case the conversion from non dict values was not successful.
         """
-        (success, value) = utils.input_string_or_dict(template_files, allow_multiples=False)
+        (success, value) = utils.input_string_or_dict(
+            template_files, allow_multiples=False
+        )
         if not success:
             raise ValueError("template_files should be of type dict")
         else:
@@ -511,7 +533,9 @@ class Item:
 
         :param fetchable_files: Files which will be made available to external users.
         """
-        (success, value) = utils.input_string_or_dict(fetchable_files, allow_multiples=False)
+        (success, value) = utils.input_string_or_dict(
+            fetchable_files, allow_multiples=False
+        )
         if not success:
             raise TypeError("fetchable_files were handed wrong values")
         else:
@@ -596,7 +620,10 @@ class Item:
 
         :param value: The list with children names to replace the current one with.
         """
-        self.logger.warning("Tried to set the children property on object \"%s\" without logical children.", self.name)
+        self.logger.warning(
+            'Tried to set the children property on object "%s" without logical children.',
+            self.name,
+        )
 
     def get_children(self, sort_list: bool = False) -> List[str]:
         """
@@ -646,7 +673,9 @@ class Item:
         :raises TypeError: In case the value was not of type bool.
         """
         if not isinstance(value, bool):
-            raise TypeError("Field is_subobject of object item needs to be of type bool!")
+            raise TypeError(
+                "Field is_subobject of object item needs to be of type bool!"
+            )
         self._is_subobject = value
 
     def get_conceptual_parent(self):
@@ -709,8 +738,20 @@ class Item:
         # special case for systems
         key_found_already = False
         if "interfaces" in data:
-            if key in ["mac_address", "ip_address", "netmask", "virt_bridge", "dhcp_tag", "dns_name", "static_routes",
-                       "interface_type", "interface_master", "bonding_opts", "bridge_opts", "interface"]:
+            if key in [
+                "mac_address",
+                "ip_address",
+                "netmask",
+                "virt_bridge",
+                "dhcp_tag",
+                "dns_name",
+                "static_routes",
+                "interface_type",
+                "interface_master",
+                "bonding_opts",
+                "bridge_opts",
+                "interface",
+            ]:
                 key_found_already = True
                 for (name, interface) in list(data["interfaces"].items()):
                     if value == name:
@@ -792,10 +833,14 @@ class Item:
                 try:
                     setattr(self, lowered_key, dictionary[key])
                 except AttributeError as error:
-                    raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from error
+                    raise AttributeError(
+                        'Attribute "%s" could not be set!' % lowered_key
+                    ) from error
                 result.pop(key)
         if len(result) > 0:
-            raise KeyError("The following keys supplied could not be set: %s" % result.keys())
+            raise KeyError(
+                "The following keys supplied could not be set: %s" % result.keys()
+            )
 
     def to_dict(self) -> dict:
         """
@@ -806,7 +851,12 @@ class Item:
         value = {}
         for key in self.__dict__:
             if key.startswith("_") and not key.startswith("__"):
-                if key in ("_conceptual_parent", "_last_cached_mtime", "_cached_dict", "_supported_boot_loaders"):
+                if key in (
+                    "_conceptual_parent",
+                    "_last_cached_mtime",
+                    "_cached_dict",
+                    "_supported_boot_loaders",
+                ):
                     continue
                 new_key = key[1:].lower()
                 if isinstance(self.__dict__[key], enum.Enum):
@@ -816,7 +866,9 @@ class Item:
                     serialized_interfaces = {}
                     interfaces = self.__dict__[key]
                     for interface_key in interfaces:
-                        serialized_interfaces[interface_key] = interfaces[interface_key].to_dict()
+                        serialized_interfaces[interface_key] = interfaces[
+                            interface_key
+                        ].to_dict()
                     value[new_key] = serialized_interfaces
                 elif isinstance(self.__dict__[key], (list, dict)):
                     value[new_key] = copy.deepcopy(self.__dict__[key])
@@ -835,7 +887,12 @@ class Item:
 
         :return: The dictionary with the information for serialization.
         """
-        keys_to_drop = ["kickstart", "ks_meta", "remote_grub_kernel", "remote_grub_initrd"]
+        keys_to_drop = [
+            "kickstart",
+            "ks_meta",
+            "remote_grub_kernel",
+            "remote_grub_initrd",
+        ]
         result = self.to_dict()
         for key in keys_to_drop:
             result.pop(key, "")

@@ -64,13 +64,27 @@ class TFTPGen:
         # Unfortunately using shutils copy_tree the dest directory must not exist, but we must not delete an already
         # partly synced /srv/tftp dir here. rsync is very convenient here, being very fast on an already copied folder.
         utils.subprocess_call(
-            ["rsync", "-rpt", "--copy-links", "--exclude=.cobbler_postun_cleanup", "{src}/".format(src=src), dest],
-            shell=False
+            [
+                "rsync",
+                "-rpt",
+                "--copy-links",
+                "--exclude=.cobbler_postun_cleanup",
+                "{src}/".format(src=src),
+                dest,
+            ],
+            shell=False,
         )
         src = self.settings.grubconfig_dir
         utils.subprocess_call(
-            ["rsync", "-rpt", "--copy-links", "--exclude=README.grubconfig", "{src}/".format(src=src), dest],
-            shell=False
+            [
+                "rsync",
+                "-rpt",
+                "--copy-links",
+                "--exclude=README.grubconfig",
+                "{src}/".format(src=src),
+                dest,
+            ],
+            shell=False,
         )
 
     def copy_images(self):
@@ -102,7 +116,9 @@ class TFTPGen:
 
         if full_path is None or not full_path:
             # Will raise if None or an empty str
-            raise FileNotFoundError("No kernel found at \"%s\", tried to copy to: \"%s\"" % (d_file, distro_dir))
+            raise FileNotFoundError(
+                'No kernel found at "%s", tried to copy to: "%s"' % (d_file, distro_dir)
+            )
 
         # Koan manages remote kernel/initrd itself, but for consistent PXE
         # configurations the synchronization is still necessary
@@ -156,26 +172,30 @@ class TFTPGen:
         """
         profile = system.get_conceptual_parent()
         if profile is None:
-            raise CX("system %(system)s references a missing profile %(profile)s" % {"system": system.name,
-                                                                                     "profile": system.profile})
+            raise CX(
+                "system %(system)s references a missing profile %(profile)s"
+                % {"system": system.name, "profile": system.profile}
+            )
 
         distro = profile.get_conceptual_parent()
         image_based = False
         image = None
         if distro is None:
             if profile.COLLECTION_TYPE == "profile":
-                raise CX("profile %(profile)s references a missing distro %(distro)s" % {"profile": system.profile,
-                                                                                         "distro": profile.distro})
+                raise CX(
+                    "profile %(profile)s references a missing distro %(distro)s"
+                    % {"profile": system.profile, "distro": profile.distro}
+                )
             else:
                 image_based = True
                 image = profile
 
-        pxe_metadata = {'menu_items': menu_items}
+        pxe_metadata = {"menu_items": menu_items}
 
         # hack: s390 generates files per system not per interface
         if not image_based and distro.arch in (enums.Archs.S390, enums.Archs.S390X):
-            short_name = system.name.split('.')[0]
-            s390_name = 'linux' + short_name[7:10]
+            short_name = system.name.split(".")[0]
+            s390_name = "linux" + short_name[7:10]
             self.logger.info("Writing s390x pxe config for %s", short_name)
             # Always write a system specific _conf and _parm file
             pxe_f = os.path.join(self.bootloc, "s390x", "s_%s" % s390_name)
@@ -186,48 +206,57 @@ class TFTPGen:
             blended = utils.blender(self.api, True, system)
             # FIXME: profiles also need this data!
             # gather default kernel_options and default kernel_options_s390x
-            kernel_options = self.build_kernel_options(system, profile, distro,
-                                                       image, "s390x", blended.get("autoinstall", ""))
+            kernel_options = self.build_kernel_options(
+                system, profile, distro, image, "s390x", blended.get("autoinstall", "")
+            )
             kopts_aligned = ""
             column = 0
             for option in kernel_options.split():
                 opt_len = len(option)
                 if opt_len > 78:
-                    kopts_aligned += '\n' + option + ' '
+                    kopts_aligned += "\n" + option + " "
                     column = opt_len + 1
-                    self.logger.error("Kernel paramer [%s] too long %s" % (option, opt_len))
+                    self.logger.error(
+                        "Kernel paramer [%s] too long %s" % (option, opt_len)
+                    )
                     continue
                 if column + opt_len > 78:
-                    kopts_aligned += '\n' + option + ' '
+                    kopts_aligned += "\n" + option + " "
                     column = opt_len + 1
                 else:
-                    kopts_aligned += option + ' '
+                    kopts_aligned += option + " "
                     column += opt_len + 1
 
             # Write system specific zPXE file
             if system.is_management_supported():
                 if system.netboot_enabled:
                     self.logger.info("S390x: netboot_enabled")
-                    kernel_path = os.path.join("/images", distro.name, os.path.basename(distro.kernel))
-                    initrd_path = os.path.join("/images", distro.name, os.path.basename(distro.initrd))
-                    with open(pxe_f, 'w') as out:
-                        out.write(kernel_path + '\n' + initrd_path + '\n')
-                    with open(parm_f, 'w') as out:
+                    kernel_path = os.path.join(
+                        "/images", distro.name, os.path.basename(distro.kernel)
+                    )
+                    initrd_path = os.path.join(
+                        "/images", distro.name, os.path.basename(distro.initrd)
+                    )
+                    with open(pxe_f, "w") as out:
+                        out.write(kernel_path + "\n" + initrd_path + "\n")
+                    with open(parm_f, "w") as out:
                         out.write(kopts_aligned)
                     # Write conf file with one newline in it if netboot is enabled
-                    with open(conf_f, 'w') as out:
-                        out.write('\n')
+                    with open(conf_f, "w") as out:
+                        out.write("\n")
                 else:
                     self.logger.info("S390x: netboot_disabled")
                     # Write empty conf file if netboot is disabled
-                    open(conf_f, 'w').close()
+                    open(conf_f, "w").close()
             else:
                 # ensure the files do exist
                 self.logger.info("S390x: management not supported")
                 utils.rmfile(pxe_f)
                 utils.rmfile(conf_f)
                 utils.rmfile(parm_f)
-            self.logger.info("S390x: pxe: [%s], conf: [%s], parm: [%s]", pxe_f, conf_f, parm_f)
+            self.logger.info(
+                "S390x: pxe: [%s], conf: [%s], parm: [%s]", pxe_f, conf_f, parm_f
+            )
 
             return
 
@@ -251,7 +280,9 @@ class TFTPGen:
                 grub_path = ""
 
             if grub_path == "" and pxe_path == "":
-                self.logger.warning("invalid interface recorded for system (%s,%s)", system.name, name)
+                self.logger.warning(
+                    "invalid interface recorded for system (%s,%s)", system.name, name
+                )
                 continue
 
             if image_based:
@@ -263,8 +294,16 @@ class TFTPGen:
                 raise CX("internal error, invalid arch supplied")
 
             # for tftp only ...
-            if working_arch in [Archs.I386, Archs.X86_64, Archs.ARM, Archs.AARCH64,
-                                Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL]:
+            if working_arch in [
+                Archs.I386,
+                Archs.X86_64,
+                Archs.ARM,
+                Archs.AARCH64,
+                Archs.PPC,
+                Archs.PPC64,
+                Archs.PPC64LE,
+                Archs.PPC64EL,
+            ]:
                 # ToDo: This is old, move this logic into item_system.get_config_filename()
                 pass
             else:
@@ -273,19 +312,40 @@ class TFTPGen:
             if system.is_management_supported():
                 if not image_based:
                     if pxe_path:
-                        self.write_pxe_file(pxe_path, system, profile, distro,
-                                            working_arch, metadata=pxe_metadata)
+                        self.write_pxe_file(
+                            pxe_path,
+                            system,
+                            profile,
+                            distro,
+                            working_arch,
+                            metadata=pxe_metadata,
+                        )
                     if grub_path:
-                        self.write_pxe_file(grub_path, system, profile, distro,
-                                            working_arch, format="grub")
+                        self.write_pxe_file(
+                            grub_path,
+                            system,
+                            profile,
+                            distro,
+                            working_arch,
+                            format="grub",
+                        )
                         # Generate a link named after system to the mac file for easier lookup
-                        link_path = os.path.join(self.bootloc, "grub", "system_link", system.name)
+                        link_path = os.path.join(
+                            self.bootloc, "grub", "system_link", system.name
+                        )
                         utils.rmfile(link_path)
                         utils.mkdir(os.path.dirname(link_path))
                         os.symlink(os.path.join("..", "system", grub_name), link_path)
                 else:
-                    self.write_pxe_file(pxe_path, system, None, None, working_arch, image=profile,
-                                        metadata=pxe_metadata)
+                    self.write_pxe_file(
+                        pxe_path,
+                        system,
+                        None,
+                        None,
+                        working_arch,
+                        image=profile,
+                        metadata=pxe_metadata,
+                    )
             else:
                 # ensure the file doesn't exist
                 utils.rmfile(pxe_path)
@@ -312,23 +372,35 @@ class TFTPGen:
         loader_metadata["pxe_timeout_profile"] = timeout_action
 
         # Write the PXE menu:
-        if 'pxe' in menu_items:
-            loader_metadata["menu_items"] = menu_items['pxe']
+        if "pxe" in menu_items:
+            loader_metadata["menu_items"] = menu_items["pxe"]
             loader_metadata["menu_labels"] = {}
             outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
-            template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "pxe_menu.template"))
+            template_src = open(
+                os.path.join(
+                    self.settings.boot_loader_conf_template_dir, "pxe_menu.template"
+                )
+            )
             template_data = template_src.read()
-            boot_menu['pxe'] = self.templar.render(template_data, loader_metadata, outfile)
+            boot_menu["pxe"] = self.templar.render(
+                template_data, loader_metadata, outfile
+            )
             template_src.close()
 
         # Write the iPXE menu:
-        if 'ipxe' in menu_items:
-            loader_metadata["menu_items"] = menu_items['ipxe']
-            loader_metadata["menu_labels"] = menu_labels['ipxe']
+        if "ipxe" in menu_items:
+            loader_metadata["menu_items"] = menu_items["ipxe"]
+            loader_metadata["menu_labels"] = menu_labels["ipxe"]
             outfile = os.path.join(self.bootloc, "ipxe", "default.ipxe")
-            template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "ipxe_menu.template"))
+            template_src = open(
+                os.path.join(
+                    self.settings.boot_loader_conf_template_dir, "ipxe_menu.template"
+                )
+            )
             template_data = template_src.read()
-            boot_menu['ipxe'] = self.templar.render(template_data, loader_metadata, outfile)
+            boot_menu["ipxe"] = self.templar.render(
+                template_data, loader_metadata, outfile
+            )
             template_src.close()
 
         # Write the grub menu:
@@ -336,9 +408,11 @@ class TFTPGen:
             arch_metadata = self.get_menu_items(arch)
             arch_menu_items = arch_metadata["menu_items"]
 
-            if 'grub' in arch_menu_items:
+            if "grub" in arch_menu_items:
                 boot_menu["grub"] = arch_menu_items
-                outfile = os.path.join(self.bootloc, "grub", "{0}_menu_items.cfg".format(arch))
+                outfile = os.path.join(
+                    self.bootloc, "grub", "{0}_menu_items.cfg".format(arch)
+                )
                 with open(outfile, "w+") as fd:
                     fd.write(arch_menu_items["grub"])
         return boot_menu
@@ -389,11 +463,20 @@ class TFTPGen:
             if "ipxe" in temp_items:
                 if "ipxe" not in menu_labels:
                     menu_labels["ipxe"] = []
-                display_name = child.display_name if child.display_name and child.display_name != "" else child.name
-                menu_labels["ipxe"].append({"name": child.name, "display_name": display_name})
+                display_name = (
+                    child.display_name
+                    if child.display_name and child.display_name != ""
+                    else child.name
+                )
+                menu_labels["ipxe"].append(
+                    {"name": child.name, "display_name": display_name}
+                )
 
         for boot_loader in boot_loaders:
-            if boot_loader in nested_menu_items and nested_menu_items[boot_loader] != "":
+            if (
+                boot_loader in nested_menu_items
+                and nested_menu_items[boot_loader] != ""
+            ):
                 nested_menu_items[boot_loader] = nested_menu_items[boot_loader][:-1]
 
         metadata["menu_items"] = nested_menu_items
@@ -408,9 +491,15 @@ class TFTPGen:
         :param arch: The processor architecture to generate the menu items for. (Optional)
         """
         if menu:
-            profile_list = [profile for profile in self.profiles if profile.menu == menu.name]
+            profile_list = [
+                profile for profile in self.profiles if profile.menu == menu.name
+            ]
         else:
-            profile_list = [profile for profile in self.profiles if profile.menu is None or profile.menu == ""]
+            profile_list = [
+                profile
+                for profile in self.profiles
+                if profile.menu is None or profile.menu == ""
+            ]
         profile_list = sorted(profile_list, key=lambda profile: profile.name)
         if arch:
             profile_list = [profile for profile in profile_list if profile.arch == arch]
@@ -432,8 +521,15 @@ class TFTPGen:
             for boot_loader in boot_loaders:
                 if boot_loader not in profile.boot_loaders:
                     continue
-                contents = self.write_pxe_file(filename=None, system=None, profile=profile, distro=distro, arch=arch,
-                                               image=None, format=boot_loader)
+                contents = self.write_pxe_file(
+                    filename=None,
+                    system=None,
+                    profile=profile,
+                    distro=distro,
+                    arch=arch,
+                    image=None,
+                    format=boot_loader,
+                )
                 if contents and contents != "":
                     if boot_loader not in current_menu_items:
                         current_menu_items[boot_loader] = ""
@@ -444,7 +540,9 @@ class TFTPGen:
                         current_menu_items[boot_loader] += "\n"
                         if "ipxe" not in menu_labels:
                             menu_labels["ipxe"] = []
-                        menu_labels["ipxe"].append({"name": profile.name, "display_name": profile.name})
+                        menu_labels["ipxe"].append(
+                            {"name": profile.name, "display_name": profile.name}
+                        )
 
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
@@ -460,7 +558,9 @@ class TFTPGen:
         if menu:
             image_list = [image for image in self.images if image.menu == menu.name]
         else:
-            image_list = [image for image in self.images if image.menu is None or image.menu == ""]
+            image_list = [
+                image for image in self.images if image.menu is None or image.menu == ""
+            ]
         image_list = sorted(image_list, key=lambda image: image.name)
 
         current_menu_items = metadata["menu_items"]
@@ -475,8 +575,15 @@ class TFTPGen:
                 for boot_loader in boot_loaders:
                     if boot_loader not in image.boot_loaders:
                         continue
-                    contents = self.write_pxe_file(filename=None, system=None, profile=None, distro=None, arch=arch,
-                                                   image=image, format=boot_loader)
+                    contents = self.write_pxe_file(
+                        filename=None,
+                        system=None,
+                        profile=None,
+                        distro=None,
+                        arch=arch,
+                        image=image,
+                        format=boot_loader,
+                    )
                     if contents and contents != "":
                         if boot_loader not in current_menu_items:
                             current_menu_items[boot_loader] = ""
@@ -487,11 +594,16 @@ class TFTPGen:
                             current_menu_items[boot_loader] += "\n"
                             if "ipxe" not in menu_labels:
                                 menu_labels["ipxe"] = []
-                            menu_labels["ipxe"].append({"name": image.name, "display_name": image.name})
+                            menu_labels["ipxe"].append(
+                                {"name": image.name, "display_name": image.name}
+                            )
 
         boot_loaders = utils.get_supported_system_boot_loaders()
         for boot_loader in boot_loaders:
-            if boot_loader in current_menu_items and current_menu_items[boot_loader] != "":
+            if (
+                boot_loader in current_menu_items
+                and current_menu_items[boot_loader] != ""
+            ):
                 current_menu_items[boot_loader] = current_menu_items[boot_loader][:-1]
 
         metadata["menu_items"] = current_menu_items
@@ -511,15 +623,21 @@ class TFTPGen:
         boot_loaders = utils.get_supported_system_boot_loaders()
 
         for boot_loader in boot_loaders:
-            template = os.path.join(self.settings.boot_loader_conf_template_dir, "%s_submenu.template" % boot_loader)
+            template = os.path.join(
+                self.settings.boot_loader_conf_template_dir,
+                "%s_submenu.template" % boot_loader,
+            )
             if os.path.exists(template):
                 with open(template) as template_fh:
                     template_data[boot_loader] = template_fh.read()
                 if menu:
                     parent_menu = menu.parent
                     metadata["menu_name"] = menu.name
-                    metadata["menu_label"] = \
-                        menu.display_name if menu.display_name and menu.display_name != "" else menu.name
+                    metadata["menu_label"] = (
+                        menu.display_name
+                        if menu.display_name and menu.display_name != ""
+                        else menu.name
+                    )
                     if parent_menu:
                         metadata["parent_menu_name"] = parent_menu.name
                         if parent_menu.display_name and parent_menu.display_name != "":
@@ -530,8 +648,11 @@ class TFTPGen:
                         metadata["parent_menu_name"] = "Cobbler"
                         metadata["parent menu_label"] = "Cobbler"
             else:
-                self.logger.warning("Template for building a submenu not found for bootloader \"%s\"! Submenu "
-                                    "structure thus missing for this bootloader.", boot_loader)
+                self.logger.warning(
+                    'Template for building a submenu not found for bootloader "%s"! Submenu '
+                    "structure thus missing for this bootloader.",
+                    boot_loader,
+                )
 
         self.get_submenus(menu, metadata, arch)
         nested_menu_items = metadata["menu_items"]
@@ -546,7 +667,10 @@ class TFTPGen:
         line_sub = "\t\\g<1>"
 
         for boot_loader in boot_loaders:
-            if boot_loader not in nested_menu_items and boot_loader not in current_menu_items:
+            if (
+                boot_loader not in nested_menu_items
+                and boot_loader not in current_menu_items
+            ):
                 continue
 
             menu_items[boot_loader] = ""
@@ -560,31 +684,46 @@ class TFTPGen:
                     if boot_loader in nested_menu_items:
                         menu_items[boot_loader] = nested_menu_items[boot_loader]
                     if boot_loader in current_menu_items:
-                        menu_items[boot_loader] += '\n' + current_menu_items[boot_loader]
+                        menu_items[boot_loader] += (
+                            "\n" + current_menu_items[boot_loader]
+                        )
             else:
                 if boot_loader in nested_menu_items:
                     menu_items[boot_loader] = nested_menu_items[boot_loader]
                 if boot_loader in current_menu_items:
                     if menu is None:
-                        menu_items[boot_loader] += '\n'
+                        menu_items[boot_loader] += "\n"
                     menu_items[boot_loader] += current_menu_items[boot_loader]
                 # Indentation for nested pxe and grub menu items.
                 if menu:
-                    menu_items[boot_loader] = line_pat.sub(line_sub, menu_items[boot_loader])
+                    menu_items[boot_loader] = line_pat.sub(
+                        line_sub, menu_items[boot_loader]
+                    )
 
             if menu and boot_loader in template_data:
                 metadata["menu_items"] = menu_items[boot_loader]
                 if boot_loader in menu_labels:
                     metadata["menu_labels"] = menu_labels[boot_loader]
-                menu_items[boot_loader] = self.templar.render(template_data[boot_loader], metadata, None)
+                menu_items[boot_loader] = self.templar.render(
+                    template_data[boot_loader], metadata, None
+                )
                 if boot_loader == "ipxe":
-                    menu_items[boot_loader] += '\n'
+                    menu_items[boot_loader] += "\n"
         metadata["menu_items"] = menu_items
         metadata["menu_labels"] = menu_labels
         return metadata
 
-    def write_pxe_file(self, filename, system, profile, distro, arch: Archs, image=None, metadata=None,
-                       format: str = "pxe") -> str:
+    def write_pxe_file(
+        self,
+        filename,
+        system,
+        profile,
+        distro,
+        arch: Archs,
+        image=None,
+        metadata=None,
+        format: str = "pxe",
+    ) -> str:
         """
         Write a configuration file for the boot loader(s).
 
@@ -638,12 +777,15 @@ class TFTPGen:
         # just some random variables
         buffer = ""
 
-        template = os.path.join(self.settings.boot_loader_conf_template_dir, format + ".template")
+        template = os.path.join(
+            self.settings.boot_loader_conf_template_dir, format + ".template"
+        )
         self.build_kernel(metadata, system, profile, distro, image, format)
 
         # generate the kernel options and append line:
-        kernel_options = self.build_kernel_options(system, profile, distro,
-                                                   image, arch.value, metadata["autoinstall"])
+        kernel_options = self.build_kernel_options(
+            system, profile, distro, image, arch.value, metadata["autoinstall"]
+        )
         metadata["kernel_options"] = kernel_options
 
         if distro and distro.os_version.startswith("esxi") and filename is not None:
@@ -659,7 +801,10 @@ class TFTPGen:
 
         # store variables for templating
         if system:
-            if system.serial_device > -1 or system.serial_baud_rate != enums.BaudRates.DISABLED:
+            if (
+                system.serial_device > -1
+                or system.serial_baud_rate != enums.BaudRates.DISABLED
+            ):
                 if system.serial_device == -1:
                     serial_device = 0
                 else:
@@ -672,8 +817,9 @@ class TFTPGen:
                 if format == "pxe":
                     buffer += "serial %d %d\n" % (serial_device, serial_baud_rate)
                 elif format == "grub":
-                    buffer += "set serial_console=true\nset serial_baud={baud}\nset serial_line={device}\n" \
-                        .format(baud=serial_baud_rate, device=serial_device)
+                    buffer += "set serial_console=true\nset serial_baud={baud}\nset serial_line={device}\n".format(
+                        baud=serial_baud_rate, device=serial_device
+                    )
 
         # get the template
         if metadata["kernel_path"] is not None:
@@ -696,7 +842,9 @@ class TFTPGen:
                 fd.write(buffer)
         return buffer
 
-    def build_kernel(self, metadata, system, profile, distro, image=None, boot_loader: str = "pxe"):
+    def build_kernel(
+        self, metadata, system, profile, distro, image=None, boot_loader: str = "pxe"
+    ):
         """
         Generates kernel and initrd metadata.
 
@@ -738,7 +886,7 @@ class TFTPGen:
                 if distro.remote_grub_initrd:
                     initrd_path = distro.remote_grub_initrd
 
-            if 'http' in distro.kernel and 'http' in distro.initrd:
+            if "http" in distro.kernel and "http" in distro.initrd:
                 if not kernel_path:
                     kernel_path = distro.kernel
                 if not initrd_path:
@@ -774,9 +922,13 @@ class TFTPGen:
                 kernel_path = os.path.join(img_path, os.path.basename(kernel_path))
             metadata["kernel_path"] = kernel_path
 
-        metadata["initrd"] = self._generate_initrd(autoinstall_meta, kernel_path, initrd_path, boot_loader)
+        metadata["initrd"] = self._generate_initrd(
+            autoinstall_meta, kernel_path, initrd_path, boot_loader
+        )
 
-    def build_kernel_options(self, system, profile, distro, image, arch: str, autoinstall_path) -> str:
+    def build_kernel_options(
+        self, system, profile, distro, image, arch: str, autoinstall_path
+    ) -> str:
         """
         Builds the full kernel options line.
 
@@ -819,7 +971,9 @@ class TFTPGen:
             if system is None:
                 utils.kopts_overwrite(kopts, self.settings.server, distro.breed)
             else:
-                utils.kopts_overwrite(kopts, self.settings.server, distro.breed, system.name)
+                utils.kopts_overwrite(
+                    kopts, self.settings.server, distro.breed, system.name
+                )
 
         # support additional initrd= entries in kernel options.
         if "initrd" in kopts:
@@ -850,7 +1004,9 @@ class TFTPGen:
             # In order to make the revert less intrusive, it'll depend on a configuration setting
             if self.settings and self.settings.convert_server_to_ip:
                 try:
-                    httpserveraddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
+                    httpserveraddress = socket.gethostbyname_ex(blended["http_server"])[
+                        2
+                    ][0]
                 except socket.gaierror:
                     httpserveraddress = blended["http_server"]
             else:
@@ -860,10 +1016,15 @@ class TFTPGen:
             local_autoinstall_file = not re.match(URL_REGEX, autoinstall_path)
             if local_autoinstall_file:
                 if system is not None:
-                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/system/%s" % (httpserveraddress, system.name)
+                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/system/%s" % (
+                        httpserveraddress,
+                        system.name,
+                    )
                 else:
-                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/profile/%s" \
-                                       % (httpserveraddress, profile.name)
+                    autoinstall_path = (
+                        "http://%s/cblr/svc/op/autoinstall/profile/%s"
+                        % (httpserveraddress, profile.name)
+                    )
 
             if distro.breed is None or distro.breed == "redhat":
 
@@ -871,21 +1032,28 @@ class TFTPGen:
                 append_line = "%s inst.ks=%s" % (append_line, autoinstall_path)
                 ipxe = blended["enable_ipxe"]
                 if ipxe:
-                    append_line = append_line.replace('ksdevice=bootif', 'ksdevice=${net0/mac}')
+                    append_line = append_line.replace(
+                        "ksdevice=bootif", "ksdevice=${net0/mac}"
+                    )
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, autoinstall_path)
-                if management_mac and distro.arch not in (enums.Archs.S390, enums.Archs.S390X):
+                if management_mac and distro.arch not in (
+                    enums.Archs.S390,
+                    enums.Archs.S390X,
+                ):
                     append_line += " netdevice=%s" % management_mac
             elif distro.breed == "debian" or distro.breed == "ubuntu":
-                append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" \
-                              % (append_line, autoinstall_path)
+                append_line = (
+                    "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s"
+                    % (append_line, autoinstall_path)
+                )
                 if management_interface:
                     append_line += " netcfg/choose_interface=%s" % management_interface
             elif distro.breed == "freebsd":
                 append_line = "%s ks=%s" % (append_line, autoinstall_path)
 
                 # rework kernel options for debian distros
-                translations = {'ksdevice': "interface", 'lang': "locale"}
+                translations = {"ksdevice": "interface", "lang": "locale"}
                 for k, v in list(translations.items()):
                     append_line = append_line.replace("%s=" % k, "%s=" % v)
 
@@ -899,16 +1067,21 @@ class TFTPGen:
                     # ESXi likes even fewer options, so we remove them too
                     append_line = append_line.replace("kssendmac", "")
                 else:
-                    append_line = "%s vmkopts=debugLogToSerial:1 mem=512M ks=%s" % \
-                                  (append_line, autoinstall_path)
+                    append_line = "%s vmkopts=debugLogToSerial:1 mem=512M ks=%s" % (
+                        append_line,
+                        autoinstall_path,
+                    )
                 # interface=bootif causes a failure
                 append_line = append_line.replace("ksdevice=bootif", "")
             elif distro.breed == "xen":
                 if distro.os_version.find("xenserver620") != -1:
                     img_path = os.path.join("/images", distro.name)
-                    append_line = "append %s/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1," \
-                                  "vga --- %s/vmlinuz xencons=hvc console=hvc0 console=tty0 install answerfile=%s ---" \
-                                  " %s/install.img" % (img_path, img_path, autoinstall_path, img_path)
+                    append_line = (
+                        "append %s/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1,"
+                        "vga --- %s/vmlinuz xencons=hvc console=hvc0 console=tty0 install answerfile=%s ---"
+                        " %s/install.img"
+                        % (img_path, img_path, autoinstall_path, img_path)
+                    )
                     return append_line
             elif distro.breed == "powerkvm":
                 append_line += " kssendmac"
@@ -970,7 +1143,11 @@ class TFTPGen:
                 else:
                     serial_baud_rate = 115200
 
-                append_line = "%s console=ttyS%s,%s" % (append_line, serial_device, serial_baud_rate)
+                append_line = "%s console=ttyS%s,%s" % (
+                    append_line,
+                    serial_device,
+                    serial_baud_rate,
+                )
 
         # FIXME - the append_line length limit is architecture specific
         if len(append_line) >= 1023:
@@ -978,7 +1155,9 @@ class TFTPGen:
 
         return append_line
 
-    def write_templates(self, obj, write_file: bool = False, path=None) -> Dict[str, str]:
+    def write_templates(
+        self, obj, write_file: bool = False, path=None
+    ) -> Dict[str, str]:
         """
         A semi-generic function that will take an object with a template_files dict {source:destiation}, and generate a
         rendered file. The write_file option allows for generating of the rendered output without actually creating any
@@ -1002,10 +1181,12 @@ class TFTPGen:
 
         if obj.COLLECTION_TYPE == "distro":
             if re.search("esxi[567]", obj.os_version) is not None:
-                realbootcfg = open(os.path.join(os.path.dirname(obj.kernel), 'boot.cfg')).read()
-                bootmodules = re.findall(r'modules=(.*)', realbootcfg)
+                realbootcfg = open(
+                    os.path.join(os.path.dirname(obj.kernel), "boot.cfg")
+                ).read()
+                bootmodules = re.findall(r"modules=(.*)", realbootcfg)
                 for modules in bootmodules:
-                    blended['esx_modules'] = modules.replace('/', '')
+                    blended["esx_modules"] = modules.replace("/", "")
 
         autoinstall_meta = blended.get("autoinstall_meta", {})
         try:
@@ -1029,8 +1210,10 @@ class TFTPGen:
         # FIXME: img_path and local_img_path should probably be moved up into the blender function to ensure they're
         #  consistently available to templates across the board.
         if blended["distro_name"]:
-            blended['img_path'] = os.path.join("/images", blended["distro_name"])
-            blended['local_img_path'] = os.path.join(self.bootloc, "images", blended["distro_name"])
+            blended["img_path"] = os.path.join("/images", blended["distro_name"])
+            blended["local_img_path"] = os.path.join(
+                self.bootloc, "images", blended["distro_name"]
+            )
 
         for template in list(templates.keys()):
             dest = templates[template]
@@ -1052,7 +1235,10 @@ class TFTPGen:
             # via sudo can't overwrite arbitrary system files (This also makes cleanup easier).
             if os.path.isabs(dest_dir) and write_file:
                 if dest_dir.find(self.bootloc) != 0:
-                    raise CX(" warning: template destination (%s) is outside %s, skipping." % (dest_dir, self.bootloc))
+                    raise CX(
+                        " warning: template destination (%s) is outside %s, skipping."
+                        % (dest_dir, self.bootloc)
+                    )
             elif write_file:
                 dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)
                 dest = os.path.join(dest_dir, os.path.basename(dest))
@@ -1069,7 +1255,9 @@ class TFTPGen:
             elif write_file and os.path.isdir(dest):
                 raise CX("template destination (%s) is a directory" % dest)
             elif template == "" or dest == "":
-                raise CX("either the template source or destination was blank (unknown variable used?)")
+                raise CX(
+                    "either the template source or destination was blank (unknown variable used?)"
+                )
 
             template_fh = open(template)
             template_data = template_fh.read()
@@ -1124,7 +1312,9 @@ class TFTPGen:
         else:
             return ""
 
-        result = self.write_pxe_file(None, system, profile, distro, arch, image, format='ipxe')
+        result = self.write_pxe_file(
+            None, system, profile, distro, arch, image, format="ipxe"
+        )
         return "" if not result else result
 
     def generate_bootcfg(self, what: str, name: str) -> str:
@@ -1149,15 +1339,15 @@ class TFTPGen:
         # out the path based on where the kernel is stored. We do this because some distros base future downloads on the
         # initial URL passed in, so all of the files need to be at this location (which is why we can't use the images
         # link, which just contains the kernel and initrd).
-        distro_mirror_name = ''.join(distro.kernel.split('/')[-2:-1])
+        distro_mirror_name = "".join(distro.kernel.split("/")[-2:-1])
 
         blended = utils.blender(self.api, False, obj)
 
         if distro.os_version.startswith("esxi"):
-            with open(os.path.join(os.path.dirname(distro.kernel), 'boot.cfg')) as f:
-                bootmodules = re.findall(r'modules=(.*)', f.read())
+            with open(os.path.join(os.path.dirname(distro.kernel), "boot.cfg")) as f:
+                bootmodules = re.findall(r"modules=(.*)", f.read())
                 for modules in bootmodules:
-                    blended['esx_modules'] = modules.replace('/', '')
+                    blended["esx_modules"] = modules.replace("/", "")
 
         autoinstall_meta = blended.get("autoinstall_meta", {})
         try:
@@ -1166,19 +1356,28 @@ class TFTPGen:
             pass
         blended.update(autoinstall_meta)  # make available at top level
 
-        blended['distro'] = distro_mirror_name
+        blended["distro"] = distro_mirror_name
 
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
         if obj.enable_ipxe:
-            blended['img_path'] = 'http://%s:%s/cobbler/links/%s' % (self.settings.server, self.settings.http_port,
-                                                                     distro.name)
+            blended["img_path"] = "http://%s:%s/cobbler/links/%s" % (
+                self.settings.server,
+                self.settings.http_port,
+                distro.name,
+            )
         else:
-            blended['img_path'] = os.path.join("/images", distro.name)
+            blended["img_path"] = os.path.join("/images", distro.name)
 
-        template = os.path.join(self.settings.boot_loader_conf_template_dir, "bootcfg.template")
+        template = os.path.join(
+            self.settings.boot_loader_conf_template_dir, "bootcfg.template"
+        )
         if not os.path.exists(template):
-            return "# boot.cfg template not found for the %s named %s (filename=%s)" % (what, name, template)
+            return "# boot.cfg template not found for the %s named %s (filename=%s)" % (
+                what,
+                name,
+                template,
+            )
 
         template_fh = open(template)
         template_data = template_fh.read()
@@ -1200,13 +1399,13 @@ class TFTPGen:
         elif what == "system":
             obj = self.api.find_system(name=objname)
         else:
-            raise ValueError("\"what\" needs to be either \"profile\" or \"system\"!")
+            raise ValueError('"what" needs to be either "profile" or "system"!')
 
         if not validate_autoinstall_script_name(script_name):
-            raise ValueError("\"script_name\" handed to generate_script was not valid!")
+            raise ValueError('"script_name" handed to generate_script was not valid!')
 
         if not obj:
-            return "# \"%s\" named \"%s\" not found" % (what, objname)
+            return '# "%s" named "%s" not found' % (what, objname)
 
         distro = obj.get_conceptual_parent()
         while distro.get_conceptual_parent():
@@ -1224,24 +1423,32 @@ class TFTPGen:
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
         if obj.enable_ipxe:
-            blended['img_path'] = 'http://%s:%s/cobbler/links/%s' % (self.settings.server, self.settings.http_port,
-                                                                     distro.name)
+            blended["img_path"] = "http://%s:%s/cobbler/links/%s" % (
+                self.settings.server,
+                self.settings.http_port,
+                distro.name,
+            )
         else:
-            blended['img_path'] = os.path.join("/images", distro.name)
+            blended["img_path"] = os.path.join("/images", distro.name)
 
         scripts_root = "/var/lib/cobbler/scripts"
         template = os.path.normpath(os.path.join(scripts_root, script_name))
         if not template.startswith(scripts_root):
-            return "# script template \"%s\" could not be found in the script root" % script_name
+            return (
+                '# script template "%s" could not be found in the script root'
+                % script_name
+            )
         if not os.path.exists(template):
-            return "# script template \"%s\" not found" % script_name
+            return '# script template "%s" not found' % script_name
 
         with open(template) as template_fh:
             template_data = template_fh.read()
 
         return self.templar.render(template_data, blended, None)
 
-    def _build_windows_initrd(self, loader_name: str, custom_loader_name: str, format: str) -> str:
+    def _build_windows_initrd(
+        self, loader_name: str, custom_loader_name: str, format: str
+    ) -> str:
         """
         Generate a initrd metadata for Windows.
 
@@ -1253,11 +1460,15 @@ class TFTPGen:
         initrd_line = custom_loader_name
 
         if format == "ipxe":
-            initrd_line = "--name " + loader_name + " " + custom_loader_name + " " + loader_name
+            initrd_line = (
+                "--name " + loader_name + " " + custom_loader_name + " " + loader_name
+            )
 
         return initrd_line
 
-    def _generate_initrd(self, autoinstall_meta: dict, kernel_path, initrd_path, format: str) -> List[str]:
+    def _generate_initrd(
+        self, autoinstall_meta: dict, kernel_path, initrd_path, format: str
+    ) -> List[str]:
         """
         Generate a initrd metadata.
 
@@ -1275,23 +1486,38 @@ class TFTPGen:
             remote_boot_files = utils.file_is_remote(kernel_path)
 
             if remote_boot_files:
-                loaders_path = 'http://@@http_server@@/cobbler/images/@@distro_name@@/'
+                loaders_path = "http://@@http_server@@/cobbler/images/@@distro_name@@/"
                 initrd_path = loaders_path + os.path.basename(initrd_path)
             else:
                 (loaders_path, kernel_name) = os.path.split(kernel_path)
-                loaders_path += '/'
+                loaders_path += "/"
 
             bootmgr_path = bcd_path = wim_path = loaders_path
 
             if initrd_path:
-                initrd.append(self._build_windows_initrd("boot.sdi", initrd_path, format))
+                initrd.append(
+                    self._build_windows_initrd("boot.sdi", initrd_path, format)
+                )
             if "bootmgr" in autoinstall_meta:
-                initrd.append(self._build_windows_initrd("bootmgr.exe", bootmgr_path + autoinstall_meta["bootmgr"],
-                                                         format))
+                initrd.append(
+                    self._build_windows_initrd(
+                        "bootmgr.exe",
+                        bootmgr_path + autoinstall_meta["bootmgr"],
+                        format,
+                    )
+                )
             if "bcd" in autoinstall_meta:
-                initrd.append(self._build_windows_initrd("bcd", bcd_path + autoinstall_meta["bcd"], format))
+                initrd.append(
+                    self._build_windows_initrd(
+                        "bcd", bcd_path + autoinstall_meta["bcd"], format
+                    )
+                )
             if "winpe" in autoinstall_meta:
-                initrd.append(self._build_windows_initrd("winpe.wim", wim_path + autoinstall_meta["winpe"], format))
+                initrd.append(
+                    self._build_windows_initrd(
+                        "winpe.wim", wim_path + autoinstall_meta["winpe"], format
+                    )
+                )
         else:
             if initrd_path:
                 initrd.append(initrd_path)

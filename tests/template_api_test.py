@@ -8,8 +8,9 @@ class TestCobblerTemplate:
         # Arrange
 
         # Act
-        compiled_template = CobblerTemplate(searchList=[{"autoinstall_snippets_dir": "/var/lib/cobbler/snippets"}]) \
-            .compile(source="$test")
+        compiled_template = CobblerTemplate(
+            searchList=[{"autoinstall_snippets_dir": "/var/lib/cobbler/snippets"}]
+        ).compile(source="$test")
         result = str(compiled_template(namespaces={"test": 5}))
 
         # Assert
@@ -25,7 +26,9 @@ class TestCobblerTemplate:
 
     def test_read_snippet_none(self):
         # Arrange
-        test_template = CobblerTemplate(searchList=[{"autoinstall_snippets_dir": "/var/lib/cobbler/snippets"}])
+        test_template = CobblerTemplate(
+            searchList=[{"autoinstall_snippets_dir": "/var/lib/cobbler/snippets"}]
+        )
 
         # Act
         result = test_template.read_snippet("nonexistingsnippet")
@@ -35,8 +38,14 @@ class TestCobblerTemplate:
 
     def test_read_snippet(self):
         # Arrange
-        test_template = CobblerTemplate(searchList=[{"autoinstall_snippets_dir": "/var/lib/cobbler/snippets"}])
-        expected = "#errorCatcher ListErrors\n" + "set -x -v\n" + "exec 1>/root/ks-post.log 2>&1\n"
+        test_template = CobblerTemplate(
+            searchList=[{"autoinstall_snippets_dir": "/var/lib/cobbler/snippets"}]
+        )
+        expected = (
+            "#errorCatcher ListErrors\n"
+            + "set -x -v\n"
+            + "exec 1>/root/ks-post.log 2>&1\n"
+        )
 
         # Act
         result = test_template.read_snippet("log_ks_post")
@@ -46,7 +55,9 @@ class TestCobblerTemplate:
 
     def test_nonexisting_snippet(self):
         # Arrange
-        test_template = CobblerTemplate(searchList=[{"autoinstall_snippets_dir": "/var/lib/cobbler/snippets"}])
+        test_template = CobblerTemplate(
+            searchList=[{"autoinstall_snippets_dir": "/var/lib/cobbler/snippets"}]
+        )
 
         # Act
         result = test_template.SNIPPET("preseed_early_default")
@@ -56,13 +67,18 @@ class TestCobblerTemplate:
 
     def test_snippet(self):
         # Arrange
-        test_template = CobblerTemplate(searchList=[{"autoinstall_snippets_dir": "/var/lib/cobbler/snippets"}])
+        test_template = CobblerTemplate(
+            searchList=[{"autoinstall_snippets_dir": "/var/lib/cobbler/snippets"}]
+        )
 
         # Act
         result = test_template.SNIPPET("post_run_deb")
 
         # Assert
-        assert result == "# A general purpose snippet to add late-command actions for preseeds\n"
+        assert (
+            result
+            == "# A general purpose snippet to add late-command actions for preseeds\n"
+        )
 
     def test_sedesc(self):
         # Arrange

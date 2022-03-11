@@ -29,7 +29,6 @@ from cobbler.cexceptions import CX
 
 
 class AclConfig:
-
     def __init__(self, api):
         """
         Constructor
@@ -39,8 +38,13 @@ class AclConfig:
         self.api = api
         self.settings = api.settings()
 
-    def run(self, adduser: Optional[str] = None, addgroup: Optional[str] = None, removeuser: Optional[str] = None,
-            removegroup: Optional[str] = None):
+    def run(
+        self,
+        adduser: Optional[str] = None,
+        addgroup: Optional[str] = None,
+        removeuser: Optional[str] = None,
+        removegroup: Optional[str] = None,
+    ):
         """
         Automate setfacl commands. Only one of the four may be specified but one option also must be specified.
 
@@ -84,7 +88,7 @@ class AclConfig:
             "/var/lib/cobbler": "rwx",
             "/etc/cobbler": "rwx",
             tftpboot: "rwx",
-            "/var/lib/cobbler/triggers": "rwx"
+            "/var/lib/cobbler/triggers": "rwx",
         }
         if not snipdir.startswith("/var/lib/cobbler/"):
             PROCESS_DIRS[snipdir] = "r"

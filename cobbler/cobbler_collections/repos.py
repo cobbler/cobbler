@@ -48,8 +48,14 @@ class Repos(collection.Collection):
         new_repo.from_dict(item_dict)
         return new_repo
 
-    def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
-               recursive: bool = False):
+    def remove(
+        self,
+        name,
+        with_delete: bool = True,
+        with_sync: bool = True,
+        with_triggers: bool = True,
+        recursive: bool = False,
+    ):
         """
         Remove element named 'name' from the collection
 
@@ -64,7 +70,9 @@ class Repos(collection.Collection):
 
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*", [])
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*", []
+                )
 
         self.lock.acquire()
         try:
@@ -75,8 +83,12 @@ class Repos(collection.Collection):
 
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", [])
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", []
+                )
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/change/*", []
+                )
 
             path = os.path.join(self.api.settings().webdir, "repo_mirror", obj.name)
             if os.path.exists(path):

@@ -73,17 +73,20 @@ def test_boot_loaders(cobbler_api):
     assert system.boot_loaders == []
 
 
-@pytest.mark.parametrize("value,expected", [
-    (0, does_not_raise()),
-    (0.0, pytest.raises(TypeError)),
-    ("", does_not_raise()),
-    ("Test", does_not_raise()),
-    ([], pytest.raises(TypeError)),
-    ({}, pytest.raises(TypeError)),
-    (None, pytest.raises(TypeError)),
-    (False, does_not_raise()),
-    (True, does_not_raise())
-])
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (0, does_not_raise()),
+        (0.0, pytest.raises(TypeError)),
+        ("", does_not_raise()),
+        ("Test", does_not_raise()),
+        ([], pytest.raises(TypeError)),
+        ({}, pytest.raises(TypeError)),
+        (None, pytest.raises(TypeError)),
+        (False, does_not_raise()),
+        (True, does_not_raise()),
+    ],
+)
 def test_enable_ipxe(cobbler_api, value, expected):
     # Arrange
     distro = System(cobbler_api)
@@ -163,17 +166,20 @@ def test_name_servers_search(cobbler_api):
     assert system.name_servers_search == ""
 
 
-@pytest.mark.parametrize("value,expected", [
-    (0, does_not_raise()),
-    (0.0, pytest.raises(TypeError)),
-    ("", does_not_raise()),
-    ("Test", does_not_raise()),
-    ([], pytest.raises(TypeError)),
-    ({}, pytest.raises(TypeError)),
-    (None, pytest.raises(TypeError)),
-    (False, does_not_raise()),
-    (True, does_not_raise())
-])
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (0, does_not_raise()),
+        (0.0, pytest.raises(TypeError)),
+        ("", does_not_raise()),
+        ("Test", does_not_raise()),
+        ([], pytest.raises(TypeError)),
+        ({}, pytest.raises(TypeError)),
+        (None, pytest.raises(TypeError)),
+        (False, does_not_raise()),
+        (True, does_not_raise()),
+    ],
+)
 def test_netboot_enabled(cobbler_api, value, expected):
     # Arrange
     distro = System(cobbler_api)
@@ -374,12 +380,15 @@ def test_virt_cpus(cobbler_api):
     assert system.virt_cpus == 5
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ("qcow2", does_not_raise()),
-    (enums.VirtDiskDrivers.QCOW2, does_not_raise()),
-    (False, pytest.raises(TypeError)),
-    ("", pytest.raises(ValueError))
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        ("qcow2", does_not_raise()),
+        (enums.VirtDiskDrivers.QCOW2, does_not_raise()),
+        (False, pytest.raises(TypeError)),
+        ("", pytest.raises(ValueError)),
+    ],
+)
 def test_virt_disk_driver(cobbler_api, value, expected_exception):
     # Arrange
     system = System(cobbler_api)
@@ -439,13 +448,16 @@ def test_virt_ram(cobbler_api):
     assert system.virt_ram == 5
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    # ("<<inherit>>", does_not_raise()),
-    ("qemu", does_not_raise()),
-    (enums.VirtType.QEMU, does_not_raise()),
-    ("", pytest.raises(ValueError)),
-    (False, pytest.raises(TypeError))
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        # ("<<inherit>>", does_not_raise()),
+        ("qemu", does_not_raise()),
+        (enums.VirtType.QEMU, does_not_raise()),
+        ("", pytest.raises(ValueError)),
+        (False, pytest.raises(TypeError)),
+    ],
+)
 def test_virt_type(cobbler_api, value, expected_exception):
     # Arrange
     system = System(cobbler_api)
@@ -472,11 +484,14 @@ def test_serial_device(cobbler_api):
     assert system.serial_device == 5
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    (enums.BaudRates.B110, does_not_raise()),
-    (110, does_not_raise()),
-    # FIXME: (False, pytest.raises(TypeError)) --> This does not raise a TypeError but instead a value Error.
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        (enums.BaudRates.B110, does_not_raise()),
+        (110, does_not_raise()),
+        # FIXME: (False, pytest.raises(TypeError)) --> This does not raise a TypeError but instead a value Error.
+    ],
+)
 def test_serial_baud_rate(cobbler_api, value, expected_exception):
     # Arrange
     system = System(cobbler_api)
@@ -504,14 +519,19 @@ def test_from_dict_with_network_interface(cobbler_api):
     assert "default" in system.interfaces
 
 
-@pytest.mark.parametrize("input_mac,input_ipv4,input_ipv6,expected_result", [
-    ("AA:BB:CC:DD:EE:FF", "192.168.1.2", "::1", True),
-    ("", "192.168.1.2", "", True),
-    ("", "", "::1", True),
-    ("AA:BB:CC:DD:EE:FF", "", "", True),
-    ("", "", "", False),
-])
-def test_is_management_supported(cobbler_api, input_mac, input_ipv4, input_ipv6, expected_result):
+@pytest.mark.parametrize(
+    "input_mac,input_ipv4,input_ipv6,expected_result",
+    [
+        ("AA:BB:CC:DD:EE:FF", "192.168.1.2", "::1", True),
+        ("", "192.168.1.2", "", True),
+        ("", "", "::1", True),
+        ("AA:BB:CC:DD:EE:FF", "", "", True),
+        ("", "", "", False),
+    ],
+)
+def test_is_management_supported(
+    cobbler_api, input_mac, input_ipv4, input_ipv6, expected_result
+):
     # Arrange
     system = System(cobbler_api)
     system.interfaces["default"].mac_address = input_mac

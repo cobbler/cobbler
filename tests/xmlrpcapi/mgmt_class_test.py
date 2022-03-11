@@ -2,7 +2,6 @@ import pytest
 
 
 class TestMgmtClass:
-
     def test_create_mgmtclass(self, remote, token, remove_mgmt_class):
         """
         Test: create/edit a mgmtclass object
@@ -89,7 +88,9 @@ class TestMgmtClass:
         # Assert
         assert result
 
-    def test_rename_mgmtclass(self, remote, token, create_mgmt_class, remove_mgmt_class):
+    def test_rename_mgmtclass(
+        self, remote, token, create_mgmt_class, remove_mgmt_class
+    ):
         """
         Test: rename a mgmtclass object
         """

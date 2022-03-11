@@ -19,7 +19,7 @@ from configparser import SafeConfigParser
 import os
 from typing import Dict
 
-CONFIG_FILE = '/etc/cobbler/users.conf'
+CONFIG_FILE = "/etc/cobbler/users.conf"
 
 
 def register() -> str:

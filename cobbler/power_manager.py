@@ -120,20 +120,28 @@ class PowerManager:
         if system.power_identity_file:
             ident_path = Path(system.power_identity_file)
             if not ident_path.exists():
-                self.logger.warning("identity-file " + system.power_identity_file + " does not exist")
+                self.logger.warning(
+                    "identity-file " + system.power_identity_file + " does not exist"
+                )
             else:
                 ident_stat = stat.S_IMODE(ident_path.stat().st_mode)
                 if (ident_stat & stat.S_IRWXO) or (ident_stat & stat.S_IRWXG):
-                    self.logger.warning("identity-file %s must not be read/write/exec by group or others",
-                                        system.power_identity_file)
+                    self.logger.warning(
+                        "identity-file %s must not be read/write/exec by group or others",
+                        system.power_identity_file,
+                    )
         if not system.power_address:
             self.logger.warning("power-address is missing")
         if not (system.power_user or user):
             self.logger.warning("power-user is missing")
         if not (system.power_pass or password) and not system.power_identity_file:
-            self.logger.warning("neither power-identity-file nor power-password specified")
+            self.logger.warning(
+                "neither power-identity-file nor power-password specified"
+            )
 
-    def _get_power_input(self, system, power_operation: str, user: str, password: str) -> str:
+    def _get_power_input(
+        self, system, power_operation: str, user: str, password: str
+    ) -> str:
         """
         Creates an option string for the fence agent from the system data. This is an internal method.
 
@@ -148,7 +156,7 @@ class PowerManager:
 
         self._check_power_conf(system, user, password)
         power_input = ""
-        if power_operation is None or power_operation not in ['on', 'off', 'status']:
+        if power_operation is None or power_operation not in ["on", "off", "status"]:
             raise CX("invalid power operation")
         power_input += "action=" + power_operation + "\n"
         if system.power_address:
@@ -165,8 +173,13 @@ class PowerManager:
             power_input += system.power_options + "\n"
         return power_input
 
-    def _power(self, system, power_operation: str, user: Optional[str] = None,
-               password: Optional[str] = None) -> Optional[bool]:
+    def _power(
+        self,
+        system,
+        power_operation: str,
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+    ) -> Optional[bool]:
         """
         Performs a power operation on a system.
         Internal method
@@ -186,9 +199,14 @@ class PowerManager:
         if not power_command:
             utils.die("no power type set for system")
 
-        power_info = {"type": system.power_type, "address": system.power_address, "user": system.power_user,
-                      "id": system.power_id, "options": system.power_options,
-                      "identity_file": system.power_identity_file}
+        power_info = {
+            "type": system.power_type,
+            "address": system.power_address,
+            "user": system.power_user,
+            "id": system.power_id,
+            "options": system.power_options,
+            "identity_file": system.power_identity_file,
+        }
 
         self.logger.info("cobbler power configuration is: %s", json.dumps(power_info))
 
@@ -206,7 +224,9 @@ class PowerManager:
         rc = -1
 
         for x in range(0, POWER_RETRIES):
-            output, rc = utils.subprocess_sp(power_command, shell=False, input=power_input)
+            output, rc = utils.subprocess_sp(
+                power_command, shell=False, input=power_input
+            )
             # Allowed return codes: 0, 1, 2
             # Source: https://github.com/ClusterLabs/fence-agents/blob/master/doc/FenceAgentAPI.md#agent-operations-and-return-values
             if power_operation in ("on", "off", "reboot"):
@@ -214,24 +234,36 @@ class PowerManager:
                     return None
             elif power_operation == "status":
                 if rc in (0, 2):
-                    match = re.match(r'^(Status:|.+power\s=)\s(on|off)$', output, re.IGNORECASE | re.MULTILINE)
+                    match = re.match(
+                        r"^(Status:|.+power\s=)\s(on|off)$",
+                        output,
+                        re.IGNORECASE | re.MULTILINE,
+                    )
                     if match:
                         power_status = match.groups()[1]
-                        if power_status.lower() == 'on':
+                        if power_status.lower() == "on":
                             return True
                         else:
                             return False
-                    error_msg = "command succeeded (rc=%s), but output ('%s') was not understood" % (rc, output)
+                    error_msg = (
+                        "command succeeded (rc=%s), but output ('%s') was not understood"
+                        % (rc, output)
+                    )
                     utils.die(error_msg)
                     raise CX(error_msg)
             time.sleep(2)
 
         if not rc == 0:
-            error_msg = "command failed (rc=%s), please validate the physical setup and cobbler config" % rc
+            error_msg = (
+                "command failed (rc=%s), please validate the physical setup and cobbler config"
+                % rc
+            )
             utils.die(error_msg)
             raise CX(error_msg)
 
-    def power_on(self, system, user: Optional[str] = None, password: Optional[str] = None):
+    def power_on(
+        self, system, user: Optional[str] = None, password: Optional[str] = None
+    ):
         """
         Powers up a system that has power management configured.
 
@@ -243,7 +275,9 @@ class PowerManager:
 
         self._power(system, "on", user, password)
 
-    def power_off(self, system, user: Optional[str] = None, password: Optional[str] = None):
+    def power_off(
+        self, system, user: Optional[str] = None, password: Optional[str] = None
+    ):
         """
         Powers down a system that has power management configured.
 
@@ -255,7 +289,9 @@ class PowerManager:
 
         self._power(system, "off", user, password)
 
-    def reboot(self, system, user: Optional[str] = None, password: Optional[str] = None):
+    def reboot(
+        self, system, user: Optional[str] = None, password: Optional[str] = None
+    ):
         """
         Reboot a system that has power management configured.
 
@@ -269,7 +305,9 @@ class PowerManager:
         time.sleep(5)
         self.power_on(system, user, password)
 
-    def get_power_status(self, system, user: Optional[str] = None, password: Optional[str] = None) -> Optional[bool]:
+    def get_power_status(
+        self, system, user: Optional[str] = None, password: Optional[str] = None
+    ) -> Optional[bool]:
         """
         Get power status for a system that has power management configured.
 

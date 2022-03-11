@@ -7,16 +7,24 @@ from cobbler.templar import Templar
 @pytest.fixture(scope="function")
 def setup_cheetah_macros_file():
     with open("/etc/cobbler/cheetah_macros", "w") as f:
-        f.writelines(["## define Cheetah functions here and reuse them throughout your templates\n",
-                      "\n",
-                      "#def $myMethodInMacros($a)\n",
-                      "Text in method: $a\n",
-                      "#end def\n"])
+        f.writelines(
+            [
+                "## define Cheetah functions here and reuse them throughout your templates\n",
+                "\n",
+                "#def $myMethodInMacros($a)\n",
+                "Text in method: $a\n",
+                "#end def\n",
+            ]
+        )
     yield
     with open("/etc/cobbler/cheetah_macros", "w") as f:
-        f.writelines(["## define Cheetah functions here and reuse them throughout your templates\n",
-                      "\n",
-                      "\n"])
+        f.writelines(
+            [
+                "## define Cheetah functions here and reuse them throughout your templates\n",
+                "\n",
+                "\n",
+            ]
+        )
 
 
 def test_check_for_invalid_imports(cobbler_api):
@@ -48,7 +56,7 @@ def test_render_cheetah(cobbler_api):
     result = test_templar.render_cheetah("$test", {"test": 5})
 
     # Assert
-    assert result == '5'
+    assert result == "5"
 
 
 @pytest.mark.usefixtures("setup_cheetah_macros_file")

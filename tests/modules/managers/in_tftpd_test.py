@@ -14,7 +14,9 @@ from cobbler.settings import Settings
 @pytest.fixture
 def api_mock_tftp():
     api_mock_tftp = MagicMock(spec=CobblerAPI)
-    settings_mock = MagicMock(name="in_tftpd_setting_mock", spec=Settings, autospec=True)
+    settings_mock = MagicMock(
+        name="in_tftpd_setting_mock", spec=Settings, autospec=True
+    )
     settings_mock.server = "127.0.0.1"
     settings_mock.default_template_type = "cheetah"
     settings_mock.cheetah_import_whitelist = ["re"]
@@ -86,7 +88,9 @@ def test_tftpd_singleton(reset_singleton):
     assert manager_1 == manager_2
 
 
-@pytest.mark.skip("TODO: in utils.blender() we have the problem that 'server' is not available.")
+@pytest.mark.skip(
+    "TODO: in utils.blender() we have the problem that 'server' is not available."
+)
 def test_manager_write_boot_files_distro(api_mock_tftp, reset_singleton):
     # Arrange
     manager_obj = in_tftpd.get_manager(api_mock_tftp)
@@ -144,7 +148,14 @@ def test_manager_add_single_distro(mocker, api_mock_tftp, reset_singleton):
     "input_systems, input_verbose, expected_output",
     [(["t1.example.org"], True, "t1.example.org")],
 )
-def test_sync_systems(mocker, api_mock_tftp, input_systems, input_verbose, expected_output, reset_singleton):
+def test_sync_systems(
+    mocker,
+    api_mock_tftp,
+    input_systems,
+    input_verbose,
+    expected_output,
+    reset_singleton,
+):
     # Arrange
     manager_obj = in_tftpd.get_manager(api_mock_tftp)
     tftpgen_mock = MagicMock(spec=TFTPGen, autospec=True)

@@ -96,7 +96,6 @@ def import_walker(top: str, func: Callable, arg: Any):
 
 
 class _ImportSignatureManager(ManagerModule):
-
     @staticmethod
     def what() -> str:
         """
@@ -123,7 +122,7 @@ class _ImportSignatureManager(ManagerModule):
         ftype = magic.detect_from_filename(filename)
         if ftype.mime_type == "application/gzip":
             try:
-                with gzip.open(filename, 'r') as f:
+                with gzip.open(filename, "r") as f:
                     return f.readlines()
             except:
                 pass
@@ -135,15 +134,25 @@ class _ImportSignatureManager(ManagerModule):
 
             self.logger.info("no %s found, please install wimlib-utils", cmd)
         elif ftype.mime_type == "text/plain":
-            with open(filename, 'r') as f:
+            with open(filename, "r") as f:
                 return f.readlines()
         else:
-            self.logger.info('Could not detect the filetype and read the content of file "%s". Returning nothing.',
-                             filename)
+            self.logger.info(
+                'Could not detect the filetype and read the content of file "%s". Returning nothing.',
+                filename,
+            )
         return []
 
-    def run(self, path: str, name: str, network_root=None, autoinstall_file=None, arch: Optional[str] = None,
-            breed=None, os_version=None):
+    def run(
+        self,
+        path: str,
+        name: str,
+        network_root=None,
+        autoinstall_file=None,
+        arch: Optional[str] = None,
+        breed=None,
+        os_version=None,
+    ):
         """
         This is the main entry point in a manager. It is a required function for import modules.
 
@@ -184,7 +193,9 @@ class _ImportSignatureManager(ManagerModule):
             self.network_root = None
 
         if self.os_version and not self.breed:
-            utils.die("OS version can only be specified when a specific breed is selected")
+            utils.die(
+                "OS version can only be specified when a specific breed is selected"
+            )
 
         self.signature = self.scan_signatures()
         if not self.signature:
@@ -206,31 +217,55 @@ class _ImportSignatureManager(ManagerModule):
                     winpe_path = os.path.join(dest_path, "winpe.wim")
                     if not os.path.exists(dest_path):
                         utils.mkdir(dest_path)
-                    rc = utils.subprocess_call([cmd_path, bootwim_path, "1",
-                                               winpe_path, "--boot"], shell=False)
+                    rc = utils.subprocess_call(
+                        [cmd_path, bootwim_path, "1", winpe_path, "--boot"], shell=False
+                    )
                     if rc == 0:
-                        cmd = ["/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/Boot/PXE$'" % winpe_path]
+                        cmd = [
+                            "/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/Boot/PXE$'"
+                            % winpe_path
+                        ]
                         pxe_path = utils.subprocess_get(cmd, shell=True)[0:-1]
-                        cmd = ["/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/System32/config/SOFTWARE$'"
-                               % winpe_path]
+                        cmd = [
+                            "/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/System32/config/SOFTWARE$'"
+                            % winpe_path
+                        ]
                         config_path = utils.subprocess_get(cmd, shell=True)[0:-1]
                         cmd_path = "/usr/bin/wimextract"
-                        rc = utils.subprocess_call([cmd_path, bootwim_path, "1",
-                                                    "%s/pxeboot.n12" % pxe_path,
-                                                    "%s/bootmgr.exe" % pxe_path,
-                                                    config_path,
-                                                    "--dest-dir=%s" % dest_path,
-                                                    "--no-acls", "--no-attributes"], shell=False)
+                        rc = utils.subprocess_call(
+                            [
+                                cmd_path,
+                                bootwim_path,
+                                "1",
+                                "%s/pxeboot.n12" % pxe_path,
+                                "%s/bootmgr.exe" % pxe_path,
+                                config_path,
+                                "--dest-dir=%s" % dest_path,
+                                "--no-acls",
+                                "--no-attributes",
+                            ],
+                            shell=False,
+                        )
                         if rc == 0:
                             if HAS_HIVEX:
-                                software = os.path.join(dest_path, os.path.basename(config_path))
+                                software = os.path.join(
+                                    dest_path, os.path.basename(config_path)
+                                )
                                 h = hivex.Hivex(software, write=True)
                                 root = h.root()
                                 node = h.node_get_child(root, "Microsoft")
                                 node = h.node_get_child(node, "Windows NT")
                                 node = h.node_get_child(node, "CurrentVersion")
-                                h.node_set_value(node, {"key": "SystemRoot", "t": REG_SZ,
-                                                        "value": "x:\\Windows\0".encode(encoding="utf-16le")})
+                                h.node_set_value(
+                                    node,
+                                    {
+                                        "key": "SystemRoot",
+                                        "t": REG_SZ,
+                                        "value": "x:\\Windows\0".encode(
+                                            encoding="utf-16le"
+                                        ),
+                                    },
+                                )
                                 node = h.node_get_child(node, "WinPE")
 
                                 # remove the key InstRoot from the registry
@@ -246,19 +281,31 @@ class _ImportSignatureManager(ManagerModule):
                                     val = h.node_get_value(node, keyname)
                                     valtype = h.value_type(val)[0]
                                     value2 = h.value_value(val)[1]
-                                    valobject = {"key": keyname, "t": int(valtype), "value": value2}
+                                    valobject = {
+                                        "key": keyname,
+                                        "t": int(valtype),
+                                        "value": value2,
+                                    }
                                     new_values.append(valobject)
 
                                 h.node_set_values(node, new_values)
                                 h.commit(software)
 
                                 cmd_path = "/usr/bin/wimupdate"
-                                rc = utils.subprocess_call([cmd_path, winpe_path, "--command=add %s %s"
-                                                           % (software, config_path)], shell=False)
+                                rc = utils.subprocess_call(
+                                    [
+                                        cmd_path,
+                                        winpe_path,
+                                        "--command=add %s %s" % (software, config_path),
+                                    ],
+                                    shell=False,
+                                )
                                 os.remove(software)
                             else:
-                                self.logger.info("python3-hivex not found. If you need Automatic Windows "
-                                                 "Installation support, please install.")
+                                self.logger.info(
+                                    "python3-hivex not found. If you need Automatic Windows "
+                                    "Installation support, please install."
+                                )
                             import_walker(self.path, self.distro_adder, distros_added)
 
         if len(distros_added) == 0:
@@ -286,29 +333,47 @@ class _ImportSignatureManager(ManagerModule):
                 for sig in sigdata["breeds"][breed][version]["signatures"]:
                     pkgdir = os.path.join(self.path, sig)
                     if os.path.exists(pkgdir):
-                        self.logger.debug("Found a candidate signature: breed=%s, version=%s" % (breed, version))
-                        f_re = re.compile(sigdata["breeds"][breed][version]["version_file"])
+                        self.logger.debug(
+                            "Found a candidate signature: breed=%s, version=%s"
+                            % (breed, version)
+                        )
+                        f_re = re.compile(
+                            sigdata["breeds"][breed][version]["version_file"]
+                        )
                         for (root, subdir, fnames) in os.walk(self.path):
                             for fname in fnames + subdir:
                                 if f_re.match(fname):
                                     # if the version file regex exists, we use it to scan the contents of the target
                                     # version file to ensure it's the right version
-                                    if sigdata["breeds"][breed][version]["version_file_regex"]:
-                                        vf_re = re.compile(sigdata["breeds"][breed][version]["version_file_regex"])
-                                        vf_lines = self.get_file_lines(os.path.join(root, fname))
+                                    if sigdata["breeds"][breed][version][
+                                        "version_file_regex"
+                                    ]:
+                                        vf_re = re.compile(
+                                            sigdata["breeds"][breed][version][
+                                                "version_file_regex"
+                                            ]
+                                        )
+                                        vf_lines = self.get_file_lines(
+                                            os.path.join(root, fname)
+                                        )
                                         for line in vf_lines:
                                             if vf_re.match(line):
                                                 break
                                         else:
                                             continue
-                                    self.logger.debug("Found a matching signature: breed=%s, version=%s",
-                                                      breed, version)
+                                    self.logger.debug(
+                                        "Found a matching signature: breed=%s, version=%s",
+                                        breed,
+                                        version,
+                                    )
                                     if not self.breed:
                                         self.breed = breed
                                     if not self.os_version:
                                         self.os_version = version
                                     if not self.autoinstall_file:
-                                        self.autoinstall_file = sigdata["breeds"][breed][version]["default_autoinstall"]
+                                        self.autoinstall_file = sigdata["breeds"][
+                                            breed
+                                        ][version]["default_autoinstall"]
                                     self.pkgdir = pkgdir
                                     return sigdata["breeds"][breed][version]
         return None
@@ -414,10 +479,16 @@ class _ImportSignatureManager(ManagerModule):
             archs.append(self.arch)
         else:
             if self.arch and self.arch not in archs:
-                utils.die("Given arch (%s) not found on imported tree %s" % (self.arch, self.path))
+                utils.die(
+                    "Given arch (%s) not found on imported tree %s"
+                    % (self.arch, self.path)
+                )
 
         if len(archs) == 0:
-            self.logger.error("No arch could be detected in %s, and none was specified via the --arch option" % dirname)
+            self.logger.error(
+                "No arch could be detected in %s, and none was specified via the --arch option"
+                % dirname
+            )
             return []
         elif len(archs) > 1:
             self.logger.warning("- Warning : Multiple archs found : %s" % archs)
@@ -428,7 +499,9 @@ class _ImportSignatureManager(ManagerModule):
             existing_distro = self.distros.find(name=name)
 
             if existing_distro is not None:
-                self.logger.warning("skipping import, as distro name already exists: %s" % name)
+                self.logger.warning(
+                    "skipping import, as distro name already exists: %s" % name
+                )
                 continue
             else:
                 self.logger.info("creating new distro: %s" % name)
@@ -445,12 +518,17 @@ class _ImportSignatureManager(ManagerModule):
             new_distro.breed = self.breed
             new_distro.os_version = self.os_version
             new_distro.kernel_options = self.signature.get("kernel_options", "")
-            new_distro.kernel_options_post = self.signature.get("kernel_options_post", "")
+            new_distro.kernel_options_post = self.signature.get(
+                "kernel_options_post", ""
+            )
             new_distro.template_files = self.signature.get("template_files", "")
 
             boot_files: Dict[str, str] = {}
             for boot_file in self.signature["boot_files"]:
-                boot_files['$local_img_path/%s' % boot_file] = '%s/%s' % (self.path, boot_file)
+                boot_files["$local_img_path/%s" % boot_file] = "%s/%s" % (
+                    self.path,
+                    boot_file,
+                )
             new_distro.boot_files = boot_files
 
             self.configure_tree_location(new_distro)
@@ -467,7 +545,9 @@ class _ImportSignatureManager(ManagerModule):
                 self.logger.info("creating new profile: %s" % name)
                 new_profile = profile.Profile(self.api)
             else:
-                self.logger.info("skipping existing profile, name already exists: %s" % name)
+                self.logger.info(
+                    "skipping existing profile, name already exists: %s" % name
+                )
                 continue
 
             new_profile.name = name
@@ -488,12 +568,18 @@ class _ImportSignatureManager(ManagerModule):
                 bootmgr_path = os.path.join(dest_path, "bootmgr.exe")
                 bcd_path = os.path.join(dest_path, "bcd")
                 winpe_path = os.path.join(dest_path, "winpe.wim")
-                if os.path.exists(bootmgr_path) and os.path.exists(bcd_path) and os.path.exists(winpe_path):
-                    new_profile.autoinstall_meta = {"kernel": os.path.basename(kernel),
-                                                    "bootmgr": "bootmgr.exe",
-                                                    "bcd": "bcd",
-                                                    "winpe": "winpe.wim",
-                                                    "answerfile": "autounattended.xml"}
+                if (
+                    os.path.exists(bootmgr_path)
+                    and os.path.exists(bcd_path)
+                    and os.path.exists(winpe_path)
+                ):
+                    new_profile.autoinstall_meta = {
+                        "kernel": os.path.basename(kernel),
+                        "bootmgr": "bootmgr.exe",
+                        "bcd": "bcd",
+                        "winpe": "winpe.wim",
+                        "answerfile": "autounattended.xml",
+                    }
 
             self.profiles.add(new_profile, save=True)
 
@@ -585,16 +671,43 @@ class _ImportSignatureManager(ManagerModule):
 
         # Clear out some cruft from the proposed name
         name = name.replace("--", "-")
-        for x in ("-netboot", "-ubuntu-installer", "-amd64", "-i386",
-                  "-images", "-pxeboot", "-install", "-isolinux", "-boot", "-suseboot",
-                  "-loader", "-os", "-tree", "var-www-cobbler-", "distro_mirror-"):
+        for x in (
+            "-netboot",
+            "-ubuntu-installer",
+            "-amd64",
+            "-i386",
+            "-images",
+            "-pxeboot",
+            "-install",
+            "-isolinux",
+            "-boot",
+            "-suseboot",
+            "-loader",
+            "-os",
+            "-tree",
+            "var-www-cobbler-",
+            "distro_mirror-",
+        ):
             name = name.replace(x, "")
 
         # remove any architecture name related string, as real arch will be appended later
         name = name.replace("chrp", "ppc64")
-        for separator in ['-', '_', '.']:
-            for arch in ["i386", "x86_64", "ia64", "ppc64le", "ppc64el", "ppc64", "ppc32", "ppc", "x86", "s390x",
-                         "s390", "386", "amd"]:
+        for separator in ["-", "_", "."]:
+            for arch in [
+                "i386",
+                "x86_64",
+                "ia64",
+                "ppc64le",
+                "ppc64el",
+                "ppc64",
+                "ppc32",
+                "ppc",
+                "x86",
+                "s390x",
+                "s390",
+                "386",
+                "amd",
+            ]:
                 name = name.replace("%s%s" % (separator, arch), "")
 
         return name
@@ -617,12 +730,16 @@ class _ImportSignatureManager(ManagerModule):
             # (without some doing)
             if not os.path.exists(dest_link):
                 try:
-                    self.logger.info("trying symlink: %s -> %s" % (str(base), str(dest_link)))
+                    self.logger.info(
+                        "trying symlink: %s -> %s" % (str(base), str(dest_link))
+                    )
                     os.symlink(base, dest_link)
                 except:
                     # FIXME: This shouldn't happen but I've seen it ... debug ...
                     self.logger.warning(
-                        "symlink creation failed: %(base)s, %(dest)s" % {"base": base, "dest": dest_link})
+                        "symlink creation failed: %(base)s, %(dest)s"
+                        % {"base": base, "dest": dest_link}
+                    )
             tree = "http://@@http_server@@/cblr/links/%s" % distribution.name
             self.set_install_tree(distribution, tree)
         else:
@@ -664,15 +781,22 @@ class _ImportSignatureManager(ManagerModule):
             elif repo_breed == "apt":
                 repo_adder = self.apt_repo_adder
             else:
-                self.logger.warning("skipping unknown/unsupported repo breed: %s" % repo_breed)
+                self.logger.warning(
+                    "skipping unknown/unsupported repo breed: %s" % repo_breed
+                )
                 continue
 
             for current_distro_added in distros_added:
                 if current_distro_added.kernel.find("distro_mirror") != -1:
                     repo_adder(current_distro_added)
-                    self.distros.add(current_distro_added, save=True, with_triggers=False)
+                    self.distros.add(
+                        current_distro_added, save=True, with_triggers=False
+                    )
                 else:
-                    self.logger.info("skipping distro %s since it isn't mirrored locally" % current_distro_added.name)
+                    self.logger.info(
+                        "skipping distro %s since it isn't mirrored locally"
+                        % current_distro_added.name
+                    )
 
     # ==========================================================================
     # yum-specific
@@ -683,7 +807,9 @@ class _ImportSignatureManager(ManagerModule):
 
         :param distro: The distribution object to scan and possibly add.
         """
-        self.logger.info("starting descent into %s for %s" % (self.rootdir, distro.name))
+        self.logger.info(
+            "starting descent into %s for %s" % (self.rootdir, distro.name)
+        )
         import_walker(self.rootdir, self.yum_repo_scanner, distro)
 
     def yum_repo_scanner(self, distro: distro.Distro, dirname: str, fnames):
@@ -704,13 +830,17 @@ class _ImportSignatureManager(ManagerModule):
                 gloob1 = glob.glob("%s/%s/*comps*.xml" % (dirname, x))
                 if len(gloob1) >= 1:
                     if dirname in matches:
-                        self.logger.info("looks like we've already scanned here: %s" % dirname)
+                        self.logger.info(
+                            "looks like we've already scanned here: %s" % dirname
+                        )
                         continue
                     self.logger.info("need to process repo/comps: %s" % dirname)
                     self.yum_process_comps_file(dirname, distro)
                     matches[dirname] = 1
                 else:
-                    self.logger.info("directory %s is missing xml comps file, skipping" % dirname)
+                    self.logger.info(
+                        "directory %s is missing xml comps file, skipping" % dirname
+                    )
                     continue
 
     def yum_process_comps_file(self, comps_path: str, distribution: distro.Distro):
@@ -732,10 +862,15 @@ class _ImportSignatureManager(ManagerModule):
             keeprepodata = False
 
         # figure out what our comps file is ...
-        self.logger.info("looking for %(p1)s/%(p2)s/*comps*.xml" % {"p1": comps_path, "p2": masterdir})
+        self.logger.info(
+            "looking for %(p1)s/%(p2)s/*comps*.xml"
+            % {"p1": comps_path, "p2": masterdir}
+        )
         files = glob.glob("%s/%s/*comps*.xml" % (comps_path, masterdir))
         if len(files) == 0:
-            self.logger.info("no comps found here: %s" % os.path.join(comps_path, masterdir))
+            self.logger.info(
+                "no comps found here: %s" % os.path.join(comps_path, masterdir)
+            )
             return  # no comps xml file found
 
         # pull the filename from the longer part
@@ -749,12 +884,19 @@ class _ImportSignatureManager(ManagerModule):
 
             # find path segment for yum_url (changing filesystem path to http:// trailing fragment)
             seg = comps_path.rfind("distro_mirror")
-            urlseg = comps_path[(seg + len("distro_mirror") + 1):]
+            urlseg = comps_path[(seg + len("distro_mirror") + 1) :]
 
-            fname = os.path.join(self.settings.webdir,
-                                 "distro_mirror", "config", "%s-%s.repo" % (distribution.name, counter))
+            fname = os.path.join(
+                self.settings.webdir,
+                "distro_mirror",
+                "config",
+                "%s-%s.repo" % (distribution.name, counter),
+            )
 
-            repo_url = "http://@@http_server@@/cobbler/distro_mirror/config/%s-%s.repo" % (distribution.name, counter)
+            repo_url = (
+                "http://@@http_server@@/cobbler/distro_mirror/config/%s-%s.repo"
+                % (distribution.name, counter)
+            )
             repo_url2 = "http://@@http_server@@/cobbler/distro_mirror/%s" % urlseg
 
             distribution.source_repos.append([repo_url, repo_url2])
@@ -770,7 +912,9 @@ class _ImportSignatureManager(ManagerModule):
             with open(fname, "w+") as config_file:
                 config_file.write("[core-%s]\n" % counter)
                 config_file.write("name=core-%s\n" % counter)
-                config_file.write("baseurl=http://@@http_server@@/cobbler/distro_mirror/%s\n" % urlseg)
+                config_file.write(
+                    "baseurl=http://@@http_server@@/cobbler/distro_mirror/%s\n" % urlseg
+                )
                 config_file.write("enabled=1\n")
                 config_file.write("gpgcheck=0\n")
                 config_file.write("priority=$yum_distro_priority\n")
@@ -782,7 +926,13 @@ class _ImportSignatureManager(ManagerModule):
 
             elif comps_path not in self.found_repos:
                 utils.remove_yum_olddata(comps_path)
-                cmd = ["createrepo", self.settings.createrepo_flags, "--groupfile", os.path.join(comps_path, masterdir, comps_file), comps_path]
+                cmd = [
+                    "createrepo",
+                    self.settings.createrepo_flags,
+                    "--groupfile",
+                    os.path.join(comps_path, masterdir, comps_file),
+                    comps_path,
+                ]
                 utils.subprocess_call(cmd, shell=False)
                 self.found_repos[comps_path] = 1
                 # For older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up
@@ -826,7 +976,10 @@ class _ImportSignatureManager(ManagerModule):
             repo.mirror = mirror
         else:
             # NOTE : The location of the mirror should come from timezone
-            repo.mirror = "http://ftp.%s.debian.org/debian/dists/%s" % ('us', distribution.os_version)
+            repo.mirror = "http://ftp.%s.debian.org/debian/dists/%s" % (
+                "us",
+                distribution.os_version,
+            )
 
         self.logger.info("Added repos for %s" % distribution.name)
         self.api.add_repo(repo)

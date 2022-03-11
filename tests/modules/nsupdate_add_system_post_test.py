@@ -15,7 +15,9 @@ def test_register():
 
 def test_run(mocker):
     # Arrange
-    settings_mock = MagicMock(name="nsupdate_add_system_post_setting_mock", spec=Settings)
+    settings_mock = MagicMock(
+        name="nsupdate_add_system_post_setting_mock", spec=Settings
+    )
     settings_mock.nsupdate_enabled = True
     settings_mock.nsupdate_log = "/tmp/nsupdate.log"
     settings_mock.nsupdate_tsig_key = ["example-name", "example-key"]

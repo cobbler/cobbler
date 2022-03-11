@@ -29,13 +29,16 @@ def test_validate_arch(test_architecture, test_raise):
             raise TypeError("result had a non expected result")
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ("qemu", does_not_raise()),
-    ("<<inherit>>", does_not_raise()),
-    (enums.VirtType.QEMU, does_not_raise()),
-    (enums.VirtType.INHERITED, does_not_raise()),
-    (0, pytest.raises(TypeError))
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        ("qemu", does_not_raise()),
+        ("<<inherit>>", does_not_raise()),
+        (enums.VirtType.QEMU, does_not_raise()),
+        (enums.VirtType.INHERITED, does_not_raise()),
+        (0, pytest.raises(TypeError)),
+    ],
+)
 def test_set_virt_type(value, expected_exception):
     # Arrange
 
@@ -52,12 +55,15 @@ def test_set_virt_type(value, expected_exception):
             raise TypeError("Unexpected type for value!")
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ("allow", does_not_raise()),
-    (enums.TlsRequireCert.ALLOW, does_not_raise()),
-    (enums.VALUE_INHERITED, pytest.raises(ValueError)),
-    (0, pytest.raises(TypeError))
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        ("allow", does_not_raise()),
+        (enums.TlsRequireCert.ALLOW, does_not_raise()),
+        (enums.VALUE_INHERITED, pytest.raises(ValueError)),
+        (0, pytest.raises(TypeError)),
+    ],
+)
 def test_validate_ldap_tls_reqcert(value, expected_exception):
     # Arrange
 
@@ -74,15 +80,18 @@ def test_validate_ldap_tls_reqcert(value, expected_exception):
             raise TypeError("Unexpected type for value!")
 
 
-@pytest.mark.parametrize("test_driver,test_raise", [
-    (enums.VirtDiskDrivers.RAW, does_not_raise()),
-    (enums.VALUE_INHERITED, does_not_raise()),
-    (enums.VirtDiskDrivers.INHERITED, does_not_raise()),
-    ("qcow2", does_not_raise()),
-    ("<<inherit>>", does_not_raise()),
-    ("bad_driver", pytest.raises(ValueError)),
-    (0, pytest.raises(TypeError))
-])
+@pytest.mark.parametrize(
+    "test_driver,test_raise",
+    [
+        (enums.VirtDiskDrivers.RAW, does_not_raise()),
+        (enums.VALUE_INHERITED, does_not_raise()),
+        (enums.VirtDiskDrivers.INHERITED, does_not_raise()),
+        ("qcow2", does_not_raise()),
+        ("<<inherit>>", does_not_raise()),
+        ("bad_driver", pytest.raises(ValueError)),
+        (0, pytest.raises(TypeError)),
+    ],
+)
 def test_set_virt_disk_driver(test_driver, test_raise):
     # Arrange
 

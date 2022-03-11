@@ -25,7 +25,18 @@ from threading import Lock
 from typing import List, Union
 
 from cobbler import utils
-from cobbler.items import package, system, item as item_base, image, profile, repo, mgmtclass, distro, file, menu
+from cobbler.items import (
+    package,
+    system,
+    item as item_base,
+    image,
+    profile,
+    repo,
+    mgmtclass,
+    distro,
+    file,
+    menu,
+)
 
 from cobbler.cexceptions import CX
 
@@ -70,8 +81,14 @@ class Collection:
         """
         raise NotImplementedError()
 
-    def remove(self, name: str, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
-               recursive: bool = False):
+    def remove(
+        self,
+        name: str,
+        with_delete: bool = True,
+        with_sync: bool = True,
+        with_triggers: bool = True,
+        recursive: bool = False,
+    ):
         """
         Remove an item from collection. This method must be overridden in any subclass.
 
@@ -82,7 +99,9 @@ class Collection:
         :param recursive: recursively delete children
         :returns: NotImplementedError
         """
-        raise NotImplementedError("Please implement this in a child class of this class.")
+        raise NotImplementedError(
+            "Please implement this in a child class of this class."
+        )
 
     def get(self, name: str):
         """
@@ -93,8 +112,9 @@ class Collection:
         """
         return self.listing.get(name.lower(), None)
 
-    def find(self, name: str = "", return_list: bool = False, no_errors=False,
-             **kargs: dict) -> Union[List[item_base.Item], item_base.Item, None]:
+    def find(
+        self, name: str = "", return_list: bool = False, no_errors=False, **kargs: dict
+    ) -> Union[List[item_base.Item], item_base.Item, None]:
         """
         Return first object in the collection that matches all item='value' pairs passed, else return None if no objects
         can be found. When return_list is set, can also return a list.  Empty list would be returned instead of None in
@@ -142,25 +162,25 @@ class Collection:
             return matches
 
     SEARCH_REKEY = {
-        'kopts': 'kernel_options',
-        'kopts_post': 'kernel_options_post',
-        'inherit': 'parent',
-        'ip': 'ip_address',
-        'mac': 'mac_address',
-        'virt-auto-boot': 'virt_auto_boot',
-        'virt-file-size': 'virt_file_size',
-        'virt-disk-driver': 'virt_disk_driver',
-        'virt-ram': 'virt_ram',
-        'virt-path': 'virt_path',
-        'virt-type': 'virt_type',
-        'virt-bridge': 'virt_bridge',
-        'virt-cpus': 'virt_cpus',
-        'virt-host': 'virt_host',
-        'virt-group': 'virt_group',
-        'dhcp-tag': 'dhcp_tag',
-        'netboot-enabled': 'netboot_enabled',
-        'enable_gpxe': 'enable_ipxe',
-        'boot_loader': 'boot_loaders',
+        "kopts": "kernel_options",
+        "kopts_post": "kernel_options_post",
+        "inherit": "parent",
+        "ip": "ip_address",
+        "mac": "mac_address",
+        "virt-auto-boot": "virt_auto_boot",
+        "virt-file-size": "virt_file_size",
+        "virt-disk-driver": "virt_disk_driver",
+        "virt-ram": "virt_ram",
+        "virt-path": "virt_path",
+        "virt-type": "virt_type",
+        "virt-bridge": "virt_bridge",
+        "virt-cpus": "virt_cpus",
+        "virt-host": "virt_host",
+        "virt-group": "virt_group",
+        "dhcp-tag": "dhcp_tag",
+        "netboot-enabled": "netboot_enabled",
+        "enable_gpxe": "enable_ipxe",
+        "boot_loader": "boot_loaders",
     }
 
     def __rekey(self, _dict: dict) -> dict:
@@ -220,9 +240,22 @@ class Collection:
                 ref.interfaces[interface].mac_address = ""
                 ref.interfaces[interface].ip_address = ""
 
-        self.add(ref, save=True, with_copy=True, with_triggers=True, with_sync=True, check_for_duplicate_names=True)
+        self.add(
+            ref,
+            save=True,
+            with_copy=True,
+            with_triggers=True,
+            with_sync=True,
+            check_for_duplicate_names=True,
+        )
 
-    def rename(self, ref: item_base.Item, newname, with_sync: bool = True, with_triggers: bool = True):
+    def rename(
+        self,
+        ref: item_base.Item,
+        newname,
+        with_sync: bool = True,
+        with_triggers: bool = True,
+    ):
         """
         Allows an object "ref" to be given a new name without affecting the rest of the object tree.
 
@@ -275,7 +308,7 @@ class Collection:
                 os.renames(old_path, new_path)
 
         # for a distro, rename the mirror and references to it
-        if ref.COLLECTION_TYPE == 'distro':
+        if ref.COLLECTION_TYPE == "distro":
             path = utils.find_distro_path(self.api.settings(), ref)
 
             # create a symlink for the new distro name
@@ -283,9 +316,12 @@ class Collection:
 
             # Test to see if the distro path is based directly on the name of the distro. If it is, things need to
             # updated accordingly.
-            if os.path.exists(path) \
-                    and path == str(os.path.join(self.api.settings().webdir, "distro_mirror", ref.name)):
-                newpath = os.path.join(self.api.settings().webdir, "distro_mirror", ref.name)
+            if os.path.exists(path) and path == str(
+                os.path.join(self.api.settings().webdir, "distro_mirror", ref.name)
+            ):
+                newpath = os.path.join(
+                    self.api.settings().webdir, "distro_mirror", ref.name
+                )
                 os.renames(path, newpath)
 
                 # update any reference to this path ...
@@ -296,7 +332,7 @@ class Collection:
                         d.initrd = d.initrd.replace(path, newpath)
                         self.collection_mgr.serialize_one_item(d)
 
-        if ref.COLLECTION_TYPE in ('profile', 'system'):
+        if ref.COLLECTION_TYPE in ("profile", "system"):
             if ref.parent is not None:
                 ref.parent.children.remove(oldname)
 
@@ -312,20 +348,34 @@ class Collection:
                     k.distro = newname
                 else:
                     k.parent = newname
-                self.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
+                self.api.profiles().add(
+                    k, save=True, with_sync=with_sync, with_triggers=with_triggers
+                )
             elif self.api.find_menu(name=k) is not None:
                 k = self.api.find_menu(name=k)
                 k.parent = newname
-                self.api.menus().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
+                self.api.menus().add(
+                    k, save=True, with_sync=with_sync, with_triggers=with_triggers
+                )
             elif self.api.find_system(name=k) is not None:
                 k = self.api.find_system(name=k)
                 k.profile = newname
-                self.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
+                self.api.systems().add(
+                    k, save=True, with_sync=with_sync, with_triggers=with_triggers
+                )
             else:
-                raise CX("Internal error, unknown child type for child \"%s\"!" % k)
+                raise CX('Internal error, unknown child type for child "%s"!' % k)
 
-    def add(self, ref, save: bool = False, with_copy: bool = False, with_triggers: bool = True, with_sync: bool = True,
-            quick_pxe_update: bool = False, check_for_duplicate_names: bool = False):
+    def add(
+        self,
+        ref,
+        save: bool = False,
+        with_copy: bool = False,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+        quick_pxe_update: bool = False,
+        check_for_duplicate_names: bool = False,
+    ):
         """
         Add an object to the collection
 
@@ -348,7 +398,7 @@ class Collection:
 
         ref.check_if_valid()
 
-        if ref.uid == '':
+        if ref.uid == "":
             ref.uid = uuid.uuid4().hex
 
         if save:
@@ -380,7 +430,11 @@ class Collection:
 
         # failure of a pre trigger will prevent the object from being added
         if save and with_triggers:
-            utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
+            utils.run_triggers(
+                self.api,
+                ref,
+                "/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type(),
+            )
 
         self.lock.acquire()
         try:
@@ -391,7 +445,9 @@ class Collection:
         # update children cache in parent object in case it is not in there already
         if ref.parent and ref.name not in ref.parent.children:
             ref.parent.children.append(ref.name)
-            self.logger.debug("Added child \"%s\" to parent \"%s\"", ref.name, ref.parent.name)
+            self.logger.debug(
+                'Added child "%s" to parent "%s"', ref.name, ref.parent.name
+            )
 
         # perform filesystem operations
         if save:
@@ -435,9 +491,15 @@ class Collection:
 
             # save the tree, so if neccessary, scripts can examine it.
             if with_triggers:
-                utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/change/*", [])
-                utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type(),
-                                   [])
+                utils.run_triggers(
+                    self.api, ref, "/var/lib/cobbler/triggers/change/*", []
+                )
+                utils.run_triggers(
+                    self.api,
+                    ref,
+                    "/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type(),
+                    [],
+                )
 
     def to_string(self) -> str:
         """
@@ -447,8 +509,8 @@ class Collection:
         :return: The object as a string representation.
         """
         # FIXME: No to_string() method in any of the items present!
-        values = list(self.listing.values())[:]   # copy the values
-        values.sort()                       # sort the copy (2.3 fix)
+        values = list(self.listing.values())[:]  # copy the values
+        values.sort()  # sort the copy (2.3 fix)
         results = []
         for i, v in enumerate(values):
             results.append(v.to_string())
@@ -462,11 +524,15 @@ class Collection:
         """
         Returns the string key for the name of the collection (used by serializer etc)
         """
-        raise NotImplementedError("Please implement the method \"collection_type\" in your Collection!")
+        raise NotImplementedError(
+            'Please implement the method "collection_type" in your Collection!'
+        )
 
     @staticmethod
     def collection_types() -> str:
         """
         Returns the string key for the plural name of the collection (used by serializer)
         """
-        raise NotImplementedError("Please implement the method \"collection_types\" in your Collection!")
+        raise NotImplementedError(
+            'Please implement the method "collection_types" in your Collection!'
+        )

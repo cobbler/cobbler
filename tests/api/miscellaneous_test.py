@@ -9,12 +9,17 @@ from cobbler.actions.buildiso.netboot import NetbootBuildiso
 from cobbler.actions.buildiso.standalone import StandaloneBuildiso
 
 
-@pytest.mark.parametrize("input_automigration,result_migrate_count,result_validate_count", [
-    (None, 0, 3),
-    (True, 1, 2),
-    (False, 0, 3),
-])
-def test_settings_migration(caplog, mocker, input_automigration, result_migrate_count, result_validate_count):
+@pytest.mark.parametrize(
+    "input_automigration,result_migrate_count,result_validate_count",
+    [
+        (None, 0, 3),
+        (True, 1, 2),
+        (False, 0, 3),
+    ],
+)
+def test_settings_migration(
+    caplog, mocker, input_automigration, result_migrate_count, result_validate_count
+):
     # Arrange
     caplog.set_level(logging.DEBUG)
     # TODO: Create test where the YAML is missing the key
@@ -30,7 +35,10 @@ def test_settings_migration(caplog, mocker, input_automigration, result_migrate_
     # Assert
     assert len(caplog.records) > 0
     if input_automigration is not None:
-        assert 'Daemon flag overwriting other possible values from "settings.yaml" for automigration!' in caplog.text
+        assert (
+            'Daemon flag overwriting other possible values from "settings.yaml" for automigration!'
+            in caplog.text
+        )
     assert spy_migrate.call_count == result_migrate_count
     assert spy_validate.call_count == result_validate_count
 

@@ -29,13 +29,17 @@ import netaddr
 from cobbler import enums, utils
 from cobbler.items import item
 
-RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
+RE_HOSTNAME = re.compile(
+    r"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$"
+)
 RE_URL_GRUB = re.compile(r"^\((?P<protocol>http|tftp),(?P<server>.*)\)/(?P<path>.*)$")
-RE_URL = re.compile(r'^[a-zA-Z\d-]{,63}(\.[a-zA-Z\d-]{,63})*$')  # https://stackoverflow.com/a/2894918
+RE_URL = re.compile(
+    r"^[a-zA-Z\d-]{,63}(\.[a-zA-Z\d-]{,63})*$"
+)  # https://stackoverflow.com/a/2894918
 RE_SCRIPT_NAME = re.compile(r"[a-zA-Z0-9_\-.]+")
 
 # blacklist invalid values to the repo statement in autoinsts
-AUTOINSTALL_REPO_BLACKLIST = ['enabled', 'gpgcheck', 'gpgkey']
+AUTOINSTALL_REPO_BLACKLIST = ["enabled", "gpgcheck", "gpgkey"]
 
 
 # FIXME: Allow the <<inherit>> magic string to be parsed correctly.
@@ -168,7 +172,9 @@ def ipv6_address(addr: str) -> str:
     return addr
 
 
-def name_servers(nameservers: Union[str, list], for_item: bool = True) -> Union[str, list]:
+def name_servers(
+    nameservers: Union[str, list], for_item: bool = True
+) -> Union[str, list]:
     """
     Validate nameservers IP addresses, works for IPv4 and IPv6
 
@@ -198,12 +204,16 @@ def name_servers(nameservers: Union[str, list], for_item: bool = True) -> Union[
             else:
                 raise AddressValueError("Invalid IP address format")
     else:
-        raise TypeError("Invalid input type %s, expected str or list" % type(nameservers))
+        raise TypeError(
+            "Invalid input type %s, expected str or list" % type(nameservers)
+        )
 
     return nameservers
 
 
-def name_servers_search(search: Union[str, list], for_item: bool = True) -> Union[str, list]:
+def name_servers_search(
+    search: Union[str, list], for_item: bool = True
+) -> Union[str, list]:
     """
     Validate nameservers search domains.
 
@@ -226,7 +236,7 @@ def name_servers_search(search: Union[str, list], for_item: bool = True) -> Unio
         for sl in search:
             hostname(sl)
     else:
-        raise TypeError("Invalid input type \"%s\", expected str or list" % type(search))
+        raise TypeError('Invalid input type "%s", expected str or list' % type(search))
 
     return search
 
@@ -249,8 +259,10 @@ def validate_breed(breed: str) -> str:
     if breed and breed in valid_breeds:
         return breed
     nicer = ", ".join(valid_breeds)
-    raise ValueError("Invalid value for breed (\"%s\"). Must be one of %s, different breeds have different levels of "
-                     "support!" % (breed, nicer))
+    raise ValueError(
+        'Invalid value for breed ("%s"). Must be one of %s, different breeds have different levels of '
+        "support!" % (breed, nicer)
+    )
 
 
 def validate_os_version(os_version: str, breed: str) -> str:
@@ -271,14 +283,19 @@ def validate_os_version(os_version: str, breed: str) -> str:
     # Check breed again, so access does not fail
     validated_breed = validate_breed(breed)
     if not validated_breed == breed:
-        raise ValueError("The breed supplied to the validation function of os_version was not valid.")
+        raise ValueError(
+            "The breed supplied to the validation function of os_version was not valid."
+        )
     # Now check the os_version
     # FIXME: The following line will fail if load_signatures() from utils.py was not called!
     matched = utils.SIGNATURE_CACHE["breeds"][breed]
     os_version = os_version.lower()
     if os_version not in matched:
         nicer = ", ".join(matched)
-        raise ValueError("os_version for breed \"%s\" must be one of %s, given was \"%s\"" % (breed, nicer, os_version))
+        raise ValueError(
+            'os_version for breed "%s" must be one of %s, given was "%s"'
+            % (breed, nicer, os_version)
+        )
     return os_version
 
 
@@ -394,8 +411,10 @@ def validate_virt_ram(value: Union[int, str]) -> Union[str, int]:
     # value is a non-negative integer (0 means default)
     interger_number = int(value)
     if interger_number < 0:
-        raise ValueError("The virt_ram needs to have a value greater or equal to zero. Zero means default RAM."
-                         % str(value))
+        raise ValueError(
+            "The virt_ram needs to have a value greater or equal to zero. Zero means default RAM."
+            % str(value)
+        )
     return interger_number
 
 
@@ -471,7 +490,9 @@ def validate_serial_device(value: Union[str, int]) -> int:
     return int(value)
 
 
-def validate_serial_baud_rate(baud_rate: Union[int, str, enums.BaudRates]) -> enums.BaudRates:
+def validate_serial_baud_rate(
+    baud_rate: Union[int, str, enums.BaudRates]
+) -> enums.BaudRates:
     """
     The baud rate is very import that the communication between the two devices can be established correctly. This is
     the setter for this parameter. This effectively is the speed of the connection.
@@ -489,7 +510,9 @@ def validate_serial_baud_rate(baud_rate: Union[int, str, enums.BaudRates]) -> en
             else:
                 baud_rate = enums.BaudRates["B" + str(baud_rate)]
         except KeyError as key_error:
-            raise ValueError("vtype choices include: %s" % list(map(str, enums.BaudRates))) from key_error
+            raise ValueError(
+                "vtype choices include: %s" % list(map(str, enums.BaudRates))
+            ) from key_error
     # Now it must be of the enum Type
     if baud_rate not in enums.BaudRates:
         raise ValueError("invalid value for serial baud Rate (%s)" % baud_rate)
@@ -541,7 +564,7 @@ def validate_grub_remote_file(value: str) -> bool:
         # grub_match_result.group("protocol") -> No further processing needing if the match is there.
         server = grub_match_result.group("server")
         # FIXME: Disallow invalid port specifications in the URL
-        success_server_ip = (netaddr.valid_ipv4(server) or netaddr.valid_ipv6(server))
+        success_server_ip = netaddr.valid_ipv4(server) or netaddr.valid_ipv6(server)
         # FIXME: Disallow invalid URLs (e.g.: underscore in URL)
         success_server_name = urlparse("https://%s" % server).netloc == server
         path = grub_match_result.group("path")
@@ -590,7 +613,17 @@ def validate_obj_type(object_type: str) -> bool:
     """
     if not isinstance(object_type, str):
         return False
-    return object_type in ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file", "menu"]
+    return object_type in [
+        "distro",
+        "profile",
+        "system",
+        "repo",
+        "image",
+        "mgmtclass",
+        "package",
+        "file",
+        "menu",
+    ]
 
 
 def validate_obj_name(object_name: str) -> bool:

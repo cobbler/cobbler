@@ -44,16 +44,20 @@ class LogTool:
         """
         Clears the system logs
         """
-        anamon_dir = pathlib.Path('/var/log/cobbler/anamon/').joinpath(self.system.name)
+        anamon_dir = pathlib.Path("/var/log/cobbler/anamon/").joinpath(self.system.name)
         if anamon_dir.is_dir():
-            logs = list(filter(os.path.isfile, glob.glob(str(anamon_dir.joinpath('*')))))
+            logs = list(
+                filter(os.path.isfile, glob.glob(str(anamon_dir.joinpath("*"))))
+            )
         else:
             logs = []
-            logging.info("No log-files found to delete for system: %s", self.system.name)
+            logging.info(
+                "No log-files found to delete for system: %s", self.system.name
+            )
 
         for log in logs:
             try:
-                with open(log, 'w') as f:
+                with open(log, "w") as f:
                     f.truncate()
             except IOError as e:
                 self.logger.info("Failed to Truncate '%s':%s " % (log, e))

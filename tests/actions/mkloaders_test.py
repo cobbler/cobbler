@@ -19,8 +19,12 @@ def test_grubimage_object(cobbler_api):
 def test_grubimage_run(cobbler_api, mocker):
     # Arrange
     test_image_creator = mkloaders.MkLoaders(cobbler_api)
-    mocker.patch("cobbler.actions.mkloaders.symlink", spec=cobbler.actions.mkloaders.symlink)
-    mocker.patch("cobbler.actions.mkloaders.mkimage", spec=cobbler.actions.mkloaders.mkimage)
+    mocker.patch(
+        "cobbler.actions.mkloaders.symlink", spec=cobbler.actions.mkloaders.symlink
+    )
+    mocker.patch(
+        "cobbler.actions.mkloaders.mkimage", spec=cobbler.actions.mkloaders.mkimage
+    )
 
     # Act
     test_image_creator.run()
@@ -108,10 +112,8 @@ def test_get_syslinux_version(mocker):
         "cobbler.actions.mkloaders.subprocess.run",
         autospec=True,
         return_value=subprocess.CompletedProcess(
-            "",
-            0,
-            stdout="syslinux 4.04  Copyright 1994-2011 H. Peter Anvin et al"
-        )
+            "", 0, stdout="syslinux 4.04  Copyright 1994-2011 H. Peter Anvin et al"
+        ),
     )
 
     # Act

@@ -29,14 +29,18 @@ from schema import Schema
 import cobbler
 
 logger = logging.getLogger()
-migrations_path = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(cobbler.__file__)),
-                                                "settings/migrations"))
+migrations_path = os.path.normpath(
+    os.path.join(
+        os.path.abspath(os.path.dirname(cobbler.__file__)), "settings/migrations"
+    )
+)
 
 
 class CobblerVersion:
     """
     Specifies a Cobbler Version
     """
+
     def __init__(self, major: int = 0, minor: int = 0, patch: int = 0):
         """
         Constructor
@@ -51,7 +55,11 @@ class CobblerVersion:
         """
         if not isinstance(other, CobblerVersion):
             return False
-        return self.major == other.major and self.minor == other.minor and self.patch == other.patch
+        return (
+            self.major == other.major
+            and self.minor == other.minor
+            and self.patch == other.patch
+        )
 
     def __ne__(self, other: object):
         return not self.__eq__(other)
@@ -99,7 +107,11 @@ class CobblerVersion:
         return "CobblerVersion: %s.%s.%s" % (self.major, self.minor, self.patch)
 
     def __repr__(self) -> str:
-        return "CobblerVersion(major=%s, minor=%s, patch=%s)" % (self.major, self.minor, self.patch)
+        return "CobblerVersion(major=%s, minor=%s, patch=%s)" % (
+            self.major,
+            self.minor,
+            self.patch,
+        )
 
 
 EMPTY_VERSION = CobblerVersion()
@@ -116,9 +128,11 @@ def __validate_module(name: ModuleType) -> bool:
     :param version: The migration version as List.
     :return: True if every criteria is met otherwise False.
     """
-    module_methods = {"validate": "(settings:dict)->bool",
-                      "normalize": "(settings:dict)->dict",
-                      "migrate": "(settings:dict)->dict"}
+    module_methods = {
+        "validate": "(settings:dict)->bool",
+        "normalize": "(settings:dict)->dict",
+        "migrate": "(settings:dict)->dict",
+    }
     for (key, value) in module_methods.items():
         if not hasattr(name, key):
             return False
@@ -156,7 +170,9 @@ def get_settings_file_version(yaml_dict: dict) -> CobblerVersion:
     return EMPTY_VERSION
 
 
-def get_installed_version(filepath: Union[str, Path] = "/etc/cobbler/version") -> CobblerVersion:
+def get_installed_version(
+    filepath: Union[str, Path] = "/etc/cobbler/version"
+) -> CobblerVersion:
     """
     Retrieve the current Cobbler version. Normally it can be read from /etc/cobbler/version
 
@@ -220,23 +236,31 @@ def auto_migrate(yaml_dict: dict, settings_path: Path) -> dict:
     :return: The migrated dict.
     """
     if not yaml_dict.get("auto_migrate_settings", True):
-        raise RuntimeError("Settings automigration disabled but required for starting the daemon!")
+        raise RuntimeError(
+            "Settings automigration disabled but required for starting the daemon!"
+        )
     settings_version = get_settings_file_version(yaml_dict)
     if settings_version == EMPTY_VERSION:
         raise RuntimeError("Automigration not possible due to undiscoverable settings!")
 
     sorted_version_list = sorted(list(VERSION_LIST.keys()))
-    migrations = sorted_version_list[sorted_version_list.index(settings_version):]
+    migrations = sorted_version_list[sorted_version_list.index(settings_version) :]
 
     for index in range(0, len(migrations) - 1):
         if index == len(migrations) - 1:
             break
-        yaml_dict = migrate(yaml_dict, settings_path, migrations[index], migrations[index + 1])
+        yaml_dict = migrate(
+            yaml_dict, settings_path, migrations[index], migrations[index + 1]
+        )
     return yaml_dict
 
 
-def migrate(yaml_dict: dict, settings_path: Path,
-            old: CobblerVersion = EMPTY_VERSION, new: CobblerVersion = EMPTY_VERSION) -> dict:
+def migrate(
+    yaml_dict: dict,
+    settings_path: Path,
+    old: CobblerVersion = EMPTY_VERSION,
+    new: CobblerVersion = EMPTY_VERSION,
+) -> dict:
     """
     Migration to a specific version. If no old and new version is supplied it will call ``auto_migrate()``.
 
@@ -252,7 +276,9 @@ def migrate(yaml_dict: dict, settings_path: Path,
         return auto_migrate(yaml_dict, settings_path)
 
     if old == EMPTY_VERSION or new == EMPTY_VERSION:
-        raise ValueError("Either both or no versions must be specified for a migration!")
+        raise ValueError(
+            "Either both or no versions must be specified for a migration!"
+        )
 
     if old == new:
         return VERSION_LIST[old].normalize(yaml_dict)
@@ -262,7 +288,9 @@ def migrate(yaml_dict: dict, settings_path: Path,
         raise ValueError("Downgrades are not supported!")
 
     sorted_version_list = sorted(list(VERSION_LIST.keys()))
-    migration_list = sorted_version_list[sorted_version_list.index(old) + 1:sorted_version_list.index(new) + 1]
+    migration_list = sorted_version_list[
+        sorted_version_list.index(old) + 1 : sorted_version_list.index(new) + 1
+    ]
     for key in migration_list:
         yaml_dict = VERSION_LIST[key].migrate(yaml_dict)
     return yaml_dict

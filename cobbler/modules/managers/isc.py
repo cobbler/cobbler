@@ -38,7 +38,6 @@ def register() -> str:
 
 
 class _IscManager(ManagerModule):
-
     @staticmethod
     def what() -> str:
         """
@@ -97,7 +96,11 @@ class _IscManager(ManagerModule):
 
                 mac = interface["mac_address"]
 
-                if interface["interface_type"] in ("bond_slave", "bridge_slave", "bonded_bridge_slave"):
+                if interface["interface_type"] in (
+                    "bond_slave",
+                    "bridge_slave",
+                    "bonded_bridge_slave",
+                ):
 
                     if interface["interface_master"] not in system.interfaces:
                         # Can't write DHCP entry; master interface does not exist
@@ -114,15 +117,25 @@ class _IscManager(ManagerModule):
                         ignore_macs.append(mac)
 
                     ip = system.interfaces[interface["interface_master"]]["ip_address"]
-                    netmask = system.interfaces[interface["interface_master"]]["netmask"]
-                    dhcp_tag = system.interfaces[interface["interface_master"]]["dhcp_tag"]
+                    netmask = system.interfaces[interface["interface_master"]][
+                        "netmask"
+                    ]
+                    dhcp_tag = system.interfaces[interface["interface_master"]][
+                        "dhcp_tag"
+                    ]
                     host = system.interfaces[interface["interface_master"]]["dns_name"]
 
                     if ip is None or ip == "":
-                        for (interface_name, interface_object) in list(system.interfaces.items()):
-                            if interface_name.startswith(interface["interface_master"] + ".") \
-                                    and interface_object.ip_address is not None \
-                                    and interface_object.ip_address != "":
+                        for (interface_name, interface_object) in list(
+                            system.interfaces.items()
+                        ):
+                            if (
+                                interface_name.startswith(
+                                    interface["interface_master"] + "."
+                                )
+                                and interface_object.ip_address is not None
+                                and interface_object.ip_address != ""
+                            ):
                                 ip = interface_object.ip_address
                                 break
 
@@ -171,13 +184,18 @@ class _IscManager(ManagerModule):
                 # Explicitly declare filename for other (non x86) archs as in DHCP discover package mostly the
                 # architecture cannot be differed due to missing bits...
                 if distro is not None and not interface.get("filename"):
-                    if distro.arch in [Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL]:
+                    if distro.arch in [
+                        Archs.PPC,
+                        Archs.PPC64,
+                        Archs.PPC64LE,
+                        Archs.PPC64EL,
+                    ]:
                         interface["filename"] = "grub/grub.ppc64le"
                     elif distro.arch == Archs.AARCH64:
                         interface["filename"] = "grub/grubaa64.efi"
 
                 if not self.settings.always_write_dhcp_entries:
-                    if not interface["netboot_enabled"] and interface['static']:
+                    if not interface["netboot_enabled"] and interface["static"]:
                         continue
 
                 if dhcp_tag == "":
@@ -186,9 +204,7 @@ class _IscManager(ManagerModule):
                         dhcp_tag = "default"
 
                 if dhcp_tag not in dhcp_tags:
-                    dhcp_tags[dhcp_tag] = {
-                        mac: interface
-                    }
+                    dhcp_tags[dhcp_tag] = {mac: interface}
                 else:
                     dhcp_tags[dhcp_tag][mac] = interface
 
@@ -203,7 +219,7 @@ class _IscManager(ManagerModule):
             "date": time.asctime(time.gmtime()),
             "cobbler_server": "%s:%s" % (self.settings.server, self.settings.http_port),
             "next_server_v4": self.settings.next_server_v4,
-            "dhcp_tags": dhcp_tags
+            "dhcp_tags": dhcp_tags,
         }
 
         self.logger.info("generating %s", self.settings_file_v4)
@@ -252,7 +268,11 @@ class _IscManager(ManagerModule):
 
                 mac = interface["mac_address"]
 
-                if interface["interface_type"] in ("bond_slave", "bridge_slave", "bonded_bridge_slave"):
+                if interface["interface_type"] in (
+                    "bond_slave",
+                    "bridge_slave",
+                    "bonded_bridge_slave",
+                ):
 
                     if interface["interface_master"] not in system.interfaces:
                         # Can't write DHCP entry; master interface does not exist
@@ -268,15 +288,25 @@ class _IscManager(ManagerModule):
                     else:
                         ignore_macs.append(mac)
 
-                    ip_v6 = system.interfaces[interface["interface_master"]]["ipv6_address"]
-                    dhcp_tag = system.interfaces[interface["interface_master"]]["dhcp_tag"]
+                    ip_v6 = system.interfaces[interface["interface_master"]][
+                        "ipv6_address"
+                    ]
+                    dhcp_tag = system.interfaces[interface["interface_master"]][
+                        "dhcp_tag"
+                    ]
                     host = system.interfaces[interface["interface_master"]]["dns_name"]
 
                     if not ip_v6:
-                        for (interface_name, interface_object) in list(system.interfaces.items()):
-                            if interface_name.startswith(interface["interface_master"] + ".") \
-                                    and interface_object.ipv6_address is not None \
-                                    and interface_object.ipv6_address != "":
+                        for (interface_name, interface_object) in list(
+                            system.interfaces.items()
+                        ):
+                            if (
+                                interface_name.startswith(
+                                    interface["interface_master"] + "."
+                                )
+                                and interface_object.ipv6_address is not None
+                                and interface_object.ipv6_address != ""
+                            ):
                                 ip_v6 = interface_object.ipv6_address
                                 break
 
@@ -332,7 +362,7 @@ class _IscManager(ManagerModule):
                         interface["filename"] = "grub/grubaa64.efi"
 
                 if not self.settings.always_write_dhcp_entries:
-                    if not interface["netboot_enabled"] and interface['static']:
+                    if not interface["netboot_enabled"] and interface["static"]:
                         continue
 
                 if dhcp_tag == "":
@@ -341,9 +371,7 @@ class _IscManager(ManagerModule):
                         dhcp_tag = "default"
 
                 if dhcp_tag not in dhcp_tags:
-                    dhcp_tags[dhcp_tag] = {
-                        mac: interface
-                    }
+                    dhcp_tags[dhcp_tag] = {mac: interface}
                 else:
                     dhcp_tags[dhcp_tag][mac] = interface
 
@@ -357,7 +385,7 @@ class _IscManager(ManagerModule):
         metadata = {
             "date": time.asctime(time.gmtime()),
             "next_server_v6": self.settings.next_server_v6,
-            "dhcp_tags": dhcp_tags
+            "dhcp_tags": dhcp_tags,
         }
 
         if self.logger is not None:
@@ -372,7 +400,9 @@ class _IscManager(ManagerModule):
         :param service_name: The name of the DHCP service.
         """
         dhcpd_path = shutil.which(service_name)
-        return_code_service_restart = utils.subprocess_call([dhcpd_path, "-t", "-q"], shell=False)
+        return_code_service_restart = utils.subprocess_call(
+            [dhcpd_path, "-t", "-q"], shell=False
+        )
         if return_code_service_restart != 0:
             self.logger.error("Testing config - {} -t failed".format(service_name))
         return_code_service_restart = utils.service_restart(service_name)

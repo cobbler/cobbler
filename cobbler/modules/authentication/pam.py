@@ -49,7 +49,7 @@ CALLOC.argtypes = [c_uint, c_uint]
 
 STRDUP = LIBC.strdup
 STRDUP.argstypes = [c_char_p]
-STRDUP.restype = POINTER(c_char)        # NOT c_char_p !!!!
+STRDUP.restype = POINTER(c_char)  # NOT c_char_p !!!!
 
 # Various constants
 PAM_PROMPT_ECHO_OFF = 1
@@ -69,6 +69,7 @@ class PamHandle(Structure):
     """
     wrapper class for pam_handle_t
     """
+
     _fields_ = [("handle", c_void_p)]
 
     def __init__(self):
@@ -80,6 +81,7 @@ class PamMessage(Structure):
     """
     wrapper class for pam_message structure
     """
+
     _fields_ = [("msg_style", c_int), ("msg", c_char_p)]
 
     def __repr__(self):
@@ -90,19 +92,23 @@ class PamResponse(Structure):
     """
     wrapper class for pam_response structure
     """
+
     _fields_ = [("resp", c_char_p), ("resp_retcode", c_int)]
 
     def __repr__(self):
         return "<PamResponse %i '%s'>" % (self.resp_retcode, self.resp)
 
 
-CONV_FUNC = CFUNCTYPE(c_int, c_int, POINTER(POINTER(PamMessage)), POINTER(POINTER(PamResponse)), c_void_p)
+CONV_FUNC = CFUNCTYPE(
+    c_int, c_int, POINTER(POINTER(PamMessage)), POINTER(POINTER(PamResponse)), c_void_p
+)
 
 
 class PamConv(Structure):
     """
     wrapper class for pam_conv structure
     """
+
     _fields_ = [("conv", CONV_FUNC), ("appdata_ptr", c_void_p)]
 
 
@@ -147,13 +153,15 @@ def authenticate(api_handle, username: str, password: str) -> bool:
     try:
         service = api_handle.settings().authn_pam_service
     except:
-        service = 'login'
+        service = "login"
 
     api_handle.logger.debug("authn_pam: PAM service is %s" % service)
 
     handle = PamHandle()
     conv = PamConv(my_conv, 0)
-    retval = PAM_START(service.encode(), username.encode(), pointer(conv), pointer(handle))
+    retval = PAM_START(
+        service.encode(), username.encode(), pointer(conv), pointer(handle)
+    )
 
     if retval != 0:
         # TODO: This is not an authentication error, something has gone wrong starting up PAM

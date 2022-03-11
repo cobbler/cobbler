@@ -69,12 +69,12 @@ CHEETAH_ERROR_DISCLAIMER = """
 MODULE_CACHE = {}
 SIGNATURE_CACHE = {}
 
-_re_kernel = re.compile(r'(vmlinu[xz]|(kernel|linux(\.img)?)|pxeboot\.n12|wimboot)')
-_re_initrd = re.compile(r'(initrd(.*)\.img|ramdisk\.image\.gz|boot\.sdi)')
+_re_kernel = re.compile(r"(vmlinu[xz]|(kernel|linux(\.img)?)|pxeboot\.n12|wimboot)")
+_re_initrd = re.compile(r"(initrd(.*)\.img|ramdisk\.image\.gz|boot\.sdi)")
 
 
 class DHCP(enum.Enum):
-    V4 = 4,
+    V4 = (4,)
     V6 = 6
 
 
@@ -109,7 +109,10 @@ def log_exc():
     (t, v, tb) = sys.exc_info()
     logger.info("Exception occurred: %s", t)
     logger.info("Exception value: %s" % v)
-    logger.info("Exception Info:\n%s" % "\n".join(traceback.format_list(traceback.extract_tb(tb))))
+    logger.info(
+        "Exception Info:\n%s"
+        % "\n".join(traceback.format_list(traceback.extract_tb(tb)))
+    )
 
 
 def get_exc(exc, full: bool = True):
@@ -158,7 +161,7 @@ def pretty_hex(ip, length=8) -> str:
     """
     hexval = "%x" % ip.value
     if len(hexval) < length:
-        hexval = '0' * (length - len(hexval)) + hexval
+        hexval = "0" * (length - len(hexval)) + hexval
     return hexval.upper()
 
 
@@ -227,7 +230,7 @@ def is_supervisord() -> bool:
 
     This method currently checks if there is a running supervisord instance on ``localhost``.
     """
-    with ServerProxy('http://localhost:9001/RPC2') as server:
+    with ServerProxy("http://localhost:9001/RPC2") as server:
         try:
             server.supervisor.getState()
         except OSError:
@@ -253,10 +256,14 @@ def service_restart(service_name: str):
     :returns: If the system is SystemD or SysV based the return code of the restart command.
     """
     if is_supervisord():
-        with ServerProxy('http://localhost:9001/RPC2') as server:
+        with ServerProxy("http://localhost:9001/RPC2") as server:
             try:
-                process_state = -1  # Not redundant because we could run otherwise in an UnboundLocalError
-                process_state = server.supervisor.getProcessInfo(service_name).get("state")
+                process_state = (
+                    -1
+                )  # Not redundant because we could run otherwise in an UnboundLocalError
+                process_state = server.supervisor.getProcessInfo(service_name).get(
+                    "state"
+                )
                 if process_state in (10, 20):
                     server.supervisor.stopProcess(service_name)
                 if server.supervisor.startProcess(service_name):  # returns a boolean
@@ -268,7 +275,7 @@ def service_restart(service_name: str):
                     'Restarting service "%s" failed (supervisord process state was "%s")',
                     service_name,
                     process_state,
-                    exc_info=clientFault
+                    exc_info=clientFault,
                 )
                 return 1
     elif is_systemd():
@@ -276,7 +283,10 @@ def service_restart(service_name: str):
     elif is_service():
         restart_command = ["service", service_name, "restart"]
     else:
-        logger.warning('We could not restart service "%s" due to an unsupported process manager!', service_name)
+        logger.warning(
+            'We could not restart service "%s" due to an unsupported process manager!',
+            service_name,
+        )
         return 1
 
     ret = subprocess_call(restart_command, shell=False)
@@ -298,22 +308,30 @@ def get_random_mac(api_handle, virt_type="xenpv") -> str:
     """
     if virt_type.startswith("vmware"):
         mac = [
-            0x00, 0x50, 0x56,
-            random.randint(0x00, 0x3f),
-            random.randint(0x00, 0xff),
-            random.randint(0x00, 0xff)
+            0x00,
+            0x50,
+            0x56,
+            random.randint(0x00, 0x3F),
+            random.randint(0x00, 0xFF),
+            random.randint(0x00, 0xFF),
         ]
-    elif virt_type.startswith("xen") or virt_type.startswith("qemu") or virt_type.startswith("kvm"):
+    elif (
+        virt_type.startswith("xen")
+        or virt_type.startswith("qemu")
+        or virt_type.startswith("kvm")
+    ):
         mac = [
-            0x00, 0x16, 0x3e,
-            random.randint(0x00, 0x7f),
-            random.randint(0x00, 0xff),
-            random.randint(0x00, 0xff)
+            0x00,
+            0x16,
+            0x3E,
+            random.randint(0x00, 0x7F),
+            random.randint(0x00, 0xFF),
+            random.randint(0x00, 0xFF),
         ]
     else:
         raise CX("virt mac assignment not yet supported")
 
-    mac = ':'.join(["%02x" % x for x in mac])
+    mac = ":".join(["%02x" % x for x in mac])
     systems = api_handle.systems()
     while systems.find(mac_address=mac):
         mac = get_random_mac(api_handle)
@@ -349,7 +367,7 @@ def find_highest_files(directory: str, unversioned: str, regex: Pattern[str]) ->
     :return: The file with the highest number or an empty string.
     """
     files = find_matching_files(directory, regex)
-    get_numbers = re.compile(r'(\d+).(\d+).(\d+)')
+    get_numbers = re.compile(r"(\d+).(\d+).(\d+)")
 
     def max2(a, b):
         """
@@ -405,7 +423,7 @@ def remove_yum_olddata(path):
         ".olddata",
         ".repodata/.olddata",
         "repodata/.oldata",
-        "repodata/repodata"
+        "repodata/repodata",
     ]
     for pathseg in directories_to_try:
         olddata = os.path.join(path, pathseg)
@@ -595,10 +613,10 @@ def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
             else:
                 new_dict[key] = value
         # make sure we have no empty entries
-        new_dict.pop('', None)
+        new_dict.pop("", None)
         return True, new_dict
     elif isinstance(options, dict):
-        options.pop('', None)
+        options.pop("", None)
         return True, options
     else:
         raise TypeError("invalid input type")
@@ -612,8 +630,10 @@ def input_boolean(value: Union[str, bool, int]) -> bool:
     :return: True if the value is in the following list, otherwise false: "true", "1", "on", "yes", "y" .
     """
     if not isinstance(value, (str, bool, int)):
-        raise TypeError("The value handed to the input_boolean function was not convertable due to a wrong type "
-                        "(found: %s)!" % type(value))
+        raise TypeError(
+            "The value handed to the input_boolean function was not convertable due to a wrong type "
+            "(found: %s)!" % type(value)
+        )
     value = str(value).lower()
     return value in ["true", "1", "on", "yes", "y"]
 
@@ -691,8 +711,10 @@ def blender(api_handle, remove_dicts: bool, root_obj):
         for key in child_names:
             child = api_handle.find_items("", name=key, return_list=False)
             if child is None:
-                raise ValueError("Child with the name \"%s\" of parent object \"%s\" did not exist!"
-                                 % (key, root_obj.name))
+                raise ValueError(
+                    'Child with the name "%s" of parent object "%s" did not exist!'
+                    % (key, root_obj.name)
+                )
             results["children"][key] = child.to_dict()
 
     # sanitize output for koan and kernel option lines, etc
@@ -897,13 +919,13 @@ def dict_to_string(_dict: dict) -> Union[str, dict]:
             for item in value:
                 # strip possible leading and trailing whitespaces
                 _item = str(item).strip()
-                if ' ' in _item:
+                if " " in _item:
                     buffer += str(key) + "='" + _item + "' "
                 else:
                     buffer += str(key) + "=" + _item + " "
         else:
             _value = str(value).strip()
-            if ' ' in _value:
+            if " " in _value:
                 buffer += str(key) + "='" + _value + "' "
             else:
                 buffer += str(key) + "=" + _value + " "
@@ -922,9 +944,11 @@ def rsync_files(src: str, dst: str, args: str, quiet: bool = True) -> bool:
     """
 
     if args is None:
-        args = ''
+        args = ""
 
-    RSYNC_CMD = "rsync -a %%s '%%s' %%s %s --exclude-from=/etc/cobbler/rsync.exclude" % args
+    RSYNC_CMD = (
+        "rsync -a %%s '%%s' %%s %s --exclude-from=/etc/cobbler/rsync.exclude" % args
+    )
     if quiet:
         RSYNC_CMD += " --quiet"
     else:
@@ -1019,7 +1043,10 @@ def run_triggers(api, ref, globber, additional: list = None):
             continue
 
         if rc != 0:
-            raise CX("Cobbler trigger failed: %(file)s returns %(code)d" % {"file": file, "code": rc})
+            raise CX(
+                "Cobbler trigger failed: %(file)s returns %(code)d"
+                % {"file": file, "code": rc}
+            )
 
         logger.debug("shell trigger %s finished successfully", file)
 
@@ -1036,8 +1063,17 @@ def get_family() -> str:
              returned.
     """
     # TODO: Refactor that this is purely reliant on the distro module or obsolete it.
-    redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos", "virtuozzo", "almalinux",
-                   "rocky linux", "oracle linux server")
+    redhat_list = (
+        "red hat",
+        "redhat",
+        "scientific linux",
+        "fedora",
+        "centos",
+        "virtuozzo",
+        "almalinux",
+        "rocky linux",
+        "oracle linux server",
+    )
 
     distro_name = distro.name().lower()
     for item in redhat_list:
@@ -1133,10 +1169,10 @@ def hashfile(fn, lcache=None):
     """
     db = {}
     # FIXME: The directory from the following line may not exist.
-    dbfile = os.path.join(lcache, 'link_cache.json')
+    dbfile = os.path.join(lcache, "link_cache.json")
     try:
         if os.path.exists(dbfile):
-            db = json.load(open(dbfile, 'r'))
+            db = json.load(open(dbfile, "r"))
     except:
         pass
 
@@ -1147,12 +1183,12 @@ def hashfile(fn, lcache=None):
 
     if os.path.exists(fn):
         # TODO: Replace this with the follwing: https://stackoverflow.com/a/22058673
-        cmd = '/usr/bin/sha1sum %s' % fn
-        key = subprocess_get(cmd).split(' ')[0]
+        cmd = "/usr/bin/sha1sum %s" % fn
+        key = subprocess_get(cmd).split(" ")[0]
         if lcache is not None:
             db[fn] = (mtime, key)
             # TODO: Safeguard this against above mentioned directory does not exist error.
-            json.dump(db, open(dbfile, 'w'))
+            json.dump(db, open(dbfile, "w"))
         return key
     else:
         return None
@@ -1166,7 +1202,7 @@ def cachefile(src: str, dst: str):
     :param src: The sourcefile for the copy action.
     :param dst: The destination for the copy action.
     """
-    lcache = os.path.join(os.path.dirname(os.path.dirname(dst)), '.link_cache')
+    lcache = os.path.join(os.path.dirname(os.path.dirname(dst)), ".link_cache")
     if not os.path.isdir(lcache):
         os.mkdir(lcache)
     key = hashfile(src, lcache=lcache)
@@ -1179,7 +1215,9 @@ def cachefile(src: str, dst: str):
     os.link(cachefile, dst)
 
 
-def linkfile(src: str, dst: str, symlink_ok: bool = False, cache: bool = True, api=None):
+def linkfile(
+    src: str, dst: str, symlink_ok: bool = False, cache: bool = True, api=None
+):
     """
     Attempt to create a link dst that points to src. Because file systems suck we attempt several different methods or
     bail to just copying the file.
@@ -1278,13 +1316,22 @@ def copyremotefile(src: str, dst1: str, api=None):
     try:
         logger.info("copying: %s -> %s", src, dst1)
         srcfile = urllib.request.urlopen(src)
-        with open(dst1, 'wb') as output:
+        with open(dst1, "wb") as output:
             output.write(srcfile.read())
     except Exception as error:
-        raise OSError("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, error)) from error
+        raise OSError(
+            "Error while getting remote file (%s -> %s):\n%s" % (src, dst1, error)
+        ) from error
 
 
-def copyfile_pattern(pattern, dst, require_match: bool = True, symlink_ok: bool = False, cache: bool = True, api=None):
+def copyfile_pattern(
+    pattern,
+    dst,
+    require_match: bool = True,
+    symlink_ok: bool = False,
+    cache: bool = True,
+    api=None,
+):
     """
     Copy 1 or more files with a pattern into a destination.
 
@@ -1312,11 +1359,11 @@ def rmfile(path: str):
     """
     try:
         os.remove(path)
-        logger.info("Successfully removed \"%s\"", path)
+        logger.info('Successfully removed "%s"', path)
     except FileNotFoundError:
         pass
     except OSError as ioe:
-        logger.warning("Could not remove file \"%s\": %s", path, ioe.strerror)
+        logger.warning('Could not remove file "%s": %s', path, ioe.strerror)
 
 
 def rmtree_contents(path: str):
@@ -1447,8 +1494,14 @@ class MntEntObj:
                       must be preserved, as well as the separation by whitespace.
         """
         if input and isinstance(input, str):
-            (self.mnt_fsname, self.mnt_dir, self.mnt_type, self.mnt_opts,
-             self.mnt_freq, self.mnt_passno) = input.split()
+            (
+                self.mnt_fsname,
+                self.mnt_dir,
+                self.mnt_type,
+                self.mnt_opts,
+                self.mnt_freq,
+                self.mnt_passno,
+            ) = input.split()
 
     def __dict__(self) -> dict:
         """
@@ -1457,8 +1510,14 @@ class MntEntObj:
 
         :return: The dictionary representation of an instance of this class.
         """
-        return {"mnt_fsname": self.mnt_fsname, "mnt_dir": self.mnt_dir, "mnt_type": self.mnt_type,
-                "mnt_opts": self.mnt_opts, "mnt_freq": self.mnt_freq, "mnt_passno": self.mnt_passno}
+        return {
+            "mnt_fsname": self.mnt_fsname,
+            "mnt_dir": self.mnt_dir,
+            "mnt_type": self.mnt_type,
+            "mnt_opts": self.mnt_opts,
+            "mnt_freq": self.mnt_freq,
+            "mnt_passno": self.mnt_passno,
+        }
 
     def __str__(self):
         """
@@ -1467,8 +1526,14 @@ class MntEntObj:
 
         :return: The space separated list of values of this object.
         """
-        return "%s %s %s %s %s %s" % (self.mnt_fsname, self.mnt_dir, self.mnt_type,
-                                      self.mnt_opts, self.mnt_freq, self.mnt_passno)
+        return "%s %s %s %s %s %s" % (
+            self.mnt_fsname,
+            self.mnt_dir,
+            self.mnt_type,
+            self.mnt_opts,
+            self.mnt_freq,
+            self.mnt_passno,
+        )
 
 
 def get_mtab(mtab="/etc/mtab", vfstype: bool = False) -> list:
@@ -1484,7 +1549,7 @@ def get_mtab(mtab="/etc/mtab", vfstype: bool = False) -> list:
 
     mtab_stat = os.stat(mtab)
     if mtab_stat.st_mtime != mtab_mtime:
-        '''cache is stale ... refresh'''
+        """cache is stale ... refresh"""
         mtab_mtime = mtab_stat.st_mtime
         mtab_map = __cache_mtab__(mtab)
 
@@ -1507,7 +1572,7 @@ def __cache_mtab__(mtab="/etc/mtab"):
     :return: The mtab content stripped from empty lines (if any are present).
     """
     with open(mtab) as f:
-        mtab = [MntEntObj(line) for line in f.read().split('\n') if len(line) > 0]
+        mtab = [MntEntObj(line) for line in f.read().split("\n") if len(line) > 0]
 
     return mtab
 
@@ -1556,7 +1621,7 @@ def get_file_device_path(fname):
 
     # construct file path relative to device
     if fdir != os.path.sep:
-        fname = fname[len(fdir):]
+        fname = fname[len(fdir) :]
 
     if chrootfs:
         return (":", fname)
@@ -1605,8 +1670,15 @@ def subprocess_sp(cmd, shell: bool = True, input=None):
         stdin = subprocess.PIPE
 
     try:
-        sp = subprocess.Popen(cmd, shell=shell, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                              encoding="utf-8", close_fds=True)
+        sp = subprocess.Popen(
+            cmd,
+            shell=shell,
+            stdin=stdin,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding="utf-8",
+            close_fds=True,
+        )
     except OSError:
         log_exc()
         die("OS Error, command not found?  While running: %s" % cmd)
@@ -1664,21 +1736,27 @@ def get_supported_distro_boot_loaders(distro, api_handle=None):
     """
     try:
         # Try to read from the signature
-        return api_handle.get_signatures()["breeds"][distro.breed][distro.os_version]["boot_loaders"][distro.arch.value]
+        return api_handle.get_signatures()["breeds"][distro.breed][distro.os_version][
+            "boot_loaders"
+        ][distro.arch.value]
     except:
         try:
             # Try to read directly from the cache
-            return SIGNATURE_CACHE["breeds"][distro.breed][distro.os_version]["boot_loaders"][distro.arch.value]
+            return SIGNATURE_CACHE["breeds"][distro.breed][distro.os_version][
+                "boot_loaders"
+            ][distro.arch.value]
         except:
             try:
                 # Else use some well-known defaults
-                return {"ppc": ["grub", "pxe"],
-                        "ppc64": ["grub", "pxe"],
-                        "ppc64le": ["grub", "pxe"],
-                        "ppc64el": ["grub", "pxe"],
-                        "aarch64": ["grub"],
-                        "i386": ["grub", "pxe", "ipxe"],
-                        "x86_64": ["grub", "pxe", "ipxe"]}[distro.arch.value]
+                return {
+                    "ppc": ["grub", "pxe"],
+                    "ppc64": ["grub", "pxe"],
+                    "ppc64le": ["grub", "pxe"],
+                    "ppc64el": ["grub", "pxe"],
+                    "aarch64": ["grub"],
+                    "i386": ["grub", "pxe", "ipxe"],
+                    "x86_64": ["grub", "pxe", "ipxe"],
+                }[distro.arch.value]
             except:
                 # Else return the globally known list
                 return get_supported_system_boot_loaders()
@@ -1749,7 +1827,9 @@ def get_valid_archs():
     try:
         for breed in get_valid_breeds():
             for operating_system in list(SIGNATURE_CACHE["breeds"][breed].keys()):
-                archs += SIGNATURE_CACHE["breeds"][breed][operating_system]["supported_arches"]
+                archs += SIGNATURE_CACHE["breeds"][breed][operating_system][
+                    "supported_arches"
+                ]
     except:
         pass
     return uniquify(archs)
@@ -1765,7 +1845,7 @@ def get_shared_secret() -> Union[str, int]:
     """
 
     try:
-        with open("/var/lib/cobbler/web.ss", 'rb', encoding='utf-8') as fd:
+        with open("/var/lib/cobbler/web.ss", "rb", encoding="utf-8") as fd:
             data = fd.read()
     except:
         return -1
@@ -1815,7 +1895,7 @@ def strip_none(data, omit_none: bool = False):
     :return: The modified data structure without any occurrence of None.
     """
     if data is None:
-        data = '~'
+        data = "~"
 
     elif isinstance(data, list):
         data2 = []
@@ -1845,7 +1925,7 @@ def revert_strip_none(data):
     :param data: The data to check.
     :return: The data without None.
     """
-    if isinstance(data, str) and data.strip() == '~':
+    if isinstance(data, str) and data.strip() == "~":
         return None
 
     if isinstance(data, list):
@@ -1903,14 +1983,22 @@ def dhcpconf_location(protocol: DHCP, filename: str = "dhcpd.conf") -> str:
     :return: The path possibly used for the dhcpd.conf file.
     """
     if protocol not in DHCP:
-        logger.info("DHCP configuration location could not be determined due to unknown protocol version.")
+        logger.info(
+            "DHCP configuration location could not be determined due to unknown protocol version."
+        )
         raise AttributeError("DHCP must be version 4 or 6!")
     if protocol == DHCP.V6 and filename == "dhcpd.conf":
         filename = "dhcpd6.conf"
     (dist, version) = os_release()
-    if (dist in ("redhat", "centos") and version < 6) or (dist == "fedora" and version < 11) or (dist == "suse"):
+    if (
+        (dist in ("redhat", "centos") and version < 6)
+        or (dist == "fedora" and version < 11)
+        or (dist == "suse")
+    ):
         return os.path.join("/etc", filename)
-    elif (dist == "debian" and int(version) < 6) or (dist == "ubuntu" and version < 11.10):
+    elif (dist == "debian" and int(version) < 6) or (
+        dist == "ubuntu" and version < 11.10
+    ):
         return os.path.join("/etc/dhcp3", filename)
     else:
         return os.path.join("/etc/dhcp/", filename)
@@ -1959,7 +2047,9 @@ def named_service_name() -> str:
         return "bind9"
     else:
         if is_systemd():
-            rc = subprocess_call(["/usr/bin/systemctl", "is-active", "named-chroot"], shell=False)
+            rc = subprocess_call(
+                ["/usr/bin/systemctl", "is-active", "named-chroot"], shell=False
+            )
             if rc == 0:
                 return "named-chroot"
         return "named"
@@ -1987,7 +2077,10 @@ def link_distro(settings, distro):
             os.symlink(base, dest_link)
         except:
             # FIXME: This shouldn't happen but I've (jsabo) seen it...
-            print("- symlink creation failed: %(base)s, %(dest)s" % {"base": base, "dest": dest_link})
+            print(
+                "- symlink creation failed: %(base)s, %(dest)s"
+                % {"base": base, "dest": dest_link}
+            )
 
 
 def find_distro_path(settings, distro):
@@ -2022,7 +2115,12 @@ def compare_versions_gt(ver1: str, ver2: str) -> bool:
     return versiontuple(ver1) > versiontuple(ver2)
 
 
-def kopts_overwrite(kopts: dict, cobbler_server_hostname: str = "", distro_breed: str = "", system_name: str = ""):
+def kopts_overwrite(
+    kopts: dict,
+    cobbler_server_hostname: str = "",
+    distro_breed: str = "",
+    system_name: str = "",
+):
     """
     SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
 
@@ -2042,14 +2140,17 @@ def kopts_overwrite(kopts: dict, cobbler_server_hostname: str = "", distro_breed
         raise TypeError("system_name needs to be of type str")
     # Function logic
     if distro_breed == "suse":
-        if 'textmode' in list(kopts.keys()):
-            kopts.pop('text', None)
-        elif 'text' in list(kopts.keys()):
-            kopts.pop('text', None)
-            kopts['textmode'] = ['1']
+        if "textmode" in list(kopts.keys()):
+            kopts.pop("text", None)
+        elif "text" in list(kopts.keys()):
+            kopts.pop("text", None)
+            kopts["textmode"] = ["1"]
         if system_name and cobbler_server_hostname:
             # only works if pxe_just_once is enabled in global settings
-            kopts['info'] = 'http://%s/cblr/svc/op/nopxe/system/%s' % (cobbler_server_hostname, system_name)
+            kopts["info"] = "http://%s/cblr/svc/op/nopxe/system/%s" % (
+                cobbler_server_hostname,
+                system_name,
+            )
 
 
 def is_str_int(value: str) -> bool:

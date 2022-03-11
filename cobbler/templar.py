@@ -69,12 +69,23 @@ class Templar:
         lines = data.split("\n")
         for line in lines:
             if "#import" in line or "#from" in line:
-                rest = line.replace("#import", "").replace("#from", "").replace("import", ".").replace(" ", "").strip()
+                rest = (
+                    line.replace("#import", "")
+                    .replace("#from", "")
+                    .replace("import", ".")
+                    .replace(" ", "")
+                    .strip()
+                )
                 if self.settings and rest not in self.settings.cheetah_import_whitelist:
                     raise CX(f"Potentially insecure import in template: {rest}")
 
-    def render(self, data_input: Union[TextIO, str], search_table: dict, out_path: Optional[str],
-               template_type="default") -> str:
+    def render(
+        self,
+        data_input: Union[TextIO, str],
+        search_table: dict,
+        out_path: Optional[str],
+        template_type="default",
+    ) -> str:
         """
         Render data_input back into a file.
 
@@ -89,7 +100,7 @@ class Templar:
             raw_data = data_input.read()
         else:
             raw_data = data_input
-        lines = raw_data.split('\n')
+        lines = raw_data.split("\n")
 
         if template_type is None:
             raise ValueError('"template_type" can\'t be "None"!')
@@ -127,7 +138,7 @@ class Templar:
         # double escape things would be very unwelcome.
         hp = search_table.get("http_port", "80")
         server = search_table.get("server", self.settings.server)
-        if hp not in (80, '80'):
+        if hp not in (80, "80"):
             repstr = "%s:%s" % (server, hp)
         else:
             repstr = server
@@ -136,7 +147,9 @@ class Templar:
         # string replacements for @@xyz@@ in data_out with prior regex lookups of keys
         regex = r"@@[\S]*?@@"
         regex_matches = re.finditer(regex, data_out, re.MULTILINE)
-        matches = set([match.group() for match_num, match in enumerate(regex_matches, start=1)])
+        matches = set(
+            [match.group() for match_num, match in enumerate(regex_matches, start=1)]
+        )
         for match in matches:
             data_out = data_out.replace(match, search_table[match.strip("@@")])
 
@@ -178,8 +191,10 @@ class Templar:
                     try:
                         (server, directory) = rest.split(":", 2)
                     except Exception as error:
-                        raise SyntaxError("Invalid syntax for NFS path given during import: %s" % search_table["tree"])\
-                            from error
+                        raise SyntaxError(
+                            "Invalid syntax for NFS path given during import: %s"
+                            % search_table["tree"]
+                        ) from error
                     line = "nfs --server %s --dir %s" % (server, directory)
                     # But put the URL part back in so koan can still see what the original value was
                     line += "\n" + "#url --url=%s" % search_table["tree"]
@@ -195,17 +210,15 @@ class Templar:
         # The variable "template_universe" serves this purpose to make it easier to iterate through all of the variables
         # without using internal Cheetah variables
 
-        search_table.update({
-            "template_universe": table_copy
-        })
+        search_table.update({"template_universe": table_copy})
 
         # Now do full templating scan, where we will also templatify the snippet insertions
         template = CobblerTemplate.compile(
             moduleName="cobbler.template_api",
             className="CobblerDynamicTemplate",
             source=raw_data,
-            compilerSettings={'useStackFrame': False},
-            baseclass=CobblerTemplate
+            compilerSettings={"useStackFrame": False},
+            baseclass=CobblerTemplate,
         )
 
         try:
@@ -232,9 +245,9 @@ class Templar:
 
         try:
             if self.settings and self.settings.jinja2_includedir:
-                template = jinja2 \
-                    .Environment(loader=jinja2.FileSystemLoader(self.settings.jinja2_includedir)) \
-                    .from_string(raw_data)
+                template = jinja2.Environment(
+                    loader=jinja2.FileSystemLoader(self.settings.jinja2_includedir)
+                ).from_string(raw_data)
             else:
                 template = jinja2.Template(raw_data)
             data_out = template.render(search_table)

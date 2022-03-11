@@ -7,8 +7,7 @@ PYTHON=/usr/bin/python3
 
 # check for executables
 
-PYFLAKES = $(shell { command -v pyflakes-3 || command -v pyflakes3 || command -v pyflakes; }  2> /dev/null)
-PYCODESTYLE := $(shell { command -v pycodestyle-3 || command -v pycodestyle3 || command -v pycodestyle; } 2> /dev/null)
+BLACK = $(shell which black)
 HTTPD = $(shell which httpd)
 APACHE2 = $(shell which apache2)
 
@@ -55,27 +54,12 @@ doc: ## Creates the documentation with sphinx in html form.
 	@echo "creating: documentation"
 	@cd docs; make html > /dev/null 2>&1
 
-qa: ## If pyflakes and/or pycodestyle is found then they are run.
-ifeq ($(strip $(PYFLAKES)),)
-	@echo "No pyflakes found"
+qa: ## If black is found then it is run.
+ifeq ($(strip $(BLACK)),)
+	@echo "No black found"
 else
-	@echo "checking: pyflakes ${PYFLAKES}"
-	@${PYFLAKES} \
-		*.py \
-		cobbler/*.py \
-		cobbler/modules/*.py \
-		bin/cobbler*
-endif
-
-ifeq ($(strip $(PYCODESTYLE)),)
-	@echo "No pycodestyle found"
-else
-	@echo "checking: pycodestyle"
-	@${PYCODESTYLE} -r --ignore E501,E402,E722,W503 \
-			*.py \
-		cobbler/*.py \
-		cobbler/modules/*.py \
-		bin/cobbler*
+	@echo "checking: black ${BLACK}"
+	@${BLACK} .
 endif
 
 authors: ## Creates the AUTHORS file.

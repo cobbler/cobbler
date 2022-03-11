@@ -12,7 +12,7 @@ def setup():
     """
     # create files if necessary
     if not os.path.exists(dummy_file_path):
-        open(dummy_file_path, 'w').close()
+        open(dummy_file_path, "w").close()
 
 
 @pytest.fixture(scope="class")
@@ -98,8 +98,20 @@ menus:
         # Assert
         assert outputstd == expected
 
-    @pytest.mark.parametrize("object_type", ["distro", "profile", "system", "image", "repo", "package", "mgmtclass",
-                                             "file", "menu"])
+    @pytest.mark.parametrize(
+        "object_type",
+        [
+            "distro",
+            "profile",
+            "system",
+            "image",
+            "repo",
+            "package",
+            "mgmtclass",
+            "file",
+            "menu",
+        ],
+    )
     def test_report_with_type(self, run_cmd, object_type):
         # Arrange
 
@@ -109,37 +121,112 @@ menus:
         # Assert
         assert outputstd is None or not outputstd
 
-    @pytest.mark.parametrize("object_type", ["distro", "profile", "system", "image", "repo", "package", "mgmtclass",
-                                             "file", "menu"])
+    @pytest.mark.parametrize(
+        "object_type",
+        [
+            "distro",
+            "profile",
+            "system",
+            "image",
+            "repo",
+            "package",
+            "mgmtclass",
+            "file",
+            "menu",
+        ],
+    )
     def test_report_with_type_and_name(self, run_cmd, object_type):
         # Arrange
         name = "notexisting"
 
         # Act
-        (outputstd, outputerr) = run_cmd(cmd=[object_type, "report", "--name=%s" % name])
+        (outputstd, outputerr) = run_cmd(
+            cmd=[object_type, "report", "--name=%s" % name]
+        )
 
         # Assert
         assert outputstd == "No %s found: %s\n" % (object_type, name)
 
-    @pytest.mark.parametrize("object_type,attributes,to_change,attr_long_name", [
-        ("distro",
-         {"name": "testdistroedit", "kernel": "Set in method", "initrd": "Set in method", "breed": "suse",
-          "arch": "x86_64"},
-         ["comment", "Testcomment"], "Comment"),
-        ("profile", {"name": "testprofileedit", "distro": "test_distro_edit_profile"},
-         ["comment", "Testcomment"], "Comment"),
-        ("system", {"name": "test_system_edit", "profile": "test_profile_edit_system"}, ["comment", "Testcomment"],
-         "Comment"),
-        ("image", {"name": "test_image_edit"}, ["comment", "Testcomment"], "Comment"),
-        ("repo", {"name": "testrepoedit", "mirror": "http://localhost"}, ["comment", "Testcomment"], "Comment"),
-        ("package", {"name": "testpackageedit"}, ["comment", "Testcomment"], "Comment"),
-        ("mgmtclass", {"name": "testmgmtclassedit"}, ["comment", "Testcomment"], "Comment"),
-        ("file", {"name": "testfileedit", "path": "/tmp", "owner": "root", "group": "root", "mode": "600",
-                  "is-dir": "True"}, ["path", "/test_dir"], "Path"),
-        ("menu", {"name": "testmenuedit"}, ["comment", "Testcomment"], "Comment"),
-    ])
-    def test_edit(self, run_cmd, add_object_via_cli, remove_object_via_cli, create_kernel_initrd, fk_kernel, fk_initrd,
-                  object_type, attributes, to_change, attr_long_name):
+    @pytest.mark.parametrize(
+        "object_type,attributes,to_change,attr_long_name",
+        [
+            (
+                "distro",
+                {
+                    "name": "testdistroedit",
+                    "kernel": "Set in method",
+                    "initrd": "Set in method",
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+                ["comment", "Testcomment"],
+                "Comment",
+            ),
+            (
+                "profile",
+                {"name": "testprofileedit", "distro": "test_distro_edit_profile"},
+                ["comment", "Testcomment"],
+                "Comment",
+            ),
+            (
+                "system",
+                {"name": "test_system_edit", "profile": "test_profile_edit_system"},
+                ["comment", "Testcomment"],
+                "Comment",
+            ),
+            (
+                "image",
+                {"name": "test_image_edit"},
+                ["comment", "Testcomment"],
+                "Comment",
+            ),
+            (
+                "repo",
+                {"name": "testrepoedit", "mirror": "http://localhost"},
+                ["comment", "Testcomment"],
+                "Comment",
+            ),
+            (
+                "package",
+                {"name": "testpackageedit"},
+                ["comment", "Testcomment"],
+                "Comment",
+            ),
+            (
+                "mgmtclass",
+                {"name": "testmgmtclassedit"},
+                ["comment", "Testcomment"],
+                "Comment",
+            ),
+            (
+                "file",
+                {
+                    "name": "testfileedit",
+                    "path": "/tmp",
+                    "owner": "root",
+                    "group": "root",
+                    "mode": "600",
+                    "is-dir": "True",
+                },
+                ["path", "/test_dir"],
+                "Path",
+            ),
+            ("menu", {"name": "testmenuedit"}, ["comment", "Testcomment"], "Comment"),
+        ],
+    )
+    def test_edit(
+        self,
+        run_cmd,
+        add_object_via_cli,
+        remove_object_via_cli,
+        create_kernel_initrd,
+        fk_kernel,
+        fk_initrd,
+        object_type,
+        attributes,
+        to_change,
+        attr_long_name,
+    ):
         # Arrange
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
@@ -151,17 +238,44 @@ menus:
             attributes["kernel"] = kernel_path
             attributes["initrd"] = initrd_path
         elif object_type == "profile":
-            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": kernel_path, "initrd": initrd_path,
-                                          "breed": "suse", "arch": "x86_64"})
+            add_object_via_cli(
+                "distro",
+                {
+                    "name": name_distro_profile,
+                    "kernel": kernel_path,
+                    "initrd": initrd_path,
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            )
         elif object_type == "system":
-            add_object_via_cli("distro", {"name": name_distro_system, "kernel": kernel_path, "initrd": initrd_path,
-                                          "breed": "suse", "arch": "x86_64"})
-            add_object_via_cli("profile", {"name": name_profile_system, "distro": name_distro_system})
+            add_object_via_cli(
+                "distro",
+                {
+                    "name": name_distro_system,
+                    "kernel": kernel_path,
+                    "initrd": initrd_path,
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            )
+            add_object_via_cli(
+                "profile", {"name": name_profile_system, "distro": name_distro_system}
+            )
         add_object_via_cli(object_type, attributes)
 
         # Act
-        run_cmd(cmd=[object_type, "edit", "--name=%s" % attributes["name"], "--%s='%s'" % (to_change[0], to_change[1])])
-        (outputstd, outputerr) = run_cmd(cmd=[object_type, "report", "--name=%s" % attributes["name"]])
+        run_cmd(
+            cmd=[
+                object_type,
+                "edit",
+                "--name=%s" % attributes["name"],
+                "--%s='%s'" % (to_change[0], to_change[1]),
+            ]
+        )
+        (outputstd, outputerr) = run_cmd(
+            cmd=[object_type, "report", "--name=%s" % attributes["name"]]
+        )
 
         # Cleanup
         remove_object_via_cli(object_type, attributes["name"])
@@ -173,31 +287,60 @@ menus:
 
         # Assert
         expected = attr_long_name + ":'" + to_change[1] + "'"
-        print("Expected: \"" + expected + "\"")
+        print('Expected: "' + expected + '"')
         lines = outputstd.split("\n")
         found = False
         for line in lines:
             line = line.replace(" ", "")
-            print("Line: \"" + line + "\"")
+            print('Line: "' + line + '"')
             if line == expected:
                 found = True
         assert found
 
-    @pytest.mark.parametrize("object_type,attributes", [
-        ("distro", {"name": "testdistrofind", "kernel": "Set in method", "initrd": "Set in method", "breed": "suse",
-                    "arch": "x86_64"}),
-        ("profile", {"name": "testprofilefind", "distro": ""}),
-        ("system", {"name": "testsystemfind", "profile": ""}),
-        ("image", {"name": "testimagefind"}),
-        ("repo", {"name": "testrepofind", "mirror": "http://localhost"}),
-        ("package", {"name": "testpackagefind"}),
-        ("mgmtclass", {"name": "testmgmtclassfind"}),
-        ("file", {"name": "testfilefind", "path": "/tmp", "owner": "root", "group": "root", "mode": "600",
-                  "is-dir": "True"}),
-        ("menu", {"name": "testmenufind"}),
-    ])
-    def test_find(self, run_cmd, add_object_via_cli, remove_object_via_cli, create_kernel_initrd, fk_initrd, fk_kernel,
-                  object_type, attributes):
+    @pytest.mark.parametrize(
+        "object_type,attributes",
+        [
+            (
+                "distro",
+                {
+                    "name": "testdistrofind",
+                    "kernel": "Set in method",
+                    "initrd": "Set in method",
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            ),
+            ("profile", {"name": "testprofilefind", "distro": ""}),
+            ("system", {"name": "testsystemfind", "profile": ""}),
+            ("image", {"name": "testimagefind"}),
+            ("repo", {"name": "testrepofind", "mirror": "http://localhost"}),
+            ("package", {"name": "testpackagefind"}),
+            ("mgmtclass", {"name": "testmgmtclassfind"}),
+            (
+                "file",
+                {
+                    "name": "testfilefind",
+                    "path": "/tmp",
+                    "owner": "root",
+                    "group": "root",
+                    "mode": "600",
+                    "is-dir": "True",
+                },
+            ),
+            ("menu", {"name": "testmenufind"}),
+        ],
+    )
+    def test_find(
+        self,
+        run_cmd,
+        add_object_via_cli,
+        remove_object_via_cli,
+        create_kernel_initrd,
+        fk_initrd,
+        fk_kernel,
+        object_type,
+        attributes,
+    ):
         # Arrange
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
@@ -210,17 +353,37 @@ menus:
             attributes["initrd"] = initrd_path
         elif object_type == "profile":
             attributes["distro"] = name_distro_profile
-            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": kernel_path, "initrd": initrd_path,
-                                          "breed": "suse", "arch": "x86_64"})
+            add_object_via_cli(
+                "distro",
+                {
+                    "name": name_distro_profile,
+                    "kernel": kernel_path,
+                    "initrd": initrd_path,
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            )
         elif object_type == "system":
             attributes["profile"] = name_profile_system
-            add_object_via_cli("distro", {"name": name_distro_system, "kernel": kernel_path, "initrd": initrd_path,
-                                          "breed": "suse", "arch": "x86_64"})
-            add_object_via_cli("profile", {"name": name_profile_system, "distro": name_distro_system})
+            add_object_via_cli(
+                "distro",
+                {
+                    "name": name_distro_system,
+                    "kernel": kernel_path,
+                    "initrd": initrd_path,
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            )
+            add_object_via_cli(
+                "profile", {"name": name_profile_system, "distro": name_distro_system}
+            )
         add_object_via_cli(object_type, attributes)
 
         # Act
-        (outputstd, outputerr) = run_cmd(cmd=[object_type, "find", "--name='%s'" % attributes["name"]])
+        (outputstd, outputerr) = run_cmd(
+            cmd=[object_type, "find", "--name='%s'" % attributes["name"]]
+        )
 
         # Cleanup
         remove_object_via_cli(object_type, attributes["name"])
@@ -234,21 +397,56 @@ menus:
         lines = outputstd.split("\n")
         assert len(lines) >= 1
 
-    @pytest.mark.parametrize("object_type,attributes", [
-        ("distro", {"name": "testdistrocopy", "kernel": "Set in method", "initrd": "Set in method", "breed": "suse",
-                    "arch": "x86_64"}),
-        ("profile", {"name": "testprofilecopy", "distro": "testdistro_copy_profile"}),
-        ("system", {"name": "testsystemcopy", "profile": "testprofile_copy_system"}),
-        ("image", {"name": "testimagecopy"}),
-        ("repo", {"name": "testrepocopy", "mirror": "http://localhost"}),
-        ("package", {"name": "testpackagecopy"}),
-        ("mgmtclass", {"name": "testmgmtclasscopy"}),
-        ("file", {"name": "testfilecopy", "path": "/tmp", "owner": "root", "group": "root", "mode": "600",
-                  "is-dir": "True"}),
-        ("menu", {"name": "testmenucopy"}),
-    ])
-    def test_copy(self, run_cmd, add_object_via_cli, remove_object_via_cli, create_kernel_initrd, fk_initrd, fk_kernel,
-                  object_type, attributes):
+    @pytest.mark.parametrize(
+        "object_type,attributes",
+        [
+            (
+                "distro",
+                {
+                    "name": "testdistrocopy",
+                    "kernel": "Set in method",
+                    "initrd": "Set in method",
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            ),
+            (
+                "profile",
+                {"name": "testprofilecopy", "distro": "testdistro_copy_profile"},
+            ),
+            (
+                "system",
+                {"name": "testsystemcopy", "profile": "testprofile_copy_system"},
+            ),
+            ("image", {"name": "testimagecopy"}),
+            ("repo", {"name": "testrepocopy", "mirror": "http://localhost"}),
+            ("package", {"name": "testpackagecopy"}),
+            ("mgmtclass", {"name": "testmgmtclasscopy"}),
+            (
+                "file",
+                {
+                    "name": "testfilecopy",
+                    "path": "/tmp",
+                    "owner": "root",
+                    "group": "root",
+                    "mode": "600",
+                    "is-dir": "True",
+                },
+            ),
+            ("menu", {"name": "testmenucopy"}),
+        ],
+    )
+    def test_copy(
+        self,
+        run_cmd,
+        add_object_via_cli,
+        remove_object_via_cli,
+        create_kernel_initrd,
+        fk_initrd,
+        fk_kernel,
+        object_type,
+        attributes,
+    ):
         # Arrange
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
@@ -260,18 +458,42 @@ menus:
             attributes["kernel"] = kernel_path
             attributes["initrd"] = initrd_path
         elif object_type == "profile":
-            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": kernel_path, "initrd": initrd_path,
-                                          "breed": "suse", "arch": "x86_64"})
+            add_object_via_cli(
+                "distro",
+                {
+                    "name": name_distro_profile,
+                    "kernel": kernel_path,
+                    "initrd": initrd_path,
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            )
         elif object_type == "system":
-            add_object_via_cli("distro", {"name": name_distro_system,  "kernel": kernel_path, "initrd": initrd_path,
-                                          "breed": "suse", "arch": "x86_64"})
-            add_object_via_cli("profile", {"name": name_profile_system, "distro": name_distro_system})
+            add_object_via_cli(
+                "distro",
+                {
+                    "name": name_distro_system,
+                    "kernel": kernel_path,
+                    "initrd": initrd_path,
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            )
+            add_object_via_cli(
+                "profile", {"name": name_profile_system, "distro": name_distro_system}
+            )
         add_object_via_cli(object_type, attributes)
         new_object_name = "%s-copy" % attributes["name"]
 
         # Act
-        (outputstd, outputerr) = run_cmd(cmd=[object_type, "copy", "--name=%s" % attributes["name"], "--newname=%s"
-                                              % new_object_name])
+        (outputstd, outputerr) = run_cmd(
+            cmd=[
+                object_type,
+                "copy",
+                "--name=%s" % attributes["name"],
+                "--newname=%s" % new_object_name,
+            ]
+        )
 
         # Cleanup
         remove_object_via_cli(object_type, attributes["name"])
@@ -285,21 +507,56 @@ menus:
         # Assert
         assert not outputstd
 
-    @pytest.mark.parametrize("object_type,attributes", [
-        ("distro", {"name": "testdistrorename", "kernel": "Set in method", "initrd": "Set in method", "breed": "suse",
-                    "arch": "x86_64"}),
-        ("profile", {"name": "testprofilerename", "distro": "testdistro_rename_profile"}),
-        ("system", {"name": "testsystemrename", "profile": "testprofile_rename_system"}),
-        ("image", {"name": "testimagerename"}),
-        ("repo", {"name": "testreporename", "mirror": "http://localhost"}),
-        ("package", {"name": "testpackagerename"}),
-        ("mgmtclass", {"name": "testmgmtclassrename"}),
-        ("file", {"name": "testfilerename", "path": "/tmp", "owner": "root", "group": "root", "mode": "600",
-                  "is-dir": "True"}),
-        ("menu", {"name": "testmenurename"}),
-    ])
-    def test_rename(self, run_cmd, add_object_via_cli, remove_object_via_cli, create_kernel_initrd, fk_initrd,
-                    fk_kernel, object_type, attributes):
+    @pytest.mark.parametrize(
+        "object_type,attributes",
+        [
+            (
+                "distro",
+                {
+                    "name": "testdistrorename",
+                    "kernel": "Set in method",
+                    "initrd": "Set in method",
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            ),
+            (
+                "profile",
+                {"name": "testprofilerename", "distro": "testdistro_rename_profile"},
+            ),
+            (
+                "system",
+                {"name": "testsystemrename", "profile": "testprofile_rename_system"},
+            ),
+            ("image", {"name": "testimagerename"}),
+            ("repo", {"name": "testreporename", "mirror": "http://localhost"}),
+            ("package", {"name": "testpackagerename"}),
+            ("mgmtclass", {"name": "testmgmtclassrename"}),
+            (
+                "file",
+                {
+                    "name": "testfilerename",
+                    "path": "/tmp",
+                    "owner": "root",
+                    "group": "root",
+                    "mode": "600",
+                    "is-dir": "True",
+                },
+            ),
+            ("menu", {"name": "testmenurename"}),
+        ],
+    )
+    def test_rename(
+        self,
+        run_cmd,
+        add_object_via_cli,
+        remove_object_via_cli,
+        create_kernel_initrd,
+        fk_initrd,
+        fk_kernel,
+        object_type,
+        attributes,
+    ):
         # Arrange
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
@@ -311,18 +568,42 @@ menus:
             attributes["kernel"] = kernel_path
             attributes["initrd"] = initrd_path
         elif object_type == "profile":
-            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": kernel_path, "initrd": initrd_path,
-                                          "breed": "suse", "arch": "x86_64"})
+            add_object_via_cli(
+                "distro",
+                {
+                    "name": name_distro_profile,
+                    "kernel": kernel_path,
+                    "initrd": initrd_path,
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            )
         elif object_type == "system":
-            add_object_via_cli("distro", {"name": name_distro_system, "kernel": kernel_path, "initrd": initrd_path,
-                                          "breed": "suse", "arch": "x86_64"})
-            add_object_via_cli("profile", {"name": name_profile_system, "distro": name_distro_system})
+            add_object_via_cli(
+                "distro",
+                {
+                    "name": name_distro_system,
+                    "kernel": kernel_path,
+                    "initrd": initrd_path,
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            )
+            add_object_via_cli(
+                "profile", {"name": name_profile_system, "distro": name_distro_system}
+            )
         add_object_via_cli(object_type, attributes)
         new_object_name = "%s-renamed" % attributes["name"]
 
         # Act
         (outputstd, outputerr) = run_cmd(
-            cmd=[object_type, "rename", "--name=%s" % attributes["name"], "--newname=%s" % new_object_name])
+            cmd=[
+                object_type,
+                "rename",
+                "--name=%s" % attributes["name"],
+                "--newname=%s" % new_object_name,
+            ]
+        )
 
         # Cleanup
         remove_object_via_cli(object_type, new_object_name)
@@ -335,21 +616,51 @@ menus:
         # Assert
         assert not outputstd
 
-    @pytest.mark.parametrize("object_type,attributes", [
-        ("distro", {"name": "testdistroadd", "kernel": "Set in method", "initrd": "Set in method", "breed": "suse",
-                    "arch": "x86_64"}),
-        ("profile", {"name": "testprofileadd", "distro": "testdistroadd_profile"}),
-        ("system", {"name": "testsystemadd", "profile": "testprofileadd_system"}),
-        ("image", {"name": "testimageadd"}),
-        ("repo", {"name": "testrepoadd", "mirror": "http://localhost"}),
-        ("package", {"name": "testpackageadd"}),
-        ("mgmtclass", {"name": "testmgmtclassadd"}),
-        ("file", {"name": "testfileadd", "path": "/tmp", "owner": "root", "group": "root", "mode": "600",
-                  "is-dir": "True"}),
-        ("menu", {"name": "testmenuadd"}),
-    ])
-    def test_add(self, run_cmd, remove_object_via_cli, generate_run_cmd_array, create_kernel_initrd, fk_initrd,
-                 fk_kernel, add_object_via_cli, object_type, attributes):
+    @pytest.mark.parametrize(
+        "object_type,attributes",
+        [
+            (
+                "distro",
+                {
+                    "name": "testdistroadd",
+                    "kernel": "Set in method",
+                    "initrd": "Set in method",
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            ),
+            ("profile", {"name": "testprofileadd", "distro": "testdistroadd_profile"}),
+            ("system", {"name": "testsystemadd", "profile": "testprofileadd_system"}),
+            ("image", {"name": "testimageadd"}),
+            ("repo", {"name": "testrepoadd", "mirror": "http://localhost"}),
+            ("package", {"name": "testpackageadd"}),
+            ("mgmtclass", {"name": "testmgmtclassadd"}),
+            (
+                "file",
+                {
+                    "name": "testfileadd",
+                    "path": "/tmp",
+                    "owner": "root",
+                    "group": "root",
+                    "mode": "600",
+                    "is-dir": "True",
+                },
+            ),
+            ("menu", {"name": "testmenuadd"}),
+        ],
+    )
+    def test_add(
+        self,
+        run_cmd,
+        remove_object_via_cli,
+        generate_run_cmd_array,
+        create_kernel_initrd,
+        fk_initrd,
+        fk_kernel,
+        add_object_via_cli,
+        object_type,
+        attributes,
+    ):
         # Arrange
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
@@ -361,12 +672,30 @@ menus:
             attributes["kernel"] = kernel_path
             attributes["initrd"] = initrd_path
         elif object_type == "profile":
-            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": kernel_path, "initrd": initrd_path,
-                                          "breed": "suse", "arch": "x86_64"})
+            add_object_via_cli(
+                "distro",
+                {
+                    "name": name_distro_profile,
+                    "kernel": kernel_path,
+                    "initrd": initrd_path,
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            )
         elif object_type == "system":
-            add_object_via_cli("distro", {"name": name_distro_system, "kernel": kernel_path, "initrd": initrd_path,
-                                          "breed": "suse", "arch": "x86_64"})
-            add_object_via_cli("profile", {"name": name_profile_system, "distro": name_distro_system})
+            add_object_via_cli(
+                "distro",
+                {
+                    "name": name_distro_system,
+                    "kernel": kernel_path,
+                    "initrd": initrd_path,
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            )
+            add_object_via_cli(
+                "profile", {"name": name_profile_system, "distro": name_distro_system}
+            )
 
         cmd_list = [object_type, "add"]
         options = generate_run_cmd_array(attributes)
@@ -386,21 +715,56 @@ menus:
         # Assert
         assert not outputstd
 
-    @pytest.mark.parametrize("object_type,attributes", [
-        ("distro", {"name": "testdistroremove", "kernel": "Set in method", "initrd": "Set in method", "breed": "suse",
-                    "arch": "x86_64"}),
-        ("profile", {"name": "testprofileremove", "distro": "testdistroremove_profile"}),
-        ("system", {"name": "testsystemremove", "profile": "testprofileremove_system"}),
-        ("image", {"name": "testimageremove"}),
-        ("repo", {"name": "testreporemove", "mirror": "http://localhost"}),
-        ("package", {"name": "testpackageremove"}),
-        ("mgmtclass", {"name": "testmgmtclassremove"}),
-        ("file", {"name": "testfileremove", "path": "/tmp", "owner": "root", "group": "root", "mode": "600",
-                  "is-dir": "True"}),
-        ("menu", {"name": "testmenuremove"}),
-    ])
-    def test_remove(self, run_cmd, add_object_via_cli, remove_object_via_cli, create_kernel_initrd, fk_initrd,
-                    fk_kernel, object_type, attributes):
+    @pytest.mark.parametrize(
+        "object_type,attributes",
+        [
+            (
+                "distro",
+                {
+                    "name": "testdistroremove",
+                    "kernel": "Set in method",
+                    "initrd": "Set in method",
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            ),
+            (
+                "profile",
+                {"name": "testprofileremove", "distro": "testdistroremove_profile"},
+            ),
+            (
+                "system",
+                {"name": "testsystemremove", "profile": "testprofileremove_system"},
+            ),
+            ("image", {"name": "testimageremove"}),
+            ("repo", {"name": "testreporemove", "mirror": "http://localhost"}),
+            ("package", {"name": "testpackageremove"}),
+            ("mgmtclass", {"name": "testmgmtclassremove"}),
+            (
+                "file",
+                {
+                    "name": "testfileremove",
+                    "path": "/tmp",
+                    "owner": "root",
+                    "group": "root",
+                    "mode": "600",
+                    "is-dir": "True",
+                },
+            ),
+            ("menu", {"name": "testmenuremove"}),
+        ],
+    )
+    def test_remove(
+        self,
+        run_cmd,
+        add_object_via_cli,
+        remove_object_via_cli,
+        create_kernel_initrd,
+        fk_initrd,
+        fk_kernel,
+        object_type,
+        attributes,
+    ):
         # Arrange
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
@@ -412,16 +776,36 @@ menus:
             attributes["kernel"] = kernel_path
             attributes["initrd"] = initrd_path
         elif object_type == "profile":
-            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": kernel_path, "initrd": initrd_path,
-                                          "breed": "suse", "arch": "x86_64"})
+            add_object_via_cli(
+                "distro",
+                {
+                    "name": name_distro_profile,
+                    "kernel": kernel_path,
+                    "initrd": initrd_path,
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            )
         elif object_type == "system":
-            add_object_via_cli("distro", {"name": name_distro_system, "kernel": kernel_path, "initrd": initrd_path,
-                                          "breed": "suse", "arch": "x86_64"})
-            add_object_via_cli("profile", {"name": name_profile_system, "distro": name_distro_system})
+            add_object_via_cli(
+                "distro",
+                {
+                    "name": name_distro_system,
+                    "kernel": kernel_path,
+                    "initrd": initrd_path,
+                    "breed": "suse",
+                    "arch": "x86_64",
+                },
+            )
+            add_object_via_cli(
+                "profile", {"name": name_profile_system, "distro": name_distro_system}
+            )
         add_object_via_cli(object_type, attributes)
 
         # Act
-        (outputstd, outputerr) = run_cmd(cmd=[object_type, "remove", "--name=%s" % attributes["name"]])
+        (outputstd, outputerr) = run_cmd(
+            cmd=[object_type, "remove", "--name=%s" % attributes["name"]]
+        )
 
         # Cleanup
         if object_type == "profile":

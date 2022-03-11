@@ -31,7 +31,9 @@ class ConvertableEnum(enum.Enum):
                     try:
                         return cls["INHERITED"]
                     except KeyError as key_error:
-                        raise ValueError("The enum given does not support inheritance!") from key_error
+                        raise ValueError(
+                            "The enum given does not support inheritance!"
+                        ) from key_error
                 return cls[value.upper()]
             elif isinstance(value, cls):
                 return value
