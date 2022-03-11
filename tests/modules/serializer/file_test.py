@@ -40,7 +40,7 @@ def test_find_double_json_files_1(tmpdir: pathlib.Path):
     file_one = tmpdir.join("double.json")
     file_double = tmpdir.join("double.json.json")
     with open(file_double, "w") as duplicate:
-        duplicate.write('double\n')
+        duplicate.write("double\n")
 
     # Act
     file.__find_double_json_files(file_one)
@@ -54,9 +54,9 @@ def test_find_double_json_files_raise(tmpdir: pathlib.Path):
     file_one = tmpdir.join("double.json")
     file_double = tmpdir.join("double.json.json")
     with open(file_one, "w") as duplicate:
-        duplicate.write('one\n')
+        duplicate.write("one\n")
     with open(file_double, "w") as duplicate:
-        duplicate.write('double\n')
+        duplicate.write("double\n")
 
     # Act and assert
     with pytest.raises(FileExistsError):
@@ -102,7 +102,9 @@ def test_serialize_delete(tmpdir: pathlib.Path):
     file.libpath = tmpdir
     mcollection.collection_types.return_value = "distros"
     os.mkdir(os.path.join(tmpdir, mcollection.collection_types()))
-    expected_path = os.path.join(tmpdir, mcollection.collection_types(), mitem.name + ".json")
+    expected_path = os.path.join(
+        tmpdir, mcollection.collection_types(), mitem.name + ".json"
+    )
     pathlib.Path(expected_path).touch()
 
     # Act
@@ -112,10 +114,10 @@ def test_serialize_delete(tmpdir: pathlib.Path):
     assert not os.path.exists(expected_path)
 
 
-@pytest.mark.parametrize("input_collection_type,input_collection", [
-    ("settings", {}),
-    ("distros", MagicMock())
-])
+@pytest.mark.parametrize(
+    "input_collection_type,input_collection",
+    [("settings", {}), ("distros", MagicMock())],
+)
 def test_serialize(input_collection_type, input_collection, mocker):
     # Arrange
     stub = mocker.stub()
@@ -123,10 +125,14 @@ def test_serialize(input_collection_type, input_collection, mocker):
     if input_collection_type == "settings":
         mock = Settings()
     else:
-        mocker.patch("cobbler.cobbler_collections.collection.Collection.collection_types",
-                     return_value=input_collection_type)
-        mocker.patch("cobbler.cobbler_collections.collection.Collection.collection_type",
-                     return_value="")
+        mocker.patch(
+            "cobbler.cobbler_collections.collection.Collection.collection_types",
+            return_value=input_collection_type,
+        )
+        mocker.patch(
+            "cobbler.cobbler_collections.collection.Collection.collection_type",
+            return_value="",
+        )
         mock = Collection(MagicMock())
         mock.listing["test"] = input_collection
 
@@ -141,10 +147,13 @@ def test_serialize(input_collection_type, input_collection, mocker):
         stub.assert_called_with(mock, input_collection)
 
 
-@pytest.mark.parametrize("input_collection_type,expected_result,settings_read", [
-    ("settings", {}, True),
-    ("distros", [], False),
-])
+@pytest.mark.parametrize(
+    "input_collection_type,expected_result,settings_read",
+    [
+        ("settings", {}, True),
+        ("distros", [], False),
+    ],
+)
 def test_deserialize_raw(input_collection_type, expected_result, settings_read, mocker):
     # Arrange
     mocker.patch("cobbler.settings.read_settings_file", return_value=expected_result)
@@ -156,19 +165,45 @@ def test_deserialize_raw(input_collection_type, expected_result, settings_read, 
     assert result == expected_result
 
 
-@pytest.mark.parametrize("input_collection_type,input_collection,input_topological,expected_result", [
-    ("settings", {}, True, {}),
-    ("settings", {}, False, {}),
-    ("distros", [{'depth': 2, 'name': False}, {'depth': 1, 'name': True}], True,
-     [{'depth': 1, 'name': True}, {'depth': 2, 'name': False}]),
-    ("distros", [{'depth': 2, 'name': False}, {'depth': 1, 'name': True}], False,
-     [{'depth': 2, 'name': False}, {'depth': 1, 'name': True}]),
-    ("distros", [{'name': False}, {'name': True}], True, [{'name': False}, {'name': True}]),
-    ("distros", [{'name': False}, {'name': True}], False, [{'name': False}, {'name': True}]),
-])
-def test_deserialize(input_collection_type, input_collection, input_topological, expected_result, mocker):
+@pytest.mark.parametrize(
+    "input_collection_type,input_collection,input_topological,expected_result",
+    [
+        ("settings", {}, True, {}),
+        ("settings", {}, False, {}),
+        (
+            "distros",
+            [{"depth": 2, "name": False}, {"depth": 1, "name": True}],
+            True,
+            [{"depth": 1, "name": True}, {"depth": 2, "name": False}],
+        ),
+        (
+            "distros",
+            [{"depth": 2, "name": False}, {"depth": 1, "name": True}],
+            False,
+            [{"depth": 2, "name": False}, {"depth": 1, "name": True}],
+        ),
+        (
+            "distros",
+            [{"name": False}, {"name": True}],
+            True,
+            [{"name": False}, {"name": True}],
+        ),
+        (
+            "distros",
+            [{"name": False}, {"name": True}],
+            False,
+            [{"name": False}, {"name": True}],
+        ),
+    ],
+)
+def test_deserialize(
+    input_collection_type, input_collection, input_topological, expected_result, mocker
+):
     # Arrange
-    mocker.patch("cobbler.modules.serializers.file.deserialize_raw", return_value=input_collection)
+    mocker.patch(
+        "cobbler.modules.serializers.file.deserialize_raw",
+        return_value=input_collection,
+    )
     if input_collection_type == "settings":
         stub_from = mocker.stub(name="from_dict_stub")
         mock = Settings()
@@ -177,8 +212,10 @@ def test_deserialize(input_collection_type, input_collection, input_topological,
         stub_from = mocker.stub(name="from_list_stub")
         mock = Collection(MagicMock())
         mocker.patch.object(mock, "from_list", new=stub_from)
-        mocker.patch("cobbler.cobbler_collections.collection.Collection.collection_types",
-                     return_value=input_collection_type)
+        mocker.patch(
+            "cobbler.cobbler_collections.collection.Collection.collection_types",
+            return_value=input_collection_type,
+        )
 
     # Act
     file.deserialize(mock, input_topological)

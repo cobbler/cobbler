@@ -37,24 +37,26 @@ def hashfun(text: str) -> str:
     """
     hashfunction = get_module_name("authentication", "hash_algorithm", "sha3_512")
     if hashfunction == "sha3_224":
-        hashalgorithm = hashlib.sha3_224(text.encode('utf-8'))
+        hashalgorithm = hashlib.sha3_224(text.encode("utf-8"))
     elif hashfunction == "sha3_384":
-        hashalgorithm = hashlib.sha3_384(text.encode('utf-8'))
+        hashalgorithm = hashlib.sha3_384(text.encode("utf-8"))
     elif hashfunction == "sha3_256":
-        hashalgorithm = hashlib.sha3_256(text.encode('utf-8'))
+        hashalgorithm = hashlib.sha3_256(text.encode("utf-8"))
     elif hashfunction == "sha3_512":
-        hashalgorithm = hashlib.sha3_512(text.encode('utf-8'))
+        hashalgorithm = hashlib.sha3_512(text.encode("utf-8"))
     elif hashfunction == "blake2b":
-        hashalgorithm = hashlib.blake2b(text.encode('utf-8'))
+        hashalgorithm = hashlib.blake2b(text.encode("utf-8"))
     elif hashfunction == "blake2s":
-        hashalgorithm = hashlib.blake2s(text.encode('utf-8'))
+        hashalgorithm = hashlib.blake2s(text.encode("utf-8"))
     elif hashfunction == "shake_128":
-        hashalgorithm = hashlib.shake_128(text.encode('utf-8'))
+        hashalgorithm = hashlib.shake_128(text.encode("utf-8"))
     elif hashfunction == "shake_256":
-        hashalgorithm = hashlib.shake_256(text.encode('utf-8'))
+        hashalgorithm = hashlib.shake_256(text.encode("utf-8"))
     else:
-        errortext = "The hashfunction (Currently: %s) must be one of the defined in /etc/cobbler/modules.conf!" \
-                    % hashfunction
+        errortext = (
+            "The hashfunction (Currently: %s) must be one of the defined in /etc/cobbler/modules.conf!"
+            % hashfunction
+        )
         raise ValueError(errortext)
     return hashalgorithm.hexdigest()
 
@@ -74,7 +76,7 @@ def __parse_storage() -> List[List[str]]:
     """
     if not os.path.exists("/etc/cobbler/users.digest"):
         return []
-    with open("/etc/cobbler/users.digest", encoding='utf-8') as fd:
+    with open("/etc/cobbler/users.digest", encoding="utf-8") as fd:
         data = fd.read()
     results = []
     lines = data.split("\n")

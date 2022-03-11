@@ -64,7 +64,9 @@ class Distro(item.Item):
     def __getattr__(self, name):
         if name == "ks_meta":
             return self.autoinstall_meta
-        raise AttributeError("Attribute \"%s\" did not exist on object type Distro." % name)
+        raise AttributeError(
+            'Attribute "%s" did not exist on object type Distro.' % name
+        )
 
     #
     # override some base class methods first (item.Item)
@@ -138,7 +140,9 @@ class Distro(item.Item):
 
         :param value: Is ignored.
         """
-        self.logger.warning("Setting the parent of a distribution is not supported. Ignoring action!")
+        self.logger.warning(
+            "Setting the parent of a distribution is not supported. Ignoring action!"
+        )
 
     @property
     def kernel(self) -> str:
@@ -189,16 +193,22 @@ class Distro(item.Item):
         :raises ValueError: Raised in case the validation is not succeeding.
         """
         if not isinstance(remote_boot_kernel, str):
-            raise TypeError("Field remote_boot_kernel of distro needs to be of type str!")
+            raise TypeError(
+                "Field remote_boot_kernel of distro needs to be of type str!"
+            )
         if not remote_boot_kernel:
             self._remote_grub_kernel = remote_boot_kernel
             self._remote_boot_kernel = remote_boot_kernel
             return
         if not validate.validate_boot_remote_file(remote_boot_kernel):
-            raise ValueError("remote_boot_kernel needs to be a valid URL starting with tftp or http!")
+            raise ValueError(
+                "remote_boot_kernel needs to be a valid URL starting with tftp or http!"
+            )
         parsed_url = grub.parse_grub_remote_file(remote_boot_kernel)
         if parsed_url is None:
-            raise ValueError("Invalid URL for remote boot kernel: %s" % remote_boot_kernel)
+            raise ValueError(
+                "Invalid URL for remote boot kernel: %s" % remote_boot_kernel
+            )
         self._remote_grub_kernel = parsed_url
         self._remote_boot_kernel = remote_boot_kernel
 
@@ -340,10 +350,14 @@ class Distro(item.Item):
             self._remote_grub_initrd = remote_boot_initrd
             return
         if not validate.validate_boot_remote_file(remote_boot_initrd):
-            raise ValueError("remote_boot_initrd needs to be a valid URL starting with tftp or http!")
+            raise ValueError(
+                "remote_boot_initrd needs to be a valid URL starting with tftp or http!"
+            )
         parsed_url = grub.parse_grub_remote_file(remote_boot_initrd)
         if parsed_url is None:
-            raise ValueError("Invalid URL for remote boot initrd: %s" % remote_boot_initrd)
+            raise ValueError(
+                "Invalid URL for remote boot initrd: %s" % remote_boot_initrd
+            )
         self._remote_grub_initrd = parsed_url
         self._remote_boot_initrd = remote_boot_initrd
 
@@ -367,7 +381,9 @@ class Distro(item.Item):
         :raises TypeError: In case the value was not of type ``str``.
         """
         if not isinstance(repos, list):
-            raise TypeError("Field source_repos in object distro needs to be of type list.")
+            raise TypeError(
+                "Field source_repos in object distro needs to be of type list."
+            )
         self._source_repos = repos
 
     @property
@@ -440,8 +456,10 @@ class Distro(item.Item):
             raise TypeError("boot_loaders needs to be of type list!")
 
         if not set(boot_loaders).issubset(self.supported_boot_loaders):
-            raise ValueError("Invalid boot loader names: %s. Supported boot loaders are: %s" %
-                             (boot_loaders, ' '.join(self.supported_boot_loaders)))
+            raise ValueError(
+                "Invalid boot loader names: %s. Supported boot loaders are: %s"
+                % (boot_loaders, " ".join(self.supported_boot_loaders))
+            )
         self._boot_loaders = boot_loaders
 
     @property
@@ -463,7 +481,9 @@ class Distro(item.Item):
         :param management_key: The redhat management key.
         """
         if not isinstance(management_key, str):
-            raise TypeError("Field redhat_management_key of object distro needs to be of type str!")
+            raise TypeError(
+                "Field redhat_management_key of object distro needs to be of type str!"
+            )
         self._redhat_management_key = management_key
 
     @property

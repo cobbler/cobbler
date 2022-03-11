@@ -34,6 +34,7 @@ class AutoInstallationGen:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
+
     def __init__(self, api):
         """
         Constructor
@@ -83,12 +84,16 @@ class AutoInstallationGen:
         added = 0
         for stype in scripts[0].childNodes:
             if stype.nodeType == stype.ELEMENT_NODE and stype.tagName == type:
-                stype.appendChild(self.createAutoYaSTScript(document, source, type + "_cobbler"))
+                stype.appendChild(
+                    self.createAutoYaSTScript(document, source, type + "_cobbler")
+                )
                 added = 1
         if added == 0:
             newChrootScripts = document.createElement(type)
             newChrootScripts.setAttribute("config:type", "list")
-            newChrootScripts.appendChild(self.createAutoYaSTScript(document, source, type + "_cobbler"))
+            newChrootScripts.appendChild(
+                self.createAutoYaSTScript(document, source, type + "_cobbler")
+            )
             scripts[0].appendChild(newChrootScripts)
 
     def generate_autoyast(self, profile=None, system=None, raw_data=None) -> str:
@@ -101,9 +106,12 @@ class AutoInstallationGen:
         :param raw_data: The raw data which should be included in the profile.
         :return: The generated AutoYaST XML file.
         """
-        self.api.logger.info("AutoYaST XML file found. Checkpoint: profile=%s system=%s" % (profile, system))
-        runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" > /dev/null"
-        runpre = "\ncurl \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" > /dev/null"
+        self.api.logger.info(
+            "AutoYaST XML file found. Checkpoint: profile=%s system=%s"
+            % (profile, system)
+        )
+        runpost = '\ncurl "http://%s/cblr/svc/op/trig/mode/post/%s/%s" > /dev/null'
+        runpre = '\ncurl "http://%s/cblr/svc/op/trig/mode/pre/%s/%s" > /dev/null'
 
         what = "profile"
         blend_this = profile
@@ -129,10 +137,10 @@ class AutoInstallationGen:
             cobblerElement = document.createElement("cobbler")
             cobblerElementSystem = xml.dom.minidom.Element("system_name")
             cobblerElementProfile = xml.dom.minidom.Element("profile_name")
-            if (system is not None):
+            if system is not None:
                 cobblerTextSystem = document.createTextNode(system.name)
                 cobblerElementSystem.appendChild(cobblerTextSystem)
-            if (profile is not None):
+            if profile is not None:
                 cobblerTextProfile = document.createTextNode(profile.name)
                 cobblerElementProfile.appendChild(cobblerTextProfile)
 
@@ -157,7 +165,9 @@ class AutoInstallationGen:
         if self.settings.run_install_triggers:
             # notify cobblerd when we start/finished the installation
             self.addAutoYaSTScript(document, "pre-scripts", runpre % (srv, what, name))
-            self.addAutoYaSTScript(document, "init-scripts", runpost % (srv, what, name))
+            self.addAutoYaSTScript(
+                document, "init-scripts", runpost % (srv, what, name)
+            )
 
         return document.toxml()
 
@@ -184,24 +194,37 @@ class AutoInstallationGen:
             # see if this is a source_repo or not
             repo_obj = self.api.find_repo(repo)
             if repo_obj is not None:
-                yumopts = ''
+                yumopts = ""
                 for opt in repo_obj.yumopts:
                     # filter invalid values to the repo statement in automatic installation files
 
-                    if opt in ['exclude', 'include']:
-                        value = repo_obj.yumopts[opt].replace(' ', ',')
+                    if opt in ["exclude", "include"]:
+                        value = repo_obj.yumopts[opt].replace(" ", ",")
                         yumopts = yumopts + " --%spkgs=%s" % (opt, value)
                     elif not opt.lower() in validate.AUTOINSTALL_REPO_BLACKLIST:
                         yumopts += " %s=%s" % (opt, repo_obj.yumopts[opt])
-                if 'enabled' not in repo_obj.yumopts or repo_obj.yumopts['enabled'] == '1':
+                if (
+                    "enabled" not in repo_obj.yumopts
+                    or repo_obj.yumopts["enabled"] == "1"
+                ):
                     if repo_obj.mirror_locally:
-                        baseurl = "http://%s/cobbler/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
+                        baseurl = "http://%s/cobbler/repo_mirror/%s" % (
+                            blended["http_server"],
+                            repo_obj.name,
+                        )
                         if baseurl not in included:
-                            buf += "repo --name=%s --baseurl=%s\n" % (repo_obj.name, baseurl)
+                            buf += "repo --name=%s --baseurl=%s\n" % (
+                                repo_obj.name,
+                                baseurl,
+                            )
                         included[baseurl] = 1
                     else:
                         if repo_obj.mirror not in included:
-                            buf += "repo --name=%s --baseurl=%s %s\n" % (repo_obj.name, repo_obj.mirror, yumopts)
+                            buf += "repo --name=%s --baseurl=%s %s\n" % (
+                                repo_obj.name,
+                                repo_obj.mirror,
+                                yumopts,
+                            )
                         included[repo_obj.mirror] = 1
             else:
                 # FIXME: what to do if we can't find the repo object that is listed?
@@ -240,11 +263,17 @@ class AutoInstallationGen:
 
         blended = utils.blender(self.api, False, obj)
         if is_profile:
-            url = "http://%s/cblr/svc/op/yum/profile/%s" % (blended["http_server"], obj.name)
+            url = "http://%s/cblr/svc/op/yum/profile/%s" % (
+                blended["http_server"],
+                obj.name,
+            )
         else:
-            url = "http://%s/cblr/svc/op/yum/system/%s" % (blended["http_server"], obj.name)
+            url = "http://%s/cblr/svc/op/yum/system/%s" % (
+                blended["http_server"],
+                obj.name,
+            )
 
-        return "curl \"%s\" --output /etc/yum.repos.d/cobbler-config.repo\n" % (url)
+        return 'curl "%s" --output /etc/yum.repos.d/cobbler-config.repo\n' % (url)
 
     def generate_autoinstall_for_system(self, sys_name) -> str:
         """
@@ -260,8 +289,10 @@ class AutoInstallationGen:
 
         p = s.get_conceptual_parent()
         if p is None:
-            raise CX("system %(system)s references missing profile %(profile)s"
-                     % {"system": s.name, "profile": s.profile})
+            raise CX(
+                "system %(system)s references missing profile %(profile)s"
+                % {"system": s.name, "profile": s.profile}
+            )
 
         distro = p.get_conceptual_parent()
         if distro is None:
@@ -291,7 +322,10 @@ class AutoInstallationGen:
         autoinstall_rel_path = meta["autoinstall"]
 
         if not autoinstall_rel_path:
-            return "# automatic installation file value missing or invalid at %s %s" % (obj_type, obj.name)
+            return "# automatic installation file value missing or invalid at %s %s" % (
+                obj_type,
+                obj.name,
+            )
 
         # get parent distro
         distro = profile.get_conceptual_parent()
@@ -306,12 +340,16 @@ class AutoInstallationGen:
         # add package repositories metadata to autoinstall metavariables
         if distro.breed == "redhat":
             meta["yum_repo_stanza"] = self.generate_repo_stanza(obj, (system is None))
-            meta["yum_config_stanza"] = self.generate_config_stanza(obj, (system is None))
+            meta["yum_config_stanza"] = self.generate_config_stanza(
+                obj, (system is None)
+            )
         # FIXME: implement something similar to zypper (SUSE based distros) and apt (Debian based distros)
 
         meta["kernel_options"] = utils.dict_to_string(meta["kernel_options"])
         if "kernel_options_post" in meta:
-            meta["kernel_options_post"] = utils.dict_to_string(meta["kernel_options_post"])
+            meta["kernel_options_post"] = utils.dict_to_string(
+                meta["kernel_options_post"]
+            )
 
         # add install_source_directory metavariable to autoinstall metavariables if distro is based on Debian
         if distro.breed in ["debian", "ubuntu"] and "tree" in meta:
@@ -319,15 +357,20 @@ class AutoInstallationGen:
             meta["install_source_directory"] = urlparts[2]
 
         try:
-            autoinstall_path = "%s/%s" % (self.settings.autoinstall_templates_dir, autoinstall_rel_path)
+            autoinstall_path = "%s/%s" % (
+                self.settings.autoinstall_templates_dir,
+                autoinstall_rel_path,
+            )
             raw_data = utils.read_file_contents(autoinstall_path)
 
             data = self.templar.render(raw_data, meta, None)
 
             return data
         except FileNotFoundError:
-            error_msg = "automatic installation file %s not found at %s" \
-                        % (meta["autoinstall"], self.settings.autoinstall_templates_dir)
+            error_msg = "automatic installation file %s not found at %s" % (
+                meta["autoinstall"],
+                self.settings.autoinstall_templates_dir,
+            )
             self.api.logger.warning(error_msg)
             return "# %s" % error_msg
 
@@ -345,8 +388,10 @@ class AutoInstallationGen:
 
         distro = g.get_conceptual_parent()
         if distro is None:
-            raise CX("profile %(profile)s references missing distro %(distro)s"
-                     % {"profile": g.name, "distro": g.distro})
+            raise CX(
+                "profile %(profile)s references missing distro %(distro)s"
+                % {"profile": g.name, "distro": g.distro}
+            )
 
         return self.generate_autoinstall(profile=g)
 

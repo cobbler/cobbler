@@ -22,12 +22,13 @@ if PROFILING:
     print("** PROFILING **")
     import hotshot
     import hotshot.stats
+
     prof = hotshot.Profile("cobbler.prof")
     prof.runcall(app.main)
     prof.close()
     stats = hotshot.stats.load("cobbler.prof")
     stats.strip_dirs()
-    stats.sort_stats('time')
+    stats.sort_stats("time")
     print("** REPORT **")
     stats.print_stats(100)
     sys.exit(0)

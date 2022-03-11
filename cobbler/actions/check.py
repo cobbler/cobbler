@@ -120,9 +120,13 @@ class CobblerCheck:
         :param status: The status list with possible problems. The status list with possible problems.
         """
         # not doing rpm -q here to be cross-distro friendly
-        if not os.path.exists("/sbin/fence_ilo") and not os.path.exists("/usr/sbin/fence_ilo"):
-            status.append("fencing tools were not found, and are required to use the (optional) power management "
-                          "features. install cman or fence-agents to use them")
+        if not os.path.exists("/sbin/fence_ilo") and not os.path.exists(
+            "/usr/sbin/fence_ilo"
+        ):
+            status.append(
+                "fencing tools were not found, and are required to use the (optional) power management "
+                "features. install cman or fence-agents to use them"
+            )
 
     def check_service(self, status, which, notes=""):
         """
@@ -136,34 +140,40 @@ class CobblerCheck:
             notes = " (NOTE: %s)" % notes
         return_code = 0
         if utils.is_supervisord():
-            with ServerProxy('http://localhost:9001/RPC2') as server:
+            with ServerProxy("http://localhost:9001/RPC2") as server:
                 process_info = server.supervisor.getProcessInfo(which)
-                if process_info['statename'] != "RUNNING":
+                if process_info["statename"] != "RUNNING":
                     status.append("service %s is not running%s" % (which, notes))
                     return
         elif utils.is_systemd():
-            return_code = utils.subprocess_call("systemctl status %s > /dev/null 2>/dev/null" % which,
-                                                shell=True)
+            return_code = utils.subprocess_call(
+                "systemctl status %s > /dev/null 2>/dev/null" % which, shell=True
+            )
             if return_code != 0:
                 status.append("service %s is not running%s" % (which, notes))
                 return
         elif self.checked_family in ("redhat", "suse"):
             if os.path.exists("/etc/rc.d/init.d/%s" % which):
-                return_code = utils.subprocess_call("/sbin/service %s status > /dev/null 2>/dev/null" % which,
-                                                    shell=True)
+                return_code = utils.subprocess_call(
+                    "/sbin/service %s status > /dev/null 2>/dev/null" % which,
+                    shell=True,
+                )
             if return_code != 0:
                 status.append("service %s is not running%s" % (which, notes))
                 return
         elif self.checked_family == "debian":
             # we still use /etc/init.d
             if os.path.exists("/etc/init.d/%s" % which):
-                return_code = utils.subprocess_call("/etc/init.d/%s status /dev/null 2>/dev/null" % which,
-                                                    shell=True)
+                return_code = utils.subprocess_call(
+                    "/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True
+                )
             if return_code != 0:
                 status.append("service %s is not running%s" % (which, notes))
                 return
         else:
-            status.append("Unknown distribution type, cannot check for running service %s" % which)
+            status.append(
+                "Unknown distribution type, cannot check for running service %s" % which
+            )
             return
 
     def check_iptables(self, status):
@@ -176,11 +186,14 @@ class CobblerCheck:
         """
         # TODO: Rewrite check to be able to verify this is in more cases
         if os.path.exists("/etc/rc.d/init.d/iptables"):
-            return_code = utils.subprocess_call("/sbin/service iptables status >/dev/null 2>/dev/null",
-                                                shell=True)
+            return_code = utils.subprocess_call(
+                "/sbin/service iptables status >/dev/null 2>/dev/null", shell=True
+            )
             if return_code == 0:
-                status.append("since iptables may be running, ensure 69, 80/443, and %(xmlrpc)s are unblocked"
-                              % {"xmlrpc": self.settings.xmlrpc_port})
+                status.append(
+                    "since iptables may be running, ensure 69, 80/443, and %(xmlrpc)s are unblocked"
+                    % {"xmlrpc": self.settings.xmlrpc_port}
+                )
 
     def check_yum(self, status):
         """
@@ -193,20 +206,32 @@ class CobblerCheck:
             return
 
         if not os.path.exists("/usr/bin/createrepo"):
-            status.append("createrepo package is not installed, needed for cobbler import and cobbler reposync, "
-                          "install createrepo?")
+            status.append(
+                "createrepo package is not installed, needed for cobbler import and cobbler reposync, "
+                "install createrepo?"
+            )
 
-        if not os.path.exists("/usr/bin/dnf") and not os.path.exists("/usr/bin/reposync"):
+        if not os.path.exists("/usr/bin/dnf") and not os.path.exists(
+            "/usr/bin/reposync"
+        ):
             status.append("reposync not installed, install yum-utils")
 
         if os.path.exists("/usr/bin/dnf") and not os.path.exists("/usr/bin/reposync"):
-            status.append("reposync is not installed, install yum-utils or dnf-plugins-core")
+            status.append(
+                "reposync is not installed, install yum-utils or dnf-plugins-core"
+            )
 
-        if not os.path.exists("/usr/bin/dnf") and not os.path.exists("/usr/bin/yumdownloader"):
+        if not os.path.exists("/usr/bin/dnf") and not os.path.exists(
+            "/usr/bin/yumdownloader"
+        ):
             status.append("yumdownloader is not installed, install yum-utils")
 
-        if os.path.exists("/usr/bin/dnf") and not os.path.exists("/usr/bin/yumdownloader"):
-            status.append("yumdownloader is not installed, install yum-utils or dnf-plugins-core")
+        if os.path.exists("/usr/bin/dnf") and not os.path.exists(
+            "/usr/bin/yumdownloader"
+        ):
+            status.append(
+                "yumdownloader is not installed, install yum-utils or dnf-plugins-core"
+            )
 
     def check_debmirror(self, status):
         """
@@ -219,17 +244,23 @@ class CobblerCheck:
             return
 
         if not os.path.exists("/usr/bin/debmirror"):
-            status.append("debmirror package is not installed, it will be required to manage debian deployments and "
-                          "repositories")
+            status.append(
+                "debmirror package is not installed, it will be required to manage debian deployments and "
+                "repositories"
+            )
         if os.path.exists("/etc/debmirror.conf"):
             with open("/etc/debmirror.conf") as f:
-                re_dists = re.compile(r'@dists=')
-                re_arches = re.compile(r'@arches=')
+                re_dists = re.compile(r"@dists=")
+                re_arches = re.compile(r"@arches=")
                 for line in f.readlines():
                     if re_dists.search(line) and not line.strip().startswith("#"):
-                        status.append("comment out 'dists' on /etc/debmirror.conf for proper debian support")
+                        status.append(
+                            "comment out 'dists' on /etc/debmirror.conf for proper debian support"
+                        )
                     if re_arches.search(line) and not line.strip().startswith("#"):
-                        status.append("comment out 'arches' on /etc/debmirror.conf for proper debian support")
+                        status.append(
+                            "comment out 'arches' on /etc/debmirror.conf for proper debian support"
+                        )
 
     def check_name(self, status):
         """
@@ -239,16 +270,22 @@ class CobblerCheck:
         :param status: The status list with possible problems.
         """
         if self.settings.server == "127.0.0.1":
-            status.append("The 'server' field in /etc/cobbler/settings.yaml must be set to something other than localhost, "
-                          "or automatic installation features will not work.  This should be a resolvable hostname or "
-                          "IP for the boot server as reachable by all machines that will use it.")
+            status.append(
+                "The 'server' field in /etc/cobbler/settings.yaml must be set to something other than localhost, "
+                "or automatic installation features will not work.  This should be a resolvable hostname or "
+                "IP for the boot server as reachable by all machines that will use it."
+            )
         if self.settings.next_server_v4 == "127.0.0.1":
-            status.append("For PXE to be functional, the 'next_server_v4' field in /etc/cobbler/settings.yaml must be set to "
-                          "something other than 127.0.0.1, and should match the IP of the boot server on the PXE "
-                          "network.")
+            status.append(
+                "For PXE to be functional, the 'next_server_v4' field in /etc/cobbler/settings.yaml must be set to "
+                "something other than 127.0.0.1, and should match the IP of the boot server on the PXE "
+                "network."
+            )
         if self.settings.next_server_v6 == "::1":
-            status.append("For PXE to be functional, the 'next_server_v6' field in /etc/cobbler/settings.yaml must be set to "
-                          "something other than ::1, and should match the IP of the boot server on the PXE network.")
+            status.append(
+                "For PXE to be functional, the 'next_server_v6' field in /etc/cobbler/settings.yaml must be set to "
+                "something other than ::1, and should match the IP of the boot server on the PXE network."
+            )
 
     def check_selinux(self, status):
         """
@@ -262,9 +299,11 @@ class CobblerCheck:
 
         enabled = self.api.is_selinux_enabled()
         if enabled:
-            status.append("SELinux is enabled. Please review the following wiki page for details on ensuring Cobbler "
-                          "works correctly in your SELinux environment:\n    "
-                          "https://github.com/cobbler/cobbler/wiki/Selinux")
+            status.append(
+                "SELinux is enabled. Please review the following wiki page for details on ensuring Cobbler "
+                "works correctly in your SELinux environment:\n    "
+                "https://github.com/cobbler/cobbler/wiki/Selinux"
+            )
 
     def check_for_default_password(self, status):
         """
@@ -274,10 +313,12 @@ class CobblerCheck:
         """
         default_pass = self.settings.default_password_crypted
         if default_pass == "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac.":
-            status.append("The default password used by the sample templates for newly installed machines ("
-                          "default_password_crypted in /etc/cobbler/settings.yaml) is still set to 'cobbler' and should be "
-                          "changed, try: \"openssl passwd -1 -salt 'random-phrase-here' 'your-password-here'\" to "
-                          "generate new one")
+            status.append(
+                "The default password used by the sample templates for newly installed machines ("
+                "default_password_crypted in /etc/cobbler/settings.yaml) is still set to 'cobbler' and should be "
+                "changed, try: \"openssl passwd -1 -salt 'random-phrase-here' 'your-password-here'\" to "
+                "generate new one"
+            )
 
     def check_for_unreferenced_repos(self, status):
         """
@@ -298,8 +339,10 @@ class CobblerCheck:
             if r not in repos and r != "<<inherit>>":
                 not_found.append(r)
         if len(not_found) > 0:
-            status.append("One or more repos referenced by profile objects is no longer defined in Cobbler: %s"
-                          % ", ".join(not_found))
+            status.append(
+                "One or more repos referenced by profile objects is no longer defined in Cobbler: %s"
+                % ", ".join(not_found)
+            )
 
     def check_for_unsynced_repos(self, status):
         """
@@ -314,8 +357,10 @@ class CobblerCheck:
                 if not os.path.exists(lookfor):
                     need_sync.append(r.name)
         if len(need_sync) > 0:
-            status.append("One or more repos need to be processed by cobbler reposync for the first time before "
-                          "automating installations using them: %s" % ", ".join(need_sync))
+            status.append(
+                "One or more repos need to be processed by cobbler reposync for the first time before "
+                "automating installations using them: %s" % ", ".join(need_sync)
+            )
 
     def check_dhcpd_bin(self, status):
         """
@@ -356,8 +401,10 @@ class CobblerCheck:
         rc_wget = utils.subprocess_call("wget --help")
         rc_curl = utils.subprocess_call("curl --help")
         if rc_wget != 0 and rc_curl != 0:
-            status.append("Neither wget nor curl are installed and/or available in $PATH. Cobbler requires that one "
-                          "of these utilities be installed.")
+            status.append(
+                "Neither wget nor curl are installed and/or available in $PATH. Cobbler requires that one "
+                "of these utilities be installed."
+            )
 
     def check_bootloaders(self, status):
         """
@@ -368,14 +415,20 @@ class CobblerCheck:
         # FIXME: move zpxe.rexx to loaders
 
         bootloaders = {
-            "menu.c32": ["/usr/share/syslinux/menu.c32",
-                         "/usr/lib/syslinux/menu.c32",
-                         "/var/lib/cobbler/loaders/menu.c32"],
-            "pxelinux.0": ["/usr/share/syslinux/pxelinux.0",
-                           "/usr/lib/syslinux/pxelinux.0",
-                           "/var/lib/cobbler/loaders/pxelinux.0"],
-            "efi": ["/var/lib/cobbler/loaders/grub-x86.efi",
-                    "/var/lib/cobbler/loaders/grub-x86_64.efi"],
+            "menu.c32": [
+                "/usr/share/syslinux/menu.c32",
+                "/usr/lib/syslinux/menu.c32",
+                "/var/lib/cobbler/loaders/menu.c32",
+            ],
+            "pxelinux.0": [
+                "/usr/share/syslinux/pxelinux.0",
+                "/usr/lib/syslinux/pxelinux.0",
+                "/var/lib/cobbler/loaders/pxelinux.0",
+            ],
+            "efi": [
+                "/var/lib/cobbler/loaders/grub-x86.efi",
+                "/var/lib/cobbler/loaders/grub-x86_64.efi",
+            ],
         }
 
         # look for bootloaders at the glob locations above
@@ -395,11 +448,13 @@ class CobblerCheck:
                 not_found.append(loader_name)
 
         if len(not_found) > 0:
-            status.append("some network boot-loaders are missing from /var/lib/cobbler/loaders. If you only want to "
-                          "handle x86/x86_64 netbooting, you may ensure that you have installed a *recent* version "
-                          "of the syslinux package installed and can ignore this message entirely. Files in this "
-                          "directory, should you want to support all architectures, should include pxelinux.0, and"
-                          "menu.c32.")
+            status.append(
+                "some network boot-loaders are missing from /var/lib/cobbler/loaders. If you only want to "
+                "handle x86/x86_64 netbooting, you may ensure that you have installed a *recent* version "
+                "of the syslinux package installed and can ignore this message entirely. Files in this "
+                "directory, should you want to support all architectures, should include pxelinux.0, and"
+                "menu.c32."
+            )
 
     def check_tftpd_dir(self, status):
         """
@@ -437,7 +492,9 @@ class CobblerCheck:
             return
 
         if os.path.exists("/usr/lib/systemd/system/rsyncd.service"):
-            if not os.path.exists("/etc/systemd/system/multi-user.target.wants/rsyncd.service"):
+            if not os.path.exists(
+                "/etc/systemd/system/multi-user.target.wants/rsyncd.service"
+            ):
                 status.append("enable and start rsyncd.service with systemctl")
 
     def check_dhcpd_conf(self, status):
@@ -463,8 +520,13 @@ class CobblerCheck:
                 if line.find("filename") != -1:
                     match_file = True
             if not match_next:
-                status.append("expecting next-server entry in %(file)s" % {"file": self.settings.dhcpd_conf})
+                status.append(
+                    "expecting next-server entry in %(file)s"
+                    % {"file": self.settings.dhcpd_conf}
+                )
             if not match_file:
-                status.append("missing file: %(file)s" % {"file": self.settings.dhcpd_conf})
+                status.append(
+                    "missing file: %(file)s" % {"file": self.settings.dhcpd_conf}
+                )
         else:
             status.append("missing file: %(file)s" % {"file": self.settings.dhcpd_conf})

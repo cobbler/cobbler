@@ -32,7 +32,7 @@ def test_manager_write_configs(mocker, cobbler_api):
     # Arrange
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
     mock_subproc_popen = mocker.patch("subprocess.Popen", autospec=True)
-    mock_subproc_popen.communicate.return_value = ('output', 'error')
+    mock_subproc_popen.communicate.return_value = ("output", "error")
     mock_subproc_popen.return_value.returncode = 0
     mock_system = System(cobbler_api)
     mock_system.name = "test_manager_regen_hosts_system"
@@ -50,7 +50,5 @@ def test_manager_write_configs(mocker, cobbler_api):
 
     # Assert
     test_manager.templar.render.assert_called_once_with(
-        "test",
-        {'forward': [('host.example.org', '192.168.1.2')]},
-        "/etc/ndjbdns/data"
+        "test", {"forward": [("host.example.org", "192.168.1.2")]}, "/etc/ndjbdns/data"
     )

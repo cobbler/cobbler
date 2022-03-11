@@ -28,7 +28,6 @@ from cobbler import utils
 
 
 class YumGen:
-
     def __init__(self, api):
         """
         Constructor
@@ -59,13 +58,17 @@ class YumGen:
 
         included = {}
         for r in blended["source_repos"]:
-            filename = pathlib.Path(self.settings.webdir).joinpath("/", "/".join(r[0].split("/")[4:]))
+            filename = pathlib.Path(self.settings.webdir).joinpath(
+                "/", "/".join(r[0].split("/")[4:])
+            )
             if filename not in included:
                 input_files.append(filename)
             included[filename] = 1
 
         for repo in blended["repos"]:
-            path = pathlib.Path(self.settings.webdir).joinpath("repo_mirror", repo, "config.repo")
+            path = pathlib.Path(self.settings.webdir).joinpath(
+                "repo_mirror", repo, "config.repo"
+            )
             if path not in included:
                 input_files.append(path)
             included[path] = 1

@@ -28,32 +28,44 @@ class TestDistro:
         # Assert
         assert result == []
 
-    @pytest.mark.parametrize("field_name,field_value", [
-        ("arch", "i386"),
-        ("breed", "debian"),
-        ("breed", "freebsd"),
-        ("breed", "redhat"),
-        ("breed", "suse"),
-        ("breed", "ubuntu"),
-        ("breed", "unix"),
-        ("breed", "vmware"),
-        ("breed", "windows"),
-        ("breed", "xen"),
-        ("breed", "generic"),
-        ("comment", "test comment"),
-        ("initrd", ""),
-        ("name", "testdistro0"),
-        ("kernel", ""),
-        ("kernel_options", "a=1 b=2 c=3 c=4 c=5 d e"),
-        ("kernel_options_post", "a=1 b=2 c=3 c=4 c=5 d e"),
-        ("autoinstall_meta", "a=1 b=2 c=3 c=4 c=5 d e"),
-        ("mgmt_classes", "one two three"),
-        ("os_version", "rhel4"),
-        ("owners", "user1 user2 user3"),
-        ("boot_loaders", "pxe ipxe grub")
-    ])
-    def test_create_distro_positive(self, remote, token, create_kernel_initrd, fk_kernel, fk_initrd, field_name,
-                                    field_value, cleanup_create_distro_positive):
+    @pytest.mark.parametrize(
+        "field_name,field_value",
+        [
+            ("arch", "i386"),
+            ("breed", "debian"),
+            ("breed", "freebsd"),
+            ("breed", "redhat"),
+            ("breed", "suse"),
+            ("breed", "ubuntu"),
+            ("breed", "unix"),
+            ("breed", "vmware"),
+            ("breed", "windows"),
+            ("breed", "xen"),
+            ("breed", "generic"),
+            ("comment", "test comment"),
+            ("initrd", ""),
+            ("name", "testdistro0"),
+            ("kernel", ""),
+            ("kernel_options", "a=1 b=2 c=3 c=4 c=5 d e"),
+            ("kernel_options_post", "a=1 b=2 c=3 c=4 c=5 d e"),
+            ("autoinstall_meta", "a=1 b=2 c=3 c=4 c=5 d e"),
+            ("mgmt_classes", "one two three"),
+            ("os_version", "rhel4"),
+            ("owners", "user1 user2 user3"),
+            ("boot_loaders", "pxe ipxe grub"),
+        ],
+    )
+    def test_create_distro_positive(
+        self,
+        remote,
+        token,
+        create_kernel_initrd,
+        fk_kernel,
+        fk_initrd,
+        field_name,
+        field_value,
+        cleanup_create_distro_positive,
+    ):
         """
         Test: create/edit a distro with valid values
         """
@@ -72,11 +84,14 @@ class TestDistro:
         # Assert
         assert result
 
-    @pytest.mark.parametrize("field_name,field_value", [
-        ("arch", "badarch"),
-        ("breed", "badbreed"),
-        # ("boot_loader", "badloader") FIXME: This does not raise but did in the past
-    ])
+    @pytest.mark.parametrize(
+        "field_name,field_value",
+        [
+            ("arch", "badarch"),
+            ("breed", "badbreed"),
+            # ("boot_loader", "badloader") FIXME: This does not raise but did in the past
+        ],
+    )
     def test_create_distro_negative(self, remote, token, field_name, field_value):
         """
         Test: create/edit a distro with invalid values

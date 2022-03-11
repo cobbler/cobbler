@@ -35,7 +35,7 @@ from cobbler.utils import log_exc
 import cobbler
 
 # TODO: add os.path.normpath()
-mod_path = os.path.join(os.path.abspath(os.path.dirname(cobbler.__file__)), 'modules')
+mod_path = os.path.join(os.path.abspath(os.path.dirname(cobbler.__file__)), "modules")
 
 MODULE_CACHE: Dict[str, Any] = {}
 MODULES_BY_CATEGORY: Dict[str, Dict[str, Any]] = {}
@@ -62,7 +62,7 @@ def load_modules(module_path: str = mod_path):
 
     for fn in filenames:
         # FIXME: Use module_path instead of mod_path
-        basename = fn.replace(mod_path, '')
+        basename = fn.replace(mod_path, "")
         modname = ""
 
         if basename.__contains__("__pycache__") or basename.__contains__("__init__.py"):
@@ -96,7 +96,7 @@ def __import_module(module_path: str, modname: str):
         if not hasattr(blip, "register"):
             if not modname.startswith("__init__"):
                 errmsg = "%(module_path)s/%(modname)s is not a proper module"
-                print(errmsg % {'module_path': module_path, 'modname': modname})
+                print(errmsg % {"module_path": module_path, "modname": modname})
             return None
         category = blip.register()
         if category:
@@ -105,7 +105,7 @@ def __import_module(module_path: str, modname: str):
             MODULES_BY_CATEGORY[category] = {}
         MODULES_BY_CATEGORY[category][modname] = blip
     except Exception:
-        logger.info('Exception raised when loading module %s' % modname)
+        logger.info("Exception raised when loading module %s" % modname)
         log_exc()
 
 
@@ -119,7 +119,9 @@ def get_module_by_name(name: str):
     return MODULE_CACHE.get(name, None)
 
 
-def get_module_name(category: str, field: str, fallback_module_name: Optional[str] = None) -> str:
+def get_module_name(
+    category: str, field: str, fallback_module_name: Optional[str] = None
+) -> str:
     """
     Get module name from configuration file (currently hardcoded ``/etc/cobbler/modules.conf``).
 
@@ -133,7 +135,9 @@ def get_module_name(category: str, field: str, fallback_module_name: Optional[st
     """
     modules_conf_path = "/etc/cobbler/modules.conf"
     if not os.path.exists(modules_conf_path):
-        raise FileNotFoundError("Configuration file at \"%s\" not found" % modules_conf_path)
+        raise FileNotFoundError(
+            'Configuration file at "%s" not found' % modules_conf_path
+        )
 
     cp = ConfigParser()
     cp.read(modules_conf_path)
@@ -143,7 +147,7 @@ def get_module_name(category: str, field: str, fallback_module_name: Optional[st
     # raise ValueError("category must be one of: %s" % MODULES_BY_CATEGORY.keys())
 
     if field.isspace():
-        raise ValueError("field cannot be empty. Did you mean \"module\" maybe?")
+        raise ValueError('field cannot be empty. Did you mean "module" maybe?')
 
     try:
         value = cp.get(category, field)
@@ -155,7 +159,9 @@ def get_module_name(category: str, field: str, fallback_module_name: Optional[st
     return value
 
 
-def get_module_from_file(category: str, field: str, fallback_module_name: Optional[str] = None):
+def get_module_from_file(
+    category: str, field: str, fallback_module_name: Optional[str] = None
+):
     """
     Get Python module, based on name defined in configuration file
 

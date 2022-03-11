@@ -34,17 +34,20 @@ from cobbler import settings
 
 def application(environ, start_response):
 
-    if 'VIRTUALENV' in environ and environ['VIRTUALENV'] != "":
+    if "VIRTUALENV" in environ and environ["VIRTUALENV"] != "":
         # VIRTUALENV Support
         # see http://code.google.com/p/modwsgi/wiki/VirtualEnvironments
         import site
         import distutils.sysconfig
-        site.addsitedir(distutils.sysconfig.get_python_lib(prefix=environ['VIRTUALENV']))
+
+        site.addsitedir(
+            distutils.sysconfig.get_python_lib(prefix=environ["VIRTUALENV"])
+        )
         # Now all modules are available even under a virtualenv
 
     from cobbler.services import CobblerSvc
 
-    my_uri = urllib.parse.unquote(environ['REQUEST_URI'])
+    my_uri = urllib.parse.unquote(environ["REQUEST_URI"])
 
     form = {}
 
@@ -62,7 +65,7 @@ def application(environ, start_response):
             form[field] = t
         label = not label
 
-    form["query_string"] = urllib.parse.parse_qs(environ['QUERY_STRING'])
+    form["query_string"] = urllib.parse.parse_qs(environ["QUERY_STRING"])
 
     # This MAC header is set by anaconda during a kickstart booted with the
     # kssendmac kernel option. The field will appear here as something
@@ -90,7 +93,7 @@ def application(environ, start_response):
 
     # check for a valid path/mode
     # handle invalid paths gracefully
-    mode = form.get('op', 'index')
+    mode = form.get("op", "index")
 
     # TODO: We could do proper exception handling here and return
     # corresponding HTTP status codes:
@@ -102,24 +105,28 @@ def application(environ, start_response):
         content = func(**form)
 
         if content.find("# *** ERROR ***") != -1:
-            status = '500 SERVER ERROR'
+            status = "500 SERVER ERROR"
             print("possible cheetah template error")
 
         # TODO: Not sure these strings are the right ones to look for...
-        elif content.find("# profile not found") != -1 or \
-                content.find("# system not found") != -1 or \
-                content.find("# object not found") != -1:
+        elif (
+            content.find("# profile not found") != -1
+            or content.find("# system not found") != -1
+            or content.find("# object not found") != -1
+        ):
             print(("content not found: %s" % my_uri))
             status = "404 NOT FOUND"
     except xmlrpc.server.Fault as err:
         status = "500 SERVER ERROR"
         content = err.faultString
 
-    content = content.encode('utf-8')
+    content = content.encode("utf-8")
 
     # req.content_type = "text/plain;charset=utf-8"
-    response_headers = [('Content-type', 'text/plain;charset=utf-8'),
-                        ('Content-Length', str(len(content)))]
+    response_headers = [
+        ("Content-type", "text/plain;charset=utf-8"),
+        ("Content-Length", str(len(content))),
+    ]
     start_response(status, response_headers)
 
     return [content]

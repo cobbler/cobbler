@@ -31,7 +31,9 @@ def test_set_repos(cobbler_api):
 
     # Act
     # TODO: Test this also with the bypass check
-    result = validate.validate_repos("testrepo1 testrepo2", cobbler_api, bypass_check=True)
+    result = validate.validate_repos(
+        "testrepo1 testrepo2", cobbler_api, bypass_check=True
+    )
 
     # Assert
     assert result == ["testrepo1", "testrepo2"]
@@ -49,14 +51,17 @@ def test_set_virt_file_size():
     assert result == 8
 
 
-@pytest.mark.parametrize("test_autoboot,expectation", [
-    (True, does_not_raise()),
-    (False, does_not_raise()),
-    (0, does_not_raise()),
-    (1, does_not_raise()),
-    (2, does_not_raise()),
-    ("Test", does_not_raise())
-])
+@pytest.mark.parametrize(
+    "test_autoboot,expectation",
+    [
+        (True, does_not_raise()),
+        (False, does_not_raise()),
+        (0, does_not_raise()),
+        (1, does_not_raise()),
+        (2, does_not_raise()),
+        ("Test", does_not_raise()),
+    ],
+)
 def test_set_virt_auto_boot(test_autoboot, expectation):
     # Arrange
 
@@ -69,14 +74,17 @@ def test_set_virt_auto_boot(test_autoboot, expectation):
         assert result is True or result is False
 
 
-@pytest.mark.parametrize("test_input,expected_exception", [
-    (True, does_not_raise()),
-    (False, does_not_raise()),
-    (0, does_not_raise()),
-    (1, does_not_raise()),
-    (5, does_not_raise()),
-    ("", does_not_raise())
-])
+@pytest.mark.parametrize(
+    "test_input,expected_exception",
+    [
+        (True, does_not_raise()),
+        (False, does_not_raise()),
+        (0, does_not_raise()),
+        (1, does_not_raise()),
+        (5, does_not_raise()),
+        ("", does_not_raise()),
+    ],
+)
 def test_set_virt_pxe_boot(test_input, expected_exception):
     # Arrange
 
@@ -120,15 +128,18 @@ def test_validate_virt_path():
     assert result == test_location
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    (0, does_not_raise()),
-    (5, does_not_raise()),
-    (enums.VALUE_INHERITED, does_not_raise()),
-    (False, does_not_raise()),
-    (0.0, pytest.raises(TypeError)),
-    (-5, pytest.raises(ValueError)),
-    ("test", pytest.raises(TypeError))
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        (0, does_not_raise()),
+        (5, does_not_raise()),
+        (enums.VALUE_INHERITED, does_not_raise()),
+        (False, does_not_raise()),
+        (0.0, pytest.raises(TypeError)),
+        (-5, pytest.raises(ValueError)),
+        ("test", pytest.raises(TypeError)),
+    ],
+)
 def test_set_virt_cpus(value, expected_exception):
     # Arrange
 
@@ -163,19 +174,22 @@ def test_set_serial_baud_rate():
     assert result == enums.BaudRates.B9600
 
 
-@pytest.mark.parametrize("test_value,expected_result", [
-    ("test", False),
-    (0, False),
-    ("ftp://test/test", False),
-    ("http://test_invalid/test", False),
-    ("http://test§invalid/test", False),
-    ("http://test.local/test", True),
-    # ("http://test.local:80/test", True),
-    ("http://test/test", True),
-    ("http://@@server@@/test", True),
-    ("http://10.0.0.1/test", True),
-    ("http://fe80::989c:95ff:fe42:47bf/test", True),
-])
+@pytest.mark.parametrize(
+    "test_value,expected_result",
+    [
+        ("test", False),
+        (0, False),
+        ("ftp://test/test", False),
+        ("http://test_invalid/test", False),
+        ("http://test§invalid/test", False),
+        ("http://test.local/test", True),
+        # ("http://test.local:80/test", True),
+        ("http://test/test", True),
+        ("http://@@server@@/test", True),
+        ("http://10.0.0.1/test", True),
+        ("http://fe80::989c:95ff:fe42:47bf/test", True),
+    ],
+)
 def test_validate_boot_remote_file(test_value, expected_result):
     # Arrange
 
@@ -186,19 +200,22 @@ def test_validate_boot_remote_file(test_value, expected_result):
     assert expected_result == result
 
 
-@pytest.mark.parametrize("test_value,expected_result", [
-    ("test", False),
-    (0, False),
-    ("http://test.local/test", False),
-    ("http://test/test", False),
-    ("ftp://test/test", False),
-    # ("(tftp,10.0.0.1:invalid)/test", False),
-    # ("(tftp,local_invalid)/test", False),
-    ("(http,10.0.0.1)/test", True),
-    ("(tftp,10.0.0.1)/test", True),
-    ("(tftp,test.local)/test", True),
-    ("(tftp,10.0.0.1:8080)/test", True)
-])
+@pytest.mark.parametrize(
+    "test_value,expected_result",
+    [
+        ("test", False),
+        (0, False),
+        ("http://test.local/test", False),
+        ("http://test/test", False),
+        ("ftp://test/test", False),
+        # ("(tftp,10.0.0.1:invalid)/test", False),
+        # ("(tftp,local_invalid)/test", False),
+        ("(http,10.0.0.1)/test", True),
+        ("(tftp,10.0.0.1)/test", True),
+        ("(tftp,test.local)/test", True),
+        ("(tftp,10.0.0.1:8080)/test", True),
+    ],
+)
 def test_validate_grub_remote_file(test_value, expected_result):
     # Arrange
 

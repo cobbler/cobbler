@@ -49,8 +49,14 @@ class Menus(collection.Collection):
         new_menu.from_dict(item_dict)
         return new_menu
 
-    def remove(self, name: str, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
-               recursive: bool = False):
+    def remove(
+        self,
+        name: str,
+        with_delete: bool = True,
+        with_sync: bool = True,
+        with_triggers: bool = True,
+        recursive: bool = False,
+    ):
         """
         Remove element named 'name' from the collection
 
@@ -76,11 +82,15 @@ class Menus(collection.Collection):
         if recursive:
             kids = obj.get_children()
             for kid in kids:
-                self.remove(kid, with_delete=with_delete, with_sync=False, recursive=recursive)
+                self.remove(
+                    kid, with_delete=with_delete, with_sync=False, recursive=recursive
+                )
 
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/menu/pre/*", [])
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/delete/menu/pre/*", []
+                )
         self.lock.acquire()
         try:
             del self.listing[name]
@@ -89,8 +99,12 @@ class Menus(collection.Collection):
         self.collection_mgr.serialize_delete(self, obj)
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/menu/post/*", [])
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/delete/menu/post/*", []
+                )
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/change/*", []
+                )
             if with_sync:
                 lite_sync = self.api.get_sync()
                 lite_sync.remove_single_menu()

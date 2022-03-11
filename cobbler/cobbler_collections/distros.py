@@ -48,8 +48,14 @@ class Distros(collection.Collection):
         new_distro.from_dict(item_dict)
         return new_distro
 
-    def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
-               recursive: bool = False):
+    def remove(
+        self,
+        name,
+        with_delete: bool = True,
+        with_sync: bool = True,
+        with_triggers: bool = True,
+        recursive: bool = False,
+    ):
         """
         Remove element named 'name' from the collection
 
@@ -73,11 +79,18 @@ class Distros(collection.Collection):
         if recursive:
             kids = obj.get_children()
             for k in kids:
-                self.api.remove_profile(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
+                self.api.remove_profile(
+                    k,
+                    recursive=recursive,
+                    delete=with_delete,
+                    with_triggers=with_triggers,
+                )
 
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*", [])
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*", []
+                )
             if with_sync:
                 lite_sync = self.api.get_sync()
                 lite_sync.remove_single_distro(name)
@@ -91,8 +104,12 @@ class Distros(collection.Collection):
 
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*", [])
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*", []
+                )
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/change/*", []
+                )
 
         # look through all mirrored directories and find if any directory is holding this particular distribution's
         # kernel and initrd
@@ -106,7 +123,12 @@ class Distros(collection.Collection):
 
         # if we found a mirrored path above, we can delete the mirrored storage /if/ no other object is using the
         # same mirrored storage.
-        if with_delete and path is not None and os.path.exists(path) and kernel.find(settings.webdir) != -1:
+        if (
+            with_delete
+            and path is not None
+            and os.path.exists(path)
+            and kernel.find(settings.webdir) != -1
+        ):
             # this distro was originally imported so we know we can clean up the associated storage as long as
             # nothing else is also using this storage.
             found = False

@@ -105,8 +105,11 @@ class Repo(item.Item):
         """
         # backwards compatibility
         if not self.breed:
-            if self.mirror.startswith("http://") or self.mirror.startswith("https://") \
-                    or self.mirror.startswith("ftp://"):
+            if (
+                self.mirror.startswith("http://")
+                or self.mirror.startswith("https://")
+                or self.mirror.startswith("ftp://")
+            ):
                 self.breed = enums.RepoBreeds.YUM
             elif self.mirror.startswith("rhn://"):
                 self.breed = enums.RepoBreeds.RHN
@@ -167,7 +170,9 @@ class Repo(item.Item):
             try:
                 mirror_type = enums.MirrorType[mirror_type.upper()]
             except KeyError as error:
-                raise ValueError("mirror_type choices include: %s" % list(map(str, enums.MirrorType))) from error
+                raise ValueError(
+                    "mirror_type choices include: %s" % list(map(str, enums.MirrorType))
+                ) from error
         # Now the mirror_type MUST be of the type of enums.
         if not isinstance(mirror_type, enums.MirrorType):
             raise TypeError("mirror_type needs to be of type enums.MirrorType")
@@ -193,7 +198,9 @@ class Repo(item.Item):
         """
         keep_updated = utils.input_boolean(keep_updated)
         if not isinstance(keep_updated, bool):
-            raise TypeError("Field keep_updated of object repo needs to be of type bool!")
+            raise TypeError(
+                "Field keep_updated of object repo needs to be of type bool!"
+            )
         self._keep_updated = keep_updated
 
     @property
@@ -290,7 +297,9 @@ class Repo(item.Item):
         if not isinstance(priority, int):
             raise TypeError("Repository priority must be of type int.")
         if priority < 0 or priority > 99:
-            raise ValueError("Repository priority must be between 0 and 99 (inclusive)!")
+            raise ValueError(
+                "Repository priority must be between 0 and 99 (inclusive)!"
+            )
         self._priority = priority
 
     @property
@@ -334,7 +343,9 @@ class Repo(item.Item):
         :raises TypeError: In case the flags were not of the correct type.
         """
         if not isinstance(createrepo_flags, str):
-            raise TypeError("Field createrepo_flags of object repo needs to be of type str!")
+            raise TypeError(
+                "Field createrepo_flags of object repo needs to be of type str!"
+            )
         self._createrepo_flags = createrepo_flags
 
     @property
@@ -412,7 +423,9 @@ class Repo(item.Item):
             try:
                 arch = enums.RepoArchs[arch.name.upper()]
             except KeyError as error:
-                raise ValueError("arch choices include: %s" % list(map(str, enums.RepoArchs))) from error
+                raise ValueError(
+                    "arch choices include: %s" % list(map(str, enums.RepoArchs))
+                ) from error
         self._arch = enums.RepoArchs.to_enum(arch)
 
     @property

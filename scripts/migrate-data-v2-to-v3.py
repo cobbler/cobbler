@@ -16,7 +16,7 @@ def serialize_item(collection, item):
     @param item dictionary
     """
 
-    filename = "/var/lib/cobbler/collections/%s/%s" % (collection, item['name'])
+    filename = "/var/lib/cobbler/collections/%s/%s" % (collection, item["name"])
 
     if capi.CobblerAPI().settings().serializer_pretty_json:
         sort_keys = True
@@ -32,6 +32,7 @@ def serialize_item(collection, item):
 
     fd.close()
 
+
 def deserialize_raw_old(collection_types):
 
     results = []
@@ -41,7 +42,7 @@ def deserialize_raw_old(collection_types):
     for f in all_files:
         fd = open(f)
         json_data = fd.read()
-        _dict = simplejson.loads(json_data, encoding='utf-8')
+        _dict = simplejson.loads(json_data, encoding="utf-8")
         results.append(_dict)
         fd.close()
     return results
@@ -54,8 +55,9 @@ def substitute_paths(value):
             new_value.append(substitute_paths(item))
         value = new_value
     elif isinstance(value, str):
-        value = value.replace('/ks_mirror/','/distro_mirror/')
+        value = value.replace("/ks_mirror/", "/distro_mirror/")
     return value
+
 
 def transform_key(key, value):
     if key in transform:
@@ -65,53 +67,63 @@ def transform_key(key, value):
 
     return substitute_paths(ret_value)
 
+
 # Keys to add to various collections
 add = {
-  "distros": {
-    "boot_loader": "grub",
-  },
-  "profiles": {
-    "next_server": "<<inherit>>",
-  },
-  "systems": {
-    "boot_loader": "<<inherit>>",
-    "next_server": "<<inherit>>",
-    "power_identity_file": "",
-    "power_options": "",
-    "serial_baud_rate": "",
-    "serial_device": "",
-  },
+    "distros": {
+        "boot_loader": "grub",
+    },
+    "profiles": {
+        "next_server": "<<inherit>>",
+    },
+    "systems": {
+        "boot_loader": "<<inherit>>",
+        "next_server": "<<inherit>>",
+        "power_identity_file": "",
+        "power_options": "",
+        "serial_baud_rate": "",
+        "serial_device": "",
+    },
 }
 
 # Keys to remove
 remove = [
-  "ldap_enabled",
-  "ldap_type",
-  "monit_enabled",
-  "redhat_management_server",
-  "template_remote_kickstarts",
+    "ldap_enabled",
+    "ldap_type",
+    "monit_enabled",
+    "redhat_management_server",
+    "template_remote_kickstarts",
 ]
 
 # Keys to rename
 rename = {
-  "kickstart": "autoinstall",
-  "ks_meta": "autoinstall_meta",
+    "kickstart": "autoinstall",
+    "ks_meta": "autoinstall_meta",
 }
 
 # Keys to transform - use new key name if renamed
 transform = {
-  "autoinstall": os.path.basename,
+    "autoinstall": os.path.basename,
 }
 
 # Convert the old collections to new collections
-for old_type in ['distros.d','files.d','images.d','mgmtclasses.d','packages.d','profiles.d','repos.d','systems.d']:
+for old_type in [
+    "distros.d",
+    "files.d",
+    "images.d",
+    "mgmtclasses.d",
+    "packages.d",
+    "profiles.d",
+    "repos.d",
+    "systems.d",
+]:
     new_type = old_type[:-2]
     # Load old files
     old_collection = deserialize_raw_old(old_type)
     print("Processing %s:" % old_type)
 
     for old_item in old_collection:
-        print("    Processing %s" % old_item['name'])
+        print("    Processing %s" % old_item["name"])
         new_item = {}
         for key in old_item:
             if key in remove:
@@ -127,8 +139,8 @@ for old_type in ['distros.d','files.d','images.d','mgmtclasses.d','packages.d','
         serialize_item(new_type, new_item)
 
 path_rename = [
-  ("/var/lib/cobbler/kickstarts", "/var/lib/cobbler/templates"),
-  ("/var/www/cobbler/ks_mirror", "/var/www/cobbler/distro_mirror"),
+    ("/var/lib/cobbler/kickstarts", "/var/lib/cobbler/templates"),
+    ("/var/www/cobbler/ks_mirror", "/var/www/cobbler/distro_mirror"),
 ]
 
 # Copy paths

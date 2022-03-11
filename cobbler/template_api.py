@@ -37,7 +37,7 @@ from cobbler import utils
 logger = logging.getLogger()
 
 
-def read_macro_file(location='/etc/cobbler/cheetah_macros'):
+def read_macro_file(location="/etc/cobbler/cheetah_macros"):
     if not os.path.exists(location):
         raise FileNotFoundError("Cobbler Cheetah Macros File must exist!")
     with open(location, "r") as macro_file:
@@ -50,7 +50,8 @@ def generate_cheetah_macros():
         return Template.compile(
             source=macro_file,
             moduleName="cobbler.template_api",
-            className="CheetahMacros")
+            className="CheetahMacros",
+        )
     except FileNotFoundError:
         logger.warning("Cheetah Macros file note found. Using empty template.")
         return Template.compile(source="")
@@ -82,16 +83,21 @@ class CobblerTemplate(generate_cheetah_macros()):
         # This follows all of the rules of snippets and advanced snippets. First it searches for a per-system snippet,
         # then a per-profile snippet, then a general snippet. If none is found, a comment explaining the error is
         # substituted.
-        self.BuiltinTemplate = Template.compile(source="\n".join([
-            "#def SNIPPET($file)",
-            "#set $snippet = $read_snippet($file)",
-            "#if $snippet",
-            "#include source=$snippet",
-            "#else",
-            "# Error: no snippet data for $file",
-            "#end if",
-            "#end def",
-        ]) + "\n")
+        self.BuiltinTemplate = Template.compile(
+            source="\n".join(
+                [
+                    "#def SNIPPET($file)",
+                    "#set $snippet = $read_snippet($file)",
+                    "#if $snippet",
+                    "#include source=$snippet",
+                    "#else",
+                    "# Error: no snippet data for $file",
+                    "#end if",
+                    "#end def",
+                ]
+            )
+            + "\n"
+        )
         super().__init__(**kwargs)
 
     # OK, so this function gets called by Cheetah.Template.Template.__init__ to compile the template into a class. This
@@ -114,10 +120,12 @@ class CobblerTemplate(generate_cheetah_macros()):
         def replacer(match: Match):
             return "$SNIPPET('%s')" % match.group(1)
 
-        def preprocess(source: Optional[str], file: Union[TextIO, str]) -> Tuple[str, Union[TextIO, str]]:
+        def preprocess(
+            source: Optional[str], file: Union[TextIO, str]
+        ) -> Tuple[str, Union[TextIO, str]]:
             # Normally, the cheetah compiler worries about this, but we need to preprocess the actual source.
             if source is None:
-                if hasattr(file, 'read'):
+                if hasattr(file, "read"):
                     source = file.read()
                 else:
                     if os.path.exists(file):
@@ -128,14 +136,14 @@ class CobblerTemplate(generate_cheetah_macros()):
                 # Stop Cheetah from throwing a fit.
                 file = None
 
-            snippet_regex = re.compile(r'SNIPPET::([A-Za-z0-9_\-/.]+)')
+            snippet_regex = re.compile(r"SNIPPET::([A-Za-z0-9_\-/.]+)")
             results = snippet_regex.sub(replacer, source)
             return results, file
 
         preprocessors = [preprocess]
-        if 'preprocessors' in kwargs:
-            preprocessors.extend(kwargs['preprocessors'])
-        kwargs['preprocessors'] = preprocessors
+        if "preprocessors" in kwargs:
+            preprocessors.extend(kwargs["preprocessors"])
+        kwargs["preprocessors"] = preprocessors
 
         # Now let Cheetah do the actual compilation
         return super().compile(*args, **kwargs)
@@ -153,13 +161,19 @@ class CobblerTemplate(generate_cheetah_macros()):
         :raises AttributeError: Raised in case ``autoinstall_snippets_dir`` is missing.
         :raises FileNotFoundError: Raised in case some files are not found.
         """
-        if not self.varExists('autoinstall_snippets_dir'):
-            raise AttributeError("\"autoinstall_snippets_dir\" is required to find snippets")
+        if not self.varExists("autoinstall_snippets_dir"):
+            raise AttributeError(
+                '"autoinstall_snippets_dir" is required to find snippets'
+            )
 
-        for snippet_class in ('system', 'profile', 'distro'):
-            if self.varExists('%s_name' % snippet_class):
-                full_path = '%s/per_%s/%s/%s' % (self.getVar('autoinstall_snippets_dir'), snippet_class, file,
-                                                 self.getVar('%s_name' % snippet_class))
+        for snippet_class in ("system", "profile", "distro"):
+            if self.varExists("%s_name" % snippet_class):
+                full_path = "%s/per_%s/%s/%s" % (
+                    self.getVar("autoinstall_snippets_dir"),
+                    snippet_class,
+                    file,
+                    self.getVar("%s_name" % snippet_class),
+                )
                 try:
                     contents = utils.read_file_contents(full_path, fetch_if_remote=True)
                     return contents
@@ -167,8 +181,10 @@ class CobblerTemplate(generate_cheetah_macros()):
                     pass
 
         try:
-            full_path = '%s/%s' % (self.getVar('autoinstall_snippets_dir'), file)
-            return "#errorCatcher ListErrors\n" + utils.read_file_contents(full_path, fetch_if_remote=True)
+            full_path = "%s/%s" % (self.getVar("autoinstall_snippets_dir"), file)
+            return "#errorCatcher ListErrors\n" + utils.read_file_contents(
+                full_path, fetch_if_remote=True
+            )
         except FileNotFoundError:
             return None
 
@@ -224,8 +240,8 @@ class CobblerTemplate(generate_cheetah_macros()):
         """
 
         def escchar(character: str) -> str:
-            if character in '/^.[]$()|*+?{}\\':
-                return '\\' + character
+            if character in "/^.[]$()|*+?{}\\":
+                return "\\" + character
             return character
 
-        return ''.join([escchar(c) for c in value])
+        return "".join([escchar(c) for c in value])

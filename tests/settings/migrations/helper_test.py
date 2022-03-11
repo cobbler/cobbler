@@ -14,21 +14,9 @@ from cobbler.settings.migrations import helper
 @pytest.fixture
 def example_dict():
     return {
-    "a":{
-        "r": 1,
-        "s": 2,
-        "t": 3
-        },
-    "b":{
-        "u": 1,
-        "v": {
-            "x": 1,
-            "y": 2,
-            "z": 3
-        },
-        "w": 3
-        }
-}
+        "a": {"r": 1, "s": 2, "t": 3},
+        "b": {"u": 1, "v": {"x": 1, "y": 2, "z": 3}, "w": 3},
+    }
 
 
 def test_key_add(example_dict):

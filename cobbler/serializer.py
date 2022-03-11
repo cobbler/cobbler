@@ -62,7 +62,7 @@ def __release_lock(with_changes=False):
         # this file is used to know the time of last modification on cobbler_collections
         # was made -- allowing the API to work more smoothly without
         # a lot of unneccessary reloads.
-        fd = open("/var/lib/cobbler/.mtime", 'w')
+        fd = open("/var/lib/cobbler/.mtime", "w")
         fd.write("%f" % time.time())
         fd.close()
     if LOCK_ENABLED:
@@ -136,4 +136,6 @@ def __get_storage_module(collection_type):
     :param collection_type: str
     :returns: A Python module.
     """
-    return module_loader.get_module_from_file("serializers", collection_type, "serializers.file")
+    return module_loader.get_module_from_file(
+        "serializers", collection_type, "serializers.file"
+    )

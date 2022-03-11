@@ -8,14 +8,17 @@ from cobbler.items.image import Image
 from tests.conftest import does_not_raise
 
 
-@pytest.mark.parametrize("input_verbose,input_what,expected_exception", [
-    (True, None, does_not_raise()),
-    (True, [], does_not_raise()),
-    (False, [], does_not_raise()),
-    (True, ["dhcp"], does_not_raise()),
-    (True, ["dns"], does_not_raise()),
-    (True, ["dns", "dhcp"], does_not_raise())
-])
+@pytest.mark.parametrize(
+    "input_verbose,input_what,expected_exception",
+    [
+        (True, None, does_not_raise()),
+        (True, [], does_not_raise()),
+        (False, [], does_not_raise()),
+        (True, ["dhcp"], does_not_raise()),
+        (True, ["dns"], does_not_raise()),
+        (True, ["dns", "dhcp"], does_not_raise()),
+    ],
+)
 def test_sync(cobbler_api, input_verbose, input_what, expected_exception, mocker):
     # Arrange
     stub = create_autospec(spec=cobbler.actions.sync.CobblerSync)
@@ -38,10 +41,7 @@ def test_sync(cobbler_api, input_verbose, input_what, expected_exception, mocker
         stub_dns.assert_called_once()
 
 
-@pytest.mark.parametrize("input_manage_dns", [
-    (True),
-    (False)
-])
+@pytest.mark.parametrize("input_manage_dns", [(True), (False)])
 def test_sync_dns(cobbler_api, input_manage_dns, mocker):
     # Arrange
     mock = MagicMock()
@@ -62,10 +62,7 @@ def test_sync_dns(cobbler_api, input_manage_dns, mocker):
     assert stub.sync.called == input_manage_dns
 
 
-@pytest.mark.parametrize("input_manager_dhcp", [
-    (True),
-    (False)
-])
+@pytest.mark.parametrize("input_manager_dhcp", [(True), (False)])
 def test_sync_dhcp(cobbler_api, input_manager_dhcp, mocker):
     # Arrange
     mock = MagicMock()
@@ -98,16 +95,21 @@ def test_get_sync(mocker, cobbler_api):
     assert isinstance(result, cobbler.actions.sync.CobblerSync)
 
 
-@pytest.mark.parametrize("input_verbose,input_systems,expected_exception", [
-    (None, ["t1.systems.de"], does_not_raise()),
-    (True, ["t1.systems.de"], does_not_raise()),
-    (False, ["t1.systems.de"], does_not_raise()),
-    (False, [], does_not_raise()),
-    (False, [42], pytest.raises(TypeError)),
-    (False, None, pytest.raises(TypeError)),
-    (False, "t1.systems.de", pytest.raises(TypeError))
-])
-def test_sync_systems(cobbler_api, input_systems, input_verbose, expected_exception, mocker):
+@pytest.mark.parametrize(
+    "input_verbose,input_systems,expected_exception",
+    [
+        (None, ["t1.systems.de"], does_not_raise()),
+        (True, ["t1.systems.de"], does_not_raise()),
+        (False, ["t1.systems.de"], does_not_raise()),
+        (False, [], does_not_raise()),
+        (False, [42], pytest.raises(TypeError)),
+        (False, None, pytest.raises(TypeError)),
+        (False, "t1.systems.de", pytest.raises(TypeError)),
+    ],
+)
+def test_sync_systems(
+    cobbler_api, input_systems, input_verbose, expected_exception, mocker
+):
     # Arrange
     stub = create_autospec(spec=cobbler.actions.sync.CobblerSync)
     mocker.patch.object(cobbler_api, "get_sync", return_value=stub)

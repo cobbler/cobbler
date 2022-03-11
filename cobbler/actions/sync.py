@@ -71,7 +71,9 @@ class CobblerSync:
         self.ipxe_dir = os.path.join(self.bootloc, "ipxe")
         self.rendered_dir = os.path.join(self.settings.webdir, "rendered")
         self.links = os.path.join(self.settings.webdir, "links")
-        self.distromirror_config = os.path.join(self.settings.webdir, "distro_mirror/config")
+        self.distromirror_config = os.path.join(
+            self.settings.webdir, "distro_mirror/config"
+        )
         # FIXME: See https://github.com/cobbler/cobbler/issues/2453
         # Move __create_tftpboot_dirs() outside of sync.py.
         self.__create_tftpboot_dirs()
@@ -220,8 +222,16 @@ class CobblerSync:
                 if x not in self.settings.webdir_whitelist:
                     # delete directories that shouldn't exist
                     utils.rmtree(path)
-                if x in ["templates", "images", "systems", "distros", "profiles", "repo_profile", "repo_system",
-                         "rendered"]:
+                if x in [
+                    "templates",
+                    "images",
+                    "systems",
+                    "distros",
+                    "profiles",
+                    "repo_profile",
+                    "repo_system",
+                    "rendered",
+                ]:
                     # clean out directory contents
                     utils.rmtree_contents(path)
         self.__create_tftpboot_dirs()
@@ -251,10 +261,22 @@ class CobblerSync:
         """
         All files which are linked into the cache will be deleted so the cache can be rebuild.
         """
-        for dirtree in [os.path.join(self.bootloc, 'images'), self.settings.webdir]:
-            cachedir = os.path.join(dirtree, '.link_cache')
+        for dirtree in [os.path.join(self.bootloc, "images"), self.settings.webdir]:
+            cachedir = os.path.join(dirtree, ".link_cache")
             if os.path.isdir(cachedir):
-                cmd = ["find", cachedir, "-maxdepth", "1", "-type", "f", "-links", "1", "-exec", "rm", "-f"]
+                cmd = [
+                    "find",
+                    cachedir,
+                    "-maxdepth",
+                    "1",
+                    "-type",
+                    "f",
+                    "-links",
+                    "1",
+                    "-exec",
+                    "rm",
+                    "-f",
+                ]
                 utils.subprocess_call(cmd, shell=False)
 
     def rsync_gen(self):
@@ -276,21 +298,26 @@ class CobblerSync:
 
         distros = []
 
-        for link in glob.glob(os.path.join(self.settings.webdir, 'links', '*')):
+        for link in glob.glob(os.path.join(self.settings.webdir, "links", "*")):
             distro = {}
             distro["path"] = os.path.realpath(link)
             distro["name"] = os.path.basename(link)
             distros.append(distro)
 
-        repos = [repo.name for repo in self.api.repos()
-                 if os.path.isdir(os.path.join(self.settings.webdir, "repo_mirror", repo.name))]
+        repos = [
+            repo.name
+            for repo in self.api.repos()
+            if os.path.isdir(
+                os.path.join(self.settings.webdir, "repo_mirror", repo.name)
+            )
+        ]
 
         metadata = {
             "date": time.asctime(time.gmtime()),
             "cobbler_server": self.settings.server,
             "distros": distros,
             "repos": repos,
-            "webdir": self.settings.webdir
+            "webdir": self.settings.webdir,
         }
 
         self.templar.render(template_data, metadata, "/etc/rsyncd.conf")
@@ -314,9 +341,17 @@ class CobblerSync:
         dst_dir = os.path.join(self.settings.webdir, "links", name)
         if os.path.exists(dst_dir):
             self.logger.warning("skipping symlink, destination (%s) exists", dst_dir)
-        elif utils.path_tail(os.path.join(self.settings.webdir, "distro_mirror"), src_dir) == "":
-            self.logger.warning("skipping symlink, the source (%s) is not in %s",
-                                src_dir, os.path.join(self.settings.webdir, "distro_mirror"))
+        elif (
+            utils.path_tail(
+                os.path.join(self.settings.webdir, "distro_mirror"), src_dir
+            )
+            == ""
+        ):
+            self.logger.warning(
+                "skipping symlink, the source (%s) is not in %s",
+                src_dir,
+                os.path.join(self.settings.webdir, "distro_mirror"),
+            )
         else:
             try:
                 self.logger.info("trying symlink %s -> %s", src_dir, dst_dir)
@@ -359,7 +394,10 @@ class CobblerSync:
         # delete potential symlink to tree in webdir/links
         utils.rmfile(os.path.join(self.settings.webdir, "links", name))
         # delete potential distro config files
-        utils.rmglob_files(os.path.join(self.settings.webdir, "distro_mirror", "config"), name + "*.repo")
+        utils.rmglob_files(
+            os.path.join(self.settings.webdir, "distro_mirror", "config"),
+            name + "*.repo",
+        )
 
     def remove_single_image(self, name):
         """
@@ -370,7 +408,9 @@ class CobblerSync:
         bootloc = self.settings.tftpboot_location
         utils.rmfile(os.path.join(bootloc, "images2", name))
 
-    def add_single_profile(self, name: str, rebuild_menu: bool = True) -> Optional[bool]:
+    def add_single_profile(
+        self, name: str, rebuild_menu: bool = True
+    ) -> Optional[bool]:
         """
         Sync adding a single profile.
 
@@ -451,11 +491,17 @@ class CobblerSync:
         system_record = self.systems.find(name=name)
 
         for (name, interface) in list(system_record.interfaces.items()):
-            pxe_filename = system_record.get_config_filename(interface=name, loader="pxe")
-            grub_filename = system_record.get_config_filename(interface=name, loader="grub")
+            pxe_filename = system_record.get_config_filename(
+                interface=name, loader="pxe"
+            )
+            grub_filename = system_record.get_config_filename(
+                interface=name, loader="grub"
+            )
             utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", pxe_filename))
             utils.rmfile(os.path.join(bootloc, "grub", "system", grub_filename))
-            utils.rmfile(os.path.join(bootloc, "grub", "system_link", system_record.name))
+            utils.rmfile(
+                os.path.join(bootloc, "grub", "system_link", system_record.name)
+            )
 
     def remove_single_menu(self, rebuild_menu: bool = True):
         """

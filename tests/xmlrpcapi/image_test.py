@@ -11,14 +11,15 @@ def remove_item(remote, token):
     :param token: The fixture to have the token for authenticated strings available.
     :param remote: The fixture to have the base xmlrpc connection.
     """
+
     def _remove_item(itemtype, name):
         yield
         remote.remove_item(itemtype, name, token)
+
     return _remove_item
 
 
 class TestImage:
-
     def test_create_image(self, remote, token):
         """
         Test: create/edit of an image object"""

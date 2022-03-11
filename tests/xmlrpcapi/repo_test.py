@@ -41,7 +41,9 @@ class TestRepo:
         # Act & Assert
         repo = remote.new_repo(token)
         assert remote.modify_repo(repo, "name", "testrepo0", token)
-        assert remote.modify_repo(repo, "mirror", "http://www.sample.com/path/to/some/repo", token)
+        assert remote.modify_repo(
+            repo, "mirror", "http://www.sample.com/path/to/some/repo", token
+        )
         assert remote.modify_repo(repo, "mirror_locally", False, token)
         assert remote.save_repo(repo, token)
 

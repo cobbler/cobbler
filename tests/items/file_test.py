@@ -28,9 +28,7 @@ def test_make_clone(cobbler_api):
 # Properties Tests
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    (False, does_not_raise())
-])
+@pytest.mark.parametrize("value,expected_exception", [(False, does_not_raise())])
 def test_is_dir(cobbler_api, value, expected_exception):
     # Arrange
     file = File(cobbler_api)

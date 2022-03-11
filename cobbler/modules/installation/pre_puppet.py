@@ -54,16 +54,16 @@ def run(api, args) -> int:
     system = api.find_system(name)
     system = utils.blender(api, False, system)
     hostname = system["hostname"]
-    if not re.match(r'[\w-]+\..+', hostname):
-        search_domains = system['name_servers_search']
+    if not re.match(r"[\w-]+\..+", hostname):
+        search_domains = system["name_servers_search"]
         if search_domains:
-            hostname += '.' + search_domains[0]
-    if not re.match(r'[\w-]+\..+', hostname):
-        default_search_domains = system['default_name_servers_search']
+            hostname += "." + search_domains[0]
+    if not re.match(r"[\w-]+\..+", hostname):
+        default_search_domains = system["default_name_servers_search"]
         if default_search_domains:
-            hostname += '.' + default_search_domains[0]
+            hostname += "." + default_search_domains[0]
     puppetca_path = settings.puppetca_path
-    cmd = [puppetca_path, 'cert', 'clean', hostname]
+    cmd = [puppetca_path, "cert", "clean", hostname]
 
     rc = 0
 

@@ -91,9 +91,7 @@ def run(api, args) -> int:
     with open("/etc/cobbler/reporting/build_report_email.template") as input_template:
         input_data = input_template.read()
 
-        message = templar.Templar(api).render(
-            input_data, metadata, None
-        )
+        message = templar.Templar(api).render(input_data, metadata, None)
 
         sendmail = True
         for prefix in settings.build_reporting_ignorelist:

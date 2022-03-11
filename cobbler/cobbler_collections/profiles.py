@@ -45,8 +45,14 @@ class Profiles(collection.Collection):
         new_profile.from_dict(item_dict)
         return new_profile
 
-    def remove(self, name: str, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
-               recursive: bool = False):
+    def remove(
+        self,
+        name: str,
+        with_delete: bool = True,
+        with_sync: bool = True,
+        with_triggers: bool = True,
+        recursive: bool = False,
+    ):
         """
         Remove element named 'name' from the collection
 
@@ -66,13 +72,25 @@ class Profiles(collection.Collection):
             kids = obj.get_children()
             for k in kids:
                 if self.api.find_profile(name=k) is not None:
-                    self.api.remove_profile(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
+                    self.api.remove_profile(
+                        k,
+                        recursive=recursive,
+                        delete=with_delete,
+                        with_triggers=with_triggers,
+                    )
                 else:
-                    self.api.remove_system(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
+                    self.api.remove_system(
+                        k,
+                        recursive=recursive,
+                        delete=with_delete,
+                        with_triggers=with_triggers,
+                    )
 
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/profile/pre/*", [])
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/delete/profile/pre/*", []
+                )
 
         if obj.parent is not None and obj.name in obj.parent.children:
             obj.parent.children.remove(obj.name)
@@ -88,8 +106,12 @@ class Profiles(collection.Collection):
         self.collection_mgr.serialize_delete(self, obj)
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*", [])
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*", []
+                )
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/change/*", []
+                )
             if with_sync:
                 lite_sync = self.api.get_sync()
                 lite_sync.remove_single_profile(name)

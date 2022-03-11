@@ -211,11 +211,16 @@ class CollectionManager:
             try:
                 serializer.deserialize(collection)
             except Exception as e:
-                raise CX("serializer: error loading collection %s: %s. Check /etc/cobbler/modules.conf"
-                         % (collection.collection_type(), e)) from e
+                raise CX(
+                    "serializer: error loading collection %s: %s. Check /etc/cobbler/modules.conf"
+                    % (collection.collection_type(), e)
+                ) from e
 
-    def get_items(self, collection_type: str) -> Union[Distros, Profiles, Systems, Repos, Images, Mgmtclasses, Packages,
-                                                       Files, Menus]:
+    def get_items(
+        self, collection_type: str
+    ) -> Union[
+        Distros, Profiles, Systems, Repos, Images, Mgmtclasses, Packages, Files, Menus
+    ]:
         """
         Get a full collection of a single type.
 
@@ -226,7 +231,17 @@ class CollectionManager:
         :return: The collection if ``collection_type`` is valid.
         :raises CX: If the ``collection_type`` is invalid.
         """
-        result: Union[Distros, Profiles, Systems, Repos, Images, Mgmtclasses, Packages, Files, Menus]
+        result: Union[
+            Distros,
+            Profiles,
+            Systems,
+            Repos,
+            Images,
+            Mgmtclasses,
+            Packages,
+            Files,
+            Menus,
+        ]
         if collection_type == "distro":
             result = self._distros
         elif collection_type == "profile":
@@ -248,5 +263,7 @@ class CollectionManager:
         elif collection_type == "settings":
             result = self.api.settings()
         else:
-            raise CX("internal error, collection name \"%s\" not supported" % collection_type)
+            raise CX(
+                'internal error, collection name "%s" not supported' % collection_type
+            )
         return result

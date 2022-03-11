@@ -42,7 +42,7 @@ def register() -> str:
     elif __name__ == "cobbler.modules.nsupdate_delete_system_pre":
         return "/var/lib/cobbler/triggers/delete/system/pre/*"
     else:
-        return ''
+        return ""
 
 
 def run(api, args):
@@ -74,9 +74,9 @@ def run(api, args):
         nslog(">> starting %s %s\n" % (__name__, args))
 
     if str(settings.nsupdate_tsig_key) is not None:
-        keyring = dns.tsigkeyring.from_text({
-            str(settings.nsupdate_tsig_key[0]): str(settings.nsupdate_tsig_key[1])
-        })
+        keyring = dns.tsigkeyring.from_text(
+            {str(settings.nsupdate_tsig_key[0]): str(settings.nsupdate_tsig_key[1])}
+        )
     else:
         keyring = None
 
@@ -102,14 +102,14 @@ def run(api, args):
         if host.find(".") == -1:
             continue
 
-        domain = ".".join(host.split(".")[1:])    # get domain from host name
-        host = host.split(".")[0]                   # strip domain
+        domain = ".".join(host.split(".")[1:])  # get domain from host name
+        host = host.split(".")[0]  # strip domain
 
         nslog("processing interface %s : %s\n" % (name, interface))
         nslog("lookup for '%s' domain master nameserver... " % domain)
 
         # get master nameserver ip address
-        answers = dns.resolver.query(domain + '.', dns.rdatatype.SOA)
+        answers = dns.resolver.query(domain + ".", dns.rdatatype.SOA)
         soa_mname = answers[0].mname
         soa_mname_ip = None
 
@@ -126,11 +126,18 @@ def run(api, args):
         nslog("%s dns record for %s.%s [%s] .. " % (action, host, domain, host_ip))
 
         # try to update zone with new record
-        update = dns.update.Update(domain + '.', keyring=keyring, keyalgorithm=keyring_algo)
+        update = dns.update.Update(
+            domain + ".", keyring=keyring, keyalgorithm=keyring_algo
+        )
 
         if action == "replace":
             update.replace(host, 3600, dns.rdatatype.A, host_ip)
-            update.replace(host, 3600, dns.rdatatype.TXT, '"cobbler (date: %s)"' % (time.strftime("%c")))
+            update.replace(
+                host,
+                3600,
+                dns.rdatatype.TXT,
+                '"cobbler (date: %s)"' % (time.strftime("%c")),
+            )
         else:
             update.delete(host, dns.rdatatype.A, host_ip)
             update.delete(host, dns.rdatatype.TXT)
@@ -144,16 +151,18 @@ def run(api, args):
 
             raise CX("nsupdate failed, server '%s' refusing our key" % soa_mname)
 
-        nslog('response code: %s\n' % rcode_txt)
+        nslog("response code: %s\n" % rcode_txt)
 
         # notice user about update failure
         if response.rcode() != dns.rcode.NOERROR:
-            nslog('>> done\n')
+            nslog(">> done\n")
             logf.close()
 
-            raise CX("nsupdate failed (response: %s, name: %s.%s, ip %s, name server %s)"
-                     % (rcode_txt, host, domain, host_ip, soa_mname))
+            raise CX(
+                "nsupdate failed (response: %s, name: %s.%s, ip %s, name server %s)"
+                % (rcode_txt, host, domain, host_ip, soa_mname)
+            )
 
-    nslog('>> done\n')
+    nslog(">> done\n")
     logf.close()
     return 0

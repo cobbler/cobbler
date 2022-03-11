@@ -77,27 +77,27 @@ def authenticate(api_handle, username, password) -> bool:
     uri = ""
     for server in servers:
         # form our ldap uri based on connection port
-        if port == '389':
-            uri += 'ldap://' + server
-        elif port == '636':
-            uri += 'ldaps://' + server
-        elif port == '3269':
-            uri += 'ldaps://' + "%s:%s" % (server, port)
+        if port == "389":
+            uri += "ldap://" + server
+        elif port == "636":
+            uri += "ldaps://" + server
+        elif port == "3269":
+            uri += "ldaps://" + "%s:%s" % (server, port)
         else:
-            uri += 'ldap://' + "%s:%s" % (server, port)
-        uri += ' '
+            uri += "ldap://" + "%s:%s" % (server, port)
+        uri += " "
 
     uri = uri.strip()
 
     # connect to LDAP host
     dir = ldap.initialize(uri)
 
-    if port in ('636', '3269'):
+    if port in ("636", "3269"):
         ldaps_tls = ldap
     else:
         ldaps_tls = dir
 
-    if tls or port in ('636', '3269'):
+    if tls or port in ("636", "3269"):
         if tls_cacertdir:
             ldaps_tls.set_option(ldap.OPT_X_TLS_CACERTDIR, tls_cacertdir)
         if tls_cacertfile:
@@ -108,16 +108,18 @@ def authenticate(api_handle, username, password) -> bool:
             ldaps_tls.set_option(ldap.OPT_X_TLS_CERTFILE, tls_certfile)
         if tls_reqcert:
             req_cert = enums.TlsRequireCert.to_enum(tls_reqcert)
-            reqcert_types = {enums.TlsRequireCert.NEVER: ldap.OPT_X_TLS_NEVER,
-                             enums.TlsRequireCert.ALLOW: ldap.OPT_X_TLS_ALLOW,
-                             enums.TlsRequireCert.DEMAND: ldap.OPT_X_TLS_DEMAND,
-                             enums.TlsRequireCert.HARD: ldap.OPT_X_TLS_HARD}
+            reqcert_types = {
+                enums.TlsRequireCert.NEVER: ldap.OPT_X_TLS_NEVER,
+                enums.TlsRequireCert.ALLOW: ldap.OPT_X_TLS_ALLOW,
+                enums.TlsRequireCert.DEMAND: ldap.OPT_X_TLS_DEMAND,
+                enums.TlsRequireCert.HARD: ldap.OPT_X_TLS_HARD,
+            }
             ldaps_tls.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, reqcert_types[req_cert])
         if tls_cipher_suite:
             ldaps_tls.set_option(ldap.OPT_X_TLS_CIPHER_SUITE, tls_cipher_suite)
 
     # start_tls if tls is 'on', 'true' or 'yes' and we're not already using old-SSL
-    if port not in ('636', '3269'):
+    if port not in ("636", "3269"):
         if tls:
             try:
                 dir.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
@@ -133,7 +135,7 @@ def authenticate(api_handle, username, password) -> bool:
         searchdn = api_handle.settings().ldap_search_bind_dn
         searchpw = api_handle.settings().ldap_search_passwd
 
-        if searchdn == '' or searchpw == '':
+        if searchdn == "" or searchpw == "":
             raise CX("Missing search bind settings")
 
         try:

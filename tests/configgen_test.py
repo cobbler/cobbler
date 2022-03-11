@@ -32,6 +32,7 @@ def create_testbed(create_kernel_initrd, cobbler_api, cleanup_testbed):
         cobbler_api.add_system(test_system)
 
         return cobbler_api
+
     return _create_testbed
 
 

@@ -50,8 +50,14 @@ class Systems(collection.Collection):
         new_system.from_dict(item_dict)
         return new_system
 
-    def remove(self, name: str, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
-               recursive: bool = False):
+    def remove(
+        self,
+        name: str,
+        with_delete: bool = True,
+        with_sync: bool = True,
+        with_triggers: bool = True,
+        recursive: bool = False,
+    ):
         """
         Remove element named 'name' from the collection
 
@@ -65,7 +71,9 @@ class Systems(collection.Collection):
 
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/system/pre/*", [])
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/delete/system/pre/*", []
+                )
             if with_sync:
                 lite_sync = self.api.get_sync()
                 lite_sync.remove_single_system(name)
@@ -84,5 +92,9 @@ class Systems(collection.Collection):
         self.collection_mgr.serialize_delete(self, obj)
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/system/post/*", [])
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/delete/system/post/*", []
+                )
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/change/*", []
+                )

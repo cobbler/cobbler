@@ -40,7 +40,6 @@ def register() -> str:
 
 
 class _InTftpdManager(ManagerModule):
-
     @staticmethod
     def what() -> str:
         """
@@ -66,7 +65,9 @@ class _InTftpdManager(ManagerModule):
         # Right now, just using local_img_path, but adding more Cobbler variables here would probably be good.
         metadata = {}
         metadata["local_img_path"] = os.path.join(self.bootloc, "images", distro.name)
-        metadata["web_img_path"] = os.path.join(self.webdir, "distro_mirror", distro.name)
+        metadata["web_img_path"] = os.path.join(
+            self.webdir, "distro_mirror", distro.name
+        )
         # Create the templar instance.  Used to template the target directory
         templater = templar.Templar(self.api)
 
@@ -74,7 +75,9 @@ class _InTftpdManager(ManagerModule):
         self.logger.info("processing boot_files for distro: %s" % distro.name)
         for boot_file in list(target["boot_files"].keys()):
             rendered_target_file = templater.render(boot_file, metadata, None)
-            rendered_source_file = templater.render(target["boot_files"][boot_file], metadata, None)
+            rendered_source_file = templater.render(
+                target["boot_files"][boot_file], metadata, None
+            )
             try:
                 for file in glob.glob(rendered_source_file):
                     if file == rendered_source_file:
@@ -90,9 +93,13 @@ class _InTftpdManager(ManagerModule):
                             utils.mkdir(rnd_path)
                     if not os.path.isfile(filedst):
                         shutil.copyfile(file, filedst)
-                    self.logger.info("copied file %s to %s for %s", file, filedst, distro.name)
+                    self.logger.info(
+                        "copied file %s to %s for %s", file, filedst, distro.name
+                    )
             except:
-                self.logger.error("failed to copy file %s to %s for %s", file, filedst, distro.name)
+                self.logger.error(
+                    "failed to copy file %s to %s for %s", file, filedst, distro.name
+                )
 
         return 0
 
@@ -131,7 +138,10 @@ class _InTftpdManager(ManagerModule):
         :param systems: List of systems to write PXE configuration files for.
         :param verbose: Whether the TFTP server should log this verbose or not.
         """
-        if not (isinstance(systems, list) and all(isinstance(sys_name, str) for sys_name in systems)):
+        if not (
+            isinstance(systems, list)
+            and all(isinstance(sys_name, str) for sys_name in systems)
+        ):
             raise TypeError("systems needs to be a list of strings")
 
         if not isinstance(verbose, bool):

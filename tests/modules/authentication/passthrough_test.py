@@ -14,6 +14,7 @@ class TestPassthrough:
         # Arrange
         def mockreturn():
             return "testpassword"
+
         monkeypatch.setattr(utils, "get_shared_secret", mockreturn)
 
         # Act

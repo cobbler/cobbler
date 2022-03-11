@@ -58,7 +58,9 @@ class TestNonObjectCalls:
         """
 
         if TEST_SYSTEM and TEST_POWER_MANAGEMENT:
-            tid = remote.background_power_system({"systems": [TEST_SYSTEM], "power": "reboot"}, token)
+            tid = remote.background_power_system(
+                {"systems": [TEST_SYSTEM], "power": "reboot"}, token
+            )
             self._wait_task_end(tid, remote)
 
     def test_sync(self, remote, token):
@@ -161,5 +163,7 @@ class TestNonObjectCalls:
 
         mac = remote.get_random_mac("xen", token)
         hexa = "[0-9A-Fa-f]{2}"
-        match_obj = re.match("%s:%s:%s:%s:%s:%s" % (hexa, hexa, hexa, hexa, hexa, hexa), mac)
+        match_obj = re.match(
+            "%s:%s:%s:%s:%s:%s" % (hexa, hexa, hexa, hexa, hexa, hexa), mac
+        )
         assert match_obj

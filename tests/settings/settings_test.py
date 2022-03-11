@@ -12,7 +12,6 @@ from tests.conftest import does_not_raise
 
 
 class TestSettings:
-
     def test_to_string(self):
         # Arrange
         test_settings = Settings()
@@ -35,10 +34,10 @@ class TestSettings:
         # Assert
         assert result == test_settings.__dict__
 
-    @pytest.mark.parametrize("parameter,expected_exception,expected_result", [
-        ({}, does_not_raise(), "127.0.0.1"),
-        (None, does_not_raise(), "127.0.0.1")
-    ])
+    @pytest.mark.parametrize(
+        "parameter,expected_exception,expected_result",
+        [({}, does_not_raise(), "127.0.0.1"), (None, does_not_raise(), "127.0.0.1")],
+    )
     def test_from_dict(self, parameter, expected_exception, expected_result):
         # Arrange
         test_settings = Settings()
@@ -51,9 +50,10 @@ class TestSettings:
         assert test_settings.server == expected_result
 
 
-@pytest.mark.parametrize("parameter,expected_exception,expected_result", [
-    ({}, pytest.raises(SchemaError), False)
-])
+@pytest.mark.parametrize(
+    "parameter,expected_exception,expected_result",
+    [({}, pytest.raises(SchemaError), False)],
+)
 def test_validate_settings(parameter, expected_exception, expected_result):
     # Arrange
 
