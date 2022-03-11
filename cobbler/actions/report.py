@@ -21,7 +21,6 @@ from cobbler import utils
 
 
 class Report:
-
     def __init__(self, api):
         """
         Constructor
@@ -35,7 +34,7 @@ class Report:
         self.report_name = None
         self.report_fields = None
         self.report_noheaders = None
-        self.array_re = re.compile(r'([^[]+)\[([^]]+)\]')
+        self.array_re = re.compile(r"([^[]+)\[([^]]+)\]")
 
     def fielder(self, structure: dict, fields_list: list):
         """
@@ -60,9 +59,11 @@ class Report:
 
                     item[field] = structure[outer][inner]
             elif "interfaces" in list(structure.keys()):
-                for device in list(structure['interfaces'].keys()):
-                    if field in structure['interfaces'][device]:
-                        item[field] = device + ': ' + structure['interfaces'][device][field]
+                for device in list(structure["interfaces"].keys()):
+                    if field in structure["interfaces"][device]:
+                        item[field] = (
+                            device + ": " + structure["interfaces"][device][field]
+                        )
         return item
 
     def reporting_csv(self, info, order: list, noheaders: bool) -> str:
@@ -74,9 +75,9 @@ class Report:
         :param noheaders: Whether headers are printed to the output or not.
         :return: The string with the csv.
         """
-        outputheaders = ''
-        outputbody = ''
-        sep = ','
+        outputheaders = ""
+        outputbody = ""
+        sep = ","
 
         info_count = 0
         for item in info:
@@ -90,17 +91,17 @@ class Report:
                 if key in list(item.keys()):
                     outputbody += str(item[key]) + sep
                 else:
-                    outputbody += '-' + sep
+                    outputbody += "-" + sep
 
                 item_count += 1
 
             info_count += 1
-            outputbody += '\n'
+            outputbody += "\n"
 
-        outputheaders += '\n'
+        outputheaders += "\n"
 
         if noheaders:
-            outputheaders = ''
+            outputheaders = ""
 
         return outputheaders + outputbody
 
@@ -113,9 +114,9 @@ class Report:
         :param noheaders: Whether headers are printed to the output or not.
         :return: The string with the generated table.
         """
-        outputheaders = ''
-        outputbody = ''
-        sep = '||'
+        outputheaders = ""
+        outputbody = ""
+        sep = "||"
 
         info_count = 0
         for item in info:
@@ -129,17 +130,17 @@ class Report:
                 if key in list(item.keys()):
                     outputbody += sep + str(item[key])
                 else:
-                    outputbody += sep + '-'
+                    outputbody += sep + "-"
 
                 item_count = item_count + 1
 
             info_count = info_count + 1
-            outputbody += '||\n'
+            outputbody += "||\n"
 
-        outputheaders += '||\n'
+        outputheaders += "||\n"
 
         if noheaders:
-            outputheaders = ''
+            outputheaders = ""
 
         return outputheaders + outputbody
 
@@ -152,10 +153,10 @@ class Report:
         :param noheaders: Whether headers are printed to the output or not.
         :return: The string with the generated table.
         """
-        outputheaders = ''
-        outputbody = ''
-        sep1 = '^'
-        sep2 = '|'
+        outputheaders = ""
+        outputbody = ""
+        sep1 = "^"
+        sep2 = "|"
 
         info_count = 0
         for item in info:
@@ -169,17 +170,17 @@ class Report:
                 if key in list(item.keys()):
                     outputbody += sep2 + item[key]
                 else:
-                    outputbody += sep2 + '-'
+                    outputbody += sep2 + "-"
 
                 item_count = item_count + 1
 
             info_count = info_count + 1
-            outputbody += sep2 + '\n'
+            outputbody += sep2 + "\n"
 
-        outputheaders += sep1 + '\n'
+        outputheaders += sep1 + "\n"
 
         if noheaders:
-            outputheaders = ''
+            outputheaders = ""
 
         return outputheaders + outputbody
 
@@ -192,13 +193,13 @@ class Report:
         :param noheaders: Whether headers are printed to the output or not.
         :return: The string with the generated table.
         """
-        outputheaders = ''
-        outputbody = ''
+        outputheaders = ""
+        outputbody = ""
         opentable = '{| border="1"\n'
-        closetable = '|}\n'
-        sep1 = '||'
-        sep2 = '|'
-        sep3 = '|-'
+        closetable = "|}\n"
+        sep1 = "||"
+        sep2 = "|"
+        sep3 = "|-"
 
         info_count = 0
         for item in info:
@@ -215,26 +216,28 @@ class Report:
                     if key in list(item.keys()):
                         outputbody += sep2 + str(item[key])
                     else:
-                        outputbody += sep2 + '-'
+                        outputbody += sep2 + "-"
                 else:
                     if key in list(item.keys()):
                         outputbody += sep1 + str(item[key])
                     else:
-                        outputbody += sep1 + '-'
+                        outputbody += sep1 + "-"
 
                 item_count = item_count + 1
 
             info_count = info_count + 1
-            outputbody += '\n' + sep3 + '\n'
+            outputbody += "\n" + sep3 + "\n"
 
-        outputheaders += '\n' + sep3 + '\n'
+        outputheaders += "\n" + sep3 + "\n"
 
         if noheaders:
-            outputheaders = ''
+            outputheaders = ""
 
         return opentable + outputheaders + outputbody + closetable
 
-    def print_formatted_data(self, data, order: list, report_type: str, noheaders: bool):
+    def print_formatted_data(
+        self, data, order: list, report_type: str, noheaders: bool
+    ):
         """
         Used for picking the correct format to output data as
 
@@ -274,7 +277,9 @@ class Report:
         if obj is not None:
             print(obj.to_string())
 
-    def reporting_print_all_fields(self, collection, report_name: str, report_type: str, report_noheaders: bool) -> str:
+    def reporting_print_all_fields(
+        self, collection, report_name: str, report_type: str, report_noheaders: bool
+    ) -> str:
         """
         Prints all fields in a collection as a table given the report type
 
@@ -309,7 +314,7 @@ class Report:
                 if key == "interfaces":
                     for (device, info) in list(value.items()):
                         for (info_header, info_value) in list(info.items()):
-                            item[info_header] = str(device) + ': ' + str(info_value)
+                            item[info_header] = str(device) + ": " + str(info_value)
                             # needs to create order list for print_formatted_fields
                             if count == 0:
                                 out_order.append(info_header)
@@ -323,10 +328,21 @@ class Report:
 
             data.append(item)
 
-        self.print_formatted_data(data=data, order=out_order, report_type=report_type, noheaders=report_noheaders)
+        self.print_formatted_data(
+            data=data,
+            order=out_order,
+            report_type=report_type,
+            noheaders=report_noheaders,
+        )
 
-    def reporting_print_x_fields(self, collection, report_name: str, report_type: str, report_fields: str,
-                                 report_noheaders: bool):
+    def reporting_print_x_fields(
+        self,
+        collection,
+        report_name: str,
+        report_type: str,
+        report_fields: str,
+        report_noheaders: bool,
+    ):
         """
         Prints specific fields in a collection as a table given the report type
 
@@ -347,7 +363,7 @@ class Report:
         collection = [x for x in collection]
         collection.sort(key=lambda x: x.name)
         data = []
-        fields_list = report_fields.replace(' ', '').split(',')
+        fields_list = report_fields.replace(" ", "").split(",")
 
         for x in collection:
             if x.ITEM_TYPE == "settings":
@@ -357,13 +373,23 @@ class Report:
             item = self.fielder(structure, fields_list)
             data.append(item)
 
-        self.print_formatted_data(data=data, order=fields_list, report_type=report_type, noheaders=report_noheaders)
+        self.print_formatted_data(
+            data=data,
+            order=fields_list,
+            report_type=report_type,
+            noheaders=report_noheaders,
+        )
 
     # -------------------------------------------------------
 
-    def run(self, report_what: Optional[str] = None, report_name: Optional[str] = None,
-            report_type: Optional[str] = None, report_fields: Optional[str] = None,
-            report_noheaders: Optional[bool] = None):
+    def run(
+        self,
+        report_what: Optional[str] = None,
+        report_name: Optional[str] = None,
+        report_type: Optional[str] = None,
+        report_fields: Optional[str] = None,
+        report_noheaders: Optional[bool] = None,
+    ):
         """
         Get remote profiles and distros and sync them locally
 
@@ -377,31 +403,81 @@ class Report:
         :param report_fields: The fields which should be included in the report.
         :param report_noheaders: Report without the headers. (May be useful for machine parsing)
         """
-        if report_type == 'text' and report_fields == 'all':
-            for collection_name in ["distro", "profile", "system", "repo", "network", "image", "mgmtclass", "package",
-                                    "file"]:
-                if report_what == "all" or report_what == collection_name or report_what == "%ss" % collection_name \
-                        or report_what == "%ses" % collection_name:
+        if report_type == "text" and report_fields == "all":
+            for collection_name in [
+                "distro",
+                "profile",
+                "system",
+                "repo",
+                "network",
+                "image",
+                "mgmtclass",
+                "package",
+                "file",
+            ]:
+                if (
+                    report_what == "all"
+                    or report_what == collection_name
+                    or report_what == "%ss" % collection_name
+                    or report_what == "%ses" % collection_name
+                ):
                     if report_name:
-                        self.reporting_list_names2(self.api.get_items(collection_name), report_name)
+                        self.reporting_list_names2(
+                            self.api.get_items(collection_name), report_name
+                        )
                     else:
                         self.reporting_print_sorted(self.api.get_items(collection_name))
 
-        elif report_type == 'text' and report_fields != 'all':
+        elif report_type == "text" and report_fields != "all":
             utils.die("The 'text' type can only be used with field set to 'all'")
 
-        elif report_type != 'text' and report_fields == 'all':
-            for collection_name in ["distro", "profile", "system", "repo", "network", "image", "mgmtclass", "package",
-                                    "file"]:
-                if report_what == "all" or report_what == collection_name or report_what == "%ss" % collection_name \
-                        or report_what == "%ses" % collection_name:
-                    self.reporting_print_all_fields(self.api.get_items(collection_name), report_name, report_type,
-                                                    report_noheaders)
+        elif report_type != "text" and report_fields == "all":
+            for collection_name in [
+                "distro",
+                "profile",
+                "system",
+                "repo",
+                "network",
+                "image",
+                "mgmtclass",
+                "package",
+                "file",
+            ]:
+                if (
+                    report_what == "all"
+                    or report_what == collection_name
+                    or report_what == "%ss" % collection_name
+                    or report_what == "%ses" % collection_name
+                ):
+                    self.reporting_print_all_fields(
+                        self.api.get_items(collection_name),
+                        report_name,
+                        report_type,
+                        report_noheaders,
+                    )
 
         else:
-            for collection_name in ["distro", "profile", "system", "repo", "network", "image", "mgmtclass", "package",
-                                    "file"]:
-                if report_what == "all" or report_what == collection_name or report_what == "%ss" % collection_name \
-                        or report_what == "%ses" % collection_name:
-                    self.reporting_print_x_fields(self.api.get_items(collection_name), report_name, report_type,
-                                                  report_fields, report_noheaders)
+            for collection_name in [
+                "distro",
+                "profile",
+                "system",
+                "repo",
+                "network",
+                "image",
+                "mgmtclass",
+                "package",
+                "file",
+            ]:
+                if (
+                    report_what == "all"
+                    or report_what == collection_name
+                    or report_what == "%ss" % collection_name
+                    or report_what == "%ses" % collection_name
+                ):
+                    self.reporting_print_x_fields(
+                        self.api.get_items(collection_name),
+                        report_name,
+                        report_type,
+                        report_fields,
+                        report_noheaders,
+                    )

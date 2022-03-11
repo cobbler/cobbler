@@ -64,7 +64,9 @@ class Image(item.Item):
     def __getattr__(self, name):
         if name == "kickstart":
             return self.autoinstall
-        raise AttributeError("Attribute \"%s\" did not exist on object type Image." % name)
+        raise AttributeError(
+            'Attribute "%s" did not exist on object type Image.' % name
+        )
 
     #
     # override some base class methods first (item.Item)
@@ -144,8 +146,12 @@ class Image(item.Item):
 
         :param autoinstall: local automatic installation template file path
         """
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api._collection_mgr)
-        self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
+        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(
+            self.api._collection_mgr
+        )
+        self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(
+            autoinstall
+        )
 
     @property
     def file(self) -> str:
@@ -180,7 +186,9 @@ class Image(item.Item):
 
         # validate file location format
         if filename.find("://") != -1:
-            raise SyntaxError("Invalid image file path location, it should not contain a protocol")
+            raise SyntaxError(
+                "Invalid image file path location, it should not contain a protocol"
+            )
         uri = filename
         auth = ""
         hostname = ""
@@ -193,10 +201,10 @@ class Image(item.Item):
         # 2. if we don't have a colon, there is no hostname
         if filename.find(":") != -1:
             hostname, filename = filename.split(":")
-        elif filename[0] != '/':
+        elif filename[0] != "/":
             raise SyntaxError("invalid file: %s" % filename)
         # raise an exception if we don't have a valid path
-        if len(filename) > 0 and filename[0] != '/':
+        if len(filename) > 0 and filename[0] != "/":
             raise SyntaxError("file contains an invalid path: %s" % filename)
         if filename.find("/") != -1:
             path, filename = filename.rsplit("/", 1)
@@ -204,7 +212,9 @@ class Image(item.Item):
         if len(filename) == 0:
             raise SyntaxError("missing filename")
         if len(auth) > 0 and len(hostname) == 0:
-            raise SyntaxError("a hostname must be specified with authentication details")
+            raise SyntaxError(
+                "a hostname must be specified with authentication details"
+            )
 
         self._file = uri
 
@@ -278,13 +288,17 @@ class Image(item.Item):
             try:
                 image_type = enums.ImageTypes[image_type.upper()]
             except KeyError as error:
-                raise ValueError("image_type choices include: %s" % list(map(str, enums.ImageTypes))) from error
+                raise ValueError(
+                    "image_type choices include: %s" % list(map(str, enums.ImageTypes))
+                ) from error
         # str was converted now it must be an enum.ImageTypes
         if not isinstance(image_type, enums.ImageTypes):
             raise TypeError("image_type needs to be of type enums.ImageTypes")
         if image_type not in enums.ImageTypes:
-            raise ValueError("image type must be one of the following: %s"
-                             % ", ".join(list(map(str, enums.ImageTypes))))
+            raise ValueError(
+                "image type must be one of the following: %s"
+                % ", ".join(list(map(str, enums.ImageTypes)))
+            )
         self._image_type = image_type
 
     @property
@@ -330,7 +344,9 @@ class Image(item.Item):
         if network_count is None or network_count == "":
             network_count = 1
         if not isinstance(network_count, int):
-            raise TypeError("Field network_count of object image needs to be of type int.")
+            raise TypeError(
+                "Field network_count of object image needs to be of type int."
+            )
         self._network_count = network_count
 
     @property
@@ -544,8 +560,10 @@ class Image(item.Item):
                 raise TypeError("boot_loaders needs to be of type list!")
 
             if not set(boot_loaders_split).issubset(self.supported_boot_loaders):
-                raise ValueError("Error with image %s - not all boot_loaders %s are supported %s" %
-                                 (self.name, boot_loaders_split, self.supported_boot_loaders))
+                raise ValueError(
+                    "Error with image %s - not all boot_loaders %s are supported %s"
+                    % (self.name, boot_loaders_split, self.supported_boot_loaders)
+                )
             self._boot_loaders = boot_loaders_split
         else:
             self._boot_loaders = []

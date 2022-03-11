@@ -56,8 +56,8 @@ class ConfigGen:
         if self.system is None:
             raise ValueError("The specified hostname did not exist!")
         # This below var needs a dict but the method may possibly return an empty str.
-        self.host_vars = self.get_cobbler_resource('autoinstall_meta')
-        self.mgmtclasses = self.get_cobbler_resource('mgmt_classes')
+        self.host_vars = self.get_cobbler_resource("autoinstall_meta")
+        self.mgmtclasses = self.get_cobbler_resource("mgmt_classes")
 
     # ----------------------------------------------------------------------
 
@@ -99,8 +99,8 @@ class ConfigGen:
         :raises CX: In case the package or file resource is not defined.
         """
         config_data = {
-            'repo_data': self.__api.get_repo_config_for_system(self.system),
-            'repos_enabled': self.get_cobbler_resource('repos_enabled'),
+            "repo_data": self.__api.get_repo_config_for_system(self.system),
+            "repos_enabled": self.get_cobbler_resource("repos_enabled"),
         }
         package_set = set()
         file_set = set()
@@ -117,17 +117,22 @@ class ConfigGen:
         for package in package_set:
             _package = self.__api.find_package(name=package)
             if _package is None:
-                raise CX('%s package resource is not defined' % package)
+                raise CX("%s package resource is not defined" % package)
             else:
                 pkg_data[package] = {}
-                pkg_data[package]['action'] = self.resolve_resource_var(_package.action)
-                pkg_data[package]['installer'] = _package.installer
-                pkg_data[package]['version'] = self.resolve_resource_var(_package.version)
-                if pkg_data[package]['version'] != "":
-                    pkg_data[package]["install_name"] = "%s-%s" % (package, pkg_data[package]['version'])
+                pkg_data[package]["action"] = self.resolve_resource_var(_package.action)
+                pkg_data[package]["installer"] = _package.installer
+                pkg_data[package]["version"] = self.resolve_resource_var(
+                    _package.version
+                )
+                if pkg_data[package]["version"] != "":
+                    pkg_data[package]["install_name"] = "%s-%s" % (
+                        package,
+                        pkg_data[package]["version"],
+                    )
                 else:
                     pkg_data[package]["install_name"] = package
-        config_data['packages'] = pkg_data
+        config_data["packages"] = pkg_data
 
         # Generate File data
         file_data: Dict[str, Dict[str, str]] = {}
@@ -135,25 +140,29 @@ class ConfigGen:
             _file = self.__api.find_file(name=file)
 
             if _file is None:
-                raise CX('%s file resource is not defined' % file)
+                raise CX("%s file resource is not defined" % file)
 
             file_data[file] = {}
-            file_data[file]['is_dir'] = _file.is_dir
-            file_data[file]['action'] = self.resolve_resource_var(_file.action)
-            file_data[file]['group'] = self.resolve_resource_var(_file.group)
-            file_data[file]['mode'] = self.resolve_resource_var(_file.mode)
-            file_data[file]['owner'] = self.resolve_resource_var(_file.owner)
-            file_data[file]['path'] = self.resolve_resource_var(_file.path)
+            file_data[file]["is_dir"] = _file.is_dir
+            file_data[file]["action"] = self.resolve_resource_var(_file.action)
+            file_data[file]["group"] = self.resolve_resource_var(_file.group)
+            file_data[file]["mode"] = self.resolve_resource_var(_file.mode)
+            file_data[file]["owner"] = self.resolve_resource_var(_file.owner)
+            file_data[file]["path"] = self.resolve_resource_var(_file.path)
 
             if not _file.is_dir:
-                file_data[file]['template'] = self.resolve_resource_var(_file.template)
+                file_data[file]["template"] = self.resolve_resource_var(_file.template)
                 try:
-                    t = template_api.CobblerTemplate(file=file_data[file]['template'], searchList=[self.host_vars])
-                    file_data[file]['content'] = t.respond()
+                    t = template_api.CobblerTemplate(
+                        file=file_data[file]["template"], searchList=[self.host_vars]
+                    )
+                    file_data[file]["content"] = t.respond()
                 except:
-                    utils.die("Missing template for this file resource %s" % (file_data[file]))
+                    utils.die(
+                        "Missing template for this file resource %s" % (file_data[file])
+                    )
 
-        config_data['files'] = file_data
+        config_data["files"] = file_data
         return config_data
 
     # ----------------------------------------------------------------------
@@ -166,5 +175,7 @@ class ConfigGen:
         """
         # TODO: This can be merged with the above method if we want to obsolete this class. If not, we need to create
         #       helper objects instead of just having a nested dictionary.
-        json_config_data = json.JSONEncoder(sort_keys=True, indent=4).encode(self.gen_config_data())
+        json_config_data = json.JSONEncoder(sort_keys=True, indent=4).encode(
+            self.gen_config_data()
+        )
         return json_config_data

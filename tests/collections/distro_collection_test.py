@@ -85,7 +85,9 @@ def test_from_list(distro_collection):
     assert len(distro_collection.listing) == 1
 
 
-def test_copy(cobbler_api, distro_collection, create_kernel_initrd, fk_initrd, fk_kernel):
+def test_copy(
+    cobbler_api, distro_collection, create_kernel_initrd, fk_initrd, fk_kernel
+):
     # Arrange
     folder = create_kernel_initrd(fk_kernel, fk_initrd)
     name = "test_copy"

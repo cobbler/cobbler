@@ -39,8 +39,14 @@ class Images(collection.Collection):
         new_image.from_dict(item_dict)
         return new_image
 
-    def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
-               recursive: bool = True):
+    def remove(
+        self,
+        name,
+        with_delete: bool = True,
+        with_sync: bool = True,
+        with_triggers: bool = True,
+        recursive: bool = True,
+    ):
         """
         Remove element named 'name' from the collection
 
@@ -65,7 +71,9 @@ class Images(collection.Collection):
 
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/image/pre/*", [])
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/delete/image/pre/*", []
+                )
             if with_sync:
                 lite_sync = self.api.get_sync()
                 lite_sync.remove_single_image(name)
@@ -79,5 +87,9 @@ class Images(collection.Collection):
 
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/image/post/*", [])
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/delete/image/post/*", []
+                )
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/change/*", []
+                )

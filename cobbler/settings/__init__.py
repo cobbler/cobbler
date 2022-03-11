@@ -105,7 +105,7 @@ class Settings:
         self.ldap_port = 389
         self.ldap_search_bind_dn = ""
         self.ldap_search_passwd = ""
-        self.ldap_search_prefix = 'uid='
+        self.ldap_search_prefix = "uid="
         self.ldap_server = "grimlock.devel.redhat.com"
         self.ldap_tls = True
         self.ldap_tls_cacertdir = ""
@@ -170,8 +170,22 @@ class Settings:
         self.tftpboot_location = "/var/lib/tftpboot"
         self.virt_auto_boot = False
         self.webdir = "/var/www/cobbler"
-        self.webdir_whitelist = [".link_cache", "misc", "distro_mirror", "images", "links", "localmirror", "pub",
-                                 "rendered", "repo_mirror", "repo_profile", "repo_system", "svc", "web", "webui"]
+        self.webdir_whitelist = [
+            ".link_cache",
+            "misc",
+            "distro_mirror",
+            "images",
+            "links",
+            "localmirror",
+            "pub",
+            "rendered",
+            "repo_mirror",
+            "repo_profile",
+            "repo_system",
+            "svc",
+            "web",
+            "webui",
+        ]
         self.xmlrpc_port = 25151
         self.yum_distro_priority = 1
         self.yum_post_install_mirror = True
@@ -187,7 +201,7 @@ class Settings:
         :return: The multiline string with the kernel options.
         """
         buf = "defaults\n"
-        buf += "kernel options  : %s\n" % self.__dict__['kernel_options']
+        buf += "kernel options  : %s\n" % self.__dict__["kernel_options"]
         return buf
 
     def to_dict(self) -> dict:
@@ -247,7 +261,9 @@ class Settings:
         try:
             if name == "kernel_options":
                 # backwards compatibility -- convert possible string value to dict
-                (success, result) = utils.input_string_or_dict(self.__dict__[name], allow_multiples=False)
+                (success, result) = utils.input_string_or_dict(
+                    self.__dict__[name], allow_multiples=False
+                )
                 self.__dict__[name] = result
                 return result
             # TODO: This needs to be explicitly tested
@@ -258,7 +274,9 @@ class Settings:
             if name in self.__dict__:
                 return self.__dict__[name]
             else:
-                raise AttributeError(f"no settings attribute named '{name}' found") from error
+                raise AttributeError(
+                    f"no settings attribute named '{name}' found"
+                ) from error
 
     def save(self, filepath="/etc/cobbler/settings.yaml"):
         """
@@ -292,14 +310,16 @@ def read_yaml_file(filepath="/ect/cobbler/settings.yaml") -> Dict[Hashable, Any]
     :return: The aggregated dict of all settings.
     """
     if not os.path.isfile(filepath):
-        raise FileNotFoundError('Given path "%s" does not exist or is a directory.' % filepath)
+        raise FileNotFoundError(
+            'Given path "%s" does not exist or is a directory.' % filepath
+        )
     try:
         with open(filepath) as main_settingsfile:
             filecontent = yaml.safe_load(main_settingsfile.read())
 
             for ival in filecontent.get("include", []):
                 for ifile in glob.glob(ival):
-                    with open(ifile, 'r') as extra_settingsfile:
+                    with open(ifile, "r") as extra_settingsfile:
                         filecontent.update(yaml.safe_load(extra_settingsfile.read()))
     except yaml.YAMLError as error:
         traceback.print_exc()
@@ -366,11 +386,15 @@ def update_settings_file(data: dict, filepath="/etc/cobbler/settings.yaml") -> b
             settings_file.write(yaml_dump)
         return True
     except SchemaMissingKeyError:
-        logging.exception("Settings file was not written to the disc due to missing keys.")
+        logging.exception(
+            "Settings file was not written to the disc due to missing keys."
+        )
         logging.debug('The settings to write were: "%s"', data)
         return False
     except SchemaError:
-        logging.exception("Settings file was not written to the disc due to an error in the schema.")
+        logging.exception(
+            "Settings file was not written to the disc due to an error in the schema."
+        )
         logging.debug('The settings to write were: "%s"', data)
         return False
 

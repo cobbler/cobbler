@@ -29,8 +29,8 @@ import time
 from cobbler import remote, utils
 from cobbler.api import CobblerAPI
 
-if os.geteuid() == 0 and os.path.exists('/etc/cobbler/logging_config.conf'):
-    logging.config.fileConfig('/etc/cobbler/logging_config.conf')
+if os.geteuid() == 0 and os.path.exists("/etc/cobbler/logging_config.conf"):
+    logging.config.fileConfig("/etc/cobbler/logging_config.conf")
 
 
 logger = logging.getLogger()
@@ -55,10 +55,10 @@ def regen_ss_file():
     cleared by Kerberos.
     """
     ssfile = "/var/lib/cobbler/web.ss"
-    with open("/dev/urandom", 'rb') as fd:
+    with open("/dev/urandom", "rb") as fd:
         data = fd.read(512)
 
-    with open(ssfile, 'wb', 0o660) as fd:
+    with open(ssfile, "wb", 0o660) as fd:
         fd.write(binascii.hexlify(data))
 
     http_user = "apache"
@@ -77,14 +77,17 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port):
     :param cobbler_api: The cobbler_api instance which is used for this method.
     :param port: The port where the xmlrpc api should run on.
     """
-    xinterface = remote.ProxiedXMLRPCInterface(cobbler_api, remote.CobblerXMLRPCInterface)
-    server = remote.CobblerXMLRPCServer(('127.0.0.1', port))
-    server.logRequests = 0      # don't print stuff
+    xinterface = remote.ProxiedXMLRPCInterface(
+        cobbler_api, remote.CobblerXMLRPCInterface
+    )
+    server = remote.CobblerXMLRPCServer(("127.0.0.1", port))
+    server.logRequests = 0  # don't print stuff
     logger.debug("XMLRPC running on %s", port)
     server.register_instance(xinterface)
     start_time = ""
     try:
         import psutil
+
         p = psutil.Process(os.getpid())
         start_time = " in %s seconds" % str(time.time() - p.create_time())
     except ModuleNotFoundError:

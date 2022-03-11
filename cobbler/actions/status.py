@@ -36,7 +36,6 @@ STATE = 5
 
 
 class CobblerStatusReport:
-
     def __init__(self, api, mode: str):
         """
         Constructor
@@ -57,7 +56,7 @@ class CobblerStatusReport:
         """
         unsorted_files = glob.glob("/var/log/cobbler/install.log*")
         files_dict = dict()
-        log_id_re = re.compile(r'install.log.(\d+)')
+        log_id_re = re.compile(r"install.log.(\d+)")
         for fname in unsorted_files:
             id_match = log_id_re.search(fname)
             if id_match:
@@ -67,11 +66,11 @@ class CobblerStatusReport:
         sorted_ids = sorted(files_dict, key=files_dict.get, reverse=True)
         for file_id in sorted_ids:
             files.append(files_dict[file_id])
-        if '/var/log/cobbler/install.log' in unsorted_files:
-            files.append('/var/log/cobbler/install.log')
+        if "/var/log/cobbler/install.log" in unsorted_files:
+            files.append("/var/log/cobbler/install.log")
 
         for fname in files:
-            if fname.endswith('.gz'):
+            if fname.endswith(".gz"):
                 fd = gzip.open(fname)
             else:
                 fd = open(fname)
@@ -86,7 +85,9 @@ class CobblerStatusReport:
 
     # ------------------------------------------------------
 
-    def catalog(self, profile_or_system: str, name: str, ip, start_or_stop: str, ts: float):
+    def catalog(
+        self, profile_or_system: str, name: str, ip, start_or_stop: str, ts: float
+    ):
         """
         Add a system to ``cobbler status``.
 
@@ -174,12 +175,7 @@ class CobblerStatusReport:
                 start = time.ctime(elem[MOST_RECENT_START])
             else:
                 start = "Unknown"
-            line = (
-                ip,
-                elem[MOST_RECENT_TARGET],
-                start,
-                elem[STATE]
-            )
+            line = (ip, elem[MOST_RECENT_TARGET], start, elem[STATE])
             buf += "\n" + format % line
         return buf
 

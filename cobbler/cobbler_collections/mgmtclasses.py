@@ -49,8 +49,14 @@ class Mgmtclasses(collection.Collection):
         new_mgmtclass.from_dict(item_dict)
         return new_mgmtclass
 
-    def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
-               recursive: bool = False):
+    def remove(
+        self,
+        name,
+        with_delete: bool = True,
+        with_sync: bool = True,
+        with_triggers: bool = True,
+        recursive: bool = False,
+    ):
         """
         Remove element named 'name' from the collection
 
@@ -63,7 +69,12 @@ class Mgmtclasses(collection.Collection):
 
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/pre/*", [])
+                utils.run_triggers(
+                    self.api,
+                    obj,
+                    "/var/lib/cobbler/triggers/delete/mgmtclass/pre/*",
+                    [],
+                )
 
         self.lock.acquire()
         try:
@@ -74,5 +85,12 @@ class Mgmtclasses(collection.Collection):
 
         if with_delete:
             if with_triggers:
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/post/*", [])
-                utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+                utils.run_triggers(
+                    self.api,
+                    obj,
+                    "/var/lib/cobbler/triggers/delete/mgmtclass/post/*",
+                    [],
+                )
+                utils.run_triggers(
+                    self.api, obj, "/var/lib/cobbler/triggers/change/*", []
+                )

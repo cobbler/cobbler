@@ -108,9 +108,7 @@ def test_proxy(cobbler_api):
     assert profile.proxy == ""
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    (False, does_not_raise())
-])
+@pytest.mark.parametrize("value,expected_exception", [(False, does_not_raise())])
 def test_enable_ipxe(cobbler_api, value, expected_exception):
     # Arrange
     profile = Profile(cobbler_api)
@@ -123,12 +121,15 @@ def test_enable_ipxe(cobbler_api, value, expected_exception):
         assert profile.enable_ipxe is value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    (True, does_not_raise()),
-    (False, does_not_raise()),
-    ("", does_not_raise()),
-    (0, does_not_raise())
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        (True, does_not_raise()),
+        (False, does_not_raise()),
+        ("", does_not_raise()),
+        (0, does_not_raise()),
+    ],
+)
 def test_enable_menu(cobbler_api, value, expected_exception):
     # Arrange
     profile = Profile(cobbler_api)
@@ -208,11 +209,10 @@ def test_autoinstall(cobbler_api):
     assert profile.autoinstall == ""
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ("", does_not_raise()),
-    (False, does_not_raise()),
-    (True, does_not_raise())
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [("", does_not_raise()), (False, does_not_raise()), (True, does_not_raise())],
+)
 def test_virt_auto_boot(cobbler_api, value, expected_exception):
     # Arrange
     profile = Profile(cobbler_api)
@@ -226,13 +226,16 @@ def test_virt_auto_boot(cobbler_api, value, expected_exception):
         assert profile.virt_auto_boot or not profile.virt_auto_boot
 
 
-@pytest.mark.parametrize("value,expected_exception, expected_result", [
-    ("", does_not_raise(), 0),
-    # FIXME: (False, pytest.raises(TypeError)), --> does not raise
-    (-5, pytest.raises(ValueError), -5),
-    (0, does_not_raise(), 0),
-    (5, does_not_raise(), 5)
-])
+@pytest.mark.parametrize(
+    "value,expected_exception, expected_result",
+    [
+        ("", does_not_raise(), 0),
+        # FIXME: (False, pytest.raises(TypeError)), --> does not raise
+        (-5, pytest.raises(ValueError), -5),
+        (0, does_not_raise(), 0),
+        (5, does_not_raise(), 5),
+    ],
+)
 def test_virt_cpus(cobbler_api, value, expected_exception, expected_result):
     # Arrange
     profile = Profile(cobbler_api)
@@ -245,13 +248,16 @@ def test_virt_cpus(cobbler_api, value, expected_exception, expected_result):
         assert profile.virt_cpus == expected_result
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ("5", does_not_raise()),
-    # FIXME: (False, pytest.raises(TypeError)), --> does not raise
-    (-5, pytest.raises(ValueError)),
-    (0, does_not_raise()),
-    (5, does_not_raise())
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        ("5", does_not_raise()),
+        # FIXME: (False, pytest.raises(TypeError)), --> does not raise
+        (-5, pytest.raises(ValueError)),
+        (0, does_not_raise()),
+        (5, does_not_raise()),
+    ],
+)
 def test_virt_file_size(cobbler_api, value, expected_exception):
     # Arrange
     profile = Profile(cobbler_api)
@@ -264,12 +270,15 @@ def test_virt_file_size(cobbler_api, value, expected_exception):
         assert profile.virt_file_size == int(value)
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ("qcow2", does_not_raise()),
-    (enums.VirtDiskDrivers.QCOW2, does_not_raise()),
-    (False, pytest.raises(TypeError)),
-    ("", pytest.raises(ValueError))
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        ("qcow2", does_not_raise()),
+        (enums.VirtDiskDrivers.QCOW2, does_not_raise()),
+        (False, pytest.raises(TypeError)),
+        ("", pytest.raises(ValueError)),
+    ],
+)
 def test_virt_disk_driver(cobbler_api, value, expected_exception):
     # Arrange
     profile = Profile(cobbler_api)
@@ -285,11 +294,14 @@ def test_virt_disk_driver(cobbler_api, value, expected_exception):
             assert profile.virt_disk_driver == value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ("", pytest.raises(ValueError)),
-    (0, does_not_raise()),
-    (0.0, pytest.raises(TypeError))
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        ("", pytest.raises(ValueError)),
+        (0, does_not_raise()),
+        (0.0, pytest.raises(TypeError)),
+    ],
+)
 def test_virt_ram(cobbler_api, value, expected_exception):
     # Arrange
     profile = Profile(cobbler_api)
@@ -302,13 +314,16 @@ def test_virt_ram(cobbler_api, value, expected_exception):
         assert profile.virt_ram == int(value)
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    # ("<<inherit>>", does_not_raise()),
-    ("qemu", does_not_raise()),
-    (enums.VirtType.QEMU, does_not_raise()),
-    ("", pytest.raises(ValueError)),
-    (False, pytest.raises(TypeError))
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        # ("<<inherit>>", does_not_raise()),
+        ("qemu", does_not_raise()),
+        (enums.VirtType.QEMU, does_not_raise()),
+        ("", pytest.raises(ValueError)),
+        (False, pytest.raises(TypeError)),
+    ],
+)
 def test_virt_type(cobbler_api, value, expected_exception):
     # Arrange
     profile = Profile(cobbler_api)

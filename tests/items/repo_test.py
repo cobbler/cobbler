@@ -152,13 +152,16 @@ def test_os_version(cobbler_api):
     assert testrepo.os_version == "rhel4"
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ("x86_64", does_not_raise()),
-    (enums.RepoArchs.X86_64, does_not_raise()),
-    (enums.Archs.X86_64, pytest.raises(AssertionError)),
-    (False, pytest.raises(TypeError)),
-    ("", pytest.raises(ValueError))
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        ("x86_64", does_not_raise()),
+        (enums.RepoArchs.X86_64, does_not_raise()),
+        (enums.Archs.X86_64, pytest.raises(AssertionError)),
+        (False, pytest.raises(TypeError)),
+        ("", pytest.raises(ValueError)),
+    ],
+)
 def test_arch(cobbler_api, value, expected_exception):
     # Arrange
     testrepo = Repo(cobbler_api)
@@ -167,7 +170,7 @@ def test_arch(cobbler_api, value, expected_exception):
     with expected_exception:
         testrepo.arch = value
 
-    # Assert
+        # Assert
         if isinstance(value, str):
             assert testrepo.arch.value == value
         else:

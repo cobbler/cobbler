@@ -37,6 +37,7 @@ from cobbler.cexceptions import CX
 HAS_LIBREPO = False
 try:
     import librepo
+
     HAS_LIBREPO = True
 except ModuleNotFoundError:
     pass
@@ -126,7 +127,9 @@ class RepoSync:
             repo_mirror = os.path.join(self.settings.webdir, "repo_mirror")
             repo_path = os.path.join(repo_mirror, repo.name)
 
-            if not os.path.isdir(repo_path) and not repo.mirror.lower().startswith("rhn://"):
+            if not os.path.isdir(repo_path) and not repo.mirror.lower().startswith(
+                "rhn://"
+            ):
                 os.makedirs(repo_path)
 
             # Set the environment keys specified for this repo and save the old one if they modify an existing variable.
@@ -159,10 +162,14 @@ class RepoSync:
             for k in list(env.keys()):
                 if env[k] is not None:
                     if k in old_env:
-                        self.logger.debug("resetting repo environment: %s=%s" % (k, old_env[k]))
+                        self.logger.debug(
+                            "resetting repo environment: %s=%s" % (k, old_env[k])
+                        )
                         os.environ[k] = old_env[k]
                     else:
-                        self.logger.debug("removing repo environment: %s=%s" % (k, env[k]))
+                        self.logger.debug(
+                            "removing repo environment: %s=%s" % (k, env[k])
+                        )
                         del os.environ[k]
 
             if not success:
@@ -198,7 +205,10 @@ class RepoSync:
         elif repo.breed == RepoBreeds.WGET:
             self.wget_sync(repo)
         else:
-            raise CX("unable to sync repo (%s), unknown or unsupported repo type (%s)" % (repo.name, repo.breed.value))
+            raise CX(
+                "unable to sync repo (%s), unknown or unsupported repo type (%s)"
+                % (repo.name, repo.breed.value)
+            )
 
     # ====================================================================================
 
@@ -224,7 +234,7 @@ class RepoSync:
         except librepo.LibrepoException as e:
             raise CX("librepo error: " + dirname + " - " + e.args[1]) from e
 
-        rmd = r.getinfo(librepo.LRR_RPMMD_REPOMD)['records']
+        rmd = r.getinfo(librepo.LRR_RPMMD_REPOMD)["records"]
         return rmd
 
     # ====================================================================================
@@ -249,7 +259,7 @@ class RepoSync:
                 rd = self.librepo_getinfo(origin_path)
 
                 if "group" in rd:
-                    groupmdfile = rd['group']['location_href']
+                    groupmdfile = rd["group"]["location_href"]
                     mdoptions.append("-g %s" % os.path.join(origin_path, groupmdfile))
                 if "prestodelta" in rd:
                     # need createrepo >= 0.9.7 to add deltas
@@ -262,13 +272,19 @@ class RepoSync:
                         if utils.compare_versions_gt(createrepo_ver, "0.9.7"):
                             mdoptions.append("--deltas")
                         else:
-                            self.logger.error("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 "
-                                              "first and then need to resync the repo through Cobbler.")
+                            self.logger.error(
+                                "this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 "
+                                "first and then need to resync the repo through Cobbler."
+                            )
 
             blended = utils.blender(self.api, False, repo)
             flags = blended.get("createrepo_flags", "(ERROR: FLAGS)")
             try:
-                cmd = "createrepo %s %s %s" % (" ".join(mdoptions), flags, pipes.quote(dirname))
+                cmd = "createrepo %s %s %s" % (
+                    " ".join(mdoptions),
+                    flags,
+                    pipes.quote(dirname),
+                )
                 utils.subprocess_call(cmd)
             except:
                 utils.log_exc()
@@ -290,7 +306,9 @@ class RepoSync:
             raise CX("no %s found, please install it" % mirror_program)
 
         if repo.mirror_type != MirrorType.BASEURL:
-            raise CX("mirrorlist and metalink mirror types is not supported for wget'd repositories")
+            raise CX(
+                "mirrorlist and metalink mirror types is not supported for wget'd repositories"
+            )
 
         if repo.rpm_list != "" and repo.rpm_list != []:
             self.logger.warning("--rpm-list is not supported for wget'd repositories")
@@ -298,7 +316,18 @@ class RepoSync:
         dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
 
         # FIXME: wrapper for subprocess that logs to logger
-        cmd = ["wget", "-N", "-np", "-r", "-l", "inf", "-nd", "-P", pipes.quote(dest_path), pipes.quote(repo.mirror)]
+        cmd = [
+            "wget",
+            "-N",
+            "-np",
+            "-r",
+            "-l",
+            "inf",
+            "-nd",
+            "-P",
+            pipes.quote(dest_path),
+            pipes.quote(repo.mirror),
+        ]
         rc = utils.subprocess_call(cmd)
 
         if rc != 0:
@@ -317,10 +346,14 @@ class RepoSync:
         """
 
         if not repo.mirror_locally:
-            raise CX("rsync:// urls must be mirrored locally, yum cannot access them directly")
+            raise CX(
+                "rsync:// urls must be mirrored locally, yum cannot access them directly"
+            )
 
         if repo.mirror_type != MirrorType.BASEURL:
-            raise CX("mirrorlist and metalink mirror types is not supported for rsync'd repositories")
+            raise CX(
+                "mirrorlist and metalink mirror types is not supported for rsync'd repositories"
+            )
 
         if repo.rpm_list != "" and repo.rpm_list != []:
             self.logger.warning("--rpm-list is not supported for rsync'd repositories")
@@ -333,18 +366,20 @@ class RepoSync:
         if not repo.mirror.endswith("/"):
             repo.mirror = "%s/" % repo.mirror
 
-        flags = ''
+        flags = ""
         for x in repo.rsyncopts:
             if repo.rsyncopts[x]:
                 flags += " %s %s" % (x, repo.rsyncopts[x])
             else:
                 flags += " %s" % x
 
-        if flags == '':
+        if flags == "":
             flags = self.settings.reposync_rsync_flags
 
-        cmd = "rsync %s --delete-after %s --delete --exclude-from=/etc/cobbler/rsync.exclude %s %s" \
-              % (flags, spacer, pipes.quote(repo.mirror), pipes.quote(dest_path))
+        cmd = (
+            "rsync %s --delete-after %s --delete --exclude-from=/etc/cobbler/rsync.exclude %s %s"
+            % (flags, spacer, pipes.quote(repo.mirror), pipes.quote(dest_path))
+        )
         rc = utils.subprocess_call(cmd)
 
         if rc != 0:
@@ -352,16 +387,16 @@ class RepoSync:
 
         # If ran in archive mode then repo should already contain all repodata and does not need createrepo run
         archive = False
-        if '--archive' in flags:
+        if "--archive" in flags:
             archive = True
         else:
             # split flags and skip all --{options} as we need to look for combined flags like -vaH
             fl = flags.split()
             for f in fl:
-                if f.startswith('--'):
+                if f.startswith("--"):
                     pass
                 else:
-                    if 'a' in f:
+                    if "a" in f:
                         archive = True
                         break
         if not archive:
@@ -432,14 +467,18 @@ class RepoSync:
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
         rest = repo.mirror[6:]  # everything after rhn://
-        cmd = "%s %s --repo=%s -p %s" % (cmd,
-                                         self.rflags,
-                                         pipes.quote(rest),
-                                         pipes.quote(repos_path))
+        cmd = "%s %s --repo=%s -p %s" % (
+            cmd,
+            self.rflags,
+            pipes.quote(rest),
+            pipes.quote(repos_path),
+        )
         if repo.name != rest:
             args = {"name": repo.name, "rest": rest}
-            raise CX("ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository "
-                     "must match the name of the RHN channel" % args)
+            raise CX(
+                "ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository "
+                "must match the name of the RHN channel" % args
+            )
 
         arch = repo.arch.value
 
@@ -483,14 +522,14 @@ class RepoSync:
         cert = None
         sslcacert = None
         verify = False
-        if 'sslcacert' in yumopts:
-            sslcacert = yumopts['sslcacert']
-        if 'sslclientkey' and 'sslclientcert' in yumopts:
-            cert = (sslcacert, yumopts['sslclientcert'], yumopts['sslclientkey'])
+        if "sslcacert" in yumopts:
+            sslcacert = yumopts["sslcacert"]
+        if "sslclientkey" and "sslclientcert" in yumopts:
+            cert = (sslcacert, yumopts["sslclientcert"], yumopts["sslclientkey"])
         # Note that the default of requests is to verify the peer and host but the default here is NOT to verify them
         # unless sslverify is explicitly set to 1 in yumopts.
-        if 'sslverify' in yumopts:
-            if yumopts['sslverify'] == 1:
+        if "sslverify" in yumopts:
+            if yumopts["sslverify"] == 1:
                 verify = True
             else:
                 verify = False
@@ -540,9 +579,13 @@ class RepoSync:
 
         if not has_rpm_list:
             # If we have not requested only certain RPMs, use reposync
-            cmd = "%s %s --config=%s --repoid=%s -p %s" \
-                  % (cmd, self.rflags, temp_file, pipes.quote(repo.name),
-                     pipes.quote(repos_path))
+            cmd = "%s %s --config=%s --repoid=%s -p %s" % (
+                cmd,
+                self.rflags,
+                temp_file,
+                pipes.quote(repo.name),
+                pipes.quote(repos_path),
+            )
             if arch != "none":
                 cmd = "%s -a %s" % (cmd, arch)
 
@@ -558,9 +601,15 @@ class RepoSync:
             # Older yumdownloader sometimes explodes on --resolvedeps if this happens to you, upgrade yum & yum-utils
             extra_flags = self.settings.yumdownloader_flags
             cmd = "/usr/bin/dnf download"
-            cmd = "%s %s %s --disablerepo=* --enablerepo=%s -c %s --destdir=%s %s" \
-                  % (cmd, extra_flags, use_source, pipes.quote(repo.name), temp_file, pipes.quote(dest_path),
-                     " ".join(repo.rpm_list))
+            cmd = "%s %s %s --disablerepo=* --enablerepo=%s -c %s --destdir=%s %s" % (
+                cmd,
+                extra_flags,
+                use_source,
+                pipes.quote(repo.name),
+                temp_file,
+                pipes.quote(dest_path),
+                " ".join(repo.rpm_list),
+            )
 
         # Now regardless of whether we're doing yumdownloader or reposync or whether the repo was http://, ftp://, or
         # rhn://, execute all queued commands here.  Any failure at any point stops the operation.
@@ -571,7 +620,7 @@ class RepoSync:
 
         # download any metadata we can use
         proxy = None
-        if repo.proxy != '<<None>>' and repo.proxy != '':
+        if repo.proxy != "<<None>>" and repo.proxy != "":
             proxy = repo.proxy
         (cert, verify) = self.gen_urlgrab_ssl_opts(repo.yumopts)
 
@@ -643,7 +692,9 @@ class RepoSync:
             raise CX("Architecture is required for apt repositories")
 
         if repo.mirror_type != MirrorType.BASEURL:
-            raise CX("mirrorlist and metalink mirror types is not supported for apt repositories")
+            raise CX(
+                "mirrorlist and metalink mirror types is not supported for apt repositories"
+            )
 
         # built destination path for the repo
         dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
@@ -656,7 +707,7 @@ class RepoSync:
 
             idx = mirror.find("://")
             method = mirror[:idx]
-            mirror = mirror[idx + 3:]
+            mirror = mirror[idx + 3 :]
 
             idx = mirror.find("/")
             host = mirror[:idx]
@@ -665,9 +716,13 @@ class RepoSync:
             dists = ",".join(repo.apt_dists)
             components = ",".join(repo.apt_components)
 
-            mirror_data = "--method=%s --host=%s --root=%s --dist=%s --section=%s" \
-                          % (pipes.quote(method), pipes.quote(host), pipes.quote(mirror), pipes.quote(dists),
-                             pipes.quote(components))
+            mirror_data = "--method=%s --host=%s --root=%s --dist=%s --section=%s" % (
+                pipes.quote(method),
+                pipes.quote(host),
+                pipes.quote(mirror),
+                pipes.quote(dists),
+                pipes.quote(components),
+            )
 
             rflags = "--nocleanup"
             for x in repo.yumopts:
@@ -675,7 +730,12 @@ class RepoSync:
                     rflags += " %s=%s" % (x, repo.yumopts[x])
                 else:
                     rflags += " %s" % x
-            cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, pipes.quote(dest_path))
+            cmd = "%s %s %s %s" % (
+                mirror_program,
+                rflags,
+                mirror_data,
+                pipes.quote(dest_path),
+            )
             if repo.arch == RepoArchs.SRC:
                 cmd = "%s --source" % cmd
             else:
@@ -728,7 +788,9 @@ class RepoSync:
         optgpgcheck = False
         if output:
             if repo.mirror_locally:
-                line = "baseurl=http://${http_server}/cobbler/repo_mirror/%s\n" % repo.name
+                line = (
+                    "baseurl=http://${http_server}/cobbler/repo_mirror/%s\n" % repo.name
+                )
             else:
                 mstr = repo.mirror
                 if mstr.startswith("/"):
@@ -747,7 +809,7 @@ class RepoSync:
             if mstr.startswith("/"):
                 mstr = "file://%s" % mstr
             line = repo.mirror_type.value + "=%s\n" % mstr
-            if self.settings.http_port not in (80, '80'):
+            if self.settings.http_port not in (80, "80"):
                 http_server = "%s:%s" % (self.settings.server, self.settings.http_port)
             else:
                 http_server = self.settings.server
@@ -755,16 +817,16 @@ class RepoSync:
             config_file.write(line)
 
             config_proxy = None
-            if repo.proxy == '<<inherit>>':
+            if repo.proxy == "<<inherit>>":
                 config_proxy = self.settings.proxy_url_ext
-            elif repo.proxy != '' and repo.proxy != '<<None>>':
+            elif repo.proxy != "" and repo.proxy != "<<None>>":
                 config_proxy = repo.proxy
 
             if config_proxy is not None:
                 config_file.write("proxy=%s\n" % config_proxy)
-            if 'exclude' in list(repo.yumopts.keys()):
-                self.logger.debug("excluding: %s" % repo.yumopts['exclude'])
-                config_file.write("exclude=%s\n" % repo.yumopts['exclude'])
+            if "exclude" in list(repo.yumopts.keys()):
+                self.logger.debug("excluding: %s" % repo.yumopts["exclude"])
+                config_file.write("exclude=%s\n" % repo.yumopts["exclude"])
 
         if not optenabled:
             config_file.write("enabled=1\n")

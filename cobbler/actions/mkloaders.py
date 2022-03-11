@@ -33,8 +33,12 @@ class MkLoaders:
         self.modules: typing.List = api.settings().bootloaders_modules
         # Syslinux
         self.syslinux_folder = pathlib.Path(api.settings().syslinux_dir)
-        self.syslinux_memdisk_folder = pathlib.Path(api.settings().syslinux_memdisk_folder)
-        self.syslinux_pxelinux_folder = pathlib.Path(api.settings().syslinux_pxelinux_folder)
+        self.syslinux_memdisk_folder = pathlib.Path(
+            api.settings().syslinux_memdisk_folder
+        )
+        self.syslinux_pxelinux_folder = pathlib.Path(
+            api.settings().syslinux_pxelinux_folder
+        )
         # Shim
         self.shim_glob = pathlib.Path(api.settings().bootloaders_shim_folder)
         self.shim_regex = re.compile(api.settings().bootloaders_shim_file)
@@ -62,11 +66,15 @@ class MkLoaders:
         parts = self.shim_glob.parts
         start_at = 1 if self.shim_glob.is_absolute() else 0
         bootloader_path_parts = pathlib.Path(*parts[start_at:])
-        results = sorted(pathlib.Path(self.shim_glob.root).glob(str(bootloader_path_parts)))
+        results = sorted(
+            pathlib.Path(self.shim_glob.root).glob(str(bootloader_path_parts))
+        )
         # If no match, then report and bail out.
         if len(results) <= 0:
-            self.logger.info('Unable to find the folder which should be scanned for "shim.efi"! Bailing out of linking '
-                             'the shim!')
+            self.logger.info(
+                'Unable to find the folder which should be scanned for "shim.efi"! Bailing out of linking '
+                "the shim!"
+            )
             return
         # Now scan the folders with the regex
         target_shim = None
@@ -77,14 +85,16 @@ class MkLoaders:
                     break
         # If no match is found report and return
         if target_shim is None:
-            self.logger.info('Unable to find "shim.efi" file. Please adjust "bootloaders_shim_file" regex. Bailing out '
-                             'of linking the shim!')
+            self.logger.info(
+                'Unable to find "shim.efi" file. Please adjust "bootloaders_shim_file" regex. Bailing out '
+                "of linking the shim!"
+            )
             return
         # Symlink the absolute target of the match
         symlink(
             target_shim,
             self.bootloaders_dir.joinpath(pathlib.Path("grub/shim.efi")),
-            skip_existing=True
+            skip_existing=True,
         )
 
     def make_ipxe(self):
@@ -92,13 +102,15 @@ class MkLoaders:
         Create symlink of the iPXE bootloader in case it is available on the system.
         """
         if not self.ipxe_folder.exists():
-            self.logger.info('ipxe directory did not exist. Please adjust the "bootloaders_ipxe_folder". Bailing out '
-                             'of iPXE setup!')
+            self.logger.info(
+                'ipxe directory did not exist. Please adjust the "bootloaders_ipxe_folder". Bailing out '
+                "of iPXE setup!"
+            )
             return
         symlink(
             self.ipxe_folder.joinpath("undionly.kpxe"),
             self.bootloaders_dir.joinpath(pathlib.Path("undionly.pxe")),
-            skip_existing=True
+            skip_existing=True,
         )
 
     def make_syslinux(self):
@@ -106,35 +118,39 @@ class MkLoaders:
         Create symlink of the important syslinux bootloader files in case they are available on the system.
         """
         if not utils.command_existing("syslinux"):
-            self.logger.info("syslinux command not available. Bailing out of syslinux setup!")
+            self.logger.info(
+                "syslinux command not available. Bailing out of syslinux setup!"
+            )
             return
         # Make modules
         symlink(
             self.syslinux_folder.joinpath("menu.c32"),
             self.bootloaders_dir.joinpath("menu.c32"),
-            skip_existing=True
+            skip_existing=True,
         )
         if get_syslinux_version() < 5:
             # This file is only required for Syslinux 5 and newer.
             # Source: https://wiki.syslinux.org/wiki/index.php?title=Library_modules
-            self.logger.info('syslinux version 4 detected! Skip making symlink of "ldlinux.c32" file!')
+            self.logger.info(
+                'syslinux version 4 detected! Skip making symlink of "ldlinux.c32" file!'
+            )
         else:
             symlink(
                 self.syslinux_folder.joinpath("ldlinux.c32"),
                 self.bootloaders_dir.joinpath("ldlinux.c32"),
-                skip_existing=True
+                skip_existing=True,
             )
         # Make memdisk
         symlink(
             self.syslinux_memdisk_folder.joinpath("memdisk"),
             self.bootloaders_dir.joinpath("memdisk"),
-            skip_existing=True
+            skip_existing=True,
         )
         # Make pxelinux.0
         symlink(
             self.syslinux_pxelinux_folder.joinpath("pxelinux.0"),
             self.bootloaders_dir.joinpath("pxelinux.0"),
-            skip_existing=True
+            skip_existing=True,
         )
 
     def make_grub(self):
@@ -143,7 +159,9 @@ class MkLoaders:
         for other architectures if the modules to do so are available.
         """
         if not utils.command_existing("grub2-mkimage"):
-            self.logger.info("grub2-mkimage command not available. Bailing out of GRUB2 generation!")
+            self.logger.info(
+                "grub2-mkimage command not available. Bailing out of GRUB2 generation!"
+            )
             return
 
         for image_format, options in self.boot_loaders_formats.items():
@@ -152,7 +170,7 @@ class MkLoaders:
             if not mod_dir.exists():
                 self.logger.info(
                     'GRUB2 modules directory for arch "%s" did no exist. Skipping GRUB2 creation',
-                    image_format
+                    image_format,
                 )
                 continue
             try:
@@ -162,12 +180,17 @@ class MkLoaders:
                     self.modules + options.get("extra_modules", []),
                 )
             except subprocess.CalledProcessError:
-                self.logger.info('grub2-mkimage failed for arch "%s"! Maybe you did forget to install the grub modules '
-                                 'for the architecture?', image_format)
+                self.logger.info(
+                    'grub2-mkimage failed for arch "%s"! Maybe you did forget to install the grub modules '
+                    "for the architecture?",
+                    image_format,
+                )
                 utils.log_exc()
                 # don't create module symlinks if grub2-mkimage is unsuccessful
                 continue
-            self.logger.info('Successfully built bootloader for arch "%s"!', image_format)
+            self.logger.info(
+                'Successfully built bootloader for arch "%s"!', image_format
+            )
 
             # Create a symlink for GRUB 2 modules
             # assumes a single GRUB can be used to boot all kinds of distros
@@ -175,7 +198,7 @@ class MkLoaders:
             symlink(
                 mod_dir,
                 self.bootloaders_dir.joinpath("grub", bl_mod_dir),
-                skip_existing=True
+                skip_existing=True,
             )
 
     def create_directories(self):
@@ -184,7 +207,9 @@ class MkLoaders:
         all supported bootloaders, regardless of the capabilities to symlink/install/build them.
         """
         if not self.bootloaders_dir.exists():
-            raise FileNotFoundError("Main bootloader directory not found! Please create it yourself!")
+            raise FileNotFoundError(
+                "Main bootloader directory not found! Please create it yourself!"
+            )
 
         grub_dir = self.bootloaders_dir.joinpath("grub")
         if not grub_dir.exists():
@@ -248,7 +273,12 @@ def get_syslinux_version() -> int:
     """
     # Example output: "syslinux 4.04  Copyright 1994-2011 H. Peter Anvin et al"
     cmd = ["syslinux", "-v"]
-    completed_process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                       encoding=sys.getdefaultencoding())
+    completed_process = subprocess.run(
+        cmd,
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        encoding=sys.getdefaultencoding(),
+    )
     output = completed_process.stdout.split()
     return int(float(output[1]))

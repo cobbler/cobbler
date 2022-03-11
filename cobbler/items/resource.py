@@ -199,5 +199,7 @@ class Resource(item.Item):
         :raise TypeError: Raised in case ``template`` is no string.
         """
         if not isinstance(template, str):
-            raise TypeError("Field template in object resource needs to be of type str!")
+            raise TypeError(
+                "Field template in object resource needs to be of type str!"
+            )
         self._template = template

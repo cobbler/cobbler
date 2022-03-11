@@ -29,7 +29,16 @@ from typing import Optional
 
 from cobbler import utils
 
-OBJ_TYPES = ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file"]
+OBJ_TYPES = [
+    "distro",
+    "profile",
+    "system",
+    "repo",
+    "image",
+    "mgmtclass",
+    "package",
+    "file",
+]
 
 
 class Replicate:
@@ -58,10 +67,18 @@ class Replicate:
         :param type: If set to "repo" this will take the repo rsync options instead of the global ones.
         """
         from_path = "%s::%s" % (self.master, from_path)
-        if type == 'repo':
-            cmd = "rsync %s %s %s" % (self.settings.replicate_repo_rsync_options, from_path, to_path)
+        if type == "repo":
+            cmd = "rsync %s %s %s" % (
+                self.settings.replicate_repo_rsync_options,
+                from_path,
+                to_path,
+            )
         else:
-            cmd = "rsync %s %s %s" % (self.settings.replicate_rsync_options, from_path, to_path)
+            cmd = "rsync %s %s %s" % (
+                self.settings.replicate_rsync_options,
+                from_path,
+                to_path,
+            )
 
         rc = utils.subprocess_call(cmd, shell=True)
         if rc != 0:
@@ -110,7 +127,9 @@ class Replicate:
                 try:
                     self.logger.info("adding %s %s" % (obj_type, rdata["name"]))
                     if not self.api.add_item(obj_type, newobj):
-                        self.logger.error("failed to add %s %s" % (obj_type, rdata["name"]))
+                        self.logger.error(
+                            "failed to add %s %s" % (obj_type, rdata["name"])
+                        )
                 except Exception:
                     utils.log_exc()
 
@@ -143,7 +162,9 @@ class Replicate:
                     try:
                         self.logger.info("updating %s %s" % (obj_type, rdata["name"]))
                         if not self.api.add_item(obj_type, newobj):
-                            self.logger.error("failed to update %s %s" % (obj_type, rdata["name"]))
+                            self.logger.error(
+                                "failed to update %s %s" % (obj_type, rdata["name"])
+                            )
                     except Exception:
                         utils.log_exc()
 
@@ -181,7 +202,9 @@ class Replicate:
                 if self.must_include["distro"][distro] == 1:
                     self.logger.info("Rsyncing distro %s" % distro)
                     target = self.remote.get_distro(distro)
-                    target_webdir = os.path.join(self.remote_settings["webdir"], "distro_mirror")
+                    target_webdir = os.path.join(
+                        self.remote_settings["webdir"], "distro_mirror"
+                    )
                     tail = utils.path_tail(target_webdir, target["kernel"])
                     if tail != "":
                         try:
@@ -189,22 +212,35 @@ class Replicate:
                             # an absolute path, but it's really the sub-path
                             # from a that is contained in b. That means we want
                             # the first element of the path
-                            dest = os.path.join(self.settings.webdir, "distro_mirror", tail.split("/")[1])
+                            dest = os.path.join(
+                                self.settings.webdir,
+                                "distro_mirror",
+                                tail.split("/")[1],
+                            )
                             self.rsync_it("distro-%s" % target["name"], dest)
                         except:
                             self.logger.error("Failed to rsync distro %s" % distro)
                             continue
                     else:
-                        self.logger.warning("Skipping distro %s, as it doesn't appear to live under distro_mirror"
-                                            % distro)
+                        self.logger.warning(
+                            "Skipping distro %s, as it doesn't appear to live under distro_mirror"
+                            % distro
+                        )
 
             self.logger.info("Rsyncing repos")
             for repo in list(self.must_include["repo"].keys()):
                 if self.must_include["repo"][repo] == 1:
-                    self.rsync_it("repo-%s" % repo, os.path.join(self.settings.webdir, "repo_mirror", repo), "repo")
+                    self.rsync_it(
+                        "repo-%s" % repo,
+                        os.path.join(self.settings.webdir, "repo_mirror", repo),
+                        "repo",
+                    )
 
             self.logger.info("Rsyncing distro repo configs")
-            self.rsync_it("cobbler-distros/config/", os.path.join(self.settings.webdir, "distro_mirror", "config"))
+            self.rsync_it(
+                "cobbler-distros/config/",
+                os.path.join(self.settings.webdir, "distro_mirror", "config"),
+            )
             self.logger.info("Rsyncing automatic installation templates & snippets")
             self.rsync_it("cobbler-templates", self.settings.autoinstall_templates_dir)
             self.rsync_it("cobbler-snippets", self.settings.autoinstall_snippets_dir)
@@ -245,11 +281,13 @@ class Replicate:
             "repo": {},
             "mgmtclass": {},
             "package": {},
-            "file": {}
+            "file": {},
         }
 
         for ot in OBJ_TYPES:
-            self.remote_names[ot] = list(utils.lod_to_dod(self.remote_data[ot], "name").keys())
+            self.remote_names[ot] = list(
+                utils.lod_to_dod(self.remote_data[ot], "name").keys()
+            )
             self.remote_dict[ot] = utils.lod_to_dod(self.remote_data[ot], "name")
             if self.sync_all:
                 for names in self.remote_dict[ot]:
@@ -264,9 +302,13 @@ class Replicate:
                 self.logger.debug("* Finding Explicit %s Matches" % obj_type)
                 for pat in patvar:
                     for remote in self.remote_names[obj_type]:
-                        self.logger.debug("?: seeing if %s looks like %s" % (remote, pat))
+                        self.logger.debug(
+                            "?: seeing if %s looks like %s" % (remote, pat)
+                        )
                         if fnmatch.fnmatch(remote, pat):
-                            self.logger.debug("Adding %s for pattern match %s." % (remote, pat))
+                            self.logger.debug(
+                                "Adding %s for pattern match %s." % (remote, pat)
+                            )
                             self.must_include[obj_type][remote] = 1
 
             # include all profiles that systems require whether they are explicitly included or not
@@ -287,7 +329,10 @@ class Replicate:
                     parent = self.remote_dict["profile"][pro].get("parent", "")
                     if parent != "":
                         if parent not in self.must_include["profile"]:
-                            self.logger.debug("Adding parent profile %s for profile %s." % (parent, pro))
+                            self.logger.debug(
+                                "Adding parent profile %s for profile %s."
+                                % (parent, pro)
+                            )
                             self.must_include["profile"][parent] = 1
                             loop_exit = False
                 if loop_exit:
@@ -323,10 +368,23 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def run(self, cobbler_master=None, port: str = "80", distro_patterns=None, profile_patterns=None,
-            system_patterns=None, repo_patterns=None, image_patterns=None, mgmtclass_patterns=None,
-            package_patterns=None, file_patterns=None, prune: bool = False, omit_data=False, sync_all: bool = False,
-            use_ssl: bool = False):
+    def run(
+        self,
+        cobbler_master=None,
+        port: str = "80",
+        distro_patterns=None,
+        profile_patterns=None,
+        system_patterns=None,
+        repo_patterns=None,
+        image_patterns=None,
+        mgmtclass_patterns=None,
+        package_patterns=None,
+        file_patterns=None,
+        prune: bool = False,
+        omit_data=False,
+        sync_all: bool = False,
+        use_ssl: bool = False,
+    ):
         """
         Get remote profiles and distros and sync them locally
 
@@ -361,18 +419,18 @@ class Replicate:
         self.use_ssl = use_ssl
 
         if self.use_ssl:
-            protocol = 'https'
+            protocol = "https"
         else:
-            protocol = 'http'
+            protocol = "http"
 
         if cobbler_master is not None:
             self.master = cobbler_master
         elif len(self.settings.cobbler_master) > 0:
             self.master = self.settings.cobbler_master
         else:
-            utils.die('No Cobbler master specified, try --master.')
+            utils.die("No Cobbler master specified, try --master.")
 
-        self.uri = '%s://%s:%s/cobbler_api' % (protocol, self.master, self.port)
+        self.uri = "%s://%s:%s/cobbler_api" % (protocol, self.master, self.port)
 
         self.logger.info("cobbler_master      = %s" % cobbler_master)
         self.logger.info("port                = %s" % self.port)
@@ -393,7 +451,9 @@ class Replicate:
         self.remote = xmlrpc.client.Server(self.uri)
         self.logger.debug("test BETA")
         self.remote.ping()
-        self.local = xmlrpc.client.Server("http://127.0.0.1:%s/cobbler_api" % self.settings.http_port)
+        self.local = xmlrpc.client.Server(
+            "http://127.0.0.1:%s/cobbler_api" % self.settings.http_port
+        )
         self.local.ping()
 
         self.replicate_data()

@@ -89,15 +89,19 @@ def test_to_dict(cobbler_api):
 
 # Properties Tests
 
-@pytest.mark.parametrize("value,expected", [
-    (0, does_not_raise()),
-    (0.0, does_not_raise()),
-    ("", pytest.raises(TypeError)),
-    ("Test", pytest.raises(TypeError)),
-    ([], pytest.raises(TypeError)),
-    ({}, pytest.raises(TypeError)),
-    (None, pytest.raises(TypeError))
-])
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (0, does_not_raise()),
+        (0.0, does_not_raise()),
+        ("", pytest.raises(TypeError)),
+        ("Test", pytest.raises(TypeError)),
+        ([], pytest.raises(TypeError)),
+        ({}, pytest.raises(TypeError)),
+        (None, pytest.raises(TypeError)),
+    ],
+)
 def test_tree_build_time(cobbler_api, value, expected):
     # Arrange
     distro = Distro(cobbler_api)
@@ -110,17 +114,20 @@ def test_tree_build_time(cobbler_api, value, expected):
         assert distro.tree_build_time == value
 
 
-@pytest.mark.parametrize("value,expected", [
-    ("", pytest.raises(ValueError)),
-    ("Test", pytest.raises(ValueError)),
-    (0, pytest.raises(TypeError)),
-    (0.0, pytest.raises(TypeError)),
-    ([], pytest.raises(TypeError)),
-    ({}, pytest.raises(TypeError)),
-    (None, pytest.raises(TypeError)),
-    ("x86_64", does_not_raise()),
-    (enums.Archs.X86_64, does_not_raise())
-])
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        ("", pytest.raises(ValueError)),
+        ("Test", pytest.raises(ValueError)),
+        (0, pytest.raises(TypeError)),
+        (0.0, pytest.raises(TypeError)),
+        ([], pytest.raises(TypeError)),
+        ({}, pytest.raises(TypeError)),
+        (None, pytest.raises(TypeError)),
+        ("x86_64", does_not_raise()),
+        (enums.Archs.X86_64, does_not_raise()),
+    ],
+)
 def test_arch(cobbler_api, value, expected):
     # Arrange
     distro = Distro(cobbler_api)
@@ -136,12 +143,15 @@ def test_arch(cobbler_api, value, expected):
             assert distro.arch == value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ("", does_not_raise()),
-    ("Test", pytest.raises(ValueError)),
-    (0, pytest.raises(TypeError)),
-    (["grub"], does_not_raise())
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        ("", does_not_raise()),
+        ("Test", pytest.raises(ValueError)),
+        (0, pytest.raises(TypeError)),
+        (["grub"], does_not_raise()),
+    ],
+)
 def test_boot_loaders(cobbler_api, value, expected_exception):
     # Arrange
     distro = Distro(cobbler_api)
@@ -157,11 +167,10 @@ def test_boot_loaders(cobbler_api, value, expected_exception):
             assert distro.boot_loaders == value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ("", does_not_raise()),
-    (0, pytest.raises(TypeError)),
-    ("suse", does_not_raise())
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [("", does_not_raise()), (0, pytest.raises(TypeError)), ("suse", does_not_raise())],
+)
 def test_breed(cobbler_api, value, expected_exception):
     # Arrange
     utils.load_signatures("/var/lib/cobbler/distro_signatures.json")
@@ -175,11 +184,14 @@ def test_breed(cobbler_api, value, expected_exception):
         assert distro.breed == value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ([], pytest.raises(TypeError)),
-    (False, pytest.raises(TypeError)),
-    ("", pytest.raises(ValueError))
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        ([], pytest.raises(TypeError)),
+        (False, pytest.raises(TypeError)),
+        ("", pytest.raises(ValueError)),
+    ],
+)
 def test_initrd(cobbler_api, value, expected_exception):
     # TODO: Create fake initrd so we can set it successfully
     # Arrange
@@ -193,11 +205,14 @@ def test_initrd(cobbler_api, value, expected_exception):
         assert distro.initrd == value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ([], pytest.raises(TypeError)),
-    (False, pytest.raises(TypeError)),
-    ("", pytest.raises(ValueError))
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        ([], pytest.raises(TypeError)),
+        (False, pytest.raises(TypeError)),
+        ("", pytest.raises(ValueError)),
+    ],
+)
 def test_kernel(cobbler_api, value, expected_exception):
     # TODO: Create fake kernel so we can set it successfully
     # Arrange
@@ -211,10 +226,7 @@ def test_kernel(cobbler_api, value, expected_exception):
         assert distro.kernel == value
 
 
-@pytest.mark.parametrize("value", [
-    [""],
-    ["Test"]
-])
+@pytest.mark.parametrize("value", [[""], ["Test"]])
 def test_mgmt_classes(cobbler_api, value):
     # Arrange
     distro = Distro(cobbler_api)
@@ -226,10 +238,10 @@ def test_mgmt_classes(cobbler_api, value):
     assert distro.mgmt_classes == value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ([""], pytest.raises(TypeError)),
-    (False, pytest.raises(TypeError))
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [([""], pytest.raises(TypeError)), (False, pytest.raises(TypeError))],
+)
 def test_os_version(cobbler_api, value, expected_exception):
     # Arrange
     distro = Distro(cobbler_api)
@@ -242,10 +254,7 @@ def test_os_version(cobbler_api, value, expected_exception):
         assert distro.os_version == value
 
 
-@pytest.mark.parametrize("value", [
-    [""],
-    ["Test"]
-])
+@pytest.mark.parametrize("value", [[""], ["Test"]])
 def test_owners(cobbler_api, value):
     # Arrange
     distro = Distro(cobbler_api)
@@ -257,10 +266,10 @@ def test_owners(cobbler_api, value):
     assert distro.owners == value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ("", does_not_raise()),
-    (["Test"], pytest.raises(TypeError))
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [("", does_not_raise()), (["Test"], pytest.raises(TypeError))],
+)
 def test_redhat_management_key(cobbler_api, value, expected_exception):
     # Arrange
     distro = Distro(cobbler_api)
@@ -273,10 +282,7 @@ def test_redhat_management_key(cobbler_api, value, expected_exception):
         assert distro.redhat_management_key == value
 
 
-@pytest.mark.parametrize("value", [
-    [""],
-    ["Test"]
-])
+@pytest.mark.parametrize("value", [[""], ["Test"]])
 def test_source_repos(cobbler_api, value):
     # Arrange
     distro = Distro(cobbler_api)
@@ -288,11 +294,14 @@ def test_source_repos(cobbler_api, value):
     assert distro.source_repos == value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ([""], pytest.raises(TypeError)),
-    # ("test=test test1 test2=0", does_not_raise()), --> Fix this. It works but we can't compare
-    ({"test": "test", "test2": 0}, does_not_raise())
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        ([""], pytest.raises(TypeError)),
+        # ("test=test test1 test2=0", does_not_raise()), --> Fix this. It works but we can't compare
+        ({"test": "test", "test2": 0}, does_not_raise()),
+    ],
+)
 def test_fetchable_files(cobbler_api, value, expected_exception):
     # Arrange
     distro = Distro(cobbler_api)
@@ -305,10 +314,13 @@ def test_fetchable_files(cobbler_api, value, expected_exception):
         assert distro.fetchable_files == value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ([""], pytest.raises(TypeError)),
-    ("", does_not_raise()),
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        ([""], pytest.raises(TypeError)),
+        ("", does_not_raise()),
+    ],
+)
 def test_remote_boot_kernel(cobbler_api, value, expected_exception):
     # Arrange
     # TODO: Create fake kernel so we can test positive paths
@@ -322,11 +334,14 @@ def test_remote_boot_kernel(cobbler_api, value, expected_exception):
         assert distro.remote_boot_kernel == value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ([""], pytest.raises(TypeError)),
-    (["Test"], pytest.raises(TypeError)),
-    ("", does_not_raise())
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        ([""], pytest.raises(TypeError)),
+        (["Test"], pytest.raises(TypeError)),
+        ("", does_not_raise()),
+    ],
+)
 def test_remote_grub_kernel(cobbler_api, value, expected_exception):
     # Arrange
     distro = Distro(cobbler_api)
@@ -339,10 +354,10 @@ def test_remote_grub_kernel(cobbler_api, value, expected_exception):
         assert distro.remote_grub_kernel == value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ([""], pytest.raises(TypeError)),
-    ("", does_not_raise())
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [([""], pytest.raises(TypeError)), ("", does_not_raise())],
+)
 def test_remote_boot_initrd(cobbler_api, value, expected_exception):
     # TODO: Create fake initrd to have a real test
     # Arrange
@@ -356,10 +371,10 @@ def test_remote_boot_initrd(cobbler_api, value, expected_exception):
         assert distro.remote_boot_initrd == value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ([""], pytest.raises(TypeError)),
-    ("", does_not_raise())
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [([""], pytest.raises(TypeError)), ("", does_not_raise())],
+)
 def test_remote_grub_initrd(cobbler_api, value, expected_exception):
     # Arrange
     distro = Distro(cobbler_api)

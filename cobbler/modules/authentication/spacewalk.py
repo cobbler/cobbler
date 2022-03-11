@@ -68,7 +68,9 @@ def __check_auth_token(xmlrpc_client, api_handle, username, password):
         return False
 
 
-def __check_user_login(xmlrpc_client, api_handle, user_enabled: bool, username, password) -> bool:
+def __check_user_login(
+    xmlrpc_client, api_handle, user_enabled: bool, username, password
+) -> bool:
     """
     This actually performs the login to spacewalk.
 
@@ -113,7 +115,7 @@ def authenticate(api_handle, username: str, password: str) -> bool:
 
     spacewalk_url = "https://%s/rpc/api" % server
     with ServerProxy(spacewalk_url, verbose=True) as client:
-        if username == 'taskomatic_user' or __looks_like_a_token(password):
+        if username == "taskomatic_user" or __looks_like_a_token(password):
             # The tokens are lowercase hex, but a password can also be lowercase hex, so we have to try it as both a
             # token and then a password if we are unsure. We do it this way to be faster but also to avoid any login
             # failed stuff in the logs that we don't need to send.
@@ -122,7 +124,9 @@ def authenticate(api_handle, username: str, password: str) -> bool:
             # must try auth system #2
 
             if __check_auth_token(client, api_handle, username, password) != 1:
-                return __check_user_login(client, api_handle, user_enabled, username, password)
+                return __check_user_login(
+                    client, api_handle, user_enabled, username, password
+                )
             return True
         # It's an older version of spacewalk, so just try the username/pass.
         # OR: We know for sure it's not a token because it's not lowercase hex.

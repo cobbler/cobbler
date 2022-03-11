@@ -48,7 +48,7 @@ def __parse_config() -> Dict[str, dict]:
     :return: The data separated by sections. Each section has a subdictionary with the key-value pairs.
     :raises FileNotFoundError
     """
-    etcfile = '/etc/cobbler/users.conf'
+    etcfile = "/etc/cobbler/users.conf"
     if not os.path.exists(etcfile):
         raise FileNotFoundError("/etc/cobbler/users.conf does not exist")
     # Make users case sensitive to handle kerberos
@@ -147,7 +147,9 @@ def __is_user_allowed(obj, groups, user, resource, arg1, arg2) -> Union[int, boo
     return 0
 
 
-def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> Union[bool, int]:
+def authorize(
+    api_handle, user: str, resource: str, arg1=None, arg2=None
+) -> Union[bool, int]:
     """
     Validate a user against a resource. All users in the file are permitted by this module.
 
@@ -167,13 +169,22 @@ def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> Uni
         # FIXME: /cobbler/web should not be subject to user check in any case
         for x in ["get", "read", "/cobbler/web"]:
             if resource.startswith(x):
-                return 1        # read operation is always ok.
+                return 1  # read operation is always ok.
 
     user_groups = __parse_config()
 
     # classify the type of operation
     modify_operation = False
-    for criteria in ["save", "copy", "rename", "remove", "modify", "edit", "xapi", "background"]:
+    for criteria in [
+        "save",
+        "copy",
+        "rename",
+        "remove",
+        "modify",
+        "edit",
+        "xapi",
+        "background",
+    ]:
         if resource.find(criteria) != -1:
             modify_operation = True
 

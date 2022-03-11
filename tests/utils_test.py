@@ -33,10 +33,9 @@ def test_get_host_ip():
     assert result == "0A000001"
 
 
-@pytest.mark.parametrize("testvalue,expected_result", [
-    ("10.0.0.1", True),
-    ("Test", False)
-])
+@pytest.mark.parametrize(
+    "testvalue,expected_result", [("10.0.0.1", True), ("Test", False)]
+)
 def test_is_ip(testvalue, expected_result):
     # Arrange
 
@@ -72,12 +71,16 @@ def test_find_matching_files():
     # Arrange
     # TODO: Get testdir und check for files
     directory = "/test_dir/tests"
-    expected = ["/test_dir/tests/settings_test.py", "/test_dir/tests/utils_test.py",
-                "/test_dir/tests/template_api_test.py", "/test_dir/tests/templar_test.py",
-                "/test_dir/tests/module_loader_test.py"]
+    expected = [
+        "/test_dir/tests/settings_test.py",
+        "/test_dir/tests/utils_test.py",
+        "/test_dir/tests/template_api_test.py",
+        "/test_dir/tests/templar_test.py",
+        "/test_dir/tests/module_loader_test.py",
+    ]
 
     # Act
-    results = utils.find_matching_files(directory, re.compile(r'.*_test.py'))
+    results = utils.find_matching_files(directory, re.compile(r".*_test.py"))
     results.sort()
 
     # Assert
@@ -89,7 +92,7 @@ def test_find_highest_files():
     # TODO: Build a directory with some versioned files.
     search_directory = "/dev/shm/"
     basename = "testfile"
-    search_regex = re.compile(r'testfile.*')
+    search_regex = re.compile(r"testfile.*")
     expected = "/dev/shm/testfile"
     Path(os.path.join(search_directory, basename)).touch()
 
@@ -119,8 +122,15 @@ def test_remove_yum_olddata():
     fake_env = "/dev/shm/fakefolder"
     os.mkdir(fake_env)
     expected_to_exist = "testfolder/existing"
-    folders = [".olddata", ".repodata", ".repodata/.olddata", "repodata", "repodata/.olddata", "repodata/repodata",
-               "testfolder"]
+    folders = [
+        ".olddata",
+        ".repodata",
+        ".repodata/.olddata",
+        "repodata",
+        "repodata/.olddata",
+        "repodata/repodata",
+        "testfolder",
+    ]
     for folder in folders:
         os.mkdir(os.path.join(fake_env, folder))
     files = ["test", expected_to_exist]
@@ -168,10 +178,13 @@ def test_read_file_contents():
     assert content == result
 
 
-@pytest.mark.parametrize("remote_url,expected_result", [
-    ("https://cobbler.github.io/signatures/latest.json", True),
-    ("https://cobbler.github.io/signatures/not_existing", False)
-])
+@pytest.mark.parametrize(
+    "remote_url,expected_result",
+    [
+        ("https://cobbler.github.io/signatures/latest.json", True),
+        ("https://cobbler.github.io/signatures/not_existing", False),
+    ],
+)
 def test_remote_file_exists(remote_url, expected_result):
     # Arrange
 
@@ -182,12 +195,10 @@ def test_remote_file_exists(remote_url, expected_result):
     assert expected_result == result
 
 
-@pytest.mark.parametrize("remote_url,expected_result", [
-    ("http://bla", True),
-    ("https://bla", True),
-    ("ftp://bla", True),
-    ("xyz", False)
-])
+@pytest.mark.parametrize(
+    "remote_url,expected_result",
+    [("http://bla", True), ("https://bla", True), ("ftp://bla", True), ("xyz", False)],
+)
 def test_file_is_remote(remote_url, expected_result):
     # Arrange
 
@@ -198,10 +209,9 @@ def test_file_is_remote(remote_url, expected_result):
     assert expected_result == result
 
 
-@pytest.mark.parametrize("test_input,expected_result", [
-    ("<<inherit>>", "<<inherit>>"),
-    ("delete", [])
-])
+@pytest.mark.parametrize(
+    "test_input,expected_result", [("<<inherit>>", "<<inherit>>"), ("delete", [])]
+)
 def test_input_string_or_list(test_input, expected_result):
     # Arrange
 
@@ -212,13 +222,16 @@ def test_input_string_or_list(test_input, expected_result):
     assert expected_result == result
 
 
-@pytest.mark.parametrize("testinput,expected_result,possible_exception", [
-    ("<<inherit>>", (True, {}), does_not_raise()),
-    ([""], None, pytest.raises(TypeError)),
-    ("a b=10 c=abc", (True, {"a": None, "b": '10', "c": "abc"}), does_not_raise()),
-    ({"ab": 0}, (True, {"ab": 0}), does_not_raise()),
-    (0, None, pytest.raises(TypeError))
-])
+@pytest.mark.parametrize(
+    "testinput,expected_result,possible_exception",
+    [
+        ("<<inherit>>", (True, {}), does_not_raise()),
+        ([""], None, pytest.raises(TypeError)),
+        ("a b=10 c=abc", (True, {"a": None, "b": "10", "c": "abc"}), does_not_raise()),
+        ({"ab": 0}, (True, {"ab": 0}), does_not_raise()),
+        (0, None, pytest.raises(TypeError)),
+    ],
+)
 def test_input_string_or_dict(testinput, expected_result, possible_exception):
     # Arrange
 
@@ -230,16 +243,19 @@ def test_input_string_or_dict(testinput, expected_result, possible_exception):
         assert expected_result == result
 
 
-@pytest.mark.parametrize("testinput,expected_exception,expected_result", [
-    (True, does_not_raise(), True),
-    (1, does_not_raise(), True),
-    ("oN", does_not_raise(), True),
-    ("yEs", does_not_raise(), True),
-    ("Y", does_not_raise(), True),
-    ("Test", does_not_raise(), False),
-    (-5, does_not_raise(), False),
-    (.5, pytest.raises(TypeError), False)
-])
+@pytest.mark.parametrize(
+    "testinput,expected_exception,expected_result",
+    [
+        (True, does_not_raise(), True),
+        (1, does_not_raise(), True),
+        ("oN", does_not_raise(), True),
+        ("yEs", does_not_raise(), True),
+        ("Y", does_not_raise(), True),
+        ("Test", does_not_raise(), False),
+        (-5, does_not_raise(), False),
+        (0.5, pytest.raises(TypeError), False),
+    ],
+)
 def test_input_boolean(testinput, expected_exception, expected_result):
     # Arrange
 
@@ -277,12 +293,15 @@ def test_blender(cobbler_api):
     assert "os_version" in result
 
 
-@pytest.mark.parametrize("testinput,expected_result,expected_exception", [
-    (None, None, does_not_raise()),
-    ("data", None, does_not_raise()),
-    (0, None, does_not_raise()),
-    ({}, {}, does_not_raise())
-])
+@pytest.mark.parametrize(
+    "testinput,expected_result,expected_exception",
+    [
+        (None, None, does_not_raise()),
+        ("data", None, does_not_raise()),
+        (0, None, does_not_raise()),
+        ({}, {}, does_not_raise()),
+    ],
+)
 def test_flatten(testinput, expected_result, expected_exception):
     # Arrange
     # TODO: Add more examples
@@ -295,9 +314,9 @@ def test_flatten(testinput, expected_result, expected_exception):
         assert expected_result == result
 
 
-@pytest.mark.parametrize("testinput,expected_result", [
-    (["A", "a", 1, 5, 1], ["A", "a", 1, 5])
-])
+@pytest.mark.parametrize(
+    "testinput,expected_result", [(["A", "a", 1, 5, 1], ["A", "a", 1, 5])]
+)
 def test_uniquify(testinput, expected_result):
     # Arrange
 
@@ -308,10 +327,17 @@ def test_uniquify(testinput, expected_result):
     assert expected_result == result
 
 
-@pytest.mark.parametrize("testdict,subkey,expected_result", [
-    ({}, "", {}),
-    ({"Test": 0, "Test2": {"SubTest": 0, "!SubTest2": 0}}, "Test2", {"Test": 0, "Test2": {"SubTest": 0}})
-])
+@pytest.mark.parametrize(
+    "testdict,subkey,expected_result",
+    [
+        ({}, "", {}),
+        (
+            {"Test": 0, "Test2": {"SubTest": 0, "!SubTest2": 0}},
+            "Test2",
+            {"Test": 0, "Test2": {"SubTest": 0}},
+        ),
+    ],
+)
 def test_dict_removals(testdict, subkey, expected_result):
     # Arrange
     # TODO: Generate more parameter combinations
@@ -323,9 +349,7 @@ def test_dict_removals(testdict, subkey, expected_result):
     assert expected_result == testdict
 
 
-@pytest.mark.parametrize("testinput,expected_result", [
-    ({}, "")
-])
+@pytest.mark.parametrize("testinput,expected_result", [({}, "")])
 def test_dict_to_string(testinput, expected_result):
     # Arrange
     # TODO: Generate more parameter combinations
@@ -366,7 +390,9 @@ def test_run_this():
     assert True
 
 
-@pytest.mark.skip("This method does magic. Since we havn't had the time to break it down, this test is skipped.")
+@pytest.mark.skip(
+    "This method does magic. Since we havn't had the time to break it down, this test is skipped."
+)
 def test_run_triggers(cobbler_api):
     # Arrange
     globber = ""
@@ -401,11 +427,14 @@ def test_os_release():
     assert ("suse", 15.2) or ("suse", 15.3) == result
 
 
-@pytest.mark.parametrize("test_src,test_dst,expected_result", [
-    # ("", "", False), --> This has a task in utils.py
-    ("/usr/bin/os-release", "/tmp", True),
-    ("/etc/os-release", "/tmp", False)
-])
+@pytest.mark.parametrize(
+    "test_src,test_dst,expected_result",
+    [
+        # ("", "", False), --> This has a task in utils.py
+        ("/usr/bin/os-release", "/tmp", True),
+        ("/etc/os-release", "/tmp", False),
+    ],
+)
 def test_is_safe_to_hardlink(cobbler_api, test_src, test_dst, expected_result):
     # Arrange
     # TODO: Generate cases
@@ -573,10 +602,10 @@ def test_mkdir():
     assert os.path.exists(testfolder)
 
 
-@pytest.mark.parametrize("test_first_path,test_second_path,expected_result", [
-    ("/tmp/test/a", "/tmp/test/a/b/c", "/b/c"),
-    ("/tmp/test/a", "/opt/test/a", "")
-])
+@pytest.mark.parametrize(
+    "test_first_path,test_second_path,expected_result",
+    [("/tmp/test/a", "/tmp/test/a/b/c", "/b/c"), ("/tmp/test/a", "/opt/test/a", "")],
+)
 def test_path_tail(test_first_path, test_second_path, expected_result):
     # Arrange
     # TODO: Check if this actually makes sense...
@@ -588,11 +617,14 @@ def test_path_tail(test_first_path, test_second_path, expected_result):
     assert expected_result == result
 
 
-@pytest.mark.parametrize("test_input,expected_exception", [
-    ("Test", does_not_raise()),
-    ("Test;Test", pytest.raises(CX)),
-    ("Test..Test", pytest.raises(CX))
-])
+@pytest.mark.parametrize(
+    "test_input,expected_exception",
+    [
+        ("Test", does_not_raise()),
+        ("Test;Test", pytest.raises(CX)),
+        ("Test..Test", pytest.raises(CX)),
+    ],
+)
 def test_safe_filter(test_input, expected_exception):
     # Arrange, Act & Assert
     with expected_exception:
@@ -636,10 +668,9 @@ def test_is_remote_file():
     assert not result
 
 
-@pytest.mark.parametrize("input_cmd,expected_result", [
-    ("foobaz", False),
-    ("echo", True)
-])
+@pytest.mark.parametrize(
+    "input_cmd,expected_result", [("foobaz", False), ("echo", True)]
+)
 def test_command_existing(input_cmd, expected_result):
     # Arrange & Act
     result = utils.command_existing(input_cmd)
@@ -744,13 +775,10 @@ def test_local_get_cobbler_xmlrpc_url():
     assert result == "http://127.0.0.1:25151"
 
 
-@pytest.mark.parametrize("input_data,expected_output", [
-    (None, "~"),
-    ([], []),
-    ({}, {}),
-    (0, 0),
-    ("Test", "Test")
-])
+@pytest.mark.parametrize(
+    "input_data,expected_output",
+    [(None, "~"), ([], []), ({}, {}), (0, 0), ("Test", "Test")],
+)
 def test_strip_none(input_data, expected_output):
     # Arrange
 
@@ -761,13 +789,16 @@ def test_strip_none(input_data, expected_output):
     assert expected_output == result
 
 
-@pytest.mark.parametrize("input_data,expected_output", [
-    ("~", None),
-    ("Test~", "Test~"),
-    ("Te~st", "Te~st"),
-    (["~", "Test"], [None, "Test"]),
-    ({}, {})
-])
+@pytest.mark.parametrize(
+    "input_data,expected_output",
+    [
+        ("~", None),
+        ("Test~", "Test~"),
+        ("Te~st", "Te~st"),
+        (["~", "Test"], [None, "Test"]),
+        ({}, {}),
+    ],
+)
 def test_revert_strip_none(input_data, expected_output):
     # Arrange
 
@@ -854,7 +885,9 @@ def test_named_service_name():
     assert result == "named"
 
 
-@pytest.mark.skip("This is hard to test as we are creating a symlink in the method. For now we skip it.")
+@pytest.mark.skip(
+    "This is hard to test as we are creating a symlink in the method. For now we skip it."
+)
 def test_link_distro(cobbler_api):
     # Arrange
     test_distro = Distro(cobbler_api)
@@ -880,11 +913,13 @@ def test_find_distro_path(cobbler_api, create_testfile, tmp_path):
     assert result == tmp_path.as_posix()
 
 
-@pytest.mark.parametrize("test_input_v1,test_input_v2,expected_output,error_expectation", [
-    ("0.9", "0.1", True, does_not_raise()),
-    ("0.1", "0.9", False, does_not_raise())
-])
-def test_compare_version_gt(test_input_v1, test_input_v2, expected_output, error_expectation):
+@pytest.mark.parametrize(
+    "test_input_v1,test_input_v2,expected_output,error_expectation",
+    [("0.9", "0.1", True, does_not_raise()), ("0.1", "0.9", False, does_not_raise())],
+)
+def test_compare_version_gt(
+    test_input_v1, test_input_v2, expected_output, error_expectation
+):
     # Arrange
 
     # Act
@@ -911,21 +946,9 @@ def test_kopts_overwrite():
 
 def test_service_restart_no_manager(mocker):
     # Arrange
-    mocker.patch(
-        "cobbler.utils.is_supervisord",
-        autospec=True,
-        return_value=False
-    )
-    mocker.patch(
-        "cobbler.utils.is_systemd",
-        autospec=True,
-        return_value=False
-    )
-    mocker.patch(
-        "cobbler.utils.is_service",
-        autospec=True,
-        return_value=False
-    )
+    mocker.patch("cobbler.utils.is_supervisord", autospec=True, return_value=False)
+    mocker.patch("cobbler.utils.is_systemd", autospec=True, return_value=False)
+    mocker.patch("cobbler.utils.is_service", autospec=True, return_value=False)
 
     # Act
     result = utils.service_restart("testservice")
@@ -935,11 +958,7 @@ def test_service_restart_no_manager(mocker):
 
 
 def test_service_restart_supervisord(mocker):
-    mocker.patch(
-        "cobbler.utils.is_supervisord",
-        autospec=True,
-        return_value=True
-    )
+    mocker.patch("cobbler.utils.is_supervisord", autospec=True, return_value=True)
     # TODO Mock supervisor API and return value
 
     # Act
@@ -950,56 +969,32 @@ def test_service_restart_supervisord(mocker):
 
 
 def test_service_restart_systemctl(mocker):
-    mocker.patch(
-        "cobbler.utils.is_supervisord",
-        autospec=True,
-        return_value=False
-    )
-    mocker.patch(
-        "cobbler.utils.is_systemd",
-        autospec=True,
-        return_value=True
-    )
-    mocker.patch(
-        "cobbler.utils.subprocess_call",
-        autospec=True,
-        return_value=0
-    )
+    mocker.patch("cobbler.utils.is_supervisord", autospec=True, return_value=False)
+    mocker.patch("cobbler.utils.is_systemd", autospec=True, return_value=True)
+    mocker.patch("cobbler.utils.subprocess_call", autospec=True, return_value=0)
 
     # Act
     result = utils.service_restart("testservice")
 
     # Assert
     assert result == 0
-    utils.subprocess_call.assert_called_with(["systemctl", "restart", "testservice"], shell=False)
+    utils.subprocess_call.assert_called_with(
+        ["systemctl", "restart", "testservice"], shell=False
+    )
 
 
 def test_service_restart_service(mocker):
     # Arrange
-    mocker.patch(
-        "cobbler.utils.is_supervisord",
-        autospec=True,
-        return_value=False
-    )
-    mocker.patch(
-        "cobbler.utils.is_systemd",
-        autospec=True,
-        return_value=False
-    )
-    mocker.patch(
-        "cobbler.utils.is_service",
-        autospec=True,
-        return_value=True
-    )
-    mocker.patch(
-        "cobbler.utils.subprocess_call",
-        autospec=True,
-        return_value=0
-    )
+    mocker.patch("cobbler.utils.is_supervisord", autospec=True, return_value=False)
+    mocker.patch("cobbler.utils.is_systemd", autospec=True, return_value=False)
+    mocker.patch("cobbler.utils.is_service", autospec=True, return_value=True)
+    mocker.patch("cobbler.utils.subprocess_call", autospec=True, return_value=0)
 
     # Act
     result = utils.service_restart("testservice")
 
     # Assert
     assert result == 0
-    utils.subprocess_call.assert_called_with(["service", "testservice", "restart"], shell=False)
+    utils.subprocess_call.assert_called_with(
+        ["service", "testservice", "restart"], shell=False
+    )

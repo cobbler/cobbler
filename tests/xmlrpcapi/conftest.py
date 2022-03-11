@@ -51,6 +51,7 @@ def testsnippet() -> str:
 def snippet_add(remote, token):
     def _snippet_add(name: str, data):
         remote.write_autoinstall_snippet(name, data, token)
+
     return _snippet_add
 
 
@@ -58,12 +59,15 @@ def snippet_add(remote, token):
 def snippet_remove(remote, token):
     def _snippet_remove(name: str):
         remote.remove_autoinstall_snippet(name, token)
+
     return _snippet_remove
 
 
 @pytest.fixture(scope="function")
 def create_distro(remote, token):
-    def _create_distro(name: str, arch: str, breed: str, path_kernel: str, path_initrd: str):
+    def _create_distro(
+        name: str, arch: str, breed: str, path_kernel: str, path_initrd: str
+    ):
         distro = remote.new_distro(token)
         remote.modify_distro(distro, "name", name, token)
         remote.modify_distro(distro, "arch", arch, token)
@@ -72,6 +76,7 @@ def create_distro(remote, token):
         remote.modify_distro(distro, "initrd", path_initrd, token)
         remote.save_distro(distro, token)
         return distro
+
     return _create_distro
 
 
@@ -79,6 +84,7 @@ def create_distro(remote, token):
 def remove_distro(remote, token):
     def _remove_distro(name: str):
         remote.remove_distro(name, token)
+
     return _remove_distro
 
 
@@ -91,6 +97,7 @@ def create_profile(remote, token):
         remote.modify_profile(profile, "kernel_options", kernel_options, token)
         remote.save_profile(profile, token)
         return profile
+
     return _create_profile
 
 
@@ -98,6 +105,7 @@ def create_profile(remote, token):
 def remove_profile(remote, token):
     def _remove_profile(name):
         remote.remove_profile(name, token)
+
     return _remove_profile
 
 
@@ -109,6 +117,7 @@ def create_system(remote, token):
         remote.modify_system(system, "profile", profile, token)
         remote.save_system(system, token)
         return system
+
     return _create_system
 
 
@@ -116,6 +125,7 @@ def create_system(remote, token):
 def remove_system(remote, token):
     def _remove_system(name):
         remote.remove_system(name, token)
+
     return _remove_system
 
 
@@ -135,6 +145,7 @@ def create_file(remote, token):
 
         remote.save_file(file_id, token)
         return file_id
+
     return _create_file
 
 
@@ -142,6 +153,7 @@ def create_file(remote, token):
 def remove_file(remote, token):
     def _remove_file(name):
         remote.remove_file(name, token)
+
     return _remove_file
 
 
@@ -152,6 +164,7 @@ def create_mgmt_class(remote, token):
         remote.modify_mgmtclass(mgmtclass, "name", name, token)
         remote.save_mgmtclass(mgmtclass, token)
         return mgmtclass
+
     return _create_mgmt_class
 
 
@@ -159,6 +172,7 @@ def create_mgmt_class(remote, token):
 def remove_mgmt_class(remote, token):
     def _remove_mgmt_class(name):
         remote.remove_mgmtclass(name, token)
+
     return _remove_mgmt_class
 
 
@@ -166,6 +180,7 @@ def remove_mgmt_class(remote, token):
 def create_autoinstall_template(remote, token):
     def _create_autoinstall_template(filename, content):
         remote.write_autoinstall_template(filename, content, token)
+
     return _create_autoinstall_template
 
 
@@ -173,6 +188,7 @@ def create_autoinstall_template(remote, token):
 def remove_autoinstall_template(remote, token):
     def _remove_autoinstall_template(name):
         remote.remove_autoinstall_template(name, token)
+
     return _remove_autoinstall_template
 
 
@@ -185,6 +201,7 @@ def create_repo(remote, token):
         remote.modify_repo(repo, "mirror_locally", mirror_locally, token)
         remote.save_repo(repo, token)
         return repo
+
     return _create_repo
 
 
@@ -192,6 +209,7 @@ def create_repo(remote, token):
 def remove_repo(remote, token):
     def _remove_repo(name):
         remote.remove_repo(name, token)
+
     return _remove_repo
 
 
@@ -205,6 +223,7 @@ def create_menu(remote, token):
 
         remote.save_menu(menu_id, token)
         return menu_id
+
     return _create_menu
 
 
@@ -212,6 +231,7 @@ def create_menu(remote, token):
 def remove_menu(remote, token):
     def _remove_menu(name):
         remote.remove_menu(name, token)
+
     return _remove_menu
 
 

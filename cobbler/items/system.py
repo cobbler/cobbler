@@ -78,8 +78,11 @@ class NetworkInterface:
                 setattr(self, key, dictionary[key])
                 dictionary_keys.remove(key)
         if len(dictionary_keys) > 0:
-            self.__logger.info("The following keys were ignored and could not be set for the NetworkInterface object: "
-                               "%s", str(dictionary_keys))
+            self.__logger.info(
+                "The following keys were ignored and could not be set for the NetworkInterface object: "
+                "%s",
+                str(dictionary_keys),
+            )
 
     def to_dict(self) -> dict:
         """
@@ -136,7 +139,9 @@ class NetworkInterface:
         :param dhcp_tag:
         """
         if not isinstance(dhcp_tag, str):
-            raise TypeError("Field dhcp_tag of object NetworkInterface needs to be of type str!")
+            raise TypeError(
+                "Field dhcp_tag of object NetworkInterface needs to be of type str!"
+            )
         self._dhcp_tag = dhcp_tag
 
     @property
@@ -202,7 +207,9 @@ class NetworkInterface:
         """
         truthiness = utils.input_boolean(truthiness)
         if not isinstance(truthiness, bool):
-            raise TypeError("Field static of NetworkInterface needs to be of Type bool!")
+            raise TypeError(
+                "Field static of NetworkInterface needs to be of Type bool!"
+            )
         self._static = truthiness
 
     @property
@@ -226,7 +233,9 @@ class NetworkInterface:
         """
         truthiness = utils.input_boolean(truthiness)
         if not isinstance(truthiness, bool):
-            raise TypeError("Field management of object NetworkInterface needs to be of type bool!")
+            raise TypeError(
+                "Field management of object NetworkInterface needs to be of type bool!"
+            )
         self._management = truthiness
 
     @property
@@ -378,7 +387,9 @@ class NetworkInterface:
         :param bridge:
         """
         if not isinstance(bridge, str):
-            raise TypeError("Field virt_bridge of object NetworkInterface should be of type str!")
+            raise TypeError(
+                "Field virt_bridge of object NetworkInterface should be of type str!"
+            )
         if bridge == "":
             bridge = self.__api.settings().default_virt_bridge
         self._virt_bridge = bridge
@@ -402,23 +413,31 @@ class NetworkInterface:
         :param intf_type: The interface type to be set. Will be autoconverted to the enum type if possible.
         """
         if not isinstance(intf_type, (enums.NetworkInterfaceType, int, str)):
-            raise TypeError("interface intf_type type must be of int, str or enums.NetworkInterfaceType")
+            raise TypeError(
+                "interface intf_type type must be of int, str or enums.NetworkInterfaceType"
+            )
         if isinstance(intf_type, int):
             try:
                 intf_type = enums.NetworkInterfaceType(intf_type)
             except ValueError as value_error:
-                raise ValueError("intf_type with number \"%s\" was not a valid interface type!" % intf_type) \
-                    from value_error
+                raise ValueError(
+                    'intf_type with number "%s" was not a valid interface type!'
+                    % intf_type
+                ) from value_error
         elif isinstance(intf_type, str):
             try:
                 intf_type = enums.NetworkInterfaceType[intf_type.upper()]
             except KeyError as key_error:
-                raise ValueError("intf_type choices include: %s" % list(map(str, enums.NetworkInterfaceType))) \
-                    from key_error
+                raise ValueError(
+                    "intf_type choices include: %s"
+                    % list(map(str, enums.NetworkInterfaceType))
+                ) from key_error
         # Now it must be of the enum type
         if intf_type not in enums.NetworkInterfaceType:
-            raise ValueError("interface intf_type value must be one of: %s or blank" %
-                             ",".join(list(map(str, enums.NetworkInterfaceType))))
+            raise ValueError(
+                "interface intf_type value must be one of: %s or blank"
+                % ",".join(list(map(str, enums.NetworkInterfaceType)))
+            )
         self._interface_type = intf_type
 
     @property
@@ -441,7 +460,9 @@ class NetworkInterface:
         :param interface_master:
         """
         if not isinstance(interface_master, str):
-            raise TypeError("Field interface_master of object NetworkInterface needs to be of type str!")
+            raise TypeError(
+                "Field interface_master of object NetworkInterface needs to be of type str!"
+            )
         self._interface_master = interface_master
 
     @property
@@ -464,7 +485,9 @@ class NetworkInterface:
         :param bonding_opts:
         """
         if not isinstance(bonding_opts, str):
-            raise TypeError("Field bonding_opts of object NetworkInterface needs to be of type str!")
+            raise TypeError(
+                "Field bonding_opts of object NetworkInterface needs to be of type str!"
+            )
         self._bonding_opts = bonding_opts
 
     @property
@@ -487,7 +510,9 @@ class NetworkInterface:
         :param bridge_opts:
         """
         if not isinstance(bridge_opts, str):
-            raise TypeError("Field bridge_opts of object NetworkInterface needs to be of type str!")
+            raise TypeError(
+                "Field bridge_opts of object NetworkInterface needs to be of type str!"
+            )
         self._bridge_opts = bridge_opts
 
     @property
@@ -538,7 +563,9 @@ class NetworkInterface:
         :param prefix:
         """
         if not isinstance(prefix, str):
-            raise TypeError("Field ipv6_prefix of object NetworkInterface needs to be of type str!")
+            raise TypeError(
+                "Field ipv6_prefix of object NetworkInterface needs to be of type str!"
+            )
         self._ipv6_prefix = prefix.strip()
 
     @property
@@ -566,7 +593,9 @@ class NetworkInterface:
             if address == "" or utils.is_ip(address):
                 secondaries.append(address)
             else:
-                raise AddressValueError("invalid format for IPv6 IP address (%s)" % address)
+                raise AddressValueError(
+                    "invalid format for IPv6 IP address (%s)" % address
+                )
         self._ipv6_secondaries = secondaries
 
     @property
@@ -589,7 +618,9 @@ class NetworkInterface:
         :param address:
         """
         if not isinstance(address, str):
-            raise TypeError("Field ipv6_default_gateway of object NetworkInterface needs to be of type str!")
+            raise TypeError(
+                "Field ipv6_default_gateway of object NetworkInterface needs to be of type str!"
+            )
         if address == "" or utils.is_ip(address):
             self._ipv6_default_gateway = address.strip()
             return
@@ -636,7 +667,9 @@ class NetworkInterface:
         :param mtu:
         """
         if not isinstance(mtu, str):
-            raise TypeError("Field ipv6_mtu of object NetworkInterface needs to be of type str!")
+            raise TypeError(
+                "Field ipv6_mtu of object NetworkInterface needs to be of type str!"
+            )
         self._ipv6_mtu = mtu
 
     @property
@@ -659,7 +692,9 @@ class NetworkInterface:
         :param mtu:
         """
         if not isinstance(mtu, str):
-            raise TypeError("Field mtu of object NetworkInterface needs to be type str!")
+            raise TypeError(
+                "Field mtu of object NetworkInterface needs to be type str!"
+            )
         self._mtu = mtu
 
     @property
@@ -683,7 +718,9 @@ class NetworkInterface:
         """
         truthiness = utils.input_boolean(truthiness)
         if not isinstance(truthiness, bool):
-            raise TypeError("Field connected_mode of object NetworkInterface needs to be of type bool!")
+            raise TypeError(
+                "Field connected_mode of object NetworkInterface needs to be of type bool!"
+            )
         self._connected_mode = truthiness
 
     def modify_interface(self, _dict: dict):
@@ -758,7 +795,9 @@ class System(Item):
         :param api: The Cobbler API
         """
         super().__init__(api, *args, **kwargs)
-        self._interfaces: Dict[str, NetworkInterface] = {"default": NetworkInterface(api)}
+        self._interfaces: Dict[str, NetworkInterface] = {
+            "default": NetworkInterface(api)
+        }
         self._ipv6_autoconfiguration = False
         self._repos_enabled = False
         self._autoinstall = enums.VALUE_INHERITED
@@ -813,7 +852,9 @@ class System(Item):
             return self.autoinstall
         elif name == "ks_meta":
             return self.autoinstall_meta
-        raise AttributeError("Attribute \"%s\" did not exist on object type System." % name)
+        raise AttributeError(
+            'Attribute "%s" did not exist on object type System.' % name
+        )
 
     #
     # override some base class methods first (item.Item)
@@ -888,8 +929,10 @@ class System(Item):
         try:
             self.api.images().find(name=value)
         except ValueError as value_error:
-            raise ValueError("Neither a system, profile or image could be found with the name \"%s\"."
-                             % value) from value_error
+            raise ValueError(
+                'Neither a system, profile or image could be found with the name "%s".'
+                % value
+            ) from value_error
         self._parent = value
 
     def check_if_valid(self):
@@ -902,7 +945,9 @@ class System(Item):
             raise CX("name is required")
         if self.profile is None or self.profile == "":
             if self.image is None or self.image == "":
-                raise CX("Error with system %s - profile or image is required" % self.name)
+                raise CX(
+                    "Error with system %s - profile or image is required" % self.name
+                )
 
     #
     # specific methods for item.System
@@ -938,8 +983,10 @@ class System(Item):
                 network_iface.from_dict(value[key])
                 self._interfaces[key] = network_iface
             return
-        raise ValueError("The values of the interfaces must be fully of type dict (one level with values) or "
-                         "NetworkInterface objects")
+        raise ValueError(
+            "The values of the interfaces must be fully of type dict (one level with values) or "
+            "NetworkInterface objects"
+        )
 
     def modify_interface(self, interface_values: dict):
         """
@@ -981,9 +1028,9 @@ class System(Item):
         if not isinstance(new_name, str):
             raise TypeError("The new_name of the interface must be of type str")
         if old_name not in self.interfaces:
-            raise ValueError("Interface \"%s\" does not exist" % old_name)
+            raise ValueError('Interface "%s" does not exist' % old_name)
         if new_name in self.interfaces:
-            raise ValueError("Interface \"%s\" already exists" % new_name)
+            raise ValueError('Interface "%s" already exists' % new_name)
         self.interfaces[new_name] = self.interfaces[old_name]
         del self.interfaces[old_name]
 
@@ -1063,12 +1110,17 @@ class System(Item):
             if parent is not None:
                 parent_boot_loaders = parent.boot_loaders
             else:
-                self.logger.warning("Parent of System \"%s\" could not be found for resolving the parent bootloaders.",
-                                    self.name)
+                self.logger.warning(
+                    'Parent of System "%s" could not be found for resolving the parent bootloaders.',
+                    self.name,
+                )
                 parent_boot_loaders = []
             if not set(boot_loaders_split).issubset(parent_boot_loaders):
-                raise CX("Error with system \"%s\" - not all boot_loaders are supported (given: \"%s\"; supported:"
-                         "\"%s\")" % (self.name, str(boot_loaders_split), str(parent_boot_loaders)))
+                raise CX(
+                    'Error with system "%s" - not all boot_loaders are supported (given: "%s"; supported:'
+                    '"%s")'
+                    % (self.name, str(boot_loaders_split), str(parent_boot_loaders))
+                )
             self._boot_loaders = boot_loaders_split
         else:
             self._boot_loaders = []
@@ -1225,7 +1277,9 @@ class System(Item):
         :raises TypeError: In case management_key is no string.
         """
         if not isinstance(management_key, str):
-            raise TypeError("Field redhat_management_key of object system needs to be of type str!")
+            raise TypeError(
+                "Field redhat_management_key of object system needs to be of type str!"
+            )
         if management_key is None or management_key == "":
             self._redhat_management_key = enums.VALUE_INHERITED
         self._redhat_management_key = management_key
@@ -1409,7 +1463,9 @@ class System(Item):
         :param interface_name:
         """
         if not isinstance(interface_name, str):
-            raise TypeError("Field ipv6_default_device of object system needs to be of type str!")
+            raise TypeError(
+                "Field ipv6_default_device of object system needs to be of type str!"
+            )
         if interface_name is None:
             interface_name = ""
         self._ipv6_default_device = interface_name
@@ -1466,10 +1522,16 @@ class System(Item):
             if self.name in old_parent.children:
                 old_parent.children.remove(self.name)
             else:
-                self.logger.debug("Name of System \"%s\" was not found in the children of Item \"%s\"",
-                                 self.name, self.parent.name)
+                self.logger.debug(
+                    'Name of System "%s" was not found in the children of Item "%s"',
+                    self.name,
+                    self.parent.name,
+                )
         else:
-            self.logger.debug("Parent of System \"%s\" not found. Thus skipping removal from children list.", self.name)
+            self.logger.debug(
+                'Parent of System "%s" not found. Thus skipping removal from children list.',
+                self.name,
+            )
 
         if profile_name in ["delete", "None", "~", ""]:
             self._profile = ""
@@ -1479,7 +1541,9 @@ class System(Item):
 
         profile = self.api.profiles().find(name=profile_name)
         if profile is None:
-            raise ValueError("Profile with the name \"%s\" is not existing" % profile_name)
+            raise ValueError(
+                'Profile with the name "%s" is not existing' % profile_name
+            )
         self._profile = profile_name
         self.depth = profile.depth + 1  # subprofiles have varying depths.
         new_parent = self.parent
@@ -1750,8 +1814,12 @@ class System(Item):
 
         :param autoinstall: local automatic installation template file path
         """
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api._collection_mgr)
-        self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
+        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(
+            self.api._collection_mgr
+        )
+        self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(
+            autoinstall
+        )
 
     @property
     def power_type(self) -> str:
@@ -1802,7 +1870,9 @@ class System(Item):
         :raises TypeError: In case power_identity_file is no string.
         """
         if not isinstance(power_identity_file, str):
-            raise TypeError("Field power_identity_file of object system needs to be of type str!")
+            raise TypeError(
+                "Field power_identity_file of object system needs to be of type str!"
+            )
         utils.safe_filter(power_identity_file)
         self._power_identity_file = power_identity_file
 
@@ -1827,7 +1897,9 @@ class System(Item):
         :raises TypeError: In case power_options is no string.
         """
         if not isinstance(power_options, str):
-            raise TypeError("Field power_options of object system needs to be of type str!")
+            raise TypeError(
+                "Field power_options of object system needs to be of type str!"
+            )
         utils.safe_filter(power_options)
         self._power_options = power_options
 
@@ -1852,7 +1924,9 @@ class System(Item):
         :raises TypeError: In case power_user is no string.
         """
         if not isinstance(power_user, str):
-            raise TypeError("Field power_user of object system needs to be of type str!")
+            raise TypeError(
+                "Field power_user of object system needs to be of type str!"
+            )
         utils.safe_filter(power_user)
         self._power_user = power_user
 
@@ -1877,7 +1951,9 @@ class System(Item):
         :raises TypeError: In case power_pass is no string.
         """
         if not isinstance(power_pass, str):
-            raise TypeError("Field power_pass of object system needs to be of type str!")
+            raise TypeError(
+                "Field power_pass of object system needs to be of type str!"
+            )
         utils.safe_filter(power_pass)
         self._power_pass = power_pass
 
@@ -1902,7 +1978,9 @@ class System(Item):
         :raises TypeError: In case power_address is no string.
         """
         if not isinstance(power_address, str):
-            raise TypeError("Field power_address of object system needs to be of type str!")
+            raise TypeError(
+                "Field power_address of object system needs to be of type str!"
+            )
         utils.safe_filter(power_address)
         self._power_address = power_address
 
@@ -1953,7 +2031,9 @@ class System(Item):
         """
         repos_enabled = utils.input_boolean(repos_enabled)
         if not isinstance(repos_enabled, bool):
-            raise TypeError("Field repos_enabled of object system needs to be of type bool!")
+            raise TypeError(
+                "Field repos_enabled of object system needs to be of type bool!"
+            )
         self._repos_enabled = repos_enabled
 
     @property

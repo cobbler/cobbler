@@ -10,9 +10,10 @@ dummy_file_path = "/root/dummy"
 def get_last_line():
     def _get_last_line(lines):
         i = len(lines) - 1
-        while lines[i] == '' and i > 0:
+        while lines[i] == "" and i > 0:
             i -= 1
         return lines[i]
+
     return _get_last_line
 
 
@@ -26,6 +27,7 @@ def assert_list_section():
             i += 1
         i += 1
         return i
+
     return _assert_list_section
 
 
@@ -44,6 +46,7 @@ def assert_report_section():
             while i < len(lines) and lines[i] == "":
                 i += 1
         return i
+
     return _assert_report_section
 
 

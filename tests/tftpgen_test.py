@@ -62,7 +62,13 @@ def cleanup_copy_single_distro_files(cobbler_api):
     cobbler_api.remove_distro("test_copy_single_distro_files")
 
 
-def test_copy_single_distro_files(create_kernel_initrd, fk_initrd, fk_kernel, cobbler_api, cleanup_copy_single_distro_files):
+def test_copy_single_distro_files(
+    create_kernel_initrd,
+    fk_initrd,
+    fk_kernel,
+    cobbler_api,
+    cleanup_copy_single_distro_files,
+):
     # Arrange
     # Create fake files
     directory = create_kernel_initrd(fk_kernel, fk_initrd)

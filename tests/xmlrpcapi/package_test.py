@@ -36,7 +36,6 @@ def remove_package(remote, token):
 
 
 class TestPackage:
-
     @pytest.mark.usefixtures("remove_package")
     def test_create_package(self, remote, token):
         """

@@ -11,12 +11,14 @@ def run_cmd(capsys):
     :return: The output of the command
     :raises Exception: If something has gone wrong.
     """
+
     def _run_cmd(cmd):
         cmd.insert(0, "cli.py")
         cli = CobblerCLI(cmd)
         cli.check_setup()
         cli.run(cmd)
         return capsys.readouterr()
+
     return _run_cmd
 
 
@@ -27,6 +29,7 @@ def list_objects(run_cmd):
 
     :return: Inner function which returns a list of objects.
     """
+
     def _list_objects(object_type: str) -> list:
         """
         This is the actual function which is then executed by the outer one.
@@ -41,4 +44,5 @@ def list_objects(run_cmd):
             if line.strip() != "":
                 objects.append(line.strip())
         return objects
+
     return _list_objects

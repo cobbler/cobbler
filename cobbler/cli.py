@@ -36,17 +36,52 @@ INVALID_TASK = "<<invalid>>"
 
 OBJECT_ACTIONS_MAP = {
     "distro": ["add", "copy", "edit", "find", "list", "remove", "rename", "report"],
-    "profile": ["add", "copy", "dumpvars", "edit", "find", "get-autoinstall", "list", "remove", "rename", "report"],
-    "system": ["add", "copy", "dumpvars", "edit", "find", "get-autoinstall", "list", "remove", "rename", "report",
-               "poweron", "poweroff", "powerstatus", "reboot"],
+    "profile": [
+        "add",
+        "copy",
+        "dumpvars",
+        "edit",
+        "find",
+        "get-autoinstall",
+        "list",
+        "remove",
+        "rename",
+        "report",
+    ],
+    "system": [
+        "add",
+        "copy",
+        "dumpvars",
+        "edit",
+        "find",
+        "get-autoinstall",
+        "list",
+        "remove",
+        "rename",
+        "report",
+        "poweron",
+        "poweroff",
+        "powerstatus",
+        "reboot",
+    ],
     "image": ["add", "copy", "edit", "find", "list", "remove", "rename", "report"],
-    "repo": ["add", "copy", "edit", "find", "list", "remove", "rename", "report", "autoadd"],
+    "repo": [
+        "add",
+        "copy",
+        "edit",
+        "find",
+        "list",
+        "remove",
+        "rename",
+        "report",
+        "autoadd",
+    ],
     "mgmtclass": ["add", "copy", "edit", "find", "list", "remove", "rename", "report"],
     "package": ["add", "copy", "edit", "find", "list", "remove", "rename", "report"],
     "file": ["add", "copy", "edit", "find", "list", "remove", "rename", "report"],
     "menu": ["add", "copy", "edit", "find", "list", "remove", "rename", "report"],
     "setting": ["edit", "report"],
-    "signature": ["reload", "report", "update"]
+    "signature": ["reload", "report", "update"],
 }
 
 OBJECT_TYPES = list(OBJECT_ACTIONS_MAP.keys())
@@ -54,8 +89,21 @@ OBJECT_TYPES = list(OBJECT_ACTIONS_MAP.keys())
 OBJECT_ACTIONS = []
 for actions in list(OBJECT_ACTIONS_MAP.values()):
     OBJECT_ACTIONS += actions
-DIRECT_ACTIONS = ["aclsetup", "buildiso", "import", "list", "replicate", "report", "reposync", "sync",
-                  "validate-autoinstalls", "version", "signature", "hardlink", "mkloaders"]
+DIRECT_ACTIONS = [
+    "aclsetup",
+    "buildiso",
+    "import",
+    "list",
+    "replicate",
+    "report",
+    "reposync",
+    "sync",
+    "validate-autoinstalls",
+    "version",
+    "signature",
+    "hardlink",
+    "mkloaders",
+]
 
 ####################################################
 
@@ -129,33 +177,170 @@ DISTRO_FIELDS = [
     ["source_repos", [], 0, "Source Repos", False, "", 0, "list"],
     ["tree_build_time", 0, 0, "Tree Build Time", False, "", 0, "str"],
     ["uid", "", 0, "", False, "", 0, "str"],
-
     # editable in UI
-    ["arch", 'x86_64', 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
-    ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
-    ["boot_files", {}, 0, "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
-    ["boot_loaders", "<<inherit>>", "<<inherit>>", "Boot loaders", True, "Network installation boot loaders", 0,
-     "list"],
-    ["breed", 'redhat', 0, "Breed", True, "What is the type of distribution?", utils.get_valid_breeds(), "str"],
+    ["arch", "x86_64", 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
+    [
+        "autoinstall_meta",
+        {},
+        0,
+        "Automatic Installation Template Metadata",
+        True,
+        "Ex: dog=fang agent=86",
+        0,
+        "dict",
+    ],
+    [
+        "boot_files",
+        {},
+        0,
+        "TFTP Boot Files",
+        True,
+        "Files copied into tftpboot beyond the kernel/initrd",
+        0,
+        "list",
+    ],
+    [
+        "boot_loaders",
+        "<<inherit>>",
+        "<<inherit>>",
+        "Boot loaders",
+        True,
+        "Network installation boot loaders",
+        0,
+        "list",
+    ],
+    [
+        "breed",
+        "redhat",
+        0,
+        "Breed",
+        True,
+        "What is the type of distribution?",
+        utils.get_valid_breeds(),
+        "str",
+    ],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["fetchable_files", {}, 0, "Fetchable Files", True, "Templates for tftp or wget/curl", 0, "list"],
-    ["initrd", None, 0, "Initrd", True, "Absolute path to kernel on filesystem", 0, "str"],
-    ["kernel", None, 0, "Kernel", True, "Absolute path to kernel on filesystem", 0, "str"],
-    ["remote_boot_initrd", None, 0, "Remote Boot Initrd", True, "URL the bootloader directly retrieves and boots from",
-     0, "str"],
-    ["remote_boot_kernel", None, 0, "Remote Boot Kernel", True, "URL the bootloader directly retrieves and boots from",
-     0, "str"],
-    ["kernel_options", {}, 0, "Kernel Options", True, "Ex: selinux=permissive", 0, "dict"],
-    ["kernel_options_post", {}, 0, "Kernel Options (Post Install)", True, "Ex: clocksource=pit noapic", 0, "dict"],
-    ["mgmt_classes", [], 0, "Management Classes", True, "Management classes for external config management", 0, "list"],
+    [
+        "fetchable_files",
+        {},
+        0,
+        "Fetchable Files",
+        True,
+        "Templates for tftp or wget/curl",
+        0,
+        "list",
+    ],
+    [
+        "initrd",
+        None,
+        0,
+        "Initrd",
+        True,
+        "Absolute path to kernel on filesystem",
+        0,
+        "str",
+    ],
+    [
+        "kernel",
+        None,
+        0,
+        "Kernel",
+        True,
+        "Absolute path to kernel on filesystem",
+        0,
+        "str",
+    ],
+    [
+        "remote_boot_initrd",
+        None,
+        0,
+        "Remote Boot Initrd",
+        True,
+        "URL the bootloader directly retrieves and boots from",
+        0,
+        "str",
+    ],
+    [
+        "remote_boot_kernel",
+        None,
+        0,
+        "Remote Boot Kernel",
+        True,
+        "URL the bootloader directly retrieves and boots from",
+        0,
+        "str",
+    ],
+    [
+        "kernel_options",
+        {},
+        0,
+        "Kernel Options",
+        True,
+        "Ex: selinux=permissive",
+        0,
+        "dict",
+    ],
+    [
+        "kernel_options_post",
+        {},
+        0,
+        "Kernel Options (Post Install)",
+        True,
+        "Ex: clocksource=pit noapic",
+        0,
+        "dict",
+    ],
+    [
+        "mgmt_classes",
+        [],
+        0,
+        "Management Classes",
+        True,
+        "Management classes for external config management",
+        0,
+        "list",
+    ],
     ["name", "", 0, "Name", True, "Ex: Fedora-11-i386", 0, "str"],
-    ["os_version", "virtio26", 0, "OS Version", True, "Needed for some virtualization optimizations",
-     utils.get_valid_os_versions(), "str"],
-    ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0,
-     "list"],
-    ["redhat_management_key", "", "", "Redhat Management Key", True,
-     "Registration key for RHN, Spacewalk, or Satellite", 0, "str"],
-    ["template_files", {}, 0, "Template Files", True, "File mappings for built-in config management", 0, "dict"]
+    [
+        "os_version",
+        "virtio26",
+        0,
+        "OS Version",
+        True,
+        "Needed for some virtualization optimizations",
+        utils.get_valid_os_versions(),
+        "str",
+    ],
+    [
+        "owners",
+        "SETTINGS:default_ownership",
+        0,
+        "Owners",
+        True,
+        "Owners list for authz_ownership (space delimited)",
+        0,
+        "list",
+    ],
+    [
+        "redhat_management_key",
+        "",
+        "",
+        "Redhat Management Key",
+        True,
+        "Registration key for RHN, Spacewalk, or Satellite",
+        0,
+        "str",
+    ],
+    [
+        "template_files",
+        {},
+        0,
+        "Template Files",
+        True,
+        "File mappings for built-in config management",
+        0,
+        "dict",
+    ],
 ]
 
 FILE_FIELDS = [
@@ -164,54 +349,182 @@ FILE_FIELDS = [
     ["depth", 2, 0, "", False, "", 0, "float"],
     ["mtime", 0, 0, "", False, "", 0, "float"],
     ["uid", "", 0, "", False, "", 0, "str"],
-
     # editable in UI
     ["action", "create", 0, "Action", True, "Create or remove file resource", 0, "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["group", "", 0, "Owner group in file system", True, "File owner group in file system", 0, "str"],
-    ["is_dir", False, 0, "Is Directory", True, "Treat file resource as a directory", 0, "bool"],
+    [
+        "group",
+        "",
+        0,
+        "Owner group in file system",
+        True,
+        "File owner group in file system",
+        0,
+        "str",
+    ],
+    [
+        "is_dir",
+        False,
+        0,
+        "Is Directory",
+        True,
+        "Treat file resource as a directory",
+        0,
+        "bool",
+    ],
     ["mode", "", 0, "Mode", True, "The mode of the file", 0, "str"],
     ["name", "", 0, "Name", True, "Name of file resource", 0, "str"],
-    ["owner", "", 0, "Owner user in file system", True, "File owner user in file system", 0, "str"],
-    ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [],
-     "list"],
+    [
+        "owner",
+        "",
+        0,
+        "Owner user in file system",
+        True,
+        "File owner user in file system",
+        0,
+        "str",
+    ],
+    [
+        "owners",
+        "SETTINGS:default_ownership",
+        0,
+        "Owners",
+        True,
+        "Owners list for authz_ownership (space delimited)",
+        [],
+        "list",
+    ],
     ["path", "", 0, "Path", True, "The path for the file", 0, "str"],
-    ["template", "", 0, "Template", True, "The template for the file", 0, "str"]
+    ["template", "", 0, "Template", True, "The template for the file", 0, "str"],
 ]
 
 IMAGE_FIELDS = [
     # non-editable in UI (internal)
-    ['ctime', 0, 0, "", False, "", 0, "float"],
-    ['depth', 0, 0, "", False, "", 0, "int"],
-    ['mtime', 0, 0, "", False, "", 0, "float"],
-    ['parent', '', 0, "", False, "", 0, "str"],
-    ['uid', "", 0, "", False, "", 0, "str"],
-
+    ["ctime", 0, 0, "", False, "", 0, "float"],
+    ["depth", 0, 0, "", False, "", 0, "int"],
+    ["mtime", 0, 0, "", False, "", 0, "float"],
+    ["parent", "", 0, "", False, "", 0, "str"],
+    ["uid", "", 0, "", False, "", 0, "str"],
     # editable in UI
-    ['arch', 'x86_64', 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
-    ['autoinstall', '', 0, "Automatic installation file", True, "Path to autoinst/answer file template", 0, "str"],
-    ['breed', 'redhat', 0, "Breed", True, "", utils.get_valid_breeds(), "str"],
-    ['comment', '', 0, "Comment", True, "Free form text description", 0, "str"],
-    ['file', '', 0, "File", True, "Path to local file or nfs://user@host:path", 0, "str"],
-    ['image_type', "iso", 0, "Image Type", True, "", ["iso", "direct", "memdisk", "virt-image"], "str"],
-    ['name', '', 0, "Name", True, "", 0, "str"],
-    ['network_count', 1, 0, "Virt NICs", True, "", 0, "int"],
-    ['os_version', '', 0, "OS Version", True, "ex: rhel4", utils.get_valid_os_versions(), "str"],
-    ['owners', "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [],
-     "list"],
-    ["menu", '', '', "Parent boot menu", True, "", [], "str"],
-    ["boot_loaders", '<<inherit>>', '<<inherit>>', "Boot loaders", True, "Network installation boot loaders", 0,
-     "list"],
-    ['virt_auto_boot', "SETTINGS:virt_auto_boot", 0, "Virt Auto Boot", True, "Auto boot this VM?", 0, "bool"],
-    ['virt_bridge', "SETTINGS:default_virt_bridge", 0, "Virt Bridge", True, "", 0, "str"],
-    ['virt_cpus', 1, 0, "Virt CPUs", True, "", 0, "int"],
-    ["virt_disk_driver", "SETTINGS:default_virt_disk_driver", 0, "Virt Disk Driver Type", True,
-     "The on-disk format for the virtualization disk", "raw", "str"],
-    ['virt_file_size', "SETTINGS:default_virt_file_size", 0, "Virt File Size (GB)", True, "", 0, "float"],
-    ['virt_path', '', 0, "Virt Path", True, "Ex: /directory or VolGroup00", 0, "str"],
-    ['virt_ram', "SETTINGS:default_virt_ram", 0, "Virt RAM (MB)", True, "", 0, "int"],
-    ['virt_type', "SETTINGS:default_virt_type", 0, "Virt Type", True, "", ["xenpv", "xenfv", "qemu", "kvm", "vmware"],
-     "str"],
+    ["arch", "x86_64", 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
+    [
+        "autoinstall",
+        "",
+        0,
+        "Automatic installation file",
+        True,
+        "Path to autoinst/answer file template",
+        0,
+        "str",
+    ],
+    ["breed", "redhat", 0, "Breed", True, "", utils.get_valid_breeds(), "str"],
+    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
+    [
+        "file",
+        "",
+        0,
+        "File",
+        True,
+        "Path to local file or nfs://user@host:path",
+        0,
+        "str",
+    ],
+    [
+        "image_type",
+        "iso",
+        0,
+        "Image Type",
+        True,
+        "",
+        ["iso", "direct", "memdisk", "virt-image"],
+        "str",
+    ],
+    ["name", "", 0, "Name", True, "", 0, "str"],
+    ["network_count", 1, 0, "Virt NICs", True, "", 0, "int"],
+    [
+        "os_version",
+        "",
+        0,
+        "OS Version",
+        True,
+        "ex: rhel4",
+        utils.get_valid_os_versions(),
+        "str",
+    ],
+    [
+        "owners",
+        "SETTINGS:default_ownership",
+        0,
+        "Owners",
+        True,
+        "Owners list for authz_ownership (space delimited)",
+        [],
+        "list",
+    ],
+    ["menu", "", "", "Parent boot menu", True, "", [], "str"],
+    [
+        "boot_loaders",
+        "<<inherit>>",
+        "<<inherit>>",
+        "Boot loaders",
+        True,
+        "Network installation boot loaders",
+        0,
+        "list",
+    ],
+    [
+        "virt_auto_boot",
+        "SETTINGS:virt_auto_boot",
+        0,
+        "Virt Auto Boot",
+        True,
+        "Auto boot this VM?",
+        0,
+        "bool",
+    ],
+    [
+        "virt_bridge",
+        "SETTINGS:default_virt_bridge",
+        0,
+        "Virt Bridge",
+        True,
+        "",
+        0,
+        "str",
+    ],
+    ["virt_cpus", 1, 0, "Virt CPUs", True, "", 0, "int"],
+    [
+        "virt_disk_driver",
+        "SETTINGS:default_virt_disk_driver",
+        0,
+        "Virt Disk Driver Type",
+        True,
+        "The on-disk format for the virtualization disk",
+        "raw",
+        "str",
+    ],
+    [
+        "virt_file_size",
+        "SETTINGS:default_virt_file_size",
+        0,
+        "Virt File Size (GB)",
+        True,
+        "",
+        0,
+        "float",
+    ],
+    ["virt_path", "", 0, "Virt Path", True, "Ex: /directory or VolGroup00", 0, "str"],
+    ["virt_ram", "SETTINGS:default_virt_ram", 0, "Virt RAM (MB)", True, "", 0, "int"],
+    [
+        "virt_type",
+        "SETTINGS:default_virt_type",
+        0,
+        "Virt Type",
+        True,
+        "",
+        ["xenpv", "xenfv", "qemu", "kvm", "vmware"],
+        "str",
+    ],
 ]
 
 MENU_FIELDS = [
@@ -220,31 +533,64 @@ MENU_FIELDS = [
     ["depth", 1, 1, "", False, "", 0, "int"],
     ["mtime", 0, 0, "", False, "", 0, "int"],
     ["uid", "", "", "", False, "", 0, "str"],
-
     # editable in UI
     ["comment", "", "", "Comment", True, "Free form text description", 0, "str"],
     ["name", "", None, "Name", True, "Ex: Systems", 0, "str"],
     ["display_name", "", "", "Display Name", True, "Ex: Systems menu", [], "str"],
-    ["parent", '', '', "Parent Menu", True, "", [], "str"],
+    ["parent", "", "", "Parent Menu", True, "", [], "str"],
 ]
 
 MGMTCLASS_FIELDS = [
     # non-editable in UI (internal)
     ["ctime", 0, 0, "", False, "", 0, "float"],
     ["depth", 2, 0, "", False, "", 0, "float"],
-    ["is_definition", False, 0, "Is Definition?", True, "Treat this class as a definition (puppet only)", 0, "bool"],
+    [
+        "is_definition",
+        False,
+        0,
+        "Is Definition?",
+        True,
+        "Treat this class as a definition (puppet only)",
+        0,
+        "bool",
+    ],
     ["mtime", 0, 0, "", False, "", 0, "int"],
     ["uid", "", 0, "", False, "", 0, "str"],
-
     # editable in UI
-    ["class_name", "", 0, "Class Name", True, "Actual Class Name (leave blank to use the name field)", 0, "str"],
+    [
+        "class_name",
+        "",
+        0,
+        "Class Name",
+        True,
+        "Actual Class Name (leave blank to use the name field)",
+        0,
+        "str",
+    ],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
     ["files", [], 0, "Files", True, "File resources", 0, "list"],
     ["name", "", 0, "Name", True, "Ex: F10-i386-webserver", 0, "str"],
-    ["owners", "SETTINGS:default_ownership", "SETTINGS:default_ownership", "Owners", True,
-     "Owners list for authz_ownership (space delimited)", 0, "list"],
+    [
+        "owners",
+        "SETTINGS:default_ownership",
+        "SETTINGS:default_ownership",
+        "Owners",
+        True,
+        "Owners list for authz_ownership (space delimited)",
+        0,
+        "list",
+    ],
     ["packages", [], 0, "Packages", True, "Package resources", 0, "list"],
-    ["params", {}, 0, "Parameters/Variables", True, "List of parameters/variables", 0, "dict"],
+    [
+        "params",
+        {},
+        0,
+        "Parameters/Variables",
+        True,
+        "List of parameters/variables",
+        0,
+        "dict",
+    ],
 ]
 
 PACKAGE_FIELDS = [
@@ -253,14 +599,30 @@ PACKAGE_FIELDS = [
     ["depth", 2, 0, "", False, "", 0, "float"],
     ["mtime", 0, 0, "", False, "", 0, "float"],
     ["uid", "", 0, "", False, "", 0, "str"],
-
     # editable in UI
-    ["action", "create", 0, "Action", True, "Install or remove package resource", 0, "str"],
+    [
+        "action",
+        "create",
+        0,
+        "Action",
+        True,
+        "Install or remove package resource",
+        0,
+        "str",
+    ],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
     ["installer", "yum", 0, "Installer", True, "Package Manager", 0, "str"],
     ["name", "", 0, "Name", True, "Name of file resource", 0, "str"],
-    ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [],
-     "list"],
+    [
+        "owners",
+        "SETTINGS:default_ownership",
+        0,
+        "Owners",
+        True,
+        "Owners list for authz_ownership (space delimited)",
+        [],
+        "list",
+    ],
     ["version", "", 0, "Version", True, "Package Version", 0, "str"],
 ]
 
@@ -270,61 +632,322 @@ PROFILE_FIELDS = [
     ["depth", 1, 1, "", False, "", 0, "int"],
     ["mtime", 0, 0, "", False, "", 0, "int"],
     ["uid", "", "", "", False, "", 0, "str"],
-
     # editable in UI
-    ["autoinstall", "SETTINGS:autoinstall", '<<inherit>>', "Automatic Installation Template", True,
-     "Path to automatic installation template", 0, "str"],
-    ["autoinstall_meta", {}, '<<inherit>>', "Automatic Installation Metadata", True, "Ex: dog=fang agent=86", 0,
-     "dict"],
-    ["boot_files", {}, '<<inherit>>', "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0,
-     "list"],
-    ["boot_loaders", '<<inherit>>', '<<inherit>>', "Boot loaders", True, "Linux installation boot loaders", 0, "list"],
+    [
+        "autoinstall",
+        "SETTINGS:autoinstall",
+        "<<inherit>>",
+        "Automatic Installation Template",
+        True,
+        "Path to automatic installation template",
+        0,
+        "str",
+    ],
+    [
+        "autoinstall_meta",
+        {},
+        "<<inherit>>",
+        "Automatic Installation Metadata",
+        True,
+        "Ex: dog=fang agent=86",
+        0,
+        "dict",
+    ],
+    [
+        "boot_files",
+        {},
+        "<<inherit>>",
+        "TFTP Boot Files",
+        True,
+        "Files copied into tftpboot beyond the kernel/initrd",
+        0,
+        "list",
+    ],
+    [
+        "boot_loaders",
+        "<<inherit>>",
+        "<<inherit>>",
+        "Boot loaders",
+        True,
+        "Linux installation boot loaders",
+        0,
+        "list",
+    ],
     ["comment", "", "", "Comment", True, "Free form text description", 0, "str"],
-    ["dhcp_tag", "default", '<<inherit>>', "DHCP Tag", True, "See manpage or leave blank", 0, "str"],
-    ["distro", None, '<<inherit>>', "Distribution", True, "Parent distribution", [], "str"],
-    ["enable_ipxe", "SETTINGS:enable_ipxe", 0, "Enable iPXE?", True,
-     "Use iPXE instead of PXELINUX for advanced booting options", 0, "bool"],
-    ["enable_menu", "SETTINGS:enable_menu", '<<inherit>>', "Enable PXE Menu?", True,
-     "Show this profile in the PXE menu?", 0, "bool"],
-    ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget/curl", 0, "dict"],
-    ["kernel_options", {}, '<<inherit>>', "Kernel Options", True, "Ex: selinux=permissive", 0, "dict"],
-    ["kernel_options_post", {}, '<<inherit>>', "Kernel Options (Post Install)", True, "Ex: clocksource=pit noapic", 0,
-     "dict"],
-    ["mgmt_classes", [], '<<inherit>>', "Management Classes", True, "For external configuration management", 0, "list"],
-    ["mgmt_parameters", "<<inherit>>", "<<inherit>>", "Management Parameters", True,
-     "Parameters which will be handed to your management application (Must be valid YAML dictionary)", 0, "str"],
+    [
+        "dhcp_tag",
+        "default",
+        "<<inherit>>",
+        "DHCP Tag",
+        True,
+        "See manpage or leave blank",
+        0,
+        "str",
+    ],
+    [
+        "distro",
+        None,
+        "<<inherit>>",
+        "Distribution",
+        True,
+        "Parent distribution",
+        [],
+        "str",
+    ],
+    [
+        "enable_ipxe",
+        "SETTINGS:enable_ipxe",
+        0,
+        "Enable iPXE?",
+        True,
+        "Use iPXE instead of PXELINUX for advanced booting options",
+        0,
+        "bool",
+    ],
+    [
+        "enable_menu",
+        "SETTINGS:enable_menu",
+        "<<inherit>>",
+        "Enable PXE Menu?",
+        True,
+        "Show this profile in the PXE menu?",
+        0,
+        "bool",
+    ],
+    [
+        "fetchable_files",
+        {},
+        "<<inherit>>",
+        "Fetchable Files",
+        True,
+        "Templates for tftp or wget/curl",
+        0,
+        "dict",
+    ],
+    [
+        "kernel_options",
+        {},
+        "<<inherit>>",
+        "Kernel Options",
+        True,
+        "Ex: selinux=permissive",
+        0,
+        "dict",
+    ],
+    [
+        "kernel_options_post",
+        {},
+        "<<inherit>>",
+        "Kernel Options (Post Install)",
+        True,
+        "Ex: clocksource=pit noapic",
+        0,
+        "dict",
+    ],
+    [
+        "mgmt_classes",
+        [],
+        "<<inherit>>",
+        "Management Classes",
+        True,
+        "For external configuration management",
+        0,
+        "list",
+    ],
+    [
+        "mgmt_parameters",
+        "<<inherit>>",
+        "<<inherit>>",
+        "Management Parameters",
+        True,
+        "Parameters which will be handed to your management application (Must be valid YAML dictionary)",
+        0,
+        "str",
+    ],
     ["name", "", None, "Name", True, "Ex: F10-i386-webserver", 0, "str"],
-    ["name_servers", "SETTINGS:default_name_servers", [], "Name Servers", True, "space delimited", 0, "list"],
-    ["name_servers_search", "SETTINGS:default_name_servers_search", [], "Name Servers Search Path", True,
-     "space delimited", 0, "list"],
-    ["next_server_v4", "<<inherit>>", '<<inherit>>', "Next Server (IPv4) Override", True, "See manpage or leave blank",
-     0, "str"],
-    ["next_server_v6", "<<inherit>>", '<<inherit>>', "Next Server (IPv6) Override", True, "See manpage or leave blank",
-     0, "str"],
-    ["filename", "<<inherit>>", '<<inherit>>', "DHCP Filename Override", True, "Use to boot non-default bootloaders", 0,
-     "str"],
-    ["owners", "SETTINGS:default_ownership", "SETTINGS:default_ownership", "Owners", True,
-     "Owners list for authz_ownership (space delimited)", 0, "list"],
-    ["parent", '', '', "Parent Profile", True, "", [], "str"],
-    ["proxy", "SETTINGS:proxy_url_int", "<<inherit>>", "Proxy", True, "Proxy URL", 0, "str"],
-    ["redhat_management_key", "<<inherit>>", "<<inherit>>", "Red Hat Management Key", True,
-     "Registration key for RHN, Spacewalk, or Satellite", 0, "str"],
-    ["repos", [], '<<inherit>>', "Repos", True, "Repos to auto-assign to this profile", [], "list"],
-    ["server", "<<inherit>>", '<<inherit>>', "Server Override", True, "See manpage or leave blank", 0, "str"],
-    ["template_files", {}, '<<inherit>>', "Template Files", True, "File mappings for built-in config management", 0,
-     "dict"],
+    [
+        "name_servers",
+        "SETTINGS:default_name_servers",
+        [],
+        "Name Servers",
+        True,
+        "space delimited",
+        0,
+        "list",
+    ],
+    [
+        "name_servers_search",
+        "SETTINGS:default_name_servers_search",
+        [],
+        "Name Servers Search Path",
+        True,
+        "space delimited",
+        0,
+        "list",
+    ],
+    [
+        "next_server_v4",
+        "<<inherit>>",
+        "<<inherit>>",
+        "Next Server (IPv4) Override",
+        True,
+        "See manpage or leave blank",
+        0,
+        "str",
+    ],
+    [
+        "next_server_v6",
+        "<<inherit>>",
+        "<<inherit>>",
+        "Next Server (IPv6) Override",
+        True,
+        "See manpage or leave blank",
+        0,
+        "str",
+    ],
+    [
+        "filename",
+        "<<inherit>>",
+        "<<inherit>>",
+        "DHCP Filename Override",
+        True,
+        "Use to boot non-default bootloaders",
+        0,
+        "str",
+    ],
+    [
+        "owners",
+        "SETTINGS:default_ownership",
+        "SETTINGS:default_ownership",
+        "Owners",
+        True,
+        "Owners list for authz_ownership (space delimited)",
+        0,
+        "list",
+    ],
+    ["parent", "", "", "Parent Profile", True, "", [], "str"],
+    [
+        "proxy",
+        "SETTINGS:proxy_url_int",
+        "<<inherit>>",
+        "Proxy",
+        True,
+        "Proxy URL",
+        0,
+        "str",
+    ],
+    [
+        "redhat_management_key",
+        "<<inherit>>",
+        "<<inherit>>",
+        "Red Hat Management Key",
+        True,
+        "Registration key for RHN, Spacewalk, or Satellite",
+        0,
+        "str",
+    ],
+    [
+        "repos",
+        [],
+        "<<inherit>>",
+        "Repos",
+        True,
+        "Repos to auto-assign to this profile",
+        [],
+        "list",
+    ],
+    [
+        "server",
+        "<<inherit>>",
+        "<<inherit>>",
+        "Server Override",
+        True,
+        "See manpage or leave blank",
+        0,
+        "str",
+    ],
+    [
+        "template_files",
+        {},
+        "<<inherit>>",
+        "Template Files",
+        True,
+        "File mappings for built-in config management",
+        0,
+        "dict",
+    ],
     ["menu", None, None, "Parent boot menu", True, "", 0, "str"],
-    ["virt_auto_boot", "SETTINGS:virt_auto_boot", '<<inherit>>', "Virt Auto Boot", True, "Auto boot this VM?", 0,
-     "bool"],
-    ["virt_bridge", "SETTINGS:default_virt_bridge", '<<inherit>>', "Virt Bridge", True, "", 0, "str"],
-    ["virt_cpus", 1, '<<inherit>>', "Virt CPUs", True, "integer", 0, "int"],
-    ["virt_disk_driver", "SETTINGS:default_virt_disk_driver", '<<inherit>>', "Virt Disk Driver Type", True,
-     "The on-disk format for the virtualization disk", [e.value for e in enums.VirtDiskDrivers], "str"],
-    ["virt_file_size", "SETTINGS:default_virt_file_size", '<<inherit>>', "Virt File Size(GB)", True, "", 0, "int"],
-    ["virt_path", "", '<<inherit>>', "Virt Path", True, "Ex: /directory OR VolGroup00", 0, "str"],
-    ["virt_ram", "SETTINGS:default_virt_ram", '<<inherit>>', "Virt RAM (MB)", True, "", 0, "int"],
-    ["virt_type", "SETTINGS:default_virt_type", '<<inherit>>', "Virt Type", True, "Virtualization technology to use",
-     [e.value for e in enums.VirtType], "str"],
+    [
+        "virt_auto_boot",
+        "SETTINGS:virt_auto_boot",
+        "<<inherit>>",
+        "Virt Auto Boot",
+        True,
+        "Auto boot this VM?",
+        0,
+        "bool",
+    ],
+    [
+        "virt_bridge",
+        "SETTINGS:default_virt_bridge",
+        "<<inherit>>",
+        "Virt Bridge",
+        True,
+        "",
+        0,
+        "str",
+    ],
+    ["virt_cpus", 1, "<<inherit>>", "Virt CPUs", True, "integer", 0, "int"],
+    [
+        "virt_disk_driver",
+        "SETTINGS:default_virt_disk_driver",
+        "<<inherit>>",
+        "Virt Disk Driver Type",
+        True,
+        "The on-disk format for the virtualization disk",
+        [e.value for e in enums.VirtDiskDrivers],
+        "str",
+    ],
+    [
+        "virt_file_size",
+        "SETTINGS:default_virt_file_size",
+        "<<inherit>>",
+        "Virt File Size(GB)",
+        True,
+        "",
+        0,
+        "int",
+    ],
+    [
+        "virt_path",
+        "",
+        "<<inherit>>",
+        "Virt Path",
+        True,
+        "Ex: /directory OR VolGroup00",
+        0,
+        "str",
+    ],
+    [
+        "virt_ram",
+        "SETTINGS:default_virt_ram",
+        "<<inherit>>",
+        "Virt RAM (MB)",
+        True,
+        "",
+        0,
+        "int",
+    ],
+    [
+        "virt_type",
+        "SETTINGS:default_virt_type",
+        "<<inherit>>",
+        "Virt Type",
+        True,
+        "Virtualization technology to use",
+        [e.value for e in enums.VirtType],
+        "str",
+    ],
 ]
 
 REPO_FIELDS = [
@@ -334,30 +957,169 @@ REPO_FIELDS = [
     ["mtime", 0, 0, "", False, "", 0, "float"],
     ["parent", None, 0, "", False, "", 0, "str"],
     ["uid", None, 0, "", False, "", 0, "str"],
-
     # editable in UI
-    ["apt_components", "", 0, "Apt Components (apt only)", True, "ex: main restricted universe", [], "list"],
-    ["apt_dists", "", 0, "Apt Dist Names (apt only)", True, "ex: precise precise-updates", [], "list"],
-    ["arch", "x86_64", 0, "Arch", True, "ex: i386, x86_64", [e.value for e in enums.RepoArchs], "str"],
-    ["breed", "rsync", 0, "Breed", True, "", [e.value for e in enums.RepoBreeds], "str"],
+    [
+        "apt_components",
+        "",
+        0,
+        "Apt Components (apt only)",
+        True,
+        "ex: main restricted universe",
+        [],
+        "list",
+    ],
+    [
+        "apt_dists",
+        "",
+        0,
+        "Apt Dist Names (apt only)",
+        True,
+        "ex: precise precise-updates",
+        [],
+        "list",
+    ],
+    [
+        "arch",
+        "x86_64",
+        0,
+        "Arch",
+        True,
+        "ex: i386, x86_64",
+        [e.value for e in enums.RepoArchs],
+        "str",
+    ],
+    [
+        "breed",
+        "rsync",
+        0,
+        "Breed",
+        True,
+        "",
+        [e.value for e in enums.RepoBreeds],
+        "str",
+    ],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["createrepo_flags", '<<inherit>>', 0, "Createrepo Flags", True, "Flags to use with createrepo", 0, "dict"],
-    ["environment", {}, 0, "Environment Variables", True,
-     "Use these environment variables during commands (key=value, space delimited)", 0, "dict"],
-    ["keep_updated", True, 0, "Keep Updated", True, "Update this repo on next 'cobbler reposync'?", 0, "bool"],
-    ["mirror", None, 0, "Mirror", True, "Address of yum or rsync repo to mirror", 0, "str"],
-    ["mirror_type", "baseurl", 0, "Mirror Type", True, "", [e.value for e in enums.MirrorType], "str"],
-    ["mirror_locally", True, 0, "Mirror locally", True, "Copy files or just reference the repo externally?", 0, "bool"],
+    [
+        "createrepo_flags",
+        "<<inherit>>",
+        0,
+        "Createrepo Flags",
+        True,
+        "Flags to use with createrepo",
+        0,
+        "dict",
+    ],
+    [
+        "environment",
+        {},
+        0,
+        "Environment Variables",
+        True,
+        "Use these environment variables during commands (key=value, space delimited)",
+        0,
+        "dict",
+    ],
+    [
+        "keep_updated",
+        True,
+        0,
+        "Keep Updated",
+        True,
+        "Update this repo on next 'cobbler reposync'?",
+        0,
+        "bool",
+    ],
+    [
+        "mirror",
+        None,
+        0,
+        "Mirror",
+        True,
+        "Address of yum or rsync repo to mirror",
+        0,
+        "str",
+    ],
+    [
+        "mirror_type",
+        "baseurl",
+        0,
+        "Mirror Type",
+        True,
+        "",
+        [e.value for e in enums.MirrorType],
+        "str",
+    ],
+    [
+        "mirror_locally",
+        True,
+        0,
+        "Mirror locally",
+        True,
+        "Copy files or just reference the repo externally?",
+        0,
+        "bool",
+    ],
     ["name", "", 0, "Name", True, "Ex: f10-i386-updates", 0, "str"],
-    ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [],
-     "list"],
-    ["priority", 99, 0, "Priority", True, "Value for yum priorities plugin, if installed", 0, "int"],
-    ["proxy", "SETTINGS:proxy_url_ext", "<<inherit>>", "Proxy information", True,
-     "http://example.com:8080, or <<inherit>> to use proxy_url_ext from settings, blank or <<None>> for no proxy", 0,
-     "str"],
-    ["rpm_list", [], 0, "RPM List", True, "Mirror just these RPMs (yum only)", 0, "list"],
-    ["yumopts", {}, 0, "Yum Options", True, "Options to write to yum config file", 0, "dict"],
-    ["rsyncopts", "", 0, "Rsync Options", True, "Options to use with rsync repo", 0, "dict"],
+    [
+        "owners",
+        "SETTINGS:default_ownership",
+        0,
+        "Owners",
+        True,
+        "Owners list for authz_ownership (space delimited)",
+        [],
+        "list",
+    ],
+    [
+        "priority",
+        99,
+        0,
+        "Priority",
+        True,
+        "Value for yum priorities plugin, if installed",
+        0,
+        "int",
+    ],
+    [
+        "proxy",
+        "SETTINGS:proxy_url_ext",
+        "<<inherit>>",
+        "Proxy information",
+        True,
+        "http://example.com:8080, or <<inherit>> to use proxy_url_ext from settings, blank or <<None>> for no proxy",
+        0,
+        "str",
+    ],
+    [
+        "rpm_list",
+        [],
+        0,
+        "RPM List",
+        True,
+        "Mirror just these RPMs (yum only)",
+        0,
+        "list",
+    ],
+    [
+        "yumopts",
+        {},
+        0,
+        "Yum Options",
+        True,
+        "Options to write to yum config file",
+        0,
+        "dict",
+    ],
+    [
+        "rsyncopts",
+        "",
+        0,
+        "Rsync Options",
+        True,
+        "Options to use with rsync repo",
+        0,
+        "dict",
+    ],
 ]
 
 SYSTEM_FIELDS = [
@@ -366,71 +1128,343 @@ SYSTEM_FIELDS = [
     ["depth", 2, 0, "", False, "", 0, "int"],
     ["ipv6_autoconfiguration", False, 0, "IPv6 Autoconfiguration", True, "", 0, "bool"],
     ["mtime", 0, 0, "", False, "", 0, "float"],
-    ["repos_enabled", False, 0, "Repos Enabled", True,
-     "(re)configure local repos on this machine at next config update?", 0, "bool"],
+    [
+        "repos_enabled",
+        False,
+        0,
+        "Repos Enabled",
+        True,
+        "(re)configure local repos on this machine at next config update?",
+        0,
+        "bool",
+    ],
     ["uid", "", 0, "", False, "", 0, "str"],
-
     # editable in UI
-    ["autoinstall", "<<inherit>>", 0, "Automatic Installation Template", True,
-     "Path to automatic installation template", 0, "str"],
-    ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
-    ["boot_files", {}, '<<inherit>>', "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0,
-     "list"],
-    ["boot_loaders", '<<inherit>>', '<<inherit>>', "Boot loaders", True, "Linux installation boot loaders", 0, "list"],
+    [
+        "autoinstall",
+        "<<inherit>>",
+        0,
+        "Automatic Installation Template",
+        True,
+        "Path to automatic installation template",
+        0,
+        "str",
+    ],
+    [
+        "autoinstall_meta",
+        {},
+        0,
+        "Automatic Installation Template Metadata",
+        True,
+        "Ex: dog=fang agent=86",
+        0,
+        "dict",
+    ],
+    [
+        "boot_files",
+        {},
+        "<<inherit>>",
+        "TFTP Boot Files",
+        True,
+        "Files copied into tftpboot beyond the kernel/initrd",
+        0,
+        "list",
+    ],
+    [
+        "boot_loaders",
+        "<<inherit>>",
+        "<<inherit>>",
+        "Boot loaders",
+        True,
+        "Linux installation boot loaders",
+        0,
+        "list",
+    ],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["enable_ipxe", "<<inherit>>", 0, "Enable iPXE?", True, "Use iPXE instead of PXELINUX for advanced booting options",
-     0, "bool"],
-    ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget/curl", 0, "dict"],
+    [
+        "enable_ipxe",
+        "<<inherit>>",
+        0,
+        "Enable iPXE?",
+        True,
+        "Use iPXE instead of PXELINUX for advanced booting options",
+        0,
+        "bool",
+    ],
+    [
+        "fetchable_files",
+        {},
+        "<<inherit>>",
+        "Fetchable Files",
+        True,
+        "Templates for tftp or wget/curl",
+        0,
+        "dict",
+    ],
     ["gateway", "", 0, "Gateway", True, "", 0, "str"],
     ["hostname", "", 0, "Hostname", True, "", 0, "str"],
     ["image", None, 0, "Image", True, "Parent image (if not a profile)", 0, "str"],
     ["ipv6_default_device", "", 0, "IPv6 Default Device", True, "", 0, "str"],
-    ["kernel_options", {}, 0, "Kernel Options", True, "Ex: selinux=permissive", 0, "dict"],
-    ["kernel_options_post", {}, 0, "Kernel Options (Post Install)", True, "Ex: clocksource=pit noapic", 0, "dict"],
-    ["mgmt_classes", "<<inherit>>", 0, "Management Classes", True, "For external config management", 0, "list"],
-    ["mgmt_parameters", "<<inherit>>", 0, "Management Parameters", True,
-     "Parameters which will be handed to your management application (Must be valid YAML dictionary)", 0, "str"],
+    [
+        "kernel_options",
+        {},
+        0,
+        "Kernel Options",
+        True,
+        "Ex: selinux=permissive",
+        0,
+        "dict",
+    ],
+    [
+        "kernel_options_post",
+        {},
+        0,
+        "Kernel Options (Post Install)",
+        True,
+        "Ex: clocksource=pit noapic",
+        0,
+        "dict",
+    ],
+    [
+        "mgmt_classes",
+        "<<inherit>>",
+        0,
+        "Management Classes",
+        True,
+        "For external config management",
+        0,
+        "list",
+    ],
+    [
+        "mgmt_parameters",
+        "<<inherit>>",
+        0,
+        "Management Parameters",
+        True,
+        "Parameters which will be handed to your management application (Must be valid YAML dictionary)",
+        0,
+        "str",
+    ],
     ["name", "", 0, "Name", True, "Ex: vanhalen.example.org", 0, "str"],
     ["name_servers", [], 0, "Name Servers", True, "space delimited", 0, "list"],
-    ["name_servers_search", [], 0, "Name Servers Search Path", True, "space delimited", 0, "list"],
-    ["netboot_enabled", True, 0, "Netboot Enabled", True, "PXE (re)install this machine at next boot?", 0, "bool"],
-    ["next_server_v4", "<<inherit>>", 0, "Next Server (IPv4) Override", True, "See manpage or leave blank", 0, "str"],
-    ["next_server_v6", "<<inherit>>", 0, "Next Server (IPv6) Override", True, "See manpage or leave blank", 0, "str"],
-    ["filename", "<<inherit>>", '<<inherit>>', "DHCP Filename Override", True, "Use to boot non-default bootloaders", 0,
-     "str"],
-    ["owners", "<<inherit>>", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
-    ["power_address", "", 0, "Power Management Address", True, "Ex: power-device.example.org", 0, "str"],
-    ["power_id", "", 0, "Power Management ID", True, "Usually a plug number or blade name, if power type requires it",
-     0, "str"],
+    [
+        "name_servers_search",
+        [],
+        0,
+        "Name Servers Search Path",
+        True,
+        "space delimited",
+        0,
+        "list",
+    ],
+    [
+        "netboot_enabled",
+        True,
+        0,
+        "Netboot Enabled",
+        True,
+        "PXE (re)install this machine at next boot?",
+        0,
+        "bool",
+    ],
+    [
+        "next_server_v4",
+        "<<inherit>>",
+        0,
+        "Next Server (IPv4) Override",
+        True,
+        "See manpage or leave blank",
+        0,
+        "str",
+    ],
+    [
+        "next_server_v6",
+        "<<inherit>>",
+        0,
+        "Next Server (IPv6) Override",
+        True,
+        "See manpage or leave blank",
+        0,
+        "str",
+    ],
+    [
+        "filename",
+        "<<inherit>>",
+        "<<inherit>>",
+        "DHCP Filename Override",
+        True,
+        "Use to boot non-default bootloaders",
+        0,
+        "str",
+    ],
+    [
+        "owners",
+        "<<inherit>>",
+        0,
+        "Owners",
+        True,
+        "Owners list for authz_ownership (space delimited)",
+        0,
+        "list",
+    ],
+    [
+        "power_address",
+        "",
+        0,
+        "Power Management Address",
+        True,
+        "Ex: power-device.example.org",
+        0,
+        "str",
+    ],
+    [
+        "power_id",
+        "",
+        0,
+        "Power Management ID",
+        True,
+        "Usually a plug number or blade name, if power type requires it",
+        0,
+        "str",
+    ],
     ["power_pass", "", 0, "Power Management Password", True, "", 0, "str"],
-    ["power_type", "SETTINGS:power_management_default_type", 0, "Power Management Type", True,
-     "Power management script to use", power_manager.get_power_types(), "str"],
+    [
+        "power_type",
+        "SETTINGS:power_management_default_type",
+        0,
+        "Power Management Type",
+        True,
+        "Power management script to use",
+        power_manager.get_power_types(),
+        "str",
+    ],
     ["power_user", "", 0, "Power Management Username", True, "", 0, "str"],
-    ["power_options", "", 0, "Power Management Options", True, "Additional options, to be passed to the fencing agent",
-     0, "str"],
-    ["power_identity_file", "", 0, "Power Identity File", True,
-     "Identity file to be passed to the fencing agent (ssh key)", 0, "str"],
+    [
+        "power_options",
+        "",
+        0,
+        "Power Management Options",
+        True,
+        "Additional options, to be passed to the fencing agent",
+        0,
+        "str",
+    ],
+    [
+        "power_identity_file",
+        "",
+        0,
+        "Power Identity File",
+        True,
+        "Identity file to be passed to the fencing agent (ssh key)",
+        0,
+        "str",
+    ],
     ["profile", None, 0, "Profile", True, "Parent profile", [], "str"],
     ["proxy", "<<inherit>>", 0, "Internal Proxy", True, "Internal proxy URL", 0, "str"],
-    ["redhat_management_key", "<<inherit>>", 0, "Redhat Management Key", True,
-     "Registration key for RHN, Spacewalk, or Satellite", 0, "str"],
-    ["server", "<<inherit>>", 0, "Server Override", True, "See manpage or leave blank", 0, "str"],
-    ["status", "production", 0, "Status", True, "System status",
-     ["", "development", "testing", "acceptance", "production"], "str"],
-    ["template_files", {}, 0, "Template Files", True, "File mappings for built-in configuration management", 0, "dict"],
-    ["virt_auto_boot", "<<inherit>>", 0, "Virt Auto Boot", True, "Auto boot this VM?", 0, "bool"],
+    [
+        "redhat_management_key",
+        "<<inherit>>",
+        0,
+        "Redhat Management Key",
+        True,
+        "Registration key for RHN, Spacewalk, or Satellite",
+        0,
+        "str",
+    ],
+    [
+        "server",
+        "<<inherit>>",
+        0,
+        "Server Override",
+        True,
+        "See manpage or leave blank",
+        0,
+        "str",
+    ],
+    [
+        "status",
+        "production",
+        0,
+        "Status",
+        True,
+        "System status",
+        ["", "development", "testing", "acceptance", "production"],
+        "str",
+    ],
+    [
+        "template_files",
+        {},
+        0,
+        "Template Files",
+        True,
+        "File mappings for built-in configuration management",
+        0,
+        "dict",
+    ],
+    [
+        "virt_auto_boot",
+        "<<inherit>>",
+        0,
+        "Virt Auto Boot",
+        True,
+        "Auto boot this VM?",
+        0,
+        "bool",
+    ],
     ["virt_cpus", "<<inherit>>", 0, "Virt CPUs", True, "", 0, "int"],
-    ["virt_disk_driver", "<<inherit>>", 0, "Virt Disk Driver Type", True,
-     "The on-disk format for the virtualization disk", [e.value for e in enums.VirtDiskDrivers], "str"],
+    [
+        "virt_disk_driver",
+        "<<inherit>>",
+        0,
+        "Virt Disk Driver Type",
+        True,
+        "The on-disk format for the virtualization disk",
+        [e.value for e in enums.VirtDiskDrivers],
+        "str",
+    ],
     ["virt_file_size", "<<inherit>>", 0, "Virt File Size(GB)", True, "", 0, "float"],
-    ["virt_path", "<<inherit>>", 0, "Virt Path", True, "Ex: /directory or VolGroup00", 0, "str"],
-    ["virt_pxe_boot", 0, 0, "Virt PXE Boot", True, "Use PXE to build this VM?", 0, "bool"],
+    [
+        "virt_path",
+        "<<inherit>>",
+        0,
+        "Virt Path",
+        True,
+        "Ex: /directory or VolGroup00",
+        0,
+        "str",
+    ],
+    [
+        "virt_pxe_boot",
+        0,
+        0,
+        "Virt PXE Boot",
+        True,
+        "Use PXE to build this VM?",
+        0,
+        "bool",
+    ],
     ["virt_ram", "<<inherit>>", 0, "Virt RAM (MB)", True, "", 0, "int"],
-    ["virt_type", "<<inherit>>", 0, "Virt Type", True, "Virtualization technology to use",
-     [e.value for e in enums.VirtType], "str"],
+    [
+        "virt_type",
+        "<<inherit>>",
+        0,
+        "Virt Type",
+        True,
+        "Virtualization technology to use",
+        [e.value for e in enums.VirtType],
+        "str",
+    ],
     ["serial_device", "", 0, "Serial Device #", True, "Serial Device Number", 0, "int"],
-    ["serial_baud_rate", "", 0, "Serial Baud Rate", True, "Serial Baud Rate",
-     ["", "2400", "4800", "9600", "19200", "38400", "57600", "115200"], "int"],
+    [
+        "serial_baud_rate",
+        "",
+        0,
+        "Serial Baud Rate",
+        True,
+        "Serial Baud Rate",
+        ["", "2400", "4800", "9600", "19200", "38400", "57600", "115200"],
+        "int",
+    ],
 ]
 
 # network interface fields are in a separate list because a system may contain
@@ -438,33 +1472,209 @@ SYSTEM_FIELDS = [
 # (1-N cardinality), while it may contain only one value for other fields
 # (1-1 cardinality). This difference requires special handling.
 NETWORK_INTERFACE_FIELDS = [
-    ["bonding_opts", "", 0, "Bonding Opts", True, "Should be used with --interface", 0, "str"],
-    ["bridge_opts", "", 0, "Bridge Opts", True, "Should be used with --interface", 0, "str"],
-    ["cnames", [], 0, "CNAMES", True,
-     "Cannonical Name Records, should be used with --interface, In quotes, space delimited", 0, "list"],
-    ["connected_mode", False, 0, "InfiniBand Connected Mode", True, "Should be used with --interface", 0, "bool"],
+    [
+        "bonding_opts",
+        "",
+        0,
+        "Bonding Opts",
+        True,
+        "Should be used with --interface",
+        0,
+        "str",
+    ],
+    [
+        "bridge_opts",
+        "",
+        0,
+        "Bridge Opts",
+        True,
+        "Should be used with --interface",
+        0,
+        "str",
+    ],
+    [
+        "cnames",
+        [],
+        0,
+        "CNAMES",
+        True,
+        "Cannonical Name Records, should be used with --interface, In quotes, space delimited",
+        0,
+        "list",
+    ],
+    [
+        "connected_mode",
+        False,
+        0,
+        "InfiniBand Connected Mode",
+        True,
+        "Should be used with --interface",
+        0,
+        "bool",
+    ],
     ["dhcp_tag", "", 0, "DHCP Tag", True, "Should be used with --interface", 0, "str"],
     ["dns_name", "", 0, "DNS Name", True, "Should be used with --interface", 0, "str"],
-    ["if_gateway", "", 0, "Per-Interface Gateway", True, "Should be used with --interface", 0, "str"],
-    ["interface_master", "", 0, "Master Interface", True, "Should be used with --interface", 0, "str"],
-    ["interface_type", "na", 0, "Interface Type", True, "Should be used with --interface",
-     ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave", "bmc", "infiniband"], "str"],
-    ["ip_address", "", 0, "IP Address", True, "Should be used with --interface", 0, "str"],
-    ["ipv6_address", "", 0, "IPv6 Address", True, "Should be used with --interface", 0, "str"],
-    ["ipv6_default_gateway", "", 0, "IPv6 Default Gateway", True, "Should be used with --interface", 0, "str"],
+    [
+        "if_gateway",
+        "",
+        0,
+        "Per-Interface Gateway",
+        True,
+        "Should be used with --interface",
+        0,
+        "str",
+    ],
+    [
+        "interface_master",
+        "",
+        0,
+        "Master Interface",
+        True,
+        "Should be used with --interface",
+        0,
+        "str",
+    ],
+    [
+        "interface_type",
+        "na",
+        0,
+        "Interface Type",
+        True,
+        "Should be used with --interface",
+        [
+            "na",
+            "bond",
+            "bond_slave",
+            "bridge",
+            "bridge_slave",
+            "bonded_bridge_slave",
+            "bmc",
+            "infiniband",
+        ],
+        "str",
+    ],
+    [
+        "ip_address",
+        "",
+        0,
+        "IP Address",
+        True,
+        "Should be used with --interface",
+        0,
+        "str",
+    ],
+    [
+        "ipv6_address",
+        "",
+        0,
+        "IPv6 Address",
+        True,
+        "Should be used with --interface",
+        0,
+        "str",
+    ],
+    [
+        "ipv6_default_gateway",
+        "",
+        0,
+        "IPv6 Default Gateway",
+        True,
+        "Should be used with --interface",
+        0,
+        "str",
+    ],
     ["ipv6_mtu", "", 0, "IPv6 MTU", True, "Should be used with --interface", 0, "str"],
-    ["ipv6_prefix", "", 0, "IPv6 Prefix", True, "Should be used with --interface", 0, "str"],
-    ["ipv6_secondaries", [], 0, "IPv6 Secondaries", True, "Space delimited. Should be used with --interface", 0,
-     "list"],
-    ["ipv6_static_routes", [], 0, "IPv6 Static Routes", True, "Should be used with --interface", 0, "list"],
-    ["mac_address", "", 0, "MAC Address", True, "(Place \"random\" in this field for a random MAC Address.)", 0, "str"],
-    ["management", False, 0, "Management Interface", True,
-     "Is this the management interface? Should be used with --interface", 0, "bool"],
+    [
+        "ipv6_prefix",
+        "",
+        0,
+        "IPv6 Prefix",
+        True,
+        "Should be used with --interface",
+        0,
+        "str",
+    ],
+    [
+        "ipv6_secondaries",
+        [],
+        0,
+        "IPv6 Secondaries",
+        True,
+        "Space delimited. Should be used with --interface",
+        0,
+        "list",
+    ],
+    [
+        "ipv6_static_routes",
+        [],
+        0,
+        "IPv6 Static Routes",
+        True,
+        "Should be used with --interface",
+        0,
+        "list",
+    ],
+    [
+        "mac_address",
+        "",
+        0,
+        "MAC Address",
+        True,
+        '(Place "random" in this field for a random MAC Address.)',
+        0,
+        "str",
+    ],
+    [
+        "management",
+        False,
+        0,
+        "Management Interface",
+        True,
+        "Is this the management interface? Should be used with --interface",
+        0,
+        "bool",
+    ],
     ["mtu", "", 0, "MTU", True, "", 0, "str"],
-    ["netmask", "", 0, "Subnet Mask", True, "Should be used with --interface", 0, "str"],
-    ["static", False, 0, "Static", True, "Is this interface static? Should be used with --interface", 0, "bool"],
-    ["static_routes", [], 0, "Static Routes", True, "Should be used with --interface", 0, "list"],
-    ["virt_bridge", "", 0, "Virt Bridge", True, "Should be used with --interface", 0, "str"],
+    [
+        "netmask",
+        "",
+        0,
+        "Subnet Mask",
+        True,
+        "Should be used with --interface",
+        0,
+        "str",
+    ],
+    [
+        "static",
+        False,
+        0,
+        "Static",
+        True,
+        "Is this interface static? Should be used with --interface",
+        0,
+        "bool",
+    ],
+    [
+        "static_routes",
+        [],
+        0,
+        "Static Routes",
+        True,
+        "Should be used with --interface",
+        0,
+        "list",
+    ],
+    [
+        "virt_bridge",
+        "",
+        0,
+        "Virt Bridge",
+        True,
+        "Should be used with --interface",
+        0,
+        "str",
+    ],
 ]
 
 SETTINGS_FIELDS = [
@@ -474,6 +1684,7 @@ SETTINGS_FIELDS = [
 
 
 ####################################################
+
 
 def to_string_from_fields(item_dict, fields, interface_fields=None) -> str:
     """
@@ -512,7 +1723,10 @@ def to_string_from_fields(item_dict, fields, interface_fields=None) -> str:
             buf += "%-30s : %s\n" % ("Interface ===== ", iname)
             for (k, nicename, editable) in keys:
                 if editable:
-                    buf += "%-30s : %s\n" % (nicename, item_dict["interfaces"][iname].get(k, ""))
+                    buf += "%-30s : %s\n" % (
+                        nicename,
+                        item_dict["interfaces"][iname].get(k, ""),
+                    )
 
     return buf
 
@@ -529,7 +1743,7 @@ def report_items(remote, otype: str):
         keys = list(items.keys())
         keys.sort()
         for key in keys:
-            item = {'name': key, 'value': items[key]}
+            item = {"name": key, "value": items[key]}
             report_item(remote, otype, item=item)
     elif otype == "signature":
         items = remote.get_signatures()
@@ -542,7 +1756,10 @@ def report_items(remote, otype: str):
             total_breeds = len(bkeys)
             for breed in bkeys:
                 total_sigs += report_single_breed(breed, items)
-            print("\n%d breeds with %d total signatures loaded" % (total_breeds, total_sigs))
+            print(
+                "\n%d breeds with %d total signatures loaded"
+                % (total_breeds, total_sigs)
+            )
         else:
             print("No breeds found in the signature, a signature update is recommended")
             return 1
@@ -582,7 +1799,7 @@ def report_item(remote, otype: str, item=None, name=None):
         if otype == "setting":
             cur_settings = remote.get_settings()
             try:
-                item = {'name': name, 'value': cur_settings[name]}
+                item = {"name": name, "value": cur_settings[name]}
             except:
                 print("Setting not found: %s" % name)
                 return 1
@@ -598,7 +1815,9 @@ def report_item(remote, otype: str, item=None, name=None):
                     print("No breed named '%s' found" % name)
                     return 1
             else:
-                print("No breeds found in the signature, a signature update is recommended")
+                print(
+                    "No breeds found in the signature, a signature update is recommended"
+                )
                 return 1
             return
         else:
@@ -626,7 +1845,7 @@ def report_item(remote, otype: str, item=None, name=None):
     elif otype == "menu":
         data = to_string_from_fields(item, MENU_FIELDS)
     elif otype == "setting":
-        data = "%-40s: %s" % (item['name'], item['value'])
+        data = "%-40s: %s" % (item["name"], item["value"])
     else:
         data = "Unknown item type selected!"
     print(data)
@@ -693,7 +1912,10 @@ def _add_parser_option_from_field(parser, field, settings):
     tooltip = field[5]
     choices = field[6]
     if choices and default not in choices:
-        raise Exception("field %s default value (%s) is not listed in choices (%s)" % (name, default, str(choices)))
+        raise Exception(
+            "field %s default value (%s) is not listed in choices (%s)"
+            % (name, default, str(choices))
+        )
     if tooltip != "":
         description += " (%s)" % tooltip
 
@@ -708,7 +1930,9 @@ def _add_parser_option_from_field(parser, field, settings):
         parser.add_option(option_string, dest=name, help=description)
 
 
-def add_options_from_fields(object_type, parser, fields, network_interface_fields, settings, object_action):
+def add_options_from_fields(
+    object_type, parser, fields, network_interface_fields, settings, object_action
+):
     """
     Add options to the command line from the fields queried from the Cobbler server.
 
@@ -729,25 +1953,42 @@ def add_options_from_fields(object_type, parser, fields, network_interface_field
             for field in network_interface_fields:
                 _add_parser_option_from_field(parser, field, settings)
 
-            parser.add_option("--interface", dest="interface", help="the interface to operate on (can only be "
-                                                                    "specified once per command line)")
+            parser.add_option(
+                "--interface",
+                dest="interface",
+                help="the interface to operate on (can only be "
+                "specified once per command line)",
+            )
             if object_action in ["add", "edit"]:
-                parser.add_option("--delete-interface", dest="delete_interface", action="store_true")
+                parser.add_option(
+                    "--delete-interface", dest="delete_interface", action="store_true"
+                )
                 parser.add_option("--rename-interface", dest="rename_interface")
 
         if object_action in ["copy", "rename"]:
             parser.add_option("--newname", help="new object name")
 
         if object_action not in ["find"] and object_type != "setting":
-            parser.add_option("--in-place", action="store_true", dest="in_place",
-                              help="edit items in kopts or autoinstall without clearing the other items")
+            parser.add_option(
+                "--in-place",
+                action="store_true",
+                dest="in_place",
+                help="edit items in kopts or autoinstall without clearing the other items",
+            )
 
     elif object_action == "remove":
         parser.add_option("--name", help="%s name to remove" % object_type)
-        parser.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
+        parser.add_option(
+            "--recursive",
+            action="store_true",
+            dest="recursive",
+            help="also delete child objects",
+        )
 
 
-def get_comma_separated_args(option: optparse.Option, opt_str, value: str, parser: optparse.OptionParser):
+def get_comma_separated_args(
+    option: optparse.Option, opt_str, value: str, parser: optparse.OptionParser
+):
     """
     Simple callback function to achieve option split with comma.
 
@@ -765,8 +2006,10 @@ def get_comma_separated_args(option: optparse.Option, opt_str, value: str, parse
     if not isinstance(value, str):
         raise optparse.OptionValueError("Value is not a string!")
     if not isinstance(parser, optparse.OptionParser):
-        raise optparse.OptionValueError("Parser is not an optparse.OptionParser object!")
-    setattr(parser.values, str(option.dest), value.split(','))
+        raise optparse.OptionValueError(
+            "Parser is not an optparse.OptionParser object!"
+        )
+    setattr(parser.values, str(option.dest), value.split(","))
 
 
 class CobblerCLI:
@@ -856,24 +2099,36 @@ class CobblerCLI:
             try:
                 s.ping()
             except Exception as e:
-                print("cobblerd does not appear to be running/accessible: %s" % repr(e), file=sys.stderr)
+                print(
+                    "cobblerd does not appear to be running/accessible: %s" % repr(e),
+                    file=sys.stderr,
+                )
                 return 411
 
         with xmlrpc.client.ServerProxy(self.url_cobbler_api) as s:
             try:
                 s.ping()
             except:
-                print("httpd does not appear to be running and proxying Cobbler, or SELinux is in the way. Original "
-                      "traceback:", file=sys.stderr)
+                print(
+                    "httpd does not appear to be running and proxying Cobbler, or SELinux is in the way. Original "
+                    "traceback:",
+                    file=sys.stderr,
+                )
                 traceback.print_exc()
                 return 411
 
         if not os.path.exists("/var/lib/cobbler/web.ss"):
-            print("Missing login credentials file.  Has cobblerd failed to start?", file=sys.stderr)
+            print(
+                "Missing login credentials file.  Has cobblerd failed to start?",
+                file=sys.stderr,
+            )
             return 411
 
         if not os.access("/var/lib/cobbler/web.ss", os.R_OK):
-            print("User cannot run command line, need read access to /var/lib/cobbler/web.ss", file=sys.stderr)
+            print(
+                "User cannot run command line, need read access to /var/lib/cobbler/web.ss",
+                file=sys.stderr,
+            )
             return 411
 
         return 0
@@ -904,7 +2159,9 @@ class CobblerCLI:
                 print(self.cleanup_fault_string(err.faultString))
             else:
                 print("### ERROR ###")
-                print("Unexpected remote error, check the server side logs for further info")
+                print(
+                    "Unexpected remote error, check the server side logs for further info"
+                )
                 print(err.faultString)
             return 1
 
@@ -918,9 +2175,9 @@ class CobblerCLI:
         """
         if fault_str.find(">:") != -1:
             (first, rest) = fault_str.split(">:", 1)
-            if rest.startswith("\"") or rest.startswith("\'"):
+            if rest.startswith('"') or rest.startswith("'"):
                 rest = rest[1:]
-            if rest.endswith("\"") or rest.endswith("\'"):
+            if rest.endswith('"') or rest.endswith("'"):
                 rest = rest[:-1]
             return rest
         else:
@@ -974,14 +2231,22 @@ class CobblerCLI:
         if object_type == "system":
             network_interface_fields = NETWORK_INTERFACE_FIELDS
         if object_action in ["add", "edit", "copy", "rename", "find", "remove"]:
-            add_options_from_fields(object_type, self.parser, fields,
-                                    network_interface_fields, settings, object_action)
+            add_options_from_fields(
+                object_type,
+                self.parser,
+                fields,
+                network_interface_fields,
+                settings,
+                object_action,
+            )
         elif object_action in ["list", "autoadd"]:
             pass
         elif object_action not in ("reload", "update"):
             self.parser.add_option("--name", dest="name", help="name of object")
         elif object_action == "reload":
-            self.parser.add_option("--filename", dest="filename", help="filename to load data from")
+            self.parser.add_option(
+                "--filename", dest="filename", help="filename to load data from"
+            )
         (options, args) = self.parser.parse_args(self.args)
 
         # the first three don't require a name
@@ -993,7 +2258,12 @@ class CobblerCLI:
         elif object_action == "list":
             list_items(self.remote, object_type)
         elif object_action == "find":
-            items = self.remote.find_items(object_type, utils.strip_none(vars(options), omit_none=True), "name", False)
+            items = self.remote.find_items(
+                object_type,
+                utils.strip_none(vars(options), omit_none=True),
+                "name",
+                False,
+            )
             for item in items:
                 print(item)
         elif object_action == "autoadd" and object_type == "repo":
@@ -1012,18 +2282,29 @@ class CobblerCLI:
                     if object_type == "setting":
                         settings = self.remote.get_settings()
                         if options.value is None:
-                            raise RuntimeError("You must specify a --value when editing a setting")
-                        elif not settings.get('allow_dynamic_settings', False):
-                            raise RuntimeError("Dynamic settings changes are not enabled. Change the "
-                                               "allow_dynamic_settings to True and restart cobblerd to enable dynamic "
-                                               "settings changes")
-                        elif options.name == 'allow_dynamic_settings':
+                            raise RuntimeError(
+                                "You must specify a --value when editing a setting"
+                            )
+                        elif not settings.get("allow_dynamic_settings", False):
+                            raise RuntimeError(
+                                "Dynamic settings changes are not enabled. Change the "
+                                "allow_dynamic_settings to True and restart cobblerd to enable dynamic "
+                                "settings changes"
+                            )
+                        elif options.name == "allow_dynamic_settings":
                             raise RuntimeError("Cannot modify that setting live")
-                        elif self.remote.modify_setting(options.name, options.value, self.token):
+                        elif self.remote.modify_setting(
+                            options.name, options.value, self.token
+                        ):
                             raise RuntimeError("Changing the setting failed")
                     else:
-                        self.remote.xapi_object_edit(object_type, options.name, object_action,
-                                                     utils.strip_none(vars(options), omit_none=True), self.token)
+                        self.remote.xapi_object_edit(
+                            object_type,
+                            options.name,
+                            object_action,
+                            utils.strip_none(vars(options), omit_none=True),
+                            self.token,
+                        )
                 except xmlrpc.client.Fault as error:
                     (_, emsg) = error.faultString.split(":", 1)
                     print("exception on server: %s" % emsg)
@@ -1037,7 +2318,9 @@ class CobblerCLI:
                 elif object_type == "system":
                     data = self.remote.generate_system_autoinstall(options.name)
                 else:
-                    print('Invalid object type selected! Allowed are "profile" and "system".')
+                    print(
+                        'Invalid object type selected! Allowed are "profile" and "system".'
+                    )
                     return 1
                 print(data)
             elif object_action == "dumpvars":
@@ -1046,7 +2329,9 @@ class CobblerCLI:
                 elif object_type == "system":
                     data = self.remote.get_blended_data("", options.name)
                 else:
-                    print('Invalid object type selected! Allowed are "profile" and "system".')
+                    print(
+                        'Invalid object type selected! Allowed are "profile" and "system".'
+                    )
                     return 1
                 # FIXME: pretty-printing and sorting here
                 keys = list(data.keys())
@@ -1056,19 +2341,27 @@ class CobblerCLI:
             elif object_action in ["poweron", "poweroff", "powerstatus", "reboot"]:
                 power = {
                     "power": object_action.replace("power", ""),
-                    "systems": [options.name]
+                    "systems": [options.name],
                 }
                 task_id = self.remote.background_power_system(power, self.token)
             elif object_action == "update":
-                task_id = self.remote.background_signature_update(utils.strip_none(vars(options), omit_none=True),
-                                                                  self.token)
+                task_id = self.remote.background_signature_update(
+                    utils.strip_none(vars(options), omit_none=True), self.token
+                )
             elif object_action == "reload":
-                filename = opt(options, "filename", "/var/lib/cobbler/distro_signatures.json")
+                filename = opt(
+                    options, "filename", "/var/lib/cobbler/distro_signatures.json"
+                )
                 try:
                     utils.load_signatures(filename, cache=True)
                 except:
-                    print("There was an error loading the signature data in %s." % filename)
-                    print("Please check the JSON file or run 'cobbler signature update'.")
+                    print(
+                        "There was an error loading the signature data in %s."
+                        % filename
+                    )
+                    print(
+                        "Please check the JSON file or run 'cobbler signature update'."
+                    )
                     return 1
                 else:
                     print("Signatures were successfully loaded")
@@ -1093,60 +2386,145 @@ class CobblerCLI:
         """
         task_id = INVALID_TASK
 
-        self.parser.set_usage('Usage: %%prog %s [options]' % (action_name))
+        self.parser.set_usage("Usage: %%prog %s [options]" % (action_name))
 
         if action_name == "buildiso":
 
             defaultiso = os.path.join(os.getcwd(), "generated.iso")
-            self.parser.add_option("--iso", dest="iso", default=defaultiso, help="(OPTIONAL) output ISO to this file")
-            self.parser.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
-            self.parser.add_option("--systems", dest="systems", help="(OPTIONAL) use these systems only")
-            self.parser.add_option("--tempdir", dest="buildisodir", help="(OPTIONAL) working directory")
-            self.parser.add_option("--distro", dest="distro", help="(OPTIONAL) used with --standalone and --airgapped "
-                                                                   "to create a distro-based ISO including all "
-                                                                   "associated profiles/systems")
-            self.parser.add_option("--standalone", dest="standalone", action="store_true",
-                                   help="(OPTIONAL) creates a standalone ISO with all required distro files, "
-                                        "but without any added repos")
-            self.parser.add_option("--airgapped", dest="airgapped", action="store_true",
-                                   help="(OPTIONAL) creates a standalone ISO with all distro and repo files for "
-                                        "disconnected system installation")
-            self.parser.add_option("--source", dest="source", help="(OPTIONAL) used with --standalone to specify a "
-                                                                   "source for the distribution files")
-            self.parser.add_option("--exclude-dns", dest="exclude_dns", action="store_true",
-                                   help="(OPTIONAL) prevents addition of name server addresses to the kernel boot "
-                                        "options")
-            self.parser.add_option("--mkisofs-opts", dest="mkisofs_opts", help="(OPTIONAL) extra options for mkisofs")
+            self.parser.add_option(
+                "--iso",
+                dest="iso",
+                default=defaultiso,
+                help="(OPTIONAL) output ISO to this file",
+            )
+            self.parser.add_option(
+                "--profiles", dest="profiles", help="(OPTIONAL) use these profiles only"
+            )
+            self.parser.add_option(
+                "--systems", dest="systems", help="(OPTIONAL) use these systems only"
+            )
+            self.parser.add_option(
+                "--tempdir", dest="buildisodir", help="(OPTIONAL) working directory"
+            )
+            self.parser.add_option(
+                "--distro",
+                dest="distro",
+                help="(OPTIONAL) used with --standalone and --airgapped "
+                "to create a distro-based ISO including all "
+                "associated profiles/systems",
+            )
+            self.parser.add_option(
+                "--standalone",
+                dest="standalone",
+                action="store_true",
+                help="(OPTIONAL) creates a standalone ISO with all required distro files, "
+                "but without any added repos",
+            )
+            self.parser.add_option(
+                "--airgapped",
+                dest="airgapped",
+                action="store_true",
+                help="(OPTIONAL) creates a standalone ISO with all distro and repo files for "
+                "disconnected system installation",
+            )
+            self.parser.add_option(
+                "--source",
+                dest="source",
+                help="(OPTIONAL) used with --standalone to specify a "
+                "source for the distribution files",
+            )
+            self.parser.add_option(
+                "--exclude-dns",
+                dest="exclude_dns",
+                action="store_true",
+                help="(OPTIONAL) prevents addition of name server addresses to the kernel boot "
+                "options",
+            )
+            self.parser.add_option(
+                "--mkisofs-opts",
+                dest="mkisofs_opts",
+                help="(OPTIONAL) extra options for mkisofs",
+            )
 
             (options, args) = self.parser.parse_args(self.args)
             task_id = self.start_task("buildiso", options)
 
         elif action_name == "replicate":
-            self.parser.add_option("--master", dest="master", help="Cobbler server to replicate from.")
+            self.parser.add_option(
+                "--master", dest="master", help="Cobbler server to replicate from."
+            )
             self.parser.add_option("--port", dest="port", help="Remote port.")
-            self.parser.add_option("--distros", dest="distro_patterns", help="patterns of distros to replicate")
-            self.parser.add_option("--profiles", dest="profile_patterns", help="patterns of profiles to replicate")
-            self.parser.add_option("--systems", dest="system_patterns", help="patterns of systems to replicate")
-            self.parser.add_option("--repos", dest="repo_patterns", help="patterns of repos to replicate")
-            self.parser.add_option("--image", dest="image_patterns", help="patterns of images to replicate")
-            self.parser.add_option("--mgmtclasses", dest="mgmtclass_patterns",
-                                   help="patterns of mgmtclasses to replicate")
-            self.parser.add_option("--packages", dest="package_patterns", help="patterns of packages to replicate")
-            self.parser.add_option("--files", dest="file_patterns", help="patterns of files to replicate")
-            self.parser.add_option("--omit-data", dest="omit_data", action="store_true", help="do not rsync data")
-            self.parser.add_option("--sync-all", dest="sync_all", action="store_true", help="sync all data")
-            self.parser.add_option("--prune", dest="prune", action="store_true",
-                                   help="remove objects (of all types) not found on the master")
-            self.parser.add_option("--use-ssl", dest="use_ssl", action="store_true",
-                                   help="use ssl to access the Cobbler master server api")
+            self.parser.add_option(
+                "--distros",
+                dest="distro_patterns",
+                help="patterns of distros to replicate",
+            )
+            self.parser.add_option(
+                "--profiles",
+                dest="profile_patterns",
+                help="patterns of profiles to replicate",
+            )
+            self.parser.add_option(
+                "--systems",
+                dest="system_patterns",
+                help="patterns of systems to replicate",
+            )
+            self.parser.add_option(
+                "--repos", dest="repo_patterns", help="patterns of repos to replicate"
+            )
+            self.parser.add_option(
+                "--image", dest="image_patterns", help="patterns of images to replicate"
+            )
+            self.parser.add_option(
+                "--mgmtclasses",
+                dest="mgmtclass_patterns",
+                help="patterns of mgmtclasses to replicate",
+            )
+            self.parser.add_option(
+                "--packages",
+                dest="package_patterns",
+                help="patterns of packages to replicate",
+            )
+            self.parser.add_option(
+                "--files", dest="file_patterns", help="patterns of files to replicate"
+            )
+            self.parser.add_option(
+                "--omit-data",
+                dest="omit_data",
+                action="store_true",
+                help="do not rsync data",
+            )
+            self.parser.add_option(
+                "--sync-all", dest="sync_all", action="store_true", help="sync all data"
+            )
+            self.parser.add_option(
+                "--prune",
+                dest="prune",
+                action="store_true",
+                help="remove objects (of all types) not found on the master",
+            )
+            self.parser.add_option(
+                "--use-ssl",
+                dest="use_ssl",
+                action="store_true",
+                help="use ssl to access the Cobbler master server api",
+            )
             (options, args) = self.parser.parse_args(self.args)
             task_id = self.start_task("replicate", options)
 
         elif action_name == "aclsetup":
-            self.parser.add_option("--adduser", dest="adduser", help="give acls to this user")
-            self.parser.add_option("--addgroup", dest="addgroup", help="give acls to this group")
-            self.parser.add_option("--removeuser", dest="removeuser", help="remove acls from this user")
-            self.parser.add_option("--removegroup", dest="removegroup", help="remove acls from this group")
+            self.parser.add_option(
+                "--adduser", dest="adduser", help="give acls to this user"
+            )
+            self.parser.add_option(
+                "--addgroup", dest="addgroup", help="give acls to this group"
+            )
+            self.parser.add_option(
+                "--removeuser", dest="removeuser", help="remove acls from this user"
+            )
+            self.parser.add_option(
+                "--removegroup", dest="removegroup", help="remove acls from this group"
+            )
             (options, args) = self.parser.parse_args(self.args)
             task_id = self.start_task("aclsetup", options)
 
@@ -1166,48 +2544,95 @@ class CobblerCLI:
             (options, args) = self.parser.parse_args(self.args)
             task_id = self.start_task("validate_autoinstall_files", options)
         elif action_name == "import":
-            self.parser.add_option("--arch", dest="arch", help="OS architecture being imported")
-            self.parser.add_option("--breed", dest="breed", help="the breed being imported")
-            self.parser.add_option("--os-version", dest="os_version", help="the version being imported")
-            self.parser.add_option("--path", dest="path", help="local path or rsync location")
+            self.parser.add_option(
+                "--arch", dest="arch", help="OS architecture being imported"
+            )
+            self.parser.add_option(
+                "--breed", dest="breed", help="the breed being imported"
+            )
+            self.parser.add_option(
+                "--os-version", dest="os_version", help="the version being imported"
+            )
+            self.parser.add_option(
+                "--path", dest="path", help="local path or rsync location"
+            )
             self.parser.add_option("--name", dest="name", help="name, ex 'RHEL-5'")
-            self.parser.add_option("--available-as", dest="available_as", help="tree is here, don't mirror")
-            self.parser.add_option("--autoinstall", dest="autoinstall_file", help="assign this autoinstall file")
-            self.parser.add_option("--rsync-flags", dest="rsync_flags", help="pass additional flags to rsync")
+            self.parser.add_option(
+                "--available-as", dest="available_as", help="tree is here, don't mirror"
+            )
+            self.parser.add_option(
+                "--autoinstall",
+                dest="autoinstall_file",
+                help="assign this autoinstall file",
+            )
+            self.parser.add_option(
+                "--rsync-flags",
+                dest="rsync_flags",
+                help="pass additional flags to rsync",
+            )
             (options, args) = self.parser.parse_args(self.args)
             if options.path and "rsync://" not in options.path:
                 # convert relative path to absolute path
                 options.path = os.path.abspath(options.path)
             task_id = self.start_task("import", options)
         elif action_name == "reposync":
-            self.parser.add_option("--only", dest="only", help="update only this repository name")
-            self.parser.add_option("--tries", dest="tries", help="try each repo this many times", default=1)
-            self.parser.add_option("--no-fail", dest="nofail", help="don't stop reposyncing if a failure occurs",
-                                   action="store_true")
+            self.parser.add_option(
+                "--only", dest="only", help="update only this repository name"
+            )
+            self.parser.add_option(
+                "--tries", dest="tries", help="try each repo this many times", default=1
+            )
+            self.parser.add_option(
+                "--no-fail",
+                dest="nofail",
+                help="don't stop reposyncing if a failure occurs",
+                action="store_true",
+            )
             (options, args) = self.parser.parse_args(self.args)
             task_id = self.start_task("reposync", options)
         elif action_name == "check":
             results = self.remote.check(self.token)
             ct = 0
             if len(results) > 0:
-                print("The following are potential configuration items that you may want to fix:\n")
+                print(
+                    "The following are potential configuration items that you may want to fix:\n"
+                )
                 for r in results:
                     ct += 1
                     print("%s: %s" % (ct, r))
-                print("\nRestart cobblerd and then run 'cobbler sync' to apply changes.")
+                print(
+                    "\nRestart cobblerd and then run 'cobbler sync' to apply changes."
+                )
             else:
                 print("No configuration problems found.  All systems go.")
 
         elif action_name == "sync":
-            self.parser.add_option("--verbose", dest="verbose", action="store_true",
-                                   help="run sync with more output")
-            self.parser.add_option("--dhcp", dest="dhcp", action="store_true",
-                                   help="write DHCP config files and restart service")
-            self.parser.add_option("--dns", dest="dns", action="store_true",
-                                   help="write DNS config files and restart service")
-            self.parser.add_option("--systems", dest="systems", type='string', action="callback",
-                                   callback=get_comma_separated_args,
-                                   help="run a sync only on specified systems")
+            self.parser.add_option(
+                "--verbose",
+                dest="verbose",
+                action="store_true",
+                help="run sync with more output",
+            )
+            self.parser.add_option(
+                "--dhcp",
+                dest="dhcp",
+                action="store_true",
+                help="write DHCP config files and restart service",
+            )
+            self.parser.add_option(
+                "--dns",
+                dest="dns",
+                action="store_true",
+                help="write DNS config files and restart service",
+            )
+            self.parser.add_option(
+                "--systems",
+                dest="systems",
+                type="string",
+                action="callback",
+                callback=get_comma_separated_args,
+                help="run a sync only on specified systems",
+            )
             # ToDo: Add tftp syncing when it's cleaned up
             (options, args) = self.parser.parse_args(self.args)
             if options.systems is not None:
@@ -1291,7 +2716,7 @@ class CobblerCLI:
         """
         logfile = "/var/log/cobbler/cobbler.log"
         # adapted from:  http://code.activestate.com/recipes/157035/
-        with open(logfile, 'r') as file:
+        with open(logfile, "r") as file:
             # Find the size of the file and move to the end
             # st_results = os.stat(filename)
             # st_size = st_results[6]
@@ -1314,7 +2739,7 @@ class CobblerCLI:
                 else:
                     if line.find(" | "):
                         line = line.split(" | ")[-1]
-                    print(line, end='')
+                    print(line, end="")
 
     def print_object_help(self, object_type) -> int:
         """
@@ -1334,8 +2759,12 @@ class CobblerCLI:
         Prints general-top level help, e.g. "cobbler --help" or "cobbler" or "cobbler command-does-not-exist"
         """
         print("usage\n=====")
-        print("cobbler <distro|profile|system|repo|image|mgmtclass|package|file|menu> ... ")
-        print("        [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]")
+        print(
+            "cobbler <distro|profile|system|repo|image|mgmtclass|package|file|menu> ... "
+        )
+        print(
+            "        [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]"
+        )
         print("cobbler setting [edit|report]")
         print("cobbler <%s> [options|--help]" % "|".join(DIRECT_ACTIONS))
         return 2

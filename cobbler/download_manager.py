@@ -24,7 +24,6 @@ import requests
 
 
 class DownloadManager:
-
     def __init__(self, api):
         """
         Constructor

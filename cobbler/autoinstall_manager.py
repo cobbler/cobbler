@@ -30,8 +30,9 @@ class AutoInstallationManager:
         self.autoinstallgen = autoinstallgen.AutoInstallationGen(api)
         self.logger = logging.getLogger()
 
-    def validate_autoinstall_template_file_path(self, autoinstall: str, for_item: bool = True,
-                                                new_autoinstall: bool = False) -> str:
+    def validate_autoinstall_template_file_path(
+        self, autoinstall: str, for_item: bool = True, new_autoinstall: bool = False
+    ) -> str:
         """
         Validate the automatic installation template's relative file path.
 
@@ -59,12 +60,17 @@ class AutoInstallationManager:
                 return autoinstall
 
         if autoinstall.find("..") != -1:
-            raise ValueError("Invalid automatic installation template file location %s, it must not contain .."
-                             % autoinstall)
+            raise ValueError(
+                "Invalid automatic installation template file location %s, it must not contain .."
+                % autoinstall
+            )
 
         autoinstall_path = "%s/%s" % (self.templates_base_dir, autoinstall)
         if not os.path.isfile(autoinstall_path) and not new_autoinstall:
-            raise OSError("Invalid automatic installation template file location %s, file not found" % autoinstall_path)
+            raise OSError(
+                "Invalid automatic installation template file location %s, file not found"
+                % autoinstall_path
+            )
 
         return autoinstall
 
@@ -78,7 +84,7 @@ class AutoInstallationManager:
         files = []
         for root, dirnames, filenames in os.walk(self.templates_base_dir):
             for filename in filenames:
-                rel_root = root[len(self.templates_base_dir) + 1:]
+                rel_root = root[len(self.templates_base_dir) + 1 :]
                 if rel_root:
                     rel_path = "%s/%s" % (rel_root, filename)
                 else:
@@ -96,7 +102,9 @@ class AutoInstallationManager:
         :returns: automatic installation template content
         """
 
-        file_path = self.validate_autoinstall_template_file_path(file_path, for_item=False)
+        file_path = self.validate_autoinstall_template_file_path(
+            file_path, for_item=False
+        )
 
         file_full_path = "%s/%s" % (self.templates_base_dir, file_path)
         fileh = open(file_full_path, "r")
@@ -113,13 +121,18 @@ class AutoInstallationManager:
         :param data: automatic installation template content
         """
 
-        file_path = self.validate_autoinstall_template_file_path(file_path, for_item=False, new_autoinstall=True)
+        file_path = self.validate_autoinstall_template_file_path(
+            file_path, for_item=False, new_autoinstall=True
+        )
 
         file_full_path = "%s/%s" % (self.templates_base_dir, file_path)
         try:
             utils.mkdir(os.path.dirname(file_full_path))
         except:
-            utils.die("unable to create directory for automatic OS installation template at %s" % file_path)
+            utils.die(
+                "unable to create directory for automatic OS installation template at %s"
+                % file_path
+            )
 
         fileh = open(file_full_path, "w+")
         fileh.write(data)
@@ -134,7 +147,9 @@ class AutoInstallationManager:
         :param file_path: automatic installation template relative file path
         """
 
-        file_path = self.validate_autoinstall_template_file_path(file_path, for_item=False)
+        file_path = self.validate_autoinstall_template_file_path(
+            file_path, for_item=False
+        )
 
         file_full_path = "%s/%s" % (self.templates_base_dir, file_path)
         if not self.is_autoinstall_in_use(file_path):
@@ -142,7 +157,9 @@ class AutoInstallationManager:
         else:
             utils.die("attempt to delete in-use file")
 
-    def validate_autoinstall_snippet_file_path(self, snippet: str, new_snippet: bool = False) -> str:
+    def validate_autoinstall_snippet_file_path(
+        self, snippet: str, new_snippet: bool = False
+    ) -> str:
         """
         Validate the snippet's relative file path.
 
@@ -159,12 +176,17 @@ class AutoInstallationManager:
         snippet = snippet.strip()
 
         if snippet.find("..") != -1:
-            raise ValueError("Invalid automated installation snippet file location %s, it must not contain .."
-                             % snippet)
+            raise ValueError(
+                "Invalid automated installation snippet file location %s, it must not contain .."
+                % snippet
+            )
 
         snippet_path = "%s/%s" % (self.snippets_base_dir, snippet)
         if not os.path.isfile(snippet_path) and not new_snippet:
-            raise OSError("Invalid automated installation snippet file location %s, file not found" % snippet_path)
+            raise OSError(
+                "Invalid automated installation snippet file location %s, file not found"
+                % snippet_path
+            )
 
         return snippet
 
@@ -178,7 +200,7 @@ class AutoInstallationManager:
         for root, dirnames, filenames in os.walk(self.snippets_base_dir):
 
             for filename in filenames:
-                rel_root = root[len(self.snippets_base_dir) + 1:]
+                rel_root = root[len(self.snippets_base_dir) + 1 :]
                 if rel_root:
                     rel_path = "%s/%s" % (rel_root, filename)
                 else:
@@ -211,13 +233,18 @@ class AutoInstallationManager:
         :param file_path: The relative path under the configured snippet base dir.
         :param data: The snippet code.
         """
-        file_path = self.validate_autoinstall_snippet_file_path(file_path, new_snippet=True)
+        file_path = self.validate_autoinstall_snippet_file_path(
+            file_path, new_snippet=True
+        )
 
         file_full_path = "%s/%s" % (self.snippets_base_dir, file_path)
         try:
             utils.mkdir(os.path.dirname(file_full_path))
         except:
-            utils.die("unable to create directory for automatic OS installation snippet at %s" % file_path)
+            utils.die(
+                "unable to create directory for automatic OS installation snippet at %s"
+                % file_path
+            )
 
         fileh = open(file_full_path, "w+")
         fileh.write(data)
@@ -278,8 +305,13 @@ class AutoInstallationManager:
             self.logger.warning("Potential templating errors:")
             for error in errors:
                 (line, col) = error["lineCol"]
-                line -= 1   # we add some lines to the template data, so numbering is off
-                self.logger.warning("Unknown variable found at line %d, column %d: '%s'", line, col, error["rawCode"])
+                line -= 1  # we add some lines to the template data, so numbering is off
+                self.logger.warning(
+                    "Unknown variable found at line %d, column %d: '%s'",
+                    line,
+                    col,
+                    error["rawCode"],
+                )
         elif errors_type == KICKSTART_ERROR:
             self.logger.warning("Kickstart validation errors: %s", errors[0])
 
@@ -297,7 +329,9 @@ class AutoInstallationManager:
         # get automatic installation template
         autoinstall = blended["autoinstall"]
         if autoinstall is None or autoinstall == "":
-            self.logger.info("%s has no automatic installation template set, skipping", obj.name)
+            self.logger.info(
+                "%s has no automatic installation template set, skipping", obj.name
+            )
             return [True, 0, ()]
 
         # generate automatic installation file
@@ -338,7 +372,9 @@ class AutoInstallationManager:
                 self.log_autoinstall_validation_errors(errors_type, errors)
 
         if not overall_success:
-            self.logger.warning("*** potential errors detected in automatic installation files ***")
+            self.logger.warning(
+                "*** potential errors detected in automatic installation files ***"
+            )
         else:
             self.logger.info("*** all automatic installation files seem to be ok ***")
 

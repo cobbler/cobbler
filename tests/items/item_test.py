@@ -292,11 +292,14 @@ def test_set_ctime(cobbler_api):
     assert False
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    (0.0, does_not_raise()),
-    (0, pytest.raises(TypeError)),
-    ("", pytest.raises(TypeError))
-])
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        (0.0, does_not_raise()),
+        (0, pytest.raises(TypeError)),
+        ("", pytest.raises(TypeError)),
+    ],
+)
 def test_mtime(cobbler_api, value, expected_exception):
     # Arrange
     titem = Item(cobbler_api)

@@ -60,13 +60,13 @@ class _NDjbDnsManager(ManagerModule):
         """
         This writes the new dns configuration file to the disc.
         """
-        template_file = '/etc/cobbler/ndjbdns.template'
-        data_file = '/etc/ndjbdns/data'
+        template_file = "/etc/cobbler/ndjbdns.template"
+        data_file = "/etc/ndjbdns/data"
         data_dir = os.path.dirname(data_file)
 
         a_records = {}
 
-        with open(template_file, 'r') as f:
+        with open(template_file, "r") as f:
             template_content = f.read()
 
         for system in self.systems:
@@ -76,20 +76,20 @@ class _NDjbDnsManager(ManagerModule):
 
                 if host:
                     if host in a_records:
-                        raise Exception('Duplicate DNS name: %s' % host)
+                        raise Exception("Duplicate DNS name: %s" % host)
                     a_records[host] = ip
 
-        template_vars = {'forward': []}
+        template_vars = {"forward": []}
         for host, ip in list(a_records.items()):
-            template_vars['forward'].append((host, ip))
+            template_vars["forward"].append((host, ip))
 
         self.templar.render(template_content, template_vars, data_file)
 
-        p = subprocess.Popen(['/usr/bin/tinydns-data'], cwd=data_dir)
+        p = subprocess.Popen(["/usr/bin/tinydns-data"], cwd=data_dir)
         p.communicate()
 
         if p.returncode != 0:
-            raise Exception('Could not regenerate tinydns data file.')
+            raise Exception("Could not regenerate tinydns data file.")
 
 
 def get_manager(api):

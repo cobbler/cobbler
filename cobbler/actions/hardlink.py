@@ -14,7 +14,6 @@ from cobbler import utils
 
 
 class HardLinker:
-
     def __init__(self, api=None):
         """
         Constructor
@@ -22,7 +21,9 @@ class HardLinker:
         :param api: The API to resolve information with.
         """
         if api is None:
-            raise ValueError("cobbler hardlink requires the Cobbler-API for resolving the root folders.")
+            raise ValueError(
+                "cobbler hardlink requires the Cobbler-API for resolving the root folders."
+            )
         self.api = api
         self.hardlink = ""
         self.logger = logging.getLogger()
@@ -43,8 +44,12 @@ class HardLinker:
             hardlink_args = "-f -v "
         else:
             hardlink_args = "-c -v "
-        self.hardlink_cmd = "%s %s %s/distro_mirror %s/repo_mirror" \
-                            % (self.hardlink, hardlink_args, self.webdir, self.webdir)
+        self.hardlink_cmd = "%s %s %s/distro_mirror %s/repo_mirror" % (
+            self.hardlink,
+            hardlink_args,
+            self.webdir,
+            self.webdir,
+        )
 
     def run(self):
         """
@@ -53,6 +58,10 @@ class HardLinker:
         self.logger.info("now hardlinking to save space, this may take some time.")
 
         utils.subprocess_call(self.hardlink_cmd, shell=True)
-        hardlink_cmd = "%s -c -v %s/distro_mirror %s/repo_mirror" % (self.hardlink, self.webdir, self.webdir)
+        hardlink_cmd = "%s -c -v %s/distro_mirror %s/repo_mirror" % (
+            self.hardlink,
+            self.webdir,
+            self.webdir,
+        )
 
         return utils.subprocess_call(hardlink_cmd, shell=True)

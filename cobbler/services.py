@@ -82,7 +82,9 @@ class CobblerSvc:
         self.__xmlrpc_setup()
         return self.remote.get_repos_compatible_with_profile(profile)
 
-    def autoinstall(self, profile=None, system=None, REMOTE_ADDR=None, REMOTE_MAC=None, **rest):
+    def autoinstall(
+        self, profile=None, system=None, REMOTE_ADDR=None, REMOTE_MAC=None, **rest
+    ):
         """
         Generate automatic installation files.
 
@@ -94,7 +96,9 @@ class CobblerSvc:
         :return:
         """
         self.__xmlrpc_setup()
-        data = self.remote.generate_autoinstall(profile, system, REMOTE_ADDR, REMOTE_MAC)
+        data = self.remote.generate_autoinstall(
+            profile, system, REMOTE_ADDR, REMOTE_MAC
+        )
         return "%s" % data
 
     def ks(self, profile=None, system=None, REMOTE_ADDR=None, REMOTE_MAC=None, **rest):
@@ -110,7 +114,9 @@ class CobblerSvc:
         :return:
         """
         self.__xmlrpc_setup()
-        data = self.remote.generate_autoinstall(profile, system, REMOTE_ADDR, REMOTE_MAC)
+        data = self.remote.generate_autoinstall(
+            profile, system, REMOTE_ADDR, REMOTE_MAC
+        )
         return "%s" % data
 
     def ipxe(self, profile=None, image=None, system=None, mac=None, **rest):
@@ -162,7 +168,9 @@ class CobblerSvc:
         :return: The generated script.
         """
         self.__xmlrpc_setup()
-        data = self.remote.generate_script(profile, system, rest['query_string']['script'][0])
+        data = self.remote.generate_script(
+            profile, system, rest["query_string"]["script"][0]
+        )
         return "%s" % data
 
     def events(self, user="", **rest) -> str:
@@ -186,7 +194,7 @@ class CobblerSvc:
         for k in keylist:
             etime = int(data[k][0])
             nowtime = time.time()
-            if ((nowtime - etime) < 30):
+            if (nowtime - etime) < 30:
                 results.append([k, data[k][0], data[k][1], data[k][2]])
         return json.dumps(results)
 
@@ -233,7 +241,9 @@ class CobblerSvc:
             data = "# must specify profile or system name"
         return data
 
-    def trig(self, mode: str = "?", profile=None, system=None, REMOTE_ADDR=None, **rest) -> str:
+    def trig(
+        self, mode: str = "?", profile=None, system=None, REMOTE_ADDR=None, **rest
+    ) -> str:
         """
         Hook to call install triggers. Only valid for a profile OR a system.
 
@@ -312,7 +322,7 @@ class CobblerSvc:
         # If kssendmac was in the kernel options line, see if a system can be found matching the MAC address. This is
         # more specific than an IP match.
 
-        macinput = [mac.split(' ').lower() for mac in rest["REMOTE_MACS"]]
+        macinput = [mac.split(" ").lower() for mac in rest["REMOTE_MACS"]]
 
         ip = rest["REMOTE_ADDR"]
 

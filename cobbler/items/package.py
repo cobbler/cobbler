@@ -101,7 +101,9 @@ class Package(resource.Resource):
         :raises TypeError: Raised in case ``installer`` is no string.
         """
         if not isinstance(installer, str):
-            raise TypeError("Field installer of package object needs to be of type str!")
+            raise TypeError(
+                "Field installer of package object needs to be of type str!"
+            )
         self._installer = installer.lower()
 
     @property

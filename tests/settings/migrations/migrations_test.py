@@ -10,7 +10,18 @@ import yaml
 
 from cobbler import settings
 from cobbler.settings import migrations
-from cobbler.settings.migrations import V3_3_0, V3_2_1, V3_2_0, V3_1_2, V3_1_1, V3_1_0, V3_0_1, V3_0_0, V3_3_1, V3_3_2
+from cobbler.settings.migrations import (
+    V3_3_0,
+    V3_2_1,
+    V3_2_0,
+    V3_1_2,
+    V3_1_1,
+    V3_1_0,
+    V3_0_1,
+    V3_0_0,
+    V3_3_1,
+    V3_3_2,
+)
 
 
 def test_cobbler_version_logic():
@@ -56,7 +67,9 @@ def test_get_installed_version():
 
 def test_get_settings_file_version():
     # Arrange
-    old_settings_dict = settings.read_yaml_file("/code/tests/test_data/V2_8_5/settings.yaml")
+    old_settings_dict = settings.read_yaml_file(
+        "/code/tests/test_data/V2_8_5/settings.yaml"
+    )
     v285 = migrations.CobblerVersion(2, 8, 5)
 
     # Act

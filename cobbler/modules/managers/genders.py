@@ -45,7 +45,7 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
         "date": time.asctime(time.gmtime()),
         "profiles_genders": profiles_genders,
         "distros_genders": distros_genders,
-        "mgmtcls_genders": mgmtcls_genders
+        "mgmtcls_genders": mgmtcls_genders,
     }
 
     templar_inst = Templar(config)

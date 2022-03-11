@@ -137,7 +137,13 @@ class TestMiscellaneous:
         assert [3, 4, 0] == result.get("version_tuple")
 
     def test_find_items_paged(
-        self, remote, token, create_distro, remove_distro, create_kernel_initrd, cleanup_find_items_paged
+        self,
+        remote,
+        token,
+        create_distro,
+        remove_distro,
+        create_kernel_initrd,
+        cleanup_find_items_paged,
     ):
         # Arrange
         fk_kernel = "vmlinuz1"
@@ -306,7 +312,7 @@ class TestMiscellaneous:
         create_profile,
         create_system,
         create_kernel_initrd,
-        cleanup_get_blended_data
+        cleanup_get_blended_data,
     ):
         # Arrange
         fk_kernel = "vmlinuz1"
@@ -652,7 +658,7 @@ class TestMiscellaneous:
         create_distro,
         create_profile,
         create_system,
-        cleanup_run_install_triggers
+        cleanup_run_install_triggers,
     ):
         # Arrange
         fk_kernel = "vmlinuz1"

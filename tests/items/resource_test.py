@@ -22,6 +22,7 @@ def test_make_clone(cobbler_api):
     # Assert
     assert result != resource
 
+
 # Properties Tests
 
 
