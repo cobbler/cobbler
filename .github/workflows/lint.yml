@@ -3,12 +3,12 @@ name: Linting
 on:
   push:
     branches:
-      - master
+      - main
       - release30
       - release32
   pull_request:
     branches:
-      - master
+      - main
       - release30
       - release32
 
