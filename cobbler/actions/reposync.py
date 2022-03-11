@@ -32,12 +32,14 @@ from cobbler import utils
 from cobbler import download_manager
 from cobbler.enums import RepoArchs, RepoBreeds, MirrorType
 from cobbler.utils import os_release
+from cobbler.cexceptions import CX
 
-HAS_LIBREPO = True
+HAS_LIBREPO = False
 try:
     import librepo
-except:
-    HAS_LIBREPO = False
+    HAS_LIBREPO = True
+except ModuleNotFoundError:
+    pass
 
 
 def repo_walker(top, func, arg):
@@ -110,13 +112,7 @@ class RepoSync:
 
         self.logger.info("run, reposync, run!")
 
-        try:
-            self.tries = int(self.tries)
-        except:
-            utils.die("retry value must be an integer")
-
         self.verbose = verbose
-
         report_failure = False
         for repo in self.repos:
             if name is not None and repo.name != name:
@@ -172,14 +168,14 @@ class RepoSync:
             if not success:
                 report_failure = True
                 if not self.nofail:
-                    utils.die("reposync failed, retry limit reached, aborting")
+                    raise CX("reposync failed, retry limit reached, aborting")
                 else:
                     self.logger.error("reposync failed, retry limit reached, skipping")
 
             self.update_permissions(repo_path)
 
         if report_failure:
-            utils.die("overall reposync failed, at least one repo failed to synchronize")
+            raise CX("overall reposync failed, at least one repo failed to synchronize")
 
     # ==================================================================================
 
@@ -202,11 +198,19 @@ class RepoSync:
         elif repo.breed == RepoBreeds.WGET:
             self.wget_sync(repo)
         else:
-            utils.die("unable to sync repo (%s), unknown or unsupported repo type (%s)" % (repo.name, repo.breed.value))
+            raise CX("unable to sync repo (%s), unknown or unsupported repo type (%s)" % (repo.name, repo.breed.value))
 
     # ====================================================================================
 
-    def librepo_getinfo(self, dirname):
+    def librepo_getinfo(self, dirname: str) -> dict:
+
+        """
+        Used to get records from a repomd.xml file of downloaded rpmmd repository.
+
+        :param dirname: The local path of rpmmd repository.
+        :return: The dict representing records from a repomd.xml file of rpmmd repository.
+        """
+
         h = librepo.Handle()
         r = librepo.Result()
         h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
@@ -218,7 +222,7 @@ class RepoSync:
         try:
             h.perform(r)
         except librepo.LibrepoException as e:
-            utils.die("librepo error: " + dirname + " - " + e.args[1])
+            raise CX("librepo error: " + dirname + " - " + e.args[1]) from e
 
         rmd = r.getinfo(librepo.LRR_RPMMD_REPOMD)['records']
         return rmd
@@ -281,23 +285,24 @@ class RepoSync:
         :param repo: The repo object to sync via wget.
         """
 
-        repo_mirror = repo.mirror.strip()
+        mirror_program = "/usr/bin/wget"
+        if not os.path.exists(mirror_program):
+            raise CX("no %s found, please install it" % mirror_program)
 
         if repo.mirror_type != MirrorType.BASEURL:
-            utils.die("mirrorlist and metalink mirror types is not supported for wget'd repositories")
+            raise CX("mirrorlist and metalink mirror types is not supported for wget'd repositories")
 
         if repo.rpm_list != "" and repo.rpm_list != []:
             self.logger.warning("--rpm-list is not supported for wget'd repositories")
 
-        # FIXME: don't hardcode
-        dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name)
+        dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
 
         # FIXME: wrapper for subprocess that logs to logger
-        cmd = ["wget", "-N", "-np", "-r", "-l", "inf", "-nd", "-P", pipes.quote(dest_path), pipes.quote(repo_mirror)]
+        cmd = ["wget", "-N", "-np", "-r", "-l", "inf", "-nd", "-P", pipes.quote(dest_path), pipes.quote(repo.mirror)]
         rc = utils.subprocess_call(cmd)
 
         if rc != 0:
-            utils.die("cobbler reposync failed")
+            raise CX("cobbler reposync failed")
         repo_walker(dest_path, self.createrepo_walker, repo)
         self.create_local_file(dest_path, repo)
 
@@ -312,21 +317,20 @@ class RepoSync:
         """
 
         if not repo.mirror_locally:
-            utils.die("rsync:// urls must be mirrored locally, yum cannot access them directly")
+            raise CX("rsync:// urls must be mirrored locally, yum cannot access them directly")
 
         if repo.mirror_type != MirrorType.BASEURL:
-            utils.die("mirrorlist and metalink mirror types is not supported for rsync'd repositories")
+            raise CX("mirrorlist and metalink mirror types is not supported for rsync'd repositories")
 
         if repo.rpm_list != "" and repo.rpm_list != []:
             self.logger.warning("--rpm-list is not supported for rsync'd repositories")
 
-        # FIXME: don't hardcode
-        dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name)
+        dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
 
         spacer = ""
         if not repo.mirror.startswith("rsync://") and not repo.mirror.startswith("/"):
             spacer = "-e ssh"
-        if not repo.mirror.strip().endswith("/"):
+        if not repo.mirror.endswith("/"):
             repo.mirror = "%s/" % repo.mirror
 
         flags = ''
@@ -344,7 +348,7 @@ class RepoSync:
         rc = utils.subprocess_call(cmd)
 
         if rc != 0:
-            utils.die("cobbler reposync failed")
+            raise CX("cobbler reposync failed")
 
         # If ran in archive mode then repo should already contain all repodata and does not need createrepo run
         archive = False
@@ -375,7 +379,9 @@ class RepoSync:
         :return: The path to the reposync command. If dnf exists it is used instead of reposync.
         """
 
-        cmd = None  # reposync command
+        if not HAS_LIBREPO:
+            raise CX("no librepo found, please install python3-librepo")
+
         if os.path.exists("/usr/bin/dnf"):
             cmd = "/usr/bin/dnf reposync"
         elif os.path.exists("/usr/bin/reposync"):
@@ -383,7 +389,7 @@ class RepoSync:
         else:
             # Warn about not having yum-utils.  We don't want to require it in the package because Fedora 22+ has moved
             # to dnf.
-            utils.die("no /usr/bin/reposync found, please install yum-utils")
+            raise CX("no /usr/bin/reposync found, please install yum-utils")
         return cmd
 
     # ====================================================================================
@@ -408,7 +414,8 @@ class RepoSync:
 
         # Create yum config file for use by reposync
         # FIXME: don't hardcode
-        dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name)
+        repos_path = os.path.join(self.settings.webdir, "repo_mirror")
+        dest_path = os.path.join(repos_path, repo.name)
         temp_path = os.path.join(dest_path, ".origin")
 
         if not os.path.isdir(temp_path):
@@ -420,7 +427,7 @@ class RepoSync:
         # This is the somewhat more-complex RHN case.
         # NOTE: this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
         if not repo.mirror_locally:
-            utils.die("rhn:// repos do not work with --mirror-locally=False")
+            raise CX("rhn:// repos do not work with --mirror-locally=False")
 
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
@@ -428,11 +435,11 @@ class RepoSync:
         cmd = "%s %s --repo=%s -p %s" % (cmd,
                                          self.rflags,
                                          pipes.quote(rest),
-                                         pipes.quote(self.settings.webdir + "/repo_mirror"))
+                                         pipes.quote(repos_path))
         if repo.name != rest:
             args = {"name": repo.name, "rest": rest}
-            utils.die("ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository "
-                      "must match the name of the RHN channel" % args)
+            raise CX("ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository "
+                     "must match the name of the RHN channel" % args)
 
         arch = repo.arch.value
 
@@ -501,8 +508,8 @@ class RepoSync:
         """
 
         # create the config file the hosts will use to access the repository.
-        repo_mirror = repo.mirror.strip()
-        dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name.strip())
+        repos_path = os.path.join(self.settings.webdir, "repo_mirror")
+        dest_path = os.path.join(repos_path, repo.name)
         self.create_local_file(dest_path, repo)
 
         if not repo.mirror_locally:
@@ -535,7 +542,7 @@ class RepoSync:
             # If we have not requested only certain RPMs, use reposync
             cmd = "%s %s --config=%s --repoid=%s -p %s" \
                   % (cmd, self.rflags, temp_file, pipes.quote(repo.name),
-                     pipes.quote(self.settings.webdir + "/repo_mirror"))
+                     pipes.quote(repos_path))
             if arch != "none":
                 cmd = "%s -a %s" % (cmd, arch)
 
@@ -560,7 +567,7 @@ class RepoSync:
 
         rc = utils.subprocess_call(cmd)
         if rc != 0:
-            utils.die("cobbler reposync failed")
+            raise CX("cobbler reposync failed")
 
         # download any metadata we can use
         proxy = None
@@ -570,38 +577,26 @@ class RepoSync:
 
         repodata_path = os.path.join(dest_path, "repodata")
         repomd_path = os.path.join(repodata_path, "repomd.xml")
-
         if os.path.exists(repodata_path) and not os.path.isfile(repomd_path):
+            shutil.rmtree(repodata_path, ignore_errors=False, onerror=None)
+
+        repodata_path = os.path.join(temp_path, "repodata")
+        if os.path.exists(repodata_path):
+            self.logger.info("Deleted old repo metadata for %s", repodata_path)
             shutil.rmtree(repodata_path, ignore_errors=False, onerror=None)
 
         h = librepo.Handle()
         r = librepo.Result()
         h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
         h.setopt(librepo.LRO_CHECKSUM, True)
-
-        if os.path.isfile(repomd_path):
-            h.setopt(librepo.LRO_LOCAL, True)
-            h.setopt(librepo.LRO_URLS, [temp_path])
-            h.setopt(librepo.LRO_IGNOREMISSING, True)
-
-            try:
-                h.perform(r)
-            except librepo.LibrepoException as e:
-                utils.die("librepo error: " + temp_path + " - " + e.args[1])
-
-            h.setopt(librepo.LRO_LOCAL, False)
-            h.setopt(librepo.LRO_URLS, [])
-            h.setopt(librepo.LRO_IGNOREMISSING, False)
-            h.setopt(librepo.LRO_UPDATE, True)
-
         h.setopt(librepo.LRO_DESTDIR, temp_path)
 
         if repo.mirror_type == MirrorType.METALINK:
-            h.setopt(librepo.LRO_METALINKURL, repo_mirror)
+            h.setopt(librepo.LRO_METALINKURL, repo.mirror)
         elif repo.mirror_type == MirrorType.MIRRORLIST:
-            h.setopt(librepo.LRO_MIRRORLISTURL, repo_mirror)
+            h.setopt(librepo.LRO_MIRRORLISTURL, repo.mirror)
         elif repo.mirror_type == MirrorType.BASEURL:
-            h.setopt(librepo.LRO_URLS, [repo_mirror])
+            h.setopt(librepo.LRO_URLS, [repo.mirror])
 
         if verify:
             h.setopt(librepo.LRO_SSLVERIFYPEER, True)
@@ -620,7 +615,7 @@ class RepoSync:
         try:
             h.perform(r)
         except librepo.LibrepoException as e:
-            utils.die("librepo error: " + temp_path + " - " + e.args[1])
+            raise CX("librepo error: " + temp_path + " - " + e.args[1]) from e
 
         # now run createrepo to rebuild the index
         if repo.mirror_locally:
@@ -638,23 +633,20 @@ class RepoSync:
         # Warn about not having mirror program.
         mirror_program = "/usr/bin/debmirror"
         if not os.path.exists(mirror_program):
-            utils.die("no %s found, please install it" % (mirror_program))
-
-        # command to run
-        cmd = ""
+            raise CX("no %s found, please install it" % mirror_program)
 
         # detect cases that require special handling
         if repo.rpm_list != "" and repo.rpm_list != []:
-            utils.die("has_rpm_list not yet supported on apt repos")
+            raise CX("has_rpm_list not yet supported on apt repos")
 
         if repo.arch == RepoArchs.NONE:
-            utils.die("Architecture is required for apt repositories")
+            raise CX("Architecture is required for apt repositories")
 
         if repo.mirror_type != MirrorType.BASEURL:
-            utils.die("mirrorlist and metalink mirror types is not supported for apt repositories")
+            raise CX("mirrorlist and metalink mirror types is not supported for apt repositories")
 
         # built destination path for the repo
-        dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
+        dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
 
         if repo.mirror_locally:
             # NOTE: Dropping @@suite@@ replace as it is also dropped from "from manage_import_debian"_ubuntu.py due that
@@ -683,7 +675,6 @@ class RepoSync:
                     rflags += " %s=%s" % (x, repo.yumopts[x])
                 else:
                     rflags += " %s" % x
-            cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, dest_path)
             cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, pipes.quote(dest_path))
             if repo.arch == RepoArchs.SRC:
                 cmd = "%s --source" % cmd
@@ -700,9 +691,9 @@ class RepoSync:
 
             rc = utils.subprocess_call(cmd)
             if rc != 0:
-                utils.die("cobbler reposync failed")
+                raise CX("cobbler reposync failed")
 
-    def create_local_file(self, dest_path: str, repo, output: bool = True):
+    def create_local_file(self, dest_path: str, repo, output: bool = True) -> str:
         """
         Creates Yum config files for use by reposync
 
@@ -737,7 +728,7 @@ class RepoSync:
         optgpgcheck = False
         if output:
             if repo.mirror_locally:
-                line = "baseurl=http://${http_server}/cobbler/repo_mirror/%s\n" % (repo.name)
+                line = "baseurl=http://${http_server}/cobbler/repo_mirror/%s\n" % repo.name
             else:
                 mstr = repo.mirror
                 if mstr.startswith("/"):
