@@ -328,7 +328,7 @@ class RepoSync:
             pipes.quote(dest_path),
             pipes.quote(repo.mirror),
         ]
-        rc = utils.subprocess_call(cmd)
+        rc = utils.subprocess_call(cmd, shell=False)
 
         if rc != 0:
             raise CX("cobbler reposync failed")
