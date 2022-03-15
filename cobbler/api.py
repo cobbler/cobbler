@@ -165,7 +165,7 @@ class CobblerAPI:
             self.perms_ok = True
 
     def __generate_settings(
-        self, settings_path: Path, execute_settings_automigration: bool = True
+        self, settings_path: Path, execute_settings_automigration: bool = False
     ) -> settings.Settings:
         yaml_dict = settings.read_yaml_file(settings_path)
 
@@ -175,7 +175,7 @@ class CobblerAPI:
             )
             yaml_dict["auto_migrate_settings"] = execute_settings_automigration
 
-        if yaml_dict.get("auto_migrate_settings", True):
+        if yaml_dict.get("auto_migrate_settings", False):
             self.logger.info("Automigration executed")
             normalized_settings = settings.migrate(yaml_dict, settings_path)
         else:
@@ -192,7 +192,7 @@ class CobblerAPI:
         new_settings = settings.Settings()
         new_settings.from_dict(normalized_settings)
 
-        if yaml_dict.get("auto_migrate_settings", True):
+        if yaml_dict.get("auto_migrate_settings", False):
             # save to disk only when automigration was performed
             # to avoid creating duplicated files
             new_settings.save(settings_path)
