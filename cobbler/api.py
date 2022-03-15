@@ -187,12 +187,15 @@ class CobblerAPI:
                 raise ValueError(
                     "Settings are invalid and auto-migration is disabled. Please correct this manually!"
                 ) from error
+
         # Use normalized or migrated dict and create settings object
         new_settings = settings.Settings()
         new_settings.from_dict(normalized_settings)
 
-        # save to disk
-        new_settings.save(settings_path)
+        if yaml_dict.get("auto_migrate_settings", True):
+            # save to disk only when automigration was performed
+            # to avoid creating duplicated files
+            new_settings.save(settings_path)
 
         # Return object
         return new_settings
