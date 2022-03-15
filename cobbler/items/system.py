@@ -737,7 +737,7 @@ class NetworkInterface:
                 self.bonding_opts = value
             if field == "bridgeopts":
                 self.bridge_opts = value
-            if field == "connected_mode":
+            if field == "connectedmode":
                 self.connected_mode = value
             if field == "cnames":
                 self.cnames = value
