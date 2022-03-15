@@ -276,6 +276,8 @@ class CobblerSync:
                     "-exec",
                     "rm",
                     "-f",
+                    "{}",
+                    ";",
                 ]
                 utils.subprocess_call(cmd, shell=False)
 
