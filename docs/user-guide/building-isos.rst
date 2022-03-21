@@ -49,6 +49,7 @@ Common options for building ISOs
 ################################
 
 * ``--iso``: This defines the name of the built ISO. It defaults to ``autoinst.iso``.
+* ``--distro``: Used to detect the architecture of the ISO you are building. Specifies also the used Kernel and Initrd.
 * ``--buildisodir``: The temporary directory where Cobbler will build the ISO. If you have enough RAM to build the ISO
   you should really consider using a tmpfs for performance.
 * ``--profiles``: Modify the profiles Cobbler builds ISOs for. If this is omitted, ISOs for all profiles will be built.
@@ -61,7 +62,6 @@ have to provide the following parameters:
 
 * ``--standalone``: If this flag is present, Cobbler will built a partly self-sufficient ISO.
 * ``--airgapped``: If this flag is present, Cobbler will built a fully self-sufficient ISO.
-* ``--distro``: Modify the distros Cobbler builds ISOs for. If this is omitted, ISOs for all distros will be built.
 * ``--source``: The directory with the sources for the image.
 
 Building net-installer ISOs
