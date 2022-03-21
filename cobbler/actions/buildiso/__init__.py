@@ -121,11 +121,12 @@ class BuildIso:
 
         return filtered_objects
 
-    def __copy_files(self, iso_distro):
+    def __copy_files(self, iso_distro, buildisodir: str = ""):
         """
         This method copies the required and optional files from syslinux into the directories we use for building the
         ISO.
         :param iso_distro: The distro (and thus architecture) to build the ISO for.
+        :param buildisodir: The directory where the ISO is being built in.
         """
         self.logger.info("copying syslinux files")
 
@@ -175,7 +176,7 @@ class BuildIso:
         grub_efi = bootloader_directory.joinpath(
             "grub", self.calculate_grub_name(iso_distro)
         )
-        buildiso_directory = pathlib.Path(self.api.settings().buildisodir)
+        buildiso_directory = pathlib.Path(buildisodir)
         grub_target = buildiso_directory.joinpath("grub", "grub.efi")
         if grub_efi.exists():
             utils.copyfile(str(grub_efi), str(grub_target), symlink=True)
@@ -288,7 +289,7 @@ class BuildIso:
                 'Not existent distribution name passed to "cobbler buildiso"!'
             ) from value_error
         buildisodir = self.__prepare_buildisodir(buildisodir)
-        self.__copy_files(iso_distro)
+        self.__copy_files(iso_distro, buildisodir)
         self.profiles = utils.input_string_or_list_no_inherit(profiles)
         return buildisodir
 
