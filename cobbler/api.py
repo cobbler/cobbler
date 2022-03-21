@@ -1681,7 +1681,7 @@ class CobblerAPI:
         Only build out the DNS configuration.
         """
         if not self.settings().manage_dns:
-            self.logger.error("manage_dns not set")
+            self.logger.info('"manage_dns" not set. Skipping DNS sync.')
             return
         self.logger.info("sync_dns")
         dns_module = self.get_module_from_file("dns", "module", "managers.bind")
@@ -1695,7 +1695,7 @@ class CobblerAPI:
         Only build out the DHCP configuration.
         """
         if not self.settings().manage_dhcp:
-            self.logger.error("manage_dhcp not set")
+            self.logger.info('"manage_dhcp" not set. Skipping DHCP sync.')
             return
         self.logger.info("sync_dhcp")
         dhcp_module = self.get_module_from_file("dhcp", "module", "managers.isc")
