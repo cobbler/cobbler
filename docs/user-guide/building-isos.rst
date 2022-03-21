@@ -60,8 +60,9 @@ Building standalone ISOs
 
 have to provide the following parameters:
 
-* ``--standalone``: If this flag is present, Cobbler will built a partly self-sufficient ISO.
-* ``--airgapped``: If this flag is present, Cobbler will built a fully self-sufficient ISO.
+* ``--standalone``: If this flag is present, Cobbler will build an ISO which can be installed without network access.
+* ``--airgapped``: If this flag is present, Cobbler will build an ISO which contains all mirrored repositories for
+  extended installations.
 * ``--source``: The directory with the sources for the image.
 
 Building net-installer ISOs
