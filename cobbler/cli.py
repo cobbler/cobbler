@@ -2441,7 +2441,7 @@ class CobblerCLI:
             self.parser.add_option(
                 "--mkisofs-opts",
                 dest="mkisofs_opts",
-                help="(OPTIONAL) extra options for mkisofs",
+                help="(OPTIONAL) extra options for xorrisofs",
             )
 
             (options, args) = self.parser.parse_args(self.args)
