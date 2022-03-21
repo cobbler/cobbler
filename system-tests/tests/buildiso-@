@@ -45,6 +45,10 @@ case ${build_iso_test} in
     net)
         cobbler buildiso --tempdir="/var/cache/cobbler/buildiso" --iso ${tmp}/autoinst.iso --distro=leap-x86_64
         ;;
+    non-standard-directory)
+        mkdir /var/cache/cobbler/buildiso-test
+        cobbler buildiso --tempdir="/var/cache/cobbler/buildiso-test" --iso ${tmp}/autoinst.iso --distro=leap-x86_64
+        ;;
 esac
 
 # Check ISO exists & is bootable
