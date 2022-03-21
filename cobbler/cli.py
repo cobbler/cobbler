@@ -2409,9 +2409,7 @@ class CobblerCLI:
             self.parser.add_option(
                 "--distro",
                 dest="distro",
-                help="(OPTIONAL) used with --standalone and --airgapped "
-                "to create a distro-based ISO including all "
-                "associated profiles/systems",
+                help="Must be specified to choose the Kernel and Initrd for the ISO being built.",
             )
             self.parser.add_option(
                 "--standalone",

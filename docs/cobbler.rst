@@ -948,7 +948,8 @@ dependencies and configuration. The in depth explanation can be found at :ref:`b
 +--------------+-------------------------------------------------------------------------------------------------------+
 | tempdir      | Working directory for building the ISO.                                                               |
 +--------------+-------------------------------------------------------------------------------------------------------+
-| distro       | Used to detect the architecture of the ISO you are building.                                          |
+| distro       | Used to detect the architecture of the ISO you are building. Specifies also the used Kernel and       |
+|              | Initrd.                                                                                               |
 +--------------+-------------------------------------------------------------------------------------------------------+
 | standalone   | Creates a standalone ISO with all required distribution files but without any added repositories.     |
 +--------------+-------------------------------------------------------------------------------------------------------+
@@ -961,11 +962,11 @@ dependencies and configuration. The in depth explanation can be found at :ref:`b
 | xorriso-opts | Extra options for xorriso.                                                                            |
 +--------------+-------------------------------------------------------------------------------------------------------+
 
-Example: The following command builds ISO files for all profiles and systems present inside Cobbler.
+Example: The following command builds a single ISO file for all profiles and systems present under the distro `test`.
 
 .. code-block:: shell
 
-    $ cobbler buildiso
+    $ cobbler buildiso --distro=test
 
 Cobbler import
 ==============
