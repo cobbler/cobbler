@@ -125,7 +125,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
                 (source_head, source_tail) = os.path.split(source_head)
             # Can't find the source, raise an error
             raise ValueError(
-                "Error, no installation source found. When building a standalone ISO, you must specify a "
+                "Error, no installation source found. When building a standalone or airgapped ISO, you must specify a "
                 "--source if the distro install tree is not hosted locally"
             )
         return filesource

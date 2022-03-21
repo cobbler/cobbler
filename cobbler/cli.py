@@ -2409,9 +2409,7 @@ class CobblerCLI:
             self.parser.add_option(
                 "--distro",
                 dest="distro",
-                help="(OPTIONAL) used with --standalone and --airgapped "
-                "to create a distro-based ISO including all "
-                "associated profiles/systems",
+                help="Must be specified to choose the Kernel and Initrd for the ISO being built.",
             )
             self.parser.add_option(
                 "--standalone",
@@ -2424,26 +2422,23 @@ class CobblerCLI:
                 "--airgapped",
                 dest="airgapped",
                 action="store_true",
-                help="(OPTIONAL) creates a standalone ISO with all distro and repo files for "
-                "disconnected system installation",
+                help="(OPTIONAL) implies --standalone but additionally includes the repository files into ISO",
             )
             self.parser.add_option(
                 "--source",
                 dest="source",
-                help="(OPTIONAL) used with --standalone to specify a "
-                "source for the distribution files",
+                help="(OPTIONAL) used with --standalone/--airgapped to specify a source for the distribution files",
             )
             self.parser.add_option(
                 "--exclude-dns",
                 dest="exclude_dns",
                 action="store_true",
-                help="(OPTIONAL) prevents addition of name server addresses to the kernel boot "
-                "options",
+                help="(OPTIONAL) prevents addition of name server addresses to the kernel boot options",
             )
             self.parser.add_option(
                 "--mkisofs-opts",
                 dest="mkisofs_opts",
-                help="(OPTIONAL) extra options for mkisofs",
+                help="(OPTIONAL) extra options for xorrisofs",
             )
 
             (options, args) = self.parser.parse_args(self.args)
