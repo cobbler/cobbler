@@ -934,8 +934,8 @@ Example:
 Cobbler buildiso
 ================
 
-All parameters are optional on the CLI. This command may not behave like you expect it without installing additional
-dependencies and configuration. The in depth explanation can be found at :ref:`building-isos`.
+This command may not behave like you expect it without installing additional dependencies and configuration. The in
+depth explanation can be found at :ref:`building-isos`.
 
 +--------------+-------------------------------------------------------------------------------------------------------+
 | Name         | Description                                                                                           |
@@ -946,7 +946,7 @@ dependencies and configuration. The in depth explanation can be found at :ref:`b
 +--------------+-------------------------------------------------------------------------------------------------------+
 | systems      | Use these systems only for information collection.                                                    |
 +--------------+-------------------------------------------------------------------------------------------------------+
-| tempdir      | Working directory for building the ISO.                                                               |
+| tempdir      | Working directory for building the ISO. The default value is set in the settings file.                |
 +--------------+-------------------------------------------------------------------------------------------------------+
 | distro       | Used to detect the architecture of the ISO you are building. Specifies also the used Kernel and       |
 |              | Initrd.                                                                                               |
