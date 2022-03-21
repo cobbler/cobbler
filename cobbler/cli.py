@@ -2422,21 +2422,18 @@ class CobblerCLI:
                 "--airgapped",
                 dest="airgapped",
                 action="store_true",
-                help="(OPTIONAL) creates a standalone ISO with all distro and repo files for "
-                "disconnected system installation",
+                help="(OPTIONAL) implies --standalone but additionally includes the repository files into ISO",
             )
             self.parser.add_option(
                 "--source",
                 dest="source",
-                help="(OPTIONAL) used with --standalone to specify a "
-                "source for the distribution files",
+                help="(OPTIONAL) used with --standalone/--airgapped to specify a source for the distribution files",
             )
             self.parser.add_option(
                 "--exclude-dns",
                 dest="exclude_dns",
                 action="store_true",
-                help="(OPTIONAL) prevents addition of name server addresses to the kernel boot "
-                "options",
+                help="(OPTIONAL) prevents addition of name server addresses to the kernel boot options",
             )
             self.parser.add_option(
                 "--mkisofs-opts",

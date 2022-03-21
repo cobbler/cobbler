@@ -944,20 +944,22 @@ depth explanation can be found at :ref:`building-isos`.
 +--------------+-------------------------------------------------------------------------------------------------------+
 | profiles     | Use these profiles only for information collection.                                                   |
 +--------------+-------------------------------------------------------------------------------------------------------+
-| systems      | Use these systems only for information collection.                                                    |
+| systems      | (net-only) Use these systems only for information collection.                                         |
 +--------------+-------------------------------------------------------------------------------------------------------+
 | tempdir      | Working directory for building the ISO. The default value is set in the settings file.                |
 +--------------+-------------------------------------------------------------------------------------------------------+
 | distro       | Used to detect the architecture of the ISO you are building. Specifies also the used Kernel and       |
 |              | Initrd.                                                                                               |
 +--------------+-------------------------------------------------------------------------------------------------------+
-| standalone   | Creates a standalone ISO with all required distribution files but without any added repositories.     |
+| standalone   | (offline-only) Creates a standalone ISO with all required distribution files but without any added    |
+|              | repositories.                                                                                         |
 +--------------+-------------------------------------------------------------------------------------------------------+
-| airgapped    | Creates a standalone ISO with all distro and repo files for disconnected system installations.        |
+| airgapped    | (offline-only) Implies --standalone but additionally includes repo files for disconnected system      |
+|              | installations.                                                                                        |
 +--------------+-------------------------------------------------------------------------------------------------------+
-| source       | Used with --standalone to specify a source for the distribution files.                                |
+| source       | (offline-only) Used with --standalone or --airgapped to specify a source for the distribution files.  |
 +--------------+-------------------------------------------------------------------------------------------------------+
-| exclude-dns  | Prevents addition of name server addresses to the kernel boot options.                                |
+| exclude-dns  | (net-only) Prevents addition of name server addresses to the kernel boot options.                     |
 +--------------+-------------------------------------------------------------------------------------------------------+
 | xorriso-opts | Extra options for xorriso.                                                                            |
 +--------------+-------------------------------------------------------------------------------------------------------+
