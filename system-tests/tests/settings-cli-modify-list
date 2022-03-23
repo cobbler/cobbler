@@ -1,0 +1,30 @@
+#!/bin/bash
+# Check that cobbler-settings can modify value from the YAML
+
+# Arrange
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+TEST_CONFIG="${tmp}/settings-list.yaml"
+EXPECTED_CONFIG="${tmp}/settings-expected.yaml"
+cat <<-END >$TEST_CONFIG
+build_reporting_email:
+  - 'root@localhost'
+END
+
+cat <<-END >$EXPECTED_CONFIG
+# Cobbler settings file
+# Docs for this file can be found at: https://cobbler.readthedocs.io/en/latest/cobbler-conf.html
+
+build_reporting_email: []
+END
+
+TEST_KEY="build_reporting_email"
+TEST_VALUE=""
+
+# Act
+cobbler-settings -c "$TEST_CONFIG" modify -k "$TEST_KEY" -v "$TEST_VALUE"
+
+# Assert
+diff $TEST_CONFIG $EXPECTED_CONFIG

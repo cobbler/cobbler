@@ -1,0 +1,30 @@
+#!/bin/bash
+# Check that cobbler-settings can modify value from the YAML
+
+# Arrange
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+TEST_CONFIG="${tmp}/settings-dict.yaml"
+EXPECTED_CONFIG="${tmp}/settings-expected.yaml"
+cat <<-END >$TEST_CONFIG
+mgmt_parameters:
+ from_cobbler: true
+END
+
+cat <<-END >$EXPECTED_CONFIG
+# Cobbler settings file
+# Docs for this file can be found at: https://cobbler.readthedocs.io/en/latest/cobbler-conf.html
+
+mgmt_parameters: {}
+END
+
+TEST_KEY="mgmt_parameters"
+TEST_VALUE=""
+
+# Act
+cobbler-settings -c "$TEST_CONFIG" modify -k "$TEST_KEY" -v "$TEST_VALUE"
+
+# Assert
+diff $TEST_CONFIG $EXPECTED_CONFIG

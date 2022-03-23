@@ -6,7 +6,7 @@ topdir=$(realpath $(dirname ${0})/..)
 if [ ${#} -ge 1 ]; then
 	patterns=${@}
 else
-	patterns=(basic-* import-*)
+	patterns=(basic-* import-* settings-cli-*)
 fi
 
 list_selected_tests() {
