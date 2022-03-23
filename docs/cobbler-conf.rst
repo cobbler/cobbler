@@ -26,6 +26,12 @@ main file.
 Updates to the yaml-settings-file
 #################################
 
+Starting with 3.4.0
+===================
+
+- We added the ``proxies`` key for first-level Uyuni & SUSE Manager support. It is optional, so you can
+  ignore it if you don't run one of the two solutions or a derivative of it.
+
 Starting with 3.3.2
 ===================
 
@@ -700,6 +706,16 @@ Choices (refer to the `fence-agents project <https://github.com/ClusterLabs/fenc
 - wti
 
 default: ``ipmilanplus``
+
+proxies
+=======
+
+This key is used by Uyuni (or one of its derivatives) for the Proxy scenario. More information can be found
+`here <https://www.uyuni-project.org/uyuni-docs/en/uyuni/installation-and-upgrade/uyuni-proxy-setup.html>`_
+
+Cobbler only evaluates this if the key has a list of strings as value. An empty list means you don't have any proxies configured in your Uyuni setup.
+
+default: ``[]``
 
 proxy_url_ext
 =============
