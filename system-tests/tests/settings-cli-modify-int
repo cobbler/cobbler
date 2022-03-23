@@ -1,0 +1,21 @@
+#!/bin/bash
+# Check that cobbler-settings can modify value from the YAML
+
+# Arrange
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+TEST_CONFIG="${tmp}/settings-int.yaml"
+cat <<-END >$TEST_CONFIG
+default_virt_ram: 512
+END
+
+TEST_KEY="default_virt_ram"
+TEST_VALUE="1024"
+
+# Act
+cobbler-settings -c "$TEST_CONFIG" modify -k "$TEST_KEY" -v "$TEST_VALUE"
+
+# Assert
+grep "$TEST_KEY: $TEST_VALUE" $TEST_CONFIG
