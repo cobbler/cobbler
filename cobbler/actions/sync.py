@@ -104,7 +104,7 @@ class CobblerSync:
         if self.settings.manage_dns:
             self.logger.info("rendering DNS files")
             self.dns.regen_hosts()
-            self.dns.write_dns_files()
+            self.dns.write_configs()
 
         self.logger.info("cleaning link caches")
         self.clean_link_cache()
