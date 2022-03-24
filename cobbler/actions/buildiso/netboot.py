@@ -348,7 +348,7 @@ class AppendLineBuilder:
         """
         self.dist = dist
 
-        self.append_line = " append initrd=%s.img" % self.distro_name
+        self.append_line = "  APPEND initrd=%s.img" % self.distro_name
         if self.dist.breed == "suse":
             self._generate_append_suse()
         elif self.dist.breed == "redhat":
@@ -463,7 +463,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         cfglines.append("")
         cfglines.append("LABEL %s" % system.name)
         cfglines.append("  MENU LABEL %s" % system.name)
-        cfglines.append("  kernel %s.krn" % distname)
+        cfglines.append("  KERNEL %s.krn" % distname)
 
         data = utils.blender(self.api, False, system)
         if not re.match(r"[a-z]+://.*", data["autoinstall"]):
@@ -536,7 +536,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         cfglines.append("MENU END")
 
         with open(isolinuxcfg, "w+") as cfg:
-            cfg.writelines(cfglines)
+            cfg.writelines("%s\n" % l for l in cfglines)
 
     def run(
         self,
