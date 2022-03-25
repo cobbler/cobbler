@@ -10,9 +10,9 @@ from cobbler.actions.buildiso.standalone import StandaloneBuildiso
 
 
 @pytest.mark.parametrize("input_automigration,result_migrate_count,result_validate_count", [
-    (None, 0, 3),
+    (None, 0, 2),
     (True, 1, 2),
-    (False, 0, 3),
+    (False, 0, 2),
 ])
 def test_settings_migration(caplog, mocker, input_automigration, result_migrate_count, result_validate_count):
     # Arrange

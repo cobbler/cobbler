@@ -102,7 +102,7 @@ class CobblerSync:
         if self.settings.manage_dns:
             self.logger.info("rendering DNS files")
             self.dns.regen_hosts()
-            self.dns.write_dns_files()
+            self.dns.write_configs()
 
         self.logger.info("cleaning link caches")
         self.clean_link_cache()
@@ -254,7 +254,7 @@ class CobblerSync:
         for dirtree in [os.path.join(self.bootloc, 'images'), self.settings.webdir]:
             cachedir = os.path.join(dirtree, '.link_cache')
             if os.path.isdir(cachedir):
-                cmd = ["find", cachedir, "-maxdepth", "1", "-type", "f", "-links", "1", "-exec", "rm", "-f"]
+                cmd = ["find", cachedir, "-maxdepth", "1", "-type", "f", "-links", "1", "-exec", "rm", "-f", "{}", ";"]
                 utils.subprocess_call(cmd, shell=False)
 
     def rsync_gen(self):
@@ -454,7 +454,9 @@ class CobblerSync:
             pxe_filename = system_record.get_config_filename(interface=name, loader="pxe")
             grub_filename = system_record.get_config_filename(interface=name, loader="grub")
             utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", pxe_filename))
-            utils.rmfile(os.path.join(bootloc, "grub", "system", grub_filename))
+            if not (system_record.name == "default" and grub_filename is None):
+                # A default system can't have GRUB entries and thus we want to skip this.
+                utils.rmfile(os.path.join(bootloc, "grub", "system", grub_filename))
             utils.rmfile(os.path.join(bootloc, "grub", "system_link", system_record.name))
 
     def remove_single_menu(self, rebuild_menu: bool = True):

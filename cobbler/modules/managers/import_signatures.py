@@ -283,7 +283,7 @@ class _ImportSignatureManager(ManagerModule):
             for version in list(sigdata["breeds"][breed].keys()):
                 if self.os_version and self.os_version != version:
                     continue
-                for sig in sigdata["breeds"][breed][version]["signatures"]:
+                for sig in sigdata["breeds"][breed][version].get("signatures", []):
                     pkgdir = os.path.join(self.path, sig)
                     if os.path.exists(pkgdir):
                         self.logger.debug("Found a candidate signature: breed=%s, version=%s" % (breed, version))

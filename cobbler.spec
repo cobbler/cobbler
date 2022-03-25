@@ -353,12 +353,13 @@ fi
 # Fixup permission for world readable settings files
 chmod 640 %{_sysconfdir}/cobbler/settings.yaml
 chmod 600 %{_sysconfdir}/cobbler/mongodb.conf
-chmod 600 %{_sysconfdir}/cobbler/modules.conf
+chmod 640 %{_sysconfdir}/cobbler/modules.conf
 chmod 640 %{_sysconfdir}/cobbler/users.conf
 chmod 640 %{_sysconfdir}/cobbler/users.digest
 chmod 750 %{_sysconfdir}/cobbler/settings.d
 chmod 640 %{_sysconfdir}/cobbler/settings.d/*
 chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
+chgrp %{apache_group} %{_sysconfdir}/cobbler/modules.conf
 chgrp %{apache_group} %{_sysconfdir}/cobbler/users.conf
 chgrp %{apache_group} %{_sysconfdir}/cobbler/users.digest
 chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.d
@@ -377,12 +378,13 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.d/*
 # Fixup permission for world readable settings files
 chmod 640 %{_sysconfdir}/cobbler/settings.yaml
 chmod 600 %{_sysconfdir}/cobbler/mongodb.conf
-chmod 600 %{_sysconfdir}/cobbler/modules.conf
+chmod 640 %{_sysconfdir}/cobbler/modules.conf
 chmod 640 %{_sysconfdir}/cobbler/users.conf
 chmod 640 %{_sysconfdir}/cobbler/users.digest
 chmod 750 %{_sysconfdir}/cobbler/settings.d
 chmod 640 %{_sysconfdir}/cobbler/settings.d/*
 chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
+chgrp %{apache_group} %{_sysconfdir}/cobbler/modules.conf
 chgrp %{apache_group} %{_sysconfdir}/cobbler/users.conf
 chgrp %{apache_group} %{_sysconfdir}/cobbler/users.digest
 chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.d
@@ -422,7 +424,7 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.d/*
 %dir %{_sysconfdir}/cobbler/iso
 %config(noreplace) %{_sysconfdir}/cobbler/iso/buildiso.template
 %config(noreplace) %{_sysconfdir}/cobbler/logging_config.conf
-%attr(600, root, root) %config(noreplace) %{_sysconfdir}/cobbler/modules.conf
+%attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/modules.conf
 %attr(600, root, root) %config(noreplace) %{_sysconfdir}/cobbler/mongodb.conf
 %config(noreplace) %{_sysconfdir}/cobbler/named.template
 %config(noreplace) %{_sysconfdir}/cobbler/ndjbdns.template

@@ -549,3 +549,22 @@ class Image(item.Item):
             self._boot_loaders = boot_loaders_split
         else:
             self._boot_loaders = []
+
+    @property
+    def children(self) -> list:
+        """
+        This property represents all children of an image. It should not be set manually.
+
+        :getter: The children of the image.
+        :setter: No validation is done because this is a Cobbler internal property.
+        """
+        return self._children
+
+    @children.setter
+    def children(self, value: list):
+        """
+        Setter for the children property.
+
+        :param value: The new children of the distro.
+        """
+        self._children = value

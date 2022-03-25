@@ -29,6 +29,8 @@ Updates to the yaml-settings-file
 Starting with 3.3.2
 ===================
 
+- We added the ``proxies`` key for first-level Uyuni & SUSE Manager support. It is optional, so you can
+  ignore it if you don't run one of the two solutions or a derivative of it.
 - After community feedback we changed the default of the auto-migration to be disabled. It can be re-enabled via the
   already known methods ``cobbler-settings``-Tool, the settings file key ``auto_migrate_settings`` and the Daemon flag.
   We have decided to not change the flag for existing installations.
@@ -69,20 +71,22 @@ Starting with 3.2.1
 Migration matrix
 ################
 
-=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======
-To/From  <2.8.5   2.8.5   3.0.0   3.0.1   3.1.0   3.1.1   3.1.2   3.2.0   3.2.1   3.3.0
-=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======
-2.8.5      x        o       --      --      --      --      --      --      --      --
-3.0.0      x        x       o       --      --      --      --      --      --      --
-3.0.1      x        x       x       o       --      --      --      --      --      --
-3.1.0      x        x       x       x       o       --      --      --      --      --
-3.1.1      x        x       x       x       x       o       --      --      --      --
-3.1.2      x        x       x       x       x       x       o       --      --      --
-3.2.0      x        x       x       x       x       x       x       o       --      --
-3.2.1      x        x       x       x       x       x       x       x       o       --
-3.3.0      x        x       x       x       x       x       x       x       x       o
-master     --      --      --      --      --      --      --      --       --      --
-=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
+To/From  <2.8.5   2.8.5   3.0.0   3.0.1   3.1.0   3.1.1   3.1.2   3.2.0   3.2.1   3.3.0   3.3.1   3.3.2
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
+2.8.5      x        o       --      --      --      --      --      --      --      --      --      --
+3.0.0      x        x       o       --      --      --      --      --      --      --      --      --
+3.0.1      x        x       x       o       --      --      --      --      --      --      --      --
+3.1.0      x        x       x       x       o       --      --      --      --      --      --      --
+3.1.1      x        x       x       x       x       o       --      --      --      --      --      --
+3.1.2      x        x       x       x       x       x       o       --      --      --      --      --
+3.2.0      x        x       x       x       x       x       x       o       --      --      --      --
+3.2.1      x        x       x       x       x       x       x       x       o       --      --      --
+3.3.0      x        x       x       x       x       x       x       x       x       o       --      --
+3.3.1      x        x       x       x       x       x       x       x       x       x       o       --
+3.3.2      x        x       x       x       x       x       x       x       x       x       x       o
+master     --      --      --      --      --      --      --      --       --      --      --      --
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
 
 **Legend**: x: supported, o: same version, -: not supported
 
@@ -698,6 +702,17 @@ Choices (refer to the `fence-agents project <https://github.com/ClusterLabs/fenc
 - wti
 
 default: ``ipmilanplus``
+
+proxies
+=======
+
+This key is used by Uyuni (or one of its derivatives) for the Proxy scenario. More information can be found
+`here <https://www.uyuni-project.org/uyuni-docs/en/uyuni/installation-and-upgrade/uyuni-proxy-setup.html>`_
+
+Cobbler only evaluates this if the key has a list of strings as value. An empty list means you don't have any proxies
+configured in your Uyuni setup.
+
+default: ``[]``
 
 proxy_url_ext
 =============
