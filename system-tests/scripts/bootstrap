@@ -12,7 +12,7 @@ ip link set up dev ${bridge}
 mkdir -p ${etc_qemu}
 echo allow ${bridge} >>${etc_qemu}/bridge.conf
 
-cat >/etc/cobbler/settings.d/system-tests.settings <<-EOF
+cat >/etc/cobbler/settings.yaml <<-EOF
 	server: ${server}
 	next_server_v4: ${server}
 	manage_dhcp: true

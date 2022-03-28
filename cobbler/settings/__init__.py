@@ -95,7 +95,6 @@ class Settings:
         self.enable_ipxe = False
         self.enable_menu = True
         self.http_port = 80
-        self.include = ["/etc/cobbler/settings.d/*.settings"]
         self.iso_template_dir = "/etc/cobbler/iso"
         self.jinja2_includedir = "/var/lib/cobbler/jinja2"
         self.kernel_options = {}
@@ -298,11 +297,9 @@ def validate_settings(settings_content: dict) -> dict:
     return migrations.normalize(settings_content)
 
 
-def read_yaml_file(filepath="/ect/cobbler/settings.yaml") -> Dict[Hashable, Any]:
+def read_yaml_file(filepath="/etc/cobbler/settings.yaml") -> Dict[Hashable, Any]:
     """
-    Reads settings files from ``filepath`` and all paths in `include` (which is read from the settings file) and saves
-    the content in a dictionary.
-    Any key may be overwritten in a later loaded settings file. The last loaded file wins.
+    Reads settings files from ``filepath`` and saves the content in a dictionary.
 
     :param filepath: Settings file path, defaults to "/ect/cobbler/settings.yaml"
     :raises FileNotFoundError: In case file does not exist or is a directory.
@@ -316,11 +313,6 @@ def read_yaml_file(filepath="/ect/cobbler/settings.yaml") -> Dict[Hashable, Any]
     try:
         with open(filepath) as main_settingsfile:
             filecontent = yaml.safe_load(main_settingsfile.read())
-
-            for ival in filecontent.get("include", []):
-                for ifile in glob.glob(ival):
-                    with open(ifile, "r") as extra_settingsfile:
-                        filecontent.update(yaml.safe_load(extra_settingsfile.read()))
     except yaml.YAMLError as error:
         traceback.print_exc()
         raise yaml.YAMLError('"%s" is not a valid YAML file' % filepath) from error

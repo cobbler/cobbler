@@ -595,7 +595,6 @@ if __name__ == "__main__":
                     "build/config/cobbler/settings.yaml",
                 ],
             ),
-            ("%s/settings.d" % etcpath, glob("config/cobbler/settings.d/*")),
             (
                 "%s" % etcpath,
                 [

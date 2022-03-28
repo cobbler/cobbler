@@ -137,7 +137,7 @@ def key_set_value(new: Setting, settings: dict):
     Change the value of a setting.
 
     :param new: A Settings object with the new information.
-    :param setting: The settings dict.
+    :param settings: The settings dict.
     """
     nested = new.location
     for key in nested[:-1]:
@@ -147,12 +147,11 @@ def key_set_value(new: Setting, settings: dict):
 
 def key_drop_if_default(settings: dict, defaults: dict) -> dict:
     """
-    Drop all keys which values are identical to the dafault ones.
+    Drop all keys which values are identical to the default ones.
 
     :param settings: The current settings read from an external source
     :param defaults: The full settings with default values
     """
-    # TODO --REMOVE Me-- Note: This should be tested but stay unused until V3.3.0 is released!
     for key in list(settings.keys()):
         if isinstance(settings[key], dict):
             settings[key] = key_drop_if_default(settings[key], defaults[key])
