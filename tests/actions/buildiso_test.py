@@ -282,6 +282,39 @@ class TestAppendLineBuilder:
             == " append initrd=testdistro.img install=http://192.168.1.1:80/cblr/links/testdistro autoyast=default.ks"
         )
 
+        # Arrange
+        folder = create_kernel_initrd(fk_kernel, fk_initrd)
+        kernel_path = os.path.join(folder, fk_kernel)
+        initrd_path = os.path.join(folder, fk_initrd)
+        test_distro = Distro(api)
+        test_distro.name = "testdistro"
+        test_distro.breed = "redhat"
+        test_distro.kernel = kernel_path
+        test_distro.initrd = initrd_path
+        api.add_distro(test_distro)
+        test_profile = Profile(api)
+        test_profile.name = "testprofile"
+        test_profile.distro = test_distro.name
+        api.add_profile(test_profile)
+        test_system = System(api)
+        test_system.name = "testsystem"
+        test_system.profile = test_profile.name
+        api.add_system(test_system)
+        blendered_data = utils.blender(api, False, test_system)
+        test_builder = AppendLineBuilder(test_distro.name, blendered_data)
+
+        # Act
+        result = test_builder.generate_system(test_distro, test_system, False)
+
+        # Assert
+        # Very basic test yes but this is the expected result atm
+        # TODO: Make tests more sophisticated
+        assert (
+            result
+            == " append initrd=testdistro.img inst.ks=default.ks"
+        )
+
+
     def test_generate_profile(
         self, api, create_kernel_initrd, fk_kernel, fk_initrd, cleanup_items
     ):
@@ -310,4 +343,58 @@ class TestAppendLineBuilder:
         assert (
             result
             == " append initrd=testdistro.img install=http://192.168.1.1:80/cblr/links/testdistro autoyast=default.ks"
+        )
+
+        # Arrange
+        folder = create_kernel_initrd(fk_kernel, fk_initrd)
+        kernel_path = os.path.join(folder, fk_kernel)
+        initrd_path = os.path.join(folder, fk_initrd)
+        test_distro = Distro(api)
+        test_distro.name = "testdistro"
+        test_distro.kernel = kernel_path
+        test_distro.initrd = initrd_path
+        api.add_distro(test_distro)
+        test_profile = Profile(api)
+        test_profile.name = "testprofile"
+        test_profile.distro = test_distro.name
+        api.add_profile(test_profile)
+        blendered_data = utils.blender(api, False, test_profile)
+        test_builder = AppendLineBuilder(test_distro.name, blendered_data)
+
+        # Act
+        result = test_builder.generate_profile("redhat", "rhel7")
+
+        # Assert
+        # Very basic test yes but this is the expected result atm
+        # TODO: Make tests more sophisticated
+        assert (
+            result
+            == " append initrd=testdistro.img inst.ks=default.ks"
+        )
+
+        # Arrange
+        folder = create_kernel_initrd(fk_kernel, fk_initrd)
+        kernel_path = os.path.join(folder, fk_kernel)
+        initrd_path = os.path.join(folder, fk_initrd)
+        test_distro = Distro(api)
+        test_distro.name = "testdistro"
+        test_distro.kernel = kernel_path
+        test_distro.initrd = initrd_path
+        api.add_distro(test_distro)
+        test_profile = Profile(api)
+        test_profile.name = "testprofile"
+        test_profile.distro = test_distro.name
+        api.add_profile(test_profile)
+        blendered_data = utils.blender(api, False, test_profile)
+        test_builder = AppendLineBuilder(test_distro.name, blendered_data)
+
+        # Act
+        result = test_builder.generate_profile("redhat", "rhel6")
+
+        # Assert
+        # Very basic test yes but this is the expected result atm
+        # TODO: Make tests more sophisticated
+        assert (
+            result
+            == " append initrd=testdistro.img ks=default.ks"
         )
