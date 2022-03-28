@@ -1,0 +1,2 @@
+[build-system]
+requires = ["coverage", "distro", "sphinx", "setuptools", "wheel"]
