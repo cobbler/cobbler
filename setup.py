@@ -531,12 +531,6 @@ if __name__ == "__main__":
             "Tracker": "https://github.com/cobbler/cobbler/issues",
         },
         license="GPLv2+",
-        setup_requires=[
-            "coverage",
-            "distro",
-            "setuptools",
-            "sphinx",
-        ],
         install_requires=[
             "mod_wsgi",
             "requests",
