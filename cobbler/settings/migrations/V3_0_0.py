@@ -5,6 +5,11 @@ Migration from V2.8.5 to V3.0.0
 # SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
+import glob
+import json
+import os
+import shutil
+import subprocess
 
 from schema import Optional, Or, Schema, SchemaError
 from cobbler.settings.migrations import helper
@@ -223,5 +228,138 @@ def migrate(settings: dict) -> dict:
     for key in deleted_keys:
         helper.key_delete(key, settings)
 
-    # TODO: v2 to v3 script
+    # START: migrate-data-v2-to-v3
+    def serialize_item(collection, item):
+        """
+        Save a collection item to file system
+
+        :param collection: name
+        :param item: dictionary
+        """
+        filename = "/var/lib/cobbler/collections/%s/%s" % (collection, item["name"])
+
+        if settings.get("serializer_pretty_json", False):
+            sort_keys = True
+            indent = 4
+        else:
+            sort_keys = False
+            indent = None
+
+        filename += ".json"
+        with open(filename, "w") as item_fd:
+            data = json.dumps(
+                item, encoding="utf-8", sort_keys=sort_keys, indent=indent
+            )
+            item_fd.write(data)
+
+    def deserialize_raw_old(collection_types):
+        results = []
+        all_files = glob.glob("/var/lib/cobbler/config/%s/*" % collection_types)
+
+        for file in all_files:
+            with open(file) as item_fd:
+                json_data = item_fd.read()
+                _dict = json.loads(json_data, encoding="utf-8")
+                results.append(_dict)
+        return results
+
+    def substitute_paths(value):
+        if isinstance(value, list):
+            value = [substitute_paths(x) for x in value]
+        elif isinstance(value, str):
+            value = value.replace("/ks_mirror/", "/distro_mirror/")
+        return value
+
+    def transform_key(key, value):
+        if key in transform:
+            ret_value = transform[key](value)
+        else:
+            ret_value = value
+
+        return substitute_paths(ret_value)
+
+    # Keys to add to various collections
+    add = {
+        "distros": {
+            "boot_loader": "grub",
+        },
+        "profiles": {
+            "next_server": "<<inherit>>",
+        },
+        "systems": {
+            "boot_loader": "<<inherit>>",
+            "next_server": "<<inherit>>",
+            "power_identity_file": "",
+            "power_options": "",
+            "serial_baud_rate": "",
+            "serial_device": "",
+        },
+    }
+
+    # Keys to remove
+    remove = [
+        "ldap_enabled",
+        "ldap_type",
+        "monit_enabled",
+        "redhat_management_server",
+        "template_remote_kickstarts",
+    ]
+
+    # Keys to rename
+    rename = {
+        "kickstart": "autoinstall",
+        "ks_meta": "autoinstall_meta",
+    }
+
+    # Keys to transform - use new key name if renamed
+    transform = {
+        "autoinstall": os.path.basename,
+    }
+
+    # Convert the old collections to new collections
+    for old_type in [
+        "distros.d",
+        "files.d",
+        "images.d",
+        "mgmtclasses.d",
+        "packages.d",
+        "profiles.d",
+        "repos.d",
+        "systems.d",
+    ]:
+        new_type = old_type[:-2]
+        # Load old files
+        old_collection = deserialize_raw_old(old_type)
+        print("Processing %s:" % old_type)
+
+        for old_item in old_collection:
+            print("    Processing %s" % old_item["name"])
+            new_item = {}
+            for key in old_item:
+                if key in remove:
+                    continue
+                if key in rename:
+                    new_item[rename[key]] = transform_key(rename[key], old_item[key])
+                    continue
+                new_item[key] = transform_key(key, old_item[key])
+
+            if new_type in add:
+                new_item.update(add[new_type])
+
+            serialize_item(new_type, new_item)
+
+    path_rename = [
+        ("/var/lib/cobbler/kickstarts", "/var/lib/cobbler/templates"),
+        ("/var/www/cobbler/ks_mirror", "/var/www/cobbler/distro_mirror"),
+    ]
+
+    # Copy paths
+    for old_path, new_path in path_rename:
+        if os.path.isdir(old_path):
+            shutil.copytree(old_path, new_path)
+            os.rename(old_path, new_path)
+
+    # END: migrate-data-v2-to-v3
+    if not validate(settings):
+        raise SchemaError("V3.0.0: Schema error while validating")
     return normalize(settings)
