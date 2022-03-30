@@ -500,7 +500,9 @@ class CobblerSync:
                 interface=name, loader="grub"
             )
             utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", pxe_filename))
-            utils.rmfile(os.path.join(bootloc, "grub", "system", grub_filename))
+            if not (system_record.name == "default" and grub_filename is None):
+                # A default system can't have GRUB entries and thus we want to skip this.
+                utils.rmfile(os.path.join(bootloc, "grub", "system", grub_filename))
             utils.rmfile(
                 os.path.join(bootloc, "grub", "system_link", system_record.name)
             )

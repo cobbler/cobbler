@@ -2115,6 +2115,11 @@ class System(Item):
                 loader = boot_loaders[0]
 
         if interface not in self.interfaces:
+            self.logger.warning(
+                'System "%s" did not have an interface with the name "%s" attached to it.',
+                self.name,
+                interface,
+            )
             return None
 
         if self.name == "default":
