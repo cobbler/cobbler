@@ -148,10 +148,10 @@ class CobblerAPI:
             )
 
             self.authn = self.get_module_from_file(
-                "authentication", "module", "authn_configfile"
+                "authentication", "module", "authentication.configfile"
             )
             self.authz = self.get_module_from_file(
-                "authorization", "module", "authz_allowall"
+                "authorization", "module", "authorization.allowall"
             )
 
             # FIXME: pass more loggers around, and also see that those using things via tasks construct their own
