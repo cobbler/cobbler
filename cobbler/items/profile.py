@@ -65,7 +65,7 @@ class Profile(item.Item):
         self._virt_bridge = api.settings().default_virt_bridge
         self._virt_cpus: Union[int, str] = 1
         self._virt_disk_driver = enums.VirtDiskDrivers.RAW
-        self._virt_file_size = 0
+        self._virt_file_size = 0.0
         self._virt_path = ""
         self._virt_ram = api.settings().default_virt_ram
         self._virt_type = enums.VirtType.AUTO
@@ -549,7 +549,7 @@ class Profile(item.Item):
         self._virt_cpus = validate.validate_virt_cpus(num)
 
     @property
-    def virt_file_size(self) -> int:
+    def virt_file_size(self) -> float:
         r"""
         The size of the image and thus the usable size for the guest.
 
