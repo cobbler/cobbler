@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Check that Cobbler can add a system based on an image and afterwards can restart
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+# Arrange
+cobbler image add --name=fake
+
+# Act
+cobbler system add --name testbed --image fake --mac "aa:bb:cc:dd:ee:ff"
+
+restart_cobblerd
+
+# Assert - If cobblerd is successfully restarted we should get the image and system loaded successfully.
+cobbler image list | grep "fake"
+cobbler system list | grep "testbed"
