@@ -795,6 +795,13 @@ class CobblerXMLRPCInterface:
         (otype, oname) = object_id.split("::", 1)
         return self.api.get_item(otype, oname)
 
+    def get_item_resolved_value(self, item_uuid: str, attribute: str):
+        """
+        .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.get_item_resolved_value`
+        """
+        self._log("get_item_resolved_value(%s)" % item_uuid, attribute=attribute)
+        return self.api.get_item_resolved_value(item_uuid, attribute)
+
     def get_item(self, what: str, name: str, flatten=False):
         """
         Returns a dict describing a given object.
