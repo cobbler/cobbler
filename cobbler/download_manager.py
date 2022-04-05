@@ -21,24 +21,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import logging
 
 import requests
+import yaml
 
 
 class DownloadManager:
 
-    def __init__(self, api):
+    def __init__(self):
         """
         Constructor
 
-        :param api: This is the current API instance which holds the settings.
         """
-        self.settings = api.settings()
         self.logger = logging.getLogger()
         self.cert = ()
-        if self.settings.proxy_url_ext:
-            # requests wants a dict like:  protocol: proxy_uri
-            self.proxies = self.settings.proxy_url_ext
-        else:
-            self.proxies = {}
+        with open("/etc/cobbler/settings.yaml") as main_settingsfile:
+            ydata = yaml.safe_load(main_settingsfile)
+        # requests wants a dict like:  protocol: proxy_uri
+        self.proxies = ydata.get("proxy_url_ext", default={})
 
     def urlread(self, url, proxies=None, cert=None):
         """

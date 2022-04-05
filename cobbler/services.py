@@ -27,8 +27,6 @@ import xmlrpc.client
 import yaml
 
 from cobbler import download_manager
-from cobbler.api import CobblerAPI
-from cobbler.settings import Settings
 
 
 class CobblerSvc:
@@ -48,8 +46,7 @@ class CobblerSvc:
         self.server = server
         self.remote = None
         self.req = req
-        self.api = CobblerAPI()
-        self.dlmgr = download_manager.DownloadManager(self.api)
+        self.dlmgr = download_manager.DownloadManager()
 
     def __xmlrpc_setup(self):
         """
@@ -58,14 +55,14 @@ class CobblerSvc:
         if self.remote is None:
             self.remote = xmlrpc.client.Server(self.server, allow_none=True)
 
-    def settings(self) -> Settings:
+    def settings(self):
         """
         Get the application configuration.
 
         :return: Settings object.
         """
         self.__xmlrpc_setup()
-        return Settings().from_dict(self.remote.get_settings())
+        return self.remote.get_settings()
 
     def index(self, **args) -> str:
         """
@@ -357,18 +354,16 @@ class CobblerSvc:
         """
         self.__xmlrpc_setup()
 
-        serverseg = "http://%s" % self.api.settings().server
-
         name = "?"
         if system is not None:
-            url = "%s/cblr/svc/op/autoinstall/system/%s" % (serverseg, name)
+            url = "%s/cblr/svc/op/autoinstall/system/%s" % (self.server, name)
         elif profile is not None:
-            url = "%s/cblr/svc/op/autoinstall/profile/%s" % (serverseg, name)
+            url = "%s/cblr/svc/op/autoinstall/profile/%s" % (self.server, name)
         else:
             name = self.autodetect(**rest)
             if name.startswith("FAILED"):
                 return "# autodetection %s" % name
-            url = "%s/cblr/svc/op/autoinstall/system/%s" % (serverseg, name)
+            url = "%s/cblr/svc/op/autoinstall/system/%s" % (self.server, name)
 
         try:
             return self.dlmgr.urlread(url)
@@ -387,18 +382,16 @@ class CobblerSvc:
         """
         self.__xmlrpc_setup()
 
-        serverseg = "http://%s" % self.api.settings().server
-
         name = "?"
         if system is not None:
-            url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
+            url = "%s/cblr/svc/op/ks/system/%s" % (self.server, name)
         elif profile is not None:
-            url = "%s/cblr/svc/op/ks/profile/%s" % (serverseg, name)
+            url = "%s/cblr/svc/op/ks/profile/%s" % (self.server, name)
         else:
             name = self.autodetect(**rest)
             if name.startswith("FAILED"):
                 return "# autodetection %s" % name
-            url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
+            url = "%s/cblr/svc/op/ks/system/%s" % (self.server, name)
 
         try:
             return self.dlmgr.urlread(url)
