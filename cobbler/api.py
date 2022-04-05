@@ -1463,7 +1463,7 @@ class CobblerAPI:
         """
         try:
             url = self.settings().signature_url
-            dlmgr = download_manager.DownloadManager(self)
+            dlmgr = download_manager.DownloadManager()
             # write temp json file
             tmpfile = tempfile.NamedTemporaryFile()
             sigjson = dlmgr.urlread(url)
