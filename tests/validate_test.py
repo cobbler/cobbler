@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 
 from cobbler import enums, utils, validate
@@ -224,3 +226,15 @@ def test_validate_grub_remote_file(test_value, expected_result):
 
     # Assert
     assert expected_result == result
+
+
+def test_validate_uuid():
+    # Arrange
+    test_uuid = uuid.uuid4().hex
+    expected_result = True
+
+    # Act
+    result = validate.validate_uuid(test_uuid)
+
+    # Arrange
+    assert result is expected_result

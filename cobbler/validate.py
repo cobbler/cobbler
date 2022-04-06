@@ -590,7 +590,7 @@ def validate_autoinstall_script_name(name: str) -> bool:
 
 def validate_uuid(possible_uuid: str) -> bool:
     """
-    Validate if the handed string is a valid UUIDv4.
+    Validate if the handed string is a valid UUIDv4 hex representation.
 
     :param possible_uuid: The str with the UUID.
     :return: True in case it is one, False otherwise.
@@ -602,7 +602,7 @@ def validate_uuid(possible_uuid: str) -> bool:
         uuid_obj = UUID(possible_uuid, version=4)
     except ValueError:
         return False
-    return str(uuid_obj) == possible_uuid
+    return uuid_obj.hex == possible_uuid
 
 
 def validate_obj_type(object_type: str) -> bool:
