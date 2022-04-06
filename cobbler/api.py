@@ -1106,7 +1106,7 @@ class CobblerAPI:
 
     def find_items(
         self,
-        what: str,
+        what: str = "",
         criteria: dict = None,
         name: str = "",
         return_list: bool = True,
@@ -1127,10 +1127,32 @@ class CobblerAPI:
         if criteria is None:
             criteria = {}
 
-        if what == "" and ("name" in criteria or name is not None):
+        if not isinstance(name, str):
+            raise TypeError('"name" must be of type str!')
+
+        if not isinstance(what, str):
+            raise TypeError('"what" must be of type str!')
+
+        if what != "" and not validate.validate_obj_type(what):
+            raise ValueError("what needs to be a valid collection if it is non empty!")
+
+        if what == "" and ("name" in criteria or name != ""):
             return self.__find_by_name(criteria.get("name", name))
 
-        if what not in [
+        if what != "":
+            return self.__find_with_collection(
+                what, name, return_list, no_errors, criteria
+            )
+        return self.__find_without_collection(name, return_list, no_errors, criteria)
+
+    def __find_with_collection(self, what, name, return_list, no_errors, criteria):
+        items = self._collection_mgr.get_items(what)
+        return items.find(
+            name=name, return_list=return_list, no_errors=no_errors, **criteria
+        )
+
+    def __find_without_collection(self, name, return_list, no_errors, criteria):
+        collections = [
             "distro",
             "profile",
             "system",
@@ -1140,13 +1162,17 @@ class CobblerAPI:
             "package",
             "file",
             "menu",
-        ]:
-            raise ValueError("what needs to be a valid collection!")
-
-        items = self._collection_mgr.get_items(what)
-        return items.find(
-            name=name, return_list=return_list, no_errors=no_errors, **criteria
-        )
+        ]
+        for collection_name in collections:
+            match = self.find_items(
+                collection_name,
+                criteria,
+                name=name,
+                return_list=return_list,
+                no_errors=no_errors,
+            )
+            if match is not None:
+                return match
 
     def __find_by_name(self, name: str):
         """
