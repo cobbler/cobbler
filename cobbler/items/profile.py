@@ -78,7 +78,6 @@ class Profile(item.Item):
         self._kernel_options_post = enums.VALUE_INHERITED
         self._mgmt_classes = enums.VALUE_INHERITED
         self._mgmt_parameters = enums.VALUE_INHERITED
-        self._mgmt_classes = enums.VALUE_INHERITED
 
         # Use setters to validate settings
         self.virt_disk_driver = api.settings().default_virt_disk_driver
@@ -379,6 +378,8 @@ class Profile(item.Item):
         """
         Represents the hostname the Cobbler server is reachable by a client.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: The hostname of the Cobbler server.
         :setter: May raise a ``TypeError`` in case the new value is not a ``str``.
         """
@@ -515,6 +516,8 @@ class Profile(item.Item):
         """
         Whether the VM should be booted when booting the host or not.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: ``True`` means autoboot is enabled, otherwise VM is not booted automatically.
         :setter: The new state for the property.
         """
@@ -556,6 +559,8 @@ class Profile(item.Item):
         .. warning:: There is a regression which makes the usage of multiple disks not possible right now. This will be
                      fixed in a future release.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: The size of the image(s) in GB.
         :setter: The float with the new size in GB.
         """
@@ -574,6 +579,8 @@ class Profile(item.Item):
     def virt_disk_driver(self) -> enums.VirtDiskDrivers:
         """
         The type of disk driver used for storing the image.
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: The enum type representation of the disk driver.
         :setter: May be a ``str`` with the name of the disk driver or from the enum type directly.
@@ -594,6 +601,8 @@ class Profile(item.Item):
         """
         The amount of RAM given to the guest in MB.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: The amount of RAM currently assigned to the image.
         :setter: The new amount of ram. Must be an integer.
         """
@@ -613,6 +622,8 @@ class Profile(item.Item):
         """
         The type of image used.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: The value of the virtual machine.
         :setter: May be of the enum type or a str which is then converted to the enum type.
         """
@@ -631,6 +642,8 @@ class Profile(item.Item):
     def virt_bridge(self) -> str:
         """
         Represents the name of the virtual bridge to use.
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: Either the default name for the bridge or the specific one for this profile.
         :setter: The new name. Does not overwrite the default one.
@@ -691,6 +704,8 @@ class Profile(item.Item):
         """
         Getter of the redhat management key of the profile or it's parent.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Returns the redhat_management_key of the profile.
         :setter: May raise a ``TypeError`` in case of a validation error.
         """
@@ -713,6 +728,8 @@ class Profile(item.Item):
     def boot_loaders(self) -> list:
         """
         This represents all boot loaders for which Cobbler will try to generate bootloader configuration for.
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: The bootloaders.
         :setter: The new bootloaders. Will be validates against a list of well known ones.
