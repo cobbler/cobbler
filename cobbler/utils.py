@@ -1072,6 +1072,7 @@ def get_family() -> str:
         "virtuozzo",
         "almalinux",
         "rocky linux",
+        "anolis os",
         "oracle linux server",
     )
 
@@ -1103,6 +1104,8 @@ def os_release():
         elif "almalinux" in distro_name:
             make = "centos"
         elif "rocky linux" in distro_name:
+            make = "centos"
+        elif "anolis os" in distro_name:
             make = "centos"
         elif "virtuozzo" in distro_name:
             make = "virtuozzo"
