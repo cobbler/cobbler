@@ -325,6 +325,8 @@ class Item:
         .. warning:: This is never validated against a list of existing users. Thus you can lock yourself out of a
                      record.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Return the list of users which are currently assigned to the record.
         :setter: The list of people which should be new owners. May lock you out if you are using the ownership
                  authorization module.
@@ -344,6 +346,8 @@ class Item:
     def kernel_options(self) -> dict:
         """
         Kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: The parsed kernel options.
         :setter: The new kernel options as a space delimited list. May raise ``ValueError`` in case of parsing problems.
@@ -368,6 +372,8 @@ class Item:
     def kernel_options_post(self) -> dict:
         """
         Post kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: The dictionary with the parsed values.
         :setter: Accepts str in above mentioned format or directly a dict.
@@ -394,6 +400,8 @@ class Item:
         A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a dict.
         The meta tags are used as input to the templating system to preprocess automatic installation template files.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: The metadata or an empty dict.
         :setter: Accepts anything which can be split by :meth:`~cobbler.utils.input_string_or_dict`.
         """
@@ -419,6 +427,8 @@ class Item:
         Assigns a list of configuration management classes that can be assigned to any object, such as those used by
         Puppet's external_nodes feature.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: An empty list or the list of mgmt_classes.
         :setter: Will split this according to :meth:`~cobbler.utils.input_string_or_list`.
         """
@@ -437,6 +447,8 @@ class Item:
     def mgmt_parameters(self) -> dict:
         """
         Parameters which will be handed to your management application (Must be a valid YAML dictionary)
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: The mgmt_parameters or an empty dict.
         :setter: A YAML string which can be assigned to any object, this is used by Puppet's external_nodes feature.
@@ -507,6 +519,8 @@ class Item:
         """
         A comma separated list of req_name=source_file_path that should be fetchable via tftp.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :param boot_files: The new value for the boot files used by the item.
         """
         (success, value) = utils.input_string_or_dict(boot_files, allow_multiples=False)
@@ -519,6 +533,8 @@ class Item:
     def fetchable_files(self) -> dict:
         """
         A comma seperated list of ``virt_name=path_to_template`` that should be fetchable via tftp or a webserver
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: The dictionary with name-path key-value pairs.
         :setter: A dict. If not a dict must be a str which is split by :meth:`~cobbler.utils.input_string_or_dict`.

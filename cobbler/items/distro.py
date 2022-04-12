@@ -52,7 +52,7 @@ class Distro(item.Item):
         self._kernel = ""
         self._mgmt_classes = []
         self._os_version = ""
-        self._redhat_management_key = ""
+        self._redhat_management_key = enums.VALUE_INHERITED
         self._source_repos = []
         self._fetchable_files = {}
         self._remote_boot_kernel = ""
@@ -427,6 +427,8 @@ class Distro(item.Item):
         """
         All boot loaders for which Cobbler generates entries for.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: The bootloaders.
         :setter: Validates this against the list of well-known bootloaders and raises a ``TypeError`` or ``ValueError``
                  in case the validation goes south.
@@ -468,9 +470,11 @@ class Distro(item.Item):
         Get the redhat management key. This is probably only needed if you have spacewalk, uyuni or SUSE Manager
         running.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :return: The key as a string.
         """
-        return self._redhat_management_key
+        return self._resolve("redhat_management_key")
 
     @redhat_management_key.setter
     def redhat_management_key(self, management_key: str):
