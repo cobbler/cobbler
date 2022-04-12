@@ -412,13 +412,12 @@ def find_kernel(path: str) -> str:
     return ""
 
 
-def remove_yum_olddata(path):
+def remove_yum_olddata(path: os.PathLike):
     """
     Delete .olddata folders that might be present from a failed run of createrepo.
 
     :param path: The path to check for .olddata files.
     """
-    # FIXME: If the folder is actually a file this method fails wonderfully.
     directories_to_try = [
         ".olddata",
         ".repodata/.olddata",
@@ -426,9 +425,9 @@ def remove_yum_olddata(path):
         "repodata/repodata",
     ]
     for pathseg in directories_to_try:
-        olddata = os.path.join(path, pathseg)
-        if os.path.exists(olddata):
-            logger.info("removing: %s", olddata)
+        olddata = Path(path, pathseg)
+        if olddata.is_dir() and olddata.exists():
+            logger.info('Removing: "%s"', olddata)
             shutil.rmtree(olddata, ignore_errors=False, onerror=None)
 
 
