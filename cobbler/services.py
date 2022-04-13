@@ -55,14 +55,14 @@ class CobblerSvc:
         if self.remote is None:
             self.remote = xmlrpc.client.Server(self.server, allow_none=True)
 
-    def settings(self):
+    def settings(self, **kwargs):
         """
         Get the application configuration.
 
         :return: Settings object.
         """
         self.__xmlrpc_setup()
-        return self.remote.get_settings()
+        return json.dumps(self.remote.get_settings(), indent=4)
 
     def index(self, **args) -> str:
         """
@@ -72,12 +72,6 @@ class CobblerSvc:
         :return: "no mode specified"
         """
         return "no mode specified"
-
-    def debug(self, profile=None, **rest):
-        # The purpose of this method could change at any time and is intented for temporary test code only, don't rely
-        # on it.
-        self.__xmlrpc_setup()
-        return self.remote.get_repos_compatible_with_profile(profile)
 
     def autoinstall(
         self, profile=None, system=None, REMOTE_ADDR=None, REMOTE_MAC=None, **rest
@@ -100,7 +94,7 @@ class CobblerSvc:
 
     def ks(self, profile=None, system=None, REMOTE_ADDR=None, REMOTE_MAC=None, **rest):
         """
-        Generate automatic installation files. This is a legacy function for part backward compability to 2.6.6
+        Generate automatic installation files. This is a legacy function for part backward compatibility to 2.6.6
         releases.
 
         :param profile:
@@ -342,15 +336,6 @@ class CobblerSvc:
             return "FAILED: multiple matches"
         elif len(candidates) == 1:
             return candidates[0]["name"]
-
-    def look(self, **rest) -> str:
-        """
-        Debug only: Show the handed dict via repr to the requester.
-        :param rest: The dict to represent.
-        :return: The dict reformated with repr()
-        """
-
-        return repr(rest)
 
     def find_autoinstall(self, system=None, profile=None, **rest):
         """
