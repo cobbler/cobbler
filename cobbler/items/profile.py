@@ -60,14 +60,13 @@ class Profile(item.Item):
         self._repos = []
         self._server = enums.VALUE_INHERITED
         self._menu = ""
-        # FIXME: The virt_* attributes don't support inheritance so far
         self._virt_auto_boot = api.settings().virt_auto_boot
-        self._virt_bridge = api.settings().default_virt_bridge
+        self._virt_bridge = enums.VALUE_INHERITED
         self._virt_cpus: Union[int, str] = 1
-        self._virt_disk_driver = enums.VirtDiskDrivers.RAW
-        self._virt_file_size = 0.0
+        self._virt_disk_driver = enums.VirtDiskDrivers.INHERITED
+        self._virt_file_size = enums.VALUE_INHERITED
         self._virt_path = ""
-        self._virt_ram = api.settings().default_virt_ram
+        self._virt_ram = enums.VALUE_INHERITED
         self._virt_type = enums.VirtType.AUTO
 
         # Overwrite defaults from item.py
@@ -383,20 +382,18 @@ class Profile(item.Item):
         :getter: The hostname of the Cobbler server.
         :setter: May raise a ``TypeError`` in case the new value is not a ``str``.
         """
-        return self._server
+        return self._resolve("server")
 
     @server.setter
     def server(self, server: str):
         """
         Setter for the server property.
 
-        :param server: If this is None or an emtpy string this will be reset to be inherited from the parent object.
+        :param server: The str with the new value for the server property.
         :raises TypeError: In case the new value was not of type ``str``.
         """
         if not isinstance(server, str):
             raise TypeError("Field server of object profile needs to be of type str!")
-        if server == "":
-            server = enums.VALUE_INHERITED
         self._server = server
 
     @property
@@ -521,7 +518,7 @@ class Profile(item.Item):
         :getter: ``True`` means autoboot is enabled, otherwise VM is not booted automatically.
         :setter: The new state for the property.
         """
-        return self._virt_auto_boot
+        return self._resolve("virt_auto_boot")
 
     @virt_auto_boot.setter
     def virt_auto_boot(self, num: bool):
@@ -530,6 +527,9 @@ class Profile(item.Item):
 
         :param num: The new value for whether to enable it or not.
         """
+        if num == enums.VALUE_INHERITED:
+            self._virt_auto_boot = enums.VALUE_INHERITED
+            return
         self._virt_auto_boot = validate.validate_virt_auto_boot(num)
 
     @property
@@ -564,7 +564,7 @@ class Profile(item.Item):
         :getter: The size of the image(s) in GB.
         :setter: The float with the new size in GB.
         """
-        return self._virt_file_size
+        return self._resolve("virt_file_size")
 
     @virt_file_size.setter
     def virt_file_size(self, num: Union[str, int, float]):
@@ -585,7 +585,7 @@ class Profile(item.Item):
         :getter: The enum type representation of the disk driver.
         :setter: May be a ``str`` with the name of the disk driver or from the enum type directly.
         """
-        return self._virt_disk_driver
+        return self._resolve_enum("virt_disk_driver", enums.VirtDiskDrivers)
 
     @virt_disk_driver.setter
     def virt_disk_driver(self, driver: str):
@@ -606,7 +606,7 @@ class Profile(item.Item):
         :getter: The amount of RAM currently assigned to the image.
         :setter: The new amount of ram. Must be an integer.
         """
-        return self._virt_ram
+        return self._resolve("virt_ram")
 
     @virt_ram.setter
     def virt_ram(self, num: Union[str, int]):
@@ -627,7 +627,7 @@ class Profile(item.Item):
         :getter: The value of the virtual machine.
         :setter: May be of the enum type or a str which is then converted to the enum type.
         """
-        return self._virt_type
+        return self._resolve_enum("virt_type", enums.VirtType)
 
     @virt_type.setter
     def virt_type(self, vtype: str):
@@ -648,9 +648,7 @@ class Profile(item.Item):
         :getter: Either the default name for the bridge or the specific one for this profile.
         :setter: The new name. Does not overwrite the default one.
         """
-        if not self._virt_bridge:
-            return self.api.settings().default_virt_bridge
-        return self._virt_bridge
+        return self._resolve("virt_bridge")
 
     @virt_bridge.setter
     def virt_bridge(self, vbridge: str):
