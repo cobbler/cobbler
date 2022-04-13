@@ -84,10 +84,10 @@ def test_buildiso(mocker, cobbler_api):
         ),  # Attribute not existing
         ("", "redhat_management_key", does_not_raise(), ""),  # str attribute test
         ("", "enable_ipxe", does_not_raise(), False),  # bool attribute
-        ("", "virt_ram", does_not_raise(), 0),  # int attribute
-        ("", "virt_file_size", does_not_raise(), 0.0),  # double attribute
+        ("", "virt_ram", does_not_raise(), 512),  # int attribute
+        ("", "virt_file_size", does_not_raise(), 5.0),  # double attribute
         ("", "kernel_options", does_not_raise(), {}),  # dict attribute
-        ("", "owners", does_not_raise(), []),  # list attribute
+        ("", "owners", does_not_raise(), ["admin"]),  # list attribute
     ],
 )
 def test_get_item_resolved_value(
