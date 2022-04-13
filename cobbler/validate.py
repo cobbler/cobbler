@@ -400,7 +400,6 @@ def validate_virt_ram(value: Union[int, str]) -> Union[str, int]:
 
     if isinstance(value, str):
         if value == enums.VALUE_INHERITED:
-            # FIXME: The default value is 0 instead of enums.VALUE_INHERITED.
             return enums.VALUE_INHERITED
         if value == "":
             return 0
@@ -427,9 +426,8 @@ def validate_virt_bridge(vbridge: str) -> str:
     """
     if not isinstance(vbridge, str):
         raise TypeError("vbridge must be of type str.")
-    # FIXME: Settings are not available here
     if not vbridge:
-        return ""
+        return enums.VALUE_INHERITED
     return vbridge
 
 

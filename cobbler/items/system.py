@@ -825,7 +825,6 @@ class System(Item):
         self._redhat_management_key = enums.VALUE_INHERITED
         self._server = enums.VALUE_INHERITED
         self._status = ""
-        # FIXME: The virt_* attributes don't support inheritance yet
         self._virt_auto_boot: Union[bool, str] = enums.VALUE_INHERITED
         self._virt_cpus: Union[int, str] = enums.VALUE_INHERITED
         self._virt_disk_driver = enums.VirtDiskDrivers.INHERITED
@@ -1094,38 +1093,44 @@ class System(Item):
         return self._resolve("boot_loaders")
 
     @boot_loaders.setter
-    def boot_loaders(self, boot_loaders: str):
+    def boot_loaders(self, boot_loaders: Union[str, list]):
         """
         Setter of the boot loaders.
 
         :param boot_loaders: The boot loaders for the system.
         :raises CX: This is risen in case the bootloaders set are not valid ones.
         """
+        if not isinstance(boot_loaders, (str, list)):
+            raise TypeError("The bootloaders need to be either a str or list")
+
         if boot_loaders == enums.VALUE_INHERITED:
             self._boot_loaders = enums.VALUE_INHERITED
             return
 
-        if boot_loaders:
-            boot_loaders_split = utils.input_string_or_list(boot_loaders)
-
-            parent = self.parent
-            if parent is not None:
-                parent_boot_loaders = parent.boot_loaders
-            else:
-                self.logger.warning(
-                    'Parent of System "%s" could not be found for resolving the parent bootloaders.',
-                    self.name,
-                )
-                parent_boot_loaders = []
-            if not set(boot_loaders_split).issubset(parent_boot_loaders):
-                raise CX(
-                    'Error with system "%s" - not all boot_loaders are supported (given: "%s"; supported:'
-                    '"%s")'
-                    % (self.name, str(boot_loaders_split), str(parent_boot_loaders))
-                )
-            self._boot_loaders = boot_loaders_split
-        else:
+        if boot_loaders == "" or boot_loaders == []:
             self._boot_loaders = []
+            return
+
+        if isinstance(boot_loaders, str):
+            boot_loaders_split = utils.input_string_or_list(boot_loaders)
+        else:
+            boot_loaders_split = boot_loaders
+
+        parent = self.parent
+        if parent is not None:
+            parent_boot_loaders = parent.boot_loaders
+        else:
+            self.logger.warning(
+                'Parent of System "%s" could not be found for resolving the parent bootloaders.',
+                self.name,
+            )
+            parent_boot_loaders = []
+        if not set(boot_loaders_split).issubset(parent_boot_loaders):
+            raise CX(
+                'Error with system "%s" - not all boot_loaders are supported (given: "%s"; supported:'
+                '"%s")' % (self.name, str(boot_loaders_split), str(parent_boot_loaders))
+            )
+        self._boot_loaders = boot_loaders_split
 
     @property
     def server(self) -> str:
@@ -1137,7 +1142,7 @@ class System(Item):
         :getter: Returns the value for ``server``.
         :setter: Sets the value for the property ``server``.
         """
-        return self._server
+        return self._resolve("server")
 
     @server.setter
     def server(self, server: str):
@@ -1150,7 +1155,7 @@ class System(Item):
         """
         if not isinstance(server, str):
             raise TypeError("Field server of object system needs to be of type str!")
-        if server is None or server == "":
+        if server == "":
             server = enums.VALUE_INHERITED
         self._server = server
 
@@ -1642,10 +1647,12 @@ class System(Item):
         """
         virt_file_size property.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Returns the value for ``virt_file_size``.
         :setter: Sets the value for the property ``virt_file_size``.
         """
-        return self._virt_file_size
+        return self._resolve("virt_file_size")
 
     @virt_file_size.setter
     def virt_file_size(self, num: float):
@@ -1667,7 +1674,7 @@ class System(Item):
         :getter: Returns the value for ``virt_disk_driver``.
         :setter: Sets the value for the property ``virt_disk_driver``.
         """
-        return self._virt_disk_driver
+        return self._resolve_enum("virt_disk_driver", enums.VirtDiskDrivers)
 
     @virt_disk_driver.setter
     def virt_disk_driver(self, driver: Union[str, enums.VirtDiskDrivers]):
@@ -1699,6 +1706,7 @@ class System(Item):
         """
         if value == enums.VALUE_INHERITED:
             self._virt_auto_boot = enums.VALUE_INHERITED
+            return
         self._virt_auto_boot = validate.validate_virt_auto_boot(value)
 
     @property
@@ -1752,7 +1760,7 @@ class System(Item):
         :getter: Returns the value for ``virt_type``.
         :setter: Sets the value for the property ``virt_type``.
         """
-        return self._virt_type
+        return self._resolve_enum("virt_type", enums.VirtType)
 
     @virt_type.setter
     def virt_type(self, vtype: Union[enums.VirtType, str]):
