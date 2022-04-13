@@ -2,6 +2,7 @@ import pytest
 
 from cobbler import enums
 from cobbler.items.system import NetworkInterface, System
+from cobbler.cexceptions import CX
 from tests.conftest import does_not_raise
 
 
@@ -62,15 +63,38 @@ def test_autoinstall(cobbler_api):
     assert system.autoinstall == ""
 
 
-def test_boot_loaders(cobbler_api):
+@pytest.mark.parametrize(
+    "input_value,expected_exception,expected_output",
+    [
+        ("", does_not_raise(), []),
+        ([], does_not_raise(), []),
+        ("<<inherit>>", does_not_raise(), ["grub", "pxe", "ipxe"]),
+        ([""], pytest.raises(CX), []),
+        (["ipxe"], does_not_raise(), ["ipxe"]),
+    ],
+)
+def test_boot_loaders(
+    request,
+    cobbler_api,
+    create_distro,
+    create_profile,
+    input_value,
+    expected_exception,
+    expected_output,
+):
     # Arrange
+    tmp_distro = create_distro()
+    tmp_profile = create_profile(tmp_distro.name)
     system = System(cobbler_api)
+    system.name = request.node.originalname
+    system.profile = tmp_profile.name
 
     # Act
-    system.boot_loaders = []
+    with expected_exception:
+        system.boot_loaders = input_value
 
-    # Assert
-    assert system.boot_loaders == []
+        # Assert
+        assert system.boot_loaders == expected_output
 
 
 @pytest.mark.parametrize(
@@ -79,6 +103,10 @@ def test_boot_loaders(cobbler_api):
         (0, does_not_raise()),
         (0.0, pytest.raises(TypeError)),
         ("", does_not_raise()),
+        (
+            "<<inherit>>",
+            does_not_raise(),
+        ),  # FIXME: Test passes but it actually does not do the right thing
         ("Test", does_not_raise()),
         ([], pytest.raises(TypeError)),
         ({}, pytest.raises(TypeError)),
@@ -193,26 +221,48 @@ def test_netboot_enabled(cobbler_api, value, expected):
         assert distro.netboot_enabled or not distro.netboot_enabled
 
 
-def test_next_server_v4(cobbler_api):
+@pytest.mark.parametrize(
+    "input_next_server,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), ""),
+        ("<<inherit>>", does_not_raise(), "192.168.1.1"),
+        (False, pytest.raises(TypeError), ""),
+    ],
+)
+def test_next_server_v4(
+    cobbler_api, input_next_server, expected_exception, expected_result
+):
     # Arrange
     system = System(cobbler_api)
 
     # Act
-    system.next_server_v4 = ""
+    with expected_exception:
+        system.next_server_v4 = input_next_server
 
-    # Assert
-    assert system.next_server_v4 == ""
+        # Assert
+        assert system.next_server_v4 == expected_result
 
 
-def test_next_server_v6(cobbler_api):
+@pytest.mark.parametrize(
+    "input_next_server,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), ""),
+        ("<<inherit>>", does_not_raise(), "::1"),
+        (False, pytest.raises(TypeError), ""),
+    ],
+)
+def test_next_server_v6(
+    cobbler_api, input_next_server, expected_exception, expected_result
+):
     # Arrange
     system = System(cobbler_api)
 
     # Act
-    system.next_server_v6 = ""
+    with expected_exception:
+        system.next_server_v6 = input_next_server
 
-    # Assert
-    assert system.next_server_v6 == ""
+        # Assert
+        assert system.next_server_v6 == expected_result
 
 
 def test_filename(cobbler_api):
@@ -314,37 +364,67 @@ def test_profile(cobbler_api):
     assert system.profile == ""
 
 
-def test_proxy(cobbler_api):
+@pytest.mark.parametrize(
+    "input_proxy,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), ""),
+        ("<<inherit>>", does_not_raise(), ""),
+        (False, pytest.raises(TypeError), ""),
+    ],
+)
+def test_proxy(cobbler_api, input_proxy, expected_exception, expected_result):
     # Arrange
     system = System(cobbler_api)
 
     # Act
-    system.proxy = ""
+    with expected_exception:
+        system.proxy = input_proxy
 
-    # Assert
-    assert system.proxy == ""
+        # Assert
+        assert system.proxy == expected_result
 
 
-def test_redhat_management_key(cobbler_api):
+@pytest.mark.parametrize(
+    "input_redhat_management_key,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), ""),
+        ("<<inherit>>", does_not_raise(), ""),
+        (False, pytest.raises(TypeError), ""),
+    ],
+)
+def test_redhat_management_key(
+    cobbler_api, input_redhat_management_key, expected_exception, expected_result
+):
     # Arrange
     system = System(cobbler_api)
 
     # Act
-    system.redhat_management_key = ""
+    with expected_exception:
+        system.redhat_management_key = input_redhat_management_key
 
-    # Assert
-    assert system.redhat_management_key == ""
+        # Assert
+        assert system.redhat_management_key == expected_result
 
 
-def test_server(cobbler_api):
+@pytest.mark.parametrize(
+    "input_server,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), "192.168.1.1"),
+        ("<<inherit>>", does_not_raise(), "192.168.1.1"),
+        ("1.1.1.1", does_not_raise(), "1.1.1.1"),
+        (False, pytest.raises(TypeError), None),
+    ],
+)
+def test_server(cobbler_api, input_server, expected_exception, expected_result):
     # Arrange
     system = System(cobbler_api)
 
     # Act
-    system.server = ""
+    with expected_exception:
+        system.server = input_server
 
-    # Assert
-    assert system.server == "<<inherit>>"
+        # Assert
+        assert system.server == expected_result
 
 
 def test_status(cobbler_api):
@@ -358,38 +438,62 @@ def test_status(cobbler_api):
     assert system.status == ""
 
 
-def test_virt_auto_boot(cobbler_api):
+@pytest.mark.parametrize(
+    "value,expected_exception,expected_result",
+    [
+        (False, does_not_raise(), False),
+        (True, does_not_raise(), True),
+        ("True", does_not_raise(), True),
+        ("1", does_not_raise(), True),
+        ("", does_not_raise(), False),
+        ("<<inherit>>", does_not_raise(), True),
+    ],
+)
+def test_virt_auto_boot(cobbler_api, value, expected_exception, expected_result):
     # Arrange
     system = System(cobbler_api)
 
     # Act
-    system.virt_auto_boot = False
+    with expected_exception:
+        system.virt_auto_boot = value
 
-    # Assert
-    assert not system.virt_auto_boot
-
-
-def test_virt_cpus(cobbler_api):
-    # Arrange
-    system = System(cobbler_api)
-
-    # Act
-    system.virt_cpus = 5
-
-    # Assert
-    assert system.virt_cpus == 5
+        # Assert
+        assert system.virt_auto_boot is expected_result
 
 
 @pytest.mark.parametrize(
-    "value,expected_exception",
+    "value,expected_exception,expected_result",
     [
-        ("qcow2", does_not_raise()),
-        (enums.VirtDiskDrivers.QCOW2, does_not_raise()),
-        (False, pytest.raises(TypeError)),
-        ("", pytest.raises(ValueError)),
+        ("", does_not_raise(), 0),
+        # FIXME: (False, pytest.raises(TypeError)), --> does not raise
+        (-5, pytest.raises(ValueError), -5),
+        (0, does_not_raise(), 0),
+        (5, does_not_raise(), 5),
     ],
 )
-def test_virt_disk_driver(cobbler_api, value, expected_exception):
+def test_virt_cpus(cobbler_api, value, expected_exception, expected_result):
+    # Arrange
+    system = System(cobbler_api)
+
+    # Act
+    with expected_exception:
+        system.virt_cpus = value
+
+        # Assert
+        assert system.virt_cpus == expected_result
+
+
+@pytest.mark.parametrize(
+    "value,expected_exception,expected_result",
+    [
+        ("qcow2", does_not_raise(), enums.VirtDiskDrivers.QCOW2),
+        ("<<inherit>>", does_not_raise(), enums.VirtDiskDrivers.RAW),
+        (enums.VirtDiskDrivers.QCOW2, does_not_raise(), enums.VirtDiskDrivers.QCOW2),
+        (False, pytest.raises(TypeError), None),
+        ("", pytest.raises(ValueError), None),
+    ],
+)
+def test_virt_disk_driver(cobbler_api, value, expected_exception, expected_result):
     # Arrange
     system = System(cobbler_api)
 
@@ -398,32 +502,58 @@ def test_virt_disk_driver(cobbler_api, value, expected_exception):
         system.virt_disk_driver = value
 
         # Assert
-        if isinstance(value, str):
-            assert system.virt_disk_driver.value == value
-        else:
-            assert system.virt_disk_driver == value
+        assert system.virt_disk_driver == expected_result
 
 
-def test_virt_file_size(cobbler_api):
+@pytest.mark.parametrize(
+    "input_virt_file_size,expected_exception,expected_result",
+    [
+        (15.0, does_not_raise(), 15.0),
+        ("<<inherit>>", does_not_raise(), 5.0),
+    ],
+)
+def test_virt_file_size(
+    cobbler_api, input_virt_file_size, expected_exception, expected_result
+):
     # Arrange
     system = System(cobbler_api)
 
     # Act
-    system.virt_file_size = 1.0
+    with expected_exception:
+        system.virt_file_size = input_virt_file_size
 
-    # Assert
-    assert system.virt_file_size == 1.0
+        # Assert
+        assert system.virt_file_size == expected_result
 
 
-def test_virt_path(cobbler_api):
+@pytest.mark.parametrize(
+    "input_path,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), ""),
+        ("<<inherit>>", does_not_raise(), ""),
+        (False, pytest.raises(TypeError), None),
+    ],
+)
+def test_virt_path(
+    cobbler_api,
+    create_distro,
+    create_profile,
+    input_path,
+    expected_exception,
+    expected_result,
+):
     # Arrange
+    tmp_distro = create_distro()
+    tmp_profile = create_profile(tmp_distro.name)
     system = System(cobbler_api)
+    system.profile = tmp_profile.name
 
     # Act
-    system.virt_path = ""
+    with expected_exception:
+        system.virt_path = input_path
 
-    # Assert
-    assert system.virt_path == "<<inherit>>"
+        # Assert
+        assert system.virt_path == expected_result
 
 
 def test_virt_pxe_boot(cobbler_api):
@@ -437,28 +567,48 @@ def test_virt_pxe_boot(cobbler_api):
     assert not system.virt_pxe_boot
 
 
-def test_virt_ram(cobbler_api):
+@pytest.mark.parametrize(
+    "value,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), 0),
+        ("<<inherit>>", does_not_raise(), 512),
+        (0, does_not_raise(), 0),
+        (0.0, pytest.raises(TypeError), 0),
+    ],
+)
+def test_virt_ram(
+    cobbler_api,
+    create_distro,
+    create_profile,
+    value,
+    expected_exception,
+    expected_result,
+):
     # Arrange
+    distro = create_distro()
+    profile = create_profile(distro.name)
     system = System(cobbler_api)
+    system.profile = profile.name
 
     # Act
-    system.virt_ram = 5
+    with expected_exception:
+        system.virt_ram = value
 
-    # Assert
-    assert system.virt_ram == 5
+        # Assert
+        assert system.virt_ram == expected_result
 
 
 @pytest.mark.parametrize(
-    "value,expected_exception",
+    "value,expected_exception, expected_result",
     [
-        # ("<<inherit>>", does_not_raise()),
-        ("qemu", does_not_raise()),
-        (enums.VirtType.QEMU, does_not_raise()),
-        ("", pytest.raises(ValueError)),
-        (False, pytest.raises(TypeError)),
+        ("<<inherit>>", does_not_raise(), enums.VirtType.XENPV),
+        ("qemu", does_not_raise(), enums.VirtType.QEMU),
+        (enums.VirtType.QEMU, does_not_raise(), enums.VirtType.QEMU),
+        ("", pytest.raises(ValueError), None),
+        (False, pytest.raises(TypeError), None),
     ],
 )
-def test_virt_type(cobbler_api, value, expected_exception):
+def test_virt_type(cobbler_api, value, expected_exception, expected_result):
     # Arrange
     system = System(cobbler_api)
 
@@ -467,10 +617,7 @@ def test_virt_type(cobbler_api, value, expected_exception):
         system.virt_type = value
 
         # Assert
-        if isinstance(value, str):
-            assert system.virt_type.value == value
-        else:
-            assert system.virt_type == value
+        assert system.virt_type == expected_result
 
 
 def test_serial_device(cobbler_api):

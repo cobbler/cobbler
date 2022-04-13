@@ -117,15 +117,30 @@ def test_rpm_list(cobbler_api):
     assert testrepo.rpm_list == []
 
 
-def test_createrepo_flags(cobbler_api):
+@pytest.mark.parametrize(
+    "input_flags,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), ""),
+        (
+            "<<inherit>>",
+            does_not_raise(),
+            "-c cache -s sha",
+        ),  # Result is coming from settings.yaml
+        (0, pytest.raises(TypeError), ""),
+    ],
+)
+def test_createrepo_flags(
+    cobbler_api, input_flags, expected_exception, expected_result
+):
     # Arrange
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.createrepo_flags = ""
+    with expected_exception:
+        testrepo.createrepo_flags = input_flags
 
-    # Assert
-    assert testrepo.createrepo_flags == ""
+        # Assert
+        assert testrepo.createrepo_flags == expected_result
 
 
 def test_breed(cobbler_api):
@@ -210,12 +225,21 @@ def test_apt_dists(cobbler_api):
     assert testrepo.apt_dists == []
 
 
-def test_proxy(cobbler_api):
+@pytest.mark.parametrize(
+    "input_proxy,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), ""),
+        ("<<inherit>>", does_not_raise(), ""),
+        (0, pytest.raises(TypeError), ""),
+    ],
+)
+def test_proxy(cobbler_api, input_proxy, expected_exception, expected_result):
     # Arrange
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.proxy = ""
+    with expected_exception:
+        testrepo.proxy = input_proxy
 
-    # Assert
-    assert testrepo.proxy == ""
+        # Assert
+        assert testrepo.proxy == expected_result
