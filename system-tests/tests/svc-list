@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Check that the Cobbler HTTP endpoint /autoinstall/ is callable
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+# Arrange
+cobbler distro add --name fake --arch x86_64 --kernel ${fake_kernel} \
+	--initrd ${fake_initramfs}
+cobbler profile add --name fake --distro fake
+cobbler system add --name testbed --profile fake
+# TODO add more systems, profiles and distros, images, repos, mgmtclasses, packages, files, menus
+# Prepare expected result
+cat >${tmp}/a <<-EOF
+testbed
+EOF
+cat >${tmp}/a2 <<-EOF
+fake
+EOF
+cat >${tmp}/a3 <<-EOF
+EOF
+
+# Act
+curl --output ${tmp}/b http://localhost/cblr/svc/op/list
+curl --output ${tmp}/c http://localhost/cblr/svc/op/list/what/systems
+curl --output ${tmp}/d http://localhost/cblr/svc/op/list/what/profiles
+curl --output ${tmp}/e http://localhost/cblr/svc/op/list/what/distros
+curl --output ${tmp}/f http://localhost/cblr/svc/op/list/what/images
+curl --output ${tmp}/g http://localhost/cblr/svc/op/list/what/repos
+curl --output ${tmp}/h http://localhost/cblr/svc/op/list/what/mgmtclasses
+curl --output ${tmp}/i http://localhost/cblr/svc/op/list/what/packages
+curl --output ${tmp}/j http://localhost/cblr/svc/op/list/what/files
+curl --output ${tmp}/k http://localhost/cblr/svc/op/list/what/menus
+
+# Assert
+diff ${tmp}/{a,b}
+diff ${tmp}/{a,c}
+diff ${tmp}/{a2,d}
+diff ${tmp}/{a2,e}
+diff ${tmp}/{a3,f}
+diff ${tmp}/{a3,g}
+diff ${tmp}/{a3,h}
+diff ${tmp}/{a3,i}
+diff ${tmp}/{a3,j}
+diff ${tmp}/{a3,k}
