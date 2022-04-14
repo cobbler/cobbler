@@ -17,7 +17,7 @@ def does_not_raise():
 
 
 @pytest.fixture(scope="function")
-def cobbler_api():
+def cobbler_api() -> CobblerAPI:
     CobblerAPI.__shared_state = {}
     CobblerAPI.__has_loaded = False
     return CobblerAPI()
@@ -30,6 +30,28 @@ def reset_settings_yaml(tmp_path):
     shutil.copy(filepath, tmp_path.joinpath(filename))
     yield
     shutil.copy(tmp_path.joinpath(filename), filepath)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def reset_items(cobbler_api):
+    for system in cobbler_api.systems():
+        cobbler_api.remove_system(system.name)
+    for image in cobbler_api.images():
+        cobbler_api.remove_distro(image.name)
+    for profile in cobbler_api.profiles():
+        cobbler_api.remove_profile(profile.name)
+    for distro in cobbler_api.distros():
+        cobbler_api.remove_distro(distro.name)
+    for package in cobbler_api.packages():
+        cobbler_api.remove_package(package.name)
+    for repo in cobbler_api.repos():
+        cobbler_api.remove_repo(repo.name)
+    for mgmtclass in cobbler_api.mgmtclasses():
+        cobbler_api.remove_mgmtclass(mgmtclass.name)
+    for file in cobbler_api.files():
+        cobbler_api.remove_file(file.name)
+    for menu in cobbler_api.menus():
+        cobbler_api.remove_menu(menu.name)
 
 
 @pytest.fixture(scope="function")
