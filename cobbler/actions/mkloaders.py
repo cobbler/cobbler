@@ -122,13 +122,23 @@ class MkLoaders:
                 "syslinux command not available. Bailing out of syslinux setup!"
             )
             return
+        syslinux_version = get_syslinux_version()
         # Make modules
         symlink(
             self.syslinux_folder.joinpath("menu.c32"),
             self.bootloaders_dir.joinpath("menu.c32"),
             skip_existing=True,
         )
-        if get_syslinux_version() < 5:
+        # According to https://wiki.syslinux.org/wiki/index.php?title=Library_modules,
+        # 'menu.c32' depends on 'libutil.c32'.
+        libutil_c32_path = self.syslinux_folder.joinpath("libutil.c32")
+        if syslinux_version > 4 and libutil_c32_path.exists():
+            symlink(
+                libutil_c32_path,
+                self.bootloaders_dir.joinpath("libutil.c32"),
+                skip_existing=True,
+            )
+        if syslinux_version < 5:
             # This file is only required for Syslinux 5 and newer.
             # Source: https://wiki.syslinux.org/wiki/index.php?title=Library_modules
             self.logger.info(
