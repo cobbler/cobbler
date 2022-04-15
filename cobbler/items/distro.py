@@ -303,6 +303,15 @@ class Distro(item.Item):
         """
         return self._remote_grub_kernel
 
+    @remote_grub_kernel.setter
+    def remote_grub_kernel(self, remote_grub_kernel: str):
+        """
+        The setter for the ``remote_grub_kernel`` property.
+
+        :param remote_grub_kernel: The computed URL from ``remote_boot_kernel``.
+        """
+        self._remote_grub_kernel = remote_grub_kernel
+
     @property
     def remote_grub_initrd(self) -> str:
         r"""
@@ -312,6 +321,15 @@ class Distro(item.Item):
         :getter: The computed URL from ``remote_boot_initrd``.
         """
         return self._remote_grub_initrd
+
+    @remote_grub_initrd.setter
+    def remote_grub_initrd(self, remote_grub_initrd: str):
+        r"""
+        The setter for the ``remote_grub_initrd`` property.
+
+        :param remote_grub_initrd: The computed URL from ``remote_boot_initrd``.
+        """
+        self._remote_grub_initrd = remote_grub_initrd
 
     @property
     def remote_boot_initrd(self) -> str:
