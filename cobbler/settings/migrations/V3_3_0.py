@@ -280,7 +280,7 @@ def migrate(settings: dict) -> dict:
     # name - value pairs
     missing_keys = {
         "auto_migrate_settings": True,
-        "bind_zonefile_path": "@@bind_zonefiles@@",
+        "bind_zonefile_path": "/var/lib/named",
         "bootloaders_formats": {
             "aarch64": {"binary_name": "grubaa64.efi"},
             "arm": {"binary_name": "bootarm.efi"},
