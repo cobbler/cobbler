@@ -6,28 +6,35 @@ from tests.conftest import does_not_raise
 
 
 @pytest.fixture(scope="function")
-def reset_modules():
-    module_loader.MODULE_CACHE = {}
-    module_loader.MODULES_BY_CATEGORY = {}
+def create_module_loader(cobbler_api):
+    def _create_module_loader() -> module_loader.ModuleLoader:
+        test_module_loader = module_loader.ModuleLoader(cobbler_api)
+        test_module_loader.load_modules()
+        return test_module_loader
+
+    return _create_module_loader
 
 
-@pytest.fixture(scope="function")
-def load_modules():
-    module_loader.load_modules()
-
-
-def test_load_modules():
-    # Arrange
-
-    # Act
-    module_loader.load_modules()
+def test_object_creation(cobbler_api):
+    # Arrange & Act
+    result = module_loader.ModuleLoader(cobbler_api)
 
     # Assert
-    assert module_loader.MODULE_CACHE != {}
-    assert module_loader.MODULES_BY_CATEGORY != {}
+    assert isinstance(result, module_loader.ModuleLoader)
 
 
-@pytest.mark.usefixtures("reset_modules", "load_modules")
+def test_load_modules(create_module_loader):
+    # Arrange
+    test_module_loader = create_module_loader()
+
+    # Act
+    test_module_loader.load_modules()
+
+    # Assert
+    assert test_module_loader.module_cache != {}
+    assert test_module_loader.modules_by_category != {}
+
+
 @pytest.mark.parametrize(
     "module_name",
     [
@@ -38,17 +45,17 @@ def test_load_modules():
         # ("sync_post_wingen")
     ],
 )
-def test_get_module_by_name(module_name):
-    # Arrange -> Done in fixtures
+def test_get_module_by_name(create_module_loader, module_name):
+    # Arrange
+    test_module_loader = create_module_loader()
 
     # Act
-    returned_module = module_loader.get_module_by_name(module_name)
+    returned_module = test_module_loader.get_module_by_name(module_name)
 
     # Assert
     assert isinstance(returned_module.register(), str)
 
 
-@pytest.mark.usefixtures("reset_modules", "load_modules")
 @pytest.mark.parametrize(
     "module_section,fallback_name,expected_result,expected_exception",
     [
@@ -67,13 +74,18 @@ def test_get_module_by_name(module_name):
     ],
 )
 def test_get_module_name(
-    module_section, fallback_name, expected_result, expected_exception
+    create_module_loader,
+    module_section,
+    fallback_name,
+    expected_result,
+    expected_exception,
 ):
-    # Arrange -> Done in fixtures
+    # Arrange
+    test_module_loader = create_module_loader()
 
     # Act
     with expected_exception:
-        result_name = module_loader.get_module_name(
+        result_name = test_module_loader.get_module_name(
             module_section, "module", fallback_name
         )
 
@@ -81,7 +93,6 @@ def test_get_module_name(
         assert result_name == expected_result
 
 
-@pytest.mark.usefixtures("reset_modules", "load_modules")
 @pytest.mark.parametrize(
     "module_section,fallback_name,expected_exception",
     [
@@ -94,12 +105,15 @@ def test_get_module_name(
         ("wrong_section", "authentication.configfile", does_not_raise()),
     ],
 )
-def test_get_module_from_file(module_section, fallback_name, expected_exception):
-    # Arrange -> Done in fixtures
+def test_get_module_from_file(
+    create_module_loader, module_section, fallback_name, expected_exception
+):
+    # Arrange
+    test_module_loader = create_module_loader()
 
     # Act
     with expected_exception:
-        result_module = module_loader.get_module_from_file(
+        result_module = test_module_loader.get_module_from_file(
             module_section, "module", fallback_name
         )
 
@@ -107,7 +121,6 @@ def test_get_module_from_file(module_section, fallback_name, expected_exception)
         assert isinstance(result_module.register(), str)
 
 
-@pytest.mark.usefixtures("reset_modules", "load_modules")
 @pytest.mark.parametrize(
     "category,expected_names",
     [
@@ -183,11 +196,12 @@ def test_get_module_from_file(module_section, fallback_name, expected_exception)
         ),
     ],
 )
-def test_get_modules_in_category(category, expected_names):
-    # Arrange -> Done in fixtures
+def test_get_modules_in_category(create_module_loader, category, expected_names):
+    # Arrange
+    test_module_loader = create_module_loader()
 
     # Act
-    result = module_loader.get_modules_in_category(category)
+    result = test_module_loader.get_modules_in_category(category)
 
     # Assert
     assert len(result) > 0

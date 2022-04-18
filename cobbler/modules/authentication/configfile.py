@@ -11,17 +11,20 @@ import hashlib
 import os
 from typing import List
 
-from cobbler.module_loader import get_module_name
 
-
-def hashfun(text: str) -> str:
+def hashfun(api, text: str) -> str:
     """
     Converts a str object to a hash which was configured in modules.conf of the Cobbler settings.
 
+    :param api: CobblerAPI
     :param text: The text to hash.
     :return: The hash of the text. This should output the same hash when entered the same text.
     """
-    hashfunction = get_module_name("authentication", "hash_algorithm", "sha3_512")
+    hashfunction = (
+        api.settings()
+        .modules.get("authentication", {})
+        .get("hash_algorithm", "sha3_512")
+    )
     if hashfunction == "sha3_224":
         hashalgorithm = hashlib.sha3_224(text.encode("utf-8"))
     elif hashfunction == "sha3_384":
@@ -91,7 +94,7 @@ def authenticate(api_handle, username: str, password: str) -> bool:
     userlist = __parse_storage()
     for (user, realm, passwordhash) in userlist:
         if user == username and realm == "Cobbler":
-            calculated_passwordhash = hashfun(password)
+            calculated_passwordhash = hashfun(api_handle, password)
             if calculated_passwordhash == passwordhash:
                 return True
     return False

@@ -453,7 +453,6 @@ class restorestate(statebase):
             return
         self._copy(os.path.join(self.statepath, "collections"), libpath)
         self._copy(os.path.join(self.statepath, "cobbler.conf"), webconfig)
-        self._copy(os.path.join(self.statepath, "modules.conf"), etcpath)
         self._copy(os.path.join(self.statepath, "settings.yaml"), etcpath)
         self._copy(os.path.join(self.statepath, "users.conf"), etcpath)
         self._copy(os.path.join(self.statepath, "users.digest"), etcpath)
@@ -486,7 +485,6 @@ class savestate(statebase):
             os.makedirs(self.statepath)
         self._copy(os.path.join(libpath, "collections"), self.statepath)
         self._copy(os.path.join(webconfig, "cobbler.conf"), self.statepath)
-        self._copy(os.path.join(etcpath, "modules.conf"), self.statepath)
         self._copy(os.path.join(etcpath, "settings.yaml"), self.statepath)
         self._copy(os.path.join(etcpath, "users.conf"), self.statepath)
         self._copy(os.path.join(etcpath, "users.digest"), self.statepath)
@@ -599,7 +597,6 @@ if __name__ == "__main__":
                 "%s" % etcpath,
                 [
                     "config/cobbler/auth.conf",
-                    "config/cobbler/modules.conf",
                     "config/cobbler/mongodb.conf",
                     "config/cobbler/users.conf",
                     "config/cobbler/users.digest",

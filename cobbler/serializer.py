@@ -13,10 +13,9 @@ import sys
 import time
 import traceback
 
-from cobbler import module_loader
-
 LOCK_ENABLED = True
 LOCK_HANDLE = None
+LOCKFILE_LOCATION = "/var/lib/cobbler/lock"
 
 
 def handler(num, frame):
@@ -32,10 +31,10 @@ def __grab_lock():
     """
     try:
         if LOCK_ENABLED:
-            if not os.path.exists("/var/lib/cobbler/lock"):
-                fd = open("/var/lib/cobbler/lock", "w+")
+            if not os.path.exists(LOCKFILE_LOCATION):
+                fd = open(LOCKFILE_LOCATION, "w+")
                 fd.close()
-            LOCK_HANDLE = open("/var/lib/cobbler/lock", "r")
+            LOCK_HANDLE = open(LOCKFILE_LOCATION, "r")
             fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_EX)
     except:
         # this is pretty much FATAL, avoid corruption and quit now.
@@ -52,56 +51,60 @@ def __release_lock(with_changes=False):
         fd.write("%f" % time.time())
         fd.close()
     if LOCK_ENABLED:
-        LOCK_HANDLE = open("/var/lib/cobbler/lock", "r")
+        LOCK_HANDLE = open(LOCKFILE_LOCATION, "r")
         fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
         LOCK_HANDLE.close()
 
 
-def serialize(collection):
+def serialize(api, collection):
     """
     Save a collection to disk
 
+    :param api: CobblerAPI
     :param collection: The collection to serialize.
     """
 
     __grab_lock()
-    storage_module = __get_storage_module(collection.collection_type())
+    storage_module = __get_storage_module(api)
     storage_module.serialize(collection)
     __release_lock()
 
 
-def serialize_item(collection, item):
+def serialize_item(api, collection, item):
     """
     Save a collection item to disk
 
+    :param api: CobblerAPI
     :param collection: The Cobbler collection to know the type of the item.
     :param item: The collection item to serialize.
     """
 
     __grab_lock()
-    storage_module = __get_storage_module(collection.collection_type())
+    storage_module = __get_storage_module(api)
     storage_module.serialize_item(collection, item)
     __release_lock(with_changes=True)
 
 
-def serialize_delete(collection, item):
+def serialize_delete(api, collection, item):
     """
     Delete a collection item from disk
 
+    :param api: CobblerAPI
     :param collection: The Cobbler collection to know the type of the item.
     :param item: The collection item to delete.
     """
 
     __grab_lock()
-    storage_module = __get_storage_module(collection.collection_type())
+    storage_module = __get_storage_module(api)
     storage_module.serialize_delete(collection, item)
     __release_lock(with_changes=True)
 
 
-def deserialize(collection, topological: bool = True):
+def deserialize(api, collection, topological: bool = True):
     """
     Load a collection from disk.
 
+    :param api: CobblerAPI
     :param collection: The Cobbler collection to know the type of the item.
     :param topological: Sort collection based on each items' depth attribute
                         in the list of collection items.  This ensures
@@ -110,18 +113,20 @@ def deserialize(collection, topological: bool = True):
                         profiles/subprofiles.  See cobbler/items/item.py
     """
     __grab_lock()
-    storage_module = __get_storage_module(collection.collection_type())
+    storage_module = __get_storage_module(api)
     storage_module.deserialize(collection, topological)
     __release_lock()
 
 
-def __get_storage_module(collection_type):
+def __get_storage_module(api):
     """
-    Look up serializer in /etc/cobbler/modules.conf
+    Look up configured module in the settings
 
-    :param collection_type: str
+    :param api: CobblerAPI
     :returns: A Python module.
     """
-    return module_loader.get_module_from_file(
-        "serializers", collection_type, "serializers.file"
+    return api.get_module_from_file(
+        "serializers",
+        api.settings().modules.get("serializers", {}).get("module"),
+        "serializers.file",
     )

@@ -597,3 +597,19 @@ windows_template_dir: "/etc/cobbler/windows"
 
 # Samba share name for distros
 samba_distro_share: "DISTRO"
+
+# Cobbler modules.conf replacement
+modules:
+  authentication:
+    module: "authentication.configfile"
+    hash_algorithm: "sha3_512"
+  authorization:
+    module: "authorization.allowall"
+  dns:
+    module: "managers.bind"
+  dhcp:
+    module: "managers.isc"
+  tftpd:
+    module: "managers.in_tftpd"
+  serializers:
+    module: "serializers.file"

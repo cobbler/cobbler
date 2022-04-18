@@ -200,6 +200,17 @@ class Settings:
         self.manage_tftpd = True
         self.mgmt_classes = []
         self.mgmt_parameters = {"from_cobbler": 1}
+        self.modules = {
+            "authentication": {
+                "module": "authentication.configfile",
+                "hash_algorithm": "sha3_512",
+            },
+            "authorization": {"module": "authorization.allowall"},
+            "dns": {"module": "managers.bind"},
+            "dhcp": {"module": "managers.isc"},
+            "tftpd": {"module": "managers.in_tftpd"},
+            "serializers": {"module": "serializers.file"},
+        }
         self.next_server_v4 = "127.0.0.1"
         self.next_server_v6 = "::1"
         self.nsupdate_enabled = False
