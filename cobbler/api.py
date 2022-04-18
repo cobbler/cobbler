@@ -118,7 +118,8 @@ class CobblerAPI:
             CobblerAPI.__has_loaded = True
 
             # load the modules first, or nothing else works...
-            module_loader.load_modules()
+            self.module_loader = module_loader.ModuleLoader(self)
+            self.module_loader.load_modules()
 
             # In case the signatures can't be loaded, we can't validate distros etc. Thus, the raised exception should
             # not be caught.
@@ -2065,22 +2066,22 @@ class CobblerAPI:
         :param module_name:
         :return:
         """
-        return module_loader.get_module_by_name(module_name)
+        return self.module_loader.get_module_by_name(module_name)
 
     def get_module_from_file(
         self, section: str, name: str, fallback: Optional[str] = None
     ):
         """
-        Looks in ``/etc/cobbler/modules.conf`` for a section called 'section' and a key called 'name', and then returns
+        Looks in ``/etc/cobbler/settings.yaml`` for a section called 'section' and a key called 'name', and then returns
         the module that corresponds to the value of that key.
         Cobbler internal use only.
 
-        :param section:
-        :param name:
-        :param fallback:
-        :return:
+        :param section: The section to look at.
+        :param name: The name of the module to retrieve
+        :param fallback: The default module in case the requested one is not found.
+        :return: The requested Python Module.
         """
-        return module_loader.get_module_from_file(section, name, fallback)
+        return self.module_loader.get_module_from_file(section, name, fallback)
 
     def get_module_name_from_file(
         self, section: str, name: str, fallback: Optional[str] = None
@@ -2094,7 +2095,7 @@ class CobblerAPI:
         :param fallback:
         :return:
         """
-        return module_loader.get_module_name(section, name, fallback)
+        return self.module_loader.get_module_name(section, name, fallback)
 
     def get_modules_in_category(self, category: str):
         """
@@ -2104,7 +2105,7 @@ class CobblerAPI:
         :param category: The category to check.
         :return: The list of modules.
         """
-        return module_loader.get_modules_in_category(category)
+        return self.module_loader.get_modules_in_category(category)
 
     # ==========================================================================
 

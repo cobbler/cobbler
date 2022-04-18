@@ -124,15 +124,15 @@ class CollectionManager:
         Save all cobbler_collections to disk
         """
 
-        serializer.serialize(self._distros)
-        serializer.serialize(self._repos)
-        serializer.serialize(self._profiles)
-        serializer.serialize(self._images)
-        serializer.serialize(self._systems)
-        serializer.serialize(self._mgmtclasses)
-        serializer.serialize(self._packages)
-        serializer.serialize(self._files)
-        serializer.serialize(self._menus)
+        serializer.serialize(self.api, self._distros)
+        serializer.serialize(self.api, self._repos)
+        serializer.serialize(self.api, self._profiles)
+        serializer.serialize(self.api, self._images)
+        serializer.serialize(self.api, self._systems)
+        serializer.serialize(self.api, self._mgmtclasses)
+        serializer.serialize(self.api, self._packages)
+        serializer.serialize(self.api, self._files)
+        serializer.serialize(self.api, self._menus)
 
     # pylint: disable=R0201
     def serialize_one_item(self, item):
@@ -142,7 +142,7 @@ class CollectionManager:
         :param item: collection item
         """
         collection = self.get_items(item.COLLECTION_TYPE)
-        serializer.serialize_item(collection, item)
+        serializer.serialize_item(self.api, collection, item)
 
     # pylint: disable=R0201
     def serialize_item(self, collection, item):
@@ -155,7 +155,7 @@ class CollectionManager:
         :param collection: Collection
         :param item: collection item
         """
-        serializer.serialize_item(collection, item)
+        serializer.serialize_item(self.api, collection, item)
 
     # pylint: disable=R0201
     def serialize_delete_one_item(self, item):
@@ -165,7 +165,7 @@ class CollectionManager:
         :param item: collection item
         """
         collection = self.get_items(item.COLLECTION_TYPE)
-        serializer.serialize_delete(collection, item)
+        serializer.serialize_delete(self.api, collection, item)
 
     # pylint: disable=R0201
     def serialize_delete(self, collection, item):
@@ -175,7 +175,7 @@ class CollectionManager:
         :param collection: collection
         :param item: collection item
         """
-        serializer.serialize_delete(collection, item)
+        serializer.serialize_delete(self.api, collection, item)
 
     def deserialize(self):
         """
@@ -195,10 +195,10 @@ class CollectionManager:
             self._files,
         ):
             try:
-                serializer.deserialize(collection)
+                serializer.deserialize(self.api, collection)
             except Exception as e:
                 raise CX(
-                    "serializer: error loading collection %s: %s. Check /etc/cobbler/modules.conf"
+                    "serializer: error loading collection %s: %s. Check your settings!"
                     % (collection.collection_type(), e)
                 ) from e
 
