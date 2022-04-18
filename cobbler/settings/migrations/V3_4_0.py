@@ -4,7 +4,9 @@ Migration from V3.3.1 to V3.3.2
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: 2022 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
+import configparser
 import pathlib
+from configparser import ConfigParser
 
 from schema import Optional, Schema, SchemaError
 
@@ -156,6 +158,10 @@ schema = Schema(
             Optional("tftpd"): {Optional("module"): str},
             Optional("serializers"): {Optional("module"): str},
         },
+        Optional("mongodb"): {
+            Optional("host"): str,
+            Optional("port"): int,
+        },
     },
     ignore_extra_keys=False,
 )
@@ -199,6 +205,21 @@ def migrate(settings: dict) -> dict:
 
     # rename keys and update their value if needed
     include = settings.pop("include")
+
+    # Do mongodb.conf migration
+    mongodb_config = "/etc/cobbler/mongodb.conf"
+    cp = ConfigParser()
+    try:
+        cp.read(mongodb_config)
+    except configparser.Error as cp_error:
+        raise configparser.Error(
+            "Could not read Cobbler MongoDB config file!"
+        ) from cp_error
+    settings["mongodb"] = {
+        "host": cp.get("connection", "host", fallback="localhost"),
+        "port": cp.getint("connection", "port", fallback=27017),
+    }
+    pathlib.Path(mongodb_config).unlink(missing_ok=True)
 
     # Drop defaults
     from cobbler.settings import Settings

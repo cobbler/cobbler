@@ -188,4 +188,6 @@ def test_normalize_v3_4_0_full():
     new_settings = V3_4_0.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_4_0.normalize(new_settings)) == 131
+    assert "mongodb" in new_settings
+    assert new_settings["mongodb"] == {"host": "localhost", "port": 27017}
+    assert len(V3_4_0.normalize(new_settings)) == 132

@@ -26,6 +26,8 @@ except ModuleNotFoundError:
 
 mongodb = None
 
+# TODO: Use settings instead of file.
+
 
 def __connect(configfile: str = "/etc/cobbler/mongodb.conf"):
     """

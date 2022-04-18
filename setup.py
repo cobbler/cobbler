@@ -597,7 +597,6 @@ if __name__ == "__main__":
                 "%s" % etcpath,
                 [
                     "config/cobbler/auth.conf",
-                    "config/cobbler/mongodb.conf",
                     "config/cobbler/users.conf",
                     "config/cobbler/users.digest",
                     "config/cheetah/cheetah_macros",
