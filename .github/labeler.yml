@@ -1,0 +1,12 @@
+Documentation:
+- docs/**/*
+
+Tests:
+- tests/**/*
+- system-tests/**/*
+
+CI:
+- .github/**/*
+
+Packaging:
+- .obs/**/*
