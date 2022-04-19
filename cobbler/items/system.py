@@ -825,7 +825,6 @@ class System(Item):
         self._redhat_management_key = enums.VALUE_INHERITED
         self._server = enums.VALUE_INHERITED
         self._status = ""
-        # FIXME: The virt_* attributes don't support inheritance yet
         self._virt_auto_boot: Union[bool, str] = enums.VALUE_INHERITED
         self._virt_cpus: Union[int, str] = enums.VALUE_INHERITED
         self._virt_disk_driver = enums.VirtDiskDrivers.INHERITED
@@ -1085,6 +1084,8 @@ class System(Item):
         """
         boot_loaders property.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Returns the value for ``boot_loaders``.
         :setter: Sets the value for the property ``boot_loaders``.
         :return:
@@ -1092,49 +1093,56 @@ class System(Item):
         return self._resolve("boot_loaders")
 
     @boot_loaders.setter
-    def boot_loaders(self, boot_loaders: str):
+    def boot_loaders(self, boot_loaders: Union[str, list]):
         """
         Setter of the boot loaders.
 
         :param boot_loaders: The boot loaders for the system.
         :raises CX: This is risen in case the bootloaders set are not valid ones.
         """
+        if not isinstance(boot_loaders, (str, list)):
+            raise TypeError("The bootloaders need to be either a str or list")
+
         if boot_loaders == enums.VALUE_INHERITED:
             self._boot_loaders = enums.VALUE_INHERITED
             return
 
-        if boot_loaders:
-            boot_loaders_split = utils.input_string_or_list(boot_loaders)
-
-            parent = self.parent
-            if parent is not None:
-                parent_boot_loaders = parent.boot_loaders
-            else:
-                self.logger.warning(
-                    'Parent of System "%s" could not be found for resolving the parent bootloaders.',
-                    self.name,
-                )
-                parent_boot_loaders = []
-            if not set(boot_loaders_split).issubset(parent_boot_loaders):
-                raise CX(
-                    'Error with system "%s" - not all boot_loaders are supported (given: "%s"; supported:'
-                    '"%s")'
-                    % (self.name, str(boot_loaders_split), str(parent_boot_loaders))
-                )
-            self._boot_loaders = boot_loaders_split
-        else:
+        if boot_loaders == "" or boot_loaders == []:
             self._boot_loaders = []
+            return
+
+        if isinstance(boot_loaders, str):
+            boot_loaders_split = utils.input_string_or_list(boot_loaders)
+        else:
+            boot_loaders_split = boot_loaders
+
+        parent = self.parent
+        if parent is not None:
+            parent_boot_loaders = parent.boot_loaders
+        else:
+            self.logger.warning(
+                'Parent of System "%s" could not be found for resolving the parent bootloaders.',
+                self.name,
+            )
+            parent_boot_loaders = []
+        if not set(boot_loaders_split).issubset(parent_boot_loaders):
+            raise CX(
+                'Error with system "%s" - not all boot_loaders are supported (given: "%s"; supported:'
+                '"%s")' % (self.name, str(boot_loaders_split), str(parent_boot_loaders))
+            )
+        self._boot_loaders = boot_loaders_split
 
     @property
     def server(self) -> str:
         """
         server property.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Returns the value for ``server``.
         :setter: Sets the value for the property ``server``.
-        :return:
         """
-        return self._server
+        return self._resolve("server")
 
     @server.setter
     def server(self, server: str):
@@ -1147,7 +1155,7 @@ class System(Item):
         """
         if not isinstance(server, str):
             raise TypeError("Field server of object system needs to be of type str!")
-        if server is None or server == "":
+        if server == "":
             server = enums.VALUE_INHERITED
         self._server = server
 
@@ -1155,6 +1163,8 @@ class System(Item):
     def next_server_v4(self) -> str:
         """
         next_server_v4 property.
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: Returns the value for ``next_server_v4``.
         :setter: Sets the value for the property ``next_server_v4``.
@@ -1181,6 +1191,8 @@ class System(Item):
     def next_server_v6(self) -> str:
         """
         next_server_v6 property.
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: Returns the value for ``next_server_v6``.
         :setter: Sets the value for the property ``next_server_v6``.
@@ -1234,11 +1246,12 @@ class System(Item):
     @property
     def proxy(self) -> str:
         """
-        proxy property.
+        proxy property. This corresponds per default to the setting``proxy_url_int``.
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: Returns the value for ``proxy``.
         :setter: Sets the value for the property ``proxy``.
-        :return:
         """
         return self._resolve("proxy_url_int")
 
@@ -1247,10 +1260,8 @@ class System(Item):
         """
         Setter for the proxy of the System class.
 
-
-        :param proxy:
+        :param proxy: The new value for the proxy.
         :raises TypeError: In case proxy is no string.
-        :return:
         """
         if not isinstance(proxy, str):
             raise TypeError("Field proxy of object system needs to be of type str!")
@@ -1261,9 +1272,10 @@ class System(Item):
         """
         redhat_management_key property.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Returns the value for ``redhat_management_key``.
         :setter: Sets the value for the property ``redhat_management_key``.
-        :return:
         """
         return self._resolve("redhat_management_key")
 
@@ -1272,8 +1284,7 @@ class System(Item):
         """
         Setter for the redhat_management_key of the System class.
 
-
-        :param management_key:
+        :param management_key: The new value for the redhat management key
         :raises TypeError: In case management_key is no string.
         """
         if not isinstance(management_key, str):
@@ -1475,6 +1486,8 @@ class System(Item):
         """
         enable_ipxe property.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Returns the value for ``enable_ipxe``.
         :setter: Sets the value for the property ``enable_ipxe``.
         :return:
@@ -1613,19 +1626,19 @@ class System(Item):
         """
         virt_cpus property.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Returns the value for ``virt_cpus``.
         :setter: Sets the value for the property ``virt_cpus``.
-        :return:
         """
-        return self._virt_cpus
+        return self._resolve("virt_cpus")
 
     @virt_cpus.setter
     def virt_cpus(self, num: int):
         """
         Setter for the virt_cpus of the System class.
 
-
-        :param num:
+        :param num: The new value for the number of CPU cores.
         """
         self._virt_cpus = validate.validate_virt_cpus(num)
 
@@ -1634,11 +1647,12 @@ class System(Item):
         """
         virt_file_size property.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Returns the value for ``virt_file_size``.
         :setter: Sets the value for the property ``virt_file_size``.
-        :return:
         """
-        return self._virt_file_size
+        return self._resolve("virt_file_size")
 
     @virt_file_size.setter
     def virt_file_size(self, num: float):
@@ -1655,19 +1669,19 @@ class System(Item):
         """
         virt_disk_driver property.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Returns the value for ``virt_disk_driver``.
         :setter: Sets the value for the property ``virt_disk_driver``.
-        :return:
         """
-        return self._virt_disk_driver
+        return self._resolve_enum("virt_disk_driver", enums.VirtDiskDrivers)
 
     @virt_disk_driver.setter
     def virt_disk_driver(self, driver: Union[str, enums.VirtDiskDrivers]):
         """
         Setter for the virt_disk_driver of the System class.
 
-
-        :param driver:
+        :param driver: The new disk driver for the virtual disk.
         """
         self._virt_disk_driver = enums.VirtDiskDrivers.to_enum(driver)
 
@@ -1676,21 +1690,24 @@ class System(Item):
         """
         virt_auto_boot property.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Returns the value for ``virt_auto_boot``.
         :setter: Sets the value for the property ``virt_auto_boot``.
-        :return:
         """
-        return self._virt_auto_boot
+        return self._resolve("virt_auto_boot")
 
     @virt_auto_boot.setter
-    def virt_auto_boot(self, num: bool):
+    def virt_auto_boot(self, value: bool):
         """
         Setter for the virt_auto_boot of the System class.
 
-
-        :param num:
+        :param value: Weather the VM should automatically boot or not.
         """
-        self._virt_auto_boot = validate.validate_virt_auto_boot(num)
+        if value == enums.VALUE_INHERITED:
+            self._virt_auto_boot = enums.VALUE_INHERITED
+            return
+        self._virt_auto_boot = validate.validate_virt_auto_boot(value)
 
     @property
     def virt_pxe_boot(self) -> bool:
@@ -1699,7 +1716,6 @@ class System(Item):
 
         :getter: Returns the value for ``virt_pxe_boot``.
         :setter: Sets the value for the property ``virt_pxe_boot``.
-        :return:
         """
         return self._virt_pxe_boot
 
@@ -1707,7 +1723,6 @@ class System(Item):
     def virt_pxe_boot(self, num: bool):
         """
         Setter for the virt_pxe_boot of the System class.
-
 
         :param num:
         """
@@ -1718,11 +1733,12 @@ class System(Item):
         """
         virt_ram property.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Returns the value for ``virt_ram``.
         :setter: Sets the value for the property ``virt_ram``.
-        :return:
         """
-        return self._virt_ram
+        return self._resolve("virt_ram")
 
     @virt_ram.setter
     def virt_ram(self, num: Union[int, str]):
@@ -1739,19 +1755,19 @@ class System(Item):
         """
         virt_type property.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Returns the value for ``virt_type``.
         :setter: Sets the value for the property ``virt_type``.
-        :return:
         """
-        return self._virt_type
+        return self._resolve_enum("virt_type", enums.VirtType)
 
     @virt_type.setter
     def virt_type(self, vtype: Union[enums.VirtType, str]):
         """
         Setter for the virt_type of the System class.
 
-
-        :param vtype:
+        :param vtype: The new virtual type.
         """
         self._virt_type = enums.VirtType.to_enum(vtype)
 
@@ -1760,19 +1776,19 @@ class System(Item):
         """
         virt_path property.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Returns the value for ``virt_path``.
         :setter: Sets the value for the property ``virt_path``.
-        :return:
         """
-        return self._virt_path
+        return self._resolve("virt_path")
 
     @virt_path.setter
     def virt_path(self, path: str):
         """
         Setter for the virt_path of the System class.
 
-
-        :param path:
+        :param path: The new path.
         """
         self._virt_path = validate.validate_virt_path(path, for_system=True)
 
@@ -1783,7 +1799,6 @@ class System(Item):
 
         :getter: Returns the value for ``netboot_enabled``.
         :setter: Sets the value for the property ``netboot_enabled``.
-        :return:
         """
         return self._netboot_enabled
 

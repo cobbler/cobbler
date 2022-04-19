@@ -1,6 +1,9 @@
+import os
+
 import pytest
 
 from cobbler.items.distro import Distro
+from cobbler.items.profile import Profile
 from cobbler.items.item import Item
 from tests.conftest import does_not_raise
 
@@ -24,16 +27,22 @@ def test_make_clone(cobbler_api):
         titem.make_clone()
 
 
-@pytest.mark.skip
-def test_from_dict(cobbler_api):
+def test_from_dict(cobbler_api, create_kernel_initrd, fk_kernel, fk_initrd):
     # Arrange
-    titem = Item(cobbler_api)
+    folder = create_kernel_initrd(fk_kernel, fk_initrd)
+    name = "test_from_dict"
+    kernel_path = os.path.join(folder, fk_kernel)
+    initrd_path = os.path.join(folder, fk_initrd)
+    titem = Distro(cobbler_api)
 
     # Act
-    titem.from_dict()
+    titem.from_dict({"name": name, "kernel": kernel_path, "initrd": initrd_path})
 
     # Assert
-    assert False
+    titem.check_if_valid()  # This raises an exception if something is not right.
+    assert titem.name == name
+    assert titem.kernel == kernel_path
+    assert titem.initrd == initrd_path
 
 
 def test_uid(cobbler_api):
@@ -69,28 +78,30 @@ def test_get_children(cobbler_api):
     assert result == []
 
 
-@pytest.mark.skip
-def test_get_descendatns(cobbler_api):
+def test_descendants(cobbler_api):
     # Arrange
     titem = Item(cobbler_api)
 
     # Act
-    titem.get_descendants()
+    result = titem.descendants
 
     # Assert
-    assert False
+    assert result == []
 
 
-@pytest.mark.skip
-def test_get_conceptual_parent(cobbler_api):
+def test_get_conceptual_parent(request, cobbler_api, create_distro, create_profile):
     # Arrange
-    titem = Item(cobbler_api)
+    tmp_distro = create_distro()
+    tmp_profile = create_profile(tmp_distro.name)
+    titem = Profile(cobbler_api)
+    titem.name = "subprofile_%s" % request.node.originalname
+    titem.parent = tmp_profile.name
 
     # Act
-    titem.get_conceptual_parent()
+    result = titem.get_conceptual_parent()
 
     # Assert
-    assert False
+    assert result.name == tmp_distro.name
 
 
 def test_name(cobbler_api):
@@ -115,76 +126,136 @@ def test_comment(cobbler_api):
     assert titem.comment == "my comment"
 
 
-@pytest.mark.skip
-def test_set_owners(cobbler_api):
+@pytest.mark.parametrize(
+    "input_owners,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), []),
+        ("Test1 Test2", does_not_raise(), ["Test1", "Test2"]),
+        (False, pytest.raises(TypeError), None),
+    ],
+)
+def test_owners(cobbler_api, input_owners, expected_exception, expected_result):
     # Arrange
     titem = Item(cobbler_api)
 
     # Act
-    titem.set_owners()
+    with expected_exception:
+        titem.owners = input_owners
 
-    # Assert
-    assert False
+        # Assert
+        assert titem.owners == expected_result
 
 
-@pytest.mark.skip
-def test_set_kernel_options(cobbler_api):
+@pytest.mark.parametrize(
+    "input_kernel_options,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), {}),
+        (False, pytest.raises(TypeError), None),
+    ],
+)
+def test_kernel_options(
+    cobbler_api, input_kernel_options, expected_exception, expected_result
+):
     # Arrange
     titem = Item(cobbler_api)
 
     # Act
-    titem.set_kernel_options_post()
+    with expected_exception:
+        titem.kernel_options = input_kernel_options
 
-    # Assert
-    assert False
+        # Assert
+        assert titem.kernel_options == expected_result
 
 
-@pytest.mark.skip
-def test_set_kernel_options_post(cobbler_api):
+@pytest.mark.parametrize(
+    "input_kernel_options,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), {}),
+        (False, pytest.raises(TypeError), None),
+    ],
+)
+def test_kernel_options_post(
+    cobbler_api, input_kernel_options, expected_exception, expected_result
+):
     # Arrange
     titem = Item(cobbler_api)
 
     # Act
-    titem.set_kernel_options()
+    with expected_exception:
+        titem.kernel_options_post = input_kernel_options
 
-    # Assert
-    assert False
+        # Assert
+        assert titem.kernel_options_post == expected_result
 
 
-@pytest.mark.skip
-def test_set_autoinstall_meta(cobbler_api):
+@pytest.mark.parametrize(
+    "input_autoinstall_meta,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), {}),
+        (False, pytest.raises(TypeError), None),
+    ],
+)
+def test_autoinstall_meta(
+    cobbler_api, input_autoinstall_meta, expected_exception, expected_result
+):
     # Arrange
     titem = Item(cobbler_api)
 
     # Act
-    titem.set_autoinstall_meta()
+    with expected_exception:
+        titem.autoinstall_meta = input_autoinstall_meta
 
-    # Assert
-    assert False
+        # Assert
+        assert titem.autoinstall_meta == expected_result
 
 
-@pytest.mark.skip
-def test_set_mgmt_classes(cobbler_api):
+@pytest.mark.parametrize(
+    "input_mgmt_classes,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), []),
+        ("<<inherit>>", does_not_raise(), []),
+        ("Test1 Test2", does_not_raise(), ["Test1", "Test2"]),
+        (True, pytest.raises(TypeError), None),
+        (False, pytest.raises(TypeError), None),
+    ],
+)
+def test_mgmt_classes(
+    create_distro, input_mgmt_classes, expected_exception, expected_result
+):
+    # Arrange
+    tmp_distro = create_distro()
+    tmp_distro.mgmt_classes = ["Test0"]
+
+    # Act
+    with expected_exception:
+        tmp_distro.mgmt_classes = input_mgmt_classes
+
+        # Assert
+        assert tmp_distro.mgmt_classes == expected_result
+
+
+@pytest.mark.parametrize(
+    "input_mgmt_parameters,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), {"from_cobbler": 1}),
+        ("a: 5", does_not_raise(), {"from_cobbler": 1, "a": 5}),
+        ("<<inherit>>", does_not_raise(), {"from_cobbler": 1}),
+        ({}, does_not_raise(), {"from_cobbler": 1}),
+        ({"a": 5}, does_not_raise(), {"from_cobbler": 1, "a": 5}),
+    ],
+)
+def test_mgmt_parameters(
+    cobbler_api, input_mgmt_parameters, expected_exception, expected_result
+):
     # Arrange
     titem = Item(cobbler_api)
 
     # Act
-    titem.set_mgmt_classes()
+    with expected_exception:
+        titem.mgmt_parameters = input_mgmt_parameters
 
-    # Assert
-    assert False
-
-
-@pytest.mark.skip
-def test_set_mgmt_parameters(cobbler_api):
-    # Arrange
-    titem = Item(cobbler_api)
-
-    # Act
-    titem.set_mgmt_parameters()
-
-    # Assert
-    assert False
+        # Assert
+        assert titem.mgmt_parameters == expected_result
 
 
 def test_template_files(cobbler_api):
@@ -220,19 +291,19 @@ def test_fetchable_files(cobbler_api):
     assert titem.fetchable_files == {}
 
 
-@pytest.mark.skip
-def test_sort_key(cobbler_api):
+def test_sort_key(request, cobbler_api):
     # Arrange
     titem = Item(cobbler_api)
+    titem.name = request.node.originalname
 
     # Act
-    titem.sort_key()
+    result = titem.sort_key(sort_fields=["name"])
 
     # Assert
-    assert False
+    assert result == [request.node.originalname]
 
 
-@pytest.mark.skip
+@pytest.mark.skip("Test not yet implemented")
 def test_find_match(cobbler_api):
     # Arrange
     titem = Item(cobbler_api)
@@ -244,8 +315,8 @@ def test_find_match(cobbler_api):
     assert False
 
 
-@pytest.mark.skip
-def test_find_match_signle_key(cobbler_api):
+@pytest.mark.skip("Test not yet implemented")
+def test_find_match_single_key(cobbler_api):
     # Arrange
     titem = Item(cobbler_api)
 
@@ -256,40 +327,50 @@ def test_find_match_signle_key(cobbler_api):
     assert False
 
 
-@pytest.mark.skip
 def test_dump_vars(cobbler_api):
     # Arrange
     titem = Item(cobbler_api)
 
     # Act
-    titem.dump_vars()
+    result = titem.dump_vars(formatted_output=False)
 
     # Assert
-    assert False
+    assert len(result) == 149
 
 
-@pytest.mark.skip
-def test_set_depth(cobbler_api):
+@pytest.mark.parametrize(
+    "input_depth,expected_exception,expected_result",
+    [
+        ("", pytest.raises(TypeError), None),
+        (5, does_not_raise(), 5),
+    ],
+)
+def test_depth(cobbler_api, input_depth, expected_exception, expected_result):
     # Arrange
     titem = Item(cobbler_api)
 
     # Act
-    titem.set_depth()
+    with expected_exception:
+        titem.depth = input_depth
 
-    # Assert
-    assert False
+        # Assert
+        assert titem.depth == expected_result
 
 
-@pytest.mark.skip
-def test_set_ctime(cobbler_api):
+@pytest.mark.parametrize(
+    "input_ctime,expected_exception,expected_result",
+    [("", pytest.raises(TypeError), None), (0.0, does_not_raise(), 0.0)],
+)
+def test_ctime(cobbler_api, input_ctime, expected_exception, expected_result):
     # Arrange
     titem = Item(cobbler_api)
 
     # Act
-    titem.set_ctime()
+    with expected_exception:
+        titem.ctime = input_ctime
 
-    # Assert
-    assert False
+        # Assert
+        assert titem.ctime == expected_result
 
 
 @pytest.mark.parametrize(
@@ -312,7 +393,6 @@ def test_mtime(cobbler_api, value, expected_exception):
         assert titem.mtime == value
 
 
-@pytest.mark.skip
 def test_parent(cobbler_api):
     # Arrange
     titem = Item(cobbler_api)
@@ -321,19 +401,19 @@ def test_parent(cobbler_api):
     titem.parent = ""
 
     # Assert
-    assert False
+    assert titem.parent is None
 
 
-@pytest.mark.skip
-def test_check_if_valid(cobbler_api):
+def test_check_if_valid(request, cobbler_api):
     # Arrange
     titem = Item(cobbler_api)
+    titem.name = request.node.originalname
 
     # Act
     titem.check_if_valid()
 
     # Assert
-    assert False
+    assert True  # This test passes if there is no exception raised
 
 
 def test_to_dict(cobbler_api):

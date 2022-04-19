@@ -7,6 +7,7 @@ from cobbler import settings
 from cobbler.api import CobblerAPI
 from cobbler.actions.buildiso.netboot import NetbootBuildiso
 from cobbler.actions.buildiso.standalone import StandaloneBuildiso
+from tests.conftest import does_not_raise
 
 
 @pytest.mark.parametrize(
@@ -56,3 +57,60 @@ def test_buildiso(mocker, cobbler_api):
     # Assert
     assert netboot_stub.run.call_count == 1
     assert standalone_stub.run.call_count == 0
+
+
+@pytest.mark.parametrize(
+    "input_uuid,input_attribute_name,expected_exception,expected_result",
+    [
+        (0, "", pytest.raises(TypeError), ""),  # Wrong argument type uuid
+        ("", 0, pytest.raises(TypeError), ""),  # Wrong argument type attribute name
+        (
+            "yxvyxcvyxcvyxcvyxcvyxcvyxcv",
+            "kernel_options",
+            pytest.raises(ValueError),
+            "",
+        ),  # Wrong uuid format
+        (
+            "4c1d2e0050344a9ba96e2fd36908a53e",
+            "kernel_options",
+            pytest.raises(ValueError),
+            "",
+        ),  # Item not existing
+        (
+            "",
+            "test_not_existing",
+            pytest.raises(AttributeError),
+            "",
+        ),  # Attribute not existing
+        ("", "redhat_management_key", does_not_raise(), ""),  # str attribute test
+        ("", "enable_ipxe", does_not_raise(), False),  # bool attribute
+        ("", "virt_ram", does_not_raise(), 512),  # int attribute
+        ("", "virt_file_size", does_not_raise(), 5.0),  # double attribute
+        ("", "kernel_options", does_not_raise(), {}),  # dict attribute
+        ("", "owners", does_not_raise(), ["admin"]),  # list attribute
+    ],
+)
+def test_get_item_resolved_value(
+    cobbler_api,
+    create_distro,
+    create_profile,
+    create_system,
+    input_uuid,
+    input_attribute_name,
+    expected_exception,
+    expected_result,
+):
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.name)
+    test_system = create_system(test_profile.name)
+
+    if input_uuid == "":
+        input_uuid = test_system.uid
+
+    # Act
+    with expected_exception:
+        result = cobbler_api.get_item_resolved_value(input_uuid, input_attribute_name)
+
+        # Assert
+        assert expected_result == result

@@ -30,6 +30,7 @@ from typing import Dict, List, Optional, Union
 
 from schema import SchemaError
 
+from cobbler import validate
 from cobbler.actions import (
     status,
     hardlink,
@@ -393,6 +394,45 @@ class CobblerAPI:
         Return the current list of menus
         """
         return self.get_items("menu")
+
+    # =======================================================================
+
+    def get_item_resolved_value(self, item_uuid: str, attribute: str):
+        """
+        This method helps non Python API consumers to retrieve the final data of a field with inheritance.
+
+        This does not help with network interfaces because they don't have a UUID at the moment and thus can't be
+        queried via their UUID.
+
+        :param item_uuid: The UUID of the item that should be retrieved.
+        :param attribute: The attribute that should be retrieved.
+        :raises ValueError: In case a value given was either malformed or the desired item did not exist.
+        :raises TypeError: In case the type of the method arguments do have the wrong type.
+        :raises AttributeError: In case the attribute specified is not available on the given item (type).
+        :returns: The attribute value. Since this might be of type NetworkInterface we cannot yet set this explicitly.
+        """
+        if not isinstance(item_uuid, str):
+            raise TypeError("item_uuid must be of type str!")
+
+        if not validate.validate_uuid(item_uuid):
+            raise ValueError("The given uuid did not have the correct format!")
+
+        if not isinstance(attribute, str):
+            raise TypeError("attribute must be of type str!")
+
+        desired_item = self.find_items(
+            "", {"uid": item_uuid}, return_list=False, no_errors=True
+        )
+        if desired_item is None:
+            raise ValueError('Item with item_uuid "%s" did not exist!' % item_uuid)
+
+        if not hasattr(desired_item, attribute):
+            raise AttributeError(
+                'Attribute "%s" did not exist on item type "%s".'
+                % (attribute, desired_item.TYPE_NAME)
+            )
+
+        return getattr(desired_item, attribute)
 
     # =======================================================================
 
@@ -1066,7 +1106,7 @@ class CobblerAPI:
 
     def find_items(
         self,
-        what: str,
+        what: str = "",
         criteria: dict = None,
         name: str = "",
         return_list: bool = True,
@@ -1087,10 +1127,32 @@ class CobblerAPI:
         if criteria is None:
             criteria = {}
 
-        if what == "" and ("name" in criteria or name is not None):
+        if not isinstance(name, str):
+            raise TypeError('"name" must be of type str!')
+
+        if not isinstance(what, str):
+            raise TypeError('"what" must be of type str!')
+
+        if what != "" and not validate.validate_obj_type(what):
+            raise ValueError("what needs to be a valid collection if it is non empty!")
+
+        if what == "" and ("name" in criteria or name != ""):
             return self.__find_by_name(criteria.get("name", name))
 
-        if what not in [
+        if what != "":
+            return self.__find_with_collection(
+                what, name, return_list, no_errors, criteria
+            )
+        return self.__find_without_collection(name, return_list, no_errors, criteria)
+
+    def __find_with_collection(self, what, name, return_list, no_errors, criteria):
+        items = self._collection_mgr.get_items(what)
+        return items.find(
+            name=name, return_list=return_list, no_errors=no_errors, **criteria
+        )
+
+    def __find_without_collection(self, name, return_list, no_errors, criteria):
+        collections = [
             "distro",
             "profile",
             "system",
@@ -1100,13 +1162,17 @@ class CobblerAPI:
             "package",
             "file",
             "menu",
-        ]:
-            raise ValueError("what needs to be a valid collection!")
-
-        items = self._collection_mgr.get_items(what)
-        return items.find(
-            name=name, return_list=return_list, no_errors=no_errors, **criteria
-        )
+        ]
+        for collection_name in collections:
+            match = self.find_items(
+                collection_name,
+                criteria,
+                name=name,
+                return_list=return_list,
+                no_errors=no_errors,
+            )
+            if match is not None:
+                return match
 
     def __find_by_name(self, name: str):
         """

@@ -39,7 +39,7 @@ import urllib.request
 import xmlrpc.client
 from functools import reduce
 from pathlib import Path
-from typing import List, Optional, Pattern, Union
+from typing import Any, Dict, List, Optional, Pattern, Tuple, Union
 from xmlrpc.client import ServerProxy
 
 import distro
@@ -412,13 +412,12 @@ def find_kernel(path: str) -> str:
     return ""
 
 
-def remove_yum_olddata(path):
+def remove_yum_olddata(path: os.PathLike):
     """
     Delete .olddata folders that might be present from a failed run of createrepo.
 
     :param path: The path to check for .olddata files.
     """
-    # FIXME: If the folder is actually a file this method fails wonderfully.
     directories_to_try = [
         ".olddata",
         ".repodata/.olddata",
@@ -426,9 +425,9 @@ def remove_yum_olddata(path):
         "repodata/repodata",
     ]
     for pathseg in directories_to_try:
-        olddata = os.path.join(path, pathseg)
-        if os.path.exists(olddata):
-            logger.info("removing: %s", olddata)
+        olddata = Path(path, pathseg)
+        if olddata.is_dir() and olddata.exists():
+            logger.info('Removing: "%s"', olddata)
             shutil.rmtree(olddata, ignore_errors=False, onerror=None)
 
 
@@ -568,7 +567,20 @@ def input_string_or_list(options: Optional[Union[str, list]]) -> Union[list, str
     return input_string_or_list_no_inherit(options)
 
 
-def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
+def input_string_or_dict_no_inherit(
+    options: Union[str, list, dict], allow_multiples=True
+) -> Union[str, Tuple[bool, dict]]:
+    """
+    See :meth:`~cobbler.utils.input_string_or_dict`
+    """
+    if options == enums.VALUE_INHERITED:
+        return enums.VALUE_INHERITED
+    return input_string_or_dict(options, allow_multiples)
+
+
+def input_string_or_dict(
+    options: Union[str, list, dict], allow_multiples=True
+) -> Tuple[bool, dict]:
     """
     Older Cobbler files stored configurations in a flat way, such that all values for strings. Newer versions of Cobbler
     allow dictionaries. This function is used to allow loading of older value formats so new users of Cobbler aren't
@@ -579,16 +591,12 @@ def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
     :return: A tuple of True and a dict.
     :raises TypeError: Raised in case the input type is wrong.
     """
-
-    if options == "<<inherit>>":
-        options = {}
-
     if options is None or options == "delete":
         return True, {}
     elif isinstance(options, list):
         raise TypeError("No idea what to do with list: %s" % options)
     elif isinstance(options, str):
-        new_dict = {}
+        new_dict: Dict[str, Any] = {}
         tokens = shlex.split(options)
         for t in tokens:
             tokens2 = t.split("=", 1)
@@ -603,7 +611,7 @@ def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
             # If we're allowing multiple values for the same key, check to see if this token has already been inserted
             # into the dictionary of values already.
 
-            if key in list(new_dict.keys()) and allow_multiples:
+            if key in new_dict.keys() and allow_multiples:
                 # If so, check to see if there is already a list of values otherwise convert the dictionary value to an
                 # array, and add the new value to the end of the list.
                 if isinstance(new_dict[key], list):
