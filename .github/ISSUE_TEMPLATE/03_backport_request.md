@@ -2,7 +2,7 @@
 name: 🔙 Backport request
 about: Request a backport of something specific
 title: "[Backport] Your title"
-labels: ''
+labels: 'backport'
 assignees: ''
 
 ---
@@ -14,6 +14,7 @@ assignees: ''
 
 ### Target release
 
+- [ ] release33
 - [ ] release32
 - [ ] release30
 
