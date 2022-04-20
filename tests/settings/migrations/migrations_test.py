@@ -80,27 +80,6 @@ def test_get_settings_file_version():
     assert result == v285
 
 
-def test_settingsfile_migrate_gpxe_ipxe():
-    # Arrange
-    new_settings = "/etc/cobbler/settings.yaml"
-    old_settings = "/code/tests/test_data/settings_old"  # adjust for test container %s/code/test_dir/
-
-    # Act
-    with open(new_settings) as main_settingsfile:
-        content_new = yaml.safe_load(main_settingsfile.read())
-    with open(old_settings) as old_settingsfile:
-        content_old = yaml.safe_load(old_settingsfile.read())
-
-    new_settings_file = settings.read_settings_file(new_settings)
-
-    # Assert
-    assert isinstance(content_old, dict) and "enable_gpxe" in content_old
-    assert isinstance(content_new, dict) and "enable_ipxe" in content_new
-    assert "enable_gpxe" not in content_new
-    assert isinstance(new_settings_file, dict) and "enable_ipxe" in new_settings_file
-    assert "enable_gpxe" not in new_settings_file
-
-
 def test_migrate_v3_0_0():
     # Arrange
     with open("/code/tests/test_data/V2_8_5/settings.yaml") as old_settings:
@@ -198,6 +177,9 @@ def test_migrate_v3_3_0():
     # We had a bug where the @@ values were incorrectly present in the final code.
     # Thus checking that this is not the case anymore.
     assert new_settings.get("bind_zonefile_path") == "/var/lib/named"
+    # gpxe -> ipxe renaming
+    assert "enable_ipxe" in new_settings
+    assert "enable_gpxe" not in new_settings
 
 
 def test_migrate_v3_3_1():
@@ -227,9 +209,6 @@ def test_migrate_v3_3_2():
     assert V3_3_2.validate(new_settings)
 
 
-@pytest.mark.skip(
-    "Code under test is under refactoring and thus this won't work as expected."
-)
 def test_migrate_v3_4_0():
     # Arrange
     with open("/code/tests/test_data/V3_3_2/settings.yaml") as old_settings:

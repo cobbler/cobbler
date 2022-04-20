@@ -335,7 +335,7 @@ def test_dump_vars(cobbler_api):
     result = titem.dump_vars(formatted_output=False)
 
     # Assert
-    assert len(result) == 149
+    assert len(result) == 148
 
 
 @pytest.mark.parametrize(
