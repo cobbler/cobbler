@@ -3,7 +3,6 @@
 import os
 import sys
 import time
-import logging
 import glob as _glob
 
 from setuptools import setup
@@ -26,8 +25,6 @@ import subprocess
 
 VERSION = "3.3.2"
 OUTPUT_DIR = "config"
-
-log = logging.getLogger("setup.py")
 
 # # Configurable installation roots for various data files.
 datadir = os.environ.get('DATAPATH', '/usr/share/cobbler')
@@ -260,7 +257,7 @@ class build_cfg(Command):
                 self.configure_one_file(infile, outfile)
 
     def configure_one_file(self, infile, outfile):
-        log.info("configuring %s" % infile)
+        self.announce("configuring %s" % infile, 3)
         if not self.dry_run:
             # Read the file
             with codecs.open(infile, 'r', 'utf-8') as fh:
@@ -316,7 +313,7 @@ class install(_install):
     def change_owner(self, path, owner):
         user = pwd.getpwnam(owner)
         try:
-            log.info("changing mode of %s" % path)
+            self.announce("changing mode of %s" % path, 3)
             if not self.dry_run:
                 # os.walk does not include the toplevel directory
                 os.lchown(path, user.pw_uid, -1)
@@ -393,13 +390,13 @@ class statebase(Command):
     def _copy(self, frm, to):
         if os.path.isdir(frm):
             to = os.path.join(to, os.path.basename(frm))
-            log.debug("copying %s/ to %s/" % (frm, to))
+            self.announce("copying %s/ to %s/" % (frm, to), 3)
             if not self.dry_run:
                 if os.path.exists(to):
                     shutil.rmtree(to)
                 shutil.copytree(frm, to)
         else:
-            log.debug("copying %s to %s" % (frm, os.path.join(to, os.path.basename(frm))))
+            self.announce("copying %s to %s" % (frm, os.path.join(to, os.path.basename(frm))), 3)
             if not self.dry_run:
                 shutil.copy2(frm, to)
 
@@ -416,7 +413,7 @@ class restorestate(statebase):
         statebase._copy(self, frm, to)
 
     def run(self):
-        log.info("restoring the current configuration from %s" % self.statepath)
+        self.announce("restoring the current configuration from %s" % self.statepath, 3)
         if not os.path.exists(self.statepath):
             self.warn("%s does not exist. Skipping" % self.statepath)
             return
@@ -445,9 +442,9 @@ class savestate(statebase):
         statebase._copy(self, frm, to)
 
     def run(self):
-        log.info("backing up the current configuration to %s" % self.statepath)
+        self.announce("backing up the current configuration to %s" % self.statepath, 3)
         if os.path.exists(self.statepath):
-            log.debug("deleting existing %s" % self.statepath)
+            self.announce("deleting existing %s" % self.statepath, 3)
             if not self.dry_run:
                 shutil.rmtree(self.statepath)
         if not self.dry_run:
