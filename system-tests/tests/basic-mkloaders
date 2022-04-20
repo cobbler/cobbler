@@ -8,10 +8,6 @@ set -x -e -o pipefail
 # Delete mkloaders directory content completely if present
 find /var/lib/cobbler/loaders -mindepth 1 -delete
 
-cat /etc/cobbler/settings.yaml | grep bootloaders_shim_folder
-cat /etc/cobbler/settings.yaml | grep bootloaders_shim_file
-cat /etc/cobbler/settings.yaml | grep bootloaders_ipxe_folder
-
 cobbler mkloaders
 
 # Check all expected files are present
