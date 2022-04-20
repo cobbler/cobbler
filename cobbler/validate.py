@@ -383,7 +383,6 @@ def validate_virt_ram(value: Union[int, str]) -> Union[str, int]:
 
     if isinstance(value, str):
         if value == enums.VALUE_INHERITED:
-            # FIXME: The default value is 0 instead of enums.VALUE_INHERITED.
             return enums.VALUE_INHERITED
         if value == "":
             return 0
@@ -408,9 +407,8 @@ def validate_virt_bridge(vbridge: str) -> str:
     """
     if not isinstance(vbridge, str):
         raise TypeError("vbridge must be of type str.")
-    # FIXME: Settings are not available here
     if not vbridge:
-        return ""
+        return enums.VALUE_INHERITED
     return vbridge
 
 
@@ -567,7 +565,7 @@ def validate_autoinstall_script_name(name: str) -> bool:
 
 def validate_uuid(possible_uuid: str) -> bool:
     """
-    Validate if the handed string is a valid UUIDv4.
+    Validate if the handed string is a valid UUIDv4 hex representation.
 
     :param possible_uuid: The str with the UUID.
     :return: True in case it is one, False otherwise.
@@ -579,14 +577,15 @@ def validate_uuid(possible_uuid: str) -> bool:
         uuid_obj = UUID(possible_uuid, version=4)
     except ValueError:
         return False
-    return str(uuid_obj) == possible_uuid
+    return uuid_obj.hex == possible_uuid
 
 
 def validate_obj_type(object_type: str) -> bool:
     """
+    This validates the given object type against the available object types in Cobbler.
 
-    :param object_type:
-    :return:
+    :param object_type: The str with the object type to validate.
+    :return: True in case it is one, False in all other cases.
     """
     if not isinstance(object_type, str):
         return False
@@ -595,9 +594,10 @@ def validate_obj_type(object_type: str) -> bool:
 
 def validate_obj_name(object_name: str) -> bool:
     """
+    This validates the name of an object against the Cobbler specific object name schema.
 
-    :param object_name:
-    :return:
+    :param object_name: The object name candidate.
+    :return: True in case it matches the RE_OBJECT_NAME regex, False in all other cases.
     """
     if not isinstance(object_name, str):
         return False
@@ -606,8 +606,9 @@ def validate_obj_name(object_name: str) -> bool:
 
 def validate_obj_id(object_id: str) -> bool:
     """
+    This validates a possible object ID against its Cobbler specific object id schema.
 
-    :param object_id:
+    :param object_id: The possible object id candidate.
     :return: True in case it is one, False otherwise.
     """
     if not isinstance(object_id, str):

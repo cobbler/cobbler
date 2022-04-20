@@ -42,8 +42,8 @@ def test_make_clone(cobbler_api, create_kernel_initrd, fk_kernel, fk_initrd):
     distro = Distro(cobbler_api)
     distro.breed = "suse"
     distro.os_version = "sles15generic"
-    distro.kernel = os.path.join(folder, "vmlinuz1")
-    distro.initrd = os.path.join(folder, "initrd1.img")
+    distro.kernel = os.path.join(folder, fk_kernel)
+    distro.initrd = os.path.join(folder, fk_initrd)
 
     # Act
     result = distro.make_clone()
@@ -136,13 +136,14 @@ def test_arch(cobbler_api, value, expected):
             assert distro.arch == value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ("", does_not_raise()),
-    ("Test", pytest.raises(ValueError)),
-    (0, pytest.raises(TypeError)),
-    (["grub"], does_not_raise())
+@pytest.mark.parametrize("value,expected_exception,expected_result", [
+    ("", does_not_raise(), ""),
+    ("<<inherit>>", does_not_raise(), ["grub", "pxe", "ipxe"]),
+    ("Test", pytest.raises(ValueError), ""),
+    (0, pytest.raises(TypeError), ""),
+    (["grub"], does_not_raise(), ["grub"]),
 ])
-def test_boot_loaders(cobbler_api, value, expected_exception):
+def test_boot_loaders(cobbler_api, value, expected_exception, expected_result):
     # Arrange
     distro = Distro(cobbler_api)
 
@@ -154,7 +155,7 @@ def test_boot_loaders(cobbler_api, value, expected_exception):
         if value == "":
             assert distro.boot_loaders == []
         else:
-            assert distro.boot_loaders == value
+            assert distro.boot_loaders == expected_result
 
 
 @pytest.mark.parametrize("value,expected_exception", [
@@ -257,11 +258,15 @@ def test_owners(cobbler_api, value):
     assert distro.owners == value
 
 
-@pytest.mark.parametrize("value,expected_exception", [
-    ("", does_not_raise()),
-    (["Test"], pytest.raises(TypeError))
-])
-def test_redhat_management_key(cobbler_api, value, expected_exception):
+@pytest.mark.parametrize(
+    "value,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), ""),
+        (["Test"], pytest.raises(TypeError), ""),
+        ("<<inherit>>", does_not_raise(), ""),
+    ],
+)
+def test_redhat_management_key(cobbler_api, value, expected_exception, expected_result):
     # Arrange
     distro = Distro(cobbler_api)
 
@@ -270,7 +275,7 @@ def test_redhat_management_key(cobbler_api, value, expected_exception):
         distro.redhat_management_key = value
 
         # Assert
-        assert distro.redhat_management_key == value
+        assert distro.redhat_management_key == expected_result
 
 
 @pytest.mark.parametrize("value", [

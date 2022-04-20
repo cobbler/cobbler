@@ -320,6 +320,8 @@ class Repo(item.Item):
         Flags passed to createrepo when it is called. Common flags to use would be ``-c cache`` or ``-g comps.xml`` to
         generate group information.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: The createrepo_flags to apply to the repo.
         :setter: The new flags. May raise a ``TypeError`` in case the options are not a ``str``.
         """
@@ -482,6 +484,8 @@ class Repo(item.Item):
     def proxy(self) -> str:
         """
         Override the default external proxy which is used for accessing the internet.
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: Returns the default one or the specific one for this repository.
         :setter: May raise a ``TypeError`` in case the wrong value is given.
