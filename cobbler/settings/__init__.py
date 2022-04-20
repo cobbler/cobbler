@@ -13,7 +13,6 @@ import glob
 import logging
 import os.path
 import pathlib
-import re
 import shutil
 import traceback
 from pathlib import Path
@@ -134,6 +133,7 @@ class Settings:
         self.nsupdate_tsig_algorithm = "hmac-sha512"
         self.nsupdate_tsig_key = []
         self.power_management_default_type = "ipmilanplus"
+        self.proxies = []
         self.proxy_url_ext = ""
         self.proxy_url_int = ""
         self.puppet_auto_setup = False

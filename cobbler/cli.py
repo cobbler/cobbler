@@ -1102,21 +1102,21 @@ class CobblerCLI:
             self.parser.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
             self.parser.add_option("--systems", dest="systems", help="(OPTIONAL) use these systems only")
             self.parser.add_option("--tempdir", dest="buildisodir", help="(OPTIONAL) working directory")
-            self.parser.add_option("--distro", dest="distro", help="(OPTIONAL) used with --standalone and --airgapped "
-                                                                   "to create a distro-based ISO including all "
-                                                                   "associated profiles/systems")
+            self.parser.add_option("--distro", dest="distro",
+                                   help="Must be specified to choose the Kernel and Initrd for the ISO being built.")
             self.parser.add_option("--standalone", dest="standalone", action="store_true",
                                    help="(OPTIONAL) creates a standalone ISO with all required distro files, "
                                         "but without any added repos")
             self.parser.add_option("--airgapped", dest="airgapped", action="store_true",
-                                   help="(OPTIONAL) creates a standalone ISO with all distro and repo files for "
-                                        "disconnected system installation")
-            self.parser.add_option("--source", dest="source", help="(OPTIONAL) used with --standalone to specify a "
-                                                                   "source for the distribution files")
+                                   help="(OPTIONAL) implies --standalone but additionally includes the repository files"
+                                        " into ISO")
+            self.parser.add_option("--source", dest="source",
+                                   help="(OPTIONAL) used with --standalone/--airgapped to specify a source for the "
+                                        "distribution files")
             self.parser.add_option("--exclude-dns", dest="exclude_dns", action="store_true",
-                                   help="(OPTIONAL) prevents addition of name server addresses to the kernel boot "
+                                   help="(OPTIONAL) prevents addition of name server addresses to the kernel boot"
                                         "options")
-            self.parser.add_option("--mkisofs-opts", dest="mkisofs_opts", help="(OPTIONAL) extra options for mkisofs")
+            self.parser.add_option("--mkisofs-opts", dest="mkisofs_opts", help="(OPTIONAL) extra options for xorrisofs")
 
             (options, args) = self.parser.parse_args(self.args)
             task_id = self.start_task("buildiso", options)

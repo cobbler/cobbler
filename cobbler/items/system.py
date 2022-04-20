@@ -1461,6 +1461,17 @@ class System(Item):
         """
         if not isinstance(profile_name, str):
             raise TypeError("The name of a profile needs to be of type str.")
+
+        if profile_name in ["delete", "None", "~", ""]:
+            self._profile = ""
+            return
+
+        profile = self.api.profiles().find(name=profile_name)
+        if profile is None:
+            raise ValueError(
+                'Profile with the name "%s" is not existing' % profile_name
+            )
+
         old_parent = self.parent
         if isinstance(old_parent, Item):
             if self.name in old_parent.children:
@@ -1471,15 +1482,8 @@ class System(Item):
         else:
             self.logger.debug("Parent of System \"%s\" not found. Thus skipping removal from children list.", self.name)
 
-        if profile_name in ["delete", "None", "~", ""]:
-            self._profile = ""
-            return
-
         self.image = ""  # mutual exclusion rule
 
-        profile = self.api.profiles().find(name=profile_name)
-        if profile is None:
-            raise ValueError("Profile with the name \"%s\" is not existing" % profile_name)
         self._profile = profile_name
         self.depth = profile.depth + 1  # subprofiles have varying depths.
         new_parent = self.parent
@@ -1504,32 +1508,46 @@ class System(Item):
         It's one or the other.
 
         :param image_name: The name of the image which will act as a parent.
-        :raises CX: In case the image name was invalid.
+        :raises ValueError: In case the image name was invalid.
         :raises TypeError: In case image_name is no string.
         """
         if not isinstance(image_name, str):
             raise TypeError("The name of an image must be of type str.")
-        old_parent = self.parent
+
         if image_name in ["delete", "None", "~", ""]:
             self._image = ""
-            if isinstance(old_parent, Item) and self.name in old_parent.children:
-                old_parent.children.remove(self.name)
             return
 
         self.profile = ""  # mutual exclusion rule
 
         img = self.api.images().find(name=image_name)
 
-        if img is not None:
-            self._image = image_name
-            self.depth = img.depth + 1
-            if isinstance(old_parent, Item):
+        if img is None:
+            raise ValueError('Image with the name "%s" is not existing' % image_name)
+
+        old_parent = self.parent
+        if isinstance(old_parent, Item):
+            if self.name in old_parent.children:
                 old_parent.children.remove(self.name)
-            new_parent = self.parent
-            if isinstance(new_parent, Item) and self.name not in new_parent.children:
-                new_parent.children.append(self.name)
-            return
-        raise CX("invalid image name (%s)" % image_name)
+            else:
+                self.logger.debug(
+                    'Name of System "%s" was not found in the children of Item "%s"',
+                    self.name,
+                    self.parent.name,
+                )
+        else:
+            self.logger.debug(
+                'Parent of System "%s" not found. Thus skipping removal from children list.',
+                self.name,
+            )
+
+        self.profile = ""  # mutual exclusion rule
+
+        self._image = image_name
+        self.depth = img.depth + 1
+        new_parent = self.parent
+        if isinstance(new_parent, Item) and self.name not in new_parent.children:
+            new_parent.children.append(self.name)
 
     @property
     def virt_cpus(self) -> int:
@@ -2035,6 +2053,11 @@ class System(Item):
                 loader = boot_loaders[0]
 
         if interface not in self.interfaces:
+            self.logger.warning(
+                'System "%s" did not have an interface with the name "%s" attached to it.',
+                self.name,
+                interface,
+            )
             return None
 
         if self.name == "default":

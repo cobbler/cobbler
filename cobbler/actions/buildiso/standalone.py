@@ -23,7 +23,7 @@ def _generate_append_line_standalone(data: dict, distro, descendant) -> str:
     :param descendant: The profile or system which is underneath the distro.
     :return: The base append_line which we need for booting the built ISO. Contains initrd and autoinstall parameter.
     """
-    append_line = "  append initrd=%s" % os.path.basename(distro.initrd)
+    append_line = "  APPEND initrd=%s" % os.path.basename(distro.initrd)
     if distro.breed == "redhat":
         append_line += " inst.ks=cdrom:/isolinux/%s.cfg" % descendant.name
     elif distro.breed == "suse":
@@ -125,7 +125,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
                 (source_head, source_tail) = os.path.split(source_head)
             # Can't find the source, raise an error
             raise ValueError(
-                "Error, no installation source found. When building a standalone ISO, you must specify a "
+                "Error, no installation source found. When building a standalone or airgapped ISO, you must specify a "
                 "--source if the distro install tree is not hosted locally"
             )
         return filesource
@@ -236,7 +236,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
         if menu_indent:
             cfglines.append("  MENU INDENT %d" % menu_indent)
         cfglines.append("  MENU LABEL %s" % descendant.name)
-        cfglines.append("  kernel %s" % os.path.basename(distro.kernel))
+        cfglines.append("  KERNEL %s" % os.path.basename(distro.kernel))
 
         cfglines.append(_generate_append_line_standalone(data, distro, descendant))
 
@@ -291,11 +291,11 @@ class StandaloneBuildiso(buildiso.BuildIso):
                 descendant, cfglines, distro, airgapped, repo_names_to_copy
             )
 
-        self.logger.info("done writing config")
         cfglines.append("")
         cfglines.append("MENU END")
         with open(os.path.join(self.isolinuxdir, "isolinux.cfg"), "w+") as cfg:
-            cfg.writelines(cfglines)
+            cfg.writelines("%s\n" % l for l in cfglines)
+        self.logger.info("done writing config")
 
         self._sync_airgapped_repos(airgapped, repo_names_to_copy)
 
