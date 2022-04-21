@@ -17,7 +17,7 @@ import logging
 import pprint
 import re
 import uuid
-from typing import Any, List, Union
+from typing import Any, List, Type, Union
 
 import yaml
 
@@ -160,6 +160,8 @@ class Item:
         settings_name = property_name
         if property_name.startswith("proxy_url_"):
             property_name = "proxy"
+        if property_name == "default_ownership":
+            property_name = "owners"
         attribute = "_" + property_name
 
         if not hasattr(self, attribute):
@@ -173,6 +175,46 @@ class Item:
                 return getattr(self.parent, property_name)
             elif hasattr(settings, settings_name):
                 return getattr(settings, settings_name)
+            elif hasattr(settings, "default_%s" % settings_name):
+                return getattr(settings, "default_%s" % settings_name)
+            else:
+                AttributeError(
+                    '%s "%s" inherits property "%s", but neither its parent nor settings have it'
+                    % (type(self), self.name, property_name)
+                )
+
+            return attribute_value
+
+    def _resolve_enum(
+            self, property_name: str, enum_type: Type[enums.ConvertableEnum]
+    ) -> Any:
+        """
+        See :meth:`~cobbler.items.item.Item._resolve`
+        """
+        settings_name = property_name
+        attribute = "_" + property_name
+
+        if not hasattr(self, attribute):
+            raise AttributeError(
+                '%s "%s" does not have property "%s"'
+                % (type(self), self.name, property_name)
+            )
+
+        attribute_value = getattr(self, attribute)
+        settings = self.api.settings()
+
+        if (
+                isinstance(attribute_value, enums.ConvertableEnum)
+                and attribute_value.value == enums.VALUE_INHERITED
+        ):
+            if self.parent is not None and hasattr(self.parent, property_name):
+                return getattr(self.parent, property_name)
+            elif hasattr(settings, settings_name):
+                return enum_type.to_enum(getattr(settings, settings_name))
+            elif hasattr(settings, "default_%s" % settings_name):
+                return enum_type.to_enum(
+                    getattr(settings, "default_%s" % settings_name)
+                )
             else:
                 AttributeError("%s \"%s\" inherits property \"%s\", but neither its parent nor settings have it"
                                % (type(self), self.name, property_name))
@@ -299,7 +341,7 @@ class Item:
         self._comment = comment
 
     @property
-    def owners(self):
+    def owners(self) -> list:
         """
         This is a feature which is related to the ownership module of Cobbler which gives only specific people access
         to specific records. Otherwise this is just a cosmetic feature to allow assigning records to specific users.
@@ -307,25 +349,31 @@ class Item:
         .. warning:: This is never validated against a list of existing users. Thus you can lock yourself out of a
                      record.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: Return the list of users which are currently assigned to the record.
         :setter: The list of people which should be new owners. May lock you out if you are using the ownership
                  authorization module.
         """
-        return self._owners
+        return self._resolve("owners")
 
     @owners.setter
-    def owners(self, owners: list):
+    def owners(self, owners: Union[str, list]):
         """
         Setter for the ``owners`` property.
 
         :param owners: The new list of owners. Will not be validated for existence.
         """
+        if not isinstance(owners, (str, list)):
+            raise TypeError("owners must be str or list!")
         self._owners = utils.input_string_or_list(owners)
 
     @property
     def kernel_options(self) -> dict:
         """
         Kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: The parsed kernel options.
         :setter: The new kernel options as a space delimited list. May raise ``ValueError`` in case of parsing problems.
@@ -350,6 +398,8 @@ class Item:
     def kernel_options_post(self) -> dict:
         """
         Post kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: The dictionary with the parsed values.
         :setter: Accepts str in above mentioned format or directly a dict.
@@ -376,6 +426,8 @@ class Item:
         A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a dict.
         The meta tags are used as input to the templating system to preprocess automatic installation template files.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: The metadata or an empty dict.
         :setter: Accepts anything which can be split by :meth:`~cobbler.utils.input_string_or_dict`.
         """
@@ -401,24 +453,30 @@ class Item:
         Assigns a list of configuration management classes that can be assigned to any object, such as those used by
         Puppet's external_nodes feature.
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: An empty list or the list of mgmt_classes.
         :setter: Will split this according to :meth:`~cobbler.utils.input_string_or_list`.
         """
         return self._resolve("mgmt_classes")
 
     @mgmt_classes.setter
-    def mgmt_classes(self, mgmt_classes: list):
+    def mgmt_classes(self, mgmt_classes: Union[list, str]):
         """
         Setter for the ``mgmt_classes`` property.
 
         :param mgmt_classes: The new options for the management classes of an item.
         """
+        if not isinstance(mgmt_classes, (str, list)):
+            raise TypeError("mgmt_classes has to be either str or list")
         self._mgmt_classes = utils.input_string_or_list(mgmt_classes)
 
     @property
     def mgmt_parameters(self) -> dict:
         """
         Parameters which will be handed to your management application (Must be a valid YAML dictionary)
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: The mgmt_parameters or an empty dict.
         :setter: A YAML string which can be assigned to any object, this is used by Puppet's external_nodes feature.
@@ -438,6 +496,10 @@ class Item:
         if isinstance(mgmt_parameters, str):
             if mgmt_parameters == enums.VALUE_INHERITED:
                 self._mgmt_parameters = enums.VALUE_INHERITED
+                return
+            elif mgmt_parameters == "":
+                self._mgmt_parameters = {}
+                return
             else:
                 mgmt_parameters = yaml.safe_load(mgmt_parameters)
                 if not isinstance(mgmt_parameters, dict):
@@ -474,6 +536,8 @@ class Item:
         """
         Files copied into tftpboot beyond the kernel/initrd
 
+        .. note:: This property can be set to ``<<inherit>>``.
+
         :getter: The dictionary with name-path key-value pairs.
         :setter: A dict. If not a dict must be a str which is split by :meth:`~cobbler.utils.input_string_or_dict`.
                  Raises ``TypeError`` otherwise.
@@ -497,6 +561,8 @@ class Item:
     def fetchable_files(self) -> dict:
         """
         A comma seperated list of ``virt_name=path_to_template`` that should be fetchable via tftp or a webserver
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: The dictionary with name-path key-value pairs.
         :setter: A dict. If not a dict must be a str which is split by :meth:`~cobbler.utils.input_string_or_dict`.
@@ -665,7 +731,7 @@ class Item:
             parent = parent.parent
         return None
 
-    def sort_key(self, sort_fields: list = None):
+    def sort_key(self, sort_fields: list):
         """
         Convert the item to a dict and sort the data after specific given fields.
 
@@ -734,7 +800,7 @@ class Item:
         else:
             return self.__find_compare(value, data[key])
 
-    def dump_vars(self, formatted_output: bool = True):
+    def dump_vars(self, formatted_output: bool = True) -> Union[dict, str]:
         """
         Dump all variables.
 

@@ -55,7 +55,7 @@ class Image(item.Item):
         self._virt_bridge = ""
         self._virt_cpus = 0
         self._virt_disk_driver = enums.VirtDiskDrivers.RAW
-        self._virt_file_size = 0.0
+        self._virt_file_size = enums.VALUE_INHERITED
         self._virt_path = ""
         self._virt_ram = 0
         self._virt_type = enums.VirtType.AUTO
