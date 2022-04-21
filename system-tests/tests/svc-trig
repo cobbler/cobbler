@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Check that the Cobbler HTTP endpoint /autoinstall/ is callable
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+# Arrange
+cobbler distro add --name fake --arch x86_64 --kernel ${fake_kernel} \
+	--initrd ${fake_initramfs}
+cobbler profile add --name fake --distro fake
+cobbler system add --name testbed --profile fake
+# Prepare expected result
+cat >${tmp}/a <<-EOF
+False EOF
+
+# Act
+curl --output ${tmp}/b http://localhost/cblr/svc/op/trig
+curl --output ${tmp}/c http://localhost/cblr/svc/op/trig/profile/fake
+curl --output ${tmp}/d http://localhost/cblr/svc/op/trig/system/testbed
+
+
+# Assert
+diff ${tmp}/{a,b}
+diff ${tmp}/{a,c}
+diff ${tmp}/{a,d}
