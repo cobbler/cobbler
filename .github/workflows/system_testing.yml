@@ -1,9 +1,10 @@
 name: System testing
 
 on:
+  push:
+    branches: [ main, release* ]
   pull_request:
-    branches:
-      - main
+    branches: [ main, release* ]
 
 jobs:
   run_system_test:

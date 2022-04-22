@@ -2,15 +2,9 @@ name: Testing Cobbler
 
 on:
   push:
-    branches:
-      - main
-      - release30
-      - release32
+    branches: [ main, release* ]
   pull_request:
-    branches:
-      - main
-      - release30
-      - release32
+    branches: [ main, release* ]
 
 jobs:
   run_tests:
