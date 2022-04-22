@@ -19,6 +19,7 @@ from cobbler.settings.migrations import (
     V3_0_0,
     V3_3_1,
     V3_3_2,
+    V3_3_3,
     V3_4_0,
 )
 
@@ -141,6 +142,20 @@ def test_normalize_v3_3_2():
 
     # Assert
     assert len(V3_3_2.normalize(new_settings)) == 129
+
+
+def test_normalize_v3_3_3():
+    # Arrange
+    with open("/code/tests/test_data/V3_3_3/settings.yaml") as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+
+    # Act
+    new_settings = V3_3_3.normalize(old_settings_dict)
+
+    # Assert
+    assert len(new_settings) == 130
+    # Migration of default_virt_file_size to float is working
+    assert isinstance(new_settings.get("default_virt_file_size", None), float)
 
 
 def test_normalize_v3_4_0_empty():
