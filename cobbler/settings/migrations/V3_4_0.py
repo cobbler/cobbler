@@ -9,7 +9,7 @@ import pathlib
 from schema import Optional, Schema, SchemaError
 
 from cobbler.settings.migrations import helper
-from cobbler.settings.migrations import V3_3_2
+from cobbler.settings.migrations import V3_3_3
 
 schema = Schema(
     {
@@ -183,8 +183,8 @@ def migrate(settings: dict) -> dict:
     :return: The migrated dict
     """
 
-    if not V3_3_2.validate(settings):
-        raise SchemaError("V3.3.2: Schema error while validating")
+    if not V3_3_3.validate(settings):
+        raise SchemaError("V3.3.3: Schema error while validating")
 
     # rename keys and update their value if needed
     include = settings.pop("include")
