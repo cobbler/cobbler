@@ -23,7 +23,7 @@ import shutil
 import subprocess
 
 
-VERSION = "3.3.2"
+VERSION = "3.3.3"
 OUTPUT_DIR = "config"
 
 # # Configurable installation roots for various data files.
