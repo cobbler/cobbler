@@ -301,8 +301,8 @@ def test_virt_disk_driver(cobbler_api, value, expected_exception, expected_resul
 
 
 @pytest.mark.parametrize("value,expected_exception,expected_result", [
-    ("", pytest.raises(ValueError), 0),
-    ("<<inherit>>", pytest.raises(ValueError), 512),
+    ("", does_not_raise(), 0),
+    ("<<inherit>>", does_not_raise(), 512),
     (0, does_not_raise(), 0),
     (0.0, pytest.raises(TypeError), 0)
 ])

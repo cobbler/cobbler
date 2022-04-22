@@ -607,7 +607,7 @@ def test_virt_type(cobbler_api, value, expected_exception, expected_result):
         system.virt_type = value
 
         # Assert
-        assert system.virt_type.value == expected_result
+        assert system.virt_type == expected_result
 
 
 def test_serial_device(cobbler_api):
