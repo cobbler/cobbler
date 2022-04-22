@@ -539,7 +539,7 @@ class Profile(item.Item):
         self._virt_cpus = validate.validate_virt_cpus(num)
 
     @property
-    def virt_file_size(self) -> int:
+    def virt_file_size(self) -> float:
         r"""
         The size of the image and thus the usable size for the guest.
 

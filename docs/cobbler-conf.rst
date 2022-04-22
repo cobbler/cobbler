@@ -428,7 +428,7 @@ default_virt_file_size
 
 Use this as the default disk size for virt guests (GB).
 
-default: ``5``
+default: ``5.0``
 
 default_virt_ram
 ================

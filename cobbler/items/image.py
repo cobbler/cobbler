@@ -363,7 +363,7 @@ class Image(item.Item):
         :getter: The size of the image(s) in GB.
         :setter: The float with the new size in GB.
         """
-        return self._virt_file_size
+        return self._resolve("virt_file_size")
 
     @virt_file_size.setter
     def virt_file_size(self, num: float):

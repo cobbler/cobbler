@@ -207,7 +207,7 @@ default_template_type: "cheetah"
 default_virt_bridge: xenbr0
 
 # use this as the default disk size for virt guests (GB)
-default_virt_file_size: 5
+default_virt_file_size: 5.0
 
 # use this as the default memory size for virt guests (MB)
 default_virt_ram: 512
