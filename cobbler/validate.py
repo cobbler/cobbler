@@ -325,7 +325,7 @@ def validate_repos(repos: list, api, bypass_check: bool = False):
     return repos
 
 
-def validate_virt_file_size(num: Union[str, float]):
+def validate_virt_file_size(num: Union[str, int, float]) -> Union[str, float]:
     """
     For Virt only: Specifies the size of the virt image in gigabytes. Older versions of koan (x<0.6.3) interpret 0 as
     "don't care". Newer versions (x>=0.6.4) interpret 0 as "no disks"

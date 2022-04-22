@@ -163,7 +163,7 @@ class Settings:
         self.default_template_type = "cheetah"
         self.default_virt_bridge = "xenbr0"
         self.default_virt_disk_driver = "raw"
-        self.default_virt_file_size = 5
+        self.default_virt_file_size = 5.0
         self.default_virt_ram = 512
         self.default_virt_type = "xenpv"
         self.enable_ipxe = False

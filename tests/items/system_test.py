@@ -509,6 +509,7 @@ def test_virt_disk_driver(cobbler_api, value, expected_exception, expected_resul
     "input_virt_file_size,expected_exception,expected_result",
     [
         (15.0, does_not_raise(), 15.0),
+        (15, does_not_raise(), 15.0),
         ("<<inherit>>", does_not_raise(), 5.0),
     ],
 )

@@ -1,5 +1,8 @@
+import pytest
+
 from cobbler import enums, utils
 from cobbler.items.image import Image
+from tests.conftest import does_not_raise
 
 
 def test_object_creation(cobbler_api):
@@ -125,15 +128,26 @@ def test_virt_auto_boot(cobbler_api):
     assert not image.virt_auto_boot
 
 
-def test_virt_file_size(cobbler_api):
+@pytest.mark.parametrize(
+    "input_virt_file_size,expected_exception,expected_result",
+    [
+        (15.0, does_not_raise(), 15.0),
+        (15, does_not_raise(), 15.0),
+        ("<<inherit>>", does_not_raise(), 5.0),
+    ],
+)
+def test_virt_file_size(
+    cobbler_api, input_virt_file_size, expected_exception, expected_result
+):
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.virt_file_size = 500
+    with expected_exception:
+        image.virt_file_size = input_virt_file_size
 
-    # Assert
-    assert image.virt_file_size == 500
+        # Assert
+        assert image.virt_file_size == expected_result
 
 
 def test_virt_disk_driver(cobbler_api):
