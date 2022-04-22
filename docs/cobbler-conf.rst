@@ -26,6 +26,11 @@ main file.
 Updates to the yaml-settings-file
 #################################
 
+Starting with 3.3.3
+===================
+
+- ``default_virt_file_size`` is now a float as intended.
+
 Starting with 3.3.2
 ===================
 

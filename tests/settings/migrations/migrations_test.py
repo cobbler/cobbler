@@ -6,15 +6,23 @@ Tests for the Cobbler settings migrations
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
-import os
-import pathlib
-import shutil
-import pytest
 import yaml
 
 from cobbler import settings
 from cobbler.settings import migrations
-from cobbler.settings.migrations import V3_3_0, V3_2_1, V3_2_0, V3_1_2, V3_1_1, V3_1_0, V3_0_1, V3_0_0, V3_3_1
+from cobbler.settings.migrations import (
+    V3_3_0,
+    V3_2_1,
+    V3_2_0,
+    V3_1_2,
+    V3_1_1,
+    V3_1_0,
+    V3_0_1,
+    V3_0_0,
+    V3_3_1,
+    V3_3_2,
+    V3_3_3,
+)
 
 
 def test_cobbler_version_logic():
@@ -60,7 +68,9 @@ def test_get_installed_version():
 
 def test_get_settings_file_version():
     # Arrange
-    old_settings_dict = settings.read_yaml_file("/code/tests/test_data/V2_8_5/settings.yaml")
+    old_settings_dict = settings.read_yaml_file(
+        "/code/tests/test_data/V2_8_5/settings.yaml"
+    )
     v285 = migrations.CobblerVersion(2, 8, 5)
 
     # Act
@@ -305,3 +315,55 @@ def test_normalize_v3_3_1():
 
     # Assert
     assert len(V3_3_1.normalize(new_settings)) == 129
+
+
+def test_migrate_v3_3_2():
+    # Arrange
+    with open("/code/tests/test_data/V3_3_1/settings.yaml") as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+
+    # Act
+    new_settings = V3_3_2.migrate(old_settings_dict)
+
+    # Assert
+    assert V3_3_2.validate(new_settings)
+
+
+def test_normalize_v3_3_2():
+    # Arrange
+    with open("/code/tests/test_data/V3_3_2/settings.yaml") as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+
+    # Act
+    new_settings = V3_3_2.normalize(old_settings_dict)
+
+    # Assert
+    assert len(V3_3_2.normalize(new_settings)) == 129
+
+
+def test_migrate_v3_3_3():
+    # Arrange
+    with open("/code/tests/test_data/V3_3_2/settings.yaml") as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+
+    # Act
+    new_settings = V3_3_3.migrate(old_settings_dict)
+
+    # Assert
+    assert V3_3_3.validate(new_settings)
+    # Migration of default_virt_file_size to float is working
+    assert isinstance(new_settings.get("default_virt_file_size", None), float)
+
+
+def test_normalize_v3_3_3():
+    # Arrange
+    with open("/code/config/cobbler/settings.yaml") as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+
+    # Act
+    new_settings = V3_3_3.normalize(old_settings_dict)
+
+    # Assert
+    assert len(V3_3_3.normalize(new_settings)) == 129
+    # Migration of default_virt_file_size to float is working
+    assert isinstance(new_settings.get("default_virt_file_size", None), float)
