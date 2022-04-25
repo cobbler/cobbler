@@ -259,12 +259,12 @@ def test_virt_cpus(cobbler_api, value, expected_exception, expected_result):
 
 
 @pytest.mark.parametrize("value,expected_exception,expected_result", [
-    ("5", does_not_raise(), 5),
-    ("<<inherit>>", does_not_raise(), 5),
+    ("5", does_not_raise(), 5.0),
+    ("<<inherit>>", does_not_raise(), 5.0),
     # FIXME: (False, pytest.raises(TypeError)), --> does not raise
     (-5, pytest.raises(ValueError), 0),
-    (0, does_not_raise(), 0),
-    (5, does_not_raise(), 5)
+    (0, does_not_raise(), 0.0),
+    (5, does_not_raise(), 5.0)
 ])
 def test_virt_file_size(cobbler_api, value, expected_exception, expected_result):
     # Arrange
@@ -301,8 +301,8 @@ def test_virt_disk_driver(cobbler_api, value, expected_exception, expected_resul
 
 
 @pytest.mark.parametrize("value,expected_exception,expected_result", [
-    ("", pytest.raises(ValueError), 0),
-    ("<<inherit>>", pytest.raises(ValueError), 512),
+    ("", does_not_raise(), 0),
+    ("<<inherit>>", does_not_raise(), 512),
     (0, does_not_raise(), 0),
     (0.0, pytest.raises(TypeError), 0)
 ])

@@ -377,7 +377,7 @@ class AppendLineBuilder:
         :param distro_breed: The name of the distribution breed.
         :return: The generated append line.
         """
-        self.append_line = " append initrd=%s.img" % self.distro_name
+        self.append_line = "  APPEND initrd=%s.img" % self.distro_name
         if distro_breed == "suse":
             if self.data.get("proxy", "") != "":
                 self.append_line += " proxy=%s" % self.data["proxy"]

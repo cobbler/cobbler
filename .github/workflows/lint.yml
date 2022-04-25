@@ -2,15 +2,9 @@ name: Linting
 
 on:
   push:
-    branches:
-      - master
-      - release30
-      - release32
+    branches: [ main, release* ]
   pull_request:
-    branches:
-      - master
-      - release30
-      - release32
+    branches: [ main, release* ]
 
 jobs:
   lint_docs:

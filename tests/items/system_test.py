@@ -501,6 +501,7 @@ def test_virt_disk_driver(cobbler_api, value, expected_exception, expected_resul
     "input_virt_file_size,expected_exception,expected_result",
     [
         (15.0, does_not_raise(), 15.0),
+        (15, does_not_raise(), 15.0),
         ("<<inherit>>", does_not_raise(), 5.0),
     ],
 )
@@ -606,7 +607,7 @@ def test_virt_type(cobbler_api, value, expected_exception, expected_result):
         system.virt_type = value
 
         # Assert
-        assert system.virt_type.value == expected_result
+        assert system.virt_type == expected_result
 
 
 def test_serial_device(cobbler_api):

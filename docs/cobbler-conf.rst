@@ -26,6 +26,11 @@ main file.
 Updates to the yaml-settings-file
 #################################
 
+Starting with 3.3.3
+===================
+
+- ``default_virt_file_size`` is now a float as intended.
+
 Starting with 3.3.2
 ===================
 
@@ -428,7 +433,7 @@ default_virt_file_size
 
 Use this as the default disk size for virt guests (GB).
 
-default: ``5``
+default: ``5.0``
 
 default_virt_ram
 ================
