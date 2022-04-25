@@ -183,7 +183,7 @@ class Item:
                     % (type(self), self.name, property_name)
                 )
 
-            return attribute_value
+        return attribute_value
 
     def _resolve_enum(
             self, property_name: str, enum_type: Type[enums.ConvertableEnum]
