@@ -115,8 +115,7 @@ class Distro(item.Item):
         """
         Check if a distro object is valid. If invalid an exception is raised.
         """
-        if self.name is None:
-            raise CX("name is required")
+        super().check_if_valid()
         if self.kernel is None:
             raise CX("Error with distro %s - kernel is required" % self.name)
 
