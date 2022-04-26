@@ -119,8 +119,6 @@ class Distro(item.Item):
             raise CX("name is required")
         if self.kernel is None:
             raise CX("Error with distro %s - kernel is required" % self.name)
-        if self.initrd is None:
-            raise CX("Error with distro %s - initrd is required" % self.name)
 
     #
     # specific methods for item.Distro
