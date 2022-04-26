@@ -76,8 +76,7 @@ class File(resource.Resource):
 
         :raises CX: Raised in case a required argument is missing
         """
-        if not self.name:
-            raise CX("name is required")
+        super().check_if_valid()
         if not self.path:
             raise CX("path is required")
         if not self.owner:

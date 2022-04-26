@@ -90,8 +90,7 @@ class Repo(item.Item):
 
         :raises CX: In case the name or mirror is missing.
         """
-        if self.name is None:
-            raise CX("name is required")
+        super().check_if_valid()
         if self.mirror is None:
             raise CX("Error with repo %s - mirror is required" % self.name)
 

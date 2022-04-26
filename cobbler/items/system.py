@@ -897,8 +897,9 @@ class System(Item):
 
         :raises CX: In case name is missing. Additionally either image or profile is required.
         """
-        if self.name is None or self.name == "":
-            raise CX("name is required")
+        super().check_if_valid()
+
+        # System specific validation
         if self.profile is None or self.profile == "":
             if self.image is None or self.image == "":
                 raise CX("Error with system %s - profile or image is required" % self.name)

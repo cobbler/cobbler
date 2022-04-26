@@ -60,15 +60,6 @@ class Package(resource.Resource):
         cloned.uid = uuid.uuid4().hex
         return cloned
 
-    def check_if_valid(self):
-        """
-        Checks if the object is in a valid state. This only checks currently if the name is present.
-
-        :raises CX: Raised in case name is not given.
-        """
-        if not self.name:
-            raise CX("name is required")
-
     def from_dict(self, dictionary: dict):
         """
         Initializes the object with attributes from the dictionary.
