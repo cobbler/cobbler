@@ -52,8 +52,8 @@ class Profile(item.Item):
         self._enable_menu = api.settings().enable_menu
         self._name_servers = api.settings().default_name_servers
         self._name_servers_search = api.settings().default_name_servers_search
-        self._next_server_v4 = api.settings().next_server_v4
-        self._next_server_v6 = api.settings().next_server_v6
+        self._next_server_v4 = enums.VALUE_INHERITED
+        self._next_server_v6 = enums.VALUE_INHERITED
         self._filename = ""
         self._proxy = enums.VALUE_INHERITED
         self._redhat_management_key = enums.VALUE_INHERITED
