@@ -207,7 +207,7 @@ class TFTPGen:
             # FIXME: profiles also need this data!
             # gather default kernel_options and default kernel_options_s390x
             kernel_options = self.build_kernel_options(
-                system, profile, distro, image, "s390x", blended.get("autoinstall", "")
+                system, profile, distro, image, enums.Archs.S390X, blended.get("autoinstall", "")
             )
             kopts_aligned = ""
             column = 0
@@ -404,20 +404,20 @@ class TFTPGen:
             template_src.close()
 
         # Write the grub menu:
-        for arch in utils.get_valid_archs():
+        for arch in enums.Archs:
             arch_metadata = self.get_menu_items(arch)
             arch_menu_items = arch_metadata["menu_items"]
 
             if "grub" in arch_menu_items:
                 boot_menu["grub"] = arch_menu_items
                 outfile = os.path.join(
-                    self.bootloc, "grub", "{0}_menu_items.cfg".format(arch)
+                    self.bootloc, "grub", "{0}_menu_items.cfg".format(arch.value)
                 )
                 with open(outfile, "w+") as fd:
                     fd.write(arch_menu_items["grub"])
         return boot_menu
 
-    def get_menu_items(self, arch: Optional[str] = None) -> dict:
+    def get_menu_items(self, arch: Optional[enums.Archs] = None) -> dict:
         """
         Generates menu items for pxe, ipxe and grub. Grub menu items are grouped into submenus by profile.
 
@@ -427,7 +427,7 @@ class TFTPGen:
         """
         return self.get_menu_level(None, arch)
 
-    def get_submenus(self, menu, metadata: dict, arch: str):
+    def get_submenus(self, menu, metadata: dict, arch: enums.Archs):
         """
         Generates submenus metatdata for pxe, ipxe and grub.
 
@@ -482,7 +482,7 @@ class TFTPGen:
         metadata["menu_items"] = nested_menu_items
         metadata["menu_labels"] = menu_labels
 
-    def get_profiles_menu(self, menu, metadata, arch: str):
+    def get_profiles_menu(self, menu, metadata, arch: enums.Archs):
         """
         Generates profiles metadata for pxe, ipxe and grub.
 
@@ -547,7 +547,7 @@ class TFTPGen:
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
 
-    def get_images_menu(self, menu, metadata, arch: str):
+    def get_images_menu(self, menu, metadata, arch: enums.Archs):
         """
         Generates profiles metadata for pxe, ipxe and grub.
 
@@ -609,7 +609,7 @@ class TFTPGen:
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
 
-    def get_menu_level(self, menu=None, arch: str = None) -> dict:
+    def get_menu_level(self, menu=None, arch: enums.Archs = None) -> dict:
         """
         Generates menu items for submenus, pxe, ipxe and grub.
 
@@ -784,7 +784,7 @@ class TFTPGen:
 
         # generate the kernel options and append line:
         kernel_options = self.build_kernel_options(
-            system, profile, distro, image, arch.value, metadata["autoinstall"]
+            system, profile, distro, image, arch, metadata["autoinstall"]
         )
         metadata["kernel_options"] = kernel_options
 
@@ -927,7 +927,7 @@ class TFTPGen:
         )
 
     def build_kernel_options(
-        self, system, profile, distro, image, arch: str, autoinstall_path
+        self, system, profile, distro, image, arch: enums.Archs, autoinstall_path
     ) -> str:
         """
         Builds the full kernel options line.
