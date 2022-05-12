@@ -207,7 +207,12 @@ class TFTPGen:
             # FIXME: profiles also need this data!
             # gather default kernel_options and default kernel_options_s390x
             kernel_options = self.build_kernel_options(
-                system, profile, distro, image, enums.Archs.S390X, blended.get("autoinstall", "")
+                system,
+                profile,
+                distro,
+                image,
+                enums.Archs.S390X,
+                blended.get("autoinstall", ""),
             )
             kopts_aligned = ""
             column = 0
