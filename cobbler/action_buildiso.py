@@ -397,7 +397,10 @@ class BuildIso:
                    else:
                       append_line += " dns=%s" % my_dns
                 if dist.breed in ["ubuntu","debian"]:
-                   append_line += " netcfg/get_nameservers=%s" % ",".join(my_dns)
+                   if type(my_dns) == list:
+                      append_line += " netcfg/get_nameservers=%s" % ",".join(my_dns)
+                   else:
+                      append_line += " netcfg/get_nameservers=%s" % my_dns
 
              # add remaining kernel_options to append_line
              append_line += self.add_remaining_kopts(data["kernel_options"])
