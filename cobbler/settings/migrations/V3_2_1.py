@@ -11,6 +11,7 @@ import os
 from schema import Optional, Schema, SchemaError
 
 from cobbler import utils
+from cobbler.settings.migrations import V3_2_0
 
 schema = Schema(
     {
@@ -169,6 +170,10 @@ def migrate(settings: dict) -> dict:
     :param settings: The settings dict to migrate
     :return: The migrated dict
     """
+
+    if not V3_2_0.validate(settings):
+        raise SchemaError("V3.2.0: Schema error while validating")
+
     # int bool to real bool conversion
     bool_values = [
         "allow_duplicate_hostnames",
@@ -226,6 +231,4 @@ def migrate(settings: dict) -> dict:
         os.rename(filename, filename + ".yaml")
         filename += ".yaml"
 
-    if not validate(settings):
-        raise SchemaError("V3.2.1: Schema error while validating")
     return normalize(settings)

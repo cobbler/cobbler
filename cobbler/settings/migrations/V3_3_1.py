@@ -9,6 +9,7 @@ Migration from V3.3.0 to V3.3.1
 from schema import Optional, Schema, SchemaError
 
 from cobbler.settings.migrations import helper
+from cobbler.settings.migrations import V3_3_0
 
 schema = Schema(
     {
@@ -265,6 +266,9 @@ def migrate(settings: dict) -> dict:
     :return: The migrated dict
     """
 
+    if not V3_3_0.validate(settings):
+        raise SchemaError("V3.3.0: Schema error while validating")
+
     # rename keys and update their value
     # add missing keys
     # name - value pairs
@@ -285,6 +289,4 @@ def migrate(settings: dict) -> dict:
 
     # delete removed keys
 
-    if not validate(settings):
-        raise SchemaError("V3.3.1: Schema error while validating")
     return normalize(settings)

@@ -44,10 +44,11 @@ def migrate(settings: dict) -> dict:
     :return: The migrated dict
     """
 
+    if not V3_3_1.validate(settings):
+        raise SchemaError("V3.3.1: Schema error while validating")
+
     # rename keys and update their value
     # add missing keys
     # name - value pairs
 
-    if not validate(settings):
-        raise SchemaError("V3.3.1: Schema error while validating")
     return normalize(settings)
