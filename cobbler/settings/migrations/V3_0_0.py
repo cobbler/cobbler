@@ -8,6 +8,7 @@ Migration from V2.8.5 to V3.0.0
 
 from schema import Optional, Or, Schema, SchemaError
 from cobbler.settings.migrations import helper
+from cobbler.settings.migrations import V2_8_5
 
 schema = Schema(
     {
@@ -171,6 +172,10 @@ def migrate(settings: dict) -> dict:
     :param settings: The settings dict to migrate
     :return: The migrated dict
     """
+
+    if not V2_8_5.validate(settings):
+        raise SchemaError("V2.8.5: Schema error while validating")
+
     # rename keys and update their value
     old_setting = helper.Setting(
         "default_kickstart", "/var/lib/cobbler/kickstarts/default.ks"
@@ -219,6 +224,4 @@ def migrate(settings: dict) -> dict:
         helper.key_delete(key, settings)
 
     # TODO: v2 to v3 script
-    if not validate(settings):
-        raise SchemaError("V3.0.0: Schema error while validating")
     return normalize(settings)
