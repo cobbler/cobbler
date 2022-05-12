@@ -9,6 +9,7 @@ Migration from V3.1.1 to V3.1.2
 from schema import Optional, Or, Schema, SchemaError
 
 from cobbler.settings.migrations import helper
+from cobbler.settings.migrations import V3_1_1
 
 schema = Schema(
     {
@@ -169,9 +170,11 @@ def migrate(settings: dict) -> dict:
     :param settings: The settings dict to migrate
     :return: The migrated dict
     """
+
+    if not V3_1_1.validate(settings):
+        raise SchemaError("V3.1.1: Schema error while validating")
+
     # delete removed key
     helper.key_delete("power_template_dir", settings)
 
-    if not validate(settings):
-        raise SchemaError("V3.1.2: Schema error while validating")
     return normalize(settings)

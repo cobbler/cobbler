@@ -46,6 +46,6 @@ def migrate(settings: dict) -> dict:
     :return: The migrated dict
     """
     # TODO: modules.conf migration
-    if not validate(settings):
-        raise SchemaError("V3.0.1: Schema error while validating")
+    if not V3_0_0.validate(settings):
+        raise SchemaError("V3.0.0: Schema error while validating")
     return normalize(settings)

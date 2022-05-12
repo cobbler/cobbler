@@ -45,6 +45,6 @@ def migrate(settings: dict) -> dict:
     :param settings: The settings dict to migrate
     :return: The migrated dict
     """
-    if not validate(settings):
-        raise SchemaError("V3.1.1: Schema error while validating")
+    if not V3_1_0.validate(settings):
+        raise SchemaError("V3.1.0: Schema error while validating")
     return normalize(settings)
