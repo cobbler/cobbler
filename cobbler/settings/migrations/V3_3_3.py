@@ -8,6 +8,8 @@ Migration from V3.3.2 to V3.3.3
 
 from schema import Optional, Schema, SchemaError
 
+from cobbler.settings.migrations import V3_3_2
+
 schema = Schema(
     {
         "auto_migrate_settings": bool,
@@ -106,12 +108,12 @@ schema = Schema(
                 "gcry_sha256",
             ],
         ): list,
-        Optional("bootloaders_shim_folder", default="@@shim_folder@@"): str,
-        Optional("bootloaders_shim_file", default="@@shim_file@@"): str,
-        Optional("bootloaders_ipxe_folder", default="@@ipxe_folder@@"): str,
-        Optional("syslinux_dir", default="@@syslinux_dir@@"): str,
-        Optional("syslinux_memdisk_folder", default="@@memdisk_folder@@"): str,
-        Optional("syslinux_pxelinux_folder", default="@@pxelinux_folder@@"): str,
+        Optional("bootloaders_shim_folder", default="/usr/share/efi/*/"): str,
+        Optional("bootloaders_shim_file", default=r"shim\.efi"): str,
+        Optional("bootloaders_ipxe_folder", default="/usr/share/ipxe/"): str,
+        Optional("syslinux_dir", default="/usr/share/syslinux"): str,
+        Optional("syslinux_memdisk_folder", default="/usr/share/syslinux"): str,
+        Optional("syslinux_pxelinux_folder", default="/usr/share/syslinux"): str,
         Optional("grub2_mod_dir", default="/usr/share/grub"): str,
         Optional("grubconfig_dir", default="/var/lib/cobbler/grub_config"): str,
         "build_reporting_enabled": bool,
@@ -264,12 +266,13 @@ def migrate(settings: dict) -> dict:
     :return: The migrated dict
     """
 
+    if not V3_3_2.validate(settings):
+        raise SchemaError("V3.3.2: Schema error while validating")
+
     # rename keys and update their value
     # add missing keys
     # name - value pairs
 
     settings["default_virt_file_size"] = float(settings.get("default_virt_file_size", 5.0))
 
-    if not validate(settings):
-        raise SchemaError("V3.3.1: Schema error while validating")
     return normalize(settings)
