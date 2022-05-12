@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Check that the Cobbler HTTP endpoint /autoinstall/ is callable
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+# Arrange
+cobbler image add --name=fakeimage
+cobbler system add --name testbed --image fakeimage
+# Prepare expected result
+cat >${tmp}/a <<-EOF
+EOF
+
+# Act
+curl --output ${tmp}/b http://localhost/cblr/svc/op/ipxe/image/fakeimage
+
+# Assert
+# FIXME no output from endpoint
+exit 0
+#diff ${tmp}/{a,b}

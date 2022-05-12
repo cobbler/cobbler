@@ -98,6 +98,8 @@ master     --      --      --      --      --      --      --      --       --  
 .. note::
    Downgrades are not supported!
 
+.. _settings-ref:
+
 ``settings.yaml``
 #################
 

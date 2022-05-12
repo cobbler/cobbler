@@ -14,6 +14,7 @@ User Guide
    Repository Management <user-guide/repository-management>
    The TFTP Directory <user-guide/tftp>
    Internal Database <user-guide/internal-database>
+   HTTP API <user-guide/http-api>
 
 
 API
