@@ -960,15 +960,15 @@ class TFTPGen:
         # This also is architecture specific. E.g: Some ARM consoles need: console=ttyAMAx,BAUDRATE
         # I guess we need a serial_kernel_dev = param, that can be set to "ttyAMA" if needed.
         if system and arch == Archs.X86_64:
-            if system.serial_device or system.serial_baud_rate:
-                if system.serial_device:
-                    serial_device = system.serial_device
-                else:
+            if system.serial_device > -1 or system.serial_baud_rate != enums.BaudRates.DISABLED:
+                if system.serial_device == -1:
                     serial_device = 0
-                if system.serial_baud_rate:
-                    serial_baud_rate = system.serial_baud_rate.value
                 else:
+                    serial_device = system.serial_device
+                if system.serial_baud_rate == enums.BaudRates.DISABLED:
                     serial_baud_rate = 115200
+                else:
+                    serial_baud_rate = system.serial_baud_rate.value
 
                 append_line = "%s console=ttyS%s,%s" % (append_line, serial_device, serial_baud_rate)
 
