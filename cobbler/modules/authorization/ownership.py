@@ -83,7 +83,7 @@ def __authorize_autoinst(api_handle, groups, user, autoinst) -> int:
     return 1
 
 
-def __authorize_snippet(api_handle, groups, user, autoinst) -> bool:
+def __authorize_snippet(api_handle, groups, user, autoinst) -> int:
     """
     Only allow admins to edit snippets -- since we don't have detection to see where each snippet is in use.
 
@@ -91,16 +91,16 @@ def __authorize_snippet(api_handle, groups, user, autoinst) -> bool:
     :param groups: The group which is asking for access.
     :param user: Unused parameter.
     :param autoinst: Unused parameter.
-    :return: ``True`` if the group is allowed, otherwise ``False``.
+    :return: ``1`` if the group is allowed, otherwise ``0``.
     """
 
     for group in groups:
         if group not in ["admins", "admin"]:
-            return False
-    return True
+            return 0
+    return 1
 
 
-def __is_user_allowed(obj, groups, user, resource, arg1, arg2) -> Union[int, bool]:
+def __is_user_allowed(obj, groups, user, resource, arg1, arg2) -> int:
     """
     Check if a user is allowed to access the resource in question.
 
@@ -110,31 +110,29 @@ def __is_user_allowed(obj, groups, user, resource, arg1, arg2) -> Union[int, boo
     :param resource: Unused parameter.
     :param arg1: Unused parameter.
     :param arg2: Unused parameter.
-    :return: ``True`` if user is allowed, otherwise ``0``.
+    :return: ``1`` if user is allowed, otherwise ``0``.
     """
 
     if user == "<DIRECT>":
         # system user, logged in via web.ss
-        return True
+        return 1
     for group in groups:
         if group in ["admins", "admin"]:
-            return True
+            return 1
     if obj.owners == []:
-        return True
+        return 1
     for allowed in obj.owners:
         if user == allowed:
             # user match
-            return True
+            return 1
         # else look for a group match
     for group in groups:
         if group == allowed:
-            return True
+            return 1
     return 0
 
 
-def authorize(
-    api_handle, user: str, resource: str, arg1=None, arg2=None
-) -> Union[bool, int]:
+def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int:
     """
     Validate a user against a resource. All users in the file are permitted by this module.
 
@@ -143,11 +141,11 @@ def authorize(
     :param resource: The resource the user is asking for access. This is something abstract like a remove operation.
     :param arg1: This is normally the name of the specific object in question.
     :param arg2: This parameter is pointless currently. Reserved for future code.
-    :return: ``True`` or ``1`` if okay, otherwise ``False``.
+    :return: ``1`` if okay, otherwise ``0``.
     """
     if user == "<DIRECT>":
         # CLI should always be permitted
-        return True
+        return 1
 
     # Everybody can get read-only access to everything if they pass authorization, they don't have to be in users.conf
     if resource is not None:
@@ -187,7 +185,7 @@ def authorize(
                 # if user is in the admin group, always authorize
                 # regardless of the ownership of the object.
                 if g == "admins" or g == "admin":
-                    return True
+                    return 1
 
     if not found_user:
         # if the user isn't anywhere in the file, reject regardless
@@ -196,7 +194,7 @@ def authorize(
     if not modify_operation:
         # sufficient to allow access for non save/remove ops to all
         # users for now, may want to refine later.
-        return True
+        return 1
 
     # Now we have a modify_operation op, so we must check ownership of the object. Remove ops pass in arg1 as a string
     # name, saves pass in actual objects, so we must treat them differently. Automatic installaton files are even more
@@ -205,7 +203,7 @@ def authorize(
     if resource.find("write_autoinstall_template") != -1:
         return __authorize_autoinst(api_handle, found_groups, user, arg1)
     elif resource.find("read_autoinstall_template") != -1:
-        return True
+        return 1
 
     # The API for editing snippets also needs to do something similar. As with automatic installation files, though
     # since they are more widely used it's more restrictive.
@@ -213,7 +211,7 @@ def authorize(
     if resource.find("write_autoinstall_snippet") != -1:
         return __authorize_snippet(api_handle, found_groups, user, arg1)
     elif resource.find("read_autoinstall_snipppet") != -1:
-        return True
+        return 1
 
     obj = None
     if resource.find("remove") != -1:
@@ -232,6 +230,6 @@ def authorize(
 
     # if the object has no ownership data, allow access regardless
     if obj is None or obj.owners is None or obj.owners == []:
-        return True
+        return 1
 
     return __is_user_allowed(obj, found_groups, user, resource, arg1, arg2)
