@@ -15,7 +15,7 @@ def register() -> str:
     return "authz"
 
 
-def authorize(api_handle, user, resource, arg1=None, arg2=None) -> bool:
+def authorize(api_handle, user, resource, arg1=None, arg2=None) -> int:
     """
     Validate a user against a resource.
     NOTE: acls are not enforced as there is no group support in this module
@@ -25,6 +25,6 @@ def authorize(api_handle, user, resource, arg1=None, arg2=None) -> bool:
     :param resource: This parameter is not used currently.
     :param arg1: This parameter is not used currently.
     :param arg2: This parameter is not used currently.
-    :return: Always True
+    :return: Always ``1``
     """
-    return True
+    return 1
