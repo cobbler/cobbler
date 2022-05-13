@@ -1077,7 +1077,7 @@ If you have own custom modules which are not shipped with Cobbler directly you m
 authentication
 ==============
 
-What users can log into the WebUI and Read-Write XML-RPC?
+What users can log into Cobbler via the XML-RPC API or the HTTP-API?
 
 Choices:
 
@@ -1089,9 +1089,9 @@ Choices:
 - authentication.pam        -- Use PAM facilities
 - (user supplied)  -- You may write your own module
 
-.. note:: A new web interface is in the making. At the moment we do not have any documention, yet.
+.. note:: A new web interface is in the making. At the moment we do not have any documentation, yet.
 
-default: ``authn_configfile``
+default: ``authentication.configfile``
 
 Hash algorithms:
 
@@ -1126,9 +1126,9 @@ Choices:
              ``authorization.allowall`` does not support ACLs. Configuration file does but does not support object
              ownership which is useful as an additional layer of control.
 
-.. note:: A new web interface is in the making. At the moment we do not have any documention, yet.
+.. note:: A new web interface is in the making. At the moment we do not have any documentation, yet.
 
-default: ``authz_allowall``
+default: ``authorization.allowall``
 
 dns
 ===
