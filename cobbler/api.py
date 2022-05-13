@@ -1770,7 +1770,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def authenticate(self, user: str, password: str):
+    def authenticate(self, user: str, password: str) -> bool:
         """
         (Remote) access control. This depends on the chosen authentication module.
         Cobbler internal use only.
@@ -1783,7 +1783,7 @@ class CobblerAPI:
         self.log("authenticate", [user, rc])
         return rc
 
-    def authorize(self, user: str, resource: str, arg1=None, arg2=None):
+    def authorize(self, user: str, resource: str, arg1=None, arg2=None) -> int:
         """
         (Remote) access control. This depends on the chosen authorization module.
         Cobbler internal use only.

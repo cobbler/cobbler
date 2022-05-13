@@ -3266,18 +3266,15 @@ class CobblerXMLRPCInterface:
                 del self.events[tid]
             # logfile cleanup should be dealt w/ by logrotate
 
-    def __validate_user(self, input_user, input_password):
+    def __validate_user(self, input_user: str, input_password: str) -> bool:
         """
         Returns whether this user/pass combo should be given access to the Cobbler read-write API.
 
         For the system user, this answer is always "yes", but it is only valid for the socket interface.
 
-        FIXME: currently looks for users in /etc/cobbler/auth.conf
-        Would be very nice to allow for PAM and/or just Kerberos.
-
         :param input_user: The user to validate.
         :param input_password: The password to validate.
-        :return: The return of the operation.
+        :return: If the authentication was successful ``True`` is returned. ``False`` in all other cases.
         """
         return self.api.authenticate(input_user, input_password)
 
@@ -3322,7 +3319,7 @@ class CobblerXMLRPCInterface:
             return self.api.find_menu(name)
         return None
 
-    def check_access_no_fail(self, token, resource, arg1=None, arg2=None) -> bool:
+    def check_access_no_fail(self, token, resource, arg1=None, arg2=None) -> int:
         """
         This is called by the WUI to decide whether an element is editable or not. It differs form check_access in that
         it is supposed to /not/ log the access checks (TBA) and does not raise exceptions.
@@ -3331,7 +3328,7 @@ class CobblerXMLRPCInterface:
         :param resource: The resource for which access shall be checked.
         :param arg1: Arguments to hand to the authorization provider.
         :param arg2: Arguments to hand to the authorization provider.
-        :return: True if the object is editable or False otherwise.
+        :return: 1 if the object is editable or 0 otherwise.
         """
         need_remap = False
         for x in ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file", "menu"]:
@@ -3345,12 +3342,12 @@ class CobblerXMLRPCInterface:
 
         try:
             self.check_access(token, resource, arg1, arg2)
-            return True
+            return 1
         except:
             utils.log_exc()
-            return False
+            return 0
 
-    def check_access(self, token: str, resource: str, arg1=None, arg2=None):
+    def check_access(self, token: str, resource: str, arg1=None, arg2=None) -> int:
         """
         Check if the token which was provided has access.
 
@@ -3358,12 +3355,13 @@ class CobblerXMLRPCInterface:
         :param resource: The resource for which access shall be checked.
         :param arg1: Arguments to hand to the authorization provider.
         :param arg2: Arguments to hand to the authorization provider.
-        :return: Whether the authentication was successful or not.
+        :return: If the operation was successful return ``1``. If unsuccessful then return ``0``. Other codes may be
+                 returned if specified by the currently configured authorization module.
         """
         user = self.get_user_from_token(token)
         if user == "<DIRECT>":
             self._log("CLI Authorized", debug=True)
-            return True
+            return 1
         rc = self.api.authorize(user, resource, arg1, arg2)
         self._log("%s authorization result: %s" % (user, rc), debug=True)
         if not rc:
