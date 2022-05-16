@@ -550,7 +550,7 @@ def input_string_or_list(options: Optional[Union[str, list]]) -> Union[list, str
     return input_string_or_list_no_inherit(options)
 
 
-def input_string_or_dict_no_inherit(
+def input_string_or_dict(
     options: Union[str, list, dict], allow_multiples=True
 ) -> Union[str, Tuple[bool, dict]]:
     """
@@ -558,10 +558,10 @@ def input_string_or_dict_no_inherit(
     """
     if options == enums.VALUE_INHERITED:
         return enums.VALUE_INHERITED
-    return input_string_or_dict(options, allow_multiples)
+    return input_string_or_dict_no_inherit(options, allow_multiples)
 
 
-def input_string_or_dict(
+def input_string_or_dict_no_inherit(
     options: Union[str, list, dict], allow_multiples=True
 ) -> Tuple[bool, dict]:
     """
