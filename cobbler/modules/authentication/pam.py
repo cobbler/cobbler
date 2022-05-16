@@ -2,23 +2,6 @@
 Authentication module that uses /etc/cobbler/auth.conf
 Choice of authentication module is in /etc/cobbler/modules.conf
 
-Copyright 2007-2009, Red Hat, Inc and Others
-Michael DeHaan <michael.dehaan AT gmail>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301  USA
 
 PAM python code based on the pam_python code created by Chris AtLee:
 http://atlee.ca/software/pam/
@@ -35,6 +18,11 @@ a user against the Pluggable Authentication Modules (PAM) on the system.
 
 Implemented using ctypes, so no compilation is necessary.
 """
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Copyright 2007-2009, Red Hat, Inc and Others
+# SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
+# FIXME: Move to the dedicated library python-pam
+
 
 from ctypes import CDLL, POINTER, Structure, CFUNCTYPE, cast, pointer, sizeof
 from ctypes import c_void_p, c_uint, c_char_p, c_char, c_int

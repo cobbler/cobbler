@@ -3,15 +3,10 @@ Authorization module that allow users listed in
 /etc/cobbler/users.conf to be permitted to access resources.
 For instance, when using authz_ldap, you want to use authn_configfile,
 not authz_allowall, which will most likely NOT do what you want.
-
-This software may be freely redistributed under the terms of the GNU
-general public license.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301  USA.
 """
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Copyright 2007-2009, Red Hat, Inc and Others
+# SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 
 from configparser import SafeConfigParser

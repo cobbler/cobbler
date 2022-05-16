@@ -130,23 +130,12 @@ class CobblerAPI:
             # load the modules first, or nothing else works...
             module_loader.load_modules()
 
-            # import signatures
-            try:
-                utils.load_signatures(self.settings().signature_path)
-            except Exception as e:
-                self.log(
-                    "Failed to load signatures from %s: %s"
-                    % (self.settings().signature_path, e)
-                )
-                return
+            # In case the signatures can't be loaded, we can't validate distros etc. Thus, the raised exception should
+            # not be caught.
+            self.__load_signatures()
 
             self._collection_mgr = manager.CollectionManager(self)
             self.deserialize()
-
-            self.log(
-                "%d breeds and %d OS versions read from the signature file"
-                % (len(utils.get_valid_breeds()), len(utils.get_valid_os_versions()))
-            )
 
             self.authn = self.get_module_from_file(
                 "authentication", "module", "authentication.configfile"
@@ -164,6 +153,23 @@ class CobblerAPI:
             self.power_mgr = power_manager.PowerManager(self)
             self.logger.debug("API handle initialized")
             self.perms_ok = True
+
+    def __load_signatures(self):
+        try:
+            utils.load_signatures(self.settings().signature_path)
+        except Exception as e:
+            self.logger.error(
+                "Failed to load signatures from %s: %s",
+                self.settings().signature_path,
+                exc_info=e,
+            )
+            raise e
+
+        self.logger.info(
+            "%d breeds and %d OS versions read from the signature file",
+            len(utils.get_valid_breeds()),
+            len(utils.get_valid_os_versions()),
+        )
 
     def __generate_settings(
         self, settings_path: Path, execute_settings_automigration: bool = False
@@ -2048,7 +2054,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def authenticate(self, user: str, password: str):
+    def authenticate(self, user: str, password: str) -> bool:
         """
         (Remote) access control. This depends on the chosen authentication module.
         Cobbler internal use only.
@@ -2061,7 +2067,7 @@ class CobblerAPI:
         self.log("authenticate", [user, rc])
         return rc
 
-    def authorize(self, user: str, resource: str, arg1=None, arg2=None):
+    def authorize(self, user: str, resource: str, arg1=None, arg2=None) -> int:
         """
         (Remote) access control. This depends on the chosen authorization module.
         Cobbler internal use only.
