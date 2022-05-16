@@ -74,15 +74,6 @@ class Mgmtclass(item.Item):
         self._remove_depreacted_dict_keys(dictionary)
         super().from_dict(dictionary)
 
-    def check_if_valid(self):
-        """
-        Check if this object is in a valid state. This currently checks only if the name is present.
-
-        :raises CX: Raised in case no name is given.
-        """
-        if not self.name:
-            raise CX("name is required")
-
     #
     # specific methods for item.Mgmtclass
     #

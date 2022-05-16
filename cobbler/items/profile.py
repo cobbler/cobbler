@@ -114,8 +114,7 @@ class Profile(item.Item):
         :raises CX: In case the distro or name is not present.
         """
         # name validation
-        if not self.name:
-            raise CX("Name is required")
+        super().check_if_valid()
 
         # distro validation
         distro = self.get_conceptual_parent()
