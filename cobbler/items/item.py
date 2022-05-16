@@ -406,8 +406,12 @@ class Item:
         :param options: The new kernel options as a space delimited list.
         :raises ValueError: In case the values set could not be parsed successfully.
         """
-        value = utils.input_string_or_dict(options, allow_multiples=True)
-        self._kernel_options = value
+        try:
+            self._kernel_options = utils.input_string_or_dict(
+                options, allow_multiples=True
+            )
+        except TypeError as e:
+            raise TypeError("invalid kernel options") from e
 
     @property
     def kernel_options_post(self) -> dict:
@@ -429,8 +433,12 @@ class Item:
         :param options: The new kernel options as a space delimited list.
         :raises ValueError: In case the options could not be split successfully.
         """
-        value = utils.input_string_or_dict(options, allow_multiples=True)
-        self._kernel_options_post = value
+        try:
+            self._kernel_options_post = utils.input_string_or_dict(
+                options, allow_multiples=True
+            )
+        except TypeError as e:
+            raise TypeError("invalid post kernel options") from e
 
     @property
     def autoinstall_meta(self) -> dict:
@@ -536,8 +544,12 @@ class Item:
         :param template_files: The new value for the template files which are used for the item.
         :raises ValueError: In case the conversion from non dict values was not successful.
         """
-        value = utils.input_string_or_dict(template_files, allow_multiples=False)
-        self._template_files = value
+        try:
+            self._template_files = utils.input_string_or_dict(
+                template_files, allow_multiples=False
+            )
+        except TypeError as e:
+            raise TypeError("invalid template files specified") from e
 
     @property
     def boot_files(self) -> dict:
@@ -559,8 +571,12 @@ class Item:
 
         :param boot_files: The new value for the boot files used by the item.
         """
-        value = utils.input_string_or_dict(boot_files, allow_multiples=False)
-        self._boot_files = value
+        try:
+            self._boot_files = utils.input_string_or_dict(
+                boot_files, allow_multiples=False
+            )
+        except TypeError as e:
+            raise TypeError("invalid boot files specified") from e
 
     @property
     def fetchable_files(self) -> dict:
@@ -582,8 +598,12 @@ class Item:
 
         :param fetchable_files: Files which will be made available to external users.
         """
-        value = utils.input_string_or_dict(fetchable_files, allow_multiples=False)
-        self._fetchable_files = value
+        try:
+            self._fetchable_files = utils.input_string_or_dict(
+                fetchable_files, allow_multiples=False
+            )
+        except TypeError as e:
+            raise TypeError("invalid fetchable files specified") from e
 
     @property
     def depth(self) -> int:
