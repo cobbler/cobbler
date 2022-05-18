@@ -9,7 +9,6 @@ Cobbler app-wide settings
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
 import datetime
-import glob
 import logging
 import os.path
 import pathlib
@@ -49,6 +48,7 @@ class Settings:
         """
         Constructor.
         """
+        self.auto_migrate_settings = False
         self.allow_duplicate_hostnames = False
         self.allow_duplicate_ips = False
         self.allow_duplicate_macs = False
@@ -67,6 +67,80 @@ class Settings:
         self.bootloaders_shim_folder = "/usr/share/efi/*/"
         self.bootloaders_shim_file = r"shim\.efi$"
         self.bootloaders_ipxe_folder = "/usr/share/ipxe/"
+        self.bootloaders_formats = {
+            "aarch64": {"binary_name": "grubaa64.efi"},
+            "arm": {"binary_name": "bootarm.efi"},
+            "arm64-efi": {
+                "binary_name": "grubaa64.efi",
+                "extra_modules": ["efinet"],
+            },
+            "i386-efi": {"binary_name": "bootia32.efi"},
+            "i386-pc-pxe": {
+                "binary_name": "grub.0",
+                "mod_dir": "i386-pc",
+                "extra_modules": ["chain", "pxe", "biosdisk"],
+            },
+            "i686": {"binary_name": "bootia32.efi"},
+            "IA64": {"binary_name": "bootia64.efi"},
+            "powerpc-ieee1275": {
+                "binary_name": "grub.ppc64le",
+                "extra_modules": ["net", "ofnet"],
+            },
+            "x86_64-efi": {
+                "binary_name": "grubx86.efi",
+                "extra_modules": ["chain", "efinet"],
+            },
+        }
+        self.bootloaders_modules = [
+            "btrfs",
+            "ext2",
+            "xfs",
+            "jfs",
+            "reiserfs",
+            "all_video",
+            "boot",
+            "cat",
+            "configfile",
+            "echo",
+            "fat",
+            "font",
+            "gfxmenu",
+            "gfxterm",
+            "gzio",
+            "halt",
+            "iso9660",
+            "jpeg",
+            "linux",
+            "loadenv",
+            "minicmd",
+            "normal",
+            "part_apple",
+            "part_gpt",
+            "part_msdos",
+            "password_pbkdf2",
+            "png",
+            "reboot",
+            "search",
+            "search_fs_file",
+            "search_fs_uuid",
+            "search_label",
+            "sleep",
+            "test",
+            "true",
+            "video",
+            "mdraid09",
+            "mdraid1x",
+            "lvm",
+            "serial",
+            "regexp",
+            "tr",
+            "tftp",
+            "http",
+            "luks",
+            "gcry_rijndael",
+            "gcry_sha1",
+            "gcry_sha256",
+        ]
         self.grubconfig_dir = "/var/lib/cobbler/grub_config"
         self.build_reporting_enabled = False
         self.build_reporting_email = []
@@ -91,11 +165,11 @@ class Settings:
         self.default_virt_disk_driver = "raw"
         self.default_virt_file_size = 5
         self.default_virt_ram = 512
-        self.default_virt_type = "auto"
+        self.default_virt_type = "xenpv"
         self.enable_ipxe = False
         self.enable_menu = True
+        self.grub2_mod_dir = "/usr/share/grub2/"
         self.http_port = 80
-        self.include = ["/etc/cobbler/settings.d/*.settings"]
         self.iso_template_dir = "/etc/cobbler/iso"
         self.jinja2_includedir = "/var/lib/cobbler/jinja2"
         self.kernel_options = {}
@@ -125,7 +199,7 @@ class Settings:
         self.manage_rsync = False
         self.manage_tftpd = True
         self.mgmt_classes = []
-        self.mgmt_parameters = {}
+        self.mgmt_parameters = {"from_cobbler": 1}
         self.next_server_v4 = "127.0.0.1"
         self.next_server_v6 = "::1"
         self.nsupdate_enabled = False
@@ -168,7 +242,7 @@ class Settings:
         self.syslinux_memdisk_folder = "/usr/share/syslinux"
         self.syslinux_pxelinux_folder = "/usr/share/syslinux"
         self.tftpboot_location = "/var/lib/tftpboot"
-        self.virt_auto_boot = False
+        self.virt_auto_boot = True
         self.webdir = "/var/www/cobbler"
         self.webdir_whitelist = [
             ".link_cache",
@@ -216,7 +290,7 @@ class Settings:
         # TODO: Deprecate and remove. Tailcall is not needed.
         return self.__dict__
 
-    def from_dict(self, new_values):
+    def from_dict(self, new_values: dict):
         """
         Modify this object to load values in dictionary. If the handed dict would lead to an invalid object it is
         silently discarded.
@@ -231,11 +305,13 @@ class Settings:
             return
 
         old_settings = self.__dict__
-
         self.__dict__.update(new_values)
 
         if not self.is_valid():
             self.__dict__ = old_settings
+            raise ValueError(
+                "New settings would not be valid. Please fix the dict you pass."
+            )
 
         return self
 
@@ -298,11 +374,9 @@ def validate_settings(settings_content: dict) -> dict:
     return migrations.normalize(settings_content)
 
 
-def read_yaml_file(filepath="/ect/cobbler/settings.yaml") -> Dict[Hashable, Any]:
+def read_yaml_file(filepath="/etc/cobbler/settings.yaml") -> Dict[Hashable, Any]:
     """
-    Reads settings files from ``filepath`` and all paths in `include` (which is read from the settings file) and saves
-    the content in a dictionary.
-    Any key may be overwritten in a later loaded settings file. The last loaded file wins.
+    Reads settings files from ``filepath`` and saves the content in a dictionary.
 
     :param filepath: Settings file path, defaults to "/ect/cobbler/settings.yaml"
     :raises FileNotFoundError: In case file does not exist or is a directory.
@@ -316,11 +390,6 @@ def read_yaml_file(filepath="/ect/cobbler/settings.yaml") -> Dict[Hashable, Any]
     try:
         with open(filepath) as main_settingsfile:
             filecontent = yaml.safe_load(main_settingsfile.read())
-
-            for ival in filecontent.get("include", []):
-                for ifile in glob.glob(ival):
-                    with open(ifile, "r") as extra_settingsfile:
-                        filecontent.update(yaml.safe_load(extra_settingsfile.read()))
     except yaml.YAMLError as error:
         traceback.print_exc()
         raise yaml.YAMLError('"%s" is not a valid YAML file' % filepath) from error

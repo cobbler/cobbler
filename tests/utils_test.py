@@ -288,7 +288,7 @@ def test_blender(cobbler_api):
     result = utils.blender(cobbler_api, False, root_item)
 
     # Assert
-    assert len(result) == 161
+    assert len(result) == 160
     assert "server" in result
     assert "os_version" in result
 

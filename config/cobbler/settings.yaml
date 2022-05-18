@@ -339,6 +339,10 @@ manage_dns: false
 # configuration files.
 bind_chroot_path: ""
 
+# bind_manage_ipmi - used to let bind manage IPMI addresses if the power management address is an IP and if manage_bind
+# is set.
+bind_manage_ipmi: true
+
 # set to path where zonefiles of bind/named server are located.
 bind_zonefile_path: "@@bind_zonefiles@@"
 
@@ -351,6 +355,9 @@ bind_master: 127.0.0.1
 # See the docs (https://cobbler.readthedocs.io/en/latest/user-guide.html#dns-configuration-management) for more info
 manage_forward_zones: []
 manage_reverse_zones: []
+
+# manage_genders - Bool to enable/disable managing an /etc/genders file for use with pdsh and others.
+manage_genders: false
 
 # set to true to enable Cobbler's TFTP management features.
 # the choice of TFTP management engine is in /etc/cobbler/modules.conf
@@ -570,6 +577,23 @@ puppet_version: 2
 signature_path: "/var/lib/cobbler/distro_signatures.json"
 signature_url: "https://cobbler.github.io/signatures/3.0.x/latest.json"
 
-# Include other configuration snippets. Overwriting a key from this file in a childfile will overwrite the value from
-# this file.
-include: [ "/etc/cobbler/settings.d/*.settings" ]
+# Set to "true" to enable Cobbler's dynamic DNS updates.
+nsupdate_enabled: false
+
+# define tsig key
+# please don't use this one, instead generate your own:
+#   dnssec-keygen -a HMAC-SHA512 -b 512 -n USER cobbler_update_key
+nsupdate_tsig_algorithm: "hmac-sha512"
+nsupdate_tsig_key: [ "cobbler_update_key.", "hvnK54HFJXFasHjzjEn09ASIkCOGYSnofRq4ejsiBHz3udVyGiuebFGAswSjKUxNuhmllPrkI0HRSSmM2qvZug==" ]
+
+# if set, enables logging to that file
+nsupdate_log: "/var/log/cobbler/nsupdate.log"
+
+# Set to true to enable the generation of Windows boot files in Cobbler.
+windows_enabled: false
+
+# Location of templates used for Windows
+windows_template_dir: "/etc/cobbler/windows"
+
+# Samba share name for distros
+samba_distro_share: "DISTRO"
