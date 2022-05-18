@@ -775,8 +775,7 @@ class TFTPGen:
             return None
 
         settings = utils.input_string_or_dict(self.settings.to_dict())
-        for key in list(settings.keys()):
-            metadata[key] = settings[key]
+        metadata.update(settings)
         # ---
         # just some random variables
         buffer = ""
