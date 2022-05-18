@@ -70,7 +70,8 @@ def test_from_dict(parameter, expected_exception, expected_result):
     "parameter,expected_exception,expected_result",
     [
         ({"include": "bla"}, pytest.raises(SchemaError), False),
-        # ({}, pytest.raises(SchemaError), {}), # Does not work because I don't want to hand in 150 dict keys.
+        ({}, does_not_raise(), {}),
+        ({"server": "192.168.0.1"}, does_not_raise(), {"server": "192.168.0.1"}),
     ],
 )
 def test_validate_settings(parameter, expected_exception, expected_result):
