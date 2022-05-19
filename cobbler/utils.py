@@ -567,20 +567,9 @@ def input_string_or_list(options: Optional[Union[str, list]]) -> Union[list, str
     return input_string_or_list_no_inherit(options)
 
 
-def input_string_or_dict_no_inherit(
-    options: Union[str, list, dict], allow_multiples=True
-) -> Union[str, Tuple[bool, dict]]:
-    """
-    See :meth:`~cobbler.utils.input_string_or_dict`
-    """
-    if options == enums.VALUE_INHERITED:
-        return enums.VALUE_INHERITED
-    return input_string_or_dict(options, allow_multiples)
-
-
 def input_string_or_dict(
     options: Union[str, list, dict], allow_multiples=True
-) -> Tuple[bool, dict]:
+) -> Union[str, dict]:
     """
     Older Cobbler files stored configurations in a flat way, such that all values for strings. Newer versions of Cobbler
     allow dictionaries. This function is used to allow loading of older value formats so new users of Cobbler aren't
@@ -588,11 +577,22 @@ def input_string_or_dict(
 
     :param options: The str or dict to convert.
     :param allow_multiples: True (default) to allow multiple identical keys, otherwise set this false explicitly.
-    :return: A tuple of True and a dict.
+    :return: A dict or the value ``<<inherit>>`` in case it is the only content of ``options``.
     :raises TypeError: Raised in case the input type is wrong.
     """
+    if options == enums.VALUE_INHERITED:
+        return enums.VALUE_INHERITED
+    return input_string_or_dict_no_inherit(options, allow_multiples)
+
+
+def input_string_or_dict_no_inherit(
+    options: Union[str, list, dict], allow_multiples=True
+) -> dict:
+    """
+    See :meth:`~cobbler.utils.input_string_or_dict`
+    """
     if options is None or options == "delete":
-        return True, {}
+        return {}
     elif isinstance(options, list):
         raise TypeError("No idea what to do with list: %s" % options)
     elif isinstance(options, str):
@@ -622,10 +622,10 @@ def input_string_or_dict(
                 new_dict[key] = value
         # make sure we have no empty entries
         new_dict.pop("", None)
-        return True, new_dict
+        return new_dict
     elif isinstance(options, dict):
         options.pop("", None)
-        return True, options
+        return options
     else:
         raise TypeError("invalid input type")
 

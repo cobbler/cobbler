@@ -76,7 +76,7 @@ class Item:
                             return False
                     return True
                 if isinstance(from_obj, dict):
-                    (junk, from_search) = utils.input_string_or_dict(
+                    from_search = utils.input_string_or_dict(
                         from_search, allow_multiples=True
                     )
                     for x in list(from_search.keys()):
@@ -406,11 +406,12 @@ class Item:
         :param options: The new kernel options as a space delimited list.
         :raises ValueError: In case the values set could not be parsed successfully.
         """
-        (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
-        if not success:
-            raise ValueError("invalid kernel options")
-        else:
-            self._kernel_options = value
+        try:
+            self._kernel_options = utils.input_string_or_dict(
+                options, allow_multiples=True
+            )
+        except TypeError as e:
+            raise TypeError("invalid kernel options") from e
 
     @property
     def kernel_options_post(self) -> dict:
@@ -432,11 +433,12 @@ class Item:
         :param options: The new kernel options as a space delimited list.
         :raises ValueError: In case the options could not be split successfully.
         """
-        (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
-        if not success:
-            raise ValueError("invalid post kernel options")
-        else:
-            self._kernel_options_post = value
+        try:
+            self._kernel_options_post = utils.input_string_or_dict(
+                options, allow_multiples=True
+            )
+        except TypeError as e:
+            raise TypeError("invalid post kernel options") from e
 
     @property
     def autoinstall_meta(self) -> dict:
@@ -459,11 +461,8 @@ class Item:
         :param options: The new options for the automatic installation meta options.
         :raises ValueError: If splitting the value does not succeed.
         """
-        (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
-        if not success:
-            raise ValueError("invalid options given for autoinstall meta")
-        else:
-            self._autoinstall_meta = value
+        value = utils.input_string_or_dict(options, allow_multiples=True)
+        self._autoinstall_meta = value
 
     @property
     def mgmt_classes(self) -> list:
@@ -545,13 +544,12 @@ class Item:
         :param template_files: The new value for the template files which are used for the item.
         :raises ValueError: In case the conversion from non dict values was not successful.
         """
-        (success, value) = utils.input_string_or_dict(
-            template_files, allow_multiples=False
-        )
-        if not success:
-            raise ValueError("template_files should be of type dict")
-        else:
-            self._template_files = value
+        try:
+            self._template_files = utils.input_string_or_dict(
+                template_files, allow_multiples=False
+            )
+        except TypeError as e:
+            raise TypeError("invalid template files specified") from e
 
     @property
     def boot_files(self) -> dict:
@@ -573,11 +571,12 @@ class Item:
 
         :param boot_files: The new value for the boot files used by the item.
         """
-        (success, value) = utils.input_string_or_dict(boot_files, allow_multiples=False)
-        if not success:
-            raise TypeError("boot_files were handed wrong values")
-        else:
-            self._boot_files = value
+        try:
+            self._boot_files = utils.input_string_or_dict(
+                boot_files, allow_multiples=False
+            )
+        except TypeError as e:
+            raise TypeError("invalid boot files specified") from e
 
     @property
     def fetchable_files(self) -> dict:
@@ -599,13 +598,12 @@ class Item:
 
         :param fetchable_files: Files which will be made available to external users.
         """
-        (success, value) = utils.input_string_or_dict(
-            fetchable_files, allow_multiples=False
-        )
-        if not success:
-            raise TypeError("fetchable_files were handed wrong values")
-        else:
-            self._fetchable_files = value
+        try:
+            self._fetchable_files = utils.input_string_or_dict(
+                fetchable_files, allow_multiples=False
+            )
+        except TypeError as e:
+            raise TypeError("invalid fetchable files specified") from e
 
     @property
     def depth(self) -> int:

@@ -774,10 +774,8 @@ class TFTPGen:
         if boot_loaders is None or format not in boot_loaders:
             return None
 
-        (rval, settings) = utils.input_string_or_dict(self.settings.to_dict())
-        if rval:
-            for key in list(settings.keys()):
-                metadata[key] = settings[key]
+        settings = utils.input_string_or_dict(self.settings.to_dict())
+        metadata.update(settings)
         # ---
         # just some random variables
         buffer = ""
@@ -1210,10 +1208,7 @@ class TFTPGen:
             pass
         blended.update(templates)  # make available at top level
 
-        (success, templates) = utils.input_string_or_dict(templates)
-
-        if not success:
-            return results
+        templates = utils.input_string_or_dict(templates)
 
         # FIXME: img_path and local_img_path should probably be moved up into the blender function to ensure they're
         #  consistently available to templates across the board.
