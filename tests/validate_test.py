@@ -1,9 +1,50 @@
 import uuid
+from ipaddress import AddressValueError, NetmaskValueError
 
 import pytest
 
 from cobbler import enums, utils, validate
 from tests.conftest import does_not_raise
+
+
+@pytest.mark.parametrize(
+    "input_dnsname,expected_result,expected_exception",
+    [
+        (0, "", pytest.raises(TypeError)),
+        ("", "", does_not_raise()),
+        ("host", "host", does_not_raise()),
+        ("host.cobbler.org", "host.cobbler.org", does_not_raise()),
+    ],
+)
+def test_hostname(input_dnsname, expected_result, expected_exception):
+    # Arrange
+
+    # Act
+    with expected_exception:
+        result = validate.hostname(input_dnsname)
+
+        # Assert
+        assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "input_addr,expected_result,expected_exception",
+    [
+        ("", "", does_not_raise()),
+        ("192.168.1.5", "192.168.1.5", does_not_raise()),
+        ("my-invalid-ip", "", pytest.raises(AddressValueError)),
+        ("255.255.255.0", "", pytest.raises(NetmaskValueError)),
+        (0, "", pytest.raises(TypeError)),
+    ],
+)
+def test_ipv4_address(input_addr, expected_result, expected_exception):
+    # Arrange
+    # Act
+    with expected_exception:
+        result = validate.ipv4_address(input_addr)
+
+        # Assert
+        assert result == expected_result
 
 
 def test_validate_os_version():
