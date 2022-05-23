@@ -122,7 +122,7 @@ class NetworkInterface:
         """
         Setter for the dhcp_tag of the NetworkInterface class.
 
-        :param dhcp_tag:
+        :param dhcp_tag: The new dhcp tag.
         """
         if not isinstance(dhcp_tag, str):
             raise TypeError(
@@ -145,7 +145,7 @@ class NetworkInterface:
         """
         Setter for the cnames of the NetworkInterface class.
 
-        :param cnames:
+        :param cnames: The new cnames.
         """
         self._cnames = utils.input_string_or_list(cnames)
 
@@ -164,7 +164,7 @@ class NetworkInterface:
         """
         Setter for the static_routes of the NetworkInterface class.
 
-        :param routes:
+        :param routes: The new routes.
         """
         self._static_routes = utils.input_string_or_list(routes)
 
@@ -183,7 +183,7 @@ class NetworkInterface:
         """
         Setter for the static of the NetworkInterface class.
 
-        :param truthiness:
+        :param truthiness: The new value if the interface is static or not.
         """
         truthiness = utils.input_boolean(truthiness)
         if not isinstance(truthiness, bool):
@@ -207,7 +207,7 @@ class NetworkInterface:
         """
         Setter for the management of the NetworkInterface class.
 
-        :param truthiness:
+        :param truthiness: The new value for management.
         """
         truthiness = utils.input_boolean(truthiness)
         if not isinstance(truthiness, bool):
@@ -291,7 +291,7 @@ class NetworkInterface:
         Set MAC address on interface.
 
         :param address: MAC address
-        :raises CX:
+        :raises CX: In case there a random mac can't be computed
         """
         address = validate.mac_address(address)
         if address == "random":
@@ -349,7 +349,7 @@ class NetworkInterface:
     @property
     def virt_bridge(self) -> str:
         """
-        virt_bridge property.
+        virt_bridge property. If set to ``<<inherit>>`` this will read the value from the setting "default_virt_bridge".
 
         :getter: Returns the value for ``virt_bridge``.
         :setter: Sets the value for the property ``virt_bridge``.
@@ -361,7 +361,7 @@ class NetworkInterface:
         """
         Setter for the virt_bridge of the NetworkInterface class.
 
-        :param bridge:
+        :param bridge: The new value for "virt_bridge".
         """
         if not isinstance(bridge, str):
             raise TypeError(
@@ -423,7 +423,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``interface_master``.
         :setter: Sets the value for the property ``interface_master``.
-        :return:
         """
         return self._interface_master
 
@@ -432,7 +431,7 @@ class NetworkInterface:
         """
         Setter for the interface_master of the NetworkInterface class.
 
-        :param interface_master:
+        :param interface_master: The new interface master.
         """
         if not isinstance(interface_master, str):
             raise TypeError(
@@ -455,7 +454,7 @@ class NetworkInterface:
         """
         Setter for the bonding_opts of the NetworkInterface class.
 
-        :param bonding_opts:
+        :param bonding_opts: The new bonding options for the interface.
         """
         if not isinstance(bonding_opts, str):
             raise TypeError(
@@ -478,7 +477,7 @@ class NetworkInterface:
         """
         Setter for the bridge_opts of the NetworkInterface class.
 
-        :param bridge_opts:
+        :param bridge_opts: The new bridge options to set for the interface.
         """
         if not isinstance(bridge_opts, str):
             raise TypeError(
@@ -502,7 +501,7 @@ class NetworkInterface:
         Set IPv6 address on interface.
 
         :param address: IP address
-        :raises CX
+        :raises ValueError: IN case the IP is duplicated
         """
         address = validate.ipv6_address(address)
         if address != "" and not self.__api.settings().allow_duplicate_ips:
@@ -532,7 +531,7 @@ class NetworkInterface:
         """
         Assign a IPv6 prefix
 
-        :param prefix:
+        :param prefix: The new IPv6 prefix for the interface.
         """
         if not isinstance(prefix, str):
             raise TypeError(
@@ -555,7 +554,7 @@ class NetworkInterface:
         """
         Setter for the ipv6_secondaries of the NetworkInterface class.
 
-        :param addresses:
+        :param addresses: The new secondaries for the interface.
         """
         data = utils.input_string_or_list(addresses)
         secondaries = []
@@ -583,7 +582,7 @@ class NetworkInterface:
         """
         Setter for the ipv6_default_gateway of the NetworkInterface class.
 
-        :param address:
+        :param address: The new default gateway for the interface.
         """
         if not isinstance(address, str):
             raise TypeError(
@@ -609,7 +608,7 @@ class NetworkInterface:
         """
         Setter for the ipv6_static_routes of the NetworkInterface class.
 
-        :param routes:
+        :param routes: The new static routes for the interface.
         """
         self._ipv6_static_routes = utils.input_string_or_list(routes)
 
@@ -628,7 +627,7 @@ class NetworkInterface:
         """
         Setter for the ipv6_mtu of the NetworkInterface class.
 
-        :param mtu:
+        :param mtu: The new IPv6 MTU for the interface.
         """
         if not isinstance(mtu, str):
             raise TypeError(
@@ -651,7 +650,7 @@ class NetworkInterface:
         """
         Setter for the mtu of the NetworkInterface class.
 
-        :param mtu:
+        :param mtu: The new value for the mtu of the interface
         """
         if not isinstance(mtu, str):
             raise TypeError(
@@ -674,7 +673,7 @@ class NetworkInterface:
         """
         Setter for the connected_mode of the NetworkInterface class.
 
-        :param truthiness:
+        :param truthiness: The new value for connected mode of the interface.
         """
         truthiness = utils.input_boolean(truthiness)
         if not isinstance(truthiness, bool):
