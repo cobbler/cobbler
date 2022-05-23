@@ -185,11 +185,12 @@ class NetworkInterface:
 
         :param truthiness: The new value if the interface is static or not.
         """
-        truthiness = utils.input_boolean(truthiness)
-        if not isinstance(truthiness, bool):
+        try:
+            truthiness = utils.input_boolean(truthiness)
+        except TypeError as e:
             raise TypeError(
                 "Field static of NetworkInterface needs to be of Type bool!"
-            )
+            ) from e
         self._static = truthiness
 
     @property
@@ -209,11 +210,12 @@ class NetworkInterface:
 
         :param truthiness: The new value for management.
         """
-        truthiness = utils.input_boolean(truthiness)
-        if not isinstance(truthiness, bool):
+        try:
+            truthiness = utils.input_boolean(truthiness)
+        except TypeError as e:
             raise TypeError(
                 "Field management of object NetworkInterface needs to be of type bool!"
-            )
+            ) from e
         self._management = truthiness
 
     @property
@@ -675,11 +677,12 @@ class NetworkInterface:
 
         :param truthiness: The new value for connected mode of the interface.
         """
-        truthiness = utils.input_boolean(truthiness)
-        if not isinstance(truthiness, bool):
+        try:
+            truthiness = utils.input_boolean(truthiness)
+        except TypeError as e:
             raise TypeError(
                 "Field connected_mode of object NetworkInterface needs to be of type bool!"
-            )
+            ) from e
         self._connected_mode = truthiness
 
     def modify_interface(self, _dict: dict):
