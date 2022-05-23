@@ -297,6 +297,7 @@ class NetworkInterface:
         """
         address = validate.mac_address(address)
         if address == "random":
+            # FIXME: Pass virt_type of system
             address = utils.get_random_mac(self.__api)
         if address != "" and not self.__api.settings().allow_duplicate_macs:
             matched = self.__api.find_items("system", {"mac_address": address})
