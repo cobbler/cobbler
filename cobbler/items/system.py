@@ -1,22 +1,10 @@
 """
-Copyright 2006-2009, Red Hat, Inc and Others
-Michael DeHaan <michael.dehaan AT gmail>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301  USA
+All code belonging to Cobbler systems. This includes network interfaces.
 """
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Copyright 2006-2008, Red Hat, Inc and Others
+# SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
+
 import enum
 import logging
 import uuid
@@ -115,7 +103,7 @@ class NetworkInterface:
         """
         This is currently a proxy for :py:meth:`~cobbler.items.item.Item.from_dict` .
 
-        :param item_dict: The dictionary with the data to deserialize.
+        :param interface_dict: The dictionary with the data to deserialize.
         """
         self.from_dict(interface_dict)
 
@@ -126,7 +114,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``dhcp_tag``.
         :setter: Sets the value for the property ``dhcp_tag``.
-        :return:
         """
         return self._dhcp_tag
 
@@ -134,7 +121,6 @@ class NetworkInterface:
     def dhcp_tag(self, dhcp_tag: str):
         """
         Setter for the dhcp_tag of the NetworkInterface class.
-
 
         :param dhcp_tag:
         """
@@ -151,7 +137,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``cnames``.
         :setter: Sets the value for the property ``cnames``.
-        :return:
         """
         return self._cnames
 
@@ -159,7 +144,6 @@ class NetworkInterface:
     def cnames(self, cnames: list):
         """
         Setter for the cnames of the NetworkInterface class.
-
 
         :param cnames:
         """
@@ -172,7 +156,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``static_routes``.
         :setter: Sets the value for the property ``static_routes``.
-        :return:
         """
         return self._static_routes
 
@@ -180,7 +163,6 @@ class NetworkInterface:
     def static_routes(self, routes: list):
         """
         Setter for the static_routes of the NetworkInterface class.
-
 
         :param routes:
         """
@@ -193,7 +175,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``static``.
         :setter: Sets the value for the property ``static``.
-        :return:
         """
         return self._static
 
@@ -201,7 +182,6 @@ class NetworkInterface:
     def static(self, truthiness: bool):
         """
         Setter for the static of the NetworkInterface class.
-
 
         :param truthiness:
         """
@@ -219,7 +199,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``management``.
         :setter: Sets the value for the property ``management``.
-        :return:
         """
         return self._management
 
@@ -227,7 +206,6 @@ class NetworkInterface:
     def management(self, truthiness: bool):
         """
         Setter for the management of the NetworkInterface class.
-
 
         :param truthiness:
         """
@@ -245,7 +223,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``dns_name`.
         :setter: Sets the value for the property ``dns_name``.
-        :return:
         """
         return self._dns_name
 
@@ -275,7 +252,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ip_address``.
         :setter: Sets the value for the property ``ip_address``.
-        :return:
         """
         return self._ip_address
 
@@ -306,7 +282,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``mac_address``.
         :setter: Sets the value for the property ``mac_address``.
-        :return:
         """
         return self._mac_address
 
@@ -339,7 +314,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``netmask``.
         :setter: Sets the value for the property ``netmask``.
-        :return:
         """
         return self._netmask
 
@@ -359,17 +333,16 @@ class NetworkInterface:
 
         :getter: Returns the value for ``if_gateway``.
         :setter: Sets the value for the property ``if_gateway``.
-        :return:
         """
         return self._if_gateway
 
     @if_gateway.setter
     def if_gateway(self, gateway: str):
         """
-        Set the per-interface gateway.
+        Set the per-interface gateway. Exceptions are raised if the value is invalid. For details see
+        :meth:`~cobbler.validate.ipv4_address`.
 
         :param gateway: IPv4 address for the gateway
-        :returns: True or CX
         """
         self._if_gateway = validate.ipv4_address(gateway)
 
@@ -380,7 +353,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``virt_bridge``.
         :setter: Sets the value for the property ``virt_bridge``.
-        :return:
         """
         return self._virt_bridge
 
@@ -388,7 +360,6 @@ class NetworkInterface:
     def virt_bridge(self, bridge: str):
         """
         Setter for the virt_bridge of the NetworkInterface class.
-
 
         :param bridge:
         """
@@ -407,7 +378,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``interface_type``.
         :setter: Sets the value for the property ``interface_type``.
-        :return:
         """
         return self._interface_type
 
@@ -462,7 +432,6 @@ class NetworkInterface:
         """
         Setter for the interface_master of the NetworkInterface class.
 
-
         :param interface_master:
         """
         if not isinstance(interface_master, str):
@@ -478,7 +447,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``bonding_opts``.
         :setter: Sets the value for the property ``bonding_opts``.
-        :return:
         """
         return self._bonding_opts
 
@@ -486,7 +454,6 @@ class NetworkInterface:
     def bonding_opts(self, bonding_opts: str):
         """
         Setter for the bonding_opts of the NetworkInterface class.
-
 
         :param bonding_opts:
         """
@@ -503,7 +470,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``bridge_opts``.
         :setter: Sets the value for the property ``bridge_opts``.
-        :return:
         """
         return self._bridge_opts
 
@@ -511,7 +477,6 @@ class NetworkInterface:
     def bridge_opts(self, bridge_opts: str):
         """
         Setter for the bridge_opts of the NetworkInterface class.
-
 
         :param bridge_opts:
         """
@@ -528,7 +493,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_address``.
         :setter: Sets the value for the property ``ipv6_address``.
-        :return:
         """
         return self._ipv6_address
 
@@ -560,7 +524,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_prefix``.
         :setter: Sets the value for the property ``ipv6_prefix``.
-        :return:
         """
         return self._ipv6_address
 
@@ -584,7 +547,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_secondaries``.
         :setter: Sets the value for the property ``ipv6_secondaries``.
-        :return:
         """
         return self._ipv6_secondaries
 
@@ -592,7 +554,6 @@ class NetworkInterface:
     def ipv6_secondaries(self, addresses: list):
         """
         Setter for the ipv6_secondaries of the NetworkInterface class.
-
 
         :param addresses:
         """
@@ -614,7 +575,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_default_gateway``.
         :setter: Sets the value for the property ``ipv6_default_gateway``.
-        :return:
         """
         return self._ipv6_default_gateway
 
@@ -622,7 +582,6 @@ class NetworkInterface:
     def ipv6_default_gateway(self, address: str):
         """
         Setter for the ipv6_default_gateway of the NetworkInterface class.
-
 
         :param address:
         """
@@ -642,7 +601,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_static_routes``.
         :setter: Sets the value for the property `ipv6_static_routes``.
-        :return:
         """
         return self._ipv6_static_routes
 
@@ -650,7 +608,6 @@ class NetworkInterface:
     def ipv6_static_routes(self, routes: list):
         """
         Setter for the ipv6_static_routes of the NetworkInterface class.
-
 
         :param routes:
         """
@@ -663,7 +620,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_mtu``.
         :setter: Sets the value for the property ``ipv6_mtu``.
-        :return:
         """
         return self._ipv6_mtu
 
@@ -671,7 +627,6 @@ class NetworkInterface:
     def ipv6_mtu(self, mtu: str):
         """
         Setter for the ipv6_mtu of the NetworkInterface class.
-
 
         :param mtu:
         """
@@ -688,7 +643,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``mtu``.
         :setter: Sets the value for the property ``mtu``.
-        :return:
         """
         return self._mtu
 
@@ -696,7 +650,6 @@ class NetworkInterface:
     def mtu(self, mtu: str):
         """
         Setter for the mtu of the NetworkInterface class.
-
 
         :param mtu:
         """
@@ -713,7 +666,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``connected_mode``.
         :setter: Sets the value for the property ``connected_mode``.
-        :return:
         """
         return self._connected_mode
 
@@ -721,7 +673,6 @@ class NetworkInterface:
     def connected_mode(self, truthiness: bool):
         """
         Setter for the connected_mode of the NetworkInterface class.
-
 
         :param truthiness:
         """
