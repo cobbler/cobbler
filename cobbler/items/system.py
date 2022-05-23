@@ -142,7 +142,7 @@ class NetworkInterface:
 
         :param cnames: The new cnames.
         """
-        self._cnames = utils.input_string_or_list(cnames)
+        self._cnames = utils.input_string_or_list_no_inherit(cnames)
 
     @property
     def static_routes(self) -> list:
@@ -161,7 +161,7 @@ class NetworkInterface:
 
         :param routes: The new routes.
         """
-        self._static_routes = utils.input_string_or_list(routes)
+        self._static_routes = utils.input_string_or_list_no_inherit(routes)
 
     @property
     def static(self) -> bool:
