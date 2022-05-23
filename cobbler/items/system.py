@@ -356,6 +356,8 @@ class NetworkInterface:
         :getter: Returns the value for ``virt_bridge``.
         :setter: Sets the value for the property ``virt_bridge``.
         """
+        if self._virt_bridge == enums.VALUE_INHERITED:
+            return self.__api.settings().default_virt_bridge
         return self._virt_bridge
 
     @virt_bridge.setter
@@ -370,7 +372,8 @@ class NetworkInterface:
                 "Field virt_bridge of object NetworkInterface should be of type str!"
             )
         if bridge == "":
-            bridge = self.__api.settings().default_virt_bridge
+            self._virt_bridge = enums.VALUE_INHERITED
+            return
         self._virt_bridge = bridge
 
     @property
