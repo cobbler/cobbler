@@ -803,8 +803,20 @@ class Item:
         key_found_already = False
         if "interfaces" in data:
             if key in [
+                "cnames",
+                "connected_mode",
+                "if_gateway",
+                "ipv6_default_gateway",
+                "ipv6_mtu",
+                "ipv6_prefix",
+                "ipv6_secondaries",
+                "ipv6_static_routes",
+                "management",
+                "mtu",
+                "static",
                 "mac_address",
                 "ip_address",
+                "ipv6_address",
                 "netmask",
                 "virt_bridge",
                 "dhcp_tag",
