@@ -204,7 +204,7 @@ class _ImportSignatureManager(ManagerModule):
             raise CX(error_msg)
 
         # now walk the filesystem looking for distributions that match certain patterns
-        self.logger.info("Adding distros from path %s:" % self.path)
+        self.logger.info("Adding distros from path %s:", self.path)
         distros_added = []
         import_walker(self.path, self.distro_adder, distros_added)
 
@@ -334,8 +334,9 @@ class _ImportSignatureManager(ManagerModule):
                     pkgdir = os.path.join(self.path, sig)
                     if os.path.exists(pkgdir):
                         self.logger.debug(
-                            "Found a candidate signature: breed=%s, version=%s"
-                            % (breed, version)
+                            "Found a candidate signature: breed=%s, version=%s",
+                            breed,
+                            version,
                         )
                         f_re = re.compile(
                             sigdata["breeds"][breed][version]["version_file"]
@@ -431,7 +432,7 @@ class _ImportSignatureManager(ManagerModule):
                     # Prevent infinite loop with Sci Linux 5
                     # self.logger.warning("avoiding symlink loop")
                     continue
-                self.logger.info("following symlink: %s" % fullname)
+                self.logger.info("following symlink: %s", fullname)
                 import_walker(fullname, self.distro_adder, distros_added)
 
             if re_img.match(x):
@@ -486,12 +487,12 @@ class _ImportSignatureManager(ManagerModule):
 
         if len(archs) == 0:
             self.logger.error(
-                "No arch could be detected in %s, and none was specified via the --arch option"
-                % dirname
+                "No arch could be detected in %s, and none was specified via the --arch option",
+                dirname,
             )
             return []
         elif len(archs) > 1:
-            self.logger.warning("- Warning : Multiple archs found : %s" % archs)
+            self.logger.warning("- Warning : Multiple archs found : %s", archs)
 
         distros_added = []
         for pxe_arch in archs:
@@ -500,11 +501,11 @@ class _ImportSignatureManager(ManagerModule):
 
             if existing_distro is not None:
                 self.logger.warning(
-                    "skipping import, as distro name already exists: %s" % name
+                    "skipping import, as distro name already exists: %s", name
                 )
                 continue
             else:
-                self.logger.info("creating new distro: %s" % name)
+                self.logger.info("creating new distro: %s", name)
                 new_distro = distro.Distro(self.api)
 
             if name.find("-autoboot") != -1:
@@ -542,11 +543,11 @@ class _ImportSignatureManager(ManagerModule):
             existing_profile = self.profiles.find(name=name)
 
             if existing_profile is None:
-                self.logger.info("creating new profile: %s" % name)
+                self.logger.info("creating new profile: %s", name)
                 new_profile = profile.Profile(self.api)
             else:
                 self.logger.info(
-                    "skipping existing profile, name already exists: %s" % name
+                    "skipping existing profile, name already exists: %s", name
                 )
                 continue
 
@@ -731,14 +732,13 @@ class _ImportSignatureManager(ManagerModule):
             if not os.path.exists(dest_link):
                 try:
                     self.logger.info(
-                        "trying symlink: %s -> %s" % (str(base), str(dest_link))
+                        "trying symlink: %s -> %s", str(base), str(dest_link)
                     )
                     os.symlink(base, dest_link)
                 except:
                     # FIXME: This shouldn't happen but I've seen it ... debug ...
                     self.logger.warning(
-                        "symlink creation failed: %(base)s, %(dest)s"
-                        % {"base": base, "dest": dest_link}
+                        "symlink creation failed: %s, %s", base, dest_link
                     )
             tree = "http://@@http_server@@/cblr/links/%s" % distribution.name
             self.set_install_tree(distribution, tree)
@@ -770,7 +770,7 @@ class _ImportSignatureManager(ManagerModule):
         :param distros_added: This is an iteratable set of distributions.
         """
         for repo_breed in self.get_valid_repo_breeds():
-            self.logger.info("checking for %s repo(s)" % repo_breed)
+            self.logger.info("checking for %s repo(s)", repo_breed)
             repo_adder = None
             if repo_breed == "yum":
                 repo_adder = self.yum_repo_adder
@@ -782,7 +782,7 @@ class _ImportSignatureManager(ManagerModule):
                 repo_adder = self.apt_repo_adder
             else:
                 self.logger.warning(
-                    "skipping unknown/unsupported repo breed: %s" % repo_breed
+                    "skipping unknown/unsupported repo breed: %s", repo_breed
                 )
                 continue
 
@@ -794,8 +794,8 @@ class _ImportSignatureManager(ManagerModule):
                     )
                 else:
                     self.logger.info(
-                        "skipping distro %s since it isn't mirrored locally"
-                        % current_distro_added.name
+                        "skipping distro %s since it isn't mirrored locally",
+                        current_distro_added.name,
                     )
 
     # ==========================================================================
@@ -807,9 +807,7 @@ class _ImportSignatureManager(ManagerModule):
 
         :param distro: The distribution object to scan and possibly add.
         """
-        self.logger.info(
-            "starting descent into %s for %s" % (self.rootdir, distro.name)
-        )
+        self.logger.info("starting descent into %s for %s", self.rootdir, distro.name)
         import_walker(self.rootdir, self.yum_repo_scanner, distro)
 
     def yum_repo_scanner(self, distro: distro.Distro, dirname: str, fnames):
@@ -825,21 +823,21 @@ class _ImportSignatureManager(ManagerModule):
         matches = {}
         for x in fnames:
             if x == "base" or x == "repodata":
-                self.logger.info("processing repo at : %s" % dirname)
+                self.logger.info("processing repo at : %s", dirname)
                 # only run the repo scanner on directories that contain a comps.xml
                 gloob1 = glob.glob("%s/%s/*comps*.xml" % (dirname, x))
                 if len(gloob1) >= 1:
                     if dirname in matches:
                         self.logger.info(
-                            "looks like we've already scanned here: %s" % dirname
+                            "looks like we've already scanned here: %s", dirname
                         )
                         continue
-                    self.logger.info("need to process repo/comps: %s" % dirname)
+                    self.logger.info("need to process repo/comps: %s", dirname)
                     self.yum_process_comps_file(dirname, distro)
                     matches[dirname] = 1
                 else:
                     self.logger.info(
-                        "directory %s is missing xml comps file, skipping" % dirname
+                        "directory %s is missing xml comps file, skipping", dirname
                     )
                     continue
 
@@ -862,14 +860,11 @@ class _ImportSignatureManager(ManagerModule):
             keeprepodata = False
 
         # figure out what our comps file is ...
-        self.logger.info(
-            "looking for %(p1)s/%(p2)s/*comps*.xml"
-            % {"p1": comps_path, "p2": masterdir}
-        )
+        self.logger.info("looking for %s/%s/*comps*.xml", comps_path, masterdir)
         files = glob.glob("%s/%s/*comps*.xml" % (comps_path, masterdir))
         if len(files) == 0:
             self.logger.info(
-                "no comps found here: %s" % os.path.join(comps_path, masterdir)
+                "no comps found here: %s", os.path.join(comps_path, masterdir)
             )
             return  # no comps xml file found
 
@@ -921,7 +916,7 @@ class _ImportSignatureManager(ManagerModule):
 
             # Don't run creatrepo twice -- this can happen easily for Xen and PXE, when they'll share same repo files.
             if keeprepodata:
-                self.logger.info("Keeping repodata as-is :%s/repodata" % comps_path)
+                self.logger.info("Keeping repodata as-is :%s/repodata", comps_path)
                 self.found_repos[comps_path] = 1
 
             elif comps_path not in self.found_repos:
@@ -954,7 +949,7 @@ class _ImportSignatureManager(ManagerModule):
 
         :param distribution: The distribution to scan for apt repositories.
         """
-        self.logger.info("adding apt repo for %s" % distribution.name)
+        self.logger.info("adding apt repo for %s", distribution.name)
         # Obtain repo mirror from APT if available
         mirror = ""
         if apt_available:
@@ -981,7 +976,7 @@ class _ImportSignatureManager(ManagerModule):
                 distribution.os_version,
             )
 
-        self.logger.info("Added repos for %s" % distribution.name)
+        self.logger.info("Added repos for %s", distribution.name)
         self.api.add_repo(repo)
         # FIXME: Add the found/generated repos to the profiles that were created during the import process
 

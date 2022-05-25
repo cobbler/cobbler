@@ -303,14 +303,14 @@ def run(api, args):
             post_install_script = os.path.join(
                 post_install_dir, meta["post_install_script"]
             )
-            logger.info("Build post install script: " + post_install_script)
+            logger.info("Build post install script: %s", post_install_script)
             with open(post_install_script, "w+") as pi_file:
                 pi_file.write(data)
 
         if "answerfile" in meta:
             data = templ.render(tmpl_data, meta, None)
             answerfile_name = os.path.join(distro_dir, meta["answerfile"])
-            logger.info("Build answer file: " + answerfile_name)
+            logger.info("Build answer file: %s", answerfile_name)
             with open(answerfile_name, "w+") as answerfile:
                 answerfile.write(data)
             tgen.copy_single_distro_file(answerfile_name, distro_path, False)
@@ -356,7 +356,7 @@ def run(api, args):
                         return 1
 
                 if not os.path.isfile(tl_file_name):
-                    logger.error("File not found: %s" % tl_file_name)
+                    logger.error("File not found: %s", tl_file_name)
                     return 1
 
                 pat1 = re.compile(rb"bootmgr\.exe", re.IGNORECASE)
@@ -375,11 +375,11 @@ def run(api, args):
                     out = file.read()
 
                 if not is_wimboot:
-                    logger.info("Patching build Loader: %s" % wl_file_name)
+                    logger.info("Patching build Loader: %s", wl_file_name)
                     out = pat2.sub(bcd_name, out)
 
             if tl_file_name != wl_file_name:
-                logger.info("Build Loader: %s from %s" % (wl_file_name, tl_file_name))
+                logger.info("Build Loader: %s from %s", wl_file_name, tl_file_name)
                 with open(wl_file_name, "wb+") as file:
                     file.write(out)
                 tgen.copy_single_distro_file(wl_file_name, web_dir, True)
@@ -396,7 +396,7 @@ def run(api, args):
 
                 if wk_file_name != distro.kernel:
                     logger.info(
-                        "Build PXEBoot: %s from %s" % (wk_file_name, distro.kernel)
+                        "Build PXEBoot: %s from %s", wk_file_name, distro.kernel
                     )
                     with open(wk_file_name, "wb+") as file:
                         file.write(out)
@@ -408,7 +408,7 @@ def run(api, args):
             wim_file_name = "winpe.wim"
 
             if not os.path.isfile(obcd_file_name):
-                logger.error("File not found: %s" % obcd_file_name)
+                logger.error("File not found: %s", obcd_file_name)
                 return 1
 
             if is_winpe:
@@ -424,8 +424,10 @@ def run(api, args):
                 )
 
             logger.info(
-                "Build BCD: %s from %s for %s"
-                % (bcd_file_name, obcd_file_name, wim_file_name)
+                "Build BCD: %s from %s for %s",
+                bcd_file_name,
+                obcd_file_name,
+                wim_file_name,
             )
             bcdedit(obcd_file_name, bcd_file_name, wim_file_name, sdi_file_name)
             tgen.copy_single_distro_file(bcd_file_name, web_dir, True)
@@ -460,7 +462,7 @@ def run(api, args):
         distro = profile.get_conceptual_parent()
 
         if distro and distro.breed == "windows":
-            logger.info("Profile: " + profile.name)
+            logger.info("Profile: %s", profile.name)
             meta = utils.blender(api, False, profile)
             autoinstall_meta = meta.get("autoinstall_meta", {})
             meta.update(autoinstall_meta)
@@ -476,7 +478,7 @@ def run(api, args):
         distro = profile.get_conceptual_parent()
 
         if distro and distro.breed == "windows":
-            logger.info("System: " + system.name)
+            logger.info("System: %s", system.name)
             meta = utils.blender(api, False, system)
             gen_win_files(distro, autoinstall_meta)
     return 0
