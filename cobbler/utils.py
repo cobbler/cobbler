@@ -108,10 +108,10 @@ def log_exc():
     """
     (t, v, tb) = sys.exc_info()
     logger.info("Exception occurred: %s", t)
-    logger.info("Exception value: %s" % v)
+    logger.info("Exception value: %s", v)
     logger.info(
-        "Exception Info:\n%s"
-        % "\n".join(traceback.format_list(traceback.extract_tb(tb)))
+        "Exception Info:\n%s",
+        "\n".join(traceback.format_list(traceback.extract_tb(tb))),
     )
 
 
