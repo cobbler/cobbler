@@ -1254,15 +1254,18 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def dump_vars(self, obj, formatted_output: bool = False):
+    def dump_vars(
+        self, obj, formatted_output: bool = False, remove_dicts: bool = False
+    ):
         """
         Dump all known variables related to that object.
 
         :param obj: The object for which the variables should be dumped.
         :param formatted_output: If True the values will align in one column and be pretty printed for cli example.
+        :param remove_dicts: If True the dictionaries will be put into str form.
         :return: A dictionary with all the information which could be collected.
         """
-        return obj.dump_vars(formatted_output)
+        return obj.dump_vars(formatted_output, remove_dicts)
 
     # ==========================================================================
 
