@@ -90,7 +90,7 @@ class Item:
 
     def __init__(self, api, is_subobject: bool = False):
         """
-        Constructor.  Requires a back reference to the CollectionManager object.
+        Constructor.  Requires a back reference to the CobblerAPI object.
 
         NOTE: is_subobject is used for objects that allow inheritance in their trees. This inheritance refers to
         conceptual inheritance, not Python inheritance. Objects created with is_subobject need to call their
