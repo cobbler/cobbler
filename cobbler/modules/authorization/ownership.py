@@ -12,9 +12,7 @@ allow certain users/groups to access those specific objects.
 from configparser import ConfigParser
 
 import os
-from typing import Dict, Union
-
-from cobbler.cexceptions import CX
+from typing import Dict
 
 
 def register() -> str:

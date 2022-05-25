@@ -26,8 +26,6 @@ import time
 import cobbler.utils as utils
 from cobbler.manager import ManagerModule
 
-from cobbler.cexceptions import CX
-
 MANAGER = None
 
 

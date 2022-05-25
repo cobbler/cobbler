@@ -22,7 +22,6 @@ from typing import Union
 
 from cobbler.items import item
 from cobbler import utils
-from cobbler.cexceptions import CX
 
 
 class Mgmtclass(item.Item):
