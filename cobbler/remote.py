@@ -2515,9 +2515,28 @@ class CobblerXMLRPCInterface:
         self._log('generate_script, name is "%s"' % name)
         return self.api.generate_script(profile, system, name)
 
+    def dump_vars(
+        self, item_uuid: str, formatted_output: bool = False, remove_dicts: bool = True
+    ):
+        """
+        This function dumps all variables related to an object. The difference to the above mentioned function is that
+        it accepts the item uid instead of the Python object itself.
+
+        .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.dump_vars`
+        """
+        obj = self.api.find_items(
+            "", {"uid": item_uuid}, return_list=False, no_errors=True
+        )
+        if obj is None:
+            raise ValueError('Item with uuid "%s" does not exist!' % item_uuid)
+        self.api.dump_vars(obj, formatted_output, remove_dicts)
+
     def get_blended_data(self, profile=None, system=None):
         """
         Combine all data which is available from a profile and system together and return it.
+
+        .. deprecated:: 3.4.0
+           Please make use of the dump_vars endpoint.
 
         :param profile: The profile of the system.
         :param system: The system for which the data should be rendered.

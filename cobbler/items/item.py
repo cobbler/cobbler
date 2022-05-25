@@ -851,14 +851,17 @@ class Item:
         else:
             return self.__find_compare(value, data[key])
 
-    def dump_vars(self, formatted_output: bool = True) -> Union[dict, str]:
+    def dump_vars(
+        self, formatted_output: bool = True, remove_dicts: bool = False
+    ) -> Union[dict, str]:
         """
         Dump all variables.
 
         :param formatted_output: Whether to format the output or not.
+        :param remove_dicts: If True the dictionaries will be put into str form.
         :return: The raw or formatted data.
         """
-        raw = utils.blender(self.api, False, self)
+        raw = utils.blender(self.api, remove_dicts, self)
         if formatted_output:
             return pprint.pformat(raw)
         else:
