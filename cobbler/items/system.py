@@ -1,22 +1,10 @@
 """
-Copyright 2006-2009, Red Hat, Inc and Others
-Michael DeHaan <michael.dehaan AT gmail>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301  USA
+All code belonging to Cobbler systems. This includes network interfaces.
 """
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Copyright 2006-2008, Red Hat, Inc and Others
+# SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
+
 import enum
 import logging
 import uuid
@@ -115,7 +103,7 @@ class NetworkInterface:
         """
         This is currently a proxy for :py:meth:`~cobbler.items.item.Item.from_dict` .
 
-        :param item_dict: The dictionary with the data to deserialize.
+        :param interface_dict: The dictionary with the data to deserialize.
         """
         self.from_dict(interface_dict)
 
@@ -126,7 +114,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``dhcp_tag``.
         :setter: Sets the value for the property ``dhcp_tag``.
-        :return:
         """
         return self._dhcp_tag
 
@@ -135,8 +122,7 @@ class NetworkInterface:
         """
         Setter for the dhcp_tag of the NetworkInterface class.
 
-
-        :param dhcp_tag:
+        :param dhcp_tag: The new dhcp tag.
         """
         if not isinstance(dhcp_tag, str):
             raise TypeError(
@@ -151,7 +137,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``cnames``.
         :setter: Sets the value for the property ``cnames``.
-        :return:
         """
         return self._cnames
 
@@ -160,10 +145,9 @@ class NetworkInterface:
         """
         Setter for the cnames of the NetworkInterface class.
 
-
-        :param cnames:
+        :param cnames: The new cnames.
         """
-        self._cnames = utils.input_string_or_list(cnames)
+        self._cnames = utils.input_string_or_list_no_inherit(cnames)
 
     @property
     def static_routes(self) -> list:
@@ -172,7 +156,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``static_routes``.
         :setter: Sets the value for the property ``static_routes``.
-        :return:
         """
         return self._static_routes
 
@@ -181,10 +164,9 @@ class NetworkInterface:
         """
         Setter for the static_routes of the NetworkInterface class.
 
-
-        :param routes:
+        :param routes: The new routes.
         """
-        self._static_routes = utils.input_string_or_list(routes)
+        self._static_routes = utils.input_string_or_list_no_inherit(routes)
 
     @property
     def static(self) -> bool:
@@ -193,7 +175,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``static``.
         :setter: Sets the value for the property ``static``.
-        :return:
         """
         return self._static
 
@@ -202,14 +183,14 @@ class NetworkInterface:
         """
         Setter for the static of the NetworkInterface class.
 
-
-        :param truthiness:
+        :param truthiness: The new value if the interface is static or not.
         """
-        truthiness = utils.input_boolean(truthiness)
-        if not isinstance(truthiness, bool):
+        try:
+            truthiness = utils.input_boolean(truthiness)
+        except TypeError as e:
             raise TypeError(
                 "Field static of NetworkInterface needs to be of Type bool!"
-            )
+            ) from e
         self._static = truthiness
 
     @property
@@ -219,7 +200,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``management``.
         :setter: Sets the value for the property ``management``.
-        :return:
         """
         return self._management
 
@@ -228,14 +208,14 @@ class NetworkInterface:
         """
         Setter for the management of the NetworkInterface class.
 
-
-        :param truthiness:
+        :param truthiness: The new value for management.
         """
-        truthiness = utils.input_boolean(truthiness)
-        if not isinstance(truthiness, bool):
+        try:
+            truthiness = utils.input_boolean(truthiness)
+        except TypeError as e:
             raise TypeError(
                 "Field management of object NetworkInterface needs to be of type bool!"
-            )
+            ) from e
         self._management = truthiness
 
     @property
@@ -245,7 +225,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``dns_name`.
         :setter: Sets the value for the property ``dns_name``.
-        :return:
         """
         return self._dns_name
 
@@ -263,7 +242,9 @@ class NetworkInterface:
             for match in matched:
                 if self in match.interfaces.values():
                     continue
-                raise ValueError("DNS duplicate found: %s" % dns_name)
+                raise ValueError(
+                    f'DNS name duplicate found "{dns_name}". Object with the conflict has the name "{match.name}"'
+                )
         self._dns_name = dns_name
 
     @property
@@ -273,7 +254,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ip_address``.
         :setter: Sets the value for the property ``ip_address``.
-        :return:
         """
         return self._ip_address
 
@@ -292,7 +272,9 @@ class NetworkInterface:
                 if self in match.interfaces.values():
                     continue
                 else:
-                    raise ValueError("IP address duplicate found: %s" % address)
+                    raise ValueError(
+                        f'IP address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
+                    )
         self._ip_address = address
 
     @property
@@ -302,7 +284,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``mac_address``.
         :setter: Sets the value for the property ``mac_address``.
-        :return:
         """
         return self._mac_address
 
@@ -312,10 +293,11 @@ class NetworkInterface:
         Set MAC address on interface.
 
         :param address: MAC address
-        :raises CX:
+        :raises CX: In case there a random mac can't be computed
         """
         address = validate.mac_address(address)
         if address == "random":
+            # FIXME: Pass virt_type of system
             address = utils.get_random_mac(self.__api)
         if address != "" and not self.__api.settings().allow_duplicate_macs:
             matched = self.__api.find_items("system", {"mac_address": address})
@@ -323,7 +305,9 @@ class NetworkInterface:
                 if self in match.interfaces.values():
                     continue
                 else:
-                    raise ValueError("MAC address duplicate found: %s" % address)
+                    raise ValueError(
+                        f'MAC address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
+                    )
         self._mac_address = address
 
     @property
@@ -333,7 +317,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``netmask``.
         :setter: Sets the value for the property ``netmask``.
-        :return:
         """
         return self._netmask
 
@@ -353,29 +336,29 @@ class NetworkInterface:
 
         :getter: Returns the value for ``if_gateway``.
         :setter: Sets the value for the property ``if_gateway``.
-        :return:
         """
         return self._if_gateway
 
     @if_gateway.setter
     def if_gateway(self, gateway: str):
         """
-        Set the per-interface gateway.
+        Set the per-interface gateway. Exceptions are raised if the value is invalid. For details see
+        :meth:`~cobbler.validate.ipv4_address`.
 
         :param gateway: IPv4 address for the gateway
-        :returns: True or CX
         """
         self._if_gateway = validate.ipv4_address(gateway)
 
     @property
     def virt_bridge(self) -> str:
         """
-        virt_bridge property.
+        virt_bridge property. If set to ``<<inherit>>`` this will read the value from the setting "default_virt_bridge".
 
         :getter: Returns the value for ``virt_bridge``.
         :setter: Sets the value for the property ``virt_bridge``.
-        :return:
         """
+        if self._virt_bridge == enums.VALUE_INHERITED:
+            return self.__api.settings().default_virt_bridge
         return self._virt_bridge
 
     @virt_bridge.setter
@@ -383,15 +366,15 @@ class NetworkInterface:
         """
         Setter for the virt_bridge of the NetworkInterface class.
 
-
-        :param bridge:
+        :param bridge: The new value for "virt_bridge".
         """
         if not isinstance(bridge, str):
             raise TypeError(
                 "Field virt_bridge of object NetworkInterface should be of type str!"
             )
         if bridge == "":
-            bridge = self.__api.settings().default_virt_bridge
+            self._virt_bridge = enums.VALUE_INHERITED
+            return
         self._virt_bridge = bridge
 
     @property
@@ -401,7 +384,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``interface_type``.
         :setter: Sets the value for the property ``interface_type``.
-        :return:
         """
         return self._interface_type
 
@@ -447,7 +429,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``interface_master``.
         :setter: Sets the value for the property ``interface_master``.
-        :return:
         """
         return self._interface_master
 
@@ -456,8 +437,7 @@ class NetworkInterface:
         """
         Setter for the interface_master of the NetworkInterface class.
 
-
-        :param interface_master:
+        :param interface_master: The new interface master.
         """
         if not isinstance(interface_master, str):
             raise TypeError(
@@ -472,7 +452,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``bonding_opts``.
         :setter: Sets the value for the property ``bonding_opts``.
-        :return:
         """
         return self._bonding_opts
 
@@ -481,8 +460,7 @@ class NetworkInterface:
         """
         Setter for the bonding_opts of the NetworkInterface class.
 
-
-        :param bonding_opts:
+        :param bonding_opts: The new bonding options for the interface.
         """
         if not isinstance(bonding_opts, str):
             raise TypeError(
@@ -497,7 +475,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``bridge_opts``.
         :setter: Sets the value for the property ``bridge_opts``.
-        :return:
         """
         return self._bridge_opts
 
@@ -506,8 +483,7 @@ class NetworkInterface:
         """
         Setter for the bridge_opts of the NetworkInterface class.
 
-
-        :param bridge_opts:
+        :param bridge_opts: The new bridge options to set for the interface.
         """
         if not isinstance(bridge_opts, str):
             raise TypeError(
@@ -522,7 +498,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_address``.
         :setter: Sets the value for the property ``ipv6_address``.
-        :return:
         """
         return self._ipv6_address
 
@@ -532,7 +507,7 @@ class NetworkInterface:
         Set IPv6 address on interface.
 
         :param address: IP address
-        :raises CX
+        :raises ValueError: IN case the IP is duplicated
         """
         address = validate.ipv6_address(address)
         if address != "" and not self.__api.settings().allow_duplicate_ips:
@@ -541,7 +516,10 @@ class NetworkInterface:
                 if self in match.interfaces.values():
                     continue
                 else:
-                    raise ValueError("IPv6 address duplicated: %s" % address)
+                    raise ValueError(
+                        f'IPv6 address duplicate found "{address}". Object with the conflict has the name'
+                        f'"{match.name}"'
+                    )
         self._ipv6_address = address
 
     @property
@@ -551,7 +529,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_prefix``.
         :setter: Sets the value for the property ``ipv6_prefix``.
-        :return:
         """
         return self._ipv6_address
 
@@ -560,7 +537,7 @@ class NetworkInterface:
         """
         Assign a IPv6 prefix
 
-        :param prefix:
+        :param prefix: The new IPv6 prefix for the interface.
         """
         if not isinstance(prefix, str):
             raise TypeError(
@@ -575,7 +552,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_secondaries``.
         :setter: Sets the value for the property ``ipv6_secondaries``.
-        :return:
         """
         return self._ipv6_secondaries
 
@@ -584,8 +560,7 @@ class NetworkInterface:
         """
         Setter for the ipv6_secondaries of the NetworkInterface class.
 
-
-        :param addresses:
+        :param addresses: The new secondaries for the interface.
         """
         data = utils.input_string_or_list(addresses)
         secondaries = []
@@ -605,7 +580,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_default_gateway``.
         :setter: Sets the value for the property ``ipv6_default_gateway``.
-        :return:
         """
         return self._ipv6_default_gateway
 
@@ -614,8 +588,7 @@ class NetworkInterface:
         """
         Setter for the ipv6_default_gateway of the NetworkInterface class.
 
-
-        :param address:
+        :param address: The new default gateway for the interface.
         """
         if not isinstance(address, str):
             raise TypeError(
@@ -633,7 +606,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_static_routes``.
         :setter: Sets the value for the property `ipv6_static_routes``.
-        :return:
         """
         return self._ipv6_static_routes
 
@@ -642,8 +614,7 @@ class NetworkInterface:
         """
         Setter for the ipv6_static_routes of the NetworkInterface class.
 
-
-        :param routes:
+        :param routes: The new static routes for the interface.
         """
         self._ipv6_static_routes = utils.input_string_or_list(routes)
 
@@ -654,7 +625,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_mtu``.
         :setter: Sets the value for the property ``ipv6_mtu``.
-        :return:
         """
         return self._ipv6_mtu
 
@@ -663,8 +633,7 @@ class NetworkInterface:
         """
         Setter for the ipv6_mtu of the NetworkInterface class.
 
-
-        :param mtu:
+        :param mtu: The new IPv6 MTU for the interface.
         """
         if not isinstance(mtu, str):
             raise TypeError(
@@ -679,7 +648,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``mtu``.
         :setter: Sets the value for the property ``mtu``.
-        :return:
         """
         return self._mtu
 
@@ -688,8 +656,7 @@ class NetworkInterface:
         """
         Setter for the mtu of the NetworkInterface class.
 
-
-        :param mtu:
+        :param mtu: The new value for the mtu of the interface
         """
         if not isinstance(mtu, str):
             raise TypeError(
@@ -704,7 +671,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``connected_mode``.
         :setter: Sets the value for the property ``connected_mode``.
-        :return:
         """
         return self._connected_mode
 
@@ -713,14 +679,14 @@ class NetworkInterface:
         """
         Setter for the connected_mode of the NetworkInterface class.
 
-
-        :param truthiness:
+        :param truthiness: The new value for connected mode of the interface.
         """
-        truthiness = utils.input_boolean(truthiness)
-        if not isinstance(truthiness, bool):
+        try:
+            truthiness = utils.input_boolean(truthiness)
+        except TypeError as e:
             raise TypeError(
                 "Field connected_mode of object NetworkInterface needs to be of type bool!"
-            )
+            ) from e
         self._connected_mode = truthiness
 
     def modify_interface(self, _dict: dict):
