@@ -72,10 +72,12 @@ class NetworkInterface:
                 str(dictionary_keys),
             )
 
-    def to_dict(self) -> dict:
+    def to_dict(self, resolved: bool = False) -> dict:
         """
         This converts everything in this object to a dictionary.
 
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
         :return: A dictionary with all values present in this object.
         """
         result = {}
@@ -83,13 +85,21 @@ class NetworkInterface:
             if "__" in key:
                 continue
             if key.startswith("_"):
-                if isinstance(self.__dict__[key], enum.Enum):
-                    result[key[1:]] = self.__dict__[key].name
+                new_key = key[1:].lower()
+                key_value = self.__dict__[key]
+                if isinstance(key_value, enum.Enum):
+                    result[new_key] = self.__dict__[key].name
+                elif (
+                    isinstance(key_value, str)
+                    and key_value == enums.VALUE_INHERITED
+                    and resolved
+                ):
+                    result[new_key] = getattr(self, key[1:])
                 else:
-                    result[key[1:]] = self.__dict__[key]
+                    result[new_key] = self.__dict__[key]
         return result
 
-    # These two methods are currently not used but we do want to use them in the future, so let's define them.
+    # These two methods are currently not used, but we do want to use them in the future, so let's define them.
     def serialize(self):
         """
         This method is a proxy for :meth:`~cobbler.items.item.Item.to_dict` and contains additional logic for
