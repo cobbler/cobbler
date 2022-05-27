@@ -275,9 +275,13 @@ def test_blender(cobbler_api):
     result = utils.blender(cobbler_api, False, root_item)
 
     # Assert
-    assert len(result) == 160
+    assert len(result) == 161
+    # Must be present because the settings have it
     assert "server" in result
+    # Must be present because it is a field of distro
     assert "os_version" in result
+    # Must be present because it inherits but is a field of distro
+    assert "boot_loaders" in result
 
 
 @pytest.mark.parametrize(
