@@ -403,19 +403,16 @@ class CobblerAPI:
 
     # =======================================================================
 
-    def get_item_resolved_value(self, item_uuid: str, attribute: str):
+    def __item_resolved_helper(self, item_uuid: str, attribute: str):
         """
-        This method helps non Python API consumers to retrieve the final data of a field with inheritance.
+        This helper validates the common data for ``*_item_resolved_value``.
 
-        This does not help with network interfaces because they don't have a UUID at the moment and thus can't be
-        queried via their UUID.
-
-        :param item_uuid: The UUID of the item that should be retrieved.
-        :param attribute: The attribute that should be retrieved.
-        :raises ValueError: In case a value given was either malformed or the desired item did not exist.
-        :raises TypeError: In case the type of the method arguments do have the wrong type.
-        :raises AttributeError: In case the attribute specified is not available on the given item (type).
-        :returns: The attribute value. Since this might be of type NetworkInterface we cannot yet set this explicitly.
+        :param item_uuid: The uuid for the item.
+        :param attribute: The attribute name that is requested.
+        :returns: The desired item to further process.
+        :raises TypeError: If ``item_uuid`` or ``attribute`` are not a str.
+        :raises ValueError: In case the uuid was invalid or the requested item did not exist.
+        :raises AttributeError: In case the attribute did not exist on the item that was requested.
         """
         if not isinstance(item_uuid, str):
             raise TypeError("item_uuid must be of type str!")
@@ -438,7 +435,48 @@ class CobblerAPI:
                 % (attribute, desired_item.TYPE_NAME)
             )
 
+        return desired_item
+
+    def get_item_resolved_value(self, item_uuid: str, attribute: str):
+        """
+        This method helps non Python API consumers to retrieve the final data of a field with inheritance.
+
+        This does not help with network interfaces because they don't have a UUID at the moment and thus can't be
+        queried via their UUID.
+
+        :param item_uuid: The UUID of the item that should be retrieved.
+        :param attribute: The attribute that should be retrieved.
+        :raises ValueError: In case a value given was either malformed or the desired item did not exist.
+        :raises TypeError: In case the type of the method arguments do have the wrong type.
+        :raises AttributeError: In case the attribute specified is not available on the given item (type).
+        :returns: The attribute value. Since this might be of type NetworkInterface we cannot yet set this explicitly.
+        """
+        desired_item = self.__item_resolved_helper(item_uuid, attribute)
+
         return getattr(desired_item, attribute)
+
+    def set_item_resolved_value(self, item_uuid: str, attribute: str, value):
+        """
+        TODO
+        """
+        desired_item = self.__item_resolved_helper(item_uuid, attribute)
+        resolved_past_value = getattr(desired_item, attribute)
+        # Check if value can be inherited or not
+        # TODO: Checking if it can be inherited can be done via calling _resolve for the requested attribute, the
+        #  challenge is to not duplicate the name list we have in the getter of the various items.
+        if not True:
+            # If value cannot be inherited use setter and bail out
+            return
+        # Check type - Respect <<inherit>> value
+        if not isinstance(value, type(resolved_past_value)):
+            raise TypeError("value passed is not of the type that is expected")
+        # Deduplicate - only for dict
+        if isinstance(resolved_past_value, dict):
+            # Deduplicate through checking if the key-value pairs are present in parents, if yes skip them, otherwise
+            # keep them.
+            pass
+        # Use property setter
+        pass
 
     # =======================================================================
 

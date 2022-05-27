@@ -55,6 +55,7 @@ from cobbler.validate import (
     validate_autoinstall_script_name,
     validate_obj_id,
     validate_obj_name,
+    validate_uuid,
 )
 
 EVENT_TIMEOUT = 7 * 24 * 60 * 60  # 1 week
@@ -801,6 +802,24 @@ class CobblerXMLRPCInterface:
         """
         self._log("get_item_resolved_value(%s)" % item_uuid, attribute=attribute)
         return self.api.get_item_resolved_value(item_uuid, attribute)
+
+    def set_item_resolved_value(
+        self, item_uuid: str, attribute: str, value, token=None
+    ):
+        """
+        .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.set_item_resolved_value`
+        """
+        self._log("get_item_resolved_value(%s)" % item_uuid, attribute=attribute)
+        # Duplicated logic to check from api.py method, but we require this to check the access of the user.
+        if not validate_uuid(item_uuid):
+            raise ValueError("The given uuid did not have the correct format!")
+        obj = self.api.find_items(
+            "", {"uid": item_uuid}, return_list=False, no_errors=True
+        )
+        if obj is None:
+            raise ValueError('Item with item_uuid "%s" did not exist!' % item_uuid)
+        self.check_access(token, "modify_%s" % obj.COLLECTION_TYPE, obj, attribute)
+        return self.api.set_item_resolved_value(item_uuid, attribute, value)
 
     def get_item(self, what: str, name: str, flatten=False, resolved: bool = False):
         """
