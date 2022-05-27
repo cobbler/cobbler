@@ -2,6 +2,7 @@ import os
 
 import pytest
 
+from cobbler import enums
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
 from cobbler.items.item import Item
