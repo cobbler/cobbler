@@ -446,3 +446,16 @@ def test_serialize(cobbler_api):
     assert titem.remote_boot_kernel == kernel_url
     assert titem.remote_grub_kernel.startswith("(http,")
     assert "remote_grub_kernel" not in result
+
+
+def test_grab_tree(cobbler_api):
+    # Arrange
+    object_to_check = Distro(cobbler_api)
+    # TODO: Create some objects and give them some inheritance.
+
+    # Act
+    result = object_to_check.grab_tree()
+
+    # Assert
+    assert isinstance(result, list)
+    assert result[-1].server == "192.168.1.1"

@@ -984,3 +984,23 @@ class Item:
         :param item_dict: The dictionary with the data to deserialize.
         """
         self.from_dict(item_dict)
+
+    def grab_tree(self) -> list:
+        """
+        Climb the tree and get every node.
+
+        :return: The list of items with all parents from that object upwards the tree. Contains at least the item
+                 itself and the settings of Cobbler.
+        """
+        results = [self]
+        parent = self.parent
+        while parent is not None:
+            results.append(parent)
+            parent = parent.parent
+            # FIXME: Now get the object and check its existence
+        results.append(self.api.settings())
+        self.logger.info(
+            "grab_tree found %s children (including settings) of this object",
+            len(results),
+        )
+        return results
