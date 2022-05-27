@@ -146,9 +146,7 @@ class Image(item.Item):
 
         :param autoinstall: local automatic installation template file path
         """
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(
-            self.api._collection_mgr
-        )
+        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api)
         self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(
             autoinstall
         )

@@ -5,7 +5,6 @@ import pytest
 from cobbler.api import CobblerAPI
 from cobbler.settings import Settings
 from cobbler import autoinstall_manager
-from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
 from cobbler.items.system import System

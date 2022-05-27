@@ -5,7 +5,6 @@ Migration from V3.3.1 to V3.3.2
 # SPDX-FileCopyrightText: 2022 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 import pathlib
-import shutil
 
 from schema import Optional, Schema, SchemaError
 

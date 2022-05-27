@@ -39,7 +39,7 @@ import urllib.request
 import xmlrpc.client
 from functools import reduce
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Pattern, Tuple, Union
+from typing import Any, Dict, List, Optional, Pattern, Union
 from xmlrpc.client import ServerProxy
 
 import distro
@@ -108,10 +108,10 @@ def log_exc():
     """
     (t, v, tb) = sys.exc_info()
     logger.info("Exception occurred: %s", t)
-    logger.info("Exception value: %s" % v)
+    logger.info("Exception value: %s", v)
     logger.info(
-        "Exception Info:\n%s"
-        % "\n".join(traceback.format_list(traceback.extract_tb(tb)))
+        "Exception Info:\n%s",
+        "\n".join(traceback.format_list(traceback.extract_tb(tb))),
     )
 
 
@@ -1560,7 +1560,7 @@ def get_mtab(mtab="/etc/mtab", vfstype: bool = False) -> list:
 
     mtab_stat = os.stat(mtab)
     if mtab_stat.st_mtime != mtab_mtime:
-        """cache is stale ... refresh"""
+        # cache is stale ... refresh
         mtab_mtime = mtab_stat.st_mtime
         mtab_map = __cache_mtab__(mtab)
 
