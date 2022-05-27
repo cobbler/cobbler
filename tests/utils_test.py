@@ -267,19 +267,6 @@ def test_input_boolean(testinput, expected_exception, expected_result):
         assert expected_result == result
 
 
-def test_grab_tree(cobbler_api):
-    # Arrange
-    object_to_check = Distro(cobbler_api)
-    # TODO: Create some objects and give them some inheritance.
-
-    # Act
-    result = utils.grab_tree(cobbler_api, object_to_check)
-
-    # Assert
-    assert isinstance(result, list)
-    assert result[-1].server == "192.168.1.1"
-
-
 def test_blender(cobbler_api):
     # Arrange
     root_item = Distro(cobbler_api)
@@ -288,9 +275,13 @@ def test_blender(cobbler_api):
     result = utils.blender(cobbler_api, False, root_item)
 
     # Assert
-    assert len(result) == 160
+    assert len(result) == 161
+    # Must be present because the settings have it
     assert "server" in result
+    # Must be present because it is a field of distro
     assert "os_version" in result
+    # Must be present because it inherits but is a field of distro
+    assert "boot_loaders" in result
 
 
 @pytest.mark.parametrize(

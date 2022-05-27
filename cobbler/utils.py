@@ -646,26 +646,6 @@ def input_boolean(value: Union[str, bool, int]) -> bool:
     return value in ["true", "1", "on", "yes", "y"]
 
 
-def grab_tree(api_handle, item) -> list:
-    """
-    Climb the tree and get every node.
-
-    :param api_handle: The api to use for checking the tree.
-    :param item: The item to check for parents
-    :return: The list of items with all parents from that object upwards the tree. Contains at least the item itself.
-    """
-    # TODO: Move into item.py
-    results = [item]
-    # FIXME: The following line will throw an AttributeError for None because there is not get_parent() for None
-    parent = item.parent
-    while parent is not None:
-        results.append(parent)
-        parent = parent.parent
-        # FIXME: Now get the object and check its existence
-    results.append(api_handle.settings())
-    return results
-
-
 def blender(api_handle, remove_dicts: bool, root_obj):
     """
     Combine all of the data in an object tree from the perspective of that point on the tree, and produce a merged
@@ -676,7 +656,7 @@ def blender(api_handle, remove_dicts: bool, root_obj):
     :param root_obj: The object which should act as the root-node object.
     :return: A dictionary with all the information from the root node downwards.
     """
-    tree = grab_tree(api_handle, root_obj)
+    tree = root_obj.grab_tree()
     tree.reverse()  # start with top of tree, override going down
     results = {}
     for node in tree:
@@ -698,9 +678,10 @@ def blender(api_handle, remove_dicts: bool, root_obj):
             repo = api_handle.find_repo(name=r)
             if repo:
                 repo_data.append(repo.to_dict())
-        # FIXME: sort the repos in the array based on the repo priority field so that lower priority repos come first in
-        #  the array
-        results["repo_data"] = repo_data
+        # Sorting is courtesy of https://stackoverflow.com/a/73050/4730773
+        results["repo_data"] = sorted(
+            repo_data, key=lambda repo_dict: repo_dict["priority"], reverse=True
+        )
 
     http_port = results.get("http_port", 80)
     if http_port in (80, "80"):
@@ -827,19 +808,23 @@ def __consolidate(node, results: dict) -> dict:
     node_data_copy = {}
     for key in node_data:
         value = node_data[key]
-        if value != enums.VALUE_INHERITED:
+        if value == enums.VALUE_INHERITED:
+            if key not in results:
+                # We need to add at least one value per key, use the property getter to resolve to the
+                # settings or wherever we inherit from.
+                node_data_copy[key] = getattr(node, key)
+            # Old keys should have no inherit and thus are not a real property
+            if key == "kickstart":
+                node_data_copy[key] = getattr(type(node), "autoinstall").fget(node)
+            elif key == "ks_meta":
+                node_data_copy[key] = getattr(type(node), "autoinstall_meta").fget(node)
+        else:
             if isinstance(value, dict):
                 node_data_copy[key] = value.copy()
             elif isinstance(value, list):
                 node_data_copy[key] = value[:]
             else:
                 node_data_copy[key] = value
-        else:
-            # Old keys should have no inherit and thus are not a real property
-            if key == "kickstart":
-                node_data_copy[key] = getattr(type(node), "autoinstall").fget(node)
-            elif key == "ks_meta":
-                node_data_copy[key] = getattr(type(node), "autoinstall_meta").fget(node)
 
     for field in node_data_copy:
         data_item = node_data_copy[field]

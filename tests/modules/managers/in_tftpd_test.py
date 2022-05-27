@@ -24,7 +24,7 @@ def api_mock_tftp():
     settings_mock.http_port = 80
     settings_mock.next_server_v4 = ""
     settings_mock.next_server_v6 = ""
-    settings_mock.default_ownership = ""
+    settings_mock.default_ownership = []
     settings_mock.default_virt_bridge = ""
     settings_mock.default_virt_type = "auto"
     settings_mock.default_virt_ram = 64

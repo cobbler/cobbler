@@ -136,7 +136,7 @@ class Item:
         self._boot_files: Union[dict, str] = {}
         self._template_files = {}
         self._last_cached_mtime = 0
-        self._owners: Union[list, str] = api.settings().default_ownership
+        self._owners: Union[list, str] = enums.VALUE_INHERITED
         self._cached_dict = ""
         self._mgmt_classes: Union[list, str] = []
         self._mgmt_parameters: Union[dict, str] = {}
@@ -171,8 +171,8 @@ class Item:
         settings_name = property_name
         if property_name.startswith("proxy_url_"):
             property_name = "proxy"
-        if property_name == "default_ownership":
-            property_name = "owners"
+        if property_name == "owners":
+            settings_name = "default_ownership"
         attribute = "_" + property_name
 
         if not hasattr(self, attribute):
@@ -851,14 +851,17 @@ class Item:
         else:
             return self.__find_compare(value, data[key])
 
-    def dump_vars(self, formatted_output: bool = True) -> Union[dict, str]:
+    def dump_vars(
+        self, formatted_output: bool = True, remove_dicts: bool = False
+    ) -> Union[dict, str]:
         """
         Dump all variables.
 
         :param formatted_output: Whether to format the output or not.
+        :param remove_dicts: If True the dictionaries will be put into str form.
         :return: The raw or formatted data.
         """
-        raw = utils.blender(self.api, False, self)
+        raw = utils.blender(self.api, remove_dicts, self)
         if formatted_output:
             return pprint.pformat(raw)
         else:
@@ -981,3 +984,23 @@ class Item:
         :param item_dict: The dictionary with the data to deserialize.
         """
         self.from_dict(item_dict)
+
+    def grab_tree(self) -> list:
+        """
+        Climb the tree and get every node.
+
+        :return: The list of items with all parents from that object upwards the tree. Contains at least the item
+                 itself and the settings of Cobbler.
+        """
+        results = [self]
+        parent = self.parent
+        while parent is not None:
+            results.append(parent)
+            parent = parent.parent
+            # FIXME: Now get the object and check its existence
+        results.append(self.api.settings())
+        self.logger.info(
+            "grab_tree found %s children (including settings) of this object",
+            len(results),
+        )
+        return results
