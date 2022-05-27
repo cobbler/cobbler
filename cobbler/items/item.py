@@ -894,10 +894,12 @@ class Item:
         if len(result) > 0:
             raise KeyError("The following keys supplied could not be set: %s" % result.keys())
 
-    def to_dict(self) -> dict:
+    def to_dict(self, resolved: bool = False) -> dict:
         """
         This converts everything in this object to a dictionary.
 
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                     objects raw value.
         :return: A dictionary with all values present in this object.
         """
         value = {}
@@ -906,17 +908,24 @@ class Item:
                 if key in ("_conceptual_parent", "_last_cached_mtime", "_cached_dict", "_supported_boot_loaders"):
                     continue
                 new_key = key[1:].lower()
-                if isinstance(self.__dict__[key], enum.Enum):
-                    value[new_key] = self.__dict__[key].value
+                key_value = self.__dict__[key]
+                if isinstance(key_value, enum.Enum):
+                    value[new_key] = key_value.value
                 elif new_key == "interfaces":
                     # This is the special interfaces dict. Lets fix it before it gets to the normal process.
                     serialized_interfaces = {}
-                    interfaces = self.__dict__[key]
+                    interfaces = key_value
                     for interface_key in interfaces:
                         serialized_interfaces[interface_key] = interfaces[interface_key].to_dict()
                     value[new_key] = serialized_interfaces
-                elif isinstance(self.__dict__[key], (list, dict)):
-                    value[new_key] = copy.deepcopy(self.__dict__[key])
+                elif isinstance(key_value, (list, dict)):
+                    value[new_key] = copy.deepcopy(key_value)
+                elif (
+                    isinstance(key_value, str)
+                    and key_value == enums.VALUE_INHERITED
+                    and resolved
+                ):
+                    value[new_key] = getattr(self, key[1:])
                 else:
                     value[new_key] = self.__dict__[key]
         if "autoinstall" in value:

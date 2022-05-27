@@ -427,6 +427,19 @@ def test_to_dict(cobbler_api):
 
     # Assert
     assert isinstance(result, dict)
+    assert result.get("owners") == enums.VALUE_INHERITED
+
+
+def test_to_dict_resolved(cobbler_api):
+    # Arrange
+    titem = Item(cobbler_api)
+
+    # Act
+    result = titem.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("owners") == ["admin"]
 
 
 def test_serialize(cobbler_api):
