@@ -127,7 +127,7 @@ class Item:
         self._boot_files: Union[dict, str] = {}
         self._template_files = {}
         self._last_cached_mtime = 0
-        self._owners: Union[list, str] = api.settings().default_ownership
+        self._owners: Union[list, str] = enums.VALUE_INHERITED
         self._cached_dict = ""
         self._mgmt_classes: Union[list, str] = []
         self._mgmt_parameters: Union[dict, str] = {}
@@ -162,8 +162,8 @@ class Item:
         settings_name = property_name
         if property_name.startswith("proxy_url_"):
             property_name = "proxy"
-        if property_name == "default_ownership":
-            property_name = "owners"
+        if property_name == "owners":
+            settings_name = "default_ownership"
         attribute = "_" + property_name
 
         if not hasattr(self, attribute):
