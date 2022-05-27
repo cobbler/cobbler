@@ -220,7 +220,6 @@ class TestLdap:
         # Assert
         assert result
 
-    @pytest.mark.skip(reason="causes a segfault in openldap 2.6.1")
     @pytest.mark.parametrize(
         "tls_cafile, tls_cert, tls_key",
         [("/etc/ssl/ca-slapd.crt", "/etc/ssl/bad.crt", "/etc/ssl/bad.key")],
