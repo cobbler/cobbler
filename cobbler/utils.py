@@ -655,8 +655,10 @@ def grab_tree(api_handle, item) -> list:
     :return: The list of items with all parents from that object upwards the tree. Contains at least the item itself.
     """
     # TODO: Move into item.py
+    # We check for the parent attribute to prevent that we have a non-item object here (like settings)
+    if item is None or not hasattr(item, "parent"):
+        return [api_handle.settings()]
     results = [item]
-    # FIXME: The following line will throw an AttributeError for None because there is not get_parent() for None
     parent = item.parent
     while parent is not None:
         results.append(parent)
