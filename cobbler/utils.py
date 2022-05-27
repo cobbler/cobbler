@@ -632,28 +632,6 @@ def input_boolean(value: Union[str, bool, int]) -> bool:
     return value in ["true", "1", "on", "yes", "y"]
 
 
-def grab_tree(api_handle, item) -> list:
-    """
-    Climb the tree and get every node.
-
-    :param api_handle: The api to use for checking the tree.
-    :param item: The item to check for parents
-    :return: The list of items with all parents from that object upwards the tree. Contains at least the item itself.
-    """
-    # TODO: Move into item.py
-    # We check for the parent attribute to prevent that we have a non-item object here (like settings)
-    if item is None or not hasattr(item, "parent"):
-        return [api_handle.settings()]
-    results = [item]
-    parent = item.parent
-    while parent is not None:
-        results.append(parent)
-        parent = parent.parent
-        # FIXME: Now get the object and check its existence
-    results.append(api_handle.settings())
-    return results
-
-
 def blender(api_handle, remove_dicts: bool, root_obj):
     """
     Combine all of the data in an object tree from the perspective of that point on the tree, and produce a merged
@@ -664,7 +642,7 @@ def blender(api_handle, remove_dicts: bool, root_obj):
     :param root_obj: The object which should act as the root-node object.
     :return: A dictionary with all the information from the root node downwards.
     """
-    tree = grab_tree(api_handle, root_obj)
+    tree = root_obj.grab_tree()
     tree.reverse()  # start with top of tree, override going down
     results = {}
     for node in tree:
