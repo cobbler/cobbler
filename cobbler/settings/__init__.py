@@ -278,13 +278,14 @@ class Settings:
         buf += "kernel options  : %s\n" % self.__dict__["kernel_options"]
         return buf
 
-    def to_dict(self) -> dict:
+    def to_dict(self, resolved: bool = False) -> dict:
         """
         Return an easily serializable representation of the config.
 
         .. deprecated:: 3.2.1
            Use ``obj.__dict__`` directly please. Will be removed with 3.3.0
 
+        :param resolved: Present for the compatibility with the Cobbler collections.
         :return: The dict with all user settings combined with settings which are left to the default.
         """
         # TODO: Deprecate and remove. Tailcall is not needed.
