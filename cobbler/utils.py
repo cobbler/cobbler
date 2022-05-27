@@ -678,9 +678,10 @@ def blender(api_handle, remove_dicts: bool, root_obj):
             repo = api_handle.find_repo(name=r)
             if repo:
                 repo_data.append(repo.to_dict())
-        # FIXME: sort the repos in the array based on the repo priority field so that lower priority repos come first in
-        #  the array
-        results["repo_data"] = repo_data
+        # Sorting is courtesy of https://stackoverflow.com/a/73050/4730773
+        results["repo_data"] = sorted(
+            repo_data, key=lambda repo_dict: repo_dict["priority"], reverse=True
+        )
 
     http_port = results.get("http_port", 80)
     if http_port in (80, "80"):
