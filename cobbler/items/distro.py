@@ -26,6 +26,7 @@ from cobbler.items import item
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler import grub
+from cobbler.decorator import InheritableProperty
 
 
 class Distro(item.Item):
@@ -419,7 +420,7 @@ class Distro(item.Item):
             self._supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
         return self._supported_boot_loaders
 
-    @property
+    @InheritableProperty
     def boot_loaders(self) -> list:
         """
         All boot loaders for which Cobbler generates entries for.
@@ -461,7 +462,7 @@ class Distro(item.Item):
             )
         self._boot_loaders = boot_loaders
 
-    @property
+    @InheritableProperty
     def redhat_management_key(self) -> str:
         """
         Get the redhat management key. This is probably only needed if you have spacewalk, uyuni or SUSE Manager

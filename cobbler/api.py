@@ -66,6 +66,7 @@ from cobbler.items import (
     repo,
     system,
 )
+from cobbler.decorator import InheritableDictProperty
 
 # FIXME: add --quiet depending on if not --verbose?
 RSYNC_CMD = "rsync -a %s '%s' %s --progress"
@@ -457,26 +458,49 @@ class CobblerAPI:
 
     def set_item_resolved_value(self, item_uuid: str, attribute: str, value):
         """
-        TODO
+        This method helps non Python API consumers to use the Python property setters without having access to the raw
+        data of the object. In case you pass a dictionary the method tries to deduplicate it.
+
+        This does not help with network interfaces because they don't have a UUID at the moment and thus can't be
+        queried via their UUID.
+
+        .. warning:: This function may throw any exception that is thrown by a setter of a Python property defined in
+                     Cobbler.
+
+        :param item_uuid: The UUID of the item that should be retrieved.
+        :param attribute: The attribute that should be retrieved.
+        :param value: The new value to set.
+        :raises ValueError: In case a value given was either malformed or the desired item did not exist.
+        :raises TypeError: In case the type of the method arguments do have the wrong type.
+        :raises AttributeError: In case the attribute specified is not available on the given item (type).
         """
         desired_item = self.__item_resolved_helper(item_uuid, attribute)
-        resolved_past_value = getattr(desired_item, attribute)
+        property_object_of_attribute = getattr(type(desired_item), attribute)
         # Check if value can be inherited or not
-        # TODO: Checking if it can be inherited can be done via calling _resolve for the requested attribute, the
-        #  challenge is to not duplicate the name list we have in the getter of the various items.
-        if not True:
-            # If value cannot be inherited use setter and bail out
+        if "inheritable" not in dir(property_object_of_attribute):
+            if value == enums.VALUE_INHERITED:
+                raise ValueError(
+                    "<<inherit>> not allowed for non-inheritable properties."
+                )
+            setattr(desired_item, attribute, value)
             return
-        # Check type - Respect <<inherit>> value
-        if not isinstance(value, type(resolved_past_value)):
-            raise TypeError("value passed is not of the type that is expected")
         # Deduplicate - only for dict
-        if isinstance(resolved_past_value, dict):
-            # Deduplicate through checking if the key-value pairs are present in parents, if yes skip them, otherwise
-            # keep them.
-            pass
+        if isinstance(property_object_of_attribute, InheritableDictProperty):
+            parent_item = desired_item.parent
+            if hasattr(parent_item, attribute):
+                parent_value = getattr(parent_item, attribute)
+                dict_value = utils.input_string_or_dict(value)
+                for key in parent_value:
+                    if (
+                        key in dict_value
+                        and key in parent_value
+                        and dict_value[key] == parent_value[key]
+                    ):
+                        dict_value.pop(key)
+                setattr(desired_item, attribute, dict_value)
+                return
         # Use property setter
-        pass
+        setattr(desired_item, attribute, value)
 
     # =======================================================================
 
