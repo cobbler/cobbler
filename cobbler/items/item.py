@@ -23,7 +23,7 @@ import yaml
 
 from cobbler import utils, enums
 from cobbler.cexceptions import CX
-
+from cobbler.decorator import InheritableProperty, InheritableDictProperty
 
 RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
 
@@ -342,7 +342,7 @@ class Item:
         """
         self._comment = comment
 
-    @property
+    @InheritableProperty
     def owners(self) -> list:
         """
         This is a feature which is related to the ownership module of Cobbler which gives only specific people access
@@ -370,7 +370,7 @@ class Item:
             raise TypeError("owners must be str or list!")
         self._owners = utils.input_string_or_list(owners)
 
-    @property
+    @InheritableDictProperty
     def kernel_options(self) -> dict:
         """
         Kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
@@ -397,7 +397,7 @@ class Item:
         except TypeError as e:
             raise TypeError("invalid kernel options") from e
 
-    @property
+    @InheritableDictProperty
     def kernel_options_post(self) -> dict:
         """
         Post kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
@@ -424,7 +424,7 @@ class Item:
         except TypeError as e:
             raise TypeError("invalid post kernel options") from e
 
-    @property
+    @InheritableDictProperty
     def autoinstall_meta(self) -> dict:
         """
         A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a dict.
@@ -448,7 +448,7 @@ class Item:
         value = utils.input_string_or_dict(options, allow_multiples=True)
         self._autoinstall_meta = value
 
-    @property
+    @InheritableProperty
     def mgmt_classes(self) -> list:
         """
         Assigns a list of configuration management classes that can be assigned to any object, such as those used by
@@ -472,7 +472,7 @@ class Item:
             raise TypeError("mgmt_classes has to be either str or list")
         self._mgmt_classes = utils.input_string_or_list(mgmt_classes)
 
-    @property
+    @InheritableDictProperty
     def mgmt_parameters(self) -> dict:
         """
         Parameters which will be handed to your management application (Must be a valid YAML dictionary)
@@ -560,7 +560,7 @@ class Item:
         except TypeError as e:
             raise TypeError("invalid boot files specified") from e
 
-    @property
+    @InheritableDictProperty
     def fetchable_files(self) -> dict:
         """
         A comma seperated list of ``virt_name=path_to_template`` that should be fetchable via tftp or a webserver

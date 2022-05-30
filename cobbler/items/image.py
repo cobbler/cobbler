@@ -23,6 +23,7 @@ from typing import Union
 from cobbler import autoinstall_manager, enums, utils, validate
 from cobbler.cexceptions import CX
 from cobbler.items import item
+from cobbler.decorator import InheritableProperty
 
 
 class Image(item.Item):
@@ -511,7 +512,7 @@ class Image(item.Item):
             self._supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
             return self._supported_boot_loaders
 
-    @property
+    @InheritableProperty
     def boot_loaders(self) -> list:
         """
         Represents the boot loaders which are able to boot this image.

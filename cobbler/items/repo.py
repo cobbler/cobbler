@@ -24,6 +24,7 @@ from cobbler import enums
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.items import item
+from cobbler.decorator import InheritableProperty
 
 
 class Repo(item.Item):
@@ -312,7 +313,7 @@ class Repo(item.Item):
         """
         self._rpm_list = utils.input_string_or_list(rpms)
 
-    @property
+    @InheritableProperty
     def createrepo_flags(self) -> str:
         r"""
         Flags passed to createrepo when it is called. Common flags to use would be ``-c cache`` or ``-g comps.xml`` to
@@ -478,7 +479,7 @@ class Repo(item.Item):
         """
         self._apt_dists = utils.input_string_or_list(value)
 
-    @property
+    @InheritableProperty
     def proxy(self) -> str:
         """
         Override the default external proxy which is used for accessing the internet.
