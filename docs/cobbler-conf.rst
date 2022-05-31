@@ -26,9 +26,10 @@ main file.
 Updates to the yaml-settings-file
 #################################
 
-Starting with 3.4.0
+Starting with 3.3.3
 ===================
 
+- ``default_virt_file_size`` is now a float as intended.
 - We added the ``proxies`` key for first-level Uyuni & SUSE Manager support. It is optional, so you can
   ignore it if you don't run one of the two solutions or a derivative of it.
 
@@ -434,7 +435,7 @@ default_virt_file_size
 
 Use this as the default disk size for virt guests (GB).
 
-default: ``5``
+default: ``5.0``
 
 default_virt_ram
 ================
