@@ -952,8 +952,13 @@ class Item:
                             interface_key
                         ].to_dict()
                     value[new_key] = serialized_interfaces
-                elif isinstance(key_value, (list, dict)):
+                elif isinstance(key_value, list):
                     value[new_key] = copy.deepcopy(key_value)
+                elif isinstance(key_value, dict):
+                    if resolved:
+                        value[new_key] = getattr(self, new_key)
+                    else:
+                        value[new_key] = copy.deepcopy(key_value)
                 elif (
                     isinstance(key_value, str)
                     and key_value == enums.VALUE_INHERITED
