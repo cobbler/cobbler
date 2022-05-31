@@ -1756,14 +1756,14 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def check(self) -> Union[None, list]:
+    def check(self) -> list:
         """
         See if all preqs for network booting are valid. This returns a list of strings containing instructions on things
         to correct. An empty list means there is nothing to correct, but that still doesn't mean there are configuration
         errors. This is mainly useful for human admins, who may, for instance, forget to properly set up their TFTP
         servers for PXE, etc.
 
-        :return: None or a list of things to address.
+        :return: A list of things to address.
         """
         self.log("check")
         action_check = check.CobblerCheck(self)
@@ -1920,12 +1920,12 @@ class CobblerAPI:
         self,
         mirror_url: str,
         mirror_name: str,
-        network_root=None,
-        autoinstall_file=None,
-        rsync_flags=None,
-        arch=None,
-        breed=None,
-        os_version=None,
+        network_root: Optional[str] = None,
+        autoinstall_file: Optional[str] = None,
+        rsync_flags: Optional[str] = None,
+        arch: Optional[str] = None,
+        breed: Optional[str] = None,
+        os_version: Optional[str] = None,
     ) -> bool:
         """
         Automatically import a directory tree full of distribution files.
@@ -2025,7 +2025,7 @@ class CobblerAPI:
 
     def get_module_name_from_file(
         self, section: str, name: str, fallback: Optional[str] = None
-    ):
+    ) -> str:
         """
         Looks up a module the same as ``get_module_from_file`` but returns the module name rather than the module
         itself.
@@ -2037,7 +2037,7 @@ class CobblerAPI:
         """
         return self.module_loader.get_module_name(section, name, fallback)
 
-    def get_modules_in_category(self, category: str):
+    def get_modules_in_category(self, category: str) -> list:
         """
         Returns all modules in a given category, for instance "serializer", or "cli".
         Cobbler internal use only.

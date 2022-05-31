@@ -68,14 +68,14 @@ class CobblerXMLRPCInterface:
         self.tftpgen = tftpgen.TFTPGen(api)
         self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api)
 
-    def check(self, token: str) -> Union[None, list]:
+    def check(self, token: str) -> list:
         """
         Returns a list of all the messages/warnings that are things that admin may want to correct about the
         configuration of the Cobbler server. This has nothing to do with "check_access" which is an auth/authz function
         in the XMLRPC API.
 
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
-        :return: None or a list of things to address.
+        :return: A list of things to address.
         """
         self.check_access(token, "check")
         return self.api.check()
@@ -485,7 +485,7 @@ class CobblerXMLRPCInterface:
         """
         return True
 
-    def get_user_from_token(self, token: str):
+    def get_user_from_token(self, token: str) -> str:
         """
         Given a token returned from login, return the username that logged in with it.
 
@@ -3574,7 +3574,7 @@ class CobblerXMLRPCInterface:
         """
         return self.api.authenticate(input_user, input_password)
 
-    def __validate_token(self, token: str):
+    def __validate_token(self, token: str) -> bool:
         """
         Checks to see if an API method can be called when the given token is passed in. Updates the timestamp of the
         token automatically to prevent the need to repeatedly call login(). Any method that needs access control should
@@ -3673,7 +3673,7 @@ class CobblerXMLRPCInterface:
             raise CX(f"authorization failure for user {user}")
         return return_code
 
-    def get_authn_module_name(self, token: str):
+    def get_authn_module_name(self, token: str) -> str:
         """
         Get the name of the currently used authentication module.
 
