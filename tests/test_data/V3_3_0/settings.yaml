@@ -565,4 +565,4 @@ signature_url: "https://cobbler.github.io/signatures/3.0.x/latest.json"
 
 # Include other configuration snippets. Overwriting a key from this file in a childfile will overwrite the value from
 # this file.
-include: [ "/etc/cobbler/settings.d/*.settings" ]
+include: [ "/code/tests/test_data/V3_3_0/settings.d/*.settings" ]
