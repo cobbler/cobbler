@@ -15,6 +15,7 @@ from ipaddress import AddressValueError
 from cobbler import autoinstall_manager, enums, power_manager, utils, validate
 from cobbler.cexceptions import CX
 from cobbler.items.item import Item
+from cobbler.decorator import InheritableProperty
 
 
 class NetworkInterface:
@@ -72,10 +73,12 @@ class NetworkInterface:
                 str(dictionary_keys),
             )
 
-    def to_dict(self) -> dict:
+    def to_dict(self, resolved: bool = False) -> dict:
         """
         This converts everything in this object to a dictionary.
 
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
         :return: A dictionary with all values present in this object.
         """
         result = {}
@@ -83,13 +86,21 @@ class NetworkInterface:
             if "__" in key:
                 continue
             if key.startswith("_"):
-                if isinstance(self.__dict__[key], enum.Enum):
-                    result[key[1:]] = self.__dict__[key].name
+                new_key = key[1:].lower()
+                key_value = self.__dict__[key]
+                if isinstance(key_value, enum.Enum):
+                    result[new_key] = self.__dict__[key].name
+                elif (
+                    isinstance(key_value, str)
+                    and key_value == enums.VALUE_INHERITED
+                    and resolved
+                ):
+                    result[new_key] = getattr(self, key[1:])
                 else:
-                    result[key[1:]] = self.__dict__[key]
+                    result[new_key] = self.__dict__[key]
         return result
 
-    # These two methods are currently not used but we do want to use them in the future, so let's define them.
+    # These two methods are currently not used, but we do want to use them in the future, so let's define them.
     def serialize(self):
         """
         This method is a proxy for :meth:`~cobbler.items.item.Item.to_dict` and contains additional logic for
@@ -1046,7 +1057,7 @@ class System(Item):
             raise TypeError("Field status of object system needs to be of type str!")
         self._status = status
 
-    @property
+    @InheritableProperty
     def boot_loaders(self) -> list:
         """
         boot_loaders property.
@@ -1099,7 +1110,7 @@ class System(Item):
             )
         self._boot_loaders = boot_loaders_split
 
-    @property
+    @InheritableProperty
     def server(self) -> str:
         """
         server property.
@@ -1126,7 +1137,7 @@ class System(Item):
             server = enums.VALUE_INHERITED
         self._server = server
 
-    @property
+    @InheritableProperty
     def next_server_v4(self) -> str:
         """
         next_server_v4 property.
@@ -1154,7 +1165,7 @@ class System(Item):
         else:
             self._next_server_v4 = validate.ipv4_address(server)
 
-    @property
+    @InheritableProperty
     def next_server_v6(self) -> str:
         """
         next_server_v6 property.
@@ -1182,7 +1193,7 @@ class System(Item):
         else:
             self._next_server_v6 = validate.ipv6_address(server)
 
-    @property
+    @InheritableProperty
     def filename(self) -> str:
         """
         filename property.
@@ -1210,7 +1221,7 @@ class System(Item):
         else:
             self._filename = filename.strip()
 
-    @property
+    @InheritableProperty
     def proxy(self) -> str:
         """
         proxy property. This corresponds per default to the setting``proxy_url_int``.
@@ -1234,7 +1245,7 @@ class System(Item):
             raise TypeError("Field proxy of object system needs to be of type str!")
         self._proxy = proxy
 
-    @property
+    @InheritableProperty
     def redhat_management_key(self) -> str:
         """
         redhat_management_key property.
@@ -1448,7 +1459,7 @@ class System(Item):
             interface_name = ""
         self._ipv6_default_device = interface_name
 
-    @property
+    @InheritableProperty
     def enable_ipxe(self) -> bool:
         """
         enable_ipxe property.
@@ -1588,7 +1599,7 @@ class System(Item):
         if isinstance(new_parent, Item) and self.name not in new_parent.children:
             new_parent.children.append(self.name)
 
-    @property
+    @InheritableProperty
     def virt_cpus(self) -> int:
         """
         virt_cpus property.
@@ -1609,7 +1620,7 @@ class System(Item):
         """
         self._virt_cpus = validate.validate_virt_cpus(num)
 
-    @property
+    @InheritableProperty
     def virt_file_size(self) -> float:
         """
         virt_file_size property.
@@ -1631,7 +1642,7 @@ class System(Item):
         """
         self._virt_file_size = validate.validate_virt_file_size(num)
 
-    @property
+    @InheritableProperty
     def virt_disk_driver(self) -> enums.VirtDiskDrivers:
         """
         virt_disk_driver property.
@@ -1652,7 +1663,7 @@ class System(Item):
         """
         self._virt_disk_driver = enums.VirtDiskDrivers.to_enum(driver)
 
-    @property
+    @InheritableProperty
     def virt_auto_boot(self) -> bool:
         """
         virt_auto_boot property.
@@ -1695,7 +1706,7 @@ class System(Item):
         """
         self._virt_pxe_boot = validate.validate_virt_pxe_boot(num)
 
-    @property
+    @InheritableProperty
     def virt_ram(self) -> int:
         """
         virt_ram property.
@@ -1717,7 +1728,7 @@ class System(Item):
         """
         self._virt_ram = validate.validate_virt_ram(num)
 
-    @property
+    @InheritableProperty
     def virt_type(self) -> enums.VirtType:
         """
         virt_type property.
@@ -1738,7 +1749,7 @@ class System(Item):
         """
         self._virt_type = enums.VirtType.to_enum(vtype)
 
-    @property
+    @InheritableProperty
     def virt_path(self) -> str:
         """
         virt_path property.
@@ -1791,7 +1802,7 @@ class System(Item):
             raise TypeError("netboot_enabled needs to be a bool")
         self._netboot_enabled = netboot_enabled
 
-    @property
+    @InheritableProperty
     def autoinstall(self) -> str:
         """
         autoinstall property.
