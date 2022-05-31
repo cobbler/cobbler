@@ -442,6 +442,25 @@ def test_to_dict_resolved(cobbler_api):
     assert result.get("owners") == ["admin"]
 
 
+def test_to_dict_resolved_dict(cobbler_api, create_distro):
+    # Arrange
+    test_distro = create_distro()
+    test_distro.kernel_options = {"test": True}
+    cobbler_api.add_distro(test_distro)
+    titem = Profile(cobbler_api)
+    titem.name = "to_dict_resolved_profile"
+    titem.distro = test_distro.name
+    titem.kernel_options = {"my_value": 5}
+    cobbler_api.add_profile(titem)
+
+    # Act
+    result = titem.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("kernel_options") == {"test": True, "my_value": 5}
+
+
 def test_serialize(cobbler_api):
     # Arrange
     kernel_url = "http://10.0.0.1/custom-kernels-are-awesome"
