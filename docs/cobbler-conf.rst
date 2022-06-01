@@ -30,12 +30,12 @@ Starting with 3.3.3
 ===================
 
 - ``default_virt_file_size`` is now a float as intended.
+- We added the ``proxies`` key for first-level Uyuni & SUSE Manager support. It is optional, so you can
+  ignore it if you don't run one of the two solutions or a derivative of it.
 
 Starting with 3.3.2
 ===================
 
-- We added the ``proxies`` key for first-level Uyuni & SUSE Manager support. It is optional, so you can
-  ignore it if you don't run one of the two solutions or a derivative of it.
 - After community feedback we changed the default of the auto-migration to be disabled. It can be re-enabled via the
   already known methods ``cobbler-settings``-Tool, the settings file key ``auto_migrate_settings`` and the Daemon flag.
   We have decided to not change the flag for existing installations.
@@ -76,22 +76,23 @@ Starting with 3.2.1
 Migration matrix
 ################
 
-=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
-To/From  <2.8.5   2.8.5   3.0.0   3.0.1   3.1.0   3.1.1   3.1.2   3.2.0   3.2.1   3.3.0   3.3.1   3.3.2
-=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
-2.8.5      x        o       --      --      --      --      --      --      --      --      --      --
-3.0.0      x        x       o       --      --      --      --      --      --      --      --      --
-3.0.1      x        x       x       o       --      --      --      --      --      --      --      --
-3.1.0      x        x       x       x       o       --      --      --      --      --      --      --
-3.1.1      x        x       x       x       x       o       --      --      --      --      --      --
-3.1.2      x        x       x       x       x       x       o       --      --      --      --      --
-3.2.0      x        x       x       x       x       x       x       o       --      --      --      --
-3.2.1      x        x       x       x       x       x       x       x       o       --      --      --
-3.3.0      x        x       x       x       x       x       x       x       x       o       --      --
-3.3.1      x        x       x       x       x       x       x       x       x       x       o       --
-3.3.2      x        x       x       x       x       x       x       x       x       x       x       o
-master     --      --      --      --      --      --      --      --       --      --      --      --
-=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
+To/From  <2.8.5   2.8.5   3.0.0   3.0.1   3.1.0   3.1.1   3.1.2   3.2.0   3.2.1   3.3.0   3.3.1   3.3.2   3.3.3
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
+2.8.5      x        o       --      --      --      --      --      --      --      --      --      --      --
+3.0.0      x        x       o       --      --      --      --      --      --      --      --      --      --
+3.0.1      x        x       x       o       --      --      --      --      --      --      --      --      --
+3.1.0      x        x       x       x       o       --      --      --      --      --      --      --      --
+3.1.1      x        x       x       x       x       o       --      --      --      --      --      --      --
+3.1.2      x        x       x       x       x       x       o       --      --      --      --      --      --
+3.2.0      x        x       x       x       x       x       x       o       --      --      --      --      --
+3.2.1      x        x       x       x       x       x       x       x       o       --      --      --      --
+3.3.0      x        x       x       x       x       x       x       x       x       o       --      --      --
+3.3.1      x        x       x       x       x       x       x       x       x       x       o       --      --
+3.3.2      x        x       x       x       x       x       x       x       x       x       x       o       --
+3.3.3      x        x       x       x       x       x       x       x       x       x       x       x       o
+main       --       --      --      --      --      --      --      --      --      --      --      --      --
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
 
 **Legend**: x: supported, o: same version, -: not supported
 
