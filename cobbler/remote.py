@@ -1898,7 +1898,7 @@ class CobblerXMLRPCInterface:
             elif isinstance(getattr(self.api.settings(), setting_name), list):
                 value = utils.input_string_or_list(value)
             elif isinstance(getattr(self.api.settings(), setting_name), dict):
-                value = utils.input_string_or_dict(value)[1]
+                value = utils.input_string_or_dict(value)
             else:
                 self.logger.error("modify_setting(%s) - Wrong type for value", setting_name)
                 return 1
@@ -2021,7 +2021,7 @@ class CobblerXMLRPCInterface:
                             and attributes.get("in_place"):
                         details = self.get_item(object_type, object_name)
                         v2 = details[key]
-                        (ok, parsed_input) = utils.input_string_or_dict(value)
+                        parsed_input = utils.input_string_or_dict(value)
                         for (a, b) in list(parsed_input.items()):
                             if a.startswith("~") and len(a) > 1:
                                 del v2[a[1:]]

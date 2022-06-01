@@ -247,7 +247,9 @@ class Settings:
         try:
             if name == "kernel_options":
                 # backwards compatibility -- convert possible string value to dict
-                (success, result) = utils.input_string_or_dict(self.__dict__[name], allow_multiples=False)
+                result = utils.input_string_or_dict(
+                    self.__dict__[name], allow_multiples=False
+                )
                 self.__dict__[name] = result
                 return result
             # TODO: This needs to be explicitly tested

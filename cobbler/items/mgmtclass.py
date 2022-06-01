@@ -134,9 +134,7 @@ class Mgmtclass(item.Item):
         :param params: The new params for the object.
         :raises TypeError: Raised in case ``params`` is invalid.
         """
-        (success, value) = utils.input_string_or_dict(params, allow_multiples=True)
-        if not success:
-            raise TypeError("invalid parameters")
+        value = utils.input_string_or_dict(params, allow_multiples=True)
         self._params = value
 
     @property
