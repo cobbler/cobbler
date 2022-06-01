@@ -25,6 +25,7 @@ from typing import Union, Dict, Any
 
 from cobbler.cexceptions import CX
 from cobbler import serializer
+from cobbler import validate
 from cobbler.cobbler_collections.distros import Distros
 from cobbler.cobbler_collections.files import Files
 from cobbler.cobbler_collections.images import Images
@@ -71,7 +72,6 @@ class CollectionManager:
         self._packages = Packages(weakref.proxy(self))
         self._files = Files(weakref.proxy(self))
         self._menus = Menus(weakref.proxy(self))
-        # Not a true collection
 
     def distros(self):
         """
@@ -226,27 +226,27 @@ class CollectionManager:
         :return: The collection if ``collection_type`` is valid.
         :raises CX: If the ``collection_type`` is invalid.
         """
-        result: Union[Distros, Profiles, Systems, Repos, Images, Mgmtclasses, Packages, Files, Menus]
-        if collection_type == "distro":
-            result = self._distros
-        elif collection_type == "profile":
-            result = self._profiles
-        elif collection_type == "system":
-            result = self._systems
-        elif collection_type == "repo":
-            result = self._repos
-        elif collection_type == "image":
-            result = self._images
+        result: Union[
+            Distros,
+            Profiles,
+            Systems,
+            Repos,
+            Images,
+            Mgmtclasses,
+            Packages,
+            Files,
+            Menus,
+        ]
+        if validate.validate_obj_type(collection_type) and hasattr(
+            self, f"_{collection_type}s"
+        ):
+            result = getattr(self, f"_{collection_type}s")
         elif collection_type == "mgmtclass":
             result = self._mgmtclasses
-        elif collection_type == "package":
-            result = self._packages
-        elif collection_type == "file":
-            result = self._files
-        elif collection_type == "menu":
-            result = self._menus
         elif collection_type == "settings":
             result = self.api.settings()
         else:
-            raise CX("internal error, collection name \"%s\" not supported" % collection_type)
+            raise CX(
+                'internal error, collection name "%s" not supported' % collection_type
+            )
         return result
