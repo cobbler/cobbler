@@ -39,7 +39,7 @@ import urllib.request
 import xmlrpc.client
 from functools import reduce
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Pattern, Tuple, Union
+from typing import Any, Dict, List, Optional, Pattern, Union
 from xmlrpc.client import ServerProxy
 
 import distro

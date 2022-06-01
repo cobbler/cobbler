@@ -21,8 +21,6 @@ import uuid
 
 from cobbler.items import resource
 
-from cobbler.cexceptions import CX
-
 
 class Package(resource.Resource):
     """
