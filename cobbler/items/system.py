@@ -180,9 +180,10 @@ class NetworkInterface:
 
         :param truthiness: The new value if the interface is static or not.
         """
-        truthiness = utils.input_boolean(truthiness)
-        if not isinstance(truthiness, bool):
-            raise TypeError("Field static of NetworkInterface needs to be of Type bool!")
+        try:
+            truthiness = utils.input_boolean(truthiness)
+        except TypeError as e:
+            raise TypeError("Field static of NetworkInterface needs to be of Type bool!") from e
         self._static = truthiness
 
     @property
@@ -202,9 +203,12 @@ class NetworkInterface:
 
         :param truthiness: The new value for management.
         """
-        truthiness = utils.input_boolean(truthiness)
-        if not isinstance(truthiness, bool):
-            raise TypeError("Field management of object NetworkInterface needs to be of type bool!")
+        try:
+            truthiness = utils.input_boolean(truthiness)
+        except TypeError as e:
+            raise TypeError(
+                "Field management of object NetworkInterface needs to be of type bool!"
+            ) from e
         self._management = truthiness
 
     @property
@@ -640,9 +644,12 @@ class NetworkInterface:
 
         :param truthiness: The new value for connected mode of the interface.
         """
-        truthiness = utils.input_boolean(truthiness)
-        if not isinstance(truthiness, bool):
-            raise TypeError("Field connected_mode of object NetworkInterface needs to be of type bool!")
+        try:
+            truthiness = utils.input_boolean(truthiness)
+        except TypeError as e:
+            raise TypeError(
+                "Field connected_mode of object NetworkInterface needs to be of type bool!"
+            ) from e
         self._connected_mode = truthiness
 
     def modify_interface(self, _dict: dict):
@@ -659,7 +666,7 @@ class NetworkInterface:
                 self.bonding_opts = value
             if field == "bridgeopts":
                 self.bridge_opts = value
-            if field == "connected_mode":
+            if field == "connectedmode":
                 self.connected_mode = value
             if field == "cnames":
                 self.cnames = value
@@ -1054,7 +1061,6 @@ class System(Item):
 
         :getter: Returns the value for ``server``.
         :setter: Sets the value for the property ``server``.
-        :return:
         """
         return self._resolve("server")
 
@@ -1082,7 +1088,6 @@ class System(Item):
 
         :getter: Returns the value for ``next_server_v4``.
         :setter: Sets the value for the property ``next_server_v4``.
-        :return:
         """
         return self._resolve("next_server_v4")
 
@@ -1110,7 +1115,6 @@ class System(Item):
 
         :getter: Returns the value for ``next_server_v6``.
         :setter: Sets the value for the property ``next_server_v6``.
-        :return:
         """
         return self._resolve("next_server_v6")
 
@@ -1136,7 +1140,6 @@ class System(Item):
 
         :getter: Returns the value for ``filename``.
         :setter: Sets the value for the property ``filename``.
-        :return:
         """
         return self._resolve("filename")
 
@@ -1145,10 +1148,8 @@ class System(Item):
         """
         Setter for the filename of the System class.
 
-
         :param filename:
         :raises TypeError: In case filename is no string.
-        :return:
         """
         if not isinstance(filename, str):
             raise TypeError("Field filename of object system needs to be of type str!")
@@ -1160,13 +1161,12 @@ class System(Item):
     @property
     def proxy(self) -> str:
         """
-        proxy property.
+        proxy property. This corresponds per default to the setting``proxy_url_int``.
 
         .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: Returns the value for ``proxy``.
         :setter: Sets the value for the property ``proxy``.
-        :return:
         """
         return self._resolve("proxy_url_int")
 
@@ -1177,7 +1177,6 @@ class System(Item):
 
         :param proxy: The new value for the proxy.
         :raises TypeError: In case proxy is no string.
-        :return:
         """
         if not isinstance(proxy, str):
             raise TypeError("Field proxy of object system needs to be of type str!")
@@ -1192,7 +1191,6 @@ class System(Item):
 
         :getter: Returns the value for ``redhat_management_key``.
         :setter: Sets the value for the property ``redhat_management_key``.
-        :return:
         """
         return self._resolve("redhat_management_key")
 
@@ -1459,10 +1457,16 @@ class System(Item):
             if self.name in old_parent.children:
                 old_parent.children.remove(self.name)
             else:
-                self.logger.debug("Name of System \"%s\" was not found in the children of Item \"%s\"",
-                                 self.name, self.parent.name)
+                self.logger.debug(
+                    'Name of System "%s" was not found in the children of Item "%s"',
+                    self.name,
+                    self.parent.name,
+                )
         else:
-            self.logger.debug("Parent of System \"%s\" not found. Thus skipping removal from children list.", self.name)
+            self.logger.debug(
+                'Parent of System "%s" not found. Thus skipping removal from children list.',
+                self.name,
+            )
 
         self.image = ""  # mutual exclusion rule
 
@@ -1500,10 +1504,7 @@ class System(Item):
             self._image = ""
             return
 
-        self.profile = ""  # mutual exclusion rule
-
         img = self.api.images().find(name=image_name)
-
         if img is None:
             raise ValueError('Image with the name "%s" is not existing' % image_name)
 
@@ -1540,7 +1541,6 @@ class System(Item):
 
         :getter: Returns the value for ``virt_cpus``.
         :setter: Sets the value for the property ``virt_cpus``.
-        :return:
         """
         return self._resolve("virt_cpus")
 
@@ -1562,7 +1562,6 @@ class System(Item):
 
         :getter: Returns the value for ``virt_file_size``.
         :setter: Sets the value for the property ``virt_file_size``.
-        :return:
         """
         return self._resolve("virt_file_size")
 
@@ -1628,7 +1627,6 @@ class System(Item):
 
         :getter: Returns the value for ``virt_pxe_boot``.
         :setter: Sets the value for the property ``virt_pxe_boot``.
-        :return:
         """
         return self._virt_pxe_boot
 
@@ -1650,7 +1648,6 @@ class System(Item):
 
         :getter: Returns the value for ``virt_ram``.
         :setter: Sets the value for the property ``virt_ram``.
-        :return:
         """
         return self._resolve("virt_ram")
 
@@ -1702,7 +1699,7 @@ class System(Item):
         """
         Setter for the virt_path of the System class.
 
-        :param path: The new path
+        :param path: The new path.
         """
         self._virt_path = validate.validate_virt_path(path, for_system=True)
 
