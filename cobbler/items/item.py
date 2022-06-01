@@ -779,8 +779,32 @@ class Item:
         # special case for systems
         key_found_already = False
         if "interfaces" in data:
-            if key in ["mac_address", "ip_address", "netmask", "virt_bridge", "dhcp_tag", "dns_name", "static_routes",
-                       "interface_type", "interface_master", "bonding_opts", "bridge_opts", "interface"]:
+            if key in [
+                "cnames",
+                "connected_mode",
+                "if_gateway",
+                "ipv6_default_gateway",
+                "ipv6_mtu",
+                "ipv6_prefix",
+                "ipv6_secondaries",
+                "ipv6_static_routes",
+                "management",
+                "mtu",
+                "static",
+                "mac_address",
+                "ip_address",
+                "ipv6_address",
+                "netmask",
+                "virt_bridge",
+                "dhcp_tag",
+                "dns_name",
+                "static_routes",
+                "interface_type",
+                "interface_master",
+                "bonding_opts",
+                "bridge_opts",
+                "interface",
+            ]:
                 key_found_already = True
                 for (name, interface) in list(data["interfaces"].items()):
                     if value == name:
