@@ -213,8 +213,10 @@ class Repo(item.Item):
         :param options: Something like ``a=b c=d e=f g h i=j`` or a dictionary.
         :raises ValueError: In case the presented data could not be parsed into a dictionary.
         """
-        value = utils.input_string_or_dict(options, allow_multiples=False)
-        self._yumopts = value
+        try:
+            self._yumopts = utils.input_string_or_dict(options, allow_multiples=False)
+        except TypeError as e:
+            raise TypeError("invalid yum options") from e
 
     @property
     def rsyncopts(self) -> dict:
@@ -234,8 +236,10 @@ class Repo(item.Item):
         :param options: Something like '-a -S -H -v'
         :raises ValueError: In case the options provided can't be parsed.
         """
-        value = utils.input_string_or_dict(options, allow_multiples=False)
-        self._rsyncopts = value
+        try:
+            self._rsyncopts = utils.input_string_or_dict(options, allow_multiples=False)
+        except TypeError as e:
+            raise TypeError("invalid rsync options") from e
 
     @property
     def environment(self) -> dict:
@@ -255,8 +259,12 @@ class Repo(item.Item):
         :param options: These are environment variables which are set before each reposync.
         :raises ValueError: In case the variables provided could not be parsed.
         """
-        value = utils.input_string_or_dict(options, allow_multiples=False)
-        self._environment = value
+        try:
+            self._environment = utils.input_string_or_dict(
+                options, allow_multiples=False
+            )
+        except TypeError as e:
+            raise TypeError("invalid environment") from e
 
     @property
     def priority(self) -> int:
