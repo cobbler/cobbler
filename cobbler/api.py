@@ -96,18 +96,12 @@ class CobblerAPI:
             # load the modules first, or nothing else works...
             module_loader.load_modules()
 
-            # import signatures
-            try:
-                utils.load_signatures(self.settings().signature_path)
-            except Exception as e:
-                self.log("Failed to load signatures from %s: %s" % (self.settings().signature_path, e))
-                return
+            # In case the signatures can't be loaded, we can't validate distros etc. Thus, the raised exception should
+            # not be caught.
+            self.__load_signatures()
 
             self._collection_mgr = manager.CollectionManager(self)
             self.deserialize()
-
-            self.log("%d breeds and %d OS versions read from the signature file"
-                     % (len(utils.get_valid_breeds()), len(utils.get_valid_os_versions())))
 
             self.authn = self.get_module_from_file(
                 "authentication",
@@ -130,8 +124,26 @@ class CobblerAPI:
             self.logger.debug("API handle initialized")
             self.perms_ok = True
 
-    def __generate_settings(self, settings_path: Path,
-                            execute_settings_automigration: bool = False) -> settings.Settings:
+    def __load_signatures(self):
+        try:
+            utils.load_signatures(self.settings().signature_path)
+        except Exception as e:
+            self.logger.error(
+                "Failed to load signatures from %s: %s",
+                self.settings().signature_path,
+                exc_info=e,
+            )
+            raise e
+
+        self.logger.info(
+            "%d breeds and %d OS versions read from the signature file",
+            len(utils.get_valid_breeds()),
+            len(utils.get_valid_os_versions()),
+        )
+
+    def __generate_settings(
+        self, settings_path: Path, execute_settings_automigration: bool = False
+    ) -> settings.Settings:
         yaml_dict = settings.read_yaml_file(settings_path)
 
         if execute_settings_automigration is not None:
