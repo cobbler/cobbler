@@ -131,7 +131,9 @@ def test_comment(cobbler_api):
     "input_owners,expected_exception,expected_result",
     [
         ("", does_not_raise(), []),
+        (enums.VALUE_INHERITED, does_not_raise(), ["admin"]),
         ("Test1 Test2", does_not_raise(), ["Test1", "Test2"]),
+        (["Test1", "Test2"], does_not_raise(), ["Test1", "Test2"]),
         (False, pytest.raises(TypeError), None),
     ],
 )
@@ -336,7 +338,9 @@ def test_dump_vars(cobbler_api):
     result = titem.dump_vars(formatted_output=False)
 
     # Assert
-    assert len(result) == 149
+    assert "default_ownership" in result
+    assert "owners" in result
+    assert len(result) == 148
 
 
 @pytest.mark.parametrize(
