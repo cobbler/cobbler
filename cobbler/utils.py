@@ -792,19 +792,23 @@ def __consolidate(node, results: dict) -> dict:
     node_data_copy = {}
     for key in node_data:
         value = node_data[key]
-        if value != enums.VALUE_INHERITED:
+        if value == enums.VALUE_INHERITED:
+            if key not in results:
+                # We need to add at least one value per key, use the property getter to resolve to the
+                # settings or wherever we inherit from.
+                node_data_copy[key] = getattr(node, key)
+            # Old keys should have no inherit and thus are not a real property
+            if key == "kickstart":
+                node_data_copy[key] = getattr(type(node), "autoinstall").fget(node)
+            elif key == "ks_meta":
+                node_data_copy[key] = getattr(type(node), "autoinstall_meta").fget(node)
+        else:
             if isinstance(value, dict):
                 node_data_copy[key] = value.copy()
             elif isinstance(value, list):
                 node_data_copy[key] = value[:]
             else:
                 node_data_copy[key] = value
-        else:
-            # Old keys should have no inherit and thus are not a real property
-            if key == "kickstart":
-                node_data_copy[key] = getattr(type(node), "autoinstall").fget(node)
-            elif key == "ks_meta":
-                node_data_copy[key] = getattr(type(node), "autoinstall_meta").fget(node)
 
     for field in node_data_copy:
         data_item = node_data_copy[field]
