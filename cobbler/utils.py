@@ -108,8 +108,11 @@ def log_exc():
     """
     (t, v, tb) = sys.exc_info()
     logger.info("Exception occurred: %s", t)
-    logger.info("Exception value: %s" % v)
-    logger.info("Exception Info:\n%s" % "\n".join(traceback.format_list(traceback.extract_tb(tb))))
+    logger.info("Exception value: %s", v)
+    logger.info(
+        "Exception Info:\n%s",
+        "\n".join(traceback.format_list(traceback.extract_tb(tb))),
+    )
 
 
 def get_exc(exc, full: bool = True):
@@ -276,7 +279,10 @@ def service_restart(service_name: str):
     elif is_service():
         restart_command = ["service", service_name, "restart"]
     else:
-        logger.warning('We could not restart service "%s" due to an unsupported process manager!', service_name)
+        logger.warning(
+            'We could not restart service "%s" due to an unsupported process manager!',
+            service_name,
+        )
         return 1
 
     ret = subprocess_call(restart_command, shell=False)
@@ -400,7 +406,6 @@ def remove_yum_olddata(path: os.PathLike):
 
     :param path: The path to check for .olddata files.
     """
-    # FIXME: If the folder is actually a file this method fails wonderfully.
     directories_to_try = [
         ".olddata",
         ".repodata/.olddata",
@@ -1046,7 +1051,7 @@ def get_family() -> str:
     """
     # TODO: Refactor that this is purely reliant on the distro module or obsolete it.
     redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos", "virtuozzo", "almalinux",
-                   "rocky linux", "oracle linux server")
+                   "rocky linux", "anolis os", "oracle linux server")
 
     distro_name = distro.name().lower()
     for item in redhat_list:
@@ -1076,6 +1081,8 @@ def os_release():
         elif "almalinux" in distro_name:
             make = "centos"
         elif "rocky linux" in distro_name:
+            make = "centos"
+        elif "anolis os" in distro_name:
             make = "centos"
         elif "virtuozzo" in distro_name:
             make = "virtuozzo"
@@ -1321,11 +1328,11 @@ def rmfile(path: str):
     """
     try:
         os.remove(path)
-        logger.info("Successfully removed \"%s\"", path)
+        logger.info('Successfully removed "%s"', path)
     except FileNotFoundError:
         pass
     except OSError as ioe:
-        logger.warning("Could not remove file \"%s\": %s", path, ioe.strerror)
+        logger.warning('Could not remove file "%s": %s', path, ioe.strerror)
 
 
 def rmtree_contents(path: str):
@@ -1912,7 +1919,9 @@ def dhcpconf_location(protocol: DHCP, filename: str = "dhcpd.conf") -> str:
     :return: The path possibly used for the dhcpd.conf file.
     """
     if protocol not in DHCP:
-        logger.info("DHCP configuration location could not be determined due to unknown protocol version.")
+        logger.info(
+            "DHCP configuration location could not be determined due to unknown protocol version."
+        )
         raise AttributeError("DHCP must be version 4 or 6!")
     if protocol == DHCP.V6 and filename == "dhcpd.conf":
         filename = "dhcpd6.conf"

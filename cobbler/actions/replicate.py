@@ -81,7 +81,7 @@ class Replicate:
         for (luid, ldata) in list(locals.items()):
             if luid not in remotes:
                 try:
-                    self.logger.info("removing %s %s" % (obj_type, ldata["name"]))
+                    self.logger.info("removing %s %s", obj_type, ldata["name"])
                     self.api.remove_item(obj_type, ldata["name"], recursive=True)
                 except Exception:
                     utils.log_exc()
@@ -108,9 +108,11 @@ class Replicate:
                 newobj = creator()
                 newobj.from_dict(utils.revert_strip_none(rdata))
                 try:
-                    self.logger.info("adding %s %s" % (obj_type, rdata["name"]))
+                    self.logger.info("adding %s %s", obj_type, rdata["name"])
                     if not self.api.add_item(obj_type, newobj):
-                        self.logger.error("failed to add %s %s" % (obj_type, rdata["name"]))
+                        self.logger.error(
+                            "failed to add %s %s", obj_type, rdata["name"]
+                        )
                 except Exception:
                     utils.log_exc()
 
@@ -135,15 +137,17 @@ class Replicate:
                 if ldata["mtime"] < rdata["mtime"]:
 
                     if ldata["name"] != rdata["name"]:
-                        self.logger.info("removing %s %s" % (obj_type, ldata["name"]))
+                        self.logger.info("removing %s %s", obj_type, ldata["name"])
                         self.api.remove_item(obj_type, ldata["name"], recursive=True)
                     creator = getattr(self.api, "new_%s" % obj_type)
                     newobj = creator()
                     newobj.from_dict(utils.revert_strip_none(rdata))
                     try:
-                        self.logger.info("updating %s %s" % (obj_type, rdata["name"]))
+                        self.logger.info("updating %s %s", obj_type, rdata["name"])
                         if not self.api.add_item(obj_type, newobj):
-                            self.logger.error("failed to update %s %s" % (obj_type, rdata["name"]))
+                            self.logger.error(
+                                "failed to update %s %s", obj_type, rdata["name"]
+                            )
                     except Exception:
                         utils.log_exc()
 
@@ -179,7 +183,7 @@ class Replicate:
             self.logger.info("Rsyncing distros")
             for distro in list(self.must_include["distro"].keys()):
                 if self.must_include["distro"][distro] == 1:
-                    self.logger.info("Rsyncing distro %s" % distro)
+                    self.logger.info("Rsyncing distro %s", distro)
                     target = self.remote.get_distro(distro)
                     target_webdir = os.path.join(self.remote_settings["webdir"], "distro_mirror")
                     tail = utils.path_tail(target_webdir, target["kernel"])
@@ -192,11 +196,13 @@ class Replicate:
                             dest = os.path.join(self.settings.webdir, "distro_mirror", tail.split("/")[1])
                             self.rsync_it("distro-%s" % target["name"], dest)
                         except:
-                            self.logger.error("Failed to rsync distro %s" % distro)
+                            self.logger.error("Failed to rsync distro %s", distro)
                             continue
                     else:
-                        self.logger.warning("Skipping distro %s, as it doesn't appear to live under distro_mirror"
-                                            % distro)
+                        self.logger.warning(
+                            "Skipping distro %s, as it doesn't appear to live under distro_mirror",
+                            distro,
+                        )
 
             self.logger.info("Rsyncing repos")
             for repo in list(self.must_include["repo"].keys()):
@@ -228,7 +234,7 @@ class Replicate:
         Link a distro from its location into the web directory to make it available for usage.
         """
         for distro in self.api.distros():
-            self.logger.debug("Linking Distro %s" % distro.name)
+            self.logger.debug("Linking Distro %s", distro.name)
             utils.link_distro(self.settings, distro)
 
     def generate_include_map(self):
@@ -255,27 +261,29 @@ class Replicate:
                 for names in self.remote_dict[ot]:
                     self.must_include[ot][names] = 1
 
-        self.logger.debug("remote names struct is %s" % self.remote_names)
+        self.logger.debug("remote names struct is %s", self.remote_names)
 
         if not self.sync_all:
             # include all profiles that are matched by a pattern
             for obj_type in OBJ_TYPES:
                 patvar = getattr(self, "%s_patterns" % obj_type)
-                self.logger.debug("* Finding Explicit %s Matches" % obj_type)
+                self.logger.debug("* Finding Explicit %s Matches", obj_type)
                 for pat in patvar:
                     for remote in self.remote_names[obj_type]:
-                        self.logger.debug("?: seeing if %s looks like %s" % (remote, pat))
+                        self.logger.debug("?: seeing if %s looks like %s", remote, pat)
                         if fnmatch.fnmatch(remote, pat):
-                            self.logger.debug("Adding %s for pattern match %s." % (remote, pat))
+                            self.logger.debug(
+                                "Adding %s for pattern match %s.", remote, pat
+                            )
                             self.must_include[obj_type][remote] = 1
 
             # include all profiles that systems require whether they are explicitly included or not
             self.logger.debug("* Adding Profiles Required By Systems")
             for sys in list(self.must_include["system"].keys()):
                 pro = self.remote_dict["system"][sys].get("profile", "")
-                self.logger.debug("?: system %s requires profile %s." % (sys, pro))
+                self.logger.debug("?: system %s requires profile %s.", sys, pro)
                 if pro != "":
-                    self.logger.debug("Adding profile %s for system %s." % (pro, sys))
+                    self.logger.debug("Adding profile %s for system %s.", pro, sys)
                     self.must_include["profile"][pro] = 1
 
             # include all profiles that subprofiles require whether they are explicitly included or not very deep
@@ -287,7 +295,9 @@ class Replicate:
                     parent = self.remote_dict["profile"][pro].get("parent", "")
                     if parent != "":
                         if parent not in self.must_include["profile"]:
-                            self.logger.debug("Adding parent profile %s for profile %s." % (parent, pro))
+                            self.logger.debug(
+                                "Adding parent profile %s for profile %s.", parent, pro
+                            )
                             self.must_include["profile"][parent] = 1
                             loop_exit = False
                 if loop_exit:
@@ -299,7 +309,7 @@ class Replicate:
             for p in list(self.must_include["profile"].keys()):
                 distro = self.remote_dict["profile"][p].get("distro", "")
                 if not distro == "<<inherit>>" and not distro == "~":
-                    self.logger.debug("Adding distro %s for profile %s." % (distro, p))
+                    self.logger.debug("Adding distro %s for profile %s.", distro, p)
                     self.must_include["distro"][distro] = 1
 
             # require any repos that any profiles in the generated list requires whether they are explicitly included
@@ -309,16 +319,16 @@ class Replicate:
                 repos = self.remote_dict["profile"][p].get("repos", [])
                 if repos != "<<inherit>>":
                     for r in repos:
-                        self.logger.debug("Adding repo %s for profile %s." % (r, p))
+                        self.logger.debug("Adding repo %s for profile %s.", r, p)
                         self.must_include["repo"][r] = 1
 
             # include all images that systems require whether they are explicitly included or not
             self.logger.debug("* Adding Images Required By Systems")
             for sys in list(self.must_include["system"].keys()):
                 img = self.remote_dict["system"][sys].get("image", "")
-                self.logger.debug("?: system %s requires image %s." % (sys, img))
+                self.logger.debug("?: system %s requires image %s.", sys, img)
                 if img != "":
-                    self.logger.debug("Adding image %s for system %s." % (img, sys))
+                    self.logger.debug("Adding image %s for system %s.", img, sys)
                     self.must_include["image"][img] = 1
 
     # -------------------------------------------------------
@@ -374,21 +384,21 @@ class Replicate:
 
         self.uri = '%s://%s:%s/cobbler_api' % (protocol, self.master, self.port)
 
-        self.logger.info("cobbler_master      = %s" % cobbler_master)
-        self.logger.info("port                = %s" % self.port)
-        self.logger.info("distro_patterns     = %s" % self.distro_patterns)
-        self.logger.info("profile_patterns    = %s" % self.profile_patterns)
-        self.logger.info("system_patterns     = %s" % self.system_patterns)
-        self.logger.info("repo_patterns       = %s" % self.repo_patterns)
-        self.logger.info("image_patterns      = %s" % self.image_patterns)
-        self.logger.info("mgmtclass_patterns  = %s" % self.mgmtclass_patterns)
-        self.logger.info("package_patterns    = %s" % self.package_patterns)
-        self.logger.info("file_patterns       = %s" % self.file_patterns)
-        self.logger.info("omit_data           = %s" % self.omit_data)
-        self.logger.info("sync_all            = %s" % self.sync_all)
-        self.logger.info("use_ssl             = %s" % self.use_ssl)
+        self.logger.info("cobbler_master      = %s", cobbler_master)
+        self.logger.info("port                = %s", self.port)
+        self.logger.info("distro_patterns     = %s", self.distro_patterns)
+        self.logger.info("profile_patterns    = %s", self.profile_patterns)
+        self.logger.info("system_patterns     = %s", self.system_patterns)
+        self.logger.info("repo_patterns       = %s", self.repo_patterns)
+        self.logger.info("image_patterns      = %s", self.image_patterns)
+        self.logger.info("mgmtclass_patterns  = %s", self.mgmtclass_patterns)
+        self.logger.info("package_patterns    = %s", self.package_patterns)
+        self.logger.info("file_patterns       = %s", self.file_patterns)
+        self.logger.info("omit_data           = %s", self.omit_data)
+        self.logger.info("sync_all            = %s", self.sync_all)
+        self.logger.info("use_ssl             = %s", self.use_ssl)
 
-        self.logger.info("XMLRPC endpoint: %s" % self.uri)
+        self.logger.info("XMLRPC endpoint: %s", self.uri)
         self.logger.debug("test ALPHA")
         self.remote = xmlrpc.client.Server(self.uri)
         self.logger.debug("test BETA")

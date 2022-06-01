@@ -233,9 +233,9 @@ class CobblerAPI:
         else:
             logger = self.logger.info
         if args is None:
-            logger("%s" % msg)
+            logger("%s", msg)
         else:
-            logger("%s; %s" % (msg, str(args)))
+            logger("%s; %s", msg, str(args))
 
     # ==========================================================
 
@@ -1276,8 +1276,8 @@ class CobblerAPI:
         self.log("auto_add_repos")
         try:
             import dnf
-        except:
-            raise ImportError("dnf is not installed")
+        except ImportError as e:
+            raise ImportError("dnf is not installed") from e
 
         base = dnf.Base()
         base.read_all_repos()
