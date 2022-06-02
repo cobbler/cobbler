@@ -21,7 +21,7 @@ def api_isc_mock():
     settings_mock.http_port = 80
     settings_mock.next_server_v4 = "127.0.0.1"
     settings_mock.next_server_v6 = "::1"
-    settings_mock.default_ownership = ""
+    settings_mock.default_ownership = []
     settings_mock.default_virt_bridge = ""
     settings_mock.default_virt_type = "auto"
     settings_mock.default_virt_ram = 64

@@ -1,22 +1,10 @@
 """
-Copyright 2006-2009, Red Hat, Inc and Others
-Michael DeHaan <michael.dehaan AT gmail>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301  USA
+All code belonging to Cobbler systems. This includes network interfaces.
 """
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Copyright 2006-2008, Red Hat, Inc and Others
+# SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
+
 import enum
 import logging
 import uuid
@@ -27,6 +15,7 @@ from ipaddress import AddressValueError
 from cobbler import autoinstall_manager, enums, power_manager, utils, validate
 from cobbler.cexceptions import CX
 from cobbler.items.item import Item
+from cobbler.decorator import InheritableProperty
 
 
 class NetworkInterface:
@@ -81,10 +70,12 @@ class NetworkInterface:
             self.__logger.info("The following keys were ignored and could not be set for the NetworkInterface object: "
                                "%s", str(dictionary_keys))
 
-    def to_dict(self) -> dict:
+    def to_dict(self, resolved: bool = False) -> dict:
         """
         This converts everything in this object to a dictionary.
 
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
         :return: A dictionary with all values present in this object.
         """
         result = {}
@@ -92,13 +83,21 @@ class NetworkInterface:
             if "__" in key:
                 continue
             if key.startswith("_"):
-                if isinstance(self.__dict__[key], enum.Enum):
-                    result[key[1:]] = self.__dict__[key].name
+                new_key = key[1:].lower()
+                key_value = self.__dict__[key]
+                if isinstance(key_value, enum.Enum):
+                    result[new_key] = self.__dict__[key].name
+                elif (
+                    isinstance(key_value, str)
+                    and key_value == enums.VALUE_INHERITED
+                    and resolved
+                ):
+                    result[new_key] = getattr(self, key[1:])
                 else:
-                    result[key[1:]] = self.__dict__[key]
+                    result[new_key] = self.__dict__[key]
         return result
 
-    # These two methods are currently not used but we do want to use them in the future, so let's define them.
+    # These two methods are currently not used, but we do want to use them in the future, so let's define them.
     def serialize(self):
         """
         This method is a proxy for :meth:`~cobbler.items.item.Item.to_dict` and contains additional logic for
@@ -112,7 +111,7 @@ class NetworkInterface:
         """
         This is currently a proxy for :py:meth:`~cobbler.items.item.Item.from_dict` .
 
-        :param item_dict: The dictionary with the data to deserialize.
+        :param interface_dict: The dictionary with the data to deserialize.
         """
         self.from_dict(interface_dict)
 
@@ -123,7 +122,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``dhcp_tag``.
         :setter: Sets the value for the property ``dhcp_tag``.
-        :return:
         """
         return self._dhcp_tag
 
@@ -132,8 +130,7 @@ class NetworkInterface:
         """
         Setter for the dhcp_tag of the NetworkInterface class.
 
-
-        :param dhcp_tag:
+        :param dhcp_tag: The new dhcp tag.
         """
         if not isinstance(dhcp_tag, str):
             raise TypeError("Field dhcp_tag of object NetworkInterface needs to be of type str!")
@@ -146,7 +143,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``cnames``.
         :setter: Sets the value for the property ``cnames``.
-        :return:
         """
         return self._cnames
 
@@ -155,10 +151,9 @@ class NetworkInterface:
         """
         Setter for the cnames of the NetworkInterface class.
 
-
-        :param cnames:
+        :param cnames: The new cnames.
         """
-        self._cnames = utils.input_string_or_list(cnames)
+        self._cnames = utils.input_string_or_list_no_inherit(cnames)
 
     @property
     def static_routes(self) -> list:
@@ -167,7 +162,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``static_routes``.
         :setter: Sets the value for the property ``static_routes``.
-        :return:
         """
         return self._static_routes
 
@@ -176,10 +170,9 @@ class NetworkInterface:
         """
         Setter for the static_routes of the NetworkInterface class.
 
-
-        :param routes:
+        :param routes: The new routes.
         """
-        self._static_routes = utils.input_string_or_list(routes)
+        self._static_routes = utils.input_string_or_list_no_inherit(routes)
 
     @property
     def static(self) -> bool:
@@ -188,7 +181,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``static``.
         :setter: Sets the value for the property ``static``.
-        :return:
         """
         return self._static
 
@@ -197,12 +189,12 @@ class NetworkInterface:
         """
         Setter for the static of the NetworkInterface class.
 
-
-        :param truthiness:
+        :param truthiness: The new value if the interface is static or not.
         """
-        truthiness = utils.input_boolean(truthiness)
-        if not isinstance(truthiness, bool):
-            raise TypeError("Field static of NetworkInterface needs to be of Type bool!")
+        try:
+            truthiness = utils.input_boolean(truthiness)
+        except TypeError as e:
+            raise TypeError("Field static of NetworkInterface needs to be of Type bool!") from e
         self._static = truthiness
 
     @property
@@ -212,7 +204,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``management``.
         :setter: Sets the value for the property ``management``.
-        :return:
         """
         return self._management
 
@@ -221,12 +212,14 @@ class NetworkInterface:
         """
         Setter for the management of the NetworkInterface class.
 
-
-        :param truthiness:
+        :param truthiness: The new value for management.
         """
-        truthiness = utils.input_boolean(truthiness)
-        if not isinstance(truthiness, bool):
-            raise TypeError("Field management of object NetworkInterface needs to be of type bool!")
+        try:
+            truthiness = utils.input_boolean(truthiness)
+        except TypeError as e:
+            raise TypeError(
+                "Field management of object NetworkInterface needs to be of type bool!"
+            ) from e
         self._management = truthiness
 
     @property
@@ -236,7 +229,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``dns_name`.
         :setter: Sets the value for the property ``dns_name``.
-        :return:
         """
         return self._dns_name
 
@@ -254,7 +246,9 @@ class NetworkInterface:
             for match in matched:
                 if self in match.interfaces.values():
                     continue
-                raise ValueError("DNS duplicate found: %s" % dns_name)
+                raise ValueError(
+                    f'DNS name duplicate found "{dns_name}". Object with the conflict has the name "{match.name}"'
+                )
         self._dns_name = dns_name
 
     @property
@@ -264,7 +258,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ip_address``.
         :setter: Sets the value for the property ``ip_address``.
-        :return:
         """
         return self._ip_address
 
@@ -283,7 +276,9 @@ class NetworkInterface:
                 if self in match.interfaces.values():
                     continue
                 else:
-                    raise ValueError("IP address duplicate found: %s" % address)
+                    raise ValueError(
+                        f'IP address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
+                    )
         self._ip_address = address
 
     @property
@@ -293,7 +288,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``mac_address``.
         :setter: Sets the value for the property ``mac_address``.
-        :return:
         """
         return self._mac_address
 
@@ -303,10 +297,11 @@ class NetworkInterface:
         Set MAC address on interface.
 
         :param address: MAC address
-        :raises CX:
+        :raises CX: In case there a random mac can't be computed
         """
         address = validate.mac_address(address)
         if address == "random":
+            # FIXME: Pass virt_type of system
             address = utils.get_random_mac(self.__api)
         if address != "" and not self.__api.settings().allow_duplicate_macs:
             matched = self.__api.find_items("system", {"mac_address": address})
@@ -314,7 +309,9 @@ class NetworkInterface:
                 if self in match.interfaces.values():
                     continue
                 else:
-                    raise ValueError("MAC address duplicate found: %s" % address)
+                    raise ValueError(
+                        f'MAC address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
+                    )
         self._mac_address = address
 
     @property
@@ -324,7 +321,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``netmask``.
         :setter: Sets the value for the property ``netmask``.
-        :return:
         """
         return self._netmask
 
@@ -344,29 +340,29 @@ class NetworkInterface:
 
         :getter: Returns the value for ``if_gateway``.
         :setter: Sets the value for the property ``if_gateway``.
-        :return:
         """
         return self._if_gateway
 
     @if_gateway.setter
     def if_gateway(self, gateway: str):
         """
-        Set the per-interface gateway.
+        Set the per-interface gateway. Exceptions are raised if the value is invalid. For details see
+        :meth:`~cobbler.validate.ipv4_address`.
 
         :param gateway: IPv4 address for the gateway
-        :returns: True or CX
         """
         self._if_gateway = validate.ipv4_address(gateway)
 
     @property
     def virt_bridge(self) -> str:
         """
-        virt_bridge property.
+        virt_bridge property. If set to ``<<inherit>>`` this will read the value from the setting "default_virt_bridge".
 
         :getter: Returns the value for ``virt_bridge``.
         :setter: Sets the value for the property ``virt_bridge``.
-        :return:
         """
+        if self._virt_bridge == enums.VALUE_INHERITED:
+            return self.__api.settings().default_virt_bridge
         return self._virt_bridge
 
     @virt_bridge.setter
@@ -374,13 +370,13 @@ class NetworkInterface:
         """
         Setter for the virt_bridge of the NetworkInterface class.
 
-
-        :param bridge:
+        :param bridge: The new value for "virt_bridge".
         """
         if not isinstance(bridge, str):
             raise TypeError("Field virt_bridge of object NetworkInterface should be of type str!")
         if bridge == "":
-            bridge = self.__api.settings().default_virt_bridge
+            self._virt_bridge = enums.VALUE_INHERITED
+            return
         self._virt_bridge = bridge
 
     @property
@@ -390,7 +386,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``interface_type``.
         :setter: Sets the value for the property ``interface_type``.
-        :return:
         """
         return self._interface_type
 
@@ -428,7 +423,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``interface_master``.
         :setter: Sets the value for the property ``interface_master``.
-        :return:
         """
         return self._interface_master
 
@@ -437,8 +431,7 @@ class NetworkInterface:
         """
         Setter for the interface_master of the NetworkInterface class.
 
-
-        :param interface_master:
+        :param interface_master: The new interface master.
         """
         if not isinstance(interface_master, str):
             raise TypeError("Field interface_master of object NetworkInterface needs to be of type str!")
@@ -451,7 +444,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``bonding_opts``.
         :setter: Sets the value for the property ``bonding_opts``.
-        :return:
         """
         return self._bonding_opts
 
@@ -460,8 +452,7 @@ class NetworkInterface:
         """
         Setter for the bonding_opts of the NetworkInterface class.
 
-
-        :param bonding_opts:
+        :param bonding_opts: The new bonding options for the interface.
         """
         if not isinstance(bonding_opts, str):
             raise TypeError("Field bonding_opts of object NetworkInterface needs to be of type str!")
@@ -474,7 +465,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``bridge_opts``.
         :setter: Sets the value for the property ``bridge_opts``.
-        :return:
         """
         return self._bridge_opts
 
@@ -483,8 +473,7 @@ class NetworkInterface:
         """
         Setter for the bridge_opts of the NetworkInterface class.
 
-
-        :param bridge_opts:
+        :param bridge_opts: The new bridge options to set for the interface.
         """
         if not isinstance(bridge_opts, str):
             raise TypeError("Field bridge_opts of object NetworkInterface needs to be of type str!")
@@ -497,7 +486,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_address``.
         :setter: Sets the value for the property ``ipv6_address``.
-        :return:
         """
         return self._ipv6_address
 
@@ -507,7 +495,7 @@ class NetworkInterface:
         Set IPv6 address on interface.
 
         :param address: IP address
-        :raises CX
+        :raises ValueError: IN case the IP is duplicated
         """
         address = validate.ipv6_address(address)
         if address != "" and not self.__api.settings().allow_duplicate_ips:
@@ -516,7 +504,10 @@ class NetworkInterface:
                 if self in match.interfaces.values():
                     continue
                 else:
-                    raise ValueError("IPv6 address duplicated: %s" % address)
+                    raise ValueError(
+                        f'IPv6 address duplicate found "{address}". Object with the conflict has the name'
+                        f'"{match.name}"'
+                    )
         self._ipv6_address = address
 
     @property
@@ -526,7 +517,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_prefix``.
         :setter: Sets the value for the property ``ipv6_prefix``.
-        :return:
         """
         return self._ipv6_address
 
@@ -535,7 +525,7 @@ class NetworkInterface:
         """
         Assign a IPv6 prefix
 
-        :param prefix:
+        :param prefix: The new IPv6 prefix for the interface.
         """
         if not isinstance(prefix, str):
             raise TypeError("Field ipv6_prefix of object NetworkInterface needs to be of type str!")
@@ -548,7 +538,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_secondaries``.
         :setter: Sets the value for the property ``ipv6_secondaries``.
-        :return:
         """
         return self._ipv6_secondaries
 
@@ -557,8 +546,7 @@ class NetworkInterface:
         """
         Setter for the ipv6_secondaries of the NetworkInterface class.
 
-
-        :param addresses:
+        :param addresses: The new secondaries for the interface.
         """
         data = utils.input_string_or_list(addresses)
         secondaries = []
@@ -576,7 +564,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_default_gateway``.
         :setter: Sets the value for the property ``ipv6_default_gateway``.
-        :return:
         """
         return self._ipv6_default_gateway
 
@@ -585,8 +572,7 @@ class NetworkInterface:
         """
         Setter for the ipv6_default_gateway of the NetworkInterface class.
 
-
-        :param address:
+        :param address: The new default gateway for the interface.
         """
         if not isinstance(address, str):
             raise TypeError("Field ipv6_default_gateway of object NetworkInterface needs to be of type str!")
@@ -602,7 +588,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_static_routes``.
         :setter: Sets the value for the property `ipv6_static_routes``.
-        :return:
         """
         return self._ipv6_static_routes
 
@@ -611,8 +596,7 @@ class NetworkInterface:
         """
         Setter for the ipv6_static_routes of the NetworkInterface class.
 
-
-        :param routes:
+        :param routes: The new static routes for the interface.
         """
         self._ipv6_static_routes = utils.input_string_or_list(routes)
 
@@ -623,7 +607,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``ipv6_mtu``.
         :setter: Sets the value for the property ``ipv6_mtu``.
-        :return:
         """
         return self._ipv6_mtu
 
@@ -632,8 +615,7 @@ class NetworkInterface:
         """
         Setter for the ipv6_mtu of the NetworkInterface class.
 
-
-        :param mtu:
+        :param mtu: The new IPv6 MTU for the interface.
         """
         if not isinstance(mtu, str):
             raise TypeError("Field ipv6_mtu of object NetworkInterface needs to be of type str!")
@@ -646,7 +628,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``mtu``.
         :setter: Sets the value for the property ``mtu``.
-        :return:
         """
         return self._mtu
 
@@ -655,8 +636,7 @@ class NetworkInterface:
         """
         Setter for the mtu of the NetworkInterface class.
 
-
-        :param mtu:
+        :param mtu: The new value for the mtu of the interface
         """
         if not isinstance(mtu, str):
             raise TypeError("Field mtu of object NetworkInterface needs to be type str!")
@@ -669,7 +649,6 @@ class NetworkInterface:
 
         :getter: Returns the value for ``connected_mode``.
         :setter: Sets the value for the property ``connected_mode``.
-        :return:
         """
         return self._connected_mode
 
@@ -678,12 +657,14 @@ class NetworkInterface:
         """
         Setter for the connected_mode of the NetworkInterface class.
 
-
-        :param truthiness:
+        :param truthiness: The new value for connected mode of the interface.
         """
-        truthiness = utils.input_boolean(truthiness)
-        if not isinstance(truthiness, bool):
-            raise TypeError("Field connected_mode of object NetworkInterface needs to be of type bool!")
+        try:
+            truthiness = utils.input_boolean(truthiness)
+        except TypeError as e:
+            raise TypeError(
+                "Field connected_mode of object NetworkInterface needs to be of type bool!"
+            ) from e
         self._connected_mode = truthiness
 
     def modify_interface(self, _dict: dict):
@@ -700,7 +681,7 @@ class NetworkInterface:
                 self.bonding_opts = value
             if field == "bridgeopts":
                 self.bridge_opts = value
-            if field == "connected_mode":
+            if field == "connectedmode":
                 self.connected_mode = value
             if field == "cnames":
                 self.cnames = value
@@ -897,8 +878,9 @@ class System(Item):
 
         :raises CX: In case name is missing. Additionally either image or profile is required.
         """
-        if self.name is None or self.name == "":
-            raise CX("name is required")
+        super().check_if_valid()
+
+        # System specific validation
         if self.profile is None or self.profile == "":
             if self.image is None or self.image == "":
                 raise CX("Error with system %s - profile or image is required" % self.name)
@@ -1032,7 +1014,7 @@ class System(Item):
             raise TypeError("Field status of object system needs to be of type str!")
         self._status = status
 
-    @property
+    @InheritableProperty
     def boot_loaders(self) -> list:
         """
         boot_loaders property.
@@ -1085,7 +1067,7 @@ class System(Item):
             )
         self._boot_loaders = boot_loaders_split
 
-    @property
+    @InheritableProperty
     def server(self) -> str:
         """
         server property.
@@ -1094,7 +1076,6 @@ class System(Item):
 
         :getter: Returns the value for ``server``.
         :setter: Sets the value for the property ``server``.
-        :return:
         """
         return self._resolve("server")
 
@@ -1113,7 +1094,7 @@ class System(Item):
             server = enums.VALUE_INHERITED
         self._server = server
 
-    @property
+    @InheritableProperty
     def next_server_v4(self) -> str:
         """
         next_server_v4 property.
@@ -1122,7 +1103,6 @@ class System(Item):
 
         :getter: Returns the value for ``next_server_v4``.
         :setter: Sets the value for the property ``next_server_v4``.
-        :return:
         """
         return self._resolve("next_server_v4")
 
@@ -1141,7 +1121,7 @@ class System(Item):
         else:
             self._next_server_v4 = validate.ipv4_address(server)
 
-    @property
+    @InheritableProperty
     def next_server_v6(self) -> str:
         """
         next_server_v6 property.
@@ -1150,7 +1130,6 @@ class System(Item):
 
         :getter: Returns the value for ``next_server_v6``.
         :setter: Sets the value for the property ``next_server_v6``.
-        :return:
         """
         return self._resolve("next_server_v6")
 
@@ -1169,14 +1148,13 @@ class System(Item):
         else:
             self._next_server_v6 = validate.ipv6_address(server)
 
-    @property
+    @InheritableProperty
     def filename(self) -> str:
         """
         filename property.
 
         :getter: Returns the value for ``filename``.
         :setter: Sets the value for the property ``filename``.
-        :return:
         """
         return self._resolve("filename")
 
@@ -1185,10 +1163,8 @@ class System(Item):
         """
         Setter for the filename of the System class.
 
-
         :param filename:
         :raises TypeError: In case filename is no string.
-        :return:
         """
         if not isinstance(filename, str):
             raise TypeError("Field filename of object system needs to be of type str!")
@@ -1197,16 +1173,15 @@ class System(Item):
         else:
             self._filename = filename.strip()
 
-    @property
+    @InheritableProperty
     def proxy(self) -> str:
         """
-        proxy property.
+        proxy property. This corresponds per default to the setting``proxy_url_int``.
 
         .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: Returns the value for ``proxy``.
         :setter: Sets the value for the property ``proxy``.
-        :return:
         """
         return self._resolve("proxy_url_int")
 
@@ -1217,13 +1192,12 @@ class System(Item):
 
         :param proxy: The new value for the proxy.
         :raises TypeError: In case proxy is no string.
-        :return:
         """
         if not isinstance(proxy, str):
             raise TypeError("Field proxy of object system needs to be of type str!")
         self._proxy = proxy
 
-    @property
+    @InheritableProperty
     def redhat_management_key(self) -> str:
         """
         redhat_management_key property.
@@ -1232,7 +1206,6 @@ class System(Item):
 
         :getter: Returns the value for ``redhat_management_key``.
         :setter: Sets the value for the property ``redhat_management_key``.
-        :return:
         """
         return self._resolve("redhat_management_key")
 
@@ -1434,7 +1407,7 @@ class System(Item):
             interface_name = ""
         self._ipv6_default_device = interface_name
 
-    @property
+    @InheritableProperty
     def enable_ipxe(self) -> bool:
         """
         enable_ipxe property.
@@ -1499,10 +1472,16 @@ class System(Item):
             if self.name in old_parent.children:
                 old_parent.children.remove(self.name)
             else:
-                self.logger.debug("Name of System \"%s\" was not found in the children of Item \"%s\"",
-                                 self.name, self.parent.name)
+                self.logger.debug(
+                    'Name of System "%s" was not found in the children of Item "%s"',
+                    self.name,
+                    self.parent.name,
+                )
         else:
-            self.logger.debug("Parent of System \"%s\" not found. Thus skipping removal from children list.", self.name)
+            self.logger.debug(
+                'Parent of System "%s" not found. Thus skipping removal from children list.',
+                self.name,
+            )
 
         self.image = ""  # mutual exclusion rule
 
@@ -1540,10 +1519,7 @@ class System(Item):
             self._image = ""
             return
 
-        self.profile = ""  # mutual exclusion rule
-
         img = self.api.images().find(name=image_name)
-
         if img is None:
             raise ValueError('Image with the name "%s" is not existing' % image_name)
 
@@ -1571,7 +1547,7 @@ class System(Item):
         if isinstance(new_parent, Item) and self.name not in new_parent.children:
             new_parent.children.append(self.name)
 
-    @property
+    @InheritableProperty
     def virt_cpus(self) -> int:
         """
         virt_cpus property.
@@ -1580,7 +1556,6 @@ class System(Item):
 
         :getter: Returns the value for ``virt_cpus``.
         :setter: Sets the value for the property ``virt_cpus``.
-        :return:
         """
         return self._resolve("virt_cpus")
 
@@ -1593,7 +1568,7 @@ class System(Item):
         """
         self._virt_cpus = validate.validate_virt_cpus(num)
 
-    @property
+    @InheritableProperty
     def virt_file_size(self) -> float:
         """
         virt_file_size property.
@@ -1602,7 +1577,6 @@ class System(Item):
 
         :getter: Returns the value for ``virt_file_size``.
         :setter: Sets the value for the property ``virt_file_size``.
-        :return:
         """
         return self._resolve("virt_file_size")
 
@@ -1616,7 +1590,7 @@ class System(Item):
         """
         self._virt_file_size = validate.validate_virt_file_size(num)
 
-    @property
+    @InheritableProperty
     def virt_disk_driver(self) -> enums.VirtDiskDrivers:
         """
         virt_disk_driver property.
@@ -1637,7 +1611,7 @@ class System(Item):
         """
         self._virt_disk_driver = enums.VirtDiskDrivers.to_enum(driver)
 
-    @property
+    @InheritableProperty
     def virt_auto_boot(self) -> bool:
         """
         virt_auto_boot property.
@@ -1668,7 +1642,6 @@ class System(Item):
 
         :getter: Returns the value for ``virt_pxe_boot``.
         :setter: Sets the value for the property ``virt_pxe_boot``.
-        :return:
         """
         return self._virt_pxe_boot
 
@@ -1681,7 +1654,7 @@ class System(Item):
         """
         self._virt_pxe_boot = validate.validate_virt_pxe_boot(num)
 
-    @property
+    @InheritableProperty
     def virt_ram(self) -> int:
         """
         virt_ram property.
@@ -1690,7 +1663,6 @@ class System(Item):
 
         :getter: Returns the value for ``virt_ram``.
         :setter: Sets the value for the property ``virt_ram``.
-        :return:
         """
         return self._resolve("virt_ram")
 
@@ -1704,7 +1676,7 @@ class System(Item):
         """
         self._virt_ram = validate.validate_virt_ram(num)
 
-    @property
+    @InheritableProperty
     def virt_type(self) -> enums.VirtType:
         """
         virt_type property.
@@ -1725,7 +1697,7 @@ class System(Item):
         """
         self._virt_type = enums.VirtType.to_enum(vtype)
 
-    @property
+    @InheritableProperty
     def virt_path(self) -> str:
         """
         virt_path property.
@@ -1742,7 +1714,7 @@ class System(Item):
         """
         Setter for the virt_path of the System class.
 
-        :param path: The new path
+        :param path: The new path.
         """
         self._virt_path = validate.validate_virt_path(path, for_system=True)
 
@@ -1778,7 +1750,7 @@ class System(Item):
             raise TypeError("netboot_enabled needs to be a bool")
         self._netboot_enabled = netboot_enabled
 
-    @property
+    @InheritableProperty
     def autoinstall(self) -> str:
         """
         autoinstall property.
@@ -1796,7 +1768,7 @@ class System(Item):
 
         :param autoinstall: local automatic installation template file path
         """
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api._collection_mgr)
+        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api)
         self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
 
     @property

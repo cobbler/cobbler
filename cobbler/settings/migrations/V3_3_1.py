@@ -9,6 +9,7 @@ Migration from V3.3.0 to V3.3.1
 from schema import Optional, Schema, SchemaError
 
 from cobbler.settings.migrations import helper
+from cobbler.settings.migrations import V3_3_0
 
 schema = Schema({
     "auto_migrate_settings": bool,
@@ -49,12 +50,12 @@ schema = Schema({
         'mdraid1x', 'lvm', 'serial', 'regexp', 'tr', 'tftp', 'http', 'luks',
         'gcry_rijndael', 'gcry_sha1', 'gcry_sha256'
     ]): list,
-    Optional("bootloaders_shim_folder", default="@@shim_folder@@"): str,
-    Optional("bootloaders_shim_file", default="@@shim_file@@"): str,
-    Optional("bootloaders_ipxe_folder", default="@@ipxe_folder@@"): str,
-    Optional("syslinux_dir", default="@@syslinux_dir@@"): str,
-    Optional("syslinux_memdisk_folder", default="@@memdisk_folder@@"): str,
-    Optional("syslinux_pxelinux_folder", default="@@pxelinux_folder@@"): str,
+    Optional("bootloaders_shim_folder", default="/usr/share/efi/*/"): str,
+    Optional("bootloaders_shim_file", default=r"shim\.efi"): str,
+    Optional("bootloaders_ipxe_folder", default="/usr/share/ipxe/"): str,
+    Optional("syslinux_dir", default="/usr/share/syslinux"): str,
+    Optional("syslinux_memdisk_folder", default="/usr/share/syslinux"): str,
+    Optional("syslinux_pxelinux_folder", default="/usr/share/syslinux"): str,
     Optional("grub2_mod_dir", default="/usr/share/grub"): str,
     Optional("grubconfig_dir", default="/var/lib/cobbler/grub_config"): str,
     "build_reporting_enabled": bool,
@@ -199,6 +200,9 @@ def migrate(settings: dict) -> dict:
     :return: The migrated dict
     """
 
+    if not V3_3_0.validate(settings):
+        raise SchemaError("V3.3.0: Schema error while validating")
+
     # rename keys and update their value
     # add missing keys
     # name - value pairs
@@ -207,11 +211,11 @@ def migrate(settings: dict) -> dict:
         'ldap_tls_cacertdir': "",
         'ldap_tls_reqcert': "hard",
         'ldap_tls_cipher_suite': "",
-        'bootloaders_shim_folder': "@@shim_folder@@",
-        'bootloaders_shim_file': "@@shim_file@@",
-        'bootloaders_ipxe_folder': "@@ipxe_folder@@",
-        'syslinux_memdisk_folder': "@@memdisk_folder@@",
-        'syslinux_pxelinux_folder': "@@pxelinux_folder@@",
+        'bootloaders_shim_folder': "/usr/share/efi/*/",
+        'bootloaders_shim_file': r"shim\.efi",
+        'bootloaders_ipxe_folder': "/usr/share/ipxe/",
+        'syslinux_memdisk_folder': "/usr/share/syslinux",
+        'syslinux_pxelinux_folder': "/usr/share/syslinux",
     }
     for (key, value) in missing_keys.items():
         new_setting = helper.Setting(key, value)
@@ -219,6 +223,4 @@ def migrate(settings: dict) -> dict:
 
     # delete removed keys
 
-    if not validate(settings):
-        raise SchemaError("V3.3.1: Schema error while validating")
     return normalize(settings)

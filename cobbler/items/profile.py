@@ -25,6 +25,7 @@ from cobbler.items import item
 from cobbler import utils, validate, enums
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
+from cobbler.decorator import InheritableProperty
 
 
 class Profile(item.Item):
@@ -52,8 +53,8 @@ class Profile(item.Item):
         self._enable_menu = api.settings().enable_menu
         self._name_servers = api.settings().default_name_servers
         self._name_servers_search = api.settings().default_name_servers_search
-        self._next_server_v4 = api.settings().next_server_v4
-        self._next_server_v6 = api.settings().next_server_v6
+        self._next_server_v4 = enums.VALUE_INHERITED
+        self._next_server_v6 = enums.VALUE_INHERITED
         self._filename = ""
         self._proxy = enums.VALUE_INHERITED
         self._redhat_management_key = enums.VALUE_INHERITED
@@ -112,8 +113,7 @@ class Profile(item.Item):
         :raises CX: In case the distro or name is not present.
         """
         # name validation
-        if not self.name:
-            raise CX("Name is required")
+        super().check_if_valid()
 
         # distro validation
         distro = self.get_conceptual_parent()
@@ -239,7 +239,7 @@ class Profile(item.Item):
         if self.name not in distro.children:
             distro.children.append(self.name)
 
-    @property
+    @InheritableProperty
     def name_servers(self) -> list:
         """
         Represents the list of nameservers to set for the profile.
@@ -258,7 +258,7 @@ class Profile(item.Item):
         """
         self._name_servers = validate.name_servers(data)
 
-    @property
+    @InheritableProperty
     def name_servers_search(self) -> list:
         """
         Represents the list of DNS search paths.
@@ -277,7 +277,7 @@ class Profile(item.Item):
         """
         self._name_servers_search = validate.name_servers_search(data)
 
-    @property
+    @InheritableProperty
     def proxy(self) -> str:
         """
         Override the default external proxy which is used for accessing the internet.
@@ -299,7 +299,7 @@ class Profile(item.Item):
             raise TypeError("Field proxy of object profile needs to be of type str!")
         self._proxy = proxy
 
-    @property
+    @InheritableProperty
     def enable_ipxe(self) -> bool:
         r"""
         Sets whether or not the profile will use iPXE for booting.
@@ -322,7 +322,7 @@ class Profile(item.Item):
             raise TypeError("enable_ipxe needs to be of type bool")
         self._enable_ipxe = enable_ipxe
 
-    @property
+    @InheritableProperty
     def enable_menu(self) -> bool:
         """
         Sets whether or not the profile will be listed in the default PXE boot menu. This is pretty forgiving for
@@ -368,7 +368,7 @@ class Profile(item.Item):
             raise TypeError("Field dhcp_tag of object profile needs to be of type str!")
         self._dhcp_tag = dhcp_tag
 
-    @property
+    @InheritableProperty
     def server(self) -> str:
         """
         Represents the hostname the Cobbler server is reachable by a client.
@@ -442,7 +442,7 @@ class Profile(item.Item):
         else:
             self._next_server_v6 = validate.ipv6_address(server)
 
-    @property
+    @InheritableProperty
     def filename(self) -> str:
         """
         The filename which is fetched by the client from TFTP.
@@ -494,13 +494,15 @@ class Profile(item.Item):
 
         :param autoinstall: local automatic installation template path
         """
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api._collection_mgr)
+        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api)
         self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
 
-    @property
+    @InheritableProperty
     def virt_auto_boot(self) -> bool:
         """
         Whether the VM should be booted when booting the host or not.
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: ``True`` means autoboot is enabled, otherwise VM is not booted automatically.
         :setter: The new state for the property.
@@ -538,7 +540,7 @@ class Profile(item.Item):
         """
         self._virt_cpus = validate.validate_virt_cpus(num)
 
-    @property
+    @InheritableProperty
     def virt_file_size(self) -> float:
         r"""
         The size of the image and thus the usable size for the guest.
@@ -562,7 +564,7 @@ class Profile(item.Item):
         """
         self._virt_file_size = validate.validate_virt_file_size(num)
 
-    @property
+    @InheritableProperty
     def virt_disk_driver(self) -> enums.VirtDiskDrivers:
         """
         The type of disk driver used for storing the image.
@@ -583,7 +585,7 @@ class Profile(item.Item):
         """
         self._virt_disk_driver = enums.VirtDiskDrivers.to_enum(driver)
 
-    @property
+    @InheritableProperty
     def virt_ram(self) -> int:
         """
         The amount of RAM given to the guest in MB.
@@ -604,7 +606,7 @@ class Profile(item.Item):
         """
         self._virt_ram = validate.validate_virt_ram(num)
 
-    @property
+    @InheritableProperty
     def virt_type(self) -> enums.VirtType:
         """
         The type of image used.
@@ -625,7 +627,7 @@ class Profile(item.Item):
         """
         self._virt_type = enums.VirtType.to_enum(vtype)
 
-    @property
+    @InheritableProperty
     def virt_bridge(self) -> str:
         """
         Represents the name of the virtual bridge to use.
@@ -684,7 +686,7 @@ class Profile(item.Item):
         """
         self._repos = validate.validate_repos(repos, self.api, bypass_check=False)
 
-    @property
+    @InheritableProperty
     def redhat_management_key(self) -> str:
         """
         Getter of the redhat management key of the profile or it's parent.
@@ -709,7 +711,7 @@ class Profile(item.Item):
             self._redhat_management_key = enums.VALUE_INHERITED
         self._redhat_management_key = management_key
 
-    @property
+    @InheritableProperty
     def boot_loaders(self) -> list:
         """
         This represents all boot loaders for which Cobbler will try to generate bootloader configuration for.

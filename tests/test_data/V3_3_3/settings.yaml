@@ -5,7 +5,7 @@
 
 # if "true" Cobbler will auto migrate the settings file after upgrading from older versions. The current settings
 # are backed up in the same folder before the upgrade.
-auto_migrate_settings: true
+auto_migrate_settings: false
 
 # If "true", Cobbler will allow insertions of system records that duplicate the "--dns-name" information of other system
 # records. In general, this is undesirable and should be left "false".
@@ -127,13 +127,13 @@ bootloaders_modules:
   - gcry_rijndael
   - gcry_sha1
   - gcry_sha256
-syslinux_dir: /usr/share/syslinux
-syslinux_memdisk_folder: '@@memdisk_folder@@'
-syslinux_pxelinux_folder: '@@pxelinux_folder@@'
-grub2_mod_dir: '@@grub_mod_folder@@'
-bootloaders_shim_folder: '@@shim_folder@@'
-bootloaders_shim_file: '@@shim_file@@'
-bootloaders_ipxe_folder: '@@ipxe_folder@@'
+syslinux_dir: '/usr/share/syslinux'
+syslinux_memdisk_folder: '/usr/share/syslinux'
+syslinux_pxelinux_folder: '/usr/share/syslinux'
+grub2_mod_dir: '/usr/share/grub2'
+bootloaders_shim_folder: '/usr/share/efi/*/'
+bootloaders_shim_file: 'shim\.efi'
+bootloaders_ipxe_folder: '/usr/share/ipxe/'
 
 # Email out a report when Cobbler finishes installing a system.
 # enabled: set to true to turn this feature on
@@ -207,7 +207,7 @@ default_template_type: "cheetah"
 default_virt_bridge: xenbr0
 
 # use this as the default disk size for virt guests (GB)
-default_virt_file_size: 5
+default_virt_file_size: 5.0
 
 # use this as the default memory size for virt guests (MB)
 default_virt_ram: 512
@@ -295,11 +295,11 @@ puppetca_path: "/usr/bin/puppet"
 remove_old_puppet_certs_automatically: false
 
 # choose a --server argument when running puppetd/puppet agent during autoinstall
-#puppet_server: 'puppet'
+puppet_server: 'puppet'
 
 # let Cobbler know that you're using a newer version of puppet
 # choose version 3 to use: 'puppet agent'; version 2 uses status quo: 'puppetd'
-#puppet_version: 2
+puppet_version: 2
 
 # choose whether to enable puppet parameterized classes or not.
 # puppet versions prior to 2.6.5 do not support parameters
@@ -340,7 +340,7 @@ manage_dns: false
 bind_chroot_path: ""
 
 # set to path where zonefiles of bind/named server are located.
-bind_zonefile_path: "@@bind_zonefiles@@"
+bind_zonefile_path: "/var/lib/named"
 
 # set to the ip address of the master bind DNS server for creating secondary
 # bind configuration files
@@ -358,8 +358,8 @@ manage_tftpd: true
 
 # This variable contains the location of the tftpboot directory. If this directory is not present Cobbler does not
 # start.
-# Default: @@tftproot@@
-tftpboot_location: "@@tftproot@@"
+# Default: "/var/lib/tftpboot"
+tftpboot_location: "/var/lib/tftpboot"
 
 # set to true to enable Cobbler's RSYNC management features.
 manage_rsync: false
@@ -478,7 +478,7 @@ virt_auto_boot: true
 
 # Cobbler's web directory. Don't change this setting -- see the Wiki on "Relocating your Cobbler install" if your "/var"
 # partition is not large enough.
-webdir: "@@webroot@@/cobbler"
+webdir: "/var/www/cobbler"
 
 # Directories that will not get wiped and recreated on a "cobbler sync".
 webdir_whitelist:
@@ -562,14 +562,10 @@ default_virt_disk_driver: "raw"
 grubconfig_dir: "/var/lib/cobbler/grub_config"
 iso_template_dir: "/etc/cobbler/iso"
 
-# Puppet
-puppet_server: ""
-puppet_version: 2
-
 # Signatures
 signature_path: "/var/lib/cobbler/distro_signatures.json"
 signature_url: "https://cobbler.github.io/signatures/3.0.x/latest.json"
 
 # Include other configuration snippets. Overwriting a key from this file in a childfile will overwrite the value from
 # this file.
-include: [ "/code/tests/test_data/V3_3_1/settings.d/*.settings" ]
+include: [ "/code/tests/test_data/V3_3_3/settings.d/*.settings" ]

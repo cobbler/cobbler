@@ -38,6 +38,7 @@ from cobbler import autoinstall_manager, autoinstallgen, download_manager, enums
 from cobbler import settings, tftpgen, utils, yumgen
 from cobbler.cobbler_collections import manager
 from cobbler.items import distro, file, image, menu, mgmtclass, package, profile, repo, system
+from cobbler.decorator import InheritableDictProperty
 
 # FIXME: add --quiet depending on if not --verbose?
 RSYNC_CMD = "rsync -a %s '%s' %s --progress"
@@ -96,18 +97,12 @@ class CobblerAPI:
             # load the modules first, or nothing else works...
             module_loader.load_modules()
 
-            # import signatures
-            try:
-                utils.load_signatures(self.settings().signature_path)
-            except Exception as e:
-                self.log("Failed to load signatures from %s: %s" % (self.settings().signature_path, e))
-                return
+            # In case the signatures can't be loaded, we can't validate distros etc. Thus, the raised exception should
+            # not be caught.
+            self.__load_signatures()
 
             self._collection_mgr = manager.CollectionManager(self)
             self.deserialize()
-
-            self.log("%d breeds and %d OS versions read from the signature file"
-                     % (len(utils.get_valid_breeds()), len(utils.get_valid_os_versions())))
 
             self.authn = self.get_module_from_file(
                 "authentication",
@@ -130,8 +125,26 @@ class CobblerAPI:
             self.logger.debug("API handle initialized")
             self.perms_ok = True
 
-    def __generate_settings(self, settings_path: Path,
-                            execute_settings_automigration: bool = False) -> settings.Settings:
+    def __load_signatures(self):
+        try:
+            utils.load_signatures(self.settings().signature_path)
+        except Exception as e:
+            self.logger.error(
+                "Failed to load signatures from %s: %s",
+                self.settings().signature_path,
+                exc_info=e,
+            )
+            raise e
+
+        self.logger.info(
+            "%d breeds and %d OS versions read from the signature file",
+            len(utils.get_valid_breeds()),
+            len(utils.get_valid_os_versions()),
+        )
+
+    def __generate_settings(
+        self, settings_path: Path, execute_settings_automigration: bool = False
+    ) -> settings.Settings:
         yaml_dict = settings.read_yaml_file(settings_path)
 
         if execute_settings_automigration is not None:
@@ -221,9 +234,9 @@ class CobblerAPI:
         else:
             logger = self.logger.info
         if args is None:
-            logger("%s" % msg)
+            logger("%s", msg)
         else:
-            logger("%s; %s" % (msg, str(args)))
+            logger("%s; %s", msg, str(args))
 
     # ==========================================================
 
@@ -351,6 +364,38 @@ class CobblerAPI:
 
     # =======================================================================
 
+    def __item_resolved_helper(self, item_uuid: str, attribute: str):
+        """
+        This helper validates the common data for ``*_item_resolved_value``.
+
+        :param item_uuid: The uuid for the item.
+        :param attribute: The attribute name that is requested.
+        :returns: The desired item to further process.
+        :raises TypeError: If ``item_uuid`` or ``attribute`` are not a str.
+        :raises ValueError: In case the uuid was invalid or the requested item did not exist.
+        :raises AttributeError: In case the attribute did not exist on the item that was requested.
+        """
+        if not isinstance(item_uuid, str):
+            raise TypeError("item_uuid must be of type str!")
+
+        if not validate.validate_uuid(item_uuid):
+            raise ValueError("The given uuid did not have the correct format!")
+        if not isinstance(attribute, str):
+            raise TypeError("attribute must be of type str!")
+
+        desired_item = self.find_items(
+            "", {"uid": item_uuid}, return_list=False, no_errors=True
+        )
+        if desired_item is None:
+            raise ValueError('Item with item_uuid "%s" did not exist!' % item_uuid)
+        if not hasattr(desired_item, attribute):
+            raise AttributeError(
+                'Attribute "%s" did not exist on item type "%s".'
+                % (attribute, desired_item.TYPE_NAME)
+            )
+
+        return desired_item
+
     def get_item_resolved_value(self, item_uuid: str, attribute: str):
         """
         This method helps non Python API consumers to retrieve the final data of a field with inheritance.
@@ -363,28 +408,55 @@ class CobblerAPI:
         :raises AttributeError: In case the attribute specified is not available on the given item (type).
         :returns: The attribute value. Since this might be of type NetworkInterface we cannot yet set this explicitly.
         """
-        if not isinstance(item_uuid, str):
-            raise TypeError("item_uuid must be of type str!")
-
-        if not validate.validate_uuid(item_uuid):
-            raise ValueError("The given uuid did not have the correct format!")
-
-        if not isinstance(attribute, str):
-            raise TypeError("attribute must be of type str!")
-
-        desired_item = self.find_items(
-            "", {"uid": item_uuid}, return_list=False, no_errors=True
-        )
-        if desired_item is None:
-            raise ValueError('Item with item_uuid "%s" did not exist!' % item_uuid)
-
-        if not hasattr(desired_item, attribute):
-            raise AttributeError(
-                'Attribute "%s" did not exist on item type "%s".'
-                % (attribute, desired_item.TYPE_NAME)
-            )
+        desired_item = self.__item_resolved_helper(item_uuid, attribute)
 
         return getattr(desired_item, attribute)
+
+    def set_item_resolved_value(self, item_uuid: str, attribute: str, value):
+        """
+        This method helps non Python API consumers to use the Python property setters without having access to the raw
+        data of the object. In case you pass a dictionary the method tries to deduplicate it.
+
+        This does not help with network interfaces because they don't have a UUID at the moment and thus can't be
+        queried via their UUID.
+
+        .. warning:: This function may throw any exception that is thrown by a setter of a Python property defined in
+                     Cobbler.
+
+        :param item_uuid: The UUID of the item that should be retrieved.
+        :param attribute: The attribute that should be retrieved.
+        :param value: The new value to set.
+        :raises ValueError: In case a value given was either malformed or the desired item did not exist.
+        :raises TypeError: In case the type of the method arguments do have the wrong type.
+        :raises AttributeError: In case the attribute specified is not available on the given item (type).
+        """
+        desired_item = self.__item_resolved_helper(item_uuid, attribute)
+        property_object_of_attribute = getattr(type(desired_item), attribute)
+        # Check if value can be inherited or not
+        if "inheritable" not in dir(property_object_of_attribute):
+            if value == enums.VALUE_INHERITED:
+                raise ValueError(
+                    "<<inherit>> not allowed for non-inheritable properties."
+                )
+            setattr(desired_item, attribute, value)
+            return
+        # Deduplicate - only for dict
+        if isinstance(property_object_of_attribute, InheritableDictProperty):
+            parent_item = desired_item.parent
+            if hasattr(parent_item, attribute):
+                parent_value = getattr(parent_item, attribute)
+                dict_value = utils.input_string_or_dict(value)
+                for key in parent_value:
+                    if (
+                        key in dict_value
+                        and key in parent_value
+                        and dict_value[key] == parent_value[key]
+                    ):
+                        dict_value.pop(key)
+                setattr(desired_item, attribute, dict_value)
+                return
+        # Use property setter
+        setattr(desired_item, attribute, value)
 
     # =======================================================================
 
@@ -1242,15 +1314,18 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def dump_vars(self, obj, formatted_output: bool = False):
+    def dump_vars(
+        self, obj, formatted_output: bool = False, remove_dicts: bool = False
+    ):
         """
         Dump all known variables related to that object.
 
         :param obj: The object for which the variables should be dumped.
         :param formatted_output: If True the values will align in one column and be pretty printed for cli example.
+        :param remove_dicts: If True the dictionaries will be put into str form.
         :return: A dictionary with all the information which could be collected.
         """
-        return obj.dump_vars(formatted_output)
+        return obj.dump_vars(formatted_output, remove_dicts)
 
     # ==========================================================================
 
@@ -1264,8 +1339,8 @@ class CobblerAPI:
         self.log("auto_add_repos")
         try:
             import dnf
-        except:
-            raise ImportError("dnf is not installed")
+        except ImportError as e:
+            raise ImportError("dnf is not installed") from e
 
         base = dnf.Base()
         base.read_all_repos()
@@ -1770,7 +1845,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def authenticate(self, user: str, password: str):
+    def authenticate(self, user: str, password: str) -> bool:
         """
         (Remote) access control. This depends on the chosen authentication module.
         Cobbler internal use only.
@@ -1783,7 +1858,7 @@ class CobblerAPI:
         self.log("authenticate", [user, rc])
         return rc
 
-    def authorize(self, user: str, resource: str, arg1=None, arg2=None):
+    def authorize(self, user: str, resource: str, arg1=None, arg2=None) -> int:
         """
         (Remote) access control. This depends on the chosen authorization module.
         Cobbler internal use only.

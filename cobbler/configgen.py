@@ -29,7 +29,6 @@ from typing import Dict, Union
 
 from cobbler.cexceptions import CX
 from cobbler import template_api
-import cobbler.utils
 from cobbler import utils
 
 # FIXME: This is currently getting the blendered data. Make use of the object and only process the required data.
@@ -84,7 +83,7 @@ class ConfigGen:
         :return: The blendered data. In some cases this is a str, in others it is a list or it might be a dict. In case
                  the key is not found it will return an empty string.
         """
-        system_resource = cobbler.utils.blender(self.__api, False, self.system)
+        system_resource = utils.blender(self.__api, False, self.system)
         if resource_key not in system_resource:
             return ""
         return system_resource[resource_key]

@@ -23,7 +23,7 @@ import yaml
 
 from cobbler import utils, enums
 from cobbler.cexceptions import CX
-
+from cobbler.decorator import InheritableProperty, InheritableDictProperty
 
 RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
 
@@ -67,7 +67,9 @@ class Item:
                             return False
                     return True
                 if isinstance(from_obj, dict):
-                    (junk, from_search) = utils.input_string_or_dict(from_search, allow_multiples=True)
+                    from_search = utils.input_string_or_dict(
+                        from_search, allow_multiples=True
+                    )
                     for x in list(from_search.keys()):
                         y = from_search[x]
                         if x not in from_obj:
@@ -88,7 +90,7 @@ class Item:
 
     def __init__(self, api, is_subobject: bool = False):
         """
-        Constructor.  Requires a back reference to the CollectionManager object.
+        Constructor.  Requires a back reference to the CobblerAPI object.
 
         NOTE: is_subobject is used for objects that allow inheritance in their trees. This inheritance refers to
         conceptual inheritance, not Python inheritance. Objects created with is_subobject need to call their
@@ -125,7 +127,7 @@ class Item:
         self._boot_files: Union[dict, str] = {}
         self._template_files = {}
         self._last_cached_mtime = 0
-        self._owners: Union[list, str] = api.settings().default_ownership
+        self._owners: Union[list, str] = enums.VALUE_INHERITED
         self._cached_dict = ""
         self._mgmt_classes: Union[list, str] = []
         self._mgmt_parameters: Union[dict, str] = {}
@@ -160,8 +162,8 @@ class Item:
         settings_name = property_name
         if property_name.startswith("proxy_url_"):
             property_name = "proxy"
-        if property_name == "default_ownership":
-            property_name = "owners"
+        if property_name == "owners":
+            settings_name = "default_ownership"
         attribute = "_" + property_name
 
         if not hasattr(self, attribute):
@@ -340,7 +342,7 @@ class Item:
         """
         self._comment = comment
 
-    @property
+    @InheritableProperty
     def owners(self) -> list:
         """
         This is a feature which is related to the ownership module of Cobbler which gives only specific people access
@@ -368,7 +370,7 @@ class Item:
             raise TypeError("owners must be str or list!")
         self._owners = utils.input_string_or_list(owners)
 
-    @property
+    @InheritableDictProperty
     def kernel_options(self) -> dict:
         """
         Kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
@@ -388,13 +390,14 @@ class Item:
         :param options: The new kernel options as a space delimited list.
         :raises ValueError: In case the values set could not be parsed successfully.
         """
-        (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
-        if not success:
-            raise ValueError("invalid kernel options")
-        else:
-            self._kernel_options = value
+        try:
+            self._kernel_options = utils.input_string_or_dict(
+                options, allow_multiples=True
+            )
+        except TypeError as e:
+            raise TypeError("invalid kernel options") from e
 
-    @property
+    @InheritableDictProperty
     def kernel_options_post(self) -> dict:
         """
         Post kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
@@ -414,13 +417,14 @@ class Item:
         :param options: The new kernel options as a space delimited list.
         :raises ValueError: In case the options could not be split successfully.
         """
-        (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
-        if not success:
-            raise ValueError("invalid post kernel options")
-        else:
-            self._kernel_options_post = value
+        try:
+            self._kernel_options_post = utils.input_string_or_dict(
+                options, allow_multiples=True
+            )
+        except TypeError as e:
+            raise TypeError("invalid post kernel options") from e
 
-    @property
+    @InheritableDictProperty
     def autoinstall_meta(self) -> dict:
         """
         A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a dict.
@@ -441,13 +445,10 @@ class Item:
         :param options: The new options for the automatic installation meta options.
         :raises ValueError: If splitting the value does not succeed.
         """
-        (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
-        if not success:
-            raise ValueError("invalid options given for autoinstall meta")
-        else:
-            self._autoinstall_meta = value
+        value = utils.input_string_or_dict(options, allow_multiples=True)
+        self._autoinstall_meta = value
 
-    @property
+    @InheritableProperty
     def mgmt_classes(self) -> list:
         """
         Assigns a list of configuration management classes that can be assigned to any object, such as those used by
@@ -471,7 +472,7 @@ class Item:
             raise TypeError("mgmt_classes has to be either str or list")
         self._mgmt_classes = utils.input_string_or_list(mgmt_classes)
 
-    @property
+    @InheritableDictProperty
     def mgmt_parameters(self) -> dict:
         """
         Parameters which will be handed to your management application (Must be a valid YAML dictionary)
@@ -525,11 +526,12 @@ class Item:
         :param template_files: The new value for the template files which are used for the item.
         :raises ValueError: In case the conversion from non dict values was not successful.
         """
-        (success, value) = utils.input_string_or_dict(template_files, allow_multiples=False)
-        if not success:
-            raise ValueError("template_files should be of type dict")
-        else:
-            self._template_files = value
+        try:
+            self._template_files = utils.input_string_or_dict(
+                template_files, allow_multiples=False
+            )
+        except TypeError as e:
+            raise TypeError("invalid template files specified") from e
 
     @property
     def boot_files(self) -> dict:
@@ -551,13 +553,14 @@ class Item:
 
         :param boot_files: The new value for the boot files used by the item.
         """
-        (success, value) = utils.input_string_or_dict(boot_files, allow_multiples=False)
-        if not success:
-            raise TypeError("boot_files were handed wrong values")
-        else:
-            self._boot_files = value
+        try:
+            self._boot_files = utils.input_string_or_dict(
+                boot_files, allow_multiples=False
+            )
+        except TypeError as e:
+            raise TypeError("invalid boot files specified") from e
 
-    @property
+    @InheritableDictProperty
     def fetchable_files(self) -> dict:
         """
         A comma seperated list of ``virt_name=path_to_template`` that should be fetchable via tftp or a webserver
@@ -577,11 +580,12 @@ class Item:
 
         :param fetchable_files: Files which will be made available to external users.
         """
-        (success, value) = utils.input_string_or_dict(fetchable_files, allow_multiples=False)
-        if not success:
-            raise TypeError("fetchable_files were handed wrong values")
-        else:
-            self._fetchable_files = value
+        try:
+            self._fetchable_files = utils.input_string_or_dict(
+                fetchable_files, allow_multiples=False
+            )
+        except TypeError as e:
+            raise TypeError("invalid fetchable files specified") from e
 
     @property
     def depth(self) -> int:
@@ -775,8 +779,32 @@ class Item:
         # special case for systems
         key_found_already = False
         if "interfaces" in data:
-            if key in ["mac_address", "ip_address", "netmask", "virt_bridge", "dhcp_tag", "dns_name", "static_routes",
-                       "interface_type", "interface_master", "bonding_opts", "bridge_opts", "interface"]:
+            if key in [
+                "cnames",
+                "connected_mode",
+                "if_gateway",
+                "ipv6_default_gateway",
+                "ipv6_mtu",
+                "ipv6_prefix",
+                "ipv6_secondaries",
+                "ipv6_static_routes",
+                "management",
+                "mtu",
+                "static",
+                "mac_address",
+                "ip_address",
+                "ipv6_address",
+                "netmask",
+                "virt_bridge",
+                "dhcp_tag",
+                "dns_name",
+                "static_routes",
+                "interface_type",
+                "interface_master",
+                "bonding_opts",
+                "bridge_opts",
+                "interface",
+            ]:
                 key_found_already = True
                 for (name, interface) in list(data["interfaces"].items()):
                     if value == name:
@@ -800,14 +828,17 @@ class Item:
         else:
             return self.__find_compare(value, data[key])
 
-    def dump_vars(self, formatted_output: bool = True) -> Union[dict, str]:
+    def dump_vars(
+        self, formatted_output: bool = True, remove_dicts: bool = False
+    ) -> Union[dict, str]:
         """
         Dump all variables.
 
         :param formatted_output: Whether to format the output or not.
+        :param remove_dicts: If True the dictionaries will be put into str form.
         :return: The raw or formatted data.
         """
-        raw = utils.blender(self.api, False, self)
+        raw = utils.blender(self.api, remove_dicts, self)
         if formatted_output:
             return pprint.pformat(raw)
         else:
@@ -863,10 +894,12 @@ class Item:
         if len(result) > 0:
             raise KeyError("The following keys supplied could not be set: %s" % result.keys())
 
-    def to_dict(self) -> dict:
+    def to_dict(self, resolved: bool = False) -> dict:
         """
         This converts everything in this object to a dictionary.
 
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                     objects raw value.
         :return: A dictionary with all values present in this object.
         """
         value = {}
@@ -875,17 +908,29 @@ class Item:
                 if key in ("_conceptual_parent", "_last_cached_mtime", "_cached_dict", "_supported_boot_loaders"):
                     continue
                 new_key = key[1:].lower()
-                if isinstance(self.__dict__[key], enum.Enum):
-                    value[new_key] = self.__dict__[key].value
+                key_value = self.__dict__[key]
+                if isinstance(key_value, enum.Enum):
+                    value[new_key] = key_value.value
                 elif new_key == "interfaces":
                     # This is the special interfaces dict. Lets fix it before it gets to the normal process.
                     serialized_interfaces = {}
-                    interfaces = self.__dict__[key]
+                    interfaces = key_value
                     for interface_key in interfaces:
                         serialized_interfaces[interface_key] = interfaces[interface_key].to_dict()
                     value[new_key] = serialized_interfaces
-                elif isinstance(self.__dict__[key], (list, dict)):
-                    value[new_key] = copy.deepcopy(self.__dict__[key])
+                elif isinstance(key_value, list):
+                    value[new_key] = copy.deepcopy(key_value)
+                elif isinstance(key_value, dict):
+                    if resolved:
+                        value[new_key] = getattr(self, new_key)
+                    else:
+                        value[new_key] = copy.deepcopy(key_value)
+                elif (
+                    isinstance(key_value, str)
+                    and key_value == enums.VALUE_INHERITED
+                    and resolved
+                ):
+                    value[new_key] = getattr(self, key[1:])
                 else:
                     value[new_key] = self.__dict__[key]
         if "autoinstall" in value:
@@ -914,3 +959,23 @@ class Item:
         :param item_dict: The dictionary with the data to deserialize.
         """
         self.from_dict(item_dict)
+
+    def grab_tree(self) -> list:
+        """
+        Climb the tree and get every node.
+
+        :return: The list of items with all parents from that object upwards the tree. Contains at least the item
+                 itself and the settings of Cobbler.
+        """
+        results = [self]
+        parent = self.parent
+        while parent is not None:
+            results.append(parent)
+            parent = parent.parent
+            # FIXME: Now get the object and check its existence
+        results.append(self.api.settings())
+        self.logger.info(
+            "grab_tree found %s children (including settings) of this object",
+            len(results),
+        )
+        return results

@@ -537,7 +537,6 @@ if __name__ == "__main__":
             'grub_mod_folder': grub_mod_folder
         },
         configure_files=[
-            "cobbler/settings/migrations/V3_3_1.py",
             "config/apache/cobbler.conf",
             "config/cobbler/settings.yaml",
             "config/service/cobblerd.service",

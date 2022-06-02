@@ -10,6 +10,7 @@ Migration from V3.2.1 to V3.3.0
 from schema import Optional, Schema, SchemaError
 
 from cobbler.settings.migrations import helper
+from cobbler.settings.migrations import V3_2_1
 
 schema = Schema({
     "auto_migrate_settings": bool,
@@ -192,6 +193,9 @@ def migrate(settings: dict) -> dict:
     :return: The migrated dict
     """
 
+    if not V3_2_1.validate(settings):
+        raise SchemaError("V3.2.1: Schema error while validating")
+
     # migrate gpxe -> ipxe
     if "enable_gpxe" in settings:
         gpxe = helper.key_get("enable_gpxe", settings)
@@ -211,7 +215,7 @@ def migrate(settings: dict) -> dict:
     # add missing keys
     # name - value pairs
     missing_keys = {'auto_migrate_settings': True,
-                    'bind_zonefile_path': "@@bind_zonefiles@@",
+                    'bind_zonefile_path': "/var/lib/named",
                     'bootloaders_formats': {
                         "aarch64": {"binary_name": "grubaa64.efi"},
                         "arm": {"binary_name": "bootarm.efi"},
@@ -246,6 +250,4 @@ def migrate(settings: dict) -> dict:
     # delete removed keys
     helper.key_delete("cache_enabled", settings)
 
-    if not validate(settings):
-        raise SchemaError("V3.3.0: Schema error while validating")
     return normalize(settings)

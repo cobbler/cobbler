@@ -2,6 +2,7 @@ import os
 
 import pytest
 
+from cobbler import enums
 from cobbler.cexceptions import CX
 
 
@@ -105,6 +106,7 @@ class TestDistro:
 
         # Assert
         assert distro.get("name") == "testdistro0"
+        assert distro.get("redhat_management_key") == enums.VALUE_INHERITED
         assert fk_initrd in distro.get("initrd")
         assert fk_kernel in distro.get("kernel")
 

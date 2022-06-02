@@ -8,6 +8,8 @@ Migration from V3.3.1 to V3.3.2
 
 from schema import Optional, Schema, SchemaError
 
+from cobbler.settings.migrations import V3_3_1
+
 schema = Schema(
     {
         "auto_migrate_settings": bool,
@@ -180,7 +182,6 @@ schema = Schema(
         Optional("nsupdate_tsig_algorithm", default="hmac-sha512"): str,
         Optional("nsupdate_tsig_key", default=[]): [str],
         "power_management_default_type": str,
-        Optional("proxies", default=[]): [str],
         "proxy_url_ext": str,
         "proxy_url_int": str,
         "puppet_auto_setup": bool,
@@ -264,10 +265,11 @@ def migrate(settings: dict) -> dict:
     :return: The migrated dict
     """
 
+    if not V3_3_1.validate(settings):
+        raise SchemaError("V3.3.1: Schema error while validating")
+
     # rename keys and update their value
     # add missing keys
     # name - value pairs
 
-    if not validate(settings):
-        raise SchemaError("V3.3.1: Schema error while validating")
     return normalize(settings)

@@ -54,16 +54,6 @@ class Menu(item.Item):
         cloned.uid = uuid.uuid4().hex
         return cloned
 
-    def check_if_valid(self):
-        """
-        Check if the profile is valid. This checks for an existing name and a distro as a conceptual parent.
-
-        :raises CX: Raised in case name is empty or not set.
-        """
-        # name validation
-        if not self.name:
-            raise CX("Name is required")
-
     def from_dict(self, dictionary: dict):
         """
         Initializes the object with attributes from the dictionary.

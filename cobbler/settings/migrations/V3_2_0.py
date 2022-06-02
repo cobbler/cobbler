@@ -8,6 +8,7 @@ Migration from V3.1.2 to V3.2.0
 
 from schema import Optional, Or, Schema, SchemaError
 from cobbler.settings.migrations import helper
+from cobbler.settings.migrations import V3_1_2
 
 schema = Schema({
     Optional("auto_migrate_settings", default=True): bool,
@@ -156,6 +157,10 @@ def migrate(settings: dict) -> dict:
     :param settings: The settings dict to migrate
     :return: The migrated dict
     """
+
+    if not V3_1_2.validate(settings):
+        raise SchemaError("V3.1.2: Schema error while validating")
+
     # add missing keys
     # name - value pairs
     missing_keys = {'cache_enabled': 1,
@@ -164,6 +169,4 @@ def migrate(settings: dict) -> dict:
         new_setting = helper.Setting(key, value)
         helper.key_add(new_setting, settings)
 
-    if not validate(settings):
-        raise SchemaError("V3.2.0: Schema error while validating")
     return normalize(settings)

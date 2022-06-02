@@ -714,130 +714,173 @@ class CobblerXMLRPCInterface:
         self._log("get_item_resolved_value(%s)" % item_uuid, attribute=attribute)
         return self.api.get_item_resolved_value(item_uuid, attribute)
 
-    def get_item(self, what: str, name: str, flatten=False):
+    def get_item(self, what: str, name: str, flatten=False, resolved: bool = False):
         """
         Returns a dict describing a given object.
 
         :param what: "distro", "profile", "system", "image", "repo", etc
         :param name: the object name to retrieve
         :param flatten: reduce dicts to string representations (True/False)
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
         :return: The item or None.
         """
         self._log("get_item(%s,%s)" % (what, name))
-        item = self.api.get_item(what, name)
-        if item is not None:
-            item = item.to_dict()
-        if flatten:
-            item = utils.flatten(item)
-        return self.xmlrpc_hacks(item)
+        requested_item = self.api.get_item(what, name)
+        if requested_item is not None:
+            requested_item = requested_item.to_dict(resolved=resolved)
+            if flatten:
+                requested_item = utils.flatten(requested_item)
+        return self.xmlrpc_hacks(requested_item)
 
-    def get_distro(self, name: str, flatten=False, token=None, **rest):
+    def get_distro(
+        self, name: str, flatten=False, resolved: bool = False, token=None, **rest
+    ):
         """
         Get a distribution.
 
         :param name: The name of the distribution to get.
         :param flatten: If the item should be flattened.
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("distro", name, flatten=flatten)
+        return self.get_item("distro", name, flatten=flatten, resolved=resolved)
 
-    def get_profile(self, name: str, flatten=False, token=None, **rest):
+    def get_profile(
+        self, name: str, flatten=False, resolved: bool = False, token=None, **rest
+    ):
         """
         Get a profile.
 
         :param name: The name of the profile to get.
         :param flatten: If the item should be flattened.
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("profile", name, flatten=flatten)
+        return self.get_item("profile", name, flatten=flatten, resolved=resolved)
 
-    def get_system(self, name: str, flatten=False, token=None, **rest):
+    def get_system(
+        self, name: str, flatten=False, resolved: bool = False, token=None, **rest
+    ):
         """
         Get a system.
 
         :param name: The name of the system to get.
         :param flatten: If the item should be flattened.
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("system", name, flatten=flatten)
+        return self.get_item("system", name, flatten=flatten, resolved=resolved)
 
-    def get_repo(self, name: str, flatten=False, token=None, **rest):
+    def get_repo(
+        self, name: str, flatten=False, resolved: bool = False, token=None, **rest
+    ):
         """
         Get a repository.
 
         :param name: The name of the repository to get.
         :param flatten: If the item should be flattened.
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("repo", name, flatten=flatten)
+        return self.get_item("repo", name, flatten=flatten, resolved=resolved)
 
-    def get_image(self, name: str, flatten=False, token=None, **rest):
+    def get_image(
+        self, name: str, flatten=False, resolved: bool = False, token=None, **rest
+    ):
         """
         Get an image.
 
         :param name: The name of the image to get.
         :param flatten: If the item should be flattened.
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("image", name, flatten=flatten)
+        return self.get_item("image", name, flatten=flatten, resolved=resolved)
 
-    def get_mgmtclass(self, name: str, flatten=False, token=None, **rest):
+    def get_mgmtclass(
+        self, name: str, flatten=False, resolved: bool = False, token=None, **rest
+    ):
         """
         Get a management class.
 
         :param name: The name of the management class to get.
         :param flatten: If the item should be flattened.
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("mgmtclass", name, flatten=flatten)
+        return self.get_item("mgmtclass", name, flatten=flatten, resolved=resolved)
 
-    def get_package(self, name: str, flatten=False, token=None, **rest):
+    def get_package(
+        self, name: str, flatten=False, resolved: bool = False, token=None, **rest
+    ):
         """
         Get a package.
 
         :param name: The name of the package to get.
         :param flatten: If the item should be flattened.
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("package", name, flatten=flatten)
+        return self.get_item("package", name, flatten=flatten, resolved=resolved)
 
-    def get_file(self, name: str, flatten=False, token=None, **rest):
+    def get_file(
+        self, name: str, flatten=False, resolved: bool = False, token=None, **rest
+    ):
         """
         Get a file.
 
         :param name: The name of the file to get.
         :param flatten: If the item should be flattened.
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("file", name, flatten=flatten)
+        return self.get_item("file", name, flatten=flatten, resolved=resolved)
 
-    def get_menu(self, name: str, flatten: bool = False, token=None, **rest):
+    def get_menu(
+        self,
+        name: str,
+        flatten: bool = False,
+        resolved: bool = False,
+        token=None,
+        **rest
+    ):
         """
         Get a menu.
 
         :param name: The name of the file to get.
         :param flatten: If the item should be flattened.
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("menu", name, flatten=flatten)
+        return self.get_item("menu", name, flatten=flatten, resolved=resolved)
 
     def get_items(self, what: str):
         """
@@ -1898,7 +1941,7 @@ class CobblerXMLRPCInterface:
             elif isinstance(getattr(self.api.settings(), setting_name), list):
                 value = utils.input_string_or_list(value)
             elif isinstance(getattr(self.api.settings(), setting_name), dict):
-                value = utils.input_string_or_dict(value)[1]
+                value = utils.input_string_or_dict(value)
             else:
                 self.logger.error("modify_setting(%s) - Wrong type for value", setting_name)
                 return 1
@@ -2021,7 +2064,7 @@ class CobblerXMLRPCInterface:
                             and attributes.get("in_place"):
                         details = self.get_item(object_type, object_name)
                         v2 = details[key]
-                        (ok, parsed_input) = utils.input_string_or_dict(value)
+                        parsed_input = utils.input_string_or_dict(value)
                         for (a, b) in list(parsed_input.items()):
                             if a.startswith("~") and len(a) > 1:
                                 del v2[a[1:]]
@@ -2332,9 +2375,28 @@ class CobblerXMLRPCInterface:
         self._log("generate_script, name is \"%s\"" % name)
         return self.api.generate_script(profile, system, name)
 
+    def dump_vars(
+        self, item_uuid: str, formatted_output: bool = False, remove_dicts: bool = True
+    ):
+        """
+        This function dumps all variables related to an object. The difference to the above mentioned function is that
+        it accepts the item uid instead of the Python object itself.
+
+        .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.dump_vars`
+        """
+        obj = self.api.find_items(
+            "", {"uid": item_uuid}, return_list=False, no_errors=True
+        )
+        if obj is None:
+            raise ValueError('Item with uuid "%s" does not exist!' % item_uuid)
+        self.api.dump_vars(obj, formatted_output, remove_dicts)
+
     def get_blended_data(self, profile=None, system=None):
         """
         Combine all data which is available from a profile and system together and return it.
+
+        .. deprecated:: 3.4.0
+           Please make use of the dump_vars endpoint.
 
         :param profile: The profile of the system.
         :param system: The system for which the data should be rendered.
@@ -3266,18 +3328,15 @@ class CobblerXMLRPCInterface:
                 del self.events[tid]
             # logfile cleanup should be dealt w/ by logrotate
 
-    def __validate_user(self, input_user, input_password):
+    def __validate_user(self, input_user: str, input_password: str) -> bool:
         """
         Returns whether this user/pass combo should be given access to the Cobbler read-write API.
 
         For the system user, this answer is always "yes", but it is only valid for the socket interface.
 
-        FIXME: currently looks for users in /etc/cobbler/auth.conf
-        Would be very nice to allow for PAM and/or just Kerberos.
-
         :param input_user: The user to validate.
         :param input_password: The password to validate.
-        :return: The return of the operation.
+        :return: If the authentication was successful ``True`` is returned. ``False`` in all other cases.
         """
         return self.api.authenticate(input_user, input_password)
 
@@ -3322,7 +3381,7 @@ class CobblerXMLRPCInterface:
             return self.api.find_menu(name)
         return None
 
-    def check_access_no_fail(self, token, resource, arg1=None, arg2=None) -> bool:
+    def check_access_no_fail(self, token, resource, arg1=None, arg2=None) -> int:
         """
         This is called by the WUI to decide whether an element is editable or not. It differs form check_access in that
         it is supposed to /not/ log the access checks (TBA) and does not raise exceptions.
@@ -3331,7 +3390,7 @@ class CobblerXMLRPCInterface:
         :param resource: The resource for which access shall be checked.
         :param arg1: Arguments to hand to the authorization provider.
         :param arg2: Arguments to hand to the authorization provider.
-        :return: True if the object is editable or False otherwise.
+        :return: 1 if the object is editable or 0 otherwise.
         """
         need_remap = False
         for x in ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file", "menu"]:
@@ -3345,12 +3404,12 @@ class CobblerXMLRPCInterface:
 
         try:
             self.check_access(token, resource, arg1, arg2)
-            return True
+            return 1
         except:
             utils.log_exc()
-            return False
+            return 0
 
-    def check_access(self, token: str, resource: str, arg1=None, arg2=None):
+    def check_access(self, token: str, resource: str, arg1=None, arg2=None) -> int:
         """
         Check if the token which was provided has access.
 
@@ -3358,12 +3417,13 @@ class CobblerXMLRPCInterface:
         :param resource: The resource for which access shall be checked.
         :param arg1: Arguments to hand to the authorization provider.
         :param arg2: Arguments to hand to the authorization provider.
-        :return: Whether the authentication was successful or not.
+        :return: If the operation was successful return ``1``. If unsuccessful then return ``0``. Other codes may be
+                 returned if specified by the currently configured authorization module.
         """
         user = self.get_user_from_token(token)
         if user == "<DIRECT>":
             self._log("CLI Authorized", debug=True)
-            return True
+            return 1
         rc = self.api.authorize(user, resource, arg1, arg2)
         self._log("%s authorization result: %s" % (user, rc), debug=True)
         if not rc:

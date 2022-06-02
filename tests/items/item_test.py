@@ -2,6 +2,7 @@ import os
 
 import pytest
 
+from cobbler import enums
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
 from cobbler.items.item import Item
@@ -130,7 +131,9 @@ def test_comment(cobbler_api):
     "input_owners,expected_exception,expected_result",
     [
         ("", does_not_raise(), []),
+        (enums.VALUE_INHERITED, does_not_raise(), ["admin"]),
         ("Test1 Test2", does_not_raise(), ["Test1", "Test2"]),
+        (["Test1", "Test2"], does_not_raise(), ["Test1", "Test2"]),
         (False, pytest.raises(TypeError), None),
     ],
 )
@@ -335,6 +338,8 @@ def test_dump_vars(cobbler_api):
     result = titem.dump_vars(formatted_output=False)
 
     # Assert
+    assert "default_ownership" in result
+    assert "owners" in result
     assert len(result) == 149
 
 
@@ -422,6 +427,38 @@ def test_to_dict(cobbler_api):
 
     # Assert
     assert isinstance(result, dict)
+    assert result.get("owners") == enums.VALUE_INHERITED
+
+
+def test_to_dict_resolved(cobbler_api):
+    # Arrange
+    titem = Item(cobbler_api)
+
+    # Act
+    result = titem.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("owners") == ["admin"]
+
+
+def test_to_dict_resolved_dict(cobbler_api, create_distro):
+    # Arrange
+    test_distro = create_distro()
+    test_distro.kernel_options = {"test": True}
+    cobbler_api.add_distro(test_distro)
+    titem = Profile(cobbler_api)
+    titem.name = "to_dict_resolved_profile"
+    titem.distro = test_distro.name
+    titem.kernel_options = {"my_value": 5}
+    cobbler_api.add_profile(titem)
+
+    # Act
+    result = titem.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("kernel_options") == {"test": True, "my_value": 5}
 
 
 def test_serialize(cobbler_api):
@@ -437,3 +474,16 @@ def test_serialize(cobbler_api):
     assert titem.remote_boot_kernel == kernel_url
     assert titem.remote_grub_kernel.startswith("(http,")
     assert "remote_grub_kernel" not in result
+
+
+def test_grab_tree(cobbler_api):
+    # Arrange
+    object_to_check = Distro(cobbler_api)
+    # TODO: Create some objects and give them some inheritance.
+
+    # Act
+    result = object_to_check.grab_tree()
+
+    # Assert
+    assert isinstance(result, list)
+    assert result[-1].server == "192.168.1.1"

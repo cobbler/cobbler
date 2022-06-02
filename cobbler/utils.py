@@ -39,7 +39,7 @@ import urllib.request
 import xmlrpc.client
 from functools import reduce
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Pattern, Tuple, Union
+from typing import Any, Dict, List, Optional, Pattern, Union
 from xmlrpc.client import ServerProxy
 
 import distro
@@ -108,8 +108,11 @@ def log_exc():
     """
     (t, v, tb) = sys.exc_info()
     logger.info("Exception occurred: %s", t)
-    logger.info("Exception value: %s" % v)
-    logger.info("Exception Info:\n%s" % "\n".join(traceback.format_list(traceback.extract_tb(tb))))
+    logger.info("Exception value: %s", v)
+    logger.info(
+        "Exception Info:\n%s",
+        "\n".join(traceback.format_list(traceback.extract_tb(tb))),
+    )
 
 
 def get_exc(exc, full: bool = True):
@@ -276,7 +279,10 @@ def service_restart(service_name: str):
     elif is_service():
         restart_command = ["service", service_name, "restart"]
     else:
-        logger.warning('We could not restart service "%s" due to an unsupported process manager!', service_name)
+        logger.warning(
+            'We could not restart service "%s" due to an unsupported process manager!',
+            service_name,
+        )
         return 1
 
     ret = subprocess_call(restart_command, shell=False)
@@ -400,7 +406,6 @@ def remove_yum_olddata(path: os.PathLike):
 
     :param path: The path to check for .olddata files.
     """
-    # FIXME: If the folder is actually a file this method fails wonderfully.
     directories_to_try = [
         ".olddata",
         ".repodata/.olddata",
@@ -550,20 +555,9 @@ def input_string_or_list(options: Optional[Union[str, list]]) -> Union[list, str
     return input_string_or_list_no_inherit(options)
 
 
-def input_string_or_dict_no_inherit(
-    options: Union[str, list, dict], allow_multiples=True
-) -> Union[str, Tuple[bool, dict]]:
-    """
-    See :meth:`~cobbler.utils.input_string_or_dict`
-    """
-    if options == enums.VALUE_INHERITED:
-        return enums.VALUE_INHERITED
-    return input_string_or_dict(options, allow_multiples)
-
-
 def input_string_or_dict(
     options: Union[str, list, dict], allow_multiples=True
-) -> Tuple[bool, dict]:
+) -> Union[str, dict]:
     """
     Older Cobbler files stored configurations in a flat way, such that all values for strings. Newer versions of Cobbler
     allow dictionaries. This function is used to allow loading of older value formats so new users of Cobbler aren't
@@ -571,11 +565,22 @@ def input_string_or_dict(
 
     :param options: The str or dict to convert.
     :param allow_multiples: True (default) to allow multiple identical keys, otherwise set this false explicitly.
-    :return: A tuple of True and a dict.
+    :return: A dict or the value ``<<inherit>>`` in case it is the only content of ``options``.
     :raises TypeError: Raised in case the input type is wrong.
     """
+    if options == enums.VALUE_INHERITED:
+        return enums.VALUE_INHERITED
+    return input_string_or_dict_no_inherit(options, allow_multiples)
+
+
+def input_string_or_dict_no_inherit(
+    options: Union[str, list, dict], allow_multiples=True
+) -> dict:
+    """
+    See :meth:`~cobbler.utils.input_string_or_dict`
+    """
     if options is None or options == "delete":
-        return True, {}
+        return {}
     elif isinstance(options, list):
         raise TypeError("No idea what to do with list: %s" % options)
     elif isinstance(options, str):
@@ -604,11 +609,11 @@ def input_string_or_dict(
             else:
                 new_dict[key] = value
         # make sure we have no empty entries
-        new_dict.pop('', None)
-        return True, new_dict
+        new_dict.pop("", None)
+        return new_dict
     elif isinstance(options, dict):
-        options.pop('', None)
-        return True, options
+        options.pop("", None)
+        return options
     else:
         raise TypeError("invalid input type")
 
@@ -627,26 +632,6 @@ def input_boolean(value: Union[str, bool, int]) -> bool:
     return value in ["true", "1", "on", "yes", "y"]
 
 
-def grab_tree(api_handle, item) -> list:
-    """
-    Climb the tree and get every node.
-
-    :param api_handle: The api to use for checking the tree.
-    :param item: The item to check for parents
-    :return: The list of items with all parents from that object upwards the tree. Contains at least the item itself.
-    """
-    # TODO: Move into item.py
-    results = [item]
-    # FIXME: The following line will throw an AttributeError for None because there is not get_parent() for None
-    parent = item.parent
-    while parent is not None:
-        results.append(parent)
-        parent = parent.parent
-        # FIXME: Now get the object and check its existence
-    results.append(api_handle.settings())
-    return results
-
-
 def blender(api_handle, remove_dicts: bool, root_obj):
     """
     Combine all of the data in an object tree from the perspective of that point on the tree, and produce a merged
@@ -657,7 +642,7 @@ def blender(api_handle, remove_dicts: bool, root_obj):
     :param root_obj: The object which should act as the root-node object.
     :return: A dictionary with all the information from the root node downwards.
     """
-    tree = grab_tree(api_handle, root_obj)
+    tree = root_obj.grab_tree()
     tree.reverse()  # start with top of tree, override going down
     results = {}
     for node in tree:
@@ -679,9 +664,10 @@ def blender(api_handle, remove_dicts: bool, root_obj):
             repo = api_handle.find_repo(name=r)
             if repo:
                 repo_data.append(repo.to_dict())
-        # FIXME: sort the repos in the array based on the repo priority field so that lower priority repos come first in
-        #  the array
-        results["repo_data"] = repo_data
+        # Sorting is courtesy of https://stackoverflow.com/a/73050/4730773
+        results["repo_data"] = sorted(
+            repo_data, key=lambda repo_dict: repo_dict["priority"], reverse=True
+        )
 
     http_port = results.get("http_port", 80)
     if http_port in (80, "80"):
@@ -806,19 +792,23 @@ def __consolidate(node, results: dict) -> dict:
     node_data_copy = {}
     for key in node_data:
         value = node_data[key]
-        if value != enums.VALUE_INHERITED:
+        if value == enums.VALUE_INHERITED:
+            if key not in results:
+                # We need to add at least one value per key, use the property getter to resolve to the
+                # settings or wherever we inherit from.
+                node_data_copy[key] = getattr(node, key)
+            # Old keys should have no inherit and thus are not a real property
+            if key == "kickstart":
+                node_data_copy[key] = getattr(type(node), "autoinstall").fget(node)
+            elif key == "ks_meta":
+                node_data_copy[key] = getattr(type(node), "autoinstall_meta").fget(node)
+        else:
             if isinstance(value, dict):
                 node_data_copy[key] = value.copy()
             elif isinstance(value, list):
                 node_data_copy[key] = value[:]
             else:
                 node_data_copy[key] = value
-        else:
-            # Old keys should have no inherit and thus are not a real property
-            if key == "kickstart":
-                node_data_copy[key] = getattr(type(node), "autoinstall").fget(node)
-            elif key == "ks_meta":
-                node_data_copy[key] = getattr(type(node), "autoinstall_meta").fget(node)
 
     for field in node_data_copy:
         data_item = node_data_copy[field]
@@ -1046,7 +1036,7 @@ def get_family() -> str:
     """
     # TODO: Refactor that this is purely reliant on the distro module or obsolete it.
     redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos", "virtuozzo", "almalinux",
-                   "rocky linux", "oracle linux server")
+                   "rocky linux", "anolis os", "oracle linux server")
 
     distro_name = distro.name().lower()
     for item in redhat_list:
@@ -1076,6 +1066,8 @@ def os_release():
         elif "almalinux" in distro_name:
             make = "centos"
         elif "rocky linux" in distro_name:
+            make = "centos"
+        elif "anolis os" in distro_name:
             make = "centos"
         elif "virtuozzo" in distro_name:
             make = "virtuozzo"
@@ -1321,11 +1313,11 @@ def rmfile(path: str):
     """
     try:
         os.remove(path)
-        logger.info("Successfully removed \"%s\"", path)
+        logger.info('Successfully removed "%s"', path)
     except FileNotFoundError:
         pass
     except OSError as ioe:
-        logger.warning("Could not remove file \"%s\": %s", path, ioe.strerror)
+        logger.warning('Could not remove file "%s": %s', path, ioe.strerror)
 
 
 def rmtree_contents(path: str):
@@ -1493,7 +1485,7 @@ def get_mtab(mtab="/etc/mtab", vfstype: bool = False) -> list:
 
     mtab_stat = os.stat(mtab)
     if mtab_stat.st_mtime != mtab_mtime:
-        '''cache is stale ... refresh'''
+        # cache is stale ... refresh
         mtab_mtime = mtab_stat.st_mtime
         mtab_map = __cache_mtab__(mtab)
 
@@ -1912,7 +1904,9 @@ def dhcpconf_location(protocol: DHCP, filename: str = "dhcpd.conf") -> str:
     :return: The path possibly used for the dhcpd.conf file.
     """
     if protocol not in DHCP:
-        logger.info("DHCP configuration location could not be determined due to unknown protocol version.")
+        logger.info(
+            "DHCP configuration location could not be determined due to unknown protocol version."
+        )
         raise AttributeError("DHCP must be version 4 or 6!")
     if protocol == DHCP.V6 and filename == "dhcpd.conf":
         filename = "dhcpd6.conf"

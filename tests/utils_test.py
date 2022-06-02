@@ -213,10 +213,10 @@ def test_input_string_or_list(test_input, expected_result):
 
 
 @pytest.mark.parametrize("testinput,expected_result,possible_exception", [
-    ("<<inherit>>", (True, {"<<inherit>>": None}), does_not_raise()),
+    ("<<inherit>>", "<<inherit>>", does_not_raise()),
     ([""], None, pytest.raises(TypeError)),
-    ("a b=10 c=abc", (True, {"a": None, "b": '10', "c": "abc"}), does_not_raise()),
-    ({"ab": 0}, (True, {"ab": 0}), does_not_raise()),
+    ("a b=10 c=abc", {"a": None, "b": "10", "c": "abc"}, does_not_raise()),
+    ({"ab": 0}, {"ab": 0}, does_not_raise()),
     (0, None, pytest.raises(TypeError))
 ])
 def test_input_string_or_dict(testinput, expected_result, possible_exception):
@@ -251,19 +251,6 @@ def test_input_boolean(testinput, expected_exception, expected_result):
         assert expected_result == result
 
 
-def test_grab_tree(cobbler_api):
-    # Arrange
-    object_to_check = Distro(cobbler_api)
-    # TODO: Create some objects and give them some inheritance.
-
-    # Act
-    result = utils.grab_tree(cobbler_api, object_to_check)
-
-    # Assert
-    assert isinstance(result, list)
-    assert result[-1].server == "192.168.1.1"
-
-
 def test_blender(cobbler_api):
     # Arrange
     root_item = Distro(cobbler_api)
@@ -272,9 +259,13 @@ def test_blender(cobbler_api):
     result = utils.blender(cobbler_api, False, root_item)
 
     # Assert
-    assert len(result) == 161
+    assert len(result) == 162
+    # Must be present because the settings have it
     assert "server" in result
+    # Must be present because it is a field of distro
     assert "os_version" in result
+    # Must be present because it inherits but is a field of distro
+    assert "boot_loaders" in result
 
 
 @pytest.mark.parametrize("testinput,expected_result,expected_exception", [

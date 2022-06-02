@@ -3,6 +3,7 @@ from unittest.mock import create_autospec
 
 import pytest
 
+from cobbler import enums
 from cobbler import settings
 from cobbler.api import CobblerAPI
 from cobbler.actions.buildiso.netboot import NetbootBuildiso
@@ -106,3 +107,91 @@ def test_get_item_resolved_value(
 
         # Assert
         assert expected_result == result
+
+
+@pytest.mark.parametrize(
+    "input_uuid,input_attribute_name,input_value,expected_exception,expected_result",
+    [
+        (0, "", "", pytest.raises(TypeError), ""),  # Wrong argument type uuid
+        ("", 0, "", pytest.raises(TypeError), ""),  # Wrong argument type attribute name
+        (
+            "yxvyxcvyxcvyxcvyxcvyxcvyxcv",
+            "kernel_options",
+            "",
+            pytest.raises(ValueError),
+            "",
+        ),  # Wrong uuid format
+        (
+            "4c1d2e0050344a9ba96e2fd36908a53e",
+            "kernel_options",
+            "",
+            pytest.raises(ValueError),
+            "",
+        ),  # Item not existing
+        (
+            "",
+            "test_not_existing",
+            "",
+            pytest.raises(AttributeError),
+            "",
+        ),  # Attribute not existing
+        ("", "redhat_management_key", "", does_not_raise(), ""),  # str attribute test
+        ("", "enable_ipxe", "", does_not_raise(), False),  # bool attribute
+        ("", "virt_ram", "", does_not_raise(), 0),  # int attribute
+        (
+            "",
+            "virt_ram",
+            enums.VALUE_INHERITED,
+            does_not_raise(),
+            enums.VALUE_INHERITED,
+        ),  # int attribute inherit
+        ("", "virt_file_size", "", does_not_raise(), 0.0),  # double attribute
+        ("", "kernel_options", "", does_not_raise(), {}),  # dict attribute
+        ("", "kernel_options", "a=5", does_not_raise(), {}),  # dict attribute
+        ("", "kernel_options", "a=6", does_not_raise(), {"a": "6"}),  # dict attribute
+        (
+            "",
+            "kernel_options",
+            enums.VALUE_INHERITED,
+            does_not_raise(),
+            enums.VALUE_INHERITED,
+        ),  # dict attribute
+        ("", "owners", "", does_not_raise(), []),  # list attribute
+        (
+            "",
+            "owners",
+            enums.VALUE_INHERITED,
+            does_not_raise(),
+            enums.VALUE_INHERITED,
+        ),  # list attribute inherit
+    ],
+)
+def test_set_item_resolved_value(
+    cobbler_api,
+    create_distro,
+    create_profile,
+    create_system,
+    input_uuid,
+    input_attribute_name,
+    input_value,
+    expected_exception,
+    expected_result,
+):
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.name)
+    test_profile.kernel_options = "a=5"
+    cobbler_api.add_profile(test_profile)
+    test_system = create_system(test_profile.name)
+
+    if input_uuid == "":
+        input_uuid = test_system.uid
+
+    # Act
+    with expected_exception:
+        cobbler_api.set_item_resolved_value(
+            input_uuid, input_attribute_name, input_value
+        )
+
+        # Assert
+        assert test_system.to_dict().get(input_attribute_name) == expected_result

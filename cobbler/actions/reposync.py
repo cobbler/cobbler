@@ -120,7 +120,7 @@ class RepoSync:
                 continue
             elif name is None and not repo.keep_updated:
                 # Invoked to run against all repos, but this one is off
-                self.logger.info("%s is set to not be updated" % repo.name)
+                self.logger.info("%s is set to not be updated", repo.name)
                 continue
 
             repo_mirror = os.path.join(self.settings.webdir, "repo_mirror")
@@ -135,7 +135,7 @@ class RepoSync:
             old_env = {}
 
             for k in list(env.keys()):
-                self.logger.debug("setting repo environment: %s=%s" % (k, env[k]))
+                self.logger.debug("setting repo environment: %s=%s", k, env[k])
                 if env[k] is not None:
                     if os.getenv(k):
                         old_env[k] = os.getenv(k)
@@ -152,17 +152,19 @@ class RepoSync:
                     break
                 except:
                     utils.log_exc()
-                    self.logger.warning("reposync failed, tries left: %s" % (x - 2))
+                    self.logger.warning("reposync failed, tries left: %s", (x - 2))
 
             # Cleanup/restore any environment variables that were added or changed above.
 
             for k in list(env.keys()):
                 if env[k] is not None:
                     if k in old_env:
-                        self.logger.debug("resetting repo environment: %s=%s" % (k, old_env[k]))
+                        self.logger.debug(
+                            "resetting repo environment: %s=%s", k, old_env[k]
+                        )
                         os.environ[k] = old_env[k]
                     else:
-                        self.logger.debug("removing repo environment: %s=%s" % (k, env[k]))
+                        self.logger.debug("removing repo environment: %s=%s", k, env[k])
                         del os.environ[k]
 
             if not success:
@@ -262,8 +264,10 @@ class RepoSync:
                         if utils.compare_versions_gt(createrepo_ver, "0.9.7"):
                             mdoptions.append("--deltas")
                         else:
-                            self.logger.error("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 "
-                                              "first and then need to resync the repo through Cobbler.")
+                            self.logger.error(
+                                "this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 "
+                                "first and then need to resync the repo through Cobbler."
+                            )
 
             blended = utils.blender(self.api, False, repo)
             flags = blended.get("createrepo_flags", "(ERROR: FLAGS)")
@@ -715,7 +719,7 @@ class RepoSync:
             fname = os.path.join(dest_path, "config.repo")
         else:
             fname = os.path.join(dest_path, "%s.repo" % repo.name)
-        self.logger.debug("creating: %s" % fname)
+        self.logger.debug("creating: %s", fname)
         if not os.path.exists(dest_path):
             utils.mkdir(dest_path)
         config_file = open(fname, "w+")
@@ -763,7 +767,7 @@ class RepoSync:
             if config_proxy is not None:
                 config_file.write("proxy=%s\n" % config_proxy)
             if 'exclude' in list(repo.yumopts.keys()):
-                self.logger.debug("excluding: %s" % repo.yumopts['exclude'])
+                self.logger.debug("excluding: %s", repo.yumopts["exclude"])
                 config_file.write("exclude=%s\n" % repo.yumopts['exclude'])
 
         if not optenabled:
