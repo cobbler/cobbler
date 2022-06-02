@@ -182,7 +182,6 @@ schema = Schema(
         Optional("nsupdate_tsig_algorithm", default="hmac-sha512"): str,
         Optional("nsupdate_tsig_key", default=[]): [str],
         "power_management_default_type": str,
-        Optional("proxies", default=[]): [str],
         "proxy_url_ext": str,
         "proxy_url_int": str,
         "puppet_auto_setup": bool,
