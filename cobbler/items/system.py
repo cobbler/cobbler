@@ -772,9 +772,7 @@ class System(Item):
         :param api: The Cobbler API
         """
         super().__init__(api, *args, **kwargs)
-        self._interfaces: Dict[str, NetworkInterface] = {
-            "default": NetworkInterface(api)
-        }
+        self._interfaces: Dict[str, NetworkInterface] = {}
         self._ipv6_autoconfiguration = False
         self._repos_enabled = False
         self._autoinstall = enums.VALUE_INHERITED
