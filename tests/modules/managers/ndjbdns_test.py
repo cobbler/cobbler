@@ -2,7 +2,7 @@ import subprocess
 from unittest.mock import MagicMock
 
 from cobbler.modules.managers import ndjbdns
-from cobbler.items.system import System
+from cobbler.items.system import NetworkInterface, System
 from cobbler.templar import Templar
 
 
@@ -36,6 +36,7 @@ def test_manager_write_configs(mocker, cobbler_api):
     mock_subproc_popen.return_value.returncode = 0
     mock_system = System(cobbler_api)
     mock_system.name = "test_manager_regen_hosts_system"
+    mock_system.interfaces = {"default": NetworkInterface(cobbler_api)}
     mock_system.interfaces["default"].dns_name = "host.example.org"
     mock_system.interfaces["default"].mac_address = "aa:bb:cc:dd:ee:ff"
     mock_system.interfaces["default"].ip_address = "192.168.1.2"
