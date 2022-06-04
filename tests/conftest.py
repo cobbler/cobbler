@@ -8,7 +8,7 @@ import pytest
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
-from cobbler.items.system import System
+from cobbler.items.system import NetworkInterface, System
 
 
 @contextmanager
@@ -124,6 +124,7 @@ def create_system(request, cobbler_api):
             test_system.profile = profile_name
         if image_name != "":
             test_system.image = image_name
+        test_system.interfaces = {"default": NetworkInterface(cobbler_api)}
         cobbler_api.add_system(test_system)
         return test_system
 
