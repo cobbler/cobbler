@@ -756,20 +756,6 @@ def test_named_service_name():
     assert result == "named"
 
 
-@pytest.mark.skip(
-    "This is hard to test as we are creating a symlink in the method. For now we skip it."
-)
-def test_link_distro(cobbler_api):
-    # Arrange
-    test_distro = Distro(cobbler_api)
-
-    # Act
-    utils.link_distro(cobbler_api.settings(), test_distro)
-
-    # Assert
-    assert False
-
-
 def test_find_distro_path(cobbler_api, create_testfile, tmp_path):
     # Arrange
     fk_kernel = "vmlinuz1"

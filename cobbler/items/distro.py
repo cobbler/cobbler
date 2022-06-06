@@ -5,7 +5,7 @@ Cobbler module that contains the code for a Cobbler distro object.
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
-
+import os
 import uuid
 from typing import List, Union
 
@@ -497,3 +497,26 @@ class Distro(item.Item):
         :param value: The new children of the distro.
         """
         self._children = value
+
+    def link_distro(self):
+        """
+        Link a Cobbler distro from its source into the web directory to make it reachable from the outside.
+        """
+        # find the tree location
+        base = utils.find_distro_path(self.api.settings(), self)
+        if not base:
+            return
+
+        dest_link = os.path.join(self.api.settings().webdir, "links", self.name)
+
+        # create the links directory only if we are mirroring because with SELinux Apache can't symlink to NFS (without
+        # some doing)
+
+        if not os.path.lexists(dest_link):
+            try:
+                os.symlink(base, dest_link)
+            except:
+                # FIXME: This shouldn't happen but I've (jsabo) seen it...
+                self.logger.warning(
+                    "- symlink creation failed: %s, %s", base, dest_link
+                )

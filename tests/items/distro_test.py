@@ -400,3 +400,17 @@ def test_supported_boot_loaders(cobbler_api):
     # Assert
     assert isinstance(distro.supported_boot_loaders, list)
     assert distro.supported_boot_loaders == ["grub", "pxe", "ipxe"]
+
+
+@pytest.mark.skip(
+    "This is hard to test as we are creating a symlink in the method. For now we skip it."
+)
+def test_link_distro(cobbler_api):
+    # Arrange
+    test_distro = Distro(cobbler_api)
+
+    # Act
+    test_distro.link_distro()
+
+    # Assert
+    assert False
