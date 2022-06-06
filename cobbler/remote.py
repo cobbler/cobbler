@@ -38,7 +38,7 @@ from cobbler.items import (
 )
 from cobbler import tftpgen
 from cobbler import utils
-from cobbler.utils import input_converters
+from cobbler.utils import input_converters, signatures
 from cobbler.cexceptions import CX
 from cobbler.validate import (
     validate_autoinstall_script_name,
@@ -2654,7 +2654,7 @@ class CobblerXMLRPCInterface:
         :return: All valid OS-Breeds which are present in Cobbler.
         """
         self._log("get_valid_breeds", token=token)
-        results = utils.get_valid_breeds()
+        results = signatures.get_valid_breeds()
         results.sort()
         return self.xmlrpc_hacks(results)
 
@@ -2668,7 +2668,7 @@ class CobblerXMLRPCInterface:
         :return: All valid OS-versions for a certain breed.
         """
         self._log("get_valid_os_versions_for_breed", token=token)
-        results = utils.get_valid_os_versions_for_breed(breed)
+        results = signatures.get_valid_os_versions_for_breed(breed)
         results.sort()
         return self.xmlrpc_hacks(results)
 
@@ -2681,7 +2681,7 @@ class CobblerXMLRPCInterface:
         :return: Get all valid OS-Versions
         """
         self._log("get_valid_os_versions", token=token)
-        results = utils.get_valid_os_versions()
+        results = signatures.get_valid_os_versions()
         results.sort()
         return self.xmlrpc_hacks(results)
 
@@ -2693,7 +2693,7 @@ class CobblerXMLRPCInterface:
         :return: Get a list of all valid architectures.
         """
         self._log("get_valid_archs", token=token)
-        results = utils.get_valid_archs()
+        results = signatures.get_valid_archs()
         results.sort()
         return self.xmlrpc_hacks(results)
 

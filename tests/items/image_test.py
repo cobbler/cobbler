@@ -1,6 +1,7 @@
 import pytest
 
-from cobbler import enums, utils
+from cobbler import enums
+from cobbler.utils import signatures
 from cobbler.items.image import Image
 from tests.conftest import does_not_raise
 
@@ -61,7 +62,7 @@ def test_file(cobbler_api):
 
 def test_os_version(cobbler_api):
     # Arrange
-    utils.load_signatures("/var/lib/cobbler/distro_signatures.json")
+    signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
     image = Image(cobbler_api)
     image.breed = "suse"
 
@@ -74,7 +75,7 @@ def test_os_version(cobbler_api):
 
 def test_breed(cobbler_api):
     # Arrange
-    utils.load_signatures("/var/lib/cobbler/distro_signatures.json")
+    signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
     image = Image(cobbler_api)
 
     # Act

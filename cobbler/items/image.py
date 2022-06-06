@@ -9,11 +9,11 @@ Cobbler module that contains the code for a Cobbler image object.
 import uuid
 from typing import Union
 
-from cobbler import autoinstall_manager, enums, utils, validate
+from cobbler import autoinstall_manager, enums, validate
 from cobbler.cexceptions import CX
 from cobbler.items import item
 from cobbler.decorator import InheritableProperty
-from cobbler.utils import input_converters
+from cobbler.utils import input_converters, signatures
 
 
 class Image(item.Item):
@@ -513,7 +513,9 @@ class Image(item.Item):
             return self._supported_boot_loaders
         except:
             # otherwise, refresh from the signatures / defaults
-            self._supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
+            self._supported_boot_loaders = signatures.get_supported_distro_boot_loaders(
+                self
+            )
             return self._supported_boot_loaders
 
     @InheritableProperty
