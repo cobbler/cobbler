@@ -1,3 +1,7 @@
+"""
+Module that contains GRUB related helper functionality.
+"""
+
 import logging
 from typing import Optional
 

@@ -1,19 +1,13 @@
 """
 Report from a Cobbler master.
 FIXME: reinstante functionality for 2.0
-
-Copyright 2007-2009, Red Hat, Inc and Others
-Anderson Silva <ansilva@redhat.com>
-Michael DeHaan <michael.dehaan AT gmail>
-
-This software may be freely redistributed under the terms of the GNU
-general public license.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301  USA.
 """
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Copyright 2007-2009, Red Hat, Inc and Others
+# SPDX-FileCopyrightText: Anderson Silva <ansilva@redhat.com>
+# SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
+
 import re
 from typing import Optional
 
