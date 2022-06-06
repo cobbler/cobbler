@@ -18,6 +18,7 @@ from typing import Any, List, Type, Union
 import yaml
 
 from cobbler import utils, enums
+from cobbler.utils import input_converters
 from cobbler.cexceptions import CX
 from cobbler.decorator import InheritableProperty, InheritableDictProperty
 
@@ -66,13 +67,13 @@ class Item:
         else:
             if isinstance(from_search, str):
                 if isinstance(from_obj, list):
-                    from_search = utils.input_string_or_list(from_search)
+                    from_search = input_converters.input_string_or_list(from_search)
                     for x in from_search:
                         if x not in from_obj:
                             return False
                     return True
                 if isinstance(from_obj, dict):
-                    from_search = utils.input_string_or_dict(
+                    from_search = input_converters.input_string_or_dict(
                         from_search, allow_multiples=True
                     )
                     for x in list(from_search.keys()):
@@ -380,7 +381,7 @@ class Item:
         """
         if not isinstance(owners, (str, list)):
             raise TypeError("owners must be str or list!")
-        self._owners = utils.input_string_or_list(owners)
+        self._owners = input_converters.input_string_or_list(owners)
 
     @InheritableDictProperty
     def kernel_options(self) -> dict:
@@ -403,7 +404,7 @@ class Item:
         :raises ValueError: In case the values set could not be parsed successfully.
         """
         try:
-            self._kernel_options = utils.input_string_or_dict(
+            self._kernel_options = input_converters.input_string_or_dict(
                 options, allow_multiples=True
             )
         except TypeError as e:
@@ -430,7 +431,7 @@ class Item:
         :raises ValueError: In case the options could not be split successfully.
         """
         try:
-            self._kernel_options_post = utils.input_string_or_dict(
+            self._kernel_options_post = input_converters.input_string_or_dict(
                 options, allow_multiples=True
             )
         except TypeError as e:
@@ -445,7 +446,7 @@ class Item:
         .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: The metadata or an empty dict.
-        :setter: Accepts anything which can be split by :meth:`~cobbler.utils.input_string_or_dict`.
+        :setter: Accepts anything which can be split by :meth:`~cobbler.utils.input_converters.input_string_or_dict`.
         """
         return self._resolve_dict("autoinstall_meta")
 
@@ -457,7 +458,7 @@ class Item:
         :param options: The new options for the automatic installation meta options.
         :raises ValueError: If splitting the value does not succeed.
         """
-        value = utils.input_string_or_dict(options, allow_multiples=True)
+        value = input_converters.input_string_or_dict(options, allow_multiples=True)
         self._autoinstall_meta = value
 
     @InheritableProperty
@@ -482,7 +483,7 @@ class Item:
         """
         if not isinstance(mgmt_classes, (str, list)):
             raise TypeError("mgmt_classes has to be either str or list")
-        self._mgmt_classes = utils.input_string_or_list(mgmt_classes)
+        self._mgmt_classes = input_converters.input_string_or_list(mgmt_classes)
 
     @InheritableDictProperty
     def mgmt_parameters(self) -> dict:
@@ -527,8 +528,8 @@ class Item:
         File mappings for built-in configuration management
 
         :getter: The dictionary with name-path key-value pairs.
-        :setter: A dict. If not a dict must be a str which is split by :meth:`~cobbler.utils.input_string_or_dict`.
-                 Raises ``TypeError`` otherwise.
+        :setter: A dict. If not a dict must be a str which is split by
+                 :meth:`~cobbler.utils.input_converters.input_string_or_dict`. Raises ``TypeError`` otherwise.
         """
         return self._template_files
 
@@ -541,7 +542,7 @@ class Item:
         :raises ValueError: In case the conversion from non dict values was not successful.
         """
         try:
-            self._template_files = utils.input_string_or_dict(
+            self._template_files = input_converters.input_string_or_dict(
                 template_files, allow_multiples=False
             )
         except TypeError as e:
@@ -553,8 +554,8 @@ class Item:
         Files copied into tftpboot beyond the kernel/initrd
 
         :getter: The dictionary with name-path key-value pairs.
-        :setter: A dict. If not a dict must be a str which is split by :meth:`~cobbler.utils.input_string_or_dict`.
-                 Raises ``TypeError`` otherwise.
+        :setter: A dict. If not a dict must be a str which is split by
+                 :meth:`~cobbler.utils.input_converters.input_string_or_dict`. Raises ``TypeError`` otherwise.
         """
         return self._resolve_dict("boot_files")
 
@@ -568,7 +569,7 @@ class Item:
         :param boot_files: The new value for the boot files used by the item.
         """
         try:
-            self._boot_files = utils.input_string_or_dict(
+            self._boot_files = input_converters.input_string_or_dict(
                 boot_files, allow_multiples=False
             )
         except TypeError as e:
@@ -582,8 +583,8 @@ class Item:
         .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: The dictionary with name-path key-value pairs.
-        :setter: A dict. If not a dict must be a str which is split by :meth:`~cobbler.utils.input_string_or_dict`.
-                 Raises ``TypeError`` otherwise.
+        :setter: A dict. If not a dict must be a str which is split by
+                 :meth:`~cobbler.utils.input_converters.input_string_or_dict`. Raises ``TypeError`` otherwise.
         """
         return self._resolve_dict("fetchable_files")
 
@@ -595,7 +596,7 @@ class Item:
         :param fetchable_files: Files which will be made available to external users.
         """
         try:
-            self._fetchable_files = utils.input_string_or_dict(
+            self._fetchable_files = input_converters.input_string_or_dict(
                 fetchable_files, allow_multiples=False
             )
         except TypeError as e:

@@ -14,6 +14,7 @@ import shutil
 from typing import Dict, List, Optional, Union
 
 from cobbler import utils
+from cobbler.utils import input_converters
 from cobbler.enums import Archs
 
 
@@ -290,7 +291,7 @@ class BuildIso:
             ) from value_error
         buildisodir = self.__prepare_buildisodir(buildisodir)
         self.__copy_files(iso_distro, buildisodir)
-        self.profiles = utils.input_string_or_list_no_inherit(profiles)
+        self.profiles = input_converters.input_string_or_list_no_inherit(profiles)
         return buildisodir
 
     def _generate_iso(self, xorrisofs_opts: str, iso: str, buildisodir: str):

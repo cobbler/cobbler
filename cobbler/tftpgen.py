@@ -17,6 +17,7 @@ from typing import Dict, List, Optional
 from cobbler import enums, templar, utils
 from cobbler.cexceptions import CX
 from cobbler.enums import Archs
+from cobbler.utils import input_converters
 from cobbler.validate import validate_autoinstall_script_name
 
 
@@ -761,7 +762,7 @@ class TFTPGen:
         if boot_loaders is None or format not in boot_loaders:
             return None
 
-        settings = utils.input_string_or_dict(self.settings.to_dict())
+        settings = input_converters.input_string_or_dict(self.settings.to_dict())
         metadata.update(settings)
         # ---
         # just some random variables
@@ -1195,7 +1196,7 @@ class TFTPGen:
             pass
         blended.update(templates)  # make available at top level
 
-        templates = utils.input_string_or_dict(templates)
+        templates = input_converters.input_string_or_dict(templates)
 
         # FIXME: img_path and local_img_path should probably be moved up into the blender function to ensure they're
         #  consistently available to templates across the board.

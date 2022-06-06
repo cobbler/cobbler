@@ -11,7 +11,8 @@ from typing import Optional, Union
 
 from cobbler import autoinstall_manager
 from cobbler.items import item
-from cobbler import utils, validate, enums
+from cobbler import validate, enums
+from cobbler.utils import input_converters
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 from cobbler.decorator import InheritableProperty
@@ -310,7 +311,7 @@ class Profile(item.Item):
         :param enable_ipxe: New boolean value for enabling iPXE.
         :raises TypeError: In case after the conversion, the new value is not of type ``bool``.
         """
-        enable_ipxe = utils.input_boolean(enable_ipxe)
+        enable_ipxe = input_converters.input_boolean(enable_ipxe)
         if not isinstance(enable_ipxe, bool):
             raise TypeError("enable_ipxe needs to be of type bool")
         self._enable_ipxe = enable_ipxe
@@ -334,7 +335,7 @@ class Profile(item.Item):
         :param enable_menu: New boolean value for enabling the menu.
         :raises TypeError: In case the boolean could not be converted successfully.
         """
-        enable_menu = utils.input_boolean(enable_menu)
+        enable_menu = input_converters.input_boolean(enable_menu)
         if not isinstance(enable_menu, bool):
             raise TypeError("enable_menu needs to be of type bool")
         self._enable_menu = enable_menu
@@ -734,7 +735,7 @@ class Profile(item.Item):
             return
 
         if boot_loaders:
-            boot_loaders_split = utils.input_string_or_list(boot_loaders)
+            boot_loaders_split = input_converters.input_string_or_list(boot_loaders)
 
             parent = self.parent
             if parent is not None:

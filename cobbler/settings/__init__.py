@@ -19,7 +19,7 @@ from typing import Any, Dict, Hashable
 import yaml
 from schema import SchemaError, SchemaMissingKeyError, SchemaWrongKeyError
 
-from cobbler import utils
+from cobbler.utils import input_converters
 from cobbler.settings import migrations
 
 
@@ -338,7 +338,7 @@ class Settings:
         try:
             if name == "kernel_options":
                 # backwards compatibility -- convert possible string value to dict
-                result = utils.input_string_or_dict(
+                result = input_converters.input_string_or_dict(
                     self.__dict__[name], allow_multiples=False
                 )
                 self.__dict__[name] = result

@@ -13,6 +13,7 @@ from cobbler import autoinstall_manager, enums, utils, validate
 from cobbler.cexceptions import CX
 from cobbler.items import item
 from cobbler.decorator import InheritableProperty
+from cobbler.utils import input_converters
 
 
 class Image(item.Item):
@@ -542,7 +543,7 @@ class Image(item.Item):
             return
 
         if boot_loaders:
-            boot_loaders_split = utils.input_string_or_list(boot_loaders)
+            boot_loaders_split = input_converters.input_string_or_list(boot_loaders)
 
             if not isinstance(boot_loaders_split, list):
                 raise TypeError("boot_loaders needs to be of type list!")
