@@ -1,26 +1,13 @@
 """
 Cobbler provides builtin methods for use in Cheetah templates. $SNIPPET is one
 such function and is now used to implement Cobbler's SNIPPET:: syntax.
-
-Written by Daniel Guernsey <danpg102@gmail.com>
-Contributions by Michael DeHaan <michael.dehaan AT gmail>
-US Government work; No explicit copyright attached to this file.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301  USA
 """
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Written by Daniel Guernsey <danpg102@gmail.com>
+# SPDX-FileCopyrightText: Contributions by Michael DeHaan <michael.dehaan AT gmail>
+# SPDX-FileCopyrightText: US Government work; No explicit copyright attached to this file.
+
 import logging
 import os.path
 import re

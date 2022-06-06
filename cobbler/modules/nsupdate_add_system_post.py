@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
-#
-# Adrian Brzezinski <adrbxx@gmail.com>
-# License: GPLv2+
-#
-# Replace (or remove) records in DNS zone for systems created (or removed) by Cobbler
-#
+"""
+Replace (or remove) records in DNS zone for systems created (or removed) by Cobbler
+"""
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Adrian Brzezinski <adrbxx@gmail.com>
 
 # DNS toolkit for Python
 #   - python-dnspython (Debian)
