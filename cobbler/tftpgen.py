@@ -19,6 +19,7 @@ from cobbler.cexceptions import CX
 from cobbler.enums import Archs
 from cobbler.utils import input_converters
 from cobbler.validate import validate_autoinstall_script_name
+from cobbler.utils import filesystem_helpers
 
 
 class TFTPGen:
@@ -113,11 +114,13 @@ class TFTPGen:
         if not utils.file_is_remote(full_path):
             b_file = os.path.basename(full_path)
             dst = os.path.join(distro_dir, b_file)
-            utils.linkfile(full_path, dst, symlink_ok=symlink_ok, api=self.api)
+            filesystem_helpers.linkfile(
+                full_path, dst, symlink_ok=symlink_ok, api=self.api
+            )
         else:
             b_file = os.path.basename(full_path)
             dst = os.path.join(distro_dir, b_file)
-            utils.copyremotefile(full_path, dst, api=None)
+            filesystem_helpers.copyremotefile(full_path, dst, api=None)
 
     def copy_single_distro_files(self, d, dirtree, symlink_ok: bool):
         """
@@ -130,7 +133,7 @@ class TFTPGen:
 
         distros = os.path.join(dirtree, "images")
         distro_dir = os.path.join(distros, d.name)
-        utils.mkdir(distro_dir)
+        filesystem_helpers.mkdir(distro_dir)
         self.copy_single_distro_file(d.kernel, distro_dir, symlink_ok)
         self.copy_single_distro_file(d.initrd, distro_dir, symlink_ok)
 
@@ -148,7 +151,7 @@ class TFTPGen:
         if not os.path.exists(images_dir):
             os.makedirs(images_dir)
         newfile = os.path.join(images_dir, img.name)
-        utils.linkfile(filename, newfile, api=self.api)
+        filesystem_helpers.linkfile(filename, newfile, api=self.api)
 
     def write_all_system_files(self, system, menu_items):
         """
@@ -244,9 +247,9 @@ class TFTPGen:
             else:
                 # ensure the files do exist
                 self.logger.info("S390x: management not supported")
-                utils.rmfile(pxe_f)
-                utils.rmfile(conf_f)
-                utils.rmfile(parm_f)
+                filesystem_helpers.rmfile(pxe_f)
+                filesystem_helpers.rmfile(conf_f)
+                filesystem_helpers.rmfile(parm_f)
             self.logger.info(
                 "S390x: pxe: [%s], conf: [%s], parm: [%s]", pxe_f, conf_f, parm_f
             )
@@ -326,8 +329,8 @@ class TFTPGen:
                         link_path = os.path.join(
                             self.bootloc, "grub", "system_link", system.name
                         )
-                        utils.rmfile(link_path)
-                        utils.mkdir(os.path.dirname(link_path))
+                        filesystem_helpers.rmfile(link_path)
+                        filesystem_helpers.mkdir(os.path.dirname(link_path))
                         os.symlink(os.path.join("..", "system", grub_name), link_path)
                 else:
                     self.write_pxe_file(
@@ -341,9 +344,9 @@ class TFTPGen:
                     )
             else:
                 # ensure the file doesn't exist
-                utils.rmfile(pxe_path)
+                filesystem_helpers.rmfile(pxe_path)
                 if grub_path:
-                    utils.rmfile(grub_path)
+                    filesystem_helpers.rmfile(grub_path)
 
     def make_pxe_menu(self) -> Dict[str, str]:
         """
@@ -828,7 +831,7 @@ class TFTPGen:
             self.logger.info("generating: %s", filename)
             # Ensure destination path exists to avoid race condition
             if not os.path.exists(os.path.dirname(filename)):
-                utils.mkdir(os.path.dirname(filename))
+                filesystem_helpers.mkdir(os.path.dirname(filename))
             with open(filename, "w") as fd:
                 fd.write(buffer)
         return buffer
@@ -1234,7 +1237,7 @@ class TFTPGen:
                 dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)
                 dest = os.path.join(dest_dir, os.path.basename(dest))
                 if not os.path.exists(dest_dir):
-                    utils.mkdir(dest_dir)
+                    filesystem_helpers.mkdir(dest_dir)
 
             # Check for problems
             if not os.path.exists(template):

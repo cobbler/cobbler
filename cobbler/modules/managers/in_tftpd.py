@@ -15,6 +15,7 @@ from cobbler import tftpgen
 
 from cobbler.cexceptions import CX
 from cobbler.manager import ManagerModule
+from cobbler.utils import filesystem_helpers
 
 MANAGER = None
 
@@ -77,7 +78,7 @@ class _InTftpdManager(ManagerModule):
                         filedst = os.path.join(rnd_path, tgt_file)
 
                         if not os.path.isdir(rnd_path):
-                            utils.mkdir(rnd_path)
+                            filesystem_helpers.mkdir(rnd_path)
                     if not os.path.isfile(filedst):
                         shutil.copyfile(file, filedst)
                     self.logger.info(

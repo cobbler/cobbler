@@ -11,9 +11,8 @@ import glob
 import logging
 import os
 
-from cobbler import utils
+from cobbler.utils import filesystem_helpers
 from cobbler.cexceptions import CX
-
 
 PATH_PREFIX = "/var/log/cobbler/anamon/"
 
@@ -51,7 +50,7 @@ def run(api, args) -> int:
     def unlink_files(globex):
         for f in glob.glob(globex):
             if os.path.isfile(f):
-                utils.rmfile(f)
+                filesystem_helpers.rmfile(f)
 
     if settings.anamon_enabled:
         dirname = os.path.join(PATH_PREFIX, name)

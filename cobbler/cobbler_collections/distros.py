@@ -13,6 +13,7 @@ from cobbler.cobbler_collections import collection
 from cobbler.items import distro
 from cobbler import utils
 from cobbler.cexceptions import CX
+from cobbler.utils import filesystem_helpers
 
 
 class Distros(collection.Collection):
@@ -125,4 +126,4 @@ class Distros(collection.Collection):
                 if d.kernel.find(path) != -1:
                     found = True
             if not found:
-                utils.rmtree(path)
+                filesystem_helpers.rmtree(path)

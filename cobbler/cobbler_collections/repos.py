@@ -12,6 +12,7 @@ from cobbler.cobbler_collections import collection
 from cobbler.items import repo
 from cobbler import utils
 from cobbler.cexceptions import CX
+from cobbler.utils import filesystem_helpers
 
 
 class Repos(collection.Collection):
@@ -81,4 +82,4 @@ class Repos(collection.Collection):
 
             path = os.path.join(self.api.settings().webdir, "repo_mirror", obj.name)
             if os.path.exists(path):
-                utils.rmtree(path)
+                filesystem_helpers.rmtree(path)
