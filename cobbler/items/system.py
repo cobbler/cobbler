@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional, Union
 from ipaddress import AddressValueError
 
 from cobbler import autoinstall_manager, enums, power_manager, utils, validate
-from cobbler.utils import input_converters
+from cobbler.utils import input_converters, filesystem_helpers
 from cobbler.cexceptions import CX
 from cobbler.items.item import Item
 from cobbler.decorator import InheritableProperty
@@ -1876,7 +1876,7 @@ class System(Item):
             raise TypeError(
                 "Field power_identity_file of object system needs to be of type str!"
             )
-        utils.safe_filter(power_identity_file)
+        filesystem_helpers.safe_filter(power_identity_file)
         self._power_identity_file = power_identity_file
 
     @property
@@ -1903,7 +1903,7 @@ class System(Item):
             raise TypeError(
                 "Field power_options of object system needs to be of type str!"
             )
-        utils.safe_filter(power_options)
+        filesystem_helpers.safe_filter(power_options)
         self._power_options = power_options
 
     @property
@@ -1930,7 +1930,7 @@ class System(Item):
             raise TypeError(
                 "Field power_user of object system needs to be of type str!"
             )
-        utils.safe_filter(power_user)
+        filesystem_helpers.safe_filter(power_user)
         self._power_user = power_user
 
     @property
@@ -1957,7 +1957,7 @@ class System(Item):
             raise TypeError(
                 "Field power_pass of object system needs to be of type str!"
             )
-        utils.safe_filter(power_pass)
+        filesystem_helpers.safe_filter(power_pass)
         self._power_pass = power_pass
 
     @property
@@ -1984,7 +1984,7 @@ class System(Item):
             raise TypeError(
                 "Field power_address of object system needs to be of type str!"
             )
-        utils.safe_filter(power_address)
+        filesystem_helpers.safe_filter(power_address)
         self._power_address = power_address
 
     @property
@@ -2009,7 +2009,7 @@ class System(Item):
         """
         if not isinstance(power_id, str):
             raise TypeError("Field power_id of object system needs to be of type str!")
-        utils.safe_filter(power_id)
+        filesystem_helpers.safe_filter(power_id)
         self._power_id = power_id
 
     @property

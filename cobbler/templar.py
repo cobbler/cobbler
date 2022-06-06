@@ -17,6 +17,7 @@ from typing import Optional, Union, TextIO
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.template_api import CobblerTemplate
+from cobbler.utils import filesystem_helpers
 
 try:
     import jinja2
@@ -145,7 +146,7 @@ class Templar:
 
         # if requested, write the data out to a file
         if out_path is not None:
-            utils.mkdir(os.path.dirname(out_path))
+            filesystem_helpers.mkdir(os.path.dirname(out_path))
             with open(out_path, "w+") as file_descriptor:
                 file_descriptor.write(data_out)
 

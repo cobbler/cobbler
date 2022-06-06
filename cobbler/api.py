@@ -42,7 +42,7 @@ from cobbler import (
     power_manager,
 )
 from cobbler import settings, tftpgen, utils, yumgen
-from cobbler.utils import input_converters, signatures
+from cobbler.utils import input_converters, signatures, filesystem_helpers
 from cobbler.cobbler_collections import manager
 from cobbler.items import (
     distro,
@@ -1939,7 +1939,7 @@ class CobblerAPI:
             "importing from a network location, running rsync to fetch the files first"
         )
 
-        utils.mkdir(path)
+        filesystem_helpers.mkdir(path)
 
         # Prevent rsync from creating the directory name twice if we are copying via rsync.
 

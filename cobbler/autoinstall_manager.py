@@ -8,6 +8,7 @@ import os
 
 from cobbler import autoinstallgen
 from cobbler import utils
+from cobbler.utils import filesystem_helpers
 
 TEMPLATING_ERROR = 1
 KICKSTART_ERROR = 2
@@ -127,7 +128,7 @@ class AutoInstallationManager:
 
         file_full_path = "%s/%s" % (self.templates_base_dir, file_path)
         try:
-            utils.mkdir(os.path.dirname(file_full_path))
+            filesystem_helpers.mkdir(os.path.dirname(file_full_path))
         except:
             utils.die(
                 "unable to create directory for automatic OS installation template at %s"
@@ -239,7 +240,7 @@ class AutoInstallationManager:
 
         file_full_path = "%s/%s" % (self.snippets_base_dir, file_path)
         try:
-            utils.mkdir(os.path.dirname(file_full_path))
+            filesystem_helpers.mkdir(os.path.dirname(file_full_path))
         except:
             utils.die(
                 "unable to create directory for automatic OS installation snippet at %s"
