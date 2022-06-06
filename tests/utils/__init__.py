@@ -756,20 +756,6 @@ def test_named_service_name():
     assert result == "named"
 
 
-def test_find_distro_path(cobbler_api, create_testfile, tmp_path):
-    # Arrange
-    fk_kernel = "vmlinuz1"
-    create_testfile(fk_kernel)
-    test_distro = Distro(cobbler_api)
-    test_distro.kernel = os.path.join(tmp_path, fk_kernel)
-
-    # Act
-    result = utils.find_distro_path(cobbler_api.settings(), test_distro)
-
-    # Assert
-    assert result == tmp_path.as_posix()
-
-
 @pytest.mark.parametrize(
     "test_input_v1,test_input_v2,expected_output,error_expectation",
     [("0.9", "0.1", True, does_not_raise()), ("0.1", "0.9", False, does_not_raise())],

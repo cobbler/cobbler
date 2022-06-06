@@ -1556,23 +1556,6 @@ def named_service_name() -> str:
         return "named"
 
 
-def find_distro_path(settings, distro):
-    """
-    This returns the absolute path to the distro under the ``distro_mirror`` directory. If that directory doesn't
-    contain the kernel, the directory of the kernel in the distro is returned.
-
-    :param settings: The settings to resolve user configurable actions with.
-    :param distro: The distribution to find the path of.
-    :return: The path to the distribution files.
-    """
-    possible_dirs = glob.glob(settings.webdir + "/distro_mirror/*")
-    for directory in possible_dirs:
-        if os.path.dirname(distro.kernel).find(directory) != -1:
-            return os.path.join(settings.webdir, "distro_mirror", directory)
-    # non-standard directory, assume it's the same as the directory in which the given distro's kernel is
-    return os.path.dirname(distro.kernel)
-
-
 def compare_versions_gt(ver1: str, ver2: str) -> bool:
     """
     Compares versions like "0.9.3" with each other and decides if ver1 is greater than ver2.
