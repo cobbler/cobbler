@@ -16,7 +16,7 @@ jobs:
       with:
         python-version: 3.9
     - name: Install dependencies
-      run:  pip install -U rstcheck doc8
+      run:  pip install -U rstcheck doc8 sphinx
     - name: Run rstcheck
       run:  rstcheck -r docs
     - name: Run doc8
