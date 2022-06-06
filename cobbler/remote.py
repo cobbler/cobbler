@@ -38,6 +38,7 @@ from cobbler.items import (
 )
 from cobbler import tftpgen
 from cobbler import utils
+from cobbler.utils import input_converters
 from cobbler.cexceptions import CX
 from cobbler.validate import (
     validate_autoinstall_script_name,
@@ -2074,13 +2075,13 @@ class CobblerXMLRPCInterface:
             elif isinstance(getattr(self.api.settings(), setting_name), int):
                 value = int(value)
             elif isinstance(getattr(self.api.settings(), setting_name), bool):
-                value = utils.input_boolean(value)
+                value = input_converters.input_boolean(value)
             elif isinstance(getattr(self.api.settings(), setting_name), float):
                 value = float(value)
             elif isinstance(getattr(self.api.settings(), setting_name), list):
-                value = utils.input_string_or_list(value)
+                value = input_converters.input_string_or_list(value)
             elif isinstance(getattr(self.api.settings(), setting_name), dict):
-                value = utils.input_string_or_dict(value)
+                value = input_converters.input_string_or_dict(value)
             else:
                 self.logger.error(
                     "modify_setting(%s) - Wrong type for value", setting_name
@@ -2228,7 +2229,7 @@ class CobblerXMLRPCInterface:
                     ] and attributes.get("in_place"):
                         details = self.get_item(object_type, object_name)
                         v2 = details[key]
-                        parsed_input = utils.input_string_or_dict(value)
+                        parsed_input = input_converters.input_string_or_dict(value)
                         for (a, b) in list(parsed_input.items()):
                             if a.startswith("~") and len(a) > 1:
                                 del v2[a[1:]]

@@ -15,6 +15,7 @@ from uuid import UUID
 import netaddr
 
 from cobbler import enums, utils
+from cobbler.utils import input_converters
 from cobbler.items import item
 
 RE_HOSTNAME = re.compile(
@@ -304,7 +305,7 @@ def validate_repos(repos: list, api, bypass_check: bool = False):
         repos = []
     else:
         # TODO: Don't store the names. Store the internal references.
-        repos = utils.input_string_or_list(repos)
+        repos = input_converters.input_string_or_list(repos)
     if not bypass_check:
         for r in repos:
             # FIXME: First check this and then set the repos if the bypass check is used.
@@ -355,7 +356,7 @@ def validate_virt_auto_boot(value: bool) -> bool:
 
     :param value: May be True or False.
     """
-    value = utils.input_boolean(value)
+    value = input_converters.input_boolean(value)
     if not isinstance(value, bool):
         raise TypeError("virt_auto_boot needs to be of type bool.")
     return value
@@ -369,7 +370,7 @@ def validate_virt_pxe_boot(value: bool) -> bool:
     :param value: May be True or False.
     :return: True or False
     """
-    value = utils.input_boolean(value)
+    value = input_converters.input_boolean(value)
     if not isinstance(value, bool):
         raise TypeError("virt_pxe_boot needs to be of type bool.")
     return value

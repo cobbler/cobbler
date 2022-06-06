@@ -9,6 +9,7 @@ import re
 from typing import List
 
 from cobbler import utils
+from cobbler.utils import input_converters
 from cobbler.actions import buildiso
 
 
@@ -563,6 +564,6 @@ class NetbootBuildiso(buildiso.BuildIso):
         :param exclude_dns: Whether the repositories have to be locally available or the internet is reachable.
         """
         buildisodir = self._prepare_iso(buildisodir, distro_name, profiles)
-        systems = utils.input_string_or_list_no_inherit(systems)
+        systems = input_converters.input_string_or_list_no_inherit(systems)
         self.generate_netboot_iso(systems, exclude_dns)
         self._generate_iso(xorrisofs_opts, iso, buildisodir)

@@ -42,6 +42,7 @@ from cobbler import (
     power_manager,
 )
 from cobbler import settings, tftpgen, utils, yumgen
+from cobbler.utils import input_converters
 from cobbler.cobbler_collections import manager
 from cobbler.items import (
     distro,
@@ -477,7 +478,7 @@ class CobblerAPI:
             parent_item = desired_item.parent
             if hasattr(parent_item, attribute):
                 parent_value = getattr(parent_item, attribute)
-                dict_value = utils.input_string_or_dict(value)
+                dict_value = input_converters.input_string_or_dict(value)
                 for key in parent_value:
                     if (
                         key in dict_value

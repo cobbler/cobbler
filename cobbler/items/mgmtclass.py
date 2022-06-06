@@ -9,7 +9,7 @@ import uuid
 from typing import Union
 
 from cobbler.items import item
-from cobbler import utils
+from cobbler.utils import input_converters
 
 
 class Mgmtclass(item.Item):
@@ -82,7 +82,7 @@ class Mgmtclass(item.Item):
 
         :param packages: A string or list which contains the new packages.
         """
-        self._packages = utils.input_string_or_list(packages)
+        self._packages = input_converters.input_string_or_list(packages)
 
     @property
     def files(self) -> list:
@@ -101,7 +101,7 @@ class Mgmtclass(item.Item):
 
         :param files: A string or list which contains the new files.
         """
-        self._files = utils.input_string_or_list(files)
+        self._files = input_converters.input_string_or_list(files)
 
     @property
     def params(self) -> dict:
@@ -122,7 +122,9 @@ class Mgmtclass(item.Item):
         :raises TypeError: Raised in case ``params`` is invalid.
         """
         try:
-            self._params = utils.input_string_or_dict(params, allow_multiples=True)
+            self._params = input_converters.input_string_or_dict(
+                params, allow_multiples=True
+            )
         except TypeError as e:
             raise TypeError("invalid value for params") from e
 
@@ -144,7 +146,7 @@ class Mgmtclass(item.Item):
         :param isdef: The new value for the property.
         :raises TypeError: Raised in case ``isdef`` is not a boolean.
         """
-        isdef = utils.input_boolean(isdef)
+        isdef = input_converters.input_boolean(isdef)
         if not isinstance(isdef, bool):
             raise TypeError("Field is_defintion from mgmtclass must be of type bool.")
         self._is_definition = isdef

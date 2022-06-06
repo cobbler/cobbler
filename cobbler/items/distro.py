@@ -12,6 +12,7 @@ from typing import List, Union
 from cobbler import enums, validate
 from cobbler.items import item
 from cobbler import utils
+from cobbler.utils import input_converters
 from cobbler.cexceptions import CX
 from cobbler import grub
 from cobbler.decorator import InheritableProperty
@@ -438,7 +439,7 @@ class Distro(item.Item):
                 self._boot_loaders = enums.VALUE_INHERITED
                 return
             else:
-                boot_loaders = utils.input_string_or_list(boot_loaders)
+                boot_loaders = input_converters.input_string_or_list(boot_loaders)
 
         if not isinstance(boot_loaders, list):
             raise TypeError("boot_loaders needs to be of type list!")
