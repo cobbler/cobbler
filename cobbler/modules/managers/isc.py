@@ -11,6 +11,7 @@ import shutil
 import time
 
 from cobbler import utils
+from cobbler.utils import process_management
 from cobbler.enums import Archs
 from cobbler.manager import ManagerModule
 
@@ -392,7 +393,7 @@ class _IscManager(ManagerModule):
         )
         if return_code_service_restart != 0:
             self.logger.error("Testing config - {} -t failed".format(service_name))
-        return_code_service_restart = utils.service_restart(service_name)
+        return_code_service_restart = process_management.service_restart(service_name)
         if return_code_service_restart != 0:
             self.logger.error("{} service failed".format(service_name))
         return return_code_service_restart

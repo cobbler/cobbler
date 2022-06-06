@@ -14,7 +14,9 @@ def test_register():
 
 def test_run(mocker):
     # Arrange
-    restart_mock = mocker.patch("cobbler.utils.service_restart", return_value=0)
+    restart_mock = mocker.patch(
+        "cobbler.utils.process_management.service_restart", return_value=0
+    )
     api = MagicMock(spec=CobblerAPI)
     api.get_module_name_from_file.side_effect = ["managers.isc", "managers.bind"]
     args = None

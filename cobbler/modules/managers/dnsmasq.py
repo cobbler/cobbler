@@ -9,7 +9,7 @@ This is some of the code behind 'cobbler sync'.
 
 import time
 
-import cobbler.utils as utils
+from cobbler.utils import process_management
 from cobbler.manager import ManagerModule
 
 MANAGER = None
@@ -171,7 +171,9 @@ class _DnsmasqManager(ManagerModule):
         """
         service_name = "dnsmasq"
         if self.settings.restart_dhcp:
-            return_code_service_restart = utils.service_restart(service_name)
+            return_code_service_restart = process_management.service_restart(
+                service_name
+            )
             if return_code_service_restart != 0:
                 self.logger.error("%s service failed", service_name)
             return return_code_service_restart
