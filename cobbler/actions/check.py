@@ -14,6 +14,7 @@ import re
 from xmlrpc.client import ServerProxy
 
 from cobbler import utils
+from cobbler.utils import process_management
 
 
 class CobblerCheck:
@@ -126,13 +127,13 @@ class CobblerCheck:
         if notes != "":
             notes = " (NOTE: %s)" % notes
         return_code = 0
-        if utils.is_supervisord():
+        if process_management.is_supervisord():
             with ServerProxy("http://localhost:9001/RPC2") as server:
                 process_info = server.supervisor.getProcessInfo(which)
                 if process_info["statename"] != "RUNNING":
                     status.append("service %s is not running%s" % (which, notes))
                     return
-        elif utils.is_systemd():
+        elif process_management.is_systemd():
             return_code = utils.subprocess_call(
                 "systemctl status %s > /dev/null 2>/dev/null" % which, shell=True
             )

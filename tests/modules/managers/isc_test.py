@@ -145,7 +145,9 @@ def test_manager_restart_dhcp(mocker, api_isc_mock, reset_singleton):
         "cobbler.utils.subprocess_call", autospec=True, return_value=0
     )
     mocked_service_restart = mocker.patch(
-        "cobbler.utils.service_restart", autospec=True, return_value=0
+        "cobbler.utils.process_management.service_restart",
+        autospec=True,
+        return_value=0,
     )
     manager = isc.get_manager(api_isc_mock)
 

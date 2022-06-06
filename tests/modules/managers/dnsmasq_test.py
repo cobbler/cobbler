@@ -118,7 +118,9 @@ def test_manager_regen_hosts(mocker, cobbler_api):
 
 def test_manager_restart_service(mocker, cobbler_api):
     # Arrange
-    mock_service_restart = mocker.patch("cobbler.utils.service_restart", return_value=0)
+    mock_service_restart = mocker.patch(
+        "cobbler.utils.process_management.service_restart", return_value=0
+    )
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
 

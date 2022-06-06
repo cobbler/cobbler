@@ -4,7 +4,8 @@ Restarts the DHCP and/or DNS after a Cobbler sync to apply changes to the config
 
 import logging
 
-import cobbler.utils as utils
+from cobbler import utils
+from cobbler.utils import process_management
 
 logger = logging.getLogger()
 
@@ -46,11 +47,11 @@ def run(api, args) -> int:
                     logger.error("dhcpd -t failed")
                     return 1
                 dhcp_service_name = utils.dhcp_service_name()
-                ret_code = utils.service_restart(dhcp_service_name)
+                ret_code = process_management.service_restart(dhcp_service_name)
         elif which_dhcp_module == "managers.dnsmasq":
             if settings.restart_dhcp:
                 service_name = "dnsmasq"
-                ret_code = utils.service_restart(service_name)
+                ret_code = process_management.service_restart(service_name)
                 has_restarted_dnsmasq = True
         else:
             logger.error("unknown DHCP engine: %s" % which_dhcp_module)
@@ -59,9 +60,9 @@ def run(api, args) -> int:
     if settings.manage_dns and settings.restart_dns:
         if which_dns_module == "managers.bind":
             named_service_name = utils.named_service_name()
-            ret_code = utils.service_restart(named_service_name)
+            ret_code = process_management.service_restart(named_service_name)
         elif which_dns_module == "managers.dnsmasq" and not has_restarted_dnsmasq:
-            ret_code = utils.service_restart("dnsmasq")
+            ret_code = process_management.service_restart("dnsmasq")
         elif which_dns_module == "managers.dnsmasq" and has_restarted_dnsmasq:
             ret_code = 0
         elif which_dns_module == "managers.ndjbdns":
