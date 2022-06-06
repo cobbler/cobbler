@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 from netaddr.ip import IPAddress
 
+from cobbler import enums
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
@@ -708,7 +709,7 @@ def test_dhcpv4conf_location():
     # Arrange
 
     # Act
-    result = utils.dhcpconf_location(utils.DHCP.V4)
+    result = utils.dhcpconf_location(enums.DHCP.V4)
 
     # Assert
     assert result == "/etc/dhcpd.conf"
@@ -719,7 +720,7 @@ def test_dhcpv6conf_location():
     # Arrange
 
     # Act
-    result = utils.dhcpconf_location(utils.DHCP.V6)
+    result = utils.dhcpconf_location(enums.DHCP.V6)
 
     # Assert
     assert result == "/etc/dhcpd6.conf"
