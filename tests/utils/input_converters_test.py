@@ -61,3 +61,29 @@ def test_input_boolean(testinput, expected_exception, expected_result):
 
         # Assert
         assert expected_result == result
+
+
+@pytest.mark.parametrize(
+    "testinput,expected_exception,expected_result",
+    [
+        (None, pytest.raises(TypeError), 1),
+        (True, does_not_raise(), 1),
+        (1, does_not_raise(), 1),
+        ("1", does_not_raise(), 1),
+        ("text", pytest.raises(TypeError), 1),
+        ("5.0", pytest.raises(TypeError), 0),
+        ([], pytest.raises(TypeError), 0),
+        ({}, pytest.raises(TypeError), 0),
+        (-5, does_not_raise(), -5),
+        (0.5, does_not_raise(), 0),
+    ],
+)
+def test_input_int(testinput, expected_exception, expected_result):
+    # Arrange --> Not needed
+
+    # Act
+    with expected_exception:
+        result = input_converters.input_int(testinput)
+
+        # Assert
+        assert expected_result == result

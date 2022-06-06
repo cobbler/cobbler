@@ -114,3 +114,28 @@ def input_boolean(value: Union[str, bool, int]) -> bool:
         )
     value = str(value).lower()
     return value in ["true", "1", "on", "yes", "y"]
+
+
+def input_int(value: Union[str, int, float]) -> int:
+    """
+    Convert a value to integer.
+
+    :param value: The value to convert.
+    :raises TypeError: In case after the attempted conversion we still don't have an int.
+    :return: The integer if the conversion was successful.
+    """
+    error_message = "value must be convertable to type int."
+    if isinstance(value, (str, float)):
+        try:
+            converted_value = int(value)
+        except ValueError as value_error:
+            raise TypeError(error_message) from value_error
+        if not isinstance(converted_value, int):
+            raise TypeError(error_message)
+        return converted_value
+    elif isinstance(value, bool):
+        return int(value)
+    elif isinstance(value, int):
+        return value
+    else:
+        raise TypeError(error_message)
