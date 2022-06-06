@@ -414,3 +414,17 @@ def test_link_distro(cobbler_api):
 
     # Assert
     assert False
+
+
+def test_find_distro_path(cobbler_api, create_testfile, tmp_path):
+    # Arrange
+    fk_kernel = "vmlinuz1"
+    create_testfile(fk_kernel)
+    test_distro = Distro(cobbler_api)
+    test_distro.kernel = os.path.join(tmp_path, fk_kernel)
+
+    # Act
+    result = test_distro.find_distro_path()
+
+    # Assert
+    assert result == tmp_path.as_posix()

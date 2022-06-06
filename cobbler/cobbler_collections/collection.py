@@ -298,7 +298,7 @@ class Collection:
 
         # for a distro, rename the mirror and references to it
         if ref.COLLECTION_TYPE == "distro":
-            path = utils.find_distro_path(self.api.settings(), ref)
+            path = ref.find_distro_path()
 
             # create a symlink for the new distro name
             ref.link_distro()

@@ -260,7 +260,7 @@ def run(api, args):
 
     def gen_win_files(distro, meta):
         (kernel_path, kernel_name) = os.path.split(distro.kernel)
-        distro_path = utils.find_distro_path(settings, distro)
+        distro_path = distro.find_distro_path()
         distro_dir = wim_file_name = os.path.join(
             settings.tftpboot_location, "images", distro.name
         )

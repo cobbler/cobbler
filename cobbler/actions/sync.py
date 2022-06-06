@@ -325,7 +325,7 @@ class CobblerSync:
         self.tftpd.add_single_distro(distro)
 
         # create the symlink for this distro
-        src_dir = utils.find_distro_path(self.settings, distro)
+        src_dir = distro.find_distro_path()
         dst_dir = os.path.join(self.settings.webdir, "links", name)
         if os.path.exists(dst_dir):
             self.logger.warning("skipping symlink, destination (%s) exists", dst_dir)

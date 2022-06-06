@@ -5,6 +5,7 @@ Cobbler module that contains the code for a Cobbler distro object.
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
+import glob
 import os
 import uuid
 from typing import List, Union
@@ -498,12 +499,28 @@ class Distro(item.Item):
         """
         self._children = value
 
+    def find_distro_path(self):
+        """
+        This returns the absolute path to the distro under the ``distro_mirror`` directory. If that directory doesn't
+        contain the kernel, the directory of the kernel in the distro is returned.
+
+        :return: The path to the distribution files.
+        """
+        possible_dirs = glob.glob(self.api.settings().webdir + "/distro_mirror/*")
+        for directory in possible_dirs:
+            if os.path.dirname(self.kernel).find(directory) != -1:
+                return os.path.join(
+                    self.api.settings().webdir, "distro_mirror", directory
+                )
+        # non-standard directory, assume it's the same as the directory in which the given distro's kernel is
+        return os.path.dirname(self.kernel)
+
     def link_distro(self):
         """
         Link a Cobbler distro from its source into the web directory to make it reachable from the outside.
         """
         # find the tree location
-        base = utils.find_distro_path(self.api.settings(), self)
+        base = self.find_distro_path()
         if not base:
             return
 
