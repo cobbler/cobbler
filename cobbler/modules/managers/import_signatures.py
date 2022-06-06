@@ -1,5 +1,6 @@
 """
-TODO
+Cobbler Module that contains the code for ``cobbler import`` and provides the magic to automatically detect an ISO image
+OS and version.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

@@ -1,5 +1,5 @@
 """
-TODO
+This module contains the code for the abstract base collection that powers all the other collections.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

@@ -1,5 +1,5 @@
 """
-TODO
+Module that contains GRUB related helper functionality.
 """
 
 import logging

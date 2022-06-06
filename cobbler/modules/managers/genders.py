@@ -1,5 +1,6 @@
 """
-TODO
+Cobbler Module that manages the cluster configuration tool from CHAOS. For more information please see:
+`GitHub - chaos/genders <https://github.com/chaos/genders>`_
 """
 
 import distutils.sysconfig

@@ -1,5 +1,5 @@
 """
-TODO
+This module represents the Cobbler Python API. It is used by the XML-RPC API and can be used by external consumers.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

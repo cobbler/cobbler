@@ -1,5 +1,5 @@
 """
-TODO
+Cobbler module that at runtime holds all distros in Cobbler.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

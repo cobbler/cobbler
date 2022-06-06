@@ -1,5 +1,5 @@
 """
-TODO
+Cobbler module that contains the code for a Cobbler menu object.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

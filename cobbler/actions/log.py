@@ -1,5 +1,5 @@
 """
-TODO
+Cobbler Trigger Module that managed the logs associated with a Cobbler system.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
