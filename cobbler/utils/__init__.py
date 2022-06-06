@@ -56,11 +56,6 @@ _re_kernel = re.compile(
 _re_initrd = re.compile(r"(initrd(.*)\.img|ramdisk\.image\.gz|boot\.sdi|imgpayld\.tgz)")
 
 
-class DHCP(enum.Enum):
-    V4 = (4,)
-    V6 = 6
-
-
 # all logging from utils.die goes to the main log even if there
 # is another log.
 logger = logging.getLogger()
@@ -1479,7 +1474,7 @@ def lod_sort_by_key(list_to_sort: list, indexkey) -> list:
     return sorted(list_to_sort, key=lambda k: k[indexkey])
 
 
-def dhcpconf_location(protocol: DHCP, filename: str = "dhcpd.conf") -> str:
+def dhcpconf_location(protocol: enums.DHCP, filename: str = "dhcpd.conf") -> str:
     """
     This method returns the location of the dhcpd.conf file.
 
@@ -1488,12 +1483,12 @@ def dhcpconf_location(protocol: DHCP, filename: str = "dhcpd.conf") -> str:
     :raises AttributeError: If the protocol is not v4/v6.
     :return: The path possibly used for the dhcpd.conf file.
     """
-    if protocol not in DHCP:
+    if protocol not in enums.DHCP:
         logger.info(
             "DHCP configuration location could not be determined due to unknown protocol version."
         )
         raise AttributeError("DHCP must be version 4 or 6!")
-    if protocol == DHCP.V6 and filename == "dhcpd.conf":
+    if protocol == enums.DHCP.V6 and filename == "dhcpd.conf":
         filename = "dhcpd6.conf"
     (dist, version) = os_release()
     if (

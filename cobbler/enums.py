@@ -43,6 +43,11 @@ class ConvertableEnum(enum.Enum):
             raise ValueError(f"{value} must be one of {list(cls)}")
 
 
+class DHCP(enum.Enum):
+    V4 = 4
+    V6 = 6
+
+
 class ResourceAction(ConvertableEnum):
     """
     This enum represents all actions a resource may execute.
