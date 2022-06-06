@@ -286,13 +286,15 @@ class Repo(item.Item):
         :raises TypeError: Raised in case the value is not of type ``int``.
         :raises ValueError: In case the priority is not between 1 and 99.
         """
-        if not isinstance(priority, int):
-            raise TypeError("Repository priority must be of type int.")
-        if priority < 0 or priority > 99:
+        try:
+            converted_value = input_converters.input_int(priority)
+        except TypeError as type_error:
+            raise TypeError("Repository priority must be of type int.") from type_error
+        if converted_value < 0 or converted_value > 99:
             raise ValueError(
-                "Repository priority must be between 0 and 99 (inclusive)!"
+                "Repository priority must be between 1 and 99 (inclusive)!"
             )
-        self._priority = priority
+        self._priority = converted_value
 
     @property
     def rpm_list(self) -> list:
