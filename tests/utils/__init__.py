@@ -570,37 +570,6 @@ def test_is_selinux_enabled():
     assert isinstance(utils.is_selinux_enabled(), bool)
 
 
-def test_get_mtab():
-    # Arrange
-
-    # Act
-    result = utils.get_mtab()
-
-    # Assert
-    assert isinstance(result, list)
-
-
-def test_get_file_device_path():
-    # Arrange
-
-    # Act
-    result = utils.get_file_device_path("/etc/os-release")
-
-    # Assert
-    # TODO Does not work in all environments (e.g. openSUSE TW with BTRFS)
-    assert result == ("overlay", "/usr/lib/os-release")
-
-
-def test_is_remote_file():
-    # Arrange
-
-    # Act
-    result = utils.is_remote_file("/etc/os-release")
-
-    # Assert
-    assert not result
-
-
 @pytest.mark.parametrize(
     "input_cmd,expected_result", [("foobaz", False), ("echo", True)]
 )
