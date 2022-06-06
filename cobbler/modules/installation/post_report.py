@@ -1,10 +1,10 @@
-# (c) 2008-2009
-# Jeff Schroeder <jeffschroeder@computer.org>
-# Michael DeHaan <michael.dehaan AT gmail>
-#
-# License: GPLv2+
+"""
+Post install trigger for Cobbler to send out a pretty email report that contains target information.
+"""
 
-# Post install trigger for Cobbler to send out a pretty email report that contains target information.
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Copyright 2008-2009 Bill Peck <bpeck@redhat.com>
+# SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 from builtins import str
 import smtplib
