@@ -1556,34 +1556,6 @@ def named_service_name() -> str:
         return "named"
 
 
-def link_distro(settings, distro):
-    """
-    Link a Cobbler distro from its source into the web directory to make it reachable from the outside.
-
-    :param settings: The settings to resolve user configurable actions with.
-    :param distro: The distro to link into the Cobbler web directory.
-    """
-    # find the tree location
-    base = find_distro_path(settings, distro)
-    if not base:
-        return
-
-    dest_link = os.path.join(settings.webdir, "links", distro.name)
-
-    # create the links directory only if we are mirroring because with SELinux Apache can't symlink to NFS (without some
-    # doing)
-
-    if not os.path.lexists(dest_link):
-        try:
-            os.symlink(base, dest_link)
-        except:
-            # FIXME: This shouldn't happen but I've (jsabo) seen it...
-            print(
-                "- symlink creation failed: %(base)s, %(dest)s"
-                % {"base": base, "dest": dest_link}
-            )
-
-
 def find_distro_path(settings, distro):
     """
     This returns the absolute path to the distro under the ``distro_mirror`` directory. If that directory doesn't

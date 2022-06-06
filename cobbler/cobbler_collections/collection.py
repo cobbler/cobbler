@@ -301,7 +301,7 @@ class Collection:
             path = utils.find_distro_path(self.api.settings(), ref)
 
             # create a symlink for the new distro name
-            utils.link_distro(self.api.settings(), ref)
+            ref.link_distro()
 
             # Test to see if the distro path is based directly on the name of the distro. If it is, things need to
             # updated accordingly.

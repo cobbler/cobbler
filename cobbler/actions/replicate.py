@@ -251,7 +251,7 @@ class Replicate:
         """
         for distro in self.api.distros():
             self.logger.debug("Linking Distro %s", distro.name)
-            utils.link_distro(self.settings, distro)
+            distro.link_distro()
 
     def generate_include_map(self):
         """
