@@ -15,7 +15,7 @@ from uuid import UUID
 import netaddr
 
 from cobbler import enums, utils
-from cobbler.utils import input_converters
+from cobbler.utils import input_converters, signatures
 from cobbler.items import item
 
 RE_HOSTNAME = re.compile(
@@ -242,8 +242,8 @@ def validate_breed(breed: str) -> str:
         raise TypeError("breed must be of type str")
     if not breed:
         return ""
-    # FIXME: The following line will fail if load_signatures() from utils.py was not called!
-    valid_breeds = utils.get_valid_breeds()
+    # FIXME: The following line will fail if load_signatures() from utils/signatures.py was not called!
+    valid_breeds = signatures.get_valid_breeds()
     breed = breed.lower()
     if breed and breed in valid_breeds:
         return breed
@@ -276,8 +276,8 @@ def validate_os_version(os_version: str, breed: str) -> str:
             "The breed supplied to the validation function of os_version was not valid."
         )
     # Now check the os_version
-    # FIXME: The following line will fail if load_signatures() from utils.py was not called!
-    matched = utils.SIGNATURE_CACHE["breeds"][breed]
+    # FIXME: The following line will fail if load_signatures() from utils/signatures.py was not called!
+    matched = signatures.SIGNATURE_CACHE["breeds"][breed]
     os_version = os_version.lower()
     if os_version not in matched:
         nicer = ", ".join(matched)

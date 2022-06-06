@@ -42,7 +42,7 @@ from cobbler import (
     power_manager,
 )
 from cobbler import settings, tftpgen, utils, yumgen
-from cobbler.utils import input_converters
+from cobbler.utils import input_converters, signatures
 from cobbler.cobbler_collections import manager
 from cobbler.items import (
     distro,
@@ -146,7 +146,7 @@ class CobblerAPI:
 
     def __load_signatures(self):
         try:
-            utils.load_signatures(self.settings().signature_path)
+            signatures.load_signatures(self.settings().signature_path)
         except Exception as e:
             self.logger.error(
                 "Failed to load signatures from %s: %s",
@@ -157,8 +157,8 @@ class CobblerAPI:
 
         self.logger.info(
             "%d breeds and %d OS versions read from the signature file",
-            len(utils.get_valid_breeds()),
-            len(utils.get_valid_os_versions()),
+            len(signatures.get_valid_breeds()),
+            len(signatures.get_valid_os_versions()),
         )
 
     def __generate_settings(
@@ -1512,7 +1512,7 @@ class CobblerAPI:
 
         :return: The dict containing all signatures.
         """
-        return utils.SIGNATURE_CACHE
+        return signatures.SIGNATURE_CACHE
 
     def signature_update(self):
         """
@@ -1531,7 +1531,7 @@ class CobblerAPI:
             )
             # test the import without caching it
             try:
-                utils.load_signatures(tmpfile.name, cache=False)
+                signatures.load_signatures(tmpfile.name, cache=False)
             except:
                 self.logger.error(
                     "Downloaded signatures failed test load (tempfile = %s)",
@@ -1543,7 +1543,7 @@ class CobblerAPI:
             f.write(sigjson.text)
             f.close()
 
-            utils.load_signatures(self.settings().signature_path)
+            signatures.load_signatures(self.settings().signature_path)
         except:
             utils.log_exc()
 

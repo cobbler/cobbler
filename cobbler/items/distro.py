@@ -12,7 +12,7 @@ from typing import List, Union
 from cobbler import enums, validate
 from cobbler.items import item
 from cobbler import utils
-from cobbler.utils import input_converters
+from cobbler.utils import input_converters, signatures
 from cobbler.cexceptions import CX
 from cobbler import grub
 from cobbler.decorator import InheritableProperty
@@ -406,7 +406,9 @@ class Distro(item.Item):
         :return: The bootloaders which are available for being set.
         """
         if len(self._supported_boot_loaders) == 0:
-            self._supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
+            self._supported_boot_loaders = signatures.get_supported_distro_boot_loaders(
+                self
+            )
         return self._supported_boot_loaders
 
     @InheritableProperty

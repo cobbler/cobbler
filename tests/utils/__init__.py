@@ -655,28 +655,6 @@ def test_get_supported_system_boot_loaders():
     assert result == ["grub", "pxe", "ipxe"]
 
 
-def test_get_supported_distro_boot_loaders():
-    # Arrange
-
-    # Act
-    result = utils.get_supported_distro_boot_loaders(None)
-
-    # Assert
-    assert result == ["grub", "pxe", "ipxe"]
-
-
-def test_load_signatures():
-    # Arrange
-    utils.SIGNATURE_CACHE = {}
-    old_cache = utils.SIGNATURE_CACHE
-
-    # Act
-    utils.load_signatures("/var/lib/cobbler/distro_signatures.json")
-
-    # Assert
-    assert old_cache != utils.SIGNATURE_CACHE
-
-
 def test_get_shared_secret():
     # Arrange
     # TODO: Test the case where the file is there.

@@ -17,6 +17,7 @@ from typing import Optional
 from cobbler import enums
 from cobbler import power_manager
 from cobbler import utils
+from cobbler.utils import signatures
 
 INVALID_TASK = "<<invalid>>"
 
@@ -164,7 +165,16 @@ DISTRO_FIELDS = [
     ["tree_build_time", 0, 0, "Tree Build Time", False, "", 0, "str"],
     ["uid", "", 0, "", False, "", 0, "str"],
     # editable in UI
-    ["arch", "x86_64", 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
+    [
+        "arch",
+        "x86_64",
+        0,
+        "Architecture",
+        True,
+        "",
+        signatures.get_valid_archs(),
+        "str",
+    ],
     [
         "autoinstall_meta",
         {},
@@ -202,7 +212,7 @@ DISTRO_FIELDS = [
         "Breed",
         True,
         "What is the type of distribution?",
-        utils.get_valid_breeds(),
+        signatures.get_valid_breeds(),
         "str",
     ],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
@@ -294,7 +304,7 @@ DISTRO_FIELDS = [
         "OS Version",
         True,
         "Needed for some virtualization optimizations",
-        utils.get_valid_os_versions(),
+        signatures.get_valid_os_versions(),
         "str",
     ],
     [
@@ -392,7 +402,16 @@ IMAGE_FIELDS = [
     ["parent", "", 0, "", False, "", 0, "str"],
     ["uid", "", 0, "", False, "", 0, "str"],
     # editable in UI
-    ["arch", "x86_64", 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
+    [
+        "arch",
+        "x86_64",
+        0,
+        "Architecture",
+        True,
+        "",
+        signatures.get_valid_archs(),
+        "str",
+    ],
     [
         "autoinstall",
         "",
@@ -403,7 +422,7 @@ IMAGE_FIELDS = [
         0,
         "str",
     ],
-    ["breed", "redhat", 0, "Breed", True, "", utils.get_valid_breeds(), "str"],
+    ["breed", "redhat", 0, "Breed", True, "", signatures.get_valid_breeds(), "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
     [
         "file",
@@ -434,7 +453,7 @@ IMAGE_FIELDS = [
         "OS Version",
         True,
         "ex: rhel4",
-        utils.get_valid_os_versions(),
+        signatures.get_valid_os_versions(),
         "str",
     ],
     [
@@ -2348,7 +2367,7 @@ class CobblerCLI:
                     options, "filename", "/var/lib/cobbler/distro_signatures.json"
                 )
                 try:
-                    utils.load_signatures(filename, cache=True)
+                    signatures.load_signatures(filename, cache=True)
                 except:
                     print(
                         "There was an error loading the signature data in %s."
