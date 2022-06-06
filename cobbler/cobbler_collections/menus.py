@@ -1,5 +1,5 @@
 """
-TODO
+Cobbler module that at runtime holds all menus in Cobbler.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

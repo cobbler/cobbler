@@ -1,5 +1,5 @@
 """
-TODO
+Cobbler module that is related to validating data for other internal Cobbler modules.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

@@ -1,5 +1,6 @@
 """
-TODO
+Cobbler Trigger Module that puts the content of the Cobbler data directory under version control. Depending on
+``scm_track_mode`` in the settings, this can either be git or Mercurial.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

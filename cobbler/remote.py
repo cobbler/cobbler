@@ -1,5 +1,5 @@
 """
-TODO
+This module contains all code related to the Cobbler XML-RPC API.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

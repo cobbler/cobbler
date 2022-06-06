@@ -1,5 +1,5 @@
 """
-TODO
+Cobbler Trigger Module that checks against a list of hardcoded potential common errors in a Cobbler installation.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
