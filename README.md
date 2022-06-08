@@ -7,7 +7,7 @@
 [![Gitter chat](https://badges.gitter.im/cobbler/gitter.png)](https://gitter.im/cobbler/community)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/c8c0c787c4854aba925d361eacc15811)](https://www.codacy.com/gh/cobbler/cobbler/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=cobbler/cobbler&amp;utm_campaign=Badge_Grade)
 [![codecov](https://codecov.io/gh/cobbler/cobbler/branch/master/graph/badge.svg)](https://codecov.io/gh/cobbler/cobbler)
-
+[![Asciinema](https://img.shields.io/badge/asciinema-Cobbler-success)](https://asciinema.org/~Cobbler)
 
 Cobbler is a Linux installation server that allows for rapid setup of network installation environments. It glues
 together and automates many associated Linux tasks so you do not have to hop between lots of various commands and
