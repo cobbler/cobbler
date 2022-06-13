@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 from netaddr.ip import IPAddress
 
+from cobbler import enums
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
@@ -44,16 +45,6 @@ def test_is_ip(testvalue, expected_result):
 
     # Assert
     assert expected_result == result
-
-
-def test_is_systemd():
-    # Arrange
-
-    # Act
-    result = utils.is_systemd()
-
-    # Assert
-    assert result
 
 
 def test_get_random_mac(cobbler_api):
@@ -209,64 +200,6 @@ def test_file_is_remote(remote_url, expected_result):
     assert expected_result == result
 
 
-@pytest.mark.parametrize(
-    "test_input,expected_result", [("<<inherit>>", "<<inherit>>"), ("delete", [])]
-)
-def test_input_string_or_list(test_input, expected_result):
-    # Arrange
-
-    # Act
-    result = utils.input_string_or_list(test_input)
-
-    # Assert
-    assert expected_result == result
-
-
-@pytest.mark.parametrize(
-    "testinput,expected_result,possible_exception",
-    [
-        ("<<inherit>>", "<<inherit>>", does_not_raise()),
-        ([""], None, pytest.raises(TypeError)),
-        ("a b=10 c=abc", {"a": None, "b": "10", "c": "abc"}, does_not_raise()),
-        ({"ab": 0}, {"ab": 0}, does_not_raise()),
-        (0, None, pytest.raises(TypeError)),
-    ],
-)
-def test_input_string_or_dict(testinput, expected_result, possible_exception):
-    # Arrange
-
-    # Act
-    with possible_exception:
-        result = utils.input_string_or_dict(testinput)
-
-        # Assert
-        assert expected_result == result
-
-
-@pytest.mark.parametrize(
-    "testinput,expected_exception,expected_result",
-    [
-        (True, does_not_raise(), True),
-        (1, does_not_raise(), True),
-        ("oN", does_not_raise(), True),
-        ("yEs", does_not_raise(), True),
-        ("Y", does_not_raise(), True),
-        ("Test", does_not_raise(), False),
-        (-5, does_not_raise(), False),
-        (0.5, pytest.raises(TypeError), False),
-    ],
-)
-def test_input_boolean(testinput, expected_exception, expected_result):
-    # Arrange
-
-    # Act
-    with expected_exception:
-        result = utils.input_boolean(testinput)
-
-        # Assert
-        assert expected_result == result
-
-
 def test_blender(cobbler_api):
     # Arrange
     root_item = Distro(cobbler_api)
@@ -418,245 +351,10 @@ def test_os_release():
     assert ("suse", 15.2) or ("suse", 15.3) == result
 
 
-@pytest.mark.parametrize(
-    "test_src,test_dst,expected_result",
-    [
-        # ("", "", False), --> This has a task in utils.py
-        ("/usr/bin/os-release", "/tmp", True),
-        ("/etc/os-release", "/tmp", False),
-    ],
-)
-def test_is_safe_to_hardlink(cobbler_api, test_src, test_dst, expected_result):
-    # Arrange
-    # TODO: Generate cases
-
-    # Act
-    result = utils.is_safe_to_hardlink(test_src, test_dst, cobbler_api)
-
-    # Assert
-    assert expected_result == result
-
-
-@pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
-def test_hashfile():
-    # Arrange
-    # TODO: Create testfile
-    testfilepath = "/dev/shm/bigtestfile"
-    expected_hash = ""
-
-    # Act
-    result = utils.hashfile(testfilepath)
-
-    # Assert
-    assert expected_hash == result
-
-
-@pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
-def test_cachefile():
-    # Arrange
-    cache_src = ""
-    cache_dst = ""
-    api = None
-
-    # Act
-    utils.cachefile(cache_src, cache_dst)
-
-    # Assert
-    # TODO: Check .link_cache folder exists and the link cache file in it
-    # TODO: Assert file exists in the cache destination
-    assert False
-
-
-@pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
-def test_linkfile(cobbler_api):
-    # Arrange
-    test_source = ""
-    test_destination = ""
-
-    # Act
-    utils.linkfile(test_source, test_destination, api=cobbler_api)
-
-    # Assert
-    assert False
-
-
-@pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
-def test_copyfile():
-    # Arrange
-    test_source = ""
-    test_destination = ""
-
-    # Act
-    utils.copyfile(test_source, test_destination)
-
-    # Assert
-    assert False
-
-
-@pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
-def test_copyremotefile():
-    # Arrange
-    test_source = ""
-    test_destination = ""
-
-    # Act
-    utils.copyremotefile(test_source, test_destination, None)
-
-    # Assert
-    assert False
-
-
-@pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
-def test_copyfile_pattern():
-    # Arrange
-    test_pattern = ""
-    test_destination = ""
-
-    # Act
-    utils.copyfile_pattern(test_pattern, test_destination)
-
-    # Assert
-    assert False
-
-
-def test_rmfile(tmpdir: Path):
-    # Arrange
-    tfile = tmpdir.join("testfile")
-
-    # Act
-    utils.rmfile(tfile)
-
-    # Assert
-    assert not os.path.exists(tfile)
-
-
-def test_rmglob_files(tmpdir: Path):
-    # Arrange
-    tfile1 = tmpdir.join("file1.tfile")
-    tfile2 = tmpdir.join("file2.tfile")
-
-    # Act
-    utils.rmglob_files(tmpdir, "*.tfile")
-
-    # Assert
-    assert not os.path.exists(tfile1)
-    assert not os.path.exists(tfile2)
-
-
-def test_rmtree_contents():
-    # Arrange
-    testfolder = "/dev/shm/"
-    testfiles = ["test1", "blafile", "testremove"]
-    for file in testfiles:
-        Path(os.path.join(testfolder, file)).touch()
-
-    # Act
-    utils.rmtree_contents(testfolder)
-
-    # Assert
-    assert len(os.listdir(testfolder)) == 0
-
-
-def test_rmtree():
-    # Arrange
-    testtree = "/dev/shm/testtree"
-    os.mkdir(testtree)
-
-    # Pre assert to check the creation succeeded.
-    assert os.path.exists(testtree)
-
-    # Act
-    utils.rmtree(testtree)
-
-    # Assert
-    assert not os.path.exists(testtree)
-
-
-def test_mkdir():
-    # TODO: Check how already existing folder is handled.
-    # Arrange
-    testfolder = "/dev/shm/testfoldercreation"
-    testmode = 0o600
-
-    try:
-        shutil.rmtree(testfolder)
-    except OSError:
-        pass
-
-    # Pre assert to check that this actually does something
-    assert not os.path.exists(testfolder)
-
-    # Act
-    utils.mkdir(testfolder, testmode)
-
-    # Assert
-    assert os.path.exists(testfolder)
-
-
-@pytest.mark.parametrize(
-    "test_first_path,test_second_path,expected_result",
-    [("/tmp/test/a", "/tmp/test/a/b/c", "/b/c"), ("/tmp/test/a", "/opt/test/a", "")],
-)
-def test_path_tail(test_first_path, test_second_path, expected_result):
-    # Arrange
-    # TODO: Check if this actually makes sense...
-
-    # Act
-    result = utils.path_tail(test_first_path, test_second_path)
-
-    # Assert
-    assert expected_result == result
-
-
-@pytest.mark.parametrize(
-    "test_input,expected_exception",
-    [
-        ("Test", does_not_raise()),
-        ("Test;Test", pytest.raises(CX)),
-        ("Test..Test", pytest.raises(CX)),
-    ],
-)
-def test_safe_filter(test_input, expected_exception):
-    # Arrange, Act & Assert
-    with expected_exception:
-        assert utils.safe_filter(test_input) is None
-
-
 def test_is_selinux_enabled():
     # Arrange, Act & Assert
     # TODO: Functionality test is something which needs SELinux knowledge
     assert isinstance(utils.is_selinux_enabled(), bool)
-
-
-def test_get_mtab():
-    # Arrange
-
-    # Act
-    result = utils.get_mtab()
-
-    # Assert
-    assert isinstance(result, list)
-
-
-def test_get_file_device_path():
-    # Arrange
-
-    # Act
-    result = utils.get_file_device_path("/etc/os-release")
-
-    # Assert
-    # TODO Does not work in all environments (e.g. openSUSE TW with BTRFS)
-    assert result == ("overlay", "/usr/lib/os-release")
-
-
-def test_is_remote_file():
-    # Arrange
-
-    # Act
-    result = utils.is_remote_file("/etc/os-release")
-
-    # Assert
-    assert not result
 
 
 @pytest.mark.parametrize(
@@ -711,28 +409,6 @@ def test_get_supported_system_boot_loaders():
 
     # Assert
     assert result == ["grub", "pxe", "ipxe"]
-
-
-def test_get_supported_distro_boot_loaders():
-    # Arrange
-
-    # Act
-    result = utils.get_supported_distro_boot_loaders(None)
-
-    # Assert
-    assert result == ["grub", "pxe", "ipxe"]
-
-
-def test_load_signatures():
-    # Arrange
-    utils.SIGNATURE_CACHE = {}
-    old_cache = utils.SIGNATURE_CACHE
-
-    # Act
-    utils.load_signatures("/var/lib/cobbler/distro_signatures.json")
-
-    # Assert
-    assert old_cache != utils.SIGNATURE_CACHE
 
 
 def test_get_shared_secret():
@@ -829,7 +505,7 @@ def test_dhcpv4conf_location():
     # Arrange
 
     # Act
-    result = utils.dhcpconf_location(utils.DHCP.V4)
+    result = utils.dhcpconf_location(enums.DHCP.V4)
 
     # Assert
     assert result == "/etc/dhcpd.conf"
@@ -840,7 +516,7 @@ def test_dhcpv6conf_location():
     # Arrange
 
     # Act
-    result = utils.dhcpconf_location(utils.DHCP.V6)
+    result = utils.dhcpconf_location(enums.DHCP.V6)
 
     # Assert
     assert result == "/etc/dhcpd6.conf"
@@ -876,34 +552,6 @@ def test_named_service_name():
     assert result == "named"
 
 
-@pytest.mark.skip(
-    "This is hard to test as we are creating a symlink in the method. For now we skip it."
-)
-def test_link_distro(cobbler_api):
-    # Arrange
-    test_distro = Distro(cobbler_api)
-
-    # Act
-    utils.link_distro(cobbler_api.settings(), test_distro)
-
-    # Assert
-    assert False
-
-
-def test_find_distro_path(cobbler_api, create_testfile, tmp_path):
-    # Arrange
-    fk_kernel = "vmlinuz1"
-    create_testfile(fk_kernel)
-    test_distro = Distro(cobbler_api)
-    test_distro.kernel = os.path.join(tmp_path, fk_kernel)
-
-    # Act
-    result = utils.find_distro_path(cobbler_api.settings(), test_distro)
-
-    # Assert
-    assert result == tmp_path.as_posix()
-
-
 @pytest.mark.parametrize(
     "test_input_v1,test_input_v2,expected_output,error_expectation",
     [("0.9", "0.1", True, does_not_raise()), ("0.1", "0.9", False, does_not_raise())],
@@ -933,59 +581,3 @@ def test_kopts_overwrite():
     # Assert
     assert "textmode" in kopts
     assert "info" in kopts
-
-
-def test_service_restart_no_manager(mocker):
-    # Arrange
-    mocker.patch("cobbler.utils.is_supervisord", autospec=True, return_value=False)
-    mocker.patch("cobbler.utils.is_systemd", autospec=True, return_value=False)
-    mocker.patch("cobbler.utils.is_service", autospec=True, return_value=False)
-
-    # Act
-    result = utils.service_restart("testservice")
-
-    # Assert
-    assert result == 1
-
-
-def test_service_restart_supervisord(mocker):
-    mocker.patch("cobbler.utils.is_supervisord", autospec=True, return_value=True)
-    # TODO Mock supervisor API and return value
-
-    # Act
-    result = utils.service_restart("dhcpd")
-
-    # Assert
-    assert result == 0
-
-
-def test_service_restart_systemctl(mocker):
-    mocker.patch("cobbler.utils.is_supervisord", autospec=True, return_value=False)
-    mocker.patch("cobbler.utils.is_systemd", autospec=True, return_value=True)
-    mocker.patch("cobbler.utils.subprocess_call", autospec=True, return_value=0)
-
-    # Act
-    result = utils.service_restart("testservice")
-
-    # Assert
-    assert result == 0
-    utils.subprocess_call.assert_called_with(
-        ["systemctl", "restart", "testservice"], shell=False
-    )
-
-
-def test_service_restart_service(mocker):
-    # Arrange
-    mocker.patch("cobbler.utils.is_supervisord", autospec=True, return_value=False)
-    mocker.patch("cobbler.utils.is_systemd", autospec=True, return_value=False)
-    mocker.patch("cobbler.utils.is_service", autospec=True, return_value=True)
-    mocker.patch("cobbler.utils.subprocess_call", autospec=True, return_value=0)
-
-    # Act
-    result = utils.service_restart("testservice")
-
-    # Assert
-    assert result == 0
-    utils.subprocess_call.assert_called_with(
-        ["service", "testservice", "restart"], shell=False
-    )

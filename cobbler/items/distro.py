@@ -5,13 +5,15 @@ Cobbler module that contains the code for a Cobbler distro object.
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
-
+import glob
+import os
 import uuid
 from typing import List, Union
 
 from cobbler import enums, validate
 from cobbler.items import item
 from cobbler import utils
+from cobbler.utils import input_converters, signatures
 from cobbler.cexceptions import CX
 from cobbler import grub
 from cobbler.decorator import InheritableProperty
@@ -405,7 +407,9 @@ class Distro(item.Item):
         :return: The bootloaders which are available for being set.
         """
         if len(self._supported_boot_loaders) == 0:
-            self._supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
+            self._supported_boot_loaders = signatures.get_supported_distro_boot_loaders(
+                self
+            )
         return self._supported_boot_loaders
 
     @InheritableProperty
@@ -438,7 +442,7 @@ class Distro(item.Item):
                 self._boot_loaders = enums.VALUE_INHERITED
                 return
             else:
-                boot_loaders = utils.input_string_or_list(boot_loaders)
+                boot_loaders = input_converters.input_string_or_list(boot_loaders)
 
         if not isinstance(boot_loaders, list):
             raise TypeError("boot_loaders needs to be of type list!")
@@ -494,3 +498,42 @@ class Distro(item.Item):
         :param value: The new children of the distro.
         """
         self._children = value
+
+    def find_distro_path(self):
+        """
+        This returns the absolute path to the distro under the ``distro_mirror`` directory. If that directory doesn't
+        contain the kernel, the directory of the kernel in the distro is returned.
+
+        :return: The path to the distribution files.
+        """
+        possible_dirs = glob.glob(self.api.settings().webdir + "/distro_mirror/*")
+        for directory in possible_dirs:
+            if os.path.dirname(self.kernel).find(directory) != -1:
+                return os.path.join(
+                    self.api.settings().webdir, "distro_mirror", directory
+                )
+        # non-standard directory, assume it's the same as the directory in which the given distro's kernel is
+        return os.path.dirname(self.kernel)
+
+    def link_distro(self):
+        """
+        Link a Cobbler distro from its source into the web directory to make it reachable from the outside.
+        """
+        # find the tree location
+        base = self.find_distro_path()
+        if not base:
+            return
+
+        dest_link = os.path.join(self.api.settings().webdir, "links", self.name)
+
+        # create the links directory only if we are mirroring because with SELinux Apache can't symlink to NFS (without
+        # some doing)
+
+        if not os.path.lexists(dest_link):
+            try:
+                os.symlink(base, dest_link)
+            except:
+                # FIXME: This shouldn't happen but I've (jsabo) seen it...
+                self.logger.warning(
+                    "- symlink creation failed: %s, %s", base, dest_link
+                )

@@ -10,7 +10,7 @@ import uuid
 from typing import Union
 
 from cobbler import enums
-from cobbler import utils
+from cobbler.utils import input_converters
 from cobbler.cexceptions import CX
 from cobbler.items import item
 from cobbler.decorator import InheritableProperty
@@ -185,7 +185,7 @@ class Repo(item.Item):
         :param keep_updated: This may be a bool-like value if the repository shall be kept up to date or not.
         :raises TypeError: In case the conversion to a bool was unsuccessful.
         """
-        keep_updated = utils.input_boolean(keep_updated)
+        keep_updated = input_converters.input_boolean(keep_updated)
         if not isinstance(keep_updated, bool):
             raise TypeError(
                 "Field keep_updated of object repo needs to be of type bool!"
@@ -211,7 +211,9 @@ class Repo(item.Item):
         :raises ValueError: In case the presented data could not be parsed into a dictionary.
         """
         try:
-            self._yumopts = utils.input_string_or_dict(options, allow_multiples=False)
+            self._yumopts = input_converters.input_string_or_dict(
+                options, allow_multiples=False
+            )
         except TypeError as e:
             raise TypeError("invalid yum options") from e
 
@@ -234,7 +236,9 @@ class Repo(item.Item):
         :raises ValueError: In case the options provided can't be parsed.
         """
         try:
-            self._rsyncopts = utils.input_string_or_dict(options, allow_multiples=False)
+            self._rsyncopts = input_converters.input_string_or_dict(
+                options, allow_multiples=False
+            )
         except TypeError as e:
             raise TypeError("invalid rsync options") from e
 
@@ -257,7 +261,7 @@ class Repo(item.Item):
         :raises ValueError: In case the variables provided could not be parsed.
         """
         try:
-            self._environment = utils.input_string_or_dict(
+            self._environment = input_converters.input_string_or_dict(
                 options, allow_multiples=False
             )
         except TypeError as e:
@@ -282,13 +286,15 @@ class Repo(item.Item):
         :raises TypeError: Raised in case the value is not of type ``int``.
         :raises ValueError: In case the priority is not between 1 and 99.
         """
-        if not isinstance(priority, int):
-            raise TypeError("Repository priority must be of type int.")
-        if priority < 0 or priority > 99:
+        try:
+            converted_value = input_converters.input_int(priority)
+        except TypeError as type_error:
+            raise TypeError("Repository priority must be of type int.") from type_error
+        if converted_value < 0 or converted_value > 99:
             raise ValueError(
-                "Repository priority must be between 0 and 99 (inclusive)!"
+                "Repository priority must be between 1 and 99 (inclusive)!"
             )
-        self._priority = priority
+        self._priority = converted_value
 
     @property
     def rpm_list(self) -> list:
@@ -309,7 +315,7 @@ class Repo(item.Item):
 
         :param rpms: The rpm to mirror. This may be a string or list.
         """
-        self._rpm_list = utils.input_string_or_list(rpms)
+        self._rpm_list = input_converters.input_string_or_list(rpms)
 
     @InheritableProperty
     def createrepo_flags(self) -> str:
@@ -437,7 +443,7 @@ class Repo(item.Item):
         :param value: The new value for ``mirror_locally``.
         :raises TypeError: In case the value is not of type ``bool``.
         """
-        value = utils.input_boolean(value)
+        value = input_converters.input_boolean(value)
         if not isinstance(value, bool):
             raise TypeError("mirror_locally needs to be of type bool")
         self._mirror_locally = value
@@ -459,7 +465,7 @@ class Repo(item.Item):
 
         :param value: The new value for ``apt_components``.
         """
-        self._apt_components = utils.input_string_or_list(value)
+        self._apt_components = input_converters.input_string_or_list(value)
 
     @property
     def apt_dists(self) -> list:
@@ -479,7 +485,7 @@ class Repo(item.Item):
 
         :param value: The new value for ``apt_dists``.
         """
-        self._apt_dists = utils.input_string_or_list(value)
+        self._apt_dists = input_converters.input_string_or_list(value)
 
     @InheritableProperty
     def proxy(self) -> str:

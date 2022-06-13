@@ -38,6 +38,7 @@ from cobbler.items import (
 )
 from cobbler import tftpgen
 from cobbler import utils
+from cobbler.utils import input_converters, signatures
 from cobbler.cexceptions import CX
 from cobbler.validate import (
     validate_autoinstall_script_name,
@@ -2074,13 +2075,13 @@ class CobblerXMLRPCInterface:
             elif isinstance(getattr(self.api.settings(), setting_name), int):
                 value = int(value)
             elif isinstance(getattr(self.api.settings(), setting_name), bool):
-                value = utils.input_boolean(value)
+                value = input_converters.input_boolean(value)
             elif isinstance(getattr(self.api.settings(), setting_name), float):
                 value = float(value)
             elif isinstance(getattr(self.api.settings(), setting_name), list):
-                value = utils.input_string_or_list(value)
+                value = input_converters.input_string_or_list(value)
             elif isinstance(getattr(self.api.settings(), setting_name), dict):
-                value = utils.input_string_or_dict(value)
+                value = input_converters.input_string_or_dict(value)
             else:
                 self.logger.error(
                     "modify_setting(%s) - Wrong type for value", setting_name
@@ -2228,7 +2229,7 @@ class CobblerXMLRPCInterface:
                     ] and attributes.get("in_place"):
                         details = self.get_item(object_type, object_name)
                         v2 = details[key]
-                        parsed_input = utils.input_string_or_dict(value)
+                        parsed_input = input_converters.input_string_or_dict(value)
                         for (a, b) in list(parsed_input.items()):
                             if a.startswith("~") and len(a) > 1:
                                 del v2[a[1:]]
@@ -2653,7 +2654,7 @@ class CobblerXMLRPCInterface:
         :return: All valid OS-Breeds which are present in Cobbler.
         """
         self._log("get_valid_breeds", token=token)
-        results = utils.get_valid_breeds()
+        results = signatures.get_valid_breeds()
         results.sort()
         return self.xmlrpc_hacks(results)
 
@@ -2667,7 +2668,7 @@ class CobblerXMLRPCInterface:
         :return: All valid OS-versions for a certain breed.
         """
         self._log("get_valid_os_versions_for_breed", token=token)
-        results = utils.get_valid_os_versions_for_breed(breed)
+        results = signatures.get_valid_os_versions_for_breed(breed)
         results.sort()
         return self.xmlrpc_hacks(results)
 
@@ -2680,7 +2681,7 @@ class CobblerXMLRPCInterface:
         :return: Get all valid OS-Versions
         """
         self._log("get_valid_os_versions", token=token)
-        results = utils.get_valid_os_versions()
+        results = signatures.get_valid_os_versions()
         results.sort()
         return self.xmlrpc_hacks(results)
 
@@ -2692,7 +2693,7 @@ class CobblerXMLRPCInterface:
         :return: Get a list of all valid architectures.
         """
         self._log("get_valid_archs", token=token)
-        results = utils.get_valid_archs()
+        results = signatures.get_valid_archs()
         results.sort()
         return self.xmlrpc_hacks(results)
 

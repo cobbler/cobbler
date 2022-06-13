@@ -11,6 +11,8 @@ import shutil
 import time
 
 from cobbler import utils
+from cobbler import enums
+from cobbler.utils import process_management
 from cobbler.enums import Archs
 from cobbler.manager import ManagerModule
 
@@ -37,8 +39,8 @@ class _IscManager(ManagerModule):
     def __init__(self, api):
         super().__init__(api)
 
-        self.settings_file_v4 = utils.dhcpconf_location(utils.DHCP.V4)
-        self.settings_file_v6 = utils.dhcpconf_location(utils.DHCP.V6)
+        self.settings_file_v4 = utils.dhcpconf_location(enums.DHCP.V4)
+        self.settings_file_v6 = utils.dhcpconf_location(enums.DHCP.V6)
 
     def write_v4_config(self, template_file="/etc/cobbler/dhcp.template"):
         """
@@ -392,7 +394,7 @@ class _IscManager(ManagerModule):
         )
         if return_code_service_restart != 0:
             self.logger.error("Testing config - {} -t failed".format(service_name))
-        return_code_service_restart = utils.service_restart(service_name)
+        return_code_service_restart = process_management.service_restart(service_name)
         if return_code_service_restart != 0:
             self.logger.error("{} service failed".format(service_name))
         return return_code_service_restart

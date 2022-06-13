@@ -1,13 +1,14 @@
 import os
 import re
 import binascii
+import logging
 import tempfile
 from typing import Optional
 
 import cobbler.utils as utils
 import cobbler.templar as templar
 import cobbler.tftpgen as tftpgen
-import logging
+from cobbler.utils import filesystem_helpers
 
 HAS_HIVEX = True
 try:
@@ -260,7 +261,7 @@ def run(api, args):
 
     def gen_win_files(distro, meta):
         (kernel_path, kernel_name) = os.path.split(distro.kernel)
-        distro_path = utils.find_distro_path(settings, distro)
+        distro_path = distro.find_distro_path()
         distro_dir = wim_file_name = os.path.join(
             settings.tftpboot_location, "images", distro.name
         )
@@ -297,7 +298,7 @@ def run(api, args):
             post_install_dir = os.path.join(post_install_dir, "$OEM$", "$1")
 
             if not os.path.exists(post_install_dir):
-                utils.mkdir(post_install_dir)
+                filesystem_helpers.mkdir(post_install_dir)
 
             data = templ.render(post_tmpl_data, meta, None)
             post_install_script = os.path.join(

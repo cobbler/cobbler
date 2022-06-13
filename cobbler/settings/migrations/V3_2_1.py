@@ -10,7 +10,7 @@ import os
 
 from schema import Optional, Schema, SchemaError
 
-from cobbler import utils
+from cobbler.utils import input_converters
 from cobbler.settings.migrations import V3_2_0
 
 schema = Schema(
@@ -218,10 +218,10 @@ def migrate(settings: dict) -> dict:
     ]
     for key in bool_values:
         if key in settings:
-            settings[key] = utils.input_boolean(settings[key])
+            settings[key] = input_converters.input_boolean(settings[key])
     mgmt_parameters = "mgmt_parameters"
     if mgmt_parameters in settings and "from_cobbler" in settings[mgmt_parameters]:
-        settings[mgmt_parameters]["from_cobbler"] = utils.input_boolean(
+        settings[mgmt_parameters]["from_cobbler"] = input_converters.input_boolean(
             settings[mgmt_parameters]["from_cobbler"]
         )
 

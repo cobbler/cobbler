@@ -20,19 +20,20 @@ import stat
 
 import magic
 
-HAS_HIVEX = True
-try:
-    import hivex
-    from hivex.hive_types import REG_SZ
-except Exception:
-    HAS_HIVEX = False
-
 from cobbler.items import profile, distro
 from cobbler.cexceptions import CX
 from cobbler import enums, utils
 from cobbler.manager import ManagerModule
 
 import cobbler.items.repo as item_repo
+from cobbler.utils import filesystem_helpers
+
+HAS_HIVEX = True
+try:
+    import hivex
+    from hivex.hive_types import REG_SZ
+except Exception:
+    HAS_HIVEX = False
 
 # Import aptsources module if available to obtain repo mirror.
 try:
@@ -205,7 +206,7 @@ class _ImportSignatureManager(ManagerModule):
                 if os.path.exists(cmd_path) and os.path.exists(bootwim_path):
                     winpe_path = os.path.join(dest_path, "winpe.wim")
                     if not os.path.exists(dest_path):
-                        utils.mkdir(dest_path)
+                        filesystem_helpers.mkdir(dest_path)
                     rc = utils.subprocess_call(
                         [cmd_path, bootwim_path, "1", winpe_path, "--boot"], shell=False
                     )
@@ -735,7 +736,7 @@ class _ImportSignatureManager(ManagerModule):
             # Where we assign the automated installation file source is relative to our current directory and the input
             # start directory in the crawl. We find the path segments between and tack them on the network source
             # path to find the explicit network path to the distro that Anaconda can digest.
-            tail = utils.path_tail(self.path, base)
+            tail = filesystem_helpers.path_tail(self.path, base)
             tree = self.network_root[:-1] + tail
             self.set_install_tree(distribution, tree)
 

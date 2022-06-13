@@ -17,6 +17,7 @@ from cobbler.cexceptions import CX
 from cobbler import templar
 from cobbler import tftpgen
 from cobbler import utils
+from cobbler.utils import filesystem_helpers
 
 
 class CobblerSync:
@@ -171,22 +172,22 @@ class CobblerSync:
         Create directories for tftpboot images
         """
         if not os.path.exists(self.pxelinux_dir):
-            utils.mkdir(self.pxelinux_dir)
+            filesystem_helpers.mkdir(self.pxelinux_dir)
         if not os.path.exists(self.grub_dir):
-            utils.mkdir(self.grub_dir)
+            filesystem_helpers.mkdir(self.grub_dir)
         grub_images_link = os.path.join(self.grub_dir, "images")
         if not os.path.exists(grub_images_link):
             os.symlink("../images", grub_images_link)
         if not os.path.exists(self.images_dir):
-            utils.mkdir(self.images_dir)
+            filesystem_helpers.mkdir(self.images_dir)
         if not os.path.exists(self.rendered_dir):
-            utils.mkdir(self.rendered_dir)
+            filesystem_helpers.mkdir(self.rendered_dir)
         if not os.path.exists(self.ipxe_dir):
-            utils.mkdir(self.ipxe_dir)
+            filesystem_helpers.mkdir(self.ipxe_dir)
         if not os.path.exists(self.links):
-            utils.mkdir(self.links)
+            filesystem_helpers.mkdir(self.links)
         if not os.path.exists(self.distromirror_config):
-            utils.mkdir(self.distromirror_config)
+            filesystem_helpers.mkdir(self.distromirror_config)
 
     def clean_trees(self):
         """
@@ -203,11 +204,11 @@ class CobblerSync:
             path = os.path.join(self.settings.webdir, x)
             if os.path.isfile(path):
                 if not x.endswith(".py"):
-                    utils.rmfile(path)
+                    filesystem_helpers.rmfile(path)
             if os.path.isdir(path):
                 if x not in self.settings.webdir_whitelist:
                     # delete directories that shouldn't exist
-                    utils.rmtree(path)
+                    filesystem_helpers.rmtree(path)
                 if x in [
                     "templates",
                     "images",
@@ -219,13 +220,13 @@ class CobblerSync:
                     "rendered",
                 ]:
                     # clean out directory contents
-                    utils.rmtree_contents(path)
+                    filesystem_helpers.rmtree_contents(path)
         self.__create_tftpboot_dirs()
-        utils.rmtree_contents(self.pxelinux_dir)
-        utils.rmtree_contents(self.grub_dir)
-        utils.rmtree_contents(self.images_dir)
-        utils.rmtree_contents(self.ipxe_dir)
-        utils.rmtree_contents(self.rendered_dir)
+        filesystem_helpers.rmtree_contents(self.pxelinux_dir)
+        filesystem_helpers.rmtree_contents(self.grub_dir)
+        filesystem_helpers.rmtree_contents(self.images_dir)
+        filesystem_helpers.rmtree_contents(self.ipxe_dir)
+        filesystem_helpers.rmtree_contents(self.rendered_dir)
 
     def write_dhcp(self):
         """
@@ -325,12 +326,12 @@ class CobblerSync:
         self.tftpd.add_single_distro(distro)
 
         # create the symlink for this distro
-        src_dir = utils.find_distro_path(self.settings, distro)
+        src_dir = distro.find_distro_path()
         dst_dir = os.path.join(self.settings.webdir, "links", name)
         if os.path.exists(dst_dir):
             self.logger.warning("skipping symlink, destination (%s) exists", dst_dir)
         elif (
-            utils.path_tail(
+            filesystem_helpers.path_tail(
                 os.path.join(self.settings.webdir, "distro_mirror"), src_dir
             )
             == ""
@@ -376,13 +377,13 @@ class CobblerSync:
         """
         bootloc = self.settings.tftpboot_location
         # delete contents of images/$name directory in webdir
-        utils.rmtree(os.path.join(self.settings.webdir, "images", name))
+        filesystem_helpers.rmtree(os.path.join(self.settings.webdir, "images", name))
         # delete contents of images/$name in tftpboot
-        utils.rmtree(os.path.join(bootloc, "images", name))
+        filesystem_helpers.rmtree(os.path.join(bootloc, "images", name))
         # delete potential symlink to tree in webdir/links
-        utils.rmfile(os.path.join(self.settings.webdir, "links", name))
+        filesystem_helpers.rmfile(os.path.join(self.settings.webdir, "links", name))
         # delete potential distro config files
-        utils.rmglob_files(
+        filesystem_helpers.rmglob_files(
             os.path.join(self.settings.webdir, "distro_mirror", "config"),
             name + "*.repo",
         )
@@ -394,7 +395,7 @@ class CobblerSync:
         :param name: The name of the image.
         """
         bootloc = self.settings.tftpboot_location
-        utils.rmfile(os.path.join(bootloc, "images2", name))
+        filesystem_helpers.rmfile(os.path.join(bootloc, "images2", name))
 
     def add_single_profile(
         self, name: str, rebuild_menu: bool = True
@@ -433,9 +434,11 @@ class CobblerSync:
         :param rebuild_menu: Whether to rebuild the grub/... menu or not.
         """
         # delete profiles/$name file in webdir
-        utils.rmfile(os.path.join(self.settings.webdir, "profiles", name))
+        filesystem_helpers.rmfile(os.path.join(self.settings.webdir, "profiles", name))
         # delete contents on autoinstalls/$name directory in webdir
-        utils.rmtree(os.path.join(self.settings.webdir, "autoinstalls", name))
+        filesystem_helpers.rmtree(
+            os.path.join(self.settings.webdir, "autoinstalls", name)
+        )
         if rebuild_menu:
             self.tftpgen.make_pxe_menu()
 
@@ -485,11 +488,15 @@ class CobblerSync:
             grub_filename = system_record.get_config_filename(
                 interface=name, loader="grub"
             )
-            utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", pxe_filename))
+            filesystem_helpers.rmfile(
+                os.path.join(bootloc, "pxelinux.cfg", pxe_filename)
+            )
             if not (system_record.name == "default" and grub_filename is None):
                 # A default system can't have GRUB entries and thus we want to skip this.
-                utils.rmfile(os.path.join(bootloc, "grub", "system", grub_filename))
-            utils.rmfile(
+                filesystem_helpers.rmfile(
+                    os.path.join(bootloc, "grub", "system", grub_filename)
+                )
+            filesystem_helpers.rmfile(
                 os.path.join(bootloc, "grub", "system_link", system_record.name)
             )
 

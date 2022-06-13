@@ -14,6 +14,7 @@ import shutil
 from typing import Dict, List, Optional, Union
 
 from cobbler import utils
+from cobbler.utils import input_converters, filesystem_helpers
 from cobbler.enums import Archs
 
 
@@ -155,7 +156,7 @@ class BuildIso:
                 for file_to_copy in files_to_copy:
                     source_file = syslinux_folder.joinpath(file_to_copy)
                     if source_file.exists():
-                        utils.copyfile(
+                        filesystem_helpers.copyfile(
                             str(source_file),
                             os.path.join(self.isolinuxdir, file_to_copy),
                         )
@@ -179,7 +180,7 @@ class BuildIso:
         buildiso_directory = pathlib.Path(buildisodir)
         grub_target = buildiso_directory.joinpath("grub", "grub.efi")
         if grub_efi.exists():
-            utils.copyfile(str(grub_efi), str(grub_target), symlink=True)
+            filesystem_helpers.copyfile(str(grub_efi), str(grub_target), symlink=True)
         else:
             self.logger.error('The following files were not found: "%s"', grub_efi)
             raise FileNotFoundError(
@@ -290,7 +291,7 @@ class BuildIso:
             ) from value_error
         buildisodir = self.__prepare_buildisodir(buildisodir)
         self.__copy_files(iso_distro, buildisodir)
-        self.profiles = utils.input_string_or_list_no_inherit(profiles)
+        self.profiles = input_converters.input_string_or_list_no_inherit(profiles)
         return buildisodir
 
     def _generate_iso(self, xorrisofs_opts: str, iso: str, buildisodir: str):

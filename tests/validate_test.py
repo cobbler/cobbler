@@ -3,7 +3,8 @@ from ipaddress import AddressValueError, NetmaskValueError
 
 import pytest
 
-from cobbler import enums, utils, validate
+from cobbler import enums, validate
+from cobbler.utils import signatures
 from tests.conftest import does_not_raise
 
 
@@ -49,7 +50,7 @@ def test_ipv4_address(input_addr, expected_result, expected_exception):
 
 def test_validate_os_version():
     # Arrange
-    utils.load_signatures("/var/lib/cobbler/distro_signatures.json")
+    signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
 
     # Act
     result = validate.validate_os_version("rhel4", "redhat")
@@ -60,7 +61,7 @@ def test_validate_os_version():
 
 def test_validate_breed():
     # Arrange
-    utils.load_signatures("/var/lib/cobbler/distro_signatures.json")
+    signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
 
     # Act
     result = validate.validate_breed("redhat")

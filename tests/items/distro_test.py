@@ -2,7 +2,8 @@ import os
 
 import pytest
 
-from cobbler import enums, utils
+from cobbler import enums
+from cobbler.utils import signatures
 from cobbler.items.distro import Distro
 from tests.conftest import does_not_raise
 
@@ -38,7 +39,7 @@ def test_equality(cobbler_api):
 def test_make_clone(cobbler_api, create_kernel_initrd, fk_kernel, fk_initrd):
     # Arrange
     folder = create_kernel_initrd(fk_kernel, fk_initrd)
-    utils.load_signatures("/var/lib/cobbler/distro_signatures.json")
+    signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
     distro = Distro(cobbler_api)
     distro.breed = "suse"
     distro.os_version = "sles15generic"
@@ -174,7 +175,7 @@ def test_boot_loaders(cobbler_api, value, expected_exception, expected_result):
 )
 def test_breed(cobbler_api, value, expected_exception):
     # Arrange
-    utils.load_signatures("/var/lib/cobbler/distro_signatures.json")
+    signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
     distro = Distro(cobbler_api)
 
     # Act
@@ -399,3 +400,31 @@ def test_supported_boot_loaders(cobbler_api):
     # Assert
     assert isinstance(distro.supported_boot_loaders, list)
     assert distro.supported_boot_loaders == ["grub", "pxe", "ipxe"]
+
+
+@pytest.mark.skip(
+    "This is hard to test as we are creating a symlink in the method. For now we skip it."
+)
+def test_link_distro(cobbler_api):
+    # Arrange
+    test_distro = Distro(cobbler_api)
+
+    # Act
+    test_distro.link_distro()
+
+    # Assert
+    assert False
+
+
+def test_find_distro_path(cobbler_api, create_testfile, tmp_path):
+    # Arrange
+    fk_kernel = "vmlinuz1"
+    create_testfile(fk_kernel)
+    test_distro = Distro(cobbler_api)
+    test_distro.kernel = os.path.join(tmp_path, fk_kernel)
+
+    # Act
+    result = test_distro.find_distro_path()
+
+    # Assert
+    assert result == tmp_path.as_posix()

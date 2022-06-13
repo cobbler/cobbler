@@ -14,6 +14,7 @@ import xmlrpc.client
 from typing import Optional
 
 from cobbler import utils
+from cobbler.utils import filesystem_helpers
 
 OBJ_TYPES = [
     "distro",
@@ -191,7 +192,7 @@ class Replicate:
                     target_webdir = os.path.join(
                         self.remote_settings["webdir"], "distro_mirror"
                     )
-                    tail = utils.path_tail(target_webdir, target["kernel"])
+                    tail = filesystem_helpers.path_tail(target_webdir, target["kernel"])
                     if tail != "":
                         try:
                             # path_tail(a,b) returns something that looks like
@@ -251,7 +252,7 @@ class Replicate:
         """
         for distro in self.api.distros():
             self.logger.debug("Linking Distro %s", distro.name)
-            utils.link_distro(self.settings, distro)
+            distro.link_distro()
 
     def generate_include_map(self):
         """

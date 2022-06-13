@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Union
 from ipaddress import AddressValueError
 
 from cobbler import autoinstall_manager, enums, power_manager, utils, validate
+from cobbler.utils import input_converters, filesystem_helpers
 from cobbler.cexceptions import CX
 from cobbler.items.item import Item
 from cobbler.decorator import InheritableProperty
@@ -158,7 +159,7 @@ class NetworkInterface:
 
         :param cnames: The new cnames.
         """
-        self._cnames = utils.input_string_or_list_no_inherit(cnames)
+        self._cnames = input_converters.input_string_or_list_no_inherit(cnames)
 
     @property
     def static_routes(self) -> list:
@@ -177,7 +178,7 @@ class NetworkInterface:
 
         :param routes: The new routes.
         """
-        self._static_routes = utils.input_string_or_list_no_inherit(routes)
+        self._static_routes = input_converters.input_string_or_list_no_inherit(routes)
 
     @property
     def static(self) -> bool:
@@ -197,7 +198,7 @@ class NetworkInterface:
         :param truthiness: The new value if the interface is static or not.
         """
         try:
-            truthiness = utils.input_boolean(truthiness)
+            truthiness = input_converters.input_boolean(truthiness)
         except TypeError as e:
             raise TypeError(
                 "Field static of NetworkInterface needs to be of Type bool!"
@@ -222,7 +223,7 @@ class NetworkInterface:
         :param truthiness: The new value for management.
         """
         try:
-            truthiness = utils.input_boolean(truthiness)
+            truthiness = input_converters.input_boolean(truthiness)
         except TypeError as e:
             raise TypeError(
                 "Field management of object NetworkInterface needs to be of type bool!"
@@ -573,7 +574,7 @@ class NetworkInterface:
 
         :param addresses: The new secondaries for the interface.
         """
-        data = utils.input_string_or_list(addresses)
+        data = input_converters.input_string_or_list(addresses)
         secondaries = []
         for address in data:
             if address == "" or utils.is_ip(address):
@@ -627,7 +628,7 @@ class NetworkInterface:
 
         :param routes: The new static routes for the interface.
         """
-        self._ipv6_static_routes = utils.input_string_or_list(routes)
+        self._ipv6_static_routes = input_converters.input_string_or_list(routes)
 
     @property
     def ipv6_mtu(self) -> str:
@@ -693,7 +694,7 @@ class NetworkInterface:
         :param truthiness: The new value for connected mode of the interface.
         """
         try:
-            truthiness = utils.input_boolean(truthiness)
+            truthiness = input_converters.input_boolean(truthiness)
         except TypeError as e:
             raise TypeError(
                 "Field connected_mode of object NetworkInterface needs to be of type bool!"
@@ -1088,7 +1089,7 @@ class System(Item):
             return
 
         if isinstance(boot_loaders, str):
-            boot_loaders_split = utils.input_string_or_list(boot_loaders)
+            boot_loaders_split = input_converters.input_string_or_list(boot_loaders)
         else:
             boot_loaders_split = boot_loaders
 
@@ -1425,7 +1426,7 @@ class System(Item):
 
         :param value:
         """
-        value = utils.input_boolean(value)
+        value = input_converters.input_boolean(value)
         if not isinstance(value, bool):
             raise TypeError("ipv6_autoconfiguration needs to be of type bool")
         self._ipv6_autoconfiguration = value
@@ -1478,7 +1479,7 @@ class System(Item):
         :param enable_ipxe: If ipxe should be enabled or not.
         :raises TypeError: In case enable_ipxe is not a boolean.
         """
-        enable_ipxe = utils.input_boolean(enable_ipxe)
+        enable_ipxe = input_converters.input_boolean(enable_ipxe)
         if not isinstance(enable_ipxe, bool):
             raise TypeError("enable_ipxe needs to be of type bool")
         self._enable_ipxe = enable_ipxe
@@ -1795,7 +1796,7 @@ class System(Item):
         :param: netboot_enabled:
         :raises TypeError: In case netboot_enabled is not a boolean.
         """
-        netboot_enabled = utils.input_boolean(netboot_enabled)
+        netboot_enabled = input_converters.input_boolean(netboot_enabled)
         if not isinstance(netboot_enabled, bool):
             raise TypeError("netboot_enabled needs to be a bool")
         self._netboot_enabled = netboot_enabled
@@ -1875,7 +1876,7 @@ class System(Item):
             raise TypeError(
                 "Field power_identity_file of object system needs to be of type str!"
             )
-        utils.safe_filter(power_identity_file)
+        filesystem_helpers.safe_filter(power_identity_file)
         self._power_identity_file = power_identity_file
 
     @property
@@ -1902,7 +1903,7 @@ class System(Item):
             raise TypeError(
                 "Field power_options of object system needs to be of type str!"
             )
-        utils.safe_filter(power_options)
+        filesystem_helpers.safe_filter(power_options)
         self._power_options = power_options
 
     @property
@@ -1929,7 +1930,7 @@ class System(Item):
             raise TypeError(
                 "Field power_user of object system needs to be of type str!"
             )
-        utils.safe_filter(power_user)
+        filesystem_helpers.safe_filter(power_user)
         self._power_user = power_user
 
     @property
@@ -1956,7 +1957,7 @@ class System(Item):
             raise TypeError(
                 "Field power_pass of object system needs to be of type str!"
             )
-        utils.safe_filter(power_pass)
+        filesystem_helpers.safe_filter(power_pass)
         self._power_pass = power_pass
 
     @property
@@ -1983,7 +1984,7 @@ class System(Item):
             raise TypeError(
                 "Field power_address of object system needs to be of type str!"
             )
-        utils.safe_filter(power_address)
+        filesystem_helpers.safe_filter(power_address)
         self._power_address = power_address
 
     @property
@@ -2008,7 +2009,7 @@ class System(Item):
         """
         if not isinstance(power_id, str):
             raise TypeError("Field power_id of object system needs to be of type str!")
-        utils.safe_filter(power_id)
+        filesystem_helpers.safe_filter(power_id)
         self._power_id = power_id
 
     @property
@@ -2031,7 +2032,7 @@ class System(Item):
         :param repos_enabled:
         :raises TypeError: In case is no string.
         """
-        repos_enabled = utils.input_boolean(repos_enabled)
+        repos_enabled = input_converters.input_boolean(repos_enabled)
         if not isinstance(repos_enabled, bool):
             raise TypeError(
                 "Field repos_enabled of object system needs to be of type bool!"

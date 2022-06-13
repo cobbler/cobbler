@@ -18,7 +18,7 @@ from typing import Optional, Union
 from cobbler import utils
 from cobbler import download_manager
 from cobbler.enums import RepoArchs, RepoBreeds, MirrorType
-from cobbler.utils import os_release
+from cobbler.utils import filesystem_helpers, os_release
 from cobbler.cexceptions import CX
 
 HAS_LIBREPO = False
@@ -762,7 +762,7 @@ class RepoSync:
             fname = os.path.join(dest_path, "%s.repo" % repo.name)
         self.logger.debug("creating: %s", fname)
         if not os.path.exists(dest_path):
-            utils.mkdir(dest_path)
+            filesystem_helpers.mkdir(dest_path)
         config_file = open(fname, "w+")
         if not output:
             config_file.write("[main]\nreposdir=/dev/null\n")
