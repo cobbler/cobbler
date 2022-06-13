@@ -1,0 +1,21 @@
+#!/bin/bash
+# Check that cobbler-settings can modify value from the YAML
+
+# Arrange
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+TEST_CONFIG="${tmp}/settings-str.yaml"
+cat <<-END >$TEST_CONFIG
+buildisodir: "/var/cache/cobbler/buildiso"
+END
+
+TEST_KEY="buildisodir"
+TEST_VALUE="/my/custom/directory"
+
+# Act
+cobbler-settings -c "$TEST_CONFIG" modify -k "$TEST_KEY" -v "$TEST_VALUE"
+
+# Assert
+grep "$TEST_KEY: $TEST_VALUE" $TEST_CONFIG

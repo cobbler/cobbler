@@ -1,0 +1,13 @@
+#!/bin/bash
+# Check that cobbler-settings can verify the YAML configuration
+
+# Arrange
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+TEST_CONFIG="/code/tests/test_data/V3_0_0/settings.yaml"
+CONFIG_VERSION="3.0.0"
+
+# Act & Assert
+cobbler-settings -c "$TEST_CONFIG" validate -v "$CONFIG_VERSION"
