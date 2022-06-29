@@ -208,16 +208,16 @@ def migrate(settings: dict) -> dict:
 
     # Do mongodb.conf migration
     mongodb_config = "/etc/cobbler/mongodb.conf"
-    cp = ConfigParser()
+    modules_config_parser = ConfigParser()
     try:
-        cp.read(mongodb_config)
+        modules_config_parser.read(mongodb_config)
     except configparser.Error as cp_error:
         raise configparser.Error(
             "Could not read Cobbler MongoDB config file!"
         ) from cp_error
     settings["mongodb"] = {
-        "host": cp.get("connection", "host", fallback="localhost"),
-        "port": cp.getint("connection", "port", fallback=27017),
+        "host": modules_config_parser.get("connection", "host", fallback="localhost"),
+        "port": modules_config_parser.getint("connection", "port", fallback=27017),
     }
     pathlib.Path(mongodb_config).unlink(missing_ok=True)
 
