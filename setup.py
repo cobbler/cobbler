@@ -552,7 +552,7 @@ if __name__ == "__main__":
             "bin/cobbler-settings",
         ],
         entry_points={
-            'console_scripts': ['cobbler=cobbler.cli:main'],
+            "console_scripts": ["cobbler=cobbler.cli:main"],
         },
         configure_values={
             "webroot": os.path.normpath(webroot),
