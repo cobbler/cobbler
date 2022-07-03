@@ -242,12 +242,14 @@ class Report:
         """
         if report_type == "csv":
             print(self.reporting_csv(data, order, noheaders))
-        if report_type == "mediawiki":
+        elif report_type == "mediawiki":
             print(self.reporting_mediawiki(data, order, noheaders))
-        if report_type == "trac":
+        elif report_type == "trac":
             print(self.reporting_trac(data, order, noheaders))
-        if report_type == "doku":
+        elif report_type == "doku":
             print(self.reporting_doku(data, order, noheaders))
+        else:
+            raise ValueError("Unknown report type selected!")
 
     def reporting_print_sorted(self, collection):
         """
