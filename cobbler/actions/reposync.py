@@ -13,7 +13,7 @@ import os.path
 import pipes
 import stat
 import shutil
-from typing import Optional, Union
+from typing import Any, Dict, Optional, Tuple
 
 from cobbler import utils
 from cobbler import download_manager
@@ -48,6 +48,8 @@ def repo_walker(top, func, arg):
     """
     try:
         names = os.listdir(top)
+        # The order of the return is not guaranteed and seems to depend on the fileystem thus sort the list
+        names.sort()
     except os.error:
         return
     func(arg, top, names)
@@ -134,13 +136,14 @@ class RepoSync:
 
             # Which may actually NOT reposync if the repo is set to not mirror locally but that's a technicality.
 
+            success = False
             for x in range(self.tries + 1, 1, -1):
-                success = False
                 try:
                     self.sync(repo)
                     success = True
                     break
-                except:
+                except Exception:
+                    success = False
                     utils.log_exc()
                     self.logger.warning("reposync failed, tries left: %s", (x - 2))
 
@@ -219,8 +222,7 @@ class RepoSync:
         except librepo.LibrepoException as e:
             raise CX("librepo error: " + dirname + " - " + e.args[1]) from e
 
-        rmd = r.getinfo(librepo.LRR_RPMMD_REPOMD)["records"]
-        return rmd
+        return r.getinfo(librepo.LRR_RPMMD_REPOMD).get("records", {})
 
     # ====================================================================================
 
@@ -496,7 +498,9 @@ class RepoSync:
 
     # ====================================================================================
 
-    def gen_urlgrab_ssl_opts(self, yumopts) -> Union[str, bool]:
+    def gen_urlgrab_ssl_opts(
+        self, yumopts: Dict[str, Any]
+    ) -> Tuple[Optional[Tuple], bool]:
         """
         This function translates yum repository options into the appropriate options for python-requests
 
@@ -519,7 +523,7 @@ class RepoSync:
             else:
                 verify = False
 
-        return (cert, verify)
+        return cert, verify
 
     # ====================================================================================
 
@@ -845,8 +849,7 @@ class RepoSync:
         elif dist in ("debian", "ubuntu"):
             owner = "root:www-data"
 
-        cmd1 = "chown -R " + owner + " %s" % repo_path
-
+        cmd1 = "chown -R %s %s" % (owner, repo_path)
         utils.subprocess_call(cmd1)
 
         cmd2 = "chmod -R 755 %s" % repo_path
