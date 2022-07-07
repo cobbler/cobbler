@@ -801,12 +801,11 @@ class CobblerXMLRPCInterface:
                 'None is not a valid value for the resolved attribute "%s". Please fix the item(s) '
                 'starting at uuid "%s"' % (attribute, item_uuid)
             )
-        elif isinstance(return_value, item.Item):
-            return return_value.name
         elif isinstance(return_value, enums.ConvertableEnum):
             return return_value.value
         elif isinstance(
-            return_value, (enums.DHCP, enums.NetworkInterfaceType, enums.BaudRates)
+            return_value,
+            (enums.DHCP, enums.NetworkInterfaceType, enums.BaudRates, item.Item),
         ):
             return return_value.name
         elif isinstance(return_value, dict):
