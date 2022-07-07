@@ -974,7 +974,7 @@ class Item:
             parent = parent.parent
             # FIXME: Now get the object and check its existence
         results.append(self.api.settings())
-        self.logger.info(
+        self.logger.debug(
             "grab_tree found %s children (including settings) of this object",
             len(results),
         )
