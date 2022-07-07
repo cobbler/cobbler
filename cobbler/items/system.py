@@ -730,6 +730,8 @@ class System(Item):
     A Cobbler system object.
     """
 
+    # Constants
+    TYPE_NAME = "system"
     COLLECTION_TYPE = "system"
 
     def __init__(self, api, *args, **kwargs):
