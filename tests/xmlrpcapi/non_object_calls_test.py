@@ -199,6 +199,40 @@ def test_get_random_mac(remote, token):
         ("arch", "distro", "x86_64", does_not_raise()),
         ("distro", "profile", "testdistro_item_resolved_value", does_not_raise()),
         ("profile", "system", "testprofile_item_resolved_value", does_not_raise()),
+        (
+            "interfaces",
+            "system",
+            {
+                "eth0": {
+                    "bonding_opts": "",
+                    "bridge_opts": "",
+                    "cnames": [],
+                    "connected_mode": False,
+                    "dhcp_tag": "",
+                    "dns_name": "",
+                    "if_gateway": "",
+                    "interface_master": "",
+                    "interface_type": "NA",
+                    "ip_address": "",
+                    "ipv6_address": "",
+                    "ipv6_default_gateway": "",
+                    "ipv6_mtu": "",
+                    "ipv6_prefix": "",
+                    "ipv6_secondaries": [],
+                    "ipv6_static_routes": [],
+                    "mac_address": "aa:bb:cc:dd:ee:ff",
+                    "management": False,
+                    "mtu": "",
+                    "netmask": "",
+                    "static": False,
+                    "static_routes": [],
+                    "virt_bridge": "",
+                }
+            },
+            does_not_raise(),
+        ),
+        ("modify_interface", "system", {}, pytest.raises(ValueError)),
+        ("doesnt_exist", "system", {}, pytest.raises(AttributeError)),
     ],
 )
 def test_get_item_resolved_value(
@@ -227,6 +261,12 @@ def test_get_item_resolved_value(
     create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
     test_system_handle = create_system(name_system, name_profile)
     remote.modify_system(test_system_handle, "kernel_options", "!c !e", token=token)
+    remote.modify_system(
+        test_system_handle,
+        "modify_interface",
+        {"macaddress-eth0": "aa:bb:cc:dd:ee:ff"},
+        token=token,
+    )
     if checked_object == "distro":
         test_item = remote.get_distro(name_distro, token=token)
     elif checked_object == "profile":
