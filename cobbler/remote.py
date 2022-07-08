@@ -731,6 +731,20 @@ class CobblerXMLRPCInterface:
         ):
             return return_value.name
         elif isinstance(return_value, dict):
+            if (
+                attribute == "interfaces"
+                and len(return_value) > 0
+                and all(
+                    isinstance(value, system.NetworkInterface)
+                    for value in return_value.values()
+                )
+            ):
+                interface_return_value = {}
+                for interface_name in return_value:
+                    interface_return_value[interface_name] = return_value[
+                        interface_name
+                    ].to_dict(resolved=True)
+                return interface_return_value
             return self.xmlrpc_hacks(return_value)
 
         if not isinstance(
