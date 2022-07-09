@@ -82,9 +82,7 @@ class Profiles(collection.Collection):
 
         if obj.parent is not None and obj.name in obj.parent.children:
             obj.parent.children.remove(obj.name)
-            # ToDo: Only serialize parent object, use:
-            #       Use self.collection_mgr.serialize_one_item(obj.parent)
-            self.api.serialize()
+            self.collection_mgr.serialize_one_item(obj.parent)
 
         self.lock.acquire()
         try:
