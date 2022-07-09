@@ -563,7 +563,7 @@ def uniquify(seq: list) -> list:
     :return: The list without duplicates.
     """
 
-    # Credit: http://www.peterbe.com/plog/uniqifiers-benchmark
+    # Credit: https://www.peterbe.com/plog/uniqifiers-benchmark
     # FIXME: if this is actually slower than some other way, overhaul it
     # For above there is a better version: https://www.peterbe.com/plog/fastest-way-to-uniquify-a-list-in-python-3.6
     seen = {}

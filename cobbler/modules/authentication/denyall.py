@@ -16,9 +16,8 @@ def register() -> str:
 
 def authenticate(api_handle, username, password) -> bool:
     """
-    Validate a username/password combo, returning True/False
+    Validate a username/password combo, always returning false.
 
-    Thanks to http://trac.edgewall.org/ticket/845 for supplying
-    the algorithm info.
+    :returns: False
     """
     return False
