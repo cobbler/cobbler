@@ -55,6 +55,7 @@ class NetworkInterface:
         self._static = False
         self._static_routes = []
         self._virt_bridge = ""
+        self.is_deserialize = False
 
     def from_dict(self, dictionary: dict):
         """
@@ -117,7 +118,9 @@ class NetworkInterface:
 
         :param interface_dict: The dictionary with the data to deserialize.
         """
+        self.is_deserialize = True
         self.from_dict(interface_dict)
+        self.is_deserialize = False
 
     @property
     def dhcp_tag(self) -> str:
@@ -248,6 +251,10 @@ class NetworkInterface:
         :param dns_name: DNS Name of the system
         :raises ValueError: In case the DNS name is already existing inside Cobbler
         """
+        if self.is_deserialize:
+            self._dns_name = dns_name
+            return
+
         dns_name = validate.hostname(dns_name)
         if dns_name != "" and not self.__api.settings().allow_duplicate_hostnames:
             matched = self.__api.find_items("system", {"dns_name": dns_name})
@@ -277,6 +284,11 @@ class NetworkInterface:
         :param address: IP address
         :raises ValueError: In case the IP address is already existing inside Cobbler.
         """
+        # Do not re-validate data restored from disk
+        if self.is_deserialize:
+            self._ip_address = address
+            return
+
         address = validate.ipv4_address(address)
         if address != "" and not self.__api.settings().allow_duplicate_ips:
             matched = self.__api.find_items("system", {"ip_address": address})
@@ -307,6 +319,10 @@ class NetworkInterface:
         :param address: MAC address
         :raises CX: In case there a random mac can't be computed
         """
+        if self.is_deserialize:
+            self._mac_address = address
+            return
+
         address = validate.mac_address(address)
         if address == "random":
             # FIXME: Pass virt_type of system
@@ -521,6 +537,10 @@ class NetworkInterface:
         :param address: IP address
         :raises ValueError: IN case the IP is duplicated
         """
+        if self.is_deserialize:
+            self._ipv6_address = address
+            return
+
         address = validate.ipv6_address(address)
         if address != "" and not self.__api.settings().allow_duplicate_ips:
             matched = self.__api.find_items("system", {"ipv6_address": address})
@@ -958,8 +978,10 @@ class System(Item):
         if all(isinstance(x, dict) for x in dict_values):
             for key in value:
                 network_iface = NetworkInterface(self.api)
+                network_iface.is_deserialize = self.is_deserialize
                 network_iface.from_dict(value[key])
                 self._interfaces[key] = network_iface
+                network_iface.is_deserialize = False
             return
         raise ValueError(
             "The values of the interfaces must be fully of type dict (one level with values) or "

@@ -142,6 +142,7 @@ class Item:
 
         self.logger = logging.getLogger()
         self.api = api
+        self.is_deserialize = False
 
     def __eq__(self, other):
         """
@@ -994,7 +995,9 @@ class Item:
 
         :param item_dict: The dictionary with the data to deserialize.
         """
+        self.is_deserialize = True
         self.from_dict(item_dict)
+        self.is_deserialize = False
 
     def grab_tree(self) -> list:
         """
