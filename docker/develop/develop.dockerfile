@@ -21,6 +21,8 @@ RUN zypper install --no-recommends -y \
     gzip                       \
     ipmitool                   \
     make                       \
+    curl                       \
+    wget2                      \
     python3                    \
     python3-Sphinx             \
     python3-coverage           \
