@@ -17,7 +17,7 @@ TODO
 EOF
 
 # Act
-curl --output=${tmp}/b http://localhost/cblr/svc/op/puppet/
+curl --output ${tmp}/b http://localhost/cblr/svc/op/puppet/
 
 # Assert
 # FIXME endpoint not yet testable
