@@ -9,6 +9,8 @@ RUN dnf install -y          \
     git                     \
     rsync                   \
     make                    \
+    curl                    \
+    wget2                   \
     openssl                 \
     mod_ssl                 \
     initscripts             \

@@ -15,6 +15,8 @@ RUN zypper install -y          \
     bash-completion            \
     git                        \
     gzip                       \
+    curl                       \
+    wget2                      \
     make                       \
     util-linux                 \
     hardlink                   \
