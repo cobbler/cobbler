@@ -1,5 +1,6 @@
 #!/bin/sh -e
 # Bootstrap the OS for system tests
+# If you adjust anything in this file please check also with the "../prelude" script
 
 server=192.168.1.1
 bridge=pxe

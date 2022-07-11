@@ -1,44 +1,63 @@
+# If you adjust anything in this file please check also with the "scripts/bootstrap" script
+
+#
+# Variables
+#
+
+server=192.168.1.1
+
 #
 # Helpers
 #
 
 _dir() {
-	for dir in ${@}; do
-		test -e ${dir} && echo ${dir} && return
-	done
+    for dir in ${@}; do
+        test -e ${dir} && echo ${dir} && return
+    done
 }
 
 srvctl() {
-	$(command -v supervisorctl systemctl | head -1) ${@}
+    $(command -v supervisorctl systemctl | head -1) ${@}
 }
 
 stop_cobblerd() {
-	srvctl stop cobblerd
+    srvctl stop cobblerd
 }
 
 restart_cobblerd() {
-	srvctl restart cobblerd
-	sleep 1
+    srvctl restart cobblerd
+    sleep 1
 }
 
 _make_system_id() {
-	local id=$(cat ${tmp}/_next-system-id 2>/dev/null)
-	echo $((id + 1)) | tee ${tmp}/_next-system-id
+    local id=$(cat ${tmp}/_next-system-id 2>/dev/null)
+    echo $((id + 1)) | tee ${tmp}/_next-system-id
 }
 
 make_mac_address() {
-	printf "52:54:00"
-	printf "%06x\n" $(_make_system_id) | sed 's/\(..\)/:\1/g'
+    printf "52:54:00"
+    printf "%06x\n" $(_make_system_id) | sed 's/\(..\)/:\1/g'
 }
 
 prepare() {
-	mkdir -p ${tmp}
-	stop_cobblerd
-	rm -f ${path_templates}/${autoinstall_template}
-	rm -f ${path_collections}/*/*.json
-	rm -rf ${path_distro_mirrors}/*
-	restart_cobblerd
-	cobbler sync >/dev/null
+    mkdir -p ${tmp}
+    stop_cobblerd
+    rm -f ${path_templates}/${autoinstall_template}
+    rm -f ${path_collections}/*/*.json
+    rm -rf ${path_distro_mirrors}/*
+    rm /etc/cobbler/settings.yaml*
+    # This is specific for the openSUSE environment
+    cat >/etc/cobbler/settings.yaml <<-EOF
+server: ${server}
+next_server_v4: ${server}
+manage_dhcp: true
+manage_dhcp_v4: true
+manage_dhcp_v6: false
+power_management_default_type: 'ipmilan'
+tftpboot_location: '/srv/tftpboot'
+EOF
+    restart_cobblerd
+    cobbler sync >/dev/null
 }
 
 #
