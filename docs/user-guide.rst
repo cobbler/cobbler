@@ -136,7 +136,7 @@ would expect.
 Snippets can also be overridden for specific profile names or system names. This is described on the Cobbler Wiki.
 
 Autoinstall validation
-====================
+======================
 
 To check for potential errors in auto-installation files, prior to installation, use ``cobbler validate-autoinstalls``.
 This function will check all profile and system auto-installation files for detectable errors. Since ``pykickstart`` and
