@@ -7,7 +7,45 @@ on:
     branches: [ main, release* ]
 
 jobs:
-  run_system_test:
+  basic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Pull Docker Test Container
+        run: docker pull registry.opensuse.org/home/schoolguy/branches/opensuse/templates/images/tumbleweed/containers/opensuse/cobbler-github-ci:latest
+      - name: Run previously built Docker Container
+        run: docker run --cap-add=NET_ADMIN -t -d -v $PWD:/code --name cobbler registry.opensuse.org/home/schoolguy/branches/opensuse/templates/images/tumbleweed/containers/opensuse/cobbler-github-ci:latest
+      - name: Setup Cobbler in the Container
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          docker exec -u 0 -it cobbler bash -c "./docker/develop/scripts/setup-supervisor.sh"
+      - name: Run the Tests inside the Docker Container
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          docker exec -u 0 -it cobbler bash -c "make SYSTESTS='basic-*' system-test"
+      - name: Stop and remove the container
+        run: docker stop cobbler && docker rm cobbler
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Pull Docker Test Container
+        run: docker pull registry.opensuse.org/home/schoolguy/branches/opensuse/templates/images/tumbleweed/containers/opensuse/cobbler-github-ci:latest
+      - name: Run previously built Docker Container
+        run: docker run --cap-add=NET_ADMIN -t -d -v $PWD:/code --name cobbler registry.opensuse.org/home/schoolguy/branches/opensuse/templates/images/tumbleweed/containers/opensuse/cobbler-github-ci:latest
+      - name: Setup Cobbler in the Container
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          docker exec -u 0 -it cobbler bash -c "./docker/develop/scripts/setup-supervisor.sh"
+      - name: Run the Tests inside the Docker Container
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          docker exec -u 0 -it cobbler bash -c "make SYSTESTS='import-*' system-test"
+      - name: Stop and remove the container
+        run: docker stop cobbler && docker rm cobbler
+  settings-cli:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
@@ -23,6 +61,25 @@ jobs:
       - name: Run the Tests inside the Docker Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          docker exec -u 0 -it cobbler bash -c "make system-test"
+          docker exec -u 0 -it cobbler bash -c "make SYSTESTS='settings-cli-*' system-test"
+      - name: Stop and remove the container
+        run: docker stop cobbler && docker rm cobbler
+  svc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Pull Docker Test Container
+        run: docker pull registry.opensuse.org/home/schoolguy/branches/opensuse/templates/images/tumbleweed/containers/opensuse/cobbler-github-ci:latest
+      - name: Run previously built Docker Container
+        run: docker run --cap-add=NET_ADMIN -t -d -v $PWD:/code --name cobbler registry.opensuse.org/home/schoolguy/branches/opensuse/templates/images/tumbleweed/containers/opensuse/cobbler-github-ci:latest
+      - name: Setup Cobbler in the Container
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          docker exec -u 0 -it cobbler bash -c "./docker/develop/scripts/setup-supervisor.sh"
+      - name: Run the Tests inside the Docker Container
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          docker exec -u 0 -it cobbler bash -c "make SYSTESTS='svc-*' system-test"
       - name: Stop and remove the container
         run: docker stop cobbler && docker rm cobbler
