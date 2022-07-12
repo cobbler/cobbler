@@ -624,18 +624,3 @@ def validate_obj_name(object_name: str) -> bool:
     if not isinstance(object_name, str):
         return False
     return bool(re.fullmatch(item.RE_OBJECT_NAME, object_name))
-
-
-def validate_obj_id(object_id: str) -> bool:
-    """
-    This validates a possible object ID against its Cobbler specific object id schema.
-
-    :param object_id: The possible object id candidate.
-    :return: True in case it is one, False otherwise.
-    """
-    if not isinstance(object_id, str):
-        return False
-    if object_id.startswith("___NEW___"):
-        object_id = object_id[9:]
-    (otype, oname) = object_id.split("::", 1)
-    return validate_obj_type(otype) and validate_obj_name(oname)

@@ -111,7 +111,7 @@ class TestMenu:
         # Arrange --> Done in fixture
 
         # Act
-        menu = remote.get_item_handle("menu", "testmenu0", token)
+        menu = remote.get_item_handle("menu", "testmenu0")
 
         # Assert
         assert remote.copy_menu(menu, "testmenucopy", token)
@@ -128,7 +128,7 @@ class TestMenu:
         # Arrange
 
         # Act
-        menu = remote.get_item_handle("menu", "testmenu0", token)
+        menu = remote.get_item_handle("menu", "testmenu0")
         result = remote.rename_menu(menu, "testmenu1", token)
 
         # Assert

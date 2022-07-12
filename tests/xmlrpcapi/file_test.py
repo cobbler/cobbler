@@ -131,7 +131,7 @@ class TestFile:
         )
 
         # Act
-        file = remote.get_item_handle("file", filename_base, token)
+        file = remote.get_item_handle("file", filename_base)
         result = remote.copy_file(file, filename_copy, token)
 
         # Cleanup
@@ -158,7 +158,7 @@ class TestFile:
             "/root/testfile0",
             "testtemplate0",
         )
-        file = remote.get_item_handle("file", filename, token)
+        file = remote.get_item_handle("file", filename)
 
         # Act
         result = remote.rename_file(file, filename_renamed, token)

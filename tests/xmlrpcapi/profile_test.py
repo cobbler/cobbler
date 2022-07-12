@@ -249,7 +249,7 @@ class TestProfile:
         # Arrange --> Done in fixtures
 
         # Act
-        profile = remote.get_item_handle("profile", "testprofile0", token)
+        profile = remote.get_item_handle("profile", "testprofile0")
         result = remote.copy_profile(profile, "testprofilecopy", token)
 
         # Assert
@@ -272,7 +272,7 @@ class TestProfile:
         """
 
         # Arrange
-        profile = remote.get_item_handle("profile", "testprofile0", token)
+        profile = remote.get_item_handle("profile", "testprofile0")
 
         # Act
         result = remote.rename_profile(profile, "testprofile1", token)
