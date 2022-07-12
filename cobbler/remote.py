@@ -1706,6 +1706,7 @@ class CobblerXMLRPCInterface:
         :return: True if the action succeeded.
         """
         self._log("rename_item(%s)" % what, object_id=object_id, token=token)
+        self.check_access(token, "modify_%s" % what)
         obj = self.api.find_items(what, criteria={"uid": object_id}, return_list=False)
         if obj is None:
             raise ValueError('Item with id "%s" not found!' % object_id)
