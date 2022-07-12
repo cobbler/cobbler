@@ -97,7 +97,7 @@ class TestRepo:
         # Arrange --> Done in fixture
 
         # Act
-        repo = remote.get_item_handle("repo", "testrepo0", token)
+        repo = remote.get_item_handle("repo", "testrepo0")
 
         # Assert
         assert remote.copy_repo(repo, "testrepocopy", token)
@@ -114,7 +114,7 @@ class TestRepo:
         # Arrange
 
         # Act
-        repo = remote.get_item_handle("repo", "testrepo0", token)
+        repo = remote.get_item_handle("repo", "testrepo0")
         result = remote.rename_repo(repo, "testrepo1", token)
 
         # Assert

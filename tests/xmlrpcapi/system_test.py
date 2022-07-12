@@ -296,7 +296,7 @@ class TestSystem:
         Test: copy a system object
         """
         # Arrange
-        system = remote.get_item_handle("system", "testsystem0", token)
+        system = remote.get_item_handle("system", "testsystem0")
 
         # Act
         result = remote.copy_system(system, "testsystemcopy", token)
@@ -323,7 +323,7 @@ class TestSystem:
         """
 
         # Arrange --> Done in fixtures also.
-        system = remote.get_item_handle("system", "testsystem0", token)
+        system = remote.get_item_handle("system", "testsystem0")
 
         # Act
         result = remote.rename_system(system, "testsystem1", token)

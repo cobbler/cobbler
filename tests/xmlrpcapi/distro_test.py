@@ -157,7 +157,7 @@ class TestDistro:
         # Arrange --> Done in the fixture
 
         # Act
-        distro = remote.get_item_handle("distro", "testdistro0", token)
+        distro = remote.get_item_handle("distro", "testdistro0")
         result = remote.copy_distro(distro, "testdistrocopy", token)
 
         # Assert
@@ -172,7 +172,7 @@ class TestDistro:
         Test: rename a distro object
         """
         # Arrange
-        distro = remote.get_item_handle("distro", "testdistro0", token)
+        distro = remote.get_item_handle("distro", "testdistro0")
 
         # Act
         result = remote.rename_distro(distro, "testdistro1", token)
