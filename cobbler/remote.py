@@ -2151,8 +2151,21 @@ class CobblerXMLRPCInterface:
             system_to_edit = self.__get_object(handle)
             if system_to_edit is None:
                 raise ValueError("No system found with the specified name (name given: \"%s\")!" % object_name)
-            # If we don't have an explicit interface name use the default interface
-            interface_name = attributes.get("interface", "default")
+            # If we don't have an explicit interface name use the default interface or require an explicit
+            # interface if default cannot be found.
+            if (
+                len(system_to_edit.interfaces) > 1
+                and attributes.get("interface") is None
+            ):
+                if "default" not in system_to_edit.interfaces.keys():
+                    raise ValueError("Interface is required.")
+                interface_name = "default"
+            if len(system_to_edit.interfaces) == 1:
+                interface_name = attributes.get(
+                    "interface", next(iter(system_to_edit.interfaces))
+                )
+            else:
+                interface_name = attributes.get("interface", "default")
             self.logger.debug("Interface \"%s\" is being edited.", interface_name)
             interface = system_to_edit.interfaces.get(interface_name)
             if interface is None:
