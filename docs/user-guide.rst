@@ -135,13 +135,13 @@ would expect.
 
 Snippets can also be overridden for specific profile names or system names. This is described on the Cobbler Wiki.
 
-Kickstart validation
+Autoinstall validation
 ====================
 
-To check for potential errors in kickstarts, prior to installation, use ``cobbler validateks``. This function will check
-all profile and system kickstarts for detectable errors. Since pykickstart is not future-Anaconda-version aware, there
-may be some false positives. It should be noted that ``cobbler validateks`` runs on the rendered kickstart output, not
-kickstart templates themselves.
+To check for potential errors in auto-installation files, prior to installation, use ``cobbler validate-autoinstalls``.
+This function will check all profile and system auto-installation files for detectable errors. Since ``pykickstart`` and
+related tools are not future-version aware in most cases, there may be some false positives. It should be noted that
+``cobbler validate-autoinstalls`` runs on the rendered autoinstall output, not autoinstall templates themselves.
 
 Network Topics
 ##############

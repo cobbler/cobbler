@@ -9,7 +9,7 @@ _cobbler_completions()
     prev="${COMP_WORDS[COMP_CWORD-1]}"
     cobbler_type=${COMP_WORDS[1]}
     COMPREPLY=()
-    TYPE="distro profile system repo image mgmtclass package file aclsetup buildiso import list replicate report reposync sync validateks version signature hardlink"
+    TYPE="distro profile system repo image mgmtclass package file aclsetup buildiso import list replicate report reposync sync version signature hardlink"
     ACTION="add edit copy list remove rename report mkloaders"
     opts=(
         [distro]="--ctime --depth --mtime --source-repos --tree-build-time --uid --arch --autoinstall-meta --boot-files --boot-loaders --breed --comment --fetchable-files --initrd --kernel --kernel-options --kernel-options-post --mgmt-classes --name --os-version --owners --redhat-management-key --template-files --in-place --help"
