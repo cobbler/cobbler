@@ -163,6 +163,7 @@ schema = Schema(
             Optional("host"): str,
             Optional("port"): int,
         },
+        Optional("autoinstall_protocol"): str,
     },
     ignore_extra_keys=False,
 )

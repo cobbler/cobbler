@@ -618,3 +618,9 @@ modules:
 mongodb:
   host: "localhost"
   port: 27017
+
+# This should contain the protocol over which the autointall-file is available.
+# Valid values are: http, https
+# This is setting does not setup you api for https it just changes the way the url for your profiles and systems are
+# generated.
+autoinstall_protocol: "http"
