@@ -84,7 +84,7 @@ class TestPackage:
         # Arrange --> Done in fixture
 
         # Act
-        package = remote.get_item_handle("package", "testpackage0", token)
+        package = remote.get_item_handle("package", "testpackage0")
         result = remote.copy_package(package, "testpackagecopy", token)
 
         # Assert
@@ -99,9 +99,9 @@ class TestPackage:
         Test: rename a package object
         """
 
-        package = remote.get_item_handle("package", "testpackage0", token)
+        package = remote.get_item_handle("package", "testpackage0")
         assert remote.rename_package(package, "testpackage1", token)
-        package = remote.get_item_handle("package", "testpackage1", token)
+        package = remote.get_item_handle("package", "testpackage1")
         assert remote.rename_package(package, "testpackage0", token)
 
     @pytest.mark.usefixtures("create_package")

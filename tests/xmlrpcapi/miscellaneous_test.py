@@ -1042,7 +1042,7 @@ class TestMiscellaneous:
         kernel_options = "tree=http://@@http_server@@/cblr/links/@@distro_name@@"
 
         # Act
-        distro = remote.get_item_handle("distro", "testdistro0", token)
+        distro = remote.get_item_handle("distro", "testdistro0")
         remote.modify_distro(distro, "kernel_options", kernel_options, token)
         remote.save_distro(distro, token)
 

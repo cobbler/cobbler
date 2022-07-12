@@ -81,7 +81,7 @@ class TestImage:
         # Arrange
 
         # Act
-        image = remote.get_item_handle("image", "testimage0", token)
+        image = remote.get_item_handle("image", "testimage0")
 
         # Assert
         assert remote.copy_image(image, "testimagecopy", token)
@@ -92,7 +92,7 @@ class TestImage:
         """
         # Arrange
         name = "testimage1"
-        image = remote.get_item_handle("image", "testimagecopy", token)
+        image = remote.get_item_handle("image", "testimagecopy")
 
         # Act
         result = remote.rename_image(image, name, token)

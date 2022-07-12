@@ -27,15 +27,7 @@ from cobbler import autoinstall_manager
 from cobbler import configgen
 from cobbler.items import (
     item,
-    package,
     system,
-    image,
-    profile,
-    repo,
-    mgmtclass,
-    distro,
-    file,
-    menu,
 )
 from cobbler import tftpgen
 from cobbler import utils
@@ -43,7 +35,6 @@ from cobbler.utils import input_converters, signatures
 from cobbler.cexceptions import CX
 from cobbler.validate import (
     validate_autoinstall_script_name,
-    validate_obj_id,
     validate_obj_name,
     validate_uuid,
 )
@@ -144,7 +135,7 @@ class CobblerXMLRPCInterface:
         self.api = api
         self.logger = logging.getLogger()
         self.token_cache: Dict[str, tuple] = {}
-        self.object_cache = {}
+        self.unsaved_items = {}
         self.timestamp = self.api.last_modified_time()
         self.events = {}
         self.shared_secret = utils.get_shared_secret()
@@ -379,15 +370,20 @@ class CobblerXMLRPCInterface:
         """
 
         def runner(self):
-            for x in self.options.get("systems", []):
+            for system_name in self.options.get("systems", []):
                 try:
-                    system_id = self.remote.get_system_handle(x, token)
-                    system = self.remote.__get_object(system_id)
-                    self.remote.api.power_system(system, self.options.get("power", ""))
+                    system_obj = self.remote.api.find_system(name=system_name)
+                    if system_obj is None:
+                        raise ValueError(
+                            'System with name "%s" not found' % system_name
+                        )
+                    self.remote.api.power_system(
+                        system_obj, self.options.get("power", "")
+                    )
                 except Exception as e:
                     self.logger.warning(
                         "failed to execute power task on %s, exception: %s"
-                        % (str(x), str(e))
+                        % (str(system_name), str(e))
                     )
 
         self.check_access(token, "power_system")
@@ -410,9 +406,11 @@ class CobblerXMLRPCInterface:
         :param system_id: system handle
         :param power: power operation (on/off/status/reboot)
         """
-        system = self.__get_object(system_id)
-        self.check_access(token, "power_system", system)
-        result = self.api.power_system(system, power)
+        system_obj = self.api.find_system(criteria={"uid": system_id})
+        if system_obj is None:
+            raise ValueError('System with uid "%s" not found' % system_id)
+        self.check_access(token, "power_system", system_obj)
+        result = self.api.power_system(system_obj, power)
         return True if result is None else result
 
     def background_signature_update(self, options: dict, token: str) -> str:
@@ -666,7 +664,7 @@ class CobblerXMLRPCInterface:
             msg = "%s; name(%s)" % (msg, name)
 
         if object_id is not None:
-            if not validate_obj_id(object_id):
+            if not validate_uuid(object_id):
                 return
             msg = "%s; object_id(%s)" % (msg, object_id)
 
@@ -781,10 +779,9 @@ class CobblerXMLRPCInterface:
         :param object_id: The id for the object to retrieve.
         :return: The item to the corresponding id.
         """
-        if object_id.startswith("___NEW___"):
-            return self.object_cache[object_id][1]
-        (otype, oname) = object_id.split("::", 1)
-        return self.api.get_item(otype, oname)
+        if object_id in self.unsaved_items:
+            return self.unsaved_items[object_id][1]
+        return self.api.find_items("", criteria={"uid": object_id}, return_list=False)
 
     def get_item_resolved_value(self, item_uuid: str, attribute: str):
         """
@@ -1362,112 +1359,102 @@ class CobblerXMLRPCInterface:
         else:
             return True
 
-    def get_item_handle(self, what: str, name: str, token=None):
+    def get_item_handle(self, what: str, name: str):
         """
         Given the name of an object (or other search parameters), return a reference (object id) that can be used with
         ``modify_*`` functions or ``save_*`` functions to manipulate that object.
 
         :param what: The collection where the item is living in.
         :param name: The name of the item.
-        :param token: The API-token obtained via the login() method.
         :return: The handle of the desired object.
         """
         found = self.api.get_item(what, name)
         if found is None:
             raise CX("internal error, unknown %s name %s" % (what, name))
-        return "%s::%s" % (what, found.name)
+        return found.uid
 
-    def get_distro_handle(self, name: str, token: str):
+    def get_distro_handle(self, name: str):
         """
         Get a handle for a distribution which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate
         it.
 
         :param name: The name of the item.
-        :param token: The API-token obtained via the login() method.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("distro", name, token)
+        return self.get_item_handle("distro", name)
 
-    def get_profile_handle(self, name: str, token: str):
+    def get_profile_handle(self, name: str):
         """
         Get a handle for a profile which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
 
         :param name: The name of the item.
-        :param token: The API-token obtained via the login() method.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("profile", name, token)
+        return self.get_item_handle("profile", name)
 
-    def get_system_handle(self, name: str, token: str):
+    def get_system_handle(self, name: str):
         """
         Get a handle for a system which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
 
         :param name: The name of the item.
-        :param token: The API-token obtained via the login() method.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("system", name, token)
+        return self.get_item_handle("system", name)
 
-    def get_repo_handle(self, name: str, token: str):
+    def get_repo_handle(self, name: str):
         """
         Get a handle for a repository which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
 
         :param name: The name of the item.
-        :param token: The API-token obtained via the login() method.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("repo", name, token)
+        return self.get_item_handle("repo", name)
 
-    def get_image_handle(self, name: str, token: str):
+    def get_image_handle(self, name: str):
         """
         Get a handle for an image which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
 
         :param name: The name of the item.
-        :param token: The API-token obtained via the login() method.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("image", name, token)
+        return self.get_item_handle("image", name)
 
-    def get_mgmtclass_handle(self, name: str, token: str):
+    def get_mgmtclass_handle(self, name: str):
         """
         Get a handle for a management class which allows you to use the functions ``modify_*`` or ``save_*`` to
         manipulate it.
 
         :param name: The name of the item.
-        :param token: The API-token obtained via the login() method.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("mgmtclass", name, token)
+        return self.get_item_handle("mgmtclass", name)
 
-    def get_package_handle(self, name: str, token: str):
+    def get_package_handle(self, name: str):
         """
         Get a handle for a package which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
 
         :param name: The name of the item.
-        :param token: The API-token obtained via the login() method.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("package", name, token)
+        return self.get_item_handle("package", name)
 
-    def get_file_handle(self, name: str, token: str):
+    def get_file_handle(self, name: str):
         """
         Get a handle for a file which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
 
         :param name: The name of the item.
-        :param token: The API-token obtained via the login() method.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("file", name, token)
+        return self.get_item_handle("file", name)
 
-    def get_menu_handle(self, name: str, token: str):
+    def get_menu_handle(self, name: str):
         """
         Get a handle for a menu which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
 
         :param name: The name of the item.
-        :param token: The API-token obtained via the login() method.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("menu", name, token)
+        return self.get_item_handle("menu", name)
 
     def remove_item(self, what: str, name: str, token: str, recursive: bool = True):
         """
@@ -1601,7 +1588,9 @@ class CobblerXMLRPCInterface:
         """
         self._log("copy_item(%s)" % what, object_id=object_id, token=token)
         self.check_access(token, "copy_%s" % what)
-        obj = self.__get_object(object_id)
+        obj = self.api.find_items(what, criteria={"uid": object_id}, return_list=False)
+        if obj is None:
+            raise ValueError('Item with id "%s" not found.' % object_id)
         self.api.copy_item(what, obj, newname)
         return True
 
@@ -1704,7 +1693,9 @@ class CobblerXMLRPCInterface:
         """
         return self.copy_item("menu", object_id, newname, token)
 
-    def rename_item(self, what, object_id, newname, token=None):
+    def rename_item(
+        self, what: str, object_id: str, newname: str, token: Optional[str] = None
+    ):
         """
         Renames an object specified by object_id to a new name.
 
@@ -1715,11 +1706,13 @@ class CobblerXMLRPCInterface:
         :return: True if the action succeeded.
         """
         self._log("rename_item(%s)" % what, object_id=object_id, token=token)
-        obj = self.__get_object(object_id)
+        obj = self.api.find_items(what, criteria={"uid": object_id}, return_list=False)
+        if obj is None:
+            raise ValueError('Item with id "%s" not found!' % object_id)
         self.api.rename_item(what, obj, newname)
         return True
 
-    def rename_distro(self, object_id, newname, token=None):
+    def rename_distro(self, object_id: str, newname: str, token: Optional[str] = None):
         """
         Renames a distribution specified by object_id to a new name.
 
@@ -1730,7 +1723,7 @@ class CobblerXMLRPCInterface:
         """
         return self.rename_item("distro", object_id, newname, token)
 
-    def rename_profile(self, object_id, newname, token=None):
+    def rename_profile(self, object_id: str, newname: str, token: Optional[str] = None):
         """
         Renames a profile specified by object_id to a new name.
 
@@ -1741,7 +1734,7 @@ class CobblerXMLRPCInterface:
         """
         return self.rename_item("profile", object_id, newname, token)
 
-    def rename_system(self, object_id, newname, token=None):
+    def rename_system(self, object_id: str, newname: str, token: Optional[str] = None):
         """
         Renames a system specified by object_id to a new name.
 
@@ -1752,7 +1745,7 @@ class CobblerXMLRPCInterface:
         """
         return self.rename_item("system", object_id, newname, token)
 
-    def rename_repo(self, object_id, newname, token=None):
+    def rename_repo(self, object_id: str, newname: str, token: Optional[str] = None):
         """
         Renames a repository specified by object_id to a new name.
 
@@ -1763,7 +1756,7 @@ class CobblerXMLRPCInterface:
         """
         return self.rename_item("repo", object_id, newname, token)
 
-    def rename_image(self, object_id, newname, token=None):
+    def rename_image(self, object_id: str, newname: str, token: Optional[str] = None):
         """
         Renames an image specified by object_id to a new name.
 
@@ -1774,7 +1767,9 @@ class CobblerXMLRPCInterface:
         """
         return self.rename_item("image", object_id, newname, token)
 
-    def rename_mgmtclass(self, object_id, newname, token=None):
+    def rename_mgmtclass(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ):
         """
         Renames a managementclass specified by object_id to a new name.
 
@@ -1785,7 +1780,7 @@ class CobblerXMLRPCInterface:
         """
         return self.rename_item("mgmtclass", object_id, newname, token)
 
-    def rename_package(self, object_id, newname, token=None):
+    def rename_package(self, object_id: str, newname: str, token: Optional[str] = None):
         """
         Renames a package specified by object_id to a new name.
 
@@ -1796,7 +1791,7 @@ class CobblerXMLRPCInterface:
         """
         return self.rename_item("package", object_id, newname, token)
 
-    def rename_file(self, object_id, newname, token=None):
+    def rename_file(self, object_id: str, newname: str, token: Optional[str] = None):
         """
         Renames a file specified by object_id to a new name.
 
@@ -1807,7 +1802,7 @@ class CobblerXMLRPCInterface:
         """
         return self.rename_item("file", object_id, newname, token)
 
-    def rename_menu(self, object_id, newname, token=None):
+    def rename_menu(self, object_id: str, newname: str, token: Optional[str] = None):
         """
         Renames a menu specified by object_id to a new name.
 
@@ -1818,7 +1813,7 @@ class CobblerXMLRPCInterface:
         """
         return self.rename_item("menu", object_id, newname, token)
 
-    def new_item(self, what, token, is_subobject: bool = False):
+    def new_item(self, what: str, token: str, is_subobject: bool = False):
         """Creates a new (unconfigured) object, returning an object handle that can be used.
 
         Creates a new (unconfigured) object, returning an object handle that can be used with ``modify_*`` methods and
@@ -1833,28 +1828,27 @@ class CobblerXMLRPCInterface:
         self._log("new_item(%s)" % what, token=token)
         self.check_access(token, "new_%s" % what)
         if what == "distro":
-            d = distro.Distro(self.api, is_subobject=is_subobject)
+            new_item = self.api.new_distro(is_subobject=is_subobject)
         elif what == "profile":
-            d = profile.Profile(self.api, is_subobject=is_subobject)
+            new_item = self.api.new_profile(is_subobject=is_subobject)
         elif what == "system":
-            d = system.System(self.api, is_subobject=is_subobject)
+            new_item = self.api.new_system(is_subobject=is_subobject)
         elif what == "repo":
-            d = repo.Repo(self.api, is_subobject=is_subobject)
+            new_item = self.api.new_repo(is_subobject=is_subobject)
         elif what == "image":
-            d = image.Image(self.api, is_subobject=is_subobject)
+            new_item = self.api.new_image(is_subobject=is_subobject)
         elif what == "mgmtclass":
-            d = mgmtclass.Mgmtclass(self.api, is_subobject=is_subobject)
+            new_item = self.api.new_mgmtclass(is_subobject=is_subobject)
         elif what == "package":
-            d = package.Package(self.api, is_subobject=is_subobject)
+            new_item = self.api.new_package(is_subobject=is_subobject)
         elif what == "file":
-            d = file.File(self.api, is_subobject=is_subobject)
+            new_item = self.api.new_file(is_subobject=is_subobject)
         elif what == "menu":
-            d = menu.Menu(self.api, is_subobject=is_subobject)
+            new_item = self.api.new_menu(is_subobject=is_subobject)
         else:
             raise CX('internal error, collection name is "%s"' % what)
-        key = "___NEW___%s::%s" % (what, self.__get_random(25))
-        self.object_cache[key] = (time.time(), d)
-        return key
+        self.unsaved_items[new_item.uid] = (time.time(), new_item)
+        return new_item.uid
 
     def new_distro(self, token: str):
         """
@@ -2238,13 +2232,13 @@ class CobblerXMLRPCInterface:
                 if "distro" in attributes:
                     raise ValueError("You can't change both 'parent' and 'distro'")
                 self.copy_item(object_type, handle, attributes["newname"], token)
-                handle = self.get_item_handle("profile", attributes["newname"], token)
+                handle = self.get_item_handle("profile", attributes["newname"])
                 self.modify_item(
                     "profile", handle, "parent", attributes["parent"], token
                 )
             else:
                 self.copy_item(object_type, handle, attributes["newname"], token)
-                handle = self.get_item_handle(object_type, attributes["newname"], token)
+                handle = self.get_item_handle(object_type, attributes["newname"])
 
         if edit_type in ["copy"]:
             del attributes["name"]
@@ -2374,7 +2368,7 @@ class CobblerXMLRPCInterface:
                 attributes.get("interface", ""), attributes.get("rename_interface", "")
             )
 
-    def save_item(self, what, object_id, token, editmode: str = "bypass"):
+    def save_item(self, what: str, object_id: str, token, editmode: str = "bypass"):
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
@@ -2392,6 +2386,8 @@ class CobblerXMLRPCInterface:
             self.api.add_item(what, obj, check_for_duplicate_names=True)
         else:
             self.api.add_item(what, obj)
+        if object_id in self.unsaved_items:
+            del self.unsaved_items[object_id]
         return True
 
     def save_distro(self, object_id, token, editmode: str = "bypass"):
@@ -3630,10 +3626,10 @@ class CobblerXMLRPCInterface:
                 self._log("expiring token", token=token, debug=True)
                 del self.token_cache[token]
         # and also expired objects
-        for oid in list(self.object_cache.keys()):
-            (tokentime, entry) = self.object_cache[oid]
+        for oid in list(self.unsaved_items.keys()):
+            (tokentime, entry) = self.unsaved_items[oid]
             if timenow > tokentime + CACHE_TIMEOUT:
-                del self.object_cache[oid]
+                del self.unsaved_items[oid]
         for tid in list(self.events.keys()):
             (eventtime, name, status, who) = self.events[tid]
             if timenow > eventtime + EVENT_TIMEOUT:
@@ -3956,7 +3952,7 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: True if the operation succeeds.
         """
-        obj = self.__get_object(object_id)
+        obj = self.api.find_items(criteria={"uid": object_id}, return_list=False)
         self.check_access(token, "clear_system_logs", obj)
         self.api.clear_logs(obj)
         return True
