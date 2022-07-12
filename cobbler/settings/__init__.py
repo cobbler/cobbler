@@ -87,7 +87,7 @@ class Settings:
                 "extra_modules": ["net", "ofnet"],
             },
             "x86_64-efi": {
-                "binary_name": "grubx86.efi",
+                "binary_name": "grubx64.efi",
                 "extra_modules": ["chain", "efinet"],
             },
         }

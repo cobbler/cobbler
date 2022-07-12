@@ -13,6 +13,8 @@ RUN zypper install -y          \
     apache2-devel              \
     apache2-mod_wsgi-python3   \
     bash-completion            \
+    curl                       \
+    wget2                      \
     git                        \
     gzip                       \
     make                       \

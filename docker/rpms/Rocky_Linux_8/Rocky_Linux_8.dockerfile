@@ -20,6 +20,8 @@ RUN touch /var/lib/rpm/* &&   \
     iproute                   \
     git                       \
     rsync                     \
+    curl                      \
+    wget                      \
     make                      \
     openssl                   \
     mod_ssl                   \
