@@ -158,7 +158,7 @@ class Distro(item.Item):
         if not isinstance(kernel, str):
             raise TypeError("kernel was not of type str")
         if not utils.find_kernel(kernel):
-            raise ValueError("kernel not found: %s" % kernel)
+            raise ValueError("kernel not found or it does not match with allowed kernel filename pattern [%s]: %s." % (utils.re_kernel.pattern, kernel))
         self._kernel = kernel
 
     @property
