@@ -47,6 +47,7 @@ def test_sync_dns(cobbler_api, input_manage_dns, mocker):
     mock = MagicMock()
     m_property = PropertyMock(return_value=input_manage_dns)
     type(mock).manage_dns = m_property
+    mock.modules = {"dns": {"module": "managers.bind"}}
     mocker.patch.object(cobbler_api, "settings", return_value=mock)
 
     # mock get_manager() and ensure mock object has the same api as the object it is replacing.
@@ -68,6 +69,7 @@ def test_sync_dhcp(cobbler_api, input_manager_dhcp, mocker):
     mock = MagicMock()
     m_property = PropertyMock(return_value=input_manager_dhcp)
     type(mock).manage_dhcp = m_property
+    mock.modules = {"dhcp": {"module": "managers.isc"}}
     mocker.patch.object(cobbler_api, "settings", return_value=mock)
 
     stub = create_autospec(spec=cobbler.modules.managers.isc._IscManager)

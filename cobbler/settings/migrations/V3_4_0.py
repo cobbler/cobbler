@@ -145,6 +145,17 @@ schema = Schema(
         Optional("windows_enabled"): bool,
         Optional("windows_template_dir"): str,
         Optional("samba_distro_share"): str,
+        Optional("modules"): {
+            Optional("authentication"): {
+                Optional("module"): str,
+                Optional("hash_algorithm"): str,
+            },
+            Optional("authorization"): {Optional("module"): str},
+            Optional("dns"): {Optional("module"): str},
+            Optional("dhcp"): {Optional("module"): str},
+            Optional("tftpd"): {Optional("module"): str},
+            Optional("serializers"): {Optional("module"): str},
+        },
     },
     ignore_extra_keys=False,
 )
