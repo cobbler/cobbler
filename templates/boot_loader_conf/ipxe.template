@@ -4,9 +4,6 @@
 #if not $netboot_enabled
 #set $system_local=True
 #end if
-#if $breed == "vmware"
-#set $kernel_options="-c http://" + $server + ":" + $http_port + "/cblr/svc/op/bootcfg/system/" + $system_name + "BOOTIF=" + $mac_address_eth0
-#end if
 #else
 :$menu_name
 #end if

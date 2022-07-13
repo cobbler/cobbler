@@ -7,6 +7,7 @@ User Guide
 
    Configuration Management Integrations <user-guide/configuration-management-integrations>
    Automatic Windows installation with Cobbler <user-guide/wingen>
+   VMware ESXi installation with cobbler <user-guide/esxi>
    Extending Cobbler <user-guide/extending-cobbler>
    Terraform Provider for Cobbler <user-guide/terraform-provider>
    Building ISOs <user-guide/building-isos>

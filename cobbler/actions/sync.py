@@ -56,6 +56,7 @@ class CobblerSync:
         self.grub_dir = os.path.join(self.bootloc, "grub")
         self.images_dir = os.path.join(self.bootloc, "images")
         self.ipxe_dir = os.path.join(self.bootloc, "ipxe")
+        self.esxi_dir = os.path.join(self.bootloc, "esxi")
         self.rendered_dir = os.path.join(self.settings.webdir, "rendered")
         self.links = os.path.join(self.settings.webdir, "links")
         self.distromirror_config = os.path.join(
@@ -184,6 +185,14 @@ class CobblerSync:
             filesystem_helpers.mkdir(self.rendered_dir)
         if not os.path.exists(self.ipxe_dir):
             filesystem_helpers.mkdir(self.ipxe_dir)
+        if not os.path.exists(self.esxi_dir):
+            filesystem_helpers.mkdir(self.esxi_dir)
+        esxi_images_link = os.path.join(self.esxi_dir, "images")
+        if not os.path.exists(esxi_images_link):
+            os.symlink("../images", esxi_images_link)
+        esxi_pxelinux_link = os.path.join(self.esxi_dir, "pxelinux.cfg")
+        if not os.path.exists(esxi_pxelinux_link):
+            os.symlink("../pxelinux.cfg", esxi_pxelinux_link)
         if not os.path.exists(self.links):
             filesystem_helpers.mkdir(self.links)
         if not os.path.exists(self.distromirror_config):
@@ -226,6 +235,7 @@ class CobblerSync:
         filesystem_helpers.rmtree_contents(self.grub_dir)
         filesystem_helpers.rmtree_contents(self.images_dir)
         filesystem_helpers.rmtree_contents(self.ipxe_dir)
+        filesystem_helpers.rmtree_contents(self.esxi_dir)
         filesystem_helpers.rmtree_contents(self.rendered_dir)
 
     def write_dhcp(self):
@@ -498,6 +508,9 @@ class CobblerSync:
                 )
             filesystem_helpers.rmfile(
                 os.path.join(bootloc, "grub", "system_link", system_record.name)
+            )
+            filesystem_helpers.rmtree(
+                os.path.join(bootloc, "esxi", pxe_filename)
             )
 
     def remove_single_menu(self, rebuild_menu: bool = True):

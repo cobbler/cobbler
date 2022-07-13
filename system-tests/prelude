@@ -77,6 +77,9 @@ path_tftp=$(_dir /var/lib/tftpboot /srv/tftpboot)
 fake_kernel=${SYSTESTS_ROOT}/images/fake/vmlinuz
 fake_initramfs=${SYSTESTS_ROOT}/images/fake/initramfs
 
+# fake boot.cfg for ESXi
+fake_bootcfg=${SYSTESTS_ROOT}/images/fake/boot.cfg
+
 # Autoinstall template for system tests
 autoinstall_template=system-tests.sh
 

@@ -23,6 +23,7 @@ In the following we will examine the behaviour for the TFTP directory more in de
     #. ``grub``
     #. ``images``
     #. ``ipxe``
+    #. ``esxi``. Symlinks from ``esxi/images`` to ``images`` and from ``esxi/pxelinux.cfg`` to ``pxelinux.cfg``
     #. A symlink from ``grub/images`` to ``images``
 #. The content of in above mentioned directories is being fully deleted.
 #. All bootloaders are being copied
@@ -60,6 +61,7 @@ files and folders.
     drwxr-xr-x  2 root   root   24 Dez 11  2020 others
     -rw-r--r--  1 root   root  26K Mär 17  2021 pxelinux.0
     drwxr-xr-x  2 root   root  20K Jan 17 13:02 pxelinux.cfg
+    drwxr-xr-x  4 root   root 4096 Jul 18 11:02 esxi
 
 
 All files or folders not covered by below explanations are specific to the environment the directory listing was taken
