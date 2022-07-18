@@ -34,8 +34,6 @@ selinux --disabled
 skipx
 # System timezone
 timezone  America/New_York
-# Install OS instead of upgrade
-install
 # Clear the Master Boot Record
 zerombr
 # Allow anaconda to partition the system as needed
