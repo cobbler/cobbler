@@ -31,7 +31,7 @@ from cobbler.items import (
 )
 from cobbler import tftpgen
 from cobbler import utils
-from cobbler.utils import input_converters, signatures
+from cobbler.utils import signatures
 from cobbler.cexceptions import CX
 from cobbler.validate import (
     validate_autoinstall_script_name,
@@ -2116,13 +2116,13 @@ class CobblerXMLRPCInterface:
             elif isinstance(getattr(self.api.settings(), setting_name), int):
                 value = int(value)
             elif isinstance(getattr(self.api.settings(), setting_name), bool):
-                value = input_converters.input_boolean(value)
+                value = self.api.input_boolean(value)
             elif isinstance(getattr(self.api.settings(), setting_name), float):
                 value = float(value)
             elif isinstance(getattr(self.api.settings(), setting_name), list):
-                value = input_converters.input_string_or_list(value)
+                value = self.api.input_string_or_list(value)
             elif isinstance(getattr(self.api.settings(), setting_name), dict):
-                value = input_converters.input_string_or_dict(value)
+                value = self.api.input_string_or_dict(value)
             else:
                 self.logger.error(
                     "modify_setting(%s) - Wrong type for value", setting_name
@@ -2270,7 +2270,7 @@ class CobblerXMLRPCInterface:
                     ] and attributes.get("in_place"):
                         details = self.get_item(object_type, object_name)
                         v2 = details[key]
-                        parsed_input = input_converters.input_string_or_dict(value)
+                        parsed_input = self.api.input_string_or_dict(value)
                         for (a, b) in list(parsed_input.items()):
                             if a.startswith("~") and len(a) > 1:
                                 del v2[a[1:]]
@@ -3957,6 +3957,52 @@ class CobblerXMLRPCInterface:
         self.check_access(token, "clear_system_logs", obj)
         self.api.clear_logs(obj)
         return True
+
+    def input_string_or_list_no_inherit(
+        self, options: Optional[Union[str, list]]
+    ) -> list:
+        """
+        .. seealso:: :func:`~cobbler.api.CobblerAPI.input_string_or_list_no_inherit`
+        """
+        return self.api.input_string_or_list_no_inherit(options)
+
+    def input_string_or_list(
+        self, options: Optional[Union[str, list]]
+    ) -> Union[list, str]:
+        """
+        .. seealso:: :func:`~cobbler.api.CobblerAPI.input_string_or_list`
+        """
+        return self.api.input_string_or_list(options)
+
+    def input_string_or_dict(
+        self, options: Union[str, list, dict], allow_multiples=True
+    ) -> Union[str, dict]:
+        """
+        .. seealso:: :func:`~cobbler.api.CobblerAPI.input_string_or_dict`
+        """
+        return self.api.input_string_or_dict(options, allow_multiples=allow_multiples)
+
+    def input_string_or_dict_no_inherit(
+        self, options: Union[str, list, dict], allow_multiples=True
+    ) -> dict:
+        """
+        .. seealso:: :func:`~cobbler.api.CobblerAPI.input_string_or_dict_no_inherit`
+        """
+        return self.api.input_string_or_dict_no_inherit(
+            options, allow_multiples=allow_multiples
+        )
+
+    def input_boolean(self, value: Union[str, bool, int]) -> bool:
+        """
+        .. seealso:: :func:`~cobbler.api.CobblerAPI.input_boolean`
+        """
+        return self.api.input_boolean(value)
+
+    def input_int(self, value: Union[str, int, float]) -> int:
+        """
+        .. seealso:: :func:`~cobbler.api.CobblerAPI.input_int`
+        """
+        return self.api.input_int(value)
 
 
 # *********************************************************************************
