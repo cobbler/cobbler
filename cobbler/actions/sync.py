@@ -509,9 +509,7 @@ class CobblerSync:
             filesystem_helpers.rmfile(
                 os.path.join(bootloc, "grub", "system_link", system_record.name)
             )
-            filesystem_helpers.rmtree(
-                os.path.join(bootloc, "esxi", pxe_filename)
-            )
+            filesystem_helpers.rmtree(os.path.join(bootloc, "esxi", pxe_filename))
 
     def remove_single_menu(self, rebuild_menu: bool = True):
         """
