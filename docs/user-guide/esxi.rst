@@ -161,23 +161,23 @@ During the network boot process:
 
 * the DHCP server will provide the booting host with the IP address of the TFTP server
   and the location of filename ``esxi/pxelinux.0``.
-* On the booting host (with MAC address ``01:23:45:67:89:ab``) , PXELINUX will request the file 
+* On the booting host (with MAC address ``01:23:45:67:89:ab``) , PXELINUX will request the file
   ``esxi/pxelinux.cfg/01-01-23-45-67-89-ab``
 * that file will provide the kernel tftp path to ``mboot.c32`` (from the distro images link),
   and append the ``boot.cfg`` file for the host:
 
 .. code-block::
 
-    cobbler:~ # cat /var/lib/tftpboot/esxi/pxelinux.cfg/01-01-23-45-67-89-ab  
+    cobbler:~ # cat /var/lib/tftpboot/esxi/pxelinux.cfg/01-01-23-45-67-89-ab
     timeout 1
     prompt 0
     default some-esxi-host
     ontimeout some-esxi-host
     LABEL some-esxi-host
-	    MENU LABEL some-esxi-host
-	    kernel /images/esxiv70U3d-x86_64/mboot.c32
-	    append -c system/01-01-23-45-67-89-ab/boot.cfg
-	    ipappend 2
+        MENU LABEL some-esxi-host
+        kernel /images/esxiv70U3d-x86_64/mboot.c32
+        append -c system/01-01-23-45-67-89-ab/boot.cfg
+        ipappend 2
 
 
 Booting from UEFI firmware
