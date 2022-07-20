@@ -117,7 +117,8 @@ group {
         #else if $iface.gateway:
             option routers $iface.gateway;
         #end if
-        #if $iface.distro.breed == "vmware":
+        #set breed = $getVar('iface.distro.breed',None)
+        #if $breed == "vmware":
             #if $iface.enable_ipxe:
             if option system-arch = 00:07 or option system-arch = 00:09 { ## UEFI
                 if exists user-class and option user-class = "iPXE" {

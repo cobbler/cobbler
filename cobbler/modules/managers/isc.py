@@ -171,7 +171,7 @@ class _IscManager(ManagerModule):
                 interface["mgmt_parameters"] = blended_system["mgmt_parameters"]
 
                 # For esxi/UEFI export filename_esxi as path to efi bootloader
-                if distro.breed == "vmware" and distro.os_version.startswith("esxi"):
+                if distro and distro.os_version.startswith("esxi"):
                     interface["filename_esxi"] = "/".join(
                         [
                             "esxi/system",
