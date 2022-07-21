@@ -1578,8 +1578,8 @@ class TFTPGen:
                     pass
             try:
                 os.replace(temp_link_file, link_file)
-            except OSError:
+            except OSError as os_error:
                 os.remove(temp_link_file)
-                raise OSError("Error creating symlink %s" % link_file)
+                raise OSError("Error creating symlink %s" % link_file) from os_error
 
         return buffer
