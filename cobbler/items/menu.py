@@ -72,7 +72,7 @@ class Menu(item.Item):
         :raises CX: Raised in case of self parenting or if the menu with value ``value`` is not found.
         """
         old_parent = self._parent
-        if isinstance(old_parent, item.Item):
+        if isinstance(old_parent, Menu):
             old_parent.children.remove(self.name)
         if not value:
             self._parent = ""
@@ -86,11 +86,11 @@ class Menu(item.Item):
         self._parent = value
         self.depth = found.depth + 1
         new_parent = self._parent
-        if isinstance(new_parent, item.Item) and self.name not in new_parent.children:
+        if isinstance(new_parent, Menu) and self.name not in new_parent.children:
             new_parent.children.append(self.name)
 
     @property
-    def children(self) -> list:
+    def children(self) -> List[str]:
         """
         Child menu of a menu instance.
 
@@ -107,24 +107,7 @@ class Menu(item.Item):
         :param value: The value to set the children to.
         :raises TypeError: Raised in case the children of menu have the wrong type.
         """
-        if not isinstance(value, list):
-            raise TypeError("Field children of object menu must be of type list.")
-        if isinstance(value, list):
-            if not all(isinstance(x, str) for x in value):
-                raise TypeError(
-                    "Field children of object menu must be of type list and all items need to be menu "
-                    "names (str)."
-                )
-            self._children = []
-            for name in value:
-                menu = self.api.find_menu(name=name)
-                if menu is not None:
-                    self._children.append(name)
-                else:
-                    self.logger.warning(
-                        'Menu with the name "%s" did not exist. Skipping setting as a child!',
-                        name,
-                    )
+        self._children = value
 
     #
     # specific methods for item.Menu
@@ -135,8 +118,8 @@ class Menu(item.Item):
         """
         Returns the display name.
 
-        :getter: Returns the display name.
-        :setter: Sets the display name.
+        :getter: Returns the display name for the boot menu.
+        :setter: Sets the display name for the boot menu.
         """
         return self._display_name
 
@@ -145,6 +128,6 @@ class Menu(item.Item):
         """
         Setter for the display_name of the item.
 
-        :param display_name: The new display_name. If ``None`` the comment will be set to an emtpy string.
+        :param display_name: The new display_name. If ``None`` the display_name will be set to an emtpy string.
         """
         self._display_name = display_name

@@ -693,3 +693,14 @@ def test_is_management_supported(
 
     # Assert
     assert result is expected_result
+
+
+def test_display_name(cobbler_api):
+    # Arrange
+    system = System(cobbler_api)
+
+    # Act
+    system.display_name = ""
+
+    # Assert
+    assert system.display_name == ""

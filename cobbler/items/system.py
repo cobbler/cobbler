@@ -55,6 +55,7 @@ class NetworkInterface:
         self._static = False
         self._static_routes = []
         self._virt_bridge = ""
+        self._display_name = ""
 
     def from_dict(self, dictionary: dict):
         """
@@ -2143,3 +2144,22 @@ class System(Item):
             return utils.get_host_ip(ip)
         else:
             return self.name
+
+    @property
+    def display_name(self) -> str:
+        """
+        Returns the display name.
+
+        :getter: Returns the display name for the boot menu.
+        :setter: Sets the display name for the boot menu.
+        """
+        return self._display_name
+
+    @display_name.setter
+    def display_name(self, display_name: str):
+        """
+        Setter for the display_name of the item.
+
+        :param display_name: The new display_name. If ``None`` the display_name will be set to an emtpy string.
+        """
+        self._display_name = display_name

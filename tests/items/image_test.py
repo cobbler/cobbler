@@ -217,6 +217,17 @@ def test_menu(cobbler_api):
     assert image.menu == ""
 
 
+def test_display_name(cobbler_api):
+    # Arrange
+    image = Image(cobbler_api)
+
+    # Act
+    image.display_name = ""
+
+    # Assert
+    assert image.display_name == ""
+
+
 def test_supported_boot_loaders(cobbler_api):
     # Arrange
     image = Image(cobbler_api)

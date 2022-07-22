@@ -467,6 +467,7 @@ IMAGE_FIELDS = [
         "list",
     ],
     ["menu", "", "", "Parent boot menu", True, "", [], "str"],
+    ["display_name", "", "", "Display Name", True, "Ex: My Image", [], "str"],
     [
         "boot_loaders",
         "<<inherit>>",
@@ -881,7 +882,8 @@ PROFILE_FIELDS = [
         0,
         "dict",
     ],
-    ["menu", None, None, "Parent boot menu", True, "", 0, "str"],
+    ["menu", "", "", "Parent boot menu", True, "", 0, "str"],
+    ["display_name", "", "", "Display Name", True, "Ex: My Profile", [], "str"],
     [
         "virt_auto_boot",
         "SETTINGS:virt_auto_boot",
@@ -1479,6 +1481,7 @@ SYSTEM_FIELDS = [
         ["", "2400", "4800", "9600", "19200", "38400", "57600", "115200"],
         "int",
     ],
+    ["display_name", "", "", "Display Name", True, "Ex: My System", [], "str"],
 ]
 
 # network interface fields are in a separate list because a system may contain

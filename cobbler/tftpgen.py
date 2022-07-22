@@ -20,6 +20,7 @@ from cobbler.enums import Archs
 from cobbler.utils import input_converters
 from cobbler.validate import validate_autoinstall_script_name
 from cobbler.utils import filesystem_helpers
+from cobbler.items.menu import Menu
 
 
 class TFTPGen:
@@ -370,7 +371,7 @@ class TFTPGen:
         # Write the PXE menu:
         if "pxe" in menu_items:
             loader_metadata["menu_items"] = menu_items["pxe"]
-            loader_metadata["menu_labels"] = {}
+            loader_metadata["menu_labels"] = menu_labels["pxe"]
             outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
             template_src = open(
                 os.path.join(
@@ -423,7 +424,7 @@ class TFTPGen:
         """
         return self.get_menu_level(None, arch)
 
-    def get_submenus(self, menu, metadata: dict, arch: enums.Archs):
+    def get_submenus(self, menu: Menu, metadata: dict, arch: enums.Archs):
         """
         Generates submenus metatdata for pxe, ipxe and grub.
 
@@ -456,29 +457,30 @@ class TFTPGen:
                     else:
                         nested_menu_items[boot_loader] = temp_items[boot_loader]
 
-            if "ipxe" in temp_items:
-                if "ipxe" not in menu_labels:
-                    menu_labels["ipxe"] = []
-                display_name = (
-                    child.display_name
-                    if child.display_name and child.display_name != ""
-                    else child.name
-                )
-                menu_labels["ipxe"].append(
-                    {"name": child.name, "display_name": display_name}
-                )
+                if boot_loader not in menu_labels:
+                    menu_labels[boot_loader] = []
+
+                if "ipxe" in temp_items:
+                    display_name = (
+                        child.display_name
+                        if child.display_name and child.display_name != ""
+                        else child.name
+                    )
+                    menu_labels[boot_loader].append(
+                        {"name": child.name, "display_name": display_name}
+                    )
 
         for boot_loader in boot_loaders:
             if (
                 boot_loader in nested_menu_items
-                and nested_menu_items[boot_loader] != ""
+                and nested_menu_items[boot_loader][-2:] == "\n\n"
             ):
                 nested_menu_items[boot_loader] = nested_menu_items[boot_loader][:-1]
 
         metadata["menu_items"] = nested_menu_items
         metadata["menu_labels"] = menu_labels
 
-    def get_profiles_menu(self, menu, metadata, arch: enums.Archs):
+    def get_profiles_menu(self, menu: Menu, metadata: dict, arch: enums.Archs):
         """
         Generates profiles metadata for pxe, ipxe and grub.
 
@@ -533,7 +535,6 @@ class TFTPGen:
 
                     # iPXE Level menu
                     if boot_loader == "ipxe":
-                        current_menu_items[boot_loader] += "\n"
                         if "ipxe" not in menu_labels:
                             menu_labels["ipxe"] = []
                         menu_labels["ipxe"].append(
@@ -543,7 +544,7 @@ class TFTPGen:
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
 
-    def get_images_menu(self, menu, metadata, arch: enums.Archs):
+    def get_images_menu(self, menu: Menu, metadata: dict, arch: enums.Archs):
         """
         Generates profiles metadata for pxe, ipxe and grub.
 
@@ -587,7 +588,6 @@ class TFTPGen:
 
                         # iPXE Level menu
                         if boot_loader == "ipxe":
-                            current_menu_items[boot_loader] += "\n"
                             if "ipxe" not in menu_labels:
                                 menu_labels["ipxe"] = []
                             menu_labels["ipxe"].append(
@@ -598,14 +598,14 @@ class TFTPGen:
         for boot_loader in boot_loaders:
             if (
                 boot_loader in current_menu_items
-                and current_menu_items[boot_loader] != ""
+                and current_menu_items[boot_loader][-2:] == "\n\n"
             ):
                 current_menu_items[boot_loader] = current_menu_items[boot_loader][:-1]
 
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
 
-    def get_menu_level(self, menu=None, arch: enums.Archs = None) -> dict:
+    def get_menu_level(self, menu: Menu = None, arch: enums.Archs = None) -> dict:
         """
         Generates menu items for submenus, pxe, ipxe and grub.
 
@@ -615,8 +615,21 @@ class TFTPGen:
                   utils.get_supported_system_boot_loaders().
         """
         metadata = {}
+        metadata["parent_menu_name"] = "Cobbler"
+        metadata["parent_menu_label"] = "Cobbler"
         template_data = {}
         boot_loaders = utils.get_supported_system_boot_loaders()
+
+        if menu:
+            parent_menu = menu.parent
+            metadata["menu_name"] = menu.name
+            metadata["menu_label"] = \
+                menu.display_name if menu.display_name and menu.display_name != "" else menu.name
+            if parent_menu and parent_menu != "":
+                metadata["parent_menu_name"] = parent_menu.name
+                metadata["parent_menu_label"] = parent_menu.name
+                if parent_menu.display_name and parent_menu.display_name != "":
+                    metadata["parent_menu_label"] = parent_menu.display_name
 
         for boot_loader in boot_loaders:
             template = os.path.join(
@@ -626,23 +639,6 @@ class TFTPGen:
             if os.path.exists(template):
                 with open(template) as template_fh:
                     template_data[boot_loader] = template_fh.read()
-                if menu:
-                    parent_menu = menu.parent
-                    metadata["menu_name"] = menu.name
-                    metadata["menu_label"] = (
-                        menu.display_name
-                        if menu.display_name and menu.display_name != ""
-                        else menu.name
-                    )
-                    if parent_menu:
-                        metadata["parent_menu_name"] = parent_menu.name
-                        if parent_menu.display_name and parent_menu.display_name != "":
-                            metadata["parent_menu_label"] = parent_menu.display_name
-                        else:
-                            metadata["parent_menu_label"] = parent_menu.name
-                    else:
-                        metadata["parent_menu_name"] = "Cobbler"
-                        metadata["parent menu_label"] = "Cobbler"
             else:
                 self.logger.warning(
                     'Template for building a submenu not found for bootloader "%s"! Submenu '
@@ -754,14 +750,20 @@ class TFTPGen:
             boot_loaders = system.boot_loaders
             metadata["menu_label"] = system.name
             metadata["menu_name"] = system.name
+            if system.display_name and system.display_name != "":
+                metadata["menu_label"] = system.display_name
         elif profile:
             boot_loaders = profile.boot_loaders
             metadata["menu_label"] = profile.name
             metadata["menu_name"] = profile.name
+            if profile.display_name and profile.display_name != "":
+                metadata["menu_label"] = profile.display_name
         elif image:
             boot_loaders = image.boot_loaders
             metadata["menu_label"] = image.name
             metadata["menu_name"] = image.name
+            if image.display_name and image.display_name != "":
+                metadata["menu_label"] = image.display_name
         if boot_loaders is None or format not in boot_loaders:
             return None
 

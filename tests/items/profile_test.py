@@ -424,3 +424,14 @@ def test_menu(cobbler_api):
 
     # Assert
     assert profile.menu == ""
+
+
+def test_display_name(cobbler_api):
+    # Arrange
+    profile = Profile(cobbler_api)
+
+    # Act
+    profile.display_name = ""
+
+    # Assert
+    assert profile.display_name == ""
