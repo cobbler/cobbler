@@ -1372,7 +1372,12 @@ class TFTPGen:
         # generate the kernel options:
         if what == "system":
             kopts = self.build_kernel_options(
-                obj, profile, distro, None, distro.arch, blended.get("autoinstall", None)
+                obj,
+                profile,
+                distro,
+                None,
+                distro.arch,
+                blended.get("autoinstall", None),
             )
         elif what == "profile":
             kopts = self.build_kernel_options(
