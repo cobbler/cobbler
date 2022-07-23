@@ -55,7 +55,6 @@ class NetworkInterface:
         self._static = False
         self._static_routes = []
         self._virt_bridge = ""
-        self._display_name = ""
 
     def from_dict(self, dictionary: dict):
         """
@@ -814,6 +813,7 @@ class System(Item):
         self._virt_type = enums.VirtType.INHERITED
         self._serial_device = -1
         self._serial_baud_rate = enums.BaudRates.DISABLED
+        self._display_name = ""
 
         # Overwrite defaults from item.py
         self._owners = enums.VALUE_INHERITED
