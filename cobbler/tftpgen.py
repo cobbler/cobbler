@@ -538,8 +538,11 @@ class TFTPGen:
 
                     # iPXE Level menu
                     if boot_loader == "ipxe":
+                        display_name = profile.name
+                        if profile.display_name and profile.display_name != "":
+                            display_name = profile.display_name
                         menu_labels["ipxe"].append(
-                            {"name": profile.name, "display_name": profile.name}
+                            {"name": profile.name, "display_name": display_name}
                         )
 
         metadata["menu_items"] = current_menu_items
@@ -592,8 +595,11 @@ class TFTPGen:
 
                         # iPXE Level menu
                         if boot_loader == "ipxe":
+                            display_name = image.name
+                            if image.display_name and image.display_name != "":
+                                display_name = image.display_name
                             menu_labels["ipxe"].append(
-                                {"name": image.name, "display_name": image.name}
+                                {"name": image.name, "display_name": display_name}
                             )
 
         boot_loaders = utils.get_supported_system_boot_loaders()
