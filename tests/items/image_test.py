@@ -233,7 +233,7 @@ def test_supported_boot_loaders(cobbler_api):
     image = Image(cobbler_api)
 
     # Act & Assert
-    assert image.supported_boot_loaders == []
+    assert image.supported_boot_loaders == ['grub', 'pxe', 'ipxe']
 
 
 def test_boot_loaders(cobbler_api):
