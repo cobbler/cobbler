@@ -747,7 +747,7 @@ class _ImportSignatureManager(ManagerModule):
         :param distribution: The distribution object for which the install tree should be set.
         :param url: The url for the tree.
         """
-        distribution.autoinstall_meta["tree"] = url
+        distribution.autoinstall_meta = {"tree": url}
 
     # ==========================================================================
     # Repo Functions
