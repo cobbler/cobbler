@@ -6,36 +6,30 @@ from cobbler import enums, utils
 from cobbler.actions import buildiso, mkloaders
 from cobbler.actions.buildiso.netboot import AppendLineBuilder, NetbootBuildiso
 from cobbler.actions.buildiso.standalone import StandaloneBuildiso
-from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
 from tests.conftest import does_not_raise
 
 
-@pytest.fixture(scope="class")
-def api():
-    return CobblerAPI()
-
-
 @pytest.fixture(scope="class", autouse=True)
-def create_loaders(api):
-    loaders = mkloaders.MkLoaders(api)
+def create_loaders(cobbler_api):
+    loaders = mkloaders.MkLoaders(cobbler_api)
     loaders.run()
 
 
 @pytest.fixture(autouse=True)
-def cleanup_items(api):
+def cleanup_items(cobbler_api):
     yield
-    test_system = api.get_item("system", "testsystem")
+    test_system = cobbler_api.get_item("system", "testsystem")
     if test_system is not None:
-        api.remove_system(test_system.name)
-    test_profile = api.get_item("profile", "testprofile")
+        cobbler_api.remove_system(test_system.name)
+    test_profile = cobbler_api.get_item("profile", "testprofile")
     if test_profile is not None:
-        api.remove_profile(test_profile.name)
-    test_distro = api.get_item("distro", "testdistro")
+        cobbler_api.remove_profile(test_profile.name)
+    test_distro = cobbler_api.get_item("distro", "testdistro")
     if test_distro is not None:
-        api.remove_distro(test_distro.name)
+        cobbler_api.remove_distro(test_distro.name)
 
 
 class TestBuildiso:
@@ -59,11 +53,11 @@ class TestBuildiso:
         ],
     )
     def test_calculate_grub_name(
-        self, input_arch, result_binary_name, expected_exception, api
+        self, input_arch, result_binary_name, expected_exception, cobbler_api
     ):
         # Arrange
-        test_builder = buildiso.BuildIso(api)
-        test_distro = Distro(api)
+        test_builder = buildiso.BuildIso(cobbler_api)
+        test_distro = Distro(cobbler_api)
         test_distro.name = "testdistro"
         test_distro.arch = input_arch
 
@@ -95,9 +89,9 @@ class TestBuildiso:
         # Assert
         assert output == exepcted_output
 
-    def test_make_shorter(self, api):
+    def test_make_shorter(self, cobbler_api):
         # Arrange
-        build_iso = NetbootBuildiso(api)
+        build_iso = NetbootBuildiso(cobbler_api)
         distroname = "Testdistro"
 
         # Act
@@ -109,15 +103,15 @@ class TestBuildiso:
         assert result == "1"
 
     def test_copy_boot_files(
-        self, api, create_kernel_initrd, fk_kernel, fk_initrd, tmpdir
+        self, cobbler_api, create_kernel_initrd, fk_kernel, fk_initrd, tmpdir
     ):
         # Arrange
         target_folder = tmpdir.mkdir("target")
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
         initrd_path = os.path.join(folder, fk_initrd)
-        build_iso = buildiso.BuildIso(api)
-        testdistro = Distro(api)
+        build_iso = buildiso.BuildIso(cobbler_api)
+        testdistro = Distro(cobbler_api)
         testdistro.name = "testdistro"
         testdistro.kernel = kernel_path
         testdistro.initrd = initrd_path
@@ -128,26 +122,28 @@ class TestBuildiso:
         # Assert
         assert len(os.listdir(target_folder)) == 2
 
-    def test_filter_system(self, api, create_kernel_initrd, fk_kernel, fk_initrd):
+    def test_filter_system(
+        self, cobbler_api, create_kernel_initrd, fk_kernel, fk_initrd
+    ):
         # Arrange
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
         initrd_path = os.path.join(folder, fk_initrd)
-        test_distro = Distro(api)
+        test_distro = Distro(cobbler_api)
         test_distro.name = "testdistro"
         test_distro.kernel = kernel_path
         test_distro.initrd = initrd_path
-        api.add_distro(test_distro)
-        test_profile = Profile(api)
+        cobbler_api.add_distro(test_distro)
+        test_profile = Profile(cobbler_api)
         test_profile.name = "testprofile"
         test_profile.distro = test_distro.name
-        api.add_profile(test_profile)
-        test_system = System(api)
+        cobbler_api.add_profile(test_profile)
+        test_system = System(cobbler_api)
         test_system.name = "testsystem"
         test_system.profile = test_profile.name
-        api.add_system(test_system)
+        cobbler_api.add_system(test_system)
         itemlist = [test_system.name]
-        build_iso = NetbootBuildiso(api)
+        build_iso = NetbootBuildiso(cobbler_api)
         expected_result = [test_system]
 
         # Act
@@ -157,23 +153,23 @@ class TestBuildiso:
         assert expected_result == result
 
     def test_filter_profile(
-        self, api, create_kernel_initrd, fk_kernel, fk_initrd, cleanup_items
+        self, cobbler_api, create_kernel_initrd, fk_kernel, fk_initrd, cleanup_items
     ):
         # Arrange
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
         initrd_path = os.path.join(folder, fk_initrd)
-        test_distro = Distro(api)
+        test_distro = Distro(cobbler_api)
         test_distro.name = "testdistro"
         test_distro.kernel = kernel_path
         test_distro.initrd = initrd_path
-        api.add_distro(test_distro)
-        test_profile = Profile(api)
+        cobbler_api.add_distro(test_distro)
+        test_profile = Profile(cobbler_api)
         test_profile.name = "testprofile"
         test_profile.distro = test_distro.name
-        api.add_profile(test_profile)
+        cobbler_api.add_profile(test_profile)
         itemlist = [test_profile.name]
-        build_iso = buildiso.BuildIso(api)
+        build_iso = buildiso.BuildIso(cobbler_api)
         expected_result = [test_profile]
 
         # Act
@@ -184,7 +180,7 @@ class TestBuildiso:
 
     def test_netboot_run(
         self,
-        api,
+        cobbler_api,
         create_kernel_initrd,
         fk_kernel,
         fk_initrd,
@@ -196,12 +192,12 @@ class TestBuildiso:
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
         initrd_path = os.path.join(folder, fk_initrd)
-        test_distro = Distro(api)
+        test_distro = Distro(cobbler_api)
         test_distro.name = "testdistro"
         test_distro.kernel = kernel_path
         test_distro.initrd = initrd_path
-        api.add_distro(test_distro)
-        build_iso = NetbootBuildiso(api)
+        cobbler_api.add_distro(test_distro)
+        build_iso = NetbootBuildiso(cobbler_api)
         iso_location = tmpdir.join("autoinst.iso")
 
         # Act
@@ -212,7 +208,7 @@ class TestBuildiso:
 
     def test_standalone_run(
         self,
-        api,
+        cobbler_api,
         create_kernel_initrd,
         fk_kernel,
         fk_initrd,
@@ -227,12 +223,12 @@ class TestBuildiso:
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
         initrd_path = os.path.join(folder, fk_initrd)
-        test_distro = Distro(api)
+        test_distro = Distro(cobbler_api)
         test_distro.name = "testdistro"
         test_distro.kernel = kernel_path
         test_distro.initrd = initrd_path
-        api.add_distro(test_distro)
-        build_iso = StandaloneBuildiso(api)
+        cobbler_api.add_distro(test_distro)
+        build_iso = StandaloneBuildiso(cobbler_api)
 
         # Act
         build_iso.run(
@@ -248,27 +244,27 @@ class TestAppendLineBuilder:
         assert isinstance(AppendLineBuilder("", {}), AppendLineBuilder)
 
     def test_generate_system(
-        self, api, create_kernel_initrd, fk_kernel, fk_initrd, cleanup_items
+        self, cobbler_api, create_kernel_initrd, fk_kernel, fk_initrd, cleanup_items
     ):
         # Arrange
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
         initrd_path = os.path.join(folder, fk_initrd)
-        test_distro = Distro(api)
+        test_distro = Distro(cobbler_api)
         test_distro.name = "testdistro"
         test_distro.breed = "suse"
         test_distro.kernel = kernel_path
         test_distro.initrd = initrd_path
-        api.add_distro(test_distro)
-        test_profile = Profile(api)
+        cobbler_api.add_distro(test_distro)
+        test_profile = Profile(cobbler_api)
         test_profile.name = "testprofile"
         test_profile.distro = test_distro.name
-        api.add_profile(test_profile)
-        test_system = System(api)
+        cobbler_api.add_profile(test_profile)
+        test_system = System(cobbler_api)
         test_system.name = "testsystem"
         test_system.profile = test_profile.name
-        api.add_system(test_system)
-        blendered_data = utils.blender(api, False, test_system)
+        cobbler_api.add_system(test_system)
+        blendered_data = utils.blender(cobbler_api, False, test_system)
         test_builder = AppendLineBuilder(test_distro.name, blendered_data)
 
         # Act
@@ -283,22 +279,22 @@ class TestAppendLineBuilder:
         )
 
     def test_generate_profile(
-        self, api, create_kernel_initrd, fk_kernel, fk_initrd, cleanup_items
+        self, cobbler_api, create_kernel_initrd, fk_kernel, fk_initrd, cleanup_items
     ):
         # Arrange
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
         initrd_path = os.path.join(folder, fk_initrd)
-        test_distro = Distro(api)
+        test_distro = Distro(cobbler_api)
         test_distro.name = "testdistro"
         test_distro.kernel = kernel_path
         test_distro.initrd = initrd_path
-        api.add_distro(test_distro)
-        test_profile = Profile(api)
+        cobbler_api.add_distro(test_distro)
+        test_profile = Profile(cobbler_api)
         test_profile.name = "testprofile"
         test_profile.distro = test_distro.name
-        api.add_profile(test_profile)
-        blendered_data = utils.blender(api, False, test_profile)
+        cobbler_api.add_profile(test_profile)
+        blendered_data = utils.blender(cobbler_api, False, test_profile)
         test_builder = AppendLineBuilder(test_distro.name, blendered_data)
 
         # Act
