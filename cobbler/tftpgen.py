@@ -16,7 +16,7 @@ from typing import Dict, List, Optional
 
 from cobbler import enums, templar, utils
 from cobbler.cexceptions import CX
-from cobbler.enums import Archs
+from cobbler.enums import Archs, ImageTypes
 from cobbler.utils import input_converters
 from cobbler.validate import validate_autoinstall_script_name
 from cobbler.utils import filesystem_helpers
@@ -902,9 +902,9 @@ class TFTPGen:
                 initrd_path = os.path.join(img_path, os.path.basename(distro.initrd))
         else:
             # this is an image we are making available, not kernel+initrd
-            if image.image_type == "direct":
+            if image.image_type == ImageTypes.DIRECT:
                 kernel_path = os.path.join("/images2", image.name)
-            elif image.image_type == "memdisk":
+            elif image.image_type == ImageTypes.MEMDISK:
                 kernel_path = "/memdisk"
                 initrd_path = os.path.join("/images2", image.name)
             else:
