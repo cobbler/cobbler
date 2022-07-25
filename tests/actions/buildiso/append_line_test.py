@@ -1,21 +1,14 @@
-import pytest
-
-from cobbler.actions import mkloaders
 from cobbler.actions.buildiso.netboot import AppendLineBuilder
 from cobbler import utils
-
-
-@pytest.fixture(scope="function", autouse=True)
-def create_loaders(cobbler_api):
-    loaders = mkloaders.MkLoaders(cobbler_api)
-    loaders.run()
 
 
 def test_init():
     assert isinstance(AppendLineBuilder("", {}), AppendLineBuilder)
 
 
-def test_generate_system(cobbler_api, create_distro, create_profile, create_system):
+def test_generate_system(
+    request, cobbler_api, create_distro, create_profile, create_system
+):
     # Arrange
     test_distro = create_distro()
     test_distro.breed = "suse"
@@ -33,11 +26,12 @@ def test_generate_system(cobbler_api, create_distro, create_profile, create_syst
     # TODO: Make tests more sophisticated
     assert (
         result
-        == "  APPEND initrd=testdistro.img install=http://192.168.1.1:80/cblr/links/testdistro autoyast=default.ks"
+        == "  APPEND initrd=%s.img install=http://192.168.1.1:80/cblr/links/%s autoyast=default.ks"
+        % (request.node.originalname, request.node.originalname)
     )
 
 
-def test_generate_profile(cobbler_api, create_distro, create_profile):
+def test_generate_profile(request, cobbler_api, create_distro, create_profile):
     # Arrange
     test_distro = create_distro()
     test_profile = create_profile(test_distro.name)
@@ -52,5 +46,6 @@ def test_generate_profile(cobbler_api, create_distro, create_profile):
     # TODO: Make tests more sophisticated
     assert (
         result
-        == " append initrd=testdistro.img install=http://192.168.1.1:80/cblr/links/testdistro autoyast=default.ks"
+        == " append initrd=%s.img install=http://192.168.1.1:80/cblr/links/%s autoyast=default.ks"
+        % (request.node.originalname, request.node.originalname)
     )

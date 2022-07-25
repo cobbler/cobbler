@@ -33,6 +33,8 @@ def test_calculate_grub_name(
     # Arrange
     test_builder = buildiso.BuildIso(cobbler_api)
     test_distro = create_distro()
+    test_distro.arch = input_arch
+    cobbler_api.add_distro(test_distro)
 
     # Act
     with expected_exception:
