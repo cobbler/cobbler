@@ -111,15 +111,20 @@ class Menu(item.Item):
             raise TypeError("Field children of object menu must be of type list.")
         if isinstance(value, list):
             if not all(isinstance(x, str) for x in value):
-                raise TypeError("Field children of object menu must be of type list and all items need to be menu "
-                                "names (str).")
+                raise TypeError(
+                    "Field children of object menu must be of type list and all items need to be menu "
+                    "names (str)."
+                )
             self._children = []
             for name in value:
                 menu = self.api.find_menu(name=name)
                 if menu is not None:
                     self._children.append(name)
                 else:
-                    self.logger.warning("Menu with the name \"%s\" did not exist. Skipping setting as a child!", name)
+                    self.logger.warning(
+                        'Menu with the name "%s" did not exist. Skipping setting as a child!',
+                        name,
+                    )
 
     #
     # specific methods for item.Menu
