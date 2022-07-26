@@ -51,6 +51,7 @@ class Profile(item.Item):
         self._repos = []
         self._server = enums.VALUE_INHERITED
         self._menu = ""
+        self._display_name = ""
         self._virt_auto_boot = api.settings().virt_auto_boot
         self._virt_bridge = enums.VALUE_INHERITED
         self._virt_cpus: Union[int, str] = 1
@@ -781,6 +782,25 @@ class Profile(item.Item):
             if not menu_list.find(name=menu):
                 raise CX("menu %s not found" % menu)
         self._menu = menu
+
+    @property
+    def display_name(self) -> str:
+        """
+        Returns the display name.
+
+        :getter: Returns the display name for the boot menu.
+        :setter: Sets the display name for the boot menu.
+        """
+        return self._display_name
+
+    @display_name.setter
+    def display_name(self, display_name: str):
+        """
+        Setter for the display_name of the item.
+
+        :param display_name: The new display_name. If ``None`` the display_name will be set to an emtpy string.
+        """
+        self._display_name = display_name
 
     @property
     def children(self) -> list:

@@ -1,8 +1,8 @@
 MENU BEGIN $menu_name
 MENU TITLE $menu_label
-MENU LABEL $menu_name
+MENU LABEL $menu_label
 $menu_items
-LABEL return$menu_name
-	MENU LABEL Return to $menu_label menu.
-	MENU EXIT
+	LABEL return$menu_name
+		MENU LABEL Return to $parent_menu_label menu.
+		MENU EXIT
 MENU END

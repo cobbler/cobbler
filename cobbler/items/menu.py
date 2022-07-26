@@ -72,7 +72,7 @@ class Menu(item.Item):
         :raises CX: Raised in case of self parenting or if the menu with value ``value`` is not found.
         """
         old_parent = self._parent
-        if isinstance(old_parent, item.Item):
+        if isinstance(old_parent, Menu):
             old_parent.children.remove(self.name)
         if not value:
             self._parent = ""
@@ -86,11 +86,11 @@ class Menu(item.Item):
         self._parent = value
         self.depth = found.depth + 1
         new_parent = self._parent
-        if isinstance(new_parent, item.Item) and self.name not in new_parent.children:
+        if isinstance(new_parent, Menu) and self.name not in new_parent.children:
             new_parent.children.append(self.name)
 
     @property
-    def children(self) -> list:
+    def children(self) -> List[str]:
         """
         Child menu of a menu instance.
 
@@ -135,8 +135,8 @@ class Menu(item.Item):
         """
         Returns the display name.
 
-        :getter: Returns the display name.
-        :setter: Sets the display name.
+        :getter: Returns the display name for the boot menu.
+        :setter: Sets the display name for the boot menu.
         """
         return self._display_name
 
@@ -145,6 +145,6 @@ class Menu(item.Item):
         """
         Setter for the display_name of the item.
 
-        :param display_name: The new display_name. If ``None`` the comment will be set to an emtpy string.
+        :param display_name: The new display_name. If ``None`` the display_name will be set to an emtpy string.
         """
         self._display_name = display_name

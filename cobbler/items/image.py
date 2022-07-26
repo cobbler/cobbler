@@ -40,8 +40,9 @@ class Image(item.Item):
         self._image_type = enums.ImageTypes.DIRECT
         self._network_count = 0
         self._os_version = ""
-        self._boot_loaders = []
+        self._boot_loaders: Union[list, str] = enums.VALUE_INHERITED
         self._menu = ""
+        self._display_name = ""
         self._virt_auto_boot = False
         self._virt_bridge = ""
         self._virt_cpus = 0
@@ -50,7 +51,6 @@ class Image(item.Item):
         self._virt_path = ""
         self._virt_ram = 0
         self._virt_type = enums.VirtType.AUTO
-        self._supported_boot_loaders = []
 
     def __getattr__(self, name):
         if name == "kickstart":
@@ -500,6 +500,25 @@ class Image(item.Item):
             if not menu_list.find(name=menu):
                 raise CX("menu %s not found" % menu)
         self._menu = menu
+
+    @property
+    def display_name(self) -> str:
+        """
+        Returns the display name.
+
+        :getter: Returns the display name for the boot menu.
+        :setter: Sets the display name for the boot menu.
+        """
+        return self._display_name
+
+    @display_name.setter
+    def display_name(self, display_name: str):
+        """
+        Setter for the display_name of the item.
+
+        :param display_name: The new display_name. If ``None`` the display_name will be set to an emtpy string.
+        """
+        self._display_name = display_name
 
     @property
     def supported_boot_loaders(self):
