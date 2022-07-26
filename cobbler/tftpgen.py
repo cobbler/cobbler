@@ -466,7 +466,10 @@ class TFTPGen:
                         else child.name
                     )
                     menu_labels[boot_loader].append(
-                        {"name": child.name, "display_name": display_name + " -> [submenu]"}
+                        {
+                            "name": child.name,
+                            "display_name": display_name + " -> [submenu]",
+                        }
                     )
 
         metadata["menu_items"] = nested_menu_items
@@ -597,7 +600,7 @@ class TFTPGen:
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
 
-    def get_menu_level(self, menu = None, arch: enums.Archs = None) -> dict:
+    def get_menu_level(self, menu=None, arch: enums.Archs = None) -> dict:
         """
         Generates menu items for submenus, pxe, ipxe and grub.
 
@@ -615,8 +618,11 @@ class TFTPGen:
         if menu:
             parent_menu = menu.parent
             metadata["menu_name"] = menu.name
-            metadata["menu_label"] = \
-                menu.display_name if menu.display_name and menu.display_name != "" else menu.name
+            metadata["menu_label"] = (
+                menu.display_name
+                if menu.display_name and menu.display_name != ""
+                else menu.name
+            )
             if parent_menu and parent_menu != "":
                 metadata["parent_menu_name"] = parent_menu.name
                 metadata["parent_menu_label"] = parent_menu.name
