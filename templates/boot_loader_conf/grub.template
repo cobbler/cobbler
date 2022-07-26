@@ -2,12 +2,12 @@
 set system="$system_name"
 set timeout=1
 #if $netboot_enabled
-set default='$menu_name'
+set default='$menu_label'
 #else
 set default='local'
 #end if
 #end if
-menuentry '$menu_name' --class gnu-linux --class gnu --class os {
+menuentry '$menu_label' --class gnu-linux --class gnu --class os {
   echo 'Loading kernel ...'
   clinux $kernel_path $kernel_options
   echo 'Loading initial ramdisk ...'

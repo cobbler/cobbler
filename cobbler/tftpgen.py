@@ -20,7 +20,6 @@ from cobbler.enums import Archs, ImageTypes
 from cobbler.utils import input_converters
 from cobbler.validate import validate_autoinstall_script_name
 from cobbler.utils import filesystem_helpers
-from cobbler.items.menu import Menu
 
 
 class TFTPGen:
@@ -424,7 +423,7 @@ class TFTPGen:
         """
         return self.get_menu_level(None, arch)
 
-    def get_submenus(self, menu: Menu, metadata: dict, arch: enums.Archs):
+    def get_submenus(self, menu, metadata: dict, arch: enums.Archs):
         """
         Generates submenus metatdata for pxe, ipxe and grub.
 
@@ -467,20 +466,13 @@ class TFTPGen:
                         else child.name
                     )
                     menu_labels[boot_loader].append(
-                        {"name": child.name, "display_name": display_name}
+                        {"name": child.name, "display_name": display_name + " -> [submenu]"}
                     )
-
-        for boot_loader in boot_loaders:
-            if (
-                boot_loader in nested_menu_items
-                and nested_menu_items[boot_loader][-2:] == "\n\n"
-            ):
-                nested_menu_items[boot_loader] = nested_menu_items[boot_loader][:-1]
 
         metadata["menu_items"] = nested_menu_items
         metadata["menu_labels"] = menu_labels
 
-    def get_profiles_menu(self, menu: Menu, metadata: dict, arch: enums.Archs):
+    def get_profiles_menu(self, menu, metadata: dict, arch: enums.Archs):
         """
         Generates profiles metadata for pxe, ipxe and grub.
 
@@ -548,7 +540,7 @@ class TFTPGen:
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
 
-    def get_images_menu(self, menu: Menu, metadata: dict, arch: enums.Archs):
+    def get_images_menu(self, menu, metadata: dict, arch: enums.Archs):
         """
         Generates profiles metadata for pxe, ipxe and grub.
 
@@ -602,18 +594,10 @@ class TFTPGen:
                                 {"name": image.name, "display_name": display_name}
                             )
 
-        boot_loaders = utils.get_supported_system_boot_loaders()
-        for boot_loader in boot_loaders:
-            if (
-                boot_loader in current_menu_items
-                and current_menu_items[boot_loader][-2:] == "\n\n"
-            ):
-                current_menu_items[boot_loader] = current_menu_items[boot_loader][:-1]
-
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
 
-    def get_menu_level(self, menu: Menu = None, arch: enums.Archs = None) -> dict:
+    def get_menu_level(self, menu = None, arch: enums.Archs = None) -> dict:
         """
         Generates menu items for submenus, pxe, ipxe and grub.
 
@@ -691,8 +675,6 @@ class TFTPGen:
                 if boot_loader in nested_menu_items:
                     menu_items[boot_loader] = nested_menu_items[boot_loader]
                 if boot_loader in current_menu_items:
-                    if menu is None:
-                        menu_items[boot_loader] += "\n"
                     menu_items[boot_loader] += current_menu_items[boot_loader]
                 # Indentation for nested pxe and grub menu items.
                 if menu:
