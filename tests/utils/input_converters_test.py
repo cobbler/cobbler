@@ -6,16 +6,23 @@ from cobbler.utils import input_converters
 
 
 @pytest.mark.parametrize(
-    "test_input,expected_result", [("<<inherit>>", "<<inherit>>"), ("delete", [])]
+    "test_input,expected_result,expected_exception",
+    [
+        ("<<inherit>>", "<<inherit>>", does_not_raise()),
+        ("delete", [], does_not_raise()),
+        (["test"], ["test"], does_not_raise()),
+        ("my_test", ["my_test"], does_not_raise()),
+        ("my_test my_test", ["my_test", "my_test"], does_not_raise()),
+        (5, None, pytest.raises(TypeError)),
+    ],
 )
-def test_input_string_or_list(test_input, expected_result):
-    # Arrange
+def test_input_string_or_list(test_input, expected_result, expected_exception):
+    # Arrange & Act
+    with expected_exception:
+        result = input_converters.input_string_or_list(test_input)
 
-    # Act
-    result = input_converters.input_string_or_list(test_input)
-
-    # Assert
-    assert expected_result == result
+        # Assert
+        assert expected_result == result
 
 
 @pytest.mark.parametrize(
