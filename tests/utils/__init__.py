@@ -302,18 +302,6 @@ def test_rsync_files():
     assert False
 
 
-def test_run_this():
-    # Arrange
-    test_cmd = "echo %s"
-    test_args = "Test"
-
-    # Act
-    utils.run_this(test_cmd, test_args)
-
-    # Assert - If above method get's a zero exitcode it counts as successfully completed. Otherwise we die.
-    assert True
-
-
 @pytest.mark.skip(
     "This method does magic. Since we havn't had the time to break it down, this test is skipped."
 )

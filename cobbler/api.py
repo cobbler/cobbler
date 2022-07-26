@@ -2012,7 +2012,12 @@ class CobblerAPI:
                 rsync_cmd += " --include-from=/etc/cobbler/import_rsync_whitelist"
 
             # kick off the rsync now
-            utils.run_this(rsync_cmd, (spacer, mirror_url, path))
+            # TODO: Refactor to list
+            rc = utils.subprocess_call(
+                rsync_cmd % (spacer, mirror_url, path), shell=True
+            )
+            if rc != 0:
+                utils.die("Command failed")
 
         if network_root is not None:
             # In addition to mirroring, we're going to assume the path is available over http, ftp, and nfs, perhaps on

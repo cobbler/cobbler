@@ -751,20 +751,6 @@ def rsync_files(src: str, dst: str, args: str, quiet: bool = True) -> bool:
     return True
 
 
-def run_this(cmd: str, args: Union[str, tuple]):
-    """
-    A simple wrapper around subprocess calls.
-
-    :param cmd: The command to run in a shell process.
-    :param args: The arguments to attach to the command.
-    """
-
-    my_cmd = cmd % args
-    rc = subprocess_call(my_cmd, shell=True)
-    if rc != 0:
-        die("Command failed")
-
-
 def run_triggers(api, ref=None, globber: str = "", additional: list = None):
     """Runs all the trigger scripts in a given directory.
     Example: ``/var/lib/cobbler/triggers/blah/*``
