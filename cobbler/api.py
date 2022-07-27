@@ -57,9 +57,6 @@ from cobbler.items import (
 )
 from cobbler.decorator import InheritableDictProperty
 
-# FIXME: add --quiet depending on if not --verbose?
-RSYNC_CMD = "rsync -a %s '%s' %s --progress"
-
 
 # notes on locking:
 # - CobblerAPI is a singleton object
@@ -2002,21 +1999,19 @@ class CobblerAPI:
             spacer = ""
             if not mirror_url.startswith("rsync://") and not mirror_url.startswith("/"):
                 spacer = ' -e "ssh" '
-            rsync_cmd = RSYNC_CMD
+            # FIXME: add --quiet depending on if not --verbose?
+            rsync_cmd = ["rsync", "-a", spacer, f"'{mirror_url}'", path, "--progress"]
             if rsync_flags:
-                rsync_cmd += " " + rsync_flags
+                rsync_cmd.append(rsync_flags)
 
             # If --available-as was specified, limit the files we pull down via rsync to just those that are critical
             # to detecting what the distro is
             if network_root is not None:
-                rsync_cmd += " --include-from=/etc/cobbler/import_rsync_whitelist"
+                rsync_cmd.append("--include-from=/etc/cobbler/import_rsync_whitelist")
 
             # kick off the rsync now
-            # TODO: Refactor to list
-            rc = utils.subprocess_call(
-                rsync_cmd % (spacer, mirror_url, path), shell=True
-            )
-            if rc != 0:
+            rsync_return_code = utils.subprocess_call(rsync_cmd, shell=False)
+            if rsync_return_code != 0:
                 utils.die("Command failed")
 
         if network_root is not None:
