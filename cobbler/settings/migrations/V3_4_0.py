@@ -219,7 +219,57 @@ def migrate(settings: dict) -> dict:
         "host": modules_config_parser.get("connection", "host", fallback="localhost"),
         "port": modules_config_parser.getint("connection", "port", fallback=27017),
     }
-    pathlib.Path(mongodb_config).unlink(missing_ok=True)
+    mongodb_config_path = pathlib.Path(mongodb_config)
+    if mongodb_config_path.exists():
+        mongodb_config_path.unlink()
+
+    # Do mongodb.conf migration
+    modules_config = "/etc/cobbler/modules.conf"
+    modules_config_parser = ConfigParser()
+    try:
+        modules_config_parser.read(mongodb_config)
+    except configparser.Error as cp_error:
+        raise configparser.Error(
+            "Could not read Cobbler modules.conf config file!"
+        ) from cp_error
+    settings["modules"] = {
+        "authentication": {
+            "module": modules_config_parser.get(
+                "authentication", "module", fallback="authentication.configfile"
+            ),
+            "hash_algorithm": modules_config_parser.get(
+                "authentication", "hash_algorithm", fallback="sha3_512"
+            ),
+        },
+        "authorization": {
+            "module": modules_config_parser.get(
+                "authorization", "module", fallback="authorization.allowall"
+            )
+        },
+        "dns": {
+            "module": modules_config_parser.get(
+                "dns", "module", fallback="managers.bind"
+            )
+        },
+        "dhcp": {
+            "module": modules_config_parser.get(
+                "dhcp", "module", fallback="managers.isc"
+            )
+        },
+        "tftpd": {
+            "module": modules_config_parser.get(
+                "tftpd", "module", fallback="managers.in_tftpd"
+            )
+        },
+        "serializers": {
+            "module": modules_config_parser.get(
+                "serializers", "module", fallback="serializers.file"
+            )
+        },
+    }
+    modules_config_path = pathlib.Path(modules_config)
+    if modules_config_path.exists():
+        modules_config_path.unlink()
 
     # Drop defaults
     from cobbler.settings import Settings

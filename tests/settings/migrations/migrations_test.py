@@ -5,7 +5,10 @@ Tests for the Cobbler settings migrations
 # SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
+import pathlib
+import shutil
 
+import pytest
 import yaml
 
 from cobbler import settings
@@ -24,6 +27,17 @@ from cobbler.settings.migrations import (
     V3_3_3,
     V3_4_0,
 )
+
+
+modules_conf_location = "/etc/cobbler/modules.conf"
+
+
+@pytest.fixture(scope="function", autouse=True)
+def delete_modules_conf():
+    yield
+    modules_conf_path = pathlib.Path(modules_conf_location)
+    if modules_conf_path.exists():
+        modules_conf_path.unlink()
 
 
 def test_cobbler_version_logic():
@@ -97,12 +111,20 @@ def test_migrate_v3_0_1():
     # Arrange
     with open("/code/tests/test_data/V3_0_0/settings.yaml") as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
+    shutil.copy("/code/tests/test_data/V3_0_0/modules.conf", modules_conf_location)
 
     # Act
     new_settings = V3_0_1.migrate(old_settings_dict)
 
+    # Read migrated modules.conf
+    with open("/etc/cobbler/modules.conf") as modules_conf:
+        new_modules_conf_content = modules_conf.readlines()
+
     # Assert
     assert V3_0_1.validate(new_settings)
+    assert all(
+        line not in ("authn_", "authz_", "manage_") for line in new_modules_conf_content
+    )
 
 
 def test_migrate_v3_1_0():
@@ -228,9 +250,15 @@ def test_migrate_v3_4_0():
     # Arrange
     with open("/code/tests/test_data/V3_3_3/settings.yaml") as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
+    shutil.copy("/code/tests/test_data/V3_3_3/modules.conf", modules_conf_location)
+    shutil.copy(
+        "/code/tests/test_data/V3_3_3/mongodb.conf", "/etc/cobbler/mongodb.conf"
+    )
 
     # Act
     new_settings = V3_4_0.migrate(old_settings_dict)
 
     # Assert
     assert V3_4_0.validate(new_settings)
+    assert not pathlib.Path("/etc/cobbler/mongodb.conf").exists()
+    assert not pathlib.Path(modules_conf_location).exists()
