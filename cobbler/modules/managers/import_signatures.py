@@ -212,13 +212,11 @@ class _ImportSignatureManager(ManagerModule):
                     )
                     if rc == 0:
                         cmd = [
-                            "/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/Boot/PXE$'"
-                            % winpe_path
+                            f"/usr/bin/wimdir {winpe_path} 1 | /usr/bin/grep -i '^/Windows/Boot/PXE$'"
                         ]
                         pxe_path = utils.subprocess_get(cmd, shell=True)[0:-1]
                         cmd = [
-                            "/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/System32/config/SOFTWARE$'"
-                            % winpe_path
+                            f"/usr/bin/wimdir {winpe_path} 1 | /usr/bin/grep -i '^/Windows/System32/config/SOFTWARE$'"
                         ]
                         config_path = utils.subprocess_get(cmd, shell=True)[0:-1]
                         cmd_path = "/usr/bin/wimextract"
@@ -227,10 +225,10 @@ class _ImportSignatureManager(ManagerModule):
                                 cmd_path,
                                 bootwim_path,
                                 "1",
-                                "%s/pxeboot.n12" % pxe_path,
-                                "%s/bootmgr.exe" % pxe_path,
+                                f"{pxe_path}/pxeboot.n12",
+                                f"{pxe_path}/bootmgr.exe",
                                 config_path,
-                                "--dest-dir=%s" % dest_path,
+                                f"--dest-dir={dest_path}",
                                 "--no-acls",
                                 "--no-attributes",
                             ],

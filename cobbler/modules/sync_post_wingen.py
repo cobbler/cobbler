@@ -447,14 +447,13 @@ def run(api, args):
                 pi_file.write(bytes(data, "utf-8"))
                 pi_file.flush()
                 cmd = [
-                    "/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/System32/startnet.cmd$'"
-                    % ps_file_name
+                    f"/usr/bin/wimdir {ps_file_name} 1 | /usr/bin/grep -i '^/Windows/System32/startnet.cmd$'"
                 ]
                 startnet_path = utils.subprocess_get(cmd, shell=True)[0:-1]
                 cmd = [
                     wimupdate,
                     ps_file_name,
-                    "--command=add %s %s" % (pi_file.name, startnet_path),
+                    f"--command=add {pi_file.name} {startnet_path}",
                 ]
                 utils.subprocess_call(cmd, shell=False)
                 pi_file.close()
