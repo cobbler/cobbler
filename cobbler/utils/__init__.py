@@ -953,7 +953,7 @@ def subprocess_sp(cmd, shell: bool = True, input=None):
     return out, rc
 
 
-def subprocess_call(cmd, shell: bool = True, input=None):
+def subprocess_call(cmd, shell: bool = False, input=None):
     """
     A simple subprocess call with no output capturing.
 
