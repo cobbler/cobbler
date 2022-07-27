@@ -49,6 +49,7 @@ class CollectionManager:
         CollectionManager.has_loaded = True
 
         self.api = api
+        self.__serializer = serializer.Serializer(api)
         self._distros = Distros(weakref.proxy(self))
         self._repos = Repos(weakref.proxy(self))
         self._profiles = Profiles(weakref.proxy(self))
@@ -124,17 +125,16 @@ class CollectionManager:
         Save all cobbler_collections to disk
         """
 
-        serializer.serialize(self.api, self._distros)
-        serializer.serialize(self.api, self._repos)
-        serializer.serialize(self.api, self._profiles)
-        serializer.serialize(self.api, self._images)
-        serializer.serialize(self.api, self._systems)
-        serializer.serialize(self.api, self._mgmtclasses)
-        serializer.serialize(self.api, self._packages)
-        serializer.serialize(self.api, self._files)
-        serializer.serialize(self.api, self._menus)
+        self.__serializer.serialize(self._distros)
+        self.__serializer.serialize(self._repos)
+        self.__serializer.serialize(self._profiles)
+        self.__serializer.serialize(self._images)
+        self.__serializer.serialize(self._systems)
+        self.__serializer.serialize(self._mgmtclasses)
+        self.__serializer.serialize(self._packages)
+        self.__serializer.serialize(self._files)
+        self.__serializer.serialize(self._menus)
 
-    # pylint: disable=R0201
     def serialize_one_item(self, item):
         """
         Save a collection item to disk
@@ -142,9 +142,8 @@ class CollectionManager:
         :param item: collection item
         """
         collection = self.get_items(item.COLLECTION_TYPE)
-        serializer.serialize_item(self.api, collection, item)
+        self.__serializer.serialize_item(collection, item)
 
-    # pylint: disable=R0201
     def serialize_item(self, collection, item):
         """
         Save a collection item to disk
@@ -155,9 +154,8 @@ class CollectionManager:
         :param collection: Collection
         :param item: collection item
         """
-        serializer.serialize_item(self.api, collection, item)
+        self.__serializer.serialize_item(collection, item)
 
-    # pylint: disable=R0201
     def serialize_delete_one_item(self, item):
         """
         Save a collection item to disk
@@ -165,9 +163,8 @@ class CollectionManager:
         :param item: collection item
         """
         collection = self.get_items(item.COLLECTION_TYPE)
-        serializer.serialize_delete(self.api, collection, item)
+        self.__serializer.serialize_delete(collection, item)
 
-    # pylint: disable=R0201
     def serialize_delete(self, collection, item):
         """
         Delete a collection item from disk
@@ -175,7 +172,7 @@ class CollectionManager:
         :param collection: collection
         :param item: collection item
         """
-        serializer.serialize_delete(self.api, collection, item)
+        self.__serializer.serialize_delete(collection, item)
 
     def deserialize(self):
         """
@@ -195,7 +192,7 @@ class CollectionManager:
             self._files,
         ):
             try:
-                serializer.deserialize(self.api, collection)
+                self.__serializer.deserialize(collection)
             except Exception as e:
                 raise CX(
                     "serializer: error loading collection %s: %s. Check your settings!"

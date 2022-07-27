@@ -15,8 +15,7 @@ import json
 import cobbler.api as capi
 from cobbler import settings
 from cobbler.cexceptions import CX
-
-libpath = "/var/lib/cobbler/collections"
+from cobbler.modules.serializers import StorageBase
 
 
 def register() -> str:
@@ -33,7 +32,7 @@ def what() -> str:
     return "serializer/file"
 
 
-def __find_double_json_files(filename: str):
+def _find_double_json_files(filename: str):
     """
     Finds a file with duplicate .json ending and renames it.
     :param filename: Filename to be checked
@@ -48,99 +47,77 @@ def __find_double_json_files(filename: str):
             raise FileExistsError("Both JSON files (%s) exist!" % filename)
 
 
-def serialize_item(collection, item):
+class FileSerializer(StorageBase):
     """
-    Save a collection item to file system
-
-    :param collection: collection
-    :param item: collection item
+    TODO
     """
 
-    if not item.name:
-        raise CX("name unset for item!")
+    def __init__(self, api):
+        super().__init__(api)
+        self.libpath = "/var/lib/cobbler/collections"
 
-    collection_types = collection.collection_types()
-    filename = os.path.join(libpath, collection_types, item.name + ".json")
-    __find_double_json_files(filename)
+    def serialize_item(self, collection, item):
+        if not item.name:
+            raise CX("name unset for item!")
 
-    if capi.CobblerAPI().settings().serializer_pretty_json:
-        sort_keys = True
-        indent = 4
-    else:
-        sort_keys = False
-        indent = None
+        collection_types = collection.collection_types()
+        filename = os.path.join(self.libpath, collection_types, item.name + ".json")
+        _find_double_json_files(filename)
 
-    _dict = item.serialize()
-    with open(filename, "w+") as file_descriptor:
-        data = json.dumps(_dict, sort_keys=sort_keys, indent=indent)
-        file_descriptor.write(data)
+        if capi.CobblerAPI().settings().serializer_pretty_json:
+            sort_keys = True
+            indent = 4
+        else:
+            sort_keys = False
+            indent = None
+
+        _dict = item.serialize()
+        with open(filename, "w+") as file_descriptor:
+            data = json.dumps(_dict, sort_keys=sort_keys, indent=indent)
+            file_descriptor.write(data)
+
+    def serialize_delete(self, collection, item):
+        collection_types = collection.collection_types()
+        filename = os.path.join(self.libpath, collection_types, item.name + ".json")
+        _find_double_json_files(filename)
+
+        if os.path.exists(filename):
+            os.remove(filename)
+
+    def serialize(self, collection):
+        # do not serialize settings
+        if collection.collection_type() != "setting":
+            for x in collection:
+                self.serialize_item(collection, x)
+
+    def deserialize_raw(self, collection_type: str):
+        if collection_type == "settings":
+            return settings.read_settings_file()
+        else:
+            results = []
+
+            path = os.path.join(self.libpath, collection_type)
+            all_files = glob.glob("%s/*.json" % path)
+
+            for f in all_files:
+                with open(f) as file_descriptor:
+                    json_data = file_descriptor.read()
+                    _dict = json.loads(json_data)
+                    results.append(_dict)
+            return results
+
+    def deserialize(self, collection, topological: bool = True):
+        datastruct = self.deserialize_raw(collection.collection_types())
+        if topological and isinstance(datastruct, list):
+            datastruct.sort(key=lambda x: x.get("depth", 1))
+        if isinstance(datastruct, dict):
+            collection.from_dict(datastruct)
+        elif isinstance(datastruct, list):
+            collection.from_list(datastruct)
 
 
-def serialize_delete(collection, item):
+def storage_factory(api):
     """
-    Delete a collection item from file system.
-
-    :param collection: collection
-    :param item: collection item
+    TODO
     """
-
-    collection_types = collection.collection_types()
-    filename = os.path.join(libpath, collection_types, item.name + ".json")
-    __find_double_json_files(filename)
-
-    if os.path.exists(filename):
-        os.remove(filename)
-
-
-def serialize(collection):
-    """
-    Save a collection to file system
-
-    :param collection: collection
-    """
-
-    # do not serialize settings
-    if collection.collection_type() != "setting":
-        for x in collection:
-            serialize_item(collection, x)
-
-
-def deserialize_raw(collection_types: str):
-    """
-    Loads a collection from the disk.
-
-    :param collection_types: The type of collection to load.
-    :return: The loaded dictionary.
-    """
-    if collection_types == "settings":
-        return settings.read_settings_file()
-    else:
-        results = []
-
-        path = os.path.join(libpath, collection_types)
-        all_files = glob.glob("%s/*.json" % path)
-
-        for f in all_files:
-            with open(f) as file_descriptor:
-                json_data = file_descriptor.read()
-                _dict = json.loads(json_data)
-                results.append(_dict)
-        return results
-
-
-def deserialize(collection, topological: bool = True):
-    """
-    Load a collection from file system.
-
-    :param collection: The collection to deserialize.
-    :param topological: If the collection list should be sorted by the
-                        collection dict key 'depth' value or not.
-    """
-
-    datastruct = deserialize_raw(collection.collection_types())
-    if topological and isinstance(datastruct, list):
-        datastruct.sort(key=lambda x: x.get("depth", 1))
-    if isinstance(datastruct, dict):
-        collection.from_dict(datastruct)
-    elif isinstance(datastruct, list):
-        collection.from_list(datastruct)
+    return FileSerializer(api)

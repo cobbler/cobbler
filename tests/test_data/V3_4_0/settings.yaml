@@ -127,13 +127,13 @@ bootloaders_modules:
   - gcry_rijndael
   - gcry_sha1
   - gcry_sha256
-syslinux_dir: '@@syslinux_dir@@'
-syslinux_memdisk_folder: '@@memdisk_folder@@'
-syslinux_pxelinux_folder: '@@pxelinux_folder@@'
-grub2_mod_dir: '@@grub_mod_folder@@'
-bootloaders_shim_folder: '@@shim_folder@@'
-bootloaders_shim_file: '@@shim_file@@'
-bootloaders_ipxe_folder: '@@ipxe_folder@@'
+syslinux_dir: '/usr/share/syslinux'
+syslinux_memdisk_folder: '/usr/share/syslinux'
+syslinux_pxelinux_folder: '/usr/share/syslinux'
+grub2_mod_dir: '/usr/share/grub2'
+bootloaders_shim_folder: '/usr/share/efi/*/'
+bootloaders_shim_file: 'shim\.efi'
+bootloaders_ipxe_folder: '/usr/share/ipxe/'
 
 # Email out a report when Cobbler finishes installing a system.
 # enabled: set to true to turn this feature on
@@ -344,7 +344,7 @@ bind_chroot_path: ""
 bind_manage_ipmi: true
 
 # set to path where zonefiles of bind/named server are located.
-bind_zonefile_path: "@@bind_zonefiles@@"
+bind_zonefile_path: "/var/lib/named"
 
 # set to the ip address of the master bind DNS server for creating secondary
 # bind configuration files
@@ -365,8 +365,8 @@ manage_tftpd: true
 
 # This variable contains the location of the tftpboot directory. If this directory is not present Cobbler does not
 # start.
-# Default: @@tftproot@@
-tftpboot_location: "@@tftproot@@"
+# Default: "/var/lib/tftpboot"
+tftpboot_location: "/var/lib/tftpboot"
 
 # set to true to enable Cobbler's RSYNC management features.
 manage_rsync: false
@@ -485,7 +485,7 @@ virt_auto_boot: true
 
 # Cobbler's web directory. Don't change this setting -- see the Wiki on "Relocating your Cobbler install" if your "/var"
 # partition is not large enough.
-webdir: "@@webroot@@/cobbler"
+webdir: "/var/www/cobbler"
 
 # Directories that will not get wiped and recreated on a "cobbler sync".
 webdir_whitelist:
@@ -613,3 +613,8 @@ modules:
     module: "managers.in_tftpd"
   serializers:
     module: "serializers.file"
+
+# mongodb.conf replacement
+mongodb:
+  host: "localhost"
+  port: 27017

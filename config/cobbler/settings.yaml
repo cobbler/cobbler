@@ -613,3 +613,8 @@ modules:
     module: "managers.in_tftpd"
   serializers:
     module: "serializers.file"
+
+# mongodb.conf replacement
+mongodb:
+  host: "localhost"
+  port: 27017

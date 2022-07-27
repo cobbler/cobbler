@@ -93,6 +93,7 @@ class CobblerAPI:
         # FIXME: this should be switchable through some simple system
 
         self.__dict__ = CobblerAPI.__shared_state
+        self.mtime_location = "/var/lib/cobbler/.mtime"
         self.perms_ok = False
         if not CobblerAPI.__has_loaded:
             # NOTE: we do not log all API actions, because a simple CLI invocation may call adds and such to load the
@@ -231,12 +232,11 @@ class CobblerAPI:
         :returns: 0 if there is no file where the information required for this method is saved.
         """
         # FIXME: This fails in case the file required is not available
-        if not os.path.exists("/var/lib/cobbler/.mtime"):
-            fd = open("/var/lib/cobbler/.mtime", "w")
-            fd.write("0")
-            fd.close()
-            return float(0)
-        fd = open("/var/lib/cobbler/.mtime", "r")
+        if not os.path.exists(self.mtime_location):
+            with open(self.mtime_location, "w") as mtime_fd:
+                mtime_fd.write("0")
+            return 0.0
+        fd = open(self.mtime_location, "r")
         data = fd.read().strip()
         return float(data)
 

@@ -211,6 +211,7 @@ class Settings:
             "tftpd": {"module": "managers.in_tftpd"},
             "serializers": {"module": "serializers.file"},
         }
+        self.mongodb = {"host": "localhost", "port": 27017}
         self.next_server_v4 = "127.0.0.1"
         self.next_server_v6 = "::1"
         self.nsupdate_enabled = False
