@@ -39,8 +39,8 @@ class Replicate:
 
         :param api: The API which holds all information available in Cobbler.
         """
-        self.settings = api.settings()
         self.api = api
+        self.settings = api.settings()
         self.remote = None
         self.uri = None
         self.logger = logging.getLogger()
@@ -75,27 +75,19 @@ class Replicate:
         self.use_ssl = False
         self.local = None
 
-    def rsync_it(self, from_path, to_path, type: Optional[str] = None):
+    def rsync_it(self, from_path: str, to_path: str, object_type: Optional[str] = None):
         """
         Rsync from a source to a destination with the rsync options Cobbler was configured with.
 
         :param from_path: The source to rsync from.
         :param to_path: The destination to rsync to.
-        :param type: If set to "repo" this will take the repo rsync options instead of the global ones.
+        :param object_type: If set to "repo" this will take the repo rsync options instead of the global ones.
         """
-        from_path = "%s::%s" % (self.master, from_path)
-        if type == "repo":
-            cmd = "rsync %s %s %s" % (
-                self.settings.replicate_repo_rsync_options,
-                from_path,
-                to_path,
-            )
+        from_path = f"{self.master}::{from_path}"
+        if object_type == "repo":
+            cmd = f"rsync {self.settings.replicate_repo_rsync_options} {from_path} {to_path}"
         else:
-            cmd = "rsync %s %s %s" % (
-                self.settings.replicate_rsync_options,
-                from_path,
-                to_path,
-            )
+            cmd = f"rsync {self.settings.replicate_rsync_options} {from_path} {to_path}"
 
         rsync_return_code = utils.subprocess_call(cmd, shell=True)
         if rsync_return_code != 0:
@@ -231,7 +223,7 @@ class Replicate:
                                 "distro_mirror",
                                 tail.split("/")[1],
                             )
-                            self.rsync_it("distro-%s" % target["name"], dest)
+                            self.rsync_it(f"distro-{target['name']}", dest)
                         except:
                             self.logger.error("Failed to rsync distro %s", distro)
                             continue
@@ -245,7 +237,7 @@ class Replicate:
             for repo in list(self.must_include["repo"].keys()):
                 if self.must_include["repo"][repo] == 1:
                     self.rsync_it(
-                        "repo-%s" % repo,
+                        f"repo-{repo}",
                         os.path.join(self.settings.webdir, "repo_mirror", repo),
                         "repo",
                     )
