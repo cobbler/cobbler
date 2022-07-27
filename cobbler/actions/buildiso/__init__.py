@@ -311,7 +311,7 @@ class BuildIso:
                 "mbr/isohdpfx.bin"
             )
         efi_img_location = "grub/grub.efi"
-        cmd_list = [
+        cmd = [
             "xorriso",
             "-as",
             "mkisofs",
@@ -337,9 +337,8 @@ class BuildIso:
             iso,
             buildisodir,
         ]
-        cmd = " ".join(cmd_list)
 
-        xorrisofs_return_code = utils.subprocess_call(cmd, shell=True)
+        xorrisofs_return_code = utils.subprocess_call(cmd, shell=False)
         if xorrisofs_return_code != 0:
             self.logger.error("xorrisofs failed with non zero exit code!")
             return
