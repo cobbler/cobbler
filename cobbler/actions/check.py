@@ -363,7 +363,7 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
-        return_code = utils.subprocess_call("dnsmasq --help")
+        return_code = utils.subprocess_call(["dnsmasq", "--help"], shell=False)
         if return_code != 0:
             status.append("dnsmasq is not installed and/or in path")
 
@@ -373,7 +373,7 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
-        return_code = utils.subprocess_call("named -v")
+        return_code = utils.subprocess_call(["named", "-v"], shell=False)
         # it should return something like "BIND 9.6.1-P1-RedHat-9.6.1-6.P1.fc11"
         if return_code != 0:
             status.append("named is not installed and/or in path")
@@ -384,8 +384,8 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
-        rc_wget = utils.subprocess_call("wget --help")
-        rc_curl = utils.subprocess_call("curl --help")
+        rc_wget = utils.subprocess_call(["wget", "--help"], shell=False)
+        rc_curl = utils.subprocess_call(["curl", "--help"], shell=False)
         if rc_wget != 0 and rc_curl != 0:
             status.append(
                 "Neither wget nor curl are installed and/or available in $PATH. Cobbler requires that one "
