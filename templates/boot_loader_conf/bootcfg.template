@@ -1,17 +1,8 @@
 bootstate=0
 title=Loading ESXi installer
 prefix=$img_path
-#if $os_version in ['esxi5', 'esxi51', 'esxi55', 'esxi60', 'esxi65']
-kernel=tboot.b00
-#else
-kernel=b.b00
-#end if
-#if $getVar('system_name','') != ''
-#set $what = "system"
-#else
-#set $what = "profile"
-#end if
-kernelopt=runweasel ks=http://$server:$http_port/cblr/svc/op/ks/$what/$name
+kernel=$kernel_file
+kernelopt=runweasel $kopts
 modules=$esx_modules
 build=
 updated=0

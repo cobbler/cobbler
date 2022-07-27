@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Check that the Cobbler HTTP endpoint /autoinstall/ is callable
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+distro=esxi70
+version=VMware-VMvisor-Installer-7.0U3d-19482537.x86_64.iso
+
+# import a vmware distro and copy a fake boot.cfg for templating
+iso=${SYSTESTS_ROOT}/listings/vmware/${distro}/${version}
+root=${tmp}/${version}
+mkdir -p ${root}
+cat ${iso}/index | xargs -I {} -P 64 install -D -m 0644 /dev/null ${root}/{}
+cp -a ${iso}/. ${root}
+cp ${fake_bootcfg} ${root}
+cobbler import --name fake --path ${root} --arch=x86_64 --breed=vmware \
+    --os-version=${distro}
+cobbler system add --name testbed --profile fake-x86_64
+
+# Prepare expected result
+cat >${tmp}/a <<-EOF
+bootstate=0
+title=Loading ESXi installer
+prefix=/images/fake-x86_64
+kernel=b.b00
+kernelopt=runweasel  ks=http://192.168.1.1/cblr/svc/op/autoinstall/profile/fake-x86_64
+modules=module1.gz --- module2.gz --- module3.v00 --- module4.tgz
+build=
+updated=0
+EOF
+
+cat >${tmp}/b <<-EOF
+bootstate=0
+title=Loading ESXi installer
+prefix=/images/fake-x86_64
+kernel=b.b00
+kernelopt=runweasel  ks=http://192.168.1.1/cblr/svc/op/autoinstall/system/testbed
+modules=module1.gz --- module2.gz --- module3.v00 --- module4.tgz
+build=
+updated=0
+EOF
+
+# Act
+curl --output ${tmp}/c http://localhost/cblr/svc/op/bootcfg/system/testbed
+curl --output ${tmp}/d http://localhost/cblr/svc/op/bootcfg/profile/fake-x86_64
+
+# Assert
+diff ${tmp}/{a,d}
+diff ${tmp}/{b,c}

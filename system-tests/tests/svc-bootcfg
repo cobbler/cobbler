@@ -15,8 +15,8 @@ cat >${tmp}/a <<-EOF
 bootstate=0
 title=Loading ESXi installer
 prefix=/images/fake
-kernel=b.b00
-kernelopt=runweasel ks=http://192.168.1.1:80/cblr/svc/op/ks/profile/fake
+kernel=vmlinuz
+kernelopt=runweasel  
 modules=\$esx_modules
 build=
 updated=0
@@ -26,8 +26,8 @@ cat >${tmp}/b <<-EOF
 bootstate=0
 title=Loading ESXi installer
 prefix=/images/fake
-kernel=b.b00
-kernelopt=runweasel ks=http://192.168.1.1:80/cblr/svc/op/ks/system/testbed
+kernel=vmlinuz
+kernelopt=runweasel  
 modules=\$esx_modules
 build=
 updated=0

@@ -117,11 +117,34 @@ group {
         #else if $iface.gateway:
             option routers $iface.gateway;
         #end if
-        #if $iface.enable_ipxe:
+        #set breed = $getVar('iface.distro.breed',None)
+        #if $breed == "vmware":
+            #if $iface.enable_ipxe:
+            if option system-arch = 00:07 or option system-arch = 00:09 { ## UEFI
+                if exists user-class and option user-class = "iPXE" {
+                    filename = "$iface.filename_esxi";
+                } else {
+                    filename = "esxi/snponly.efi";
+                }
+            } else { ## BIOS
+                if exists user-class and option user-class = "iPXE" {
+                    filename = "esxi/pxelinux.0";
+                } else {
+                    filename = "esxi/undionly.pxe";
+               }
+            }
+            #else
+            if option system-arch = 00:07 or option system-arch = 00:09 {
+                filename = "$iface.filename_esxi";
+            } else {
+                filename = "esxi/pxelinux.0";
+            }
+            #end if
+        #else if $iface.enable_ipxe:
             if exists user-class and option user-class = "iPXE" {
                 filename "http://$cobbler_server/cblr/svc/op/ipxe/system/$iface.owner";
             } else {
-                filename "undionly.kpxe";
+                filename "undionly.pxe";
             }
         #end if
         #if $iface.next_server_v4:

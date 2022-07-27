@@ -170,6 +170,16 @@ class _IscManager(ManagerModule):
                 interface["name_servers"] = blended_system["name_servers"]
                 interface["mgmt_parameters"] = blended_system["mgmt_parameters"]
 
+                # For esxi/UEFI export filename_esxi as path to efi bootloader
+                if distro and distro.os_version.startswith("esxi"):
+                    interface["filename_esxi"] = "/".join(
+                        [
+                            "esxi/system",
+                            system.get_config_filename(interface=name, loader="pxe"),
+                            "mboot.efi",
+                        ]
+                    )
+
                 # Explicitly declare filename for other (non x86) archs as in DHCP discover package mostly the
                 # architecture cannot be differed due to missing bits...
                 if distro is not None and not interface.get("filename"):

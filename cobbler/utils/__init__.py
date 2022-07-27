@@ -48,7 +48,7 @@ CHEETAH_ERROR_DISCLAIMER = """
 """
 
 re_kernel = re.compile(
-    r"(vmlinu[xz]|(kernel|linux(\.img)?)|pxeboot\.n12|wimboot|mboot\.c32|.+\.kernel)"
+    r"(vmlinu[xz]|(kernel|linux(\.img)?)|pxeboot\.n12|wimboot|mboot\.c32|tboot\.b00|b\.b00|.+\.kernel)"
 )
 re_initrd = re.compile(r"(initrd(.*)\.img|ramdisk\.image\.gz|boot\.sdi|imgpayld\.tgz)")
 

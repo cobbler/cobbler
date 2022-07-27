@@ -780,9 +780,7 @@ class TFTPGen:
         )
         metadata["kernel_options"] = kernel_options
 
-        if distro and distro.os_version.startswith("esxi") and filename is not None:
-            append_line = "BOOTIF=%s" % (os.path.basename(filename))
-        elif "initrd_path" in metadata:
+        if "initrd_path" in metadata:
             append_line = "append initrd=%s" % (metadata["initrd_path"])
         else:
             append_line = "append "
@@ -812,6 +810,25 @@ class TFTPGen:
                     buffer += "set serial_console=true\nset serial_baud={baud}\nset serial_line={device}\n".format(
                         baud=serial_baud_rate, device=serial_device
                     )
+
+        # for esxi, generate bootcfg_path metadata
+        # and write boot.cfg files for systems and pxe
+        if distro and distro.os_version.startswith("esxi"):
+            if system:
+                if filename:
+                    bootcfg_path = os.path.join(
+                        "system", os.path.basename(filename), "boot.cfg"
+                    )
+                else:
+                    bootcfg_path = os.path.join("system", system.name, "boot.cfg")
+                # write the boot.cfg file in the bootcfg_path
+                if format == "pxe":
+                    self._write_bootcfg_file("system", system.name, bootcfg_path)
+                # make bootcfg_path available for templating
+                metadata["bootcfg_path"] = bootcfg_path
+            else:
+                # menus do not work for esxi profiles. So we exit here
+                return ""
 
         # get the template
         if metadata["kernel_path"] is not None:
@@ -883,6 +900,10 @@ class TFTPGen:
                     kernel_path = distro.kernel
                 if not initrd_path:
                     initrd_path = distro.initrd
+
+            # ESXi: for templating pxe/ipxe, kernel_path is bootloader mboot.c32
+            if distro.breed == "vmware" and distro.os_version.startswith("esxi"):
+                kernel_path = os.path.join(img_path, "mboot.c32")
 
             if not kernel_path:
                 kernel_path = os.path.join(img_path, os.path.basename(distro.kernel))
@@ -1055,9 +1076,8 @@ class TFTPGen:
                 if distro.os_version.find("esxi") != -1:
                     # ESXi is very picky, it's easier just to redo the
                     # entire append line here since
-                    append_line = " ks=%s %s" % (autoinstall_path, hkopts)
-                    # ESXi likes even fewer options, so we remove them too
-                    append_line = append_line.replace("kssendmac", "")
+                    hkopts = utils.dict_to_string(kopts)
+                    append_line = "%s ks=%s" % (hkopts, autoinstall_path)
                 else:
                     append_line = "%s vmkopts=debugLogToSerial:1 mem=512M ks=%s" % (
                         append_line,
@@ -1325,13 +1345,8 @@ class TFTPGen:
             distro = obj.get_conceptual_parent()
         else:
             obj = self.api.find_system(name=name)
-            distro = obj.get_conceptual_parent().get_conceptual_parent()
-
-        # For multi-arch distros, the distro name in distro_mirror may not contain the arch string, so we need to figure
-        # out the path based on where the kernel is stored. We do this because some distros base future downloads on the
-        # initial URL passed in, so all of the files need to be at this location (which is why we can't use the images
-        # link, which just contains the kernel and initrd).
-        distro_mirror_name = "".join(distro.kernel.split("/")[-2:-1])
+            profile = obj.get_conceptual_parent()
+            distro = profile.get_conceptual_parent()
 
         blended = utils.blender(self.api, False, obj)
 
@@ -1340,15 +1355,6 @@ class TFTPGen:
                 bootmodules = re.findall(r"modules=(.*)", f.read())
                 for modules in bootmodules:
                     blended["esx_modules"] = modules.replace("/", "")
-
-        autoinstall_meta = blended.get("autoinstall_meta", {})
-        try:
-            del blended["autoinstall_meta"]
-        except:
-            pass
-        blended.update(autoinstall_meta)  # make available at top level
-
-        blended["distro"] = distro_mirror_name
 
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
@@ -1360,6 +1366,23 @@ class TFTPGen:
             )
         else:
             blended["img_path"] = os.path.join("/images", distro.name)
+
+        # generate the kernel options:
+        if what == "system":
+            kopts = self.build_kernel_options(
+                obj,
+                profile,
+                distro,
+                None,
+                distro.arch,
+                blended.get("autoinstall", None),
+            )
+        elif what == "profile":
+            kopts = self.build_kernel_options(
+                None, obj, distro, None, distro.arch, blended.get("autoinstall", None)
+            )
+        blended["kopts"] = kopts
+        blended["kernel_file"] = os.path.basename(distro.kernel)
 
         template = os.path.join(
             self.settings.boot_loader_conf_template_dir, "bootcfg.template"
@@ -1515,3 +1538,51 @@ class TFTPGen:
                 initrd.append(initrd_path)
 
         return initrd
+
+    def _write_bootcfg_file(self, what: str, name: str, filename: str) -> str:
+        """
+        Write a boot.cfg file for the ESXi boot loader(s), and create a symlink to
+        esxi UEFI bootloaders (mboot.efi)
+
+        :param what: Either "profile" or "system". Profiles are not currently used.
+        :param name: The name of the item which the file should be generated for.
+        :param filename: relative boot.cfg path from tftp.
+        :return: The generated filecontent for the required item.
+        """
+
+        if what.lower() not in ("profile", "system"):
+            return "# only valid for profiles and systems"
+
+        buffer = self.generate_bootcfg(what, name)
+        bootloc_esxi = os.path.join(self.bootloc, "esxi")
+        bootcfg_path = os.path.join(bootloc_esxi, filename)
+
+        # write the boot.cfg file in tftp location
+        self.logger.info("generating: %s", bootcfg_path)
+        if not os.path.exists(os.path.dirname(bootcfg_path)):
+            filesystem_helpers.mkdir(os.path.dirname(bootcfg_path))
+        with open(bootcfg_path, "w") as fd:
+            fd.write(buffer)
+
+        # symlink to esxi UEFI bootloader in same dir as boot.cfg
+        # based on https://stackoverflow.com/a/55741590
+        if os.path.isfile(os.path.join(bootloc_esxi, "mboot.efi")):
+            link_file = os.path.join(
+                bootloc_esxi, os.path.dirname(filename), "mboot.efi"
+            )
+            while True:
+                temp_link_file = os.path.join(
+                    bootloc_esxi, os.path.dirname(filename), "mboot.efi.tmp"
+                )
+                try:
+                    os.symlink("../../mboot.efi", temp_link_file)
+                    break
+                except FileExistsError:
+                    pass
+            try:
+                os.replace(temp_link_file, link_file)
+            except OSError as os_error:
+                os.remove(temp_link_file)
+                raise OSError("Error creating symlink %s" % link_file) from os_error
+
+        return buffer
