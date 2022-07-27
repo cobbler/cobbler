@@ -213,8 +213,18 @@ def test_reposync_yum(
         reposync_object.yum_sync(repo)
 
         mocked_subprocess.assert_called_with(
-            "/usr/bin/dnf download --testflag  --disablerepo=* --enablerepo=%s -c /create/local/file --destdir=%s"
-            " fedora-gpg-keys" % (repo.name, repo_path)
+            [
+                "/usr/bin/dnf",
+                "download",
+                "--testflag",
+                "",
+                "--disablerepo=*",
+                f"--enablerepo={repo.name}",
+                "-c /create/local/file",
+                f"--destdir={repo_path}",
+                "fedora-gpg-keys",
+            ],
+            shell=False,
         )
         handle_mock.perform.assert_called_with(result_mock)
         assert mocked_repo_walker.call_count == 1
@@ -294,8 +304,19 @@ def test_reposync_apt(
 
         # Assert
         mocked_subprocess.assert_called_with(
-            "/usr/bin/debmirror --nocleanup --method=http --host=%s --root=%s --dist=stable --section=main %s "
-            "--nosource -a amd64" % ("ftp.debian.org", "/debian", repo_path)
+            [
+                "/usr/bin/debmirror",
+                "--nocleanup",
+                "--method=http",
+                "--host=ftp.debian.org",
+                "--root=/debian",
+                "--dist=stable",
+                "--section=main",
+                repo_path,
+                "--nosource",
+                "-a=amd64",
+            ],
+            shell=False,
         )
 
 
@@ -385,7 +406,13 @@ def test_reposync_rhn(mocker, reposync_object, repo):
     # Assert
     # TODO: Check this more and document how its actually working
     mocked_subprocess.assert_called_with(
-        "/my/fake/reposync --testflag --repo=testrepo0 -p /srv/www/cobbler/repo_mirror"
+        [
+            "/my/fake/reposync",
+            "--testflag",
+            "--repo=testrepo0",
+            "-p /srv/www/cobbler/repo_mirror",
+        ],
+        shell=False,
     )
 
 
@@ -401,8 +428,17 @@ def test_reposync_rsync(mocker, reposync_object, repo):
 
     # Assert
     mocked_subprocess.assert_called_with(
-        "rsync --testflag --delete-after -e ssh --delete --exclude-from=/etc/cobbler/rsync.exclude / %s"
-        % repo_path
+        [
+            "rsync",
+            "--testflag",
+            "--delete-after",
+            "-e ssh",
+            "--delete",
+            "--exclude-from=/etc/cobbler/rsync.exclude",
+            "/",
+            repo_path,
+        ],
+        shell=False,
     )
 
 
@@ -412,7 +448,7 @@ def test_createrepo_walker(mocker, reposync_object, repo):
     input_repo.breed = enums.RepoBreeds.RSYNC
     input_dirname = ""
     input_fnames = []
-    expected_call = "createrepo  --testflags '%s'" % input_dirname
+    expected_call = ["createrepo", "--testflags", f"'{input_dirname}'"]
     mocked_subprocess = mocker.patch(
         "cobbler.utils.subprocess_call", autospec=True, return_value=0
     )
@@ -433,7 +469,7 @@ def test_createrepo_walker(mocker, reposync_object, repo):
 
     # Assert
     # TODO: Improve coverage over different cases in method
-    mocked_subprocess.assert_called_with(expected_call)
+    mocked_subprocess.assert_called_with(expected_call, shell=False)
 
 
 @pytest.mark.parametrize(
@@ -516,8 +552,8 @@ def test_update_permissions(mocker, reposync_object):
     )
     path_to_update = "/my/fake/path"
     expected_calls = [
-        mocker.call("chown -R root:www %s" % path_to_update),
-        mocker.call("chmod -R 755 %s" % path_to_update),
+        mocker.call(["chown", "-R", "root:www", path_to_update], shell=False),
+        mocker.call(["chmod", "-R", "755", path_to_update], shell=False),
     ]
 
     # Act
