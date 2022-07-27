@@ -268,6 +268,43 @@ class Item:
 
         return merged_dict
 
+    def filter_resolve(self, property_name: str, options: Union[list, dict]) -> dict:
+        """
+        Filter out the key:value pair may comes from parent and global settings.
+        Note: we do not know exactly which resolver does key:value belongs to, what we did is just deduplicate them.
+        """
+
+        settings = self.api.settings()
+
+        if isinstance(options, InheritableDictProperty):
+            if self.parent is not None and hasattr(self.parent, property_name):
+                dup_value = getattr(self.parent, property_name)
+            elif hasattr(settings, property_name):
+                dup_vaule = getattr(settings, property_name)
+
+            for key in dup_value:
+                if key in options and dup_value[key] == options[key]:
+                    options.pop(key)
+
+        elif isinstance(options, InheritableProperty):
+            settings_name = property_name
+            if property_name.startswith("proxy_url_"):
+                property_name = "proxy"
+            if property_name == "owners":
+                settings_name = "default_ownership"
+
+            if self.parent is not None and hasattr(self.parent, property_name):
+                dup_value = getattr(self.parent, property_name)
+            elif hasattr(settings, settings_name):
+                dup_value = getattr(settings, settings_name)
+            elif hasattr(settings, "default_%s" % settings_name):
+                dup_value = getattr(settings, "default_%s" % settings_name)
+
+            if options == dup_value:
+                options = []
+
+        return options
+
     @property
     def uid(self) -> str:
         """
@@ -404,9 +441,10 @@ class Item:
         :raises ValueError: In case the values set could not be parsed successfully.
         """
         try:
-            self._kernel_options = input_converters.input_string_or_dict(
+            value = input_converters.input_string_or_dict(
                 options, allow_multiples=True
             )
+            self._kernel_options = filter_resolve("kernel_options", value)
         except TypeError as e:
             raise TypeError("invalid kernel options") from e
 
@@ -459,7 +497,7 @@ class Item:
         :raises ValueError: If splitting the value does not succeed.
         """
         value = input_converters.input_string_or_dict(options, allow_multiples=True)
-        self._autoinstall_meta = value
+        self._autoinstall_meta = filter_resolve("autoinstall_meta", value)
 
     @InheritableProperty
     def mgmt_classes(self) -> list:

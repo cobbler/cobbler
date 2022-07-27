@@ -464,6 +464,31 @@ def test_to_dict_resolved_dict(cobbler_api, create_distro):
     assert isinstance(result, dict)
     assert result.get("kernel_options") == {"test": True, "my_value": 5}
 
+def test_to_dict_filter_resolved(cobbler_api, create_distro):
+    # Arrange
+    test_distro = create_distro()
+    test_distro.kernel_options = {"test": True}
+    test_distro.autoinstall_meta = {"tree": "http://test/url"}
+    cobbler_api.add_distro(test_distro)
+
+    titem = Profile(cobbler_api)
+    titem.name = "to_dict_filter_resolved_profile"
+    titem.distro = test_distro.name
+    new_kernel_options = titem.kernel_options
+    new_autoinstall_meta = titem.autoinstall_meta
+    new_kernel_options["test"] = False
+    new_autoinstall_meta["tree"] = "http://newtest/url"
+    titem.kernel_options = new_kernel_options
+    titem.autoinstall_meta = new_autoinstall_meta
+    cobbler_api.add_profile(titem)
+
+    # Act
+    result = titem.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("kernel_options") == {"test": True}
+    assert result.get("autoinstall_meta") == {"tree": "http://test/url"}
 
 def test_serialize(cobbler_api):
     # Arrange
