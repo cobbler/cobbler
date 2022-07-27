@@ -722,29 +722,30 @@ def rsync_files(src: str, dst: str, args: str, quiet: bool = True) -> bool:
     if args is None:
         args = ""
 
-    RSYNC_CMD = (
-        "rsync -a %%s '%%s' %%s %s --exclude-from=/etc/cobbler/rsync.exclude" % args
-    )
-    if quiet:
-        RSYNC_CMD += " --quiet"
-    else:
-        RSYNC_CMD += " --progress"
-
     # Make sure we put a "/" on the end of the source and destination to make sure we don't cause any rsync weirdness.
     if not dst.endswith("/"):
-        dst = "%s/" % dst
+        dst = f"{dst}/"
     if not src.endswith("/"):
-        src = "%s/" % src
+        src = f"{src}/"
 
     spacer = ""
     if not src.startswith("rsync://") and not src.startswith("/"):
         spacer = ' -e "ssh" '
 
-    rsync_cmd = RSYNC_CMD % (spacer, src, dst)
+    rsync_cmd = [
+        "rsync",
+        "-a",
+        spacer,
+        f"'{src}'",
+        dst,
+        args,
+        "--exclude-from=/etc/cobbler/rsync.exclude",
+        "--quiet" if quiet else "--progress",
+    ]
     try:
-        res = subprocess_call(rsync_cmd)
+        res = subprocess_call(rsync_cmd, shell=False)
         if res != 0:
-            die("Failed to run the rsync command: '%s'" % rsync_cmd)
+            die(f"Failed to run the rsync command: '{rsync_cmd}'")
     except:
         return False
 
