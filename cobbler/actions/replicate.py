@@ -44,6 +44,22 @@ class Replicate:
         self.remote = None
         self.uri = None
         self.logger = logging.getLogger()
+        self.master = ""
+        self.local_data = {}
+        self.remote_data = {}
+        self.remote_settings = None
+        self.remote_names = {}
+        self.remote_dict = {}
+        self.must_include = {
+            "distro": {},
+            "profile": {},
+            "system": {},
+            "image": {},
+            "repo": {},
+            "mgmtclass": {},
+            "package": {},
+            "file": {},
+        }
 
     def rsync_it(self, from_path, to_path, type: Optional[str] = None):
         """
@@ -162,10 +178,7 @@ class Replicate:
         Replicate the local and remote data to each another.
 
         """
-        self.local_data = {}
-        self.remote_data = {}
         self.remote_settings = self.remote.get_settings()
-
         self.logger.info("Querying Both Servers")
         for what in OBJ_TYPES:
             self.remote_data[what] = self.remote.get_items(what)
@@ -258,18 +271,6 @@ class Replicate:
         """
         Not known what this exactly does.
         """
-        self.remote_names = {}
-        self.remote_dict = {}
-        self.must_include = {
-            "distro": {},
-            "profile": {},
-            "system": {},
-            "image": {},
-            "repo": {},
-            "mgmtclass": {},
-            "package": {},
-            "file": {},
-        }
 
         for ot in OBJ_TYPES:
             self.remote_names[ot] = list(

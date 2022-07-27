@@ -119,14 +119,16 @@ def test_replicate_data(mocker, replicate_obj):
     assert newer_on_remote_mock.call_count == len(replicate.OBJ_TYPES)
 
 
-def test_link_distros(replicate_obj):
+def test_link_distros(mocker, replicate_obj, create_distro):
     # Arrange
+    test_distro = create_distro()
+    mock_link_distro = mocker.patch.object(test_distro, "link_distro")
 
     # Act
     replicate_obj.link_distros()
 
     # Assert
-    assert False
+    mock_link_distro.assert_called_once()
 
 
 def test_generate_include_map(mocker, replicate_obj):
