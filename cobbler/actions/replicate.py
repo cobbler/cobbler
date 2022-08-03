@@ -60,6 +60,20 @@ class Replicate:
             "package": {},
             "file": {},
         }
+        self.port = ""
+        self.distro_patterns = []
+        self.profile_patterns = []
+        self.system_patterns = []
+        self.repo_patterns = []
+        self.image_patterns = []
+        self.mgmtclass_patterns = []
+        self.package_patterns = []
+        self.file_patterns = []
+        self.omit_data = False
+        self.prune = False
+        self.sync_all = False
+        self.use_ssl = False
+        self.local = None
 
     def rsync_it(self, from_path, to_path, type: Optional[str] = None):
         """
@@ -366,7 +380,7 @@ class Replicate:
         package_patterns=None,
         file_patterns=None,
         prune: bool = False,
-        omit_data=False,
+        omit_data: bool = False,
         sync_all: bool = False,
         use_ssl: bool = False,
     ):
