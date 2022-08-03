@@ -83,8 +83,8 @@ class Replicate:
                 to_path,
             )
 
-        rc = utils.subprocess_call(cmd, shell=True)
-        if rc != 0:
+        rsync_return_code = utils.subprocess_call(cmd, shell=True)
+        if rsync_return_code != 0:
             self.logger.info("rsync failed")
 
     # -------------------------------------------------------
