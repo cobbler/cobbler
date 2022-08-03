@@ -369,16 +369,16 @@ class Replicate:
 
     def run(
         self,
-        cobbler_master=None,
+        cobbler_master: Optional[str] = None,
         port: str = "80",
-        distro_patterns=None,
-        profile_patterns=None,
-        system_patterns=None,
-        repo_patterns=None,
-        image_patterns=None,
-        mgmtclass_patterns=None,
-        package_patterns=None,
-        file_patterns=None,
+        distro_patterns: Optional[str] = None,
+        profile_patterns: Optional[str] = None,
+        system_patterns: Optional[str] = None,
+        repo_patterns: Optional[str] = None,
+        image_patterns: Optional[str] = None,
+        mgmtclass_patterns: Optional[str] = None,
+        package_patterns: Optional[str] = None,
+        file_patterns: Optional[str] = None,
         prune: bool = False,
         omit_data: bool = False,
         sync_all: bool = False,
@@ -404,14 +404,22 @@ class Replicate:
         """
 
         self.port = str(port)
-        self.distro_patterns = distro_patterns.split()
-        self.profile_patterns = profile_patterns.split()
-        self.system_patterns = system_patterns.split()
-        self.repo_patterns = repo_patterns.split()
-        self.image_patterns = image_patterns.split()
-        self.mgmtclass_patterns = mgmtclass_patterns.split()
-        self.package_patterns = package_patterns.split()
-        self.file_patterns = file_patterns.split()
+        if isinstance(distro_patterns, str):
+            self.distro_patterns = distro_patterns.split()
+        if isinstance(profile_patterns, str):
+            self.profile_patterns = profile_patterns.split()
+        if isinstance(system_patterns, str):
+            self.system_patterns = system_patterns.split()
+        if isinstance(repo_patterns, str):
+            self.repo_patterns = repo_patterns.split()
+        if isinstance(image_patterns, str):
+            self.image_patterns = image_patterns.split()
+        if isinstance(mgmtclass_patterns, str):
+            self.mgmtclass_patterns = mgmtclass_patterns.split()
+        if isinstance(package_patterns, str):
+            self.package_patterns = package_patterns.split()
+        if isinstance(file_patterns, str):
+            self.file_patterns = file_patterns.split()
         self.omit_data = omit_data
         self.prune = prune
         self.sync_all = sync_all
