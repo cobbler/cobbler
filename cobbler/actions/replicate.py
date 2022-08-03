@@ -95,7 +95,7 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def remove_objects_not_on_master(self, obj_type):
+    def remove_objects_not_on_master(self, obj_type: str):
         """
         Remove objects on this slave which are not on the master.
 
@@ -114,7 +114,7 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def add_objects_not_on_local(self, obj_type):
+    def add_objects_not_on_local(self, obj_type: str):
         """
         Add objects locally which are not present on the slave but on the master.
 
@@ -144,7 +144,7 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def replace_objects_newer_on_remote(self, obj_type):
+    def replace_objects_newer_on_remote(self, obj_type: str):
         """
         Replace objects which are newer on the local slave then on the remote slave
 
