@@ -95,10 +95,10 @@ class AclConfig:
             # We must pass in a copy of list because in case the call is async we
             # would modify the call that maybe has not been done. We don't do this
             # yet but let's be sure. Also, the tests would break if we don't pass a copy.
-            rc = utils.subprocess_call(cmd.copy(), shell=False)
-            if not rc == 0:
+            setfacl_reset_return_code = utils.subprocess_call(cmd.copy(), shell=False)
+            if setfacl_reset_return_code != 0:
                 utils.die(f'"setfacl" command failed for "{directory}"')
             cmd.pop(1)
-            rc = utils.subprocess_call(cmd.copy(), shell=False)
-            if not rc == 0:
+            setfacl_return_code = utils.subprocess_call(cmd.copy(), shell=False)
+            if setfacl_return_code != 0:
                 utils.die(f'"setfacl" command failed for "{directory}"')
