@@ -130,7 +130,7 @@ class Replicate:
                 continue
 
             if not rdata["uid"] in locals:
-                creator = getattr(self.api, "new_%s" % obj_type)
+                creator = getattr(self.api, f"new_{obj_type}")
                 newobj = creator()
                 newobj.from_dict(utils.revert_strip_none(rdata))
                 try:
@@ -155,17 +155,16 @@ class Replicate:
 
         for (ruid, rdata) in list(remotes.items()):
             # do not add the system if it is not on the transfer list
-            if not rdata["name"] in self.must_include[obj_type]:
+            if rdata["name"] not in self.must_include[obj_type]:
                 continue
 
             if ruid in locals:
                 ldata = locals[ruid]
                 if ldata["mtime"] < rdata["mtime"]:
-
                     if ldata["name"] != rdata["name"]:
                         self.logger.info("removing %s %s", obj_type, ldata["name"])
                         self.api.remove_item(obj_type, ldata["name"], recursive=True)
-                    creator = getattr(self.api, "new_%s" % obj_type)
+                    creator = getattr(self.api, f"new_{obj_type}")
                     newobj = creator()
                     newobj.from_dict(utils.revert_strip_none(rdata))
                     try:
@@ -182,7 +181,6 @@ class Replicate:
     def replicate_data(self):
         """
         Replicate the local and remote data to each another.
-
         """
         self.remote_settings = self.remote.get_settings()
         self.logger.info("Querying Both Servers")
@@ -275,9 +273,11 @@ class Replicate:
 
     def generate_include_map(self):
         """
-        Not known what this exactly does.
+        Method that generates the information that is required to perform the replicate option.
         """
+        # This is the method that fills up "self.must_include"
 
+        # Load all remote objects and add them directly if "self.sync_all" is "True"
         for ot in OBJ_TYPES:
             self.remote_names[ot] = list(
                 utils.lod_to_dod(self.remote_data[ot], "name").keys()
