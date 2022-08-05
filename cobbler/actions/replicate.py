@@ -104,7 +104,7 @@ class Replicate:
         locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        for (luid, ldata) in list(locals.items()):
+        for (luid, ldata) in locals.items():
             if luid not in remotes:
                 try:
                     self.logger.info("removing %s %s", obj_type, ldata["name"])
@@ -153,7 +153,7 @@ class Replicate:
         locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        for (ruid, rdata) in list(remotes.items()):
+        for (ruid, rdata) in remotes.items():
             # do not add the system if it is not on the transfer list
             if rdata["name"] not in self.must_include[obj_type]:
                 continue
@@ -202,7 +202,7 @@ class Replicate:
 
         if not self.omit_data:
             self.logger.info("Rsyncing distros")
-            for distro in list(self.must_include["distro"].keys()):
+            for distro in self.must_include["distro"].keys():
                 if self.must_include["distro"][distro] == 1:
                     self.logger.info("Rsyncing distro %s", distro)
                     target = self.remote.get_distro(distro)
@@ -232,7 +232,7 @@ class Replicate:
                         )
 
             self.logger.info("Rsyncing repos")
-            for repo in list(self.must_include["repo"].keys()):
+            for repo in self.must_include["repo"].keys():
                 if self.must_include["repo"][repo] == 1:
                     self.rsync_it(
                         f"repo-{repo}",
@@ -305,7 +305,7 @@ class Replicate:
 
             # include all profiles that systems require whether they are explicitly included or not
             self.logger.debug("* Adding Profiles Required By Systems")
-            for sys in list(self.must_include["system"].keys()):
+            for sys in self.must_include["system"].keys():
                 pro = self.remote_dict["system"][sys].get("profile", "")
                 self.logger.debug("?: system %s requires profile %s.", sys, pro)
                 if pro != "":
@@ -317,7 +317,7 @@ class Replicate:
             self.logger.debug("* Adding Profiles Required By SubProfiles")
             while True:
                 loop_exit = True
-                for pro in list(self.must_include["profile"].keys()):
+                for pro in self.must_include["profile"].keys():
                     parent = self.remote_dict["profile"][pro].get("parent", "")
                     if parent != "":
                         if parent not in self.must_include["profile"]:
@@ -332,7 +332,7 @@ class Replicate:
             # require all distros that any profiles in the generated list requires whether they are explicitly included
             # or not
             self.logger.debug("* Adding Distros Required By Profiles")
-            for p in list(self.must_include["profile"].keys()):
+            for p in self.must_include["profile"].keys():
                 distro = self.remote_dict["profile"][p].get("distro", "")
                 if not distro == "<<inherit>>" and not distro == "~":
                     self.logger.debug("Adding distro %s for profile %s.", distro, p)
@@ -341,7 +341,7 @@ class Replicate:
             # require any repos that any profiles in the generated list requires whether they are explicitly included
             # or not
             self.logger.debug("* Adding Repos Required By Profiles")
-            for p in list(self.must_include["profile"].keys()):
+            for p in self.must_include["profile"].keys():
                 repos = self.remote_dict["profile"][p].get("repos", [])
                 if repos != "<<inherit>>":
                     for r in repos:
@@ -350,7 +350,7 @@ class Replicate:
 
             # include all images that systems require whether they are explicitly included or not
             self.logger.debug("* Adding Images Required By Systems")
-            for sys in list(self.must_include["system"].keys()):
+            for sys in self.must_include["system"].keys():
                 img = self.remote_dict["system"][sys].get("image", "")
                 self.logger.debug("?: system %s requires image %s.", sys, img)
                 if img != "":
