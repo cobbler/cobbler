@@ -148,15 +148,9 @@ rpms: release ## Runs the target release and then creates via rpmbuild the rpms 
 	-ba cobbler.spec
 
 # Only build a binary package
-debs: release ## Runs the target release and then creates via debbuild the debs in a directory called deb-build.
-	mkdir -p deb-build
-	mkdir -p deb-build/{BUILD,BUILDROOT,DEBS,SDEBS,SOURCES}
-	cp dist/*.gz deb-build/
-	debbuild --define "_topdir %(pwd)/deb-build" \
-	--define "_builddir %{_topdir}" \
-	--define "_specdir %{_topdir}" \
-	--define "_sourcedir  %{_topdir}" \
-	-vv -bb cobbler.spec
+debs: authors ## Creates native debs in a directory called deb-build. The release target is called during the build process.
+	@source distro_build_configs.sh; \
+    debuild -us -uc
 
 eraseconfig: ## Deletes the cobbler data jsons which are created when using the file provider.
 	-rm /var/lib/cobbler/cobbler_collections/distros/*
