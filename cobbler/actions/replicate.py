@@ -39,41 +39,63 @@ class Replicate:
 
         :param api: The API which holds all information available in Cobbler.
         """
-        self.settings = api.settings()
         self.api = api
+        self.settings = api.settings()
         self.remote = None
         self.uri = None
         self.logger = logging.getLogger()
+        self.master = ""
+        self.local_data = {}
+        self.remote_data = {}
+        self.remote_settings = None
+        self.remote_names = {}
+        self.remote_dict = {}
+        self.must_include = {
+            "distro": {},
+            "profile": {},
+            "system": {},
+            "image": {},
+            "repo": {},
+            "mgmtclass": {},
+            "package": {},
+            "file": {},
+        }
+        self.port = ""
+        self.distro_patterns = []
+        self.profile_patterns = []
+        self.system_patterns = []
+        self.repo_patterns = []
+        self.image_patterns = []
+        self.mgmtclass_patterns = []
+        self.package_patterns = []
+        self.file_patterns = []
+        self.omit_data = False
+        self.prune = False
+        self.sync_all = False
+        self.use_ssl = False
+        self.local = None
 
-    def rsync_it(self, from_path, to_path, type: Optional[str] = None):
+    def rsync_it(self, from_path: str, to_path: str, object_type: Optional[str] = None):
         """
         Rsync from a source to a destination with the rsync options Cobbler was configured with.
 
         :param from_path: The source to rsync from.
         :param to_path: The destination to rsync to.
-        :param type: If set to "repo" this will take the repo rsync options instead of the global ones.
+        :param object_type: If set to "repo" this will take the repo rsync options instead of the global ones.
         """
-        from_path = "%s::%s" % (self.master, from_path)
-        if type == "repo":
-            cmd = "rsync %s %s %s" % (
-                self.settings.replicate_repo_rsync_options,
-                from_path,
-                to_path,
-            )
+        from_path = f"{self.master}::{from_path}"
+        if object_type == "repo":
+            cmd = f"rsync {self.settings.replicate_repo_rsync_options} {from_path} {to_path}"
         else:
-            cmd = "rsync %s %s %s" % (
-                self.settings.replicate_rsync_options,
-                from_path,
-                to_path,
-            )
+            cmd = f"rsync {self.settings.replicate_rsync_options} {from_path} {to_path}"
 
-        rc = utils.subprocess_call(cmd, shell=True)
-        if rc != 0:
+        rsync_return_code = utils.subprocess_call(cmd, shell=True)
+        if rsync_return_code != 0:
             self.logger.info("rsync failed")
 
     # -------------------------------------------------------
 
-    def remove_objects_not_on_master(self, obj_type):
+    def remove_objects_not_on_master(self, obj_type: str):
         """
         Remove objects on this slave which are not on the master.
 
@@ -82,7 +104,7 @@ class Replicate:
         locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        for (luid, ldata) in list(locals.items()):
+        for (luid, ldata) in locals.items():
             if luid not in remotes:
                 try:
                     self.logger.info("removing %s %s", obj_type, ldata["name"])
@@ -92,7 +114,7 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def add_objects_not_on_local(self, obj_type):
+    def add_objects_not_on_local(self, obj_type: str):
         """
         Add objects locally which are not present on the slave but on the master.
 
@@ -108,7 +130,7 @@ class Replicate:
                 continue
 
             if not rdata["uid"] in locals:
-                creator = getattr(self.api, "new_%s" % obj_type)
+                creator = getattr(self.api, f"new_{obj_type}")
                 newobj = creator()
                 newobj.from_dict(utils.revert_strip_none(rdata))
                 try:
@@ -122,7 +144,7 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def replace_objects_newer_on_remote(self, obj_type):
+    def replace_objects_newer_on_remote(self, obj_type: str):
         """
         Replace objects which are newer on the local slave then on the remote slave
 
@@ -131,19 +153,18 @@ class Replicate:
         locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        for (ruid, rdata) in list(remotes.items()):
+        for (ruid, rdata) in remotes.items():
             # do not add the system if it is not on the transfer list
-            if not rdata["name"] in self.must_include[obj_type]:
+            if rdata["name"] not in self.must_include[obj_type]:
                 continue
 
             if ruid in locals:
                 ldata = locals[ruid]
                 if ldata["mtime"] < rdata["mtime"]:
-
                     if ldata["name"] != rdata["name"]:
                         self.logger.info("removing %s %s", obj_type, ldata["name"])
                         self.api.remove_item(obj_type, ldata["name"], recursive=True)
-                    creator = getattr(self.api, "new_%s" % obj_type)
+                    creator = getattr(self.api, f"new_{obj_type}")
                     newobj = creator()
                     newobj.from_dict(utils.revert_strip_none(rdata))
                     try:
@@ -160,12 +181,8 @@ class Replicate:
     def replicate_data(self):
         """
         Replicate the local and remote data to each another.
-
         """
-        self.local_data = {}
-        self.remote_data = {}
         self.remote_settings = self.remote.get_settings()
-
         self.logger.info("Querying Both Servers")
         for what in OBJ_TYPES:
             self.remote_data[what] = self.remote.get_items(what)
@@ -185,7 +202,7 @@ class Replicate:
 
         if not self.omit_data:
             self.logger.info("Rsyncing distros")
-            for distro in list(self.must_include["distro"].keys()):
+            for distro in self.must_include["distro"]:
                 if self.must_include["distro"][distro] == 1:
                     self.logger.info("Rsyncing distro %s", distro)
                     target = self.remote.get_distro(distro)
@@ -204,7 +221,7 @@ class Replicate:
                                 "distro_mirror",
                                 tail.split("/")[1],
                             )
-                            self.rsync_it("distro-%s" % target["name"], dest)
+                            self.rsync_it(f"distro-{target['name']}", dest)
                         except:
                             self.logger.error("Failed to rsync distro %s", distro)
                             continue
@@ -215,10 +232,10 @@ class Replicate:
                         )
 
             self.logger.info("Rsyncing repos")
-            for repo in list(self.must_include["repo"].keys()):
+            for repo in self.must_include["repo"]:
                 if self.must_include["repo"][repo] == 1:
                     self.rsync_it(
-                        "repo-%s" % repo,
+                        f"repo-{repo}",
                         os.path.join(self.settings.webdir, "repo_mirror", repo),
                         "repo",
                     )
@@ -256,21 +273,11 @@ class Replicate:
 
     def generate_include_map(self):
         """
-        Not known what this exactly does.
+        Method that generates the information that is required to perform the replicate option.
         """
-        self.remote_names = {}
-        self.remote_dict = {}
-        self.must_include = {
-            "distro": {},
-            "profile": {},
-            "system": {},
-            "image": {},
-            "repo": {},
-            "mgmtclass": {},
-            "package": {},
-            "file": {},
-        }
+        # This is the method that fills up "self.must_include"
 
+        # Load all remote objects and add them directly if "self.sync_all" is "True"
         for ot in OBJ_TYPES:
             self.remote_names[ot] = list(
                 utils.lod_to_dod(self.remote_data[ot], "name").keys()
@@ -298,7 +305,7 @@ class Replicate:
 
             # include all profiles that systems require whether they are explicitly included or not
             self.logger.debug("* Adding Profiles Required By Systems")
-            for sys in list(self.must_include["system"].keys()):
+            for sys in self.must_include["system"]:
                 pro = self.remote_dict["system"][sys].get("profile", "")
                 self.logger.debug("?: system %s requires profile %s.", sys, pro)
                 if pro != "":
@@ -310,7 +317,7 @@ class Replicate:
             self.logger.debug("* Adding Profiles Required By SubProfiles")
             while True:
                 loop_exit = True
-                for pro in list(self.must_include["profile"].keys()):
+                for pro in self.must_include["profile"]:
                     parent = self.remote_dict["profile"][pro].get("parent", "")
                     if parent != "":
                         if parent not in self.must_include["profile"]:
@@ -325,25 +332,31 @@ class Replicate:
             # require all distros that any profiles in the generated list requires whether they are explicitly included
             # or not
             self.logger.debug("* Adding Distros Required By Profiles")
-            for p in list(self.must_include["profile"].keys()):
-                distro = self.remote_dict["profile"][p].get("distro", "")
+            for profile_for_distro in self.must_include["profile"]:
+                distro = self.remote_dict["profile"][profile_for_distro].get(
+                    "distro", ""
+                )
                 if not distro == "<<inherit>>" and not distro == "~":
-                    self.logger.debug("Adding distro %s for profile %s.", distro, p)
+                    self.logger.debug(
+                        "Adding distro %s for profile %s.", distro, profile_for_distro
+                    )
                     self.must_include["distro"][distro] = 1
 
             # require any repos that any profiles in the generated list requires whether they are explicitly included
             # or not
             self.logger.debug("* Adding Repos Required By Profiles")
-            for p in list(self.must_include["profile"].keys()):
-                repos = self.remote_dict["profile"][p].get("repos", [])
+            for profile_for_repo in self.must_include["profile"]:
+                repos = self.remote_dict["profile"][profile_for_repo].get("repos", [])
                 if repos != "<<inherit>>":
                     for r in repos:
-                        self.logger.debug("Adding repo %s for profile %s.", r, p)
+                        self.logger.debug(
+                            "Adding repo %s for profile %s.", r, profile_for_repo
+                        )
                         self.must_include["repo"][r] = 1
 
             # include all images that systems require whether they are explicitly included or not
             self.logger.debug("* Adding Images Required By Systems")
-            for sys in list(self.must_include["system"].keys()):
+            for sys in self.must_include["system"]:
                 img = self.remote_dict["system"][sys].get("image", "")
                 self.logger.debug("?: system %s requires image %s.", sys, img)
                 if img != "":
@@ -354,18 +367,18 @@ class Replicate:
 
     def run(
         self,
-        cobbler_master=None,
+        cobbler_master: Optional[str] = None,
         port: str = "80",
-        distro_patterns=None,
-        profile_patterns=None,
-        system_patterns=None,
-        repo_patterns=None,
-        image_patterns=None,
-        mgmtclass_patterns=None,
-        package_patterns=None,
-        file_patterns=None,
+        distro_patterns: Optional[str] = None,
+        profile_patterns: Optional[str] = None,
+        system_patterns: Optional[str] = None,
+        repo_patterns: Optional[str] = None,
+        image_patterns: Optional[str] = None,
+        mgmtclass_patterns: Optional[str] = None,
+        package_patterns: Optional[str] = None,
+        file_patterns: Optional[str] = None,
         prune: bool = False,
-        omit_data=False,
+        omit_data: bool = False,
         sync_all: bool = False,
         use_ssl: bool = False,
     ):
@@ -389,14 +402,22 @@ class Replicate:
         """
 
         self.port = str(port)
-        self.distro_patterns = distro_patterns.split()
-        self.profile_patterns = profile_patterns.split()
-        self.system_patterns = system_patterns.split()
-        self.repo_patterns = repo_patterns.split()
-        self.image_patterns = image_patterns.split()
-        self.mgmtclass_patterns = mgmtclass_patterns.split()
-        self.package_patterns = package_patterns.split()
-        self.file_patterns = file_patterns.split()
+        if isinstance(distro_patterns, str):
+            self.distro_patterns = distro_patterns.split()
+        if isinstance(profile_patterns, str):
+            self.profile_patterns = profile_patterns.split()
+        if isinstance(system_patterns, str):
+            self.system_patterns = system_patterns.split()
+        if isinstance(repo_patterns, str):
+            self.repo_patterns = repo_patterns.split()
+        if isinstance(image_patterns, str):
+            self.image_patterns = image_patterns.split()
+        if isinstance(mgmtclass_patterns, str):
+            self.mgmtclass_patterns = mgmtclass_patterns.split()
+        if isinstance(package_patterns, str):
+            self.package_patterns = package_patterns.split()
+        if isinstance(file_patterns, str):
+            self.file_patterns = file_patterns.split()
         self.omit_data = omit_data
         self.prune = prune
         self.sync_all = sync_all
