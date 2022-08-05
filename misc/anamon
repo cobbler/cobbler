@@ -30,6 +30,7 @@ import time
 import re
 import base64
 import shlex
+
 try:
     from xmlrpc.client import Server
 except ImportError:
@@ -41,6 +42,7 @@ except ImportError:
 if not hasattr(shlex, "split"):
     shlex.split = lambda s: s.split(" ")
 
+
 class WatchedFile:
     def __init__(self, fn, alias):
         self.fn = fn
@@ -50,18 +52,18 @@ class WatchedFile:
     def reset(self):
         self.where = 0
         self.last_size = 0
-        self.lfrag=''
-        self.re_list={}
-        self.seen_line={}
+        self.lfrag = ""
+        self.re_list = {}
+        self.seen_line = {}
 
     def exists(self):
         return os.access(self.fn, os.F_OK)
 
-    def lookfor(self,pattern):
-        self.re_list[pattern] = re.compile(pattern,re.MULTILINE)
+    def lookfor(self, pattern):
+        self.re_list[pattern] = re.compile(pattern, re.MULTILINE)
         self.seen_line[pattern] = 0
 
-    def seen(self,pattern):
+    def seen(self, pattern):
         if pattern in self.seen_line:
             return self.seen_line[pattern]
         else:
@@ -77,7 +79,7 @@ class WatchedFile:
         else:
             return 0
 
-    def uploadWrapper(self, blocksize = 262144):
+    def uploadWrapper(self, blocksize=262144):
         """upload a file in chunks using the uploadFile call"""
         retries = 3
         fo = open(self.fn, "rb")
@@ -97,7 +99,10 @@ class WatchedFile:
             del contents
             tries = 0
             while tries <= retries:
-                debug("upload_log_data('%s', '%s', %s, %s, ...)\n" % (name, self.alias, sz, offset))
+                debug(
+                    "upload_log_data('%s', '%s', %s, %s, ...)\n"
+                    % (name, self.alias, sz, offset)
+                )
                 if session.upload_log_data(name, self.alias, sz, offset, data.decode()):
                     break
                 else:
@@ -117,20 +122,20 @@ class WatchedFile:
         except:
             raise
 
-class MountWatcher:
 
-    def __init__(self,mp):
+class MountWatcher:
+    def __init__(self, mp):
         self.mountpoint = mp
         self.zero()
 
     def zero(self):
-        self.line=''
+        self.line = ""
         self.time = time.time()
 
     def update(self):
         found = 0
-        if os.path.exists('/proc/mounts'):
-            fd = open('/proc/mounts')
+        if os.path.exists("/proc/mounts"):
+            fd = open("/proc/mounts")
             while 1:
                 line = fd.readline()
                 if not line:
@@ -152,6 +157,7 @@ class MountWatcher:
             return 1
         else:
             return 0
+
 
 def anamon_loop():
     alog = WatchedFile("/tmp/anaconda.log", "anaconda.log")
@@ -181,8 +187,12 @@ def anamon_loop():
 
     # Monitor for bootloader configuration changes
     bootloader_cfgs = list()
-    bootloader_cfgs.append(WatchedFile("/mnt/sysimage/boot/grub/grub.conf", "grub.conf"))
-    bootloader_cfgs.append(WatchedFile("/mnt/sysimage/boot/efi/efi/redhat/elilo.conf", "elilo.conf"))
+    bootloader_cfgs.append(
+        WatchedFile("/mnt/sysimage/boot/grub/grub.conf", "grub.conf")
+    )
+    bootloader_cfgs.append(
+        WatchedFile("/mnt/sysimage/boot/efi/efi/redhat/elilo.conf", "elilo.conf")
+    )
     bootloader_cfgs.append(WatchedFile("/mnt/sysimage/etc/zipl.conf", "zipl.conf"))
 
     # Were we asked to watch specific files?
@@ -200,7 +210,20 @@ def anamon_loop():
 
     # Use the default watchlist and waitlist
     else:
-        watchlist = [alog, slog, dump, scrlog, mod, llog, kcfg, storage_log, prgm_log, vnc_log, xlog, kspre]
+        watchlist = [
+            alog,
+            slog,
+            dump,
+            scrlog,
+            mod,
+            llog,
+            kcfg,
+            storage_log,
+            prgm_log,
+            vnc_log,
+            xlog,
+            kspre,
+        ]
         waitlist.extend(package_logs)
         waitlist.extend(bootloader_cfgs)
 
@@ -211,7 +234,9 @@ def anamon_loop():
         # Not all log files are available at the start, we'll loop through the
         # waitlist to determine when each file can be added to the watchlist
         for watch in waitlist:
-            if alog.seen("step installpackages$") or (sysimage.stable() and watch.exists()):
+            if alog.seen("step installpackages$") or (
+                sysimage.stable() and watch.exists()
+            ):
                 debug("Adding %s to watch list\n" % watch.alias)
                 watchlist.append(watch)
                 waitlist.remove(watch)
@@ -224,12 +249,13 @@ def anamon_loop():
         if exit:
             break
 
+
 # Establish some defaults
 name = ""
 server = ""
 port = "80"
 daemon = 1
-debug = lambda x,**y: None
+debug = lambda x, **y: None
 watchfiles = []
 exit = False
 
@@ -237,25 +263,25 @@ exit = False
 n = 0
 while n < len(sys.argv):
     arg = sys.argv[n]
-    if arg == '--name':
-        n = n+1
+    if arg == "--name":
+        n = n + 1
         name = sys.argv[n]
-    elif arg == '--watchfile':
-        n = n+1
+    elif arg == "--watchfile":
+        n = n + 1
         watchfiles.extend(shlex.split(sys.argv[n]))
-    elif arg == '--exit':
+    elif arg == "--exit":
         exit = True
-    elif arg == '--server':
-        n = n+1
+    elif arg == "--server":
+        n = n + 1
         server = sys.argv[n]
-    elif arg == '--port':
-        n = n+1
+    elif arg == "--port":
+        n = n + 1
         port = sys.argv[n]
-    elif arg == '--debug':
-        debug = lambda x,**y: sys.stderr.write(x % y)
-    elif arg == '--fg':
+    elif arg == "--debug":
+        debug = lambda x, **y: sys.stderr.write(x % y)
+    elif arg == "--fg":
         daemon = 0
-    n = n+1
+    n = n + 1
 
 # Create an xmlrpc session handle
 session = Server("http://%s:%s/cobbler_api" % (server, port))
@@ -265,9 +291,9 @@ if daemon:
     if not os.fork():
         # Redirect the standard I/O file descriptors to the specified file.
         DEVNULL = getattr(os, "devnull", "/dev/null")
-        os.open(DEVNULL, os.O_RDWR) # standard input (0)
-        os.dup2(0, 1)               # Duplicate standard input to standard output (1)
-        os.dup2(0, 2)               # Duplicate standard input to standard error (2)
+        os.open(DEVNULL, os.O_RDWR)  # standard input (0)
+        os.dup2(0, 1)  # Duplicate standard input to standard output (1)
+        os.dup2(0, 2)  # Duplicate standard input to standard error (2)
 
         anamon_loop()
         sys.exit(1)
