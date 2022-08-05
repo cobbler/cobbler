@@ -1,6 +1,6 @@
 # vim: ft=dockerfile
 
-FROM debian:11
+FROM docker.io/library/debian:11
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -12,13 +12,13 @@ ENV OSCODENAME bullseye
 # Add repo for debbuild and install all packages required
 # hadolint ignore=DL3008,DL3015,DL4006
 RUN apt-get update -qq && \
-    apt-get install -qqy gnupg curl && \
-    /bin/sh -c "echo 'deb http://download.opensuse.org/repositories/Debian:/debbuild/Debian_11/ /' > /etc/apt/sources.list.d/debbuild.list" && \
-    curl -sL http://download.opensuse.org/repositories/Debian:/debbuild/Debian_11/Release.key | apt-key add - && \
-    apt-get update -qq && \
     apt-get install -qqy \
-    debbuild \
-    debbuild-macros \
+    build-essential \
+    devscripts \
+    dh-python \
+    debhelper \
+    gnupg \
+    curl \
     wget \
     pycodestyle \
     pyflakes3 \
