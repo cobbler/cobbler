@@ -526,6 +526,17 @@ if __name__ == "__main__":
             "Tracker": "https://github.com/cobbler/cobbler/issues",
         },
         license="GPLv2+",
+        classifiers=[
+            "Development Status :: 5 - Production/Stable",
+            "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: System :: Installation/Setup",
+            "Topic :: System :: Systems Administration",
+            "Intended Audience :: System Administrators",
+            "Natural Language :: English",
+            "Operating System :: POSIX :: Linux",
+        ],
+        keywords=["pxe", "autoinstallation", "dhcp", "tftp", "provisioning"],
         install_requires=[
             "mod_wsgi",
             "requests",
