@@ -486,7 +486,7 @@ zone "%(arpa)s." {
                 cnames = interface.cnames
 
                 try:
-                    if interface.get("dns_name", "") != "":
+                    if interface.dns_name != "":
                         dnsname = interface.dns_name.split(".")[0]
                         for cname in cnames:
                             s += "%s  %s  %s;\n" % (
@@ -495,14 +495,17 @@ zone "%(arpa)s." {
                                 dnsname,
                             )
                     else:
-                        self.logger.info(
-                            "Warning: dns_name unspecified in the system: %s, Skipped!, while writing "
-                            "cname records",
+                        self.logger.warning(
+                            'CNAME generation for system "%s" was skipped due to a missing dns_name entry while writing'
+                            "records!",
                             system.name,
                         )
                         continue
-                except:
-                    pass
+                except Exception as exception:
+                    self.logger.exception(
+                        "Unspecified error during creation of CNAME for bind9 records!",
+                        exc_info=exception,
+                    )
 
         return s
 
