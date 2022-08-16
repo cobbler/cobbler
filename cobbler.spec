@@ -13,14 +13,10 @@
 # published by the Open Source Initiative.
 #
 # Supported/tested build targets:
-# - Fedora: 30, 31, Rawhide
-# - CentOS + EPEL: 7, 8
+# - Fedora: 34
+# - CentOS + EPEL: 8
 # - SLE: 15sp1
-# - openSUSE: Leap 15.1, Tumbleweed
-# - Debian: 10
-# - Ubuntu: 18.04
-#
-# If it doesn't build on the Open Build Service (OBS) it's a bug.
+# - openSUSE: Leap 15.4, Tumbleweed
 #
 
 # Force bash instead of Debian dash
@@ -87,27 +83,6 @@
 # endif SUSE
 %endif
 
-# UBUNTU
-%if 0%{?debian} || 0%{?ubuntu}
-%define apache_user www-data
-%define apache_group www-data
-
-%define apache_webconfigdir /etc/apache2/conf-available
-
-%define tftpsrv_pkg tftpd-hpa
-%define createrepo_pkg createrepo
-%define grub2_x64_efi_pkg grub-efi-amd64
-%define grub2_ia32_efi_pkg grub-efi-ia32
-%define system_release_pkg base-files
-
-# Debian 11 moved to the C implementation of createrepo
-%if 0%{?debian} == 11
-%define createrepo_pkg createrepo-c
-%endif
-
-#endif UBUNTU
-%endif
-
 #FEDORA
 %if 0%{?fedora} || 0%{?rhel}
 %define apache_user apache
@@ -141,22 +116,12 @@
 # To ensure correct byte compilation
 %global __python %{__python3}
 
-%if "%{_vendor}" == "debbuild"
-%global devsuffix dev
-%else
-%global devsuffix devel
-%endif
-
 Name:           cobbler
 Version:        3.4.0
 Release:        1%{?dist}
 Summary:        Boot server configurator
 URL:            https://cobbler.github.io/
 
-%if "%{_vendor}" == "debbuild"
-Packager:       Cobbler Developers <cobbler@lists.fedorahosted.org>
-Group:          admin
-%endif
 %if 0%{?suse_version}
 Group:          Productivity/Networking/Boot/Servers
 %else
@@ -169,14 +134,9 @@ BuildArch:      noarch
 
 BuildRequires:  git-core
 BuildRequires:  %{system_release_pkg}
-BuildRequires:  python%{python3_pkgversion}-%{devsuffix}
+BuildRequires:  python%{python3_pkgversion}-devel
 %if 0%{?suse_version}
 BuildRequires:  python-rpm-macros
-%endif
-%if "%{_vendor}" == "debbuild"
-BuildRequires:  python3-deb-macros
-BuildRequires:  apache2-deb-macros
-
 %endif
 BuildRequires:  %{py3_module_coverage}
 BuildRequires:  python%{python3_pkgversion}-distro
@@ -201,12 +161,6 @@ BuildRequires:  systemd
 %endif
 %if 0%{?fedora} >= 30 || 0%{?rhel} >= 9 || 0%{?suse_version}
 BuildRequires:  systemd-rpm-macros
-%endif
-%if "%{_vendor}" == "debbuild"
-BuildRequires:  systemd-deb-macros
-Requires:       systemd-sysv
-Requires(post): python3-minimal
-Requires(preun): python3-minimal
 %endif
 Requires(post): systemd
 Requires(preun): systemd
@@ -253,11 +207,7 @@ Recommends:     logrotate
 Recommends:     python%{python3_pkgversion}-librepo
 %endif
 # https://github.com/cobbler/cobbler/issues/1685
-%if "%{_vendor}" == "debbuild"
-Requires:       init-system-helpers
-%else
 Requires:       /sbin/service
-%endif
 # No point in having this split out...
 Obsoletes:      cobbler-nsupdate < 3.0.99
 Provides:       cobbler-nsupdate = %{version}-%{release}
@@ -278,11 +228,6 @@ Unit test files from the Cobbler project
 
 %prep
 %setup
-
-%if 0%{?suse_version}
-# Set tftpboot location correctly for SUSE distributions
-sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i config/cobbler/settings.yaml
-%endif
 
 %build
 . distro_build_configs.sh
@@ -323,11 +268,7 @@ ln -sf service %{buildroot}%{_sbindir}/rccobblerd
 
 
 %pre
-%if "%{_vendor}" == "debbuild"
-if [ "$1" = "upgrade" ]; then
-%else
 if [ $1 -ge 2 ]; then
-%endif
     # package upgrade: backup configuration
     DATE=$(date "+%%Y%%m%%d-%%H%%M%%S")
     if [ ! -d "%{_sharedstatedir}/cobbler/backup/upgrade-${DATE}" ]; then
@@ -343,25 +284,6 @@ if [ $1 -ge 2 ]; then
     fi
 fi
 
-%if "%{_vendor}" == "debbuild"
-%post
-%{py3_bytecompile_post %{name}}
-%{systemd_post cobblerd.service}
-%{apache2_module_post proxy_http}
-# Fixup permission for world readable settings files
-chmod 640 %{_sysconfdir}/cobbler/settings.yaml
-chmod 640 %{_sysconfdir}/cobbler/users.conf
-chmod 640 %{_sysconfdir}/cobbler/users.digest
-chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
-
-%preun
-%{py3_bytecompile_preun %{name}}
-%{systemd_preun cobblerd.service}
-
-%postun
-%{systemd_postun_with_restart cobblerd.service}
-
-%else
 %post
 %systemd_post cobblerd.service
 # Fixup permission for world readable settings files
@@ -375,7 +297,6 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
 
 %postun
 %systemd_postun_with_restart cobblerd.service
-%endif
 
 %files
 %license COPYING
@@ -410,17 +331,9 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
 %config(noreplace) %{_sysconfdir}/cobbler/rsync.exclude
 %config(noreplace) %{_sysconfdir}/cobbler/rsync.template
 %config(noreplace) %{_sysconfdir}/cobbler/secondary.template
-%if "%{_vendor}" == "debbuild"
-# Work around broken attr support
-# Cf. https://github.com/debbuild/debbuild/issues/160
-%attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/settings.yaml
-%attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/users.conf
-%attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/users.digest
-%else
 %attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/settings.yaml
 %attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/users.conf
 %attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/users.digest
-%endif
 %config(noreplace) %{_sysconfdir}/cobbler/version
 %config(noreplace) %{_sysconfdir}/cobbler/zone.template
 %dir %{_sysconfdir}/cobbler/zone_templates
