@@ -151,6 +151,8 @@ rpms: release ## Runs the target release and then creates via rpmbuild the rpms 
 debs: authors ## Creates native debs in a directory called deb-build. The release target is called during the build process.
 	@source distro_build_configs.sh; \
     debuild -us -uc
+	@mkdir -p deb-build; \
+    cp ../cobbler_* deb-build/
 
 eraseconfig: ## Deletes the cobbler data jsons which are created when using the file provider.
 	-rm /var/lib/cobbler/cobbler_collections/distros/*
