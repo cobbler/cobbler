@@ -41,7 +41,7 @@ echo "==> Start container ..."
 $EXECUTOR run --cap-add=NET_ADMIN -t -d --name cobbler -v "$PWD/deb-build:/usr/src/cobbler/deb-build" "$IMAGE" /bin/bash
 
 echo "==> Install fresh packages ..."
-$EXECUTOR exec -it cobbler bash -c 'dpkg -i deb-build/DEBS/all/cobbler*.deb'
+$EXECUTOR exec -it cobbler bash -c 'dpkg -i deb-build/cobbler*.deb'
 
 echo "==> Restart Apache and Cobbler daemon ..."
 $EXECUTOR exec -it cobbler bash -c 'a2enmod proxy && a2enmod proxy_http'
