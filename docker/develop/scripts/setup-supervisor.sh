@@ -13,6 +13,11 @@ echo "Setup reposync"
 echo "Setup MongoDB"
 /code/docker/develop/scripts/setup-mongodb.sh
 
+echo "Enable Apache2 modules"
+a2enmod proxy
+a2enmod proxy_http
+a2enmod wsgi
+
 echo "Install Cobbler"
 cd /code || exit
 make install
