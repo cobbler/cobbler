@@ -46,6 +46,7 @@ $EXECUTOR run --cap-add=NET_ADMIN -t -d --name cobbler \
 
 echo "==> Install fresh RPMs ..."
 $EXECUTOR exec -t cobbler bash -c 'rpm -Uvh rpm-build/cobbler-*.noarch.rpm'
+$EXECUTOR exec -it cobbler bash -c 'a2enmod proxy && a2enmod proxy_http'
 
 # openSUSE does not have this file so skip it
 if test "${TAG#*opensuse}" == "$TAG"

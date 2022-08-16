@@ -44,6 +44,7 @@ echo "==> Install fresh packages ..."
 $EXECUTOR exec -it cobbler bash -c 'dpkg -i deb-build/DEBS/all/cobbler*.deb'
 
 echo "==> Restart Apache and Cobbler daemon ..."
+$EXECUTOR exec -it cobbler bash -c 'a2enmod proxy && a2enmod proxy_http'
 $EXECUTOR exec -it cobbler bash -c 'a2enconf cobbler'
 
 echo "==> Start Supervisor"
