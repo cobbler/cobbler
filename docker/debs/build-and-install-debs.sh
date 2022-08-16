@@ -70,8 +70,8 @@ $EXECUTOR exec -it cobbler bash -c 'mkdir /var/www/cobbler'
 echo "==> Start Supervisor"
 $EXECUTOR exec -it cobbler bash -c 'supervisord -c /etc/supervisor/supervisord.conf'
 
-echo "==> Wait 20 sec. and show Cobbler version ..."
-$EXECUTOR exec -it cobbler bash -c 'sleep 20 && cobbler --version'
+echo "==> Wait 10 sec. and show Cobbler version ..."
+$EXECUTOR exec -it cobbler bash -c 'sleep 10 && cobbler --version'
 
 if $RUN_TESTS
 then
