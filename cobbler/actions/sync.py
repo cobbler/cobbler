@@ -65,9 +65,9 @@ class CobblerSync:
         filesystem_helpers.create_tftpboot_dirs(self.api)
         filesystem_helpers.create_web_dirs(self.api)
 
-    def run_sync_systems(self, systems: List[str]):
+    def __common_run(self):
         """
-        Syncs the specific systems with the config tree.
+        Common startup code for the different sync algorithms
         """
         if not os.path.exists(self.bootloc):
             utils.die("cannot find directory: %s" % self.bootloc)
@@ -82,6 +82,12 @@ class CobblerSync:
         self.systems = self.api.systems()
         self.settings = self.api.settings()
         self.repos = self.api.repos()
+
+    def run_sync_systems(self, systems: List[str]):
+        """
+        Syncs the specific systems with the config tree.
+        """
+        self.__common_run()
 
         # Have the tftpd module handle copying bootloaders, distros, images, and all_system_files
         self.tftpd.sync_systems(systems)
@@ -110,19 +116,7 @@ class CobblerSync:
         Syncs the current configuration file with the config tree.
         Using the ``Check().run_`` functions previously is recommended
         """
-        if not os.path.exists(self.bootloc):
-            utils.die("cannot find directory: %s" % self.bootloc)
-
-        self.logger.info("running pre-sync triggers")
-
-        # run pre-triggers...
-        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/pre/*")
-
-        self.distros = self.api.distros()
-        self.profiles = self.api.profiles()
-        self.systems = self.api.systems()
-        self.settings = self.api.settings()
-        self.repos = self.api.repos()
+        self.__common_run()
 
         # execute the core of the sync operation
         self.logger.info("cleaning trees")
