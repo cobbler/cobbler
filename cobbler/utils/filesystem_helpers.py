@@ -7,7 +7,6 @@ import os
 import shutil
 import urllib
 from pathlib import Path
-from typing import Optional
 
 from cobbler.cexceptions import CX
 from cobbler.utils import log_exc, mtab
@@ -275,25 +274,22 @@ def rmtree_contents(path: str):
         rmtree(x)
 
 
-def rmtree(path: str) -> Optional[bool]:
+def rmtree(path: str):
     """
     Delete a complete directory or just a single file.
 
     :param path: The directory or folder to delete.
-    :return: May possibly return true on success or may return None on success.
     :raises CX: Raised in case ``path`` does not exist.
     """
-    # TODO: Obsolete bool return value
     try:
         if os.path.isfile(path):
-            return rmfile(path)
+            rmfile(path)
         logger.info("removing: %s", path)
-        return shutil.rmtree(path, ignore_errors=True)
+        shutil.rmtree(path, ignore_errors=True)
     except OSError as ioe:
         log_exc()
         if ioe.errno != errno.ENOENT:  # doesn't exist
             raise CX("Error deleting %s" % path) from ioe
-        return True
 
 
 def rmglob_files(path: str, glob_pattern: str):
