@@ -142,7 +142,6 @@ class CobblerAPI:
             self.autoinstallgen = autoinstallgen.AutoInstallationGen(self)
             self.yumgen = yumgen.YumGen(self)
             self.tftpgen = tftpgen.TFTPGen(self)
-            self.power_mgr = power_manager.PowerManager(self)
             filesystem_helpers.create_tftpboot_dirs(self)
             filesystem_helpers.create_web_dirs(self)
             self.logger.debug("API handle initialized")
@@ -2312,15 +2311,15 @@ class CobblerAPI:
         :param password: power management password
         :return: bool if operation was successful
         """
-
+        power_mgr = power_manager.PowerManager(self)
         if power_operation == "on":
-            self.power_mgr.power_on(system, user=user, password=password)
+            power_mgr.power_on(system, user=user, password=password)
         elif power_operation == "off":
-            self.power_mgr.power_off(system, user=user, password=password)
+            power_mgr.power_off(system, user=user, password=password)
         elif power_operation == "status":
-            return self.power_mgr.get_power_status(system, user=user, password=password)
+            return power_mgr.get_power_status(system, user=user, password=password)
         elif power_operation == "reboot":
-            self.power_mgr.reboot(system, user=user, password=password)
+            power_mgr.reboot(system, user=user, password=password)
         else:
             utils.die(
                 "invalid power operation '%s', expected on/off/status/reboot"
