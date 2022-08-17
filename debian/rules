@@ -5,16 +5,18 @@ export DH_OPTIONS
 
 # Verbose mode
 #export DH_VERBOSE=1
+export PYBUILD_NAME=cobbler
+export PYBUILD_OPTION_INTERPRETER="-B"
 
 # Use Bash so we can set the required environment variables
 SHELL = /bin/bash
 
 %:
-	dh $@ --with python3
+	dh $@ --with python3 --buildsystem pybuild
 
 override_dh_auto_build:
 	@source ./distro_build_configs.sh; \
-	python3 setup.py build build_cfg --install-scripts=/usr/bin --install-data=/usr --install-lib=/usr/lib
+	dh_auto_build
 
 override_dh_auto_clean:
 	dh_auto_clean
@@ -22,4 +24,4 @@ override_dh_auto_clean:
 
 override_dh_auto_install:
 	@source ./distro_build_configs.sh; \
-	python3 setup.py install -f --optimize=1 --install-layout=deb --root=$(CURDIR)/debian/tmp --prefix=/usr/
+	dh_auto_install
