@@ -120,26 +120,19 @@ def cachefile(src: str, dst: str):
     os.link(cachefile, dst)
 
 
-def linkfile(
-    src: str, dst: str, symlink_ok: bool = False, cache: bool = True, api=None
-):
+def linkfile(api, src: str, dst: str, symlink_ok: bool = False, cache: bool = True):
     """
     Attempt to create a link dst that points to src. Because file systems suck we attempt several different methods or
     bail to just copying the file.
 
+    :param api: This parameter is needed to check if a file can be hardlinked. This method fails if this parameter is
+                not present.
     :param src: The source file.
     :param dst: The destination for the link.
     :param symlink_ok: If it is okay to just use a symbolic link.
     :param cache: If it is okay to use a cached file instead of the real one.
-    :param api: This parameter is needed to check if a file can be hardlinked. This method fails if this parameter is
-                not present.
     :raises CX: Raised in case the API is not given.
     """
-
-    if api is None:
-        # FIXME: this really should not be a keyword arg
-        raise CX("Internal error: API handle is required")
-
     if os.path.exists(dst):
         # if the destination exists, is it right in terms of accuracy and context?
         if os.path.samefile(src, dst):
@@ -253,7 +246,7 @@ def copyfile_pattern(
         raise CX("Could not find files matching %s" % pattern)
     for file in files:
         dst1 = os.path.join(dst, os.path.basename(file))
-        linkfile(file, dst1, symlink_ok=symlink_ok, cache=cache, api=api)
+        linkfile(api, file, dst1, symlink_ok=symlink_ok, cache=cache)
 
 
 def rmfile(path: str):

@@ -114,9 +114,7 @@ class TFTPGen:
         if not utils.file_is_remote(full_path):
             b_file = os.path.basename(full_path)
             dst = os.path.join(distro_dir, b_file)
-            filesystem_helpers.linkfile(
-                full_path, dst, symlink_ok=symlink_ok, api=self.api
-            )
+            filesystem_helpers.linkfile(self.api, full_path, dst, symlink_ok=symlink_ok)
         else:
             b_file = os.path.basename(full_path)
             dst = os.path.join(distro_dir, b_file)
@@ -151,7 +149,7 @@ class TFTPGen:
         if not os.path.exists(images_dir):
             os.makedirs(images_dir)
         newfile = os.path.join(images_dir, img.name)
-        filesystem_helpers.linkfile(filename, newfile, api=self.api)
+        filesystem_helpers.linkfile(self.api, filename, newfile)
 
     def write_all_system_files(self, system, menu_items):
         """
