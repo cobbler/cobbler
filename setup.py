@@ -594,7 +594,7 @@ if __name__ == "__main__":
             ("%s" % libpath, ["config/cobbler/distro_signatures.json"]),
             ("share/cobbler/bin", glob("scripts/*")),
             ("%s/loaders" % libpath, []),
-            ("%s/cobbler/misc" % webroot, glob("misc/*")),
+            ("%s/misc" % libpath, glob("misc/*")),
             # Configuration
             (
                 "%s" % etcpath,
@@ -641,17 +641,6 @@ if __name__ == "__main__":
             # files
             ("%s/grub_config/grub" % libpath, glob("config/grub/grub/*")),
             # dirs
-            ("%s/boot" % tftproot, []),
-            ("%s/etc" % tftproot, []),
-            ("%s/grub" % tftproot, []),
-            ("%s/images" % tftproot, []),
-            ("%s/images2" % tftproot, []),
-            ("%s/ppc" % tftproot, []),
-            ("%s/s390x" % tftproot, []),
-            ("%s/pxelinux.cfg" % tftproot, []),
-            ("%s/ipxe" % tftproot, []),
-            ("%s/grub/system" % tftproot, []),
-            ("%s/grub/system_link" % tftproot, []),
             ("%s/grub_config/grub/system" % libpath, []),
             ("%s/grub_config/grub/system_link" % libpath, []),
             ("%s/reporting" % etcpath, glob("templates/reporting/*")),
@@ -727,16 +716,6 @@ if __name__ == "__main__":
             ("%s/httpd/cobbler" % logpath, []),
             ("%s/cobbler/anamon" % logpath, []),
             ("%s/cobbler/tasks" % logpath, []),
-            # web page directories that we own
-            ("%s/cobbler/localmirror" % webroot, []),
-            ("%s/cobbler/repo_mirror" % webroot, []),
-            ("%s/cobbler/distro_mirror" % webroot, []),
-            ("%s/cobbler/distro_mirror/config" % webroot, []),
-            ("%s/cobbler/links" % webroot, []),
-            ("%s/cobbler/misc" % webroot, []),
-            ("%s/cobbler/pub" % webroot, []),
-            ("%s/cobbler/rendered" % webroot, []),
-            ("%s/cobbler/images" % webroot, []),
             # A script that isn't really data, wsgi script
             ("%s/cobbler/svc/" % webroot, ["svc/services.py"]),
             # zone-specific templates directory

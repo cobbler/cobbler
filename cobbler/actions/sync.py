@@ -62,9 +62,8 @@ class CobblerSync:
         self.distromirror_config = os.path.join(
             self.settings.webdir, "distro_mirror/config"
         )
-        # FIXME: See https://github.com/cobbler/cobbler/issues/2453
-        # Move __create_tftpboot_dirs() outside of sync.py.
-        self.__create_tftpboot_dirs()
+        filesystem_helpers.create_tftpboot_dirs(self.api)
+        filesystem_helpers.create_web_dirs(self.api)
 
     def run_sync_systems(self, systems: List[str]):
         """
@@ -168,36 +167,6 @@ class CobblerSync:
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*")
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/change/*")
 
-    def __create_tftpboot_dirs(self):
-        """
-        Create directories for tftpboot images
-        """
-        if not os.path.exists(self.pxelinux_dir):
-            filesystem_helpers.mkdir(self.pxelinux_dir)
-        if not os.path.exists(self.grub_dir):
-            filesystem_helpers.mkdir(self.grub_dir)
-        grub_images_link = os.path.join(self.grub_dir, "images")
-        if not os.path.exists(grub_images_link):
-            os.symlink("../images", grub_images_link)
-        if not os.path.exists(self.images_dir):
-            filesystem_helpers.mkdir(self.images_dir)
-        if not os.path.exists(self.rendered_dir):
-            filesystem_helpers.mkdir(self.rendered_dir)
-        if not os.path.exists(self.ipxe_dir):
-            filesystem_helpers.mkdir(self.ipxe_dir)
-        if not os.path.exists(self.esxi_dir):
-            filesystem_helpers.mkdir(self.esxi_dir)
-        esxi_images_link = os.path.join(self.esxi_dir, "images")
-        if not os.path.exists(esxi_images_link):
-            os.symlink("../images", esxi_images_link)
-        esxi_pxelinux_link = os.path.join(self.esxi_dir, "pxelinux.cfg")
-        if not os.path.exists(esxi_pxelinux_link):
-            os.symlink("../pxelinux.cfg", esxi_pxelinux_link)
-        if not os.path.exists(self.links):
-            filesystem_helpers.mkdir(self.links)
-        if not os.path.exists(self.distromirror_config):
-            filesystem_helpers.mkdir(self.distromirror_config)
-
     def clean_trees(self):
         """
         Delete any previously built pxelinux.cfg tree and virt tree info and then create directories.
@@ -230,7 +199,7 @@ class CobblerSync:
                 ]:
                     # clean out directory contents
                     filesystem_helpers.rmtree_contents(path)
-        self.__create_tftpboot_dirs()
+        filesystem_helpers.create_tftpboot_dirs(self.api)
         filesystem_helpers.rmtree_contents(self.pxelinux_dir)
         filesystem_helpers.rmtree_contents(self.grub_dir)
         filesystem_helpers.rmtree_contents(self.images_dir)

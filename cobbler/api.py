@@ -143,6 +143,8 @@ class CobblerAPI:
             self.yumgen = yumgen.YumGen(self)
             self.tftpgen = tftpgen.TFTPGen(self)
             self.power_mgr = power_manager.PowerManager(self)
+            filesystem_helpers.create_tftpboot_dirs(self)
+            filesystem_helpers.create_web_dirs(self)
             self.logger.debug("API handle initialized")
             self.perms_ok = True
 

@@ -346,3 +346,109 @@ def safe_filter(var):
         return
     if var.find("..") != -1 or var.find(";") != -1:
         raise CX("Invalid characters found in input")
+
+
+def __create_if_not_exists(path):
+    """
+    Creates a directory if it has not already been created.
+
+    :param path: The path where the directory should be created. Parents directories must exist.
+    """
+    if not os.path.exists(path):
+        mkdir(path)
+
+
+def __symlink_if_not_exists(source, target):
+    """
+    Symlinks a directory if the symlink doesn't exist.
+
+    :param source: The source directory
+    :param target: The target directory
+    """
+    if not os.path.exists(target):
+        os.symlink(source, target)
+
+
+def create_web_dirs(api):
+    """
+    Create directories for HTTP content
+
+    :param api: CobblerAPI
+    """
+    webroot_localmirror = os.path.join(api.settings().webdir, "localmirror")
+    webroot_repo_mirror = os.path.join(api.settings().webdir, "repo_mirror")
+    webroot_distro_mirror = os.path.join(api.settings().webdir, "distro_mirror")
+    webroot_distro_mirror_config = os.path.join(webroot_distro_mirror, "config")
+    webroot_link = os.path.join(api.settings().webdir, "links")
+    webroot_misc = os.path.join(api.settings().webdir, "misc")
+    webroot_pub = os.path.join(api.settings().webdir, "pub")
+    webroot_rendered = os.path.join(api.settings().webdir, "rendered")
+    webroot_images = os.path.join(api.settings().webdir, "images")
+
+    webroot_directory_paths = [
+        webroot_localmirror,
+        webroot_repo_mirror,
+        webroot_distro_mirror,
+        webroot_distro_mirror_config,
+        webroot_link,
+        webroot_misc,
+        webroot_pub,
+        webroot_rendered,
+        webroot_images,
+    ]
+    for directory_path in webroot_directory_paths:
+        __create_if_not_exists(directory_path)
+
+    # Copy anamon scripts to the webroot
+    misc_path = "/var/lib/cobbler/misc"
+    rmtree_contents(webroot_misc)
+    print(os.listdir(misc_path))
+    for file in [
+        f for f in os.listdir(misc_path) if os.path.isfile(os.path.join(misc_path, f))
+    ]:
+        copyfile(os.path.join(misc_path, file), webroot_misc)
+
+
+def create_tftpboot_dirs(api):
+    """
+    Create directories for tftpboot images
+
+    :param api: CobblerAPI
+    """
+    bootloc = api.settings().tftpboot_location
+    grub_dir = os.path.join(bootloc, "grub")
+    esxi_dir = os.path.join(bootloc, "esxi")
+    pxelinux_dir = os.path.join(bootloc, "pxelinux.cfg")
+    images_dir = os.path.join(bootloc, "images")
+    ipxe_dir = os.path.join(bootloc, "ipxe")
+    tftproot_boot = os.path.join(bootloc, "boot")
+    tftproot_etc = os.path.join(bootloc, "etc")
+    tftproot_images2 = os.path.join(bootloc, "images2")
+    tftproot_ppc = os.path.join(bootloc, "ppc")
+    tftproot_s390x = os.path.join(bootloc, "s390x")
+    tftproot_grub_system = os.path.join(grub_dir, "system")
+    tftproot_grub_system_link = os.path.join(grub_dir, "system_link")
+
+    tftpboot_directory_paths = [
+        tftproot_boot,
+        tftproot_etc,
+        tftproot_images2,
+        tftproot_ppc,
+        tftproot_s390x,
+        pxelinux_dir,
+        grub_dir,
+        tftproot_grub_system,
+        tftproot_grub_system_link,
+        images_dir,
+        ipxe_dir,
+        esxi_dir,
+    ]
+    for directory_path in tftpboot_directory_paths:
+        __create_if_not_exists(directory_path)
+
+    grub_images_link = os.path.join(grub_dir, "images")
+    __symlink_if_not_exists("../images", grub_images_link)
+    esxi_images_link = os.path.join(esxi_dir, "images")
+    __symlink_if_not_exists("../images", esxi_images_link)
+    esxi_pxelinux_link = os.path.join(esxi_dir, "pxelinux.cfg")
+    __symlink_if_not_exists("../pxelinux.cfg", esxi_pxelinux_link)
