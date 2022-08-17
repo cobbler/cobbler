@@ -1,5 +1,6 @@
 import errno
 import glob
+import hashlib
 import json
 import logging
 import os
@@ -48,6 +49,25 @@ def is_safe_to_hardlink(src: str, dst: str, api) -> bool:
     return False
 
 
+def sha1_file(file_path: os.PathLike, buffer_size=65536) -> str:
+    """
+    This function is emulating the functionality of the sha1sum tool.
+
+    :param file_path: The path to the file that should be hashed.
+    :param buffer_size: The buffer-size that should be used to hash the file.
+    :return: The SHA1 hash as sha1sum would return it.
+    """
+    # Highly inspired by: https://stackoverflow.com/a/22058673
+    sha1 = hashlib.sha1()
+    with open(file_path, "rb") as f:
+        while True:
+            data = f.read(buffer_size)
+            if not data:
+                break
+            sha1.update(data)
+    return sha1.hexdigest()
+
+
 def hashfile(fn, lcache=None):
     r"""
     Returns the sha1sum of the file
@@ -58,26 +78,21 @@ def hashfile(fn, lcache=None):
     :return: The sha1 sum or None if the file doesn't exist.
     """
     db = {}
-    # FIXME: The directory from the following line may not exist.
     dbfile = os.path.join(lcache, "link_cache.json")
-    try:
+    if lcache is not None:
         if os.path.exists(dbfile):
             db = json.load(open(dbfile, "r"))
-    except:
-        pass
-
-    mtime = os.stat(fn).st_mtime
-    if fn in db:
-        if db[fn][0] >= mtime:
-            return db[fn][1]
 
     if os.path.exists(fn):
-        # TODO: Replace this with the follwing: https://stackoverflow.com/a/22058673
-        cmd = "/usr/bin/sha1sum %s" % fn
-        key = utils.subprocess_get(cmd).split(" ")[0]
+        mtime = os.stat(fn).st_mtime
+        if lcache is not None and fn in db:
+            if db[fn][0] >= mtime:
+                return db[fn][1]
+
+        key = sha1_file(fn)
         if lcache is not None:
             db[fn] = (mtime, key)
-            # TODO: Safeguard this against above mentioned directory does not exist error.
+            __create_if_not_exists(lcache)
             json.dump(db, open(dbfile, "w"))
         return key
     else:
