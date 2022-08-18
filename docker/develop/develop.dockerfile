@@ -12,7 +12,6 @@ RUN zypper install --no-recommends -y \
     acl                        \
     apache2                    \
     apache2-devel              \
-    apache2-mod_wsgi-python3   \
     bash-completion            \
     createrepo_c               \
     fence-agents               \
@@ -132,7 +131,6 @@ RUN pip3 install      \
 RUN ["a2enmod", "version"]
 RUN ["a2enmod", "proxy"]
 RUN ["a2enmod", "proxy_http"]
-RUN ["a2enmod", "wsgi"]
 
 # create working directory
 RUN ["mkdir", "/code"]

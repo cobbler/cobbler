@@ -68,7 +68,6 @@
 
 %define apache_dir /srv/www
 %define apache_webconfigdir /etc/apache2/vhosts.d
-%define apache_mod_wsgi apache2-mod_wsgi-python%{python3_pkgversion}
 %define tftpboot_dir /srv/tftpboot
 
 %define tftpsrv_pkg tftp
@@ -94,7 +93,6 @@
 %define apache_group www-data
 
 %define apache_webconfigdir /etc/apache2/conf-available
-%define apache_mod_wsgi libapache2-mod-wsgi-py%{python3_pkgversion}
 
 %define tftpsrv_pkg tftpd-hpa
 %define createrepo_pkg createrepo
@@ -119,7 +117,6 @@
 %define apache_webconfigdir /etc/httpd/conf.d
 
 %define apache_pkg httpd
-%define apache_mod_wsgi python%{python3_pkgversion}-mod_wsgi
 %define tftpsrv_pkg tftp-server
 %define grub2_x64_efi_pkg grub2-efi-x64
 %define grub2_ia32_efi_pkg grub2-efi-ia32
@@ -226,7 +223,6 @@ Requires:       xorriso
 %if ! (%{defined python_enable_dependency_generator} || %{defined python_disable_dependency_generator})
 Requires:       %{py3_module_cheetah}
 Requires:       %{py3_module_dns}
-Requires:       %{apache_mod_wsgi}
 Requires:       python%{python3_pkgversion}-netaddr
 Requires:       %{py3_module_pyyaml}
 Requires:       python%{python3_pkgversion}-requests

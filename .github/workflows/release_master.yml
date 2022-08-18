@@ -59,7 +59,6 @@ jobs:
           hardlink
           apache2
           apache2-dev
-          libapache2-mod-wsgi-py3
           systemd
           libsasl2-dev
       - name: Install Deps for installing project

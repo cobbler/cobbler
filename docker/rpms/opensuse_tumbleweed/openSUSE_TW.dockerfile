@@ -11,7 +11,6 @@ RUN zypper install -y          \
     acl                        \
     apache2                    \
     apache2-devel              \
-    apache2-mod_wsgi-python3   \
     bash-completion            \
     git                        \
     gzip                       \

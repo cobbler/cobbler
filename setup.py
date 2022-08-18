@@ -538,7 +538,6 @@ if __name__ == "__main__":
         ],
         keywords=["pxe", "autoinstallation", "dhcp", "tftp", "provisioning"],
         install_requires=[
-            "mod_wsgi",
             "requests",
             "pyyaml",
             "netaddr",

@@ -56,7 +56,6 @@ $EXECUTOR exec -it cobbler bash -c 'sleep 20 && cobbler --version'
 if $RUN_TESTS
 then
     # Almost all of these requirement are already satisfied in the Dockerfiles!
-    # Also on Debian mod_wsgi is installed as "libapache2-mod-wsgi-py3"
     echo "==> Running tests ..."
     $EXECUTOR exec -it cobbler bash -c 'pip3 install coverage distro future setuptools sphinx requests future'
     $EXECUTOR exec -it cobbler bash -c 'pip3 install pyyaml netaddr Cheetah3 pymongo distro'
