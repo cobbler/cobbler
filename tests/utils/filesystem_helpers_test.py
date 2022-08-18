@@ -65,7 +65,7 @@ def test_linkfile(cobbler_api):
     test_destination = ""
 
     # Act
-    filesystem_helpers.linkfile(test_source, test_destination, api=cobbler_api)
+    filesystem_helpers.linkfile(cobbler_api, test_source, test_destination)
 
     # Assert
     assert False
@@ -233,18 +233,19 @@ def test_create_web_dirs(mocker, cobbler_api):
 def test_create_tftpboot_dirs(mocker, cobbler_api):
     # Arrange
     settings_mock = mocker.MagicMock()
-    settings_mock.webdir = "/my/custom/webdir"
+    settings_mock.tftpboot_location = "/srv/tftpboot"
     mocker.patch.object(cobbler_api, "settings", return_value=settings_mock)
 
     mock_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
-    mock_os_symlink = mocker.patch("pathlib.Path.symlink_to")
+    mock_path_symlink_to = mocker.patch("pathlib.Path.symlink_to")
+    mocker.patch("pathlib.Path.exists", return_value=False)
 
     # Act
     filesystem_helpers.create_tftpboot_dirs(cobbler_api)
 
     # Assert
     assert mock_mkdir.call_count == 12
-    assert mock_os_symlink.call_count == 3
+    assert mock_path_symlink_to.call_count == 3
 
 
 def test_create_trigger_dirs(mocker):
