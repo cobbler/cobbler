@@ -3,7 +3,7 @@ Install Guide
 ***********************************
 
 Setting up and running `cobblerd` is not a easy task. Knowledge in Apache2 configuration (setting up SSL, virtual hosts,
-apache module and wsgi) is needed. Certificates and some server administration knowledge is required too.
+and apache proxy module) is needed. Certificates and some server administration knowledge is required too.
 
 Cobbler is available for installation in several different ways, through packaging systems for each distribution or
 directly from source.
@@ -43,7 +43,7 @@ of the following packages:
 - createrepo_c
 - httpd / apache2
 - xorriso
-- mod_wsgi / libapache2-mod-wsgi
+- gunicorn
 - mod_ssl / libapache2-mod-ssl
 - python-cheetah
 - python-netaddr
@@ -226,8 +226,7 @@ To install Cobbler, finish the installation in any of both cases, use these step
 
 #. Copy the systemd service file for `cobblerd` from ``/etc/cobbler/cobblerd.service`` to your systemd unit directory
    (``/etc/systemd/system``) and adjust ``ExecStart`` from ``/usr/bin/cobblerd`` to ``/usr/local/bin/cobblerd``.
-#. Install ``apache2-mod_wsgi-python3`` or the package responsible for your distro. (On Debian:
-   ``libapache2-mod-wsgi-py3``)
+#. Install ``python3-gunicorn`` or the package responsible for your distro.
 #. Enable the proxy module of Apache2 (``a2enmod proxy`` or something similar) if not enabled.
 #. Restart Apache and ``cobblerd``.
 
