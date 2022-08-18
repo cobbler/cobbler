@@ -211,3 +211,63 @@ def test_safe_filter(test_input, expected_exception):
     # Arrange, Act & Assert
     with expected_exception:
         assert filesystem_helpers.safe_filter(test_input) is None
+
+
+def test_create_web_dirs(mocker, cobbler_api):
+    # Arrange
+    settings_mock = mocker.MagicMock()
+    settings_mock.webdir = "/my/custom/webdir"
+    mocker.patch.object(cobbler_api, "settings", return_value=settings_mock)
+
+    mock_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
+    mock_copyfile = mocker.patch("cobbler.utils.filesystem_helpers.copyfile")
+
+    # Act
+    filesystem_helpers.create_web_dirs(cobbler_api)
+
+    # Assert
+    assert mock_mkdir.call_count == 9
+    assert mock_copyfile.call_count == 2
+
+
+def test_create_tftpboot_dirs(mocker, cobbler_api):
+    # Arrange
+    settings_mock = mocker.MagicMock()
+    settings_mock.webdir = "/my/custom/webdir"
+    mocker.patch.object(cobbler_api, "settings", return_value=settings_mock)
+
+    mock_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
+    mock_os_symlink = mocker.patch("pathlib.Path.symlink_to")
+
+    # Act
+    filesystem_helpers.create_tftpboot_dirs(cobbler_api)
+
+    # Assert
+    assert mock_mkdir.call_count == 12
+    assert mock_os_symlink.call_count == 3
+
+
+def test_create_trigger_dirs(mocker):
+    # Arrange
+    mock_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
+    mocker.patch("pathlib.Path.exists", return_value=False)
+
+    # Act
+    filesystem_helpers.create_trigger_dirs(None)
+
+    # Assert
+    assert mock_mkdir.call_count == 84
+
+
+def test_create_json_database_dirs(mocker):
+    # Arrange
+    mock_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
+    mocker.patch("pathlib.Path.exists", return_value=False)
+
+    # Act
+    filesystem_helpers.create_json_database_dirs(None)
+
+    # Assert
+    mock_mkdir.assert_any_call("/var/lib/cobbler/collections")
+    # 1 collections parent directory + (1 child directory per item type * 9 item types atm)
+    assert mock_mkdir.call_count == 10

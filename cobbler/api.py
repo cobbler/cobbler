@@ -142,9 +142,34 @@ class CobblerAPI:
             self.autoinstallgen = autoinstallgen.AutoInstallationGen(self)
             self.yumgen = yumgen.YumGen(self)
             self.tftpgen = tftpgen.TFTPGen(self)
-            self.power_mgr = power_manager.PowerManager(self)
+            self.__directory_startup_preparations()
             self.logger.debug("API handle initialized")
             self.perms_ok = True
+
+    def __directory_startup_preparations(self):
+        """
+        This function prepares the daemon to be able to operate with directories that need to be handled before it can
+        operate as designed.
+
+        :raises FileNotFoundError: In case a directory required for operation is missing.
+        """
+        self.logger.debug("Creating necessary directories")
+        required_directories = [
+            "/var/lib/cobbler",
+            "/etc/cobbler",
+            self.settings().webdir,
+            self.settings().tftpboot_location,
+        ]
+        for directory in required_directories:
+            if not pathlib.Path(directory).is_dir():
+                raise FileNotFoundError(
+                    'Required directory "%s" for operation is missing! Aborting startup of Cobbler!'
+                    % directory
+                )
+        filesystem_helpers.create_tftpboot_dirs(self)
+        filesystem_helpers.create_web_dirs(self)
+        filesystem_helpers.create_trigger_dirs(self)
+        filesystem_helpers.create_json_database_dirs(self)
 
     def __load_signatures(self):
         try:
@@ -2310,15 +2335,15 @@ class CobblerAPI:
         :param password: power management password
         :return: bool if operation was successful
         """
-
+        power_mgr = power_manager.PowerManager(self)
         if power_operation == "on":
-            self.power_mgr.power_on(system, user=user, password=password)
+            power_mgr.power_on(system, user=user, password=password)
         elif power_operation == "off":
-            self.power_mgr.power_off(system, user=user, password=password)
+            power_mgr.power_off(system, user=user, password=password)
         elif power_operation == "status":
-            return self.power_mgr.get_power_status(system, user=user, password=password)
+            return power_mgr.get_power_status(system, user=user, password=password)
         elif power_operation == "reboot":
-            self.power_mgr.reboot(system, user=user, password=password)
+            power_mgr.reboot(system, user=user, password=password)
         else:
             utils.die(
                 "invalid power operation '%s', expected on/off/status/reboot"

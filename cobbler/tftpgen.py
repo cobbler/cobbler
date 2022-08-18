@@ -114,9 +114,7 @@ class TFTPGen:
         if not utils.file_is_remote(full_path):
             b_file = os.path.basename(full_path)
             dst = os.path.join(distro_dir, b_file)
-            filesystem_helpers.linkfile(
-                full_path, dst, symlink_ok=symlink_ok, api=self.api
-            )
+            filesystem_helpers.linkfile(self.api, full_path, dst, symlink_ok=symlink_ok)
         else:
             b_file = os.path.basename(full_path)
             dst = os.path.join(distro_dir, b_file)
@@ -130,9 +128,7 @@ class TFTPGen:
         :param dirtree: This is the root where the images are located. The folder "images" gets automatically appended.
         :param symlink_ok: If it is okay to use a symlink to link the destination to the source.
         """
-
-        distros = os.path.join(dirtree, "images")
-        distro_dir = os.path.join(distros, d.name)
+        distro_dir = os.path.join(dirtree, "images", d.name)
         filesystem_helpers.mkdir(distro_dir)
         self.copy_single_distro_file(d.kernel, distro_dir, symlink_ok)
         self.copy_single_distro_file(d.initrd, distro_dir, symlink_ok)
@@ -151,7 +147,7 @@ class TFTPGen:
         if not os.path.exists(images_dir):
             os.makedirs(images_dir)
         newfile = os.path.join(images_dir, img.name)
-        filesystem_helpers.linkfile(filename, newfile, api=self.api)
+        filesystem_helpers.linkfile(self.api, filename, newfile)
 
     def write_all_system_files(self, system, menu_items):
         """

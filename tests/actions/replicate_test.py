@@ -99,7 +99,7 @@ def test_replicate_data(mocker, replicate_obj):
     )
     rsync_mock = mocker.patch.object(replicate_obj, "rsync_it")
     expected_rsync_it_calls = [
-        mocker.call("cobbler-distros/config/", "/var/www/cobbler/distro_mirror/config"),
+        mocker.call("cobbler-distros/config/", "/srv/www/cobbler/distro_mirror/config"),
         mocker.call("cobbler-templates", "/var/lib/cobbler/templates"),
         mocker.call("cobbler-snippets", "/var/lib/cobbler/snippets"),
         mocker.call("cobbler-triggers", "/var/lib/cobbler/triggers"),

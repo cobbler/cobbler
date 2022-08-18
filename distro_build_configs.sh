@@ -50,6 +50,7 @@ elif [ "$DISTRO" = "UBUNTU" ];then
     export APACHE_GROUP="www-data"
     export WEBROOT="/var/www"
     export WEBCONFIG="/etc/apache2/conf-available"
+    export TFTPROOT="/srv/tftp"
     export ZONEFILES="/etc/bind/db."
     export DEFAULTPATH="etc/default"
     export SHIM_FOLDER="/usr/lib/shim/"
