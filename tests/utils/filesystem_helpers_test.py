@@ -237,7 +237,7 @@ def test_create_tftpboot_dirs(mocker, cobbler_api):
     mocker.patch.object(cobbler_api, "settings", return_value=settings_mock)
 
     mock_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
-    mock_os_symlink = mocker.patch("os.symlink")
+    mock_os_symlink = mocker.patch("pathlib.Path.symlink_to")
 
     # Act
     filesystem_helpers.create_tftpboot_dirs(cobbler_api)
@@ -250,7 +250,7 @@ def test_create_tftpboot_dirs(mocker, cobbler_api):
 def test_create_trigger_dirs(mocker):
     # Arrange
     mock_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
-    mocker.patch("os.path.exists", return_value=False)
+    mocker.patch("pathlib.Path.exists", return_value=False)
 
     # Act
     filesystem_helpers.create_trigger_dirs(None)
@@ -262,7 +262,7 @@ def test_create_trigger_dirs(mocker):
 def test_create_json_database_dirs(mocker):
     # Arrange
     mock_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
-    mocker.patch("os.path.exists", return_value=False)
+    mocker.patch("pathlib.Path.exists", return_value=False)
 
     # Act
     filesystem_helpers.create_json_database_dirs(None)

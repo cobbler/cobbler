@@ -6,7 +6,8 @@ import logging
 import os
 import shutil
 import urllib
-from pathlib import Path
+import pathlib
+from typing import Union
 
 from cobbler.cexceptions import CX
 from cobbler.utils import log_exc, mtab
@@ -32,7 +33,7 @@ def is_safe_to_hardlink(src: str, dst: str, api) -> bool:
     if dev1 != dev2:
         return False
     # Do not hardlink to a symbolic link! Chances are high the new link will be dangling.
-    if os.path.islink(src):
+    if pathlib.Path(src).is_symlink():
         return False
     if dev1.find(":") != -1:
         # Is a remote file
@@ -40,15 +41,16 @@ def is_safe_to_hardlink(src: str, dst: str, api) -> bool:
     # Note: This is very Cobbler implementation specific!
     if not api.is_selinux_enabled():
         return True
-    if utils.re_initrd.match(os.path.basename(path1)):
+    path1_basename = str(pathlib.PurePath(path1).name)
+    if utils.re_initrd.match(path1_basename):
         return True
-    if utils.re_kernel.match(os.path.basename(path1)):
+    if utils.re_kernel.match(path1_basename):
         return True
     # We're dealing with SELinux and files that are not safe to chown
     return False
 
 
-def sha1_file(file_path: os.PathLike, buffer_size=65536) -> str:
+def sha1_file(file_path: Union[str, os.PathLike], buffer_size=65536) -> str:
     """
     This function is emulating the functionality of the sha1sum tool.
 
@@ -67,7 +69,7 @@ def sha1_file(file_path: os.PathLike, buffer_size=65536) -> str:
     return sha1.hexdigest()
 
 
-def hashfile(fn, lcache=None):
+def hashfile(fn: str, lcache=None):
     r"""
     Returns the sha1sum of the file
 
@@ -77,13 +79,14 @@ def hashfile(fn, lcache=None):
     :return: The sha1 sum or None if the file doesn't exist.
     """
     db = {}
-    dbfile = os.path.join(lcache, "link_cache.json")
+    dbfile = pathlib.Path(lcache) / "link_cache.json"
     if lcache is not None:
-        if os.path.exists(dbfile):
+        if dbfile.exists():
             db = json.load(open(dbfile, "r"))
 
-    if os.path.exists(fn):
-        mtime = os.stat(fn).st_mtime
+    file = pathlib.Path(fn)
+    if file.exists():
+        mtime = file.stat().st_mtime
         if lcache is not None and fn in db:
             if db[fn][0] >= mtime:
                 return db[fn][1]
@@ -106,17 +109,17 @@ def cachefile(src: str, dst: str):
     :param src: The sourcefile for the copy action.
     :param dst: The destination for the copy action.
     """
-    lcache = os.path.join(os.path.dirname(os.path.dirname(dst)), ".link_cache")
-    if not os.path.isdir(lcache):
-        os.mkdir(lcache)
+    lcache = pathlib.Path(dst).parent.parent / ".link_cache"
+    if not lcache.is_dir():
+        lcache.mkdir()
     key = hashfile(src, lcache=lcache)
-    cachefile = os.path.join(lcache, key)
-    if not os.path.exists(cachefile):
-        logger.info("trying to create cache file %s", cachefile)
-        copyfile(src, cachefile)
+    cachefile_obj = lcache / key
+    if not cachefile_obj.exists():
+        logger.info("trying to create cache file %s", cachefile_obj)
+        copyfile(src, str(cachefile_obj))
 
-    logger.debug("trying cachelink %s -> %s -> %s", src, cachefile, dst)
-    os.link(cachefile, dst)
+    logger.debug("trying cachelink %s -> %s -> %s", src, cachefile_obj, dst)
+    cachefile_obj.hardlink_to(dst)
 
 
 def linkfile(api, src: str, dst: str, symlink_ok: bool = False, cache: bool = True):
@@ -132,25 +135,27 @@ def linkfile(api, src: str, dst: str, symlink_ok: bool = False, cache: bool = Tr
     :param cache: If it is okay to use a cached file instead of the real one.
     :raises CX: Raised in case the API is not given.
     """
-    if os.path.exists(dst):
+    dst_obj = pathlib.Path(dst)
+    src_obj = pathlib.Path(src)
+    if dst_obj.exists():
         # if the destination exists, is it right in terms of accuracy and context?
-        if os.path.samefile(src, dst):
+        if src_obj.samefile(dst):
             if not is_safe_to_hardlink(src, dst, api):
                 # may have to remove old hardlinks for SELinux reasons as previous implementations were not complete
                 logger.info("removing: %s", dst)
-                os.remove(dst)
+                dst_obj.unlink()
             else:
                 return
-        elif os.path.islink(dst):
+        elif dst_obj.is_symlink():
             # existing path exists and is a symlink, update the symlink
             logger.info("removing: %s", dst)
-            os.remove(dst)
+            dst_obj.unlink()
 
     if is_safe_to_hardlink(src, dst, api):
         # we can try a hardlink if the destination isn't to NFS or Samba this will help save space and sync time.
         try:
             logger.info("trying hardlink %s -> %s", src, dst)
-            os.link(src, dst)
+            src_obj.hardlink_to(dst_obj)
             return
         except (IOError, OSError):
             # hardlink across devices, or link already exists we'll just symlink it if we can or otherwise copy it
@@ -160,7 +165,7 @@ def linkfile(api, src: str, dst: str, symlink_ok: bool = False, cache: bool = Tr
         # we can symlink anywhere except for /tftpboot because that is run chroot, so if we can symlink now, try it.
         try:
             logger.info("trying symlink %s -> %s", src, dst)
-            os.symlink(src, dst)
+            src_obj.symlink_to(dst_obj)
             return
         except (IOError, OSError):
             pass
@@ -182,18 +187,21 @@ def copyfile(src: str, dst: str, symlink=False):
 
     :param src: The source file. This may also be a folder.
     :param dst: The destination for the file or folder.
+    :param symlink: If instead of a copy, a symlink is okay, then this may be set explicitly to "True".
     :raises OSError: Raised in case ``src`` could not be read.
     """
+    src_obj = pathlib.Path(src)
+    dst_obj = pathlib.Path(dst)
     try:
         logger.info("copying: %s -> %s", src, dst)
-        if os.path.isdir(src):
+        if src_obj.is_dir():
             shutil.copytree(src, dst, symlinks=symlink)
         else:
             shutil.copyfile(src, dst, follow_symlinks=symlink)
     except:
         if not os.access(src, os.R_OK):
             raise OSError("Cannot read: %s" % src)
-        if os.path.samefile(src, dst):
+        if src_obj.samefile(dst_obj):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
             raise
@@ -243,9 +251,11 @@ def copyfile_pattern(
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
         raise CX("Could not find files matching %s" % pattern)
+    dst_obj = pathlib.Path(dst)
     for file in files:
-        dst1 = os.path.join(dst, os.path.basename(file))
-        linkfile(api, file, dst1, symlink_ok=symlink_ok, cache=cache)
+        file_obj = pathlib.Path(file)
+        dst1 = dst_obj / file_obj.name
+        linkfile(api, file, str(dst1), symlink_ok=symlink_ok, cache=cache)
 
 
 def rmfile(path: str):
@@ -255,7 +265,7 @@ def rmfile(path: str):
     :param path: The file to delete.
     """
     try:
-        os.remove(path)
+        pathlib.Path(path).unlink()
         logger.info('Successfully removed "%s"', path)
     except FileNotFoundError:
         pass
@@ -282,7 +292,7 @@ def rmtree(path: str):
     :raises CX: Raised in case ``path`` does not exist.
     """
     try:
-        if os.path.isfile(path):
+        if pathlib.Path(path).is_file():
             rmfile(path)
         logger.info("removing: %s", path)
         shutil.rmtree(path, ignore_errors=True)
@@ -299,11 +309,11 @@ def rmglob_files(path: str, glob_pattern: str):
     :param path: The folder of the files to remove.
     :param glob_pattern: The glob pattern for the files to remove in ``path``.
     """
-    for p in Path(path).glob(glob_pattern):
+    for p in pathlib.Path(path).glob(glob_pattern):
         rmfile(str(p))
 
 
-def mkdir(path, mode=0o755):
+def mkdir(path: str, mode=0o755):
     """
     Create directory with a given mode.
 
@@ -313,7 +323,7 @@ def mkdir(path, mode=0o755):
                 already exists).
     """
     try:
-        os.makedirs(path, mode)
+        pathlib.Path(path).mkdir(mode=mode)
     except OSError as os_error:
         # already exists (no constant for 17?)
         if os_error.errno != 17:
@@ -352,25 +362,25 @@ def safe_filter(var):
         raise CX("Invalid characters found in input")
 
 
-def __create_if_not_exists(path):
+def __create_if_not_exists(path: pathlib.Path):
     """
     Creates a directory if it has not already been created.
 
     :param path: The path where the directory should be created. Parents directories must exist.
     """
-    if not os.path.exists(path):
-        mkdir(path)
+    if not path.exists():
+        mkdir(str(path))
 
 
-def __symlink_if_not_exists(source, target):
+def __symlink_if_not_exists(source: pathlib.Path, target: pathlib.Path):
     """
     Symlinks a directory if the symlink doesn't exist.
 
     :param source: The source directory
     :param target: The target directory
     """
-    if not os.path.exists(target):
-        os.symlink(source, target)
+    if not target.exists():
+        target.symlink_to(source)
 
 
 def create_web_dirs(api):
@@ -379,38 +389,29 @@ def create_web_dirs(api):
 
     :param api: CobblerAPI
     """
-    webroot_localmirror = os.path.join(api.settings().webdir, "localmirror")
-    webroot_repo_mirror = os.path.join(api.settings().webdir, "repo_mirror")
-    webroot_distro_mirror = os.path.join(api.settings().webdir, "distro_mirror")
-    webroot_distro_mirror_config = os.path.join(webroot_distro_mirror, "config")
-    webroot_link = os.path.join(api.settings().webdir, "links")
-    webroot_misc = os.path.join(api.settings().webdir, "misc")
-    webroot_pub = os.path.join(api.settings().webdir, "pub")
-    webroot_rendered = os.path.join(api.settings().webdir, "rendered")
-    webroot_images = os.path.join(api.settings().webdir, "images")
+    webdir_obj = pathlib.Path(api.settings().webdir)
+    webroot_distro_mirror = webdir_obj / "distro_mirror"
+    webroot_misc = webdir_obj / "misc"
 
     webroot_directory_paths = [
-        webroot_localmirror,
-        webroot_repo_mirror,
+        webdir_obj / "localmirror",
+        webdir_obj / "repo_mirror",
         webroot_distro_mirror,
-        webroot_distro_mirror_config,
-        webroot_link,
+        webroot_distro_mirror / "config",
+        webdir_obj / "links",
         webroot_misc,
-        webroot_pub,
-        webroot_rendered,
-        webroot_images,
+        webdir_obj / "pub",
+        webdir_obj / "rendered",
+        webdir_obj / "images",
     ]
     for directory_path in webroot_directory_paths:
         __create_if_not_exists(directory_path)
 
     # Copy anamon scripts to the webroot
-    misc_path = "/var/lib/cobbler/misc"
-    rmtree_contents(webroot_misc)
-    print(os.listdir(misc_path))
-    for file in [
-        f for f in os.listdir(misc_path) if os.path.isfile(os.path.join(misc_path, f))
-    ]:
-        copyfile(os.path.join(misc_path, file), webroot_misc)
+    misc_path = pathlib.Path("/var/lib/cobbler/misc")
+    rmtree_contents(str(webroot_misc))
+    for file in [f for f in misc_path.iterdir() if (misc_path / f).is_file()]:
+        copyfile(str((misc_path / file)), str(webroot_misc))
 
 
 def create_tftpboot_dirs(api):
@@ -419,43 +420,33 @@ def create_tftpboot_dirs(api):
 
     :param api: CobblerAPI
     """
-    bootloc = api.settings().tftpboot_location
-    grub_dir = os.path.join(bootloc, "grub")
-    esxi_dir = os.path.join(bootloc, "esxi")
-    pxelinux_dir = os.path.join(bootloc, "pxelinux.cfg")
-    images_dir = os.path.join(bootloc, "images")
-    ipxe_dir = os.path.join(bootloc, "ipxe")
-    tftproot_boot = os.path.join(bootloc, "boot")
-    tftproot_etc = os.path.join(bootloc, "etc")
-    tftproot_images2 = os.path.join(bootloc, "images2")
-    tftproot_ppc = os.path.join(bootloc, "ppc")
-    tftproot_s390x = os.path.join(bootloc, "s390x")
-    tftproot_grub_system = os.path.join(grub_dir, "system")
-    tftproot_grub_system_link = os.path.join(grub_dir, "system_link")
+    bootloc = pathlib.Path(api.settings().tftpboot_location)
+    grub_dir = bootloc / "grub"
+    esxi_dir = bootloc / "esxi"
 
     tftpboot_directory_paths = [
-        tftproot_boot,
-        tftproot_etc,
-        tftproot_images2,
-        tftproot_ppc,
-        tftproot_s390x,
-        pxelinux_dir,
+        bootloc / "boot",
+        bootloc / "etc",
+        bootloc / "images2",
+        bootloc / "ppc",
+        bootloc / "s390x",
+        bootloc / "pxelinux.cfg",
         grub_dir,
-        tftproot_grub_system,
-        tftproot_grub_system_link,
-        images_dir,
-        ipxe_dir,
+        grub_dir / "system",
+        grub_dir / "system_link",
+        bootloc / "images",
+        bootloc / "ipxe",
         esxi_dir,
     ]
     for directory_path in tftpboot_directory_paths:
         __create_if_not_exists(directory_path)
 
-    grub_images_link = os.path.join(grub_dir, "images")
-    __symlink_if_not_exists("../images", grub_images_link)
-    esxi_images_link = os.path.join(esxi_dir, "images")
-    __symlink_if_not_exists("../images", esxi_images_link)
-    esxi_pxelinux_link = os.path.join(esxi_dir, "pxelinux.cfg")
-    __symlink_if_not_exists("../pxelinux.cfg", esxi_pxelinux_link)
+    grub_images_link = grub_dir / "images"
+    __symlink_if_not_exists(pathlib.Path("../images"), grub_images_link)
+    esxi_images_link = esxi_dir / "images"
+    __symlink_if_not_exists(pathlib.Path("../images"), esxi_images_link)
+    esxi_pxelinux_link = esxi_dir / "pxelinux.cfg"
+    __symlink_if_not_exists(pathlib.Path("../pxelinux.cfg"), esxi_pxelinux_link)
 
 
 def create_trigger_dirs(api):
@@ -465,93 +456,93 @@ def create_trigger_dirs(api):
     :param api: CobblerAPI
     """
     # This is not yet a setting
-    libpath = "/var/lib/cobbler"
-    trigger_directory = os.path.join(libpath, "triggers")
+    libpath = pathlib.Path("/var/lib/cobbler")
+    trigger_directory = libpath / "triggers"
     trigger_directories = [
         trigger_directory,
-        os.path.join(trigger_directory, "add"),
-        os.path.join(trigger_directory, "add", "distro"),
-        os.path.join(trigger_directory, "add", "distro", "pre"),
-        os.path.join(trigger_directory, "add", "distro", "post"),
-        os.path.join(trigger_directory, "add", "profile"),
-        os.path.join(trigger_directory, "add", "profile", "pre"),
-        os.path.join(trigger_directory, "add", "profile", "post"),
-        os.path.join(trigger_directory, "add", "system"),
-        os.path.join(trigger_directory, "add", "system", "pre"),
-        os.path.join(trigger_directory, "add", "system", "post"),
-        os.path.join(trigger_directory, "add", "repo"),
-        os.path.join(trigger_directory, "add", "repo", "pre"),
-        os.path.join(trigger_directory, "add", "repo", "post"),
-        os.path.join(trigger_directory, "add", "mgmtclass"),
-        os.path.join(trigger_directory, "add", "mgmtclass", "pre"),
-        os.path.join(trigger_directory, "add", "mgmtclass", "post"),
-        os.path.join(trigger_directory, "add", "package"),
-        os.path.join(trigger_directory, "add", "package", "pre"),
-        os.path.join(trigger_directory, "add", "package", "post"),
-        os.path.join(trigger_directory, "add", "file"),
-        os.path.join(trigger_directory, "add", "file", "pre"),
-        os.path.join(trigger_directory, "add", "file", "post"),
-        os.path.join(trigger_directory, "add", "menu"),
-        os.path.join(trigger_directory, "add", "menu", "pre"),
-        os.path.join(trigger_directory, "add", "menu", "post"),
-        os.path.join(trigger_directory, "delete"),
-        os.path.join(trigger_directory, "delete", "distro"),
-        os.path.join(trigger_directory, "delete", "distro", "pre"),
-        os.path.join(trigger_directory, "delete", "distro", "post"),
-        os.path.join(trigger_directory, "delete", "profile"),
-        os.path.join(trigger_directory, "delete", "profile", "pre"),
-        os.path.join(trigger_directory, "delete", "profile", "post"),
-        os.path.join(trigger_directory, "delete", "system"),
-        os.path.join(trigger_directory, "delete", "system", "pre"),
-        os.path.join(trigger_directory, "delete", "system", "post"),
-        os.path.join(trigger_directory, "delete", "repo"),
-        os.path.join(trigger_directory, "delete", "repo", "pre"),
-        os.path.join(trigger_directory, "delete", "repo", "post"),
-        os.path.join(trigger_directory, "delete", "mgmtclass"),
-        os.path.join(trigger_directory, "delete", "mgmtclass", "pre"),
-        os.path.join(trigger_directory, "delete", "mgmtclass", "post"),
-        os.path.join(trigger_directory, "delete", "package"),
-        os.path.join(trigger_directory, "delete", "package", "pre"),
-        os.path.join(trigger_directory, "delete", "package", "post"),
-        os.path.join(trigger_directory, "delete", "file"),
-        os.path.join(trigger_directory, "delete", "file", "pre"),
-        os.path.join(trigger_directory, "delete", "file", "post"),
-        os.path.join(trigger_directory, "delete", "menu"),
-        os.path.join(trigger_directory, "delete", "menu", "pre"),
-        os.path.join(trigger_directory, "delete", "menu", "post"),
-        os.path.join(trigger_directory, "install"),
-        os.path.join(trigger_directory, "install", "pre"),
-        os.path.join(trigger_directory, "install", "post"),
-        os.path.join(trigger_directory, "install", "firstboot"),
-        os.path.join(trigger_directory, "sync"),
-        os.path.join(trigger_directory, "sync", "pre"),
-        os.path.join(trigger_directory, "sync", "post"),
-        os.path.join(trigger_directory, "change"),
-        os.path.join(trigger_directory, "task"),
-        os.path.join(trigger_directory, "task", "distro"),
-        os.path.join(trigger_directory, "task", "distro", "pre"),
-        os.path.join(trigger_directory, "task", "distro", "post"),
-        os.path.join(trigger_directory, "task", "profile"),
-        os.path.join(trigger_directory, "task", "profile", "pre"),
-        os.path.join(trigger_directory, "task", "profile", "post"),
-        os.path.join(trigger_directory, "task", "system"),
-        os.path.join(trigger_directory, "task", "system", "pre"),
-        os.path.join(trigger_directory, "task", "system", "post"),
-        os.path.join(trigger_directory, "task", "repo"),
-        os.path.join(trigger_directory, "task", "repo", "pre"),
-        os.path.join(trigger_directory, "task", "repo", "post"),
-        os.path.join(trigger_directory, "task", "mgmtclass"),
-        os.path.join(trigger_directory, "task", "mgmtclass", "pre"),
-        os.path.join(trigger_directory, "task", "mgmtclass", "post"),
-        os.path.join(trigger_directory, "task", "package"),
-        os.path.join(trigger_directory, "task", "package", "pre"),
-        os.path.join(trigger_directory, "task", "package", "post"),
-        os.path.join(trigger_directory, "task", "file"),
-        os.path.join(trigger_directory, "task", "file", "pre"),
-        os.path.join(trigger_directory, "task", "file", "post"),
-        os.path.join(trigger_directory, "task", "menu"),
-        os.path.join(trigger_directory, "task", "menu", "pre"),
-        os.path.join(trigger_directory, "task", "menu", "post"),
+        trigger_directory / "add",
+        trigger_directory / "add" / "distro",
+        trigger_directory / "add" / "distro" / "pre",
+        trigger_directory / "add" / "distro" / "post",
+        trigger_directory / "add" / "profile",
+        trigger_directory / "add" / "profile" / "pre",
+        trigger_directory / "add" / "profile" / "post",
+        trigger_directory / "add" / "system",
+        trigger_directory / "add" / "system" / "pre",
+        trigger_directory / "add" / "system" / "post",
+        trigger_directory / "add" / "repo",
+        trigger_directory / "add" / "repo" / "pre",
+        trigger_directory / "add" / "repo" / "post",
+        trigger_directory / "add" / "mgmtclass",
+        trigger_directory / "add" / "mgmtclass" / "pre",
+        trigger_directory / "add" / "mgmtclass" / "post",
+        trigger_directory / "add" / "package",
+        trigger_directory / "add" / "package" / "pre",
+        trigger_directory / "add" / "package" / "post",
+        trigger_directory / "add" / "file",
+        trigger_directory / "add" / "file" / "pre",
+        trigger_directory / "add" / "file" / "post",
+        trigger_directory / "add" / "menu",
+        trigger_directory / "add" / "menu" / "pre",
+        trigger_directory / "add" / "menu" / "post",
+        trigger_directory / "delete",
+        trigger_directory / "delete" / "distro",
+        trigger_directory / "delete" / "distro" / "pre",
+        trigger_directory / "delete" / "distro" / "post",
+        trigger_directory / "delete" / "profile",
+        trigger_directory / "delete" / "profile" / "pre",
+        trigger_directory / "delete" / "profile" / "post",
+        trigger_directory / "delete" / "system",
+        trigger_directory / "delete" / "system" / "pre",
+        trigger_directory / "delete" / "system" / "post",
+        trigger_directory / "delete" / "repo",
+        trigger_directory / "delete" / "repo" / "pre",
+        trigger_directory / "delete" / "repo" / "post",
+        trigger_directory / "delete" / "mgmtclass",
+        trigger_directory / "delete" / "mgmtclass" / "pre",
+        trigger_directory / "delete" / "mgmtclass" / "post",
+        trigger_directory / "delete" / "package",
+        trigger_directory / "delete" / "package" / "pre",
+        trigger_directory / "delete" / "package" / "post",
+        trigger_directory / "delete" / "file",
+        trigger_directory / "delete" / "file" / "pre",
+        trigger_directory / "delete" / "file" / "post",
+        trigger_directory / "delete" / "menu",
+        trigger_directory / "delete" / "menu" / "pre",
+        trigger_directory / "delete" / "menu" / "post",
+        trigger_directory / "install",
+        trigger_directory / "install" / "pre",
+        trigger_directory / "install" / "post",
+        trigger_directory / "install" / "firstboot",
+        trigger_directory / "sync",
+        trigger_directory / "sync" / "pre",
+        trigger_directory / "sync" / "post",
+        trigger_directory / "change",
+        trigger_directory / "task",
+        trigger_directory / "task" / "distro",
+        trigger_directory / "task" / "distro" / "pre",
+        trigger_directory / "task" / "distro" / "post",
+        trigger_directory / "task" / "profile",
+        trigger_directory / "task" / "profile" / "pre",
+        trigger_directory / "task" / "profile" / "post",
+        trigger_directory / "task" / "system",
+        trigger_directory / "task" / "system" / "pre",
+        trigger_directory / "task" / "system" / "post",
+        trigger_directory / "task" / "repo",
+        trigger_directory / "task" / "repo" / "pre",
+        trigger_directory / "task" / "repo" / "post",
+        trigger_directory / "task" / "mgmtclass",
+        trigger_directory / "task" / "mgmtclass" / "pre",
+        trigger_directory / "task" / "mgmtclass" / "post",
+        trigger_directory / "task" / "package",
+        trigger_directory / "task" / "package" / "pre",
+        trigger_directory / "task" / "package" / "post",
+        trigger_directory / "task" / "file",
+        trigger_directory / "task" / "file" / "pre",
+        trigger_directory / "task" / "file" / "post",
+        trigger_directory / "task" / "menu",
+        trigger_directory / "task" / "menu" / "pre",
+        trigger_directory / "task" / "menu" / "post",
     ]
 
     for directory_path in trigger_directories:
@@ -565,18 +556,18 @@ def create_json_database_dirs(api):
     :param api: CobblerAPI
     """
     # This is not yet a setting
-    libpath = "/var/lib/cobbler"
+    libpath = pathlib.Path("/var/lib/cobbler")
     database_directories = [
-        os.path.join(libpath, "collections"),
-        os.path.join(libpath, "collections", "distros"),
-        os.path.join(libpath, "collections", "images"),
-        os.path.join(libpath, "collections", "profiles"),
-        os.path.join(libpath, "collections", "repos"),
-        os.path.join(libpath, "collections", "systems"),
-        os.path.join(libpath, "collections", "mgmtclasses"),
-        os.path.join(libpath, "collections", "packages"),
-        os.path.join(libpath, "collections", "files"),
-        os.path.join(libpath, "collections", "menus"),
+        libpath / "collections",
+        libpath / "collections" / "distros",
+        libpath / "collections" / "images",
+        libpath / "collections" / "profiles",
+        libpath / "collections" / "repos",
+        libpath / "collections" / "systems",
+        libpath / "collections" / "mgmtclasses",
+        libpath / "collections" / "packages",
+        libpath / "collections" / "files",
+        libpath / "collections" / "menus",
     ]
 
     for directory_path in database_directories:
