@@ -456,3 +456,128 @@ def create_tftpboot_dirs(api):
     __symlink_if_not_exists("../images", esxi_images_link)
     esxi_pxelinux_link = os.path.join(esxi_dir, "pxelinux.cfg")
     __symlink_if_not_exists("../pxelinux.cfg", esxi_pxelinux_link)
+
+
+def create_trigger_dirs(api):
+    """
+    Creates the directories that the user/admin can fill with dynamically executed scripts.
+
+    :param api: CobblerAPI
+    """
+    # This is not yet a setting
+    libpath = "/var/lib/cobbler"
+    trigger_directory = os.path.join(libpath, "triggers")
+    trigger_directories = [
+        trigger_directory,
+        os.path.join(trigger_directory, "add"),
+        os.path.join(trigger_directory, "add", "distro"),
+        os.path.join(trigger_directory, "add", "distro", "pre"),
+        os.path.join(trigger_directory, "add", "distro", "post"),
+        os.path.join(trigger_directory, "add", "profile"),
+        os.path.join(trigger_directory, "add", "profile", "pre"),
+        os.path.join(trigger_directory, "add", "profile", "post"),
+        os.path.join(trigger_directory, "add", "system"),
+        os.path.join(trigger_directory, "add", "system", "pre"),
+        os.path.join(trigger_directory, "add", "system", "post"),
+        os.path.join(trigger_directory, "add", "repo"),
+        os.path.join(trigger_directory, "add", "repo", "pre"),
+        os.path.join(trigger_directory, "add", "repo", "post"),
+        os.path.join(trigger_directory, "add", "mgmtclass"),
+        os.path.join(trigger_directory, "add", "mgmtclass", "pre"),
+        os.path.join(trigger_directory, "add", "mgmtclass", "post"),
+        os.path.join(trigger_directory, "add", "package"),
+        os.path.join(trigger_directory, "add", "package", "pre"),
+        os.path.join(trigger_directory, "add", "package", "post"),
+        os.path.join(trigger_directory, "add", "file"),
+        os.path.join(trigger_directory, "add", "file", "pre"),
+        os.path.join(trigger_directory, "add", "file", "post"),
+        os.path.join(trigger_directory, "add", "menu"),
+        os.path.join(trigger_directory, "add", "menu", "pre"),
+        os.path.join(trigger_directory, "add", "menu", "post"),
+        os.path.join(trigger_directory, "delete"),
+        os.path.join(trigger_directory, "delete", "distro"),
+        os.path.join(trigger_directory, "delete", "distro", "pre"),
+        os.path.join(trigger_directory, "delete", "distro", "post"),
+        os.path.join(trigger_directory, "delete", "profile"),
+        os.path.join(trigger_directory, "delete", "profile", "pre"),
+        os.path.join(trigger_directory, "delete", "profile", "post"),
+        os.path.join(trigger_directory, "delete", "system"),
+        os.path.join(trigger_directory, "delete", "system", "pre"),
+        os.path.join(trigger_directory, "delete", "system", "post"),
+        os.path.join(trigger_directory, "delete", "repo"),
+        os.path.join(trigger_directory, "delete", "repo", "pre"),
+        os.path.join(trigger_directory, "delete", "repo", "post"),
+        os.path.join(trigger_directory, "delete", "mgmtclass"),
+        os.path.join(trigger_directory, "delete", "mgmtclass", "pre"),
+        os.path.join(trigger_directory, "delete", "mgmtclass", "post"),
+        os.path.join(trigger_directory, "delete", "package"),
+        os.path.join(trigger_directory, "delete", "package", "pre"),
+        os.path.join(trigger_directory, "delete", "package", "post"),
+        os.path.join(trigger_directory, "delete", "file"),
+        os.path.join(trigger_directory, "delete", "file", "pre"),
+        os.path.join(trigger_directory, "delete", "file", "post"),
+        os.path.join(trigger_directory, "delete", "menu"),
+        os.path.join(trigger_directory, "delete", "menu", "pre"),
+        os.path.join(trigger_directory, "delete", "menu", "post"),
+        os.path.join(trigger_directory, "install"),
+        os.path.join(trigger_directory, "install", "pre"),
+        os.path.join(trigger_directory, "install", "post"),
+        os.path.join(trigger_directory, "install", "firstboot"),
+        os.path.join(trigger_directory, "sync"),
+        os.path.join(trigger_directory, "sync", "pre"),
+        os.path.join(trigger_directory, "sync", "post"),
+        os.path.join(trigger_directory, "change"),
+        os.path.join(trigger_directory, "task"),
+        os.path.join(trigger_directory, "task", "distro"),
+        os.path.join(trigger_directory, "task", "distro", "pre"),
+        os.path.join(trigger_directory, "task", "distro", "post"),
+        os.path.join(trigger_directory, "task", "profile"),
+        os.path.join(trigger_directory, "task", "profile", "pre"),
+        os.path.join(trigger_directory, "task", "profile", "post"),
+        os.path.join(trigger_directory, "task", "system"),
+        os.path.join(trigger_directory, "task", "system", "pre"),
+        os.path.join(trigger_directory, "task", "system", "post"),
+        os.path.join(trigger_directory, "task", "repo"),
+        os.path.join(trigger_directory, "task", "repo", "pre"),
+        os.path.join(trigger_directory, "task", "repo", "post"),
+        os.path.join(trigger_directory, "task", "mgmtclass"),
+        os.path.join(trigger_directory, "task", "mgmtclass", "pre"),
+        os.path.join(trigger_directory, "task", "mgmtclass", "post"),
+        os.path.join(trigger_directory, "task", "package"),
+        os.path.join(trigger_directory, "task", "package", "pre"),
+        os.path.join(trigger_directory, "task", "package", "post"),
+        os.path.join(trigger_directory, "task", "file"),
+        os.path.join(trigger_directory, "task", "file", "pre"),
+        os.path.join(trigger_directory, "task", "file", "post"),
+        os.path.join(trigger_directory, "task", "menu"),
+        os.path.join(trigger_directory, "task", "menu", "pre"),
+        os.path.join(trigger_directory, "task", "menu", "post"),
+    ]
+
+    for directory_path in trigger_directories:
+        __create_if_not_exists(directory_path)
+
+
+def create_json_database_dirs(api):
+    """
+    Creates the database directories for the file serializer
+
+    :param api: CobblerAPI
+    """
+    # This is not yet a setting
+    libpath = "/var/lib/cobbler"
+    database_directories = [
+        os.path.join(libpath, "collections"),
+        os.path.join(libpath, "collections", "distros"),
+        os.path.join(libpath, "collections", "images"),
+        os.path.join(libpath, "collections", "profiles"),
+        os.path.join(libpath, "collections", "repos"),
+        os.path.join(libpath, "collections", "systems"),
+        os.path.join(libpath, "collections", "mgmtclasses"),
+        os.path.join(libpath, "collections", "packages"),
+        os.path.join(libpath, "collections", "files"),
+        os.path.join(libpath, "collections", "menus"),
+    ]
+
+    for directory_path in database_directories:
+        __create_if_not_exists(directory_path)
