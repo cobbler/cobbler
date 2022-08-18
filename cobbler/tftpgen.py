@@ -128,9 +128,7 @@ class TFTPGen:
         :param dirtree: This is the root where the images are located. The folder "images" gets automatically appended.
         :param symlink_ok: If it is okay to use a symlink to link the destination to the source.
         """
-
-        distros = os.path.join(dirtree, "images")
-        distro_dir = os.path.join(distros, d.name)
+        distro_dir = os.path.join(dirtree, "images", d.name)
         filesystem_helpers.mkdir(distro_dir)
         self.copy_single_distro_file(d.kernel, distro_dir, symlink_ok)
         self.copy_single_distro_file(d.initrd, distro_dir, symlink_ok)

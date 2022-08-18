@@ -1,5 +1,6 @@
 import glob
 import os
+import pathlib
 import shutil
 
 import pytest
@@ -72,6 +73,7 @@ def test_copy_single_distro_files(
     # Arrange
     # Create fake files
     directory = create_kernel_initrd(fk_kernel, fk_initrd)
+    (pathlib.Path(directory) / "images").mkdir()
     # Create a test Distro
     test_distro = Distro(cobbler_api)
     test_distro.name = "test_copy_single_distro_files"
