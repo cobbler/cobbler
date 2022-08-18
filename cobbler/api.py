@@ -142,13 +142,34 @@ class CobblerAPI:
             self.autoinstallgen = autoinstallgen.AutoInstallationGen(self)
             self.yumgen = yumgen.YumGen(self)
             self.tftpgen = tftpgen.TFTPGen(self)
-            self.logger.debug("Creating necessary directories")
-            filesystem_helpers.create_tftpboot_dirs(self)
-            filesystem_helpers.create_web_dirs(self)
-            filesystem_helpers.create_trigger_dirs(self)
-            filesystem_helpers.create_json_database_dirs(self)
+            self.__directory_startup_preparations()
             self.logger.debug("API handle initialized")
             self.perms_ok = True
+
+    def __directory_startup_preparations(self):
+        """
+        This function prepares the daemon to be able to operate with directories that need to be handled before it can
+        operate as designed.
+
+        :raises FileNotFoundError: In case a directory required for operation is missing.
+        """
+        self.logger.debug("Creating necessary directories")
+        required_directories = [
+            "/var/lib/cobbler",
+            "/etc/cobbler",
+            self.settings().webdir,
+            self.settings().tftpboot_location,
+        ]
+        for directory in required_directories:
+            if not pathlib.Path(directory).is_dir():
+                raise FileNotFoundError(
+                    'Required directory "%s" for operation is missing! Aborting startup of Cobbler!'
+                    % directory
+                )
+        filesystem_helpers.create_tftpboot_dirs(self)
+        filesystem_helpers.create_web_dirs(self)
+        filesystem_helpers.create_trigger_dirs(self)
+        filesystem_helpers.create_json_database_dirs(self)
 
     def __load_signatures(self):
         try:
