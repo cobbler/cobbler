@@ -55,6 +55,7 @@ manage_dhcp_v4: true
 manage_dhcp_v6: false
 power_management_default_type: 'ipmilan'
 tftpboot_location: '/srv/tftpboot'
+webdir: '/srv/www/cobbler'
 EOF
     restart_cobblerd
     cobbler sync >/dev/null

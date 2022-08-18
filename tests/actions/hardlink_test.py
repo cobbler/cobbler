@@ -37,15 +37,15 @@ def test_no_hardlink_available(mocker, cobbler_api):
     [
         (
             "debian",
-            "/usr/bin/hardlink -f -p -o -t -v  /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror",
+            "/usr/bin/hardlink -f -p -o -t -v  /srv/www/cobbler/distro_mirror /srv/www/cobbler/repo_mirror",
         ),
         (
             "suse",
-            "/usr/bin/hardlink -f -v  /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror",
+            "/usr/bin/hardlink -f -v  /srv/www/cobbler/distro_mirror /srv/www/cobbler/repo_mirror",
         ),
         (
             "other distros",
-            "/usr/bin/hardlink -c -v  /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror",
+            "/usr/bin/hardlink -c -v  /srv/www/cobbler/distro_mirror /srv/www/cobbler/repo_mirror",
         ),
     ],
 )
@@ -64,7 +64,7 @@ def test_run(mocker, cobbler_api):
     # Arrange
     hardlink_obj = hardlink.HardLinker(cobbler_api)
     mock_subprocess_call = mocker.patch("cobbler.utils.subprocess_call", return_value=0)
-    expected_call = "/usr/bin/hardlink -f -v  /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror"
+    expected_call = "/usr/bin/hardlink -f -v  /srv/www/cobbler/distro_mirror /srv/www/cobbler/repo_mirror"
 
     # Act
     hardlink_obj.run()
