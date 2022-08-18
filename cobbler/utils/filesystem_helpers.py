@@ -165,7 +165,7 @@ def linkfile(api, src: str, dst: str, symlink_ok: bool = False, cache: bool = Tr
         # we can symlink anywhere except for /tftpboot because that is run chroot, so if we can symlink now, try it.
         try:
             logger.info("trying symlink %s -> %s", src, dst)
-            src_obj.symlink_to(dst_obj)
+            dst_obj.symlink_to(src_obj)
             return
         except (IOError, OSError):
             pass
