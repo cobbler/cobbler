@@ -48,6 +48,7 @@ RUN apt-get update -qq && \
     bzip2 \
     dpkg-dev \
     tftpd-hpa \
+    isc-dhcp-server \
     createrepo \
     rsync \
     xorriso\

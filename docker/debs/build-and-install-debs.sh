@@ -47,6 +47,9 @@ echo "==> Restart Apache and Cobbler daemon ..."
 $EXECUTOR exec -it cobbler bash -c 'a2enmod proxy && a2enmod proxy_http'
 $EXECUTOR exec -it cobbler bash -c 'a2enconf cobbler'
 
+echo "==> Create DHCPD leases file"
+$EXECUTOR exec -it cobbler bash -c 'touch /var/lib/dhcp/dhcpd.leases'
+
 echo "==> Create webroot directory ..."
 $EXECUTOR exec -it cobbler bash -c 'mkdir /var/www/cobbler'
 

@@ -50,6 +50,7 @@ RUN apt-get update -qq && \
     dpkg-dev \
     tftpd-hpa \
     createrepo-c \
+    isc-dhcp-server \
     rsync \
     xorriso\
     fence-agents\
