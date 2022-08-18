@@ -119,7 +119,7 @@ def cachefile(src: str, dst: str):
         copyfile(src, str(cachefile_obj))
 
     logger.debug("trying cachelink %s -> %s -> %s", src, cachefile_obj, dst)
-    cachefile_obj.hardlink_to(dst)
+    os.link(cachefile_obj, dst)
 
 
 def linkfile(api, src: str, dst: str, symlink_ok: bool = False, cache: bool = True):
@@ -155,7 +155,7 @@ def linkfile(api, src: str, dst: str, symlink_ok: bool = False, cache: bool = Tr
         # we can try a hardlink if the destination isn't to NFS or Samba this will help save space and sync time.
         try:
             logger.info("trying hardlink %s -> %s", src, dst)
-            src_obj.hardlink_to(dst_obj)
+            os.link(src, dst)
             return
         except (IOError, OSError):
             # hardlink across devices, or link already exists we'll just symlink it if we can or otherwise copy it
