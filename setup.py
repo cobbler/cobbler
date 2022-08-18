@@ -650,8 +650,6 @@ if __name__ == "__main__":
             ("%s/httpd/cobbler" % logpath, []),
             ("%s/cobbler/anamon" % logpath, []),
             ("%s/cobbler/tasks" % logpath, []),
-            # A script that isn't really data, wsgi script
-            ("%s/cobbler/svc/" % webroot, ["svc/services.py"]),
             # zone-specific templates directory
             ("%s/zone_templates" % etcpath, glob("templates/zone_templates/*")),
             # windows-specific templates directory

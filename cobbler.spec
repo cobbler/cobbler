@@ -449,7 +449,6 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
 %if 0%{?suse_version}
 %{_sbindir}/rccobblerd
 %endif
-%{apache_dir}/cobbler
 %{_sharedstatedir}/cobbler
 %{_localstatedir}/log/cobbler
 
