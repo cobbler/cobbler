@@ -23,6 +23,7 @@ RUN apt-get update -qq && \
     pycodestyle \
     pyflakes3 \
     python3-cheetah  \
+    python3-gunicorn  \
     python3-coverage \
     python3-wheel   \
     python3-distro \

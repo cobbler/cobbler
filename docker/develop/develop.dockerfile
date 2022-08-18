@@ -41,6 +41,7 @@ RUN zypper install --no-recommends -y \
     python3-pykickstart        \
     python3-netaddr            \
     python3-pymongo            \
+    python3-gunicorn           \
     rpm-build                  \
     rsync                      \
     supervisor                 \
