@@ -57,6 +57,13 @@ then
     $EXECUTOR exec -t cobbler bash -c 'rm /etc/httpd/conf.d/ssl.conf'
 fi
 
+echo "==> Create webroot directory ..."
+if [[ ( "$TAG" == *"rl"* || "$TAG" == *"fc"* ) ]]; then
+    $EXECUTOR exec -it cobbler bash -c 'mkdir /var/www/cobbler'
+else
+    $EXECUTOR exec -it cobbler bash -c 'mkdir /srv/www/cobbler'
+fi
+
 echo "==> Start Supervisor ..."
 if $EXECUTOR exec -t cobbler bash -c 'test ! -d "/var/log/supervisor"'
 then

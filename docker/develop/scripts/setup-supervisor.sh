@@ -18,6 +18,7 @@ a2enmod proxy
 a2enmod proxy_http
 
 echo "Install Cobbler"
+mkdir /srv/www/cobbler # Create web directory so the Cobbler daemon starts
 cd /code || exit
 make install
 

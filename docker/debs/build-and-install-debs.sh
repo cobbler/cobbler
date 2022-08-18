@@ -47,6 +47,9 @@ echo "==> Restart Apache and Cobbler daemon ..."
 $EXECUTOR exec -it cobbler bash -c 'a2enmod proxy && a2enmod proxy_http'
 $EXECUTOR exec -it cobbler bash -c 'a2enconf cobbler'
 
+echo "==> Create webroot directory ..."
+$EXECUTOR exec -it cobbler bash -c 'mkdir /var/www/cobbler'
+
 echo "==> Start Supervisor"
 $EXECUTOR exec -it cobbler bash -c 'supervisord -c /etc/supervisord.conf'
 
