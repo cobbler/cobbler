@@ -54,7 +54,7 @@ echo "==> Create webroot directory ..."
 $EXECUTOR exec -it cobbler bash -c 'mkdir /var/www/cobbler'
 
 echo "==> Start Supervisor"
-$EXECUTOR exec -it cobbler bash -c 'supervisord -c /etc/supervisord.conf'
+$EXECUTOR exec -it cobbler bash -c 'supervisord -c /etc/supervisor/supervisord.conf'
 
 echo "==> Wait 20 sec. and show Cobbler version ..."
 $EXECUTOR exec -it cobbler bash -c 'sleep 20 && cobbler --version'

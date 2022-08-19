@@ -71,8 +71,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN echo "dash dash/sh boolean false" | debconf-set-selections && \
     dpkg-reconfigure dash
 
-COPY ./docker/debs/Debian_11/supervisord/supervisord.conf /etc/supervisord.conf
-COPY ./docker/debs/Debian_11/supervisord/conf.d /etc/supervisord/conf.d
+COPY ./docker/debs/Debian_10/supervisord/conf.d /etc/supervisor/conf.d
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler
