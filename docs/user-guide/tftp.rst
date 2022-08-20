@@ -44,7 +44,7 @@ Layout
 This is how an example TFTP-Boot Directory could look like. In the following sections we will cover the details of the
 files and folders.
 
-.. code-block::
+.. code-block:: console
 
     cobbler:~ # ls -alh /srv/tftpboot/
     total 105M
