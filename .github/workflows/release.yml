@@ -59,6 +59,7 @@ jobs:
           hardlink
           apache2
           apache2-dev
+          python3-gunicorn
           systemd
           libsasl2-dev
       - name: Install Deps for installing project
