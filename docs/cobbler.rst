@@ -1066,7 +1066,7 @@ Cobbler replicate
 =================
 
 Cobbler can replicate configurations from a master Cobbler server. Each Cobbler server is still expected to have a
-locally relevant ``/etc/cobbler/cobbler.conf`` and ``modules.conf``, as these files are not synced.
+locally relevant ``/etc/cobbler/settings.yaml``, as this file is not synced.
 
 This feature is intended for load-balancing, disaster-recovery, backup, or multiple geography support.
 
