@@ -575,6 +575,7 @@ if __name__ == "__main__":
         },
         configure_files=[
             "config/apache/cobbler.conf",
+            "config/nginx/cobbler.conf",
             "config/cobbler/settings.yaml",
             "config/service/cobblerd.service",
             "templates/etc/named.template",
@@ -595,10 +596,11 @@ if __name__ == "__main__":
             ("%s/loaders" % libpath, []),
             ("%s/misc" % libpath, glob("misc/*")),
             # Configuration
+            (f"{etcpath}/apache", ["build/config/apache/cobbler.conf"]),
+            (f"{etcpath}/nginx", ["build/config/nginx/cobbler.conf"]),
             (
                 "%s" % etcpath,
                 [
-                    "build/config/apache/cobbler.conf",
                     "build/config/service/cobblerd.service",
                     "build/config/cobbler/settings.yaml",
                 ],

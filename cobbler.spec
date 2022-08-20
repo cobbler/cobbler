@@ -307,7 +307,8 @@ sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i config/cobbler/settings.yaml
 %py3_install
 
 # cobbler
-rm %{buildroot}%{_sysconfdir}/cobbler/cobbler.conf
+rm -r %{buildroot}%{_sysconfdir}/cobbler/apache
+rm -r %{buildroot}%{_sysconfdir}/cobbler/nginx
 
 mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
 mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd_rotate %{buildroot}%{_sysconfdir}/logrotate.d/cobblerd
