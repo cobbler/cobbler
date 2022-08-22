@@ -9,6 +9,9 @@ run Cobbler via systemd as a service.
 
 Per default this builds an ISO for all available systems and profiles.
 
+.. note:: All systems refers to systems that are profile based. Systems with a parent image based systems will be
+          skipped.
+
 If you want to generate multiple ISOs you need to execute this command multiple times (with different ``--iso`` names).
 
 Under the hood
@@ -72,7 +75,7 @@ You have to provide the following parameters:
 
 * ``--systems``: Filter the systems you want to build the ISO for.
 * ``--exclude-dns``: Flag to add the nameservers (and other DNS information) to the append line or not. This only has
-                     an effect in case you supply ``--systems``.
+  an effect in case you supply ``--systems``.
 
 Examples
 ########
