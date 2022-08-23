@@ -93,14 +93,19 @@ def test_copy_boot_files(cobbler_api, create_distro, tmpdir):
     assert len(os.listdir(target_folder)) == 2
 
 
-def test_filter_system(cobbler_api, create_distro, create_profile, create_system):
-    # Arrange
+def test_filter_system(
+    cobbler_api, create_distro, create_profile, create_system, create_image
+):
     test_distro = create_distro()
     test_profile = create_profile(test_distro.name)
-    test_system = create_system(profile_name=test_profile.name)
-    itemlist = [test_system.name]
+    test_system_profile = create_system(profile_name=test_profile.name)
+    test_image = create_image()
+    test_system_image = create_system(
+        image_name=test_image.name, name="test_filter_system_image_image"
+    )
+    itemlist = [test_system_profile.name, test_system_image.name]
     build_iso = NetbootBuildiso(cobbler_api)
-    expected_result = [test_system]
+    expected_result = [test_system_profile]
 
     # Act
     result = build_iso.filter_systems(itemlist)
