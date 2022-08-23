@@ -315,7 +315,10 @@ class BuildIso:
             "xorriso",
             "-as",
             "mkisofs",
-            xorrisofs_opts,
+        ]
+        if xorrisofs_opts != "":
+            cmd.append(xorrisofs_opts)
+        cmd += [
             "-isohybrid-mbr",
             str(isohdpfx_location),
             "-c",
@@ -332,7 +335,7 @@ class BuildIso:
             "-no-emul-boot",
             "-isohybrid-gpt-basdat",
             "-V",
-            '"COBBLER_INSTALL"',
+            "COBBLER_INSTALL",
             "-o",
             iso,
             buildisodir,
