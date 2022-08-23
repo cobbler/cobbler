@@ -937,6 +937,8 @@ Cobbler buildiso
 This command may not behave like you expect it without installing additional dependencies and configuration. The in
 depth explanation can be found at :ref:`building-isos`.
 
+.. note:: Systems refers to systems that are profile based. Systems with a parent image based systems will be skipped.
+
 +--------------+-------------------------------------------------------------------------------------------------------+
 | Name         | Description                                                                                           |
 +--------------+-------------------------------------------------------------------------------------------------------+
