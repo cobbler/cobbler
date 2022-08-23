@@ -9,6 +9,9 @@ run Cobbler via systemd as a service.
 
 Per default this builds an ISO for all available systems and profiles.
 
+.. note:: All systems refers to systems that are profile based. Systems with a parent image based systems will be
+          skipped.
+
 If you want to generate multiple ISOs you need to execute this command multiple times (with different ``--iso`` names).
 
 Under the hood
