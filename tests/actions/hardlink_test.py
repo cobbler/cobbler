@@ -75,7 +75,7 @@ def test_run(mocker, cobbler_api, mock_family, expected_hardlink_cmd):
     mocker.patch("cobbler.utils.get_family", return_value=mock_family)
     mock_subprocess_call = mocker.patch("cobbler.utils.subprocess_call", return_value=0)
     hardlink_obj = hardlink.HardLinker(cobbler_api)
-    hardlink_obj.webdir = "/var/www/cobbler"
+    hardlink_obj.webdir = "/srv/www/cobbler"
     expected_calls = [
         mocker.call(expected_hardlink_cmd, shell=False),
         mocker.call(
