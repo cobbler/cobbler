@@ -443,6 +443,9 @@ class RepoSync:
         if repo.arch != "":
             cmd = "%s -a %s" % (cmd, repo.arch)
 
+        if repo.arch == "":
+            cmd = "%s" % (cmd)
+
         # Now regardless of whether we're doing yumdownloader or reposync or whether the repo was http://, ftp://, or
         # rhn://, execute all queued commands here. Any failure at any point stops the operation.
 
@@ -537,7 +540,7 @@ class RepoSync:
                     # Counter-intuitive, but we want the newish kernels too
                     cmd = "%s -a i686" % (cmd)
                 else:
-                    cmd = "%s -a %s" % (cmd, repo.arch)
+                    cmd = "%s -a %s -a noarch" % (cmd, repo.arch)
 
         else:
             # Create the output directory if it doesn't exist
@@ -570,10 +573,14 @@ class RepoSync:
             proxy = repo.proxy
         (cert, verify) = self.gen_urlgrab_ssl_opts(repo.yumopts)
 
-        # FIXME: These two variables were deleted
-        repodata_path = ""
-        repomd_path = ""
+        repodata_path = os.path.join(temp_path, "repodata")
+        repomd_path = os.path.join(repodata_path, "repomd.xml")
         if os.path.exists(repodata_path) and not os.path.isfile(repomd_path):
+            shutil.rmtree(repodata_path, ignore_errors=False, onerror=None)
+
+        repodata_path = os.path.join(temp_path, "repodata")
+        if os.path.exists(repodata_path):
+            self.logger.info("Deleted old repo metadata for %s" % repodata_path)
             shutil.rmtree(repodata_path, ignore_errors=False, onerror=None)
 
         h = librepo.Handle()
