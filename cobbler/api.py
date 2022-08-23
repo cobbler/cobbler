@@ -18,6 +18,7 @@ from typing import Dict, List, Optional, Union
 
 from schema import SchemaError
 
+from cobbler.actions import importer
 from cobbler import validate
 from cobbler.actions import (
     status,
@@ -1939,124 +1940,25 @@ class CobblerAPI:
                            If mirror_url is a filesystem path and mirroring is not desired, set network_root to
                            something like "nfs://path/to/mirror_url/root"
         :param mirror_name: The name of the mirror.
-        :param network_root:
-        :param autoinstall_file:
-        :param rsync_flags:
-        :param arch:
-        :param breed:
-        :param os_version:
+        :param network_root: the remote path (nfs/http/ftp) for the distro files
+        :param autoinstall_file: user-specified response file, which will override the default
+        :param rsync_flags: Additional flags that will be passed to the rsync call that will sync everything to the
+                            Cobbler webroot.
+        :param arch: user-specified architecture
+        :param breed: user-specified breed
+        :param os_version: user-specified OS version
         """
-        self.log(
-            "import_tree",
-            [mirror_url, mirror_name, network_root, autoinstall_file, rsync_flags],
+        distro_importer = importer.Importer(api=self)
+        return distro_importer.run(
+            mirror_url,
+            mirror_name,
+            network_root,
+            autoinstall_file,
+            rsync_flags,
+            arch,
+            breed,
+            os_version,
         )
-
-        # Both --path and --name are required arguments.
-        if mirror_url is None or not mirror_url:
-            self.logger.info("import failed.  no --path specified")
-            return False
-        if mirror_name is None or not mirror_name:
-            self.logger.info("import failed.  no --name specified")
-            return False
-
-        path = os.path.normpath(
-            "%s/distro_mirror/%s" % (self.settings().webdir, mirror_name)
-        )
-        if arch is not None:
-            arch = arch.lower()
-            if arch == "x86":
-                # be consistent
-                arch = "i386"
-            if path.split("-")[-1] != arch:
-                path += "-%s" % arch
-
-        # We need to mirror (copy) the files.
-        self.logger.info(
-            "importing from a network location, running rsync to fetch the files first"
-        )
-
-        filesystem_helpers.mkdir(path)
-
-        # Prevent rsync from creating the directory name twice if we are copying via rsync.
-
-        if not mirror_url.endswith("/"):
-            mirror_url = "%s/" % mirror_url
-
-        if (
-            mirror_url.startswith("http://")
-            or mirror_url.startswith("https://")
-            or mirror_url.startswith("ftp://")
-            or mirror_url.startswith("nfs://")
-        ):
-            # HTTP mirrors are kind of primitive. rsync is better. That's why this isn't documented in the manpage and
-            # we don't support them.
-            # TODO: how about adding recursive FTP as an option?
-            self.logger.info("unsupported protocol")
-            return False
-        else:
-            # Good, we're going to use rsync.. We don't use SSH for public mirrors and local files.
-            # Presence of user@host syntax means use SSH
-            spacer = ""
-            if not mirror_url.startswith("rsync://") and not mirror_url.startswith("/"):
-                spacer = ' -e "ssh" '
-            rsync_cmd = ["rsync", "--archive"]
-            if spacer != "":
-                rsync_cmd.append(spacer)
-            rsync_cmd.append("--progress")
-            if rsync_flags:
-                rsync_cmd.append(rsync_flags)
-
-            # If --available-as was specified, limit the files we pull down via rsync to just those that are critical
-            # to detecting what the distro is
-            if network_root is not None:
-                rsync_cmd.append("--include-from=/etc/cobbler/import_rsync_whitelist")
-
-            rsync_cmd += [f"'{mirror_url}'", path]
-
-            # kick off the rsync now
-            rsync_return_code = utils.subprocess_call(rsync_cmd, shell=False)
-            if rsync_return_code != 0:
-                raise RuntimeError(
-                    f"rsync import failed with return code {rsync_return_code}!"
-                )
-
-        if network_root is not None:
-            # In addition to mirroring, we're going to assume the path is available over http, ftp, and nfs, perhaps on
-            # an external filer. Scanning still requires --mirror is a filesystem path, but --available-as marks the
-            # network path. This allows users to point the path at a directory containing just the network boot files
-            # while the rest of the distro files are available somewhere else.
-
-            # Find the filesystem part of the path, after the server bits, as each distro URL needs to be calculated
-            # relative to this.
-
-            if not network_root.endswith("/"):
-                network_root += "/"
-            valid_roots = ["nfs://", "ftp://", "http://", "https://"]
-            for valid_root in valid_roots:
-                if network_root.startswith(valid_root):
-                    break
-            else:
-                self.logger.info(
-                    "Network root given to --available-as must be nfs://, ftp://, http://, or https://"
-                )
-                return False
-
-            if network_root.startswith("nfs://"):
-                try:
-                    (a, b, rest) = network_root.split(":", 3)
-                except:
-                    self.logger.info(
-                        "Network root given to --available-as is missing a colon, please see the manpage example."
-                    )
-                    return False
-
-        import_module = self.get_module_by_name(
-            "managers.import_signatures"
-        ).get_import_manager(self)
-        import_module.run(
-            path, mirror_name, network_root, autoinstall_file, arch, breed, os_version
-        )
-        return True
 
     # ==========================================================================
 
