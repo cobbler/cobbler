@@ -1953,10 +1953,10 @@ class CobblerAPI:
 
         # Both --path and --name are required arguments.
         if mirror_url is None or not mirror_url:
-            self.log("import failed.  no --path specified")
+            self.logger.info("import failed.  no --path specified")
             return False
         if mirror_name is None or not mirror_name:
-            self.log("import failed.  no --name specified")
+            self.logger.info("import failed.  no --name specified")
             return False
 
         path = os.path.normpath(
@@ -1971,7 +1971,7 @@ class CobblerAPI:
                 path += "-%s" % arch
 
         # We need to mirror (copy) the files.
-        self.log(
+        self.logger.info(
             "importing from a network location, running rsync to fetch the files first"
         )
 
@@ -1988,10 +1988,10 @@ class CobblerAPI:
             or mirror_url.startswith("ftp://")
             or mirror_url.startswith("nfs://")
         ):
-            # HTTP mirrors are kind of primative. rsync is better. That's why this isn't documented in the manpage and
+            # HTTP mirrors are kind of primitive. rsync is better. That's why this isn't documented in the manpage and
             # we don't support them.
             # TODO: how about adding recursive FTP as an option?
-            self.log("unsupported protocol")
+            self.logger.info("unsupported protocol")
             return False
         else:
             # Good, we're going to use rsync.. We don't use SSH for public mirrors and local files.
@@ -1999,8 +1999,10 @@ class CobblerAPI:
             spacer = ""
             if not mirror_url.startswith("rsync://") and not mirror_url.startswith("/"):
                 spacer = ' -e "ssh" '
-            # FIXME: add --quiet depending on if not --verbose?
-            rsync_cmd = ["rsync", "-a", spacer, f"'{mirror_url}'", path, "--progress"]
+            rsync_cmd = ["rsync", "--archive"]
+            if spacer != "":
+                rsync_cmd.append(spacer)
+            rsync_cmd.append("--progress")
             if rsync_flags:
                 rsync_cmd.append(rsync_flags)
 
@@ -2009,10 +2011,14 @@ class CobblerAPI:
             if network_root is not None:
                 rsync_cmd.append("--include-from=/etc/cobbler/import_rsync_whitelist")
 
+            rsync_cmd += [f"'{mirror_url}'", path]
+
             # kick off the rsync now
             rsync_return_code = utils.subprocess_call(rsync_cmd, shell=False)
             if rsync_return_code != 0:
-                utils.die("Command failed")
+                raise RuntimeError(
+                    f"rsync import failed with return code {rsync_return_code}!"
+                )
 
         if network_root is not None:
             # In addition to mirroring, we're going to assume the path is available over http, ftp, and nfs, perhaps on
@@ -2030,7 +2036,7 @@ class CobblerAPI:
                 if network_root.startswith(valid_root):
                     break
             else:
-                self.log(
+                self.logger.info(
                     "Network root given to --available-as must be nfs://, ftp://, http://, or https://"
                 )
                 return False
@@ -2039,7 +2045,7 @@ class CobblerAPI:
                 try:
                     (a, b, rest) = network_root.split(":", 3)
                 except:
-                    self.log(
+                    self.logger.info(
                         "Network root given to --available-as is missing a colon, please see the manpage example."
                     )
                     return False
