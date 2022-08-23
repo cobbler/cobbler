@@ -38,7 +38,7 @@ def reset_items(cobbler_api):
     for system in cobbler_api.systems():
         cobbler_api.remove_system(system.name)
     for image in cobbler_api.images():
-        cobbler_api.remove_distro(image.name)
+        cobbler_api.remove_image(image.name)
     for profile in cobbler_api.profiles():
         cobbler_api.remove_profile(profile.name)
     for distro in cobbler_api.distros():
