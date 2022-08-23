@@ -81,12 +81,12 @@ def log_exc():
     """
     Log an exception.
     """
-    (t, v, tb) = sys.exc_info()
-    logger.info("Exception occurred: %s", t)
-    logger.info("Exception value: %s", v)
+    (exception_type, exception_value, exception_traceback) = sys.exc_info()
+    logger.info("Exception occurred: %s", exception_type)
+    logger.info("Exception value: %s", exception_value)
     logger.info(
         "Exception Info:\n%s",
-        "\n".join(traceback.format_list(traceback.extract_tb(tb))),
+        "\n".join(traceback.format_list(traceback.extract_tb(exception_traceback))),
     )
 
 
