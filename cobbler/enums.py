@@ -43,6 +43,50 @@ class ConvertableEnum(enum.Enum):
             raise ValueError(f"{value} must be one of {list(cls)}")
 
 
+class ItemTypes(ConvertableEnum):
+    """
+    This enum represents all valid item types in Cobbler. If a new item type is created it must be added into this enum.
+    Abstract base item types don't have to be added here.
+    """
+
+    DISTRO = "distro"
+    """
+    See :func:`~cobbler.items.distro.Distro`
+    """
+    PROFILE = "profile"
+    """
+    See :func:`~cobbler.items.profile.Profile`
+    """
+    SYSTEM = "system"
+    """
+    See :func:`~cobbler.items.system.System`
+    """
+    REPO = "repo"
+    """
+    See :func:`~cobbler.items.repo.Repo`
+    """
+    IMAGE = "image"
+    """
+    See :func:`~cobbler.items.image.Image`
+    """
+    MGMTCLASS = "mgmtclass"
+    """
+    See :func:`~cobbler.items.mgmtclass.Mgmtclass`
+    """
+    PACKAGE = "package"
+    """
+    See :func:`~cobbler.items.package.Package`
+    """
+    FILE = "file"
+    """
+    See :func:`~cobbler.items.file.File`
+    """
+    MENU = "menu"
+    """
+    See :func:`~cobbler.items.menu.Menu`
+    """
+
+
 class DHCP(enum.Enum):
     V4 = 4
     V6 = 6
