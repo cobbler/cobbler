@@ -930,7 +930,20 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    # FIXME: add a new_item method
+    def new_item(self, what: str = "", is_subobject: bool = False):
+        """
+        Creates a new (unconfigured) object. The object is not persisted.
+
+        :param what: Specifies the type of object. Valid item types can be seen at
+                     :func:`~cobbler.enums.ItemTypes`.
+        :param is_subobject: If the object is a subobject of an already existing object or not.
+        :return: The newly created object.
+        """
+        try:
+            enums.ItemTypes(what)  # verify that <what> is an ItemTypes member
+            return getattr(self, f"new_{what}")(is_subobject=is_subobject)
+        except (ValueError, AttributeError):
+            raise Exception(f"internal error, collection name is {what}")
 
     def new_distro(self, is_subobject: bool = False):
         """
