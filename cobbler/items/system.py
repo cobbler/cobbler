@@ -1020,7 +1020,6 @@ class System(Item):
 
         :getter: Returns the value for ``hostname``.
         :setter: Sets the value for the property ``hostname``.
-        :return:
         """
         return self._hostname
 
@@ -1029,8 +1028,7 @@ class System(Item):
         """
         Setter for the hostname of the System class.
 
-
-        :param value:
+        :param value: The new hostname
         """
         if not isinstance(value, str):
             raise TypeError("Field hostname of object system needs to be of type str!")
@@ -1043,7 +1041,6 @@ class System(Item):
 
         :getter: Returns the value for ``status``.
         :setter: Sets the value for the property ``status``.
-        :return:
         """
         return self._status
 
@@ -1052,8 +1049,7 @@ class System(Item):
         """
         Setter for the status of the System class.
 
-
-        :param status:
+        :param status: The new system status.
         """
         if not isinstance(status, str):
             raise TypeError("Field status of object system needs to be of type str!")
@@ -1068,7 +1064,6 @@ class System(Item):
 
         :getter: Returns the value for ``boot_loaders``.
         :setter: Sets the value for the property ``boot_loaders``.
-        :return:
         """
         return self._resolve("boot_loaders")
 
@@ -1130,7 +1125,7 @@ class System(Item):
         If a system can't reach the boot server at the value configured in settings
         because it doesn't have the same name on it's subnet this is there for an override.
 
-        :param server:
+        :param server: The new value for the ``server`` property.
         :raises TypeError: In case server is no string.
         """
         if not isinstance(server, str):
@@ -1148,7 +1143,6 @@ class System(Item):
 
         :getter: Returns the value for ``next_server_v4``.
         :setter: Sets the value for the property ``next_server_v4``.
-        :return:
         """
         return self._resolve("next_server_v4")
 
@@ -1176,7 +1170,6 @@ class System(Item):
 
         :getter: Returns the value for ``next_server_v6``.
         :setter: Sets the value for the property ``next_server_v6``.
-        :return:
         """
         return self._resolve("next_server_v6")
 
@@ -1202,7 +1195,6 @@ class System(Item):
 
         :getter: Returns the value for ``filename``.
         :setter: Sets the value for the property ``filename``.
-        :return:
         """
         return self._resolve("filename")
 
@@ -1211,10 +1203,8 @@ class System(Item):
         """
         Setter for the filename of the System class.
 
-
-        :param filename:
+        :param filename: The new value for the ``filename`` property.
         :raises TypeError: In case filename is no string.
-        :return:
         """
         if not isinstance(filename, str):
             raise TypeError("Field filename of object system needs to be of type str!")
@@ -1352,7 +1342,6 @@ class System(Item):
 
         :getter: Returns the value for ``gateway``.
         :setter: Sets the value for the property ``gateway``.
-        :return:
         """
         return self._gateway
 
@@ -1374,7 +1363,6 @@ class System(Item):
 
         :getter: Returns the value for ``name_servers``.
         :setter: Sets the value for the property ``name_servers``.
-        :return:
         """
         return self._name_servers
 
@@ -1396,7 +1384,6 @@ class System(Item):
 
         :getter: Returns the value for ``name_servers_search``.
         :setter: Sets the value for the property ``name_servers_search``.
-        :return:
         """
         return self._name_servers_search
 
@@ -1417,7 +1404,6 @@ class System(Item):
 
         :getter: Returns the value for ``ipv6_autoconfiguration``.
         :setter: Sets the value for the property ``ipv6_autoconfiguration``.
-        :return:
         """
         return self._ipv6_autoconfiguration
 
@@ -1426,8 +1412,7 @@ class System(Item):
         """
         Setter for the ipv6_autoconfiguration of the System class.
 
-
-        :param value:
+        :param value: The new value for the ``ipv6_autoconfiguration`` property.
         """
         value = input_converters.input_boolean(value)
         if not isinstance(value, bool):
@@ -1441,7 +1426,6 @@ class System(Item):
 
         :getter: Returns the value for ``ipv6_default_device``.
         :setter: Sets the value for the property ``ipv6_default_device``.
-        :return:
         """
         return self._ipv6_default_device
 
@@ -1450,8 +1434,7 @@ class System(Item):
         """
         Setter for the ipv6_default_device of the System class.
 
-
-        :param interface_name:
+        :param interface_name: The new value for the ``ipv6_default_device`` property.
         """
         if not isinstance(interface_name, str):
             raise TypeError(
@@ -1470,7 +1453,6 @@ class System(Item):
 
         :getter: Returns the value for ``enable_ipxe``.
         :setter: Sets the value for the property ``enable_ipxe``.
-        :return:
         """
         return self._resolve("enable_ipxe")
 
@@ -1494,7 +1476,6 @@ class System(Item):
 
         :getter: Returns the value for ``profile``.
         :setter: Sets the value for the property ``profile``.
-        :return:
         """
         return self._profile
 
@@ -1552,7 +1533,6 @@ class System(Item):
 
         :getter: Returns the value for ``image``.
         :setter: Sets the value for the property ``image``.
-        :return:
         """
         return self._image
 
@@ -1811,7 +1791,6 @@ class System(Item):
 
         :getter: Returns the value for ``autoinstall``.
         :setter: Sets the value for the property ``autoinstall``.
-        :return:
         """
         return self._resolve("autoinstall")
 
@@ -1834,7 +1813,6 @@ class System(Item):
 
         :getter: Returns the value for ``power_type``.
         :setter: Sets the value for the property ``power_type``.
-        :return:
         """
         return self._power_type
 
@@ -1843,8 +1821,7 @@ class System(Item):
         """
         Setter for the power_type of the System class.
 
-
-        :param power_type:
+        :param power_type: The new value for the ``power_type`` property.
         :raises TypeError: In case power_type is no string.
         """
         if not isinstance(power_type, str):
@@ -1862,7 +1839,6 @@ class System(Item):
 
         :getter: Returns the value for ``power_identity_file``.
         :setter: Sets the value for the property ``power_identity_file``.
-        :return:
         """
         return self._power_identity_file
 
@@ -1871,8 +1847,7 @@ class System(Item):
         """
         Setter for the power_identity_file of the System class.
 
-
-        :param power_identity_file:
+        :param power_identity_file: The new value for the ``power_identity_file`` property.
         :raises TypeError: In case power_identity_file is no string.
         """
         if not isinstance(power_identity_file, str):
@@ -1889,7 +1864,6 @@ class System(Item):
 
         :getter: Returns the value for ``power_options``.
         :setter: Sets the value for the property ``power_options``.
-        :return:
         """
         return self._power_options
 
@@ -1898,8 +1872,7 @@ class System(Item):
         """
         Setter for the power_options of the System class.
 
-
-        :param power_options:
+        :param power_options: The new value for the ``power_options`` property.
         :raises TypeError: In case power_options is no string.
         """
         if not isinstance(power_options, str):
@@ -1916,7 +1889,6 @@ class System(Item):
 
         :getter: Returns the value for ``power_user``.
         :setter: Sets the value for the property ``power_user``.
-        :return:
         """
         return self._power_user
 
@@ -1925,8 +1897,7 @@ class System(Item):
         """
         Setter for the power_user of the System class.
 
-
-        :param power_user:
+        :param power_user: The new value for the ``power_user`` property.
         :raises TypeError: In case power_user is no string.
         """
         if not isinstance(power_user, str):
@@ -1943,7 +1914,6 @@ class System(Item):
 
         :getter: Returns the value for ``power_pass``.
         :setter: Sets the value for the property ``power_pass``.
-        :return:
         """
         return self._power_pass
 
@@ -1952,8 +1922,7 @@ class System(Item):
         """
         Setter for the power_pass of the System class.
 
-
-        :param power_pass:
+        :param power_pass: The new value for the ``power_pass`` property.
         :raises TypeError: In case power_pass is no string.
         """
         if not isinstance(power_pass, str):
@@ -1970,7 +1939,6 @@ class System(Item):
 
         :getter: Returns the value for ``power_address``.
         :setter: Sets the value for the property ``power_address``.
-        :return:
         """
         return self._power_address
 
@@ -1979,8 +1947,7 @@ class System(Item):
         """
         Setter for the power_address of the System class.
 
-
-        :param power_address:
+        :param power_address: The new value for the ``power_address`` property.
         :raises TypeError: In case power_address is no string.
         """
         if not isinstance(power_address, str):
@@ -1997,7 +1964,6 @@ class System(Item):
 
         :getter: Returns the value for ``power_id``.
         :setter: Sets the value for the property ``power_id``.
-        :return:
         """
         return self._power_id
 
@@ -2006,8 +1972,7 @@ class System(Item):
         """
         Setter for the power_id of the System class.
 
-
-        :param power_id:
+        :param power_id: The new value for the ``power_id`` property.
         :raises TypeError: In case power_id is no string.
         """
         if not isinstance(power_id, str):
@@ -2022,7 +1987,6 @@ class System(Item):
 
         :getter: Returns the value for ``repos_enabled``.
         :setter: Sets the value for the property ``repos_enabled``.
-        :return:
         """
         return self._repos_enabled
 
@@ -2031,8 +1995,7 @@ class System(Item):
         """
         Setter for the repos_enabled of the System class.
 
-
-        :param repos_enabled:
+        :param repos_enabled: The new value for the ``repos_enabled`` property.
         :raises TypeError: In case is no string.
         """
         repos_enabled = input_converters.input_boolean(repos_enabled)
@@ -2076,8 +2039,7 @@ class System(Item):
         """
         Setter for the serial_baud_rate of the System class.
 
-
-        :param baud_rate:
+        :param baud_rate: The new value for the ``baud_rate`` property.
         """
         self._serial_baud_rate = validate.validate_serial_baud_rate(baud_rate)
 
@@ -2088,7 +2050,6 @@ class System(Item):
 
         :getter: Returns the value for ``children``.
         :setter: Sets the value for the property ``children``.
-        :return:
         """
         return self._children
 
@@ -2097,8 +2058,7 @@ class System(Item):
         """
         Setter for the children of the System class.
 
-
-        :param value:
+        :param value: The new value for the ``children`` property.
         """
         self._children = value
 
