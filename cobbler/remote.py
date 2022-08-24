@@ -1828,26 +1828,7 @@ class CobblerXMLRPCInterface:
         """
         self._log("new_item(%s)" % what, token=token)
         self.check_access(token, "new_%s" % what)
-        if what == "distro":
-            new_item = self.api.new_distro(is_subobject=is_subobject)
-        elif what == "profile":
-            new_item = self.api.new_profile(is_subobject=is_subobject)
-        elif what == "system":
-            new_item = self.api.new_system(is_subobject=is_subobject)
-        elif what == "repo":
-            new_item = self.api.new_repo(is_subobject=is_subobject)
-        elif what == "image":
-            new_item = self.api.new_image(is_subobject=is_subobject)
-        elif what == "mgmtclass":
-            new_item = self.api.new_mgmtclass(is_subobject=is_subobject)
-        elif what == "package":
-            new_item = self.api.new_package(is_subobject=is_subobject)
-        elif what == "file":
-            new_item = self.api.new_file(is_subobject=is_subobject)
-        elif what == "menu":
-            new_item = self.api.new_menu(is_subobject=is_subobject)
-        else:
-            raise CX('internal error, collection name is "%s"' % what)
+        new_item = self.api.new_item(what, is_subobject)
         self.unsaved_items[new_item.uid] = (time.time(), new_item)
         return new_item.uid
 

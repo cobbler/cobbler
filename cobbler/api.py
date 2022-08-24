@@ -18,6 +18,7 @@ from typing import Dict, List, Optional, Union
 
 from schema import SchemaError
 
+from cexceptions import CX
 from cobbler import validate
 from cobbler.actions import (
     status,
@@ -930,7 +931,36 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    # FIXME: add a new_item method
+    def new_item(self, what: str = "", is_subobject: bool = False):
+        """
+        Creates a new (unconfigured) object. The object is not persisted.
+
+        :param what: specifies the type of object: ``distro``, ``profile``, ``system``, ``repo``, ``image``
+                                                   ``mgmtclass``, ``package``, ``file`` or ``menu``
+        :param is_subobject: If the object is a subobject of an already existing object or not.
+        :return: The newly created object.
+        """
+        if what == "distro":
+            new_item = self.new_distro(is_subobject=is_subobject)
+        elif what == "profile":
+            new_item = self.new_profile(is_subobject=is_subobject)
+        elif what == "system":
+            new_item = self.new_system(is_subobject=is_subobject)
+        elif what == "repo":
+            new_item = self.new_repo(is_subobject=is_subobject)
+        elif what == "image":
+            new_item = self.new_image(is_subobject=is_subobject)
+        elif what == "mgmtclass":
+            new_item = self.new_mgmtclass(is_subobject=is_subobject)
+        elif what == "package":
+            new_item = self.new_package(is_subobject=is_subobject)
+        elif what == "file":
+            new_item = self.new_file(is_subobject=is_subobject)
+        elif what == "menu":
+            new_item = self.new_menu(is_subobject=is_subobject)
+        else:
+            raise CX('internal error, collection name is "%s"' % what)
+        return new_item
 
     def new_distro(self, is_subobject: bool = False):
         """
