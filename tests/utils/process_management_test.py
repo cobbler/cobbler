@@ -56,6 +56,9 @@ def test_service_restart_systemctl(mocker):
     mocker.patch(
         "cobbler.utils.process_management.is_systemd", autospec=True, return_value=True
     )
+    mocker.patch(
+        "cobbler.utils.process_management.is_service", autospec=True, return_value=False
+    )
     subprocess_mock = mocker.patch(
         "cobbler.utils.subprocess_call", autospec=True, return_value=0
     )
