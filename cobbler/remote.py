@@ -1154,6 +1154,7 @@ class CobblerXMLRPCInterface:
         criteria: Optional[dict] = None,
         sort_field=None,
         expand: bool = True,
+        resolved: bool = False,
     ) -> list:
         """Works like get_items but also accepts criteria as a dict to search on.
 
@@ -1165,6 +1166,8 @@ class CobblerXMLRPCInterface:
         :param criteria: The criteria an item needs to match.
         :param sort_field: The field to sort the results after.
         :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
         :returns: A list of dicts.
         """
         if criteria is None:
@@ -1179,134 +1182,197 @@ class CobblerXMLRPCInterface:
         if not expand:
             items = [x.name for x in items]
         else:
-            items = [x.to_dict() for x in items]
+            items = [x.to_dict(resolved=resolved) for x in items]
         return self.xmlrpc_hacks(items)
 
     def find_distro(
-        self, criteria: Optional[dict] = None, expand=False, token=None, **rest
+        self,
+        criteria: Optional[dict] = None,
+        expand=False,
+        resolved: bool = False,
+        token=None,
+        **rest
     ):
         """
         Find a distro matching certain criteria.
 
         :param criteria: The criteria a distribution needs to match.
         :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
         :return: All distributions which have matched the criteria.
         """
-        return self.find_items("distro", criteria, expand=expand)
+        return self.find_items("distro", criteria, expand=expand, resolved=resolved)
 
     def find_profile(
-        self, criteria: Optional[dict] = None, expand=False, token=None, **rest
+        self,
+        criteria: Optional[dict] = None,
+        expand=False,
+        resolved: bool = False,
+        token=None,
+        **rest
     ):
         """
         Find a profile matching certain criteria.
 
         :param criteria: The criteria a distribution needs to match.
         :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
         :return: All profiles which have matched the criteria.
         """
-        return self.find_items("profile", criteria, expand=expand)
+        return self.find_items("profile", criteria, expand=expand, resolved=resolved)
 
     def find_system(
-        self, criteria: Optional[dict] = None, expand=False, token=None, **rest
+        self,
+        criteria: Optional[dict] = None,
+        expand=False,
+        resolved: bool = False,
+        token=None,
+        **rest
     ):
         """
         Find a system matching certain criteria.
 
         :param criteria: The criteria a distribution needs to match.
         :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
         :return: All systems which have matched the criteria.
         """
-        return self.find_items("system", criteria, expand=expand)
+        return self.find_items("system", criteria, expand=expand, resolved=resolved)
 
     def find_repo(
-        self, criteria: Optional[dict] = None, expand=False, token=None, **rest
+        self,
+        criteria: Optional[dict] = None,
+        expand=False,
+        resolved: bool = False,
+        token=None,
+        **rest
     ):
         """
         Find a repository matching certain criteria.
 
         :param criteria: The criteria a distribution needs to match.
         :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
         :return: All repositories which have matched the criteria.
         """
-        return self.find_items("repo", criteria, expand=expand)
+        return self.find_items("repo", criteria, expand=expand, resolved=resolved)
 
     def find_image(
-        self, criteria: Optional[dict] = None, expand=False, token=None, **rest
+        self,
+        criteria: Optional[dict] = None,
+        expand=False,
+        resolved: bool = False,
+        token=None,
+        **rest
     ):
         """
         Find an image matching certain criteria.
 
         :param criteria: The criteria a distribution needs to match.
         :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
         :return: All images which have matched the criteria.
         """
-        return self.find_items("image", criteria, expand=expand)
+        return self.find_items("image", criteria, expand=expand, resolved=resolved)
 
     def find_mgmtclass(
-        self, criteria: Optional[dict] = None, expand=False, token=None, **rest
+        self,
+        criteria: Optional[dict] = None,
+        expand=False,
+        resolved: bool = False,
+        token=None,
+        **rest
     ):
         """
         Find a management class matching certain criteria.
 
         :param criteria: The criteria a distribution needs to match.
         :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
         :return: All management classes which have matched the criteria.
         """
-        return self.find_items("mgmtclass", criteria, expand=expand)
+        return self.find_items("mgmtclass", criteria, expand=expand, resolved=resolved)
 
     def find_package(
-        self, criteria: Optional[dict] = None, expand=False, token=None, **rest
+        self,
+        criteria: Optional[dict] = None,
+        expand=False,
+        resolved: bool = False,
+        token=None,
+        **rest
     ):
         """
         Find a package matching certain criteria.
 
         :param criteria: The criteria a distribution needs to match.
         :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
         :return: All packages which have matched the criteria.
         """
-        return self.find_items("package", criteria, expand=expand)
+        return self.find_items("package", criteria, expand=expand, resolved=resolved)
 
     def find_file(
-        self, criteria: Optional[dict] = None, expand=False, token=None, **rest
+        self,
+        criteria: Optional[dict] = None,
+        expand=False,
+        resolved: bool = False,
+        token=None,
+        **rest
     ):
         """
         Find a file matching certain criteria.
 
         :param criteria: The criteria a distribution needs to match.
         :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
         :return: All files which have matched the criteria.
         """
-        return self.find_items("file", criteria, expand=expand)
+        return self.find_items("file", criteria, expand=expand, resolved=resolved)
 
     def find_menu(
-        self, criteria: Optional[dict] = None, expand=False, token=None, **rest
+        self,
+        criteria: Optional[dict] = None,
+        expand=False,
+        resolved: bool = False,
+        token=None,
+        **rest
     ):
         """
         Find a menu matching certain criteria.
 
         :param criteria: The criteria a distribution needs to match.
         :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
         :return: All files which have matched the criteria.
         """
-        return self.find_items("menu", criteria, expand=expand)
+        return self.find_items("menu", criteria, expand=expand, resolved=resolved)
 
     def find_items_paged(
         self,
@@ -1315,6 +1381,7 @@ class CobblerXMLRPCInterface:
         sort_field: Optional[str] = None,
         page=1,
         items_per_page=25,
+        resolved: bool = False,
         token: Optional[str] = None,
     ):
         """
@@ -1326,6 +1393,8 @@ class CobblerXMLRPCInterface:
         :param sort_field: The field to sort the results after.
         :param page: The page to return
         :param items_per_page: The number of items per page.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
         :param token: The API-token obtained via the login() method.
         :return: The found items.
         """
@@ -1340,7 +1409,7 @@ class CobblerXMLRPCInterface:
             items = self.api.find_items(what, criteria=criteria)
         items = self.__sort(items, sort_field)
         (items, pageinfo) = self.__paginate(items, page, items_per_page)
-        items = [x.to_dict() for x in items]
+        items = [x.to_dict(resolved=resolved) for x in items]
         return self.xmlrpc_hacks({"items": items, "pageinfo": pageinfo})
 
     def has_item(self, what: str, name: str, token: Optional[str] = None):
