@@ -71,6 +71,8 @@ class Menu(item.Item):
         :param value: The name of the parent to set.
         :raises CX: Raised in case of self parenting or if the menu with value ``value`` is not found.
         """
+        if not isinstance(value, str):
+            raise TypeError('Property "parent" must be of type str!')
         old_parent = self._parent
         if isinstance(old_parent, Menu):
             old_parent.children.remove(self.name)
