@@ -1,5 +1,6 @@
 import pytest
 
+from cobbler.cexceptions import CX
 from cobbler import enums
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
@@ -53,7 +54,7 @@ def test_to_dict(cobbler_api, cleanup_to_dict):
 # Properties Tests
 
 
-def test_parent(cobbler_api):
+def test_parent_empty(cobbler_api):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -62,6 +63,48 @@ def test_parent(cobbler_api):
 
     # Assert
     assert profile.parent is None
+
+
+def test_parent_profile(cobbler_api, create_distro, create_profile):
+    # Arrange
+    test_dist = create_distro()
+    test_profile = create_profile(test_dist.name)
+    profile = Profile(cobbler_api)
+
+    # Act
+    profile.parent = test_profile.name
+
+    # Assert
+    assert profile.parent is test_profile
+
+
+def test_parent_other_object_type(cobbler_api, create_image):
+    # Arrange
+    test_image = create_image()
+    profile = Profile(cobbler_api)
+
+    # Act
+    with pytest.raises(CX):
+        profile.parent = test_image.name
+
+
+def test_parent_invalid_type(cobbler_api):
+    # Arrange
+    profile = Profile(cobbler_api)
+
+    # Act & Assert
+    with pytest.raises(TypeError):
+        profile.parent = 0
+
+
+def test_parent_self(cobbler_api):
+    # Arrange
+    profile = Profile(cobbler_api)
+    profile.name = "testname"
+
+    # Act & Assert
+    with pytest.raises(CX):
+        profile.parent = profile.name
 
 
 def test_distro(cobbler_api):
@@ -196,15 +239,42 @@ def test_next_server_v6(cobbler_api):
     assert profile.next_server_v6 == ""
 
 
-def test_filename(cobbler_api):
+@pytest.mark.parametrize(
+    "input_filename,expected_result,is_subitem,expected_exception",
+    [
+        ("", "", False, does_not_raise()),
+        ("", "", True, does_not_raise()),
+        ("<<inherit>>", "", False, does_not_raise()),
+        ("<<inherit>>", "", True, does_not_raise()),
+        ("test", "test", False, does_not_raise()),
+        ("test", "test", True, does_not_raise()),
+        (0, "", True, pytest.raises(TypeError)),
+    ],
+)
+def test_filename(
+    cobbler_api,
+    create_distro,
+    create_profile,
+    input_filename,
+    expected_result,
+    is_subitem,
+    expected_exception,
+):
     # Arrange
+    test_dist = create_distro()
     profile = Profile(cobbler_api)
+    profile.name = "filename_test_profile"
+    if is_subitem:
+        test_profile = create_profile(test_dist.name)
+        profile.parent = test_profile.name
+    profile.distro = test_dist.name
 
     # Act
-    profile.filename = "<<inherit>>"
+    with expected_exception:
+        profile.filename = input_filename
 
-    # Assert
-    assert profile.filename == "<<inherit>>"
+        # Assert
+        assert profile.filename == expected_result
 
 
 def test_autoinstall(cobbler_api):
