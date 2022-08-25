@@ -12,6 +12,7 @@ import fcntl
 import keyword
 import logging
 import os
+import pathlib
 import random
 import stat
 import time
@@ -70,11 +71,25 @@ class CobblerThread(Thread):
         self.event_id = event_id
         self.remote = remote
         self.logger = logging.getLogger()
+        self.__setup_logger()
         if options is None:
             options = {}
         self.options = options
         self.task_name = task_name
         self.api = api
+
+    def __setup_logger(self):
+        """
+        Utility function that will setup the Python logger for the tasks in a special directory.
+        """
+        filename = pathlib.Path("/var/log/cobbler/tasks") / f"{self.event_id}.log"
+        task_log_handler = logging.FileHandler(str(filename), encoding="utf-8")
+        task_log_formatter = logging.Formatter(
+            "[%(threadName)s] %(asctime)s - %(levelname)s | %(message)s"
+        )
+        task_log_handler.setFormatter(task_log_formatter)
+        self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(task_log_handler)
 
     def on_done(self):
         """
@@ -87,6 +102,7 @@ class CobblerThread(Thread):
 
         :return: The return code of the action. This may possibly a boolean or a Linux return code.
         """
+        self.logger.info("start_task(%s); event_id(%s)", self.task_name, self.event_id)
         time.sleep(1)
         try:
             if utils.run_triggers(
@@ -548,7 +564,7 @@ class CobblerXMLRPCInterface:
         event_id = str(event_id)
         self.events[event_id] = [float(time.time()), str(name), EVENT_RUNNING, []]
 
-        self._log("start_task(%s); event_id(%s)" % (name, event_id))
+        self._log("create_task(%s); event_id(%s)" % (name, event_id))
 
         thr_obj = CobblerThread(event_id, self, args, role_name, self.api)
         thr_obj._run = thr_obj_fn
@@ -1006,7 +1022,7 @@ class CobblerXMLRPCInterface:
         flatten: bool = False,
         resolved: bool = False,
         token=None,
-        **rest
+        **rest,
     ):
         """
         Get a menu.
@@ -1191,7 +1207,7 @@ class CobblerXMLRPCInterface:
         expand=False,
         resolved: bool = False,
         token=None,
-        **rest
+        **rest,
     ):
         """
         Find a distro matching certain criteria.
@@ -1212,7 +1228,7 @@ class CobblerXMLRPCInterface:
         expand=False,
         resolved: bool = False,
         token=None,
-        **rest
+        **rest,
     ):
         """
         Find a profile matching certain criteria.
@@ -1233,7 +1249,7 @@ class CobblerXMLRPCInterface:
         expand=False,
         resolved: bool = False,
         token=None,
-        **rest
+        **rest,
     ):
         """
         Find a system matching certain criteria.
@@ -1254,7 +1270,7 @@ class CobblerXMLRPCInterface:
         expand=False,
         resolved: bool = False,
         token=None,
-        **rest
+        **rest,
     ):
         """
         Find a repository matching certain criteria.
@@ -1275,7 +1291,7 @@ class CobblerXMLRPCInterface:
         expand=False,
         resolved: bool = False,
         token=None,
-        **rest
+        **rest,
     ):
         """
         Find an image matching certain criteria.
@@ -1296,7 +1312,7 @@ class CobblerXMLRPCInterface:
         expand=False,
         resolved: bool = False,
         token=None,
-        **rest
+        **rest,
     ):
         """
         Find a management class matching certain criteria.
@@ -1317,7 +1333,7 @@ class CobblerXMLRPCInterface:
         expand=False,
         resolved: bool = False,
         token=None,
-        **rest
+        **rest,
     ):
         """
         Find a package matching certain criteria.
@@ -1338,7 +1354,7 @@ class CobblerXMLRPCInterface:
         expand=False,
         resolved: bool = False,
         token=None,
-        **rest
+        **rest,
     ):
         """
         Find a file matching certain criteria.
@@ -1359,7 +1375,7 @@ class CobblerXMLRPCInterface:
         expand=False,
         resolved: bool = False,
         token=None,
-        **rest
+        **rest,
     ):
         """
         Find a menu matching certain criteria.
