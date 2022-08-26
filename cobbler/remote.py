@@ -17,6 +17,7 @@ import random
 import stat
 import time
 import re
+import uuid
 import xmlrpc.server
 from socketserver import ThreadingMixIn
 from threading import Thread
@@ -516,15 +517,8 @@ class CobblerXMLRPCInterface:
             julian,
             dst,
         ) = time.localtime()
-        return "%04d-%02d-%02d_%02d%02d%02d_%s" % (
-            year,
-            month,
-            day,
-            hour,
-            minute,
-            second,
-            optype,
-        )
+        task_uuid = uuid.uuid4().hex
+        return f"{year:04d}-{month:02d}-{day:02d}_{hour:02d}{minute:02d}{second:02d}_{optype}_{task_uuid}"
 
     def _new_event(self, name: str):
         """
@@ -533,7 +527,6 @@ class CobblerXMLRPCInterface:
         :param name: The name of the event.
         """
         event_id = self.__generate_event_id("event")
-        event_id = str(event_id)
         self.events[event_id] = [float(time.time()), str(name), EVENT_INFO, []]
 
     def __start_task(
