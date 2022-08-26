@@ -165,6 +165,8 @@ class Profile(item.Item):
         :param parent: The name of the parent object.
         :raises CX: In case self parentage is found or the profile given could not be found.
         """
+        if not isinstance(parent, str):
+            raise TypeError('Property "parent" must be of type str!')
         old_parent = self.parent
         if isinstance(old_parent, item.Item) and self.name in old_parent.children:
             old_parent.children.remove(self.name)
@@ -457,10 +459,19 @@ class Profile(item.Item):
         """
         if not isinstance(filename, str):
             raise TypeError("Field filename of object profile needs to be of type str!")
+        parent = self.parent
+        if (
+            filename == enums.VALUE_INHERITED
+            and parent
+            and parent.TYPE_NAME == "distro"
+        ):
+            filename = ""
         if not filename:
-            self._filename = enums.VALUE_INHERITED
-        else:
-            self._filename = filename.strip()
+            if parent and parent.TYPE_NAME == "profile":
+                filename = enums.VALUE_INHERITED
+            else:
+                filename = ""
+        self._filename = filename
 
     @property
     def autoinstall(self) -> str:
