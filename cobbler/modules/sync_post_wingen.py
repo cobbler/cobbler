@@ -446,10 +446,15 @@ def run(api, args):
                 pi_file = tempfile.NamedTemporaryFile()
                 pi_file.write(bytes(data, "utf-8"))
                 pi_file.flush()
-                cmd = [
-                    f"/usr/bin/wimdir {ps_file_name} 1 | /usr/bin/grep -i '^/Windows/System32/startnet.cmd$'"
-                ]
-                startnet_path = utils.subprocess_get(cmd, shell=True)[0:-1]
+                cmd = ["/usr/bin/wimdir", ps_file_name, "1"]
+                wimdir_result = utils.subprocess_get(cmd, shell=False)
+                wimdir_file_list = wimdir_result.split("\n")
+                # grep for /Windows/System32/startnet.cmd
+                startnet_path = "/Windows/System32/startnet.cmd"
+
+                if startnet_path not in wimdir_file_list:
+                    raise FileNotFoundError("Windows startnet executable missing!")
+
                 cmd = [
                     wimupdate,
                     ps_file_name,
