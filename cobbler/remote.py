@@ -12,7 +12,6 @@ import fcntl
 import keyword
 import logging
 import os
-import pathlib
 import random
 import stat
 import time
@@ -20,7 +19,6 @@ import re
 import uuid
 import xmlrpc.server
 from socketserver import ThreadingMixIn
-from threading import Thread
 from typing import Dict, List, Optional, Union
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 
@@ -34,6 +32,7 @@ from cobbler.items import (
 from cobbler import tftpgen
 from cobbler import utils
 from cobbler.utils import signatures
+from cobbler.utils.thread import CobblerThread
 from cobbler.cexceptions import CX
 from cobbler.validate import (
     validate_autoinstall_script_name,
@@ -43,97 +42,6 @@ from cobbler.validate import (
 
 EVENT_TIMEOUT = 7 * 24 * 60 * 60  # 1 week
 CACHE_TIMEOUT = 10 * 60  # 10 minutes
-
-# task codes
-EVENT_RUNNING = "running"
-EVENT_COMPLETE = "complete"
-EVENT_FAILED = "failed"
-
-# normal events
-EVENT_INFO = "notification"
-
-
-class CobblerThread(Thread):
-    """
-    Code for Cobbler's XMLRPC API.
-    """
-
-    def __init__(self, event_id, remote, options: dict, task_name: str, api):
-        """
-        This constructor creates a Cobbler thread which then may be run by calling ``run()``.
-
-        :param event_id: The event-id which is associated with this thread. Also used as thread name
-        :param remote: The Cobbler remote object to execute actions with.
-        :param options: Additional options which can be passed into the Thread.
-        :param task_name: The high level task name which is used to trigger pre and post task triggers
-        :param api: The Cobbler api object to resolve information with.
-        """
-        Thread.__init__(self, name=event_id)
-        self.event_id = event_id
-        self.remote = remote
-        self.logger = logging.getLogger()
-        self.__setup_logger()
-        if options is None:
-            options = {}
-        self.options = options
-        self.task_name = task_name
-        self.api = api
-
-    def __setup_logger(self):
-        """
-        Utility function that will setup the Python logger for the tasks in a special directory.
-        """
-        filename = pathlib.Path("/var/log/cobbler/tasks") / f"{self.event_id}.log"
-        task_log_handler = logging.FileHandler(str(filename), encoding="utf-8")
-        task_log_formatter = logging.Formatter(
-            "[%(threadName)s] %(asctime)s - %(levelname)s | %(message)s"
-        )
-        task_log_handler.setFormatter(task_log_formatter)
-        self.logger.setLevel(logging.INFO)
-        self.logger.addHandler(task_log_handler)
-
-    def on_done(self):
-        """
-        This stub is needed to satisfy the Python inheritance chain.
-        """
-
-    def run(self):
-        """
-        Run the thread.
-
-        :return: The return code of the action. This may possibly a boolean or a Linux return code.
-        """
-        self.logger.info("start_task(%s); event_id(%s)", self.task_name, self.event_id)
-        time.sleep(1)
-        try:
-            if utils.run_triggers(
-                self.api,
-                None,
-                "/var/lib/cobbler/triggers/task/%s/pre/*" % self.task_name,
-                self.options,
-            ):
-                self.remote._set_task_state(self, self.event_id, EVENT_FAILED)
-                return False
-            rc = self._run(self)
-            if rc is not None and not rc:
-                self.remote._set_task_state(self, self.event_id, EVENT_FAILED)
-            else:
-                self.remote._set_task_state(self, self.event_id, EVENT_COMPLETE)
-                self.on_done()
-                utils.run_triggers(
-                    self.api,
-                    None,
-                    "/var/lib/cobbler/triggers/task/%s/post/*" % self.task_name,
-                    self.options,
-                )
-            return rc
-        except:
-            utils.log_exc()
-            self.remote._set_task_state(self, self.event_id, EVENT_FAILED)
-            return False
-
-
-# *********************************************************************
 
 
 class CobblerXMLRPCInterface:
@@ -154,7 +62,7 @@ class CobblerXMLRPCInterface:
         self.token_cache: Dict[str, tuple] = {}
         self.unsaved_items = {}
         self.timestamp = self.api.last_modified_time()
-        self.events = {}
+        self.events: Dict[str, list] = {}
         self.shared_secret = utils.get_shared_secret()
         random.seed(time.time())
         self.tftpgen = tftpgen.TFTPGen(api)
@@ -462,23 +370,27 @@ class CobblerXMLRPCInterface:
         :param for_user: (Optional) Filter events the user has not seen yet. If left unset, it will return all events.
         :return: A dictionary with all the events (or all filtered events).
         """
+        # Check for_user not none
+        if not isinstance(for_user, str):
+            raise TypeError('"for_user" must be of type str (may be empty str)!')
+
         # return only the events the user has not seen
-        self.events_filtered = {}
-        for (k, x) in list(self.events.items()):
-            if for_user in x[3]:
-                pass
-            else:
-                self.events_filtered[k] = x
+        events_filtered = {}
+        for (event_id, event_details) in self.events.items():
+            if for_user in event_details[3]:
+                continue
 
-        # mark as read so user will not get events again
-        if for_user is not None and for_user != "":
-            for (k, x) in list(self.events.items()):
-                if for_user in x[3]:
-                    pass
-                else:
-                    self.events[k][3].append(for_user)
+            # We work with a list, so get a copy to manipulate
+            found_event = event_details.copy()
+            # Since this is XML-RPC we now have to convert the enum away
+            found_event[2] = found_event[2].value
+            # now save the event
+            events_filtered[event_id] = found_event
+            # If a user is given (and not already in read list), add read tag, so user won't get the event twice
+            if for_user and for_user not in event_details[3]:
+                event_details[3].append(for_user)
 
-        return self.events_filtered
+        return events_filtered
 
     def get_event_log(self, event_id: str) -> str:
         """
@@ -487,13 +399,16 @@ class CobblerXMLRPCInterface:
         :param event_id: The event-id generated by Cobbler.
         :return: The event log or a ``?``.
         """
-        event_id = str(event_id).replace("..", "").replace("/", "")
-        path = "/var/log/cobbler/tasks/%s.log" % event_id
-        self._log("getting log for %s" % event_id)
+        if not isinstance(event_id, str):
+            raise TypeError('"event_id" must be of type str!')
+        if event_id not in self.events:
+            # This ensures the event_id is valid, and we only read files we want to read.
+            return "?"
+        path = f"/var/log/cobbler/tasks/{event_id}.log"
+        self._log(f"getting log for {event_id}")
         if os.path.exists(path):
-            fh = open(path, "r")
-            data = str(fh.read())
-            fh.close()
+            with open(path, "r", encoding="utf-8") as fh:
+                data = str(fh.read())
             return data
         else:
             return "?"
@@ -527,7 +442,12 @@ class CobblerXMLRPCInterface:
         :param name: The name of the event.
         """
         event_id = self.__generate_event_id("event")
-        self.events[event_id] = [float(time.time()), str(name), EVENT_INFO, []]
+        self.events[event_id] = [
+            float(time.time()),
+            str(name),
+            enums.EventStatus.INFO,
+            [],
+        ]
 
     def __start_task(
         self,
@@ -554,35 +474,20 @@ class CobblerXMLRPCInterface:
         event_id = self.__generate_event_id(
             role_name
         )  # use short form for logfile suffix
-        event_id = str(event_id)
-        self.events[event_id] = [float(time.time()), str(name), EVENT_RUNNING, []]
+        self.events[event_id] = [
+            float(time.time()),
+            str(name),
+            enums.EventStatus.RUNNING,
+            [],
+        ]
 
         self._log("create_task(%s); event_id(%s)" % (name, event_id))
 
-        thr_obj = CobblerThread(event_id, self, args, role_name, self.api)
-        thr_obj._run = thr_obj_fn
-        if on_done is not None:
-            thr_obj.on_done = on_done.__get__(thr_obj, CobblerThread)
+        thr_obj = CobblerThread(
+            event_id, self, args, role_name, self.api, thr_obj_fn, on_done
+        )
         thr_obj.start()
         return event_id
-
-    def _set_task_state(self, thread_obj, event_id: str, new_state):
-        """
-        Set the state of the task. (For internal use only)
-
-        :param thread_obj: Not known what this actually does.
-        :param event_id: The event id, generated by __generate_event_id()
-        :param new_state: The new state of the task.
-        """
-        event_id = str(event_id)
-        if event_id in self.events:
-            self.events[event_id][2] = new_state
-            self.events[event_id][3] = []  # clear the list of who has read it
-        if thread_obj is not None:
-            if new_state == EVENT_COMPLETE:
-                thread_obj.logger.info("### TASK COMPLETE ###")
-            if new_state == EVENT_FAILED:
-                thread_obj.logger.error("### TASK FAILED ###")
 
     def get_task_status(self, event_id: str):
         """
@@ -591,9 +496,14 @@ class CobblerXMLRPCInterface:
         :param event_id: The unique id of the task.
         :return: The event status.
         """
-        event_id = str(event_id)
+        if not isinstance(event_id, str):
+            raise TypeError('"event_id" must be of type str!')
         if event_id in self.events:
-            return self.events[event_id]
+            # Get a copy of the event since it is a list
+            matched_event = self.events[event_id].copy()
+            # Convert Enum to str for XML-RPC
+            matched_event[2] = matched_event[2].value
+            return matched_event
         else:
             raise CX("no event with that id")
 
