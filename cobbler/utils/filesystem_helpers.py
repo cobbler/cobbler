@@ -437,6 +437,7 @@ def create_tftpboot_dirs(api):
         bootloc / "images",
         bootloc / "ipxe",
         esxi_dir,
+        esxi_dir / "system",
     ]
     for directory_path in tftpboot_directory_paths:
         __create_if_not_exists(directory_path)

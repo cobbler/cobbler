@@ -193,13 +193,16 @@ class CobblerSync:
                 ]:
                     # clean out directory contents
                     filesystem_helpers.rmtree_contents(path)
+        for directory in [
+            self.pxelinux_dir,
+            self.grub_dir,
+            self.images_dir,
+            self.ipxe_dir,
+            self.esxi_dir,
+            self.rendered_dir,
+        ]:
+            filesystem_helpers.rmtree(directory)
         filesystem_helpers.create_tftpboot_dirs(self.api)
-        filesystem_helpers.rmtree_contents(self.pxelinux_dir)
-        filesystem_helpers.rmtree_contents(self.grub_dir)
-        filesystem_helpers.rmtree_contents(self.images_dir)
-        filesystem_helpers.rmtree_contents(self.ipxe_dir)
-        filesystem_helpers.rmtree_contents(self.esxi_dir)
-        filesystem_helpers.rmtree_contents(self.rendered_dir)
 
     def write_dhcp(self):
         """
