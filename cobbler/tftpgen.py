@@ -843,6 +843,7 @@ class TFTPGen:
         Generates kernel and initrd metadata.
 
         :param metadata: Pass additional parameters to the ones being collected during the method.
+        :param system: The system to generate the pxe-file for.
         :param profile: The profile to generate the pxe-file for.
         :param distro: If you don't ship an image, this is needed. Otherwise this just supplies information needed for
                        the templates.
