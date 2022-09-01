@@ -459,10 +459,9 @@ class CobblerXMLRPCInterface:
         """
         if not isinstance(event_id, str):
             raise TypeError('"event_id" must be of type str!')
-        if event_id in self.events:
-            return list(self.events[event_id])
-        else:
+        if event_id not in self.events:
             raise CX("no event with that id")
+        return list(self.events[event_id])
 
     def last_modified_time(self, token=None) -> float:
         """
