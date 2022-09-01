@@ -765,7 +765,7 @@ def run_this(cmd: str, args: Union[str, tuple]):
         die("Command failed")
 
 
-def run_triggers(api, ref, globber, additional: list = None):
+def run_triggers(api, ref=None, globber: str = "", additional: list = None):
     """Runs all the trigger scripts in a given directory.
     Example: ``/var/lib/cobbler/triggers/blah/*``
 

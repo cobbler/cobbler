@@ -37,7 +37,7 @@ class CobblerThread(Thread):
         :param run: The callable that is going to be executed with this thread.
         :param on_done: An optional callable that is going to be executed after ``run`` but before the triggers.
         """
-        Thread.__init__(self, name=event_id)
+        super().__init__(name=event_id)
         self.event_id = event_id
         self.remote = remote
         self.logger = logging.getLogger()
@@ -88,13 +88,11 @@ class CobblerThread(Thread):
         :return: The return code of the action. This may a boolean or a Linux return code.
         """
         self.logger.info("start_task(%s); event_id(%s)", self.task_name, self.event_id)
-        time.sleep(1)
         try:
             if utils.run_triggers(
-                self.api,
-                None,
-                f"/var/lib/cobbler/triggers/task/{self.task_name}/pre/*",
-                self.options,
+                api=self.api,
+                globber=f"/var/lib/cobbler/triggers/task/{self.task_name}/pre/*",
+                additional=self.options,
             ):
                 self._set_task_state(enums.EventStatus.FAILED)
                 return False
@@ -106,13 +104,12 @@ class CobblerThread(Thread):
                 if self.on_done is not None:
                     self.on_done()
                 utils.run_triggers(
-                    self.api,
-                    None,
-                    f"/var/lib/cobbler/triggers/task/{self.task_name}/post/*",
-                    self.options,
+                    api=self.api,
+                    globber=f"/var/lib/cobbler/triggers/task/{self.task_name}/post/*",
+                    additional=self.options,
                 )
             return rc
-        except:
+        except Exception:
             utils.log_exc()
             self._set_task_state(enums.EventStatus.FAILED)
             return False

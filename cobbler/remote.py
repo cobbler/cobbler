@@ -16,7 +16,6 @@ import random
 import stat
 import time
 import re
-import uuid
 import xmlrpc.server
 from socketserver import ThreadingMixIn
 from typing import Dict, List, Optional, Union
@@ -32,6 +31,7 @@ from cobbler.items import (
 from cobbler import tftpgen
 from cobbler import utils
 from cobbler.utils import signatures
+from cobbler.utils.event import CobblerEvent
 from cobbler.utils.thread import CobblerThread
 from cobbler.cexceptions import CX
 from cobbler.validate import (
@@ -62,7 +62,7 @@ class CobblerXMLRPCInterface:
         self.token_cache: Dict[str, tuple] = {}
         self.unsaved_items = {}
         self.timestamp = self.api.last_modified_time()
-        self.events: Dict[str, list] = {}
+        self.events: Dict[str, CobblerEvent] = {}
         self.shared_secret = utils.get_shared_secret()
         random.seed(time.time())
         self.tftpgen = tftpgen.TFTPGen(api)
@@ -376,19 +376,14 @@ class CobblerXMLRPCInterface:
 
         # return only the events the user has not seen
         events_filtered = {}
-        for (event_id, event_details) in self.events.items():
-            if for_user in event_details[3]:
+        for event_details in self.events.values():
+            if for_user in event_details.read_by_who:
                 continue
 
-            # We work with a list, so get a copy to manipulate
-            found_event = event_details.copy()
-            # Since this is XML-RPC we now have to convert the enum away
-            found_event[2] = found_event[2].value
-            # now save the event
-            events_filtered[event_id] = found_event
+            events_filtered[event_details.event_id] = list(event_details)
             # If a user is given (and not already in read list), add read tag, so user won't get the event twice
-            if for_user and for_user not in event_details[3]:
-                event_details[3].append(for_user)
+            if for_user and for_user not in event_details.read_by_who:
+                event_details.read_by_who.append(for_user)
 
         return events_filtered
 
@@ -413,41 +408,15 @@ class CobblerXMLRPCInterface:
         else:
             return "?"
 
-    def __generate_event_id(self, optype: str) -> str:
-        """
-        Generate an event id based on the current timestamp
-
-        :param optype: Append an additional str to the event-id
-        :return: An id in the format: "<4 digit year>-<2 digit month>-<two digit day>_<2 digit hour><2 digit minute>
-                 <2 digit second>_<optional string>"
-        """
-        (
-            year,
-            month,
-            day,
-            hour,
-            minute,
-            second,
-            weekday,
-            julian,
-            dst,
-        ) = time.localtime()
-        task_uuid = uuid.uuid4().hex
-        return f"{year:04d}-{month:02d}-{day:02d}_{hour:02d}{minute:02d}{second:02d}_{optype}_{task_uuid}"
-
-    def _new_event(self, name: str):
+    def _new_event(self, name: str) -> CobblerEvent:
         """
         Generate a new event in the in memory event list.
 
         :param name: The name of the event.
         """
-        event_id = self.__generate_event_id("event")
-        self.events[event_id] = [
-            float(time.time()),
-            str(name),
-            enums.EventStatus.INFO,
-            [],
-        ]
+        new_event = CobblerEvent(name=name, statetime=time.time())
+        self.events[new_event.event_id] = new_event
+        return new_event
 
     def __start_task(
         self,
@@ -471,23 +440,15 @@ class CobblerXMLRPCInterface:
         :return: a task id.
         """
         self.check_access(token, role_name)
-        event_id = self.__generate_event_id(
-            role_name
-        )  # use short form for logfile suffix
-        self.events[event_id] = [
-            float(time.time()),
-            str(name),
-            enums.EventStatus.RUNNING,
-            [],
-        ]
+        new_event = self._new_event(name=name)
 
-        self._log("create_task(%s); event_id(%s)" % (name, event_id))
+        self._log("create_task(%s); event_id(%s)" % (name, new_event.event_id))
 
         thr_obj = CobblerThread(
-            event_id, self, args, role_name, self.api, thr_obj_fn, on_done
+            new_event.event_id, self, args, role_name, self.api, thr_obj_fn, on_done
         )
         thr_obj.start()
-        return event_id
+        return new_event.event_id
 
     def get_task_status(self, event_id: str):
         """
@@ -499,11 +460,7 @@ class CobblerXMLRPCInterface:
         if not isinstance(event_id, str):
             raise TypeError('"event_id" must be of type str!')
         if event_id in self.events:
-            # Get a copy of the event since it is a list
-            matched_event = self.events[event_id].copy()
-            # Convert Enum to str for XML-RPC
-            matched_event[2] = matched_event[2].value
-            return matched_event
+            return list(self.events[event_id])
         else:
             raise CX("no event with that id")
 
