@@ -958,10 +958,10 @@ class TFTPGen:
             # find the first management interface
             try:
                 for intf in list(system.interfaces.keys()):
-                    if system.interfaces[intf]["management"]:
+                    if system.interfaces[intf].management:
                         management_interface = intf
-                        if system.interfaces[intf]["mac_address"]:
-                            management_mac = system.interfaces[intf]["mac_address"]
+                        if system.interfaces[intf].mac_address:
+                            management_mac = system.interfaces[intf].mac_address
                         break
             except:
                 # just skip this then
