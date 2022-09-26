@@ -2181,7 +2181,10 @@ class CobblerXMLRPCInterface:
                     self.modify_item(
                         object_type, handle, attr_name, attributes.pop(attr_name), token
                     )
+            have_interface_keys = False
             for (key, value) in list(attributes.items()):
+                if self.__is_interface_field(key):
+                    have_interface_keys = True
                 if object_type != "system" or not self.__is_interface_field(key):
                     # in place modifications allow for adding a key/value pair while keeping other k/v pairs intact.
                     if key in [
@@ -2209,8 +2212,7 @@ class CobblerXMLRPCInterface:
                     modkey = f"{key}-{attributes.get('interface', '')}"
                     imods[modkey] = value
 
-            if object_type == "system":
-                # FIXME: Don't call this tree if we are not doing any interface stuff.
+            if object_type == "system" and have_interface_keys:
                 self.__interface_edits(handle, attributes, object_name)
         else:
             # remove item
