@@ -465,3 +465,6 @@ proxy_url_int: ""
 
 # include other configuration snippets
 include: [ "/code/tests/test_data/V3_2_0/settings.d/*.settings" ]
+
+# list settings keys to exclude from validation - helpful to validate and migrate custom settings
+extra_settings_list: []

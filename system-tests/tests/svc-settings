@@ -67,6 +67,7 @@ cat >${tmp}/a <<-EOF
     "default_virt_type": "xenpv",
     "enable_ipxe": false,
     "enable_menu": true,
+    "extra_settings_list": [],
     "http_port": 80,
     "include": [
         "/etc/cobbler/settings.d/*.settings"
