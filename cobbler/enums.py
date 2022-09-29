@@ -43,6 +43,31 @@ class ConvertableEnum(enum.Enum):
             raise ValueError(f"{value} must be one of {list(cls)}")
 
 
+class EventStatus(ConvertableEnum):
+    """
+    This enums describes the status an event can have. The cycle is the following:
+
+        "Running" --> "Complete" or "Failed"
+    """
+
+    RUNNING = "running"
+    """
+    Shows that an event is currently being processed by the server
+    """
+    COMPLETE = "complete"
+    """
+    Shows that an event did complete as desired
+    """
+    FAILED = "failed"
+    """
+    Shows that an event did not complete as expected
+    """
+    INFO = "notification"
+    """
+    Default Event status
+    """
+
+
 class ItemTypes(ConvertableEnum):
     """
     This enum represents all valid item types in Cobbler. If a new item type is created it must be added into this enum.
