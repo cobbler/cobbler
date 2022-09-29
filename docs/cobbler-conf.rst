@@ -501,16 +501,6 @@ Change this port if Apache is not running plain text on port 80. Most people can
 
 default: ``80``
 
-include
-=======
-
-Include other configuration snippets with this regular expression. This is a list of folders.
-
-default: ``[ "/etc/cobbler/settings.d/*.settings" ]``
-
-.. note::
-   Will be deprecated in future releases.
-
 iso_template_dir
 ================
 
