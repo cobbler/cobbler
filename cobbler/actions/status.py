@@ -11,15 +11,42 @@ import glob
 import gzip
 import re
 import time
-from typing import List, Union
+from typing import Dict, List, Union
 
-# ARRAY INDEXES
-MOST_RECENT_START = 0
-MOST_RECENT_STOP = 1
-MOST_RECENT_TARGET = 2
-SEEN_START = 3
-SEEN_STOP = 4
-STATE = 5
+
+class InstallStatus:
+    """
+    Helper class that represents the current state of the installation of a system or profile.
+    """
+
+    def __init__(self):
+        """
+        Default constructor.
+        """
+        self.most_recent_start = -1
+        self.most_recent_stop = -1
+        self.most_recent_target = ""
+        self.seen_start = -1
+        self.seen_stop = -1
+        self.state = "?"
+
+    def __eq__(self, other) -> bool:
+        """
+        Equality function that overrides the default behavior.
+
+        :param other: Other object.
+        :returns: True in case object is of the same type and all attributes are identical. False otherwise.
+        """
+        if isinstance(other, InstallStatus):
+            return (
+                self.most_recent_start == other.most_recent_start
+                and self.most_recent_stop == other.most_recent_stop
+                and self.most_recent_target == other.most_recent_target
+                and self.seen_start == other.seen_start
+                and self.seen_stop == other.seen_stop
+                and self.state == other.state
+            )
+        return False
 
 
 class CobblerStatusReport:
@@ -28,11 +55,11 @@ class CobblerStatusReport:
         Constructor
 
         :param api: The API which holds all information.
-        :param mode: This describes how Cobbler should report. Currently there only the option ``text`` can be set
+        :param mode: This describes how Cobbler should report. Currently, there only the option ``text`` can be set
                      explicitly.
         """
         self.settings = api.settings()
-        self.ip_data = {}
+        self.ip_data: Dict[str, InstallStatus] = {}
         self.mode = mode
 
     @staticmethod
@@ -91,30 +118,30 @@ class CobblerStatusReport:
         :param ts: Timestamp as returned by ``time.time()``
         """
         if ip not in self.ip_data:
-            self.ip_data[ip] = [-1, -1, "?", 0, 0, "?"]
+            self.ip_data[ip] = InstallStatus()
         elem = self.ip_data[ip]
 
         ts = float(ts)
 
-        mrstart = elem[MOST_RECENT_START]
-        mrstop = elem[MOST_RECENT_STOP]
-        mrtarg = elem[MOST_RECENT_TARGET]
+        mrstart = elem.most_recent_start
+        mrstop = elem.most_recent_stop
+        mrtarg = elem.most_recent_target
 
         if start_or_stop == "start":
             if mrstart < ts:
                 mrstart = ts
                 mrtarg = f"{profile_or_system}:{name}"
-                elem[SEEN_START] += 1
+                elem.seen_start += 1
 
         if start_or_stop == "stop":
             if mrstop < ts:
                 mrstop = ts
                 mrtarg = f"{profile_or_system}:{name}"
-                elem[SEEN_STOP] += 1
+                elem.seen_stop += 1
 
-        elem[MOST_RECENT_START] = mrstart
-        elem[MOST_RECENT_STOP] = mrstop
-        elem[MOST_RECENT_TARGET] = mrtarg
+        elem.most_recent_start = mrstart
+        elem.most_recent_stop = mrstop
+        elem.most_recent_target = mrtarg
 
     def process_results(self) -> dict:
         """
@@ -124,20 +151,20 @@ class CobblerStatusReport:
         """
         # FIXME: this should update the times here
         tnow = int(time.time())
-        for ip in self.ip_data.keys():
+        for ip in self.ip_data:
             elem = self.ip_data[ip]
-            start = int(elem[MOST_RECENT_START])
-            stop = int(elem[MOST_RECENT_STOP])
+            start = int(elem.most_recent_start)
+            stop = int(elem.most_recent_stop)
             if stop > start:
-                elem[STATE] = "finished"
+                elem.state = "finished"
             else:
                 delta = tnow - start
                 minutes = delta // 60
                 seconds = delta % 60
                 if minutes > 100:
-                    elem[STATE] = "unknown/stalled"
+                    elem.state = "unknown/stalled"
                 else:
-                    elem[STATE] = f"installing ({minutes}m {seconds}s)"
+                    elem.state = f"installing ({minutes}m {seconds}s)"
 
         return self.ip_data
 
@@ -159,11 +186,11 @@ class CobblerStatusReport:
         buf = printable_status_format % line
         for ip in ips:
             elem = self.ip_data[ip]
-            if elem[MOST_RECENT_START] > -1:
-                start = time.ctime(elem[MOST_RECENT_START])
+            if elem.most_recent_start > -1:
+                start = time.ctime(elem.most_recent_start)
             else:
                 start = "Unknown"
-            line = (ip, elem[MOST_RECENT_TARGET], start, elem[STATE])
+            line = (ip, elem.most_recent_target, start, elem.state)
             buf += "\n" + printable_status_format % line
         return buf
 
