@@ -72,23 +72,27 @@ The ``sync_post_wingen`` trigger uses the following set of metadata:
     ``kernel`` in autoinstall-meta is only used if the boot kernel is ``pxeboot.n12``
     (``--kernel=/path_to_kernel/pxeboot.n12`` in distro).
     In this case, the trigger copies the ``pxeboot.n12`` file into a file with a new name and replaces:
-    - ``bootmgr.exe`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using
+
+    * ``bootmgr.exe`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using
       Microsoft ADK/WAIK.
-    - ``NTLDR`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using Legacy RIS.
-    Value of the ``kernel`` key in ``autoinstall-meta`` will be the actual first boot file.
+    * ``NTLDR`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using Legacy RIS.
+      Value of the ``kernel`` key in ``autoinstall-meta`` will be the actual first boot file.
+
     If ``--kernel=/path_to_kernel/wimboot`` is in distro, then ``kernel`` key is not used in ``autoinstall-meta``.
 
 * bootmgr
 
     The bootmgr key value is passed the name of the second boot file in the Windows boot chain. The source file to
     create it can be:
-    - ``bootmgr.exe`` in case of using Micrisoft ADK/WAIK
-    - ``setupldr.exe`` for Legacy RIS
+
+    * ``bootmgr.exe`` in case of using Micrisoft ADK/WAIK
+    * ``setupldr.exe`` for Legacy RIS
 
     Trigger copies the corresponding source file to a file with the name given by this key and replaces in it:
-    - substring ``\Boot\BCD`` to ``\Boot\<bcd_value>``, where ``<bcd_value>`` is the metadata ``bcd`` key value for
+
+    * substring ``\Boot\BCD`` to ``\Boot\<bcd_value>``, where ``<bcd_value>`` is the metadata ``bcd`` key value for
       Microsoft ADK/WAIK.
-    - substring ``winnt.sif`` with the value passed through the ``answerfile`` metadata key in case of using Legacy RIS.
+    * substring ``winnt.sif`` with the value passed through the ``answerfile`` metadata key in case of using Legacy RIS.
 
 * bcd
 
@@ -109,6 +113,7 @@ The ``sync_post_wingen`` trigger uses the following set of metadata:
 
     This is the name of the answer file for the Windows installation. This file is generated from the
     ``answerfile.template`` template and is used in:
+
     * ``startnet.cmd`` to start WinPE installation
     * the file name is written to the binary file ``setupldr.exe`` for RIS
 
