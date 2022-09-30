@@ -4,6 +4,6 @@ Cheetah3
 dnspython
 pyyaml
 distro
-sphinx_rtd_theme
+sphinx_rtd_theme==1.0.0
 file-magic
 schema
