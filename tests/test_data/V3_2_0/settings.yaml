@@ -250,6 +250,9 @@ bind_master: 127.0.0.1
 # the choice of TFTP mangement engine is in /etc/cobbler/modules.conf
 manage_tftpd: 1
 
+# Deprecated to be removed
+manage_tftp: 1
+
 # This variable contains the location of the tftpboot directory. If this directory is not present cobbler does not
 # start.
 # Default: @@tftproot@@
