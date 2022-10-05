@@ -227,6 +227,12 @@ def migrate(settings: dict) -> dict:
             settings[mgmt_parameters]["from_cobbler"]
         )
 
+    # delete removed keys
+    deleted_keys = ["manage_tftp"]
+    for key in deleted_keys:
+        if key in settings:
+            helper.key_delete(key, settings)
+
     # rename old settings filename
     filename = "/etc/cobbler/settings"
     if os.path.exists(filename):
