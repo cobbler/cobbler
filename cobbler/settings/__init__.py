@@ -16,7 +16,7 @@ import pathlib
 import shutil
 import traceback
 from pathlib import Path
-from typing import Any, Dict, Hashable
+from typing import Any, Dict, Hashable, List, Optional
 import yaml
 from schema import SchemaError, SchemaMissingKeyError, SchemaWrongKeyError
 
@@ -369,7 +369,11 @@ class Settings:
                     f"no settings attribute named '{name}' found"
                 ) from error
 
-    def save(self, filepath="/etc/cobbler/settings.yaml", ignore_keys=None):
+    def save(
+        self,
+        filepath="/etc/cobbler/settings.yaml",
+        ignore_keys: Optional[List[str]] = None,
+    ):
         """
         Saves the settings to the disk.
         :param filepath: This sets the path of the settingsfile to write.
@@ -380,7 +384,9 @@ class Settings:
         update_settings_file(self.to_dict(), filepath, ignore_keys)
 
 
-def validate_settings(settings_content: dict, ignore_keys=None) -> dict:
+def validate_settings(
+    settings_content: dict, ignore_keys: Optional[List[str]] = None
+) -> dict:
     """
     This function performs logical validation of our loaded YAML files.
     This function will:
@@ -427,7 +433,7 @@ def read_yaml_file(filepath="/etc/cobbler/settings.yaml") -> Dict[Hashable, Any]
 
 
 def read_settings_file(
-    filepath="/etc/cobbler/settings.yaml", ignore_keys=None
+    filepath="/etc/cobbler/settings.yaml", ignore_keys: Optional[List[str]] = None
 ) -> Dict[Hashable, Any]:
     """
     Utilizes ``read_yaml_file()``. If the read settings file is invalid in the context of Cobbler we will return an
@@ -465,7 +471,9 @@ def read_settings_file(
 
 
 def update_settings_file(
-    data: dict, filepath="/etc/cobbler/settings.yaml", ignore_keys=None
+    data: dict,
+    filepath="/etc/cobbler/settings.yaml",
+    ignore_keys: Optional[List[str]] = None,
 ) -> bool:
     """
     Write data handed to this function into the settings file of Cobbler. This function overwrites the existing content.
@@ -535,7 +543,9 @@ def update_settings_file(
         return False
 
 
-def migrate(yaml_dict: dict, settings_path: Path, ignore_keys=None) -> dict:
+def migrate(
+    yaml_dict: dict, settings_path: Path, ignore_keys: Optional[List[str]] = None
+) -> dict:
     """
     Migrates the current settings
 

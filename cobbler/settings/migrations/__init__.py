@@ -23,7 +23,7 @@ from importlib import import_module
 from inspect import signature
 from pathlib import Path
 from types import ModuleType
-from typing import Dict, List, Union
+from typing import Tuple, Dict, List, Union, Optional
 
 from schema import Schema
 
@@ -158,7 +158,9 @@ def __load_migration_modules(name: str, version: List[str]):
         logger.warning('Exception raised when loading migrations module "%s"', name)
 
 
-def filter_settings_to_validate(settings: dict, ignore_keys=None) -> tuple[dict, dict]:
+def filter_settings_to_validate(
+    settings: dict, ignore_keys: Optional[List[str]] = None
+) -> Tuple[dict, dict]:
     """
     Separate settings to validate from the ones to exclude from validation
     according to "ignore_keys" parameter and "extra_settings_list" setting value.
@@ -183,7 +185,9 @@ def filter_settings_to_validate(settings: dict, ignore_keys=None) -> tuple[dict,
     return data, data_to_exclude
 
 
-def get_settings_file_version(yaml_dict: dict, ignore_keys=None) -> CobblerVersion:
+def get_settings_file_version(
+    yaml_dict: dict, ignore_keys: Optional[List[str]] = None
+) -> CobblerVersion:
     """
     Return the correspondig version of the given settings dict.
 
@@ -259,7 +263,9 @@ def discover_migrations(path: str = migrations_path):
         __load_migration_modules(migration_name, version)
 
 
-def auto_migrate(yaml_dict: dict, settings_path: Path, ignore_keys=None) -> dict:
+def auto_migrate(
+    yaml_dict: dict, settings_path: Path, ignore_keys: Optional[List[str]] = None
+) -> dict:
     """
     Auto migration to the most recent version.
 
@@ -300,7 +306,7 @@ def migrate(
     settings_path: Path,
     old: CobblerVersion = EMPTY_VERSION,
     new: CobblerVersion = EMPTY_VERSION,
-    ignore_keys=None,
+    ignore_keys: Optional[List[str]] = None,
 ) -> dict:
     """
     Migration to a specific version. If no old and new version is supplied it will call ``auto_migrate()``.
@@ -353,7 +359,9 @@ def migrate(
     return data
 
 
-def validate(settings: dict, settings_path: Path, ignore_keys=None) -> bool:
+def validate(
+    settings: dict, settings_path: Path, ignore_keys: Optional[List[str]] = None
+) -> bool:
     """
     Wrapper function for the validate() methods of the individual migration modules.
 
@@ -379,7 +387,7 @@ def validate(settings: dict, settings_path: Path, ignore_keys=None) -> bool:
     return result
 
 
-def normalize(settings: dict, ignore_keys=None) -> dict:
+def normalize(settings: dict, ignore_keys: Optional[List[str]] = None) -> dict:
     """
     If data in ``settings`` is valid the validated data is returned.
 
