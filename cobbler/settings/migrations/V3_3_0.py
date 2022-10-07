@@ -11,6 +11,7 @@ import glob
 import ipaddress
 import json
 import os
+import socket
 
 from shutil import copytree
 
@@ -432,11 +433,38 @@ def migrate_cobbler_collections(collections_dir: str):
                 data["next_server_v6"] = addr
                 data.pop("next_server")
             else:
-                _ip = ipaddress.ip_address(addr)
-                if isinstance(_ip, ipaddress.IPv4Address):
-                    data["next_server_v4"] = data.pop("next_server")
-                elif isinstance(_ip, ipaddress.IPv6Address):
-                    data["next_server_v6"] = data.pop("next_server")
+                try:
+                    _ip = ipaddress.ip_address(addr)
+                    if isinstance(_ip, ipaddress.IPv4Address):
+                        data["next_server_v4"] = data.pop("next_server")
+                    elif isinstance(_ip, ipaddress.IPv6Address):
+                        data["next_server_v6"] = data.pop("next_server")
+                except ValueError:
+                    # next_server is a hostname so we need to resolve hostname
+                    try:
+                        data["next_server_v4"] = socket.getaddrinfo(
+                            addr,
+                            None,
+                            socket.AF_INET,
+                        )[1][4][0]
+                    except OSError:
+                        pass
+                    try:
+                        data["next_server_v6"] = socket.getaddrinfo(
+                            addr,
+                            None,
+                            socket.AF_INET6,
+                        )[1][4][0]
+                    except OSError:
+                        pass
+
+                    if "next_server_v4" not in data and "next_server_v6" not in data:
+                        print(
+                            "ERROR: Neither IPv4 nor IPv6 addresses can be resolved for "
+                            f"'next server': {data['next_server']}. Please check your DNS configuration."
+                        )
+                    else:
+                        data.pop("next_server")
 
         # enable_gpxe -> enable_ipxe
         if "enable_gpxe" in data:
