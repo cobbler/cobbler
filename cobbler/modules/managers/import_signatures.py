@@ -217,12 +217,11 @@ class _ImportSignatureManager(ManagerModule):
                         pxe_path = "/Windows/Boot/PXE"
                         config_path = "/Windows/System32/config/SOFTWARE"
 
-                        if all(
-                            x not in wimdir_file_list for x in (pxe_path, config_path)
-                        ):
-                            raise FileNotFoundError(
-                                "Windows PXE Path or System32 configuration path is missing!"
-                            )
+                        for x in wimdir_file_list:
+                            if x.lower() == pxe_path.lower():
+                                pxe_path = x
+                            elif x.lower() == config_path.lower():
+                                config_path = x
 
                         cmd_path = "/usr/bin/wimextract"
                         rc = utils.subprocess_call(
