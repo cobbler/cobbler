@@ -207,7 +207,6 @@ class _ImportSignatureManager(ManagerModule):
                     winpe_path = os.path.join(dest_path, "winpe.wim")
                     if not os.path.exists(dest_path):
                         filesystem_helpers.mkdir(dest_path)
-                    rc = utils.subprocess_call(
                     if os.path.exists(winpe_path):
                         filesystem_helpers.rmfile(winpe_path)
                     rc = utils.subprocess_call(
