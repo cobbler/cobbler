@@ -208,6 +208,9 @@ class _ImportSignatureManager(ManagerModule):
                     if not os.path.exists(dest_path):
                         filesystem_helpers.mkdir(dest_path)
                     rc = utils.subprocess_call(
+                    if os.path.exists(winpe_path):
+                        filesystem_helpers.rmfile(winpe_path)
+                    rc = utils.subprocess_call(
                         [cmd_path, bootwim_path, "1", winpe_path, "--boot"], shell=False
                     )
                     if rc == 0:
