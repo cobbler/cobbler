@@ -41,6 +41,7 @@ class CobblerThread(Thread):
         self.event_id = event_id
         self.remote = remote
         self.logger = logging.getLogger()
+        self.__task_log_handler = None
         self.__setup_logger()
         self._run = run
         self.on_done = on_done
@@ -55,13 +56,13 @@ class CobblerThread(Thread):
         Utility function that will set up the Python logger for the tasks in a special directory.
         """
         filename = pathlib.Path("/var/log/cobbler/tasks") / f"{self.event_id}.log"
-        task_log_handler = logging.FileHandler(str(filename), encoding="utf-8")
+        self.__task_log_handler = logging.FileHandler(str(filename), encoding="utf-8")
         task_log_formatter = logging.Formatter(
             "[%(threadName)s] %(asctime)s - %(levelname)s | %(message)s"
         )
-        task_log_handler.setFormatter(task_log_formatter)
+        self.__task_log_handler.setFormatter(task_log_formatter)
         self.logger.setLevel(logging.INFO)
-        self.logger.addHandler(task_log_handler)
+        self.logger.addHandler(self.__task_log_handler)
 
     def _set_task_state(self, new_state: enums.EventStatus):
         """
@@ -113,3 +114,5 @@ class CobblerThread(Thread):
             utils.log_exc()
             self._set_task_state(enums.EventStatus.FAILED)
             return False
+        finally:
+            self.logger.removeHandler(self.__task_log_handler)
