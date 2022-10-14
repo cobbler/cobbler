@@ -449,11 +449,12 @@ def run(api, args):
                 cmd = ["/usr/bin/wimdir", ps_file_name, "1"]
                 wimdir_result = utils.subprocess_get(cmd, shell=False)
                 wimdir_file_list = wimdir_result.split("\n")
-                # grep for /Windows/System32/startnet.cmd
+                # grep -i for /Windows/System32/startnet.cmd
                 startnet_path = "/Windows/System32/startnet.cmd"
 
-                if startnet_path not in wimdir_file_list:
-                    raise FileNotFoundError("Windows startnet executable missing!")
+                for x in wimdir_file_list:
+                    if x.lower() == startnet_path.lower():
+                        startnet_path = x
 
                 cmd = [
                     wimupdate,
