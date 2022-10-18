@@ -64,7 +64,7 @@ def test_run(
             "test",
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             0,
-            "setfacl -d -R -m u:test:rwx /var/log/cobbler",
+            ["setfacl", "-d", "-R", "-m", "u:test:rwx", "/var/log/cobbler"],
         ),
         (
             True,
@@ -72,7 +72,7 @@ def test_run(
             "test",
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             0,
-            "setfacl -d -R -m g:test:rwx /var/log/cobbler",
+            ["setfacl", "-d", "-R", "-m", "g:test:rwx", "/var/log/cobbler"],
         ),
         (
             False,
@@ -80,7 +80,7 @@ def test_run(
             "test",
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             0,
-            "setfacl -d -R -x u:test /var/log/cobbler",
+            ["setfacl", "-d", "-R", "-x", "u:test", "/var/log/cobbler"],
         ),
         (
             False,
@@ -88,7 +88,7 @@ def test_run(
             "test",
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             0,
-            "setfacl -d -R -x g:test /var/log/cobbler",
+            ["setfacl", "-d", "-R", "-x", "g:test", "/var/log/cobbler"],
         ),
     ],
 )
@@ -114,5 +114,5 @@ def test_modacl(
 
     # Assert
     print(mock_subprocess_call.mock_calls)
-    mock_subprocess_call.assert_any_call(expected_first_setfacl, shell=True)
+    mock_subprocess_call.assert_any_call(expected_first_setfacl, shell=False)
     assert mock_die.call_count == expected_mock_die_count

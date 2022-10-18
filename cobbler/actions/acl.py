@@ -69,7 +69,7 @@ class AclConfig:
         snipdir = self.settings.autoinstall_snippets_dir
         tftpboot = self.settings.tftpboot_location
 
-        PROCESS_DIRS = {
+        process_dirs = {
             "/var/log/cobbler": "rwx",
             "/var/log/cobbler/tasks": "rwx",
             "/var/lib/cobbler": "rwx",
@@ -78,31 +78,27 @@ class AclConfig:
             "/var/lib/cobbler/triggers": "rwx",
         }
         if not snipdir.startswith("/var/lib/cobbler/"):
-            PROCESS_DIRS[snipdir] = "r"
+            process_dirs[snipdir] = "r"
 
-        cmd = "-R"
-
-        if isadd:
-            cmd = "%s -m" % cmd
-        else:
-            cmd = "%s -x" % cmd
-
-        if isuser:
-            cmd = "%s u:%s" % (cmd, who)
-        else:
-            cmd = "%s g:%s" % (cmd, who)
-
-        for d in PROCESS_DIRS:
-            how = PROCESS_DIRS[d]
+        for (directory, how) in process_dirs.items():
+            cmd = [
+                "setfacl",
+                "-d",
+                "-R",
+                "-m" if isadd else "-x",
+                f"u:{who}" if isuser else f"g:{who}",
+                directory,
+            ]
             if isadd:
-                cmd2 = "%s:%s" % (cmd, how)
-            else:
-                cmd2 = cmd
+                cmd[4] = f"{cmd[4]}:{how}"
 
-            cmd2 = "%s %s" % (cmd2, d)
-            rc = utils.subprocess_call("setfacl -d %s" % cmd2, shell=True)
-            if not rc == 0:
-                utils.die("command failed")
-            rc = utils.subprocess_call("setfacl %s" % cmd2, shell=True)
-            if not rc == 0:
-                utils.die("command failed")
+            # We must pass in a copy of list because in case the call is async we
+            # would modify the call that maybe has not been done. We don't do this
+            # yet but let's be sure. Also, the tests would break if we don't pass a copy.
+            setfacl_reset_return_code = utils.subprocess_call(cmd.copy(), shell=False)
+            if setfacl_reset_return_code != 0:
+                utils.die(f'"setfacl" command failed for "{directory}"')
+            cmd.pop(1)
+            setfacl_return_code = utils.subprocess_call(cmd.copy(), shell=False)
+            if setfacl_return_code != 0:
+                utils.die(f'"setfacl" command failed for "{directory}"')

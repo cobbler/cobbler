@@ -446,15 +446,20 @@ def run(api, args):
                 pi_file = tempfile.NamedTemporaryFile()
                 pi_file.write(bytes(data, "utf-8"))
                 pi_file.flush()
-                cmd = [
-                    "/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/System32/startnet.cmd$'"
-                    % ps_file_name
-                ]
-                startnet_path = utils.subprocess_get(cmd, shell=True)[0:-1]
+                cmd = ["/usr/bin/wimdir", ps_file_name, "1"]
+                wimdir_result = utils.subprocess_get(cmd, shell=False)
+                wimdir_file_list = wimdir_result.split("\n")
+                # grep -i for /Windows/System32/startnet.cmd
+                startnet_path = "/Windows/System32/startnet.cmd"
+
+                for x in wimdir_file_list:
+                    if x.lower() == startnet_path.lower():
+                        startnet_path = x
+
                 cmd = [
                     wimupdate,
                     ps_file_name,
-                    "--command=add %s %s" % (pi_file.name, startnet_path),
+                    f"--command=add {pi_file.name} {startnet_path}",
                 ]
                 utils.subprocess_call(cmd, shell=False)
                 pi_file.close()

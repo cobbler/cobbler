@@ -81,12 +81,12 @@ def log_exc():
     """
     Log an exception.
     """
-    (t, v, tb) = sys.exc_info()
-    logger.info("Exception occurred: %s", t)
-    logger.info("Exception value: %s", v)
+    (exception_type, exception_value, exception_traceback) = sys.exc_info()
+    logger.info("Exception occurred: %s", exception_type)
+    logger.info("Exception value: %s", exception_value)
     logger.info(
         "Exception Info:\n%s",
-        "\n".join(traceback.format_list(traceback.extract_tb(tb))),
+        "\n".join(traceback.format_list(traceback.extract_tb(exception_traceback))),
     )
 
 
@@ -722,47 +722,34 @@ def rsync_files(src: str, dst: str, args: str, quiet: bool = True) -> bool:
     if args is None:
         args = ""
 
-    RSYNC_CMD = (
-        "rsync -a %%s '%%s' %%s %s --exclude-from=/etc/cobbler/rsync.exclude" % args
-    )
-    if quiet:
-        RSYNC_CMD += " --quiet"
-    else:
-        RSYNC_CMD += " --progress"
-
     # Make sure we put a "/" on the end of the source and destination to make sure we don't cause any rsync weirdness.
     if not dst.endswith("/"):
-        dst = "%s/" % dst
+        dst = f"{dst}/"
     if not src.endswith("/"):
-        src = "%s/" % src
+        src = f"{src}/"
 
     spacer = ""
     if not src.startswith("rsync://") and not src.startswith("/"):
         spacer = ' -e "ssh" '
 
-    rsync_cmd = RSYNC_CMD % (spacer, src, dst)
+    rsync_cmd = [
+        "rsync",
+        "-a",
+        spacer,
+        f"'{src}'",
+        dst,
+        args,
+        "--exclude-from=/etc/cobbler/rsync.exclude",
+        "--quiet" if quiet else "--progress",
+    ]
     try:
-        res = subprocess_call(rsync_cmd)
+        res = subprocess_call(rsync_cmd, shell=False)
         if res != 0:
-            die("Failed to run the rsync command: '%s'" % rsync_cmd)
+            die(f"Failed to run the rsync command: '{rsync_cmd}'")
     except:
         return False
 
     return True
-
-
-def run_this(cmd: str, args: Union[str, tuple]):
-    """
-    A simple wrapper around subprocess calls.
-
-    :param cmd: The command to run in a shell process.
-    :param args: The arguments to attach to the command.
-    """
-
-    my_cmd = cmd % args
-    rc = subprocess_call(my_cmd, shell=True)
-    if rc != 0:
-        die("Command failed")
 
 
 def run_triggers(api, ref=None, globber: str = "", additional: list = None):
@@ -966,7 +953,7 @@ def subprocess_sp(cmd, shell: bool = True, input=None):
     return out, rc
 
 
-def subprocess_call(cmd, shell: bool = True, input=None):
+def subprocess_call(cmd, shell: bool = False, input=None):
     """
     A simple subprocess call with no output capturing.
 

@@ -125,42 +125,41 @@ class CobblerCheck:
         :param notes: A manual not to attach.
         """
         if notes != "":
-            notes = " (NOTE: %s)" % notes
+            notes = f" (NOTE: {notes})"
         return_code = 0
         if process_management.is_supervisord():
             with ServerProxy("http://localhost:9001/RPC2") as server:
                 process_info = server.supervisor.getProcessInfo(which)
                 if process_info["statename"] != "RUNNING":
-                    status.append("service %s is not running%s" % (which, notes))
+                    status.append(f"service {which} is not running{notes}")
                     return
         elif process_management.is_systemd():
             return_code = utils.subprocess_call(
-                "systemctl status %s > /dev/null 2>/dev/null" % which, shell=True
+                ["systemctl", "status", which], shell=False
             )
             if return_code != 0:
-                status.append("service %s is not running%s" % (which, notes))
+                status.append(f'service "{which}" is not running{notes}')
                 return
         elif self.checked_family in ("redhat", "suse"):
-            if os.path.exists("/etc/rc.d/init.d/%s" % which):
+            if os.path.exists(f"/etc/rc.d/init.d/{which}"):
                 return_code = utils.subprocess_call(
-                    "/sbin/service %s status > /dev/null 2>/dev/null" % which,
-                    shell=True,
+                    ["/sbin/service", which, "status"], shell=False
                 )
             if return_code != 0:
-                status.append("service %s is not running%s" % (which, notes))
+                status.append(f"service {which} is not running{notes}")
                 return
         elif self.checked_family == "debian":
             # we still use /etc/init.d
-            if os.path.exists("/etc/init.d/%s" % which):
+            if os.path.exists(f"/etc/init.d/{which}"):
                 return_code = utils.subprocess_call(
-                    "/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True
+                    [f"/etc/init.d/{which}", "status"], shell=False
                 )
             if return_code != 0:
-                status.append("service %s is not running%s" % (which, notes))
+                status.append(f"service {which} is not running{notes}")
                 return
         else:
             status.append(
-                "Unknown distribution type, cannot check for running service %s" % which
+                f"Unknown distribution type, cannot check for running service {which}"
             )
             return
 
@@ -175,12 +174,11 @@ class CobblerCheck:
         # TODO: Rewrite check to be able to verify this is in more cases
         if os.path.exists("/etc/rc.d/init.d/iptables"):
             return_code = utils.subprocess_call(
-                "/sbin/service iptables status >/dev/null 2>/dev/null", shell=True
+                ["/sbin/service", "iptables", "status"], shell=False
             )
             if return_code == 0:
                 status.append(
-                    "since iptables may be running, ensure 69, 80/443, and %(xmlrpc)s are unblocked"
-                    % {"xmlrpc": self.settings.xmlrpc_port}
+                    f"since iptables may be running, ensure 69, 80/443, and {self.settings.xmlrpc_port} are unblocked"
                 )
 
     def check_yum(self, status):
@@ -365,7 +363,7 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
-        return_code = utils.subprocess_call("dnsmasq --help")
+        return_code = utils.subprocess_call(["dnsmasq", "--help"], shell=False)
         if return_code != 0:
             status.append("dnsmasq is not installed and/or in path")
 
@@ -375,7 +373,7 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
-        return_code = utils.subprocess_call("named -v")
+        return_code = utils.subprocess_call(["named", "-v"], shell=False)
         # it should return something like "BIND 9.6.1-P1-RedHat-9.6.1-6.P1.fc11"
         if return_code != 0:
             status.append("named is not installed and/or in path")
@@ -386,8 +384,8 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
-        rc_wget = utils.subprocess_call("wget --help")
-        rc_curl = utils.subprocess_call("curl --help")
+        rc_wget = utils.subprocess_call(["wget", "--help"], shell=False)
+        rc_curl = utils.subprocess_call(["curl", "--help"], shell=False)
         if rc_wget != 0 and rc_curl != 0:
             status.append(
                 "Neither wget nor curl are installed and/or available in $PATH. Cobbler requires that one "

@@ -207,30 +207,34 @@ class _ImportSignatureManager(ManagerModule):
                     winpe_path = os.path.join(dest_path, "winpe.wim")
                     if not os.path.exists(dest_path):
                         filesystem_helpers.mkdir(dest_path)
+                    if os.path.exists(winpe_path):
+                        filesystem_helpers.rmfile(winpe_path)
                     rc = utils.subprocess_call(
                         [cmd_path, bootwim_path, "1", winpe_path, "--boot"], shell=False
                     )
                     if rc == 0:
-                        cmd = [
-                            "/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/Boot/PXE$'"
-                            % winpe_path
-                        ]
-                        pxe_path = utils.subprocess_get(cmd, shell=True)[0:-1]
-                        cmd = [
-                            "/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/System32/config/SOFTWARE$'"
-                            % winpe_path
-                        ]
-                        config_path = utils.subprocess_get(cmd, shell=True)[0:-1]
+                        cmd = ["/usr/bin/wimdir", winpe_path, "1"]
+                        wimdir_result = utils.subprocess_get(cmd, shell=False)
+                        wimdir_file_list = wimdir_result.split("\n")
+                        pxe_path = "/Windows/Boot/PXE"
+                        config_path = "/Windows/System32/config/SOFTWARE"
+
+                        for x in wimdir_file_list:
+                            if x.lower() == pxe_path.lower():
+                                pxe_path = x
+                            elif x.lower() == config_path.lower():
+                                config_path = x
+
                         cmd_path = "/usr/bin/wimextract"
                         rc = utils.subprocess_call(
                             [
                                 cmd_path,
                                 bootwim_path,
                                 "1",
-                                "%s/pxeboot.n12" % pxe_path,
-                                "%s/bootmgr.exe" % pxe_path,
+                                f"{pxe_path}/pxeboot.n12",
+                                f"{pxe_path}/bootmgr.exe",
                                 config_path,
-                                "--dest-dir=%s" % dest_path,
+                                f"--dest-dir={dest_path}",
                                 "--no-acls",
                                 "--no-attributes",
                             ],

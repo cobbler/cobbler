@@ -85,11 +85,16 @@ class Replicate:
         """
         from_path = f"{self.master}::{from_path}"
         if object_type == "repo":
-            cmd = f"rsync {self.settings.replicate_repo_rsync_options} {from_path} {to_path}"
+            cmd = [
+                "rsync",
+                self.settings.replicate_repo_rsync_options,
+                from_path,
+                to_path,
+            ]
         else:
-            cmd = f"rsync {self.settings.replicate_rsync_options} {from_path} {to_path}"
+            cmd = ["rsync", self.settings.replicate_rsync_options, from_path, to_path]
 
-        rsync_return_code = utils.subprocess_call(cmd, shell=True)
+        rsync_return_code = utils.subprocess_call(cmd, shell=False)
         if rsync_return_code != 0:
             self.logger.info("rsync failed")
 

@@ -247,15 +247,23 @@ class RepoSync:
 
                 if "group" in rd:
                     groupmdfile = rd["group"]["location_href"]
-                    mdoptions.append("-g %s" % os.path.join(origin_path, groupmdfile))
+                    mdoptions += ["-g", os.path.join(origin_path, groupmdfile)]
                 if "prestodelta" in rd:
                     # need createrepo >= 0.9.7 to add deltas
                     if utils.get_family() in ("redhat", "suse"):
-                        cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo"
-                        createrepo_ver = utils.subprocess_get(cmd)
+                        cmd = [
+                            "/usr/bin/rpmquery",
+                            "--queryformat=%{VERSION}",
+                            "createrepo",
+                        ]
+                        createrepo_ver = utils.subprocess_get(cmd, shell=False)
                         if not createrepo_ver[0:1].isdigit():
-                            cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo_c"
-                            createrepo_ver = utils.subprocess_get(cmd)
+                            cmd = [
+                                "/usr/bin/rpmquery",
+                                "--queryformat=%{VERSION}",
+                                "createrepo_c",
+                            ]
+                            createrepo_ver = utils.subprocess_get(cmd, shell=False)
                         if utils.compare_versions_gt(createrepo_ver, "0.9.7"):
                             mdoptions.append("--deltas")
                         else:
@@ -267,12 +275,8 @@ class RepoSync:
             blended = utils.blender(self.api, False, repo)
             flags = blended.get("createrepo_flags", "(ERROR: FLAGS)")
             try:
-                cmd = "createrepo %s %s %s" % (
-                    " ".join(mdoptions),
-                    flags,
-                    pipes.quote(dirname),
-                )
-                utils.subprocess_call(cmd)
+                cmd = ["createrepo"] + mdoptions + [flags, pipes.quote(dirname)]
+                utils.subprocess_call(cmd, shell=False)
             except:
                 utils.log_exc()
                 self.logger.error("createrepo failed.")
@@ -363,11 +367,17 @@ class RepoSync:
         if flags == "":
             flags = self.settings.reposync_rsync_flags
 
-        cmd = (
-            "rsync %s --delete-after %s --delete --exclude-from=/etc/cobbler/rsync.exclude %s %s"
-            % (flags, spacer, pipes.quote(repo.mirror), pipes.quote(dest_path))
-        )
-        rc = utils.subprocess_call(cmd)
+        cmd = [
+            "rsync",
+            flags,
+            "--delete-after",
+            spacer,
+            "--delete",
+            "--exclude-from=/etc/cobbler/rsync.exclude",
+            pipes.quote(repo.mirror),
+            pipes.quote(dest_path),
+        ]
+        rc = utils.subprocess_call(cmd, shell=False)
 
         if rc != 0:
             raise CX("cobbler reposync failed")
@@ -423,10 +433,6 @@ class RepoSync:
 
         :param repo: The repo object to synchronize.
         """
-
-        # reposync command
-        cmd = self.reposync_cmd()
-
         # flag indicating not to pull the whole repo
         has_rpm_list = False
 
@@ -454,12 +460,6 @@ class RepoSync:
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
         rest = repo.mirror[6:]  # everything after rhn://
-        cmd = "%s %s --repo=%s -p %s" % (
-            cmd,
-            self.rflags,
-            pipes.quote(rest),
-            pipes.quote(repos_path),
-        )
         if repo.name != rest:
             args = {"name": repo.name, "rest": rest}
             raise CX(
@@ -468,19 +468,24 @@ class RepoSync:
             )
 
         arch = repo.arch.value
-
         if arch == "i386":
             # Counter-intuitive, but we want the newish kernels too
             arch = "i686"
 
+        cmd = [
+            self.reposync_cmd(),
+            self.rflags,
+            f"--repo={pipes.quote(rest)}",
+            f"-p={pipes.quote(repos_path)}",
+        ]
         if arch != "none":
-            cmd = "%s -a %s" % (cmd, arch)
+            cmd.append(f'--arch="{arch}"')
 
         # Now regardless of whether we're doing yumdownloader or reposync or whether the repo was http://, ftp://, or
         # rhn://, execute all queued commands here. Any failure at any point stops the operation.
 
         if repo.mirror_locally:
-            utils.subprocess_call(cmd)
+            utils.subprocess_call(cmd, shell=False)
 
         # Some more special case handling for RHN. Create the config file now, because the directory didn't exist
         # earlier.
@@ -583,27 +588,27 @@ class RepoSync:
             if not os.path.exists(dest_path):
                 os.makedirs(dest_path)
 
-            use_source = ""
-            if arch == "src":
-                use_source = "--source"
-
             # Older yumdownloader sometimes explodes on --resolvedeps if this happens to you, upgrade yum & yum-utils
             extra_flags = self.settings.yumdownloader_flags
-            cmd = "/usr/bin/dnf download"
-            cmd = "%s %s %s --disablerepo=* --enablerepo=%s -c %s --destdir=%s %s" % (
-                cmd,
+            cmd = [
+                "/usr/bin/dnf",
+                "download",
                 extra_flags,
-                use_source,
-                pipes.quote(repo.name),
-                temp_file,
-                pipes.quote(dest_path),
+            ]
+            if arch == "src":
+                cmd.append("--source")
+            cmd += [
+                "--disablerepo=*",
+                f"--enablerepo={pipes.quote(repo.name)}",
+                f"-c={temp_file}",
+                f"--destdir={pipes.quote(dest_path)}",
                 " ".join(repo.rpm_list),
-            )
+            ]
 
         # Now regardless of whether we're doing yumdownloader or reposync or whether the repo was http://, ftp://, or
         # rhn://, execute all queued commands here.  Any failure at any point stops the operation.
 
-        rc = utils.subprocess_call(cmd)
+        rc = utils.subprocess_call(cmd, shell=False)
         if rc != 0:
             raise CX("cobbler reposync failed")
 
@@ -705,40 +710,36 @@ class RepoSync:
             dists = ",".join(repo.apt_dists)
             components = ",".join(repo.apt_components)
 
-            mirror_data = "--method=%s --host=%s --root=%s --dist=%s --section=%s" % (
-                pipes.quote(method),
-                pipes.quote(host),
-                pipes.quote(mirror),
-                pipes.quote(dists),
-                pipes.quote(components),
-            )
+            mirror_data = [
+                f"--method={pipes.quote(method)}",
+                f"--host={pipes.quote(host)}",
+                f"--root={pipes.quote(mirror)}",
+                f"--dist={pipes.quote(dists)}",
+                f"--section={pipes.quote(components)}",
+            ]
 
-            rflags = "--nocleanup"
+            rflags = ["--nocleanup"]
             for x in repo.yumopts:
                 if repo.yumopts[x]:
-                    rflags += " %s=%s" % (x, repo.yumopts[x])
+                    rflags.append(f"{x}={repo.yumopts[x]}")
                 else:
-                    rflags += " %s" % x
-            cmd = "%s %s %s %s" % (
-                mirror_program,
-                rflags,
-                mirror_data,
-                pipes.quote(dest_path),
-            )
+                    rflags.append(x)
+            cmd = [mirror_program] + rflags + mirror_data + [pipes.quote(dest_path)]
             if repo.arch == RepoArchs.SRC:
-                cmd = "%s --source" % cmd
+                cmd.append("--source")
             else:
                 arch = repo.arch.value
                 if arch == "x86_64":
                     arch = "amd64"  # FIX potential arch errors
-                cmd = "%s --nosource -a %s" % (cmd, arch)
+                cmd.append("--nosource")
+                cmd.append(f"-a={arch}")
 
             # Set's an environment variable for subprocess, otherwise debmirror will fail as it needs this variable to
             # exist.
             # FIXME: might this break anything? So far it doesn't
             os.putenv("HOME", "/var/lib/cobbler")
 
-            rc = utils.subprocess_call(cmd)
+            rc = utils.subprocess_call(cmd, shell=False)
             if rc != 0:
                 raise CX("cobbler reposync failed")
 
@@ -849,8 +850,8 @@ class RepoSync:
         elif dist in ("debian", "ubuntu"):
             owner = "root:www-data"
 
-        cmd1 = "chown -R %s %s" % (owner, repo_path)
-        utils.subprocess_call(cmd1)
+        cmd1 = ["chown", "-R", owner, repo_path]
+        utils.subprocess_call(cmd1, shell=False)
 
-        cmd2 = "chmod -R 755 %s" % repo_path
-        utils.subprocess_call(cmd2)
+        cmd2 = ["chmod", "-R", "755", repo_path]
+        utils.subprocess_call(cmd2, shell=False)

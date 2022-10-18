@@ -18,7 +18,7 @@ def test_rsync_it(mocker, replicate_obj):
 
     # Assert
     mock_subprocess_call.assert_called_with(
-        "rsync -avzH cobbler-master::/path1 /path2", shell=True
+        ["rsync", "-avzH", "cobbler-master::/path1", "/path2"], shell=False
     )
 
 

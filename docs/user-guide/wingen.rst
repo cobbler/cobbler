@@ -4,20 +4,31 @@
 Automatic Windows installation with Cobbler
 *******************************************
 
-One of the challenges for creating your own Windows network installation scenario with Cobbler is preparing the necessary files in a Linux environment. However, generating the necessary binaries can be greatly simplified by using the cobbler post trigger on the sync command. Below is an example of such a trigger, which prepares the necessary files for legacy BIOS mode boot. Boot to UEFI Mode with iPXE is simpler and can be implemented by replacing the first 2 steps and several others with creating an iPXE boot menu.
+One of the challenges for creating your own Windows network installation scenario with Cobbler is preparing the
+necessary files in a Linux environment. However, generating the necessary binaries can be greatly simplified by using
+the Cobbler post trigger on the sync command. Below is an example of such a trigger, which prepares the necessary files
+for legacy BIOS mode boot. Boot to UEFI Mode with iPXE is simpler and can be implemented by replacing the first 2 steps
+and several others with creating an iPXE boot menu.
 
 Trigger ``sync_post_wingen.py``:
 
-- some of the files are created from standard ones (``pxeboot.n12``, ``bootmgr.exe``) by directly replacing one string with another directly in the binary
-- in the process of changing the ``bootmgr.exe`` file, the checksum of the PE file will change and it needs to be recalculated. The trigger does this with ``python-pefile``
-- ``python3-hivex`` is used to modify Windows boot configuration data (BCD). For pxelinux distro boot_loader in BCD, paths to ``winpe.wim`` and ``boot.sdi`` are generated as ``/images/<distro_name>``, and for iPXE with wimboot - ``\Boot``.
-- uses ``wimlib-tools`` to replace ``startnet.cmd startup`` script in WIM image
+* some of the files are created from standard ones (``pxeboot.n12``, ``bootmgr.exe``) by directly replacing one string
+  with another directly in the binary
+* in the process of changing the ``bootmgr.exe`` file, the checksum of the PE file will change and it needs to be
+  recalculated. The trigger does this with ``python-pefile``
+* ``python3-hivex`` is used to modify Windows boot configuration data (BCD). For pxelinux distro boot_loader in BCD,
+  paths to ``winpe.wim`` and ``boot.sdi`` are generated as ``/images/<distro_name>``, and for iPXE with
+  wimboot - ``\Boot``.
+* uses ``wimlib-tools`` to replace ``startnet.cmd startup`` script in WIM image
 
-Windows answer files (``autounattended.xml``) are generated using Cobbler templates, with all of its conditional code generation capabilities, depending on the Windows version, architecture (32 or 64 bit), installation profile, etc.
+Windows answer files (``autounattended.xml``) are generated using Cobbler templates, with all of its conditional code
+generation capabilities, depending on the Windows version, architecture (32 or 64 bit), installation profile, etc.
 
-startup scripts for WIM images (startnet.cmd) and a script that is launched after OS installation (``post_install.cmd``) are also generated from templates
+startup scripts for WIM images (startnet.cmd) and a script that is launched after OS installation (``post_install.cmd``)
+are also generated from templates
 
-Post-installation actions such as installing additional software, etc., are performed using the Automatic Installation Template (``win.ks``).
+Post-installation actions such as installing additional software, etc., are performed using the Automatic Installation
+Template (``win.ks``).
 
 A logically automatic network installation of Windows 7 and newer can be represented as follows:
 
@@ -47,77 +58,106 @@ For older versions (Windows XP, 2003) + RIS:
 Additional Windows metadata
 ===========================
 
-Additional metadata for preparing Windows boot files can be passed through the ``--autoinstall-meta`` option for distro, profile or system.
-The source files for Windows boot files should be located in the ``/var/www/cobbler/distro_mirror/<distro_name>/Boot`` directory. The trigger copies them to ``/var/lib/tftpboot/images/<distro_name>`` with the new names specified in the metadata and and changes their contents. The resulting files will be available via tftp and http.
+Additional metadata for preparing Windows boot files can be passed through the ``--autoinstall-meta`` option for
+distro, profile or system.
+
+The source files for Windows boot files should be located in the ``/var/www/cobbler/distro_mirror/<distro_name>/Boot``
+directory. The trigger copies them to ``/var/lib/tftpboot/images/<distro_name>`` with the new names specified in the
+metadata and and changes their contents. The resulting files will be available via tftp and http.
 
 The ``sync_post_wingen`` trigger uses the following set of metadata:
 
-- kernel
+* kernel
 
-    ``kernel`` in autoinstall-meta is only used if the boot kernel is ``pxeboot.n12`` (``--kernel=/path_to_kernel/pxeboot.n12`` in distro).
+    ``kernel`` in autoinstall-meta is only used if the boot kernel is ``pxeboot.n12``
+    (``--kernel=/path_to_kernel/pxeboot.n12`` in distro).
     In this case, the trigger copies the ``pxeboot.n12`` file into a file with a new name and replaces:
-    - ``bootmgr.exe`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using Micrisoft ADK/WAIK.
-    - ``NTLDR`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using Legacy RIS.
-    Value of the ``kernel`` key in ``autoinstall-meta`` will be the actual first boot file.
+
+    * ``bootmgr.exe`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using
+      Microsoft ADK/WAIK.
+    * ``NTLDR`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using Legacy RIS.
+      Value of the ``kernel`` key in ``autoinstall-meta`` will be the actual first boot file.
+
     If ``--kernel=/path_to_kernel/wimboot`` is in distro, then ``kernel`` key is not used in ``autoinstall-meta``.
 
-- bootmgr
+* bootmgr
 
-    The bootmgr key value is passed the name of the second boot file in the Windows boot chain. The source file to create it can be:
-    - ``bootmgr.exe`` in case of using Micrisoft ADK/WAIK
-    - ``setupldr.exe`` for Legacy RIS
+    The bootmgr key value is passed the name of the second boot file in the Windows boot chain. The source file to
+    create it can be:
+
+    * ``bootmgr.exe`` in case of using Micrisoft ADK/WAIK
+    * ``setupldr.exe`` for Legacy RIS
 
     Trigger copies the corresponding source file to a file with the name given by this key and replaces in it:
-    - substring ``\Boot\BCD`` to ``\Boot\<bcd_value>``, where ``<bcd_value>`` is the metadata ``bcd`` key value for Micrisoft ADK/WAIK.
-    - substring ``winnt.sif`` with the value passed through the ``answerfile`` metadata key in case of using Legacy RIS.
 
-- bcd
+    * substring ``\Boot\BCD`` to ``\Boot\<bcd_value>``, where ``<bcd_value>`` is the metadata ``bcd`` key value for
+      Microsoft ADK/WAIK.
+    * substring ``winnt.sif`` with the value passed through the ``answerfile`` metadata key in case of using Legacy RIS.
 
-    This key is used to pass the value of the ``BCD`` file name in case of using Micrisoft ADK/WAIK. Any ``BCD`` file from the Windows distribution can be used as a source for this file. The trigger copies it, then removes all boot information from the copy and adds new data from the ``initrd`` value of the distro and the value passed through the ``winpe`` metadata key.
+* bcd
 
-- winpe
+    This key is used to pass the value of the ``BCD`` file name in case of using Micrisoft ADK/WAIK. Any ``BCD`` file
+    from the Windows distribution can be used as a source for this file. The trigger copies it, then removes all boot
+    information from the copy and adds new data from the ``initrd`` value of the distro and the value passed through the
+    ``winpe`` metadata key.
 
-    This metadata key allows you to specify the name of the WinPE image. The image is copied by the cp utility trigger with the ``--reflink=auto`` option, which allows to reduce copying time and the size of the disk space on CoW file systems.
-    In the copy of the file, the tribger changes the ``/Windows/System32/startnet.cmd`` script to the script generated from the ``startnet.template`` template.
+* winpe
 
-- answerfile
+    This metadata key allows you to specify the name of the WinPE image. The image is copied by the cp utility trigger
+    with the ``--reflink=auto`` option, which allows to reduce copying time and the size of the disk space on CoW file
+    systems.
+    In the copy of the file, the tribger changes the ``/Windows/System32/startnet.cmd`` script to the script generated
+    from the ``startnet.template`` template.
 
-    This is the name of the answer file for the Windows installation. This file is generated from the ``answerfile.template`` template and is used in:
-    - ``startnet.cmd`` to start WinPE installation
-    - the file name is written to the binary file ``setupldr.exe`` for RIS
+* answerfile
 
-- post_install_script
+    This is the name of the answer file for the Windows installation. This file is generated from the
+    ``answerfile.template`` template and is used in:
 
-    This is the name of the script to run immediately after the Windows installation completes. The script is specified in the Windows answer file. All the necessary completing the installation actions can be performed directly in this script, or it can be used to get and start additional steps from ``http://<server>/cblr/svc/op/autoinstall/<profile|system>/name``.
-    To make this script available after the installation is complete, the trigger creates it in ``/var/www/cobbler/distro_mirror/<distro_name>/$OEM$/$1`` from the ``post_inst_cmd.template`` template.
+    * ``startnet.cmd`` to start WinPE installation
+    * the file name is written to the binary file ``setupldr.exe`` for RIS
 
-The following metadata does not specify boot file names and is an example of using metadata to generate files from Cobbler templates.
+* post_install_script
 
-- clean_disk
+    This is the name of the script to run immediately after the Windows installation completes. The script is specified
+    in the Windows answer file. All the necessary completing the installation actions can be performed directly in this
+    script, or it can be used to get and start additional steps from
+    ``http://<server>/cblr/svc/op/autoinstall/<profile|system>/name``.
+    To make this script available after the installation is complete, the trigger creates it in
+    ``/var/www/cobbler/distro_mirror/<distro_name>/$OEM$/$1`` from the ``post_inst_cmd.template`` template.
 
-    The presence of this key in the metadata (regardless of its value) leads to the preliminary deletion of all data and the disk partition table before installing the OS.
-    Used in the ``answerfile.template`` and also in ``startnet.template`` in Windows XP and Windows 2003 Server installations using WinPE.
+The following metadata does not specify boot file names and is an example of using metadata to generate files from
+Cobbler templates.
+
+* clean_disk
+
+    The presence of this key in the metadata (regardless of its value) leads to the preliminary deletion of all data and
+    the disk partition table before installing the OS.
+    Used in the ``answerfile.template`` and also in ``startnet.template`` in Windows XP and Windows 2003 Server
+    installations using WinPE.
 
 Preparing for an unattended network installation of Windows
 ===========================================================
 
-- ``dnf install python3-pefile python3-hivex wimlib-utils``
-- enable Windows support in settings ``/etc/cobbler/settings.d/windows.settings``:
+* ``dnf install python3-pefile python3-hivex wimlib-utils``
+* enable Windows support in settings ``/etc/cobbler/settings.yaml``:
 
 .. code::
 
     windows_enabled: true
 
-- import the Windows distributions to ``/var/www/cobbler/distro_mirror``:
+* import the Windows distributions to ``/var/www/cobbler/distro_mirror``:
 
 .. code::
 
     cobbler import --name=Win10_EN-x64 --path=/mnt
 
-This command will determine the version and architecture of the Windows distribution, will extract the necessary boot files from the distribution and create a distro and profile named ``Win10_EN-x64``.
+This command will determine the version and architecture of the Windows distribution, will extract the necessary boot
+files from the distribution and create a distro and profile named ``Win10_EN-x64``.
 
-- For customization winpe.win you need
-  - ADK for Windows 10 / 8.1
+* For customization winpe.win you need
+
+  * ADK for Windows 10 / 8.1
 
 .. code::
 
@@ -125,7 +165,7 @@ This command will determine the version and architecture of the Windows distribu
 
 or
 
-  - WAIK for Windows 7
+  * WAIK for Windows 7
 
 .. code::
 
@@ -135,9 +175,11 @@ or
 
     copype.cmd <amd64|x86|arm> c:\winpe
 
-After executing the command, the WinPE image will be located in ``.\winpe.wim`` for WAIK and in ``media\sources\boot.wim`` for ADK. You can use either it or replace it with the one that has been obtained as a result of the import of the Windows distribution.
+After executing the command, the WinPE image will be located in ``.\winpe.wim`` for WAIK and in
+``media\sources\boot.wim`` for ADK. You can use either it or replace it with the one that has been obtained as a result
+of the import of the Windows distribution.
 
-  - If necessary, add drivers to the image
+  * If necessary, add drivers to the image
 
 Example:
 
@@ -148,8 +190,8 @@ Example:
     dism /image:mount /add-driver /driver:D:\viostor\w10\amd64
     dism /unmount-wim /mountdir:mount /commit
 
-- Copy the resulting WiNPE image from Windows to the ``boot`` directory of the distro
-- Share ```/var/www/cobbler/distro_mirror``` via Samba:
+* Copy the resulting WiNPE image from Windows to the ``boot`` directory of the distro
+* Share ``/var/www/cobbler/distro_mirror`` via Samba:
 
 .. code-block:: shell
 
@@ -163,7 +205,8 @@ Example:
             printable = no
 
 
-- You can use ``tftpd.rules`` to indicate the actual locations of the ``bootmgr.exe`` and ``BCD`` files generated by the trigger.
+- You can use ``tftpd.rules`` to indicate the actual locations of the ``bootmgr.exe`` and ``BCD`` files generated by
+  the trigger.
 
 .. code-block:: shell
 
@@ -323,19 +366,23 @@ The boot menu will look like this:
     initrd --name winpe.wim http://<http_server>/cobbler/images/Win10_EN-x64/winp2.wim winpe.wim
     boot
 
-- cobbler sync
+* cobbler sync
 
-  - kernel from ``autoinstall-meta`` of profile or from ``kernel`` of distro property will be copied to ``/var/lib/tftpboot/<distro_name>``
-  - if the kernel is ``pxeboot.n12``, then the ``bootmgr.exe`` substring is replaced in the copied copy of kernel with the value passed via ``bootmgr`` of the ``autoinstall-meta`` profile propery
+  * kernel from ``autoinstall-meta`` of profile or from ``kernel`` of distro property will be copied to
+    ``/var/lib/tftpboot/<distro_name>``
+  * if the kernel is ``pxeboot.n12``, then the ``bootmgr.exe`` substring is replaced in the copied copy of kernel with
+    the value passed via ``bootmgr`` of the ``autoinstall-meta`` profile property
 
-- Install Windows
+* Install Windows
 
 Legacy Windows XP and Windows 2003 Server
 =========================================
 
-- WinPE 3.0 and winboot can be used to install legacy versions of Windows. ``startnet.template`` contains the code for starting such an installation via ``winnt32.exe``.
+* WinPE 3.0 and winboot can be used to install legacy versions of Windows. ``startnet.template`` contains the code for
+  starting such an installation via ``winnt32.exe``.
 
-  - copy ``bootmgr.exe``, ``bcd``, ``boot.sdi`` from Windows 7 and ``winpe.wim`` from WAIK to the ``/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot``
+  * copy ``bootmgr.exe``, ``bcd``, ``boot.sdi`` from Windows 7 and ``winpe.wim`` from WAIK to the
+    ``/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot``
 
 .. code-block:: shell
 
@@ -361,9 +408,10 @@ Legacy Windows XP and Windows 2003 Server
     cobbler profile add --name=Win2k3-Server_EN-x64 --distro=Win2k3-Server_EN-x64 --autoinstall=win.ks \
     --autoinstall-meta='bootmgr=boot3ea.exe bcd=3Ea winpe=winpe.wim answerfile=wi2k3.sif post_install_script=post_install.cmd'
 
-- WinPE 3.0 without ``winboot`` also can be used to install legacy versions of Windows.
+* WinPE 3.0 without ``winboot`` also can be used to install legacy versions of Windows.
 
-  - copy ``pxeboot.n12``, ``bootmgr.exe``, ``bcd``, ``boot.sdi`` from Windows 7 and ``winpe.wim`` from WAIK to the ``/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot``
+  * copy ``pxeboot.n12``, ``bootmgr.exe``, ``bcd``, ``boot.sdi`` from Windows 7 and ``winpe.wim`` from WAIK to the
+    ``/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot``
 
 .. code-block:: shell
 
@@ -385,7 +433,7 @@ Legacy Windows XP and Windows 2003 Server
     cobbler profile add --name=Win2k3-Server_EN-x64 --distro=Win2k3-Server_EN-x64 --autoinstall=win.ks \
     --autoinstall-meta='kernel=w2k0.0 bootmgr=boot3ea.exe bcd=3Ea winpe=winpe.wim answerfile=wi2k3.sif post_install_script=post_install.cmd'
 
-- Although the ris-linux package is no longer supported, it also can still be used to install older Windows versions.
+* Although the ris-linux package is no longer supported, it also can still be used to install older Windows versions.
 
 For example on Fedora 33:
 
@@ -437,7 +485,8 @@ Preparing boot files for RIS and legacy Windows XP and Windows 2003 Server
     cp i386/ntdetect.com /var/lib/tftpboot
     cabextract -dboot i386/setupldr.ex_
 
-If you need to install Windows 2003 Server in addition to Windows XP, then to avoid a conflict, you can rename the ``ntdetect.com`` file:
+If you need to install Windows 2003 Server in addition to Windows XP, then to avoid a conflict, you can rename the
+``ntdetect.com`` file:
 
 .. code-block:: shell
 

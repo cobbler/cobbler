@@ -311,11 +311,14 @@ class BuildIso:
                 "mbr/isohdpfx.bin"
             )
         efi_img_location = "grub/grub.efi"
-        cmd_list = [
+        cmd = [
             "xorriso",
             "-as",
             "mkisofs",
-            xorrisofs_opts,
+        ]
+        if xorrisofs_opts != "":
+            cmd.append(xorrisofs_opts)
+        cmd += [
             "-isohybrid-mbr",
             str(isohdpfx_location),
             "-c",
@@ -332,14 +335,13 @@ class BuildIso:
             "-no-emul-boot",
             "-isohybrid-gpt-basdat",
             "-V",
-            '"COBBLER_INSTALL"',
+            "COBBLER_INSTALL",
             "-o",
             iso,
             buildisodir,
         ]
-        cmd = " ".join(cmd_list)
 
-        xorrisofs_return_code = utils.subprocess_call(cmd, shell=True)
+        xorrisofs_return_code = utils.subprocess_call(cmd, shell=False)
         if xorrisofs_return_code != 0:
             self.logger.error("xorrisofs failed with non zero exit code!")
             return
