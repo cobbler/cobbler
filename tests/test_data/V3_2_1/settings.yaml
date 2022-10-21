@@ -259,7 +259,7 @@ next_server: 127.0.0.1
 # choices (refer to codes.py):
 #    apc_snmp bladecenter bullpap drac ether_wake ilo integrity
 #    ipmilan lpar rsa virsh wti
-power_management_default_type: 'ipmilan'
+power_management_default_type: 'ipmitool'
 
 # if this setting is set to true, Cobbler systems that pxe boot
 # will request at the end of their installation to toggle the
@@ -464,3 +464,6 @@ signature_url: "https://cobbler.github.io/signatures/3.0.x/latest.json"
 # Include other configuration snippets. Overwriting a key from this file in a childfile will overwrite the value from
 # this file.
 include: [ "/code/tests/test_data/V3_2_1/settings.d/*.settings" ]
+
+# list settings keys to exclude from validation - helpful to validate and migrate custom settings
+extra_settings_list: []

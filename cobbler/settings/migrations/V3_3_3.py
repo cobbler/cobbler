@@ -140,6 +140,7 @@ schema = Schema(
         "default_virt_type": str,
         "enable_ipxe": bool,
         "enable_menu": bool,
+        Optional("extra_settings_list", default=[]): [str],
         "http_port": int,
         "include": [str],
         Optional("iso_template_dir", default="/etc/cobbler/iso"): str,

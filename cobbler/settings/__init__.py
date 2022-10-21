@@ -6,6 +6,7 @@ Cobbler app-wide settings
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 # SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
+# SPDX-FileCopyrightText: 2022 Pablo Suárez Hernández <psuarezhernandez@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
 import datetime
@@ -15,7 +16,7 @@ import pathlib
 import shutil
 import traceback
 from pathlib import Path
-from typing import Any, Dict, Hashable
+from typing import Any, Dict, Hashable, List, Optional
 import yaml
 from schema import SchemaError, SchemaMissingKeyError, SchemaWrongKeyError
 
@@ -168,6 +169,7 @@ class Settings:
         self.default_virt_type = "xenpv"
         self.enable_ipxe = False
         self.enable_menu = True
+        self.extra_settings_list = []
         self.grub2_mod_dir = "/usr/share/grub2/"
         self.http_port = 80
         self.iso_template_dir = "/etc/cobbler/iso"
@@ -367,24 +369,45 @@ class Settings:
                     f"no settings attribute named '{name}' found"
                 ) from error
 
-    def save(self, filepath="/etc/cobbler/settings.yaml"):
+    def save(
+        self,
+        filepath="/etc/cobbler/settings.yaml",
+        ignore_keys: Optional[List[str]] = None,
+    ):
         """
         Saves the settings to the disk.
+        :param filepath: This sets the path of the settingsfile to write.
+        :param ignore_keys: The list of ignore keys to exclude from migration.
         """
-        update_settings_file(self.to_dict(), filepath)
+        if not ignore_keys:
+            ignore_keys = []
+        update_settings_file(self.to_dict(), filepath, ignore_keys)
 
 
-def validate_settings(settings_content: dict) -> dict:
+def validate_settings(
+    settings_content: dict, ignore_keys: Optional[List[str]] = None
+) -> dict:
     """
     This function performs logical validation of our loaded YAML files.
     This function will:
     - Perform type validation on all values of all keys.
     - Provide defaults for optional settings.
     :param settings_content: The dictionary content from the YAML file.
+    :param ignore_keys: The list of ignore keys to exclude from validation.
     :raises SchemaError: In case the data given is invalid.
     :return: The Settings of Cobbler which can be safely used inside this instance.
     """
-    return migrations.normalize(settings_content)
+    if not ignore_keys:
+        ignore_keys = []
+
+    # Extra settings and ignored keys are excluded from validation
+    data, data_to_exclude_from_validation = migrations.filter_settings_to_validate(
+        settings_content, ignore_keys
+    )
+
+    result = migrations.normalize(data)
+    result.update(data_to_exclude_from_validation)
+    return result
 
 
 def read_yaml_file(filepath="/etc/cobbler/settings.yaml") -> Dict[Hashable, Any]:
@@ -409,23 +432,29 @@ def read_yaml_file(filepath="/etc/cobbler/settings.yaml") -> Dict[Hashable, Any]
     return filecontent
 
 
-def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Dict[Hashable, Any]:
+def read_settings_file(
+    filepath="/etc/cobbler/settings.yaml", ignore_keys: Optional[List[str]] = None
+) -> Dict[Hashable, Any]:
     """
     Utilizes ``read_yaml_file()``. If the read settings file is invalid in the context of Cobbler we will return an
     empty dictionary.
 
     :param filepath: The path to the settings file.
+    :param ignore_keys: The list of ignore keys to exclude from validation.
     :raises SchemaMissingKeyError: In case keys are minssing.
     :raises SchemaWrongKeyError: In case keys are not listed in the schema.
     :raises SchemaError: In case the schema is wrong.
     :return: A dictionary with the settings. As a word of caution: This may not represent a correct settings object, it
              will only contain a correct YAML representation.
     """
+    if not ignore_keys:
+        ignore_keys = []
+
     filecontent = read_yaml_file(filepath)
 
     # FIXME: Do not call validate_settings() because of chicken - egg problem
     try:
-        validate_settings(filecontent)
+        validate_settings(filecontent, ignore_keys)
     except SchemaMissingKeyError:
         logging.exception("Settings file was not returned due to missing keys.")
         logging.debug('The settings to read were: "%s"', filecontent)
@@ -441,7 +470,11 @@ def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Dict[Hashable, 
     return filecontent
 
 
-def update_settings_file(data: dict, filepath="/etc/cobbler/settings.yaml") -> bool:
+def update_settings_file(
+    data: dict,
+    filepath="/etc/cobbler/settings.yaml",
+    ignore_keys: Optional[List[str]] = None,
+) -> bool:
     """
     Write data handed to this function into the settings file of Cobbler. This function overwrites the existing content.
     It will only write valid settings. If you are trying to save invalid data this will raise a SchemaException
@@ -449,8 +482,12 @@ def update_settings_file(data: dict, filepath="/etc/cobbler/settings.yaml") -> b
 
     :param data: The data to put into the settings file.
     :param filepath: This sets the path of the settingsfile to write.
+    :param ignore_keys: The list of ignore keys to exclude from validation.
     :return: True if the action succeeded. Otherwise return False.
     """
+    if not ignore_keys:
+        ignore_keys = []
+
     # Backup old settings file
     path = pathlib.Path(filepath)
     if path.exists():
@@ -458,7 +495,32 @@ def update_settings_file(data: dict, filepath="/etc/cobbler/settings.yaml") -> b
         shutil.copy(path, path.parent.joinpath(f"{path.stem}_{timestamp}{path.suffix}"))
 
     try:
-        validated_data = validate_settings(data)
+        validated_data = validate_settings(data, ignore_keys)
+        version = migrations.get_installed_version()
+
+        # If "ignore_keys" was set during migration, we persist these keys as "extra_settings_list"
+        # in the final settings, so the migrated settings are able to validate later
+        if ignore_keys or "extra_settings_list" in validated_data:
+            if "extra_settings_list" in validated_data:
+                validated_data["extra_settings_list"].extend(ignore_keys)
+                # Remove items from "extra_settings_list" in case it is now a valid settings
+                current_schema = list(
+                    map(
+                        lambda x: getattr(x, "_schema", x),
+                        migrations.VERSION_LIST[version].schema._schema.keys(),
+                    )
+                )
+                validated_data["extra_settings_list"] = [
+                    x
+                    for x in validated_data["extra_settings_list"]
+                    if x not in current_schema
+                ]
+            else:
+                validated_data["extra_settings_list"] = ignore_keys
+            validated_data["extra_settings_list"] = list(
+                set(validated_data["extra_settings_list"])
+            )
+
         with open(filepath, "w") as settings_file:
             yaml_dump = yaml.safe_dump(validated_data)
             header = "# Cobbler settings file\n"
@@ -481,12 +543,25 @@ def update_settings_file(data: dict, filepath="/etc/cobbler/settings.yaml") -> b
         return False
 
 
-def migrate(yaml_dict: dict, settings_path: Path) -> dict:
+def migrate(
+    yaml_dict: dict, settings_path: Path, ignore_keys: Optional[List[str]] = None
+) -> dict:
     """
     Migrates the current settings
 
     :param yaml_dict: The settings dict
     :param settings_path: The settings path
+    :param ignore_keys: The list of ignore keys to exclude from migration.
     :return: The migrated settings
     """
-    return migrations.migrate(yaml_dict, settings_path)
+    if not ignore_keys:
+        ignore_keys = []
+
+    # Extra settings and ignored keys are excluded from validation
+    data, data_to_exclude_from_validation = migrations.filter_settings_to_validate(
+        yaml_dict, ignore_keys
+    )
+
+    result = migrations.migrate(data, settings_path)
+    result.update(data_to_exclude_from_validation)
+    return result

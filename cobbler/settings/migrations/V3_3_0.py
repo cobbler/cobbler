@@ -6,6 +6,14 @@ Migration from V3.2.1 to V3.3.0
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
+import datetime
+import glob
+import ipaddress
+import json
+import os
+import socket
+
+from shutil import copytree
 
 from schema import Optional, Schema, SchemaError
 
@@ -139,6 +147,7 @@ schema = Schema(
         "default_virt_type": str,
         "enable_ipxe": bool,
         "enable_menu": bool,
+        Optional("extra_settings_list", default=[]): [str],
         "http_port": int,
         "include": [str],
         Optional("iso_template_dir", default="/etc/cobbler/iso"): str,
@@ -280,6 +289,11 @@ def migrate(settings: dict) -> dict:
     helper.key_rename(old_setting, "next_server_v4", settings)
     helper.key_set_value(new_setting, settings)
 
+    power_type = helper.key_get("power_management_default_type", settings)
+    if power_type.value == "ipmitool":
+        new_setting = helper.Setting("power_management_default_type", "ipmilanplus")
+        helper.key_set_value(new_setting, settings)
+
     # add missing keys
     # name - value pairs
     missing_keys = {
@@ -369,4 +383,114 @@ def migrate(settings: dict) -> dict:
     # delete removed keys
     helper.key_delete("cache_enabled", settings)
 
+    # migrate stored cobbler collections
+    migrate_cobbler_collections("/var/lib/cobbler/collections/")
+
     return normalize(settings)
+
+
+def backup_dir(dir_path: str):
+    """
+    Copies the directory tree and adds a suffix ".backup.XXXXXXXXX" to it.
+
+    :param dir_path: The full path to the directory which should be backed up.
+    :raises FileNotFoundError: In case the path specified was not existing.
+    """
+    src = os.path.normpath(dir_path)
+    now_iso = datetime.datetime.now().isoformat()
+    copytree(dir_path, f"{src}.backup.{now_iso}")
+
+
+def migrate_cobbler_collections(collections_dir: str):
+    """
+    Manipulate the main Cobbler stored collections and migrate deprecated settings
+    to work with newer Cobbler versions.
+
+    :param collections_dir: The directory of Cobbler where the collections files are.
+    """
+    backup_dir(collections_dir)
+    for collection_file in glob.glob(
+        os.path.join(collections_dir, "**/*.json"), recursive=True
+    ):
+        data = None
+        with open(collection_file, encoding="utf-8") as _f:
+            data = json.loads(_f.read())
+
+        # null values to empty strings
+        for key in data:
+            if data[key] is None:
+                data[key] = ""
+
+        # boot_loader -> boot_loaders
+        if "boot_loader" in data:
+            data["boot_loaders"] = data.pop("boot_loader")
+
+        # next_server -> next_server_v4, next_server_v6
+        if "next_server" in data:
+            addr = data["next_server"]
+            if addr == "<<inherit>>":
+                data["next_server_v4"] = addr
+                data["next_server_v6"] = addr
+                data.pop("next_server")
+            else:
+                try:
+                    _ip = ipaddress.ip_address(addr)
+                    if isinstance(_ip, ipaddress.IPv4Address):
+                        data["next_server_v4"] = data.pop("next_server")
+                    elif isinstance(_ip, ipaddress.IPv6Address):
+                        data["next_server_v6"] = data.pop("next_server")
+                except ValueError:
+                    # next_server is a hostname so we need to resolve hostname
+                    try:
+                        data["next_server_v4"] = socket.getaddrinfo(
+                            addr,
+                            None,
+                            socket.AF_INET,
+                        )[1][4][0]
+                    except OSError:
+                        pass
+                    try:
+                        data["next_server_v6"] = socket.getaddrinfo(
+                            addr,
+                            None,
+                            socket.AF_INET6,
+                        )[1][4][0]
+                    except OSError:
+                        pass
+
+                    if "next_server_v4" not in data and "next_server_v6" not in data:
+                        print(
+                            "ERROR: Neither IPv4 nor IPv6 addresses can be resolved for "
+                            f"'next server': {data['next_server']}. Please check your DNS configuration."
+                        )
+                    else:
+                        data.pop("next_server")
+
+        # enable_gpxe -> enable_ipxe
+        if "enable_gpxe" in data:
+            data["enable_ipxe"] = data.pop("enable_gpxe")
+
+        # ipmitool power_type -> ipmilan power_type
+        if "power_type" in data and data["power_type"] == "ipmitool":
+            data["power_type"] = "ipmilanplus"
+
+        # serial_device (str) -> serial_device (int)
+        if "serial_device" in data and data["serial_device"] == "":
+            data["serial_device"] = -1
+        elif "serial_device" in data and isinstance(data["serial_device"], str):
+            try:
+                data["serial_device"] = int(data["serial_device"])
+            except ValueError as exc:
+                print(f"ERROR casting 'serial_device' attribute to int: {exc}")
+
+        # serial_baud_rate (str) -> serial_baud_rate (int)
+        if "serial_baud_rate" in data and data["serial_baud_rate"] == "":
+            data["serial_baud_rate"] = -1
+        elif "serial_baud_rate" in data and isinstance(data["serial_baud_rate"], str):
+            try:
+                data["serial_baud_rate"] = int(data["serial_baud_rate"])
+            except ValueError as exc:
+                print(f"ERROR casting 'serial_baud_rate' attribute to int: {exc}")
+
+        with open(collection_file, "w", encoding="utf-8") as _f:
+            _f.write(json.dumps(data))

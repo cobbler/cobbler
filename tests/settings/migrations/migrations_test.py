@@ -185,6 +185,8 @@ def test_migrate_v3_2_1():
 
     # Assert
     assert V3_2_1.validate(new_settings)
+    # manage_tftp removed
+    assert "manage_tftp" not in new_settings
 
 
 def test_migrate_v3_3_0():
@@ -203,6 +205,9 @@ def test_migrate_v3_3_0():
     # gpxe -> ipxe renaming
     assert "enable_ipxe" in new_settings
     assert "enable_gpxe" not in new_settings
+    # ipmitool -> ipmilanplus
+    assert "power_management_default_type" in new_settings
+    assert new_settings["power_management_default_type"] == "ipmilanplus"
 
 
 def test_migrate_v3_3_1():

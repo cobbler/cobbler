@@ -67,6 +67,7 @@ schema = Schema(
         Optional("default_virt_type"): str,
         Optional("enable_ipxe"): bool,
         Optional("enable_menu"): bool,
+        Optional("extra_settings_list"): [str],
         Optional("http_port"): int,
         Optional("iso_template_dir"): str,
         Optional("jinja2_includedir"): str,

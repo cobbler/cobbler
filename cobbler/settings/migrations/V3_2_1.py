@@ -11,6 +11,7 @@ import os
 from schema import Optional, Schema, SchemaError
 
 from cobbler.utils import input_converters
+from cobbler.settings.migrations import helper
 from cobbler.settings.migrations import V3_2_0
 
 schema = Schema(
@@ -58,6 +59,7 @@ schema = Schema(
         "default_virt_type": str,
         "enable_gpxe": bool,
         "enable_menu": bool,
+        Optional("extra_settings_list", default=[]): [str],
         "http_port": int,
         "include": [str],
         Optional("iso_template_dir", default="/etc/cobbler/iso"): str,
@@ -224,6 +226,12 @@ def migrate(settings: dict) -> dict:
         settings[mgmt_parameters]["from_cobbler"] = input_converters.input_boolean(
             settings[mgmt_parameters]["from_cobbler"]
         )
+
+    # delete removed keys
+    deleted_keys = ["manage_tftp"]
+    for key in deleted_keys:
+        if key in settings:
+            helper.key_delete(key, settings)
 
     # rename old settings filename
     filename = "/etc/cobbler/settings"

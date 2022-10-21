@@ -618,3 +618,6 @@ modules:
 mongodb:
   host: "localhost"
   port: 27017
+
+# list settings keys to exclude from validation - helpful to validate and migrate custom settings
+extra_settings_list: []
