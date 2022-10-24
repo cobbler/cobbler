@@ -227,6 +227,10 @@ def migrate(settings: dict) -> dict:
             settings[mgmt_parameters]["from_cobbler"]
         )
 
+    # proxy_url_ext -> None to ''
+    if settings["proxy_url_ext"] is None:
+        settings["proxy_url_ext"] = ""
+
     # delete removed keys
     deleted_keys = ["manage_tftp"]
     for key in deleted_keys:
