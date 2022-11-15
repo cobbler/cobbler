@@ -938,8 +938,8 @@ class CobblerAPI:
         try:
             enums.ItemTypes(what)  # verify that <what> is an ItemTypes member
             return getattr(self, f"new_{what}")(is_subobject=is_subobject)
-        except (ValueError, AttributeError):
-            raise Exception(f"internal error, collection name is {what}")
+        except (ValueError, AttributeError) as error:
+            raise Exception(f"internal error, collection name is {what}") from error
 
     def new_distro(self, is_subobject: bool = False):
         """
