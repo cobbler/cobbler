@@ -258,8 +258,8 @@ class CobblerAPI:
             with open(self.mtime_location, "w") as mtime_fd:
                 mtime_fd.write("0")
             return 0.0
-        fd = open(self.mtime_location, "r")
-        data = fd.read().strip()
+        with open(self.mtime_location, "r") as fd:
+            data = fd.read().strip()
         return float(data)
 
     # ==========================================================
