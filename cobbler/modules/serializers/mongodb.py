@@ -17,10 +17,10 @@ try:
     from pymongo import MongoClient
     from pymongo.errors import ConnectionFailure, ConfigurationError
 
-    pymongo_loaded = True
+    PYMONGO_LOADED = True
 except ModuleNotFoundError:
     # FIXME: log message
-    pymongo_loaded = False
+    PYMONGO_LOADED = False
 
 
 def register() -> str:
@@ -28,7 +28,7 @@ def register() -> str:
     The mandatory Cobbler module registration hook.
     """
     # FIXME: only run this if enabled.
-    if not pymongo_loaded:
+    if not PYMONGO_LOADED:
         return ""
     return "serializer"
 
