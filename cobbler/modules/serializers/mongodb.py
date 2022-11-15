@@ -106,11 +106,11 @@ class MongoDBSerializer(StorageBase):
 
     def deserialize(self, collection, topological: bool = True):
         datastruct = self.deserialize_raw(collection.collection_type())
-        if topological and type(datastruct) == list:
+        if topological and isinstance(datastruct, list):
             datastruct.sort(key=lambda x: x["depth"])
-        if type(datastruct) == dict:
+        if isinstance(datastruct, dict):
             collection.from_dict(datastruct)
-        elif type(datastruct) == list:
+        elif isinstance(datastruct, list):
             collection.from_list(datastruct)
 
 
