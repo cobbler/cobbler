@@ -45,7 +45,6 @@ class _BindManager(ManagerModule):
         """
         Not used.
         """
-        pass
 
     def __expand_IPv6(self, address):
         """

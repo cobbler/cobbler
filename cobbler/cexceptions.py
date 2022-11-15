@@ -41,5 +41,3 @@ class CX(CobblerException):
     """
     This is a general exception which gets thrown often inside Cobbler.
     """
-
-    pass

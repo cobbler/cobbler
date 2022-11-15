@@ -26,7 +26,6 @@ try:
 except ModuleNotFoundError:
     # FIXME: log a message here
     jinja2_available = False
-    pass
 
 
 class Templar:
