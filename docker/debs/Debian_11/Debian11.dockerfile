@@ -36,6 +36,7 @@ RUN apt-get update -qq && \
     python3-netaddr \
     python3-pip \
     python3-pycodestyle \
+    python3-pymongo \
     python3-pytest \
     python3-setuptools \
     python3-simplejson  \
