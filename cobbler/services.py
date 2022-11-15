@@ -7,7 +7,6 @@ Mod Python service functions for Cobbler's public interface (aka cool stuff that
 # SPDX-FileCopyrightText: additions: 2007-2009 Michael DeHaan <michael.dehaan AT gmail>
 
 import json
-import os
 import time
 import urllib
 import xmlrpc.client
@@ -447,9 +446,6 @@ def __fillup_form_dict(form: dict, my_uri: str) -> str:
     :return: The normalized URI.
     """
     my_uri = urllib.parse.unquote(my_uri)
-
-    # canonicalizes uri, mod_python does this, mod_wsgi does not
-    my_uri = os.path.realpath(my_uri)
 
     tokens = my_uri.split("/")
     tokens = tokens[1:]
