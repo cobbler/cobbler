@@ -2680,7 +2680,7 @@ class CobblerXMLRPCInterface:
         Return the list of valid boot loaders for the image
 
         :param token: The API-token obtained via the login() method.
-        :param distro_name: The name of the image for which the boot loaders should be looked up.
+        :param image_name: The name of the image for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.
         """
         self._log("get_valid_image_boot_loaders", token=token)
