@@ -57,6 +57,13 @@ then
     $EXECUTOR exec -t cobbler bash -c 'rm /etc/httpd/conf.d/ssl.conf'
 fi
 
+echo "==> Create webroot directory ..."
+if [[ ( "$TAG" == *"rl"* || "$TAG" == *"fc"* ) ]]; then
+    $EXECUTOR exec -it cobbler bash -c 'mkdir /var/www/cobbler'
+else
+    $EXECUTOR exec -it cobbler bash -c 'mkdir /srv/www/cobbler'
+fi
+
 echo "==> Start Supervisor ..."
 if $EXECUTOR exec -t cobbler bash -c 'test ! -d "/var/log/supervisor"'
 then
@@ -74,7 +81,7 @@ $EXECUTOR exec -t cobbler bash -c 'sleep 5 && cobbler version'
 if $RUN_TESTS
 then
     echo "==> Running tests ..."
-    $EXECUTOR exec -t cobbler bash -c 'pip3 install coverage distro future setuptools sphinx mod_wsgi requests future'
+    $EXECUTOR exec -t cobbler bash -c 'pip3 install coverage distro future setuptools sphinx requests future'
     $EXECUTOR exec -t cobbler bash -c 'pip3 install pyyaml netaddr Cheetah3 pymongo distro'
     $EXECUTOR exec -t cobbler bash -c 'pip3 install dnspython pyflakes pycodestyle pytest pytest-cov codecov'
     $EXECUTOR exec -t cobbler bash -c 'pytest'

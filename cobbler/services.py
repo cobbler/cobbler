@@ -8,6 +8,7 @@ Mod Python service functions for Cobbler's public interface (aka cool stuff that
 
 import json
 import time
+import urllib
 import xmlrpc.client
 import yaml
 
@@ -75,7 +76,7 @@ class CobblerSvc:
         data = self.remote.generate_autoinstall(
             profile, system, REMOTE_ADDR, REMOTE_MAC
         )
-        return "%s" % data
+        return f"{data}"
 
     def ks(self, profile=None, system=None, REMOTE_ADDR=None, REMOTE_MAC=None, **rest):
         """
@@ -93,7 +94,7 @@ class CobblerSvc:
         data = self.remote.generate_autoinstall(
             profile, system, REMOTE_ADDR, REMOTE_MAC
         )
-        return "%s" % data
+        return f"{data}"
 
     def ipxe(self, profile=None, image=None, system=None, mac=None, **rest):
         """
@@ -117,7 +118,7 @@ class CobblerSvc:
                 system = found[0]
 
         data = self.remote.generate_ipxe(profile, image, system)
-        return "%s" % data
+        return f"{data}"
 
     def bootcfg(self, profile=None, system=None, **rest):
         """
@@ -130,7 +131,7 @@ class CobblerSvc:
         """
         self.__xmlrpc_setup()
         data = self.remote.generate_bootcfg(profile, system)
-        return "%s" % data
+        return f"{data}"
 
     def script(self, profile=None, system=None, **rest) -> str:
         """
@@ -147,7 +148,7 @@ class CobblerSvc:
         data = self.remote.generate_script(
             profile, system, rest["query_string"]["script"][0]
         )
-        return "%s" % data
+        return f"{data}"
 
     def events(self, user="", **rest) -> str:
         """
@@ -259,7 +260,6 @@ class CobblerSvc:
         :return: The list of object names.
         """
         self.__xmlrpc_setup()
-        buf = ""
         if what == "systems":
             listing = self.remote.get_systems()
         elif what == "profiles":
@@ -280,9 +280,10 @@ class CobblerSvc:
             listing = self.remote.get_menus()
         else:
             return "?"
-        for x in listing:
-            buf += "%s\n" % x["name"]
-        return buf
+        names = [x["name"] for x in listing]
+        if len(names) > 0:
+            return "\n".join(names) + "\n"
+        return ""
 
     def autodetect(self, **rest) -> str:
         """
@@ -316,7 +317,7 @@ class CobblerSvc:
                         candidates.append(x)
 
         if len(candidates) == 0:
-            return "FAILED: no match (%s,%s)" % (ip, macinput)
+            return f"FAILED: no match ({ip},{macinput})"
         elif len(candidates) > 1:
             return "FAILED: multiple matches"
         elif len(candidates) == 1:
@@ -336,19 +337,19 @@ class CobblerSvc:
 
         name = "?"
         if system is not None:
-            url = "%s/cblr/svc/op/autoinstall/system/%s" % (self.server, name)
+            url = f"{self.server}/cblr/svc/op/autoinstall/system/{name}"
         elif profile is not None:
-            url = "%s/cblr/svc/op/autoinstall/profile/%s" % (self.server, name)
+            url = f"{self.server}/cblr/svc/op/autoinstall/profile/{name}"
         else:
             name = self.autodetect(**rest)
             if name.startswith("FAILED"):
-                return "# autodetection %s" % name
-            url = "%s/cblr/svc/op/autoinstall/system/%s" % (self.server, name)
+                return f"# autodetection {name}"
+            url = f"{self.server}/cblr/svc/op/autoinstall/system/{name}"
 
         try:
             return self.dlmgr.urlread(url)
         except:
-            return "# automatic installation file retrieval failed (%s)" % url
+            return f"# automatic installation file retrieval failed ({url})"
 
     def findks(self, system=None, profile=None, **rest):
         """
@@ -364,19 +365,19 @@ class CobblerSvc:
 
         name = "?"
         if system is not None:
-            url = "%s/cblr/svc/op/ks/system/%s" % (self.server, name)
+            url = f"{self.server}/cblr/svc/op/ks/system/{name}"
         elif profile is not None:
-            url = "%s/cblr/svc/op/ks/profile/%s" % (self.server, name)
+            url = f"{self.server}/cblr/svc/op/ks/profile/{name}"
         else:
             name = self.autodetect(**rest)
             if name.startswith("FAILED"):
-                return "# autodetection %s" % name
-            url = "%s/cblr/svc/op/ks/system/%s" % (self.server, name)
+                return f"# autodetection {name}"
+            url = f"{self.server}/cblr/svc/op/ks/system/{name}"
 
         try:
             return self.dlmgr.urlread(url)
         except:
-            return "# kickstart retrieval failed (%s)" % url
+            return f"# kickstart retrieval failed ({url})"
 
     def puppet(self, hostname=None, **rest) -> str:
         """
@@ -434,3 +435,103 @@ class CobblerSvc:
             classes = list(classes.keys())
 
         return yaml.dump(data, default_flow_style=False)
+
+
+def __fillup_form_dict(form: dict, my_uri: str) -> str:
+    """
+    Helper function to fillup the form dict with required mode information.
+
+    :param form: The form dict to manipulate
+    :param my_uri: The URI to work with.
+    :return: The normalized URI.
+    """
+    my_uri = urllib.parse.unquote(my_uri)
+
+    tokens = my_uri.split("/")
+    tokens = tokens[1:]
+    label = True
+    field = ""
+    for token in tokens:
+        if label:
+            field = token
+        else:
+            form[field] = token
+        label = not label
+    return my_uri
+
+
+def __generate_remote_mac_list(environ: dict) -> list:
+    # This MAC header is set by anaconda during a kickstart booted with the
+    # kssendmac kernel option. The field will appear here as something
+    # like: eth0 XX:XX:XX:XX:XX:XX
+    mac_counter = 0
+    remote_macs = []
+    mac_header = f"HTTP_X_RHN_PROVISIONING_MAC_{mac_counter:d}"
+    while environ.get(mac_header, None):
+        remote_macs.append(environ[mac_header])
+        mac_counter = mac_counter + 1
+        mac_header = f"HTTP_X_RHN_PROVISIONING_MAC_{mac_counter:d}"
+    return remote_macs
+
+
+def application(environ, start_response):
+    """
+    UWSGI entrypoint for Gunicorn
+
+    :param environ:
+    :param start_response:
+    :return:
+    """
+
+    form = {}
+    my_uri = __fillup_form_dict(form, environ["RAW_URI"])
+    form["query_string"] = urllib.parse.parse_qs(environ["QUERY_STRING"])
+    form["REMOTE_MACS"] = __generate_remote_mac_list(environ)
+
+    # REMOTE_ADDR isn't a required wsgi attribute so it may be naive to assume it's always present in this context.
+    form["REMOTE_ADDR"] = environ.get("REMOTE_ADDR", None)
+
+    # Read config for the XMLRPC port to connect to:
+    with open("/etc/cobbler/settings.yaml") as main_settingsfile:
+        ydata = yaml.safe_load(main_settingsfile)
+
+    # Instantiate a CobblerWeb object
+    http_api = CobblerSvc(server=f'http://127.0.0.1:{ydata.get("xmlrpc_port", 25151)}')
+
+    # Check for a valid path/mode; handle invalid paths gracefully
+    mode = form.get("op", "index")
+
+    # TODO: We could do proper exception handling here and return
+    # Corresponding HTTP status codes:
+
+    status = "200 OK"
+    # Execute corresponding operation on the CobblerSvc object:
+    func = getattr(http_api, mode)
+    try:
+        content = func(**form)
+
+        if content.find("# *** ERROR ***") != -1:
+            status = "500 SERVER ERROR"
+            print("possible cheetah template error")
+
+        # TODO: Not sure these strings are the right ones to look for...
+        elif (
+            content.find("# profile not found") != -1
+            or content.find("# system not found") != -1
+            or content.find("# object not found") != -1
+        ):
+            print(f"content not found: {my_uri}")
+            status = "404 NOT FOUND"
+    except xmlrpc.server.Fault as err:
+        status = "500 SERVER ERROR"
+        content = err.faultString
+
+    content = content.encode("utf-8")
+
+    response_headers = [
+        ("Content-type", "text/plain;charset=utf-8"),
+        ("Content-Length", str(len(content))),
+    ]
+    start_response(status, response_headers)
+
+    return [content]

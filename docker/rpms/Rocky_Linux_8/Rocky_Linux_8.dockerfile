@@ -44,7 +44,7 @@ RUN touch /var/lib/rpm/* &&   \
 RUN touch /var/lib/rpm/* &&   \
     dnf install -y            \
     httpd                     \
-    python3-mod_wsgi          \
+    python3-gunicorn          \
     python3-pyyaml            \
     python3-netaddr           \
     python3-cheetah           \

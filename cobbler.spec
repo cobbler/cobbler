@@ -68,7 +68,6 @@
 
 %define apache_dir /srv/www
 %define apache_webconfigdir /etc/apache2/vhosts.d
-%define apache_mod_wsgi apache2-mod_wsgi-python%{python3_pkgversion}
 %define tftpboot_dir /srv/tftpboot
 
 %define tftpsrv_pkg tftp
@@ -94,7 +93,6 @@
 %define apache_group www-data
 
 %define apache_webconfigdir /etc/apache2/conf-available
-%define apache_mod_wsgi libapache2-mod-wsgi-py%{python3_pkgversion}
 
 %define tftpsrv_pkg tftpd-hpa
 %define createrepo_pkg createrepo
@@ -119,7 +117,6 @@
 %define apache_webconfigdir /etc/httpd/conf.d
 
 %define apache_pkg httpd
-%define apache_mod_wsgi python%{python3_pkgversion}-mod_wsgi
 %define tftpsrv_pkg tftp-server
 %define grub2_x64_efi_pkg grub2-efi-x64
 %define grub2_ia32_efi_pkg grub2-efi-ia32
@@ -226,12 +223,12 @@ Requires:       xorriso
 %if ! (%{defined python_enable_dependency_generator} || %{defined python_disable_dependency_generator})
 Requires:       %{py3_module_cheetah}
 Requires:       %{py3_module_dns}
-Requires:       %{apache_mod_wsgi}
 Requires:       python%{python3_pkgversion}-netaddr
 Requires:       %{py3_module_pyyaml}
 Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-distro
 Requires:       python%{python3_pkgversion}-schema
+Requires:       python%{python3_pkgversion}-gunicorn
 Requires:       %{py3_module_file}
 %if 0%{?suse_version}
 Recommends:     python%{python3_pkgversion}-ldap
@@ -310,7 +307,8 @@ sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i config/cobbler/settings.yaml
 %py3_install
 
 # cobbler
-rm %{buildroot}%{_sysconfdir}/cobbler/cobbler.conf
+rm -r %{buildroot}%{_sysconfdir}/cobbler/apache
+rm -r %{buildroot}%{_sysconfdir}/cobbler/nginx
 
 mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
 mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd_rotate %{buildroot}%{_sysconfdir}/logrotate.d/cobblerd
@@ -449,7 +447,6 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
 %if 0%{?suse_version}
 %{_sbindir}/rccobblerd
 %endif
-%{apache_dir}/cobbler
 %{_sharedstatedir}/cobbler
 %{_localstatedir}/log/cobbler
 

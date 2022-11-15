@@ -1,7 +1,7 @@
 # vim: ft=dockerfile
 
 # WARNING! This is not in any way production ready. It is just for testing!
-FROM registry.opensuse.org/opensuse/leap:15.3
+FROM registry.opensuse.org/opensuse/leap:15.4
 
 # ENV Variables we are using.
 ENV container docker
@@ -12,7 +12,7 @@ RUN zypper install --no-recommends -y \
     acl                        \
     apache2                    \
     apache2-devel              \
-    apache2-mod_wsgi-python3   \
+    nginx                      \
     bash-completion            \
     createrepo_c               \
     fence-agents               \
@@ -41,6 +41,7 @@ RUN zypper install --no-recommends -y \
     python3-pykickstart        \
     python3-netaddr            \
     python3-pymongo            \
+    python3-gunicorn           \
     rpm-build                  \
     rsync                      \
     supervisor                 \
@@ -86,8 +87,7 @@ RUN zypper install --no-recommends -y \
 RUN zypper install --no-recommends -y \
     python3-librepo                   \
     dnf                               \
-    dnf-plugins-core                  \
-    wget
+    dnf-plugins-core
 
 # Required for reposync apt test
 RUN zypper install --no-recommends -y \
@@ -131,7 +131,6 @@ RUN pip3 install      \
 RUN ["a2enmod", "version"]
 RUN ["a2enmod", "proxy"]
 RUN ["a2enmod", "proxy_http"]
-RUN ["a2enmod", "wsgi"]
 
 # create working directory
 RUN ["mkdir", "/code"]

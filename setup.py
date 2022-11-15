@@ -538,7 +538,6 @@ if __name__ == "__main__":
         ],
         keywords=["pxe", "autoinstallation", "dhcp", "tftp", "provisioning"],
         install_requires=[
-            "mod_wsgi",
             "requests",
             "pyyaml",
             "netaddr",
@@ -576,6 +575,7 @@ if __name__ == "__main__":
         },
         configure_files=[
             "config/apache/cobbler.conf",
+            "config/nginx/cobbler.conf",
             "config/cobbler/settings.yaml",
             "config/service/cobblerd.service",
             "templates/etc/named.template",
@@ -596,10 +596,11 @@ if __name__ == "__main__":
             ("%s/loaders" % libpath, []),
             ("%s/misc" % libpath, glob("misc/*")),
             # Configuration
+            (f"{etcpath}/apache", ["build/config/apache/cobbler.conf"]),
+            (f"{etcpath}/nginx", ["build/config/nginx/cobbler.conf"]),
             (
                 "%s" % etcpath,
                 [
-                    "build/config/apache/cobbler.conf",
                     "build/config/service/cobblerd.service",
                     "build/config/cobbler/settings.yaml",
                 ],
@@ -650,8 +651,6 @@ if __name__ == "__main__":
             ("%s/httpd/cobbler" % logpath, []),
             ("%s/cobbler/anamon" % logpath, []),
             ("%s/cobbler/tasks" % logpath, []),
-            # A script that isn't really data, wsgi script
-            ("%s/cobbler/svc/" % webroot, ["svc/services.py"]),
             # zone-specific templates directory
             ("%s/zone_templates" % etcpath, glob("templates/zone_templates/*")),
             # windows-specific templates directory

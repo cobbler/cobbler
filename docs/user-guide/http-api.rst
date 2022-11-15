@@ -25,7 +25,7 @@ Returns the currently loaded settings. For specific settings please see :ref:`th
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/setting
 
@@ -55,7 +55,7 @@ Profile
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/autoinstall/profile/example_profile
 
@@ -71,7 +71,7 @@ System
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/autoinstall/system/example_system
 
@@ -93,7 +93,7 @@ Profile
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/ks/profile/example_profile
 
@@ -109,7 +109,7 @@ System
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/ks/system/example_system
 
@@ -130,7 +130,7 @@ Profile
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/ipxe/profile/example_profile
 
@@ -151,7 +151,7 @@ Image
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/ipxe/image/example_image
 
@@ -164,7 +164,7 @@ System
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/ipxe/system/example_system
 
@@ -189,7 +189,7 @@ Profile
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/bootcfg/profile/example_profile
 
@@ -211,7 +211,7 @@ System
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/bootcfg/system/example_system
 
@@ -238,7 +238,7 @@ Profile
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/script/profile/example_profile
 
@@ -251,7 +251,7 @@ System
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/script/system/example_system
 
@@ -266,7 +266,7 @@ Returns events associated with the specified user, if no user is given returns a
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/events/user/example_user
 
@@ -288,7 +288,7 @@ Profile
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/template/profile/example_profile
 
@@ -301,7 +301,7 @@ System
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/template/system/example_system
 
@@ -319,7 +319,7 @@ Profile
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/yum/profile/example_profile
 
@@ -332,7 +332,7 @@ System
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/yum/system/example_system
 
@@ -347,7 +347,7 @@ Hook to install triggers.
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/trig
 
@@ -362,7 +362,7 @@ Profile
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/trig/profile/example_profile
 
@@ -377,7 +377,7 @@ System
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/trig/system/example_system
 
@@ -394,7 +394,7 @@ If network boot is enabled for specified system.
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/nopxe/system/example_system
 
@@ -415,7 +415,7 @@ If the selected option is not valid the endpoint will return ``?``.
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/list/what/profiles
 
@@ -435,7 +435,7 @@ Autodetects the system, returns an error if more than one system is found.
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/autodetect
 
@@ -453,7 +453,7 @@ Profile
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/find_autoinstall/profile/example_profile
 
@@ -466,7 +466,7 @@ System
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/find_autoinstall/system/example_system
 
@@ -485,7 +485,7 @@ Profile
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/findks/profile/example_profile
 
@@ -498,7 +498,7 @@ System
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/findks/system/example_system
 
@@ -513,7 +513,7 @@ Dump puppet data for specified hostname, returns yaml file for host.
 
 Example Call:
 
-.. code-block::
+.. code-block:: console
 
     curl http://localhost/cblr/svc/op/puppet/hostname/example_hostname
 

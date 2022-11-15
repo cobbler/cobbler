@@ -29,7 +29,7 @@ Provide cobbler with ESXi bootloaders
 
 iPXE booting is documented later. Note that this step will only need to be run once.
 
-.. code-block::
+.. code-block:: console
 
     # STEP 1: Create esxi dir in cobbler bootloaders_dir
     mkdir /var/lib/cobbler/loaders/esxi
@@ -51,7 +51,7 @@ iPXE booting is documented later. Note that this step will only need to be run o
 Import an ESXi distro
 ========================
 
-.. code-block::
+.. code-block:: console
 
     mount -t iso9660 /srv/VMware-VMvisor-Installer-7.0U3d-19482537.x86_64.iso /mnt
     cobbler import --name=esxiv70U3d --path=/mnt --arch=x86_64
@@ -64,7 +64,7 @@ Add a system
 
 Now add a system with the previously created profile
 
-.. code-block::
+.. code-block:: console
 
     cobbler system add --name some-esxi-host --profile esxiv70U3d-x86_64 --netboot-enabled=true \
         --interface="vmnic0" --mac-address="01:23:45:67:89:ab" --dns-name=some-esxi-host.localdomain
@@ -113,7 +113,7 @@ ESXi provides network bootloaders for:
 
 A cobbler setup with all the ESXi bootloaders would look like:
 
-.. code-block::
+.. code-block:: console
 
     cobbler:~ # ls -alh /var/lib/cobbler/loaders/esxi/
     total 488K
@@ -145,7 +145,7 @@ on the esxi directory of the `bootloaders_dir`.
 
 The following code snippet shows how to provide cobbler with ``pxelinux.0`` from syslinux version 3.86:
 
-.. code-block::
+.. code-block:: console
 
     # Create esxi dir in cobbler bootloaders_dir
     mkdir /var/lib/cobbler/loaders/esxi
@@ -166,7 +166,7 @@ During the network boot process:
 * that file will provide the kernel tftp path to ``mboot.c32`` (from the distro images link),
   and append the ``boot.cfg`` file for the host:
 
-.. code-block::
+.. code-block:: console
 
     cobbler:~ # cat /var/lib/tftpboot/esxi/pxelinux.cfg/01-01-23-45-67-89-ab
     timeout 1
@@ -194,7 +194,7 @@ The ESXi UEFI bootloader can be found in the ESXi installation iso at ``efi/boot
 
 The following code snippet shows how to provide cobbler with the ``mboot.efi`` bootloader:
 
-.. code-block::
+.. code-block:: console
 
     # Create esxi dir in cobbler bootloaders_dir
     mkdir /var/lib/cobbler/loaders/esxi
@@ -228,7 +228,7 @@ iPXE can be used to boot the ESXi installer:
 
 Some distros already provide a compiled binary of undionly.kpxe and snponly.efi files. This snippet is valid for rhel8 and derivates:
 
-.. code-block::
+.. code-block:: console
 
     # This is an example valid for rhel8 and derivates.
     # install ipxe-bootimgs-x86
@@ -242,7 +242,7 @@ Some distros already provide a compiled binary of undionly.kpxe and snponly.efi 
 
 Another option is obtaining the binaries from source ipxe:
 
-.. code-block::
+.. code-block:: console
 
     # obtain source ipxe
     git clone https://github.com/ipxe/ipxe.git
@@ -261,7 +261,7 @@ Another option is obtaining the binaries from source ipxe:
 
 iPXE boot can be enabled on a profile or system basis.
 
-.. code-block::
+.. code-block:: console
 
     cobbler system edit --name some-esxi-host --enable-ipxe=true
 
@@ -312,7 +312,7 @@ You can obtain cobbler's boot.cfg file for a system and profile via HTTP API.
 
 Example call for profile (modules shortened for readability)
 
-.. code-block::
+.. code-block:: console
 
     cobbler:~ # curl http://localhost/cblr/svc/op/bootcfg/profile/esxiv70U3d-x86_64
     bootstate=0
@@ -327,7 +327,7 @@ Example call for profile (modules shortened for readability)
 
 Example call for system (modules shortened for readability). Note that as system is iPXE enabled, prefix is now an http location.
 
-.. code-block::
+.. code-block:: console
 
     cobbler:~ # curl http://localhost/cblr/svc/op/bootcfg/system/some-esxi-host
     bootstate=0
@@ -347,7 +347,7 @@ Kernel options can be added to profiles and to systems. Systems will inherit the
 
 Example adding a kernel option to profile and system, and the generated boot.cfg file:
 
-.. code-block::
+.. code-block:: console
 
     cobbler:~ # cobbler profile edit --name esxiv70U3d-x86_64 --kernel-options="vlanid=203"
     cobbler:~ # cobbler system edit --name some-esxi-host --kernel-options="systemMediaSize=small"
@@ -367,7 +367,7 @@ TFTP esxi directory
 
 On the tftp root directory, tree would look like:
 
-.. code-block::
+.. code-block:: console
 
     cobbler:~ # tree /var/lib/tftpboot/esxi
     /var/lib/tftpboot/esxi

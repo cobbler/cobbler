@@ -47,8 +47,14 @@ echo "==> Restart Apache and Cobbler daemon ..."
 $EXECUTOR exec -it cobbler bash -c 'a2enmod proxy && a2enmod proxy_http'
 $EXECUTOR exec -it cobbler bash -c 'a2enconf cobbler'
 
+echo "==> Create DHCPD leases file"
+$EXECUTOR exec -it cobbler bash -c 'touch /var/lib/dhcp/dhcpd.leases'
+
+echo "==> Create webroot directory ..."
+$EXECUTOR exec -it cobbler bash -c 'mkdir /var/www/cobbler'
+
 echo "==> Start Supervisor"
-$EXECUTOR exec -it cobbler bash -c 'supervisord -c /etc/supervisord.conf'
+$EXECUTOR exec -it cobbler bash -c 'supervisord -c /etc/supervisor/supervisord.conf'
 
 echo "==> Wait 20 sec. and show Cobbler version ..."
 $EXECUTOR exec -it cobbler bash -c 'sleep 20 && cobbler --version'
@@ -56,7 +62,6 @@ $EXECUTOR exec -it cobbler bash -c 'sleep 20 && cobbler --version'
 if $RUN_TESTS
 then
     # Almost all of these requirement are already satisfied in the Dockerfiles!
-    # Also on Debian mod_wsgi is installed as "libapache2-mod-wsgi-py3"
     echo "==> Running tests ..."
     $EXECUTOR exec -it cobbler bash -c 'pip3 install coverage distro future setuptools sphinx requests future'
     $EXECUTOR exec -it cobbler bash -c 'pip3 install pyyaml netaddr Cheetah3 pymongo distro'

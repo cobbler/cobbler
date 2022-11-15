@@ -11,7 +11,6 @@ RUN zypper install -y          \
     acl                        \
     apache2                    \
     apache2-devel              \
-    apache2-mod_wsgi-python3   \
     bash-completion            \
     git                        \
     gzip                       \
@@ -31,6 +30,7 @@ RUN zypper install -y          \
     python-rpm-macros          \
     python3                    \
     python3-Sphinx             \
+    python3-gunicorn           \
     python3-Cheetah3           \
     python3-Sphinx             \
     python3-dnspython          \

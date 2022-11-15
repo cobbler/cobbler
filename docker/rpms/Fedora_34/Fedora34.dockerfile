@@ -30,7 +30,6 @@ RUN dnf install -y          \
 # Runtime dependencies
 RUN yum install -y          \
     httpd                   \
-    python3-mod_wsgi        \
     python3-PyYAML          \
     python3-cheetah         \
     python3-netaddr         \

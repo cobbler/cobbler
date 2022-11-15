@@ -23,6 +23,7 @@ RUN apt-get update -qq && \
     pycodestyle \
     pyflakes3 \
     python3-cheetah  \
+    python3-gunicorn  \
     python3-coverage \
     python3-wheel   \
     python3-distro \
@@ -49,6 +50,7 @@ RUN apt-get update -qq && \
     dpkg-dev \
     tftpd-hpa \
     createrepo-c \
+    isc-dhcp-server \
     rsync \
     xorriso\
     fence-agents\
@@ -58,7 +60,6 @@ RUN apt-get update -qq && \
     git \
     hardlink \
     apache2 \
-    libapache2-mod-wsgi-py3 \
     iproute2 \
     systemd \
     systemd-sysv \
@@ -70,8 +71,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN echo "dash dash/sh boolean false" | debconf-set-selections && \
     dpkg-reconfigure dash
 
-COPY ./docker/debs/Debian_11/supervisord/supervisord.conf /etc/supervisord.conf
-COPY ./docker/debs/Debian_11/supervisord/conf.d /etc/supervisord/conf.d
+COPY ./docker/debs/Debian_10/supervisord/conf.d /etc/supervisor/conf.d
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler
