@@ -97,8 +97,7 @@ def hashfile(fn: str, lcache=None):
             __create_if_not_exists(lcache)
             json.dump(db, open(dbfile, "w"))
         return key
-    else:
-        return None
+    return None
 
 
 def cachefile(src: str, dst: str):

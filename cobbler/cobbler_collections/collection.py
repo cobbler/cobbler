@@ -147,8 +147,7 @@ class Collection:
             if len(matches) == 0:
                 return None
             return matches[0]
-        else:
-            return matches
+        return matches
 
     SEARCH_REKEY = {
         "kopts": "kernel_options",
@@ -505,8 +504,7 @@ class Collection:
             results.append(v.to_string())
         if len(values) > 0:
             return "\n\n".join(results)
-        else:
-            return "No objects found"
+        return "No objects found"
 
     @staticmethod
     def collection_type() -> str:

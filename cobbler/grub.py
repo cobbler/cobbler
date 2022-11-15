@@ -24,7 +24,7 @@ def parse_grub_remote_file(file_location: str) -> Optional[str]:
             "FTP protocol not supported by GRUB. Only HTTP and TFTP [%s]", file_location
         )
         return None
-    elif file_location.startswith("http://"):
+    if file_location.startswith("http://"):
         (server, delim, path) = file_location[7:].partition("/")
         prot = "http"
     elif file_location.startswith("tftp://"):

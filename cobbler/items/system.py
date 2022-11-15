@@ -826,7 +826,7 @@ class System(Item):
     def __getattr__(self, name):
         if name == "kickstart":
             return self.autoinstall
-        elif name == "ks_meta":
+        if name == "ks_meta":
             return self.autoinstall_meta
         raise AttributeError(f'Attribute "{name}" did not exist on object type System.')
 
@@ -869,13 +869,12 @@ class System(Item):
         """
         if not self._parent and self.profile:
             return self.api.profiles().find(name=self.profile)
-        elif not self._parent and self.image:
+        if not self._parent and self.image:
             return self.api.images().find(name=self.image)
-        elif self._parent:
+        if self._parent:
             # We don't know what type this is, so we need to let find_items() do the magic of guessing that.
             return self.api.find_items(what="", name=self._parent, return_list=False)
-        else:
-            return None
+        return None
 
     @parent.setter
     def parent(self, value: str):
@@ -1272,8 +1271,7 @@ class System(Item):
 
         if intf.mac_address != "":
             return intf.mac_address.strip()
-        else:
-            return None
+        return None
 
     def get_ip_address(self, interface: str):
         """
@@ -1284,8 +1282,7 @@ class System(Item):
         intf = self.__get_interface(interface)
         if intf.ip_address:
             return intf.ip_address.strip()
-        else:
-            return ""
+        return ""
 
     def is_management_supported(self, cidr_ok: bool = True) -> bool:
         """
@@ -2091,12 +2088,10 @@ class System(Item):
         if mac is not None and mac != "":
             if loader == "grub":
                 return mac.lower()
-            else:
-                return "01-" + "-".join(mac.split(":")).lower()
-        elif ip is not None and ip != "":
+            return "01-" + "-".join(mac.split(":")).lower()
+        if ip is not None and ip != "":
             return utils.get_host_ip(ip)
-        else:
-            return self.name
+        return self.name
 
     @property
     def display_name(self) -> str:

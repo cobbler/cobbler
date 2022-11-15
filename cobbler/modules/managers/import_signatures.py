@@ -484,7 +484,7 @@ class _ImportSignatureManager(ManagerModule):
                 dirname,
             )
             return []
-        elif len(archs) > 1:
+        if len(archs) > 1:
             self.logger.warning("- Warning : Multiple archs found : %s", archs)
 
         distros_added = []

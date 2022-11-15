@@ -402,8 +402,7 @@ class CobblerXMLRPCInterface:
             with open(path, "r", encoding="utf-8") as fh:
                 data = str(fh.read())
             return data
-        else:
-            return "?"
+        return "?"
 
     def _new_event(self, name: str) -> CobblerEvent:
         """
@@ -1295,8 +1294,7 @@ class CobblerXMLRPCInterface:
         found = self.api.get_item(what, name)
         if found is None:
             return False
-        else:
-            return True
+        return True
 
     def get_item_handle(self, what: str, name: str):
         """
@@ -1886,10 +1884,10 @@ class CobblerXMLRPCInterface:
             if attribute == "modify_interface":
                 obj.modify_interface(arg)
                 return True
-            elif attribute == "delete_interface":
+            if attribute == "delete_interface":
                 obj.delete_interface(arg)
                 return True
-            elif attribute == "rename_interface":
+            if attribute == "rename_interface":
                 obj.rename_interface(
                     old_name=arg.get("interface", ""),
                     new_name=arg.get("rename_interface", ""),
@@ -3283,8 +3281,7 @@ class CobblerXMLRPCInterface:
         system = self.api.find_system(dns_name=dns_name)
         if system is None:
             return {}
-        else:
-            return self.get_system_as_rendered(system.name)
+        return self.get_system_as_rendered(system.name)
 
     def get_distro_as_rendered(self, name: str, token: str = None, **rest):
         """
@@ -3585,9 +3582,8 @@ class CobblerXMLRPCInterface:
                 return False
             self.token_cache[token] = (time.time(), user)  # update to prevent timeout
             return True
-        else:
-            self._log("invalid token", token=token)
-            return False
+        self._log("invalid token", token=token)
+        return False
 
     def __name_to_object(self, resource, name):
         if resource.find("distro") != -1:
@@ -3694,16 +3690,14 @@ class CobblerXMLRPCInterface:
         if login_user == "":
             if login_password == self.shared_secret:
                 return self.__make_token("<DIRECT>")
-            else:
-                utils.die("login failed")
+            utils.die("login failed")
 
         # This should not log to disk OR make events as we're going to call it like crazy in CobblerWeb. Just failed
         # attempts.
         if self.__validate_user(login_user, login_password):
             token = self.__make_token(login_user)
             return token
-        else:
-            utils.die(f"login failed ({login_user})")
+        utils.die(f"login failed ({login_user})")
 
     def logout(self, token: str) -> bool:
         """

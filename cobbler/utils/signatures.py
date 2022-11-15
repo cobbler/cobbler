@@ -68,8 +68,7 @@ def get_valid_breeds() -> list:
     """
     if "breeds" in SIGNATURE_CACHE:
         return list(SIGNATURE_CACHE["breeds"].keys())
-    else:
-        return []
+    return []
 
 
 def get_valid_os_versions_for_breed(breed) -> list:

@@ -100,9 +100,9 @@ class MongoDBSerializer(StorageBase):
     def deserialize_raw(self, collection_type: str):
         if collection_type == "settings":
             return settings.read_settings_file()
-        else:
-            collection = self.mongodb_database[collection_type]
-            return collection.find()
+
+        collection = self.mongodb_database[collection_type]
+        return collection.find()
 
     def deserialize(self, collection, topological: bool = True):
         datastruct = self.deserialize_raw(collection.collection_type())

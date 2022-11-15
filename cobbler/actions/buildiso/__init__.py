@@ -205,10 +205,10 @@ class BuildIso:
         if desired_arch in (Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL):
             # GRUB can boot all Power architectures it supports via the following modules directory.
             return grub_binary_names["powerpc-ieee1275"]
-        elif desired_arch == Archs.AARCH64:
+        if desired_arch == Archs.AARCH64:
             # GRUB has only one 64-bit variant it can boot, the name is different how we have named it in Cobbler.
             return grub_binary_names["arm64-efi"]
-        elif desired_arch == Archs.ARM:
+        if desired_arch == Archs.ARM:
             # GRUB has only one 32-bit variant it can boot, the name is different how we have named it in Cobbler.
             return grub_binary_names["arm"]
 

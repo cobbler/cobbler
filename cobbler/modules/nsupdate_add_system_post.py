@@ -38,10 +38,9 @@ def register() -> str:
     """
     if __name__ == "cobbler.modules.nsupdate_add_system_post":
         return "/var/lib/cobbler/triggers/add/system/post/*"
-    elif __name__ == "cobbler.modules.nsupdate_delete_system_pre":
+    if __name__ == "cobbler.modules.nsupdate_delete_system_pre":
         return "/var/lib/cobbler/triggers/delete/system/pre/*"
-    else:
-        return ""
+    return ""
 
 
 def run(api, args):

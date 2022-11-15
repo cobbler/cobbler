@@ -326,8 +326,7 @@ class CobblerAPI:
                     int(elems[0]) + 0.1 * int(elems[1]) + 0.001 * int(elems[2]), ".3f"
                 )
             )
-        else:
-            return data
+        return data
 
     # ==========================================================
 
@@ -1682,8 +1681,7 @@ class CobblerAPI:
         template_results = self.tftpgen.write_templates(obj, False, path)
         if path in template_results:
             return template_results[path]
-        else:
-            return "# template path not found for specified profile"
+        return "# template path not found for specified profile"
 
     def get_template_file_for_system(self, obj, path):
         """
@@ -1696,8 +1694,7 @@ class CobblerAPI:
         template_results = self.tftpgen.write_templates(obj, False, path)
         if path in template_results:
             return template_results[path]
-        else:
-            return "# template path not found for specified system"
+        return "# template path not found for specified system"
 
     # ==========================================================================
 
@@ -1737,8 +1734,7 @@ class CobblerAPI:
         self.log("generate_bootcfg")
         if system:
             return self.tftpgen.generate_bootcfg("system", system)
-        else:
-            return self.tftpgen.generate_bootcfg("profile", profile)
+        return self.tftpgen.generate_bootcfg("profile", profile)
 
     # ==========================================================================
 
@@ -1755,8 +1751,7 @@ class CobblerAPI:
         self.log("generate_script")
         if system:
             return self.tftpgen.generate_script("system", system, name)
-        else:
-            return self.tftpgen.generate_script("profile", profile, name)
+        return self.tftpgen.generate_script("profile", profile, name)
 
     # ==========================================================================
 

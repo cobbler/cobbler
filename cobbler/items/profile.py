@@ -77,7 +77,7 @@ class Profile(item.Item):
     def __getattr__(self, name):
         if name == "kickstart":
             return self.autoinstall
-        elif name == "ks_meta":
+        if name == "ks_meta":
             return self.autoinstall_meta
         raise AttributeError(
             f'Attribute "{name}" did not exist on object type Profile.'
@@ -153,9 +153,7 @@ class Profile(item.Item):
             if parent is None:
                 return None
             return parent
-        else:
-            result = self.api.profiles().find(name=self._parent)
-        return result
+        return self.api.profiles().find(name=self._parent)
 
     @parent.setter
     def parent(self, parent: str):
@@ -485,15 +483,14 @@ class Profile(item.Item):
             parent = self.parent
             if parent is not None and isinstance(parent, Profile):
                 return self.parent.autoinstall
-            elif parent is not None and isinstance(parent, Distro):
+            if parent is not None and isinstance(parent, Distro):
                 return self.api.settings().autoinstall
-            else:
-                self.logger.info(
-                    'Profile "%s" did not have a valid parent of type Profile but autoinstall is set to '
-                    '"<<inherit>>".',
-                    self.name,
-                )
-                return ""
+            self.logger.info(
+                'Profile "%s" did not have a valid parent of type Profile but autoinstall is set to '
+                '"<<inherit>>".',
+                self.name,
+            )
+            return ""
         return self._autoinstall
 
     @autoinstall.setter

@@ -228,8 +228,7 @@ class PowerManager:
                         power_status = match.groups()[1]
                         if power_status.lower() == "on":
                             return True
-                        else:
-                            return False
+                        return False
                     error_msg = f"command succeeded (rc={rc}), but output ('{output}') was not understood"
                     utils.die(error_msg)
                     raise CX(error_msg)

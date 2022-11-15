@@ -444,8 +444,7 @@ class Distro(item.Item):
             if boot_loaders == enums.VALUE_INHERITED:
                 self._boot_loaders = enums.VALUE_INHERITED
                 return
-            else:
-                boot_loaders = input_converters.input_string_or_list(boot_loaders)
+            boot_loaders = input_converters.input_string_or_list(boot_loaders)
 
         if not isinstance(boot_loaders, list):
             raise TypeError("boot_loaders needs to be of type list!")

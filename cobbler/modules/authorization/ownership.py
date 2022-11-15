@@ -200,7 +200,7 @@ def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int
 
     if resource.find("write_autoinstall_template") != -1:
         return __authorize_autoinst(api_handle, found_groups, user, arg1)
-    elif resource.find("read_autoinstall_template") != -1:
+    if resource.find("read_autoinstall_template") != -1:
         return 1
 
     # The API for editing snippets also needs to do something similar. As with automatic installation files, though
@@ -208,7 +208,7 @@ def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int
 
     if resource.find("write_autoinstall_snippet") != -1:
         return __authorize_snippet(api_handle, found_groups, user, arg1)
-    elif resource.find("read_autoinstall_snipppet") != -1:
+    if resource.find("read_autoinstall_snipppet") != -1:
         return 1
 
     obj = None

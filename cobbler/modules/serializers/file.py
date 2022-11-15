@@ -93,18 +93,18 @@ class FileSerializer(StorageBase):
     def deserialize_raw(self, collection_type: str):
         if collection_type == "settings":
             return settings.read_settings_file()
-        else:
-            results = []
 
-            path = os.path.join(self.libpath, collection_type)
-            all_files = glob.glob(f"{path}/*.json")
+        results = []
 
-            for f in all_files:
-                with open(f) as file_descriptor:
-                    json_data = file_descriptor.read()
-                    _dict = json.loads(json_data)
-                    results.append(_dict)
-            return results
+        path = os.path.join(self.libpath, collection_type)
+        all_files = glob.glob(f"{path}/*.json")
+
+        for f in all_files:
+            with open(f) as file_descriptor:
+                json_data = file_descriptor.read()
+                _dict = json.loads(json_data)
+                results.append(_dict)
+        return results
 
     def deserialize(self, collection, topological: bool = True):
         datastruct = self.deserialize_raw(collection.collection_types())

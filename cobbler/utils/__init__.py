@@ -148,20 +148,19 @@ def get_host_ip(ip, shorten=True) -> str:
     :param shorten: Whether the IP-Address should be shortened or not.
     :return: The IP encoded as a hexadecimal value.
     """
-
     ip = netaddr.ip.IPAddress(ip)
     cidr = netaddr.ip.IPNetwork(ip)
 
     if len(cidr) == 1:  # Just an IP, e.g. a /32
         return pretty_hex(ip)
-    else:
-        pretty = pretty_hex(cidr[0])
-        if not shorten or len(cidr) <= 8:
-            # not enough to make the last nibble insignificant
-            return pretty
-        else:
-            cutoff = (32 - cidr.prefixlen) // 4
-            return pretty[0:-cutoff]
+
+    pretty = pretty_hex(cidr[0])
+    if not shorten or len(cidr) <= 8:
+        # not enough to make the last nibble insignificant
+        return pretty
+
+    cutoff = (32 - cidr.prefixlen) // 4
+    return pretty[0:-cutoff]
 
 
 def _IP(ip):
@@ -173,8 +172,7 @@ def _IP(ip):
     ip_class = netaddr.ip.IPAddress
     if isinstance(ip, ip_class) or ip == "":
         return ip
-    else:
-        return ip_class(ip)
+    return ip_class(ip)
 
 
 def is_ip(strdata: str) -> bool:
@@ -346,11 +344,11 @@ def find_initrd(path: str) -> Optional[str]:
         #   return path
         return path
 
-    elif os.path.isdir(path):
+    if os.path.isdir(path):
         return find_highest_files(path, "initrd.img", re_initrd)
 
     # For remote URLs we expect an absolute path, and will not do any searching for the latest:
-    elif file_is_remote(path) and remote_file_exists(path):
+    if file_is_remote(path) and remote_file_exists(path):
         return path
 
     return None
@@ -877,13 +875,13 @@ def os_release():
             make = "redhat"
         return make, float(distro_version)
 
-    elif family == "debian":
+    if family == "debian":
         if "debian" in distro_name:
             return "debian", float(distro_version)
-        elif "ubuntu" in distro_name:
+        if "ubuntu" in distro_name:
             return "ubuntu", float(distro_version)
 
-    elif family == "suse":
+    if family == "suse":
         make = "suse"
         if "suse" not in distro.like():
             make = "unknown"
@@ -901,8 +899,7 @@ def is_selinux_enabled() -> bool:
     selinuxenabled = subprocess_call(["/usr/sbin/selinuxenabled"], shell=False)
     if selinuxenabled == 0:
         return True
-    else:
-        return False
+    return False
 
 
 def command_existing(cmd: str) -> bool:
@@ -1148,12 +1145,12 @@ def dhcpconf_location(protocol: enums.DHCP, filename: str = "dhcpd.conf") -> str
         or (dist == "suse")
     ):
         return os.path.join("/etc", filename)
-    elif (dist == "debian" and int(version) < 6) or (
+    if (dist == "debian" and int(version) < 6) or (
         dist == "ubuntu" and version < 11.10
     ):
         return os.path.join("/etc/dhcp3", filename)
-    else:
-        return os.path.join("/etc/dhcp/", filename)
+
+    return os.path.join("/etc/dhcp/", filename)
 
 
 def namedconf_location() -> str:
@@ -1165,8 +1162,7 @@ def namedconf_location() -> str:
     (dist, _) = os_release()
     if dist == "debian" or dist == "ubuntu":
         return "/etc/bind/named.conf"
-    else:
-        return "/etc/named.conf"
+    return "/etc/named.conf"
 
 
 def dhcp_service_name() -> str:
@@ -1178,14 +1174,13 @@ def dhcp_service_name() -> str:
     (dist, version) = os_release()
     if dist == "debian" and int(version) < 6:
         return "dhcp3-server"
-    elif dist == "debian" and int(version) >= 6:
+    if dist == "debian" and int(version) >= 6:
         return "isc-dhcp-server"
-    elif dist == "ubuntu" and version < 11.10:
+    if dist == "ubuntu" and version < 11.10:
         return "dhcp3-server"
-    elif dist == "ubuntu" and version >= 11.10:
+    if dist == "ubuntu" and version >= 11.10:
         return "isc-dhcp-server"
-    else:
-        return "dhcpd"
+    return "dhcpd"
 
 
 def named_service_name() -> str:
@@ -1197,14 +1192,13 @@ def named_service_name() -> str:
     (dist, _) = os_release()
     if dist == "debian" or dist == "ubuntu":
         return "bind9"
-    else:
-        if process_management.is_systemd():
-            rc = subprocess_call(
-                ["/usr/bin/systemctl", "is-active", "named-chroot"], shell=False
-            )
-            if rc == 0:
-                return "named-chroot"
-        return "named"
+    if process_management.is_systemd():
+        rc = subprocess_call(
+            ["/usr/bin/systemctl", "is-active", "named-chroot"], shell=False
+        )
+        if rc == 0:
+            return "named-chroot"
+    return "named"
 
 
 def compare_versions_gt(ver1: str, ver2: str) -> bool:

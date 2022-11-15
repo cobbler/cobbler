@@ -202,5 +202,4 @@ class CobblerStatusReport:
         results = self.process_results()
         if self.mode == "text":
             return self.get_printable_results()
-        else:
-            return results
+        return results

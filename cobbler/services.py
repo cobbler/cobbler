@@ -318,9 +318,9 @@ class CobblerSvc:
 
         if len(candidates) == 0:
             return f"FAILED: no match ({ip},{macinput})"
-        elif len(candidates) > 1:
+        if len(candidates) > 1:
             return "FAILED: multiple matches"
-        elif len(candidates) == 1:
+        if len(candidates) == 1:
             return candidates[0]["name"]
 
     def find_autoinstall(self, system=None, profile=None, **rest):

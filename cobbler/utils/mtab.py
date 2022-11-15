@@ -149,8 +149,7 @@ def get_file_device_path(fname):
 
     if chrootfs:
         return ":", fname
-    else:
-        return mtab_dict[fdir], fname
+    return mtab_dict[fdir], fname
 
 
 def is_remote_file(file) -> bool:
@@ -163,5 +162,4 @@ def is_remote_file(file) -> bool:
     (dev, path) = get_file_device_path(file)
     if dev.find(":") != -1:
         return True
-    else:
-        return False
+    return False

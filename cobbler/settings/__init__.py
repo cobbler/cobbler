@@ -358,16 +358,16 @@ class Settings:
                 self.__dict__[name] = result
                 return result
             # TODO: This needs to be explicitly tested
-            elif name == "manage_dhcp":
+            if name == "manage_dhcp":
                 return self.manage_dhcp_v4
             return self.__dict__[name]
         except Exception as error:
             if name in self.__dict__:
                 return self.__dict__[name]
-            else:
-                raise AttributeError(
-                    f"no settings attribute named '{name}' found"
-                ) from error
+
+            raise AttributeError(
+                f"no settings attribute named '{name}' found"
+            ) from error
 
     def save(
         self,

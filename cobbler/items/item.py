@@ -64,35 +64,35 @@ class Item:
             else:
                 match = fnmatch.fnmatch(from_obj_lower, from_search_lower)
             return match
-        else:
-            if isinstance(from_search, str):
-                if isinstance(from_obj, list):
-                    from_search = input_converters.input_string_or_list(from_search)
-                    for x in from_search:
-                        if x not in from_obj:
-                            return False
-                    return True
-                if isinstance(from_obj, dict):
-                    from_search = input_converters.input_string_or_dict(
-                        from_search, allow_multiples=True
-                    )
-                    for x in list(from_search.keys()):
-                        y = from_search[x]
-                        if x not in from_obj:
-                            return False
-                        if not (y == from_obj[x]):
-                            return False
-                    return True
-                if isinstance(from_obj, bool):
-                    if from_search.lower() in ["true", "1", "y", "yes"]:
-                        inp = True
-                    else:
-                        inp = False
-                    if inp == from_obj:
-                        return True
-                    return False
 
-            raise TypeError(f"find cannot compare type: {type(from_obj)}")
+        if isinstance(from_search, str):
+            if isinstance(from_obj, list):
+                from_search = input_converters.input_string_or_list(from_search)
+                for x in from_search:
+                    if x not in from_obj:
+                        return False
+                return True
+            if isinstance(from_obj, dict):
+                from_search = input_converters.input_string_or_dict(
+                    from_search, allow_multiples=True
+                )
+                for x in list(from_search.keys()):
+                    y = from_search[x]
+                    if x not in from_obj:
+                        return False
+                    if not (y == from_obj[x]):
+                        return False
+                return True
+            if isinstance(from_obj, bool):
+                if from_search.lower() in ["true", "1", "y", "yes"]:
+                    inp = True
+                else:
+                    inp = False
+                if inp == from_obj:
+                    return True
+                return False
+
+        raise TypeError(f"find cannot compare type: {type(from_obj)}")
 
     def __init__(self, api, is_subobject: bool = False):
         """
@@ -183,15 +183,14 @@ class Item:
         if attribute_value == enums.VALUE_INHERITED:
             if self.parent is not None and hasattr(self.parent, property_name):
                 return getattr(self.parent, property_name)
-            elif hasattr(settings, settings_name):
+            if hasattr(settings, settings_name):
                 return getattr(settings, settings_name)
-            elif hasattr(settings, f"default_{settings_name}"):
+            if hasattr(settings, f"default_{settings_name}"):
                 return getattr(settings, f"default_{settings_name}")
-            else:
-                AttributeError(
-                    f'{type(self)} "{self.name}" inherits property "{property_name}", but neither its parent nor'
-                    f"settings have it"
-                )
+            AttributeError(
+                f'{type(self)} "{self.name}" inherits property "{property_name}", but neither its parent nor'
+                f"settings have it"
+            )
 
         return attribute_value
 
@@ -218,15 +217,14 @@ class Item:
         ):
             if self.parent is not None and hasattr(self.parent, property_name):
                 return getattr(self.parent, property_name)
-            elif hasattr(settings, settings_name):
+            if hasattr(settings, settings_name):
                 return enum_type.to_enum(getattr(settings, settings_name))
-            elif hasattr(settings, f"default_{settings_name}"):
+            if hasattr(settings, f"default_{settings_name}"):
                 return enum_type.to_enum(getattr(settings, f"default_{settings_name}"))
-            else:
-                AttributeError(
-                    f'{type(self)} "{self.name}" inherits property "{property_name}", but neither its parent nor'
-                    "settings have it"
-                )
+            AttributeError(
+                f'{type(self)} "{self.name}" inherits property "{property_name}", but neither its parent nor'
+                "settings have it"
+            )
 
         return attribute_value
 
@@ -506,15 +504,14 @@ class Item:
             if mgmt_parameters == enums.VALUE_INHERITED:
                 self._mgmt_parameters = enums.VALUE_INHERITED
                 return
-            elif mgmt_parameters == "":
+            if mgmt_parameters == "":
                 self._mgmt_parameters = {}
                 return
-            else:
-                mgmt_parameters = yaml.safe_load(mgmt_parameters)
-                if not isinstance(mgmt_parameters, dict):
-                    raise TypeError(
-                        "Input YAML in Puppet Parameter field must evaluate to a dictionary."
-                    )
+            mgmt_parameters = yaml.safe_load(mgmt_parameters)
+            if not isinstance(mgmt_parameters, dict):
+                raise TypeError(
+                    "Input YAML in Puppet Parameter field must evaluate to a dictionary."
+                )
         self._mgmt_parameters = mgmt_parameters
 
     @property
@@ -840,8 +837,7 @@ class Item:
 
         if value is None:
             return True
-        else:
-            return self.__find_compare(value, data[key])
+        return self.__find_compare(value, data[key])
 
     def dump_vars(
         self, formatted_output: bool = True, remove_dicts: bool = False
@@ -856,8 +852,7 @@ class Item:
         raw = utils.blender(self.api, remove_dicts, self)
         if formatted_output:
             return pprint.pformat(raw)
-        else:
-            return raw
+        return raw
 
     def check_if_valid(self):
         """

@@ -285,8 +285,9 @@ class AutoInstallationManager:
         """
         if system is not None:
             return self.autoinstallgen.generate_autoinstall_for_system(system)
-        elif profile is not None:
+        if profile is not None:
             return self.autoinstallgen.generate_autoinstall_for_profile(profile)
+        return ""
 
     def log_autoinstall_validation_errors(self, errors_type: int, errors: list):
         """

@@ -2065,7 +2065,7 @@ class CobblerCLI:
         """
         if len(args) < 2:
             return None
-        elif args[1] in OBJECT_TYPES:
+        if args[1] in OBJECT_TYPES:
             return args[1]
         return None
 
@@ -2093,14 +2093,13 @@ class CobblerCLI:
         """
         if object_type is not None:
             return None
-        elif len(args) < 2:
+        if len(args) < 2:
             return None
-        elif args[1] == "--help":
+        if args[1] == "--help":
             return None
-        elif args[1] == "--version":
+        if args[1] == "--version":
             return "version"
-        else:
-            return args[1]
+        return args[1]
 
     def check_setup(self) -> int:
         """
@@ -2160,12 +2159,10 @@ class CobblerCLI:
             if object_type is not None:
                 if object_action is not None:
                     return self.object_command(object_type, object_action)
-                else:
-                    return self.print_object_help(object_type)
-            elif direct_action is not None:
+                return self.print_object_help(object_type)
+            if direct_action is not None:
                 return self.direct_command(direct_action)
-            else:
-                return self.print_help()
+            return self.print_help()
         except xmlrpc.client.Fault as err:
             if err.faultString.find("cobbler.cexceptions.CX") != -1:
                 print(self.cleanup_fault_string(err.faultString))
@@ -2192,8 +2189,7 @@ class CobblerCLI:
             if rest.endswith('"') or rest.endswith("'"):
                 rest = rest[:-1]
             return rest
-        else:
-            return fault_str
+        return fault_str
 
     def get_fields(self, object_type: str) -> list:
         """
@@ -2204,23 +2200,23 @@ class CobblerCLI:
         """
         if object_type == "distro":
             return DISTRO_FIELDS
-        elif object_type == "profile":
+        if object_type == "profile":
             return PROFILE_FIELDS
-        elif object_type == "system":
+        if object_type == "system":
             return SYSTEM_FIELDS
-        elif object_type == "repo":
+        if object_type == "repo":
             return REPO_FIELDS
-        elif object_type == "image":
+        if object_type == "image":
             return IMAGE_FIELDS
-        elif object_type == "mgmtclass":
+        if object_type == "mgmtclass":
             return MGMTCLASS_FIELDS
-        elif object_type == "package":
+        if object_type == "package":
             return PACKAGE_FIELDS
-        elif object_type == "file":
+        if object_type == "file":
             return FILE_FIELDS
-        elif object_type == "menu":
+        if object_type == "menu":
             return MENU_FIELDS
-        elif object_type == "setting":
+        if object_type == "setting":
             return SETTINGS_FIELDS
         return []
 

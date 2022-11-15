@@ -66,7 +66,7 @@ def run(api, args):
         os.chdir(old_dir)
         return 0
 
-    elif mode == "hg":
+    if mode == "hg":
         # use mercurial
         old_dir = os.getcwd()
         os.chdir("/var/lib/cobbler")
@@ -90,5 +90,4 @@ def run(api, args):
         os.chdir(old_dir)
         return 0
 
-    else:
-        raise CX(f"currently unsupported SCM type: {mode}")
+    raise CX(f"currently unsupported SCM type: {mode}")
