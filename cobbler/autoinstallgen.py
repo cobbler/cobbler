@@ -92,8 +92,7 @@ class AutoInstallationGen:
         :return: The generated AutoYaST XML file.
         """
         self.api.logger.info(
-            "AutoYaST XML file found. Checkpoint: profile=%s system=%s"
-            % (profile, system)
+            "AutoYaST XML file found. Checkpoint: profile=%s system=%s", profile, system
         )
         runpost = '\ncurl "http://%s/cblr/svc/op/trig/mode/post/%s/%s" > /dev/null'
         runpre = '\ncurl "http://%s/cblr/svc/op/trig/mode/pre/%s/%s" > /dev/null'

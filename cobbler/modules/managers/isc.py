@@ -382,7 +382,7 @@ class _IscManager(ManagerModule):
         }
 
         if self.logger is not None:
-            self.logger.info("generating %s" % self.settings_file_v6)
+            self.logger.info("generating %s", self.settings_file_v6)
         self.templar.render(template_data, metadata, self.settings_file_v6)
 
     def restart_dhcp(self, service_name: str) -> int:
@@ -397,10 +397,10 @@ class _IscManager(ManagerModule):
             [dhcpd_path, "-t", "-q"], shell=False
         )
         if return_code_service_restart != 0:
-            self.logger.error("Testing config - {} -t failed".format(service_name))
+            self.logger.error("Testing config - %s -t failed", service_name)
         return_code_service_restart = process_management.service_restart(service_name)
         if return_code_service_restart != 0:
-            self.logger.error("{} service failed".format(service_name))
+            self.logger.error("%s service failed", service_name)
         return return_code_service_restart
 
     def write_configs(self):
