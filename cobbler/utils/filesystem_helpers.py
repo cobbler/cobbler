@@ -200,7 +200,7 @@ def copyfile(src: str, dst: str, symlink=False):
             shutil.copyfile(src, dst, follow_symlinks=symlink)
     except:
         if not os.access(src, os.R_OK):
-            raise OSError("Cannot read: %s" % src)
+            raise OSError(f"Cannot read: {src}")
         if src_obj.samefile(dst_obj):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
@@ -225,7 +225,7 @@ def copyremotefile(src: str, dst1: str, api=None):
             output.write(srcfile.read())
     except Exception as error:
         raise OSError(
-            "Error while getting remote file (%s -> %s):\n%s" % (src, dst1, error)
+            f"Error while getting remote file ({src} -> {dst1}):\n{error}"
         ) from error
 
 
@@ -250,7 +250,7 @@ def copyfile_pattern(
     """
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
-        raise CX("Could not find files matching %s" % pattern)
+        raise CX(f"Could not find files matching {pattern}")
     dst_obj = pathlib.Path(dst)
     for file in files:
         file_obj = pathlib.Path(file)
@@ -279,7 +279,7 @@ def rmtree_contents(path: str):
 
     :param path: This parameter presents the glob pattern of what should be deleted.
     """
-    what_to_delete = glob.glob("%s/*" % path)
+    what_to_delete = glob.glob(f"{path}/*")
     for x in what_to_delete:
         rmtree(x)
 
@@ -299,7 +299,7 @@ def rmtree(path: str):
     except OSError as ioe:
         log_exc()
         if ioe.errno != errno.ENOENT:  # doesn't exist
-            raise CX("Error deleting %s" % path) from ioe
+            raise CX(f"Error deleting {path}") from ioe
 
 
 def rmglob_files(path: str, glob_pattern: str):
@@ -328,7 +328,7 @@ def mkdir(path: str, mode=0o755):
         # already exists (no constant for 17?)
         if os_error.errno != 17:
             log_exc()
-            raise CX("Error creating %s" % path) from os_error
+            raise CX(f"Error creating {path}") from os_error
 
 
 def path_tail(apath, bpath) -> str:

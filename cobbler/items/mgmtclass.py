@@ -174,5 +174,5 @@ class Mgmtclass(item.Item):
             raise TypeError("class name must be a string")
         for x in name:
             if not x.isalnum() and x not in ["_", "-", ".", ":", "+"]:
-                raise ValueError("invalid characters in class name: '%s'" % name)
+                raise ValueError(f"invalid characters in class name: '{name}'")
         self._class_name = name

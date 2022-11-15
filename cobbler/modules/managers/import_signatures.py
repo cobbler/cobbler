@@ -119,7 +119,7 @@ class _ImportSignatureManager(ManagerModule):
         if ftype.mime_type == "application/x-ms-wim":
             cmd = "/usr/bin/wiminfo"
             if os.path.exists(cmd):
-                cmd = "%s %s" % (cmd, filename)
+                cmd = f"{cmd} {filename}"
                 return utils.subprocess_get(cmd).splitlines()
 
             self.logger.info("no %s found, please install wimlib-utils", cmd)
@@ -189,7 +189,7 @@ class _ImportSignatureManager(ManagerModule):
 
         self.signature = self.scan_signatures()
         if not self.signature:
-            error_msg = "No signature matched in %s" % path
+            error_msg = f"No signature matched in {path}"
             self.logger.error(error_msg)
             raise CX(error_msg)
 
@@ -290,7 +290,7 @@ class _ImportSignatureManager(ManagerModule):
                                     [
                                         cmd_path,
                                         winpe_path,
-                                        "--command=add %s %s" % (software, config_path),
+                                        f"--command=add {software} {config_path}",
                                     ],
                                     shell=False,
                                 )
@@ -475,8 +475,7 @@ class _ImportSignatureManager(ManagerModule):
         else:
             if self.arch and self.arch not in archs:
                 utils.die(
-                    "Given arch (%s) not found on imported tree %s"
-                    % (self.arch, self.path)
+                    f"Given arch ({self.arch}) not found on imported tree {self.path}"
                 )
 
         if len(archs) == 0:
@@ -520,10 +519,7 @@ class _ImportSignatureManager(ManagerModule):
 
             boot_files: Dict[str, str] = {}
             for boot_file in self.signature["boot_files"]:
-                boot_files["$local_img_path/%s" % boot_file] = "%s/%s" % (
-                    self.path,
-                    boot_file,
-                )
+                boot_files[f"$local_img_path/{boot_file}"] = f"{self.path}/{boot_file}"
             new_distro.boot_files = boot_files
 
             self.configure_tree_location(new_distro)
@@ -703,7 +699,7 @@ class _ImportSignatureManager(ManagerModule):
                 "386",
                 "amd",
             ]:
-                name = name.replace("%s%s" % (separator, arch), "")
+                name = name.replace(f"{separator}{arch}", "")
 
         return name
 
@@ -734,7 +730,7 @@ class _ImportSignatureManager(ManagerModule):
                     self.logger.warning(
                         "symlink creation failed: %s, %s", base, dest_link
                     )
-            tree = "http://@@http_server@@/cblr/links/%s" % distribution.name
+            tree = f"http://@@http_server@@/cblr/links/{distribution.name}"
             self.set_install_tree(distribution, tree)
         else:
             # Where we assign the automated installation file source is relative to our current directory and the input
@@ -819,7 +815,7 @@ class _ImportSignatureManager(ManagerModule):
             if x == "base" or x == "repodata":
                 self.logger.info("processing repo at : %s", dirname)
                 # only run the repo scanner on directories that contain a comps.xml
-                gloob1 = glob.glob("%s/%s/*comps*.xml" % (dirname, x))
+                gloob1 = glob.glob(f"{dirname}/{x}/*comps*.xml")
                 if len(gloob1) >= 1:
                     if dirname in matches:
                         self.logger.info(
@@ -855,7 +851,7 @@ class _ImportSignatureManager(ManagerModule):
 
         # figure out what our comps file is ...
         self.logger.info("looking for %s/%s/*comps*.xml", comps_path, masterdir)
-        files = glob.glob("%s/%s/*comps*.xml" % (comps_path, masterdir))
+        files = glob.glob(f"{comps_path}/{masterdir}/*comps*.xml")
         if len(files) == 0:
             self.logger.info(
                 "no comps found here: %s", os.path.join(comps_path, masterdir)
@@ -879,14 +875,11 @@ class _ImportSignatureManager(ManagerModule):
                 self.settings.webdir,
                 "distro_mirror",
                 "config",
-                "%s-%s.repo" % (distribution.name, counter),
+                f"{distribution.name}-{counter}.repo",
             )
 
-            repo_url = (
-                "http://@@http_server@@/cobbler/distro_mirror/config/%s-%s.repo"
-                % (distribution.name, counter)
-            )
-            repo_url2 = "http://@@http_server@@/cobbler/distro_mirror/%s" % urlseg
+            repo_url = f"http://@@http_server@@/cobbler/distro_mirror/config/{distribution.name}-{counter}.repo"
+            repo_url2 = f"http://@@http_server@@/cobbler/distro_mirror/{urlseg}"
 
             distribution.source_repos.append([repo_url, repo_url2])
 
@@ -899,10 +892,10 @@ class _ImportSignatureManager(ManagerModule):
             # repo_url2 is actually no longer used. (?)
 
             with open(fname, "w+") as config_file:
-                config_file.write("[core-%s]\n" % counter)
-                config_file.write("name=core-%s\n" % counter)
+                config_file.write(f"[core-{counter}]\n")
+                config_file.write(f"name=core-{counter}\n")
                 config_file.write(
-                    "baseurl=http://@@http_server@@/cobbler/distro_mirror/%s\n" % urlseg
+                    f"baseurl=http://@@http_server@@/cobbler/distro_mirror/{urlseg}\n"
                 )
                 config_file.write("enabled=1\n")
                 config_file.write("gpgcheck=0\n")
@@ -957,7 +950,7 @@ class _ImportSignatureManager(ManagerModule):
         repo.arch = distribution.arch
         repo.keep_updated = True
         repo.apt_components = "main universe"  # TODO: make a setting?
-        repo.apt_dists = "%s %s-updates %s-security" % ((distribution.os_version,) * 3)
+        repo.apt_dists = f"{(distribution.os_version,) * 3} {(distribution.os_version,) * 3}-updates {(distribution.os_version,) * 3}-security"
         repo.name = distribution.name
         repo.os_version = distribution.os_version
 
@@ -965,9 +958,8 @@ class _ImportSignatureManager(ManagerModule):
             repo.mirror = mirror
         else:
             # NOTE : The location of the mirror should come from timezone
-            repo.mirror = "http://ftp.%s.debian.org/debian/dists/%s" % (
-                "us",
-                distribution.os_version,
+            repo.mirror = (
+                f"http://ftp.{'us'}.debian.org/debian/dists/{distribution.os_version}"
             )
 
         self.logger.info("Added repos for %s", distribution.name)

@@ -52,7 +52,7 @@ def hostname(dnsname: str) -> str:
         return dnsname
 
     if not RE_HOSTNAME.match(dnsname):
-        raise ValueError("Invalid hostname format (%s)" % dnsname)
+        raise ValueError(f"Invalid hostname format ({dnsname})")
 
     return dnsname
 
@@ -82,7 +82,7 @@ def mac_address(mac: str, for_item=True) -> str:
             return mac
 
     if not netaddr.valid_mac(mac):
-        raise ValueError("Invalid mac address format (%s)" % mac)
+        raise ValueError(f"Invalid mac address format ({mac})")
 
     return mac
 
@@ -105,10 +105,10 @@ def ipv4_address(addr: str) -> str:
         return addr
 
     if not netaddr.valid_ipv4(addr):
-        raise AddressValueError("Invalid IPv4 address format (%s)" % addr)
+        raise AddressValueError(f"Invalid IPv4 address format ({addr})")
 
     if netaddr.IPAddress(addr).is_netmask():
-        raise NetmaskValueError("Invalid IPv4 host address (%s)" % addr)
+        raise NetmaskValueError(f"Invalid IPv4 host address ({addr})")
 
     return addr
 
@@ -131,10 +131,10 @@ def ipv4_netmask(addr: str) -> str:
         return addr
 
     if not netaddr.valid_ipv4(addr):
-        raise AddressValueError("Invalid IPv4 address format (%s)" % addr)
+        raise AddressValueError(f"Invalid IPv4 address format ({addr})")
 
     if not netaddr.IPAddress(addr).is_netmask():
-        raise NetmaskValueError("Invalid IPv4 netmask (%s)" % addr)
+        raise NetmaskValueError(f"Invalid IPv4 netmask ({addr})")
 
     return addr
 
@@ -156,7 +156,7 @@ def ipv6_address(addr: str) -> str:
         return addr
 
     if not netaddr.valid_ipv6(addr):
-        raise AddressValueError("Invalid IPv6 address format (%s)" % addr)
+        raise AddressValueError(f"Invalid IPv6 address format ({addr})")
 
     return addr
 
@@ -193,9 +193,7 @@ def name_servers(
             else:
                 raise AddressValueError("Invalid IP address format")
     else:
-        raise TypeError(
-            "Invalid input type %s, expected str or list" % type(nameservers)
-        )
+        raise TypeError(f"Invalid input type {type(nameservers)}, expected str or list")
 
     return nameservers
 
@@ -225,7 +223,7 @@ def name_servers_search(
         for sl in search:
             hostname(sl)
     else:
-        raise TypeError('Invalid input type "%s", expected str or list' % type(search))
+        raise TypeError(f'Invalid input type "{type(search)}", expected str or list')
 
     return search
 
@@ -249,8 +247,8 @@ def validate_breed(breed: str) -> str:
         return breed
     nicer = ", ".join(valid_breeds)
     raise ValueError(
-        'Invalid value for breed ("%s"). Must be one of %s, different breeds have different levels of '
-        "support!" % (breed, nicer)
+        f'Invalid value for breed ("{breed}"). Must be one of {nicer}, different breeds have different levels of '
+        "support!"
     )
 
 
@@ -282,8 +280,7 @@ def validate_os_version(os_version: str, breed: str) -> str:
     if os_version not in matched:
         nicer = ", ".join(matched)
         raise ValueError(
-            'os_version for breed "%s" must be one of %s, given was "%s"'
-            % (breed, nicer, os_version)
+            f'os_version for breed "{breed}" must be one of {nicer}, given was "{os_version}"'
         )
     return os_version
 
@@ -310,7 +307,7 @@ def validate_repos(repos: list, api, bypass_check: bool = False):
         for r in repos:
             # FIXME: First check this and then set the repos if the bypass check is used.
             if api.repos().find(name=r) is None:
-                raise ValueError("repo %s is not defined" % r)
+                raise ValueError(f"repo {r} is not defined")
     return repos
 
 
@@ -345,7 +342,7 @@ def validate_virt_file_size(num: Union[str, int, float]) -> Union[str, float]:
     if not isinstance(num, float):
         raise TypeError("virt_file_size needs to be a float")
     if num < 0:
-        raise ValueError("invalid virt_file_size (%s)" % num)
+        raise ValueError(f"invalid virt_file_size ({num})")
     return num
 
 
@@ -400,8 +397,7 @@ def validate_virt_ram(value: Union[int, str]) -> Union[str, int]:
     interger_number = int(value)
     if interger_number < 0:
         raise ValueError(
-            "The virt_ram needs to have a value greater or equal to zero. Zero means default RAM."
-            % str(value)
+            f"The virt_ram needs to have a value greater or equal to zero. Zero means default RAM."
         )
     return interger_number
 
@@ -498,11 +494,11 @@ def validate_serial_baud_rate(
                 baud_rate = enums.BaudRates["B" + str(baud_rate)]
         except KeyError as key_error:
             raise ValueError(
-                "vtype choices include: %s" % list(map(str, enums.BaudRates))
+                f"vtype choices include: {list(map(str, enums.BaudRates))}"
             ) from key_error
     # Now it must be of the enum Type
     if baud_rate not in enums.BaudRates:
-        raise ValueError("invalid value for serial baud Rate (%s)" % baud_rate)
+        raise ValueError(f"invalid value for serial baud Rate ({baud_rate})")
     return baud_rate
 
 
@@ -553,9 +549,9 @@ def validate_grub_remote_file(value: str) -> bool:
         # FIXME: Disallow invalid port specifications in the URL
         success_server_ip = netaddr.valid_ipv4(server) or netaddr.valid_ipv6(server)
         # FIXME: Disallow invalid URLs (e.g.: underscore in URL)
-        success_server_name = urlparse("https://%s" % server).netloc == server
+        success_server_name = urlparse(f"https://{server}").netloc == server
         path = grub_match_result.group("path")
-        success_path = urlparse("https://fake.local/%s" % path).path[1:] == path
+        success_path = urlparse(f"https://fake.local/{path}").path[1:] == path
         success = (success_server_ip or success_server_name) and success_path
     return success
 

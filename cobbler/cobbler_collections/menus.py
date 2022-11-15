@@ -57,7 +57,7 @@ class Menus(collection.Collection):
         name = name.lower()
         obj = self.find(name=name)
         if obj is None:
-            raise CX("cannot delete an object that does not exist: %s" % name)
+            raise CX(f"cannot delete an object that does not exist: {name}")
 
         for profile in self.api.profiles():
             if profile.menu and profile.menu.lower() == name:

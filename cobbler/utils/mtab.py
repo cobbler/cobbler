@@ -57,14 +57,7 @@ class MntEntObj:
 
         :return: The space separated list of values of this object.
         """
-        return "%s %s %s %s %s %s" % (
-            self.mnt_fsname,
-            self.mnt_dir,
-            self.mnt_type,
-            self.mnt_opts,
-            self.mnt_freq,
-            self.mnt_passno,
-        )
+        return f"{self.mnt_fsname} {self.mnt_dir} {self.mnt_type} {self.mnt_opts} {self.mnt_freq} {self.mnt_passno}"
 
 
 def get_mtab(mtab="/etc/mtab", vfstype: bool = False) -> list:

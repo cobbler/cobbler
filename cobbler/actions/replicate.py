@@ -297,7 +297,7 @@ class Replicate:
         if not self.sync_all:
             # include all profiles that are matched by a pattern
             for obj_type in OBJ_TYPES:
-                patvar = getattr(self, "%s_patterns" % obj_type)
+                patvar = getattr(self, f"{obj_type}_patterns")
                 self.logger.debug("* Finding Explicit %s Matches", obj_type)
                 for pat in patvar:
                     for remote in self.remote_names[obj_type]:
@@ -440,7 +440,7 @@ class Replicate:
         else:
             utils.die("No Cobbler master specified, try --master.")
 
-        self.uri = "%s://%s:%s/cobbler_api" % (protocol, self.master, self.port)
+        self.uri = f"{protocol}://{self.master}:{self.port}/cobbler_api"
 
         self.logger.info("cobbler_master      = %s", cobbler_master)
         self.logger.info("port                = %s", self.port)
@@ -462,7 +462,7 @@ class Replicate:
         self.logger.debug("test BETA")
         self.remote.ping()
         self.local = xmlrpc.client.Server(
-            "http://127.0.0.1:%s/cobbler_api" % self.settings.http_port
+            f"http://127.0.0.1:{self.settings.http_port}/cobbler_api"
         )
         self.local.ping()
 

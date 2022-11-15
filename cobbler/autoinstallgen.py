@@ -185,31 +185,21 @@ class AutoInstallationGen:
 
                     if opt in ["exclude", "include"]:
                         value = repo_obj.yumopts[opt].replace(" ", ",")
-                        yumopts = yumopts + " --%spkgs=%s" % (opt, value)
+                        yumopts = yumopts + f" --{opt}pkgs={value}"
                     elif not opt.lower() in validate.AUTOINSTALL_REPO_BLACKLIST:
-                        yumopts += " %s=%s" % (opt, repo_obj.yumopts[opt])
+                        yumopts += f" {opt}={repo_obj.yumopts[opt]}"
                 if (
                     "enabled" not in repo_obj.yumopts
                     or repo_obj.yumopts["enabled"] == "1"
                 ):
                     if repo_obj.mirror_locally:
-                        baseurl = "http://%s/cobbler/repo_mirror/%s" % (
-                            blended["http_server"],
-                            repo_obj.name,
-                        )
+                        baseurl = f"http://{blended['http_server']}/cobbler/repo_mirror/{repo_obj.name}"
                         if baseurl not in included:
-                            buf += "repo --name=%s --baseurl=%s\n" % (
-                                repo_obj.name,
-                                baseurl,
-                            )
+                            buf += f"repo --name={repo_obj.name} --baseurl={baseurl}\n"
                         included[baseurl] = 1
                     else:
                         if repo_obj.mirror not in included:
-                            buf += "repo --name=%s --baseurl=%s %s\n" % (
-                                repo_obj.name,
-                                repo_obj.mirror,
-                                yumopts,
-                            )
+                            buf += f"repo --name={repo_obj.name} --baseurl={repo_obj.mirror} {yumopts}\n"
                         included[repo_obj.mirror] = 1
             else:
                 # FIXME: what to do if we can't find the repo object that is listed?
@@ -228,7 +218,7 @@ class AutoInstallationGen:
         for x in source_repos:
             count += 1
             if not x[1] in included:
-                buf += "repo --name=source-%s --baseurl=%s\n" % (count, x[1])
+                buf += f"repo --name=source-{count} --baseurl={x[1]}\n"
                 included[x[1]] = 1
 
         return buf
@@ -248,17 +238,11 @@ class AutoInstallationGen:
 
         blended = utils.blender(self.api, False, obj)
         if is_profile:
-            url = "http://%s/cblr/svc/op/yum/profile/%s" % (
-                blended["http_server"],
-                obj.name,
-            )
+            url = f"http://{blended['http_server']}/cblr/svc/op/yum/profile/{obj.name}"
         else:
-            url = "http://%s/cblr/svc/op/yum/system/%s" % (
-                blended["http_server"],
-                obj.name,
-            )
+            url = f"http://{blended['http_server']}/cblr/svc/op/yum/system/{obj.name}"
 
-        return 'curl "%s" --output /etc/yum.repos.d/cobbler-config.repo\n' % (url)
+        return f'curl "{url}" --output /etc/yum.repos.d/cobbler-config.repo\n'
 
     def generate_autoinstall_for_system(self, sys_name) -> str:
         """
@@ -307,10 +291,7 @@ class AutoInstallationGen:
         autoinstall_rel_path = meta["autoinstall"]
 
         if not autoinstall_rel_path:
-            return "# automatic installation file value missing or invalid at %s %s" % (
-                obj_type,
-                obj.name,
-            )
+            return f"# automatic installation file value missing or invalid at {obj_type} {obj.name}"
 
         # get parent distro
         distro = profile.get_conceptual_parent()
@@ -342,9 +323,8 @@ class AutoInstallationGen:
             meta["install_source_directory"] = urlparts[2]
 
         try:
-            autoinstall_path = "%s/%s" % (
-                self.settings.autoinstall_templates_dir,
-                autoinstall_rel_path,
+            autoinstall_path = (
+                f"{self.settings.autoinstall_templates_dir}/{autoinstall_rel_path}"
             )
             raw_data = utils.read_file_contents(autoinstall_path)
 
@@ -352,12 +332,12 @@ class AutoInstallationGen:
 
             return data
         except FileNotFoundError:
-            error_msg = "automatic installation file %s not found at %s" % (
-                meta["autoinstall"],
-                self.settings.autoinstall_templates_dir,
+            error_msg = (
+                f"automatic installation file {meta['autoinstall']} not found"
+                f" at {self.settings.autoinstall_templates_dir}"
             )
             self.api.logger.warning(error_msg)
-            return "# %s" % error_msg
+            return f"# {error_msg}"
 
     def generate_autoinstall_for_profile(self, g) -> str:
         """

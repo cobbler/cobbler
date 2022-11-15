@@ -62,15 +62,13 @@ class AutoInstallationManager:
 
         if autoinstall.find("..") != -1:
             raise ValueError(
-                "Invalid automatic installation template file location %s, it must not contain .."
-                % autoinstall
+                f"Invalid automatic installation template file location {autoinstall}, it must not contain .."
             )
 
-        autoinstall_path = "%s/%s" % (self.templates_base_dir, autoinstall)
+        autoinstall_path = f"{self.templates_base_dir}/{autoinstall}"
         if not os.path.isfile(autoinstall_path) and not new_autoinstall:
             raise OSError(
-                "Invalid automatic installation template file location %s, file not found"
-                % autoinstall_path
+                f"Invalid automatic installation template file location {autoinstall_path}, file not found"
             )
 
         return autoinstall
@@ -87,7 +85,7 @@ class AutoInstallationManager:
             for filename in filenames:
                 rel_root = root[len(self.templates_base_dir) + 1 :]
                 if rel_root:
-                    rel_path = "%s/%s" % (rel_root, filename)
+                    rel_path = f"{rel_root}/{filename}"
                 else:
                     rel_path = filename
                 files.append(rel_path)
@@ -107,7 +105,7 @@ class AutoInstallationManager:
             file_path, for_item=False
         )
 
-        file_full_path = "%s/%s" % (self.templates_base_dir, file_path)
+        file_full_path = f"{self.templates_base_dir}/{file_path}"
         fileh = open(file_full_path, "r")
         data = fileh.read()
         fileh.close()
@@ -126,13 +124,12 @@ class AutoInstallationManager:
             file_path, for_item=False, new_autoinstall=True
         )
 
-        file_full_path = "%s/%s" % (self.templates_base_dir, file_path)
+        file_full_path = f"{self.templates_base_dir}/{file_path}"
         try:
             filesystem_helpers.mkdir(os.path.dirname(file_full_path))
         except:
             utils.die(
-                "unable to create directory for automatic OS installation template at %s"
-                % file_path
+                f"unable to create directory for automatic OS installation template at {file_path}"
             )
 
         fileh = open(file_full_path, "w+")
@@ -152,7 +149,7 @@ class AutoInstallationManager:
             file_path, for_item=False
         )
 
-        file_full_path = "%s/%s" % (self.templates_base_dir, file_path)
+        file_full_path = f"{self.templates_base_dir}/{file_path}"
         if not self.is_autoinstall_in_use(file_path):
             os.remove(file_full_path)
         else:
@@ -178,15 +175,13 @@ class AutoInstallationManager:
 
         if snippet.find("..") != -1:
             raise ValueError(
-                "Invalid automated installation snippet file location %s, it must not contain .."
-                % snippet
+                f"Invalid automated installation snippet file location {snippet}, it must not contain .."
             )
 
-        snippet_path = "%s/%s" % (self.snippets_base_dir, snippet)
+        snippet_path = f"{self.snippets_base_dir}/{snippet}"
         if not os.path.isfile(snippet_path) and not new_snippet:
             raise OSError(
-                "Invalid automated installation snippet file location %s, file not found"
-                % snippet_path
+                f"Invalid automated installation snippet file location {snippet_path}, file not found"
             )
 
         return snippet
@@ -203,7 +198,7 @@ class AutoInstallationManager:
             for filename in filenames:
                 rel_root = root[len(self.snippets_base_dir) + 1 :]
                 if rel_root:
-                    rel_path = "%s/%s" % (rel_root, filename)
+                    rel_path = f"{rel_root}/{filename}"
                 else:
                     rel_path = filename
                 files.append(rel_path)
@@ -220,7 +215,7 @@ class AutoInstallationManager:
         """
         file_path = self.validate_autoinstall_snippet_file_path(file_path)
 
-        file_full_path = "%s/%s" % (self.snippets_base_dir, file_path)
+        file_full_path = f"{self.snippets_base_dir}/{file_path}"
         fileh = open(file_full_path, "r")
         data = fileh.read()
         fileh.close()
@@ -238,13 +233,12 @@ class AutoInstallationManager:
             file_path, new_snippet=True
         )
 
-        file_full_path = "%s/%s" % (self.snippets_base_dir, file_path)
+        file_full_path = f"{self.snippets_base_dir}/{file_path}"
         try:
             filesystem_helpers.mkdir(os.path.dirname(file_full_path))
         except:
             utils.die(
-                "unable to create directory for automatic OS installation snippet at %s"
-                % file_path
+                f"unable to create directory for automatic OS installation snippet at {file_path}"
             )
 
         fileh = open(file_full_path, "w+")
@@ -260,7 +254,7 @@ class AutoInstallationManager:
         """
         file_path = self.validate_autoinstall_snippet_file_path(file_path)
 
-        file_full_path = "%s/%s" % (self.snippets_base_dir, file_path)
+        file_full_path = f"{self.snippets_base_dir}/{file_path}"
         os.remove(file_full_path)
 
         return True

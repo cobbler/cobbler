@@ -105,7 +105,7 @@ class CobblerTemplate(generate_cheetah_macros()):
         """
 
         def replacer(match: Match):
-            return "$SNIPPET('%s')" % match.group(1)
+            return f"$SNIPPET('{match.group(1)}')"
 
         def preprocess(
             source: Optional[str], file: Union[TextIO, str]
@@ -119,7 +119,7 @@ class CobblerTemplate(generate_cheetah_macros()):
                         with open(file, "r") as f:
                             source = "#errorCatcher Echo\n" + f.read()
                     else:
-                        source = "# Unable to read %s\n" % file
+                        source = f"# Unable to read {file}\n"
                 # Stop Cheetah from throwing a fit.
                 file = None
 
@@ -154,12 +154,10 @@ class CobblerTemplate(generate_cheetah_macros()):
             )
 
         for snippet_class in ("system", "profile", "distro"):
-            if self.varExists("%s_name" % snippet_class):
-                full_path = "%s/per_%s/%s/%s" % (
-                    self.getVar("autoinstall_snippets_dir"),
-                    snippet_class,
-                    file,
-                    self.getVar("%s_name" % snippet_class),
+            if self.varExists(f"{snippet_class}_name"):
+                full_path = (
+                    f"{self.getVar('autoinstall_snippets_dir')}/per_{snippet_class}/{file}/"
+                    f"{self.getVar(f'{snippet_class}_name')}"
                 )
                 try:
                     contents = utils.read_file_contents(full_path, fetch_if_remote=True)
@@ -168,7 +166,7 @@ class CobblerTemplate(generate_cheetah_macros()):
                     pass
 
         try:
-            full_path = "%s/%s" % (self.getVar("autoinstall_snippets_dir"), file)
+            full_path = f"{self.getVar('autoinstall_snippets_dir')}/{file}"
             return "#errorCatcher ListErrors\n" + utils.read_file_contents(
                 full_path, fetch_if_remote=True
             )

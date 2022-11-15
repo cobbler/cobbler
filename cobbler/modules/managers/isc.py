@@ -96,7 +96,7 @@ class _IscManager(ManagerModule):
                         continue
 
                     # We may have multiple bonded interfaces, so we need a composite index into ding.
-                    name_master = "%s-%s" % (system.name, interface["interface_master"])
+                    name_master = f"{system.name}-{interface['interface_master']}"
                     if name_master not in ding:
                         ding[name_master] = {interface["interface_master"]: []}
 
@@ -144,11 +144,11 @@ class _IscManager(ManagerModule):
                 # the label the entry after the hostname if possible
                 if host is not None and host != "":
                     if name != "eth0":
-                        interface["name"] = "%s-%s" % (host, name)
+                        interface["name"] = f"{host}-{name}"
                     else:
-                        interface["name"] = "%s" % host
+                        interface["name"] = host
                 else:
-                    interface["name"] = "generic%d" % counter
+                    interface["name"] = f"generic{counter:d}"
 
                 # add references to the system, profile, and distro for use in the template
                 if system.name in blender_cache:
@@ -212,7 +212,7 @@ class _IscManager(ManagerModule):
         # we are now done with the looping through each interface of each system
         metadata = {
             "date": time.asctime(time.gmtime()),
-            "cobbler_server": "%s:%s" % (self.settings.server, self.settings.http_port),
+            "cobbler_server": f"{self.settings.server}:{self.settings.http_port}",
             "next_server_v4": self.settings.next_server_v4,
             "dhcp_tags": dhcp_tags,
         }
@@ -274,7 +274,7 @@ class _IscManager(ManagerModule):
                         continue
 
                     # We may have multiple bonded interfaces, so we need a composite index into ding.
-                    name_master = "%s-%s" % (system.name, interface["interface_master"])
+                    name_master = f"{system.name}-{interface['interface_master']}"
                     if name_master not in ding:
                         ding[name_master] = {interface["interface_master"]: []}
 
@@ -321,11 +321,11 @@ class _IscManager(ManagerModule):
                 # the label the entry after the hostname if possible
                 if host:
                     if name != "eth0":
-                        interface["name"] = "%s-%s" % (host, name)
+                        interface["name"] = f"{host}-{name}"
                     else:
-                        interface["name"] = "%s" % host
+                        interface["name"] = host
                 else:
-                    interface["name"] = "generic%d" % counter
+                    interface["name"] = f"generic{counter:d}"
 
                 # add references to the system, profile, and distro for use in the template
                 if system.name in blender_cache:

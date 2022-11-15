@@ -99,7 +99,7 @@ def authenticate(api_handle, username: str, password: str) -> bool:
     server = api_handle.settings().redhat_management_server
     user_enabled = api_handle.settings().redhat_management_permissive
 
-    spacewalk_url = "https://%s/rpc/api" % server
+    spacewalk_url = f"https://{server}/rpc/api"
     with ServerProxy(spacewalk_url, verbose=True) as client:
         if username == "taskomatic_user" or __looks_like_a_token(password):
             # The tokens are lowercase hex, but a password can also be lowercase hex, so we have to try it as both a

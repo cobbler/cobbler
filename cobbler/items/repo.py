@@ -82,7 +82,7 @@ class Repo(item.Item):
         """
         super().check_if_valid()
         if self.mirror is None:
-            raise CX("Error with repo %s - mirror is required" % self.name)
+            raise CX(f"Error with repo {self.name} - mirror is required")
 
     #
     # specific methods for item.Repo
@@ -160,7 +160,7 @@ class Repo(item.Item):
                 mirror_type = enums.MirrorType[mirror_type.upper()]
             except KeyError as error:
                 raise ValueError(
-                    "mirror_type choices include: %s" % list(map(str, enums.MirrorType))
+                    f"mirror_type choices include: {list(map(str, enums.MirrorType))}"
                 ) from error
         # Now the mirror_type MUST be of the type of enums.
         if not isinstance(mirror_type, enums.MirrorType):
@@ -420,7 +420,7 @@ class Repo(item.Item):
                 arch = enums.RepoArchs[arch.name.upper()]
             except KeyError as error:
                 raise ValueError(
-                    "arch choices include: %s" % list(map(str, enums.RepoArchs))
+                    f"arch choices include: {list(map(str, enums.RepoArchs))}"
                 ) from error
         self._arch = enums.RepoArchs.to_enum(arch)
 

@@ -51,13 +51,13 @@ class ModuleLoader:
         :return: Two dictionary's with the dynamically loaded modules.
         """
 
-        filenames = glob.glob("%s/*.py" % self.mod_path)
-        filenames += glob.glob("%s/*.pyc" % self.mod_path)
-        filenames += glob.glob("%s/*.pyo" % self.mod_path)
+        filenames = glob.glob(f"{self.mod_path}/*.py")
+        filenames += glob.glob(f"{self.mod_path}/*.pyc")
+        filenames += glob.glob(f"{self.mod_path}/*.pyo")
         # Allow recursive modules
-        filenames += glob.glob("%s/**/*.py" % self.mod_path)
-        filenames += glob.glob("%s/**/*.pyc" % self.mod_path)
-        filenames += glob.glob("%s/**/*.pyo" % self.mod_path)
+        filenames += glob.glob(f"{self.mod_path}/**/*.py")
+        filenames += glob.glob(f"{self.mod_path}/**/*.pyc")
+        filenames += glob.glob(f"{self.mod_path}/**/*.pyo")
 
         for fn in filenames:
             basename = fn.replace(self.mod_path, "")
@@ -89,7 +89,7 @@ class ModuleLoader:
         :param modname: The name of the module.
         """
         try:
-            blip = import_module("cobbler.modules.%s" % modname)
+            blip = import_module(f"cobbler.modules.{modname}")
             if not hasattr(blip, "register"):
                 self.logger.debug(
                     "%s.%s is not a proper module", self.mod_path, modname
@@ -142,7 +142,7 @@ class ModuleLoader:
         except Exception as exception:
             if fallback_module_name is None:
                 raise CX(
-                    "Cannot find config file setting for: %s.%s" % (category, field)
+                    f"Cannot find config file setting for: {category}.{field}"
                 ) from exception
             value = fallback_module_name
             self.logger.warning(
@@ -169,7 +169,7 @@ class ModuleLoader:
         module_name = self.get_module_name(category, field, fallback_module_name)
         requested_module = self.module_cache.get(module_name, None)
         if requested_module is None:
-            raise CX("Failed to load module for %s.%s" % (category, field))
+            raise CX(f"Failed to load module for {category}.{field}")
         return requested_module
 
     def get_modules_in_category(self, category: str) -> list:

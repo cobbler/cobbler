@@ -415,22 +415,20 @@ class NetworkInterface:
                 intf_type = enums.NetworkInterfaceType(intf_type)
             except ValueError as value_error:
                 raise ValueError(
-                    'intf_type with number "%s" was not a valid interface type!'
-                    % intf_type
+                    f'intf_type with number "{intf_type}" was not a valid interface type!'
                 ) from value_error
         elif isinstance(intf_type, str):
             try:
                 intf_type = enums.NetworkInterfaceType[intf_type.upper()]
             except KeyError as key_error:
                 raise ValueError(
-                    "intf_type choices include: %s"
-                    % list(map(str, enums.NetworkInterfaceType))
+                    f"intf_type choices include: {list(map(str, enums.NetworkInterfaceType))}"
                 ) from key_error
         # Now it must be of the enum type
         if intf_type not in enums.NetworkInterfaceType:
             raise ValueError(
-                "interface intf_type value must be one of: %s or blank"
-                % ",".join(list(map(str, enums.NetworkInterfaceType)))
+                "interface intf_type value must be one of:"
+                f"{','.join(list(map(str, enums.NetworkInterfaceType)))} or blank"
             )
         self._interface_type = intf_type
 
@@ -581,7 +579,7 @@ class NetworkInterface:
                 secondaries.append(address)
             else:
                 raise AddressValueError(
-                    "invalid format for IPv6 IP address (%s)" % address
+                    f"invalid format for IPv6 IP address ({address})"
                 )
         self._ipv6_secondaries = secondaries
 
@@ -609,7 +607,7 @@ class NetworkInterface:
         if address == "" or utils.is_ip(address):
             self._ipv6_default_gateway = address.strip()
             return
-        raise AddressValueError("invalid format of IPv6 IP address (%s)" % address)
+        raise AddressValueError(f"invalid format of IPv6 IP address ({address})")
 
     @property
     def ipv6_static_routes(self) -> list:
@@ -830,9 +828,7 @@ class System(Item):
             return self.autoinstall
         elif name == "ks_meta":
             return self.autoinstall_meta
-        raise AttributeError(
-            'Attribute "%s" did not exist on object type System.' % name
-        )
+        raise AttributeError(f'Attribute "{name}" did not exist on object type System.')
 
     #
     # override some base class methods first (item.Item)
@@ -908,8 +904,7 @@ class System(Item):
             self.api.images().find(name=value)
         except ValueError as value_error:
             raise ValueError(
-                'Neither a system, profile or image could be found with the name "%s".'
-                % value
+                f'Neither a system, profile or image could be found with the name "{value}".'
             ) from value_error
         self._parent = value
 
@@ -925,7 +920,7 @@ class System(Item):
         if self.profile is None or self.profile == "":
             if self.image is None or self.image == "":
                 raise CX(
-                    "Error with system %s - profile or image is required" % self.name
+                    f"Error with system {self.name} - profile or image is required"
                 )
 
     #
@@ -1007,9 +1002,9 @@ class System(Item):
         if not isinstance(new_name, str):
             raise TypeError("The new_name of the interface must be of type str")
         if old_name not in self.interfaces:
-            raise ValueError('Interface "%s" does not exist' % old_name)
+            raise ValueError(f'Interface "{old_name}" does not exist')
         if new_name in self.interfaces:
-            raise ValueError('Interface "%s" already exists' % new_name)
+            raise ValueError(f'Interface "{new_name}" already exists')
         self.interfaces[new_name] = self.interfaces[old_name]
         del self.interfaces[old_name]
 
@@ -1102,8 +1097,8 @@ class System(Item):
             parent_boot_loaders = []
         if not set(boot_loaders_split).issubset(parent_boot_loaders):
             raise CX(
-                'Error with system "%s" - not all boot_loaders are supported (given: "%s"; supported:'
-                '"%s")' % (self.name, str(boot_loaders_split), str(parent_boot_loaders))
+                f'Error with system "{self.name}" - not all boot_loaders are supported (given:'
+                f'"{str(boot_loaders_split)}"; supported: "{str(parent_boot_loaders)}")'
             )
         self._boot_loaders = boot_loaders_split
 
@@ -1498,9 +1493,7 @@ class System(Item):
 
         profile = self.api.profiles().find(name=profile_name)
         if profile is None:
-            raise ValueError(
-                'Profile with the name "%s" is not existing' % profile_name
-            )
+            raise ValueError(f'Profile with the name "{profile_name}" is not existing')
 
         old_parent = self.parent
         if isinstance(old_parent, Item):
@@ -1555,7 +1548,7 @@ class System(Item):
 
         img = self.api.images().find(name=image_name)
         if img is None:
-            raise ValueError('Image with the name "%s" is not existing' % image_name)
+            raise ValueError(f'Image with the name "{image_name}" is not existing')
 
         old_parent = self.parent
         if isinstance(old_parent, Item):

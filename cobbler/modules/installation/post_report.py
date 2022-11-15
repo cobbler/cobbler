@@ -73,7 +73,7 @@ def run(api, args) -> int:
     # use a custom from address or fall back to a reasonable default
     from_addr = settings.build_reporting_sender
     if from_addr == "":
-        from_addr = "cobbler@%s" % settings.server
+        from_addr = f"cobbler@{settings.server}"
 
     subject = settings.build_reporting_subject
     if subject == "":

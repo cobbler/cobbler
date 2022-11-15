@@ -326,8 +326,8 @@ class CobblerCheck:
                 not_found.append(r)
         if len(not_found) > 0:
             status.append(
-                "One or more repos referenced by profile objects is no longer defined in Cobbler: %s"
-                % ", ".join(not_found)
+                "One or more repos referenced by profile objects is no longer defined in Cobbler:"
+                f" {', '.join(not_found)}"
             )
 
     def check_for_unsynced_repos(self, status):
@@ -345,7 +345,7 @@ class CobblerCheck:
         if len(need_sync) > 0:
             status.append(
                 "One or more repos need to be processed by cobbler reposync for the first time before "
-                "automating installations using them: %s" % ", ".join(need_sync)
+                f"automating installations using them: {', '.join(need_sync)}"
             )
 
     def check_dhcpd_bin(self, status):
@@ -453,7 +453,7 @@ class CobblerCheck:
 
         bootloc = self.settings.tftpboot_location
         if not os.path.exists(bootloc):
-            status.append("please create directory: %(dirname)s" % {"dirname": bootloc})
+            status.append(f"please create directory: {bootloc}")
 
     def check_ctftpd_dir(self, status):
         """
@@ -466,7 +466,7 @@ class CobblerCheck:
 
         bootloc = self.settings.tftpboot_location
         if not os.path.exists(bootloc):
-            status.append("please create directory: %(dirname)s" % {"dirname": bootloc})
+            status.append(f"please create directory: {bootloc}")
 
     def check_rsync_conf(self, status):
         """
@@ -507,12 +507,9 @@ class CobblerCheck:
                     match_file = True
             if not match_next:
                 status.append(
-                    "expecting next-server entry in %(file)s"
-                    % {"file": self.settings.dhcpd_conf}
+                    f"expecting next-server entry in {self.settings.dhcpd_conf}"
                 )
             if not match_file:
-                status.append(
-                    "missing file: %(file)s" % {"file": self.settings.dhcpd_conf}
-                )
+                status.append(f"missing file: {self.settings.dhcpd_conf}")
         else:
-            status.append("missing file: %(file)s" % {"file": self.settings.dhcpd_conf})
+            status.append(f"missing file: {self.settings.dhcpd_conf}")

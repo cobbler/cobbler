@@ -1716,7 +1716,7 @@ def to_string_from_fields(item_dict, fields, interface_fields=None) -> str:
     for elem in fields:
         keys.append((elem[0], elem[3], elem[4]))
     keys.sort()
-    buf += "%-30s : %s\n" % ("Name", item_dict["name"])
+    buf += f"{'Name':<30} : {item_dict['name']}\n"
     for (k, nicename, editable) in keys:
         # FIXME: supress fields users don't need to see?
         # FIXME: interfaces should be sorted
@@ -1726,7 +1726,7 @@ def to_string_from_fields(item_dict, fields, interface_fields=None) -> str:
 
         if k != "name":
             # FIXME: move examples one field over, use description here.
-            buf += "%-30s : %s\n" % (nicename, item_dict[k])
+            buf += f"{nicename:<30} : {item_dict[k]}\n"
 
     # somewhat brain-melting special handling to print the dicts
     # inside of the interfaces more neatly.
@@ -1737,13 +1737,10 @@ def to_string_from_fields(item_dict, fields, interface_fields=None) -> str:
         keys.sort()
         for iname in list(item_dict["interfaces"].keys()):
             # FIXME: inames possibly not sorted
-            buf += "%-30s : %s\n" % ("Interface ===== ", iname)
+            buf += f"{'Interface ===== ':<30} : {iname}\n"
             for (k, nicename, editable) in keys:
                 if editable:
-                    buf += "%-30s : %s\n" % (
-                        nicename,
-                        item_dict["interfaces"][iname].get(k, ""),
-                    )
+                    buf += f"{nicename:<30} : {item_dict['interfaces'][iname].get(k, '')}\n"
 
     return buf
 
@@ -1774,8 +1771,7 @@ def report_items(remote, otype: str):
             for breed in bkeys:
                 total_sigs += report_single_breed(breed, items)
             print(
-                "\n%d breeds with %d total signatures loaded"
-                % (total_breeds, total_sigs)
+                f"\n{total_breeds:d} breeds with {total_sigs:d} total signatures loaded"
             )
         else:
             print("No breeds found in the signature, a signature update is recommended")
@@ -1791,13 +1787,13 @@ def report_single_breed(name: str, items: dict) -> int:
     Helper function which prints a single signature breed list to the terminal.
     """
     new_sigs = 0
-    print("%s:" % name)
+    print(f"{name}:")
     oskeys = list(items["breeds"][name].keys())
     oskeys.sort()
     if len(oskeys) > 0:
         new_sigs = len(oskeys)
         for osversion in oskeys:
-            print("\t%s" % osversion)
+            print(f"\t{osversion}")
     else:
         print("\t(none)")
     return new_sigs
@@ -1818,7 +1814,7 @@ def report_item(remote, otype: str, item=None, name=None):
             try:
                 item = {"name": name, "value": cur_settings[name]}
             except:
-                print("Setting not found: %s" % name)
+                print(f"Setting not found: {name}")
                 return 1
         elif otype == "signature":
             items = remote.get_signatures()
@@ -1827,9 +1823,9 @@ def report_item(remote, otype: str, item=None, name=None):
                 print("Currently loaded signatures:")
                 if name in items["breeds"]:
                     total_sigs += report_single_breed(name, items)
-                    print("\nBreed '%s' has %d total signatures" % (name, total_sigs))
+                    print(f"\nBreed '{name}' has {total_sigs:d} total signatures")
                 else:
-                    print("No breed named '%s' found" % name)
+                    print(f"No breed named '{name}' found")
                     return 1
             else:
                 print(
@@ -1840,7 +1836,7 @@ def report_item(remote, otype: str, item=None, name=None):
         else:
             item = remote.get_item(otype, name)
             if item == "~":
-                print("No %s found: %s" % (otype, name))
+                print(f"No {otype} found: {name}")
                 return 1
 
     if otype == "distro":
@@ -1862,7 +1858,7 @@ def report_item(remote, otype: str, item=None, name=None):
     elif otype == "menu":
         data = to_string_from_fields(item, MENU_FIELDS)
     elif otype == "setting":
-        data = "%-40s: %s" % (item["name"], item["value"])
+        data = f"{item['name']:<40}: {item['value']}"
     else:
         data = "Unknown item type selected!"
     print(data)
@@ -1878,7 +1874,7 @@ def list_items(remote, otype):
     items = remote.get_item_names(otype)
     items.sort()
     for x in items:
-        print("   %s" % x)
+        print(f"   {x}")
 
 
 def n2s(data):
@@ -1930,18 +1926,17 @@ def _add_parser_option_from_field(parser, field, settings):
     choices = field[6]
     if choices and default not in choices:
         raise Exception(
-            "field %s default value (%s) is not listed in choices (%s)"
-            % (name, default, str(choices))
+            f"field {name} default value ({default}) is not listed in choices ({str(choices)})"
         )
     if tooltip != "":
-        description += " (%s)" % tooltip
+        description += f" ({tooltip})"
 
     # generate option string
-    option_string = "--%s" % name.replace("_", "-")
+    option_string = f"--{name.replace('_', '-')}"
 
     # add option to parser
     if isinstance(choices, list) and len(choices) != 0:
-        description += " (valid options: %s)" % ",".join(choices)
+        description += f" (valid options: {','.join(choices)})"
         parser.add_option(option_string, dest=name, help=description, choices=choices)
     else:
         parser.add_option(option_string, dest=name, help=description)
@@ -1994,7 +1989,7 @@ def add_options_from_fields(
             )
 
     elif object_action == "remove":
-        parser.add_option("--name", help="%s name to remove" % object_type)
+        parser.add_option("--name", help=f"{object_type} name to remove")
         parser.add_option(
             "--recursive",
             action="store_true",
@@ -2058,7 +2053,7 @@ class CobblerCLI:
         :return: Id of the newly started task
         """
         options = utils.strip_none(vars(options), omit_none=True)
-        fn = getattr(self.remote, "background_%s" % name)
+        fn = getattr(self.remote, f"background_{name}")
         return fn(options, self.token)
 
     def get_object_type(self, args) -> Optional[str]:
@@ -2117,7 +2112,7 @@ class CobblerCLI:
                 s.ping()
             except Exception as e:
                 print(
-                    "cobblerd does not appear to be running/accessible: %s" % repr(e),
+                    f"cobblerd does not appear to be running/accessible: {repr(e)}",
                     file=sys.stderr,
                 )
                 return 411
@@ -2288,7 +2283,7 @@ class CobblerCLI:
                 self.remote.auto_add_repos(self.token)
             except xmlrpc.client.Fault as err:
                 (_, emsg) = err.faultString.split(":", 1)
-                print("exception on server: %s" % emsg)
+                print(f"exception on server: {emsg}")
                 return 1
         elif object_action in OBJECT_ACTIONS:
             if opt(options, "name") == "" and object_action not in ("reload", "update"):
@@ -2324,7 +2319,7 @@ class CobblerCLI:
                         )
                 except xmlrpc.client.Fault as error:
                     (_, emsg) = error.faultString.split(":", 1)
-                    print("exception on server: %s" % emsg)
+                    print(f"exception on server: {emsg}")
                     return 1
                 except RuntimeError as error:
                     print(error.args[0])
@@ -2354,7 +2349,7 @@ class CobblerCLI:
                 keys = list(data.keys())
                 keys.sort()
                 for x in keys:
-                    print("%s: %s" % (x, data[x]))
+                    print(f"{x}: {data[x]}")
             elif object_action in ["poweron", "poweroff", "powerstatus", "reboot"]:
                 power = {
                     "power": object_action.replace("power", ""),
@@ -2373,8 +2368,7 @@ class CobblerCLI:
                     signatures.load_signatures(filename, cache=True)
                 except:
                     print(
-                        "There was an error loading the signature data in %s."
-                        % filename
+                        f"There was an error loading the signature data in {filename}."
                     )
                     print(
                         "Please check the JSON file or run 'cobbler signature update'."
@@ -2403,7 +2397,7 @@ class CobblerCLI:
         """
         task_id = INVALID_TASK
 
-        self.parser.set_usage("Usage: %%prog %s [options]" % (action_name))
+        self.parser.set_usage(f"Usage: %prog {action_name} [options]")
 
         if action_name == "buildiso":
 
@@ -2542,9 +2536,9 @@ class CobblerCLI:
 
         elif action_name == "version":
             version = self.remote.extended_version()
-            print("Cobbler %s" % version["version"])
-            print("  source: %s, %s" % (version["gitstamp"], version["gitdate"]))
-            print("  build time: %s" % version["builddate"])
+            print(f"Cobbler {version['version']}")
+            print(f"  source: {version['gitstamp']}, {version['gitdate']}")
+            print(f"  build time: {version['builddate']}")
 
         elif action_name == "hardlink":
             (options, args) = self.parser.parse_args(self.args)
@@ -2611,7 +2605,7 @@ class CobblerCLI:
                 )
                 for r in results:
                     ct += 1
-                    print("%s: %s" % (ct, r))
+                    print(f"{ct}: {r}")
                 print(
                     "\nRestart cobblerd and then run 'cobbler sync' to apply changes."
                 )
@@ -2698,7 +2692,7 @@ class CobblerCLI:
             (options, _) = self.parser.parse_args(self.args)
             task_id = self.start_task("mkloaders", options)
         else:
-            print("No such command: %s" % action_name)
+            print(f"No such command: {action_name}")
             return 1
 
         # FIXME: add tail/polling code here
@@ -2714,11 +2708,11 @@ class CobblerCLI:
 
         :param task_id: The id of the task to be pretty printed.
         """
-        print("task started: %s" % task_id)
+        print(f"task started: {task_id}")
         events = self.remote.get_events()
         (etime, name, status, who_viewed) = events[task_id]
         atime = time.asctime(time.localtime(etime))
-        print("task started (id=%s, time=%s)" % (name, atime))
+        print(f"task started (id={name}, time={atime})")
 
     def follow_task(self, task_id):
         """
@@ -2763,7 +2757,7 @@ class CobblerCLI:
         commands.sort()
         print("usage\n=====")
         for c in commands:
-            print("cobbler %s %s" % (object_type, c))
+            print(f"cobbler {object_type} {c}")
         return 2
 
     def print_help(self) -> int:
@@ -2778,7 +2772,7 @@ class CobblerCLI:
             "        [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]"
         )
         print("cobbler setting [edit|report]")
-        print("cobbler <%s> [options|--help]" % "|".join(DIRECT_ACTIONS))
+        print(f"cobbler <{'|'.join(DIRECT_ACTIONS)}> [options|--help]")
         return 2
 
 

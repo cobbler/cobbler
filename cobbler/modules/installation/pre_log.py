@@ -42,6 +42,6 @@ def run(api, args: list) -> int:
     # FIXME: use the logger
 
     with open("/var/log/cobbler/install.log", "a+") as fd:
-        fd.write("%s\t%s\t%s\tstart\t%s\n" % (objtype, name, ip, time.time()))
+        fd.write(f"{objtype}\t{name}\t{ip}\tstart\t{time.time()}\n")
 
     return 0

@@ -51,7 +51,7 @@ class _DnsmasqManager(ManagerModule):
         try:
             f2 = open(template_file, "r")
         except Exception:
-            raise OSError("error writing template to file: %s" % template_file)
+            raise OSError(f"error writing template to file: {template_file}")
         template_data = f2.read()
         f2.close()
 
@@ -92,7 +92,7 @@ class _DnsmasqManager(ManagerModule):
                 if ip != "":
                     systxt += "," + ip
                 if ipv6 != "":
-                    systxt += ",[%s]" % ipv6
+                    systxt += f",[{ipv6}]"
 
                 systxt += "\n"
 
@@ -118,7 +118,7 @@ class _DnsmasqManager(ManagerModule):
         for x in list(system_definitions.keys()):
             if x == "default":
                 continue
-            metadata["insert_cobbler_system_definitions_%s" % x] = system_definitions[x]
+            metadata[f"insert_cobbler_system_definitions_{x}"] = system_definitions[x]
 
         self.templar.render(template_data, metadata, settings_file)
 

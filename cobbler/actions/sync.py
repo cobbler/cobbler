@@ -70,7 +70,7 @@ class CobblerSync:
         Common startup code for the different sync algorithms
         """
         if not os.path.exists(self.bootloc):
-            utils.die("cannot find directory: %s" % self.bootloc)
+            utils.die(f"cannot find directory: {self.bootloc}")
 
         self.logger.info("running pre-sync triggers")
 
@@ -129,7 +129,7 @@ class CobblerSync:
         # directory that's no longer mounted)
         for d in self.distros:
             try:
-                self.logger.info("copying files for distro: %s" % d.name)
+                self.logger.info(f"copying files for distro: {d.name}")
                 self.tftpgen.copy_single_distro_files(d, self.settings.webdir, True)
                 self.tftpgen.write_templates(d, write_file=True)
             except CX as e:
@@ -255,7 +255,7 @@ class CobblerSync:
         try:
             template = open(template_file, "r")
         except:
-            raise OSError("error reading template %s" % template_file)
+            raise OSError(f"error reading template {template_file}")
 
         template_data = ""
         template_data = template.read()

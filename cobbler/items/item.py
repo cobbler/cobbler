@@ -92,7 +92,7 @@ class Item:
                         return True
                     return False
 
-            raise TypeError("find cannot compare type: %s" % type(from_obj))
+            raise TypeError(f"find cannot compare type: {type(from_obj)}")
 
     def __init__(self, api, is_subobject: bool = False):
         """
@@ -174,8 +174,7 @@ class Item:
 
         if not hasattr(self, attribute):
             raise AttributeError(
-                '%s "%s" does not have property "%s"'
-                % (type(self), self.name, property_name)
+                f'{type(self)} "{self.name}" does not have property "{property_name}"'
             )
 
         attribute_value = getattr(self, attribute)
@@ -186,12 +185,12 @@ class Item:
                 return getattr(self.parent, property_name)
             elif hasattr(settings, settings_name):
                 return getattr(settings, settings_name)
-            elif hasattr(settings, "default_%s" % settings_name):
-                return getattr(settings, "default_%s" % settings_name)
+            elif hasattr(settings, f"default_{settings_name}"):
+                return getattr(settings, f"default_{settings_name}")
             else:
                 AttributeError(
-                    '%s "%s" inherits property "%s", but neither its parent nor settings have it'
-                    % (type(self), self.name, property_name)
+                    f'{type(self)} "{self.name}" inherits property "{property_name}", but neither its parent nor'
+                    f"settings have it"
                 )
 
         return attribute_value
@@ -207,8 +206,7 @@ class Item:
 
         if not hasattr(self, attribute):
             raise AttributeError(
-                '%s "%s" does not have property "%s"'
-                % (type(self), self.name, property_name)
+                f'{type(self)} "{self.name}" does not have property "{property_name}"'
             )
 
         attribute_value = getattr(self, attribute)
@@ -222,14 +220,12 @@ class Item:
                 return getattr(self.parent, property_name)
             elif hasattr(settings, settings_name):
                 return enum_type.to_enum(getattr(settings, settings_name))
-            elif hasattr(settings, "default_%s" % settings_name):
-                return enum_type.to_enum(
-                    getattr(settings, "default_%s" % settings_name)
-                )
+            elif hasattr(settings, f"default_{settings_name}"):
+                return enum_type.to_enum(getattr(settings, f"default_{settings_name}"))
             else:
                 AttributeError(
-                    '%s "%s" inherits property "%s", but neither its parent nor settings have it'
-                    % (type(self), self.name, property_name)
+                    f'{type(self)} "{self.name}" inherits property "{property_name}", but neither its parent nor'
+                    "settings have it"
                 )
 
         return attribute_value
@@ -247,8 +243,7 @@ class Item:
 
         if not hasattr(self, attribute):
             raise AttributeError(
-                '%s "%s" does not have property "%s"'
-                % (type(self), self.name, property_name)
+                f'{type(self)} "{self.name}" does not have property "{property_name}"'
             )
 
         attribute_value = getattr(self, attribute)
@@ -333,7 +328,7 @@ class Item:
         if not isinstance(name, str):
             raise TypeError("name must of be type str")
         if not RE_OBJECT_NAME.match(name):
-            raise ValueError("Invalid characters in name: '%s'" % name)
+            raise ValueError(f"Invalid characters in name: '{name}'")
         self._name = name
 
     @property
@@ -910,12 +905,12 @@ class Item:
                     setattr(self, lowered_key, dictionary[key])
                 except AttributeError as error:
                     raise AttributeError(
-                        'Attribute "%s" could not be set!' % lowered_key
+                        f'Attribute "{lowered_key}" could not be set!'
                     ) from error
                 result.pop(key)
         if len(result) > 0:
             raise KeyError(
-                "The following keys supplied could not be set: %s" % result.keys()
+                f"The following keys supplied could not be set: {result.keys()}"
             )
 
     def to_dict(self, resolved: bool = False) -> dict:

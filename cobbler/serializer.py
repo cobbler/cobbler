@@ -62,7 +62,7 @@ class Serializer:
             # was made -- allowing the API to work more smoothly without
             # a lot of unnecessary reloads.
             with open(self.api.mtime_location, "w") as mtime_fd:
-                mtime_fd.write("%f" % time.time())
+                mtime_fd.write(f"{time.time():f}")
         if self.lock_enabled:
             self.lock_handle = open(self.lock_file_location, "r")
             fcntl.flock(self.lock_handle.fileno(), fcntl.LOCK_UN)

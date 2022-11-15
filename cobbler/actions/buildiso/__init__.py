@@ -80,8 +80,8 @@ class BuildIso:
             shutil.copyfile(kernel, path_destdir.joinpath(kernel.name))
             shutil.copyfile(initrd, path_destdir.joinpath(initrd.name))
         else:
-            shutil.copyfile(kernel, path_destdir.joinpath("%s.krn" % new_filename))
-            shutil.copyfile(initrd, path_destdir.joinpath("%s.img" % new_filename))
+            shutil.copyfile(kernel, path_destdir.joinpath(f"{new_filename}.krn"))
+            shutil.copyfile(initrd, path_destdir.joinpath(f"{new_filename}.img"))
 
     def filter_profiles(self, selected_items: List[str] = None) -> list:
         """
@@ -222,14 +222,13 @@ class BuildIso:
 
         if len(matches) == 0:
             raise ValueError(
-                'No matches found for requested Cobbler Arch: "%s"'
-                % str(desired_arch.value)
+                f'No matches found for requested Cobbler Arch: "{str(desired_arch.value)}"'
             )
         elif len(matches) == 1:
             return next(iter(matches.values()))
         raise ValueError(
-            'Ambiguous matches for GRUB to Cobbler Arch mapping! Requested: "%s" Found: "%s"'
-            % (str(desired_arch.value), str(matches.values()))
+            f'Ambiguous matches for GRUB to Cobbler Arch mapping! Requested: "{str(desired_arch.value)}"'
+            f' Found: "{str(matches.values())}"'
         )
 
     def __prepare_buildisodir(self, buildisodir: str = "") -> str:

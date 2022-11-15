@@ -70,9 +70,9 @@ def authenticate(api_handle, username, password) -> bool:
         elif port == "636":
             uri += "ldaps://" + server
         elif port == "3269":
-            uri += "ldaps://" + "%s:%s" % (server, port)
+            uri += "ldaps://" + f"{server}:{port}"
         else:
-            uri += "ldap://" + "%s:%s" % (server, port)
+            uri += "ldap://" + f"{server}:{port}"
         uri += " "
 
     uri = uri.strip()

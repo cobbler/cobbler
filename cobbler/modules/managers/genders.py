@@ -11,7 +11,7 @@ import time
 from cobbler.templar import Templar
 
 plib = distutils.sysconfig.get_python_lib()
-mod_path = "%s/cobbler" % plib
+mod_path = f"{plib}/cobbler"
 sys.path.insert(0, mod_path)
 template_file = "/etc/cobbler/genders.template"
 settings_file = "/etc/genders"
@@ -41,7 +41,7 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
     try:
         f2 = open(template_file, "r")
     except:
-        raise OSError("error reading template: %s" % template_file)
+        raise OSError(f"error reading template: {template_file}")
     template_data = ""
     template_data = f2.read()
     f2.close()

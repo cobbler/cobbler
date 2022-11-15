@@ -64,7 +64,7 @@ def input_string_or_dict_no_inherit(
     if options is None or options == "delete":
         return {}
     elif isinstance(options, list):
-        raise TypeError("No idea what to do with list: %s" % options)
+        raise TypeError(f"No idea what to do with list: {options}")
     elif isinstance(options, str):
         new_dict: Dict[str, Any] = {}
         tokens = shlex.split(options)
@@ -110,7 +110,7 @@ def input_boolean(value: Union[str, bool, int]) -> bool:
     if not isinstance(value, (str, bool, int)):
         raise TypeError(
             "The value handed to the input_boolean function was not convertable due to a wrong type "
-            "(found: %s)!" % type(value)
+            f"(found: {type(value)})!"
         )
     value = str(value).lower()
     return value in ["true", "1", "on", "yes", "y"]

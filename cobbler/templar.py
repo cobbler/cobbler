@@ -119,14 +119,14 @@ class Templar:
             else:
                 return "# ERROR: JINJA2 NOT AVAILABLE. Maybe you need to install python-jinja2?\n"
         else:
-            return "# ERROR: UNSUPPORTED TEMPLATE TYPE (%s)" % str(template_type)
+            return f"# ERROR: UNSUPPORTED TEMPLATE TYPE ({str(template_type)})"
 
         # Now apply some magic post-filtering that is used by "cobbler import" and some other places. Forcing folks to
         # double escape things would be very unwelcome.
         hp = search_table.get("http_port", "80")
         server = search_table.get("server", self.settings.server)
         if hp not in (80, "80"):
-            repstr = "%s:%s" % (server, hp)
+            repstr = f"{server}:{hp}"
         else:
             repstr = server
         search_table["http_server"] = repstr
@@ -179,12 +179,11 @@ class Templar:
                         (server, directory) = rest.split(":", 2)
                     except Exception as error:
                         raise SyntaxError(
-                            "Invalid syntax for NFS path given during import: %s"
-                            % search_table["tree"]
+                            f"Invalid syntax for NFS path given during import: {search_table['tree']}"
                         ) from error
-                    line = "nfs --server %s --dir %s" % (server, directory)
+                    line = f"nfs --server {server} --dir {directory}"
                     # But put the URL part back in so koan can still see what the original value was
-                    line += "\n" + "#url --url=%s" % search_table["tree"]
+                    line += "\n" + f"#url --url={search_table['tree']}"
                 newdata += line + "\n"
             raw_data = newdata
 

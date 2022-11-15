@@ -299,16 +299,13 @@ class CobblerXMLRPCInterface:
                 try:
                     system_obj = self.remote.api.find_system(name=system_name)
                     if system_obj is None:
-                        raise ValueError(
-                            'System with name "%s" not found' % system_name
-                        )
+                        raise ValueError(f'System with name "{system_name}" not found')
                     self.remote.api.power_system(
                         system_obj, self.options.get("power", "")
                     )
                 except Exception as e:
                     self.logger.warning(
-                        "failed to execute power task on %s, exception: %s"
-                        % (str(system_name), str(e))
+                        f"failed to execute power task on {str(system_name)}, exception: {str(e)}"
                     )
 
         self.check_access(token, "power_system")
@@ -316,7 +313,7 @@ class CobblerXMLRPCInterface:
             runner,
             token,
             "power",
-            "Power management (%s)" % options.get("power", ""),
+            f"Power management ({options.get('power', '')})",
             options,
         )
 
@@ -333,7 +330,7 @@ class CobblerXMLRPCInterface:
         """
         system_obj = self.api.find_system(criteria={"uid": system_id})
         if system_obj is None:
-            raise ValueError('System with uid "%s" not found' % system_id)
+            raise ValueError(f'System with uid "{system_id}" not found')
         self.check_access(token, "power_system", system_obj)
         result = self.api.power_system(system_obj, power)
         return True if result is None else result
@@ -442,7 +439,7 @@ class CobblerXMLRPCInterface:
         self.check_access(token, role_name)
         new_event = self._new_event(name=name)
 
-        self._log("create_task(%s); event_id(%s)" % (name, new_event.event_id))
+        self._log(f"create_task({name}); event_id({new_event.event_id})")
 
         thr_obj = CobblerThread(
             new_event.event_id, self, args, role_name, self.api, thr_obj_fn, on_done
@@ -493,7 +490,7 @@ class CobblerXMLRPCInterface:
         if not CobblerXMLRPCInterface.__is_token(token):
             raise ValueError('"token" did not have the correct format or type!')
         if token not in self.token_cache:
-            raise CX("invalid token: %s" % token)
+            raise CX(f"invalid token: {token}")
         else:
             return self.token_cache[token][1]
 
@@ -531,17 +528,17 @@ class CobblerXMLRPCInterface:
             except:
                 # invalid or expired token?
                 m_user = "???"
-        msg = "REMOTE %s; user(%s)" % (msg, m_user)
+        msg = f"REMOTE {msg}; user({m_user})"
 
         if name is not None:
             if not validate_obj_name(name):
                 return
-            msg = "%s; name(%s)" % (msg, name)
+            msg = f"{msg}; name({name})"
 
         if object_id is not None:
             if not validate_uuid(object_id):
                 return
-            msg = "%s; object_id(%s)" % (msg, object_id)
+            msg = f"{msg}; object_id({object_id})"
 
         # add any attributes being modified, if any
         if attribute:
@@ -549,7 +546,7 @@ class CobblerXMLRPCInterface:
                 isinstance(attribute, str) and attribute.isidentifier()
             ) or keyword.iskeyword(attribute):
                 return
-            msg = "%s; attribute(%s)" % (msg, attribute)
+            msg = f"{msg}; attribute({attribute})"
 
         # log to the correct logger
         if error:
@@ -662,16 +659,16 @@ class CobblerXMLRPCInterface:
         """
         .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.get_item_resolved_value`
         """
-        self._log("get_item_resolved_value(%s)" % item_uuid, attribute=attribute)
+        self._log(f"get_item_resolved_value({item_uuid})", attribute=attribute)
         return_value = self.api.get_item_resolved_value(item_uuid, attribute)
         if return_value is None:
             self._log(
-                "get_item_resolved_value(%s): returned None" % item_uuid,
+                f"get_item_resolved_value({item_uuid}): returned None",
                 attribute=attribute,
             )
             raise ValueError(
-                'None is not a valid value for the resolved attribute "%s". Please fix the item(s) '
-                'starting at uuid "%s"' % (attribute, item_uuid)
+                f'None is not a valid value for the resolved attribute "{attribute}". Please fix the item(s) '
+                f'starting at uuid "{item_uuid}"'
             )
         elif isinstance(return_value, enums.ConvertableEnum):
             return return_value.value
@@ -701,9 +698,8 @@ class CobblerXMLRPCInterface:
             return_value, (str, int, float, bool, tuple, bytes, bytearray, dict, list)
         ):
             self._log(
-                "get_item_resolved_value(%s): Cannot return XML-RPC compliant type. Please add a case to convert"
-                ' type "%s" to an XML-RPC compliant type!'
-                % (item_uuid, type(return_value))
+                f"get_item_resolved_value({item_uuid}): Cannot return XML-RPC compliant type. Please add a case to"
+                f' convert type "{type(return_value)}" to an XML-RPC compliant type!'
             )
             raise ValueError(
                 "Cannot return XML-RPC compliant type. See logs for more information!"
@@ -716,7 +712,7 @@ class CobblerXMLRPCInterface:
         """
         .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.set_item_resolved_value`
         """
-        self._log("get_item_resolved_value(%s)" % item_uuid, attribute=attribute)
+        self._log(f"get_item_resolved_value({item_uuid})", attribute=attribute)
         # Duplicated logic to check from api.py method, but we require this to check the access of the user.
         if not validate_uuid(item_uuid):
             raise ValueError("The given uuid did not have the correct format!")
@@ -724,8 +720,8 @@ class CobblerXMLRPCInterface:
             "", {"uid": item_uuid}, return_list=False, no_errors=True
         )
         if obj is None:
-            raise ValueError('Item with item_uuid "%s" did not exist!' % item_uuid)
-        self.check_access(token, "modify_%s" % obj.COLLECTION_TYPE, obj, attribute)
+            raise ValueError(f'Item with item_uuid "{item_uuid}" did not exist!')
+        self.check_access(token, f"modify_{obj.COLLECTION_TYPE}", obj, attribute)
         return self.api.set_item_resolved_value(item_uuid, attribute, value)
 
     def get_item(self, what: str, name: str, flatten=False, resolved: bool = False):
@@ -739,7 +735,7 @@ class CobblerXMLRPCInterface:
                          objects raw value.
         :return: The item or None.
         """
-        self._log("get_item(%s,%s)" % (what, name))
+        self._log(f"get_item({what},{name})")
         requested_item = self.api.get_item(what, name)
         if requested_item is not None:
             requested_item = requested_item.to_dict(resolved=resolved)
@@ -1274,8 +1270,7 @@ class CobblerXMLRPCInterface:
         :return: The found items.
         """
         self._log(
-            "find_items_paged(%s); criteria(%s); sort(%s)"
-            % (what, criteria, sort_field),
+            f"find_items_paged({what}); criteria({criteria}); sort({sort_field})",
             token=token,
         )
         if criteria is None:
@@ -1296,7 +1291,7 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: True if item was found, otherwise False.
         """
-        self._log("has_item(%s)" % what, token=token, name=name)
+        self._log(f"has_item({what})", token=token, name=name)
         found = self.api.get_item(what, name)
         if found is None:
             return False
@@ -1314,7 +1309,7 @@ class CobblerXMLRPCInterface:
         """
         found = self.api.get_item(what, name)
         if found is None:
-            raise CX("internal error, unknown %s name %s" % (what, name))
+            raise CX(f"internal error, unknown {what} name {name}")
         return found.uid
 
     def get_distro_handle(self, name: str):
@@ -1412,10 +1407,10 @@ class CobblerXMLRPCInterface:
         :return: True if the action was successful.
         """
         self._log(
-            "remove_item (%s, recursive=%s)" % (what, recursive), name=name, token=token
+            f"remove_item ({what}, recursive={recursive})", name=name, token=token
         )
         obj = self.api.get_item(what, name)
-        self.check_access(token, "remove_%s" % what, obj)
+        self.check_access(token, f"remove_{what}", obj)
         self.api.remove_item(
             what, name, delete=True, with_triggers=True, recursive=recursive
         )
@@ -1530,11 +1525,11 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        self._log("copy_item(%s)" % what, object_id=object_id, token=token)
-        self.check_access(token, "copy_%s" % what)
+        self._log(f"copy_item({what})", object_id=object_id, token=token)
+        self.check_access(token, f"copy_{what}")
         obj = self.api.find_items(what, criteria={"uid": object_id}, return_list=False)
         if obj is None:
-            raise ValueError('Item with id "%s" not found.' % object_id)
+            raise ValueError(f'Item with id "{object_id}" not found.')
         self.api.copy_item(what, obj, newname)
         return True
 
@@ -1649,11 +1644,11 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        self._log("rename_item(%s)" % what, object_id=object_id, token=token)
-        self.check_access(token, "modify_%s" % what)
+        self._log(f"rename_item({what})", object_id=object_id, token=token)
+        self.check_access(token, f"modify_{what}")
         obj = self.api.find_items(what, criteria={"uid": object_id}, return_list=False)
         if obj is None:
-            raise ValueError('Item with id "%s" not found!' % object_id)
+            raise ValueError(f'Item with id "{object_id}" not found!')
         self.api.rename_item(what, obj, newname)
         return True
 
@@ -1770,8 +1765,8 @@ class CobblerXMLRPCInterface:
         :param is_subobject: If the object is a subobject of an already existing object or not.
         :return: The object id for the newly created object.
         """
-        self._log("new_item(%s)" % what, token=token)
-        self.check_access(token, "new_%s" % what)
+        self._log(f"new_item({what})", token=token)
+        self.check_access(token, f"new_{what}")
         new_item = self.api.new_item(what, is_subobject)
         self.unsaved_items[new_item.uid] = (time.time(), new_item)
         return new_item.uid
@@ -1879,13 +1874,13 @@ class CobblerXMLRPCInterface:
         :return: True if the action was successful. Otherwise False.
         """
         self._log(
-            "modify_item(%s)" % what,
+            f"modify_item({what})",
             object_id=object_id,
             attribute=attribute,
             token=token,
         )
         obj = self.__get_object(object_id)
-        self.check_access(token, "modify_%s" % what, obj, attribute)
+        self.check_access(token, f"modify_{what}", obj, attribute)
 
         if what == "system":
             if attribute == "modify_interface":
@@ -2029,12 +2024,12 @@ class CobblerXMLRPCInterface:
                 token=token,
             )
             return 1
-        self._log("modify_setting(%s)" % setting_name, token=token)
+        self._log(f"modify_setting({setting_name})", token=token)
         if not hasattr(self.api.settings(), setting_name):
             self.logger.warning("Setting did not exist!")
             return 1
         self.check_access(token, "modify_setting")
-        self._log("modify_setting(%s)" % setting_name, token=token)
+        self._log(f"modify_setting({setting_name})", token=token)
         try:
             if isinstance(getattr(self.api.settings(), setting_name), str):
                 value = str(value)
@@ -2114,7 +2109,7 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        self.check_access(token, "xedit_%s" % object_type, token)
+        self.check_access(token, f"xedit_{object_type}", token)
 
         if object_name.strip() == "":
             raise ValueError("xapi_object_edit() called without an object name")
@@ -2206,7 +2201,7 @@ class CobblerXMLRPCInterface:
                     self.modify_item(object_type, handle, key, value, token)
 
                 else:
-                    modkey = "%s-%s" % (key, attributes.get("interface", ""))
+                    modkey = f"{key}-{attributes.get('interface', '')}"
                     imods[modkey] = value
 
             if object_type == "system":
@@ -2223,8 +2218,8 @@ class CobblerXMLRPCInterface:
                 )
                 if childs > 0:
                     raise CX(
-                        "Can't delete this %s there are %s sub%ss and 'recursive' is set to 'False'"
-                        % (object_type, childs, object_type)
+                        f"Can't delete this {object_type} there are {childs} sub{object_type}s and 'recursive' is"
+                        " set to 'False'"
                     )
 
             self.remove_item(object_type, object_name, token, recursive=recursive)
@@ -2245,8 +2240,7 @@ class CobblerXMLRPCInterface:
             system_to_edit = self.__get_object(handle)
             if system_to_edit is None:
                 raise ValueError(
-                    'No system found with the specified name (name given: "%s")!'
-                    % object_name
+                    f'No system found with the specified name (name given: "{object_name}")!'
                 )
 
             # If we don't have an explicit interface name use the default interface or require an explicit
@@ -2305,9 +2299,9 @@ class CobblerXMLRPCInterface:
                          supported.
         :return: True if the action succeeded.
         """
-        self._log("save_item(%s)" % what, object_id=object_id, token=token)
+        self._log(f"save_item({what})", object_id=object_id, token=token)
         obj = self.__get_object(object_id)
-        self.check_access(token, "save_%s" % what, obj)
+        self.check_access(token, f"save_{what}", obj)
         if editmode == "new":
             self.api.add_item(what, obj, check_for_duplicate_names=True)
         else:
@@ -2545,7 +2539,7 @@ class CobblerXMLRPCInterface:
         # This is duplicated from tftpgen.py to prevent log poisoning via a template engine (Cheetah, Jinja2).
         if not validate_autoinstall_script_name(name):
             raise ValueError('"name" handed to generate_script was not valid!')
-        self._log('generate_script, name is "%s"' % name)
+        self._log(f'generate_script, name is "{name}"')
         return self.api.generate_script(profile, system, name)
 
     def dump_vars(
@@ -2561,7 +2555,7 @@ class CobblerXMLRPCInterface:
             "", {"uid": item_uuid}, return_list=False, no_errors=True
         )
         if obj is None:
-            raise ValueError('Item with uuid "%s" does not exist!' % item_uuid)
+            raise ValueError(f'Item with uuid "{item_uuid}" does not exist!')
         self.api.dump_vars(obj, formatted_output, remove_dicts)
 
     def get_blended_data(self, profile=None, system=None):
@@ -2578,11 +2572,11 @@ class CobblerXMLRPCInterface:
         if profile is not None and profile != "":
             obj = self.api.find_profile(profile)
             if obj is None:
-                raise CX("profile not found: %s" % profile)
+                raise CX(f"profile not found: {profile}")
         elif system is not None and system != "":
             obj = self.api.find_system(system)
             if obj is None:
-                raise CX("system not found: %s" % system)
+                raise CX(f"system not found: {system}")
         else:
             raise CX("internal error, no system or profile specified")
         data = utils.blender(self.api, True, obj)
@@ -2678,7 +2672,7 @@ class CobblerXMLRPCInterface:
             return utils.get_supported_system_boot_loaders()
         obj = self.api.find_distro(distro_name)
         if obj is None:
-            return "# object not found: %s" % distro_name
+            return f"# object not found: {distro_name}"
         return self.api.get_valid_obj_boot_loaders(obj)
 
     def get_valid_image_boot_loaders(self, image_name: str, token=None):
@@ -2694,7 +2688,7 @@ class CobblerXMLRPCInterface:
             return utils.get_supported_system_boot_loaders()
         obj = self.api.find_image(image_name)
         if obj is None:
-            return "# object not found: %s" % image_name
+            return f"# object not found: {image_name}"
         return self.api.get_valid_obj_boot_loaders(obj)
 
     def get_valid_profile_boot_loaders(self, profile_name, token=None):
@@ -2710,7 +2704,7 @@ class CobblerXMLRPCInterface:
             return utils.get_supported_system_boot_loaders()
         obj = self.api.find_profile(profile_name)
         if obj is None:
-            return "# object not found: %s" % profile_name
+            return f"# object not found: {profile_name}"
         distro = obj.get_conceptual_parent()
         return self.api.get_valid_obj_boot_loaders(distro)
 
@@ -2727,7 +2721,7 @@ class CobblerXMLRPCInterface:
             return utils.get_supported_system_boot_loaders()
         obj = self.api.find_system(system_name)
         if obj is None:
-            return "# object not found: %s" % system_name
+            return f"# object not found: {system_name}"
         parent = obj.get_conceptual_parent()
 
         if parent and parent.COLLECTION_TYPE == "profile":
@@ -2744,7 +2738,7 @@ class CobblerXMLRPCInterface:
         """
         obj = self.api.find_profile(profile_name)
         if obj is None:
-            return "# object not found: %s" % profile_name
+            return f"# object not found: {profile_name}"
         return self.api.get_repo_config_for_profile(obj)
 
     def get_repo_config_for_system(self, system_name, **rest):
@@ -2757,7 +2751,7 @@ class CobblerXMLRPCInterface:
         """
         obj = self.api.find_system(system_name)
         if obj is None:
-            return "# object not found: %s" % system_name
+            return f"# object not found: {system_name}"
         return self.api.get_repo_config_for_system(obj)
 
     def get_template_file_for_profile(self, profile_name, path, **rest):
@@ -2771,7 +2765,7 @@ class CobblerXMLRPCInterface:
         """
         obj = self.api.find_profile(profile_name)
         if obj is None:
-            return "# object not found: %s" % profile_name
+            return f"# object not found: {profile_name}"
         return self.api.get_template_file_for_profile(obj, path)
 
     def get_template_file_for_system(self, system_name, path, **rest):
@@ -2785,7 +2779,7 @@ class CobblerXMLRPCInterface:
         """
         obj = self.api.find_system(system_name)
         if obj is None:
-            return "# object not found: %s" % system_name
+            return f"# object not found: {system_name}"
         return self.api.get_template_file_for_system(obj, path)
 
     def register_new_system(self, info, token=None, **rest):
@@ -2836,15 +2830,15 @@ class CobblerXMLRPCInterface:
             if ip.find("/") != -1:
                 raise CX("no CIDR ips are allowed")
             if mac == "":
-                raise CX("missing MAC address for interface %s" % iname)
+                raise CX(f"missing MAC address for interface {iname}")
             if mac != "":
                 system = self.api.find_system(mac_address=mac)
                 if system is not None:
-                    raise CX("mac conflict: %s" % mac)
+                    raise CX(f"mac conflict: {mac}")
             if ip != "":
                 system = self.api.find_system(ip_address=ip)
                 if system is not None:
-                    raise CX("ip conflict: %s" % ip)
+                    raise CX(f"ip conflict: {ip}")
 
         # looks like we can go ahead and create a system now
         obj = self.api.new_system()
@@ -2937,7 +2931,7 @@ class CobblerXMLRPCInterface:
         ):
             return False
         self._log(
-            "upload_log_data (file: '%s', size: %s, offset: %s)" % (file, size, offset),
+            f"upload_log_data (file: '{file}', size: {size}, offset: {offset})",
             token=token,
             name=sys_name,
         )
@@ -2953,8 +2947,7 @@ class CobblerXMLRPCInterface:
         if obj is None:
             # system not found!
             self._log(
-                "upload_log_data - WARNING - system '%s' not found in Cobbler"
-                % sys_name,
+                f"upload_log_data - WARNING - system '{sys_name}' not found in Cobbler",
                 token=token,
                 name=sys_name,
             )
@@ -3048,7 +3041,7 @@ class CobblerXMLRPCInterface:
                 raise
         else:
             if not stat.S_ISREG(st.st_mode):
-                raise CX("destination not a file: %s" % file_name)
+                raise CX(f"destination not a file: {file_name}")
 
         # TODO: See if we can simplify this at a later point
         fd = os.open(file_name, os.O_RDWR | os.O_CREAT | os.O_CLOEXEC, 0o644)
@@ -3112,7 +3105,7 @@ class CobblerXMLRPCInterface:
         utils.run_triggers(
             self.api,
             None,
-            "/var/lib/cobbler/triggers/install/%s/*" % mode,
+            f"/var/lib/cobbler/triggers/install/{mode}/*",
             additional=[objtype, name, ip],
         )
         return True
@@ -3669,9 +3662,9 @@ class CobblerXMLRPCInterface:
             self._log("CLI Authorized", debug=True)
             return 1
         rc = self.api.authorize(user, resource, arg1, arg2)
-        self._log("%s authorization result: %s" % (user, rc), debug=True)
+        self._log(f"{user} authorization result: {rc}", debug=True)
         if not rc:
-            raise CX("authorization failure for user %s" % user)
+            raise CX(f"authorization failure for user {user}")
         return rc
 
     def get_authn_module_name(self, token: str):
@@ -3684,8 +3677,7 @@ class CobblerXMLRPCInterface:
         user = self.get_user_from_token(token)
         if user != "<DIRECT>":
             raise CX(
-                "authorization failure for user %s attempting to access authn module name"
-                % user
+                f"authorization failure for user {user} attempting to access authn module name"
             )
         return self.api.get_module_name_from_file("authentication", "module")
 
@@ -3711,7 +3703,7 @@ class CobblerXMLRPCInterface:
             token = self.__make_token(login_user)
             return token
         else:
-            utils.die("login failed (%s)" % login_user)
+            utils.die(f"login failed ({login_user})")
 
     def logout(self, token: str) -> bool:
         """
@@ -3866,7 +3858,7 @@ class CobblerXMLRPCInterface:
         :param hostname: The hostname for what to get the config data of.
         :return: The config data as a json for Koan.
         """
-        self._log("get_config_data for %s" % hostname)
+        self._log(f"get_config_data for {hostname}")
         obj = configgen.ConfigGen(self.api, hostname)
         return obj.gen_config_data_for_koan()
 
@@ -3994,7 +3986,7 @@ class ProxiedXMLRPCInterface:
             raise CX("forbidden method")
 
         if not hasattr(self.proxied, method):
-            raise CX("unknown remote method '%s'" % method)
+            raise CX(f"unknown remote method '{method}'")
 
         method_handle = getattr(self.proxied, method)
 

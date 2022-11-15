@@ -42,10 +42,7 @@ def hashfun(api, text: str) -> str:
     elif hashfunction == "shake_256":
         hashalgorithm = hashlib.shake_256(text.encode("utf-8"))
     else:
-        errortext = (
-            "The hashfunction (Currently: %s) must be one of the defined in /etc/cobbler/modules.conf!"
-            % hashfunction
-        )
+        errortext = f"The hashfunction (Currently: {hashfunction}) must be one of the defined in /etc/cobbler/modules.conf!"
         raise ValueError(errortext)
     return hashalgorithm.hexdigest()
 

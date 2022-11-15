@@ -70,7 +70,7 @@ def run(api, args):
     # read our settings
     if str(settings.nsupdate_log) is not None:
         logf = open(str(settings.nsupdate_log), "a+")
-        nslog(">> starting %s %s\n" % (__name__, args))
+        nslog(f">> starting {__name__} {args}\n")
 
     if str(settings.nsupdate_tsig_key) is not None:
         keyring = dns.tsigkeyring.from_text(
@@ -104,8 +104,8 @@ def run(api, args):
         domain = ".".join(host.split(".")[1:])  # get domain from host name
         host = host.split(".")[0]  # strip domain
 
-        nslog("processing interface %s : %s\n" % (name, interface))
-        nslog("lookup for '%s' domain master nameserver... " % domain)
+        nslog(f"processing interface {name} : {interface}\n")
+        nslog(f"lookup for '{domain}' domain master nameserver... ")
 
         # get master nameserver ip address
         answers = dns.resolver.query(domain + ".", dns.rdatatype.SOA)
@@ -121,8 +121,8 @@ def run(api, args):
             for answer in ip:
                 soa_mname_ip = answer.to_text()
 
-        nslog("%s [%s]\n" % (soa_mname, soa_mname_ip))
-        nslog("%s dns record for %s.%s [%s] .. " % (action, host, domain, host_ip))
+        nslog(f"{soa_mname} [{soa_mname_ip}]\n")
+        nslog(f"{action} dns record for {host}.{domain} [{host_ip}] .. ")
 
         # try to update zone with new record
         update = dns.update.Update(
@@ -135,7 +135,7 @@ def run(api, args):
                 host,
                 3600,
                 dns.rdatatype.TXT,
-                '"cobbler (date: %s)"' % (time.strftime("%c")),
+                f'"cobbler (date: {time.strftime("%c")})"',
             )
         else:
             update.delete(host, dns.rdatatype.A, host_ip)
@@ -148,9 +148,9 @@ def run(api, args):
             nslog("failed (refused key)\n>> done\n")
             logf.close()
 
-            raise CX("nsupdate failed, server '%s' refusing our key" % soa_mname)
+            raise CX(f"nsupdate failed, server '{soa_mname}' refusing our key")
 
-        nslog("response code: %s\n" % rcode_txt)
+        nslog(f"response code: {rcode_txt}\n")
 
         # notice user about update failure
         if response.rcode() != dns.rcode.NOERROR:
@@ -158,8 +158,7 @@ def run(api, args):
             logf.close()
 
             raise CX(
-                "nsupdate failed (response: %s, name: %s.%s, ip %s, name server %s)"
-                % (rcode_txt, host, domain, host_ip, soa_mname)
+                f"nsupdate failed (response: {rcode_txt}, name: {host}.{domain}, ip {host_ip}, name server {soa_mname})"
             )
 
     nslog(">> done\n")

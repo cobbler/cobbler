@@ -83,7 +83,7 @@ class Importer:
         # Prevent rsync from creating the directory name twice if we are copying via rsync.
 
         if not mirror_url.endswith("/"):
-            mirror_url = "%s/" % mirror_url
+            mirror_url = f"{mirror_url}/"
 
         if (
             mirror_url.startswith("http://")

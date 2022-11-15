@@ -353,7 +353,7 @@ class Collection:
                     k, save=True, with_sync=with_sync, with_triggers=with_triggers
                 )
             else:
-                raise CX('Internal error, unknown child type for child "%s"!' % k)
+                raise CX(f'Internal error, unknown child type for child "{k}"!')
 
     def add(
         self,
@@ -422,7 +422,7 @@ class Collection:
             utils.run_triggers(
                 self.api,
                 ref,
-                "/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type(),
+                f"/var/lib/cobbler/triggers/add/{self.collection_type()}/pre/*",
             )
 
         self.lock.acquire()
@@ -473,7 +473,7 @@ class Collection:
                 elif isinstance(ref, menu.Menu):
                     pass
                 else:
-                    print("Internal error. Object type not recognized: %s" % type(ref))
+                    print(f"Internal error. Object type not recognized: {type(ref)}")
             if not with_sync and quick_pxe_update:
                 if isinstance(ref, system.System):
                     self.lite_sync.update_system_netboot_status(ref.name)
@@ -486,7 +486,7 @@ class Collection:
                 utils.run_triggers(
                     self.api,
                     ref,
-                    "/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type(),
+                    f"/var/lib/cobbler/triggers/add/{self.collection_type()}/post/*",
                     [],
                 )
 

@@ -53,7 +53,7 @@ def validate_power_type(power_type: str):
     if not power_types:
         raise CX("you need to have fence-agents installed")
     if power_type not in power_types:
-        raise CX("power management type must be one of: %s" % ",".join(power_types))
+        raise CX(f"power management type must be one of: {','.join(power_types)}")
 
 
 def get_power_command(power_type: str) -> Optional[str]:
@@ -66,8 +66,8 @@ def get_power_command(power_type: str) -> Optional[str]:
 
     if power_type:
         # try /sbin, then /usr/sbin
-        power_path1 = "/sbin/fence_%s" % power_type
-        power_path2 = "/usr/sbin/fence_%s" % power_type
+        power_path1 = f"/sbin/fence_{power_type}"
+        power_path2 = f"/usr/sbin/fence_{power_type}"
         for power_path in (power_path1, power_path2):
             if os.path.isfile(power_path) and os.access(power_path, os.X_OK):
                 return power_path
@@ -230,19 +230,13 @@ class PowerManager:
                             return True
                         else:
                             return False
-                    error_msg = (
-                        "command succeeded (rc=%s), but output ('%s') was not understood"
-                        % (rc, output)
-                    )
+                    error_msg = f"command succeeded (rc={rc}), but output ('{output}') was not understood"
                     utils.die(error_msg)
                     raise CX(error_msg)
             time.sleep(2)
 
         if not rc == 0:
-            error_msg = (
-                "command failed (rc=%s), please validate the physical setup and cobbler config"
-                % rc
-            )
+            error_msg = f"command failed (rc={rc}), please validate the physical setup and cobbler config"
             utils.die(error_msg)
             raise CX(error_msg)
 

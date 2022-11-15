@@ -161,8 +161,7 @@ class CobblerAPI:
         for directory in required_directories:
             if not pathlib.Path(directory).is_dir():
                 raise FileNotFoundError(
-                    'Required directory "%s" for operation is missing! Aborting startup of Cobbler!'
-                    % directory
+                    f'Required directory "{directory}" for operation is missing! Aborting startup of Cobbler!'
                 )
         filesystem_helpers.create_tftpboot_dirs(self)
         filesystem_helpers.create_web_dirs(self)
@@ -174,7 +173,7 @@ class CobblerAPI:
             signatures.load_signatures(self.settings().signature_path)
         except Exception as e:
             self.logger.error(
-                "Failed to load signatures from %s: %s",
+                'Failed to load signatures from "%s"',
                 self.settings().signature_path,
                 exc_info=e,
             )
@@ -441,12 +440,11 @@ class CobblerAPI:
             "", {"uid": item_uuid}, return_list=False, no_errors=True
         )
         if desired_item is None:
-            raise ValueError('Item with item_uuid "%s" did not exist!' % item_uuid)
+            raise ValueError(f'Item with item_uuid "{item_uuid}" did not exist!')
 
         if not hasattr(desired_item, attribute):
             raise AttributeError(
-                'Attribute "%s" did not exist on item type "%s".'
-                % (attribute, desired_item.TYPE_NAME)
+                f'Attribute "{attribute}" did not exist on item type "{desired_item.TYPE_NAME}".'
             )
 
         return desired_item
@@ -525,7 +523,7 @@ class CobblerAPI:
         :param ref: The object itself which gets copied.
         :param newname: The new name of the newly created object.
         """
-        self.log("copy_item(%s)" % what, [ref.name, newname])
+        self.log(f"copy_item({what})", [ref.name, newname])
         self.get_items(what).copy(ref, newname)
 
     def copy_distro(self, ref, newname: str):
@@ -634,7 +632,7 @@ class CobblerAPI:
                 ref = self.get_item(what, ref)
                 if ref is None:
                     return  # nothing to remove
-        self.log("remove_item(%s)" % what, [ref.name])
+        self.log(f"remove_item({what})", [ref.name])
         self.get_items(what).remove(
             ref.name,
             recursive=recursive,
@@ -842,7 +840,7 @@ class CobblerAPI:
         :param ref: The internal unique handle for the item.
         :param newname: The new name for the item.
         """
-        self.log("rename_item(%s)" % what, [ref.name, newname])
+        self.log(f"rename_item({what})", [ref.name, newname])
         self.get_items(what).rename(ref, newname)
 
     def rename_distro(self, ref, newname: str):
@@ -1056,7 +1054,7 @@ class CobblerAPI:
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
         """
-        self.log("add_item(%s)" % what, [ref.name])
+        self.log(f"add_item({what})", [ref.name])
         self.get_items(what).add(
             ref, check_for_duplicate_names=check_for_duplicate_names, save=save
         )
@@ -1564,7 +1562,7 @@ class CobblerAPI:
             tmpfile.write(sigjson.text.encode())
             tmpfile.flush()
             self.logger.debug(
-                "Successfully got file from %s" % self.settings().signature_url
+                f"Successfully got file from {self.settings().signature_url}"
             )
             # test the import without caching it
             try:
@@ -1646,10 +1644,10 @@ class CobblerAPI:
 
                 cobbler_repo.mirror = mirror
                 cobbler_repo.mirror_type = mirror_type
-                self.log("auto repo adding: %s" % auto_name)
+                self.log(f"auto repo adding: {auto_name}")
                 self.add_repo(cobbler_repo)
             else:
-                self.log("auto repo adding: %s - exists" % auto_name)
+                self.log(f"auto repo adding: {auto_name} - exists")
 
     # ==========================================================================
 
@@ -2267,8 +2265,7 @@ class CobblerAPI:
             power_mgr.reboot(system, user=user, password=password)
         else:
             utils.die(
-                "invalid power operation '%s', expected on/off/status/reboot"
-                % power_operation
+                f"invalid power operation '{power_operation}', expected on/off/status/reboot"
             )
         return None
 

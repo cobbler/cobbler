@@ -121,7 +121,7 @@ class _BindManager(ManagerModule):
                 # then a.b.c.d.e should go in b.c.d.e
                 best_match = ""
                 for zone in zones.keys():
-                    if re.search(r"\.%s$" % zone, host) and len(zone) > len(best_match):
+                    if re.search(rf"\.{zone}$", host) and len(zone) > len(best_match):
                         best_match = zone
 
                 # no match
@@ -129,7 +129,7 @@ class _BindManager(ManagerModule):
                     continue
 
                 # strip the zone off the dns_name
-                host = re.sub(r"\.%s$" % best_match, "", host)
+                host = re.sub(rf"\.{best_match}$", "", host)
 
                 # if we are to manage ipmi hosts, add that too
                 if self.settings.bind_manage_ipmi:
@@ -213,9 +213,7 @@ class _BindManager(ManagerModule):
                     # then 1.2.3.4 should go in 1.2.3
                     best_match = ""
                     for zone in zones.keys():
-                        if re.search(r"^%s\." % zone, ip) and len(zone) > len(
-                            best_match
-                        ):
+                        if re.search(rf"^{zone}\.", ip) and len(zone) > len(best_match):
                             best_match = zone
 
                     if best_match != "":
@@ -264,14 +262,12 @@ class _BindManager(ManagerModule):
         }
 
         for zone in metadata["forward_zones"]:
-            txt = """
-zone "%(zone)s." {
+            txt = f"""
+zone "{zone}." {{
     type master;
-    file "%(zone)s";
-};
-""" % {
-                "zone": zone
-            }
+    file "{zone}";
+}};
+"""
             metadata["zone_include"] = metadata["zone_include"] + txt
 
         for zone in self.__reverse_zones().keys():
@@ -304,7 +300,7 @@ zone "%(arpa)s." {
         try:
             f2 = open(template_file, "r")
         except:
-            raise OSError("error reading template from file: %s" % template_file)
+            raise OSError(f"error reading template from file: {template_file}")
         template_data = ""
         template_data = f2.read()
         f2.close()
@@ -377,7 +373,7 @@ zone "%(arpa)s." {
         try:
             f2 = open(template_file, "r")
         except:
-            raise OSError("error reading template from file: %s" % template_file)
+            raise OSError(f"error reading template from file: {template_file}")
         template_data = ""
         template_data = f2.read()
         f2.close()
@@ -451,7 +447,7 @@ zone "%(arpa)s." {
         s = ""
         for name in names:
             spacing = " " * (max_name - len(name))
-            my_name = "%s%s" % (name, spacing)
+            my_name = f"{name}{spacing}"
             my_host_record = hosts[name]
             my_host_list = []
             if isinstance(my_host_record, str):
@@ -465,7 +461,7 @@ zone "%(arpa)s." {
                         my_rectype = "AAAA"
                     else:
                         my_rectype = "A   "
-                s += "%s  %s  %s  %s;\n" % (my_name, rclass, my_rectype, my_host)
+                s += f"{my_name}  {rclass}  {my_rectype}  {my_host};\n"
         return s
 
     def __pretty_print_cname_records(self, hosts, rectype: str = "CNAME"):
@@ -489,11 +485,7 @@ zone "%(arpa)s." {
                     if interface.dns_name != "":
                         dnsname = interface.dns_name.split(".")[0]
                         for cname in cnames:
-                            s += "%s  %s  %s;\n" % (
-                                cname.split(".")[0],
-                                rectype,
-                                dnsname,
-                            )
+                            s += f"{cname.split('.')[0]}  {rectype}  {dnsname};\n"
                     else:
                         self.logger.warning(
                             'CNAME generation for system "%s" was skipped due to a missing dns_name entry while writing'
@@ -525,7 +517,7 @@ zone "%(arpa)s." {
             # same date
             if serial[0:8] == old_serial[0:8]:
                 if int(old_serial[8:10]) < 99:
-                    serial = "%s%.2i" % (serial[0:8], int(old_serial[8:10]) + 1)
+                    serial = f"{serial[0:8]}{int(old_serial[8:10]) + 1:.2d}"
             else:
                 pass
             serialfd.close()
@@ -542,7 +534,7 @@ zone "%(arpa)s." {
         try:
             f2 = open(default_template_file, "r")
         except:
-            raise CX("error reading template from file: %s" % default_template_file)
+            raise CX(f"error reading template from file: {default_template_file}")
         default_template_data = ""
         default_template_data = f2.read()
         f2.close()
@@ -568,7 +560,7 @@ zone "%(arpa)s." {
                 zone_origin = ""
             # grab zone-specific template if it exists
             try:
-                fd = open("/etc/cobbler/zone_templates/%s" % zone)
+                fd = open(f"/etc/cobbler/zone_templates/{zone}")
                 # If this is an IPv6 zone, set the origin to the zone for this
                 # template
                 if zone_origin:
@@ -605,7 +597,7 @@ zone "%(arpa)s." {
 
             # grab zone-specific template if it exists
             try:
-                fd = open("/etc/cobbler/zone_templates/%s" % zone)
+                fd = open(f"/etc/cobbler/zone_templates/{zone}")
                 template_data = fd.read()
                 fd.close()
             except:

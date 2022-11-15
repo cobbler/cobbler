@@ -75,7 +75,7 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port):
         import psutil
 
         p = psutil.Process(os.getpid())
-        start_time = " in %s seconds" % str(time.time() - p.create_time())
+        start_time = f" in {str(time.time() - p.create_time())} seconds"
     except ModuleNotFoundError:
         # This is not critical, but debug only - just install python3-psutil
         pass

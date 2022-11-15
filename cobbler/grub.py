@@ -39,10 +39,9 @@ def parse_grub_remote_file(file_location: str) -> Optional[str]:
     if not (server.startswith("@@") and server.endswith("server@@")):
         if not (netaddr.valid_ipv4(server) or netaddr.valid_ipv6(server)):
             raise ValueError(
-                "Invalid remote file format %s\n%s is not a valid IP address"
-                % (file_location, server)
+                f"Invalid remote file format {file_location}\n{server} is not a valid IP address"
             )
 
-    res = "(%s,%s)/%s" % (prot, server, path)
+    res = f"({prot},{server})/{path}"
     # logging.info("Found remote grub file. Converted [%s] to [%s]", file_location, res)
     return res

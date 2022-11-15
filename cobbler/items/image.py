@@ -55,9 +55,7 @@ class Image(item.Item):
     def __getattr__(self, name):
         if name == "kickstart":
             return self.autoinstall
-        raise AttributeError(
-            'Attribute "%s" did not exist on object type Image.' % name
-        )
+        raise AttributeError(f'Attribute "{name}" did not exist on object type Image.')
 
     #
     # override some base class methods first (item.Item)
@@ -191,10 +189,10 @@ class Image(item.Item):
         if filename.find(":") != -1:
             hostname, filename = filename.split(":")
         elif filename[0] != "/":
-            raise SyntaxError("invalid file: %s" % filename)
+            raise SyntaxError(f"invalid file: {filename}")
         # raise an exception if we don't have a valid path
         if len(filename) > 0 and filename[0] != "/":
-            raise SyntaxError("file contains an invalid path: %s" % filename)
+            raise SyntaxError(f"file contains an invalid path: {filename}")
         if filename.find("/") != -1:
             path, filename = filename.rsplit("/", 1)
 
@@ -278,15 +276,14 @@ class Image(item.Item):
                 image_type = enums.ImageTypes[image_type.upper()]
             except KeyError as error:
                 raise ValueError(
-                    "image_type choices include: %s" % list(map(str, enums.ImageTypes))
+                    f"image_type choices include: {list(map(str, enums.ImageTypes))}"
                 ) from error
         # str was converted now it must be an enum.ImageTypes
         if not isinstance(image_type, enums.ImageTypes):
             raise TypeError("image_type needs to be of type enums.ImageTypes")
         if image_type not in enums.ImageTypes:
             raise ValueError(
-                "image type must be one of the following: %s"
-                % ", ".join(list(map(str, enums.ImageTypes)))
+                f"image type must be one of the following: {', '.join(list(map(str, enums.ImageTypes)))}"
             )
         self._image_type = image_type
 
@@ -498,7 +495,7 @@ class Image(item.Item):
         if menu and menu != "":
             menu_list = self.api.menus()
             if not menu_list.find(name=menu):
-                raise CX("menu %s not found" % menu)
+                raise CX(f"menu {menu} not found")
         self._menu = menu
 
     @property
@@ -571,8 +568,8 @@ class Image(item.Item):
 
             if not set(boot_loaders_split).issubset(self.supported_boot_loaders):
                 raise ValueError(
-                    "Error with image %s - not all boot_loaders %s are supported %s"
-                    % (self.name, boot_loaders_split, self.supported_boot_loaders)
+                    f"Error with image {self.name} - not all boot_loaders {boot_loaders_split} are"
+                    f" supported {self.supported_boot_loaders}"
                 )
             self._boot_loaders = boot_loaders_split
         else:

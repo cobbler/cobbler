@@ -101,7 +101,7 @@ class ConfigGen:
         for package in package_set:
             _package = self.__api.find_package(name=package)
             if _package is None:
-                raise CX("%s package resource is not defined" % package)
+                raise CX(f"{package} package resource is not defined")
             else:
                 pkg_data[package] = {}
                 pkg_data[package]["action"] = self.resolve_resource_var(_package.action)
@@ -110,10 +110,9 @@ class ConfigGen:
                     _package.version
                 )
                 if pkg_data[package]["version"] != "":
-                    pkg_data[package]["install_name"] = "%s-%s" % (
-                        package,
-                        pkg_data[package]["version"],
-                    )
+                    pkg_data[package][
+                        "install_name"
+                    ] = f"{package}-{pkg_data[package]['version']}"
                 else:
                     pkg_data[package]["install_name"] = package
         config_data["packages"] = pkg_data
@@ -124,7 +123,7 @@ class ConfigGen:
             _file = self.__api.find_file(name=file)
 
             if _file is None:
-                raise CX("%s file resource is not defined" % file)
+                raise CX(f"{file} file resource is not defined")
 
             file_data[file] = {}
             file_data[file]["is_dir"] = _file.is_dir
@@ -143,7 +142,7 @@ class ConfigGen:
                     file_data[file]["content"] = t.respond()
                 except:
                     utils.die(
-                        "Missing template for this file resource %s" % (file_data[file])
+                        f"Missing template for this file resource {file_data[file]}"
                     )
 
         config_data["files"] = file_data

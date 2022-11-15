@@ -194,8 +194,7 @@ class RepoSync:
             self.wget_sync(repo)
         else:
             raise CX(
-                "unable to sync repo (%s), unknown or unsupported repo type (%s)"
-                % (repo.name, repo.breed.value)
+                f"unable to sync repo ({repo.name}), unknown or unsupported repo type ({repo.breed.value})"
             )
 
     # ====================================================================================
@@ -294,7 +293,7 @@ class RepoSync:
 
         mirror_program = "/usr/bin/wget"
         if not os.path.exists(mirror_program):
-            raise CX("no %s found, please install it" % mirror_program)
+            raise CX(f"no {mirror_program} found, please install it")
 
         if repo.mirror_type != MirrorType.BASEURL:
             raise CX(
@@ -355,14 +354,14 @@ class RepoSync:
         if not repo.mirror.startswith("rsync://") and not repo.mirror.startswith("/"):
             spacer = "-e ssh"
         if not repo.mirror.endswith("/"):
-            repo.mirror = "%s/" % repo.mirror
+            repo.mirror = f"{repo.mirror}/"
 
         flags = ""
         for x in repo.rsyncopts:
             if repo.rsyncopts[x]:
-                flags += " %s %s" % (x, repo.rsyncopts[x])
+                flags += f" {x} {repo.rsyncopts[x]}"
             else:
-                flags += " %s" % x
+                flags += f" {x}"
 
         if flags == "":
             flags = self.settings.reposync_rsync_flags
@@ -573,15 +572,12 @@ class RepoSync:
 
         if not has_rpm_list:
             # If we have not requested only certain RPMs, use reposync
-            cmd = "%s %s --config=%s --repoid=%s -p %s" % (
-                cmd,
-                self.rflags,
-                temp_file,
-                pipes.quote(repo.name),
-                pipes.quote(repos_path),
+            cmd = (
+                f"{cmd} {self.rflags} --config={temp_file} --repoid={pipes.quote(repo.name)}"
+                f" -p {pipes.quote(repos_path)}"
             )
             if arch != "none":
-                cmd = "%s -a %s" % (cmd, arch)
+                cmd = f"{cmd} -a {arch}"
 
         else:
             # Create the output directory if it doesn't exist
@@ -676,7 +672,7 @@ class RepoSync:
         # Warn about not having mirror program.
         mirror_program = "/usr/bin/debmirror"
         if not os.path.exists(mirror_program):
-            raise CX("no %s found, please install it" % mirror_program)
+            raise CX(f"no {mirror_program} found, please install it")
 
         # detect cases that require special handling
         if repo.rpm_list != "" and repo.rpm_list != []:
@@ -764,28 +760,28 @@ class RepoSync:
         if output:
             fname = os.path.join(dest_path, "config.repo")
         else:
-            fname = os.path.join(dest_path, "%s.repo" % repo.name)
+            fname = os.path.join(dest_path, f"{repo.name}.repo")
         self.logger.debug("creating: %s", fname)
         if not os.path.exists(dest_path):
             filesystem_helpers.mkdir(dest_path)
         config_file = open(fname, "w+")
         if not output:
             config_file.write("[main]\nreposdir=/dev/null\n")
-        config_file.write("[%s]\n" % repo.name)
-        config_file.write("name=%s\n" % repo.name)
+        config_file.write(f"[{repo.name}]\n")
+        config_file.write(f"name={repo.name}\n")
 
         optenabled = False
         optgpgcheck = False
         if output:
             if repo.mirror_locally:
                 line = (
-                    "baseurl=http://${http_server}/cobbler/repo_mirror/%s\n" % repo.name
+                    f"baseurl=http://${{http_server}}/cobbler/repo_mirror/{repo.name}\n"
                 )
             else:
                 mstr = repo.mirror
                 if mstr.startswith("/"):
-                    mstr = "file://%s" % mstr
-                line = "%s=%s\n" % (repo.mirror_type.value, mstr)
+                    mstr = f"file://{mstr}"
+                line = f"{repo.mirror_type.value}={mstr}\n"
 
             config_file.write(line)
             # User may have options specific to certain yum plugins add them to the file
@@ -797,10 +793,10 @@ class RepoSync:
         else:
             mstr = repo.mirror
             if mstr.startswith("/"):
-                mstr = "file://%s" % mstr
-            line = repo.mirror_type.value + "=%s\n" % mstr
+                mstr = f"file://{mstr}"
+            line = repo.mirror_type.value + f"={mstr}\n"
             if self.settings.http_port not in (80, "80"):
-                http_server = "%s:%s" % (self.settings.server, self.settings.http_port)
+                http_server = f"{self.settings.server}:{self.settings.http_port}"
             else:
                 http_server = self.settings.server
             line = line.replace("@@server@@", http_server)
@@ -813,14 +809,14 @@ class RepoSync:
                 config_proxy = repo.proxy
 
             if config_proxy is not None:
-                config_file.write("proxy=%s\n" % config_proxy)
+                config_file.write(f"proxy={config_proxy}\n")
             if "exclude" in list(repo.yumopts.keys()):
                 self.logger.debug("excluding: %s", repo.yumopts["exclude"])
-                config_file.write("exclude=%s\n" % repo.yumopts["exclude"])
+                config_file.write(f"exclude={repo.yumopts['exclude']}\n")
 
         if not optenabled:
             config_file.write("enabled=1\n")
-        config_file.write("priority=%s\n" % repo.priority)
+        config_file.write(f"priority={repo.priority}\n")
         # FIXME: potentially might want a way to turn this on/off on a per-repo basis
         if not optgpgcheck:
             config_file.write("gpgcheck=0\n")
@@ -828,7 +824,7 @@ class RepoSync:
         # add them to the file
         for x in repo.yumopts:
             if not (output and repo.mirror_locally and x.startswith("ssl")):
-                config_file.write("%s=%s\n" % (x, repo.yumopts[x]))
+                config_file.write(f"{x}={repo.yumopts[x]}\n")
         config_file.close()
         return fname
 

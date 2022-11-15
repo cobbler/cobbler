@@ -58,7 +58,7 @@ class TFTPGen:
                 "-rpt",
                 "--copy-links",
                 "--exclude=.cobbler_postun_cleanup",
-                "{src}/".format(src=src),
+                f"{src}/",
                 dest,
             ],
             shell=False,
@@ -70,7 +70,7 @@ class TFTPGen:
                 "-rpt",
                 "--copy-links",
                 "--exclude=README.grubconfig",
-                "{src}/".format(src=src),
+                f"{src}/",
                 dest,
             ],
             shell=False,
@@ -106,7 +106,7 @@ class TFTPGen:
         if full_path is None or not full_path:
             # Will raise if None or an empty str
             raise FileNotFoundError(
-                'No kernel found at "%s", tried to copy to: "%s"' % (d_file, distro_dir)
+                f'No kernel found at "{d_file}", tried to copy to: "{distro_dir}"'
             )
 
         # Koan manages remote kernel/initrd itself, but for consistent PXE
@@ -185,9 +185,9 @@ class TFTPGen:
             s390_name = "linux" + short_name[7:10]
             self.logger.info("Writing s390x pxe config for %s", short_name)
             # Always write a system specific _conf and _parm file
-            pxe_f = os.path.join(self.bootloc, "s390x", "s_%s" % s390_name)
-            conf_f = "%s_conf" % pxe_f
-            parm_f = "%s_parm" % pxe_f
+            pxe_f = os.path.join(self.bootloc, "s390x", f"s_{s390_name}")
+            conf_f = f"{pxe_f}_conf"
+            parm_f = f"{pxe_f}_parm"
 
             self.logger.info("Files: (conf,param) - (%s,%s)", conf_f, parm_f)
             blended = utils.blender(self.api, True, system)
@@ -208,9 +208,7 @@ class TFTPGen:
                 if opt_len > 78:
                     kopts_aligned += "\n" + option + " "
                     column = opt_len + 1
-                    self.logger.error(
-                        "Kernel paramer [%s] too long %s" % (option, opt_len)
-                    )
+                    self.logger.error(f"Kernel paramer [{option}] too long {opt_len}")
                     continue
                 if column + opt_len > 78:
                     kopts_aligned += "\n" + option + " "
@@ -403,7 +401,7 @@ class TFTPGen:
             if "grub" in arch_menu_items:
                 boot_menu["grub"] = arch_menu_items
                 outfile = os.path.join(
-                    self.bootloc, "grub", "{0}_menu_items.cfg".format(arch.value)
+                    self.bootloc, "grub", f"{arch.value}_menu_items.cfg"
                 )
                 with open(outfile, "w+") as fd:
                     fd.write(arch_menu_items["grub"])
@@ -628,7 +626,7 @@ class TFTPGen:
         for boot_loader in boot_loaders:
             template = os.path.join(
                 self.settings.boot_loader_conf_template_dir,
-                "%s_submenu.template" % boot_loader,
+                f"{boot_loader}_submenu.template",
             )
             if os.path.exists(template):
                 with open(template) as template_fh:
@@ -777,12 +775,12 @@ class TFTPGen:
         metadata["kernel_options"] = kernel_options
 
         if "initrd_path" in metadata:
-            append_line = "append initrd=%s" % (metadata["initrd_path"])
+            append_line = f"append initrd={metadata['initrd_path']}"
         else:
             append_line = "append "
-        append_line = "%s%s" % (append_line, kernel_options)
+        append_line = f"{append_line}{kernel_options}"
         if distro and distro.os_version.startswith("xenserver620"):
-            append_line = "%s" % (kernel_options)
+            append_line = f"{kernel_options}"
         metadata["append_line"] = append_line
 
         # store variables for templating
@@ -801,11 +799,11 @@ class TFTPGen:
                     serial_baud_rate = system.serial_baud_rate.value
 
                 if format == "pxe":
-                    buffer += "serial %d %d\n" % (serial_device, serial_baud_rate)
+                    buffer += f"serial {serial_device:d} {serial_baud_rate:d}\n"
                 elif format == "grub":
-                    buffer += "set serial_console=true\nset serial_baud={baud}\nset serial_line={device}\n".format(
-                        baud=serial_baud_rate, device=serial_device
-                    )
+                    buffer += f"set serial_console=true\n"
+                    buffer += f"set serial_baud={serial_baud_rate}\n"
+                    buffer += f"set serial_line={serial_device}\n"
 
         # for esxi, generate bootcfg_path metadata
         # and write boot.cfg files for systems and pxe
@@ -986,9 +984,9 @@ class TFTPGen:
 
         # support additional initrd= entries in kernel options.
         if "initrd" in kopts:
-            append_line = ",%s" % kopts.pop("initrd")
+            append_line = f",{kopts.pop('initrd')}"
         hkopts = utils.dict_to_string(kopts)
-        append_line = "%s %s" % (append_line, hkopts)
+        append_line = f"{append_line} {hkopts}"
 
         # automatic installation file path rewriting (get URLs for local files)
         if autoinstall_path:
@@ -1025,46 +1023,40 @@ class TFTPGen:
             local_autoinstall_file = not re.match(URL_REGEX, autoinstall_path)
             if local_autoinstall_file:
                 if system is not None:
-                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/system/%s" % (
-                        httpserveraddress,
-                        system.name,
-                    )
+                    autoinstall_path = f"http://{httpserveraddress}/cblr/svc/op/autoinstall/system/{system.name}"
                 else:
-                    autoinstall_path = (
-                        "http://%s/cblr/svc/op/autoinstall/profile/%s"
-                        % (httpserveraddress, profile.name)
-                    )
+                    autoinstall_path = f"http://{httpserveraddress}/cblr/svc/op/autoinstall/profile/{profile.name}"
 
             if distro.breed is None or distro.breed == "redhat":
 
                 append_line += " inst.kssendmac"
-                append_line = "%s inst.ks=%s" % (append_line, autoinstall_path)
+                append_line = f"{append_line} inst.ks={autoinstall_path}"
                 ipxe = blended["enable_ipxe"]
                 if ipxe:
                     append_line = append_line.replace(
                         "ksdevice=bootif", "ksdevice=${net0/mac}"
                     )
             elif distro.breed == "suse":
-                append_line = "%s autoyast=%s" % (append_line, autoinstall_path)
+                append_line = f"{append_line} autoyast={autoinstall_path}"
                 if management_mac and distro.arch not in (
                     enums.Archs.S390,
                     enums.Archs.S390X,
                 ):
-                    append_line += " netdevice=%s" % management_mac
+                    append_line += f" netdevice={management_mac}"
             elif distro.breed == "debian" or distro.breed == "ubuntu":
                 append_line = (
-                    "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s"
-                    % (append_line, autoinstall_path)
+                    f"{append_line} auto-install/enable=true priority=critical"
+                    f"netcfg/choose_interface=auto url={autoinstall_path}"
                 )
                 if management_interface:
-                    append_line += " netcfg/choose_interface=%s" % management_interface
+                    append_line += f" netcfg/choose_interface={management_interface}"
             elif distro.breed == "freebsd":
-                append_line = "%s ks=%s" % (append_line, autoinstall_path)
+                append_line = f"{append_line} ks={autoinstall_path}"
 
                 # rework kernel options for debian distros
                 translations = {"ksdevice": "interface", "lang": "locale"}
                 for k, v in list(translations.items()):
-                    append_line = append_line.replace("%s=" % k, "%s=" % v)
+                    append_line = append_line.replace(f"{k}=", f"{v}=")
 
                 # interface=bootif causes a failure
                 append_line = append_line.replace("interface=bootif", "")
@@ -1073,27 +1065,23 @@ class TFTPGen:
                     # ESXi is very picky, it's easier just to redo the
                     # entire append line here since
                     hkopts = utils.dict_to_string(kopts)
-                    append_line = "%s ks=%s" % (hkopts, autoinstall_path)
+                    append_line = f"{hkopts} ks={autoinstall_path}"
                 else:
-                    append_line = "%s vmkopts=debugLogToSerial:1 mem=512M ks=%s" % (
-                        append_line,
-                        autoinstall_path,
-                    )
+                    append_line = f"{append_line} vmkopts=debugLogToSerial:1 mem=512M ks={autoinstall_path}"
                 # interface=bootif causes a failure
                 append_line = append_line.replace("ksdevice=bootif", "")
             elif distro.breed == "xen":
                 if distro.os_version.find("xenserver620") != -1:
                     img_path = os.path.join("/images", distro.name)
                     append_line = (
-                        "append %s/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1,"
-                        "vga --- %s/vmlinuz xencons=hvc console=hvc0 console=tty0 install answerfile=%s ---"
-                        " %s/install.img"
-                        % (img_path, img_path, autoinstall_path, img_path)
+                        f"append {img_path}/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1,"
+                        f"vga --- {img_path}/vmlinuz xencons=hvc console=hvc0 console=tty0 install"
+                        f" answerfile={autoinstall_path} --- {img_path}/install.img"
                     )
                     return append_line
             elif distro.breed == "powerkvm":
                 append_line += " kssendmac"
-                append_line = "%s kvmp.inst.auto=%s" % (append_line, autoinstall_path)
+                append_line = f"{append_line} kvmp.inst.auto={autoinstall_path}"
 
         if distro is not None and (distro.breed in ["debian", "ubuntu"]):
             # Hostname is required as a parameter, the one in the preseed is not respected, so calculate if we have one
@@ -1119,16 +1107,16 @@ class TFTPGen:
 
             # At least for debian deployments configured for DHCP networking this values are not used, but specifying
             # here avoids questions
-            append_line = "%s hostname=%s" % (append_line, hostname)
-            append_line = "%s domain=%s" % (append_line, domain)
+            append_line = f"{append_line} hostname={hostname}"
+            append_line = f"{append_line} domain={domain}"
 
             # A similar issue exists with suite name, as installer requires the existence of "stable" in the dists
             # directory
-            append_line = "%s suite=%s" % (append_line, distro.os_version)
+            append_line = f"{append_line} suite={distro.os_version}"
 
         # append necessary kernel args for arm architectures
         if arch is enums.Archs.ARM:
-            append_line = "%s fixrtc vram=48M omapfb.vram=0:24M" % append_line
+            append_line = f"{append_line} fixrtc vram=48M omapfb.vram=0:24M"
 
         # do variable substitution on the append line
         # promote all of the autoinstall_meta variables
@@ -1154,10 +1142,8 @@ class TFTPGen:
                 else:
                     serial_baud_rate = system.serial_baud_rate.value
 
-                append_line = "%s console=ttyS%s,%s" % (
-                    append_line,
-                    serial_device,
-                    serial_baud_rate,
+                append_line = (
+                    f"{append_line} console=ttyS{serial_device},{serial_baud_rate}"
                 )
 
         # FIXME - the append_line length limit is architecture specific
@@ -1244,8 +1230,7 @@ class TFTPGen:
             if os.path.isabs(dest_dir) and write_file:
                 if dest_dir.find(self.bootloc) != 0:
                     raise CX(
-                        " warning: template destination (%s) is outside %s, skipping."
-                        % (dest_dir, self.bootloc)
+                        f" warning: template destination ({dest_dir}) is outside {self.bootloc}, skipping."
                     )
             elif write_file:
                 dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)
@@ -1255,13 +1240,13 @@ class TFTPGen:
 
             # Check for problems
             if not os.path.exists(template):
-                raise CX("template source %s does not exist" % template)
+                raise CX(f"template source {template} does not exist")
             elif write_file and not os.path.isdir(dest_dir):
-                raise CX("template destination (%s) is invalid" % dest_dir)
+                raise CX(f"template destination ({dest_dir}) is invalid")
             elif write_file and os.path.exists(dest):
-                raise CX("template destination (%s) already exists" % dest)
+                raise CX(f"template destination ({dest}) already exists")
             elif write_file and os.path.isdir(dest):
-                raise CX("template destination (%s) is a directory" % dest)
+                raise CX(f"template destination ({dest}) is a directory")
             elif template == "" or dest == "":
                 raise CX(
                     "either the template source or destination was blank (unknown variable used?)"
@@ -1355,11 +1340,9 @@ class TFTPGen:
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
         if obj.enable_ipxe:
-            blended["img_path"] = "http://%s:%s/cobbler/links/%s" % (
-                self.settings.server,
-                self.settings.http_port,
-                distro.name,
-            )
+            blended[
+                "img_path"
+            ] = f"http://{self.settings.server}:{self.settings.http_port}/cobbler/links/{distro.name}"
         else:
             blended["img_path"] = os.path.join("/images", distro.name)
 
@@ -1384,11 +1367,7 @@ class TFTPGen:
             self.settings.boot_loader_conf_template_dir, "bootcfg.template"
         )
         if not os.path.exists(template):
-            return "# boot.cfg template not found for the %s named %s (filename=%s)" % (
-                what,
-                name,
-                template,
-            )
+            return f"# boot.cfg template not found for the {what} named {name} (filename={template})"
 
         template_fh = open(template)
         template_data = template_fh.read()
@@ -1416,7 +1395,7 @@ class TFTPGen:
             raise ValueError('"script_name" handed to generate_script was not valid!')
 
         if not obj:
-            return '# "%s" named "%s" not found' % (what, objname)
+            return f'# "{what}" named "{objname}" not found'
 
         distro = obj.get_conceptual_parent()
         while distro.get_conceptual_parent():
@@ -1434,23 +1413,18 @@ class TFTPGen:
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
         if obj.enable_ipxe:
-            blended["img_path"] = "http://%s:%s/cobbler/links/%s" % (
-                self.settings.server,
-                self.settings.http_port,
-                distro.name,
-            )
+            blended[
+                "img_path"
+            ] = f"http://{self.settings.server}:{self.settings.http_port}/cobbler/links/{distro.name}"
         else:
             blended["img_path"] = os.path.join("/images", distro.name)
 
         scripts_root = "/var/lib/cobbler/scripts"
         template = os.path.normpath(os.path.join(scripts_root, script_name))
         if not template.startswith(scripts_root):
-            return (
-                '# script template "%s" could not be found in the script root'
-                % script_name
-            )
+            return f'# script template "{script_name}" could not be found in the script root'
         if not os.path.exists(template):
-            return '# script template "%s" not found' % script_name
+            return f'# script template "{script_name}" not found'
 
         with open(template) as template_fh:
             template_data = template_fh.read()
@@ -1579,6 +1553,6 @@ class TFTPGen:
                 os.replace(temp_link_file, link_file)
             except OSError as os_error:
                 os.remove(temp_link_file)
-                raise OSError("Error creating symlink %s" % link_file) from os_error
+                raise OSError(f"Error creating symlink {link_file}") from os_error
 
         return buffer

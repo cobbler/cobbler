@@ -56,13 +56,13 @@ class Distros(collection.Collection):
         obj = self.find(name=name)
 
         if obj is None:
-            raise CX("cannot delete an object that does not exist: %s" % name)
+            raise CX(f"cannot delete an object that does not exist: {name}")
 
         # first see if any Groups use this distro
         if not recursive:
             for profile in self.api.profiles():
                 if profile.distro and profile.distro.name.lower() == name:
-                    raise CX("removal would orphan profile: %s" % profile.name)
+                    raise CX(f"removal would orphan profile: {profile.name}")
 
         kernel = obj.kernel
         if recursive:

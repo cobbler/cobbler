@@ -44,7 +44,7 @@ def _find_double_json_files(filename: str):
             os.rename(filename + ".json", filename)
     else:
         if os.path.isfile(filename + ".json"):
-            raise FileExistsError("Both JSON files (%s) exist!" % filename)
+            raise FileExistsError(f"Both JSON files ({filename}) exist!")
 
 
 class FileSerializer(StorageBase):
@@ -97,7 +97,7 @@ class FileSerializer(StorageBase):
             results = []
 
             path = os.path.join(self.libpath, collection_type)
-            all_files = glob.glob("%s/*.json" % path)
+            all_files = glob.glob(f"{path}/*.json")
 
             for f in all_files:
                 with open(f) as file_descriptor:

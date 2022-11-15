@@ -289,7 +289,7 @@ class Settings:
         :return: The multiline string with the kernel options.
         """
         buf = "defaults\n"
-        buf += "kernel options  : %s\n" % self.__dict__["kernel_options"]
+        buf += f"kernel options  : {self.__dict__['kernel_options']}\n"
         return buf
 
     def to_dict(self, resolved: bool = False) -> dict:
@@ -421,14 +421,14 @@ def read_yaml_file(filepath="/etc/cobbler/settings.yaml") -> Dict[Hashable, Any]
     """
     if not os.path.isfile(filepath):
         raise FileNotFoundError(
-            'Given path "%s" does not exist or is a directory.' % filepath
+            f'Given path "{filepath}" does not exist or is a directory.'
         )
     try:
         with open(filepath) as main_settingsfile:
             filecontent = yaml.safe_load(main_settingsfile.read())
     except yaml.YAMLError as error:
         traceback.print_exc()
-        raise yaml.YAMLError('"%s" is not a valid YAML file' % filepath) from error
+        raise yaml.YAMLError(f'"{filepath}" is not a valid YAML file') from error
     return filecontent
 
 

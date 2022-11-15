@@ -91,4 +91,4 @@ def run(api, args):
         return 0
 
     else:
-        raise CX("currently unsupported SCM type: %s" % mode)
+        raise CX(f"currently unsupported SCM type: {mode}")

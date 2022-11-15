@@ -106,7 +106,7 @@ def get_exc(exc, full: bool = True):
     except:
         if not full:
             buf += str(t)
-        buf = "%s\n%s" % (buf, v)
+        buf = f"{buf}\n{v}"
         if full:
             buf += "\n" + "\n".join(traceback.format_list(traceback.extract_tb(tb)))
     return buf
@@ -122,7 +122,7 @@ def cheetah_exc(exc) -> str:
     lines = get_exc(exc).split("\n")
     buf = ""
     for line in lines:
-        buf += "# %s\n" % line
+        buf += f"# {line}\n"
     return CHEETAH_ERROR_DISCLAIMER + buf
 
 
@@ -134,7 +134,7 @@ def pretty_hex(ip, length=8) -> str:
     :param length: The length of the resulting hexstring. If the number is smaller than the resulting hex-string
                    then no front-padding is done.
     """
-    hexval = "%x" % ip.value
+    hexval = f"{ip.value:x}"
     if len(hexval) < length:
         hexval = "0" * (length - len(hexval)) + hexval
     return hexval.upper()
@@ -226,7 +226,7 @@ def get_random_mac(api_handle, virt_type="xenpv") -> str:
     else:
         raise CX("virt mac assignment not yet supported")
 
-    mac = ":".join(["%02x" % x for x in mac])
+    mac = ":".join([f"{x:02x}" for x in mac])
     systems = api_handle.systems()
     while systems.find(mac_address=mac):
         mac = get_random_mac(api_handle)
@@ -372,7 +372,7 @@ def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
 
         if not os.path.exists(file_location):
             logger.warning("File does not exist: %s", file_location)
-            raise FileNotFoundError("%s: %s" % ("File not found", file_location))
+            raise FileNotFoundError(f"File not found: {file_location}")
 
         try:
             with open(file_location) as f:
@@ -395,7 +395,7 @@ def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
         except urllib.error.HTTPError:
             # File likely doesn't exist
             logger.warning("File does not exist: %s", file_location)
-            raise FileNotFoundError("%s: %s" % ("File not found", file_location))
+            raise FileNotFoundError(f"File not found: {file_location}")
 
 
 def remote_file_exists(file_url) -> bool:
@@ -452,7 +452,7 @@ def blender(api_handle, remove_dicts: bool, root_obj):
         for (name, interface) in list(root_obj.interfaces.items()):
             intf_dict = interface.to_dict()
             for key in intf_dict:
-                results["%s_%s" % (key, name)] = intf_dict[key]
+                results[f"{key}_{name}"] = intf_dict[key]
 
     # If the root object is a profile or system, add in all repo data for repos that belong to the object chain
     if root_obj.COLLECTION_TYPE in ("profile", "system"):
@@ -470,7 +470,7 @@ def blender(api_handle, remove_dicts: bool, root_obj):
     if http_port in (80, "80"):
         results["http_server"] = results["server"]
     else:
-        results["http_server"] = "%s:%s" % (results["server"], http_port)
+        results["http_server"] = f"{results['server']}:{http_port}"
 
     mgmt_parameters = results.get("mgmt_parameters", {})
     mgmt_parameters.update(results.get("autoinstall_meta", {}))
@@ -484,8 +484,7 @@ def blender(api_handle, remove_dicts: bool, root_obj):
             child = api_handle.find_items("", name=key, return_list=False)
             if child is None:
                 raise ValueError(
-                    'Child with the name "%s" of parent object "%s" did not exist!'
-                    % (key, root_obj.name)
+                    f'Child with the name "{key}" of parent object "{root_obj.name}" did not exist!'
                 )
             results["children"][key] = child.to_dict()
 
@@ -780,7 +779,7 @@ def run_triggers(api, ref=None, globber: str = "", additional: list = None):
         logger.debug("running python trigger %s", m.__name__)
         rc = m.run(api, arglist)
         if rc != 0:
-            raise CX("Cobbler trigger failed: %s" % m.__name__)
+            raise CX(f"Cobbler trigger failed: {m.__name__}")
 
     # Now do the old shell triggers, which are usually going to be slower, but are easier to write and support any
     # language.
@@ -944,7 +943,7 @@ def subprocess_sp(cmd, shell: bool = True, input=None):
         )
     except OSError:
         log_exc()
-        die("OS Error, command not found?  While running: %s" % cmd)
+        die(f"OS Error, command not found?  While running: {cmd}")
 
     (out, err) = sp.communicate(input)
     rc = sp.returncode
@@ -1024,7 +1023,7 @@ def local_get_cobbler_api_url() -> str:
     if data.get("client_use_https", False):
         protocol = "https"
 
-    return "%s://%s:%s/cobbler_api" % (protocol, ip, port)
+    return f"{protocol}://{ip}:{port}/cobbler_api"
 
 
 def local_get_cobbler_xmlrpc_url() -> str:
@@ -1035,7 +1034,7 @@ def local_get_cobbler_xmlrpc_url() -> str:
     """
     # Load xmlrpc port
     data = settings.read_settings_file()
-    return "http://%s:%s" % ("127.0.0.1", data.get("xmlrpc_port", "25151"))
+    return f"http://127.0.0.1:{data.get('xmlrpc_port', '25151')}"
 
 
 def strip_none(data, omit_none: bool = False):
@@ -1255,10 +1254,9 @@ def kopts_overwrite(
             kopts["textmode"] = ["1"]
         if system_name and cobbler_server_hostname:
             # only works if pxe_just_once is enabled in global settings
-            kopts["info"] = "http://%s/cblr/svc/op/nopxe/system/%s" % (
-                cobbler_server_hostname,
-                system_name,
-            )
+            kopts[
+                "info"
+            ] = f"http://{cobbler_server_hostname}/cblr/svc/op/nopxe/system/{system_name}"
 
 
 def is_str_int(value: str) -> bool:

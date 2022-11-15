@@ -63,7 +63,7 @@ class _NDjbDnsManager(ManagerModule):
 
                 if host:
                     if host in a_records:
-                        raise Exception("Duplicate DNS name: %s" % host)
+                        raise Exception(f"Duplicate DNS name: {host}")
                     a_records[host] = ip
 
         template_vars = {"forward": []}
