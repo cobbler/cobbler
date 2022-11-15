@@ -28,7 +28,6 @@ Depends:
  fence-agents,
  rsync,
  xorriso,
- libapache2-mod-wsgi-py3,
  python3,
  ${python3:Depends},
  ${misc:Depends}
