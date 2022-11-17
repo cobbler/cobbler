@@ -235,7 +235,7 @@ class CobblerCheck:
                 "repositories"
             )
         if os.path.exists("/etc/debmirror.conf"):
-            with open("/etc/debmirror.conf") as debmirror_fd:
+            with open("/etc/debmirror.conf", encoding="UTF-8") as debmirror_fd:
                 re_dists = re.compile(r"@dists=")
                 re_arches = re.compile(r"@arches=")
                 for line in debmirror_fd.readlines():
@@ -499,7 +499,7 @@ class CobblerCheck:
         if os.path.exists(self.settings.dhcpd_conf):
             match_next = False
             match_file = False
-            with open(self.settings.dhcpd_conf) as dhcpd_conf_fd:
+            with open(self.settings.dhcpd_conf, encoding="UTF-8") as dhcpd_conf_fd:
                 for line in dhcpd_conf_fd.readlines():
                     if line.find("next-server") != -1:
                         match_next = True

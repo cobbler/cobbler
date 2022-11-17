@@ -62,7 +62,7 @@ class BuildIso:
         self.iso_template = (
             pathlib.Path(self.api.settings().iso_template_dir)
             .joinpath("buildiso.template")
-            .read_text()
+            .read_text(encoding="UTF-8")
         )
 
     def copy_boot_files(self, distro, destdir: str, new_filename: str = ""):

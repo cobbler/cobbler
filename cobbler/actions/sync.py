@@ -255,7 +255,7 @@ class CobblerSync:
         template_file = "/etc/cobbler/rsync.template"
 
         try:
-            with open(template_file, "r") as template:
+            with open(template_file, "r", encoding="UTF-8") as template:
                 template_data = template.read()
         except:
             raise OSError(f"error reading template {template_file}")

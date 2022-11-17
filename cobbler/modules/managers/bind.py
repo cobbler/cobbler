@@ -299,7 +299,7 @@ zone "%(arpa)s." {
             metadata["zone_include"] = metadata["zone_include"] + txt
 
         try:
-            with open(template_file, "r") as template_fd:
+            with open(template_file, "r", encoding="UTF-8") as template_fd:
                 template_data = template_fd.read()
         except:
             raise OSError(f"error reading template from file: {template_file}")
@@ -370,7 +370,7 @@ zone "%(arpa)s." {
             metadata["bind_master"] = self.settings.bind_master
 
         try:
-            with open(template_file, "r") as template_fd:
+            with open(template_file, "r", encoding="UTF-8") as template_fd:
                 template_data = template_fd.read()
         except:
             raise OSError(f"error reading template from file: {template_file}")
@@ -509,7 +509,7 @@ zone "%(arpa)s." {
         # need a counter for new bind format
         serial = time.strftime("%Y%m%d00")
         try:
-            with open(serial_filename, "r") as serialfd:
+            with open(serial_filename, "r", encoding="UTF-8") as serialfd:
                 old_serial = serialfd.readline()
                 # same date
                 if serial[0:8] == old_serial[0:8]:
@@ -518,14 +518,14 @@ zone "%(arpa)s." {
         except:
             pass
 
-        with open(serial_filename, "w") as serialfd:
+        with open(serial_filename, "w", encoding="UTF-8") as serialfd:
             serialfd.write(serial)
 
         forward = self.__forward_zones()
         reverse = self.__reverse_zones()
 
         try:
-            with open(default_template_file, "r") as template_fd:
+            with open(default_template_file, "r", encoding="UTF-8") as template_fd:
                 default_template_data = template_fd.read()
         except:
             raise CX(f"error reading template from file: {default_template_file}")
@@ -551,7 +551,9 @@ zone "%(arpa)s." {
                 zone_origin = ""
             # grab zone-specific template if it exists
             try:
-                with open(f"/etc/cobbler/zone_templates/{zone}") as zone_fd:
+                with open(
+                    f"/etc/cobbler/zone_templates/{zone}", encoding="UTF-8"
+                ) as zone_fd:
                     # If this is an IPv6 zone, set the origin to the zone for this
                     # template
                     if zone_origin:
@@ -589,7 +591,9 @@ zone "%(arpa)s." {
 
             # grab zone-specific template if it exists
             try:
-                with open(f"/etc/cobbler/zone_templates/{zone}") as zone_fd:
+                with open(
+                    f"/etc/cobbler/zone_templates/{zone}", encoding="UTF-8"
+                ) as zone_fd:
                     template_data = zone_fd.read()
             except:
                 template_data = default_template_data

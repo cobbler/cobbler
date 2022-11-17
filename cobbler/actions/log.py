@@ -44,7 +44,7 @@ class LogTool:
 
         for log in logs:
             try:
-                with open(log, "w") as log_fd:
+                with open(log, "w", encoding="UTF-8") as log_fd:
                     log_fd.truncate()
             except IOError as error:
                 self.logger.info("Failed to Truncate '%s':%s ", log, error)

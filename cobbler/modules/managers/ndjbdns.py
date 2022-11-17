@@ -53,7 +53,7 @@ class _NDjbDnsManager(ManagerModule):
 
         a_records = {}
 
-        with open(template_file, "r") as template_fd:
+        with open(template_file, "r", encoding="UTF-8") as template_fd:
             template_content = template_fd.read()
 
         for system in self.systems:

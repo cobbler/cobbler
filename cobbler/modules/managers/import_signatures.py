@@ -2,6 +2,7 @@
 Cobbler Module that contains the code for ``cobbler import`` and provides the magic to automatically detect an ISO image
 OS and version.
 """
+import pathlib
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
@@ -124,7 +125,7 @@ class _ImportSignatureManager(ManagerModule):
 
             self.logger.info("no %s found, please install wimlib-utils", cmd)
         elif ftype.mime_type == "text/plain":
-            with open(filename, "r") as file_fd:
+            with open(filename, "r", encoding="UTF-8") as file_fd:
                 return file_fd.readlines()
         else:
             self.logger.info(
@@ -890,7 +891,7 @@ class _ImportSignatureManager(ManagerModule):
             # the @@http_server@@ left as templating magic.
             # repo_url2 is actually no longer used. (?)
 
-            with open(fname, "w+") as config_file:
+            with open(fname, "w+", encoding="UTF-8") as config_file:
                 config_file.write(f"[core-{counter}]\n")
                 config_file.write(f"name=core-{counter}\n")
                 config_file.write(

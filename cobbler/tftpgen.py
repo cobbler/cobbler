@@ -227,12 +227,12 @@ class TFTPGen:
                     initrd_path = os.path.join(
                         "/images", distro.name, os.path.basename(distro.initrd)
                     )
-                    with open(pxe_f, "w") as out:
+                    with open(pxe_f, "w", encoding="UTF-8") as out:
                         out.write(kernel_path + "\n" + initrd_path + "\n")
-                    with open(parm_f, "w") as out:
+                    with open(parm_f, "w", encoding="UTF-8") as out:
                         out.write(kopts_aligned)
                     # Write conf file with one newline in it if netboot is enabled
-                    with open(conf_f, "w") as out:
+                    with open(conf_f, "w", encoding="UTF-8") as out:
                         out.write("\n")
                 else:
                     self.logger.info("S390x: netboot_disabled")
@@ -369,7 +369,8 @@ class TFTPGen:
             with open(
                 os.path.join(
                     self.settings.boot_loader_conf_template_dir, "pxe_menu.template"
-                )
+                ),
+                encoding="UTF-8",
             ) as template_src:
                 template_data = template_src.read()
                 boot_menu["pxe"] = self.templar.render(
@@ -384,7 +385,8 @@ class TFTPGen:
             with open(
                 os.path.join(
                     self.settings.boot_loader_conf_template_dir, "ipxe_menu.template"
-                )
+                ),
+                encoding="UTF-8",
             ) as template_src:
                 template_data = template_src.read()
                 boot_menu["ipxe"] = self.templar.render(
@@ -401,7 +403,7 @@ class TFTPGen:
                 outfile = os.path.join(
                     self.bootloc, "grub", f"{arch.value}_menu_items.cfg"
                 )
-                with open(outfile, "w+") as grub_arch_fd:
+                with open(outfile, "w+", encoding="UTF-8") as grub_arch_fd:
                     grub_arch_fd.write(arch_menu_items["grub"])
         return boot_menu
 
@@ -627,7 +629,7 @@ class TFTPGen:
                 f"{boot_loader}_submenu.template",
             )
             if os.path.exists(template):
-                with open(template) as template_fh:
+                with open(template, encoding="UTF-8") as template_fh:
                     template_data[boot_loader] = template_fh.read()
             else:
                 self.logger.warning(
@@ -824,7 +826,7 @@ class TFTPGen:
 
         # get the template
         if metadata["kernel_path"] is not None:
-            with open(template) as template_fh:
+            with open(template, encoding="UTF-8") as template_fh:
                 template_data = template_fh.read()
         else:
             # this is something we can't PXE boot
@@ -838,7 +840,7 @@ class TFTPGen:
             # Ensure destination path exists to avoid race condition
             if not os.path.exists(os.path.dirname(filename)):
                 filesystem_helpers.mkdir(os.path.dirname(filename))
-            with open(filename, "w") as pxe_file_fd:
+            with open(filename, "w", encoding="UTF-8") as pxe_file_fd:
                 pxe_file_fd.write(buffer)
         return buffer
 
@@ -1175,7 +1177,8 @@ class TFTPGen:
         if obj.COLLECTION_TYPE == "distro":
             if re.search("esxi[567]", obj.os_version) is not None:
                 with open(
-                    os.path.join(os.path.dirname(obj.kernel), "boot.cfg")
+                    os.path.join(os.path.dirname(obj.kernel), "boot.cfg"),
+                    encoding="UTF-8",
                 ) as realbootcfg_fd:
                     realbootcfg = realbootcfg_fd.read()
                 bootmodules = re.findall(r"modules=(.*)", realbootcfg)
@@ -1249,7 +1252,7 @@ class TFTPGen:
                     "either the template source or destination was blank (unknown variable used?)"
                 )
 
-            with open(template) as template_fh:
+            with open(template, encoding="UTF-8") as template_fh:
                 template_data = template_fh.read()
 
             buffer = self.templar.render(template_data, blended, None)
@@ -1257,7 +1260,7 @@ class TFTPGen:
 
             if write_file:
                 self.logger.info("generating: %s", dest)
-                with open(dest, "w") as template_fd:
+                with open(dest, "w", encoding="UTF-8") as template_fd:
                     template_fd.write(buffer)
 
         return results
@@ -1328,7 +1331,8 @@ class TFTPGen:
 
         if distro.os_version.startswith("esxi"):
             with open(
-                os.path.join(os.path.dirname(distro.kernel), "boot.cfg")
+                os.path.join(os.path.dirname(distro.kernel), "boot.cfg"),
+                encoding="UTF-8",
             ) as bootcfg_fd:
                 bootmodules = re.findall(r"modules=(.*)", bootcfg_fd.read())
                 for modules in bootmodules:
@@ -1366,7 +1370,7 @@ class TFTPGen:
         if not os.path.exists(template):
             return f"# boot.cfg template not found for the {what} named {name} (filename={template})"
 
-        with open(template) as template_fh:
+        with open(template, encoding="UTF-8") as template_fh:
             template_data = template_fh.read()
 
         return self.templar.render(template_data, blended, None)
@@ -1422,7 +1426,7 @@ class TFTPGen:
         if not os.path.exists(template):
             return f'# script template "{script_name}" not found'
 
-        with open(template) as template_fh:
+        with open(template, encoding="UTF-8") as template_fh:
             template_data = template_fh.read()
 
         return self.templar.render(template_data, blended, None)
@@ -1527,7 +1531,7 @@ class TFTPGen:
         self.logger.info("generating: %s", bootcfg_path)
         if not os.path.exists(os.path.dirname(bootcfg_path)):
             filesystem_helpers.mkdir(os.path.dirname(bootcfg_path))
-        with open(bootcfg_path, "w") as bootcfg_path_fd:
+        with open(bootcfg_path, "w", encoding="UTF-8") as bootcfg_path_fd:
             bootcfg_path_fd.write(buffer)
 
         # symlink to esxi UEFI bootloader in same dir as boot.cfg

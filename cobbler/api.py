@@ -255,10 +255,10 @@ class CobblerAPI:
         """
         # FIXME: This fails in case the file required is not available
         if not os.path.exists(self.mtime_location):
-            with open(self.mtime_location, "w") as mtime_fd:
+            with open(self.mtime_location, "w", encoding="UTF-8") as mtime_fd:
                 mtime_fd.write("0")
             return 0.0
-        with open(self.mtime_location, "r") as mtime_fd:
+        with open(self.mtime_location, "r", encoding="UTF-8") as mtime_fd:
             data = mtime_fd.read().strip()
         return float(data)
 
@@ -1573,7 +1573,9 @@ class CobblerAPI:
                     )
 
             # rewrite the real signature file and import it for real
-            with open(self.settings().signature_path, "w") as signature_fd:
+            with open(
+                self.settings().signature_path, "w", encoding="UTF-8"
+            ) as signature_fd:
                 signature_fd.write(sigjson.text)
 
             signatures.load_signatures(self.settings().signature_path)

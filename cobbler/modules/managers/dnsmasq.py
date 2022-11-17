@@ -49,7 +49,7 @@ class _DnsmasqManager(ManagerModule):
         template_file = "/etc/cobbler/dnsmasq.template"
 
         try:
-            with open(template_file, "r") as template_file_fd:
+            with open(template_file, "r", encoding="UTF-8") as template_file_fd:
                 template_data = template_file_fd.read()
         except Exception:
             raise OSError(f"error writing template to file: {template_file}")
@@ -130,7 +130,7 @@ class _DnsmasqManager(ManagerModule):
         """
         # dnsmasq knows how to read this database of MACs -> IPs, so we'll keep it up to date every time we add a
         # system.
-        with open("/etc/ethers", "w+") as ethers_fh:
+        with open("/etc/ethers", "w+", encoding="UTF-8") as ethers_fh:
             for system in self.systems:
                 if not system.is_management_supported(cidr_ok=False):
                     continue
@@ -148,7 +148,9 @@ class _DnsmasqManager(ManagerModule):
         This rewrites the hosts file and thus also rewrites the dns config.
         """
         # dnsmasq knows how to read this database for host info (other things may also make use of this later)
-        with open("/var/lib/cobbler/cobbler_hosts", "w+") as regen_hosts_fd:
+        with open(
+            "/var/lib/cobbler/cobbler_hosts", "w+", encoding="UTF-8"
+        ) as regen_hosts_fd:
             for system in self.systems:
                 if not system.is_management_supported(cidr_ok=False):
                     continue

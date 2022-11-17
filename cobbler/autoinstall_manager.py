@@ -106,7 +106,7 @@ class AutoInstallationManager:
         )
 
         file_full_path = f"{self.templates_base_dir}/{file_path}"
-        with open(file_full_path, "r") as fileh:
+        with open(file_full_path, "r", encoding="UTF-8") as fileh:
             data = fileh.read()
 
         return data
@@ -131,7 +131,7 @@ class AutoInstallationManager:
                 f"unable to create directory for automatic OS installation template at {file_path}"
             )
 
-        with open(file_full_path, "w+") as fileh:
+        with open(file_full_path, "w+", encoding="UTF-8") as fileh:
             fileh.write(data)
 
         return True
@@ -214,7 +214,7 @@ class AutoInstallationManager:
         file_path = self.validate_autoinstall_snippet_file_path(file_path)
 
         file_full_path = f"{self.snippets_base_dir}/{file_path}"
-        with open(file_full_path, "r") as fileh:
+        with open(file_full_path, "r", encoding="UTF-8") as fileh:
             data = fileh.read()
 
         return data
@@ -238,7 +238,7 @@ class AutoInstallationManager:
                 f"unable to create directory for automatic OS installation snippet at {file_path}"
             )
 
-        with open(file_full_path, "w+") as fileh:
+        with open(file_full_path, "w+", encoding="UTF-8") as fileh:
             fileh.write(data)
 
     def remove_autoinstall_snippet(self, file_path: str) -> bool:

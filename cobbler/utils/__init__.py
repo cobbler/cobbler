@@ -373,7 +373,7 @@ def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
             raise FileNotFoundError(f"File not found: {file_location}")
 
         try:
-            with open(file_location) as file_fd:
+            with open(file_location, encoding="UTF-8") as file_fd:
                 data = file_fd.read()
             return data
         except:

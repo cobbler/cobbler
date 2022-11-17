@@ -51,7 +51,7 @@ class _IscManager(ManagerModule):
 
         blender_cache = {}
 
-        with open(template_file, "r") as template_fd:
+        with open(template_file, "r", encoding="UTF-8") as template_fd:
             template_data = template_fd.read()
 
         # Use a simple counter for generating generic names where a hostname is not available.
@@ -229,7 +229,7 @@ class _IscManager(ManagerModule):
 
         blender_cache = {}
 
-        with open(template_file, "r") as template_fd:
+        with open(template_file, "r", encoding="UTF-8") as template_fd:
             template_data = template_fd.read()
 
         # Use a simple counter for generating generic names where a hostname is not available.

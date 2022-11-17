@@ -27,7 +27,7 @@ logger = logging.getLogger()
 def read_macro_file(location="/etc/cobbler/cheetah_macros"):
     if not os.path.exists(location):
         raise FileNotFoundError("Cobbler Cheetah Macros File must exist!")
-    with open(location, "r") as macro_file:
+    with open(location, "r", encoding="UTF-8") as macro_file:
         return macro_file.read()
 
 
@@ -116,7 +116,7 @@ class CobblerTemplate(generate_cheetah_macros()):
                     source = file.read()
                 else:
                     if os.path.exists(file):
-                        with open(file, "r") as snippet_fd:
+                        with open(file, "r", encoding="UTF-8") as snippet_fd:
                             source = "#errorCatcher Echo\n" + snippet_fd.read()
                     else:
                         source = f"# Unable to read {file}\n"

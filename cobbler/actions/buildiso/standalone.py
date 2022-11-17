@@ -240,7 +240,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
             descendant, distro, airgapped, data, repo_names_to_copy
         )
         autoinstall_name = os.path.join(self.isolinuxdir, f"{descendant.name}.cfg")
-        with open(autoinstall_name, "w+") as autoinstall_file:
+        with open(autoinstall_name, "w+", encoding="UTF-8") as autoinstall_file:
             autoinstall_file.write(autoinstall_data)
 
     def generate_standalone_iso(
@@ -288,7 +288,9 @@ class StandaloneBuildiso(buildiso.BuildIso):
 
         cfglines.append("")
         cfglines.append("MENU END")
-        with open(os.path.join(self.isolinuxdir, "isolinux.cfg"), "w+") as cfg:
+        with open(
+            os.path.join(self.isolinuxdir, "isolinux.cfg"), "w+", encoding="UTF-8"
+        ) as cfg:
             cfg.writelines(f"{l}\n" for l in cfglines)
         self.logger.info("done writing config")
 

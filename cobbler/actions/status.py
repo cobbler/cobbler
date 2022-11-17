@@ -99,7 +99,7 @@ class CobblerStatusReport:
             if fname.endswith(".gz"):
                 logile_fd = gzip.open(fname, "rt")
             else:
-                logile_fd = open(fname, "rt")
+                logile_fd = open(fname, "rt", encoding="UTF-8")
             data = logile_fd.read()
             for line in data.split("\n"):
                 tokens = line.split()

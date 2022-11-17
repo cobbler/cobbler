@@ -526,8 +526,8 @@ class NetbootBuildiso(buildiso.BuildIso):
         cfglines.append("")
         cfglines.append("MENU END")
 
-        with open(isolinuxcfg, "w+") as cfg:
-            cfg.writelines(f"{l}\n" for l in cfglines)
+        with open(isolinuxcfg, "w+", encoding="UTF-8") as cfg:
+            cfg.writelines(f"{line}\n" for line in cfglines)
 
     def run(
         self,

@@ -424,7 +424,7 @@ def read_yaml_file(filepath="/etc/cobbler/settings.yaml") -> Dict[Hashable, Any]
             f'Given path "{filepath}" does not exist or is a directory.'
         )
     try:
-        with open(filepath) as main_settingsfile:
+        with open(filepath, encoding="UTF-8") as main_settingsfile:
             filecontent = yaml.safe_load(main_settingsfile.read())
     except yaml.YAMLError as error:
         traceback.print_exc()
@@ -521,7 +521,7 @@ def update_settings_file(
                 set(validated_data["extra_settings_list"])
             )
 
-        with open(filepath, "w") as settings_file:
+        with open(filepath, "w", encoding="UTF-8") as settings_file:
             yaml_dump = yaml.safe_dump(validated_data)
             header = "# Cobbler settings file\n"
             header += "# Docs for this file can be found at: https://cobbler.readthedocs.io/en/latest/cobbler-conf.html"

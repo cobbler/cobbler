@@ -66,7 +66,7 @@ def run(api, args):
 
     # Read our settings
     if str(settings.nsupdate_log) is not None:
-        logf = open(str(settings.nsupdate_log), "a+")
+        logf = open(str(settings.nsupdate_log), "a+", encoding="UTF-8")
         nslog(f">> starting {__name__} {args}\n")
 
     if str(settings.nsupdate_tsig_key) is not None:

@@ -245,17 +245,20 @@ def run(api, args):
     tgen = tftpgen.TFTPGen(api)
 
     with open(
-        os.path.join(settings.windows_template_dir, POST_INST_CMD_TEMPLATE_NAME)
+        os.path.join(settings.windows_template_dir, POST_INST_CMD_TEMPLATE_NAME),
+        encoding="UTF-8",
     ) as template_win:
         post_tmpl_data = template_win.read()
 
     with open(
-        os.path.join(settings.windows_template_dir, ANSWERFILE_TEMPLATE_NAME)
+        os.path.join(settings.windows_template_dir, ANSWERFILE_TEMPLATE_NAME),
+        encoding="UTF-8",
     ) as template_win:
         tmpl_data = template_win.read()
 
     with open(
-        os.path.join(settings.windows_template_dir, STARTNET_TEMPLATE_NAME)
+        os.path.join(settings.windows_template_dir, STARTNET_TEMPLATE_NAME),
+        encoding="UTF-8",
     ) as template_start:
         tmplstart_data = template_start.read()
 
@@ -305,14 +308,14 @@ def run(api, args):
                 post_install_dir, meta["post_install_script"]
             )
             logger.info("Build post install script: %s", post_install_script)
-            with open(post_install_script, "w+") as pi_file:
+            with open(post_install_script, "w+", encoding="UTF-8") as pi_file:
                 pi_file.write(data)
 
         if "answerfile" in meta:
             data = templ.render(tmpl_data, meta, None)
             answerfile_name = os.path.join(distro_dir, meta["answerfile"])
             logger.info("Build answer file: %s", answerfile_name)
-            with open(answerfile_name, "w+") as answerfile:
+            with open(answerfile_name, "w+", encoding="UTF-8") as answerfile:
                 answerfile.write(data)
             tgen.copy_single_distro_file(answerfile_name, distro_path, False)
             tgen.copy_single_distro_file(answerfile_name, web_dir, True)

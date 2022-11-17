@@ -65,7 +65,7 @@ class YumGen:
 
         for infile in input_files:
             try:
-                with open(infile) as infile_h:
+                with open(infile, encoding="UTF-8") as infile_h:
                     infile_data = infile_h.read()
             except:
                 # File does not exist and the user needs to run reposync before we will use this, Cobbler check will

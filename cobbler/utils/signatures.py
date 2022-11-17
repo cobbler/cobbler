@@ -55,7 +55,7 @@ def load_signatures(filename, cache: bool = True):
     """
     global SIGNATURE_CACHE
 
-    with open(filename, "r") as signature_file_fd:
+    with open(filename, "r", encoding="UTF-8") as signature_file_fd:
         sigjson = signature_file_fd.read()
     sigdata = json.loads(sigjson)
     if cache:

@@ -23,7 +23,7 @@ class DownloadManager:
         """
         self.logger = logging.getLogger()
         self.cert = ()
-        with open("/etc/cobbler/settings.yaml") as main_settingsfile:
+        with open("/etc/cobbler/settings.yaml", encoding="UTF-8") as main_settingsfile:
             ydata = yaml.safe_load(main_settingsfile)
         # requests wants a dict like:  protocol: proxy_uri
         self.proxies = ydata.get("proxy_url_ext", {})

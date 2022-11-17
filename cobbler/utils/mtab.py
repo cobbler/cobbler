@@ -99,7 +99,7 @@ def __cache_mtab__(mtab="/etc/mtab"):
     :param mtab: The location of the mtab. Argument can be ommited if the mtab is at its default location.
     :return: The mtab content stripped from empty lines (if any are present).
     """
-    with open(mtab) as mtab_fd:
+    with open(mtab, encoding="UTF-8") as mtab_fd:
         mtab = [MntEntObj(line) for line in mtab_fd.read().split("\n") if len(line) > 0]
 
     return mtab

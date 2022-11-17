@@ -2718,7 +2718,7 @@ class CobblerCLI:
         """
         logfile = "/var/log/cobbler/cobbler.log"
         # adapted from:  https://code.activestate.com/recipes/157035/
-        with open(logfile, "r") as file:
+        with open(logfile, "r", encoding="UTF-8") as file:
             # Find the size of the file and move to the end
             # st_results = os.stat(filename)
             # st_size = st_results[6]
