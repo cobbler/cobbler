@@ -102,19 +102,16 @@ class ConfigGen:
             _package = self.__api.find_package(name=package)
             if _package is None:
                 raise CX(f"{package} package resource is not defined")
+            pkg_data[package] = {}
+            pkg_data[package]["action"] = self.resolve_resource_var(_package.action)
+            pkg_data[package]["installer"] = _package.installer
+            pkg_data[package]["version"] = self.resolve_resource_var(_package.version)
+            if pkg_data[package]["version"] != "":
+                pkg_data[package][
+                    "install_name"
+                ] = f"{package}-{pkg_data[package]['version']}"
             else:
-                pkg_data[package] = {}
-                pkg_data[package]["action"] = self.resolve_resource_var(_package.action)
-                pkg_data[package]["installer"] = _package.installer
-                pkg_data[package]["version"] = self.resolve_resource_var(
-                    _package.version
-                )
-                if pkg_data[package]["version"] != "":
-                    pkg_data[package][
-                        "install_name"
-                    ] = f"{package}-{pkg_data[package]['version']}"
-                else:
-                    pkg_data[package]["install_name"] = package
+                pkg_data[package]["install_name"] = package
         config_data["packages"] = pkg_data
 
         # Generate File data

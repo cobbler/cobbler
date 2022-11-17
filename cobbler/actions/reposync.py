@@ -164,8 +164,7 @@ class RepoSync:
                 report_failure = True
                 if not self.nofail:
                     raise CX("reposync failed, retry limit reached, aborting")
-                else:
-                    self.logger.error("reposync failed, retry limit reached, skipping")
+                self.logger.error("reposync failed, retry limit reached, skipping")
 
             self.update_permissions(repo_path)
 

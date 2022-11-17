@@ -173,9 +173,8 @@ class TFTPGen:
                     "profile %(profile)s references a missing distro %(distro)s"
                     % {"profile": system.profile, "distro": profile.distro}
                 )
-            else:
-                image_based = True
-                image = profile
+            image_based = True
+            image = profile
 
         pxe_metadata = {"menu_items": menu_items}
 
@@ -1241,13 +1240,13 @@ class TFTPGen:
             # Check for problems
             if not os.path.exists(template):
                 raise CX(f"template source {template} does not exist")
-            elif write_file and not os.path.isdir(dest_dir):
+            if write_file and not os.path.isdir(dest_dir):
                 raise CX(f"template destination ({dest_dir}) is invalid")
-            elif write_file and os.path.exists(dest):
+            if write_file and os.path.exists(dest):
                 raise CX(f"template destination ({dest}) already exists")
-            elif write_file and os.path.isdir(dest):
+            if write_file and os.path.isdir(dest):
                 raise CX(f"template destination ({dest}) is a directory")
-            elif template == "" or dest == "":
+            if template == "" or dest == "":
                 raise CX(
                     "either the template source or destination was blank (unknown variable used?)"
                 )

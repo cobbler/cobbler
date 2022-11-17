@@ -224,7 +224,7 @@ class BuildIso:
             raise ValueError(
                 f'No matches found for requested Cobbler Arch: "{str(desired_arch.value)}"'
             )
-        elif len(matches) == 1:
+        if len(matches) == 1:
             return next(iter(matches.values()))
         raise ValueError(
             f'Ambiguous matches for GRUB to Cobbler Arch mapping! Requested: "{str(desired_arch.value)}"'

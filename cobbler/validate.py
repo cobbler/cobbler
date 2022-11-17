@@ -44,8 +44,7 @@ def hostname(dnsname: str) -> str:
     """
     if not isinstance(dnsname, str):
         raise TypeError("Invalid input, dnsname must be a string")
-    else:
-        dnsname = dnsname.strip()
+    dnsname = dnsname.strip()
 
     if dnsname == "":
         # hostname is not required

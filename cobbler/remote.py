@@ -490,8 +490,7 @@ class CobblerXMLRPCInterface:
             raise ValueError('"token" did not have the correct format or type!')
         if token not in self.token_cache:
             raise CX(f"invalid token: {token}")
-        else:
-            return self.token_cache[token][1]
+        return self.token_cache[token][1]
 
     def _log(
         self,
@@ -669,14 +668,14 @@ class CobblerXMLRPCInterface:
                 f'None is not a valid value for the resolved attribute "{attribute}". Please fix the item(s) '
                 f'starting at uuid "{item_uuid}"'
             )
-        elif isinstance(return_value, enums.ConvertableEnum):
+        if isinstance(return_value, enums.ConvertableEnum):
             return return_value.value
-        elif isinstance(
+        if isinstance(
             return_value,
             (enums.DHCP, enums.NetworkInterfaceType, enums.BaudRates, item.Item),
         ):
             return return_value.name
-        elif isinstance(return_value, dict):
+        if isinstance(return_value, dict):
             if (
                 attribute == "interfaces"
                 and len(return_value) > 0
