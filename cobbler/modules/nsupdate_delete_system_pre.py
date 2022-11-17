@@ -51,8 +51,6 @@ def run(api, args):
     :param args: Metadata to log.
     :return: "0" on success or a skipped task. If the task failed or problems occurred then an exception is raised.
     """
-    global LOGF
-
     action = None
     if __name__ == "cobbler.modules.nsupdate_add_system_post":
         action = "replace"
