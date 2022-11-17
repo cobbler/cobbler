@@ -238,7 +238,7 @@ class Templar:
             data_out = template.render(search_table)
         except Exception as exc:
             self.logger.warning("errors were encountered rendering the template")
-            self.logger.warning(exc.__str__())
+            self.logger.warning(str(exc))
             data_out = "# EXCEPTION OCCURRED DURING JINJA2 TEMPLATE PROCESSING\n"
 
         return data_out
