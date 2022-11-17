@@ -86,7 +86,6 @@ class RepoSync:
         self.tries = tries
         self.nofail = nofail
         self.logger = logging.getLogger()
-        self.dlmgr = download_manager.DownloadManager()
 
         self.logger.info("hello, reposync")
 
