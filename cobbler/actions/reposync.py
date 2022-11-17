@@ -107,7 +107,7 @@ class RepoSync:
             if name is not None and repo.name != name:
                 # Invoked to sync only a specific repo, this is not the one
                 continue
-            elif name is None and not repo.keep_updated:
+            if name is None and not repo.keep_updated:
                 # Invoked to run against all repos, but this one is off
                 self.logger.info("%s is set to not be updated", repo.name)
                 continue

@@ -283,10 +283,9 @@ class NetworkInterface:
             for match in matched:
                 if self in match.interfaces.values():
                     continue
-                else:
-                    raise ValueError(
-                        f'IP address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
-                    )
+                raise ValueError(
+                    f'IP address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
+                )
         self._ip_address = address
 
     @property
@@ -316,10 +315,9 @@ class NetworkInterface:
             for match in matched:
                 if self in match.interfaces.values():
                     continue
-                else:
-                    raise ValueError(
-                        f'MAC address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
-                    )
+                raise ValueError(
+                    f'MAC address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
+                )
         self._mac_address = address
 
     @property
@@ -525,11 +523,10 @@ class NetworkInterface:
             for match in matched:
                 if self in match.interfaces.values():
                     continue
-                else:
-                    raise ValueError(
-                        f'IPv6 address duplicate found "{address}". Object with the conflict has the name'
-                        f'"{match.name}"'
-                    )
+                raise ValueError(
+                    f'IPv6 address duplicate found "{address}". Object with the conflict has the name'
+                    f'"{match.name}"'
+                )
         self._ipv6_address = address
 
     @property

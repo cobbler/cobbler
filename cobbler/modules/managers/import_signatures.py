@@ -497,9 +497,8 @@ class _ImportSignatureManager(ManagerModule):
                     "skipping import, as distro name already exists: %s", name
                 )
                 continue
-            else:
-                self.logger.info("creating new distro: %s", name)
-                new_distro = distro.Distro(self.api)
+            self.logger.info("creating new distro: %s", name)
+            new_distro = distro.Distro(self.api)
 
             if name.find("-autoboot") != -1:
                 # this is an artifact of some EL-3 imports
