@@ -9,8 +9,8 @@ Post install trigger for Cobbler to send out a pretty email report that contains
 from builtins import str
 import smtplib
 from cobbler.cexceptions import CX
-import cobbler.templar as templar
-import cobbler.utils as utils
+from cobbler import templar
+from cobbler import utils
 
 
 def register() -> str:

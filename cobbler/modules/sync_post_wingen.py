@@ -5,9 +5,9 @@ import logging
 import tempfile
 from typing import Optional
 
-import cobbler.utils as utils
-import cobbler.templar as templar
-import cobbler.tftpgen as tftpgen
+from cobbler import utils
+from cobbler import templar
+from cobbler import tftpgen
 from cobbler.utils import filesystem_helpers
 
 HAS_HIVEX = True

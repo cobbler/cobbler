@@ -10,7 +10,7 @@ Cobbler Trigger Module that puts the content of the Cobbler data directory under
 
 import os
 
-import cobbler.utils as utils
+from cobbler import utils
 
 from cobbler.cexceptions import CX
 

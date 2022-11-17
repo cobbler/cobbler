@@ -8,7 +8,7 @@ https://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
 """
 import logging
 import re
-import cobbler.utils as utils
+from cobbler import utils
 
 logger = logging.getLogger()
 
