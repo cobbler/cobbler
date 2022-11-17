@@ -50,6 +50,10 @@ class InstallStatus:
 
 
 class CobblerStatusReport:
+    """
+    TODO
+    """
+
     def __init__(self, api, mode: str):
         """
         Constructor

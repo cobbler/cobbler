@@ -14,6 +14,10 @@ from cobbler import utils
 
 
 class YumGen:
+    """
+    TODO
+    """
+
     def __init__(self, api):
         """
         Constructor

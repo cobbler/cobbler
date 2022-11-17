@@ -14,6 +14,10 @@ from cobbler import utils
 
 
 class HardLinker:
+    """
+    TODO
+    """
+
     def __init__(self, api=None):
         """
         Constructor

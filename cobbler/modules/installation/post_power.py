@@ -10,6 +10,10 @@ import time
 
 
 class reboot(Thread):
+    """
+    TODO
+    """
+
     def __init__(self, api, target):
         Thread.__init__(self)
         self.api = api

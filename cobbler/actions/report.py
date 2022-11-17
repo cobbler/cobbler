@@ -15,6 +15,10 @@ from cobbler import utils
 
 
 class Report:
+    """
+    TODO
+    """
+
     def __init__(self, api):
         """
         Constructor

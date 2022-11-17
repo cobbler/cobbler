@@ -16,6 +16,10 @@ from cobbler.cexceptions import CX
 
 
 class AclConfig:
+    """
+    TODO
+    """
+
     def __init__(self, api):
         """
         Constructor

@@ -12,6 +12,10 @@ import yaml
 
 
 class DownloadManager:
+    """
+    TODO
+    """
+
     def __init__(self):
         """
         Constructor

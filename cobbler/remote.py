@@ -3920,6 +3920,10 @@ class CobblerXMLRPCInterface:
 
 
 class RequestHandler(SimpleXMLRPCRequestHandler):
+    """
+    TODO
+    """
+
     def do_OPTIONS(self):
         self.send_response(200)
         self.end_headers()
@@ -3956,6 +3960,10 @@ class CobblerXMLRPCServer(ThreadingMixIn, xmlrpc.server.SimpleXMLRPCServer):
 
 
 class ProxiedXMLRPCInterface:
+    """
+    TODO
+    """
+
     def __init__(self, api, proxy_class):
         """
         This interface allows proxying request through another class.

@@ -9,6 +9,10 @@ mtab_map = []
 
 
 class MntEntObj:
+    """
+    TODO
+    """
+
     mnt_fsname = None  # name of mounted file system
     mnt_dir = None  # file system path prefix
     mnt_type = None  # mount type (see mntent.h)
