@@ -56,10 +56,10 @@ def repo_walker(top, func, arg):
     for name in names:
         name = os.path.join(top, name)
         try:
-            st = os.lstat(name)
+            file_stats = os.lstat(name)
         except os.error:
             continue
-        if stat.S_ISDIR(st.st_mode):
+        if stat.S_ISDIR(file_stats.st_mode):
             repo_walker(name, func, arg)
 
 
@@ -136,7 +136,7 @@ class RepoSync:
             # Which may actually NOT reposync if the repo is set to not mirror locally but that's a technicality.
 
             success = False
-            for x in range(self.tries + 1, 1, -1):
+            for reposync_try in range(self.tries + 1, 1, -1):
                 try:
                     self.sync(repo)
                     success = True
@@ -144,7 +144,9 @@ class RepoSync:
                 except Exception:
                     success = False
                     utils.log_exc()
-                    self.logger.warning("reposync failed, tries left: %s", (x - 2))
+                    self.logger.warning(
+                        "reposync failed, tries left: %s", (reposync_try - 2)
+                    )
 
             # Cleanup/restore any environment variables that were added or changed above.
 
@@ -206,20 +208,20 @@ class RepoSync:
         :return: The dict representing records from a repomd.xml file of rpmmd repository.
         """
 
-        h = librepo.Handle()
-        r = librepo.Result()
-        h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
-        h.setopt(librepo.LRO_URLS, [dirname])
-        h.setopt(librepo.LRO_LOCAL, True)
-        h.setopt(librepo.LRO_CHECKSUM, True)
-        h.setopt(librepo.LRO_IGNOREMISSING, True)
+        librepo_handle = librepo.Handle()
+        librepo_result = librepo.Result()
+        librepo_handle.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
+        librepo_handle.setopt(librepo.LRO_URLS, [dirname])
+        librepo_handle.setopt(librepo.LRO_LOCAL, True)
+        librepo_handle.setopt(librepo.LRO_CHECKSUM, True)
+        librepo_handle.setopt(librepo.LRO_IGNOREMISSING, True)
 
         try:
-            h.perform(r)
-        except librepo.LibrepoException as e:
-            raise CX("librepo error: " + dirname + " - " + e.args[1]) from e
+            librepo_handle.perform(librepo_result)
+        except librepo.LibrepoException as error:
+            raise CX("librepo error: " + dirname + " - " + error.args[1]) from error
 
-        return r.getinfo(librepo.LRR_RPMMD_REPOMD).get("records", {})
+        return librepo_result.getinfo(librepo.LRR_RPMMD_REPOMD).get("records", {})
 
     # ====================================================================================
 
@@ -240,12 +242,12 @@ class RepoSync:
             repodata_path = os.path.join(origin_path, "repodata")
 
             if os.path.isfile(os.path.join(repodata_path, "repomd.xml")):
-                rd = self.librepo_getinfo(origin_path)
+                repo_data = self.librepo_getinfo(origin_path)
 
-                if "group" in rd:
-                    groupmdfile = rd["group"]["location_href"]
+                if "group" in repo_data:
+                    groupmdfile = repo_data["group"]["location_href"]
                     mdoptions += ["-g", os.path.join(origin_path, groupmdfile)]
-                if "prestodelta" in rd:
+                if "prestodelta" in repo_data:
                     # need createrepo >= 0.9.7 to add deltas
                     if utils.get_family() in ("redhat", "suse"):
                         cmd = [
@@ -316,9 +318,9 @@ class RepoSync:
             pipes.quote(dest_path),
             pipes.quote(repo.mirror),
         ]
-        rc = utils.subprocess_call(cmd, shell=False)
+        return_value = utils.subprocess_call(cmd, shell=False)
 
-        if rc != 0:
+        if return_value != 0:
             raise CX("cobbler reposync failed")
         repo_walker(dest_path, self.createrepo_walker, repo)
         self.create_local_file(dest_path, repo)
@@ -355,11 +357,11 @@ class RepoSync:
             repo.mirror = f"{repo.mirror}/"
 
         flags = ""
-        for x in repo.rsyncopts:
-            if repo.rsyncopts[x]:
-                flags += f" {x} {repo.rsyncopts[x]}"
+        for repo_option in repo.rsyncopts:
+            if repo.rsyncopts[repo_option]:
+                flags += f" {repo_option} {repo.rsyncopts[repo_option]}"
             else:
-                flags += f" {x}"
+                flags += f" {repo_option}"
 
         if flags == "":
             flags = self.settings.reposync_rsync_flags
@@ -374,9 +376,9 @@ class RepoSync:
             pipes.quote(repo.mirror),
             pipes.quote(dest_path),
         ]
-        rc = utils.subprocess_call(cmd, shell=False)
+        return_code = utils.subprocess_call(cmd, shell=False)
 
-        if rc != 0:
+        if return_code != 0:
             raise CX("cobbler reposync failed")
 
         # If ran in archive mode then repo should already contain all repodata and does not need createrepo run
@@ -385,12 +387,12 @@ class RepoSync:
             archive = True
         else:
             # split flags and skip all --{options} as we need to look for combined flags like -vaH
-            fl = flags.split()
-            for f in fl:
-                if f.startswith("--"):
+            flag = flags.split()
+            for option in flag:
+                if option.startswith("--"):
                     pass
                 else:
-                    if "a" in f:
+                    if "a" in option:
                         archive = True
                         break
         if not archive:
@@ -602,8 +604,8 @@ class RepoSync:
         # Now regardless of whether we're doing yumdownloader or reposync or whether the repo was http://, ftp://, or
         # rhn://, execute all queued commands here.  Any failure at any point stops the operation.
 
-        rc = utils.subprocess_call(cmd, shell=False)
-        if rc != 0:
+        return_code = utils.subprocess_call(cmd, shell=False)
+        if return_code != 0:
             raise CX("cobbler reposync failed")
 
         # download any metadata we can use
@@ -622,37 +624,39 @@ class RepoSync:
             self.logger.info("Deleted old repo metadata for %s", repodata_path)
             shutil.rmtree(repodata_path, ignore_errors=False, onerror=None)
 
-        h = librepo.Handle()
-        r = librepo.Result()
-        h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
-        h.setopt(librepo.LRO_CHECKSUM, True)
-        h.setopt(librepo.LRO_DESTDIR, temp_path)
+        librepo_handle = librepo.Handle()
+        librepo_result = librepo.Result()
+        librepo_handle.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
+        librepo_handle.setopt(librepo.LRO_CHECKSUM, True)
+        librepo_handle.setopt(librepo.LRO_DESTDIR, temp_path)
 
         if repo.mirror_type == MirrorType.METALINK:
-            h.setopt(librepo.LRO_METALINKURL, repo.mirror)
+            librepo_handle.setopt(librepo.LRO_METALINKURL, repo.mirror)
         elif repo.mirror_type == MirrorType.MIRRORLIST:
-            h.setopt(librepo.LRO_MIRRORLISTURL, repo.mirror)
+            librepo_handle.setopt(librepo.LRO_MIRRORLISTURL, repo.mirror)
         elif repo.mirror_type == MirrorType.BASEURL:
-            h.setopt(librepo.LRO_URLS, [repo.mirror])
+            librepo_handle.setopt(librepo.LRO_URLS, [repo.mirror])
 
         if verify:
-            h.setopt(librepo.LRO_SSLVERIFYPEER, True)
-            h.setopt(librepo.LRO_SSLVERIFYHOST, True)
+            librepo_handle.setopt(librepo.LRO_SSLVERIFYPEER, True)
+            librepo_handle.setopt(librepo.LRO_SSLVERIFYHOST, True)
 
         if cert:
             sslcacert, sslclientcert, sslclientkey = cert
-            h.setopt(librepo.LRO_SSLCACERT, sslcacert)
-            h.setopt(librepo.LRO_SSLCLIENTCERT, sslclientcert)
-            h.setopt(librepo.LRO_SSLCLIENTKEY, sslclientkey)
+            librepo_handle.setopt(librepo.LRO_SSLCACERT, sslcacert)
+            librepo_handle.setopt(librepo.LRO_SSLCLIENTCERT, sslclientcert)
+            librepo_handle.setopt(librepo.LRO_SSLCLIENTKEY, sslclientkey)
 
         if proxy:
-            h.setopt(librepo.LRO_PROXY, proxy)
-            h.setopt(librepo.LRO_PROXYTYPE, librepo.PROXY_HTTP)
+            librepo_handle.setopt(librepo.LRO_PROXY, proxy)
+            librepo_handle.setopt(librepo.LRO_PROXYTYPE, librepo.PROXY_HTTP)
 
         try:
-            h.perform(r)
-        except librepo.LibrepoException as e:
-            raise CX("librepo error: " + temp_path + " - " + e.args[1]) from e
+            librepo_handle.perform(librepo_result)
+        except librepo.LibrepoException as exception:
+            raise CX(
+                "librepo error: " + temp_path + " - " + exception.args[1]
+            ) from exception
 
         # now run createrepo to rebuild the index
         if repo.mirror_locally:
@@ -713,11 +717,11 @@ class RepoSync:
             ]
 
             rflags = ["--nocleanup"]
-            for x in repo.yumopts:
-                if repo.yumopts[x]:
-                    rflags.append(f"{x}={repo.yumopts[x]}")
+            for repo_yumoption in repo.yumopts:
+                if repo.yumopts[repo_yumoption]:
+                    rflags.append(f"{repo_yumoption}={repo.yumopts[repo_yumoption]}")
                 else:
-                    rflags.append(x)
+                    rflags.append(repo_yumoption)
             cmd = [mirror_program] + rflags + mirror_data + [pipes.quote(dest_path)]
             if repo.arch == RepoArchs.SRC:
                 cmd.append("--source")
@@ -733,8 +737,8 @@ class RepoSync:
             # FIXME: might this break anything? So far it doesn't
             os.putenv("HOME", "/var/lib/cobbler")
 
-            rc = utils.subprocess_call(cmd, shell=False)
-            if rc != 0:
+            return_code = utils.subprocess_call(cmd, shell=False)
+            if return_code != 0:
                 raise CX("cobbler reposync failed")
 
     def create_local_file(self, dest_path: str, repo, output: bool = True) -> str:
@@ -783,10 +787,10 @@ class RepoSync:
 
             config_file.write(line)
             # User may have options specific to certain yum plugins add them to the file
-            for x in repo.yumopts:
-                if x == "enabled":
+            for repo_yumoption in repo.yumopts:
+                if repo_yumoption == "enabled":
                     optenabled = True
-                if x == "gpgcheck":
+                if repo_yumoption == "gpgcheck":
                     optgpgcheck = True
         else:
             mstr = repo.mirror
@@ -820,9 +824,11 @@ class RepoSync:
             config_file.write("gpgcheck=0\n")
         # user may have options specific to certain yum plugins
         # add them to the file
-        for x in repo.yumopts:
-            if not (output and repo.mirror_locally and x.startswith("ssl")):
-                config_file.write(f"{x}={repo.yumopts[x]}\n")
+        for repo_yumoption in repo.yumopts:
+            if not (
+                output and repo.mirror_locally and repo_yumoption.startswith("ssl")
+            ):
+                config_file.write(f"{repo_yumoption}={repo.yumopts[repo_yumoption]}\n")
         config_file.close()
         return fname
 

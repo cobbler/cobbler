@@ -266,11 +266,11 @@ class AutoInstallationManager:
         :param name: The name of the system.
         :return: Whether the system is in install mode or not.
         """
-        for x in self.api.profiles():
-            if x.autoinstall is not None and x.autoinstall == name:
+        for profile in self.api.profiles():
+            if profile.autoinstall is not None and profile.autoinstall == name:
                 return True
-        for x in self.api.systems():
-            if x.autoinstall is not None and x.autoinstall == name:
+        for profile in self.api.systems():
+            if profile.autoinstall is not None and profile.autoinstall == name:
                 return True
         return False
 
@@ -354,14 +354,18 @@ class AutoInstallationManager:
         """
         overall_success = True
 
-        for x in self.api.profiles():
-            (success, errors_type, errors) = self.validate_autoinstall_file(x, True)
+        for profile in self.api.profiles():
+            (success, errors_type, errors) = self.validate_autoinstall_file(
+                profile, True
+            )
             if not success:
                 overall_success = False
             if len(errors) > 0:
                 self.log_autoinstall_validation_errors(errors_type, errors)
-        for x in self.api.systems():
-            (success, errors_type, errors) = self.validate_autoinstall_file(x, False)
+        for system in self.api.systems():
+            (success, errors_type, errors) = self.validate_autoinstall_file(
+                system, False
+            )
             if not success:
                 overall_success = False
             if len(errors) > 0:

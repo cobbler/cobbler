@@ -171,13 +171,13 @@ class CobblerAPI:
     def __load_signatures(self):
         try:
             signatures.load_signatures(self.settings().signature_path)
-        except Exception as e:
+        except Exception as exception:
             self.logger.error(
                 'Failed to load signatures from "%s"',
                 self.settings().signature_path,
-                exc_info=e,
+                exc_info=exception,
             )
-            raise e
+            raise exception
 
         self.logger.info(
             "%d breeds and %d OS versions read from the signature file",
@@ -258,8 +258,8 @@ class CobblerAPI:
             with open(self.mtime_location, "w") as mtime_fd:
                 mtime_fd.write("0")
             return 0.0
-        with open(self.mtime_location, "r") as fd:
-            data = fd.read().strip()
+        with open(self.mtime_location, "r") as mtime_fd:
+            data = mtime_fd.read().strip()
         return float(data)
 
     # ==========================================================
@@ -1432,12 +1432,12 @@ class CobblerAPI:
         """
         results1 = collector()
         results2 = []
-        for x in results1:
-            if x.mtime == 0 or x.mtime >= mtime:
+        for item in results1:
+            if item.mtime == 0 or item.mtime >= mtime:
                 if not collapse:
-                    results2.append(x)
+                    results2.append(item)
                 else:
-                    results2.append(x.to_dict())
+                    results2.append(item.to_dict())
         return results2
 
     def get_distros_since(self, mtime: float, collapse: bool = False):
@@ -1573,9 +1573,9 @@ class CobblerAPI:
                 )
 
             # rewrite the real signature file and import it for real
-            f = open(self.settings().signature_path, "w")
-            f.write(sigjson.text)
-            f.close()
+            signature_fd = open(self.settings().signature_path, "w")
+            signature_fd.write(sigjson.text)
+            signature_fd.close()
 
             signatures.load_signatures(self.settings().signature_path)
         except:
@@ -1608,8 +1608,8 @@ class CobblerAPI:
         self.log("auto_add_repos")
         try:
             import dnf
-        except ImportError as e:
-            raise ImportError("dnf is not installed") from e
+        except ImportError as error:
+            raise ImportError("dnf is not installed") from error
 
         base = dnf.Base()
         base.read_all_repos()
@@ -2057,9 +2057,9 @@ class CobblerAPI:
         :param password: The password to check for authentication.
         :return: Whether the action succeeded or not.
         """
-        rc = self.authn.authenticate(self, user, password)
-        self.log("authenticate", [user, rc])
-        return rc
+        return_code = self.authn.authenticate(self, user, password)
+        self.log("authenticate", [user, return_code])
+        return return_code
 
     def authorize(self, user: str, resource: str, arg1=None, arg2=None) -> int:
         """
@@ -2072,9 +2072,9 @@ class CobblerAPI:
         :param arg2: Not known what this parameter does exactly.
         :return: The return code of the action.
         """
-        rc = self.authz.authorize(self, user, resource, arg1, arg2)
-        self.log("authorize", [user, resource, arg1, arg2, rc], debug=True)
-        return rc
+        return_code = self.authz.authorize(self, user, resource, arg1, arg2)
+        self.log("authorize", [user, resource, arg1, arg2, return_code], debug=True)
+        return return_code
 
     # ==========================================================================
 

@@ -21,10 +21,10 @@ try:
 except Exception:
     HAS_HIVEX = False
 
-answerfile_template_name = "answerfile.template"
-post_inst_cmd_template_name = "post_inst_cmd.template"
-startnet_template_name = "startnet.template"
-wimupdate = "/usr/bin/wimupdate"
+ANSWERFILE_TEMPLATE_NAME = "answerfile.template"
+POST_INST_CMD_TEMPLATE_NAME = "post_inst_cmd.template"
+STARTNET_TEMPLATE_NAME = "startnet.template"
+WIMUPDATE = "/usr/bin/wimupdate"
 
 logger = logging.getLogger()
 
@@ -245,17 +245,17 @@ def run(api, args):
     tgen = tftpgen.TFTPGen(api)
 
     with open(
-        os.path.join(settings.windows_template_dir, post_inst_cmd_template_name)
+        os.path.join(settings.windows_template_dir, POST_INST_CMD_TEMPLATE_NAME)
     ) as template_win:
         post_tmpl_data = template_win.read()
 
     with open(
-        os.path.join(settings.windows_template_dir, answerfile_template_name)
+        os.path.join(settings.windows_template_dir, ANSWERFILE_TEMPLATE_NAME)
     ) as template_win:
         tmpl_data = template_win.read()
 
     with open(
-        os.path.join(settings.windows_template_dir, startnet_template_name)
+        os.path.join(settings.windows_template_dir, STARTNET_TEMPLATE_NAME)
     ) as template_start:
         tmplstart_data = template_start.read()
 
@@ -441,7 +441,7 @@ def run(api, args):
             utils.subprocess_call(cmd, shell=False)
             tgen.copy_single_distro_file(ps_file_name, web_dir, True)
 
-            if os.path.exists(wimupdate):
+            if os.path.exists(WIMUPDATE):
                 data = templ.render(tmplstart_data, meta, None)
                 pi_file = tempfile.NamedTemporaryFile()
                 pi_file.write(bytes(data, "utf-8"))
@@ -452,12 +452,12 @@ def run(api, args):
                 # grep -i for /Windows/System32/startnet.cmd
                 startnet_path = "/Windows/System32/startnet.cmd"
 
-                for x in wimdir_file_list:
-                    if x.lower() == startnet_path.lower():
-                        startnet_path = x
+                for file in wimdir_file_list:
+                    if file.lower() == startnet_path.lower():
+                        startnet_path = file
 
                 cmd = [
-                    wimupdate,
+                    WIMUPDATE,
                     ps_file_name,
                     f"--command=add {pi_file.name} {startnet_path}",
                 ]

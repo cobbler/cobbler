@@ -167,12 +167,12 @@ class _InTftpdManager(ManagerModule):
 
         # Adding in the exception handling to not blow up if files have been moved (or the path references an NFS
         # directory that's no longer mounted)
-        for d in self.distros:
+        for distro in self.distros:
             try:
-                self.logger.info("copying files for distro: %s", d.name)
-                self.tftpgen.copy_single_distro_files(d, self.bootloc, False)
-            except CX as e:
-                self.logger.error(e.value)
+                self.logger.info("copying files for distro: %s", distro.name)
+                self.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
+            except CX as cobbler_exception:
+                self.logger.error(cobbler_exception.value)
 
         self.logger.info("copying images")
         self.tftpgen.copy_images()

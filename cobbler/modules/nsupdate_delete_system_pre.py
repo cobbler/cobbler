@@ -17,7 +17,7 @@ import time
 
 from cobbler.cexceptions import CX
 
-logf = None
+LOGF = None
 
 
 def nslog(msg):
@@ -26,8 +26,8 @@ def nslog(msg):
 
     :param msg: The message to log.
     """
-    if logf is not None:
-        logf.write(msg)
+    if LOGF is not None:
+        LOGF.write(msg)
 
 
 def register() -> str:
@@ -51,7 +51,7 @@ def run(api, args):
     :param args: Metadata to log.
     :return: "0" on success or a skipped task. If the task failed or problems occurred then an exception is raised.
     """
-    global logf
+    global LOGF
 
     action = None
     if __name__ == "cobbler.modules.nsupdate_add_system_post":
@@ -116,8 +116,8 @@ def run(api, args):
                 soa_mname_ip = str(rrset.items[0].address)
 
         if soa_mname_ip is None:
-            ip = dns.resolver.query(soa_mname, "A")
-            for answer in ip:
+            ip_address = dns.resolver.query(soa_mname, "A")
+            for answer in ip_address:
                 soa_mname_ip = answer.to_text()
 
         nslog(f"{soa_mname} [{soa_mname_ip}]\n")

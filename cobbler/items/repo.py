@@ -214,8 +214,8 @@ class Repo(item.Item):
             self._yumopts = input_converters.input_string_or_dict(
                 options, allow_multiples=False
             )
-        except TypeError as e:
-            raise TypeError("invalid yum options") from e
+        except TypeError as error:
+            raise TypeError("invalid yum options") from error
 
     @property
     def rsyncopts(self) -> dict:
@@ -239,8 +239,8 @@ class Repo(item.Item):
             self._rsyncopts = input_converters.input_string_or_dict(
                 options, allow_multiples=False
             )
-        except TypeError as e:
-            raise TypeError("invalid rsync options") from e
+        except TypeError as error:
+            raise TypeError("invalid rsync options") from error
 
     @property
     def environment(self) -> dict:
@@ -264,8 +264,8 @@ class Repo(item.Item):
             self._environment = input_converters.input_string_or_dict(
                 options, allow_multiples=False
             )
-        except TypeError as e:
-            raise TypeError("invalid environment") from e
+        except TypeError as error:
+            raise TypeError("invalid environment") from error
 
     @property
     def priority(self) -> int:

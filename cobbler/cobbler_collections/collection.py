@@ -52,8 +52,8 @@ class Collection:
         """
         Iterator for the collection. Allows list comprehensions, etc.
         """
-        for a in list(self.listing.values()):
-            yield a
+        for obj in list(self.listing.values()):
+            yield obj
 
     def __len__(self):
         """
@@ -181,12 +181,12 @@ class Collection:
         :return: The dict which can now be understood by the cli.
         """
         new_dict = {}
-        for x in list(_dict.keys()):
-            if x in self.SEARCH_REKEY:
-                newkey = self.SEARCH_REKEY[x]
-                new_dict[newkey] = _dict[x]
+        for key in list(_dict.keys()):
+            if key in self.SEARCH_REKEY:
+                newkey = self.SEARCH_REKEY[key]
+                new_dict[newkey] = _dict[key]
             else:
-                new_dict[x] = _dict[x]
+                new_dict[key] = _dict[key]
         return new_dict
 
     def to_list(self) -> list:
@@ -314,11 +314,11 @@ class Collection:
 
                 # update any reference to this path ...
                 distros = self.api.distros()
-                for d in distros:
-                    if d.kernel.find(path) == 0:
-                        d.kernel = d.kernel.replace(path, newpath)
-                        d.initrd = d.initrd.replace(path, newpath)
-                        self.collection_mgr.serialize_one_item(d)
+                for distro_obj in distros:
+                    if distro_obj.kernel.find(path) == 0:
+                        distro_obj.kernel = distro_obj.kernel.replace(path, newpath)
+                        distro_obj.initrd = distro_obj.initrd.replace(path, newpath)
+                        self.collection_mgr.serialize_one_item(distro_obj)
 
         if ref.COLLECTION_TYPE in ("profile", "system"):
             if ref.parent is not None:
@@ -500,8 +500,8 @@ class Collection:
         values = list(self.listing.values())[:]  # copy the values
         values.sort()  # sort the copy (2.3 fix)
         results = []
-        for i, v in enumerate(values):
-            results.append(v.to_string())
+        for _, value in enumerate(values):
+            results.append(value.to_string())
         if len(values) > 0:
             return "\n\n".join(results)
         return "No objects found"

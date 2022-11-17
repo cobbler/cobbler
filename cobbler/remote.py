@@ -303,9 +303,9 @@ class CobblerXMLRPCInterface:
                     self.remote.api.power_system(
                         system_obj, self.options.get("power", "")
                     )
-                except Exception as e:
+                except Exception as error:
                     self.logger.warning(
-                        f"failed to execute power task on {str(system_name)}, exception: {str(e)}"
+                        f"failed to execute power task on {str(system_name)}, exception: {str(error)}"
                     )
 
         self.check_access(token, "power_system")
@@ -399,8 +399,8 @@ class CobblerXMLRPCInterface:
         path = f"/var/log/cobbler/tasks/{event_id}.log"
         self._log(f"getting log for {event_id}")
         if os.path.exists(path):
-            with open(path, "r", encoding="utf-8") as fh:
-                data = str(fh.read())
+            with open(path, "r", encoding="utf-8") as event_log_fd:
+                data = str(event_log_fd.read())
             return data
         return "?"
 
@@ -2186,14 +2186,14 @@ class CobblerXMLRPCInterface:
                         "params",
                     ] and attributes.get("in_place"):
                         details = self.get_item(object_type, object_name)
-                        v2 = details[key]
+                        new_value = details[key]
                         parsed_input = self.api.input_string_or_dict(value)
-                        for (a, b) in list(parsed_input.items()):
-                            if a.startswith("~") and len(a) > 1:
-                                del v2[a[1:]]
+                        for (input_key, input_value) in list(parsed_input.items()):
+                            if input_key.startswith("~") and len(input_key) > 1:
+                                del new_value[input_key[1:]]
                             else:
-                                v2[a] = b
-                        value = v2
+                                new_value[input_key] = input_value
+                        value = new_value
 
                     self.modify_item(object_type, handle, key, value, token)
 
@@ -2823,8 +2823,8 @@ class CobblerXMLRPCInterface:
 
         for iname in inames:
             mac = info["interfaces"][iname].get("mac_address", "")
-            ip = info["interfaces"][iname].get("ip_address", "")
-            if ip.find("/") != -1:
+            ip_address = info["interfaces"][iname].get("ip_address", "")
+            if ip_address.find("/") != -1:
                 raise CX("no CIDR ips are allowed")
             if mac == "":
                 raise CX(f"missing MAC address for interface {iname}")
@@ -2832,10 +2832,10 @@ class CobblerXMLRPCInterface:
                 system = self.api.find_system(mac_address=mac)
                 if system is not None:
                     raise CX(f"mac conflict: {mac}")
-            if ip != "":
-                system = self.api.find_system(ip_address=ip)
+            if ip_address != "":
+                system = self.api.find_system(ip_address=ip_address)
                 if system is not None:
-                    raise CX(f"ip conflict: {ip}")
+                    raise CX(f"ip conflict: {ip_address}")
 
         # looks like we can go ahead and create a system now
         obj = self.api.new_system()
@@ -2849,7 +2849,7 @@ class CobblerXMLRPCInterface:
                 # don't add bridges
                 continue
             mac = info["interfaces"][iname].get("mac_address", "")
-            ip = info["interfaces"][iname].get("ip_address", "")
+            ip_address = info["interfaces"][iname].get("ip_address", "")
             netmask = info["interfaces"][iname].get("netmask", "")
             if mac == "?":
                 # see koan/utils.py for explanation of network info discovery
@@ -2857,8 +2857,8 @@ class CobblerXMLRPCInterface:
             obj.set_mac_address(mac, iname)
             if hostname != "":
                 obj.set_dns_name(hostname, iname)
-            if ip != "" and ip != "?":
-                obj.set_ip_address(ip, iname)
+            if ip_address != "" and ip_address != "?":
+                obj.set_ip_address(ip_address, iname)
             if netmask != "" and netmask != "?":
                 obj.set_netmask(netmask, iname)
         self.api.add_system(obj)
@@ -3030,50 +3030,54 @@ class CobblerXMLRPCInterface:
             os.mkdir(anamon_sys_directory, 0o755)
 
         try:
-            st = os.lstat(file_name)
-        except OSError as e:
-            if e.errno == errno.ENOENT:
+            file_stats = os.lstat(file_name)
+        except OSError as error:
+            if error.errno == errno.ENOENT:
                 pass
             else:
                 raise
         else:
-            if not stat.S_ISREG(st.st_mode):
+            if not stat.S_ISREG(file_stats.st_mode):
                 raise CX(f"destination not a file: {file_name}")
 
         # TODO: See if we can simplify this at a later point
-        fd = os.open(file_name, os.O_RDWR | os.O_CREAT | os.O_CLOEXEC, 0o644)
+        uploaded_file_fd = os.open(
+            file_name, os.O_RDWR | os.O_CREAT | os.O_CLOEXEC, 0o644
+        )
         # log_error("fd=%r" %fd)
         try:
             if offset == 0 or (offset == -1 and size == len(contents)):
                 # truncate file
-                fcntl.lockf(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                fcntl.lockf(uploaded_file_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 try:
-                    os.ftruncate(fd, 0)
+                    os.ftruncate(uploaded_file_fd, 0)
                     # log_error("truncating fd %r to 0" %fd)
                 finally:
-                    fcntl.lockf(fd, fcntl.LOCK_UN)
+                    fcntl.lockf(uploaded_file_fd, fcntl.LOCK_UN)
             if offset == -1:
-                os.lseek(fd, 0, 2)
+                os.lseek(uploaded_file_fd, 0, 2)
             else:
-                os.lseek(fd, offset, 0)
+                os.lseek(uploaded_file_fd, offset, 0)
             # write contents
-            fcntl.lockf(fd, fcntl.LOCK_EX | fcntl.LOCK_NB, len(contents), 0, 2)
+            fcntl.lockf(
+                uploaded_file_fd, fcntl.LOCK_EX | fcntl.LOCK_NB, len(contents), 0, 2
+            )
             try:
-                os.write(fd, contents)
+                os.write(uploaded_file_fd, contents)
                 # log_error("wrote contents")
             finally:
-                fcntl.lockf(fd, fcntl.LOCK_UN, len(contents), 0, 2)
+                fcntl.lockf(uploaded_file_fd, fcntl.LOCK_UN, len(contents), 0, 2)
             if offset == -1:
                 if size is not None:
                     # truncate file
-                    fcntl.lockf(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    fcntl.lockf(uploaded_file_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
                     try:
-                        os.ftruncate(fd, size)
+                        os.ftruncate(uploaded_file_fd, size)
                         # log_error("truncating fd %r to size %r" % (fd,size))
                     finally:
-                        fcntl.lockf(fd, fcntl.LOCK_UN)
+                        fcntl.lockf(uploaded_file_fd, fcntl.LOCK_UN)
         finally:
-            os.close(fd)
+            os.close(uploaded_file_fd)
         return True
 
     def run_install_triggers(self, mode, objtype, name, ip, token=None, **rest):
@@ -3335,12 +3339,12 @@ class CobblerXMLRPCInterface:
 
             # The management classes stored in the system are just a list of names, so we need to turn it into a full
             # list of dictionaries (right now we just use the params field).
-            mcs = _dict["mgmt_classes"]
+            management_classes = _dict["mgmt_classes"]
             _dict["mgmt_classes"] = {}
-            for m in mcs:
-                c = self.api.find_mgmtclass(name=m)
-                if c:
-                    _dict["mgmt_classes"][m] = c.to_dict()
+            for management_class in management_classes:
+                class_obj = self.api.find_mgmtclass(name=management_class)
+                if class_obj:
+                    _dict["mgmt_classes"][management_class] = class_obj.to_dict()
 
             arch = None
             if distro is None and profile.COLLECTION_TYPE == "image":
@@ -3615,7 +3619,7 @@ class CobblerXMLRPCInterface:
         :return: 1 if the object is editable or 0 otherwise.
         """
         need_remap = False
-        for x in [
+        for item_type in [
             "distro",
             "profile",
             "system",
@@ -3626,7 +3630,7 @@ class CobblerXMLRPCInterface:
             "file",
             "menu",
         ]:
-            if arg1 is not None and resource.find(x) != -1:
+            if arg1 is not None and resource.find(item_type) != -1:
                 need_remap = True
                 break
 
@@ -3656,11 +3660,11 @@ class CobblerXMLRPCInterface:
         if user == "<DIRECT>":
             self._log("CLI Authorized", debug=True)
             return 1
-        rc = self.api.authorize(user, resource, arg1, arg2)
-        self._log(f"{user} authorization result: {rc}", debug=True)
-        if not rc:
+        return_code = self.api.authorize(user, resource, arg1, arg2)
+        self._log(f"{user} authorization result: {return_code}", debug=True)
+        if not return_code:
             raise CX(f"authorization failure for user {user}")
-        return rc
+        return return_code
 
     def get_authn_module_name(self, token: str):
         """
@@ -3994,6 +3998,6 @@ class ProxiedXMLRPCInterface:
         # FIXME: see if this works without extra boilerplate
         try:
             return method_handle(*params)
-        except Exception as e:
+        except Exception as exception:
             utils.log_exc()
-            raise e
+            raise exception

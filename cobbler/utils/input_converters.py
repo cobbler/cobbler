@@ -67,8 +67,8 @@ def input_string_or_dict_no_inherit(
     if isinstance(options, str):
         new_dict: Dict[str, Any] = {}
         tokens = shlex.split(options)
-        for t in tokens:
-            tokens2 = t.split("=", 1)
+        for token in tokens:
+            tokens2 = token.split("=", 1)
             if len(tokens2) == 1:
                 # this is a singleton option, no value
                 key = tokens2[0]

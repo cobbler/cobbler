@@ -65,12 +65,12 @@ class MongoDBSerializer(StorageBase):
         try:
             # The ismaster command is cheap and doesn't require auth.
             self.mongodb.admin.command("ping")
-        except ConnectionFailure as e:
-            raise CX("Unable to connect to Mongo database.") from e
-        except ConfigurationError as e:
+        except ConnectionFailure as error:
+            raise CX("Unable to connect to Mongo database.") from error
+        except ConfigurationError as error:
             raise CX(
                 "The configuration of the MongoDB connection isn't correct, please check the Cobbler settings."
-            ) from e
+            ) from error
         if self.database_name not in self.mongodb.list_database_names():
             self.logger.info(
                 'Database with name "%s" was not found and will be created.',
@@ -94,8 +94,8 @@ class MongoDBSerializer(StorageBase):
         # TODO: error detection
         ctype = collection.collection_type()
         if ctype != "settings":
-            for x in collection:
-                self.serialize_item(collection, x)
+            for item in collection:
+                self.serialize_item(collection, item)
 
     def deserialize_raw(self, collection_type: str):
         if collection_type == "settings":

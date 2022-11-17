@@ -22,10 +22,10 @@ from cobbler.utils import filesystem_helpers
 try:
     import jinja2
 
-    jinja2_available = True
+    JINJA2_AVAILABLE = True
 except ModuleNotFoundError:
     # FIXME: log a message here
-    jinja2_available = False
+    JINJA2_AVAILABLE = False
 
 
 class Templar:
@@ -113,7 +113,7 @@ class Templar:
         if template_type == "cheetah":
             data_out = self.render_cheetah(raw_data, search_table)
         elif template_type == "jinja2":
-            if jinja2_available:
+            if JINJA2_AVAILABLE:
                 data_out = self.render_jinja2(raw_data, search_table)
             else:
                 return "# ERROR: JINJA2 NOT AVAILABLE. Maybe you need to install python-jinja2?\n"
@@ -122,10 +122,10 @@ class Templar:
 
         # Now apply some magic post-filtering that is used by "cobbler import" and some other places. Forcing folks to
         # double escape things would be very unwelcome.
-        hp = search_table.get("http_port", "80")
+        http_port = search_table.get("http_port", "80")
         server = search_table.get("server", self.settings.server)
-        if hp not in (80, "80"):
-            repstr = f"{server}:{hp}"
+        if http_port not in (80, "80"):
+            repstr = f"{server}:{http_port}"
         else:
             repstr = server
         search_table["http_server"] = repstr

@@ -235,10 +235,10 @@ class CobblerCheck:
                 "repositories"
             )
         if os.path.exists("/etc/debmirror.conf"):
-            with open("/etc/debmirror.conf") as f:
+            with open("/etc/debmirror.conf") as debmirror_fd:
                 re_dists = re.compile(r"@dists=")
                 re_arches = re.compile(r"@arches=")
-                for line in f.readlines():
+                for line in debmirror_fd.readlines():
                     if re_dists.search(line) and not line.strip().startswith("#"):
                         status.append(
                             "comment out 'dists' on /etc/debmirror.conf for proper debian support"
@@ -315,15 +315,15 @@ class CobblerCheck:
         repos = []
         referenced = []
         not_found = []
-        for r in self.api.repos():
-            repos.append(r.name)
-        for p in self.api.profiles():
-            my_repos = p.repos
+        for repo in self.api.repos():
+            repos.append(repo.name)
+        for profile in self.api.profiles():
+            my_repos = profile.repos
             if my_repos != "<<inherit>>":
                 referenced.extend(my_repos)
-        for r in referenced:
-            if r not in repos and r != "<<inherit>>":
-                not_found.append(r)
+        for repo in referenced:
+            if repo not in repos and repo != "<<inherit>>":
+                not_found.append(repo)
         if len(not_found) > 0:
             status.append(
                 "One or more repos referenced by profile objects is no longer defined in Cobbler:"
@@ -337,11 +337,11 @@ class CobblerCheck:
         :param status: The status list with possible problems.
         """
         need_sync = []
-        for r in self.api.repos():
-            if r.mirror_locally == 1:
-                lookfor = os.path.join(self.settings.webdir, "repo_mirror", r.name)
+        for repo in self.api.repos():
+            if repo.mirror_locally == 1:
+                lookfor = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
                 if not os.path.exists(lookfor):
-                    need_sync.append(r.name)
+                    need_sync.append(repo.name)
         if len(need_sync) > 0:
             status.append(
                 "One or more repos need to be processed by cobbler reposync for the first time before "
@@ -499,8 +499,8 @@ class CobblerCheck:
         if os.path.exists(self.settings.dhcpd_conf):
             match_next = False
             match_file = False
-            f = open(self.settings.dhcpd_conf)
-            for line in f.readlines():
+            dhcpd_conf_fd = open(self.settings.dhcpd_conf)
+            for line in dhcpd_conf_fd.readlines():
                 if line.find("next-server") != -1:
                     match_next = True
                 if line.find("filename") != -1:

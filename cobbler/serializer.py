@@ -9,6 +9,7 @@ Serializer code for Cobbler
 import fcntl
 import logging
 import os
+import pathlib
 import sys
 import time
 import traceback
@@ -42,8 +43,7 @@ class Serializer:
         try:
             if self.lock_enabled:
                 if not os.path.exists(self.lock_file_location):
-                    fd = open(self.lock_file_location, "w+")
-                    fd.close()
+                    pathlib.Path(self.lock_file_location).touch()
                 self.lock_handle = open(self.lock_file_location, "r")
                 fcntl.flock(self.lock_handle.fileno(), fcntl.LOCK_EX)
         except Exception as exception:

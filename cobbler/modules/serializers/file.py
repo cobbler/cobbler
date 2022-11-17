@@ -87,8 +87,8 @@ class FileSerializer(StorageBase):
     def serialize(self, collection):
         # do not serialize settings
         if collection.collection_type() != "setting":
-            for x in collection:
-                self.serialize_item(collection, x)
+            for item in collection:
+                self.serialize_item(collection, item)
 
     def deserialize_raw(self, collection_type: str):
         if collection_type == "settings":
@@ -99,8 +99,8 @@ class FileSerializer(StorageBase):
         path = os.path.join(self.libpath, collection_type)
         all_files = glob.glob(f"{path}/*.json")
 
-        for f in all_files:
-            with open(f) as file_descriptor:
+        for file in all_files:
+            with open(file) as file_descriptor:
                 json_data = file_descriptor.read()
                 _dict = json.loads(json_data)
                 results.append(_dict)

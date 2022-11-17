@@ -116,8 +116,8 @@ class CobblerTemplate(generate_cheetah_macros()):
                     source = file.read()
                 else:
                     if os.path.exists(file):
-                        with open(file, "r") as f:
-                            source = "#errorCatcher Echo\n" + f.read()
+                        with open(file, "r") as snippet_fd:
+                            source = "#errorCatcher Echo\n" + snippet_fd.read()
                     else:
                         source = f"# Unable to read {file}\n"
                 # Stop Cheetah from throwing a fit.
@@ -199,11 +199,11 @@ class CobblerTemplate(generate_cheetah_macros()):
         if snippet_contents:
             # Only include what we don't already have. Because Cheetah passes our searchList into included templates,
             # the snippet's searchList will include this templates searchList. We need to avoid duplicating entries.
-            childList = self._CHEETAH__cheetahIncludes[snippet_contents].searchList()
-            myList = self.searchList()
-            for childElem in childList:
-                if childElem not in myList:
-                    myList.append(childElem)
+            child_list = self._CHEETAH__cheetahIncludes[snippet_contents].searchList()
+            my_list = self.searchList()
+            for child_elem in child_list:
+                if child_elem not in my_list:
+                    my_list.append(child_elem)
 
         return result
 

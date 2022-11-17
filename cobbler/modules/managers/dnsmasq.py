@@ -49,11 +49,11 @@ class _DnsmasqManager(ManagerModule):
         template_file = "/etc/cobbler/dnsmasq.template"
 
         try:
-            f2 = open(template_file, "r")
+            template_file_fd = open(template_file, "r")
         except Exception:
             raise OSError(f"error writing template to file: {template_file}")
-        template_data = f2.read()
-        f2.close()
+        template_data = template_file_fd.read()
+        template_file_fd.close()
 
         system_definitions = {}
 
@@ -70,7 +70,7 @@ class _DnsmasqManager(ManagerModule):
             for interface in system.interfaces.values():
 
                 mac = interface.mac_address
-                ip = interface.ip_address
+                ip_address = interface.ip_address
                 host = interface.dns_name
                 ipv6 = interface.ipv6_address
 
@@ -89,8 +89,8 @@ class _DnsmasqManager(ManagerModule):
                 if host != "":
                     systxt += "," + host
 
-                if ip != "":
-                    systxt += "," + ip
+                if ip_address != "":
+                    systxt += "," + ip_address
                 if ipv6 != "":
                     systxt += f",[{ipv6}]"
 
@@ -115,10 +115,12 @@ class _DnsmasqManager(ManagerModule):
         }
 
         # now add in other DHCP expansions that are not tagged with "default"
-        for x in list(system_definitions.keys()):
-            if x == "default":
+        for system in list(system_definitions.keys()):
+            if system == "default":
                 continue
-            metadata[f"insert_cobbler_system_definitions_{x}"] = system_definitions[x]
+            metadata[
+                f"insert_cobbler_system_definitions_{system}"
+            ] = system_definitions[system]
 
         self.templar.render(template_data, metadata, settings_file)
 
@@ -129,41 +131,43 @@ class _DnsmasqManager(ManagerModule):
         """
         # dnsmasq knows how to read this database of MACs -> IPs, so we'll keep it up to date every time we add a
         # system.
-        fh = open("/etc/ethers", "w+")
+        ethers_fh = open("/etc/ethers", "w+")
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
                 continue
             for interface in system.interfaces.values():
                 mac = interface.mac_address
-                ip = interface.ip_address
+                ip_address = interface.ip_address
                 if not mac:
                     # can't write this w/o a MAC address
                     continue
-                if ip is not None and ip != "":
-                    fh.write(mac.upper() + "\t" + ip + "\n")
-        fh.close()
+                if ip_address is not None and ip_address != "":
+                    ethers_fh.write(mac.upper() + "\t" + ip_address + "\n")
+        ethers_fh.close()
 
     def regen_hosts(self):
         """
         This rewrites the hosts file and thus also rewrites the dns config.
         """
         # dnsmasq knows how to read this database for host info (other things may also make use of this later)
-        fh = open("/var/lib/cobbler/cobbler_hosts", "w+")
+        regen_hosts_fd = open("/var/lib/cobbler/cobbler_hosts", "w+")
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
                 continue
             for (_, interface) in system.interfaces.items():
                 mac = interface.mac_address
                 host = interface.dns_name
-                ip = interface.ip_address
+                ipv4 = interface.ip_address
                 ipv6 = interface.ipv6_address
                 if not mac:
                     continue
                 if host is not None and host != "" and ipv6 is not None and ipv6 != "":
-                    fh.write(ipv6 + "\t" + host + "\n")
-                elif host is not None and host != "" and ip is not None and ip != "":
-                    fh.write(ip + "\t" + host + "\n")
-        fh.close()
+                    regen_hosts_fd.write(ipv6 + "\t" + host + "\n")
+                elif (
+                    host is not None and host != "" and ipv4 is not None and ipv4 != ""
+                ):
+                    regen_hosts_fd.write(ipv4 + "\t" + host + "\n")
+        regen_hosts_fd.close()
 
     def restart_service(self):
         """

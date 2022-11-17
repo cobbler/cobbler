@@ -183,12 +183,12 @@ def name_servers(
         nameservers = shlex.split(nameservers)
 
     if isinstance(nameservers, list):
-        for ns in nameservers:
-            ip_version = netaddr.IPAddress(ns).version
+        for name_server in nameservers:
+            ip_version = netaddr.IPAddress(name_server).version
             if ip_version == 4:
-                ipv4_address(ns)
+                ipv4_address(name_server)
             elif ip_version == 6:
-                ipv6_address(ns)
+                ipv6_address(name_server)
             else:
                 raise AddressValueError("Invalid IP address format")
     else:
@@ -219,8 +219,8 @@ def name_servers_search(
         search = shlex.split(search)
 
     if isinstance(search, list):
-        for sl in search:
-            hostname(sl)
+        for nameserver in search:
+            hostname(nameserver)
     else:
         raise TypeError(f'Invalid input type "{type(search)}", expected str or list')
 
@@ -303,10 +303,10 @@ def validate_repos(repos: list, api, bypass_check: bool = False):
         # TODO: Don't store the names. Store the internal references.
         repos = input_converters.input_string_or_list(repos)
     if not bypass_check:
-        for r in repos:
+        for repo in repos:
             # FIXME: First check this and then set the repos if the bypass check is used.
-            if api.repos().find(name=r) is None:
-                raise ValueError(f"repo {r} is not defined")
+            if api.repos().find(name=repo) is None:
+                raise ValueError(f"repo {repo} is not defined")
     return repos
 
 

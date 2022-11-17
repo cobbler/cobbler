@@ -84,9 +84,9 @@ class TFTPGen:
         for i in self.images:
             try:
                 self.copy_single_image_files(i)
-            except CX as e:
-                errors.append(e)
-                self.logger.error(e.value)
+            except CX as cobbler_exception:
+                errors.append(cobbler_exception)
+                self.logger.error(cobbler_exception.value)
 
     def copy_single_distro_file(self, d_file: str, distro_dir: str, symlink_ok: bool):
         """
@@ -120,18 +120,18 @@ class TFTPGen:
             dst = os.path.join(distro_dir, b_file)
             filesystem_helpers.copyremotefile(full_path, dst, api=None)
 
-    def copy_single_distro_files(self, d, dirtree, symlink_ok: bool):
+    def copy_single_distro_files(self, distro, dirtree, symlink_ok: bool):
         """
         Copy the files needed for a single distro.
 
-        :param d: The distro to copy.
+        :param distro: The distro to copy.
         :param dirtree: This is the root where the images are located. The folder "images" gets automatically appended.
         :param symlink_ok: If it is okay to use a symlink to link the destination to the source.
         """
-        distro_dir = os.path.join(dirtree, "images", d.name)
+        distro_dir = os.path.join(dirtree, "images", distro.name)
         filesystem_helpers.mkdir(distro_dir)
-        self.copy_single_distro_file(d.kernel, distro_dir, symlink_ok)
-        self.copy_single_distro_file(d.initrd, distro_dir, symlink_ok)
+        self.copy_single_distro_file(distro.kernel, distro_dir, symlink_ok)
+        self.copy_single_distro_file(distro.initrd, distro_dir, symlink_ok)
 
     def copy_single_image_files(self, img):
         """
@@ -402,8 +402,8 @@ class TFTPGen:
                 outfile = os.path.join(
                     self.bootloc, "grub", f"{arch.value}_menu_items.cfg"
                 )
-                with open(outfile, "w+") as fd:
-                    fd.write(arch_menu_items["grub"])
+                with open(outfile, "w+") as grub_arch_fd:
+                    grub_arch_fd.write(arch_menu_items["grub"])
         return boot_menu
 
     def get_menu_items(self, arch: Optional[enums.Archs] = None) -> dict:
@@ -840,8 +840,8 @@ class TFTPGen:
             # Ensure destination path exists to avoid race condition
             if not os.path.exists(os.path.dirname(filename)):
                 filesystem_helpers.mkdir(os.path.dirname(filename))
-            with open(filename, "w") as fd:
-                fd.write(buffer)
+            with open(filename, "w") as pxe_file_fd:
+                pxe_file_fd.write(buffer)
         return buffer
 
     def build_kernel(
@@ -1018,8 +1018,7 @@ class TFTPGen:
             else:
                 httpserveraddress = blended["http_server"]
 
-            URL_REGEX = "[a-zA-Z]*://.*"
-            local_autoinstall_file = not re.match(URL_REGEX, autoinstall_path)
+            local_autoinstall_file = not re.match(r"[a-zA-Z]*://.*", autoinstall_path)
             if local_autoinstall_file:
                 if system is not None:
                     autoinstall_path = f"http://{httpserveraddress}/cblr/svc/op/autoinstall/system/{system.name}"
@@ -1054,8 +1053,8 @@ class TFTPGen:
 
                 # rework kernel options for debian distros
                 translations = {"ksdevice": "interface", "lang": "locale"}
-                for k, v in list(translations.items()):
-                    append_line = append_line.replace(f"{k}=", f"{v}=")
+                for key, value in list(translations.items()):
+                    append_line = append_line.replace(f"{key}=", f"{value}=")
 
                 # interface=bootif causes a failure
                 append_line = append_line.replace("interface=bootif", "")
@@ -1260,9 +1259,9 @@ class TFTPGen:
 
             if write_file:
                 self.logger.info("generating: %s", dest)
-                fd = open(dest, "w")
-                fd.write(buffer)
-                fd.close()
+                template_fd = open(dest, "w")
+                template_fd.write(buffer)
+                template_fd.close()
 
         return results
 
@@ -1331,8 +1330,10 @@ class TFTPGen:
         blended = utils.blender(self.api, False, obj)
 
         if distro.os_version.startswith("esxi"):
-            with open(os.path.join(os.path.dirname(distro.kernel), "boot.cfg")) as f:
-                bootmodules = re.findall(r"modules=(.*)", f.read())
+            with open(
+                os.path.join(os.path.dirname(distro.kernel), "boot.cfg")
+            ) as bootcfg_fd:
+                bootmodules = re.findall(r"modules=(.*)", bootcfg_fd.read())
                 for modules in bootmodules:
                     blended["esx_modules"] = modules.replace("/", "")
 
@@ -1530,8 +1531,8 @@ class TFTPGen:
         self.logger.info("generating: %s", bootcfg_path)
         if not os.path.exists(os.path.dirname(bootcfg_path)):
             filesystem_helpers.mkdir(os.path.dirname(bootcfg_path))
-        with open(bootcfg_path, "w") as fd:
-            fd.write(buffer)
+        with open(bootcfg_path, "w") as bootcfg_path_fd:
+            bootcfg_path_fd.write(buffer)
 
         # symlink to esxi UEFI bootloader in same dir as boot.cfg
         # based on https://stackoverflow.com/a/55741590

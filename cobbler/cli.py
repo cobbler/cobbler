@@ -1778,8 +1778,8 @@ def report_items(remote, otype: str):
             return 1
     else:
         items = remote.get_items(otype)
-        for x in items:
-            report_item(remote, otype, item=x)
+        for item in items:
+            report_item(remote, otype, item=item)
 
 
 def report_single_breed(name: str, items: dict) -> int:
@@ -1873,8 +1873,8 @@ def list_items(remote, otype):
     """
     items = remote.get_item_names(otype)
     items.sort()
-    for x in items:
-        print(f"   {x}")
+    for item in items:
+        print(f"   {item}")
 
 
 def n2s(data):
@@ -2053,8 +2053,8 @@ class CobblerCLI:
         :return: Id of the newly started task
         """
         options = utils.strip_none(vars(options), omit_none=True)
-        fn = getattr(self.remote, f"background_{name}")
-        return fn(options, self.token)
+        background_fn = getattr(self.remote, f"background_{name}")
+        return background_fn(options, self.token)
 
     def get_object_type(self, args) -> Optional[str]:
         """
@@ -2106,19 +2106,19 @@ class CobblerCLI:
         Detect permissions and service accessibility problems and provide nicer error messages for them.
         """
 
-        with xmlrpc.client.ServerProxy(self.url_cobbler_xmlrpc) as s:
+        with xmlrpc.client.ServerProxy(self.url_cobbler_xmlrpc) as xmlrpc_server:
             try:
-                s.ping()
-            except Exception as e:
+                xmlrpc_server.ping()
+            except Exception as exception:
                 print(
-                    f"cobblerd does not appear to be running/accessible: {repr(e)}",
+                    f"cobblerd does not appear to be running/accessible: {repr(exception)}",
                     file=sys.stderr,
                 )
                 return 411
 
-        with xmlrpc.client.ServerProxy(self.url_cobbler_api) as s:
+        with xmlrpc.client.ServerProxy(self.url_cobbler_api) as xmlrpc_server:
             try:
-                s.ping()
+                xmlrpc_server.ping()
             except:
                 print(
                     "httpd does not appear to be running and proxying Cobbler, or SELinux is in the way. Original "
@@ -2344,8 +2344,8 @@ class CobblerCLI:
                 # FIXME: pretty-printing and sorting here
                 keys = list(data.keys())
                 keys.sort()
-                for x in keys:
-                    print(f"{x}: {data[x]}")
+                for key in keys:
+                    print(f"{key}: {data[key]}")
             elif object_action in ["poweron", "poweroff", "powerstatus", "reboot"]:
                 power = {
                     "power": object_action.replace("power", ""),
@@ -2594,14 +2594,14 @@ class CobblerCLI:
             task_id = self.start_task("reposync", options)
         elif action_name == "check":
             results = self.remote.check(self.token)
-            ct = 0
+            counter = 0
             if len(results) > 0:
                 print(
                     "The following are potential configuration items that you may want to fix:\n"
                 )
-                for r in results:
-                    ct += 1
-                    print(f"{ct}: {r}")
+                for result in results:
+                    counter += 1
+                    print(f"{counter}: {result}")
                 print(
                     "\nRestart cobblerd and then run 'cobbler sync' to apply changes."
                 )
@@ -2752,8 +2752,8 @@ class CobblerCLI:
         commands = OBJECT_ACTIONS_MAP[object_type]
         commands.sort()
         print("usage\n=====")
-        for c in commands:
-            print(f"cobbler {object_type} {c}")
+        for command in commands:
+            print(f"cobbler {object_type} {command}")
         return 2
 
     def print_help(self) -> int:

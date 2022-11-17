@@ -283,14 +283,16 @@ class Replicate:
         # This is the method that fills up "self.must_include"
 
         # Load all remote objects and add them directly if "self.sync_all" is "True"
-        for ot in OBJ_TYPES:
-            self.remote_names[ot] = list(
-                utils.lod_to_dod(self.remote_data[ot], "name").keys()
+        for object_type in OBJ_TYPES:
+            self.remote_names[object_type] = list(
+                utils.lod_to_dod(self.remote_data[object_type], "name").keys()
             )
-            self.remote_dict[ot] = utils.lod_to_dod(self.remote_data[ot], "name")
+            self.remote_dict[object_type] = utils.lod_to_dod(
+                self.remote_data[object_type], "name"
+            )
             if self.sync_all:
-                for names in self.remote_dict[ot]:
-                    self.must_include[ot][names] = 1
+                for names in self.remote_dict[object_type]:
+                    self.must_include[object_type][names] = 1
 
         self.logger.debug("remote names struct is %s", self.remote_names)
 
@@ -353,11 +355,11 @@ class Replicate:
             for profile_for_repo in self.must_include["profile"]:
                 repos = self.remote_dict["profile"][profile_for_repo].get("repos", [])
                 if repos != "<<inherit>>":
-                    for r in repos:
+                    for repo in repos:
                         self.logger.debug(
-                            "Adding repo %s for profile %s.", r, profile_for_repo
+                            "Adding repo %s for profile %s.", repo, profile_for_repo
                         )
-                        self.must_include["repo"][r] = 1
+                        self.must_include["repo"][repo] = 1
 
             # include all images that systems require whether they are explicitly included or not
             self.logger.debug("* Adding Images Required By Systems")

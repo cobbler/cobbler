@@ -40,9 +40,9 @@ try:
     from aptsources import distro as debdistro
     from aptsources import sourceslist
 
-    apt_available = True
+    APT_AVAILABLE = True
 except:
-    apt_available = False
+    APT_AVAILABLE = False
 
 MANAGER = None
 
@@ -59,10 +59,10 @@ def import_walker(top: str, func: Callable, arg: Any):
     Directory tree walk with callback function.
 
     For each directory in the directory tree rooted at top (including top itself, but excluding '.' and '..'), call
-    ``func(arg, dirname, fnames)``. dirname is the name of the directory, and fnames a list of the names of the files
-    and subdirectories in dirname (excluding '.' and '..').  ``func`` may modify the ``fnames`` list in-place (e.g. via
+    ``func(arg, dirname, filenames)``. dirname is the name of the directory, and filenames a list of the names of the files
+    and subdirectories in dirname (excluding '.' and '..').  ``func`` may modify the ``filenames`` list in-place (e.g. via
     ``del`` or ``slice`` assignment), and walk will only recurse into the subdirectories whose names remain in
-    ``fnames``; this can be used to implement a filter, or to impose a specific order of visiting. No semantics are
+    ``filenames``; this can be used to implement a filter, or to impose a specific order of visiting. No semantics are
     defined for, or required of, ``arg``, beyond that arg is always passed to ``func``. It can be used, e.g., to pass
     a filename pattern, or a mutable object designed to accumulate statistics.
 
@@ -78,10 +78,10 @@ def import_walker(top: str, func: Callable, arg: Any):
     for name in names:
         name = os.path.join(top, name)
         try:
-            st = os.lstat(name)
+            file_stats = os.lstat(name)
         except os.error:
             continue
-        if stat.S_ISDIR(st.st_mode):
+        if stat.S_ISDIR(file_stats.st_mode):
             import_walker(name, func, arg)
 
 
@@ -112,8 +112,8 @@ class _ImportSignatureManager(ManagerModule):
         ftype = magic.detect_from_filename(filename)
         if ftype.mime_type == "application/gzip":
             try:
-                with gzip.open(filename, "r") as f:
-                    return f.readlines()
+                with gzip.open(filename, "r") as file_fd:
+                    return file_fd.readlines()
             except:
                 pass
         if ftype.mime_type == "application/x-ms-wim":
@@ -124,8 +124,8 @@ class _ImportSignatureManager(ManagerModule):
 
             self.logger.info("no %s found, please install wimlib-utils", cmd)
         elif ftype.mime_type == "text/plain":
-            with open(filename, "r") as f:
-                return f.readlines()
+            with open(filename, "r") as file_fd:
+                return file_fd.readlines()
         else:
             self.logger.info(
                 'Could not detect the filetype and read the content of file "%s". Returning nothing.',
@@ -209,24 +209,24 @@ class _ImportSignatureManager(ManagerModule):
                         filesystem_helpers.mkdir(dest_path)
                     if os.path.exists(winpe_path):
                         filesystem_helpers.rmfile(winpe_path)
-                    rc = utils.subprocess_call(
+                    return_code = utils.subprocess_call(
                         [cmd_path, bootwim_path, "1", winpe_path, "--boot"], shell=False
                     )
-                    if rc == 0:
+                    if return_code == 0:
                         cmd = ["/usr/bin/wimdir", winpe_path, "1"]
                         wimdir_result = utils.subprocess_get(cmd, shell=False)
                         wimdir_file_list = wimdir_result.split("\n")
                         pxe_path = "/Windows/Boot/PXE"
                         config_path = "/Windows/System32/config/SOFTWARE"
 
-                        for x in wimdir_file_list:
-                            if x.lower() == pxe_path.lower():
-                                pxe_path = x
-                            elif x.lower() == config_path.lower():
-                                config_path = x
+                        for file in wimdir_file_list:
+                            if file.lower() == pxe_path.lower():
+                                pxe_path = file
+                            elif file.lower() == config_path.lower():
+                                config_path = file
 
                         cmd_path = "/usr/bin/wimextract"
-                        rc = utils.subprocess_call(
+                        return_code = utils.subprocess_call(
                             [
                                 cmd_path,
                                 bootwim_path,
@@ -240,17 +240,17 @@ class _ImportSignatureManager(ManagerModule):
                             ],
                             shell=False,
                         )
-                        if rc == 0:
+                        if return_code == 0:
                             if HAS_HIVEX:
                                 software = os.path.join(
                                     dest_path, os.path.basename(config_path)
                                 )
-                                h = hivex.Hivex(software, write=True)
-                                root = h.root()
-                                node = h.node_get_child(root, "Microsoft")
-                                node = h.node_get_child(node, "Windows NT")
-                                node = h.node_get_child(node, "CurrentVersion")
-                                h.node_set_value(
+                                hivex_obj = hivex.Hivex(software, write=True)
+                                root = hivex_obj.root()
+                                node = hivex_obj.node_get_child(root, "Microsoft")
+                                node = hivex_obj.node_get_child(node, "Windows NT")
+                                node = hivex_obj.node_get_child(node, "CurrentVersion")
+                                hivex_obj.node_set_value(
                                     node,
                                     {
                                         "key": "SystemRoot",
@@ -260,21 +260,21 @@ class _ImportSignatureManager(ManagerModule):
                                         ),
                                     },
                                 )
-                                node = h.node_get_child(node, "WinPE")
+                                node = hivex_obj.node_get_child(node, "WinPE")
 
                                 # remove the key InstRoot from the registry
-                                values = h.node_values(node)
+                                values = hivex_obj.node_values(node)
                                 new_values = []
 
                                 for value in values:
-                                    keyname = h.value_key(value)
+                                    keyname = hivex_obj.value_key(value)
 
                                     if keyname == "InstRoot":
                                         continue
 
-                                    val = h.node_get_value(node, keyname)
-                                    valtype = h.value_type(val)[0]
-                                    value2 = h.value_value(val)[1]
+                                    val = hivex_obj.node_get_value(node, keyname)
+                                    valtype = hivex_obj.value_type(val)[0]
+                                    value2 = hivex_obj.value_value(val)[1]
                                     valobject = {
                                         "key": keyname,
                                         "t": int(valtype),
@@ -282,11 +282,11 @@ class _ImportSignatureManager(ManagerModule):
                                     }
                                     new_values.append(valobject)
 
-                                h.node_set_values(node, new_values)
-                                h.commit(software)
+                                hivex_obj.node_set_values(node, new_values)
+                                hivex_obj.commit(software)
 
                                 cmd_path = "/usr/bin/wimupdate"
-                                rc = utils.subprocess_call(
+                                return_code = utils.subprocess_call(
                                     [
                                         cmd_path,
                                         winpe_path,
@@ -394,13 +394,13 @@ class _ImportSignatureManager(ManagerModule):
             return self.signature["supported_repo_breeds"]
         return []
 
-    def distro_adder(self, distros_added, dirname: str, fnames):
+    def distro_adder(self, distros_added, dirname: str, filenames):
         """
         This is an import_walker routine that finds distributions in the directory to be scanned and then creates them.
 
         :param distros_added: Unknown what this currently does.
         :param dirname: Unknown what this currently does.
-        :param fnames: Unknown what this currently does.
+        :param filenames: Unknown what this currently does.
         """
 
         re_krn = re.compile(self.signature["kernel_file"])
@@ -412,7 +412,7 @@ class _ImportSignatureManager(ManagerModule):
         pae_initrd = None
         pae_kernel = None
 
-        for x in fnames:
+        for filename in filenames:
             adtls = []
 
             # Most of the time we just want to ignore isolinux directories, unless this is one of the oddball distros
@@ -420,7 +420,7 @@ class _ImportSignatureManager(ManagerModule):
             if dirname.find("isolinux") != -1 and not self.signature["isolinux_ok"]:
                 continue
 
-            fullname = os.path.join(dirname, x)
+            fullname = os.path.join(dirname, filename)
             if os.path.islink(fullname) and os.path.isdir(fullname):
                 if fullname.startswith(self.path):
                     # Prevent infinite loop with Sci Linux 5
@@ -429,17 +429,17 @@ class _ImportSignatureManager(ManagerModule):
                 self.logger.info("following symlink: %s", fullname)
                 import_walker(fullname, self.distro_adder, distros_added)
 
-            if re_img.match(x):
-                if x.find("PAE") == -1:
-                    initrd = os.path.join(dirname, x)
+            if re_img.match(filename):
+                if filename.find("PAE") == -1:
+                    initrd = os.path.join(dirname, filename)
                 else:
-                    pae_initrd = os.path.join(dirname, x)
+                    pae_initrd = os.path.join(dirname, filename)
 
-            if re_krn.match(x):
-                if x.find("PAE") == -1:
-                    kernel = os.path.join(dirname, x)
+            if re_krn.match(filename):
+                if filename.find("PAE") == -1:
+                    kernel = os.path.join(dirname, filename)
                 else:
-                    pae_kernel = os.path.join(dirname, x)
+                    pae_kernel = os.path.join(dirname, filename)
 
             # if we've collected a matching kernel and initrd pair, turn them in and add them to the list
             if initrd is not None and kernel is not None:
@@ -616,25 +616,25 @@ class _ImportSignatureManager(ManagerModule):
         re_krn = re.compile(self.signature["kernel_arch"])
 
         # try to find a kernel header RPM and then look at it's arch.
-        for x in fnames:
-            if re_krn.match(x):
+        for fname in fnames:
+            if re_krn.match(fname):
                 if self.signature["kernel_arch_regex"]:
                     re_krn2 = re.compile(self.signature["kernel_arch_regex"])
-                    krn_lines = self.get_file_lines(os.path.join(dirname, x))
+                    krn_lines = self.get_file_lines(os.path.join(dirname, fname))
                     for line in krn_lines:
-                        m = re_krn2.match(line)
-                        if m:
-                            for group in m.groups():
+                        match_obj = re_krn2.match(line)
+                        if match_obj:
+                            for group in match_obj.groups():
                                 group = group.lower()
                                 if group in self.get_valid_arches():
                                     foo[group] = 1
                 else:
                     for arch in self.get_valid_arches():
-                        if x.find(arch) != -1:
+                        if fname.find(arch) != -1:
                             foo[arch] = 1
                             break
                     for arch in ["i686", "amd64"]:
-                        if x.find(arch) != -1:
+                        if fname.find(arch) != -1:
                             foo[arch] = 1
                             break
 
@@ -662,7 +662,7 @@ class _ImportSignatureManager(ManagerModule):
 
         # Clear out some cruft from the proposed name
         name = name.replace("--", "-")
-        for x in (
+        for name_suffix in (
             "-netboot",
             "-ubuntu-installer",
             "-amd64",
@@ -679,7 +679,7 @@ class _ImportSignatureManager(ManagerModule):
             "var-www-cobbler-",
             "distro_mirror-",
         ):
-            name = name.replace(x, "")
+            name = name.replace(name_suffix, "")
 
         # remove any architecture name related string, as real arch will be appended later
         name = name.replace("chrp", "ppc64")
@@ -811,11 +811,11 @@ class _ImportSignatureManager(ManagerModule):
         """
 
         matches = {}
-        for x in fnames:
-            if x == "base" or x == "repodata":
+        for fname in fnames:
+            if fname == "base" or fname == "repodata":
                 self.logger.info("processing repo at : %s", dirname)
                 # only run the repo scanner on directories that contain a comps.xml
-                gloob1 = glob.glob(f"{dirname}/{x}/*comps*.xml")
+                gloob1 = glob.glob(f"{dirname}/{fname}/*comps*.xml")
                 if len(gloob1) >= 1:
                     if dirname in matches:
                         self.logger.info(
@@ -919,10 +919,10 @@ class _ImportSignatureManager(ManagerModule):
                 self.found_repos[comps_path] = 1
                 # For older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up
                 # one...
-                p1 = os.path.join(comps_path, "repodata", "comps.xml")
-                p2 = os.path.join(comps_path, "base", "comps.xml")
-                if os.path.exists(p1) and os.path.exists(p2):
-                    shutil.copyfile(p1, p2)
+                path_1 = os.path.join(comps_path, "repodata", "comps.xml")
+                path_2 = os.path.join(comps_path, "base", "comps.xml")
+                if os.path.exists(path_1) and os.path.exists(path_2):
+                    shutil.copyfile(path_1, path_2)
         except:
             self.logger.error("error launching createrepo (not installed?), ignoring")
             utils.log_exc()
@@ -939,7 +939,7 @@ class _ImportSignatureManager(ManagerModule):
         self.logger.info("adding apt repo for %s", distribution.name)
         # Obtain repo mirror from APT if available
         mirror = ""
-        if apt_available:
+        if APT_AVAILABLE:
             # Example returned URL: http://us.archive.ubuntu.com/ubuntu
             mirror = self.get_repo_mirror_from_apt()
         if not mirror:

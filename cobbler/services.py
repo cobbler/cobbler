@@ -232,12 +232,16 @@ class CobblerSvc:
         :return: The return code of the action.
         """
         self.__xmlrpc_setup()
-        ip = REMOTE_ADDR
+        ip_address = REMOTE_ADDR
         if profile:
-            rc = self.remote.run_install_triggers(mode, "profile", profile, ip)
+            return_code = self.remote.run_install_triggers(
+                mode, "profile", profile, ip_address
+            )
         else:
-            rc = self.remote.run_install_triggers(mode, "system", system, ip)
-        return str(rc)
+            return_code = self.remote.run_install_triggers(
+                mode, "system", system, ip_address
+            )
+        return str(return_code)
 
     def nopxe(self, system=None, **rest) -> str:
         """
@@ -301,23 +305,23 @@ class CobblerSvc:
 
         macinput = [mac.split(" ").lower() for mac in rest["REMOTE_MACS"]]
 
-        ip = rest["REMOTE_ADDR"]
+        ip_address = rest["REMOTE_ADDR"]
 
         candidates = []
 
-        for x in systems:
-            for y in x["interfaces"]:
-                if x["interfaces"][y]["mac_address"].lower() in macinput:
-                    candidates.append(x)
+        for system in systems:
+            for interface in system["interfaces"]:
+                if system["interfaces"][interface]["mac_address"].lower() in macinput:
+                    candidates.append(system)
 
         if len(candidates) == 0:
-            for x in systems:
-                for y in x["interfaces"]:
-                    if x["interfaces"][y]["ip_address"] == ip:
-                        candidates.append(x)
+            for system in systems:
+                for interface in system["interfaces"]:
+                    if system["interfaces"][interface]["ip_address"] == ip_address:
+                        candidates.append(system)
 
         if len(candidates) == 0:
-            return f"FAILED: no match ({ip},{macinput})"
+            return f"FAILED: no match ({ip_address},{macinput})"
         if len(candidates) > 1:
             return "FAILED: multiple matches"
         if len(candidates) == 1:

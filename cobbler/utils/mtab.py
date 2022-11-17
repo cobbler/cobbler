@@ -4,8 +4,8 @@ We cache the contents of ``/etc/mtab``. The following module is used to keep our
 
 import os
 
-mtab_mtime = None
-mtab_map = []
+MTAB_MTIME = None
+MTAB_MAP = []
 
 
 class MntEntObj:
@@ -73,23 +73,23 @@ def get_mtab(mtab="/etc/mtab", vfstype: bool = False) -> list:
                     entries.
     :return: The list of requested mtab entries.
     """
-    global mtab_mtime, mtab_map
+    global MTAB_MTIME, MTAB_MAP
 
     mtab_stat = os.stat(mtab)
-    if mtab_stat.st_mtime != mtab_mtime:
+    if mtab_stat.st_mtime != MTAB_MTIME:
         # cache is stale ... refresh
-        mtab_mtime = mtab_stat.st_mtime
-        mtab_map = __cache_mtab__(mtab)
+        MTAB_MTIME = mtab_stat.st_mtime
+        MTAB_MAP = __cache_mtab__(mtab)
 
     # was a specific fstype requested?
     if vfstype:
         mtab_type_map = []
-        for ent in mtab_map:
+        for ent in MTAB_MAP:
             if ent.mnt_type == "nfs":
                 mtab_type_map.append(ent)
         return mtab_type_map
 
-    return mtab_map
+    return MTAB_MAP
 
 
 def __cache_mtab__(mtab="/etc/mtab"):
@@ -99,8 +99,8 @@ def __cache_mtab__(mtab="/etc/mtab"):
     :param mtab: The location of the mtab. Argument can be ommited if the mtab is at its default location.
     :return: The mtab content stripped from empty lines (if any are present).
     """
-    with open(mtab) as f:
-        mtab = [MntEntObj(line) for line in f.read().split("\n") if len(line) > 0]
+    with open(mtab) as mtab_fd:
+        mtab = [MntEntObj(line) for line in mtab_fd.read().split("\n") if len(line) > 0]
 
     return mtab
 

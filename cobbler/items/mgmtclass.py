@@ -125,8 +125,8 @@ class Mgmtclass(item.Item):
             self._params = input_converters.input_string_or_dict(
                 params, allow_multiples=True
             )
-        except TypeError as e:
-            raise TypeError("invalid value for params") from e
+        except TypeError as error:
+            raise TypeError("invalid value for params") from error
 
     @property
     def is_definition(self) -> bool:
@@ -172,7 +172,7 @@ class Mgmtclass(item.Item):
         """
         if not isinstance(name, str):
             raise TypeError("class name must be a string")
-        for x in name:
-            if not x.isalnum() and x not in ["_", "-", ".", ":", "+"]:
+        for letter in name:
+            if not letter.isalnum() and letter not in ["_", "-", ".", ":", "+"]:
                 raise ValueError(f"invalid characters in class name: '{name}'")
         self._class_name = name

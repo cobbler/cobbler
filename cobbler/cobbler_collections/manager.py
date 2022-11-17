@@ -193,10 +193,10 @@ class CollectionManager:
         ):
             try:
                 self.__serializer.deserialize(collection)
-            except Exception as e:
+            except Exception as error:
                 raise CX(
-                    f"serializer: error loading collection {collection.collection_type()}: {e}. Check your settings!"
-                ) from e
+                    f"serializer: error loading collection {collection.collection_type()}: {error}. Check your settings!"
+                ) from error
 
     def get_items(
         self, collection_type: str

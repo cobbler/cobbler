@@ -199,10 +199,10 @@ class NetworkInterface:
         """
         try:
             truthiness = input_converters.input_boolean(truthiness)
-        except TypeError as e:
+        except TypeError as error:
             raise TypeError(
                 "Field static of NetworkInterface needs to be of Type bool!"
-            ) from e
+            ) from error
         self._static = truthiness
 
     @property
@@ -224,10 +224,10 @@ class NetworkInterface:
         """
         try:
             truthiness = input_converters.input_boolean(truthiness)
-        except TypeError as e:
+        except TypeError as error:
             raise TypeError(
                 "Field management of object NetworkInterface needs to be of type bool!"
-            ) from e
+            ) from error
         self._management = truthiness
 
     @property
@@ -693,10 +693,10 @@ class NetworkInterface:
         """
         try:
             truthiness = input_converters.input_boolean(truthiness)
-        except TypeError as e:
+        except TypeError as error:
             raise TypeError(
                 "Field connected_mode of object NetworkInterface needs to be of type bool!"
-            ) from e
+            ) from error
         self._connected_mode = truthiness
 
     def modify_interface(self, _dict: dict):
@@ -2084,13 +2084,13 @@ class System(Item):
             return "default"
 
         mac = self.get_mac_address(interface)
-        ip = self.get_ip_address(interface)
+        ip_address = self.get_ip_address(interface)
         if mac is not None and mac != "":
             if loader == "grub":
                 return mac.lower()
             return "01-" + "-".join(mac.split(":")).lower()
-        if ip is not None and ip != "":
-            return utils.get_host_ip(ip)
+        if ip_address is not None and ip_address != "":
+            return utils.get_host_ip(ip_address)
         return self.name
 
     @property

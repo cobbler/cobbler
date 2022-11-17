@@ -48,9 +48,9 @@ def run(api, args) -> int:
 
     # Remove any files matched with the given glob pattern
     def unlink_files(globex):
-        for f in glob.glob(globex):
-            if os.path.isfile(f):
-                filesystem_helpers.rmfile(f)
+        for file in glob.glob(globex):
+            if os.path.isfile(file):
+                filesystem_helpers.rmfile(file)
 
     if settings.anamon_enabled:
         dirname = os.path.join(PATH_PREFIX, name)

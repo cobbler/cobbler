@@ -47,9 +47,9 @@ class YumGen:
         # RHEL5 split trees if there is only one, then there is no need to do this.
 
         included = {}
-        for r in blended["source_repos"]:
+        for repo in blended["source_repos"]:
             filename = pathlib.Path(self.settings.webdir).joinpath(
-                "/".join(r[0].split("/")[4:])
+                "/".join(repo[0].split("/")[4:])
             )
             if filename not in included:
                 input_files.append(filename)

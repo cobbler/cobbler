@@ -62,8 +62,8 @@ def __parse_storage() -> List[List[str]]:
     """
     if not os.path.exists("/etc/cobbler/users.digest"):
         return []
-    with open("/etc/cobbler/users.digest", encoding="utf-8") as fd:
-        data = fd.read()
+    with open("/etc/cobbler/users.digest", encoding="utf-8") as users_digest_fd:
+        data = users_digest_fd.read()
     results = []
     lines = data.split("\n")
     for line in lines:

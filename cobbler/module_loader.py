@@ -59,8 +59,8 @@ class ModuleLoader:
         filenames += glob.glob(f"{self.mod_path}/**/*.pyc")
         filenames += glob.glob(f"{self.mod_path}/**/*.pyo")
 
-        for fn in filenames:
-            basename = fn.replace(self.mod_path, "")
+        for filename in filenames:
+            basename = filename.replace(self.mod_path, "")
             modname = ""
 
             if basename.__contains__("__pycache__") or basename.__contains__(

@@ -53,29 +53,29 @@ class _NDjbDnsManager(ManagerModule):
 
         a_records = {}
 
-        with open(template_file, "r") as f:
-            template_content = f.read()
+        with open(template_file, "r") as template_fd:
+            template_content = template_fd.read()
 
         for system in self.systems:
             for (name, interface) in list(system.interfaces.items()):
                 host = interface.dns_name
-                ip = interface.ip_address
+                ip_address = interface.ip_address
 
                 if host:
                     if host in a_records:
                         raise Exception(f"Duplicate DNS name: {host}")
-                    a_records[host] = ip
+                    a_records[host] = ip_address
 
         template_vars = {"forward": []}
-        for host, ip in list(a_records.items()):
-            template_vars["forward"].append((host, ip))
+        for host, ip_address in list(a_records.items()):
+            template_vars["forward"].append((host, ip_address))
 
         self.templar.render(template_content, template_vars, data_file)
 
-        p = subprocess.Popen(["/usr/bin/tinydns-data"], cwd=data_dir)
-        p.communicate()
+        subprocess_popen_obj = subprocess.Popen(["/usr/bin/tinydns-data"], cwd=data_dir)
+        subprocess_popen_obj.communicate()
 
-        if p.returncode != 0:
+        if subprocess_popen_obj.returncode != 0:
             raise Exception("Could not regenerate tinydns data file.")
 
 

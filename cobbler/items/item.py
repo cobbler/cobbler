@@ -68,19 +68,19 @@ class Item:
         if isinstance(from_search, str):
             if isinstance(from_obj, list):
                 from_search = input_converters.input_string_or_list(from_search)
-                for x in from_search:
-                    if x not in from_obj:
+                for list_element in from_search:
+                    if list_element not in from_obj:
                         return False
                 return True
             if isinstance(from_obj, dict):
                 from_search = input_converters.input_string_or_dict(
                     from_search, allow_multiples=True
                 )
-                for x in list(from_search.keys()):
-                    y = from_search[x]
-                    if x not in from_obj:
+                for dict_key in list(from_search.keys()):
+                    dict_value = from_search[dict_key]
+                    if dict_key not in from_obj:
                         return False
-                    if not (y == from_obj[x]):
+                    if not (dict_value == from_obj[dict_key]):
                         return False
                 return True
             if isinstance(from_obj, bool):
@@ -400,8 +400,8 @@ class Item:
             self._kernel_options = input_converters.input_string_or_dict(
                 options, allow_multiples=True
             )
-        except TypeError as e:
-            raise TypeError("invalid kernel options") from e
+        except TypeError as error:
+            raise TypeError("invalid kernel options") from error
 
     @InheritableDictProperty
     def kernel_options_post(self) -> dict:
@@ -427,8 +427,8 @@ class Item:
             self._kernel_options_post = input_converters.input_string_or_dict(
                 options, allow_multiples=True
             )
-        except TypeError as e:
-            raise TypeError("invalid post kernel options") from e
+        except TypeError as error:
+            raise TypeError("invalid post kernel options") from error
 
     @InheritableDictProperty
     def autoinstall_meta(self) -> dict:
@@ -537,8 +537,8 @@ class Item:
             self._template_files = input_converters.input_string_or_dict(
                 template_files, allow_multiples=False
             )
-        except TypeError as e:
-            raise TypeError("invalid template files specified") from e
+        except TypeError as error:
+            raise TypeError("invalid template files specified") from error
 
     @property
     def boot_files(self) -> dict:
@@ -564,8 +564,8 @@ class Item:
             self._boot_files = input_converters.input_string_or_dict(
                 boot_files, allow_multiples=False
             )
-        except TypeError as e:
-            raise TypeError("invalid boot files specified") from e
+        except TypeError as error:
+            raise TypeError("invalid boot files specified") from error
 
     @InheritableDictProperty
     def fetchable_files(self) -> dict:
@@ -591,8 +591,8 @@ class Item:
             self._fetchable_files = input_converters.input_string_or_dict(
                 fetchable_files, allow_multiples=False
             )
-        except TypeError as e:
-            raise TypeError("invalid fetchable files specified") from e
+        except TypeError as error:
+            raise TypeError("invalid fetchable files specified") from error
 
     @property
     def depth(self) -> int:

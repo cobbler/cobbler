@@ -46,7 +46,7 @@ class _BindManager(ManagerModule):
         Not used.
         """
 
-    def __expand_IPv6(self, address):
+    def __expand_ipv6(self, address):
         """
         Expands an IPv6 address to long format i.e. ``xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx``
 
@@ -56,34 +56,34 @@ class _BindManager(ManagerModule):
         :param address: Shortened IPv6 address.
         :return: The full IPv6 address.
         """
-        fullAddress = ""  # All groups
-        expandedAddress = ""  # Each group padded with leading zeroes
-        validGroupCount = 8
-        validGroupSize = 4
+        full_address = ""  # All groups
+        expanded_address = ""  # Each group padded with leading zeroes
+        valid_group_count = 8
+        valid_group_size = 4
         if "::" not in address:  # All groups are already present
-            fullAddress = address
+            full_address = address
         else:  # Consecutive groups of zeroes have been collapsed with "::"
             sides = address.split("::")
-            groupsPresent = 0
+            groups_present = 0
             for side in sides:
                 if len(side) > 0:
-                    groupsPresent += len(side.split(":"))
+                    groups_present += len(side.split(":"))
             if len(sides[0]) > 0:
-                fullAddress += sides[0] + ":"
-            for i in range(0, validGroupCount - groupsPresent):
-                fullAddress += "0000:"
+                full_address += sides[0] + ":"
+            for i in range(0, valid_group_count - groups_present):
+                full_address += "0000:"
             if len(sides[1]) > 0:
-                fullAddress += sides[1]
-            if fullAddress[-1] == ":":
-                fullAddress = fullAddress[:-1]
-        groups = fullAddress.split(":")
+                full_address += sides[1]
+            if full_address[-1] == ":":
+                full_address = full_address[:-1]
+        groups = full_address.split(":")
         for group in groups:
-            while len(group) < validGroupSize:
+            while len(group) < valid_group_size:
                 group = "0" + group
-            expandedAddress += group + ":"
-        if expandedAddress[-1] == ":":
-            expandedAddress = expandedAddress[:-1]
-        return expandedAddress
+            expanded_address += group + ":"
+        if expanded_address[-1] == ":":
+            expanded_address = expanded_address[:-1]
+        return expanded_address
 
     def __forward_zones(self):
         """
@@ -102,7 +102,7 @@ class _BindManager(ManagerModule):
         for system in self.systems:
             for (name, interface) in system.interfaces.items():
                 host = interface.dns_name
-                ip = interface.ip_address
+                ipv4 = interface.ip_address
                 ipv6 = interface.ipv6_address
                 ipv6_sec_addrs = interface.ipv6_secondaries
                 if not system.is_management_supported(cidr_ok=False):
@@ -156,8 +156,8 @@ class _BindManager(ManagerModule):
 
                 # Create a list of IP addresses for this host
                 ips = []
-                if ip:
-                    ips.append(ip)
+                if ipv4:
+                    ips.append(ipv4)
 
                 if ipv6:
                     ips.append(ipv6)
@@ -189,22 +189,22 @@ class _BindManager(ManagerModule):
         for zone in reverse_zones:
             # expand and IPv6 zones
             if ":" in zone:
-                zone = (self.__expand_IPv6(zone + "::1"))[:19]
+                zone = (self.__expand_ipv6(zone + "::1"))[:19]
             zones[zone] = {}
 
         for system in self.systems:
             for (name, interface) in system.interfaces.items():
                 host = interface.dns_name
-                ip = interface.ip_address
+                ip_address = interface.ip_address
                 ipv6 = interface.ipv6_address
                 ipv6_sec_addrs = interface.ipv6_secondaries
                 if not system.is_management_supported(cidr_ok=False):
                     continue
-                if not host or ((not ip) and (not ipv6)):
+                if not host or ((not ip_address) and (not ipv6)):
                     # gotta have some dns_name and ip or else!
                     continue
 
-                if ip:
+                if ip_address:
                     # Match the longest zone! E.g. if you have an ip 1.2.3.4
                     # if manage_reverse_zones has:
                     # - 1.2
@@ -212,19 +212,21 @@ class _BindManager(ManagerModule):
                     # then 1.2.3.4 should go in 1.2.3
                     best_match = ""
                     for zone in zones.keys():
-                        if re.search(rf"^{zone}\.", ip) and len(zone) > len(best_match):
+                        if re.search(rf"^{zone}\.", ip_address) and len(zone) > len(
+                            best_match
+                        ):
                             best_match = zone
 
                     if best_match != "":
                         # strip the zone off the front of the ip reverse the rest of the octets append the remainder
                         # + dns_name
-                        ip = ip.replace(best_match, "", 1)
-                        if ip[0] == ".":  # strip leading '.' if it's there
-                            ip = ip[1:]
-                        tokens = ip.split(".")
+                        ip_address = ip_address.replace(best_match, "", 1)
+                        if ip_address[0] == ".":  # strip leading '.' if it's there
+                            ip_address = ip_address[1:]
+                        tokens = ip_address.split(".")
                         tokens.reverse()
-                        ip = ".".join(tokens)
-                        zones[best_match][ip] = host + "."
+                        ip_address = ".".join(tokens)
+                        zones[best_match][ip_address] = host + "."
 
                 if ipv6 or ipv6_sec_addrs:
                     ip6s = []
@@ -232,14 +234,14 @@ class _BindManager(ManagerModule):
                         ip6s.append(ipv6)
                     for each_ipv6 in ip6s + ipv6_sec_addrs:
                         # convert the IPv6 address to long format
-                        long_ipv6 = self.__expand_IPv6(each_ipv6)
+                        long_ipv6 = self.__expand_ipv6(each_ipv6)
                         # All IPv6 zones are forced to have the format xxxx:xxxx:xxxx:xxxx
                         zone = long_ipv6[:19]
                         ipv6_host_part = long_ipv6[20:]
                         tokens = list(re.sub(":", "", ipv6_host_part))
                         tokens.reverse()
-                        ip = ".".join(tokens)
-                        zones[zone][ip] = host + "."
+                        ip_address = ".".join(tokens)
+                        zones[zone][ip_address] = host + "."
 
         return zones
 
@@ -274,7 +276,7 @@ zone "{zone}." {{
             if ":" in zone:
                 # if IPv6, assume xxxx:xxxx:xxxx:xxxx
                 #                 0123456789012345678
-                long_zone = (self.__expand_IPv6(zone + "::1"))[:19]
+                long_zone = (self.__expand_ipv6(zone + "::1"))[:19]
                 tokens = list(re.sub(":", "", long_zone))
                 tokens.reverse()
                 arpa = ".".join(tokens) + ".ip6.arpa"
@@ -297,12 +299,12 @@ zone "%(arpa)s." {
             metadata["zone_include"] = metadata["zone_include"] + txt
 
         try:
-            f2 = open(template_file, "r")
+            template_fd = open(template_file, "r")
         except:
             raise OSError(f"error reading template from file: {template_file}")
         template_data = ""
-        template_data = f2.read()
-        f2.close()
+        template_data = template_fd.read()
+        template_fd.close()
 
         self.logger.info("generating %s", settings_file)
         self.templar.render(template_data, metadata, settings_file)
@@ -342,7 +344,7 @@ zone "%(zone)s." {
             if ":" in zone:
                 # if IPv6, assume xxxx:xxxx:xxxx:xxxx for the zone
                 #                 0123456789012345678
-                long_zone = (self.__expand_IPv6(zone + "::1"))[:19]
+                long_zone = (self.__expand_ipv6(zone + "::1"))[:19]
                 tokens = list(re.sub(":", "", long_zone))
                 tokens.reverse()
                 arpa = ".".join(tokens) + ".ip6.arpa"
@@ -370,12 +372,12 @@ zone "%(arpa)s." {
             metadata["bind_master"] = self.settings.bind_master
 
         try:
-            f2 = open(template_file, "r")
+            template_fd = open(template_file, "r")
         except:
             raise OSError(f"error reading template from file: {template_file}")
         template_data = ""
-        template_data = f2.read()
-        f2.close()
+        template_data = template_fd.read()
+        template_fd.close()
 
         self.logger.info("generating %s", settings_file)
         self.templar.render(template_data, metadata, settings_file)
@@ -443,7 +445,7 @@ zone "%(arpa)s." {
 
         max_name = max([len(i) for i in names])
 
-        s = ""
+        result = ""
         for name in names:
             spacing = " " * (max_name - len(name))
             my_name = f"{name}{spacing}"
@@ -460,8 +462,8 @@ zone "%(arpa)s." {
                         my_rectype = "AAAA"
                     else:
                         my_rectype = "A   "
-                s += f"{my_name}  {rclass}  {my_rectype}  {my_host};\n"
-        return s
+                result += f"{my_name}  {rclass}  {my_rectype}  {my_host};\n"
+        return result
 
     def __pretty_print_cname_records(self, hosts, rectype: str = "CNAME"):
         """
@@ -471,7 +473,7 @@ zone "%(arpa)s." {
         :param rectype: The type of record which shall be pretty printed.
         :return: The pretty printed version of the cname records.
         """
-        s = ""
+        result = ""
 
         # This loop warns and skips the host without dns_name instead of outright exiting
         # Which results in empty records without any warning to the users
@@ -484,7 +486,7 @@ zone "%(arpa)s." {
                     if interface.dns_name != "":
                         dnsname = interface.dns_name.split(".")[0]
                         for cname in cnames:
-                            s += f"{cname.split('.')[0]}  {rectype}  {dnsname};\n"
+                            result += f"{cname.split('.')[0]}  {rectype}  {dnsname};\n"
                     else:
                         self.logger.warning(
                             'CNAME generation for system "%s" was skipped due to a missing dns_name entry while writing'
@@ -498,7 +500,7 @@ zone "%(arpa)s." {
                         exc_info=exception,
                     )
 
-        return s
+        return result
 
     def __write_zone_files(self):
         """
@@ -531,12 +533,12 @@ zone "%(arpa)s." {
         reverse = self.__reverse_zones()
 
         try:
-            f2 = open(default_template_file, "r")
+            template_fd = open(default_template_file, "r")
         except:
             raise CX(f"error reading template from file: {default_template_file}")
         default_template_data = ""
-        default_template_data = f2.read()
-        f2.close()
+        default_template_data = template_fd.read()
+        template_fd.close()
 
         zonefileprefix = self.settings.bind_chroot_path + self.zonefile_base
 
@@ -551,7 +553,7 @@ zone "%(arpa)s." {
             }
 
             if ":" in zone:
-                long_zone = (self.__expand_IPv6(zone + "::1"))[:19]
+                long_zone = (self.__expand_ipv6(zone + "::1"))[:19]
                 tokens = list(re.sub(":", "", long_zone))
                 tokens.reverse()
                 zone_origin = ".".join(tokens) + ".ip6.arpa."
@@ -559,14 +561,14 @@ zone "%(arpa)s." {
                 zone_origin = ""
             # grab zone-specific template if it exists
             try:
-                fd = open(f"/etc/cobbler/zone_templates/{zone}")
+                zone_fd = open(f"/etc/cobbler/zone_templates/{zone}")
                 # If this is an IPv6 zone, set the origin to the zone for this
                 # template
                 if zone_origin:
-                    template_data = r"\$ORIGIN " + zone_origin + "\n" + fd.read()
+                    template_data = r"\$ORIGIN " + zone_origin + "\n" + zone_fd.read()
                 else:
-                    template_data = fd.read()
-                fd.close()
+                    template_data = zone_fd.read()
+                zone_fd.close()
             except:
                 # If this is an IPv6 zone, set the origin to the zone for this
                 # template
@@ -596,9 +598,9 @@ zone "%(arpa)s." {
 
             # grab zone-specific template if it exists
             try:
-                fd = open(f"/etc/cobbler/zone_templates/{zone}")
-                template_data = fd.read()
-                fd.close()
+                zone_fd = open(f"/etc/cobbler/zone_templates/{zone}")
+                template_data = zone_fd.read()
+                zone_fd.close()
             except:
                 template_data = default_template_data
 

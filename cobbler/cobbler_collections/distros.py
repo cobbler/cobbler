@@ -122,8 +122,8 @@ class Distros(collection.Collection):
             # nothing else is also using this storage.
             found = False
             distros = self.api.distros()
-            for d in distros:
-                if d.kernel.find(path) != -1:
+            for dist in distros:
+                if dist.kernel.find(path) != -1:
                     found = True
             if not found:
                 filesystem_helpers.rmtree(path)

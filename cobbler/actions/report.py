@@ -263,8 +263,8 @@ class Report:
         """
         collection = [x for x in collection]
         collection.sort(key=lambda x: x.name)
-        for x in collection:
-            print(x.to_string())
+        for item in collection:
+            print(item.to_string())
 
     def reporting_list_names2(self, collection, name: str):
         """
@@ -302,12 +302,12 @@ class Report:
         data = []
         out_order = []
         count = 0
-        for x in collection:
+        for item_obj in collection:
             item = {}
-            if x.ITEM_TYPE == "settings":
-                structure = x.to_dict()
+            if item_obj.ITEM_TYPE == "settings":
+                structure = item_obj.to_dict()
             else:
-                structure = x.to_list()
+                structure = item_obj.to_list()
 
             for (key, value) in list(structure.items()):
                 # exception for systems which could have > 1 interface
@@ -365,11 +365,11 @@ class Report:
         data = []
         fields_list = report_fields.replace(" ", "").split(",")
 
-        for x in collection:
-            if x.ITEM_TYPE == "settings":
-                structure = x.to_dict()
+        for item in collection:
+            if item.ITEM_TYPE == "settings":
+                structure = item.to_dict()
             else:
-                structure = x.to_list()
+                structure = item.to_list()
             item = self.fielder(structure, fields_list)
             data.append(item)
 

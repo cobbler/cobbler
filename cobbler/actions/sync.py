@@ -127,13 +127,15 @@ class CobblerSync:
         # Copy distros to the webdir
         # Adding in the exception handling to not blow up if files have been moved (or the path references an NFS
         # directory that's no longer mounted)
-        for d in self.distros:
+        for distro in self.distros:
             try:
-                self.logger.info(f"copying files for distro: {d.name}")
-                self.tftpgen.copy_single_distro_files(d, self.settings.webdir, True)
-                self.tftpgen.write_templates(d, write_file=True)
-            except CX as e:
-                self.logger.error(e.value)
+                self.logger.info(f"copying files for distro: {distro.name}")
+                self.tftpgen.copy_single_distro_files(
+                    distro, self.settings.webdir, True
+                )
+                self.tftpgen.write_templates(distro, write_file=True)
+            except CX as cobbler_exception:
+                self.logger.error(cobbler_exception.value)
 
         # make the default pxe menu anyway...
         self.tftpgen.make_pxe_menu()
@@ -172,16 +174,16 @@ class CobblerSync:
         """
 
         # clean out parts of webdir and all of /tftpboot/images and /tftpboot/pxelinux.cfg
-        for x in os.listdir(self.settings.webdir):
-            path = os.path.join(self.settings.webdir, x)
+        for file_obj in os.listdir(self.settings.webdir):
+            path = os.path.join(self.settings.webdir, file_obj)
             if os.path.isfile(path):
-                if not x.endswith(".py"):
+                if not file_obj.endswith(".py"):
                     filesystem_helpers.rmfile(path)
             if os.path.isdir(path):
-                if x not in self.settings.webdir_whitelist:
+                if file_obj not in self.settings.webdir_whitelist:
                     # delete directories that shouldn't exist
                     filesystem_helpers.rmtree(path)
-                if x in [
+                if file_obj in [
                     "templates",
                     "images",
                     "systems",
@@ -193,7 +195,7 @@ class CobblerSync:
                 ]:
                     # clean out directory contents
                     filesystem_helpers.rmtree_contents(path)
-        for directory in [
+        for file_obj in [
             self.pxelinux_dir,
             self.grub_dir,
             self.images_dir,
@@ -201,7 +203,7 @@ class CobblerSync:
             self.esxi_dir,
             self.rendered_dir,
         ]:
-            filesystem_helpers.rmtree(directory)
+            filesystem_helpers.rmtree(file_obj)
         filesystem_helpers.create_tftpboot_dirs(self.api)
 
     def write_dhcp(self):

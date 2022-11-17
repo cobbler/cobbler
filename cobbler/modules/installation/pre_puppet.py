@@ -65,14 +65,14 @@ def run(api, args) -> int:
     puppetca_path = settings.puppetca_path
     cmd = [puppetca_path, "cert", "clean", hostname]
 
-    rc = 0
+    return_code = 0
 
     try:
-        rc = utils.subprocess_call(cmd, shell=False)
+        return_code = utils.subprocess_call(cmd, shell=False)
     except:
         logger.warning("failed to execute %s", puppetca_path)
 
-    if rc != 0:
+    if return_code != 0:
         logger.warning("puppet cert removal for %s failed", name)
 
     return 0

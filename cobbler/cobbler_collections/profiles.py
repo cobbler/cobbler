@@ -48,9 +48,9 @@ class Profiles(collection.Collection):
         """
         name = name.lower()
         if not recursive:
-            for v in self.api.systems():
-                if v.profile is not None and v.profile.lower() == name:
-                    raise CX(f"removal would orphan system: {v.name}")
+            for system in self.api.systems():
+                if system.profile is not None and system.profile.lower() == name:
+                    raise CX(f"removal would orphan system: {system.name}")
 
         obj = self.find(name=name)
         if obj is None:

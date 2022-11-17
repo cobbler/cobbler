@@ -40,11 +40,11 @@ def __parse_config() -> Dict[str, dict]:
     config.read(etcfile)
     alldata = {}
     sections = config.sections()
-    for g in sections:
-        alldata[str(g)] = {}
-        opts = config.options(g)
-        for o in opts:
-            alldata[g][o] = 1
+    for group in sections:
+        alldata[str(group)] = {}
+        options = config.options(group)
+        for option in options:
+            alldata[group][option] = 1
     return alldata
 
 
@@ -148,8 +148,8 @@ def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int
     # Everybody can get read-only access to everything if they pass authorization, they don't have to be in users.conf
     if resource is not None:
         # FIXME: /cobbler/web should not be subject to user check in any case
-        for x in ["get", "read", "/cobbler/web"]:
-            if resource.startswith(x):
+        for user in ["get", "read", "/cobbler/web"]:
+            if resource.startswith(user):
                 return 1  # read operation is always ok.
 
     user_groups = __parse_config()
@@ -175,14 +175,14 @@ def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int
     found_user = False
     found_groups = []
     grouplist = list(user_groups.keys())
-    for g in grouplist:
-        for x in user_groups[g]:
-            if x == user:
-                found_groups.append(g)
+    for group in grouplist:
+        for user in user_groups[group]:
+            if user == user:
+                found_groups.append(group)
                 found_user = True
                 # if user is in the admin group, always authorize
                 # regardless of the ownership of the object.
-                if g == "admins" or g == "admin":
+                if group == "admins" or group == "admin":
                     return 1
 
     if not found_user:
