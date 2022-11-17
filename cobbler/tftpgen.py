@@ -1470,7 +1470,7 @@ class TFTPGen:
                 loaders_path = "http://@@http_server@@/cobbler/images/@@distro_name@@/"
                 initrd_path = loaders_path + os.path.basename(initrd_path)
             else:
-                (loaders_path, kernel_name) = os.path.split(kernel_path)
+                (loaders_path, _) = os.path.split(kernel_path)
                 loaders_path += "/"
 
             bootmgr_path = bcd_path = wim_path = loaders_path

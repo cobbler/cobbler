@@ -163,7 +163,7 @@ def is_remote_file(file) -> bool:
     :param file: The filepath to check.
     :return: If remote True, otherwise False.
     """
-    (dev, path) = get_file_device_path(file)
+    (dev, _) = get_file_device_path(file)
     if dev.find(":") != -1:
         return True
     return False

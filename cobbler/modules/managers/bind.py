@@ -70,7 +70,7 @@ class _BindManager(ManagerModule):
                     groups_present += len(side.split(":"))
             if len(sides[0]) > 0:
                 full_address += sides[0] + ":"
-            for i in range(0, valid_group_count - groups_present):
+            for _ in range(0, valid_group_count - groups_present):
                 full_address += "0000:"
             if len(sides[1]) > 0:
                 full_address += sides[1]
@@ -100,7 +100,7 @@ class _BindManager(ManagerModule):
             zones[zone] = {}
 
         for system in self.systems:
-            for (name, interface) in system.interfaces.items():
+            for (_, interface) in system.interfaces.items():
                 host = interface.dns_name
                 ipv4 = interface.ip_address
                 ipv6 = interface.ipv6_address
@@ -193,7 +193,7 @@ class _BindManager(ManagerModule):
             zones[zone] = {}
 
         for system in self.systems:
-            for (name, interface) in system.interfaces.items():
+            for (_, interface) in system.interfaces.items():
                 host = interface.dns_name
                 ip_address = interface.ip_address
                 ipv6 = interface.ipv6_address
@@ -475,7 +475,7 @@ zone "%(arpa)s." {
         # Which results in empty records without any warning to the users
 
         for system in self.systems:
-            for (name, interface) in system.interfaces.items():
+            for (_, interface) in system.interfaces.items():
                 cnames = interface.cnames
 
                 try:

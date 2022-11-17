@@ -456,7 +456,7 @@ class CobblerSync:
         # delete contents of autoinsts_sys/$name in webdir
         system_record = self.systems.find(name=name)
 
-        for (name, interface) in list(system_record.interfaces.items()):
+        for (name, _) in list(system_record.interfaces.items()):
             pxe_filename = system_record.get_config_filename(
                 interface=name, loader="pxe"
             )

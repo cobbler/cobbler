@@ -57,7 +57,7 @@ class _NDjbDnsManager(ManagerModule):
             template_content = template_fd.read()
 
         for system in self.systems:
-            for (name, interface) in list(system.interfaces.items()):
+            for (_, interface) in list(system.interfaces.items()):
                 host = interface.dns_name
                 ip_address = interface.ip_address
 

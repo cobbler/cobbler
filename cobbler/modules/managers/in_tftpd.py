@@ -73,8 +73,8 @@ class _InTftpdManager(ManagerModule):
                         filedst = rendered_target_file
                     else:
                         # this was a glob, so figure out what the destination file path/name should be
-                        tgt_path, tgt_file = os.path.split(file)
-                        rnd_path, rnd_file = os.path.split(rendered_target_file)
+                        _, tgt_file = os.path.split(file)
+                        rnd_path, _ = os.path.split(rendered_target_file)
                         filedst = os.path.join(rnd_path, tgt_file)
 
                         if not os.path.isdir(rnd_path):

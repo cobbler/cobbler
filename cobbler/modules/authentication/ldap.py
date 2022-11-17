@@ -137,7 +137,7 @@ def authenticate(api_handle, username, password) -> bool:
     filter = prefix + username
     result = dir.search_s(basedn, ldap.SCOPE_SUBTREE, filter, [])
     if result:
-        for ldap_dn, entry in result:
+        for ldap_dn, _ in result:
             # username _should_ be unique so we should only have one result ignore entry; we don't need it
             pass
     else:

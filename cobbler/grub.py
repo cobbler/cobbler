@@ -25,10 +25,10 @@ def parse_grub_remote_file(file_location: str) -> Optional[str]:
         )
         return None
     if file_location.startswith("http://"):
-        (server, delim, path) = file_location[7:].partition("/")
+        (server, _, path) = file_location[7:].partition("/")
         prot = "http"
     elif file_location.startswith("tftp://"):
-        (server, delim, path) = file_location[7:].partition("/")
+        (server, _, path) = file_location[7:].partition("/")
         prot = "tftp"
     else:
         logging.warning(

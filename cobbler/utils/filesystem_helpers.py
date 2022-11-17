@@ -29,7 +29,7 @@ def is_safe_to_hardlink(src: str, dst: str, api) -> bool:
     """
     # FIXME: Calling this with emtpy strings returns True?!
     (dev1, path1) = mtab.get_file_device_path(src)
-    (dev2, path2) = mtab.get_file_device_path(dst)
+    (dev2, _) = mtab.get_file_device_path(dst)
     if dev1 != dev2:
         return False
     # Do not hardlink to a symbolic link! Chances are high the new link will be dangling.

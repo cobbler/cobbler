@@ -179,7 +179,6 @@ class Image(item.Item):
         uri = filename
         auth = ""
         hostname = ""
-        path = ""
 
         if filename.find("@") != -1:
             auth, filename = filename.split("@")
@@ -194,7 +193,7 @@ class Image(item.Item):
         if len(filename) > 0 and filename[0] != "/":
             raise SyntaxError(f"file contains an invalid path: {filename}")
         if filename.find("/") != -1:
-            path, filename = filename.rsplit("/", 1)
+            _, filename = filename.rsplit("/", 1)
 
         if len(filename) == 0:
             raise SyntaxError("missing filename")

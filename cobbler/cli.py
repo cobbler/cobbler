@@ -2183,7 +2183,7 @@ class CobblerCLI:
         :return: A nicer error messsage.
         """
         if fault_str.find(">:") != -1:
-            (first, rest) = fault_str.split(">:", 1)
+            (_, rest) = fault_str.split(">:", 1)
             if rest.startswith('"') or rest.startswith("'"):
                 rest = rest[1:]
             if rest.endswith('"') or rest.endswith("'"):
@@ -2255,7 +2255,7 @@ class CobblerCLI:
             self.parser.add_option(
                 "--filename", dest="filename", help="filename to load data from"
             )
-        (options, args) = self.parser.parse_args(self.args)
+        (options, _) = self.parser.parse_args(self.args)
 
         # the first three don't require a name
         if object_action == "report":
@@ -2448,7 +2448,7 @@ class CobblerCLI:
                 help="(OPTIONAL) extra options for xorrisofs",
             )
 
-            (options, args) = self.parser.parse_args(self.args)
+            (options, _) = self.parser.parse_args(self.args)
             task_id = self.start_task("buildiso", options)
 
         elif action_name == "replicate":
@@ -2511,7 +2511,7 @@ class CobblerCLI:
                 action="store_true",
                 help="use ssl to access the Cobbler master server api",
             )
-            (options, args) = self.parser.parse_args(self.args)
+            (options, _) = self.parser.parse_args(self.args)
             task_id = self.start_task("replicate", options)
 
         elif action_name == "aclsetup":
@@ -2527,7 +2527,7 @@ class CobblerCLI:
             self.parser.add_option(
                 "--removegroup", dest="removegroup", help="remove acls from this group"
             )
-            (options, args) = self.parser.parse_args(self.args)
+            (options, _) = self.parser.parse_args(self.args)
             task_id = self.start_task("aclsetup", options)
 
         elif action_name == "version":
@@ -2537,13 +2537,13 @@ class CobblerCLI:
             print(f"  build time: {version['builddate']}")
 
         elif action_name == "hardlink":
-            (options, args) = self.parser.parse_args(self.args)
+            (options, _) = self.parser.parse_args(self.args)
             task_id = self.start_task("hardlink", options)
         elif action_name == "status":
-            (options, args) = self.parser.parse_args(self.args)
+            self.parser.parse_args(self.args)
             print(self.remote.get_status("text", self.token))
         elif action_name == "validate-autoinstalls":
-            (options, args) = self.parser.parse_args(self.args)
+            (options, _) = self.parser.parse_args(self.args)
             task_id = self.start_task("validate_autoinstall_files", options)
         elif action_name == "import":
             self.parser.add_option(
@@ -2572,7 +2572,7 @@ class CobblerCLI:
                 dest="rsync_flags",
                 help="pass additional flags to rsync",
             )
-            (options, args) = self.parser.parse_args(self.args)
+            (options, _) = self.parser.parse_args(self.args)
             if options.path and "rsync://" not in options.path:
                 # convert relative path to absolute path
                 options.path = os.path.abspath(options.path)
@@ -2706,7 +2706,7 @@ class CobblerCLI:
         """
         print(f"task started: {task_id}")
         events = self.remote.get_events()
-        (etime, name, status, who_viewed) = events[task_id]
+        (etime, name, _, _) = events[task_id]
         atime = time.asctime(time.localtime(etime))
         print(f"task started (id={name}, time={atime})")
 

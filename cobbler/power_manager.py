@@ -208,7 +208,7 @@ class PowerManager:
 
         return_code = -1
 
-        for power_try in range(0, POWER_RETRIES):
+        for _ in range(0, POWER_RETRIES):
             output, return_code = utils.subprocess_sp(
                 power_command, shell=False, input=power_input
             )

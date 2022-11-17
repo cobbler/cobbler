@@ -3540,17 +3540,17 @@ class CobblerXMLRPCInterface:
         """
         timenow = time.time()
         for token in list(self.token_cache.keys()):
-            (tokentime, user) = self.token_cache[token]
+            (tokentime, _) = self.token_cache[token]
             if timenow > tokentime + self.api.settings().auth_token_expiration:
                 self._log("expiring token", token=token, debug=True)
                 del self.token_cache[token]
         # and also expired objects
         for oid in list(self.unsaved_items.keys()):
-            (tokentime, entry) = self.unsaved_items[oid]
+            (tokentime, _) = self.unsaved_items[oid]
             if timenow > tokentime + CACHE_TIMEOUT:
                 del self.unsaved_items[oid]
         for tid in list(self.events.keys()):
-            (eventtime, name, status, who) = self.events[tid]
+            (eventtime, _, _, _) = self.events[tid]
             if timenow > eventtime + EVENT_TIMEOUT:
                 del self.events[tid]
             # logfile cleanup should be dealt w/ by logrotate

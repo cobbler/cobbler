@@ -81,7 +81,7 @@ class AutoInstallationManager:
         """
 
         files = []
-        for root, dirnames, filenames in os.walk(self.templates_base_dir):
+        for root, _, filenames in os.walk(self.templates_base_dir):
             for filename in filenames:
                 rel_root = root[len(self.templates_base_dir) + 1 :]
                 if rel_root:
@@ -191,7 +191,7 @@ class AutoInstallationManager:
         :return: The list of snippets
         """
         files = []
-        for root, dirnames, filenames in os.walk(self.snippets_base_dir):
+        for root, _, filenames in os.walk(self.snippets_base_dir):
 
             for filename in filenames:
                 rel_root = root[len(self.snippets_base_dir) + 1 :]
