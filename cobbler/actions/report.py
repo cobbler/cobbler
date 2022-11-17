@@ -415,11 +415,11 @@ class Report:
                 "package",
                 "file",
             ]:
-                if (
-                    report_what == "all"
-                    or report_what == collection_name
-                    or report_what == f"{collection_name}s"
-                    or report_what == f"{collection_name}es"
+                if report_what in (
+                    "all",
+                    collection_name,
+                    f"{collection_name}s",
+                    f"{collection_name}es",
                 ):
                     if report_name:
                         self.reporting_list_names2(
@@ -443,11 +443,11 @@ class Report:
                 "package",
                 "file",
             ]:
-                if (
-                    report_what == "all"
-                    or report_what == collection_name
-                    or report_what == f"{collection_name}s"
-                    or report_what == f"{collection_name}es"
+                if report_what in (
+                    "all",
+                    collection_name,
+                    f"{collection_name}s",
+                    f"{collection_name}es",
                 ):
                     self.reporting_print_all_fields(
                         self.api.get_items(collection_name),
@@ -468,11 +468,11 @@ class Report:
                 "package",
                 "file",
             ]:
-                if (
-                    report_what == "all"
-                    or report_what == collection_name
-                    or report_what == f"{collection_name}s"
-                    or report_what == f"{collection_name}es"
+                if report_what in (
+                    "all",
+                    collection_name,
+                    f"{collection_name}s",
+                    f"{collection_name}es",
                 ):
                     self.reporting_print_x_fields(
                         self.api.get_items(collection_name),

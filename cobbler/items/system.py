@@ -1073,7 +1073,7 @@ class System(Item):
             self._boot_loaders = enums.VALUE_INHERITED
             return
 
-        if boot_loaders == "" or boot_loaders == []:
+        if boot_loaders in ("", []):
             self._boot_loaders = []
             return
 

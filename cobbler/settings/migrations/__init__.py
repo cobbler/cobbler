@@ -322,7 +322,7 @@ def migrate(
     if old == EMPTY_VERSION and new == EMPTY_VERSION:
         return auto_migrate(yaml_dict, settings_path, ignore_keys)
 
-    if old == EMPTY_VERSION or new == EMPTY_VERSION:
+    if EMPTY_VERSION in (old, new):
         raise ValueError(
             "Either both or no versions must be specified for a migration!"
         )

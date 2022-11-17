@@ -811,7 +811,7 @@ class _ImportSignatureManager(ManagerModule):
 
         matches = {}
         for fname in fnames:
-            if fname == "base" or fname == "repodata":
+            if fname in ("base", "repodata"):
                 self.logger.info("processing repo at : %s", dirname)
                 # only run the repo scanner on directories that contain a comps.xml
                 gloob1 = glob.glob(f"{dirname}/{fname}/*comps*.xml")

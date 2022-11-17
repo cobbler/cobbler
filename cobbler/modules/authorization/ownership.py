@@ -182,7 +182,7 @@ def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int
                 found_user = True
                 # if user is in the admin group, always authorize
                 # regardless of the ownership of the object.
-                if group == "admins" or group == "admin":
+                if group in ("admins", "admin"):
                     return 1
 
     if not found_user:

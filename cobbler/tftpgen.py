@@ -1039,7 +1039,7 @@ class TFTPGen:
                     enums.Archs.S390X,
                 ):
                     append_line += f" netdevice={management_mac}"
-            elif distro.breed == "debian" or distro.breed == "ubuntu":
+            elif distro.breed in ("debian", "ubuntu"):
                 append_line = (
                     f"{append_line} auto-install/enable=true priority=critical"
                     f"netcfg/choose_interface=auto url={autoinstall_path}"

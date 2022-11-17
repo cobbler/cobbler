@@ -2857,9 +2857,9 @@ class CobblerXMLRPCInterface:
             obj.set_mac_address(mac, iname)
             if hostname != "":
                 obj.set_dns_name(hostname, iname)
-            if ip_address != "" and ip_address != "?":
+            if ip_address not in ("", "?"):
                 obj.set_ip_address(ip_address, iname)
-            if netmask != "" and netmask != "?":
+            if netmask not in ("", "?"):
                 obj.set_netmask(netmask, iname)
         self.api.add_system(obj)
         return 0
@@ -3095,9 +3095,9 @@ class CobblerXMLRPCInterface:
         """
         self._log("run_install_triggers", token=token)
 
-        if mode != "pre" and mode != "post" and mode != "firstboot":
+        if mode not in ("pre", "post", "firstboot"):
             return False
-        if objtype != "system" and objtype != "profile":
+        if objtype not in ("system", "profile"):
             return False
 
         # The trigger script is called with name,mac, and ip as arguments 1,2, and 3 we do not do API lookups here

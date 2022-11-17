@@ -1159,7 +1159,7 @@ def namedconf_location() -> str:
     :return: If the distro is Debian/Ubuntu then this returns "/etc/bind/named.conf". Otherwise "/etc/named.conf"
     """
     (dist, _) = os_release()
-    if dist == "debian" or dist == "ubuntu":
+    if dist in ("debian", "ubuntu"):
         return "/etc/bind/named.conf"
     return "/etc/named.conf"
 
@@ -1189,7 +1189,7 @@ def named_service_name() -> str:
     :return: This will return for debian/ubuntu bind9 and on other distros named-chroot or named.
     """
     (dist, _) = os_release()
-    if dist == "debian" or dist == "ubuntu":
+    if dist in ("debian", "ubuntu"):
         return "bind9"
     if process_management.is_systemd():
         return_code = subprocess_call(

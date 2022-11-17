@@ -300,7 +300,7 @@ class RepoSync:
                 "mirrorlist and metalink mirror types is not supported for wget'd repositories"
             )
 
-        if repo.rpm_list != "" and repo.rpm_list != []:
+        if repo.rpm_list not in ("", []):
             self.logger.warning("--rpm-list is not supported for wget'd repositories")
 
         dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
@@ -345,7 +345,7 @@ class RepoSync:
                 "mirrorlist and metalink mirror types is not supported for rsync'd repositories"
             )
 
-        if repo.rpm_list != "" and repo.rpm_list != []:
+        if repo.rpm_list not in ("", []):
             self.logger.warning("--rpm-list is not supported for rsync'd repositories")
 
         dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
@@ -436,7 +436,7 @@ class RepoSync:
         has_rpm_list = False
 
         # detect cases that require special handling
-        if repo.rpm_list != "" and repo.rpm_list != []:
+        if repo.rpm_list not in ("", []):
             has_rpm_list = True
 
         # Create yum config file for use by reposync
@@ -553,7 +553,7 @@ class RepoSync:
         has_rpm_list = False
 
         # detect cases that require special handling
-        if repo.rpm_list != "" and repo.rpm_list != []:
+        if repo.rpm_list not in ("", []):
             has_rpm_list = True
 
         # create yum config file for use by reposync
@@ -610,7 +610,7 @@ class RepoSync:
 
         # download any metadata we can use
         proxy = None
-        if repo.proxy != "<<None>>" and repo.proxy != "":
+        if repo.proxy not in ("<<None>>", ""):
             proxy = repo.proxy
         (cert, verify) = self.gen_urlgrab_ssl_opts(repo.yumopts)
 
@@ -677,7 +677,7 @@ class RepoSync:
             raise CX(f"no {mirror_program} found, please install it")
 
         # detect cases that require special handling
-        if repo.rpm_list != "" and repo.rpm_list != []:
+        if repo.rpm_list not in ("", []):
             raise CX("has_rpm_list not yet supported on apt repos")
 
         if repo.arch == RepoArchs.NONE:
@@ -805,7 +805,7 @@ class RepoSync:
                 config_proxy = None
                 if repo.proxy == "<<inherit>>":
                     config_proxy = self.settings.proxy_url_ext
-                elif repo.proxy != "" and repo.proxy != "<<None>>":
+                elif repo.proxy not in ("", "<<None>>"):
                     config_proxy = repo.proxy
 
                 if config_proxy is not None:
