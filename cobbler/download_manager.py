@@ -41,4 +41,4 @@ class DownloadManager:
             proxies = self.proxies
         if cert is None:
             cert = self.cert
-        return requests.get(url, proxies=proxies, cert=cert)
+        return requests.get(url, proxies=proxies, cert=cert, timeout=600)
