@@ -522,10 +522,7 @@ class RepoSync:
         # Note that the default of requests is to verify the peer and host but the default here is NOT to verify them
         # unless sslverify is explicitly set to 1 in yumopts.
         if "sslverify" in yumopts:
-            if yumopts["sslverify"] == 1:
-                verify = True
-            else:
-                verify = False
+            verify = yumopts["sslverify"] == 1
 
         return cert, verify
 

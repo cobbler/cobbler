@@ -2879,11 +2879,8 @@ class CobblerXMLRPCInterface:
         if not self.api.settings().pxe_just_once:
             # feature disabled!
             return False
-        if self.api.settings().nopxe_with_triggers:
-            # triggers should be enabled when calling nopxe
-            triggers_enabled = True
-        else:
-            triggers_enabled = False
+        # triggers should be enabled when calling nopxe
+        triggers_enabled = self.api.settings().nopxe_with_triggers
         systems = self.api.systems()
         obj = systems.find(name=name)
         if obj is None:

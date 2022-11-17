@@ -84,10 +84,7 @@ class Item:
                         return False
                 return True
             if isinstance(from_obj, bool):
-                if from_search.lower() in ["true", "1", "y", "yes"]:
-                    inp = True
-                else:
-                    inp = False
+                inp = from_search.lower() in ["true", "1", "y", "yes"]
                 if inp == from_obj:
                     return True
                 return False

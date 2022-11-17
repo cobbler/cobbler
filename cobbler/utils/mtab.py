@@ -132,20 +132,14 @@ def get_file_device_path(fname):
 
     # find a best match
     fdir = os.path.dirname(fname)
-    if fdir in mtab_dict:
-        match = True
-    else:
-        match = False
+    match = fdir in mtab_dict
     chrootfs = False
     while not match:
         if fdir == os.path.sep:
             chrootfs = True
             break
         fdir = os.path.realpath(os.path.join(fdir, os.path.pardir))
-        if fdir in mtab_dict:
-            match = True
-        else:
-            match = False
+        match = fdir in mtab_dict
 
     # construct file path relative to device
     if fdir != os.path.sep:
