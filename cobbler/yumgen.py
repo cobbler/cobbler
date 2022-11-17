@@ -65,15 +65,14 @@ class YumGen:
 
         for infile in input_files:
             try:
-                infile_h = open(infile)
+                with open(infile) as infile_h:
+                    infile_data = infile_h.read()
             except:
                 # File does not exist and the user needs to run reposync before we will use this, Cobbler check will
                 # mention this problem
                 totalbuf += f"\n# error: could not read repo source: {infile}\n\n"
                 continue
 
-            infile_data = infile_h.read()
-            infile_h.close()
             outfile = None  # disk output only
             totalbuf += self.templar.render(infile_data, blended, outfile)
             totalbuf += "\n\n"

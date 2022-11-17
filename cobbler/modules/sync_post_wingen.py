@@ -443,26 +443,25 @@ def run(api, args):
 
             if os.path.exists(WIMUPDATE):
                 data = templ.render(tmplstart_data, meta, None)
-                pi_file = tempfile.NamedTemporaryFile()
-                pi_file.write(bytes(data, "utf-8"))
-                pi_file.flush()
-                cmd = ["/usr/bin/wimdir", ps_file_name, "1"]
-                wimdir_result = utils.subprocess_get(cmd, shell=False)
-                wimdir_file_list = wimdir_result.split("\n")
-                # grep -i for /Windows/System32/startnet.cmd
-                startnet_path = "/Windows/System32/startnet.cmd"
+                with tempfile.NamedTemporaryFile() as pi_file:
+                    pi_file.write(bytes(data, "utf-8"))
+                    pi_file.flush()
+                    cmd = ["/usr/bin/wimdir", ps_file_name, "1"]
+                    wimdir_result = utils.subprocess_get(cmd, shell=False)
+                    wimdir_file_list = wimdir_result.split("\n")
+                    # grep -i for /Windows/System32/startnet.cmd
+                    startnet_path = "/Windows/System32/startnet.cmd"
 
-                for file in wimdir_file_list:
-                    if file.lower() == startnet_path.lower():
-                        startnet_path = file
+                    for file in wimdir_file_list:
+                        if file.lower() == startnet_path.lower():
+                            startnet_path = file
 
-                cmd = [
-                    WIMUPDATE,
-                    ps_file_name,
-                    f"--command=add {pi_file.name} {startnet_path}",
-                ]
-                utils.subprocess_call(cmd, shell=False)
-                pi_file.close()
+                    cmd = [
+                        WIMUPDATE,
+                        ps_file_name,
+                        f"--command=add {pi_file.name} {startnet_path}",
+                    ]
+                    utils.subprocess_call(cmd, shell=False)
 
     for profile in profiles:
         distro = profile.get_conceptual_parent()

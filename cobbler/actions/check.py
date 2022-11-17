@@ -499,12 +499,12 @@ class CobblerCheck:
         if os.path.exists(self.settings.dhcpd_conf):
             match_next = False
             match_file = False
-            dhcpd_conf_fd = open(self.settings.dhcpd_conf)
-            for line in dhcpd_conf_fd.readlines():
-                if line.find("next-server") != -1:
-                    match_next = True
-                if line.find("filename") != -1:
-                    match_file = True
+            with open(self.settings.dhcpd_conf) as dhcpd_conf_fd:
+                for line in dhcpd_conf_fd.readlines():
+                    if line.find("next-server") != -1:
+                        match_next = True
+                    if line.find("filename") != -1:
+                        match_file = True
             if not match_next:
                 status.append(
                     f"expecting next-server entry in {self.settings.dhcpd_conf}"

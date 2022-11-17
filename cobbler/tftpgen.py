@@ -10,6 +10,7 @@ This is the code behind 'cobbler sync'.
 import logging
 import os
 import os.path
+import pathlib
 import re
 import socket
 from typing import Dict, List, Optional
@@ -236,7 +237,7 @@ class TFTPGen:
                 else:
                     self.logger.info("S390x: netboot_disabled")
                     # Write empty conf file if netboot is disabled
-                    open(conf_f, "w").close()
+                    pathlib.Path(conf_f).touch()
             else:
                 # ensure the files do exist
                 self.logger.info("S390x: management not supported")
@@ -365,32 +366,30 @@ class TFTPGen:
             loader_metadata["menu_items"] = menu_items["pxe"]
             loader_metadata["menu_labels"] = menu_labels["pxe"]
             outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
-            template_src = open(
+            with open(
                 os.path.join(
                     self.settings.boot_loader_conf_template_dir, "pxe_menu.template"
                 )
-            )
-            template_data = template_src.read()
-            boot_menu["pxe"] = self.templar.render(
-                template_data, loader_metadata, outfile
-            )
-            template_src.close()
+            ) as template_src:
+                template_data = template_src.read()
+                boot_menu["pxe"] = self.templar.render(
+                    template_data, loader_metadata, outfile
+                )
 
         # Write the iPXE menu:
         if "ipxe" in menu_items:
             loader_metadata["menu_items"] = menu_items["ipxe"]
             loader_metadata["menu_labels"] = menu_labels["ipxe"]
             outfile = os.path.join(self.bootloc, "ipxe", "default.ipxe")
-            template_src = open(
+            with open(
                 os.path.join(
                     self.settings.boot_loader_conf_template_dir, "ipxe_menu.template"
                 )
-            )
-            template_data = template_src.read()
-            boot_menu["ipxe"] = self.templar.render(
-                template_data, loader_metadata, outfile
-            )
-            template_src.close()
+            ) as template_src:
+                template_data = template_src.read()
+                boot_menu["ipxe"] = self.templar.render(
+                    template_data, loader_metadata, outfile
+                )
 
         # Write the grub menu:
         for arch in enums.Archs:
@@ -825,9 +824,8 @@ class TFTPGen:
 
         # get the template
         if metadata["kernel_path"] is not None:
-            template_fh = open(template)
-            template_data = template_fh.read()
-            template_fh.close()
+            with open(template) as template_fh:
+                template_data = template_fh.read()
         else:
             # this is something we can't PXE boot
             template_data = "\n"
@@ -1176,9 +1174,10 @@ class TFTPGen:
 
         if obj.COLLECTION_TYPE == "distro":
             if re.search("esxi[567]", obj.os_version) is not None:
-                realbootcfg = open(
+                with open(
                     os.path.join(os.path.dirname(obj.kernel), "boot.cfg")
-                ).read()
+                ) as realbootcfg_fd:
+                    realbootcfg = realbootcfg_fd.read()
                 bootmodules = re.findall(r"modules=(.*)", realbootcfg)
                 for modules in bootmodules:
                     blended["esx_modules"] = modules.replace("/", "")
@@ -1250,18 +1249,16 @@ class TFTPGen:
                     "either the template source or destination was blank (unknown variable used?)"
                 )
 
-            template_fh = open(template)
-            template_data = template_fh.read()
-            template_fh.close()
+            with open(template) as template_fh:
+                template_data = template_fh.read()
 
             buffer = self.templar.render(template_data, blended, None)
             results[dest] = buffer
 
             if write_file:
                 self.logger.info("generating: %s", dest)
-                template_fd = open(dest, "w")
-                template_fd.write(buffer)
-                template_fd.close()
+                with open(dest, "w") as template_fd:
+                    template_fd.write(buffer)
 
         return results
 
@@ -1369,9 +1366,8 @@ class TFTPGen:
         if not os.path.exists(template):
             return f"# boot.cfg template not found for the {what} named {name} (filename={template})"
 
-        template_fh = open(template)
-        template_data = template_fh.read()
-        template_fh.close()
+        with open(template) as template_fh:
+            template_data = template_fh.read()
 
         return self.templar.render(template_data, blended, None)
 

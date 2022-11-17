@@ -49,11 +49,10 @@ class _DnsmasqManager(ManagerModule):
         template_file = "/etc/cobbler/dnsmasq.template"
 
         try:
-            template_file_fd = open(template_file, "r")
+            with open(template_file, "r") as template_file_fd:
+                template_data = template_file_fd.read()
         except Exception:
             raise OSError(f"error writing template to file: {template_file}")
-        template_data = template_file_fd.read()
-        template_file_fd.close()
 
         system_definitions = {}
 
@@ -131,43 +130,49 @@ class _DnsmasqManager(ManagerModule):
         """
         # dnsmasq knows how to read this database of MACs -> IPs, so we'll keep it up to date every time we add a
         # system.
-        ethers_fh = open("/etc/ethers", "w+")
-        for system in self.systems:
-            if not system.is_management_supported(cidr_ok=False):
-                continue
-            for interface in system.interfaces.values():
-                mac = interface.mac_address
-                ip_address = interface.ip_address
-                if not mac:
-                    # can't write this w/o a MAC address
+        with open("/etc/ethers", "w+") as ethers_fh:
+            for system in self.systems:
+                if not system.is_management_supported(cidr_ok=False):
                     continue
-                if ip_address is not None and ip_address != "":
-                    ethers_fh.write(mac.upper() + "\t" + ip_address + "\n")
-        ethers_fh.close()
+                for interface in system.interfaces.values():
+                    mac = interface.mac_address
+                    ip_address = interface.ip_address
+                    if not mac:
+                        # can't write this w/o a MAC address
+                        continue
+                    if ip_address is not None and ip_address != "":
+                        ethers_fh.write(mac.upper() + "\t" + ip_address + "\n")
 
     def regen_hosts(self):
         """
         This rewrites the hosts file and thus also rewrites the dns config.
         """
         # dnsmasq knows how to read this database for host info (other things may also make use of this later)
-        regen_hosts_fd = open("/var/lib/cobbler/cobbler_hosts", "w+")
-        for system in self.systems:
-            if not system.is_management_supported(cidr_ok=False):
-                continue
-            for (_, interface) in system.interfaces.items():
-                mac = interface.mac_address
-                host = interface.dns_name
-                ipv4 = interface.ip_address
-                ipv6 = interface.ipv6_address
-                if not mac:
+        with open("/var/lib/cobbler/cobbler_hosts", "w+") as regen_hosts_fd:
+            for system in self.systems:
+                if not system.is_management_supported(cidr_ok=False):
                     continue
-                if host is not None and host != "" and ipv6 is not None and ipv6 != "":
-                    regen_hosts_fd.write(ipv6 + "\t" + host + "\n")
-                elif (
-                    host is not None and host != "" and ipv4 is not None and ipv4 != ""
-                ):
-                    regen_hosts_fd.write(ipv4 + "\t" + host + "\n")
-        regen_hosts_fd.close()
+                for (_, interface) in system.interfaces.items():
+                    mac = interface.mac_address
+                    host = interface.dns_name
+                    ipv4 = interface.ip_address
+                    ipv6 = interface.ipv6_address
+                    if not mac:
+                        continue
+                    if (
+                        host is not None
+                        and host != ""
+                        and ipv6 is not None
+                        and ipv6 != ""
+                    ):
+                        regen_hosts_fd.write(ipv6 + "\t" + host + "\n")
+                    elif (
+                        host is not None
+                        and host != ""
+                        and ipv4 is not None
+                        and ipv4 != ""
+                    ):
+                        regen_hosts_fd.write(ipv4 + "\t" + host + "\n")
 
     def restart_service(self):
         """

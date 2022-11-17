@@ -135,13 +135,10 @@ class Collection:
             except:
                 return self.listing.get(kargs["name"], None)
 
-        self.lock.acquire()
-        try:
+        with self.lock:
             for (name, obj) in list(self.listing.items()):
                 if obj.find_match(kargs, no_errors=no_errors):
                     matches.append(obj)
-        finally:
-            self.lock.release()
 
         if not return_list:
             if len(matches) == 0:
@@ -424,11 +421,8 @@ class Collection:
                 f"/var/lib/cobbler/triggers/add/{self.collection_type()}/pre/*",
             )
 
-        self.lock.acquire()
-        try:
+        with self.lock:
             self.listing[ref.name.lower()] = ref
-        finally:
-            self.lock.release()
 
         # update children cache in parent object in case it is not in there already
         if ref.parent and ref.name not in ref.parent.children:

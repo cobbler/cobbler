@@ -73,11 +73,8 @@ class Images(collection.Collection):
                 lite_sync = self.api.get_sync()
                 lite_sync.remove_single_image(name)
 
-        self.lock.acquire()
-        try:
+        with self.lock:
             del self.listing[name]
-        finally:
-            self.lock.release()
         self.collection_mgr.serialize_delete(self, obj)
 
         if with_delete:

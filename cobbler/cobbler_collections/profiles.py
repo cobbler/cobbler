@@ -86,11 +86,8 @@ class Profiles(collection.Collection):
             #       Use self.collection_mgr.serialize_one_item(obj.parent)
             self.api.serialize()
 
-        self.lock.acquire()
-        try:
+        with self.lock:
             del self.listing[name]
-        finally:
-            self.lock.release()
         self.collection_mgr.serialize_delete(self, obj)
         if with_delete:
             if with_triggers:

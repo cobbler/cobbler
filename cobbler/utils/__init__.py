@@ -386,9 +386,8 @@ def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
 
     if file_is_remote(file_location):
         try:
-            handler = urllib.request.urlopen(file_location)
-            data = handler.read()
-            handler.close()
+            with urllib.request.urlopen(file_location) as handler:
+                data = handler.read()
             return data
         except urllib.error.HTTPError:
             # File likely doesn't exist
@@ -404,8 +403,8 @@ def remote_file_exists(file_url) -> bool:
     :return: True if Cobbler can reach the specified URL, otherwise false.
     """
     try:
-        handler = urllib.request.urlopen(file_url)
-        handler.close()
+        with urllib.request.urlopen(file_url) as _:
+            pass
         return True
     except urllib.error.HTTPError:
         # File likely doesn't exist
@@ -929,7 +928,7 @@ def subprocess_sp(cmd, shell: bool = True, input=None):
         stdin = subprocess.PIPE
 
     try:
-        subprocess_popen_obj = subprocess.Popen(
+        with subprocess.Popen(
             cmd,
             shell=shell,
             stdin=stdin,
@@ -937,13 +936,13 @@ def subprocess_sp(cmd, shell: bool = True, input=None):
             stderr=subprocess.PIPE,
             encoding="utf-8",
             close_fds=True,
-        )
+        ) as subprocess_popen_obj:
+            (out, err) = subprocess_popen_obj.communicate(input)
+            return_code = subprocess_popen_obj.returncode
     except OSError:
         log_exc()
         die(f"OS Error, command not found?  While running: {cmd}")
 
-    (out, err) = subprocess_popen_obj.communicate(input)
-    return_code = subprocess_popen_obj.returncode
     logger.info("received on stdout: %s", out)
     logger.debug("received on stderr: %s", err)
     return out, return_code

@@ -82,7 +82,7 @@ def hashfile(file_name: str, lcache=None):
     dbfile = pathlib.Path(lcache) / "link_cache.json"
     if lcache is not None:
         if dbfile.exists():
-            hashfile_db = json.load(open(dbfile, "r"))
+            hashfile_db = json.loads(dbfile.read_text(encoding="utf-8"))
 
     file = pathlib.Path(file_name)
     if file.exists():
@@ -95,7 +95,7 @@ def hashfile(file_name: str, lcache=None):
         if lcache is not None:
             hashfile_db[file_name] = (mtime, key)
             __create_if_not_exists(lcache)
-            json.dump(hashfile_db, open(dbfile, "w"))
+            dbfile.write_text(json.dumps(hashfile_db), encoding="utf-8")
         return key
     return None
 
@@ -219,9 +219,9 @@ def copyremotefile(src: str, dst1: str, api=None):
     """
     try:
         logger.info("copying: %s -> %s", src, dst1)
-        srcfile = urllib.request.urlopen(src)
-        with open(dst1, "wb") as output:
-            output.write(srcfile.read())
+        with urllib.request.urlopen(src) as srcfile:
+            with open(dst1, "wb") as output:
+                output.write(srcfile.read())
     except Exception as error:
         raise OSError(
             f"Error while getting remote file ({src} -> {dst1}):\n{error}"

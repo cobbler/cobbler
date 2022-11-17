@@ -39,12 +39,10 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
     :raises OSError: Raised in case the template could not be read.
     """
     try:
-        template_fd = open(TEMPLATE_FILE, "r")
+        with open(TEMPLATE_FILE, "r") as template_fd:
+            template_data = template_fd.read()
     except:
         raise OSError(f"error reading template: {TEMPLATE_FILE}")
-    template_data = ""
-    template_data = template_fd.read()
-    template_fd.close()
 
     metadata = {
         "date": time.asctime(time.gmtime()),

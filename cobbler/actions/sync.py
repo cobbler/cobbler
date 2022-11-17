@@ -255,13 +255,10 @@ class CobblerSync:
         template_file = "/etc/cobbler/rsync.template"
 
         try:
-            template = open(template_file, "r")
+            with open(template_file, "r") as template:
+                template_data = template.read()
         except:
             raise OSError(f"error reading template {template_file}")
-
-        template_data = ""
-        template_data = template.read()
-        template.close()
 
         distros = []
 

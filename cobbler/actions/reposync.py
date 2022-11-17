@@ -766,70 +766,69 @@ class RepoSync:
         self.logger.debug("creating: %s", fname)
         if not os.path.exists(dest_path):
             filesystem_helpers.mkdir(dest_path)
-        config_file = open(fname, "w+")
-        if not output:
-            config_file.write("[main]\nreposdir=/dev/null\n")
-        config_file.write(f"[{repo.name}]\n")
-        config_file.write(f"name={repo.name}\n")
+        with open(fname, "w+") as config_file:
+            if not output:
+                config_file.write("[main]\nreposdir=/dev/null\n")
+            config_file.write(f"[{repo.name}]\n")
+            config_file.write(f"name={repo.name}\n")
 
-        optenabled = False
-        optgpgcheck = False
-        if output:
-            if repo.mirror_locally:
-                line = (
-                    f"baseurl=http://${{http_server}}/cobbler/repo_mirror/{repo.name}\n"
-                )
+            optenabled = False
+            optgpgcheck = False
+            if output:
+                if repo.mirror_locally:
+                    line = f"baseurl=http://${{http_server}}/cobbler/repo_mirror/{repo.name}\n"
+                else:
+                    mstr = repo.mirror
+                    if mstr.startswith("/"):
+                        mstr = f"file://{mstr}"
+                    line = f"{repo.mirror_type.value}={mstr}\n"
+
+                config_file.write(line)
+                # User may have options specific to certain yum plugins add them to the file
+                for repo_yumoption in repo.yumopts:
+                    if repo_yumoption == "enabled":
+                        optenabled = True
+                    if repo_yumoption == "gpgcheck":
+                        optgpgcheck = True
             else:
                 mstr = repo.mirror
                 if mstr.startswith("/"):
                     mstr = f"file://{mstr}"
-                line = f"{repo.mirror_type.value}={mstr}\n"
+                line = repo.mirror_type.value + f"={mstr}\n"
+                if self.settings.http_port not in (80, "80"):
+                    http_server = f"{self.settings.server}:{self.settings.http_port}"
+                else:
+                    http_server = self.settings.server
+                line = line.replace("@@server@@", http_server)
+                config_file.write(line)
 
-            config_file.write(line)
-            # User may have options specific to certain yum plugins add them to the file
+                config_proxy = None
+                if repo.proxy == "<<inherit>>":
+                    config_proxy = self.settings.proxy_url_ext
+                elif repo.proxy != "" and repo.proxy != "<<None>>":
+                    config_proxy = repo.proxy
+
+                if config_proxy is not None:
+                    config_file.write(f"proxy={config_proxy}\n")
+                if "exclude" in list(repo.yumopts.keys()):
+                    self.logger.debug("excluding: %s", repo.yumopts["exclude"])
+                    config_file.write(f"exclude={repo.yumopts['exclude']}\n")
+
+            if not optenabled:
+                config_file.write("enabled=1\n")
+            config_file.write(f"priority={repo.priority}\n")
+            # FIXME: potentially might want a way to turn this on/off on a per-repo basis
+            if not optgpgcheck:
+                config_file.write("gpgcheck=0\n")
+            # user may have options specific to certain yum plugins
+            # add them to the file
             for repo_yumoption in repo.yumopts:
-                if repo_yumoption == "enabled":
-                    optenabled = True
-                if repo_yumoption == "gpgcheck":
-                    optgpgcheck = True
-        else:
-            mstr = repo.mirror
-            if mstr.startswith("/"):
-                mstr = f"file://{mstr}"
-            line = repo.mirror_type.value + f"={mstr}\n"
-            if self.settings.http_port not in (80, "80"):
-                http_server = f"{self.settings.server}:{self.settings.http_port}"
-            else:
-                http_server = self.settings.server
-            line = line.replace("@@server@@", http_server)
-            config_file.write(line)
-
-            config_proxy = None
-            if repo.proxy == "<<inherit>>":
-                config_proxy = self.settings.proxy_url_ext
-            elif repo.proxy != "" and repo.proxy != "<<None>>":
-                config_proxy = repo.proxy
-
-            if config_proxy is not None:
-                config_file.write(f"proxy={config_proxy}\n")
-            if "exclude" in list(repo.yumopts.keys()):
-                self.logger.debug("excluding: %s", repo.yumopts["exclude"])
-                config_file.write(f"exclude={repo.yumopts['exclude']}\n")
-
-        if not optenabled:
-            config_file.write("enabled=1\n")
-        config_file.write(f"priority={repo.priority}\n")
-        # FIXME: potentially might want a way to turn this on/off on a per-repo basis
-        if not optgpgcheck:
-            config_file.write("gpgcheck=0\n")
-        # user may have options specific to certain yum plugins
-        # add them to the file
-        for repo_yumoption in repo.yumopts:
-            if not (
-                output and repo.mirror_locally and repo_yumoption.startswith("ssl")
-            ):
-                config_file.write(f"{repo_yumoption}={repo.yumopts[repo_yumoption]}\n")
-        config_file.close()
+                if not (
+                    output and repo.mirror_locally and repo_yumoption.startswith("ssl")
+                ):
+                    config_file.write(
+                        f"{repo_yumoption}={repo.yumopts[repo_yumoption]}\n"
+                    )
         return fname
 
     # ==================================================================================

@@ -1556,26 +1556,25 @@ class CobblerAPI:
             url = self.settings().signature_url
             dlmgr = download_manager.DownloadManager()
             # write temp json file
-            tmpfile = tempfile.NamedTemporaryFile()
-            sigjson = dlmgr.urlread(url)
-            tmpfile.write(sigjson.text.encode())
-            tmpfile.flush()
-            self.logger.debug(
-                f"Successfully got file from {self.settings().signature_url}"
-            )
-            # test the import without caching it
-            try:
-                signatures.load_signatures(tmpfile.name, cache=False)
-            except:
-                self.logger.error(
-                    "Downloaded signatures failed test load (tempfile = %s)",
-                    tmpfile.name,
+            with tempfile.NamedTemporaryFile() as tmpfile:
+                sigjson = dlmgr.urlread(url)
+                tmpfile.write(sigjson.text.encode())
+                tmpfile.flush()
+                self.logger.debug(
+                    f"Successfully got file from {self.settings().signature_url}"
                 )
+                # test the import without caching it
+                try:
+                    signatures.load_signatures(tmpfile.name, cache=False)
+                except:
+                    self.logger.error(
+                        "Downloaded signatures failed test load (tempfile = %s)",
+                        tmpfile.name,
+                    )
 
             # rewrite the real signature file and import it for real
-            signature_fd = open(self.settings().signature_path, "w")
-            signature_fd.write(sigjson.text)
-            signature_fd.close()
+            with open(self.settings().signature_path, "w") as signature_fd:
+                signature_fd.write(sigjson.text)
 
             signatures.load_signatures(self.settings().signature_path)
         except:

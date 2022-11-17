@@ -72,11 +72,13 @@ class _NDjbDnsManager(ManagerModule):
 
         self.templar.render(template_content, template_vars, data_file)
 
-        subprocess_popen_obj = subprocess.Popen(["/usr/bin/tinydns-data"], cwd=data_dir)
-        subprocess_popen_obj.communicate()
+        with subprocess.Popen(
+            ["/usr/bin/tinydns-data"], cwd=data_dir
+        ) as subprocess_popen_obj:
+            subprocess_popen_obj.communicate()
 
-        if subprocess_popen_obj.returncode != 0:
-            raise Exception("Could not regenerate tinydns data file.")
+            if subprocess_popen_obj.returncode != 0:
+                raise Exception("Could not regenerate tinydns data file.")
 
 
 def get_manager(api):
