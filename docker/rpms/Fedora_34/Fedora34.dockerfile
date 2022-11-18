@@ -38,6 +38,7 @@ RUN yum install -y          \
     python3-ldap            \
     python3-librepo         \
     python3-pymongo         \
+    python3-gunicorn        \
     python3-schema          \
     createrepo_c            \
     dnf-plugins-core        \

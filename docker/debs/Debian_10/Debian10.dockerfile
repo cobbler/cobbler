@@ -12,13 +12,13 @@ ENV OSCODENAME buster
 # Add repo for debbuild and install all packages required
 # hadolint ignore=DL3008,DL3015,DL4006
 RUN apt-get update -qq && \
-    apt-get install -qqy gnupg curl && \
-    /bin/sh -c "echo 'deb http://download.opensuse.org/repositories/Debian:/debbuild/Debian_10/ /' > /etc/apt/sources.list.d/debbuild.list" && \
-    curl -sL http://download.opensuse.org/repositories/Debian:/debbuild/Debian_10/Release.key | apt-key add - && \
-    apt-get update -qq && \
     apt-get install -qqy \
-    debbuild \
-    debbuild-macros \
+    build-essential \
+    devscripts \
+    dh-python \
+    debhelper \
+    gnupg \
+    curl \
     wget \
     pycodestyle \
     pyflakes3 \
@@ -36,6 +36,7 @@ RUN apt-get update -qq && \
     python3-netaddr \
     python3-pip \
     python3-pycodestyle \
+    python3-pymongo \
     python3-pytest \
     python3-setuptools \
     python3-sphinx \

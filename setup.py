@@ -548,6 +548,7 @@ if __name__ == "__main__":
             "dnspython",
             "file-magic",
             "schema",
+            "gunicorn",
         ],
         extras_require={
             "lint": ["pyflakes", "pycodestyle"],

@@ -60,6 +60,8 @@ elif [ "$DISTRO" = "UBUNTU" ];then
     export MEMDISK_FOLDER="/usr/lib/syslinux/"
     export SYSLINUX_DIR="/usr/lib/syslinux/modules/bios/"
     export GRUB_MOD_FOLDER="/usr/lib/grub"
+    # This is required so that no byte code for Python is generated
+    export PYTHONDONTWRITEBYTECODE=1
 elif [ "$DISTRO" = "FEDORA" ];then
     export APACHE_USER="apache"
     export HTTP_USER=$APACHE_USER # overrule setup.py

@@ -1,0 +1,73 @@
+cobbler (3.4.0) unstable; urgency=low
+
+  * Main Upgrade to Cobbler 3.4.0
+
+ --  Enno Gotthold <enno@4seul.de>  Wed, 21 Sep 2022 09:30:00 +0200
+
+cobbler (2.8.2) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.8 series
+
+ --  Jeremy Brown <jwbrown77@yahoo.com>  Wed, 21 Sep 2017 09:30:00 -0700
+
+cobbler (2.6.7-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Wed, 31 Dec 2014 00:19:50 +0200
+
+cobbler (2.6.6-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Sun, 19 Oct 2014 00:19:50 +0200
+
+cobbler (2.6.5-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Fri, 15 Aug 2014 00:19:50 +0200
+
+cobbler (2.6.4-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Fri, 08 Aug 2014 00:19:50 +0200
+
+cobbler (2.6.3-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Fri, 18 Jul 2014 00:19:50 +0200
+
+cobbler (2.6.2-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Thu, 15 Jul 2014 00:19:50 +0200
+
+cobbler (2.6.1-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Thu, 22 May 2014 00:19:50 +0200
+
+cobbler (2.6.0-1.2) unstable; urgency=low
+
+  * Set proper paths in config files
+
+ --  Adrian Brzezinski <adrbxx@gmail.com>  Wed, 23 Apr 2014 00:19:50 +0200
+
+cobbler (2.6.0-1.1) unstable; urgency=low
+
+  * Fixed virt-install version check - support for non rpm based distributions 
+
+ -- Adrian Brzezinski <adrbxx@gmail.com>  Fri, 18 Apr 2014 19:09:14 +0200
+
+cobbler (2.6.0-1) unstable; urgency=low
+
+  * Initial release. Orginal package splitted into two: cobbler and koan.
+
+ -- Adrian Brzezinski <adrbxx@gmail.com>  Fri, 18 Apr 2014 18:24:22 +0200
+
+

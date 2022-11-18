@@ -3,6 +3,7 @@
 
 set -eo pipefail
 
+SKIP_BUILD=true
 RUN_TESTS=false
 RUN_SYSTEM_TESTS=false
 EXECUTOR=docker
@@ -22,6 +23,10 @@ if [ "${1}" == "--with-podman" ]; then
     shift
 fi
 
+if [ "${1}" == "--skip-build" ]; then
+    SKIP_BUILD=false
+    shift
+fi
 
 TAG=$1
 DOCKERFILE=$2
@@ -30,12 +35,20 @@ IMAGE=cobbler:$TAG
 
 # Build container
 echo "==> Build container ..."
-$EXECUTOR build -t "$IMAGE" -f "$DOCKERFILE" .
+if [[ "$EXECUTOR" == "podman" ]]
+then
+    podman build --format docker -t "$IMAGE" -f "$DOCKERFILE" .
+else
+    docker build -t "$IMAGE" -f "$DOCKERFILE" .
+fi
 
-# Build RPMs
-echo "==> Build RPMs ..."
-mkdir -p rpm-build
-$EXECUTOR run -t -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "$IMAGE"
+if $SKIP_BUILD
+then
+    # Build RPMs
+    echo "==> Build RPMs ..."
+    mkdir -p rpm-build
+    $EXECUTOR run -t -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "$IMAGE"
+fi
 
 # Launch container and install cobbler
 echo "==> Start container ..."
