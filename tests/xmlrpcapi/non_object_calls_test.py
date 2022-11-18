@@ -212,7 +212,7 @@ def test_get_random_mac(remote, token):
                     "dns_name": "",
                     "if_gateway": "",
                     "interface_master": "",
-                    "interface_type": "NA",
+                    "interface_type": "na",
                     "ip_address": "",
                     "ipv6_address": "",
                     "ipv6_default_gateway": "",

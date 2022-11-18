@@ -105,14 +105,10 @@ class _IscManager(ManagerModule):
                     else:
                         ignore_macs.append(mac)
 
-                    ip = system.interfaces[interface["interface_master"]]["ip_address"]
-                    netmask = system.interfaces[interface["interface_master"]][
-                        "netmask"
-                    ]
-                    dhcp_tag = system.interfaces[interface["interface_master"]][
-                        "dhcp_tag"
-                    ]
-                    host = system.interfaces[interface["interface_master"]]["dns_name"]
+                    ip = system.interfaces[interface["interface_master"]].ip_address
+                    netmask = system.interfaces[interface["interface_master"]].netmask
+                    dhcp_tag = system.interfaces[interface["interface_master"]].dhcp_tag
+                    host = system.interfaces[interface["interface_master"]].dns_name
 
                     if ip is None or ip == "":
                         for (interface_name, interface_object) in list(
@@ -287,13 +283,11 @@ class _IscManager(ManagerModule):
                     else:
                         ignore_macs.append(mac)
 
-                    ip_v6 = system.interfaces[interface["interface_master"]][
-                        "ipv6_address"
-                    ]
-                    dhcp_tag = system.interfaces[interface["interface_master"]][
-                        "dhcp_tag"
-                    ]
-                    host = system.interfaces[interface["interface_master"]]["dns_name"]
+                    ip_v6 = system.interfaces[
+                        interface["interface_master"]
+                    ].ipv6_address
+                    dhcp_tag = system.interfaces[interface["interface_master"]].dhcp_tag
+                    host = system.interfaces[interface["interface_master"]].dns_name
 
                     if not ip_v6:
                         for (interface_name, interface_object) in list(
