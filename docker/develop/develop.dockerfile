@@ -39,6 +39,11 @@ RUN zypper install --no-recommends -y \
     python3-requests           \
     python3-PyYAML             \
     python3-pykickstart        \
+    python3-pycodestyle        \
+    python3-pyflakes           \
+    python3-pytest-cov         \
+    python3-pytest-mock        \
+    python3-pytest-pythonpath  \
     python3-netaddr            \
     python3-pymongo            \
     python3-gunicorn           \
@@ -113,19 +118,11 @@ RUN useradd -p $(perl -e 'print crypt("test", "password")') test
 # Add Developer scripts to PATH
 ENV PATH="/code/docker/develop/scripts:${PATH}"
 
-# Update pip
-RUN pip3 install --upgrade pip
-
 # Install packages and dependencies via pip
-RUN pip3 install      \
-    codecov           \
-    file-magic        \
-    pycodestyle       \
-    pyflakes          \
-    pytest            \
-    pytest-cov        \
-    pytest-mock       \
-    pytest-pythonpath
+RUN pip3 install file-magic
+
+# Install codecov
+RUN curl -Os https://uploader.codecov.io/latest/linux/codecov && chmod +x codecov
 
 # Enable the Apache Modules
 RUN ["a2enmod", "version"]
