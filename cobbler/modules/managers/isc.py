@@ -105,7 +105,9 @@ class _IscManager(ManagerModule):
                     else:
                         ignore_macs.append(mac)
 
-                    ip_address = system.interfaces[interface["interface_master"]].ip_address
+                    ip_address = system.interfaces[
+                        interface["interface_master"]
+                    ].ip_address
                     netmask = system.interfaces[interface["interface_master"]].netmask
                     dhcp_tag = system.interfaces[interface["interface_master"]].dhcp_tag
                     host = system.interfaces[interface["interface_master"]].dns_name
