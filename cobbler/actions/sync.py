@@ -456,12 +456,12 @@ class CobblerSync:
         # delete contents of autoinsts_sys/$name in webdir
         system_record = self.systems.find(name=name)
 
-        for (name, _) in list(system_record.interfaces.items()):
+        for (interface_name, _) in list(system_record.interfaces.items()):
             pxe_filename = system_record.get_config_filename(
-                interface=name, loader="pxe"
+                interface=interface_name, loader="pxe"
             )
             grub_filename = system_record.get_config_filename(
-                interface=name, loader="grub"
+                interface=interface_name, loader="grub"
             )
             filesystem_helpers.rmfile(
                 os.path.join(bootloc, "pxelinux.cfg", pxe_filename)

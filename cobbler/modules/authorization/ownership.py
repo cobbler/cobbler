@@ -148,8 +148,8 @@ def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int
     # Everybody can get read-only access to everything if they pass authorization, they don't have to be in users.conf
     if resource is not None:
         # FIXME: /cobbler/web should not be subject to user check in any case
-        for user in ["get", "read", "/cobbler/web"]:
-            if resource.startswith(user):
+        for user_resource in ["get", "read", "/cobbler/web"]:
+            if resource.startswith(user_resource):
                 return 1  # read operation is always ok.
 
     user_groups = __parse_config()
@@ -176,8 +176,8 @@ def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int
     found_groups = []
     grouplist = list(user_groups.keys())
     for group in grouplist:
-        for user in user_groups[group]:
-            if user == user:
+        for group_user in user_groups[group]:
+            if group_user == user:
                 found_groups.append(group)
                 found_user = True
                 # if user is in the admin group, always authorize

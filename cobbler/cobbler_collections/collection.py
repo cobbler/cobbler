@@ -136,7 +136,7 @@ class Collection:
                 return self.listing.get(kargs["name"], None)
 
         with self.lock:
-            for (name, obj) in list(self.listing.items()):
+            for (_, obj) in list(self.listing.items()):
                 if obj.find_match(kargs, no_errors=no_errors):
                     matches.append(obj)
 
