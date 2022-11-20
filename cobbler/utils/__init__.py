@@ -103,7 +103,7 @@ def get_exc(exc, full: bool = True):
     try:
         getattr(exc, "from_cobbler")
         buf = str(exc)[1:-1] + "\n"
-    except:
+    except Exception:
         if not full:
             buf += str(exec_type)
         buf = f"{buf}\n{exec_value}"
@@ -183,7 +183,7 @@ def is_ip(strdata: str) -> bool:
     """
     try:
         _IP(strdata)
-    except:
+    except Exception:
         return False
     return True
 
@@ -742,7 +742,7 @@ def rsync_files(src: str, dst: str, args: str, quiet: bool = True) -> bool:
         res = subprocess_call(rsync_cmd, shell=False)
         if res != 0:
             die(f"Failed to run the rsync command: '{rsync_cmd}'")
-    except:
+    except Exception:
         return False
 
     return True
@@ -797,7 +797,7 @@ def run_triggers(api, ref=None, globber: str = "", additional: list = None):
                     arglist.append(argument)
             logger.debug("running shell trigger %s", file)
             return_code = subprocess_call(arglist, shell=False)  # close_fds=True)
-        except:
+        except Exception:
             logger.warning("failed to execute trigger: %s", file)
             continue
 
@@ -995,7 +995,7 @@ def get_shared_secret() -> Union[str, int]:
     try:
         with open("/var/lib/cobbler/web.ss", "rb", encoding="utf-8") as web_secret_fd:
             data = web_secret_fd.read()
-    except:
+    except Exception:
         return -1
     return str(data).strip()
 

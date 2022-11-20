@@ -33,7 +33,7 @@ HAS_HIVEX = True
 try:
     import hivex
     from hivex.hive_types import REG_SZ
-except Exception:
+except ImportError:
     HAS_HIVEX = False
 
 # Import aptsources module if available to obtain repo mirror.
@@ -42,7 +42,7 @@ try:
     from aptsources import sourceslist
 
     APT_AVAILABLE = True
-except:
+except ImportError:
     APT_AVAILABLE = False
 
 MANAGER = None
@@ -115,7 +115,7 @@ class _ImportSignatureManager(ManagerModule):
             try:
                 with gzip.open(filename, "r") as file_fd:
                     return file_fd.readlines()
-            except:
+            except Exception:
                 pass
         if ftype.mime_type == "application/x-ms-wim":
             cmd = "/usr/bin/wiminfo"
@@ -725,7 +725,7 @@ class _ImportSignatureManager(ManagerModule):
                         "trying symlink: %s -> %s", str(base), str(dest_link)
                     )
                     os.symlink(base, dest_link)
-                except:
+                except Exception:
                     # FIXME: This shouldn't happen but I've seen it ... debug ...
                     self.logger.warning(
                         "symlink creation failed: %s, %s", base, dest_link
@@ -923,7 +923,7 @@ class _ImportSignatureManager(ManagerModule):
                 path_2 = os.path.join(comps_path, "base", "comps.xml")
                 if os.path.exists(path_1) and os.path.exists(path_2):
                     shutil.copyfile(path_1, path_2)
-        except:
+        except Exception:
             self.logger.error("error launching createrepo (not installed?), ignoring")
             utils.log_exc()
 
@@ -984,7 +984,7 @@ class _ImportSignatureManager(ManagerModule):
             for mirror in mirrors:
                 if mirror[2]:
                     return mirror[1]
-        except:
+        except Exception:
             return False
 
     # ==========================================================================

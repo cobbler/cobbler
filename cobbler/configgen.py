@@ -137,7 +137,7 @@ class ConfigGen:
                         file=file_data[file]["template"], searchList=[self.host_vars]
                     )
                     file_data[file]["content"] = template_api_instance.respond()
-                except:
+                except Exception:
                     utils.die(
                         f"Missing template for this file resource {file_data[file]}"
                     )

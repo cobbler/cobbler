@@ -534,7 +534,7 @@ class Distro(item.Item):
         if not os.path.lexists(dest_link):
             try:
                 os.symlink(base, dest_link)
-            except:
+            except Exception:
                 # FIXME: This shouldn't happen but I've (jsabo) seen it...
                 self.logger.warning(
                     "- symlink creation failed: %s, %s", base, dest_link

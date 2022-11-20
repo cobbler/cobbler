@@ -127,7 +127,7 @@ def get_file_device_path(fname):
     try:
         for ent in get_mtab():
             mtab_dict[ent.mnt_dir] = ent.mnt_fsname
-    except:
+    except Exception:
         pass
 
     # find a best match

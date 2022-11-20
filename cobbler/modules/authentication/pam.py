@@ -140,7 +140,7 @@ def authenticate(api_handle, username: str, password: str) -> bool:
 
     try:
         service = api_handle.settings().authn_pam_service
-    except:
+    except Exception:
         service = "login"
 
     api_handle.logger.debug(f"authn_pam: PAM service is {service}")

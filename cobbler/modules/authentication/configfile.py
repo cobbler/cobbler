@@ -71,7 +71,7 @@ def __parse_storage() -> List[List[str]]:
             line = line.strip()
             tokens = line.split(":")
             results.append([tokens[0], tokens[1], tokens[2]])
-        except:
+        except Exception:
             pass
     return results
 

@@ -962,7 +962,7 @@ class TFTPGen:
                         if system.interfaces[intf].mac_address:
                             management_mac = system.interfaces[intf].mac_address
                         break
-            except:
+            except Exception:
                 # just skip this then
                 pass
         elif profile is not None:
@@ -1171,7 +1171,7 @@ class TFTPGen:
 
         try:
             templates = obj.template_files
-        except:
+        except Exception:
             return results
 
         blended = utils.blender(self.api, False, obj)
@@ -1190,14 +1190,14 @@ class TFTPGen:
         autoinstall_meta = blended.get("autoinstall_meta", {})
         try:
             del blended["autoinstall_meta"]
-        except:
+        except Exception:
             pass
         blended.update(autoinstall_meta)  # make available at top level
 
         templates = blended.get("template_files", {})
         try:
             del blended["template_files"]
-        except:
+        except Exception:
             pass
         blended.update(templates)  # make available at top level
 
@@ -1408,7 +1408,7 @@ class TFTPGen:
         autoinstall_meta = blended.get("autoinstall_meta", {})
         try:
             del blended["autoinstall_meta"]
-        except:
+        except Exception:
             pass
         blended.update(autoinstall_meta)  # make available at top level
 

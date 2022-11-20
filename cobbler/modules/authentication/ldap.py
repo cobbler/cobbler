@@ -112,7 +112,7 @@ def authenticate(api_handle, username, password) -> bool:
             try:
                 directory.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
                 directory.start_tls_s()
-            except:
+            except Exception:
                 traceback.print_exc()
                 return False
     else:
@@ -128,7 +128,7 @@ def authenticate(api_handle, username, password) -> bool:
 
         try:
             directory.simple_bind_s(searchdn, searchpw)
-        except:
+        except Exception:
             traceback.print_exc()
             return False
 
@@ -148,6 +148,6 @@ def authenticate(api_handle, username, password) -> bool:
         directory.simple_bind_s(ldap_dn, password)
         directory.unbind()
         return True
-    except:
+    except Exception:
         # traceback.print_exc()
         return False

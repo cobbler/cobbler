@@ -132,7 +132,7 @@ class Collection:
         if len(kargs) == 1 and "name" in kargs and not return_list:
             try:
                 return self.listing.get(kargs["name"].lower(), None)
-            except:
+            except Exception:
                 return self.listing.get(kargs["name"], None)
 
         with self.lock:

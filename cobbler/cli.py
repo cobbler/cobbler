@@ -1813,7 +1813,7 @@ def report_item(remote, otype: str, item=None, name=None):
             cur_settings = remote.get_settings()
             try:
                 item = {"name": name, "value": cur_settings[name]}
-            except:
+            except Exception:
                 print(f"Setting not found: {name}")
                 return 1
         elif otype == "signature":
@@ -1900,7 +1900,7 @@ def opt(options, k, defval=""):
     """
     try:
         data = getattr(options, k)
-    except:
+    except Exception:
         # FIXME: debug only
         # traceback.print_exc()
         return defval
@@ -2119,7 +2119,7 @@ class CobblerCLI:
         with xmlrpc.client.ServerProxy(self.url_cobbler_api) as xmlrpc_server:
             try:
                 xmlrpc_server.ping()
-            except:
+            except Exception:
                 print(
                     "httpd does not appear to be running and proxying Cobbler, or SELinux is in the way. Original "
                     "traceback:",
@@ -2362,7 +2362,7 @@ class CobblerCLI:
                 )
                 try:
                     signatures.load_signatures(filename, cache=True)
-                except:
+                except Exception:
                     print(
                         f"There was an error loading the signature data in {filename}."
                     )

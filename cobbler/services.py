@@ -352,7 +352,7 @@ class CobblerSvc:
 
         try:
             return self.dlmgr.urlread(url)
-        except:
+        except Exception:
             return f"# automatic installation file retrieval failed ({url})"
 
     def findks(self, system=None, profile=None, **rest):
@@ -380,7 +380,7 @@ class CobblerSvc:
 
         try:
             return self.dlmgr.urlread(url)
-        except:
+        except Exception:
             return f"# kickstart retrieval failed ({url})"
 
     def puppet(self, hostname=None, **rest) -> str:

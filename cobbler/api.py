@@ -1566,7 +1566,7 @@ class CobblerAPI:
                 # test the import without caching it
                 try:
                     signatures.load_signatures(tmpfile.name, cache=False)
-                except:
+                except Exception:
                     self.logger.error(
                         "Downloaded signatures failed test load (tempfile = %s)",
                         tmpfile.name,
@@ -1579,7 +1579,7 @@ class CobblerAPI:
                 signature_fd.write(sigjson.text)
 
             signatures.load_signatures(self.settings().signature_path)
-        except:
+        except Exception:
             utils.log_exc()
 
     # ==========================================================================

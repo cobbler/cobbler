@@ -84,7 +84,7 @@ class _InTftpdManager(ManagerModule):
                     self.logger.info(
                         "copied file %s to %s for %s", file, filedst, distro.name
                     )
-            except:
+            except Exception:
                 self.logger.error(
                     "failed to copy file %s to %s for %s", file, filedst, distro.name
                 )

@@ -126,7 +126,7 @@ class AutoInstallationManager:
         file_full_path = f"{self.templates_base_dir}/{file_path}"
         try:
             filesystem_helpers.mkdir(os.path.dirname(file_full_path))
-        except:
+        except Exception:
             utils.die(
                 f"unable to create directory for automatic OS installation template at {file_path}"
             )
@@ -233,7 +233,7 @@ class AutoInstallationManager:
         file_full_path = f"{self.snippets_base_dir}/{file_path}"
         try:
             filesystem_helpers.mkdir(os.path.dirname(file_full_path))
-        except:
+        except Exception:
             utils.die(
                 f"unable to create directory for automatic OS installation snippet at {file_path}"
             )

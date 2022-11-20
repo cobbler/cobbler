@@ -526,7 +526,7 @@ class Image(item.Item):
         try:
             # If we have already loaded the supported boot loaders from the signature, use that data
             return self._supported_boot_loaders
-        except:
+        except Exception:
             # otherwise, refresh from the signatures / defaults
             self._supported_boot_loaders = signatures.get_supported_distro_boot_loaders(
                 self

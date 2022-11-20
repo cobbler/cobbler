@@ -23,13 +23,13 @@ def get_supported_distro_boot_loaders(distro, api_handle=None):
         return api_handle.get_signatures()["breeds"][distro.breed][distro.os_version][
             "boot_loaders"
         ][distro.arch.value]
-    except:
+    except Exception:
         try:
             # Try to read directly from the cache
             return SIGNATURE_CACHE["breeds"][distro.breed][distro.os_version][
                 "boot_loaders"
             ][distro.arch.value]
-        except:
+        except Exception:
             try:
                 # Else use some well-known defaults
                 return {
@@ -41,7 +41,7 @@ def get_supported_distro_boot_loaders(distro, api_handle=None):
                     "i386": ["grub", "pxe", "ipxe"],
                     "x86_64": ["grub", "pxe", "ipxe"],
                 }[distro.arch.value]
-            except:
+            except Exception:
                 # Else return the globally known list
                 return utils.get_supported_system_boot_loaders()
 
@@ -95,7 +95,7 @@ def get_valid_os_versions() -> list:
     try:
         for breed in get_valid_breeds():
             os_versions += list(SIGNATURE_CACHE["breeds"][breed].keys())
-    except:
+    except Exception:
         pass
     return utils.uniquify(os_versions)
 
@@ -113,6 +113,6 @@ def get_valid_archs():
                 archs += SIGNATURE_CACHE["breeds"][breed][operating_system][
                     "supported_arches"
                 ]
-    except:
+    except Exception:
         pass
     return utils.uniquify(archs)

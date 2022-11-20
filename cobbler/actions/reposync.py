@@ -276,7 +276,7 @@ class RepoSync:
             try:
                 cmd = ["createrepo"] + mdoptions + [flags, pipes.quote(dirname)]
                 utils.subprocess_call(cmd, shell=False)
-            except:
+            except Exception:
                 utils.log_exc()
                 self.logger.error("createrepo failed.")
             del fnames[:]  # we're in the right place

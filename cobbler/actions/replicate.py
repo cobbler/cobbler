@@ -227,7 +227,7 @@ class Replicate:
                                 tail.split("/")[1],
                             )
                             self.rsync_it(f"distro-{target['name']}", dest)
-                        except:
+                        except Exception:
                             self.logger.error("Failed to rsync distro %s", distro)
                             continue
                     else:

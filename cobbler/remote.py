@@ -523,7 +523,7 @@ class CobblerXMLRPCInterface:
         if token is not None:
             try:
                 m_user = self.get_user_from_token(token)
-            except:
+            except Exception:
                 # invalid or expired token?
                 m_user = "???"
         msg = f"REMOTE {msg}; user({m_user})"
@@ -594,13 +594,13 @@ class CobblerXMLRPCInterface:
             page = int(page)
             if page < 1:
                 page = default_page
-        except:
+        except Exception:
             page = default_page
         try:
             items_per_page = int(items_per_page)
             if items_per_page <= 0:
                 items_per_page = default_items_per_page
-        except:
+        except Exception:
             items_per_page = default_items_per_page
 
         num_items = len(data)
@@ -3638,7 +3638,7 @@ class CobblerXMLRPCInterface:
         try:
             self.check_access(token, resource, arg1, arg2)
             return 1
-        except:
+        except Exception:
             utils.log_exc()
             return 0
 

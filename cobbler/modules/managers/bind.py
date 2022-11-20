@@ -519,7 +519,7 @@ zone "%(arpa)s." {
                 if serial[0:8] == old_serial[0:8]:
                     if int(old_serial[8:10]) < 99:
                         serial = f"{serial[0:8]}{int(old_serial[8:10]) + 1:.2d}"
-        except:
+        except Exception:
             pass
 
         with open(serial_filename, "w", encoding="UTF-8") as serialfd:
@@ -568,7 +568,7 @@ zone "%(arpa)s." {
                         )
                     else:
                         template_data = zone_fd.read()
-            except:
+            except Exception:
                 # If this is an IPv6 zone, set the origin to the zone for this
                 # template
                 if zone_origin:
@@ -601,7 +601,7 @@ zone "%(arpa)s." {
                     f"/etc/cobbler/zone_templates/{zone}", encoding="UTF-8"
                 ) as zone_fd:
                     template_data = zone_fd.read()
-            except:
+            except Exception:
                 template_data = default_template_data
 
             metadata["cname_record"] = self.__pretty_print_cname_records(hosts)

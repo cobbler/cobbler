@@ -59,7 +59,7 @@ def run(api, args) -> int:
 
     try:
         return_code = utils.subprocess_call(cmd, shell=False)
-    except:
+    except Exception:
         logger.warning("failed to execute %s", puppetca_path)
 
     if return_code != 0:
