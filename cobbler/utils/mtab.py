@@ -3,6 +3,7 @@ We cache the contents of ``/etc/mtab``. The following module is used to keep our
 """
 
 import os
+from typing import Optional
 
 MTAB_MTIME = None
 MTAB_MAP = []
@@ -20,7 +21,7 @@ class MntEntObj:
     mnt_freq = 0  # dump frequency in days
     mnt_passno = 0  # pass number on parallel fsck
 
-    def __init__(self, input_data: str = None):
+    def __init__(self, input_data: Optional[str] = None):
         """
         This is an object which contains information about a mounted filesystem.
 

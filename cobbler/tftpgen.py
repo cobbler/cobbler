@@ -596,7 +596,7 @@ class TFTPGen:
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
 
-    def get_menu_level(self, menu=None, arch: enums.Archs = None) -> dict:
+    def get_menu_level(self, menu=None, arch: Optional[enums.Archs] = None) -> dict:
         """
         Generates menu items for submenus, pxe, ipxe and grub.
 

@@ -6,7 +6,7 @@ This module contains the specific code to generate a network bootable ISO.
 
 import os
 import re
-from typing import List
+from typing import Optional, List
 
 from cobbler import utils
 from cobbler.utils import input_converters
@@ -416,7 +416,7 @@ class NetbootBuildiso(buildiso.BuildIso):
     This class contains all functionality related to building network installation images.
     """
 
-    def filter_systems(self, selected_items: List[str] = None) -> list:
+    def filter_systems(self, selected_items: Optional[List[str]] = None) -> list:
         """
         Return a list of valid system objects selected from all systems by name, or everything if ``selected_items`` is
         empty.
@@ -517,7 +517,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         cfglines.append(append_line)
 
     def generate_netboot_iso(
-        self, systems: List[str] = None, exclude_dns: bool = False
+        self, systems: Optional[List[str]] = None, exclude_dns: bool = False
     ):
         """
         Creates the ``isolinux.cfg`` for a network bootable ISO image.
@@ -546,10 +546,10 @@ class NetbootBuildiso(buildiso.BuildIso):
         self,
         iso: str = "autoinst.iso",
         buildisodir: str = "",
-        profiles: List[str] = None,
+        profiles: Optional[List[str]] = None,
         xorrisofs_opts: str = "",
         distro_name: str = "",
-        systems: List[str] = None,
+        systems: Optional[List[str]] = None,
         exclude_dns: bool = False,
     ):
         """

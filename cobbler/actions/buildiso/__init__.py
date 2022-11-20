@@ -83,7 +83,7 @@ class BuildIso:
             shutil.copyfile(kernel, path_destdir.joinpath(f"{new_filename}.krn"))
             shutil.copyfile(initrd, path_destdir.joinpath(f"{new_filename}.img"))
 
-    def filter_profiles(self, selected_items: List[str] = None) -> list:
+    def filter_profiles(self, selected_items: Optional[List[str]] = None) -> list:
         """
         Return a list of valid profile objects selected from all profiles by name, or everything if ``selected_items``
         is empty.
