@@ -912,19 +912,19 @@ def command_existing(cmd: str) -> bool:
     return shutil.which(cmd) is not None
 
 
-def subprocess_sp(cmd, shell: bool = True, input=None):
+def subprocess_sp(cmd, shell: bool = True, process_input=None):
     """
     Call a shell process and redirect the output for internal usage.
 
     :param cmd: The command to execute in a subprocess call.
     :param shell: Whether to use a shell or not for the execution of the command.
-    :param input: If there is any input needed for that command to stdin.
+    :param process_input: If there is any input needed for that command to stdin.
     :return: A tuple of the output and the return code.
     """
     logger.info("running: %s", cmd)
 
     stdin = None
-    if input:
+    if process_input:
         stdin = subprocess.PIPE
 
     try:
@@ -937,7 +937,7 @@ def subprocess_sp(cmd, shell: bool = True, input=None):
             encoding="utf-8",
             close_fds=True,
         ) as subprocess_popen_obj:
-            (out, err) = subprocess_popen_obj.communicate(input)
+            (out, err) = subprocess_popen_obj.communicate(process_input)
             return_code = subprocess_popen_obj.returncode
     except OSError:
         log_exc()
@@ -948,29 +948,29 @@ def subprocess_sp(cmd, shell: bool = True, input=None):
     return out, return_code
 
 
-def subprocess_call(cmd, shell: bool = False, input=None):
+def subprocess_call(cmd, shell: bool = False, process_input=None):
     """
     A simple subprocess call with no output capturing.
 
     :param cmd: The command to execute.
     :param shell: Whether to use a shell or not for the execution of the command.
-    :param input: If there is any input needed for that command to stdin.
+    :param process_input: If there is any process_input needed for that command to stdin.
     :return: The return code of the process
     """
-    _, return_code = subprocess_sp(cmd, shell=shell, input=input)
+    _, return_code = subprocess_sp(cmd, shell=shell, process_input=process_input)
     return return_code
 
 
-def subprocess_get(cmd, shell: bool = True, input=None):
+def subprocess_get(cmd, shell: bool = True, process_input=None):
     """
     A simple subprocess call with no return code capturing.
 
     :param cmd: The command to execute.
     :param shell: Whether to use a shell or not for the execution of the command.
-    :param input: If there is any input needed for that command to stdin.
+    :param process_input: If there is any process_input needed for that command to stdin.
     :return: The data which the subprocess returns.
     """
-    data, _ = subprocess_sp(cmd, shell=shell, input=input)
+    data, _ = subprocess_sp(cmd, shell=shell, process_input=process_input)
     return data
 
 

@@ -53,12 +53,12 @@ class AutoInstallationGen:
         new_script_file.appendChild(new_script_file_text)
         return new_script
 
-    def addAutoYaSTScript(self, document, type, source):
+    def addAutoYaSTScript(self, document, script_type, source):
         """
         Add scripts to an existing AutoYaST XML.
 
         :param document: The existing AutoYaST XML object.
-        :param type: The type of the script which should be added.
+        :param script_type: The type of the script which should be added.
         :param source: The source of the script. This should be ideally a string.
         """
         scripts = document.getElementsByTagName("scripts")
@@ -68,16 +68,18 @@ class AutoInstallationGen:
             scripts = document.getElementsByTagName("scripts")
         added = 0
         for stype in scripts[0].childNodes:
-            if stype.nodeType == stype.ELEMENT_NODE and stype.tagName == type:
+            if stype.nodeType == stype.ELEMENT_NODE and stype.tagName == script_type:
                 stype.appendChild(
-                    self.createAutoYaSTScript(document, source, type + "_cobbler")
+                    self.createAutoYaSTScript(
+                        document, source, script_type + "_cobbler"
+                    )
                 )
                 added = 1
         if added == 0:
-            new_chroot_scripts = document.createElement(type)
+            new_chroot_scripts = document.createElement(script_type)
             new_chroot_scripts.setAttribute("config:type", "list")
             new_chroot_scripts.appendChild(
-                self.createAutoYaSTScript(document, source, type + "_cobbler")
+                self.createAutoYaSTScript(document, source, script_type + "_cobbler")
             )
             scripts[0].appendChild(new_chroot_scripts)
 

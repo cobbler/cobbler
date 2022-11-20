@@ -106,11 +106,11 @@ class Replicate:
 
         :param obj_type: The type of object which should be synchronized.
         """
-        locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
-        remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
+        local_objects = utils.lod_to_dod(self.local_data[obj_type], "uid")
+        remote_objects = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        for (luid, ldata) in locals.items():
-            if luid not in remotes:
+        for (luid, ldata) in local_objects.items():
+            if luid not in remote_objects:
                 try:
                     self.logger.info("removing %s %s", obj_type, ldata["name"])
                     self.api.remove_item(obj_type, ldata["name"], recursive=True)
@@ -125,16 +125,16 @@ class Replicate:
 
         :param obj_type:
         """
-        locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
-        remotes = utils.lod_sort_by_key(self.remote_data[obj_type], "depth")
+        local_objects = utils.lod_to_dod(self.local_data[obj_type], "uid")
+        remote_objects = utils.lod_sort_by_key(self.remote_data[obj_type], "depth")
 
-        for rdata in remotes:
+        for rdata in remote_objects:
 
             # do not add the system if it is not on the transfer list
             if not rdata["name"] in self.must_include[obj_type]:
                 continue
 
-            if not rdata["uid"] in locals:
+            if not rdata["uid"] in local_objects:
                 creator = getattr(self.api, f"new_{obj_type}")
                 newobj = creator()
                 newobj.from_dict(utils.revert_strip_none(rdata))
@@ -155,16 +155,16 @@ class Replicate:
 
         :param obj_type: The type of object to synchronize.
         """
-        locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
-        remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
+        local_objects = utils.lod_to_dod(self.local_data[obj_type], "uid")
+        remote_objects = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        for (ruid, rdata) in remotes.items():
+        for (ruid, rdata) in remote_objects.items():
             # do not add the system if it is not on the transfer list
             if rdata["name"] not in self.must_include[obj_type]:
                 continue
 
-            if ruid in locals:
-                ldata = locals[ruid]
+            if ruid in local_objects:
+                ldata = local_objects[ruid]
                 if ldata["mtime"] < rdata["mtime"]:
                     if ldata["name"] != rdata["name"]:
                         self.logger.info("removing %s %s", obj_type, ldata["name"])

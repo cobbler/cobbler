@@ -20,15 +20,15 @@ class MntEntObj:
     mnt_freq = 0  # dump frequency in days
     mnt_passno = 0  # pass number on parallel fsck
 
-    def __init__(self, input: str = None):
+    def __init__(self, input_data: str = None):
         """
         This is an object which contains information about a mounted filesystem.
 
-        :param input: This is a string which is separated internally by whitespace. If present it represents the
+        :param input_data: This is a string which is separated internally by whitespace. If present it represents the
                       arguments: "mnt_fsname", "mnt_dir", "mnt_type", "mnt_opts", "mnt_freq" and "mnt_passno". The order
                       must be preserved, as well as the separation by whitespace.
         """
-        if input and isinstance(input, str):
+        if input_data and isinstance(input_data, str):
             (
                 self.mnt_fsname,
                 self.mnt_dir,
@@ -36,7 +36,7 @@ class MntEntObj:
                 self.mnt_opts,
                 self.mnt_freq,
                 self.mnt_passno,
-            ) = input.split()
+            ) = input_data.split()
 
     def __dict__(self) -> dict:
         """

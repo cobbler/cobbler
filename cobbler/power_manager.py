@@ -204,13 +204,13 @@ class PowerManager:
         power_input = self._get_power_input(system, power_operation, user, password)
 
         self.logger.info("power command: %s", power_command)
-        self.logger.info("power command input: %s", power_input)
+        self.logger.info("power command process_input: %s", power_input)
 
         return_code = -1
 
         for _ in range(0, POWER_RETRIES):
             output, return_code = utils.subprocess_sp(
-                power_command, shell=False, input=power_input
+                power_command, shell=False, process_input=power_input
             )
             # Allowed return codes: 0, 1, 2
             # pylint: disable-next=line-too-long

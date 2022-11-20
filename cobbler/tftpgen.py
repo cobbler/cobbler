@@ -257,7 +257,7 @@ class TFTPGen:
 
             # Passing "pxe" here is a hack, but we need to make sure that
             # get_config_filename() will return a filename in the pxelinux
-            # format.
+            # bootloader_format.
             pxe_name = system.get_config_filename(interface=name, loader="pxe")
             grub_name = system.get_config_filename(interface=name, loader="grub")
 
@@ -319,7 +319,7 @@ class TFTPGen:
                             profile,
                             distro,
                             working_arch,
-                            format="grub",
+                            bootloader_format="grub",
                         )
                         # Generate a link named after system to the mac file for easier lookup
                         link_path = os.path.join(
@@ -517,7 +517,7 @@ class TFTPGen:
                     distro=distro,
                     arch=arch,
                     image=None,
-                    format=boot_loader,
+                    bootloader_format=boot_loader,
                 )
                 if contents and contents != "":
                     if boot_loader not in current_menu_items:
@@ -574,7 +574,7 @@ class TFTPGen:
                         distro=None,
                         arch=arch,
                         image=image,
-                        format=boot_loader,
+                        bootloader_format=boot_loader,
                     )
                     if contents and contents != "":
                         if boot_loader not in current_menu_items:
@@ -706,7 +706,7 @@ class TFTPGen:
         arch: Archs,
         image=None,
         metadata=None,
-        format: str = "pxe",
+        bootloader_format: str = "pxe",
     ) -> str:
         """
         Write a configuration file for the boot loader(s).
@@ -724,7 +724,7 @@ class TFTPGen:
         :param arch: The processor architecture to generate the pxefile for.
         :param image: If you want to be able to deploy an image, supply this parameter.
         :param metadata: Pass additional parameters to the ones being collected during the method.
-        :param format: Can be any of those returned by utils.get_supported_system_boot_loaders().
+        :param bootloader_format: Can be any of those returned by utils.get_supported_system_boot_loaders().
         :return: The generated filecontent for the required item.
         """
 
@@ -756,7 +756,7 @@ class TFTPGen:
             metadata["menu_name"] = image.name
             if image.display_name and image.display_name != "":
                 metadata["menu_label"] = image.display_name
-        if boot_loaders is None or format not in boot_loaders:
+        if boot_loaders is None or bootloader_format not in boot_loaders:
             return None
 
         settings = input_converters.input_string_or_dict(self.settings.to_dict())
@@ -766,9 +766,9 @@ class TFTPGen:
         buffer = ""
 
         template = os.path.join(
-            self.settings.boot_loader_conf_template_dir, format + ".template"
+            self.settings.boot_loader_conf_template_dir, bootloader_format + ".template"
         )
-        self.build_kernel(metadata, system, profile, distro, image, format)
+        self.build_kernel(metadata, system, profile, distro, image, bootloader_format)
 
         # generate the kernel options and append line:
         kernel_options = self.build_kernel_options(
@@ -800,9 +800,9 @@ class TFTPGen:
                 else:
                     serial_baud_rate = system.serial_baud_rate.value
 
-                if format == "pxe":
+                if bootloader_format == "pxe":
                     buffer += f"serial {serial_device:d} {serial_baud_rate:d}\n"
-                elif format == "grub":
+                elif bootloader_format == "grub":
                     buffer += f"set serial_console=true\n"
                     buffer += f"set serial_baud={serial_baud_rate}\n"
                     buffer += f"set serial_line={serial_device}\n"
@@ -818,7 +818,7 @@ class TFTPGen:
                 else:
                     bootcfg_path = os.path.join("system", system.name, "boot.cfg")
                 # write the boot.cfg file in the bootcfg_path
-                if format == "pxe":
+                if bootloader_format == "pxe":
                     self._write_bootcfg_file("system", system.name, bootcfg_path)
                 # make bootcfg_path available for templating
                 metadata["bootcfg_path"] = bootcfg_path
@@ -1306,7 +1306,7 @@ class TFTPGen:
             return ""
 
         result = self.write_pxe_file(
-            None, system, profile, distro, arch, image, format="ipxe"
+            None, system, profile, distro, arch, image, bootloader_format="ipxe"
         )
         return "" if not result else result
 
@@ -1434,19 +1434,19 @@ class TFTPGen:
         return self.templar.render(template_data, blended, None)
 
     def _build_windows_initrd(
-        self, loader_name: str, custom_loader_name: str, format: str
+        self, loader_name: str, custom_loader_name: str, bootloader_format: str
     ) -> str:
         """
         Generate a initrd metadata for Windows.
 
         :param loader_name: The loader name.
         :param custom_loader_name: The loader name in profile or system.
-        :param format: Can be any of those returned by get_supported_system_boot_loaders.
-        :return: The fully generated initrd string for the boot loader.
+        :param bootloader_format: Can be any of those returned by get_supported_system_boot_loaders.
+        :return: The fully generated initrd string for the bootloader.
         """
         initrd_line = custom_loader_name
 
-        if format == "ipxe":
+        if bootloader_format == "ipxe":
             initrd_line = (
                 "--name " + loader_name + " " + custom_loader_name + " " + loader_name
             )
@@ -1454,7 +1454,7 @@ class TFTPGen:
         return initrd_line
 
     def _generate_initrd(
-        self, autoinstall_meta: dict, kernel_path, initrd_path, format: str
+        self, autoinstall_meta: dict, kernel_path, initrd_path, bootloader_format: str
     ) -> List[str]:
         """
         Generate a initrd metadata.
@@ -1462,7 +1462,7 @@ class TFTPGen:
         :param autoinstall_meta: The kernel options.
         :param kernel_path: Path to the kernel.
         :param initrd_path: Path to the initrd.
-        :param format: Can be any of those returned by get_supported_system_boot_loaders.
+        :param bootloader_format: Can be any of those returned by get_supported_system_boot_loaders.
         :return: The array of additional boot load files.
         """
         initrd = []
@@ -1483,26 +1483,30 @@ class TFTPGen:
 
             if initrd_path:
                 initrd.append(
-                    self._build_windows_initrd("boot.sdi", initrd_path, format)
+                    self._build_windows_initrd(
+                        "boot.sdi", initrd_path, bootloader_format
+                    )
                 )
             if "bootmgr" in autoinstall_meta:
                 initrd.append(
                     self._build_windows_initrd(
                         "bootmgr.exe",
                         bootmgr_path + autoinstall_meta["bootmgr"],
-                        format,
+                        bootloader_format,
                     )
                 )
             if "bcd" in autoinstall_meta:
                 initrd.append(
                     self._build_windows_initrd(
-                        "bcd", bcd_path + autoinstall_meta["bcd"], format
+                        "bcd", bcd_path + autoinstall_meta["bcd"], bootloader_format
                     )
                 )
             if "winpe" in autoinstall_meta:
                 initrd.append(
                     self._build_windows_initrd(
-                        "winpe.wim", wim_path + autoinstall_meta["winpe"], format
+                        "winpe.wim",
+                        wim_path + autoinstall_meta["winpe"],
+                        bootloader_format,
                     )
                 )
         else:
