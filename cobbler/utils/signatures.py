@@ -53,7 +53,8 @@ def load_signatures(filename, cache: bool = True):
     :param filename: Loads the file with the given name.
     :param cache: If the cache should be set with the newly read data.
     """
-    global SIGNATURE_CACHE
+    # Signature cache is module wide and thus requires global
+    global SIGNATURE_CACHE  # pylint: disable=global-statement
 
     with open(filename, "r", encoding="UTF-8") as signature_file_fd:
         sigjson = signature_file_fd.read()

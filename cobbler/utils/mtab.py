@@ -73,7 +73,8 @@ def get_mtab(mtab="/etc/mtab", vfstype: bool = False) -> list:
                     entries.
     :return: The list of requested mtab entries.
     """
-    global MTAB_MTIME, MTAB_MAP
+    # These two variables are required to be caches on the module level to be persistent during runtime.
+    global MTAB_MTIME, MTAB_MAP  # pylint: disable=global-statement
 
     mtab_stat = os.stat(mtab)
     if mtab_stat.st_mtime != MTAB_MTIME:

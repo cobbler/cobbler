@@ -51,6 +51,9 @@ def run(api, args):
     :param args: Metadata to log.
     :return: "0" on success or a skipped task. If the task failed or problems occurred then an exception is raised.
     """
+    # Module level log file descriptor
+    global LOGF  # pylint: disable=global-statement
+
     action = None
     if __name__ == "cobbler.modules.nsupdate_add_system_post":
         action = "replace"
@@ -66,7 +69,7 @@ def run(api, args):
 
     # Read our settings
     if str(settings.nsupdate_log) is not None:
-        logf = open(str(settings.nsupdate_log), "a+", encoding="UTF-8")
+        LOGF = open(str(settings.nsupdate_log), "a+", encoding="UTF-8")
         nslog(f">> starting {__name__} {args}\n")
 
     if str(settings.nsupdate_tsig_key) is not None:
@@ -143,7 +146,7 @@ def run(api, args):
             rcode_txt = dns.rcode.to_text(response.rcode())
         except dns.tsig.PeerBadKey as error:
             nslog("failed (refused key)\n>> done\n")
-            logf.close()
+            LOGF.close()
 
             raise CX(
                 f"nsupdate failed, server '{soa_mname}' refusing our key"
@@ -154,12 +157,12 @@ def run(api, args):
         # notice user about update failure
         if response.rcode() != dns.rcode.NOERROR:
             nslog(">> done\n")
-            logf.close()
+            LOGF.close()
 
             raise CX(
                 f"nsupdate failed (response: {rcode_txt}, name: {host}.{domain}, ip {host_ip}, name server {soa_mname})"
             )
 
     nslog(">> done\n")
-    logf.close()
+    LOGF.close()
     return 0
