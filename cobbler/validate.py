@@ -397,7 +397,7 @@ def validate_virt_ram(value: Union[int, str]) -> Union[str, int]:
     interger_number = int(value)
     if interger_number < 0:
         raise ValueError(
-            f"The virt_ram needs to have a value greater or equal to zero. Zero means default RAM."
+            "The virt_ram needs to have a value greater or equal to zero. Zero means default RAM."
         )
     return interger_number
 

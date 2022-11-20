@@ -803,7 +803,7 @@ class TFTPGen:
                 if bootloader_format == "pxe":
                     buffer += f"serial {serial_device:d} {serial_baud_rate:d}\n"
                 elif bootloader_format == "grub":
-                    buffer += f"set serial_console=true\n"
+                    buffer += "set serial_console=true\n"
                     buffer += f"set serial_baud={serial_baud_rate}\n"
                     buffer += f"set serial_line={serial_device}\n"
 
