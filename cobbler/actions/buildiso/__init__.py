@@ -62,7 +62,7 @@ class BuildIso:
         self.iso_template = (
             pathlib.Path(self.api.settings().iso_template_dir)
             .joinpath("buildiso.template")
-            .read_text()
+            .read_text(encoding="UTF-8")
         )
 
     def copy_boot_files(self, distro, destdir: str, new_filename: str = ""):
@@ -80,8 +80,8 @@ class BuildIso:
             shutil.copyfile(kernel, path_destdir.joinpath(kernel.name))
             shutil.copyfile(initrd, path_destdir.joinpath(initrd.name))
         else:
-            shutil.copyfile(kernel, path_destdir.joinpath("%s.krn" % new_filename))
-            shutil.copyfile(initrd, path_destdir.joinpath("%s.img" % new_filename))
+            shutil.copyfile(kernel, path_destdir.joinpath(f"{new_filename}.krn"))
+            shutil.copyfile(initrd, path_destdir.joinpath(f"{new_filename}.img"))
 
     def filter_profiles(self, selected_items: List[str] = None) -> list:
         """
@@ -205,10 +205,10 @@ class BuildIso:
         if desired_arch in (Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL):
             # GRUB can boot all Power architectures it supports via the following modules directory.
             return grub_binary_names["powerpc-ieee1275"]
-        elif desired_arch == Archs.AARCH64:
+        if desired_arch == Archs.AARCH64:
             # GRUB has only one 64-bit variant it can boot, the name is different how we have named it in Cobbler.
             return grub_binary_names["arm64-efi"]
-        elif desired_arch == Archs.ARM:
+        if desired_arch == Archs.ARM:
             # GRUB has only one 32-bit variant it can boot, the name is different how we have named it in Cobbler.
             return grub_binary_names["arm"]
 
@@ -222,14 +222,13 @@ class BuildIso:
 
         if len(matches) == 0:
             raise ValueError(
-                'No matches found for requested Cobbler Arch: "%s"'
-                % str(desired_arch.value)
+                f'No matches found for requested Cobbler Arch: "{str(desired_arch.value)}"'
             )
-        elif len(matches) == 1:
+        if len(matches) == 1:
             return next(iter(matches.values()))
         raise ValueError(
-            'Ambiguous matches for GRUB to Cobbler Arch mapping! Requested: "%s" Found: "%s"'
-            % (str(desired_arch.value), str(matches.values()))
+            f'Ambiguous matches for GRUB to Cobbler Arch mapping! Requested: "{str(desired_arch.value)}"'
+            f' Found: "{str(matches.values())}"'
         )
 
     def __prepare_buildisodir(self, buildisodir: str = "") -> str:

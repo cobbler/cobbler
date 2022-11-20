@@ -35,12 +35,11 @@ class ConvertableEnum(enum.Enum):
                             "The enum given does not support inheritance!"
                         ) from key_error
                 return cls[value.upper()]
-            elif isinstance(value, cls):
+            if isinstance(value, cls):
                 return value
-            else:
-                raise TypeError(f"{value} must be a str or Enum")
+            raise TypeError(f"{value} must be a str or Enum")
         except KeyError:
-            raise ValueError(f"{value} must be one of {list(cls)}")
+            raise ValueError(f"{value} must be one of {list(cls)}") from KeyError
 
 
 class EventStatus(ConvertableEnum):
@@ -113,6 +112,10 @@ class ItemTypes(ConvertableEnum):
 
 
 class DHCP(enum.Enum):
+    """
+    TODO
+    """
+
     V4 = 4
     V6 = 6
 

@@ -70,20 +70,20 @@ def authenticate(api_handle, username, password) -> bool:
         elif port == "636":
             uri += "ldaps://" + server
         elif port == "3269":
-            uri += "ldaps://" + "%s:%s" % (server, port)
+            uri += "ldaps://" + f"{server}:{port}"
         else:
-            uri += "ldap://" + "%s:%s" % (server, port)
+            uri += "ldap://" + f"{server}:{port}"
         uri += " "
 
     uri = uri.strip()
 
     # connect to LDAP host
-    dir = ldap.initialize(uri)
+    directory = ldap.initialize(uri)
 
     if port in ("636", "3269"):
         ldaps_tls = ldap
     else:
-        ldaps_tls = dir
+        ldaps_tls = directory
 
     if tls or port in ("636", "3269"):
         if tls_cacertdir:
@@ -110,9 +110,9 @@ def authenticate(api_handle, username, password) -> bool:
     if port not in ("636", "3269"):
         if tls:
             try:
-                dir.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
-                dir.start_tls_s()
-            except:
+                directory.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
+                directory.start_tls_s()
+            except Exception:
                 traceback.print_exc()
                 return False
     else:
@@ -127,17 +127,17 @@ def authenticate(api_handle, username, password) -> bool:
             raise CX("Missing search bind settings")
 
         try:
-            dir.simple_bind_s(searchdn, searchpw)
-        except:
+            directory.simple_bind_s(searchdn, searchpw)
+        except Exception:
             traceback.print_exc()
             return False
 
     # perform a subtree search in basedn to find the full dn of the user
     # TODO: what if username is a CN?  maybe it goes into the config file as well?
-    filter = prefix + username
-    result = dir.search_s(basedn, ldap.SCOPE_SUBTREE, filter, [])
+    ldap_filter = prefix + username
+    result = directory.search_s(basedn, ldap.SCOPE_SUBTREE, ldap_filter, [])
     if result:
-        for dn, entry in result:
+        for ldap_dn, _ in result:
             # username _should_ be unique so we should only have one result ignore entry; we don't need it
             pass
     else:
@@ -145,9 +145,9 @@ def authenticate(api_handle, username, password) -> bool:
 
     try:
         # attempt to bind as the user
-        dir.simple_bind_s(dn, password)
-        dir.unbind()
+        directory.simple_bind_s(ldap_dn, password)
+        directory.unbind()
         return True
-    except:
+    except Exception:
         # traceback.print_exc()
         return False

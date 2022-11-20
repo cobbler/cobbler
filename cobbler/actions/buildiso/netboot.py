@@ -37,24 +37,18 @@ class AppendLineBuilder:
             intmac = "mac_address_" + self.system_interface
             if self.dist.breed == "suse":
                 if self.data.get(intmac, "") != "":
-                    self.append_line += (
-                        " netdevice=%s"
-                        % self.data["mac_address_" + self.system_interface].lower()
-                    )
+                    self.append_line += f" netdevice={self.data['mac_address_' + self.system_interface].lower()}"
                 else:
-                    self.append_line += " netdevice=%s" % self.system_interface
+                    self.append_line += f" netdevice={self.system_interface}"
             elif self.dist.breed == "redhat":
                 if self.data.get(intmac, "") != "":
                     self.append_line += (
-                        " ksdevice=%s"
-                        % self.data["mac_address_" + self.system_interface]
+                        f" ksdevice={self.data['mac_address_' + self.system_interface]}"
                     )
                 else:
-                    self.append_line += " ksdevice=%s" % self.system_interface
+                    self.append_line += f" ksdevice={self.system_interface}"
             elif self.dist.breed in ["ubuntu", "debian"]:
-                self.append_line += (
-                    " netcfg/choose_interface=%s" % self.system_interface
-                )
+                self.append_line += f" netcfg/choose_interface={self.system_interface}"
 
     def _system_ip_append_line(self):
         """
@@ -62,11 +56,11 @@ class AppendLineBuilder:
         """
         if self.system_ip is not None:
             if self.dist.breed == "suse":
-                self.append_line += " hostip=%s" % self.system_ip
+                self.append_line += f" hostip={self.system_ip}"
             elif self.dist.breed == "redhat":
-                self.append_line += " ip=%s" % self.system_ip
+                self.append_line += f" ip={self.system_ip}"
             elif self.dist.breed in ["ubuntu", "debian"]:
-                self.append_line += " netcfg/get_ipaddress=%s" % self.system_ip
+                self.append_line += f" netcfg/get_ipaddress={self.system_ip}"
 
     def _system_mask_append_line(self):
         """
@@ -74,9 +68,9 @@ class AppendLineBuilder:
         """
         if self.system_netmask is not None:
             if self.dist.breed in ["suse", "redhat"]:
-                self.append_line += " netmask=%s" % self.system_netmask
+                self.append_line += f" netmask={self.system_netmask}"
             elif self.dist.breed in ["ubuntu", "debian"]:
-                self.append_line += " netcfg/get_netmask=%s" % self.system_netmask
+                self.append_line += f" netcfg/get_netmask={self.system_netmask}"
 
     def _system_gw_append_line(self):
         """
@@ -84,9 +78,9 @@ class AppendLineBuilder:
         """
         if self.system_gw is not None:
             if self.dist.breed in ["suse", "redhat"]:
-                self.append_line += " gateway=%s" % self.system_gw
+                self.append_line += f" gateway={self.system_gw}"
             elif self.dist.breed in ["ubuntu", "debian"]:
-                self.append_line += " netcfg/get_gateway=%s" % self.system_gw
+                self.append_line += f" netcfg/get_gateway={self.system_gw}"
 
     def _system_dns_append_line(self, exclude_dns: bool):
         """
@@ -106,9 +100,9 @@ class AppendLineBuilder:
             if isinstance(self.system_dns, list):
                 joined_nameservers = ",".join(self.system_dns)
                 if joined_nameservers != "":
-                    self.append_line += " %s=%s" % (nameserver_key, joined_nameservers)
+                    self.append_line += f" {nameserver_key}={joined_nameservers}"
             else:
-                self.append_line += " %s=%s" % (nameserver_key, self.system_dns)
+                self.append_line += f" {nameserver_key}={self.system_dns}"
 
     def _generate_static_ip_boot_interface(self):
         """
@@ -207,23 +201,19 @@ class AppendLineBuilder:
         Generate additional content for the append line in case that dist is a RedHat based one.
         """
         if self.data.get("proxy", "") != "":
-            self.append_line += " proxy=%s http_proxy=%s" % (
-                self.data["proxy"],
-                self.data["proxy"],
+            self.append_line += (
+                f" proxy={self.data['proxy']} http_proxy={self.data['proxy']}"
             )
-        self.append_line += " inst.ks=%s" % self.data["autoinstall"]
+        self.append_line += f" inst.ks={self.data['autoinstall']}"
 
     def _generate_append_debian(self, system):
         """
         Generate additional content for the append line in case that dist is Ubuntu or Debian.
         :param system: The system which the append line should be generated for.
         """
-        self.append_line += (
-            " auto-install/enable=true url=%s netcfg/disable_autoconfig=true"
-            % self.data["autoinstall"]
-        )
+        self.append_line += f" auto-install/enable=true url={self.data['autoinstall']} netcfg/disable_autoconfig=true"
         if self.data.get("proxy", "") != "":
-            self.append_line += " mirror/http/proxy=%s" % self.data["proxy"]
+            self.append_line += f" mirror/http/proxy={self.data['proxy']}"
         # hostname is required as a parameter, the one in the preseed is not respected
         my_domain = "local.lan"
         if system.hostname != "":
@@ -239,10 +229,10 @@ class AppendLineBuilder:
                 my_domain = ".".join(_domain)
         # At least for debian deployments configured for DHCP networking this values are not used, but
         # specifying here avoids questions
-        self.append_line += " hostname=%s domain=%s" % (my_hostname, my_domain)
+        self.append_line += f" hostname={my_hostname} domain={my_domain}"
         # A similar issue exists with suite name, as installer requires the existence of "stable" in the dists
         # directory
-        self.append_line += " suite=%s" % self.dist.os_version
+        self.append_line += f" suite={self.dist.os_version}"
 
     def _generate_append_suse(self):
         """
@@ -250,21 +240,20 @@ class AppendLineBuilder:
         :return: The updated append line. If the distribution is not SUSE, then nothing is changed.
         """
         if self.data.get("proxy", "") != "":
-            self.append_line += " proxy=%s" % self.data["proxy"]
+            self.append_line += f" proxy={self.data['proxy']}"
         if self.data["kernel_options"].get("install", "") != "":
-            self.append_line += " install=%s" % self.data["kernel_options"]["install"]
+            self.append_line += f" install={self.data['kernel_options']['install']}"
             del self.data["kernel_options"]["install"]
         else:
-            self.append_line += " install=http://%s:%s/cblr/links/%s" % (
-                self.data["server"],
-                self.data["http_port"],
-                self.dist.name,
+            self.append_line += (
+                f" install=http://{self.data['server']}:{self.data['http_port']}/cblr/"
+                f"links/{self.dist.name}"
             )
         if self.data["kernel_options"].get("autoyast", "") != "":
-            self.append_line += " autoyast=%s" % self.data["kernel_options"]["autoyast"]
+            self.append_line += f" autoyast={self.data['kernel_options']['autoyast']}"
             del self.data["kernel_options"]["autoyast"]
         else:
-            self.append_line += " autoyast=%s" % self.data["autoinstall"]
+            self.append_line += f" autoyast={self.data['autoinstall']}"
 
     def _adjust_interface_config(self):
         """
@@ -348,7 +337,7 @@ class AppendLineBuilder:
         """
         self.dist = dist
 
-        self.append_line = "  APPEND initrd=%s.img" % self.distro_name
+        self.append_line = f"  APPEND initrd={self.distro_name}.img"
         if self.dist.breed == "suse":
             self._generate_append_suse()
         elif self.dist.breed == "redhat":
@@ -377,42 +366,40 @@ class AppendLineBuilder:
         :param distro_breed: The name of the distribution breed.
         :return: The generated append line.
         """
-        self.append_line = " append initrd=%s.img" % self.distro_name
+        self.append_line = f" append initrd={self.distro_name}.img"
         if distro_breed == "suse":
             if self.data.get("proxy", "") != "":
-                self.append_line += " proxy=%s" % self.data["proxy"]
+                self.append_line += f" proxy={self.data['proxy']}"
             if self.data["kernel_options"].get("install", "") != "":
                 install_options = self.data["kernel_options"]["install"]
                 if isinstance(install_options, list):
                     install_options = install_options[0]
-                    self.append_line += " install=%s" % install_options
+                    self.append_line += f" install={install_options}"
                 del self.data["kernel_options"]["install"]
             else:
-                self.append_line += " install=http://%s:%s/cblr/links/%s" % (
-                    self.data["server"],
-                    self.data["http_port"],
-                    self.distro_name,
+                self.append_line += (
+                    f" install=http://{self.data['server']}:{self.data['http_port']}/cblr/"
+                    f"links/{self.distro_name}"
                 )
             if self.data["kernel_options"].get("autoyast", "") != "":
                 self.append_line += (
-                    " autoyast=%s" % self.data["kernel_options"]["autoyast"]
+                    f" autoyast={self.data['kernel_options']['autoyast']}"
                 )
                 del self.data["kernel_options"]["autoyast"]
             else:
-                self.append_line += " autoyast=%s" % self.data["autoinstall"]
+                self.append_line += f" autoyast={self.data['autoinstall']}"
         elif distro_breed == "redhat":
             if self.data.get("proxy", "") != "":
-                self.append_line += " proxy=%s http_proxy=%s" % (
-                    self.data["proxy"],
-                    self.data["proxy"],
+                self.append_line += (
+                    f" proxy={self.data['proxy']} http_proxy={self.data['proxy']}"
                 )
-            self.append_line += " inst.ks=%s" % self.data["autoinstall"]
+            self.append_line += f" inst.ks={self.data['autoinstall']}"
         elif distro_breed in ["ubuntu", "debian"]:
             self.append_line += (
-                " auto-install/enable=true url=%s" % self.data["autoinstall"]
+                f" auto-install/enable=true url={self.data['autoinstall']}"
             )
             if self.data.get("proxy", "") != "":
-                self.append_line += " mirror/http/proxy=%s" % self.data["proxy"]
+                self.append_line += f" mirror/http/proxy={self.data['proxy']}"
         self.append_line += buildiso.add_remaining_kopts(self.data["kernel_options"])
         return self.append_line
 
@@ -469,17 +456,15 @@ class NetbootBuildiso(buildiso.BuildIso):
         self.copy_boot_files(dist, self.isolinuxdir, distname)
 
         cfglines.append("")
-        cfglines.append("LABEL %s" % system.name)
-        cfglines.append("  MENU LABEL %s" % system.name)
-        cfglines.append("  KERNEL %s.krn" % distname)
+        cfglines.append(f"LABEL {system.name}")
+        cfglines.append(f"  MENU LABEL {system.name}")
+        cfglines.append(f"  KERNEL {distname}.krn")
 
         data = utils.blender(self.api, False, system)
         if not re.match(r"[a-z]+://.*", data["autoinstall"]):
-            data["autoinstall"] = "http://%s:%s/cblr/svc/op/autoinstall/system/%s" % (
-                data["server"],
-                data["http_port"],
-                system.name,
-            )
+            data[
+                "autoinstall"
+            ] = f"http://{data['server']}:{data['http_port']}/cblr/svc/op/autoinstall/system/{system.name}"
 
         append_builder = AppendLineBuilder(distro_name=distname, data=data)
         append_line = append_builder.generate_system(dist, system, exclude_dns)
@@ -497,9 +482,9 @@ class NetbootBuildiso(buildiso.BuildIso):
         self.copy_boot_files(dist, self.isolinuxdir, distname)
 
         cfglines.append("")
-        cfglines.append("LABEL %s" % profile.name)
-        cfglines.append("  MENU LABEL %s" % profile.name)
-        cfglines.append("  kernel %s.krn" % distname)
+        cfglines.append(f"LABEL {profile.name}")
+        cfglines.append(f"  MENU LABEL {profile.name}")
+        cfglines.append(f"  kernel {distname}.krn")
 
         data = utils.blender(self.api, False, profile)
 
@@ -510,11 +495,9 @@ class NetbootBuildiso(buildiso.BuildIso):
             )
 
         if not re.match(r"[a-z]+://.*", data["autoinstall"]):
-            data["autoinstall"] = "http://%s:%s/cblr/svc/op/autoinstall/profile/%s" % (
-                data["server"],
-                data["http_port"],
-                profile.name,
-            )
+            data[
+                "autoinstall"
+            ] = f"http://{data['server']}:{data['http_port']}/cblr/svc/op/autoinstall/profile/{profile.name}"
 
         append_builder = AppendLineBuilder(distro_name=distname, data=data)
         append_line = append_builder.generate_profile(dist.breed)
@@ -543,8 +526,8 @@ class NetbootBuildiso(buildiso.BuildIso):
         cfglines.append("")
         cfglines.append("MENU END")
 
-        with open(isolinuxcfg, "w+") as cfg:
-            cfg.writelines("%s\n" % l for l in cfglines)
+        with open(isolinuxcfg, "w+", encoding="UTF-8") as cfg:
+            cfg.writelines(f"{line}\n" for line in cfglines)
 
     def run(
         self,

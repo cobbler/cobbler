@@ -77,10 +77,10 @@ class Profile(item.Item):
     def __getattr__(self, name):
         if name == "kickstart":
             return self.autoinstall
-        elif name == "ks_meta":
+        if name == "ks_meta":
             return self.autoinstall_meta
         raise AttributeError(
-            'Attribute "%s" did not exist on object type Profile.' % name
+            f'Attribute "{name}" did not exist on object type Profile.'
         )
 
     #
@@ -111,7 +111,7 @@ class Profile(item.Item):
         # distro validation
         distro = self.get_conceptual_parent()
         if distro is None:
-            raise CX("Error with profile %s - distro is required" % self.name)
+            raise CX(f"Error with profile {self.name} - distro is required")
 
     def from_dict(self, dictionary: dict):
         """
@@ -153,9 +153,7 @@ class Profile(item.Item):
             if parent is None:
                 return None
             return parent
-        else:
-            result = self.api.profiles().find(name=self._parent)
-        return result
+        return self.api.profiles().find(name=self._parent)
 
     @parent.setter
     def parent(self, parent: str):
@@ -178,7 +176,7 @@ class Profile(item.Item):
             raise CX("self parentage is weird")
         found = self.api.profiles().find(name=parent)
         if found is None:
-            raise CX('profile "%s" not found, inheritance not possible' % parent)
+            raise CX(f'profile "{parent}" not found, inheritance not possible')
         self._parent = parent
         self.depth = found.depth + 1
         new_parent = self.parent
@@ -225,7 +223,7 @@ class Profile(item.Item):
             return
         distro = self.api.distros().find(name=distro_name)
         if distro is None:
-            raise ValueError('distribution "%s" not found' % distro_name)
+            raise ValueError(f'distribution "{distro_name}" not found')
         old_parent = self.parent
         if isinstance(old_parent, item.Item) and self.name in old_parent.children:
             old_parent.children.remove(self.name)
@@ -485,15 +483,14 @@ class Profile(item.Item):
             parent = self.parent
             if parent is not None and isinstance(parent, Profile):
                 return self.parent.autoinstall
-            elif parent is not None and isinstance(parent, Distro):
+            if parent is not None and isinstance(parent, Distro):
                 return self.api.settings().autoinstall
-            else:
-                self.logger.info(
-                    'Profile "%s" did not have a valid parent of type Profile but autoinstall is set to '
-                    '"<<inherit>>".',
-                    self.name,
-                )
-                return ""
+            self.logger.info(
+                'Profile "%s" did not have a valid parent of type Profile but autoinstall is set to '
+                '"<<inherit>>".',
+                self.name,
+            )
+            return ""
         return self._autoinstall
 
     @autoinstall.setter
@@ -760,9 +757,8 @@ class Profile(item.Item):
                 parent_boot_loaders = []
             if not set(boot_loaders_split).issubset(parent_boot_loaders):
                 raise CX(
-                    'Error with profile "%s" - not all boot_loaders are supported (given: "%s"; supported:'
-                    '"%s")'
-                    % (self.name, str(boot_loaders_split), str(parent_boot_loaders))
+                    f'Error with profile "{self.name}" - not all boot_loaders are supported (given:'
+                    f'"{str(boot_loaders_split)}"; supported: "{str(parent_boot_loaders)}")'
                 )
             self._boot_loaders = boot_loaders_split
         else:
@@ -791,7 +787,7 @@ class Profile(item.Item):
         if menu and menu != "":
             menu_list = self.api.menus()
             if not menu_list.find(name=menu):
-                raise CX("menu %s not found" % menu)
+                raise CX(f"menu {menu} not found")
         self._menu = menu
 
     @property

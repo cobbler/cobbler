@@ -73,7 +73,7 @@ class PamMessage(Structure):
     _fields_ = [("msg_style", c_int), ("msg", c_char_p)]
 
     def __repr__(self):
-        return "<PamMessage %i '%s'>" % (self.msg_style, self.msg)
+        return f"<PamMessage {self.msg_style:d} '{self.msg}'>"
 
 
 class PamResponse(Structure):
@@ -84,7 +84,7 @@ class PamResponse(Structure):
     _fields_ = [("resp", c_char_p), ("resp_retcode", c_int)]
 
     def __repr__(self):
-        return "<PamResponse %i '%s'>" % (self.resp_retcode, self.resp)
+        return f"<PamResponse {self.resp_retcode:d} '{self.resp}'>"
 
 
 CONV_FUNC = CFUNCTYPE(
@@ -140,10 +140,10 @@ def authenticate(api_handle, username: str, password: str) -> bool:
 
     try:
         service = api_handle.settings().authn_pam_service
-    except:
+    except Exception:
         service = "login"
 
-    api_handle.logger.debug("authn_pam: PAM service is %s" % service)
+    api_handle.logger.debug(f"authn_pam: PAM service is {service}")
 
     handle = PamHandle()
     conv = PamConv(my_conv, 0)

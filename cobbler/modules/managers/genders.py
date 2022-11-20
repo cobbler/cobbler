@@ -11,10 +11,10 @@ import time
 from cobbler.templar import Templar
 
 plib = distutils.sysconfig.get_python_lib()
-mod_path = "%s/cobbler" % plib
+mod_path = f"{plib}/cobbler"
 sys.path.insert(0, mod_path)
-template_file = "/etc/cobbler/genders.template"
-settings_file = "/etc/genders"
+TEMPLATE_FILE = "/etc/cobbler/genders.template"
+SETTINGS_FILE = "/etc/genders"
 
 logger = logging.getLogger()
 
@@ -39,12 +39,10 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
     :raises OSError: Raised in case the template could not be read.
     """
     try:
-        f2 = open(template_file, "r")
-    except:
-        raise OSError("error reading template: %s" % template_file)
-    template_data = ""
-    template_data = f2.read()
-    f2.close()
+        with open(TEMPLATE_FILE, "r", encoding="UTF-8") as template_fd:
+            template_data = template_fd.read()
+    except Exception as error:
+        raise OSError(f"error reading template: {TEMPLATE_FILE}") from error
 
     metadata = {
         "date": time.asctime(time.gmtime()),
@@ -54,7 +52,7 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
     }
 
     templar_inst = Templar(config)
-    templar_inst.render(template_data, metadata, settings_file)
+    templar_inst.render(template_data, metadata, SETTINGS_FILE)
 
 
 def run(api, args) -> int:
@@ -69,9 +67,9 @@ def run(api, args) -> int:
     if not api.settings().manage_genders:
         return 0
 
-    profiles_genders = dict()
-    distros_genders = dict()
-    mgmtcls_genders = dict()
+    profiles_genders = {}
+    distros_genders = {}
+    mgmtcls_genders = {}
 
     # let's populate our dicts
 
@@ -113,9 +111,9 @@ def run(api, args) -> int:
             mgmtcls_genders.pop(mgmtcls.name, None)
     # The file doesn't exist and for some reason the template engine won't create it, so spit out an error and tell the
     # user what to do.
-    if not os.path.isfile(settings_file):
-        logger.info("Error: " + settings_file + " does not exist.")
-        logger.info("Please run: touch " + settings_file + " as root and try again.")
+    if not os.path.isfile(SETTINGS_FILE):
+        logger.info("Error: %s does not exist.", SETTINGS_FILE)
+        logger.info("Please run: touch %s as root and try again.", SETTINGS_FILE)
         return 1
 
     write_genders_file(api, profiles_genders, distros_genders, mgmtcls_genders)

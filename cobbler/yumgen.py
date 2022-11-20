@@ -14,6 +14,10 @@ from cobbler import utils
 
 
 class YumGen:
+    """
+    TODO
+    """
+
     def __init__(self, api):
         """
         Constructor
@@ -43,9 +47,9 @@ class YumGen:
         # RHEL5 split trees if there is only one, then there is no need to do this.
 
         included = {}
-        for r in blended["source_repos"]:
+        for repo in blended["source_repos"]:
             filename = pathlib.Path(self.settings.webdir).joinpath(
-                "/".join(r[0].split("/")[4:])
+                "/".join(repo[0].split("/")[4:])
             )
             if filename not in included:
                 input_files.append(filename)
@@ -61,15 +65,14 @@ class YumGen:
 
         for infile in input_files:
             try:
-                infile_h = open(infile)
-            except:
+                with open(infile, encoding="UTF-8") as infile_h:
+                    infile_data = infile_h.read()
+            except Exception:
                 # File does not exist and the user needs to run reposync before we will use this, Cobbler check will
                 # mention this problem
-                totalbuf += "\n# error: could not read repo source: %s\n\n" % infile
+                totalbuf += f"\n# error: could not read repo source: {infile}\n\n"
                 continue
 
-            infile_data = infile_h.read()
-            infile_h.close()
             outfile = None  # disk output only
             totalbuf += self.templar.render(infile_data, blended, outfile)
             totalbuf += "\n\n"

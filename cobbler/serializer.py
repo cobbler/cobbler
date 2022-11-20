@@ -9,9 +9,9 @@ Serializer code for Cobbler
 import fcntl
 import logging
 import os
+import pathlib
 import sys
 import time
-import traceback
 
 
 class Serializer:
@@ -42,9 +42,8 @@ class Serializer:
         try:
             if self.lock_enabled:
                 if not os.path.exists(self.lock_file_location):
-                    fd = open(self.lock_file_location, "w+")
-                    fd.close()
-                self.lock_handle = open(self.lock_file_location, "r")
+                    pathlib.Path(self.lock_file_location).touch()
+                self.lock_handle = open(self.lock_file_location, "r", encoding="UTF-8")
                 fcntl.flock(self.lock_handle.fileno(), fcntl.LOCK_EX)
         except Exception as exception:
             # this is pretty much FATAL, avoid corruption and quit now.
@@ -61,10 +60,10 @@ class Serializer:
             # this file is used to know the time of last modification on cobbler_collections
             # was made -- allowing the API to work more smoothly without
             # a lot of unnecessary reloads.
-            with open(self.api.mtime_location, "w") as mtime_fd:
-                mtime_fd.write("%f" % time.time())
+            with open(self.api.mtime_location, "w", encoding="UTF-8") as mtime_fd:
+                mtime_fd.write(f"{time.time():f}")
         if self.lock_enabled:
-            self.lock_handle = open(self.lock_file_location, "r")
+            self.lock_handle = open(self.lock_file_location, "r", encoding="UTF-8")
             fcntl.flock(self.lock_handle.fileno(), fcntl.LOCK_UN)
             self.lock_handle.close()
 

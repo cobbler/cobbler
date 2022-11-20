@@ -39,7 +39,7 @@ def normalize(settings: dict) -> dict:
 
 def __migrate_modules_conf():
     modules_conf_path = "/etc/cobbler/modules.conf"
-    with open(modules_conf_path, "r") as modules_conf_file:
+    with open(modules_conf_path, "r", encoding="UTF-8") as modules_conf_file:
         result = []
         replacements = {
             "authn_": "authentication.",
@@ -63,7 +63,7 @@ def __migrate_modules_conf():
                 break
             else:  # no break occured -> nothing to replace
                 result.append(line)
-    with open(modules_conf_path, "w") as modules_conf_file:
+    with open(modules_conf_path, "w", encoding="UTF-8") as modules_conf_file:
         for line in result:
             modules_conf_file.write(line)
 

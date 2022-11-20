@@ -10,7 +10,7 @@ Cobbler Trigger Module that puts the content of the Cobbler data directory under
 
 import os
 
-import cobbler.utils as utils
+from cobbler import utils
 
 from cobbler.cexceptions import CX
 
@@ -66,7 +66,7 @@ def run(api, args):
         os.chdir(old_dir)
         return 0
 
-    elif mode == "hg":
+    if mode == "hg":
         # use mercurial
         old_dir = os.getcwd()
         os.chdir("/var/lib/cobbler")
@@ -90,5 +90,4 @@ def run(api, args):
         os.chdir(old_dir)
         return 0
 
-    else:
-        raise CX("currently unsupported SCM type: %s" % mode)
+    raise CX(f"currently unsupported SCM type: {mode}")

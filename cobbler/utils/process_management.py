@@ -1,3 +1,7 @@
+"""
+TODO
+"""
+
 import logging
 import os
 import xmlrpc
@@ -63,12 +67,12 @@ def service_restart(service_name: str):
                     return 0
                 logger.error('Restarting service "%s" failed', service_name)
                 return 1
-            except xmlrpc.client.Fault as clientFault:
+            except xmlrpc.client.Fault as client_fault:
                 logger.error(
                     'Restarting service "%s" failed (supervisord process state was "%s")',
                     service_name,
                     process_state,
-                    exc_info=clientFault,
+                    exc_info=client_fault,
                 )
                 return 1
     elif is_systemd():

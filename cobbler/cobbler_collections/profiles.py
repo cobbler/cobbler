@@ -48,13 +48,13 @@ class Profiles(collection.Collection):
         """
         name = name.lower()
         if not recursive:
-            for v in self.api.systems():
-                if v.profile is not None and v.profile.lower() == name:
-                    raise CX("removal would orphan system: %s" % v.name)
+            for system in self.api.systems():
+                if system.profile is not None and system.profile.lower() == name:
+                    raise CX(f"removal would orphan system: {system.name}")
 
         obj = self.find(name=name)
         if obj is None:
-            raise CX("cannot delete an object that does not exist: %s" % name)
+            raise CX(f"cannot delete an object that does not exist: {name}")
 
         if recursive:
             kids = obj.get_children()
@@ -86,11 +86,8 @@ class Profiles(collection.Collection):
             #       Use self.collection_mgr.serialize_one_item(obj.parent)
             self.api.serialize()
 
-        self.lock.acquire()
-        try:
+        with self.lock:
             del self.listing[name]
-        finally:
-            self.lock.release()
         self.collection_mgr.serialize_delete(self, obj)
         if with_delete:
             if with_triggers:

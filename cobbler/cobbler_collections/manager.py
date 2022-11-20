@@ -193,11 +193,11 @@ class CollectionManager:
         ):
             try:
                 self.__serializer.deserialize(collection)
-            except Exception as e:
+            except Exception as error:
                 raise CX(
-                    "serializer: error loading collection %s: %s. Check your settings!"
-                    % (collection.collection_type(), e)
-                ) from e
+                    f"serializer: error loading collection {collection.collection_type()}: {error}."
+                    f"Check your settings!"
+                ) from error
 
     def get_items(
         self, collection_type: str
@@ -235,6 +235,6 @@ class CollectionManager:
             result = self.api.settings()
         else:
             raise CX(
-                'internal error, collection name "%s" not supported' % collection_type
+                f'internal error, collection name "{collection_type}" not supported'
             )
         return result

@@ -88,7 +88,7 @@ def test_manager_regen_ethers(mocker, cobbler_api):
     test_manager.regen_ethers()
 
     # Assert
-    mock_builtins_open.assert_called_once_with("/etc/ethers", "w+")
+    mock_builtins_open.assert_called_once_with("/etc/ethers", "w+", encoding="UTF-8")
     write_handle = mock_builtins_open()
     write_handle.write.assert_called_once_with("AA:BB:CC:DD:EE:FF\t192.168.1.2\n")
 
@@ -111,7 +111,9 @@ def test_manager_regen_hosts(mocker, cobbler_api):
     test_manager.regen_hosts()
 
     # Assert
-    mock_builtins_open.assert_called_once_with("/var/lib/cobbler/cobbler_hosts", "w+")
+    mock_builtins_open.assert_called_once_with(
+        "/var/lib/cobbler/cobbler_hosts", "w+", encoding="UTF-8"
+    )
     write_handle = mock_builtins_open()
     write_handle.write.assert_called_once_with("::1\thost.example.org\n")
 

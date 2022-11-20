@@ -1,3 +1,7 @@
+"""
+TODO
+"""
+
 import errno
 import glob
 import hashlib
@@ -29,7 +33,7 @@ def is_safe_to_hardlink(src: str, dst: str, api) -> bool:
     """
     # FIXME: Calling this with emtpy strings returns True?!
     (dev1, path1) = mtab.get_file_device_path(src)
-    (dev2, path2) = mtab.get_file_device_path(dst)
+    (dev2, _) = mtab.get_file_device_path(dst)
     if dev1 != dev2:
         return False
     # Do not hardlink to a symbolic link! Chances are high the new link will be dangling.
@@ -60,45 +64,44 @@ def sha1_file(file_path: Union[str, os.PathLike], buffer_size=65536) -> str:
     """
     # Highly inspired by: https://stackoverflow.com/a/22058673
     sha1 = hashlib.sha1()
-    with open(file_path, "rb") as f:
+    with open(file_path, "rb") as file_fd:
         while True:
-            data = f.read(buffer_size)
+            data = file_fd.read(buffer_size)
             if not data:
                 break
             sha1.update(data)
     return sha1.hexdigest()
 
 
-def hashfile(fn: str, lcache=None):
+def hashfile(file_name: str, lcache=None):
     r"""
     Returns the sha1sum of the file
 
-    :param fn: The file to get the sha1sum of.
+    :param file_name: The file to get the sha1sum of.
     :param lcache: This is a directory where Cobbler would store its ``link_cache.json`` file to speed up the return
                    of the hash. The hash looked up would be checked against the Cobbler internal mtime of the object.
     :return: The sha1 sum or None if the file doesn't exist.
     """
-    db = {}
+    hashfile_db = {}
     dbfile = pathlib.Path(lcache) / "link_cache.json"
     if lcache is not None:
         if dbfile.exists():
-            db = json.load(open(dbfile, "r"))
+            hashfile_db = json.loads(dbfile.read_text(encoding="utf-8"))
 
-    file = pathlib.Path(fn)
+    file = pathlib.Path(file_name)
     if file.exists():
         mtime = file.stat().st_mtime
-        if lcache is not None and fn in db:
-            if db[fn][0] >= mtime:
-                return db[fn][1]
+        if lcache is not None and file_name in hashfile_db:
+            if hashfile_db[file_name][0] >= mtime:
+                return hashfile_db[file_name][1]
 
-        key = sha1_file(fn)
+        key = sha1_file(file_name)
         if lcache is not None:
-            db[fn] = (mtime, key)
+            hashfile_db[file_name] = (mtime, key)
             __create_if_not_exists(lcache)
-            json.dump(db, open(dbfile, "w"))
+            dbfile.write_text(json.dumps(hashfile_db), encoding="utf-8")
         return key
-    else:
-        return None
+    return None
 
 
 def cachefile(src: str, dst: str):
@@ -198,9 +201,9 @@ def copyfile(src: str, dst: str, symlink=False):
             shutil.copytree(src, dst, symlinks=symlink)
         else:
             shutil.copyfile(src, dst, follow_symlinks=symlink)
-    except:
+    except Exception as error:
         if not os.access(src, os.R_OK):
-            raise OSError("Cannot read: %s" % src)
+            raise OSError(f"Cannot read: {src}") from error
         if src_obj.samefile(dst_obj):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
@@ -220,12 +223,12 @@ def copyremotefile(src: str, dst1: str, api=None):
     """
     try:
         logger.info("copying: %s -> %s", src, dst1)
-        srcfile = urllib.request.urlopen(src)
-        with open(dst1, "wb") as output:
-            output.write(srcfile.read())
+        with urllib.request.urlopen(src) as srcfile:
+            with open(dst1, "wb") as output:
+                output.write(srcfile.read())
     except Exception as error:
         raise OSError(
-            "Error while getting remote file (%s -> %s):\n%s" % (src, dst1, error)
+            f"Error while getting remote file ({src} -> {dst1}):\n{error}"
         ) from error
 
 
@@ -250,7 +253,7 @@ def copyfile_pattern(
     """
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
-        raise CX("Could not find files matching %s" % pattern)
+        raise CX(f"Could not find files matching {pattern}")
     dst_obj = pathlib.Path(dst)
     for file in files:
         file_obj = pathlib.Path(file)
@@ -279,9 +282,9 @@ def rmtree_contents(path: str):
 
     :param path: This parameter presents the glob pattern of what should be deleted.
     """
-    what_to_delete = glob.glob("%s/*" % path)
-    for x in what_to_delete:
-        rmtree(x)
+    what_to_delete = glob.glob(f"{path}/*")
+    for rmtree_path in what_to_delete:
+        rmtree(rmtree_path)
 
 
 def rmtree(path: str):
@@ -299,7 +302,7 @@ def rmtree(path: str):
     except OSError as ioe:
         log_exc()
         if ioe.errno != errno.ENOENT:  # doesn't exist
-            raise CX("Error deleting %s" % path) from ioe
+            raise CX(f"Error deleting {path}") from ioe
 
 
 def rmglob_files(path: str, glob_pattern: str):
@@ -309,8 +312,8 @@ def rmglob_files(path: str, glob_pattern: str):
     :param path: The folder of the files to remove.
     :param glob_pattern: The glob pattern for the files to remove in ``path``.
     """
-    for p in pathlib.Path(path).glob(glob_pattern):
-        rmfile(str(p))
+    for rm_path in pathlib.Path(path).glob(glob_pattern):
+        rmfile(str(rm_path))
 
 
 def mkdir(path: str, mode=0o755):
@@ -328,7 +331,7 @@ def mkdir(path: str, mode=0o755):
         # already exists (no constant for 17?)
         if os_error.errno != 17:
             log_exc()
-            raise CX("Error creating %s" % path) from os_error
+            raise CX(f"Error creating {path}") from os_error
 
 
 def path_tail(apath, bpath) -> str:

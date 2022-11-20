@@ -83,14 +83,14 @@ class NetworkInterface:
         :return: A dictionary with all values present in this object.
         """
         result = {}
-        for key in self.__dict__:
+        for key, key_value in self.__dict__.items():
             if "__" in key:
                 continue
             if key.startswith("_"):
                 new_key = key[1:].lower()
-                key_value = self.__dict__[key]
+                key_value = key_value
                 if isinstance(key_value, enum.Enum):
-                    result[new_key] = self.__dict__[key].name.lower()
+                    result[new_key] = key_value.name.lower()
                 elif (
                     isinstance(key_value, str)
                     and key_value == enums.VALUE_INHERITED
@@ -98,7 +98,7 @@ class NetworkInterface:
                 ):
                     result[new_key] = getattr(self, key[1:])
                 else:
-                    result[new_key] = self.__dict__[key]
+                    result[new_key] = key_value
         return result
 
     # These two methods are currently not used, but we do want to use them in the future, so let's define them.
@@ -199,10 +199,10 @@ class NetworkInterface:
         """
         try:
             truthiness = input_converters.input_boolean(truthiness)
-        except TypeError as e:
+        except TypeError as error:
             raise TypeError(
                 "Field static of NetworkInterface needs to be of Type bool!"
-            ) from e
+            ) from error
         self._static = truthiness
 
     @property
@@ -224,10 +224,10 @@ class NetworkInterface:
         """
         try:
             truthiness = input_converters.input_boolean(truthiness)
-        except TypeError as e:
+        except TypeError as error:
             raise TypeError(
                 "Field management of object NetworkInterface needs to be of type bool!"
-            ) from e
+            ) from error
         self._management = truthiness
 
     @property
@@ -283,10 +283,9 @@ class NetworkInterface:
             for match in matched:
                 if self in match.interfaces.values():
                     continue
-                else:
-                    raise ValueError(
-                        f'IP address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
-                    )
+                raise ValueError(
+                    f'IP address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
+                )
         self._ip_address = address
 
     @property
@@ -316,10 +315,9 @@ class NetworkInterface:
             for match in matched:
                 if self in match.interfaces.values():
                     continue
-                else:
-                    raise ValueError(
-                        f'MAC address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
-                    )
+                raise ValueError(
+                    f'MAC address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
+                )
         self._mac_address = address
 
     @property
@@ -415,22 +413,20 @@ class NetworkInterface:
                 intf_type = enums.NetworkInterfaceType(intf_type)
             except ValueError as value_error:
                 raise ValueError(
-                    'intf_type with number "%s" was not a valid interface type!'
-                    % intf_type
+                    f'intf_type with number "{intf_type}" was not a valid interface type!'
                 ) from value_error
         elif isinstance(intf_type, str):
             try:
                 intf_type = enums.NetworkInterfaceType[intf_type.upper()]
             except KeyError as key_error:
                 raise ValueError(
-                    "intf_type choices include: %s"
-                    % list(map(str, enums.NetworkInterfaceType))
+                    f"intf_type choices include: {list(map(str, enums.NetworkInterfaceType))}"
                 ) from key_error
         # Now it must be of the enum type
         if intf_type not in enums.NetworkInterfaceType:
             raise ValueError(
-                "interface intf_type value must be one of: %s or blank"
-                % ",".join(list(map(str, enums.NetworkInterfaceType)))
+                "interface intf_type value must be one of:"
+                f"{','.join(list(map(str, enums.NetworkInterfaceType)))} or blank"
             )
         self._interface_type = intf_type
 
@@ -527,11 +523,10 @@ class NetworkInterface:
             for match in matched:
                 if self in match.interfaces.values():
                     continue
-                else:
-                    raise ValueError(
-                        f'IPv6 address duplicate found "{address}". Object with the conflict has the name'
-                        f'"{match.name}"'
-                    )
+                raise ValueError(
+                    f'IPv6 address duplicate found "{address}". Object with the conflict has the name'
+                    f'"{match.name}"'
+                )
         self._ipv6_address = address
 
     @property
@@ -581,7 +576,7 @@ class NetworkInterface:
                 secondaries.append(address)
             else:
                 raise AddressValueError(
-                    "invalid format for IPv6 IP address (%s)" % address
+                    f"invalid format for IPv6 IP address ({address})"
                 )
         self._ipv6_secondaries = secondaries
 
@@ -609,7 +604,7 @@ class NetworkInterface:
         if address == "" or utils.is_ip(address):
             self._ipv6_default_gateway = address.strip()
             return
-        raise AddressValueError("invalid format of IPv6 IP address (%s)" % address)
+        raise AddressValueError(f"invalid format of IPv6 IP address ({address})")
 
     @property
     def ipv6_static_routes(self) -> list:
@@ -695,10 +690,10 @@ class NetworkInterface:
         """
         try:
             truthiness = input_converters.input_boolean(truthiness)
-        except TypeError as e:
+        except TypeError as error:
             raise TypeError(
                 "Field connected_mode of object NetworkInterface needs to be of type bool!"
-            ) from e
+            ) from error
         self._connected_mode = truthiness
 
     def modify_interface(self, _dict: dict):
@@ -828,11 +823,9 @@ class System(Item):
     def __getattr__(self, name):
         if name == "kickstart":
             return self.autoinstall
-        elif name == "ks_meta":
+        if name == "ks_meta":
             return self.autoinstall_meta
-        raise AttributeError(
-            'Attribute "%s" did not exist on object type System.' % name
-        )
+        raise AttributeError(f'Attribute "{name}" did not exist on object type System.')
 
     #
     # override some base class methods first (item.Item)
@@ -873,13 +866,12 @@ class System(Item):
         """
         if not self._parent and self.profile:
             return self.api.profiles().find(name=self.profile)
-        elif not self._parent and self.image:
+        if not self._parent and self.image:
             return self.api.images().find(name=self.image)
-        elif self._parent:
+        if self._parent:
             # We don't know what type this is, so we need to let find_items() do the magic of guessing that.
             return self.api.find_items(what="", name=self._parent, return_list=False)
-        else:
-            return None
+        return None
 
     @parent.setter
     def parent(self, value: str):
@@ -908,8 +900,7 @@ class System(Item):
             self.api.images().find(name=value)
         except ValueError as value_error:
             raise ValueError(
-                'Neither a system, profile or image could be found with the name "%s".'
-                % value
+                f'Neither a system, profile or image could be found with the name "{value}".'
             ) from value_error
         self._parent = value
 
@@ -925,7 +916,7 @@ class System(Item):
         if self.profile is None or self.profile == "":
             if self.image is None or self.image == "":
                 raise CX(
-                    "Error with system %s - profile or image is required" % self.name
+                    f"Error with system {self.name} - profile or image is required"
                 )
 
     #
@@ -1007,9 +998,9 @@ class System(Item):
         if not isinstance(new_name, str):
             raise TypeError("The new_name of the interface must be of type str")
         if old_name not in self.interfaces:
-            raise ValueError('Interface "%s" does not exist' % old_name)
+            raise ValueError(f'Interface "{old_name}" does not exist')
         if new_name in self.interfaces:
-            raise ValueError('Interface "%s" already exists' % new_name)
+            raise ValueError(f'Interface "{new_name}" already exists')
         self.interfaces[new_name] = self.interfaces[old_name]
         del self.interfaces[old_name]
 
@@ -1082,7 +1073,7 @@ class System(Item):
             self._boot_loaders = enums.VALUE_INHERITED
             return
 
-        if boot_loaders == "" or boot_loaders == []:
+        if boot_loaders in ("", []):
             self._boot_loaders = []
             return
 
@@ -1102,8 +1093,8 @@ class System(Item):
             parent_boot_loaders = []
         if not set(boot_loaders_split).issubset(parent_boot_loaders):
             raise CX(
-                'Error with system "%s" - not all boot_loaders are supported (given: "%s"; supported:'
-                '"%s")' % (self.name, str(boot_loaders_split), str(parent_boot_loaders))
+                f'Error with system "{self.name}" - not all boot_loaders are supported (given:'
+                f'"{str(boot_loaders_split)}"; supported: "{str(parent_boot_loaders)}")'
             )
         self._boot_loaders = boot_loaders_split
 
@@ -1277,8 +1268,7 @@ class System(Item):
 
         if intf.mac_address != "":
             return intf.mac_address.strip()
-        else:
-            return None
+        return None
 
     def get_ip_address(self, interface: str):
         """
@@ -1289,8 +1279,7 @@ class System(Item):
         intf = self.__get_interface(interface)
         if intf.ip_address:
             return intf.ip_address.strip()
-        else:
-            return ""
+        return ""
 
     def is_management_supported(self, cidr_ok: bool = True) -> bool:
         """
@@ -1498,9 +1487,7 @@ class System(Item):
 
         profile = self.api.profiles().find(name=profile_name)
         if profile is None:
-            raise ValueError(
-                'Profile with the name "%s" is not existing' % profile_name
-            )
+            raise ValueError(f'Profile with the name "{profile_name}" is not existing')
 
         old_parent = self.parent
         if isinstance(old_parent, Item):
@@ -1555,7 +1542,7 @@ class System(Item):
 
         img = self.api.images().find(name=image_name)
         if img is None:
-            raise ValueError('Image with the name "%s" is not existing' % image_name)
+            raise ValueError(f'Image with the name "{image_name}" is not existing')
 
         old_parent = self.parent
         if isinstance(old_parent, Item):
@@ -2094,16 +2081,14 @@ class System(Item):
             return "default"
 
         mac = self.get_mac_address(interface)
-        ip = self.get_ip_address(interface)
+        ip_address = self.get_ip_address(interface)
         if mac is not None and mac != "":
             if loader == "grub":
                 return mac.lower()
-            else:
-                return "01-" + "-".join(mac.split(":")).lower()
-        elif ip is not None and ip != "":
-            return utils.get_host_ip(ip)
-        else:
-            return self.name
+            return "01-" + "-".join(mac.split(":")).lower()
+        if ip_address is not None and ip_address != "":
+            return utils.get_host_ip(ip_address)
+        return self.name
 
     @property
     def display_name(self) -> str:

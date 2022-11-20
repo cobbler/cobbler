@@ -4,11 +4,15 @@ We cache the contents of ``/etc/mtab``. The following module is used to keep our
 
 import os
 
-mtab_mtime = None
-mtab_map = []
+MTAB_MTIME = None
+MTAB_MAP = []
 
 
 class MntEntObj:
+    """
+    TODO
+    """
+
     mnt_fsname = None  # name of mounted file system
     mnt_dir = None  # file system path prefix
     mnt_type = None  # mount type (see mntent.h)
@@ -16,15 +20,15 @@ class MntEntObj:
     mnt_freq = 0  # dump frequency in days
     mnt_passno = 0  # pass number on parallel fsck
 
-    def __init__(self, input: str = None):
+    def __init__(self, input_data: str = None):
         """
         This is an object which contains information about a mounted filesystem.
 
-        :param input: This is a string which is separated internally by whitespace. If present it represents the
+        :param input_data: This is a string which is separated internally by whitespace. If present it represents the
                       arguments: "mnt_fsname", "mnt_dir", "mnt_type", "mnt_opts", "mnt_freq" and "mnt_passno". The order
                       must be preserved, as well as the separation by whitespace.
         """
-        if input and isinstance(input, str):
+        if input_data and isinstance(input_data, str):
             (
                 self.mnt_fsname,
                 self.mnt_dir,
@@ -32,7 +36,7 @@ class MntEntObj:
                 self.mnt_opts,
                 self.mnt_freq,
                 self.mnt_passno,
-            ) = input.split()
+            ) = input_data.split()
 
     def __dict__(self) -> dict:
         """
@@ -57,14 +61,7 @@ class MntEntObj:
 
         :return: The space separated list of values of this object.
         """
-        return "%s %s %s %s %s %s" % (
-            self.mnt_fsname,
-            self.mnt_dir,
-            self.mnt_type,
-            self.mnt_opts,
-            self.mnt_freq,
-            self.mnt_passno,
-        )
+        return f"{self.mnt_fsname} {self.mnt_dir} {self.mnt_type} {self.mnt_opts} {self.mnt_freq} {self.mnt_passno}"
 
 
 def get_mtab(mtab="/etc/mtab", vfstype: bool = False) -> list:
@@ -76,23 +73,24 @@ def get_mtab(mtab="/etc/mtab", vfstype: bool = False) -> list:
                     entries.
     :return: The list of requested mtab entries.
     """
-    global mtab_mtime, mtab_map
+    # These two variables are required to be caches on the module level to be persistent during runtime.
+    global MTAB_MTIME, MTAB_MAP  # pylint: disable=global-statement
 
     mtab_stat = os.stat(mtab)
-    if mtab_stat.st_mtime != mtab_mtime:
+    if mtab_stat.st_mtime != MTAB_MTIME:
         # cache is stale ... refresh
-        mtab_mtime = mtab_stat.st_mtime
-        mtab_map = __cache_mtab__(mtab)
+        MTAB_MTIME = mtab_stat.st_mtime
+        MTAB_MAP = __cache_mtab__(mtab)
 
     # was a specific fstype requested?
     if vfstype:
         mtab_type_map = []
-        for ent in mtab_map:
+        for ent in MTAB_MAP:
             if ent.mnt_type == "nfs":
                 mtab_type_map.append(ent)
         return mtab_type_map
 
-    return mtab_map
+    return MTAB_MAP
 
 
 def __cache_mtab__(mtab="/etc/mtab"):
@@ -102,8 +100,8 @@ def __cache_mtab__(mtab="/etc/mtab"):
     :param mtab: The location of the mtab. Argument can be ommited if the mtab is at its default location.
     :return: The mtab content stripped from empty lines (if any are present).
     """
-    with open(mtab) as f:
-        mtab = [MntEntObj(line) for line in f.read().split("\n") if len(line) > 0]
+    with open(mtab, encoding="UTF-8") as mtab_fd:
+        mtab = [MntEntObj(line) for line in mtab_fd.read().split("\n") if len(line) > 0]
 
     return mtab
 
@@ -130,25 +128,19 @@ def get_file_device_path(fname):
     try:
         for ent in get_mtab():
             mtab_dict[ent.mnt_dir] = ent.mnt_fsname
-    except:
+    except Exception:
         pass
 
     # find a best match
     fdir = os.path.dirname(fname)
-    if fdir in mtab_dict:
-        match = True
-    else:
-        match = False
+    match = fdir in mtab_dict
     chrootfs = False
     while not match:
         if fdir == os.path.sep:
             chrootfs = True
             break
         fdir = os.path.realpath(os.path.join(fdir, os.path.pardir))
-        if fdir in mtab_dict:
-            match = True
-        else:
-            match = False
+        match = fdir in mtab_dict
 
     # construct file path relative to device
     if fdir != os.path.sep:
@@ -156,8 +148,7 @@ def get_file_device_path(fname):
 
     if chrootfs:
         return ":", fname
-    else:
-        return mtab_dict[fdir], fname
+    return mtab_dict[fdir], fname
 
 
 def is_remote_file(file) -> bool:
@@ -167,8 +158,7 @@ def is_remote_file(file) -> bool:
     :param file: The filepath to check.
     :return: If remote True, otherwise False.
     """
-    (dev, path) = get_file_device_path(file)
+    (dev, _) = get_file_device_path(file)
     if dev.find(":") != -1:
         return True
-    else:
-        return False
+    return False

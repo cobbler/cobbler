@@ -62,15 +62,13 @@ class AutoInstallationManager:
 
         if autoinstall.find("..") != -1:
             raise ValueError(
-                "Invalid automatic installation template file location %s, it must not contain .."
-                % autoinstall
+                f"Invalid automatic installation template file location {autoinstall}, it must not contain .."
             )
 
-        autoinstall_path = "%s/%s" % (self.templates_base_dir, autoinstall)
+        autoinstall_path = f"{self.templates_base_dir}/{autoinstall}"
         if not os.path.isfile(autoinstall_path) and not new_autoinstall:
             raise OSError(
-                "Invalid automatic installation template file location %s, file not found"
-                % autoinstall_path
+                f"Invalid automatic installation template file location {autoinstall_path}, file not found"
             )
 
         return autoinstall
@@ -83,11 +81,11 @@ class AutoInstallationManager:
         """
 
         files = []
-        for root, dirnames, filenames in os.walk(self.templates_base_dir):
+        for root, _, filenames in os.walk(self.templates_base_dir):
             for filename in filenames:
                 rel_root = root[len(self.templates_base_dir) + 1 :]
                 if rel_root:
-                    rel_path = "%s/%s" % (rel_root, filename)
+                    rel_path = f"{rel_root}/{filename}"
                 else:
                     rel_path = filename
                 files.append(rel_path)
@@ -107,10 +105,9 @@ class AutoInstallationManager:
             file_path, for_item=False
         )
 
-        file_full_path = "%s/%s" % (self.templates_base_dir, file_path)
-        fileh = open(file_full_path, "r")
-        data = fileh.read()
-        fileh.close()
+        file_full_path = f"{self.templates_base_dir}/{file_path}"
+        with open(file_full_path, "r", encoding="UTF-8") as fileh:
+            data = fileh.read()
 
         return data
 
@@ -126,18 +123,16 @@ class AutoInstallationManager:
             file_path, for_item=False, new_autoinstall=True
         )
 
-        file_full_path = "%s/%s" % (self.templates_base_dir, file_path)
+        file_full_path = f"{self.templates_base_dir}/{file_path}"
         try:
             filesystem_helpers.mkdir(os.path.dirname(file_full_path))
-        except:
+        except Exception:
             utils.die(
-                "unable to create directory for automatic OS installation template at %s"
-                % file_path
+                f"unable to create directory for automatic OS installation template at {file_path}"
             )
 
-        fileh = open(file_full_path, "w+")
-        fileh.write(data)
-        fileh.close()
+        with open(file_full_path, "w+", encoding="UTF-8") as fileh:
+            fileh.write(data)
 
         return True
 
@@ -152,7 +147,7 @@ class AutoInstallationManager:
             file_path, for_item=False
         )
 
-        file_full_path = "%s/%s" % (self.templates_base_dir, file_path)
+        file_full_path = f"{self.templates_base_dir}/{file_path}"
         if not self.is_autoinstall_in_use(file_path):
             os.remove(file_full_path)
         else:
@@ -178,15 +173,13 @@ class AutoInstallationManager:
 
         if snippet.find("..") != -1:
             raise ValueError(
-                "Invalid automated installation snippet file location %s, it must not contain .."
-                % snippet
+                f"Invalid automated installation snippet file location {snippet}, it must not contain .."
             )
 
-        snippet_path = "%s/%s" % (self.snippets_base_dir, snippet)
+        snippet_path = f"{self.snippets_base_dir}/{snippet}"
         if not os.path.isfile(snippet_path) and not new_snippet:
             raise OSError(
-                "Invalid automated installation snippet file location %s, file not found"
-                % snippet_path
+                f"Invalid automated installation snippet file location {snippet_path}, file not found"
             )
 
         return snippet
@@ -198,12 +191,12 @@ class AutoInstallationManager:
         :return: The list of snippets
         """
         files = []
-        for root, dirnames, filenames in os.walk(self.snippets_base_dir):
+        for root, _, filenames in os.walk(self.snippets_base_dir):
 
             for filename in filenames:
                 rel_root = root[len(self.snippets_base_dir) + 1 :]
                 if rel_root:
-                    rel_path = "%s/%s" % (rel_root, filename)
+                    rel_path = f"{rel_root}/{filename}"
                 else:
                     rel_path = filename
                 files.append(rel_path)
@@ -220,10 +213,9 @@ class AutoInstallationManager:
         """
         file_path = self.validate_autoinstall_snippet_file_path(file_path)
 
-        file_full_path = "%s/%s" % (self.snippets_base_dir, file_path)
-        fileh = open(file_full_path, "r")
-        data = fileh.read()
-        fileh.close()
+        file_full_path = f"{self.snippets_base_dir}/{file_path}"
+        with open(file_full_path, "r", encoding="UTF-8") as fileh:
+            data = fileh.read()
 
         return data
 
@@ -238,18 +230,16 @@ class AutoInstallationManager:
             file_path, new_snippet=True
         )
 
-        file_full_path = "%s/%s" % (self.snippets_base_dir, file_path)
+        file_full_path = f"{self.snippets_base_dir}/{file_path}"
         try:
             filesystem_helpers.mkdir(os.path.dirname(file_full_path))
-        except:
+        except Exception:
             utils.die(
-                "unable to create directory for automatic OS installation snippet at %s"
-                % file_path
+                f"unable to create directory for automatic OS installation snippet at {file_path}"
             )
 
-        fileh = open(file_full_path, "w+")
-        fileh.write(data)
-        fileh.close()
+        with open(file_full_path, "w+", encoding="UTF-8") as fileh:
+            fileh.write(data)
 
     def remove_autoinstall_snippet(self, file_path: str) -> bool:
         """
@@ -260,7 +250,7 @@ class AutoInstallationManager:
         """
         file_path = self.validate_autoinstall_snippet_file_path(file_path)
 
-        file_full_path = "%s/%s" % (self.snippets_base_dir, file_path)
+        file_full_path = f"{self.snippets_base_dir}/{file_path}"
         os.remove(file_full_path)
 
         return True
@@ -272,11 +262,11 @@ class AutoInstallationManager:
         :param name: The name of the system.
         :return: Whether the system is in install mode or not.
         """
-        for x in self.api.profiles():
-            if x.autoinstall is not None and x.autoinstall == name:
+        for profile in self.api.profiles():
+            if profile.autoinstall is not None and profile.autoinstall == name:
                 return True
-        for x in self.api.systems():
-            if x.autoinstall is not None and x.autoinstall == name:
+        for profile in self.api.systems():
+            if profile.autoinstall is not None and profile.autoinstall == name:
                 return True
         return False
 
@@ -291,8 +281,9 @@ class AutoInstallationManager:
         """
         if system is not None:
             return self.autoinstallgen.generate_autoinstall_for_system(system)
-        elif profile is not None:
+        if profile is not None:
             return self.autoinstallgen.generate_autoinstall_for_profile(profile)
+        return ""
 
     def log_autoinstall_validation_errors(self, errors_type: int, errors: list):
         """
@@ -359,14 +350,18 @@ class AutoInstallationManager:
         """
         overall_success = True
 
-        for x in self.api.profiles():
-            (success, errors_type, errors) = self.validate_autoinstall_file(x, True)
+        for profile in self.api.profiles():
+            (success, errors_type, errors) = self.validate_autoinstall_file(
+                profile, True
+            )
             if not success:
                 overall_success = False
             if len(errors) > 0:
                 self.log_autoinstall_validation_errors(errors_type, errors)
-        for x in self.api.systems():
-            (success, errors_type, errors) = self.validate_autoinstall_file(x, False)
+        for system in self.api.systems():
+            (success, errors_type, errors) = self.validate_autoinstall_file(
+                system, False
+            )
             if not success:
                 overall_success = False
             if len(errors) > 0:

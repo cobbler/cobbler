@@ -1,3 +1,7 @@
+"""
+TODO
+"""
+
 import os
 import re
 import binascii
@@ -5,9 +9,9 @@ import logging
 import tempfile
 from typing import Optional
 
-import cobbler.utils as utils
-import cobbler.templar as templar
-import cobbler.tftpgen as tftpgen
+from cobbler import utils
+from cobbler import templar
+from cobbler import tftpgen
 from cobbler.utils import filesystem_helpers
 
 HAS_HIVEX = True
@@ -21,10 +25,10 @@ try:
 except Exception:
     HAS_HIVEX = False
 
-answerfile_template_name = "answerfile.template"
-post_inst_cmd_template_name = "post_inst_cmd.template"
-startnet_template_name = "startnet.template"
-wimupdate = "/usr/bin/wimupdate"
+ANSWERFILE_TEMPLATE_NAME = "answerfile.template"
+POST_INST_CMD_TEMPLATE_NAME = "post_inst_cmd.template"
+STARTNET_TEMPLATE_NAME = "startnet.template"
+WIMUPDATE = "/usr/bin/wimupdate"
 
 logger = logging.getLogger()
 
@@ -45,6 +49,17 @@ def register() -> Optional[str]:
 
 
 def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
+    """
+    TODO
+
+    :param orig_bcd: TODO
+    :param new_bcd: TODO
+    :param wim: TODO
+    :param sdi: TODO
+    :param startoptions: TODO
+    :return: TODO
+    """
+
     def winpath_length(wp, add):
         wpl = add + 2 * len(wp)
         return wpl.to_bytes((wpl.bit_length() + 7) // 8, "big")
@@ -229,6 +244,13 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
 
 
 def run(api, args):
+    """
+    TODO
+
+    :param api: TODO
+    :param args: TODO
+    :return: TODO
+    """
     settings = api.settings()
     if not settings.windows_enabled:
         return 0
@@ -245,17 +267,20 @@ def run(api, args):
     tgen = tftpgen.TFTPGen(api)
 
     with open(
-        os.path.join(settings.windows_template_dir, post_inst_cmd_template_name)
+        os.path.join(settings.windows_template_dir, POST_INST_CMD_TEMPLATE_NAME),
+        encoding="UTF-8",
     ) as template_win:
         post_tmpl_data = template_win.read()
 
     with open(
-        os.path.join(settings.windows_template_dir, answerfile_template_name)
+        os.path.join(settings.windows_template_dir, ANSWERFILE_TEMPLATE_NAME),
+        encoding="UTF-8",
     ) as template_win:
         tmpl_data = template_win.read()
 
     with open(
-        os.path.join(settings.windows_template_dir, startnet_template_name)
+        os.path.join(settings.windows_template_dir, STARTNET_TEMPLATE_NAME),
+        encoding="UTF-8",
     ) as template_start:
         tmplstart_data = template_start.read()
 
@@ -305,14 +330,14 @@ def run(api, args):
                 post_install_dir, meta["post_install_script"]
             )
             logger.info("Build post install script: %s", post_install_script)
-            with open(post_install_script, "w+") as pi_file:
+            with open(post_install_script, "w+", encoding="UTF-8") as pi_file:
                 pi_file.write(data)
 
         if "answerfile" in meta:
             data = templ.render(tmpl_data, meta, None)
             answerfile_name = os.path.join(distro_dir, meta["answerfile"])
             logger.info("Build answer file: %s", answerfile_name)
-            with open(answerfile_name, "w+") as answerfile:
+            with open(answerfile_name, "w+", encoding="UTF-8") as answerfile:
                 answerfile.write(data)
             tgen.copy_single_distro_file(answerfile_name, distro_path, False)
             tgen.copy_single_distro_file(answerfile_name, web_dir, True)
@@ -441,28 +466,27 @@ def run(api, args):
             utils.subprocess_call(cmd, shell=False)
             tgen.copy_single_distro_file(ps_file_name, web_dir, True)
 
-            if os.path.exists(wimupdate):
+            if os.path.exists(WIMUPDATE):
                 data = templ.render(tmplstart_data, meta, None)
-                pi_file = tempfile.NamedTemporaryFile()
-                pi_file.write(bytes(data, "utf-8"))
-                pi_file.flush()
-                cmd = ["/usr/bin/wimdir", ps_file_name, "1"]
-                wimdir_result = utils.subprocess_get(cmd, shell=False)
-                wimdir_file_list = wimdir_result.split("\n")
-                # grep -i for /Windows/System32/startnet.cmd
-                startnet_path = "/Windows/System32/startnet.cmd"
+                with tempfile.NamedTemporaryFile() as pi_file:
+                    pi_file.write(bytes(data, "utf-8"))
+                    pi_file.flush()
+                    cmd = ["/usr/bin/wimdir", ps_file_name, "1"]
+                    wimdir_result = utils.subprocess_get(cmd, shell=False)
+                    wimdir_file_list = wimdir_result.split("\n")
+                    # grep -i for /Windows/System32/startnet.cmd
+                    startnet_path = "/Windows/System32/startnet.cmd"
 
-                for x in wimdir_file_list:
-                    if x.lower() == startnet_path.lower():
-                        startnet_path = x
+                    for file in wimdir_file_list:
+                        if file.lower() == startnet_path.lower():
+                            startnet_path = file
 
-                cmd = [
-                    wimupdate,
-                    ps_file_name,
-                    f"--command=add {pi_file.name} {startnet_path}",
-                ]
-                utils.subprocess_call(cmd, shell=False)
-                pi_file.close()
+                    cmd = [
+                        WIMUPDATE,
+                        ps_file_name,
+                        f"--command=add {pi_file.name} {startnet_path}",
+                    ]
+                    utils.subprocess_call(cmd, shell=False)
 
     for profile in profiles:
         distro = profile.get_conceptual_parent()

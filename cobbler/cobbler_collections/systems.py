@@ -55,7 +55,7 @@ class Systems(collection.Collection):
         obj = self.find(name=name)
 
         if obj is None:
-            raise CX("cannot delete an object that does not exist: %s" % name)
+            raise CX(f"cannot delete an object that does not exist: {name}")
 
         if with_delete:
             if with_triggers:
@@ -72,11 +72,8 @@ class Systems(collection.Collection):
             #       Use self.collection_mgr.serialize_one_item(obj.parent)
             self.api.serialize()
 
-        self.lock.acquire()
-        try:
+        with self.lock:
             del self.listing[name]
-        finally:
-            self.lock.release()
         self.collection_mgr.serialize_delete(self, obj)
         if with_delete:
             if with_triggers:

@@ -22,11 +22,10 @@ from cobbler.utils import filesystem_helpers
 try:
     import jinja2
 
-    jinja2_available = True
+    JINJA2_AVAILABLE = True
 except ModuleNotFoundError:
     # FIXME: log a message here
-    jinja2_available = False
-    pass
+    JINJA2_AVAILABLE = False
 
 
 class Templar:
@@ -114,19 +113,19 @@ class Templar:
         if template_type == "cheetah":
             data_out = self.render_cheetah(raw_data, search_table)
         elif template_type == "jinja2":
-            if jinja2_available:
+            if JINJA2_AVAILABLE:
                 data_out = self.render_jinja2(raw_data, search_table)
             else:
                 return "# ERROR: JINJA2 NOT AVAILABLE. Maybe you need to install python-jinja2?\n"
         else:
-            return "# ERROR: UNSUPPORTED TEMPLATE TYPE (%s)" % str(template_type)
+            return f"# ERROR: UNSUPPORTED TEMPLATE TYPE ({str(template_type)})"
 
         # Now apply some magic post-filtering that is used by "cobbler import" and some other places. Forcing folks to
         # double escape things would be very unwelcome.
-        hp = search_table.get("http_port", "80")
+        http_port = search_table.get("http_port", "80")
         server = search_table.get("server", self.settings.server)
-        if hp not in (80, "80"):
-            repstr = "%s:%s" % (server, hp)
+        if http_port not in (80, "80"):
+            repstr = f"{server}:{http_port}"
         else:
             repstr = server
         search_table["http_server"] = repstr
@@ -134,9 +133,9 @@ class Templar:
         # string replacements for @@xyz@@ in data_out with prior regex lookups of keys
         regex = r"@@[\S]*?@@"
         regex_matches = re.finditer(regex, data_out, re.MULTILINE)
-        matches = set(
-            [match.group() for match_num, match in enumerate(regex_matches, start=1)]
-        )
+        matches = {
+            match.group() for match_num, match in enumerate(regex_matches, start=1)
+        }
         for match in matches:
             data_out = data_out.replace(match, search_table[match.strip("@@")])
 
@@ -147,7 +146,7 @@ class Templar:
         # if requested, write the data out to a file
         if out_path is not None:
             filesystem_helpers.mkdir(os.path.dirname(out_path))
-            with open(out_path, "w+") as file_descriptor:
+            with open(out_path, "w+", encoding="UTF-8") as file_descriptor:
                 file_descriptor.write(data_out)
 
         return data_out
@@ -179,12 +178,11 @@ class Templar:
                         (server, directory) = rest.split(":", 2)
                     except Exception as error:
                         raise SyntaxError(
-                            "Invalid syntax for NFS path given during import: %s"
-                            % search_table["tree"]
+                            f"Invalid syntax for NFS path given during import: {search_table['tree']}"
                         ) from error
-                    line = "nfs --server %s --dir %s" % (server, directory)
+                    line = f"nfs --server {server} --dir {directory}"
                     # But put the URL part back in so koan can still see what the original value was
-                    line += "\n" + "#url --url=%s" % search_table["tree"]
+                    line += "\n" + f"#url --url={search_table['tree']}"
                 newdata += line + "\n"
             raw_data = newdata
 
@@ -214,10 +212,12 @@ class Templar:
             self.last_errors = generated_template_class.errorCatcher().listErrors()
             if self.last_errors:
                 self.logger.warning("errors were encountered rendering the template")
-                self.logger.warning("\n" + pprint.pformat(self.last_errors))
+                self.logger.warning("\n%s", pprint.pformat(self.last_errors))
         except Exception as error:
             self.logger.error(utils.cheetah_exc(error))
-            raise CX("Error templating file, check cobbler.log for more details")
+            raise CX(
+                "Error templating file, check cobbler.log for more details"
+            ) from error
 
         return data_out
 
@@ -240,7 +240,7 @@ class Templar:
             data_out = template.render(search_table)
         except Exception as exc:
             self.logger.warning("errors were encountered rendering the template")
-            self.logger.warning(exc.__str__())
+            self.logger.warning(str(exc))
             data_out = "# EXCEPTION OCCURRED DURING JINJA2 TEMPLATE PROCESSING\n"
 
         return data_out

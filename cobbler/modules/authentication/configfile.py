@@ -42,10 +42,7 @@ def hashfun(api, text: str) -> str:
     elif hashfunction == "shake_256":
         hashalgorithm = hashlib.shake_256(text.encode("utf-8"))
     else:
-        errortext = (
-            "The hashfunction (Currently: %s) must be one of the defined in /etc/cobbler/modules.conf!"
-            % hashfunction
-        )
+        errortext = f"The hashfunction (Currently: {hashfunction}) must be one of the defined in the settings!"
         raise ValueError(errortext)
     return hashalgorithm.hexdigest()
 
@@ -65,8 +62,8 @@ def __parse_storage() -> List[List[str]]:
     """
     if not os.path.exists("/etc/cobbler/users.digest"):
         return []
-    with open("/etc/cobbler/users.digest", encoding="utf-8") as fd:
-        data = fd.read()
+    with open("/etc/cobbler/users.digest", encoding="utf-8") as users_digest_fd:
+        data = users_digest_fd.read()
     results = []
     lines = data.split("\n")
     for line in lines:
@@ -74,7 +71,7 @@ def __parse_storage() -> List[List[str]]:
             line = line.strip()
             tokens = line.split(":")
             results.append([tokens[0], tokens[1], tokens[2]])
-        except:
+        except Exception:
             pass
     return results
 

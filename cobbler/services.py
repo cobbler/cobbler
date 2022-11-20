@@ -232,12 +232,16 @@ class CobblerSvc:
         :return: The return code of the action.
         """
         self.__xmlrpc_setup()
-        ip = REMOTE_ADDR
+        ip_address = REMOTE_ADDR
         if profile:
-            rc = self.remote.run_install_triggers(mode, "profile", profile, ip)
+            return_code = self.remote.run_install_triggers(
+                mode, "profile", profile, ip_address
+            )
         else:
-            rc = self.remote.run_install_triggers(mode, "system", system, ip)
-        return str(rc)
+            return_code = self.remote.run_install_triggers(
+                mode, "system", system, ip_address
+            )
+        return str(return_code)
 
     def nopxe(self, system=None, **rest) -> str:
         """
@@ -301,26 +305,26 @@ class CobblerSvc:
 
         macinput = [mac.split(" ").lower() for mac in rest["REMOTE_MACS"]]
 
-        ip = rest["REMOTE_ADDR"]
+        ip_address = rest["REMOTE_ADDR"]
 
         candidates = []
 
-        for x in systems:
-            for y in x["interfaces"]:
-                if x["interfaces"][y]["mac_address"].lower() in macinput:
-                    candidates.append(x)
+        for system in systems:
+            for interface in system["interfaces"]:
+                if system["interfaces"][interface]["mac_address"].lower() in macinput:
+                    candidates.append(system)
 
         if len(candidates) == 0:
-            for x in systems:
-                for y in x["interfaces"]:
-                    if x["interfaces"][y]["ip_address"] == ip:
-                        candidates.append(x)
+            for system in systems:
+                for interface in system["interfaces"]:
+                    if system["interfaces"][interface]["ip_address"] == ip_address:
+                        candidates.append(system)
 
         if len(candidates) == 0:
-            return f"FAILED: no match ({ip},{macinput})"
-        elif len(candidates) > 1:
+            return f"FAILED: no match ({ip_address},{macinput})"
+        if len(candidates) > 1:
             return "FAILED: multiple matches"
-        elif len(candidates) == 1:
+        if len(candidates) == 1:
             return candidates[0]["name"]
 
     def find_autoinstall(self, system=None, profile=None, **rest):
@@ -348,7 +352,7 @@ class CobblerSvc:
 
         try:
             return self.dlmgr.urlread(url)
-        except:
+        except Exception:
             return f"# automatic installation file retrieval failed ({url})"
 
     def findks(self, system=None, profile=None, **rest):
@@ -376,7 +380,7 @@ class CobblerSvc:
 
         try:
             return self.dlmgr.urlread(url)
-        except:
+        except Exception:
             return f"# kickstart retrieval failed ({url})"
 
     def puppet(self, hostname=None, **rest) -> str:
@@ -492,7 +496,7 @@ def application(environ, start_response):
     form["REMOTE_ADDR"] = environ.get("REMOTE_ADDR", None)
 
     # Read config for the XMLRPC port to connect to:
-    with open("/etc/cobbler/settings.yaml") as main_settingsfile:
+    with open("/etc/cobbler/settings.yaml", encoding="UTF-8") as main_settingsfile:
         ydata = yaml.safe_load(main_settingsfile)
 
     # Instantiate a CobblerWeb object

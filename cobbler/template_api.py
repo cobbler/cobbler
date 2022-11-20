@@ -25,13 +25,24 @@ logger = logging.getLogger()
 
 
 def read_macro_file(location="/etc/cobbler/cheetah_macros"):
+    """
+    TODO
+
+    :param location: TODO
+    :return: TODO
+    """
     if not os.path.exists(location):
         raise FileNotFoundError("Cobbler Cheetah Macros File must exist!")
-    with open(location, "r") as macro_file:
+    with open(location, "r", encoding="UTF-8") as macro_file:
         return macro_file.read()
 
 
 def generate_cheetah_macros():
+    """
+    TODO
+
+    :return: TODO
+    """
     try:
         macro_file = read_macro_file()
         return Template.compile(
@@ -105,7 +116,7 @@ class CobblerTemplate(generate_cheetah_macros()):
         """
 
         def replacer(match: Match):
-            return "$SNIPPET('%s')" % match.group(1)
+            return f"$SNIPPET('{match.group(1)}')"
 
         def preprocess(
             source: Optional[str], file: Union[TextIO, str]
@@ -116,10 +127,10 @@ class CobblerTemplate(generate_cheetah_macros()):
                     source = file.read()
                 else:
                     if os.path.exists(file):
-                        with open(file, "r") as f:
-                            source = "#errorCatcher Echo\n" + f.read()
+                        with open(file, "r", encoding="UTF-8") as snippet_fd:
+                            source = "#errorCatcher Echo\n" + snippet_fd.read()
                     else:
-                        source = "# Unable to read %s\n" % file
+                        source = f"# Unable to read {file}\n"
                 # Stop Cheetah from throwing a fit.
                 file = None
 
@@ -154,12 +165,10 @@ class CobblerTemplate(generate_cheetah_macros()):
             )
 
         for snippet_class in ("system", "profile", "distro"):
-            if self.varExists("%s_name" % snippet_class):
-                full_path = "%s/per_%s/%s/%s" % (
-                    self.getVar("autoinstall_snippets_dir"),
-                    snippet_class,
-                    file,
-                    self.getVar("%s_name" % snippet_class),
+            if self.varExists(f"{snippet_class}_name"):
+                full_path = (
+                    f"{self.getVar('autoinstall_snippets_dir')}/per_{snippet_class}/{file}/"
+                    f"{self.getVar(f'{snippet_class}_name')}"
                 )
                 try:
                     contents = utils.read_file_contents(full_path, fetch_if_remote=True)
@@ -168,7 +177,7 @@ class CobblerTemplate(generate_cheetah_macros()):
                     pass
 
         try:
-            full_path = "%s/%s" % (self.getVar("autoinstall_snippets_dir"), file)
+            full_path = f"{self.getVar('autoinstall_snippets_dir')}/{file}"
             return "#errorCatcher ListErrors\n" + utils.read_file_contents(
                 full_path, fetch_if_remote=True
             )
@@ -201,11 +210,11 @@ class CobblerTemplate(generate_cheetah_macros()):
         if snippet_contents:
             # Only include what we don't already have. Because Cheetah passes our searchList into included templates,
             # the snippet's searchList will include this templates searchList. We need to avoid duplicating entries.
-            childList = self._CHEETAH__cheetahIncludes[snippet_contents].searchList()
-            myList = self.searchList()
-            for childElem in childList:
-                if childElem not in myList:
-                    myList.append(childElem)
+            child_list = self._CHEETAH__cheetahIncludes[snippet_contents].searchList()
+            my_list = self.searchList()
+            for child_elem in child_list:
+                if child_elem not in my_list:
+                    my_list.append(child_elem)
 
         return result
 

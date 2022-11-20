@@ -98,17 +98,17 @@ def get_exc(exc, full: bool = True):
     :param full: If the full exception should be returned or only the most important information.
     :return: The exception which has been converted into a string which then can be logged easily.
     """
-    (t, v, tb) = sys.exc_info()
+    (exec_type, exec_value, trace) = sys.exc_info()
     buf = ""
     try:
         getattr(exc, "from_cobbler")
         buf = str(exc)[1:-1] + "\n"
-    except:
+    except Exception:
         if not full:
-            buf += str(t)
-        buf = "%s\n%s" % (buf, v)
+            buf += str(exec_type)
+        buf = f"{buf}\n{exec_value}"
         if full:
-            buf += "\n" + "\n".join(traceback.format_list(traceback.extract_tb(tb)))
+            buf += "\n" + "\n".join(traceback.format_list(traceback.extract_tb(trace)))
     return buf
 
 
@@ -122,59 +122,57 @@ def cheetah_exc(exc) -> str:
     lines = get_exc(exc).split("\n")
     buf = ""
     for line in lines:
-        buf += "# %s\n" % line
+        buf += f"# {line}\n"
     return CHEETAH_ERROR_DISCLAIMER + buf
 
 
-def pretty_hex(ip, length=8) -> str:
+def pretty_hex(ip_address, length=8) -> str:
     """
     Pads an IP object with leading zeroes so that the result is _length_ hex digits.  Also do an upper().
 
-    :param ip: The IP address to pretty print.
+    :param ip_address: The IP address to pretty print.
     :param length: The length of the resulting hexstring. If the number is smaller than the resulting hex-string
                    then no front-padding is done.
     """
-    hexval = "%x" % ip.value
+    hexval = f"{ip_address.value:x}"
     if len(hexval) < length:
         hexval = "0" * (length - len(hexval)) + hexval
     return hexval.upper()
 
 
-def get_host_ip(ip, shorten=True) -> str:
+def get_host_ip(ip_address, shorten=True) -> str:
     """
     Return the IP encoding needed for the TFTP boot tree.
 
-    :param ip: The IP address to pretty print.
+    :param ip_address: The IP address to pretty print.
     :param shorten: Whether the IP-Address should be shortened or not.
     :return: The IP encoded as a hexadecimal value.
     """
-
-    ip = netaddr.ip.IPAddress(ip)
-    cidr = netaddr.ip.IPNetwork(ip)
+    ip_address = netaddr.ip.IPAddress(ip_address)
+    cidr = netaddr.ip.IPNetwork(ip_address)
 
     if len(cidr) == 1:  # Just an IP, e.g. a /32
-        return pretty_hex(ip)
-    else:
-        pretty = pretty_hex(cidr[0])
-        if not shorten or len(cidr) <= 8:
-            # not enough to make the last nibble insignificant
-            return pretty
-        else:
-            cutoff = (32 - cidr.prefixlen) // 4
-            return pretty[0:-cutoff]
+        return pretty_hex(ip_address)
+
+    pretty = pretty_hex(cidr[0])
+    if not shorten or len(cidr) <= 8:
+        # not enough to make the last nibble insignificant
+        return pretty
+
+    cutoff = (32 - cidr.prefixlen) // 4
+    return pretty[0:-cutoff]
 
 
-def _IP(ip):
+def _IP(ip_address):
     """
     Returns a netaddr.IP object representing an ip.
     If ip is already an netaddr.IP instance just return it.
     Else return a new instance
     """
     ip_class = netaddr.ip.IPAddress
-    if isinstance(ip, ip_class) or ip == "":
-        return ip
-    else:
-        return ip_class(ip)
+    if isinstance(ip_address, ip_class) or ip_address == "":
+        return ip_address
+    return ip_class(ip_address)
 
 
 def is_ip(strdata: str) -> bool:
@@ -185,7 +183,7 @@ def is_ip(strdata: str) -> bool:
     """
     try:
         _IP(strdata)
-    except:
+    except Exception:
         return False
     return True
 
@@ -226,7 +224,7 @@ def get_random_mac(api_handle, virt_type="xenpv") -> str:
     else:
         raise CX("virt mac assignment not yet supported")
 
-    mac = ":".join(["%02x" % x for x in mac])
+    mac = ":".join([f"{x:02x}" for x in mac])
     systems = api_handle.systems()
     while systems.find(mac_address=mac):
         mac = get_random_mac(api_handle)
@@ -245,9 +243,9 @@ def find_matching_files(directory: str, regex: Pattern[str]) -> list:
     """
     files = glob.glob(os.path.join(directory, "*"))
     results = []
-    for f in files:
-        if regex.match(os.path.basename(f)):
-            results.append(f)
+    for file in files:
+        if regex.match(os.path.basename(file)):
+            results.append(file)
     return results
 
 
@@ -264,16 +262,16 @@ def find_highest_files(directory: str, unversioned: str, regex: Pattern[str]) ->
     files = find_matching_files(directory, regex)
     get_numbers = re.compile(r"(\d+).(\d+).(\d+)")
 
-    def max2(a, b):
+    def max2(first, second):
         """
         Returns the larger of the two values
         """
-        av = get_numbers.search(os.path.basename(a)).groups()
-        bv = get_numbers.search(os.path.basename(b)).groups()
+        first_value = get_numbers.search(os.path.basename(first)).groups()
+        second_value = get_numbers.search(os.path.basename(second)).groups()
 
-        if av > bv:
-            return a
-        return b
+        if first_value > second_value:
+            return first
+        return second
 
     if len(files) > 0:
         return reduce(max2, files)
@@ -346,11 +344,11 @@ def find_initrd(path: str) -> Optional[str]:
         #   return path
         return path
 
-    elif os.path.isdir(path):
+    if os.path.isdir(path):
         return find_highest_files(path, "initrd.img", re_initrd)
 
     # For remote URLs we expect an absolute path, and will not do any searching for the latest:
-    elif file_is_remote(path) and remote_file_exists(path):
+    if file_is_remote(path) and remote_file_exists(path):
         return path
 
     return None
@@ -372,11 +370,11 @@ def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
 
         if not os.path.exists(file_location):
             logger.warning("File does not exist: %s", file_location)
-            raise FileNotFoundError("%s: %s" % ("File not found", file_location))
+            raise FileNotFoundError(f"File not found: {file_location}")
 
         try:
-            with open(file_location) as f:
-                data = f.read()
+            with open(file_location, encoding="UTF-8") as file_fd:
+                data = file_fd.read()
             return data
         except:
             log_exc()
@@ -388,14 +386,13 @@ def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
 
     if file_is_remote(file_location):
         try:
-            handler = urllib.request.urlopen(file_location)
-            data = handler.read()
-            handler.close()
+            with urllib.request.urlopen(file_location) as handler:
+                data = handler.read()
             return data
-        except urllib.error.HTTPError:
+        except urllib.error.HTTPError as error:
             # File likely doesn't exist
             logger.warning("File does not exist: %s", file_location)
-            raise FileNotFoundError("%s: %s" % ("File not found", file_location))
+            raise FileNotFoundError(f"File not found: {file_location}") from error
 
 
 def remote_file_exists(file_url) -> bool:
@@ -406,8 +403,8 @@ def remote_file_exists(file_url) -> bool:
     :return: True if Cobbler can reach the specified URL, otherwise false.
     """
     try:
-        handler = urllib.request.urlopen(file_url)
-        handler.close()
+        with urllib.request.urlopen(file_url) as _:
+            pass
         return True
     except urllib.error.HTTPError:
         # File likely doesn't exist
@@ -452,13 +449,13 @@ def blender(api_handle, remove_dicts: bool, root_obj):
         for (name, interface) in list(root_obj.interfaces.items()):
             intf_dict = interface.to_dict()
             for key in intf_dict:
-                results["%s_%s" % (key, name)] = intf_dict[key]
+                results[f"{key}_{name}"] = intf_dict[key]
 
     # If the root object is a profile or system, add in all repo data for repos that belong to the object chain
     if root_obj.COLLECTION_TYPE in ("profile", "system"):
         repo_data = []
-        for r in results.get("repos", []):
-            repo = api_handle.find_repo(name=r)
+        for repo in results.get("repos", []):
+            repo = api_handle.find_repo(name=repo)
             if repo:
                 repo_data.append(repo.to_dict())
         # Sorting is courtesy of https://stackoverflow.com/a/73050/4730773
@@ -470,7 +467,7 @@ def blender(api_handle, remove_dicts: bool, root_obj):
     if http_port in (80, "80"):
         results["http_server"] = results["server"]
     else:
-        results["http_server"] = "%s:%s" % (results["server"], http_port)
+        results["http_server"] = f"{results['server']}:{http_port}"
 
     mgmt_parameters = results.get("mgmt_parameters", {})
     mgmt_parameters.update(results.get("autoinstall_meta", {}))
@@ -484,8 +481,7 @@ def blender(api_handle, remove_dicts: bool, root_obj):
             child = api_handle.find_items("", name=key, return_list=False)
             if child is None:
                 raise ValueError(
-                    'Child with the name "%s" of parent object "%s" did not exist!'
-                    % (key, root_obj.name)
+                    f'Child with the name "{key}" of parent object "{root_obj.name}" did not exist!'
                 )
             results["children"][key] = child.to_dict()
 
@@ -609,15 +605,14 @@ def __consolidate(node, results: dict) -> dict:
             else:
                 node_data_copy[key] = value
 
-    for field in node_data_copy:
-        data_item = node_data_copy[field]
+    for field, data_item in node_data_copy.items():
         if field in results:
             # Now merge data types separately depending on whether they are dict, list, or scalar.
             fielddata = results[field]
             if isinstance(fielddata, dict):
                 # interweave dict results
                 results[field].update(data_item.copy())
-            elif isinstance(fielddata, list) or isinstance(fielddata, tuple):
+            elif isinstance(fielddata, (list, tuple)):
                 # add to lists (Cobbler doesn't have many lists)
                 # FIXME: should probably uniquify list after doing this
                 results[field].extend(data_item)
@@ -663,12 +658,12 @@ def dict_annihilate(dictionary: dict):
 
     :param dictionary: A dictionary to clean up.
     """
-    for k in list(dictionary.keys()):
-        if str(k).startswith("!") and k != "!":
-            rk = k[1:]
-            if rk in dictionary:
-                del dictionary[rk]
-            del dictionary[k]
+    for key in list(dictionary.keys()):
+        if str(key).startswith("!") and key != "!":
+            short_key = key[1:]
+            if short_key in dictionary:
+                del dictionary[short_key]
+            del dictionary[key]
 
 
 def dict_to_string(_dict: dict) -> Union[str, dict]:
@@ -746,7 +741,7 @@ def rsync_files(src: str, dst: str, args: str, quiet: bool = True) -> bool:
         res = subprocess_call(rsync_cmd, shell=False)
         if res != 0:
             die(f"Failed to run the rsync command: '{rsync_cmd}'")
-    except:
+    except Exception:
         return False
 
     return True
@@ -771,16 +766,16 @@ def run_triggers(api, ref=None, globber: str = "", additional: list = None):
     modules = api.get_modules_in_category(globber)
     if additional is None:
         additional = []
-    for m in modules:
+    for module in modules:
         arglist = []
         if ref:
             arglist.append(ref.name)
-        for x in additional:
-            arglist.append(x)
-        logger.debug("running python trigger %s", m.__name__)
-        rc = m.run(api, arglist)
-        if rc != 0:
-            raise CX("Cobbler trigger failed: %s" % m.__name__)
+        for argument in additional:
+            arglist.append(argument)
+        logger.debug("running python trigger %s", module.__name__)
+        return_code = module.run(api, arglist)
+        if return_code != 0:
+            raise CX(f"Cobbler trigger failed: {module.__name__}")
 
     # Now do the old shell triggers, which are usually going to be slower, but are easier to write and support any
     # language.
@@ -796,19 +791,19 @@ def run_triggers(api, ref=None, globber: str = "", additional: list = None):
             arglist = [file]
             if ref:
                 arglist.append(ref.name)
-            for x in additional:
-                if x:
-                    arglist.append(x)
+            for argument in additional:
+                if argument:
+                    arglist.append(argument)
             logger.debug("running shell trigger %s", file)
-            rc = subprocess_call(arglist, shell=False)  # close_fds=True)
-        except:
+            return_code = subprocess_call(arglist, shell=False)  # close_fds=True)
+        except Exception:
             logger.warning("failed to execute trigger: %s", file)
             continue
 
-        if rc != 0:
+        if return_code != 0:
             raise CX(
                 "Cobbler trigger failed: %(file)s returns %(code)d"
-                % {"file": file, "code": rc}
+                % {"file": file, "code": return_code}
             )
 
         logger.debug("shell trigger %s finished successfully", file)
@@ -878,13 +873,13 @@ def os_release():
             make = "redhat"
         return make, float(distro_version)
 
-    elif family == "debian":
+    if family == "debian":
         if "debian" in distro_name:
             return "debian", float(distro_version)
-        elif "ubuntu" in distro_name:
+        if "ubuntu" in distro_name:
             return "ubuntu", float(distro_version)
 
-    elif family == "suse":
+    if family == "suse":
         make = "suse"
         if "suse" not in distro.like():
             make = "unknown"
@@ -902,8 +897,7 @@ def is_selinux_enabled() -> bool:
     selinuxenabled = subprocess_call(["/usr/sbin/selinuxenabled"], shell=False)
     if selinuxenabled == 0:
         return True
-    else:
-        return False
+    return False
 
 
 def command_existing(cmd: str) -> bool:
@@ -917,23 +911,23 @@ def command_existing(cmd: str) -> bool:
     return shutil.which(cmd) is not None
 
 
-def subprocess_sp(cmd, shell: bool = True, input=None):
+def subprocess_sp(cmd, shell: bool = True, process_input=None):
     """
     Call a shell process and redirect the output for internal usage.
 
     :param cmd: The command to execute in a subprocess call.
     :param shell: Whether to use a shell or not for the execution of the command.
-    :param input: If there is any input needed for that command to stdin.
+    :param process_input: If there is any input needed for that command to stdin.
     :return: A tuple of the output and the return code.
     """
     logger.info("running: %s", cmd)
 
     stdin = None
-    if input:
+    if process_input:
         stdin = subprocess.PIPE
 
     try:
-        sp = subprocess.Popen(
+        with subprocess.Popen(
             cmd,
             shell=shell,
             stdin=stdin,
@@ -941,41 +935,41 @@ def subprocess_sp(cmd, shell: bool = True, input=None):
             stderr=subprocess.PIPE,
             encoding="utf-8",
             close_fds=True,
-        )
+        ) as subprocess_popen_obj:
+            (out, err) = subprocess_popen_obj.communicate(process_input)
+            return_code = subprocess_popen_obj.returncode
     except OSError:
         log_exc()
-        die("OS Error, command not found?  While running: %s" % cmd)
+        die(f"OS Error, command not found?  While running: {cmd}")
 
-    (out, err) = sp.communicate(input)
-    rc = sp.returncode
     logger.info("received on stdout: %s", out)
     logger.debug("received on stderr: %s", err)
-    return out, rc
+    return out, return_code
 
 
-def subprocess_call(cmd, shell: bool = False, input=None):
+def subprocess_call(cmd, shell: bool = False, process_input=None):
     """
     A simple subprocess call with no output capturing.
 
     :param cmd: The command to execute.
     :param shell: Whether to use a shell or not for the execution of the command.
-    :param input: If there is any input needed for that command to stdin.
+    :param process_input: If there is any process_input needed for that command to stdin.
     :return: The return code of the process
     """
-    _, rc = subprocess_sp(cmd, shell=shell, input=input)
-    return rc
+    _, return_code = subprocess_sp(cmd, shell=shell, process_input=process_input)
+    return return_code
 
 
-def subprocess_get(cmd, shell: bool = True, input=None):
+def subprocess_get(cmd, shell: bool = True, process_input=None):
     """
     A simple subprocess call with no return code capturing.
 
     :param cmd: The command to execute.
     :param shell: Whether to use a shell or not for the execution of the command.
-    :param input: If there is any input needed for that command to stdin.
+    :param process_input: If there is any process_input needed for that command to stdin.
     :return: The data which the subprocess returns.
     """
-    data, _ = subprocess_sp(cmd, shell=shell, input=input)
+    data, _ = subprocess_sp(cmd, shell=shell, process_input=process_input)
     return data
 
 
@@ -998,9 +992,9 @@ def get_shared_secret() -> Union[str, int]:
     """
 
     try:
-        with open("/var/lib/cobbler/web.ss", "rb", encoding="utf-8") as fd:
-            data = fd.read()
-    except:
+        with open("/var/lib/cobbler/web.ss", "rb", encoding="utf-8") as web_secret_fd:
+            data = web_secret_fd.read()
+    except Exception:
         return -1
     return str(data).strip()
 
@@ -1015,16 +1009,16 @@ def local_get_cobbler_api_url() -> str:
     # TODO: Replace with Settings access
     data = settings.read_settings_file()
 
-    ip = data.get("server", "127.0.0.1")
+    ip_address = data.get("server", "127.0.0.1")
     if data.get("client_use_localhost", False):
         # this overrides the server setting
-        ip = "127.0.0.1"
+        ip_address = "127.0.0.1"
     port = data.get("http_port", "80")
     protocol = "http"
     if data.get("client_use_https", False):
         protocol = "https"
 
-    return "%s://%s:%s/cobbler_api" % (protocol, ip, port)
+    return f"{protocol}://{ip_address}:{port}/cobbler_api"
 
 
 def local_get_cobbler_xmlrpc_url() -> str:
@@ -1035,7 +1029,7 @@ def local_get_cobbler_xmlrpc_url() -> str:
     """
     # Load xmlrpc port
     data = settings.read_settings_file()
-    return "http://%s:%s" % ("127.0.0.1", data.get("xmlrpc_port", "25151"))
+    return f"http://127.0.0.1:{data.get('xmlrpc_port', '25151')}"
 
 
 def strip_none(data, omit_none: bool = False):
@@ -1052,11 +1046,11 @@ def strip_none(data, omit_none: bool = False):
 
     elif isinstance(data, list):
         data2 = []
-        for x in data:
-            if omit_none and x is None:
+        for element in data:
+            if omit_none and element is None:
                 pass
             else:
-                data2.append(strip_none(x))
+                data2.append(strip_none(element))
         return data2
 
     elif isinstance(data, dict):
@@ -1083,8 +1077,8 @@ def revert_strip_none(data):
 
     if isinstance(data, list):
         data2 = []
-        for x in data:
-            data2.append(revert_strip_none(x))
+        for element in data:
+            data2.append(revert_strip_none(element))
         return data2
 
     if isinstance(data, dict):
@@ -1149,12 +1143,12 @@ def dhcpconf_location(protocol: enums.DHCP, filename: str = "dhcpd.conf") -> str
         or (dist == "suse")
     ):
         return os.path.join("/etc", filename)
-    elif (dist == "debian" and int(version) < 6) or (
+    if (dist == "debian" and int(version) < 6) or (
         dist == "ubuntu" and version < 11.10
     ):
         return os.path.join("/etc/dhcp3", filename)
-    else:
-        return os.path.join("/etc/dhcp/", filename)
+
+    return os.path.join("/etc/dhcp/", filename)
 
 
 def namedconf_location() -> str:
@@ -1164,10 +1158,9 @@ def namedconf_location() -> str:
     :return: If the distro is Debian/Ubuntu then this returns "/etc/bind/named.conf". Otherwise "/etc/named.conf"
     """
     (dist, _) = os_release()
-    if dist == "debian" or dist == "ubuntu":
+    if dist in ("debian", "ubuntu"):
         return "/etc/bind/named.conf"
-    else:
-        return "/etc/named.conf"
+    return "/etc/named.conf"
 
 
 def dhcp_service_name() -> str:
@@ -1179,14 +1172,13 @@ def dhcp_service_name() -> str:
     (dist, version) = os_release()
     if dist == "debian" and int(version) < 6:
         return "dhcp3-server"
-    elif dist == "debian" and int(version) >= 6:
+    if dist == "debian" and int(version) >= 6:
         return "isc-dhcp-server"
-    elif dist == "ubuntu" and version < 11.10:
+    if dist == "ubuntu" and version < 11.10:
         return "dhcp3-server"
-    elif dist == "ubuntu" and version >= 11.10:
+    if dist == "ubuntu" and version >= 11.10:
         return "isc-dhcp-server"
-    else:
-        return "dhcpd"
+    return "dhcpd"
 
 
 def named_service_name() -> str:
@@ -1196,16 +1188,15 @@ def named_service_name() -> str:
     :return: This will return for debian/ubuntu bind9 and on other distros named-chroot or named.
     """
     (dist, _) = os_release()
-    if dist == "debian" or dist == "ubuntu":
+    if dist in ("debian", "ubuntu"):
         return "bind9"
-    else:
-        if process_management.is_systemd():
-            rc = subprocess_call(
-                ["/usr/bin/systemctl", "is-active", "named-chroot"], shell=False
-            )
-            if rc == 0:
-                return "named-chroot"
-        return "named"
+    if process_management.is_systemd():
+        return_code = subprocess_call(
+            ["/usr/bin/systemctl", "is-active", "named-chroot"], shell=False
+        )
+        if return_code == 0:
+            return "named-chroot"
+    return "named"
 
 
 def compare_versions_gt(ver1: str, ver2: str) -> bool:
@@ -1217,8 +1208,8 @@ def compare_versions_gt(ver1: str, ver2: str) -> bool:
     :return: True if ver1 is greater, otherwise False.
     """
 
-    def versiontuple(v):
-        return tuple(map(int, (v.split("."))))
+    def versiontuple(version):
+        return tuple(map(int, (version.split("."))))
 
     return versiontuple(ver1) > versiontuple(ver2)
 
@@ -1255,10 +1246,9 @@ def kopts_overwrite(
             kopts["textmode"] = ["1"]
         if system_name and cobbler_server_hostname:
             # only works if pxe_just_once is enabled in global settings
-            kopts["info"] = "http://%s/cblr/svc/op/nopxe/system/%s" % (
-                cobbler_server_hostname,
-                system_name,
-            )
+            kopts[
+                "info"
+            ] = f"http://{cobbler_server_hostname}/cblr/svc/op/nopxe/system/{system_name}"
 
 
 def is_str_int(value: str) -> bool:

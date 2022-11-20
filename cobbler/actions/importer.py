@@ -83,7 +83,7 @@ class Importer:
         # Prevent rsync from creating the directory name twice if we are copying via rsync.
 
         if not mirror_url.endswith("/"):
-            mirror_url = "%s/" % mirror_url
+            mirror_url = f"{mirror_url}/"
 
         if (
             mirror_url.startswith("http://")
@@ -96,32 +96,32 @@ class Importer:
             # TODO: how about adding recursive FTP as an option?
             self.logger.info("unsupported protocol")
             return False
-        else:
-            # Good, we're going to use rsync.. We don't use SSH for public mirrors and local files.
-            # Presence of user@host syntax means use SSH
-            spacer = ""
-            if not mirror_url.startswith("rsync://") and not mirror_url.startswith("/"):
-                spacer = ' -e "ssh" '
-            rsync_cmd = ["rsync", "--archive"]
-            if spacer != "":
-                rsync_cmd.append(spacer)
-            rsync_cmd.append("--progress")
-            if rsync_flags:
-                rsync_cmd.append(rsync_flags)
 
-            # If --available-as was specified, limit the files we pull down via rsync to just those that are critical
-            # to detecting what the distro is
-            if network_root is not None:
-                rsync_cmd.append("--include-from=/etc/cobbler/import_rsync_whitelist")
+        # Good, we're going to use rsync.. We don't use SSH for public mirrors and local files.
+        # Presence of user@host syntax means use SSH
+        spacer = ""
+        if not mirror_url.startswith("rsync://") and not mirror_url.startswith("/"):
+            spacer = ' -e "ssh" '
+        rsync_cmd = ["rsync", "--archive"]
+        if spacer != "":
+            rsync_cmd.append(spacer)
+        rsync_cmd.append("--progress")
+        if rsync_flags:
+            rsync_cmd.append(rsync_flags)
 
-            rsync_cmd += [mirror_url, path]
+        # If --available-as was specified, limit the files we pull down via rsync to just those that are critical
+        # to detecting what the distro is
+        if network_root is not None:
+            rsync_cmd.append("--include-from=/etc/cobbler/import_rsync_whitelist")
 
-            # kick off the rsync now
-            rsync_return_code = utils.subprocess_call(rsync_cmd, shell=False)
-            if rsync_return_code != 0:
-                raise RuntimeError(
-                    f"rsync import failed with return code {rsync_return_code}!"
-                )
+        rsync_cmd += [mirror_url, path]
+
+        # kick off the rsync now
+        rsync_return_code = utils.subprocess_call(rsync_cmd, shell=False)
+        if rsync_return_code != 0:
+            raise RuntimeError(
+                f"rsync import failed with return code {rsync_return_code}!"
+            )
 
         if network_root is not None:
             # In addition to mirroring, we're going to assume the path is available over http, ftp, and nfs, perhaps on

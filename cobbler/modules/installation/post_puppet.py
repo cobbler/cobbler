@@ -8,7 +8,7 @@ https://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
 """
 import logging
 import re
-import cobbler.utils as utils
+from cobbler import utils
 
 logger = logging.getLogger()
 
@@ -55,14 +55,14 @@ def run(api, args) -> int:
     puppetca_path = settings.puppetca_path
     cmd = [puppetca_path, "cert", "sign", hostname]
 
-    rc = 0
+    return_code = 0
 
     try:
-        rc = utils.subprocess_call(cmd, shell=False)
-    except:
+        return_code = utils.subprocess_call(cmd, shell=False)
+    except Exception:
         logger.warning("failed to execute %s", puppetca_path)
 
-    if rc != 0:
+    if return_code != 0:
         logger.warning("signing of puppet cert for %s failed", name)
 
     return 0

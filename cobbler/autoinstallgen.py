@@ -40,46 +40,48 @@ class AutoInstallationGen:
         :param name: The name of the script.
         :return: The AutoYaST file with the attached script.
         """
-        newScript = document.createElement("script")
-        newScriptSource = document.createElement("source")
-        newScriptSourceText = document.createCDATASection(script)
-        newScript.appendChild(newScriptSource)
+        new_script = document.createElement("script")
+        new_script_source = document.createElement("source")
+        new_script_source_text = document.createCDATASection(script)
+        new_script.appendChild(new_script_source)
 
-        newScriptFile = document.createElement("filename")
-        newScriptFileText = document.createTextNode(name)
-        newScript.appendChild(newScriptFile)
+        new_script_file = document.createElement("filename")
+        new_script_file_text = document.createTextNode(name)
+        new_script.appendChild(new_script_file)
 
-        newScriptSource.appendChild(newScriptSourceText)
-        newScriptFile.appendChild(newScriptFileText)
-        return newScript
+        new_script_source.appendChild(new_script_source_text)
+        new_script_file.appendChild(new_script_file_text)
+        return new_script
 
-    def addAutoYaSTScript(self, document, type, source):
+    def addAutoYaSTScript(self, document, script_type, source):
         """
         Add scripts to an existing AutoYaST XML.
 
         :param document: The existing AutoYaST XML object.
-        :param type: The type of the script which should be added.
+        :param script_type: The type of the script which should be added.
         :param source: The source of the script. This should be ideally a string.
         """
         scripts = document.getElementsByTagName("scripts")
         if scripts.length == 0:
-            newScripts = document.createElement("scripts")
-            document.documentElement.appendChild(newScripts)
+            new_scripts = document.createElement("scripts")
+            document.documentElement.appendChild(new_scripts)
             scripts = document.getElementsByTagName("scripts")
         added = 0
         for stype in scripts[0].childNodes:
-            if stype.nodeType == stype.ELEMENT_NODE and stype.tagName == type:
+            if stype.nodeType == stype.ELEMENT_NODE and stype.tagName == script_type:
                 stype.appendChild(
-                    self.createAutoYaSTScript(document, source, type + "_cobbler")
+                    self.createAutoYaSTScript(
+                        document, source, script_type + "_cobbler"
+                    )
                 )
                 added = 1
         if added == 0:
-            newChrootScripts = document.createElement(type)
-            newChrootScripts.setAttribute("config:type", "list")
-            newChrootScripts.appendChild(
-                self.createAutoYaSTScript(document, source, type + "_cobbler")
+            new_chroot_scripts = document.createElement(script_type)
+            new_chroot_scripts.setAttribute("config:type", "list")
+            new_chroot_scripts.appendChild(
+                self.createAutoYaSTScript(document, source, script_type + "_cobbler")
             )
-            scripts[0].appendChild(newChrootScripts)
+            scripts[0].appendChild(new_chroot_scripts)
 
     def generate_autoyast(self, profile=None, system=None, raw_data=None) -> str:
         """
@@ -92,8 +94,7 @@ class AutoInstallationGen:
         :return: The generated AutoYaST XML file.
         """
         self.api.logger.info(
-            "AutoYaST XML file found. Checkpoint: profile=%s system=%s"
-            % (profile, system)
+            "AutoYaST XML file found. Checkpoint: profile=%s system=%s", profile, system
         )
         runpost = '\ncurl "http://%s/cblr/svc/op/trig/mode/post/%s/%s" > /dev/null'
         runpre = '\ncurl "http://%s/cblr/svc/op/trig/mode/pre/%s/%s" > /dev/null'
@@ -108,40 +109,32 @@ class AutoInstallationGen:
 
         document = xml.dom.minidom.parseString(raw_data)
 
-        # Do we already have the #raw comment in the XML? (addComment = 0 means, don't add #raw comment)
-        addComment = 1
+        # Do we already have the #raw comment in the XML? (add_comment = 0 means, don't add #raw comment)
+        add_comment = 1
         for node in document.childNodes[1].childNodes:
             if node.nodeType == node.ELEMENT_NODE and node.tagName == "cobbler":
-                addComment = 0
+                add_comment = 0
                 break
 
         # Add some cobbler information to the XML file, maybe that should be configurable.
-        if addComment == 1:
-            # startComment = document.createComment("\ncobbler_system_name=$system_name\ncobbler_server=$server\n#raw\n")
-            # endComment = document.createComment("\n#end raw\n")
-            cobblerElement = document.createElement("cobbler")
-            cobblerElementSystem = xml.dom.minidom.Element("system_name")
-            cobblerElementProfile = xml.dom.minidom.Element("profile_name")
+        if add_comment == 1:
+            cobbler_element = document.createElement("cobbler")
+            cobbler_element_system = xml.dom.minidom.Element("system_name")
+            cobbler_element_profile = xml.dom.minidom.Element("profile_name")
             if system is not None:
-                cobblerTextSystem = document.createTextNode(system.name)
-                cobblerElementSystem.appendChild(cobblerTextSystem)
+                cobbler_text_system = document.createTextNode(system.name)
+                cobbler_element_system.appendChild(cobbler_text_system)
             if profile is not None:
-                cobblerTextProfile = document.createTextNode(profile.name)
-                cobblerElementProfile.appendChild(cobblerTextProfile)
+                cobbler_text_profile = document.createTextNode(profile.name)
+                cobbler_element_profile.appendChild(cobbler_text_profile)
 
-            cobblerElementServer = document.createElement("server")
-            cobblerTextServer = document.createTextNode(blended["http_server"])
-            cobblerElementServer.appendChild(cobblerTextServer)
+            cobbler_element_server = document.createElement("server")
+            cobbler_text_server = document.createTextNode(blended["http_server"])
+            cobbler_element_server.appendChild(cobbler_text_server)
 
-            cobblerElement.appendChild(cobblerElementServer)
-            cobblerElement.appendChild(cobblerElementSystem)
-            cobblerElement.appendChild(cobblerElementProfile)
-
-            # FIXME: this is all broken and no longer works. This entire if block should probably not be hard-coded
-            #  anyway
-            # self.api.log(document.childNodes[2].childNodes)
-            # document.childNodes[1].insertBefore( cobblerElement, document.childNodes[2].childNodes[1])
-            # document.childNodes[1].insertBefore( cobblerElement, document.childNodes[1].childNodes[0])
+            cobbler_element.appendChild(cobbler_element_server)
+            cobbler_element.appendChild(cobbler_element_system)
+            cobbler_element.appendChild(cobbler_element_profile)
 
         name = profile.name
         if system is not None:
@@ -185,31 +178,21 @@ class AutoInstallationGen:
 
                     if opt in ["exclude", "include"]:
                         value = repo_obj.yumopts[opt].replace(" ", ",")
-                        yumopts = yumopts + " --%spkgs=%s" % (opt, value)
+                        yumopts = yumopts + f" --{opt}pkgs={value}"
                     elif not opt.lower() in validate.AUTOINSTALL_REPO_BLACKLIST:
-                        yumopts += " %s=%s" % (opt, repo_obj.yumopts[opt])
+                        yumopts += f" {opt}={repo_obj.yumopts[opt]}"
                 if (
                     "enabled" not in repo_obj.yumopts
                     or repo_obj.yumopts["enabled"] == "1"
                 ):
                     if repo_obj.mirror_locally:
-                        baseurl = "http://%s/cobbler/repo_mirror/%s" % (
-                            blended["http_server"],
-                            repo_obj.name,
-                        )
+                        baseurl = f"http://{blended['http_server']}/cobbler/repo_mirror/{repo_obj.name}"
                         if baseurl not in included:
-                            buf += "repo --name=%s --baseurl=%s\n" % (
-                                repo_obj.name,
-                                baseurl,
-                            )
+                            buf += f"repo --name={repo_obj.name} --baseurl={baseurl}\n"
                         included[baseurl] = 1
                     else:
                         if repo_obj.mirror not in included:
-                            buf += "repo --name=%s --baseurl=%s %s\n" % (
-                                repo_obj.name,
-                                repo_obj.mirror,
-                                yumopts,
-                            )
+                            buf += f"repo --name={repo_obj.name} --baseurl={repo_obj.mirror} {yumopts}\n"
                         included[repo_obj.mirror] = 1
             else:
                 # FIXME: what to do if we can't find the repo object that is listed?
@@ -225,11 +208,11 @@ class AutoInstallationGen:
 
         source_repos = distro.source_repos
         count = 0
-        for x in source_repos:
+        for repo in source_repos:
             count += 1
-            if not x[1] in included:
-                buf += "repo --name=source-%s --baseurl=%s\n" % (count, x[1])
-                included[x[1]] = 1
+            if not repo[1] in included:
+                buf += f"repo --name=source-{count} --baseurl={repo[1]}\n"
+                included[repo[1]] = 1
 
         return buf
 
@@ -248,17 +231,11 @@ class AutoInstallationGen:
 
         blended = utils.blender(self.api, False, obj)
         if is_profile:
-            url = "http://%s/cblr/svc/op/yum/profile/%s" % (
-                blended["http_server"],
-                obj.name,
-            )
+            url = f"http://{blended['http_server']}/cblr/svc/op/yum/profile/{obj.name}"
         else:
-            url = "http://%s/cblr/svc/op/yum/system/%s" % (
-                blended["http_server"],
-                obj.name,
-            )
+            url = f"http://{blended['http_server']}/cblr/svc/op/yum/system/{obj.name}"
 
-        return 'curl "%s" --output /etc/yum.repos.d/cobbler-config.repo\n' % (url)
+        return f'curl "{url}" --output /etc/yum.repos.d/cobbler-config.repo\n'
 
     def generate_autoinstall_for_system(self, sys_name) -> str:
         """
@@ -268,23 +245,23 @@ class AutoInstallationGen:
         :return: The generated output or an error message with a human readable description.
         :raises CX: Raised in case the system references a missing profile.
         """
-        s = self.api.find_system(name=sys_name)
-        if s is None:
+        system_obj = self.api.find_system(name=sys_name)
+        if system_obj is None:
             return "# system not found"
 
-        p = s.get_conceptual_parent()
-        if p is None:
+        profile_obj = system_obj.get_conceptual_parent()
+        if profile_obj is None:
             raise CX(
                 "system %(system)s references missing profile %(profile)s"
-                % {"system": s.name, "profile": s.profile}
+                % {"system": system_obj.name, "profile": system_obj.profile}
             )
 
-        distro = p.get_conceptual_parent()
+        distro = profile_obj.get_conceptual_parent()
         if distro is None:
             # this is an image parented system, no automatic installation file available
             return "# image based systems do not have automatic installation files"
 
-        return self.generate_autoinstall(profile=p, system=s)
+        return self.generate_autoinstall(profile=profile_obj, system=system_obj)
 
     def generate_autoinstall(self, profile=None, system=None) -> str:
         """
@@ -307,10 +284,7 @@ class AutoInstallationGen:
         autoinstall_rel_path = meta["autoinstall"]
 
         if not autoinstall_rel_path:
-            return "# automatic installation file value missing or invalid at %s %s" % (
-                obj_type,
-                obj.name,
-            )
+            return f"# automatic installation file value missing or invalid at {obj_type} {obj.name}"
 
         # get parent distro
         distro = profile.get_conceptual_parent()
@@ -342,9 +316,8 @@ class AutoInstallationGen:
             meta["install_source_directory"] = urlparts[2]
 
         try:
-            autoinstall_path = "%s/%s" % (
-                self.settings.autoinstall_templates_dir,
-                autoinstall_rel_path,
+            autoinstall_path = (
+                f"{self.settings.autoinstall_templates_dir}/{autoinstall_rel_path}"
             )
             raw_data = utils.read_file_contents(autoinstall_path)
 
@@ -352,33 +325,33 @@ class AutoInstallationGen:
 
             return data
         except FileNotFoundError:
-            error_msg = "automatic installation file %s not found at %s" % (
-                meta["autoinstall"],
-                self.settings.autoinstall_templates_dir,
+            error_msg = (
+                f"automatic installation file {meta['autoinstall']} not found"
+                f" at {self.settings.autoinstall_templates_dir}"
             )
             self.api.logger.warning(error_msg)
-            return "# %s" % error_msg
+            return f"# {error_msg}"
 
-    def generate_autoinstall_for_profile(self, g) -> str:
+    def generate_autoinstall_for_profile(self, profile) -> str:
         """
         Generate an autoinstall config or script for a profile.
 
-        :param g: The Profile to generate the script/config for.
+        :param profile: The Profile to generate the script/config for.
         :return: The generated output or an error message with a human readable description.
         :raises CX: Raised in case the profile references a missing distro.
         """
-        g = self.api.find_profile(name=g)
-        if g is None:
+        profile = self.api.find_profile(name=profile)
+        if profile is None:
             return "# profile not found"
 
-        distro = g.get_conceptual_parent()
+        distro = profile.get_conceptual_parent()
         if distro is None:
             raise CX(
                 "profile %(profile)s references missing distro %(distro)s"
-                % {"profile": g.name, "distro": g.distro}
+                % {"profile": profile.name, "distro": profile.distro}
             )
 
-        return self.generate_autoinstall(profile=g)
+        return self.generate_autoinstall(profile=profile)
 
     def get_last_errors(self) -> list:
         """

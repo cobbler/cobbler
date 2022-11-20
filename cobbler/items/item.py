@@ -64,35 +64,32 @@ class Item:
             else:
                 match = fnmatch.fnmatch(from_obj_lower, from_search_lower)
             return match
-        else:
-            if isinstance(from_search, str):
-                if isinstance(from_obj, list):
-                    from_search = input_converters.input_string_or_list(from_search)
-                    for x in from_search:
-                        if x not in from_obj:
-                            return False
-                    return True
-                if isinstance(from_obj, dict):
-                    from_search = input_converters.input_string_or_dict(
-                        from_search, allow_multiples=True
-                    )
-                    for x in list(from_search.keys()):
-                        y = from_search[x]
-                        if x not in from_obj:
-                            return False
-                        if not (y == from_obj[x]):
-                            return False
-                    return True
-                if isinstance(from_obj, bool):
-                    if from_search.lower() in ["true", "1", "y", "yes"]:
-                        inp = True
-                    else:
-                        inp = False
-                    if inp == from_obj:
-                        return True
-                    return False
 
-            raise TypeError("find cannot compare type: %s" % type(from_obj))
+        if isinstance(from_search, str):
+            if isinstance(from_obj, list):
+                from_search = input_converters.input_string_or_list(from_search)
+                for list_element in from_search:
+                    if list_element not in from_obj:
+                        return False
+                return True
+            if isinstance(from_obj, dict):
+                from_search = input_converters.input_string_or_dict(
+                    from_search, allow_multiples=True
+                )
+                for dict_key in list(from_search.keys()):
+                    dict_value = from_search[dict_key]
+                    if dict_key not in from_obj:
+                        return False
+                    if not (dict_value == from_obj[dict_key]):
+                        return False
+                return True
+            if isinstance(from_obj, bool):
+                inp = from_search.lower() in ["true", "1", "y", "yes"]
+                if inp == from_obj:
+                    return True
+                return False
+
+        raise TypeError(f"find cannot compare type: {type(from_obj)}")
 
     def __init__(self, api, is_subobject: bool = False):
         """
@@ -174,8 +171,7 @@ class Item:
 
         if not hasattr(self, attribute):
             raise AttributeError(
-                '%s "%s" does not have property "%s"'
-                % (type(self), self.name, property_name)
+                f'{type(self)} "{self.name}" does not have property "{property_name}"'
             )
 
         attribute_value = getattr(self, attribute)
@@ -184,15 +180,14 @@ class Item:
         if attribute_value == enums.VALUE_INHERITED:
             if self.parent is not None and hasattr(self.parent, property_name):
                 return getattr(self.parent, property_name)
-            elif hasattr(settings, settings_name):
+            if hasattr(settings, settings_name):
                 return getattr(settings, settings_name)
-            elif hasattr(settings, "default_%s" % settings_name):
-                return getattr(settings, "default_%s" % settings_name)
-            else:
-                AttributeError(
-                    '%s "%s" inherits property "%s", but neither its parent nor settings have it'
-                    % (type(self), self.name, property_name)
-                )
+            if hasattr(settings, f"default_{settings_name}"):
+                return getattr(settings, f"default_{settings_name}")
+            AttributeError(
+                f'{type(self)} "{self.name}" inherits property "{property_name}", but neither its parent nor'
+                f"settings have it"
+            )
 
         return attribute_value
 
@@ -207,8 +202,7 @@ class Item:
 
         if not hasattr(self, attribute):
             raise AttributeError(
-                '%s "%s" does not have property "%s"'
-                % (type(self), self.name, property_name)
+                f'{type(self)} "{self.name}" does not have property "{property_name}"'
             )
 
         attribute_value = getattr(self, attribute)
@@ -220,17 +214,14 @@ class Item:
         ):
             if self.parent is not None and hasattr(self.parent, property_name):
                 return getattr(self.parent, property_name)
-            elif hasattr(settings, settings_name):
+            if hasattr(settings, settings_name):
                 return enum_type.to_enum(getattr(settings, settings_name))
-            elif hasattr(settings, "default_%s" % settings_name):
-                return enum_type.to_enum(
-                    getattr(settings, "default_%s" % settings_name)
-                )
-            else:
-                AttributeError(
-                    '%s "%s" inherits property "%s", but neither its parent nor settings have it'
-                    % (type(self), self.name, property_name)
-                )
+            if hasattr(settings, f"default_{settings_name}"):
+                return enum_type.to_enum(getattr(settings, f"default_{settings_name}"))
+            AttributeError(
+                f'{type(self)} "{self.name}" inherits property "{property_name}", but neither its parent nor'
+                "settings have it"
+            )
 
         return attribute_value
 
@@ -247,8 +238,7 @@ class Item:
 
         if not hasattr(self, attribute):
             raise AttributeError(
-                '%s "%s" does not have property "%s"'
-                % (type(self), self.name, property_name)
+                f'{type(self)} "{self.name}" does not have property "{property_name}"'
             )
 
         attribute_value = getattr(self, attribute)
@@ -333,7 +323,7 @@ class Item:
         if not isinstance(name, str):
             raise TypeError("name must of be type str")
         if not RE_OBJECT_NAME.match(name):
-            raise ValueError("Invalid characters in name: '%s'" % name)
+            raise ValueError(f"Invalid characters in name: '{name}'")
         self._name = name
 
     @property
@@ -407,8 +397,8 @@ class Item:
             self._kernel_options = input_converters.input_string_or_dict(
                 options, allow_multiples=True
             )
-        except TypeError as e:
-            raise TypeError("invalid kernel options") from e
+        except TypeError as error:
+            raise TypeError("invalid kernel options") from error
 
     @InheritableDictProperty
     def kernel_options_post(self) -> dict:
@@ -434,8 +424,8 @@ class Item:
             self._kernel_options_post = input_converters.input_string_or_dict(
                 options, allow_multiples=True
             )
-        except TypeError as e:
-            raise TypeError("invalid post kernel options") from e
+        except TypeError as error:
+            raise TypeError("invalid post kernel options") from error
 
     @InheritableDictProperty
     def autoinstall_meta(self) -> dict:
@@ -511,15 +501,14 @@ class Item:
             if mgmt_parameters == enums.VALUE_INHERITED:
                 self._mgmt_parameters = enums.VALUE_INHERITED
                 return
-            elif mgmt_parameters == "":
+            if mgmt_parameters == "":
                 self._mgmt_parameters = {}
                 return
-            else:
-                mgmt_parameters = yaml.safe_load(mgmt_parameters)
-                if not isinstance(mgmt_parameters, dict):
-                    raise TypeError(
-                        "Input YAML in Puppet Parameter field must evaluate to a dictionary."
-                    )
+            mgmt_parameters = yaml.safe_load(mgmt_parameters)
+            if not isinstance(mgmt_parameters, dict):
+                raise TypeError(
+                    "Input YAML in Puppet Parameter field must evaluate to a dictionary."
+                )
         self._mgmt_parameters = mgmt_parameters
 
     @property
@@ -545,8 +534,8 @@ class Item:
             self._template_files = input_converters.input_string_or_dict(
                 template_files, allow_multiples=False
             )
-        except TypeError as e:
-            raise TypeError("invalid template files specified") from e
+        except TypeError as error:
+            raise TypeError("invalid template files specified") from error
 
     @property
     def boot_files(self) -> dict:
@@ -572,8 +561,8 @@ class Item:
             self._boot_files = input_converters.input_string_or_dict(
                 boot_files, allow_multiples=False
             )
-        except TypeError as e:
-            raise TypeError("invalid boot files specified") from e
+        except TypeError as error:
+            raise TypeError("invalid boot files specified") from error
 
     @InheritableDictProperty
     def fetchable_files(self) -> dict:
@@ -599,8 +588,8 @@ class Item:
             self._fetchable_files = input_converters.input_string_or_dict(
                 fetchable_files, allow_multiples=False
             )
-        except TypeError as e:
-            raise TypeError("invalid fetchable files specified") from e
+        except TypeError as error:
+            raise TypeError("invalid fetchable files specified") from error
 
     @property
     def depth(self) -> int:
@@ -845,8 +834,7 @@ class Item:
 
         if value is None:
             return True
-        else:
-            return self.__find_compare(value, data[key])
+        return self.__find_compare(value, data[key])
 
     def dump_vars(
         self, formatted_output: bool = True, remove_dicts: bool = False
@@ -861,8 +849,7 @@ class Item:
         raw = utils.blender(self.api, remove_dicts, self)
         if formatted_output:
             return pprint.pformat(raw)
-        else:
-            return raw
+        return raw
 
     def check_if_valid(self):
         """
@@ -910,12 +897,12 @@ class Item:
                     setattr(self, lowered_key, dictionary[key])
                 except AttributeError as error:
                     raise AttributeError(
-                        'Attribute "%s" could not be set!' % lowered_key
+                        f'Attribute "{lowered_key}" could not be set!'
                     ) from error
                 result.pop(key)
         if len(result) > 0:
             raise KeyError(
-                "The following keys supplied could not be set: %s" % result.keys()
+                f"The following keys supplied could not be set: {result.keys()}"
             )
 
     def to_dict(self, resolved: bool = False) -> dict:
@@ -927,7 +914,7 @@ class Item:
         :return: A dictionary with all values present in this object.
         """
         value = {}
-        for key in self.__dict__:
+        for key, key_value in self.__dict__.items():
             if key.startswith("_") and not key.startswith("__"):
                 if key in (
                     "_conceptual_parent",
@@ -937,7 +924,6 @@ class Item:
                 ):
                     continue
                 new_key = key[1:].lower()
-                key_value = self.__dict__[key]
                 if isinstance(key_value, enum.Enum):
                     value[new_key] = key_value.value
                 elif new_key == "interfaces":
@@ -963,7 +949,7 @@ class Item:
                 ):
                     value[new_key] = getattr(self, key[1:])
                 else:
-                    value[new_key] = self.__dict__[key]
+                    value[new_key] = key_value
         if "autoinstall" in value:
             value.update({"kickstart": value["autoinstall"]})
         if "autoinstall_meta" in value:

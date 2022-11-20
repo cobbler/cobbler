@@ -35,7 +35,7 @@ def run(api, args) -> int:
     """
     objtype = args[0]
     name = args[1]
-    ip = args[2]
+    ip_address = args[2]
 
     if not validate.validate_obj_type(objtype):
         return 1
@@ -43,12 +43,16 @@ def run(api, args) -> int:
     if not api.find_items(objtype, name=name, return_list=False):
         return 1
 
-    if not (ip == "?" or validate.ipv4_address(ip) or validate.ipv6_address(ip)):
+    if not (
+        ip_address == "?"
+        or validate.ipv4_address(ip_address)
+        or validate.ipv6_address(ip_address)
+    ):
         return 1
 
     # FIXME: use the logger
 
-    with open("/var/log/cobbler/install.log", "a+") as fd:
-        fd.write("%s\t%s\t%s\tstop\t%s\n" % (objtype, name, ip, time.time()))
+    with open("/var/log/cobbler/install.log", "a+", encoding="UTF-8") as install_log_fd:
+        install_log_fd.write(f"{objtype}\t{name}\t{ip_address}\tstop\t{time.time()}\n")
 
     return 0

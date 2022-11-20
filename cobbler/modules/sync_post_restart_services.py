@@ -54,7 +54,7 @@ def run(api, args) -> int:
                 ret_code = process_management.service_restart(service_name)
                 has_restarted_dnsmasq = True
         else:
-            logger.error("unknown DHCP engine: %s" % which_dhcp_module)
+            logger.error("unknown DHCP engine: %s", which_dhcp_module)
             ret_code = 411
 
     if settings.manage_dns and settings.restart_dns:
@@ -69,7 +69,7 @@ def run(api, args) -> int:
             # N-DJBDNS picks up configuration changes automatically and does not need to be restarted.
             pass
         else:
-            logger.error("unknown DNS engine: %s" % which_dns_module)
+            logger.error("unknown DNS engine: %s", which_dns_module)
             ret_code = 412
 
     return ret_code

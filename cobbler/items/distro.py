@@ -57,9 +57,7 @@ class Distro(item.Item):
     def __getattr__(self, name):
         if name == "ks_meta":
             return self.autoinstall_meta
-        raise AttributeError(
-            'Attribute "%s" did not exist on object type Distro.' % name
-        )
+        raise AttributeError(f'Attribute "{name}" did not exist on object type Distro.')
 
     #
     # override some base class methods first (item.Item)
@@ -110,7 +108,7 @@ class Distro(item.Item):
         """
         super().check_if_valid()
         if self.kernel is None:
-            raise CX("Error with distro %s - kernel is required" % self.name)
+            raise CX(f"Error with distro {self.name} - kernel is required")
 
     #
     # specific methods for item.Distro
@@ -159,8 +157,8 @@ class Distro(item.Item):
             raise TypeError("kernel was not of type str")
         if not utils.find_kernel(kernel):
             raise ValueError(
-                "kernel not found or it does not match with allowed kernel filename pattern [%s]: %s."
-                % (utils.re_kernel.pattern, kernel)
+                "kernel not found or it does not match with allowed kernel filename pattern"
+                f"[{utils.re_kernel.pattern}]: {kernel}."
             )
         self._kernel = kernel
 
@@ -200,7 +198,7 @@ class Distro(item.Item):
         parsed_url = grub.parse_grub_remote_file(remote_boot_kernel)
         if parsed_url is None:
             raise ValueError(
-                "Invalid URL for remote boot kernel: %s" % remote_boot_kernel
+                f"Invalid URL for remote boot kernel: {remote_boot_kernel}"
             )
         self._remote_grub_kernel = parsed_url
         self._remote_boot_kernel = remote_boot_kernel
@@ -349,7 +347,7 @@ class Distro(item.Item):
         parsed_url = grub.parse_grub_remote_file(remote_boot_initrd)
         if parsed_url is None:
             raise ValueError(
-                "Invalid URL for remote boot initrd: %s" % remote_boot_initrd
+                f"Invalid URL for remote boot initrd: {remote_boot_initrd}"
             )
         self._remote_grub_initrd = parsed_url
         self._remote_boot_initrd = remote_boot_initrd
@@ -446,16 +444,15 @@ class Distro(item.Item):
             if boot_loaders == enums.VALUE_INHERITED:
                 self._boot_loaders = enums.VALUE_INHERITED
                 return
-            else:
-                boot_loaders = input_converters.input_string_or_list(boot_loaders)
+            boot_loaders = input_converters.input_string_or_list(boot_loaders)
 
         if not isinstance(boot_loaders, list):
             raise TypeError("boot_loaders needs to be of type list!")
 
         if not set(boot_loaders).issubset(self.supported_boot_loaders):
             raise ValueError(
-                "Invalid boot loader names: %s. Supported boot loaders are: %s"
-                % (boot_loaders, " ".join(self.supported_boot_loaders))
+                f"Invalid boot loader names: {boot_loaders}. Supported boot loaders are:"
+                f" {' '.join(self.supported_boot_loaders)}"
             )
         self._boot_loaders = boot_loaders
 
@@ -537,7 +534,7 @@ class Distro(item.Item):
         if not os.path.lexists(dest_link):
             try:
                 os.symlink(base, dest_link)
-            except:
+            except Exception:
                 # FIXME: This shouldn't happen but I've (jsabo) seen it...
                 self.logger.warning(
                     "- symlink creation failed: %s, %s", base, dest_link

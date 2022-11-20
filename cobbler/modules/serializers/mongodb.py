@@ -17,10 +17,10 @@ try:
     from pymongo import MongoClient
     from pymongo.errors import ConnectionFailure, ConfigurationError
 
-    pymongo_loaded = True
+    PYMONGO_LOADED = True
 except ModuleNotFoundError:
     # FIXME: log message
-    pymongo_loaded = False
+    PYMONGO_LOADED = False
 
 
 def register() -> str:
@@ -28,7 +28,7 @@ def register() -> str:
     The mandatory Cobbler module registration hook.
     """
     # FIXME: only run this if enabled.
-    if not pymongo_loaded:
+    if not PYMONGO_LOADED:
         return ""
     return "serializer"
 
@@ -65,12 +65,12 @@ class MongoDBSerializer(StorageBase):
         try:
             # The ismaster command is cheap and doesn't require auth.
             self.mongodb.admin.command("ping")
-        except ConnectionFailure as e:
-            raise CX("Unable to connect to Mongo database.") from e
-        except ConfigurationError as e:
+        except ConnectionFailure as error:
+            raise CX("Unable to connect to Mongo database.") from error
+        except ConfigurationError as error:
             raise CX(
                 "The configuration of the MongoDB connection isn't correct, please check the Cobbler settings."
-            ) from e
+            ) from error
         if self.database_name not in self.mongodb.list_database_names():
             self.logger.info(
                 'Database with name "%s" was not found and will be created.',
@@ -94,23 +94,23 @@ class MongoDBSerializer(StorageBase):
         # TODO: error detection
         ctype = collection.collection_type()
         if ctype != "settings":
-            for x in collection:
-                self.serialize_item(collection, x)
+            for item in collection:
+                self.serialize_item(collection, item)
 
     def deserialize_raw(self, collection_type: str):
         if collection_type == "settings":
             return settings.read_settings_file()
-        else:
-            collection = self.mongodb_database[collection_type]
-            return collection.find()
+
+        collection = self.mongodb_database[collection_type]
+        return collection.find()
 
     def deserialize(self, collection, topological: bool = True):
         datastruct = self.deserialize_raw(collection.collection_type())
-        if topological and type(datastruct) == list:
+        if topological and isinstance(datastruct, list):
             datastruct.sort(key=lambda x: x["depth"])
-        if type(datastruct) == dict:
+        if isinstance(datastruct, dict):
             collection.from_dict(datastruct)
-        elif type(datastruct) == list:
+        elif isinstance(datastruct, list):
             collection.from_list(datastruct)
 
 

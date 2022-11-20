@@ -41,11 +41,10 @@ def regen_ss_file():
     cleared by Kerberos.
     """
     ssfile = "/var/lib/cobbler/web.ss"
-    with open("/dev/urandom", "rb") as fd:
-        data = fd.read(512)
+    data = os.urandom(512)
 
-    with open(ssfile, "wb", 0o660) as fd:
-        fd.write(binascii.hexlify(data))
+    with open(ssfile, "wb", 0o660) as ss_file_fd:
+        ss_file_fd.write(binascii.hexlify(data))
 
     http_user = "apache"
     family = utils.get_family()
@@ -74,8 +73,8 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port):
     try:
         import psutil
 
-        p = psutil.Process(os.getpid())
-        start_time = " in %s seconds" % str(time.time() - p.create_time())
+        ps_util = psutil.Process(os.getpid())
+        start_time = f" in {str(time.time() - ps_util.create_time())} seconds"
     except ModuleNotFoundError:
         # This is not critical, but debug only - just install python3-psutil
         pass

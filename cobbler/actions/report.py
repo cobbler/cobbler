@@ -15,6 +15,10 @@ from cobbler import utils
 
 
 class Report:
+    """
+    TODO
+    """
+
     def __init__(self, api):
         """
         Constructor
@@ -259,8 +263,8 @@ class Report:
         """
         collection = [x for x in collection]
         collection.sort(key=lambda x: x.name)
-        for x in collection:
-            print(x.to_string())
+        for item in collection:
+            print(item.to_string())
 
     def reporting_list_names2(self, collection, name: str):
         """
@@ -298,12 +302,12 @@ class Report:
         data = []
         out_order = []
         count = 0
-        for x in collection:
+        for item_obj in collection:
             item = {}
-            if x.ITEM_TYPE == "settings":
-                structure = x.to_dict()
+            if item_obj.ITEM_TYPE == "settings":
+                structure = item_obj.to_dict()
             else:
-                structure = x.to_list()
+                structure = item_obj.to_list()
 
             for (key, value) in list(structure.items()):
                 # exception for systems which could have > 1 interface
@@ -361,11 +365,11 @@ class Report:
         data = []
         fields_list = report_fields.replace(" ", "").split(",")
 
-        for x in collection:
-            if x.ITEM_TYPE == "settings":
-                structure = x.to_dict()
+        for item in collection:
+            if item.ITEM_TYPE == "settings":
+                structure = item.to_dict()
             else:
-                structure = x.to_list()
+                structure = item.to_list()
             item = self.fielder(structure, fields_list)
             data.append(item)
 
@@ -411,11 +415,11 @@ class Report:
                 "package",
                 "file",
             ]:
-                if (
-                    report_what == "all"
-                    or report_what == collection_name
-                    or report_what == "%ss" % collection_name
-                    or report_what == "%ses" % collection_name
+                if report_what in (
+                    "all",
+                    collection_name,
+                    f"{collection_name}s",
+                    f"{collection_name}es",
                 ):
                     if report_name:
                         self.reporting_list_names2(
@@ -439,11 +443,11 @@ class Report:
                 "package",
                 "file",
             ]:
-                if (
-                    report_what == "all"
-                    or report_what == collection_name
-                    or report_what == "%ss" % collection_name
-                    or report_what == "%ses" % collection_name
+                if report_what in (
+                    "all",
+                    collection_name,
+                    f"{collection_name}s",
+                    f"{collection_name}es",
                 ):
                     self.reporting_print_all_fields(
                         self.api.get_items(collection_name),
@@ -464,11 +468,11 @@ class Report:
                 "package",
                 "file",
             ]:
-                if (
-                    report_what == "all"
-                    or report_what == collection_name
-                    or report_what == "%ss" % collection_name
-                    or report_what == "%ses" % collection_name
+                if report_what in (
+                    "all",
+                    collection_name,
+                    f"{collection_name}s",
+                    f"{collection_name}es",
                 ):
                     self.reporting_print_x_fields(
                         self.api.get_items(collection_name),

@@ -33,8 +33,8 @@ def get_power_types() -> list:
 
     power_types = []
     fence_files = glob.glob("/usr/sbin/fence_*") + glob.glob("/sbin/fence_*")
-    for x in fence_files:
-        fence_name = os.path.basename(x).replace("fence_", "")
+    for fence in fence_files:
+        fence_name = os.path.basename(fence).replace("fence_", "")
         if fence_name not in power_types:
             power_types.append(fence_name)
     power_types.sort()
@@ -53,7 +53,7 @@ def validate_power_type(power_type: str):
     if not power_types:
         raise CX("you need to have fence-agents installed")
     if power_type not in power_types:
-        raise CX("power management type must be one of: %s" % ",".join(power_types))
+        raise CX(f"power management type must be one of: {','.join(power_types)}")
 
 
 def get_power_command(power_type: str) -> Optional[str]:
@@ -66,8 +66,8 @@ def get_power_command(power_type: str) -> Optional[str]:
 
     if power_type:
         # try /sbin, then /usr/sbin
-        power_path1 = "/sbin/fence_%s" % power_type
-        power_path2 = "/usr/sbin/fence_%s" % power_type
+        power_path1 = f"/sbin/fence_{power_type}"
+        power_path2 = f"/usr/sbin/fence_{power_type}"
         for power_path in (power_path1, power_path2):
             if os.path.isfile(power_path) and os.access(power_path, os.X_OK):
                 return power_path
@@ -106,7 +106,7 @@ class PowerManager:
             ident_path = Path(system.power_identity_file)
             if not ident_path.exists():
                 self.logger.warning(
-                    "identity-file " + system.power_identity_file + " does not exist"
+                    "identity-file %s does not exist", system.power_identity_file
                 )
             else:
                 ident_stat = stat.S_IMODE(ident_path.stat().st_mode)
@@ -204,21 +204,22 @@ class PowerManager:
         power_input = self._get_power_input(system, power_operation, user, password)
 
         self.logger.info("power command: %s", power_command)
-        self.logger.info("power command input: %s", power_input)
+        self.logger.info("power command process_input: %s", power_input)
 
-        rc = -1
+        return_code = -1
 
-        for x in range(0, POWER_RETRIES):
-            output, rc = utils.subprocess_sp(
-                power_command, shell=False, input=power_input
+        for _ in range(0, POWER_RETRIES):
+            output, return_code = utils.subprocess_sp(
+                power_command, shell=False, process_input=power_input
             )
             # Allowed return codes: 0, 1, 2
-            # Source: https://github.com/ClusterLabs/fence-agents/blob/master/doc/FenceAgentAPI.md#agent-operations-and-return-values
+            # pylint: disable-next=line-too-long
+            # Source: https://github.com/ClusterLabs/fence-agents/blob/0d8826a0e83ca11dc7be95564c8566aaef6a6ecb/doc/FenceAgentAPI.md#agent-operations-and-return-values
             if power_operation in ("on", "off", "reboot"):
-                if rc == 0:
+                if return_code == 0:
                     return None
             elif power_operation == "status":
-                if rc in (0, 2):
+                if return_code in (0, 2):
                     match = re.match(
                         r"^(Status:|.+power\s=)\s(on|off)$",
                         output,
@@ -228,21 +229,14 @@ class PowerManager:
                         power_status = match.groups()[1]
                         if power_status.lower() == "on":
                             return True
-                        else:
-                            return False
-                    error_msg = (
-                        "command succeeded (rc=%s), but output ('%s') was not understood"
-                        % (rc, output)
-                    )
+                        return False
+                    error_msg = f"command succeeded (rc={return_code}), but output ('{output}') was not understood"
                     utils.die(error_msg)
                     raise CX(error_msg)
             time.sleep(2)
 
-        if not rc == 0:
-            error_msg = (
-                "command failed (rc=%s), please validate the physical setup and cobbler config"
-                % rc
-            )
+        if not return_code == 0:
+            error_msg = f"command failed (rc={return_code}), please validate the physical setup and cobbler config"
             utils.die(error_msg)
             raise CX(error_msg)
 

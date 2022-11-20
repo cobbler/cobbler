@@ -81,11 +81,12 @@ def __check_user_login(
 
 
 def authenticate(api_handle, username: str, password: str) -> bool:
+    # pylint: disable=line-too-long
     """
     Validate a username/password combo. This will pass the username and password back to Spacewalk to see if this
     authentication request is valid.
 
-    See also: https://github.com/uyuni-project/uyuni/blob/master/java/code/src/com/redhat/rhn/frontend/xmlrpc/auth/AuthHandler.java#L133
+    See also: https://github.com/uyuni-project/uyuni/blob/c9b7285117822af96c223cb0b6e0ae96ec7f0837/java/code/src/com/redhat/rhn/frontend/xmlrpc/auth/AuthHandler.java#L107
 
     :param api_handle: The api instance to retrieve settings of.
     :param username: The username to authenticate against spacewalk/uyuni/SUSE Manager
@@ -93,13 +94,13 @@ def authenticate(api_handle, username: str, password: str) -> bool:
     :return: True if it succeeded, False otherwise.
     :raises CX: Raised in case ``api_handle`` is missing.
     """
-
+    # pylint: enable=line-too-long
     if api_handle is None:
         raise CX("api_handle required. Please don't call this without it.")
     server = api_handle.settings().redhat_management_server
     user_enabled = api_handle.settings().redhat_management_permissive
 
-    spacewalk_url = "https://%s/rpc/api" % server
+    spacewalk_url = f"https://{server}/rpc/api"
     with ServerProxy(spacewalk_url, verbose=True) as client:
         if username == "taskomatic_user" or __looks_like_a_token(password):
             # The tokens are lowercase hex, but a password can also be lowercase hex, so we have to try it as both a

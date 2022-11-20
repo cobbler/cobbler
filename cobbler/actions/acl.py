@@ -16,6 +16,10 @@ from cobbler.cexceptions import CX
 
 
 class AclConfig:
+    """
+    TODO
+    """
+
     def __init__(self, api):
         """
         Constructor
@@ -42,20 +46,20 @@ class AclConfig:
         :raises CX: Raised in case not enough arguments are specified.
         """
 
-        ok = False
+        args_ok = False
         if adduser:
-            ok = True
+            args_ok = True
             self.modacl(True, True, adduser)
         if addgroup:
-            ok = True
+            args_ok = True
             self.modacl(True, False, addgroup)
         if removeuser:
-            ok = True
+            args_ok = True
             self.modacl(False, True, removeuser)
         if removegroup:
-            ok = True
+            args_ok = True
             self.modacl(False, False, removegroup)
-        if not ok:
+        if not args_ok:
             raise CX("no arguments specified, nothing to do")
 
     def modacl(self, isadd: bool, isuser: bool, who: str):

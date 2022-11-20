@@ -1,3 +1,7 @@
+"""
+TODO
+"""
+
 import shlex
 from typing import Any, Dict, Optional, Union
 
@@ -15,13 +19,12 @@ def input_string_or_list_no_inherit(options: Optional[Union[str, list]]) -> list
     """
     if not options or options == "delete":
         return []
-    elif isinstance(options, list):
+    if isinstance(options, list):
         return options
-    elif isinstance(options, str):
+    if isinstance(options, str):
         tokens = shlex.split(options)
         return tokens
-    else:
-        raise TypeError("invalid input type")
+    raise TypeError("invalid input type")
 
 
 def input_string_or_list(options: Optional[Union[str, list]]) -> Union[list, str]:
@@ -63,13 +66,13 @@ def input_string_or_dict_no_inherit(
     """
     if options is None or options == "delete":
         return {}
-    elif isinstance(options, list):
-        raise TypeError("No idea what to do with list: %s" % options)
-    elif isinstance(options, str):
+    if isinstance(options, list):
+        raise TypeError(f"No idea what to do with list: {options}")
+    if isinstance(options, str):
         new_dict: Dict[str, Any] = {}
         tokens = shlex.split(options)
-        for t in tokens:
-            tokens2 = t.split("=", 1)
+        for token in tokens:
+            tokens2 = token.split("=", 1)
             if len(tokens2) == 1:
                 # this is a singleton option, no value
                 key = tokens2[0]
@@ -81,7 +84,7 @@ def input_string_or_dict_no_inherit(
             # If we're allowing multiple values for the same key, check to see if this token has already been inserted
             # into the dictionary of values already.
 
-            if key in new_dict.keys() and allow_multiples:
+            if key in new_dict and allow_multiples:
                 # If so, check to see if there is already a list of values otherwise convert the dictionary value to an
                 # array, and add the new value to the end of the list.
                 if isinstance(new_dict[key], list):
@@ -93,11 +96,10 @@ def input_string_or_dict_no_inherit(
         # make sure we have no empty entries
         new_dict.pop("", None)
         return new_dict
-    elif isinstance(options, dict):
+    if isinstance(options, dict):
         options.pop("", None)
         return options
-    else:
-        raise TypeError("invalid input type")
+    raise TypeError("invalid input type")
 
 
 def input_boolean(value: Union[str, bool, int]) -> bool:
@@ -110,7 +112,7 @@ def input_boolean(value: Union[str, bool, int]) -> bool:
     if not isinstance(value, (str, bool, int)):
         raise TypeError(
             "The value handed to the input_boolean function was not convertable due to a wrong type "
-            "(found: %s)!" % type(value)
+            f"(found: {type(value)})!"
         )
     value = str(value).lower()
     return value in ["true", "1", "on", "yes", "y"]
@@ -133,9 +135,8 @@ def input_int(value: Union[str, int, float]) -> int:
         if not isinstance(converted_value, int):
             raise TypeError(error_message)
         return converted_value
-    elif isinstance(value, bool):
+    if isinstance(value, bool):
         return int(value)
-    elif isinstance(value, int):
+    if isinstance(value, int):
         return value
-    else:
-        raise TypeError(error_message)
+    raise TypeError(error_message)

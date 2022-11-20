@@ -23,20 +23,17 @@ def _generate_append_line_standalone(data: dict, distro, descendant) -> str:
     :param descendant: The profile or system which is underneath the distro.
     :return: The base append_line which we need for booting the built ISO. Contains initrd and autoinstall parameter.
     """
-    append_line = "  APPEND initrd=%s" % os.path.basename(distro.initrd)
+    append_line = f"  APPEND initrd={os.path.basename(distro.initrd)}"
     if distro.breed == "redhat":
-        append_line += " inst.ks=cdrom:/isolinux/%s.cfg" % descendant.name
+        append_line += f" inst.ks=cdrom:/isolinux/{descendant.name}.cfg"
     elif distro.breed == "suse":
         append_line += (
-            " autoyast=file:///isolinux/%s.cfg install=cdrom:///" % descendant.name
+            f" autoyast=file:///isolinux/{descendant.name}.cfg install=cdrom:///"
         )
         if "install" in data["kernel_options"]:
             del data["kernel_options"]["install"]
     elif distro.breed in ["ubuntu", "debian"]:
-        append_line += (
-            " auto-install/enable=true preseed/file=/cdrom/isolinux/%s.cfg"
-            % descendant.name
-        )
+        append_line += f" auto-install/enable=true preseed/file=/cdrom/isolinux/{descendant.name}.cfg"
 
     # add remaining kernel_options to append_line
     append_line += buildiso.add_remaining_kopts(data["kernel_options"])
@@ -63,7 +60,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
             raise ValueError("Distro specified was not found!")
         source = self._validate_standalone_filesource(source, base_distro)
         if not os.path.exists(source):
-            raise ValueError('The specified source "%s" does not exist!' % source)
+            raise ValueError(f'The specified source "{source}" does not exist!')
 
         # Ensure all profiles specified are children of the distro
         if self.profiles:
@@ -101,7 +98,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
                     quiet=True,
                 )
                 if not rsync_successful:
-                    raise RuntimeError('rsync of repo "%s" failed' % repo_name)
+                    raise RuntimeError(f'rsync of repo "{repo_name}" failed')
 
     def _validate_standalone_filesource(self, filesource: str, distro) -> str:
         """
@@ -159,8 +156,8 @@ class StandaloneBuildiso(buildiso.BuildIso):
             for repo_name in data.get("repos", []):
                 repo_obj = self.api.find_repo(repo_name)
                 error = (
-                    "%s %s refers to repo %s, which {error_message}; cannot build airgapped ISO"
-                    % (descendant.COLLECTION_TYPE, descendant.name, repo_name)
+                    f"{descendant.COLLECTION_TYPE} {descendant.name} refers to repo {repo_name}, which"
+                    " {error_message}; cannot build airgapped ISO"
                 )
 
                 if repo_obj is None:
@@ -185,7 +182,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
 
                 # update the baseurl in autoinstall_data to use the cdrom copy of this repo
                 reporegex = re.compile(
-                    r"^(\s*repo --name=%s --baseurl=).*" % repo_obj.name, re.MULTILINE
+                    rf"^(\s*repo --name={repo_obj.name} --baseurl=).*", re.MULTILINE
                 )
                 autoinstall_data = reporegex.sub(
                     r"\1" + "file:///mnt/source/repo_mirror/" + repo_obj.name,
@@ -194,8 +191,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
 
             # rewrite any split-tree repos, such as in redhat, to use cdrom
             srcreporegex = re.compile(
-                r"^(\s*repo --name=\S+ --baseurl=).*/cobbler/distro_mirror/%s/?(.*)"
-                % distro.name,
+                rf"^(\s*repo --name=\S+ --baseurl=).*/cobbler/distro_mirror/{distro.name}/?(.*)",
                 re.MULTILINE,
             )
             autoinstall_data = srcreporegex.sub(
@@ -232,19 +228,19 @@ class StandaloneBuildiso(buildiso.BuildIso):
             )
 
         cfglines.append("")
-        cfglines.append("LABEL %s" % descendant.name)
+        cfglines.append(f"LABEL {descendant.name}")
         if menu_indent:
-            cfglines.append("  MENU INDENT %d" % menu_indent)
-        cfglines.append("  MENU LABEL %s" % descendant.name)
-        cfglines.append("  KERNEL %s" % os.path.basename(distro.kernel))
+            cfglines.append(f"  MENU INDENT {menu_indent:d}")
+        cfglines.append(f"  MENU LABEL {descendant.name}")
+        cfglines.append(f"  KERNEL {os.path.basename(distro.kernel)}")
 
         cfglines.append(_generate_append_line_standalone(data, distro, descendant))
 
         autoinstall_data = self._generate_autoinstall_data(
             descendant, distro, airgapped, data, repo_names_to_copy
         )
-        autoinstall_name = os.path.join(self.isolinuxdir, "%s.cfg" % descendant.name)
-        with open(autoinstall_name, "w+") as autoinstall_file:
+        autoinstall_name = os.path.join(self.isolinuxdir, f"{descendant.name}.cfg")
+        with open(autoinstall_name, "w+", encoding="UTF-8") as autoinstall_file:
             autoinstall_file.write(autoinstall_data)
 
     def generate_standalone_iso(
@@ -261,8 +257,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
         distro = self.api.find_distro(name=distro_name)
         if distro is None:
             raise ValueError(
-                'Distro "%s" was not found, aborting generation of ISO-file!'
-                % distro_name
+                f'Distro "{distro_name}" was not found, aborting generation of ISO-file!'
             )
 
         self.copy_boot_files(distro, self.isolinuxdir)
@@ -293,8 +288,10 @@ class StandaloneBuildiso(buildiso.BuildIso):
 
         cfglines.append("")
         cfglines.append("MENU END")
-        with open(os.path.join(self.isolinuxdir, "isolinux.cfg"), "w+") as cfg:
-            cfg.writelines("%s\n" % l for l in cfglines)
+        with open(
+            os.path.join(self.isolinuxdir, "isolinux.cfg"), "w+", encoding="UTF-8"
+        ) as cfg:
+            cfg.writelines(f"{l}\n" for l in cfglines)
         self.logger.info("done writing config")
 
         self._sync_airgapped_repos(airgapped, repo_names_to_copy)
@@ -309,8 +306,8 @@ class StandaloneBuildiso(buildiso.BuildIso):
             "TRANS.TBL",
             "--exclude",
             "isolinux/",
-            "%s/" % filesource,
-            "%s/../" % self.isolinuxdir,
+            f"{filesource}/",
+            f"{self.isolinuxdir}/../",
         ]
         self.logger.info('- copying distro "%s" files (%s)', distro_name, cmd)
         rsync_return_code = utils.subprocess_call(cmd, shell=False)

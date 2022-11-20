@@ -50,6 +50,10 @@ class InstallStatus:
 
 
 class CobblerStatusReport:
+    """
+    TODO
+    """
+
     def __init__(self, api, mode: str):
         """
         Constructor
@@ -93,49 +97,56 @@ class CobblerStatusReport:
         """
         for fname in self.collect_logfiles():
             if fname.endswith(".gz"):
-                fd = gzip.open(fname, "rt")
+                logile_fd = gzip.open(fname, "rt")
             else:
-                fd = open(fname, "rt")
-            data = fd.read()
+                logile_fd = open(fname, "rt", encoding="UTF-8")
+            data = logile_fd.read()
             for line in data.split("\n"):
                 tokens = line.split()
                 if len(tokens) == 0:
                     continue
-                (profile_or_system, name, ip, start_or_stop, ts) = tokens
-                self.catalog(profile_or_system, name, ip, start_or_stop, ts)
-            fd.close()
+                (profile_or_system, name, ip_address, start_or_stop, timestamp) = tokens
+                self.catalog(
+                    profile_or_system, name, ip_address, start_or_stop, timestamp
+                )
+            logile_fd.close()
 
     def catalog(
-        self, profile_or_system: str, name: str, ip, start_or_stop: str, ts: float
+        self,
+        profile_or_system: str,
+        name: str,
+        ip_address,
+        start_or_stop: str,
+        timestamp: float,
     ):
         """
         Add a system to ``cobbler status``.
 
         :param profile_or_system: This can be ``system`` or ``profile``.
         :param name: The name of the object.
-        :param ip: The ip of the system to watch.
+        :param ip_address: The ip of the system to watch.
         :param start_or_stop: This parameter may be ``start`` or ``stop``
-        :param ts: Timestamp as returned by ``time.time()``
+        :param timestamp: Timestamp as returned by ``time.time()``
         """
-        if ip not in self.ip_data:
-            self.ip_data[ip] = InstallStatus()
-        elem = self.ip_data[ip]
+        if ip_address not in self.ip_data:
+            self.ip_data[ip_address] = InstallStatus()
+        elem = self.ip_data[ip_address]
 
-        ts = float(ts)
+        timestamp = float(timestamp)
 
         mrstart = elem.most_recent_start
         mrstop = elem.most_recent_stop
         mrtarg = elem.most_recent_target
 
         if start_or_stop == "start":
-            if mrstart < ts:
-                mrstart = ts
+            if mrstart < timestamp:
+                mrstart = timestamp
                 mrtarg = f"{profile_or_system}:{name}"
                 elem.seen_start += 1
 
         if start_or_stop == "stop":
-            if mrstop < ts:
-                mrstop = ts
+            if mrstop < timestamp:
+                mrstop = timestamp
                 mrtarg = f"{profile_or_system}:{name}"
                 elem.seen_stop += 1
 
@@ -151,8 +162,7 @@ class CobblerStatusReport:
         """
         # FIXME: this should update the times here
         tnow = int(time.time())
-        for ip in self.ip_data:
-            elem = self.ip_data[ip]
+        for ip_address, elem in self.ip_data.items():
             start = int(elem.most_recent_start)
             stop = int(elem.most_recent_stop)
             if stop > start:
@@ -175,8 +185,8 @@ class CobblerStatusReport:
         :return: A nice formatted representation of the results of ``cobbler status``.
         """
         printable_status_format = "%-15s|%-20s|%-17s|%-17s"
-        ips = list(self.ip_data.keys())
-        ips.sort()
+        ip_addresses = list(self.ip_data.keys())
+        ip_addresses.sort()
         line = (
             "ip",
             "target",
@@ -184,13 +194,13 @@ class CobblerStatusReport:
             "state",
         )
         buf = printable_status_format % line
-        for ip in ips:
-            elem = self.ip_data[ip]
+        for ip_address in ip_addresses:
+            elem = self.ip_data[ip_address]
             if elem.most_recent_start > -1:
                 start = time.ctime(elem.most_recent_start)
             else:
                 start = "Unknown"
-            line = (ip, elem.most_recent_target, start, elem.state)
+            line = (ip_address, elem.most_recent_target, start, elem.state)
             buf += "\n" + printable_status_format % line
         return buf
 
@@ -202,5 +212,4 @@ class CobblerStatusReport:
         results = self.process_results()
         if self.mode == "text":
             return self.get_printable_results()
-        else:
-            return results
+        return results

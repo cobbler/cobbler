@@ -44,7 +44,7 @@ def _find_double_json_files(filename: str):
             os.rename(filename + ".json", filename)
     else:
         if os.path.isfile(filename + ".json"):
-            raise FileExistsError("Both JSON files (%s) exist!" % filename)
+            raise FileExistsError(f"Both JSON files ({filename}) exist!")
 
 
 class FileSerializer(StorageBase):
@@ -72,7 +72,7 @@ class FileSerializer(StorageBase):
             indent = None
 
         _dict = item.serialize()
-        with open(filename, "w+") as file_descriptor:
+        with open(filename, "w+", encoding="UTF-8") as file_descriptor:
             data = json.dumps(_dict, sort_keys=sort_keys, indent=indent)
             file_descriptor.write(data)
 
@@ -87,24 +87,24 @@ class FileSerializer(StorageBase):
     def serialize(self, collection):
         # do not serialize settings
         if collection.collection_type() != "setting":
-            for x in collection:
-                self.serialize_item(collection, x)
+            for item in collection:
+                self.serialize_item(collection, item)
 
     def deserialize_raw(self, collection_type: str):
         if collection_type == "settings":
             return settings.read_settings_file()
-        else:
-            results = []
 
-            path = os.path.join(self.libpath, collection_type)
-            all_files = glob.glob("%s/*.json" % path)
+        results = []
 
-            for f in all_files:
-                with open(f) as file_descriptor:
-                    json_data = file_descriptor.read()
-                    _dict = json.loads(json_data)
-                    results.append(_dict)
-            return results
+        path = os.path.join(self.libpath, collection_type)
+        all_files = glob.glob(f"{path}/*.json")
+
+        for file in all_files:
+            with open(file, encoding="UTF-8") as file_descriptor:
+                json_data = file_descriptor.read()
+                _dict = json.loads(json_data)
+                results.append(_dict)
+        return results
 
     def deserialize(self, collection, topological: bool = True):
         datastruct = self.deserialize_raw(collection.collection_types())

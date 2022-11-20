@@ -52,8 +52,8 @@ class Collection:
         """
         Iterator for the collection. Allows list comprehensions, etc.
         """
-        for a in list(self.listing.values()):
-            yield a
+        for obj in list(self.listing.values()):
+            yield obj
 
     def __len__(self):
         """
@@ -132,23 +132,19 @@ class Collection:
         if len(kargs) == 1 and "name" in kargs and not return_list:
             try:
                 return self.listing.get(kargs["name"].lower(), None)
-            except:
+            except Exception:
                 return self.listing.get(kargs["name"], None)
 
-        self.lock.acquire()
-        try:
-            for (name, obj) in list(self.listing.items()):
+        with self.lock:
+            for (_, obj) in list(self.listing.items()):
                 if obj.find_match(kargs, no_errors=no_errors):
                     matches.append(obj)
-        finally:
-            self.lock.release()
 
         if not return_list:
             if len(matches) == 0:
                 return None
             return matches[0]
-        else:
-            return matches
+        return matches
 
     SEARCH_REKEY = {
         "kopts": "kernel_options",
@@ -182,12 +178,12 @@ class Collection:
         :return: The dict which can now be understood by the cli.
         """
         new_dict = {}
-        for x in list(_dict.keys()):
-            if x in self.SEARCH_REKEY:
-                newkey = self.SEARCH_REKEY[x]
-                new_dict[newkey] = _dict[x]
+        for key in list(_dict.keys()):
+            if key in self.SEARCH_REKEY:
+                newkey = self.SEARCH_REKEY[key]
+                new_dict[newkey] = _dict[key]
             else:
-                new_dict[x] = _dict[x]
+                new_dict[key] = _dict[key]
         return new_dict
 
     def to_list(self) -> list:
@@ -315,11 +311,11 @@ class Collection:
 
                 # update any reference to this path ...
                 distros = self.api.distros()
-                for d in distros:
-                    if d.kernel.find(path) == 0:
-                        d.kernel = d.kernel.replace(path, newpath)
-                        d.initrd = d.initrd.replace(path, newpath)
-                        self.collection_mgr.serialize_one_item(d)
+                for distro_obj in distros:
+                    if distro_obj.kernel.find(path) == 0:
+                        distro_obj.kernel = distro_obj.kernel.replace(path, newpath)
+                        distro_obj.initrd = distro_obj.initrd.replace(path, newpath)
+                        self.collection_mgr.serialize_one_item(distro_obj)
 
         if ref.COLLECTION_TYPE in ("profile", "system"):
             if ref.parent is not None:
@@ -353,7 +349,7 @@ class Collection:
                     k, save=True, with_sync=with_sync, with_triggers=with_triggers
                 )
             else:
-                raise CX('Internal error, unknown child type for child "%s"!' % k)
+                raise CX(f'Internal error, unknown child type for child "{k}"!')
 
     def add(
         self,
@@ -422,14 +418,11 @@ class Collection:
             utils.run_triggers(
                 self.api,
                 ref,
-                "/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type(),
+                f"/var/lib/cobbler/triggers/add/{self.collection_type()}/pre/*",
             )
 
-        self.lock.acquire()
-        try:
+        with self.lock:
             self.listing[ref.name.lower()] = ref
-        finally:
-            self.lock.release()
 
         # update children cache in parent object in case it is not in there already
         if ref.parent and ref.name not in ref.parent.children:
@@ -473,7 +466,7 @@ class Collection:
                 elif isinstance(ref, menu.Menu):
                     pass
                 else:
-                    print("Internal error. Object type not recognized: %s" % type(ref))
+                    print(f"Internal error. Object type not recognized: {type(ref)}")
             if not with_sync and quick_pxe_update:
                 if isinstance(ref, system.System):
                     self.lite_sync.update_system_netboot_status(ref.name)
@@ -486,7 +479,7 @@ class Collection:
                 utils.run_triggers(
                     self.api,
                     ref,
-                    "/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type(),
+                    f"/var/lib/cobbler/triggers/add/{self.collection_type()}/post/*",
                     [],
                 )
 
@@ -501,12 +494,11 @@ class Collection:
         values = list(self.listing.values())[:]  # copy the values
         values.sort()  # sort the copy (2.3 fix)
         results = []
-        for i, v in enumerate(values):
-            results.append(v.to_string())
+        for _, value in enumerate(values):
+            results.append(value.to_string())
         if len(values) > 0:
             return "\n\n".join(results)
-        else:
-            return "No objects found"
+        return "No objects found"
 
     @staticmethod
     def collection_type() -> str:

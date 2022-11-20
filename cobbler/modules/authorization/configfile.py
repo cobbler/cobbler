@@ -38,11 +38,11 @@ def __parse_config() -> Dict[str, dict]:
     config.read(CONFIG_FILE)
     alldata = {}
     groups = config.sections()
-    for g in groups:
-        alldata[str(g)] = {}
-        opts = config.options(g)
-        for o in opts:
-            alldata[g][o] = 1
+    for group in groups:
+        alldata[str(group)] = {}
+        options = config.options(group)
+        for option in options:
+            alldata[group][option] = 1
     return alldata
 
 
@@ -60,7 +60,7 @@ def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int
     # FIXME: this must be modified to use the new ACL engine
 
     data = __parse_config()
-    for g in data:
-        if user.lower() in data[g]:
+    for group, group_data in data.items():
+        if user.lower() in group_data:
             return 1
     return 0

@@ -105,14 +105,10 @@ class CobblerVersion:
         return hash((self.major, self.minor, self.patch))
 
     def __str__(self) -> str:
-        return "CobblerVersion: %s.%s.%s" % (self.major, self.minor, self.patch)
+        return f"CobblerVersion: {self.major}.{self.minor}.{self.patch}"
 
     def __repr__(self) -> str:
-        return "CobblerVersion(major=%s, minor=%s, patch=%s)" % (
-            self.major,
-            self.minor,
-            self.patch,
-        )
+        return f"CobblerVersion(major={self.major}, minor={self.minor}, patch={self.patch})"
 
 
 EMPTY_VERSION = CobblerVersion()
@@ -150,7 +146,7 @@ def __load_migration_modules(name: str, version: List[str]):
     :param name: The name of the module to load.
     :param version: The migration version as list.
     """
-    module = import_module("cobbler.settings.migrations.%s" % name)
+    module = import_module(f"cobbler.settings.migrations.{name}")
     logger.info("Loaded migrations: %s", name)
     if __validate_module(module):
         VERSION_LIST[CobblerVersion(*version)] = module
@@ -249,7 +245,7 @@ def discover_migrations(path: str = migrations_path):
 
     :param path: The path of the migration modules, defaults to migrations_path
     """
-    filenames = glob.glob("%s/V[0-9]*_[0-9]*_[0-9]*.py" % path)
+    filenames = glob.glob(f"{path}/V[0-9]*_[0-9]*_[0-9]*.py")
     for files in filenames:
         basename = files.replace(path, "")
         migration_name = ""
@@ -326,7 +322,7 @@ def migrate(
     if old == EMPTY_VERSION and new == EMPTY_VERSION:
         return auto_migrate(yaml_dict, settings_path, ignore_keys)
 
-    if old == EMPTY_VERSION or new == EMPTY_VERSION:
+    if EMPTY_VERSION in (old, new):
         raise ValueError(
             "Either both or no versions must be specified for a migration!"
         )

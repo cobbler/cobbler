@@ -45,6 +45,12 @@ class _InTftpdManager(ManagerModule):
         self.webdir = api.settings().webdir
 
     def write_boot_files_distro(self, distro):
+        """
+        TODO
+
+        :param distro: TODO
+        :return: TODO
+        """
         # Collapse the object down to a rendered datastructure.
         # The second argument set to false means we don't collapse dicts/arrays into a flat string.
         target = utils.blender(self.api, False, distro)
@@ -60,7 +66,7 @@ class _InTftpdManager(ManagerModule):
         templater = templar.Templar(self.api)
 
         # Loop through the dict of boot files, executing a cp for each one
-        self.logger.info("processing boot_files for distro: %s" % distro.name)
+        self.logger.info("processing boot_files for distro: %s", distro.name)
         for boot_file in list(target["boot_files"].keys()):
             rendered_target_file = templater.render(boot_file, metadata, None)
             rendered_source_file = templater.render(
@@ -73,8 +79,8 @@ class _InTftpdManager(ManagerModule):
                         filedst = rendered_target_file
                     else:
                         # this was a glob, so figure out what the destination file path/name should be
-                        tgt_path, tgt_file = os.path.split(file)
-                        rnd_path, rnd_file = os.path.split(rendered_target_file)
+                        _, tgt_file = os.path.split(file)
+                        rnd_path, _ = os.path.split(rendered_target_file)
                         filedst = os.path.join(rnd_path, tgt_file)
 
                         if not os.path.isdir(rnd_path):
@@ -84,7 +90,7 @@ class _InTftpdManager(ManagerModule):
                     self.logger.info(
                         "copied file %s to %s for %s", file, filedst, distro.name
                     )
-            except:
+            except Exception:
                 self.logger.error(
                     "failed to copy file %s to %s for %s", file, filedst, distro.name
                 )
@@ -116,6 +122,11 @@ class _InTftpdManager(ManagerModule):
         self.tftpgen.write_templates(system)
 
     def add_single_distro(self, distro):
+        """
+        TODO
+
+        :param distro: TODO
+        """
         self.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
         self.write_boot_files_distro(distro)
 
@@ -167,12 +178,12 @@ class _InTftpdManager(ManagerModule):
 
         # Adding in the exception handling to not blow up if files have been moved (or the path references an NFS
         # directory that's no longer mounted)
-        for d in self.distros:
+        for distro in self.distros:
             try:
-                self.logger.info("copying files for distro: %s", d.name)
-                self.tftpgen.copy_single_distro_files(d, self.bootloc, False)
-            except CX as e:
-                self.logger.error(e.value)
+                self.logger.info("copying files for distro: %s", distro.name)
+                self.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
+            except CX as cobbler_exception:
+                self.logger.error(cobbler_exception.value)
 
         self.logger.info("copying images")
         self.tftpgen.copy_images()

@@ -9,7 +9,6 @@ import glob
 import json
 import os
 import shutil
-import subprocess
 
 from schema import Optional, Or, Schema, SchemaError
 from cobbler.settings.migrations import helper
@@ -236,7 +235,7 @@ def migrate(settings: dict) -> dict:
         :param collection: name
         :param item: dictionary
         """
-        filename = "/var/lib/cobbler/collections/%s/%s" % (collection, item["name"])
+        filename = f"/var/lib/cobbler/collections/{collection}/{item['name']}"
 
         if settings.get("serializer_pretty_json", False):
             sort_keys = True
@@ -246,7 +245,7 @@ def migrate(settings: dict) -> dict:
             indent = None
 
         filename += ".json"
-        with open(filename, "w") as item_fd:
+        with open(filename, "w", encoding="UTF-8") as item_fd:
             data = json.dumps(
                 item, encoding="utf-8", sort_keys=sort_keys, indent=indent
             )
@@ -254,10 +253,10 @@ def migrate(settings: dict) -> dict:
 
     def deserialize_raw_old(collection_types):
         results = []
-        all_files = glob.glob("/var/lib/cobbler/config/%s/*" % collection_types)
+        all_files = glob.glob(f"/var/lib/cobbler/config/{collection_types}/*")
 
         for file in all_files:
-            with open(file) as item_fd:
+            with open(file, encoding="UTF-8") as item_fd:
                 json_data = item_fd.read()
                 _dict = json.loads(json_data, encoding="utf-8")
                 results.append(_dict)
@@ -330,10 +329,10 @@ def migrate(settings: dict) -> dict:
         new_type = old_type[:-2]
         # Load old files
         old_collection = deserialize_raw_old(old_type)
-        print("Processing %s:" % old_type)
+        print(f"Processing {old_type}:")
 
         for old_item in old_collection:
-            print("    Processing %s" % old_item["name"])
+            print(f"    Processing {old_item['name']}")
             new_item = {}
             for key in old_item:
                 if key in remove:

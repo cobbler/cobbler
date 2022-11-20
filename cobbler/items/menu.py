@@ -84,7 +84,7 @@ class Menu(item.Item):
             raise CX("self parentage is weird")
         found = self.api.menus().find(name=value)
         if found is None:
-            raise CX("menu %s not found" % value)
+            raise CX(f"menu {value} not found")
         self._parent = value
         self.depth = found.depth + 1
         new_parent = self._parent

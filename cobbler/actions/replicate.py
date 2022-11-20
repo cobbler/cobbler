@@ -106,11 +106,11 @@ class Replicate:
 
         :param obj_type: The type of object which should be synchronized.
         """
-        locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
-        remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
+        local_objects = utils.lod_to_dod(self.local_data[obj_type], "uid")
+        remote_objects = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        for (luid, ldata) in locals.items():
-            if luid not in remotes:
+        for (luid, ldata) in local_objects.items():
+            if luid not in remote_objects:
                 try:
                     self.logger.info("removing %s %s", obj_type, ldata["name"])
                     self.api.remove_item(obj_type, ldata["name"], recursive=True)
@@ -125,16 +125,16 @@ class Replicate:
 
         :param obj_type:
         """
-        locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
-        remotes = utils.lod_sort_by_key(self.remote_data[obj_type], "depth")
+        local_objects = utils.lod_to_dod(self.local_data[obj_type], "uid")
+        remote_objects = utils.lod_sort_by_key(self.remote_data[obj_type], "depth")
 
-        for rdata in remotes:
+        for rdata in remote_objects:
 
             # do not add the system if it is not on the transfer list
             if not rdata["name"] in self.must_include[obj_type]:
                 continue
 
-            if not rdata["uid"] in locals:
+            if not rdata["uid"] in local_objects:
                 creator = getattr(self.api, f"new_{obj_type}")
                 newobj = creator()
                 newobj.from_dict(utils.revert_strip_none(rdata))
@@ -155,16 +155,16 @@ class Replicate:
 
         :param obj_type: The type of object to synchronize.
         """
-        locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
-        remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
+        local_objects = utils.lod_to_dod(self.local_data[obj_type], "uid")
+        remote_objects = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        for (ruid, rdata) in remotes.items():
+        for (ruid, rdata) in remote_objects.items():
             # do not add the system if it is not on the transfer list
             if rdata["name"] not in self.must_include[obj_type]:
                 continue
 
-            if ruid in locals:
-                ldata = locals[ruid]
+            if ruid in local_objects:
+                ldata = local_objects[ruid]
                 if ldata["mtime"] < rdata["mtime"]:
                     if ldata["name"] != rdata["name"]:
                         self.logger.info("removing %s %s", obj_type, ldata["name"])
@@ -227,7 +227,7 @@ class Replicate:
                                 tail.split("/")[1],
                             )
                             self.rsync_it(f"distro-{target['name']}", dest)
-                        except:
+                        except Exception:
                             self.logger.error("Failed to rsync distro %s", distro)
                             continue
                     else:
@@ -283,21 +283,23 @@ class Replicate:
         # This is the method that fills up "self.must_include"
 
         # Load all remote objects and add them directly if "self.sync_all" is "True"
-        for ot in OBJ_TYPES:
-            self.remote_names[ot] = list(
-                utils.lod_to_dod(self.remote_data[ot], "name").keys()
+        for object_type in OBJ_TYPES:
+            self.remote_names[object_type] = list(
+                utils.lod_to_dod(self.remote_data[object_type], "name").keys()
             )
-            self.remote_dict[ot] = utils.lod_to_dod(self.remote_data[ot], "name")
+            self.remote_dict[object_type] = utils.lod_to_dod(
+                self.remote_data[object_type], "name"
+            )
             if self.sync_all:
-                for names in self.remote_dict[ot]:
-                    self.must_include[ot][names] = 1
+                for names in self.remote_dict[object_type]:
+                    self.must_include[object_type][names] = 1
 
         self.logger.debug("remote names struct is %s", self.remote_names)
 
         if not self.sync_all:
             # include all profiles that are matched by a pattern
             for obj_type in OBJ_TYPES:
-                patvar = getattr(self, "%s_patterns" % obj_type)
+                patvar = getattr(self, f"{obj_type}_patterns")
                 self.logger.debug("* Finding Explicit %s Matches", obj_type)
                 for pat in patvar:
                     for remote in self.remote_names[obj_type]:
@@ -353,11 +355,11 @@ class Replicate:
             for profile_for_repo in self.must_include["profile"]:
                 repos = self.remote_dict["profile"][profile_for_repo].get("repos", [])
                 if repos != "<<inherit>>":
-                    for r in repos:
+                    for repo in repos:
                         self.logger.debug(
-                            "Adding repo %s for profile %s.", r, profile_for_repo
+                            "Adding repo %s for profile %s.", repo, profile_for_repo
                         )
-                        self.must_include["repo"][r] = 1
+                        self.must_include["repo"][repo] = 1
 
             # include all images that systems require whether they are explicitly included or not
             self.logger.debug("* Adding Images Required By Systems")
@@ -440,7 +442,7 @@ class Replicate:
         else:
             utils.die("No Cobbler master specified, try --master.")
 
-        self.uri = "%s://%s:%s/cobbler_api" % (protocol, self.master, self.port)
+        self.uri = f"{protocol}://{self.master}:{self.port}/cobbler_api"
 
         self.logger.info("cobbler_master      = %s", cobbler_master)
         self.logger.info("port                = %s", self.port)
@@ -462,7 +464,7 @@ class Replicate:
         self.logger.debug("test BETA")
         self.remote.ping()
         self.local = xmlrpc.client.Server(
-            "http://127.0.0.1:%s/cobbler_api" % self.settings.http_port
+            f"http://127.0.0.1:{self.settings.http_port}/cobbler_api"
         )
         self.local.ping()
 

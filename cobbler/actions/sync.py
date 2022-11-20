@@ -70,7 +70,7 @@ class CobblerSync:
         Common startup code for the different sync algorithms
         """
         if not os.path.exists(self.bootloc):
-            utils.die("cannot find directory: %s" % self.bootloc)
+            utils.die(f"cannot find directory: {self.bootloc}")
 
         self.logger.info("running pre-sync triggers")
 
@@ -127,13 +127,15 @@ class CobblerSync:
         # Copy distros to the webdir
         # Adding in the exception handling to not blow up if files have been moved (or the path references an NFS
         # directory that's no longer mounted)
-        for d in self.distros:
+        for distro in self.distros:
             try:
-                self.logger.info("copying files for distro: %s" % d.name)
-                self.tftpgen.copy_single_distro_files(d, self.settings.webdir, True)
-                self.tftpgen.write_templates(d, write_file=True)
-            except CX as e:
-                self.logger.error(e.value)
+                self.logger.info("copying files for distro: %s", distro.name)
+                self.tftpgen.copy_single_distro_files(
+                    distro, self.settings.webdir, True
+                )
+                self.tftpgen.write_templates(distro, write_file=True)
+            except CX as cobbler_exception:
+                self.logger.error(cobbler_exception.value)
 
         # make the default pxe menu anyway...
         self.tftpgen.make_pxe_menu()
@@ -172,16 +174,16 @@ class CobblerSync:
         """
 
         # clean out parts of webdir and all of /tftpboot/images and /tftpboot/pxelinux.cfg
-        for x in os.listdir(self.settings.webdir):
-            path = os.path.join(self.settings.webdir, x)
+        for file_obj in os.listdir(self.settings.webdir):
+            path = os.path.join(self.settings.webdir, file_obj)
             if os.path.isfile(path):
-                if not x.endswith(".py"):
+                if not file_obj.endswith(".py"):
                     filesystem_helpers.rmfile(path)
             if os.path.isdir(path):
-                if x not in self.settings.webdir_whitelist:
+                if file_obj not in self.settings.webdir_whitelist:
                     # delete directories that shouldn't exist
                     filesystem_helpers.rmtree(path)
-                if x in [
+                if file_obj in [
                     "templates",
                     "images",
                     "systems",
@@ -193,7 +195,7 @@ class CobblerSync:
                 ]:
                     # clean out directory contents
                     filesystem_helpers.rmtree_contents(path)
-        for directory in [
+        for file_obj in [
             self.pxelinux_dir,
             self.grub_dir,
             self.images_dir,
@@ -201,7 +203,7 @@ class CobblerSync:
             self.esxi_dir,
             self.rendered_dir,
         ]:
-            filesystem_helpers.rmtree(directory)
+            filesystem_helpers.rmtree(file_obj)
         filesystem_helpers.create_tftpboot_dirs(self.api)
 
     def write_dhcp(self):
@@ -253,13 +255,10 @@ class CobblerSync:
         template_file = "/etc/cobbler/rsync.template"
 
         try:
-            template = open(template_file, "r")
-        except:
-            raise OSError("error reading template %s" % template_file)
-
-        template_data = ""
-        template_data = template.read()
-        template.close()
+            with open(template_file, "r", encoding="UTF-8") as template:
+                template_data = template.read()
+        except Exception as error:
+            raise OSError(f"error reading template {template_file}") from error
 
         distros = []
 
@@ -457,12 +456,12 @@ class CobblerSync:
         # delete contents of autoinsts_sys/$name in webdir
         system_record = self.systems.find(name=name)
 
-        for (name, interface) in list(system_record.interfaces.items()):
+        for (interface_name, _) in list(system_record.interfaces.items()):
             pxe_filename = system_record.get_config_filename(
-                interface=name, loader="pxe"
+                interface=interface_name, loader="pxe"
             )
             grub_filename = system_record.get_config_filename(
-                interface=name, loader="grub"
+                interface=interface_name, loader="grub"
             )
             filesystem_helpers.rmfile(
                 os.path.join(bootloc, "pxelinux.cfg", pxe_filename)

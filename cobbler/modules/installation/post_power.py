@@ -9,7 +9,11 @@ from threading import Thread
 import time
 
 
-class reboot(Thread):
+class RebootSystemThread(Thread):
+    """
+    TODO
+    """
+
     def __init__(self, api, target):
         Thread.__init__(self)
         self.api = api
@@ -49,7 +53,7 @@ def run(api, args) -> int:
 
     if target and "postreboot" in target.autoinstall_meta:
         # Run this in a thread so the system has a chance to finish and umount the filesystem
-        current = reboot(api, target)
+        current = RebootSystemThread(api, target)
         current.start()
 
     return 0

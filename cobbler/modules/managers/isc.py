@@ -51,8 +51,8 @@ class _IscManager(ManagerModule):
 
         blender_cache = {}
 
-        with open(template_file, "r") as f2:
-            template_data = f2.read()
+        with open(template_file, "r", encoding="UTF-8") as template_fd:
+            template_data = template_fd.read()
 
         # Use a simple counter for generating generic names where a hostname is not available.
         counter = 0
@@ -96,7 +96,7 @@ class _IscManager(ManagerModule):
                         continue
 
                     # We may have multiple bonded interfaces, so we need a composite index into ding.
-                    name_master = "%s-%s" % (system.name, interface["interface_master"])
+                    name_master = f"{system.name}-{interface['interface_master']}"
                     if name_master not in ding:
                         ding[name_master] = {interface["interface_master"]: []}
 
@@ -105,12 +105,14 @@ class _IscManager(ManagerModule):
                     else:
                         ignore_macs.append(mac)
 
-                    ip = system.interfaces[interface["interface_master"]].ip_address
+                    ip_address = system.interfaces[
+                        interface["interface_master"]
+                    ].ip_address
                     netmask = system.interfaces[interface["interface_master"]].netmask
                     dhcp_tag = system.interfaces[interface["interface_master"]].dhcp_tag
                     host = system.interfaces[interface["interface_master"]].dns_name
 
-                    if ip is None or ip == "":
+                    if ip_address is None or ip_address == "":
                         for (interface_name, interface_object) in list(
                             system.interfaces.items()
                         ):
@@ -121,13 +123,13 @@ class _IscManager(ManagerModule):
                                 and interface_object.ip_address is not None
                                 and interface_object.ip_address != ""
                             ):
-                                ip = interface_object.ip_address
+                                ip_address = interface_object.ip_address
                                 break
 
-                    interface["ip_address"] = ip
+                    interface["ip_address"] = ip_address
                     interface["netmask"] = netmask
                 else:
-                    ip = interface["ip_address"]
+                    ip_address = interface["ip_address"]
                     netmask = interface["netmask"]
                     dhcp_tag = interface["dhcp_tag"]
                     host = interface["dns_name"]
@@ -144,11 +146,11 @@ class _IscManager(ManagerModule):
                 # the label the entry after the hostname if possible
                 if host is not None and host != "":
                     if name != "eth0":
-                        interface["name"] = "%s-%s" % (host, name)
+                        interface["name"] = f"{host}-{name}"
                     else:
-                        interface["name"] = "%s" % host
+                        interface["name"] = host
                 else:
-                    interface["name"] = "generic%d" % counter
+                    interface["name"] = f"generic{counter:d}"
 
                 # add references to the system, profile, and distro for use in the template
                 if system.name in blender_cache:
@@ -204,15 +206,15 @@ class _IscManager(ManagerModule):
                     dhcp_tags[dhcp_tag][mac] = interface
 
         # Remove macs from redundant slave interfaces from dhcp_tags otherwise you get duplicate ip's in the installer.
-        for dt in list(dhcp_tags.keys()):
-            for m in list(dhcp_tags[dt].keys()):
-                if m in ignore_macs:
-                    del dhcp_tags[dt][m]
+        for dhcp_tag_key in list(dhcp_tags.keys()):
+            for mac in list(dhcp_tags[dhcp_tag_key].keys()):
+                if mac in ignore_macs:
+                    del dhcp_tags[dhcp_tag_key][mac]
 
         # we are now done with the looping through each interface of each system
         metadata = {
             "date": time.asctime(time.gmtime()),
-            "cobbler_server": "%s:%s" % (self.settings.server, self.settings.http_port),
+            "cobbler_server": f"{self.settings.server}:{self.settings.http_port}",
             "next_server_v4": self.settings.next_server_v4,
             "dhcp_tags": dhcp_tags,
         }
@@ -229,8 +231,8 @@ class _IscManager(ManagerModule):
 
         blender_cache = {}
 
-        with open(template_file, "r") as f2:
-            template_data = f2.read()
+        with open(template_file, "r", encoding="UTF-8") as template_fd:
+            template_data = template_fd.read()
 
         # Use a simple counter for generating generic names where a hostname is not available.
         counter = 0
@@ -274,7 +276,7 @@ class _IscManager(ManagerModule):
                         continue
 
                     # We may have multiple bonded interfaces, so we need a composite index into ding.
-                    name_master = "%s-%s" % (system.name, interface["interface_master"])
+                    name_master = f"{system.name}-{interface['interface_master']}"
                     if name_master not in ding:
                         ding[name_master] = {interface["interface_master"]: []}
 
@@ -321,11 +323,11 @@ class _IscManager(ManagerModule):
                 # the label the entry after the hostname if possible
                 if host:
                     if name != "eth0":
-                        interface["name"] = "%s-%s" % (host, name)
+                        interface["name"] = f"{host}-{name}"
                     else:
-                        interface["name"] = "%s" % host
+                        interface["name"] = host
                 else:
-                    interface["name"] = "generic%d" % counter
+                    interface["name"] = f"generic{counter:d}"
 
                 # add references to the system, profile, and distro for use in the template
                 if system.name in blender_cache:
@@ -369,10 +371,10 @@ class _IscManager(ManagerModule):
                     dhcp_tags[dhcp_tag][mac] = interface
 
         # Remove macs from redundant slave interfaces from dhcp_tags otherwise you get duplicate ip's in the installer.
-        for dt in list(dhcp_tags.keys()):
-            for m in list(dhcp_tags[dt].keys()):
-                if m in ignore_macs:
-                    del dhcp_tags[dt][m]
+        for dhcp_tag_key in list(dhcp_tags.keys()):
+            for mac_address in list(dhcp_tags[dhcp_tag_key].keys()):
+                if mac_address in ignore_macs:
+                    del dhcp_tags[dhcp_tag_key][mac_address]
 
         # we are now done with the looping through each interface of each system
         metadata = {
@@ -382,7 +384,7 @@ class _IscManager(ManagerModule):
         }
 
         if self.logger is not None:
-            self.logger.info("generating %s" % self.settings_file_v6)
+            self.logger.info("generating %s", self.settings_file_v6)
         self.templar.render(template_data, metadata, self.settings_file_v6)
 
     def restart_dhcp(self, service_name: str) -> int:
@@ -397,10 +399,10 @@ class _IscManager(ManagerModule):
             [dhcpd_path, "-t", "-q"], shell=False
         )
         if return_code_service_restart != 0:
-            self.logger.error("Testing config - {} -t failed".format(service_name))
+            self.logger.error("Testing config - %s -t failed", service_name)
         return_code_service_restart = process_management.service_restart(service_name)
         if return_code_service_restart != 0:
-            self.logger.error("{} service failed".format(service_name))
+            self.logger.error("%s service failed", service_name)
         return return_code_service_restart
 
     def write_configs(self):

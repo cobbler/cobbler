@@ -551,8 +551,8 @@ if __name__ == "__main__":
             "gunicorn",
         ],
         extras_require={
-            "lint": ["pyflakes", "pycodestyle"],
-            "test": ["pytest", "pytest-cov", "codecov", "pytest-mock"],
+            "lint": ["pyflakes", "pycodestyle", "pylint", "black", "mypy"],
+            "test": ["pytest>6", "pytest-cov", "codecov", "pytest-mock"],
         },
         packages=find_packages(exclude=["*tests*"]),
         scripts=[
