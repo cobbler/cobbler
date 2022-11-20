@@ -213,7 +213,8 @@ class PowerManager:
                 power_command, shell=False, input=power_input
             )
             # Allowed return codes: 0, 1, 2
-            # Source: https://github.com/ClusterLabs/fence-agents/blob/master/doc/FenceAgentAPI.md#agent-operations-and-return-values
+            # pylint: disable-next=line-too-long
+            # Source: https://github.com/ClusterLabs/fence-agents/blob/0d8826a0e83ca11dc7be95564c8566aaef6a6ecb/doc/FenceAgentAPI.md#agent-operations-and-return-values
             if power_operation in ("on", "off", "reboot"):
                 if return_code == 0:
                     return None
