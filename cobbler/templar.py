@@ -212,7 +212,7 @@ class Templar:
             self.last_errors = generated_template_class.errorCatcher().listErrors()
             if self.last_errors:
                 self.logger.warning("errors were encountered rendering the template")
-                self.logger.warning("\n" + pprint.pformat(self.last_errors))
+                self.logger.warning("\n%s", pprint.pformat(self.last_errors))
         except Exception as error:
             self.logger.error(utils.cheetah_exc(error))
             raise CX(

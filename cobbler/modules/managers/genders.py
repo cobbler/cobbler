@@ -112,8 +112,8 @@ def run(api, args) -> int:
     # The file doesn't exist and for some reason the template engine won't create it, so spit out an error and tell the
     # user what to do.
     if not os.path.isfile(SETTINGS_FILE):
-        logger.info("Error: " + SETTINGS_FILE + " does not exist.")
-        logger.info("Please run: touch " + SETTINGS_FILE + " as root and try again.")
+        logger.info("Error: %s does not exist.", SETTINGS_FILE)
+        logger.info("Please run: touch %s as root and try again.", SETTINGS_FILE)
         return 1
 
     write_genders_file(api, profiles_genders, distros_genders, mgmtcls_genders)

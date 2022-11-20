@@ -106,7 +106,7 @@ class PowerManager:
             ident_path = Path(system.power_identity_file)
             if not ident_path.exists():
                 self.logger.warning(
-                    "identity-file " + system.power_identity_file + " does not exist"
+                    "identity-file %s does not exist", system.power_identity_file
                 )
             else:
                 ident_stat = stat.S_IMODE(ident_path.stat().st_mode)
