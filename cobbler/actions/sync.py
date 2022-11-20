@@ -129,7 +129,7 @@ class CobblerSync:
         # directory that's no longer mounted)
         for distro in self.distros:
             try:
-                self.logger.info(f"copying files for distro: {distro.name}")
+                self.logger.info("copying files for distro: %s", distro.name)
                 self.tftpgen.copy_single_distro_files(
                     distro, self.settings.webdir, True
                 )

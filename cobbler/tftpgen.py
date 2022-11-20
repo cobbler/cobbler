@@ -208,7 +208,9 @@ class TFTPGen:
                 if opt_len > 78:
                     kopts_aligned += "\n" + option + " "
                     column = opt_len + 1
-                    self.logger.error(f"Kernel paramer [{option}] too long {opt_len}")
+                    self.logger.error(
+                        "Kernel paramer [%s] too long %s", option, opt_len
+                    )
                     continue
                 if column + opt_len > 78:
                     kopts_aligned += "\n" + option + " "

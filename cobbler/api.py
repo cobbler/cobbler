@@ -1561,7 +1561,7 @@ class CobblerAPI:
                 tmpfile.write(sigjson.text.encode())
                 tmpfile.flush()
                 self.logger.debug(
-                    f"Successfully got file from {self.settings().signature_url}"
+                    "Successfully got file from %s", self.settings().signature_url
                 )
                 # test the import without caching it
                 try:
