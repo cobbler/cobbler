@@ -9,7 +9,6 @@ import glob
 import json
 import os
 import shutil
-import subprocess
 
 from schema import Optional, Or, Schema, SchemaError
 from cobbler.settings.migrations import helper

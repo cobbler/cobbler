@@ -12,7 +12,6 @@ import os
 import pathlib
 import sys
 import time
-import traceback
 
 
 class Serializer:

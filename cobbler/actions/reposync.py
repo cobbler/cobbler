@@ -16,7 +16,6 @@ import shutil
 from typing import Any, Dict, Optional, Tuple
 
 from cobbler import utils
-from cobbler import download_manager
 from cobbler.enums import RepoArchs, RepoBreeds, MirrorType
 from cobbler.utils import filesystem_helpers, os_release
 from cobbler.cexceptions import CX
