@@ -84,7 +84,7 @@ def input_string_or_dict_no_inherit(
             # If we're allowing multiple values for the same key, check to see if this token has already been inserted
             # into the dictionary of values already.
 
-            if key in new_dict.keys() and allow_multiples:
+            if key in new_dict and allow_multiples:
                 # If so, check to see if there is already a list of values otherwise convert the dictionary value to an
                 # array, and add the new value to the end of the list.
                 if isinstance(new_dict[key], list):

@@ -119,7 +119,7 @@ class _BindManager(ManagerModule):
                 # - b.c.d.e
                 # then a.b.c.d.e should go in b.c.d.e
                 best_match = ""
-                for zone in zones.keys():
+                for zone in zones:
                     if re.search(rf"\.{zone}$", host) and len(zone) > len(best_match):
                         best_match = zone
 
@@ -211,7 +211,7 @@ class _BindManager(ManagerModule):
                     # - 1.2.3
                     # then 1.2.3.4 should go in 1.2.3
                     best_match = ""
-                    for zone in zones.keys():
+                    for zone in zones:
                         if re.search(rf"^{zone}\.", ip_address) and len(zone) > len(
                             best_match
                         ):
@@ -271,7 +271,7 @@ zone "{zone}." {{
 """
             metadata["zone_include"] = metadata["zone_include"] + txt
 
-        for zone in self.__reverse_zones().keys():
+        for zone in self.__reverse_zones():
             # IPv6 zones are : delimited
             if ":" in zone:
                 # if IPv6, assume xxxx:xxxx:xxxx:xxxx
@@ -339,7 +339,7 @@ zone "%(zone)s." {
             }
             metadata["zone_include"] = metadata["zone_include"] + txt
 
-        for zone in self.__reverse_zones().keys():
+        for zone in self.__reverse_zones():
             # IPv6 zones are : delimited
             if ":" in zone:
                 # if IPv6, assume xxxx:xxxx:xxxx:xxxx for the zone

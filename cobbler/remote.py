@@ -2083,7 +2083,7 @@ class CobblerXMLRPCInterface:
 
         interface = system.NetworkInterface(self.api)
         fields = []
-        for attribute in interface.__dict__.keys():
+        for attribute in interface.__dict__:
             if attribute.startswith("_") and (
                 "api" not in attribute or "logger" in attribute
             ):
