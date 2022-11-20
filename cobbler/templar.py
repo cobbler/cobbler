@@ -133,9 +133,9 @@ class Templar:
         # string replacements for @@xyz@@ in data_out with prior regex lookups of keys
         regex = r"@@[\S]*?@@"
         regex_matches = re.finditer(regex, data_out, re.MULTILINE)
-        matches = set(
-            [match.group() for match_num, match in enumerate(regex_matches, start=1)]
-        )
+        matches = {
+            match.group() for match_num, match in enumerate(regex_matches, start=1)
+        }
         for match in matches:
             data_out = data_out.replace(match, search_table[match.strip("@@")])
 
