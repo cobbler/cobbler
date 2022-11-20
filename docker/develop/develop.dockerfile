@@ -120,6 +120,8 @@ ENV PATH="/code/docker/develop/scripts:${PATH}"
 
 # Install packages and dependencies via pip
 RUN pip3 install file-magic
+# We need pytest greater 6
+RUN pip3 install -U pytest
 
 # Install codecov
 RUN curl -Os https://uploader.codecov.io/latest/linux/codecov && chmod +x codecov
