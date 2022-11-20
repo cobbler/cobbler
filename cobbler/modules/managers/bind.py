@@ -301,8 +301,10 @@ zone "%(arpa)s." {
         try:
             with open(template_file, "r", encoding="UTF-8") as template_fd:
                 template_data = template_fd.read()
-        except:
-            raise OSError(f"error reading template from file: {template_file}")
+        except Exception as error:
+            raise OSError(
+                f"error reading template from file: {template_file}"
+            ) from error
 
         self.logger.info("generating %s", settings_file)
         self.templar.render(template_data, metadata, settings_file)
@@ -372,8 +374,10 @@ zone "%(arpa)s." {
         try:
             with open(template_file, "r", encoding="UTF-8") as template_fd:
                 template_data = template_fd.read()
-        except:
-            raise OSError(f"error reading template from file: {template_file}")
+        except Exception as error:
+            raise OSError(
+                f"error reading template from file: {template_file}"
+            ) from error
 
         self.logger.info("generating %s", settings_file)
         self.templar.render(template_data, metadata, settings_file)
@@ -527,8 +531,10 @@ zone "%(arpa)s." {
         try:
             with open(default_template_file, "r", encoding="UTF-8") as template_fd:
                 default_template_data = template_fd.read()
-        except:
-            raise CX(f"error reading template from file: {default_template_file}")
+        except Exception as error:
+            raise CX(
+                f"error reading template from file: {default_template_file}"
+            ) from error
 
         zonefileprefix = self.settings.bind_chroot_path + self.zonefile_base
 

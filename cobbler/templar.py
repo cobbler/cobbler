@@ -215,7 +215,9 @@ class Templar:
                 self.logger.warning("\n" + pprint.pformat(self.last_errors))
         except Exception as error:
             self.logger.error(utils.cheetah_exc(error))
-            raise CX("Error templating file, check cobbler.log for more details")
+            raise CX(
+                "Error templating file, check cobbler.log for more details"
+            ) from error
 
         return data_out
 

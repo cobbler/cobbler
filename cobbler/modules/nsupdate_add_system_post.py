@@ -143,11 +143,13 @@ def run(api, args):
         try:
             response = dns.query.tcp(update, soa_mname_ip)
             rcode_txt = dns.rcode.to_text(response.rcode())
-        except dns.tsig.PeerBadKey:
+        except dns.tsig.PeerBadKey as error:
             nslog("failed (refused key)\n>> done\n")
             LOGF.close()
 
-            raise CX(f"nsupdate failed, server '{soa_mname}' refusing our key")
+            raise CX(
+                f"nsupdate failed, server '{soa_mname}' refusing our key"
+            ) from error
 
         nslog(f"response code: {rcode_txt}\n")
 

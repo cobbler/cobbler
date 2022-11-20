@@ -41,8 +41,8 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
     try:
         with open(TEMPLATE_FILE, "r", encoding="UTF-8") as template_fd:
             template_data = template_fd.read()
-    except:
-        raise OSError(f"error reading template: {TEMPLATE_FILE}")
+    except Exception as error:
+        raise OSError(f"error reading template: {TEMPLATE_FILE}") from error
 
     metadata = {
         "date": time.asctime(time.gmtime()),

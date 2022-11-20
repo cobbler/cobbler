@@ -51,8 +51,8 @@ class _DnsmasqManager(ManagerModule):
         try:
             with open(template_file, "r", encoding="UTF-8") as template_file_fd:
                 template_data = template_file_fd.read()
-        except Exception:
-            raise OSError(f"error writing template to file: {template_file}")
+        except Exception as error:
+            raise OSError(f"error writing template to file: {template_file}") from error
 
         system_definitions = {}
 

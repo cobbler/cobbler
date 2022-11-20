@@ -197,9 +197,9 @@ def copyfile(src: str, dst: str, symlink=False):
             shutil.copytree(src, dst, symlinks=symlink)
         else:
             shutil.copyfile(src, dst, follow_symlinks=symlink)
-    except:
+    except Exception as error:
         if not os.access(src, os.R_OK):
-            raise OSError(f"Cannot read: {src}")
+            raise OSError(f"Cannot read: {src}") from error
         if src_obj.samefile(dst_obj):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink

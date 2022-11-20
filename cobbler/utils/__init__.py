@@ -389,10 +389,10 @@ def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
             with urllib.request.urlopen(file_location) as handler:
                 data = handler.read()
             return data
-        except urllib.error.HTTPError:
+        except urllib.error.HTTPError as error:
             # File likely doesn't exist
             logger.warning("File does not exist: %s", file_location)
-            raise FileNotFoundError(f"File not found: {file_location}")
+            raise FileNotFoundError(f"File not found: {file_location}") from error
 
 
 def remote_file_exists(file_url) -> bool:

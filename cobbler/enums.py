@@ -39,7 +39,7 @@ class ConvertableEnum(enum.Enum):
                 return value
             raise TypeError(f"{value} must be a str or Enum")
         except KeyError:
-            raise ValueError(f"{value} must be one of {list(cls)}")
+            raise ValueError(f"{value} must be one of {list(cls)}") from KeyError
 
 
 class EventStatus(ConvertableEnum):
