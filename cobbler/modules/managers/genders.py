@@ -67,9 +67,9 @@ def run(api, args) -> int:
     if not api.settings().manage_genders:
         return 0
 
-    profiles_genders = dict()
-    distros_genders = dict()
-    mgmtcls_genders = dict()
+    profiles_genders = {}
+    distros_genders = {}
+    mgmtcls_genders = {}
 
     # let's populate our dicts
 

@@ -969,7 +969,7 @@ class TFTPGen:
             blended = utils.blender(self.api, False, image)
 
         append_line = ""
-        kopts = blended.get("kernel_options", dict())
+        kopts = blended.get("kernel_options", {})
         kopts = utils.revert_strip_none(kopts)
 
         # SUSE and other distro specific kernel additions or modifications
