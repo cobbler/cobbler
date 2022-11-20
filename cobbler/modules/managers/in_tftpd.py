@@ -45,6 +45,12 @@ class _InTftpdManager(ManagerModule):
         self.webdir = api.settings().webdir
 
     def write_boot_files_distro(self, distro):
+        """
+        TODO
+
+        :param distro: TODO
+        :return: TODO
+        """
         # Collapse the object down to a rendered datastructure.
         # The second argument set to false means we don't collapse dicts/arrays into a flat string.
         target = utils.blender(self.api, False, distro)
@@ -116,6 +122,11 @@ class _InTftpdManager(ManagerModule):
         self.tftpgen.write_templates(system)
 
     def add_single_distro(self, distro):
+        """
+        TODO
+
+        :param distro: TODO
+        """
         self.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
         self.write_boot_files_distro(distro)
 

@@ -353,6 +353,14 @@ class CobblerXMLRPCInterface:
         )
 
     def background_mkloaders(self, options: dict, token: str) -> str:
+        """
+        TODO
+
+        :param options: TODO
+        :param token: TODO
+        :return: TODO
+        """
+
         def runner(self):
             return self.api.mkloaders()
 
@@ -3925,11 +3933,17 @@ class RequestHandler(SimpleXMLRPCRequestHandler):
     """
 
     def do_OPTIONS(self):
+        """
+        TODO
+        """
         self.send_response(200)
         self.end_headers()
 
     # Add these headers to all responses
     def end_headers(self):
+        """
+        TODO
+        """
         self.send_header(
             "Access-Control-Allow-Headers",
             "Origin, X-Requested-With, Content-Type, Accept",

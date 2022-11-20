@@ -1,3 +1,7 @@
+"""
+TODO
+"""
+
 import os
 import re
 import binascii
@@ -45,6 +49,17 @@ def register() -> Optional[str]:
 
 
 def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
+    """
+    TODO
+
+    :param orig_bcd: TODO
+    :param new_bcd: TODO
+    :param wim: TODO
+    :param sdi: TODO
+    :param startoptions: TODO
+    :return: TODO
+    """
+
     def winpath_length(wp, add):
         wpl = add + 2 * len(wp)
         return wpl.to_bytes((wpl.bit_length() + 7) // 8, "big")
@@ -229,6 +244,13 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
 
 
 def run(api, args):
+    """
+    TODO
+
+    :param api: TODO
+    :param args: TODO
+    :return: TODO
+    """
     settings = api.settings()
     if not settings.windows_enabled:
         return 0

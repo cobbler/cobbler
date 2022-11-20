@@ -25,6 +25,12 @@ logger = logging.getLogger()
 
 
 def read_macro_file(location="/etc/cobbler/cheetah_macros"):
+    """
+    TODO
+
+    :param location: TODO
+    :return: TODO
+    """
     if not os.path.exists(location):
         raise FileNotFoundError("Cobbler Cheetah Macros File must exist!")
     with open(location, "r", encoding="UTF-8") as macro_file:
@@ -32,6 +38,11 @@ def read_macro_file(location="/etc/cobbler/cheetah_macros"):
 
 
 def generate_cheetah_macros():
+    """
+    TODO
+
+    :return: TODO
+    """
     try:
         macro_file = read_macro_file()
         return Template.compile(
