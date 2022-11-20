@@ -60,7 +60,7 @@ def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int
     # FIXME: this must be modified to use the new ACL engine
 
     data = __parse_config()
-    for group in data:
-        if user.lower() in data[group]:
+    for group, group_data in data.items():
+        if user.lower() in group_data:
             return 1
     return 0

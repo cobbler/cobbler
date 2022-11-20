@@ -605,8 +605,7 @@ def __consolidate(node, results: dict) -> dict:
             else:
                 node_data_copy[key] = value
 
-    for field in node_data_copy:
-        data_item = node_data_copy[field]
+    for field, data_item in node_data_copy.items():
         if field in results:
             # Now merge data types separately depending on whether they are dict, list, or scalar.
             fielddata = results[field]

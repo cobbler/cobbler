@@ -83,14 +83,14 @@ class NetworkInterface:
         :return: A dictionary with all values present in this object.
         """
         result = {}
-        for key in self.__dict__:
+        for key, key_value in self.__dict__.items():
             if "__" in key:
                 continue
             if key.startswith("_"):
                 new_key = key[1:].lower()
-                key_value = self.__dict__[key]
+                key_value = key_value
                 if isinstance(key_value, enum.Enum):
-                    result[new_key] = self.__dict__[key].name.lower()
+                    result[new_key] = key_value.name.lower()
                 elif (
                     isinstance(key_value, str)
                     and key_value == enums.VALUE_INHERITED
@@ -98,7 +98,7 @@ class NetworkInterface:
                 ):
                     result[new_key] = getattr(self, key[1:])
                 else:
-                    result[new_key] = self.__dict__[key]
+                    result[new_key] = key_value
         return result
 
     # These two methods are currently not used, but we do want to use them in the future, so let's define them.

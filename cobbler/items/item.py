@@ -914,7 +914,7 @@ class Item:
         :return: A dictionary with all values present in this object.
         """
         value = {}
-        for key in self.__dict__:
+        for key, key_value in self.__dict__.items():
             if key.startswith("_") and not key.startswith("__"):
                 if key in (
                     "_conceptual_parent",
@@ -924,7 +924,6 @@ class Item:
                 ):
                     continue
                 new_key = key[1:].lower()
-                key_value = self.__dict__[key]
                 if isinstance(key_value, enum.Enum):
                     value[new_key] = key_value.value
                 elif new_key == "interfaces":
@@ -950,7 +949,7 @@ class Item:
                 ):
                     value[new_key] = getattr(self, key[1:])
                 else:
-                    value[new_key] = self.__dict__[key]
+                    value[new_key] = key_value
         if "autoinstall" in value:
             value.update({"kickstart": value["autoinstall"]})
         if "autoinstall_meta" in value:

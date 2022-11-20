@@ -162,8 +162,7 @@ class CobblerStatusReport:
         """
         # FIXME: this should update the times here
         tnow = int(time.time())
-        for ip_address in self.ip_data:
-            elem = self.ip_data[ip_address]
+        for ip_address, elem in self.ip_data.items():
             start = int(elem.most_recent_start)
             stop = int(elem.most_recent_stop)
             if stop > start:
