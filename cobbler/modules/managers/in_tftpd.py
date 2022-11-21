@@ -7,6 +7,7 @@ This is some of the code behind 'cobbler sync'.
 import glob
 import os.path
 import shutil
+from concurrent.futures import ThreadPoolExecutor
 from typing import List
 
 from cobbler import templar
@@ -176,6 +177,8 @@ class _InTftpdManager(ManagerModule):
 
         self.logger.info("copying distros to tftpboot")
 
+        pool = ThreadPoolExecutor()
+
         # Adding in the exception handling to not blow up if files have been moved (or the path references an NFS
         # directory that's no longer mounted)
         for distro in self.distros:
@@ -189,10 +192,15 @@ class _InTftpdManager(ManagerModule):
         self.tftpgen.copy_images()
 
         # the actual pxelinux.cfg files, for each interface
-        self.logger.info("generating PXE configuration files")
+        self.logger.info(
+            "generating PXE configuration files - this can take a while (to see the progress check the cobbler logs)"
+        )
         menu_items = self.tftpgen.get_menu_items()
+
         for system in self.systems:
-            self.tftpgen.write_all_system_files(system, menu_items)
+            pool.submit(self.tftpgen.write_all_system_files, system, menu_items)
+
+        pool.shutdown()
 
         self.logger.info("generating PXE menu structure")
         self.tftpgen.make_pxe_menu()
