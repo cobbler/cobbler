@@ -96,8 +96,6 @@ class AutoInstallationGen:
         self.api.logger.info(
             "AutoYaST XML file found. Checkpoint: profile=%s system=%s", profile, system
         )
-        runpost = '\ncurl "%s://%s/cblr/svc/op/trig/mode/post/%s/%s" > /dev/null'
-        runpre = '\ncurl "%s://%s/cblr/svc/op/trig/mode/pre/%s/%s" > /dev/null'
 
         what = "profile"
         blend_this = profile
@@ -144,10 +142,14 @@ class AutoInstallationGen:
             # notify cobblerd when we start/finished the installation
             protocol = self.api.settings().autoinstall_scheme
             self.addAutoYaSTScript(
-                document, "pre-scripts", runpre % (protocol, srv, what, name)
+                document,
+                "pre-scripts",
+                f'\ncurl "{protocol}://{srv}/cblr/svc/op/trig/mode/pre/{what}/{name}" > /dev/null',
             )
             self.addAutoYaSTScript(
-                document, "init-scripts", runpost % (protocol, srv, what, name)
+                document,
+                "init-scripts",
+                f'\ncurl "{protocol}://{srv}/cblr/svc/op/trig/mode/post/{what}/{name}" > /dev/null',
             )
 
         return document.toxml()
