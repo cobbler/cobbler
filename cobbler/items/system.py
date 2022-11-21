@@ -86,7 +86,7 @@ class NetworkInterface:
                 new_key = key[1:].lower()
                 key_value = self.__dict__[key]
                 if isinstance(key_value, enum.Enum):
-                    result[new_key] = self.__dict__[key].name
+                    result[new_key] = self.__dict__[key].name.lower()
                 elif (
                     isinstance(key_value, str)
                     and key_value == enums.VALUE_INHERITED
