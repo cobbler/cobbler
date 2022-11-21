@@ -187,3 +187,25 @@ def test_manager_sync(mocker, api_mock_tftp, reset_singleton):
     assert manager_obj.tftpgen.get_menu_items.call_count == 1
     assert manager_obj.tftpgen.write_all_system_files.call_count == 1
     assert manager_obj.tftpgen.make_pxe_menu.call_count == 1
+
+
+def test_manager_sync_uses_threadpool(mocker, api_mock_tftp, reset_singleton):
+    # Arrange
+    manager_obj = in_tftpd.get_manager(api_mock_tftp)
+    tftpgen_mock = MagicMock(spec=TFTPGen, autospec=True)
+    threadpool_mock = MagicMock()
+    mocker.patch.object(manager_obj, "tftpgen", return_value=tftpgen_mock)
+    mocker.patch(
+        "cobbler.modules.managers.in_tftpd.ThreadPoolExecutor",
+        MagicMock(return_value=threadpool_mock),
+    )
+
+    # Act
+    manager_obj.sync()
+
+    # Assert
+    assert manager_obj.tftpgen.copy_bootloaders.call_count == 1
+    assert manager_obj.tftpgen.copy_single_distro_files.call_count == 1
+    assert manager_obj.tftpgen.copy_images.call_count == 1
+    assert manager_obj.tftpgen.get_menu_items.call_count == 1
+    assert threadpool_mock.submit.call_count == 1
