@@ -185,10 +185,10 @@ If no autoinstall template is specified to profile add, use this template.
 
 default: ``default.ks``
 
-autoinstall_protocol
+autoinstall_scheme
 ====================
 
-This should contain the protocol over which the autoinstall-file is available.
+This should contain the scheme over which the autoinstall-file is available.
 
 This is setting does not setup your api for HTTPS, it just changes the way the url for your profiles and systems are
 generated.

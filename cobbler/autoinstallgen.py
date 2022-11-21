@@ -142,7 +142,7 @@ class AutoInstallationGen:
 
         if self.settings.run_install_triggers:
             # notify cobblerd when we start/finished the installation
-            protocol = self.api.settings().autoinstall_protocol
+            protocol = self.api.settings().autoinstall_scheme
             self.addAutoYaSTScript(
                 document, "pre-scripts", runpre % (protocol, srv, what, name)
             )
@@ -233,11 +233,11 @@ class AutoInstallationGen:
             return ""
 
         blended = utils.blender(self.api, False, obj)
-        autoinstall_protocol = self.api.settings().autoinstall_protocol
+        autoinstall_scheme = self.api.settings().autoinstall_scheme
         if is_profile:
-            url = f"{autoinstall_protocol}://{blended['http_server']}/cblr/svc/op/yum/profile/{obj.name}"
+            url = f"{autoinstall_scheme}://{blended['http_server']}/cblr/svc/op/yum/profile/{obj.name}"
         else:
-            url = f"{autoinstall_protocol}://{blended['http_server']}/cblr/svc/op/yum/system/{obj.name}"
+            url = f"{autoinstall_scheme}://{blended['http_server']}/cblr/svc/op/yum/system/{obj.name}"
 
         return f'curl "{url}" --output /etc/yum.repos.d/cobbler-config.repo\n'
 

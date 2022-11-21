@@ -1021,7 +1021,7 @@ class TFTPGen:
                 httpserveraddress = blended["http_server"]
 
             local_autoinstall_file = not re.match(r"[a-zA-Z]*://.*", autoinstall_path)
-            protocol = self.settings.autoinstall_protocol
+            protocol = self.settings.autoinstall_scheme
             if local_autoinstall_file:
                 if system is not None:
                     autoinstall_path = f"{protocol}://{httpserveraddress}/cblr/svc/op/autoinstall/system/{system.name}"
@@ -1347,7 +1347,7 @@ class TFTPGen:
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
         if obj.enable_ipxe:
-            protocol = self.api.settings().autoinstall_protocol
+            protocol = self.api.settings().autoinstall_scheme
             blended["img_path"] = (
                 f"{protocol}://{self.settings.server}:{self.settings.http_port}/"
                 f"cobbler/links/{distro.name}"
@@ -1421,7 +1421,7 @@ class TFTPGen:
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
         if obj.enable_ipxe:
-            protocol = self.api.settings().autoinstall_protocol
+            protocol = self.api.settings().autoinstall_scheme
             blended["img_path"] = (
                 f"{protocol}://{self.settings.server}:{self.settings.http_port}/"
                 f"cobbler/links/{distro.name}"
@@ -1481,7 +1481,7 @@ class TFTPGen:
             remote_boot_files = utils.file_is_remote(kernel_path)
 
             if remote_boot_files:
-                protocol = self.api.settings().autoinstall_protocol
+                protocol = self.api.settings().autoinstall_scheme
                 loaders_path = (
                     f"{protocol}://@@http_server@@/cobbler/images/@@distro_name@@/"
                 )

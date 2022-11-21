@@ -729,7 +729,7 @@ class _ImportSignatureManager(ManagerModule):
                     self.logger.warning(
                         "symlink creation failed: %s, %s", base, dest_link
                     )
-            protocol = self.api.settings().autoinstall_protocol
+            protocol = self.api.settings().autoinstall_scheme
             tree = f"{protocol}://@@http_server@@/cblr/links/{distribution.name}"
             self.set_install_tree(distribution, tree)
         else:
@@ -878,7 +878,7 @@ class _ImportSignatureManager(ManagerModule):
                 f"{distribution.name}-{counter}.repo",
             )
 
-            protocol = self.api.settings().autoinstall_protocol
+            protocol = self.api.settings().autoinstall_scheme
             repo_url = f"{protocol}://@@http_server@@/cobbler/distro_mirror/config/{distribution.name}-{counter}.repo"
             repo_url2 = f"{protocol}://@@http_server@@/cobbler/distro_mirror/{urlseg}"
 

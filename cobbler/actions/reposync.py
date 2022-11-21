@@ -772,7 +772,7 @@ class RepoSync:
             optgpgcheck = False
             if output:
                 if repo.mirror_locally:
-                    protocol = self.api.settings().autoinstall_protocol
+                    protocol = self.api.settings().autoinstall_scheme
                     line = f"baseurl={protocol}://${{http_server}}/cobbler/repo_mirror/{repo.name}\n"
                 else:
                     mstr = repo.mirror
