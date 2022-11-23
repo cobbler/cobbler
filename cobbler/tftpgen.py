@@ -867,7 +867,10 @@ class TFTPGen:
 
             if distro.breed is None or distro.breed == "redhat":
 
-                append_line += " kssendmac"
+                if distro.os_version in ["rhel5", "rhel6"]:
+                    append_line += " kssendmac"
+                else:
+                    append_line += " inst.ks.sendmac"
                 append_line = "%s inst.ks=%s" % (append_line, autoinstall_path)
                 ipxe = blended["enable_ipxe"]
                 if ipxe:
