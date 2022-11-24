@@ -1,0 +1,18 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/answers -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- if agama_questions is defined and agama_questions_policy is defined -%}
+    "questions": {
+        "policy": "{{ agama_questions_policy }}",
+        "answers": [
+    {%- for question in agama_questions %}
+            {
+                "class": "",
+                "text": "",
+                "answer": "",
+                "password": "",
+                "data": {}
+            }
+    {%- endfor %}
+        ]
+    }
+{%- endif -%}

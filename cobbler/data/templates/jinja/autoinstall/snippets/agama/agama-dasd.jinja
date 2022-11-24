@@ -1,0 +1,16 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/dsad -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- if agama_dasd is defined -%}
+    "dasd": {
+        "devices": [
+    {% for device in agama_dasd_devices %}
+            {
+                "channel": "",
+                "state": "online"
+                "format": false,
+                "diag": true
+            },
+    {% endfor %}
+        ]
+    }
+{%- endif -%}

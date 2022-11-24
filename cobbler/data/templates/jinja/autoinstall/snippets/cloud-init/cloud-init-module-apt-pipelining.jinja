@@ -1,0 +1,4 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#apt-pipelining -#}
+{%- if cloud_init_apt_pipelining is defined %}
+apt_pipelining: {{ cloud_init_apt_pipelining }}
+{%- endif %}

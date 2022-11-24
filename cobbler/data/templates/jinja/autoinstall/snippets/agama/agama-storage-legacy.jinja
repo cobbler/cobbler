@@ -1,0 +1,5 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/storage -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- if agama_storage_legacy -%}
+    "legacyAutoyastStorage": {{ agama_storage_legacy|tojson }}
+{%- endif -%}
