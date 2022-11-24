@@ -1,0 +1,18 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#set-hostname -#}
+{%- if cloud_init_set_hostname is defined %}
+  {%- if cloud_init_set_hostname.preserve_hostname %}
+preserve_hostname: true
+  {%- endif %}
+  {%- if cloud_init_set_hostname.hostname %}
+hostname: "{{ cloud_init_set_hostname.hostname }}"
+  {%- endif %}
+  {%- if cloud_init_set_hostname.fqdn %}
+fqdn: "{{ cloud_init_set_hostname.fqdn }}"
+  {%- endif %}
+  {%- if cloud_init_set_hostname.prefer_fqdn_over_hostname %}
+prefer_fqdn_over_hostname: true
+  {%- endif %}
+  {%- if cloud_init_set_hostname.create_hostname_file %}
+create_hostname_file: true
+  {%- endif %}
+{%- endif %}

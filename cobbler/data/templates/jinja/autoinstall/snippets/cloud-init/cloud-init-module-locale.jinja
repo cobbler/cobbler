@@ -1,0 +1,7 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#locale -#}
+{%- if cloud_init_locale_locale is defined %}
+locale: "{{ cloud_init_locale_locale }}"
+{%- endif %}
+{%- if cloud_init_locale_configfile is defined %}
+locale_configfile: "{{ cloud_init_locale_configfile }}"
+{%- endif %}

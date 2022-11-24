@@ -6,6 +6,8 @@ Template functionality that is tied to Jinja2.
 
 from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple
 
+import yaml
+
 from cobbler.templates import BaseTemplateProvider
 
 try:
@@ -43,6 +45,13 @@ if JINJA2_AVAILABLE:
             return search_result.content, search_result.name, None
 
 
+def toyaml(data: Any) -> str:
+    """
+    Function which is registred as a custom Jinja filter and allows convering arbitrary data into YAML.
+    """
+    return yaml.dump(data).rstrip("\n")
+
+
 class JinjaTemplateProvider(BaseTemplateProvider):
     """
     Provides support for the Jinja2 template language to Cobbler.
@@ -58,6 +67,7 @@ class JinjaTemplateProvider(BaseTemplateProvider):
             self.jinja2_env = jinja2.Environment(loader=CobblerJinjaLoader(self.api))
             self.jinja2_env.filters["any"] = any  # type: ignore
             self.jinja2_env.filters["all"] = all  # type: ignore
+            self.jinja2_env.filters["toyaml"] = toyaml  # type: ignore
 
     @property
     def template_type_available(self) -> bool:

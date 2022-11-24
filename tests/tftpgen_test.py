@@ -482,6 +482,12 @@ def test_build_kernel_options_system(
             "auto-install/enable=true priority=critical netcfg/choose_interface=auto url=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-sample.seed hostname=test_build_kernel_options_autoinstall domain=local.lan suite=jessie",
         ),
         (
+            "ubuntu",
+            "lunar",
+            "built-in-user-data",
+            "ds=nocloud;s=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-user-data hostname=test_build_kernel_options_autoinstall domain=local.lan suite=lunar",
+        ),
+        (
             "freebsd",
             "",
             "built-in-default.ks",
@@ -492,6 +498,12 @@ def test_build_kernel_options_system(
             "esx4",
             "built-in-sample_esxi4.ks",
             "vmkopts=debugLogToSerial:1 mem=512M ks=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-sample_esxi4.ks",
+        ),
+        (
+            "xen",
+            "xenserver620",
+            "built-in-answerfile.xml",
+            "append /images/test_build_kernel_options_autoinstall/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1,vga --- /images/test_build_kernel_options_autoinstall/vmlinuz xencons=hvc console=hvc0 console=tty0 install answerfile=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-answerfile.xml --- /images/test_build_kernel_options_autoinstall/install.img",
         ),
         (
             "powerkvm",

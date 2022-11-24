@@ -672,6 +672,66 @@ def test_basic_system_serial(
 
 
 @pytest.mark.integration
+def test_basic_system_autoinstall_cloud_init(
+    create_distro: Callable[[List[Tuple[List[str], Any]]], str],
+    create_profile: Callable[[List[Tuple[List[str], Any]]], str],
+    create_system: Callable[[List[Tuple[List[str], Any]]], str],
+    images_fake_path: pathlib.Path,
+):
+    """
+    Check that Cobbler can generate Cloud-Init Autoinstall templates.
+    """
+    # Arrange
+    did = create_distro(
+        [
+            (["name"], "fake"),
+            (["arch"], "x86_64"),
+            (["kernel"], str(images_fake_path / "vmlinuz")),
+            (["initrd"], str(images_fake_path / "initramfs")),
+        ]
+    )
+    pid = create_profile(
+        [
+            (["name"], "fake"),
+            (["distro"], did),
+        ]
+    )
+    create_system(
+        [
+            (["name"], "testbed"),
+            (["profile"], pid),
+            (["autoinstall"], "built-in-user-data"),
+            (["autoinstall_meta"], {"cloud_init_user_data_modules": ["network-v1"]}),
+        ]
+    )
+
+    # Act
+    sleep(5)  # sleep for 5 seconds to prevent supervisord backoff errors
+    with urllib.request.urlopen(
+        "http://127.0.0.1/cblr/svc/op/autoinstall/system/testbed/file/built-in-user-data/user-data"
+    ) as f:
+        result_user_data = f.read().decode("utf-8")
+    with urllib.request.urlopen(
+        "http://127.0.0.1/cblr/svc/op/autoinstall/system/testbed/file/built-in-user-data/vendor-data"
+    ) as f:
+        result_vendor_data = f.read().decode("utf-8")
+    with urllib.request.urlopen(
+        "http://127.0.0.1/cblr/svc/op/autoinstall/system/testbed/file/built-in-user-data/meta-data"
+    ) as f:
+        result_meta_data = f.read().decode("utf-8")
+    with urllib.request.urlopen(
+        "http://127.0.0.1/cblr/svc/op/autoinstall/system/testbed/file/built-in-user-data/network-config"
+    ) as f:
+        result_network_config = f.read().decode("utf-8")
+
+    # Assert
+    assert result_user_data == "#cloud-config\n"
+    assert result_vendor_data == ""
+    assert result_meta_data == "instance-id: "
+    assert result_network_config == ""
+
+
+@pytest.mark.integration
 def test_basic_system_autoinstall_agama(
     create_distro: Callable[[List[Tuple[List[str], Any]]], str],
     create_profile: Callable[[List[Tuple[List[str], Any]]], str],

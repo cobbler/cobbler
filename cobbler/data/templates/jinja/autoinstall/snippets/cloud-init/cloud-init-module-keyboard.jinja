@@ -1,0 +1,14 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#keyboard -#}
+{%- if cloud_init_keyboard_layout is defined %}
+keyboard:
+  layout: "{{ cloud_init_keyboard_layout }}"
+{%- if cloud_init_keyboard_model is defined %}
+  model: "{{ cloud_init_keyboard_model }}"
+{%- endif %}
+{%- if cloud_init_keyboard_variant %}
+  variant: "{{ cloud_init_keyboard_variant }}"
+{%- endif %}
+{%- if cloud_init_keyboard_options is defined %}
+  options: "{{ cloud_init_keyboard_options }}"
+{%- endif %}
+{%- endif %}

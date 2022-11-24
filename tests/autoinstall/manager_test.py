@@ -105,6 +105,7 @@ def test_get_last_errors(cobbler_api: CobblerAPI):
         enums.AutoinstallerType.LEGACY,
         enums.AutoinstallerType.KICKSTART,
         enums.AutoinstallerType.PRESEED,
+        enums.AutoinstallerType.CLOUDINIT,
     ],
 )
 def test_generate_autoinstall(
@@ -126,6 +127,10 @@ def test_generate_autoinstall(
     )
     mocker.patch(
         "cobbler.autoinstall.generate.autoyast.AutoYaSTGenerator.generate_autoinstall",
+        return_value=expected_result,
+    )
+    mocker.patch(
+        "cobbler.autoinstall.generate.cloud_init.CloudInitGenerator.generate_autoinstall",
         return_value=expected_result,
     )
     mocker.patch(

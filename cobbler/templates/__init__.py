@@ -89,6 +89,23 @@ TEMPLATE_TAG_MAPPING: Dict[str, Set[enums.ConvertableEnum]] = {
     "sample.seed.template": {enums.AutoinstallerType.PRESEED},
     "win.xml.template": {enums.AutoinstallerType.WINDOWS},
     "autoinst.json.jinja": {enums.AutoinstallerType.AGAMA},
+    "meta-data.jinja": {
+        enums.AutoinstallerType.CLOUDINIT,
+        enums.CloudInitFileTypes.META_DATA,
+    },
+    "network-config.jinja": {
+        enums.AutoinstallerType.CLOUDINIT,
+        enums.CloudInitFileTypes.NETWORK_CONFIG,
+    },
+    "user-data.jinja": {
+        enums.AutoinstallerType.CLOUDINIT,
+        enums.CloudInitFileTypes.USER_DATA,
+    },
+    "vendor-data.jinja": {
+        enums.AutoinstallerType.CLOUDINIT,
+        enums.CloudInitFileTypes.VENDOR_DATA,
+    },
+    "answerfile.xml.jinja": {enums.AutoinstallerType.XEN},
 }
 """
 This static mapping is adding the function tags to all built-in templates that are well-known to the application. If
@@ -154,13 +171,47 @@ class BaseTemplateProvider:
 
     def __generate_template_tags(self, entry: "Traversable") -> Set[str]:
         """
-        This method generates the Set of tags that are required to find a given template.
+        This method loads all templates in a given importlib Traversable and adds them to the application as built-in.
+        The method will call itself recursively in case it encounters another folder.
 
         :param folder: The Traversable object to use as a base folder. The folder may contain templates and folders.
         """
         template_tags = {enums.TemplateTag.DEFAULT.value}
         if entry.name in TEMPLATE_TAG_MAPPING:
             template_tags.update({x.value for x in TEMPLATE_TAG_MAPPING[entry.name]})
+        # Cloud-Init special templates
+        if entry.name == "meta-data.jinja":
+            template_tags.update(
+                {
+                    "built-in-user-data",
+                    "built-in-vendor-data",
+                    "built-in-network-config",
+                }
+            )
+        elif entry.name == "user-data.jinja":
+            template_tags.update(
+                {
+                    "built-in-meta-data",
+                    "built-in-vendor-data",
+                    "built-in-network-config",
+                }
+            )
+        elif entry.name == "vendor-data.jinja":
+            template_tags.update(
+                {
+                    "built-in-user-data",
+                    "built-in-meta-data",
+                    "built-in-network-config",
+                }
+            )
+        elif entry.name == "network-config.jinja":
+            template_tags.update(
+                {
+                    "built-in-user-data",
+                    "built-in-vendor-data",
+                    "built-in-meta-data",
+                }
+            )
         return template_tags
 
     def __load_templates_in_folder(self, folder: "Traversable") -> List[Template]:

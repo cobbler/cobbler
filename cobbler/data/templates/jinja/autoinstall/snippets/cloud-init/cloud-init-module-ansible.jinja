@@ -1,0 +1,22 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#ansible -#}
+ansible:
+{%- if cloud_init_ansible_install_method is defined %}
+  install_method: "{{ cloud_init_ansible_install_method }}"
+{%- endif %}
+{%- if cloud_init_ansible_run_user is defined %}
+  run_user: "{{ cloud_init_ansible_run_user }}"
+{% endif %}
+  ansible_config: ""
+  setup_controller:
+    repositories:
+      - path: ""
+        source: ""
+    run_ansible:
+      - playbook_name: ""
+        playbook_dir: ""
+        # TODO
+  galaxy: {}
+  package_name: "{{ cloud_init_ansible_package_name }}"
+  pull:
+    - accept_host_key: true
+      # TODO
