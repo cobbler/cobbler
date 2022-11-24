@@ -145,12 +145,17 @@ class StandaloneBuildiso(buildiso.BuildIso):
 
         if descendant_obj.COLLECTION_TYPE == "profile":
             config_args.update({"menu_indent": 0})
-            autoinstall_args = {"profile": descendant_obj}
         else:  # system
             config_args.update({"menu_indent": 4})
-            autoinstall_args = {"system": descendant_obj}
         isolinux, grub, to_copy = self._generate_descendant_config(**config_args)
-        autoinstall = self.api.autoinstallgen.generate_autoinstall(**autoinstall_args)  # type: ignore
+        autoinstall_template = descendant_obj.autoinstall
+        if autoinstall_template is None:
+            raise ValueError(
+                f"autoinstall template cannot be None for obj {descendant_obj.name}"
+            )
+        autoinstall = self.api.autoinstall_mgr.generate_autoinstall(
+            descendant_obj, autoinstall_template
+        )
 
         if distro_obj.breed == "redhat":
             autoinstall = CDREGEX.sub("cdrom\n", autoinstall, count=1)

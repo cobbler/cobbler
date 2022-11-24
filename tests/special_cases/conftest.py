@@ -5,7 +5,7 @@ Module to contain all fixtures that are shared by the special test-cases that we
 import pytest
 
 from cobbler.api import CobblerAPI
-from cobbler.autoinstall_manager import AutoInstallationManager
+from cobbler.autoinstall.manager import AutoInstallationManager
 
 
 @pytest.fixture(name="autoinstall_manager")

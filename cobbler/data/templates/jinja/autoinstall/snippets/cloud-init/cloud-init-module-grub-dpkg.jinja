@@ -1,0 +1,16 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#grub-dpkg -#}
+{%- if cloud_init_grub_dpkg_enabled is defined or cloud_init_grub_dpkg_bios_device is defined or cloud_init_grub_dpkg_devices_bios_empty is defined or cloud_init_grub_dpkg_efi_device is defined %}
+grub_dpkg:
+{%- if cloud_init_grub_dpkg_enabled is defined %}
+  enabled: {{ cloud_init_grub_dpkg_enabled }}
+{%- endif %}
+{%- if cloud_init_grub_dpkg_bios_device is defined %}
+  grub-pc/install_devices: "{{ cloud_init_grub_dpkg_bios_device }}"
+{%- endif %}
+{%- if cloud_init_grub_dpkg_devices_bios_empty is defined %}
+  grub-pc/install_devices_empty: {{ cloud_init_grub_dpkg_devices_bios_empty }}
+{%- endif %}
+{%- if cloud_init_grub_dpkg_efi_device is defined %}
+  grub-efi/install_devices: "{{ cloud_init_grub_dpkg_efi_device }}"
+{%- endif %}
+{%- endif %}

@@ -1,0 +1,11 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#runcmd -#}
+{%- if cloud_init_runcmd is defined %}
+{%- if cloud_init_runcmd is string %}
+runcmd: "{{ cloud_init_runcmd }}"
+{%- elif cloud_init_runcmd is iterable %}
+runcmd:
+{%- for command in cloud_init_runcmd %}
+  - [{% for part in command %}"{{ part }}"{{", " if not loop.last}}{% endfor %}]
+{%- endfor %}
+{%- endif %}
+{%- endif %}

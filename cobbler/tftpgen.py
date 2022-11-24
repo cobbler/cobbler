@@ -37,6 +37,65 @@ if TYPE_CHECKING:
     from cobbler.items.template import Template
 
 
+class AppendLine:
+    """
+    TODO
+    """
+
+    def __init__(self, api: "CobblerAPI"):
+        self.__api = api
+        self.__append_line: List[Union[Tuple[str, str], Tuple[str]]] = []
+
+    def append_key_value(self, key: str, value: str):
+        """
+        TODO
+        """
+        self.__append_line.append((key, value))
+
+    def append_key(self, key: str):
+        """
+        TODO
+        """
+        self.__append_line.append((key,))
+
+    def append_raw(self, value: str):
+        """
+        TODO
+        """
+        self.__append_line.append((value,))
+
+    def replace_key(self, key: str, condition: str, new_value: str):
+        """
+        TODO
+        """
+        for idx, element in enumerate(self.__append_line):
+            if len(element) == 1:
+                continue
+            if element[0] == key and element[1] == condition:
+                self.__append_line[idx] = (key, new_value)
+
+    def render(self, blended: Dict[str, Any]) -> str:
+        """
+        TODO
+        """
+        append_line = ""
+        for element in self.__append_line:
+            if len(element) == 1:
+                append_line += f" {element[0]}"
+            else:
+                append_line += f" {element[0]}={element[1]}"
+        append_line = append_line.lstrip()
+        # do variable substitution on the append line
+        # promote all of the autoinstall_meta variables
+        if "autoinstall_meta" in blended:
+            blended.update(blended["autoinstall_meta"])
+        return self.__api.templar.render(
+            append_line,
+            utils.flatten(blended),  # type: ignore
+            None,
+        )
+
+
 class TFTPGen:
     """
     Generate files provided by TFTP server
@@ -209,7 +268,6 @@ class TFTPGen:
         image: Optional["Image"],
         system: "System",
     ) -> str:
-        blended = utils.blender(self.api, True, system)
         # FIXME: profiles also need this data!
         # gather default kernel_options and default kernel_options_s390x
         kernel_options = self.build_kernel_options(
@@ -218,7 +276,6 @@ class TFTPGen:
             distro,
             image,
             enums.Archs.S390X,
-            blended.get("autoinstall", ""),
         )
 
         # parm file format is fixed to 80 chars per line.
@@ -1166,7 +1223,7 @@ class TFTPGen:
         bootloader_format: enums.BootLoader = enums.BootLoader.PXE,
     ) -> str:
         """
-        Write a configuration file for the boot loader(s).
+        Write a configuration file for the bootloader(s).
 
         More system-specific configuration may come in later, if so that would appear inside the system object in api.py
         Can be used for different formats, "pxe" (default) and "grub".
@@ -1176,13 +1233,13 @@ class TFTPGen:
         :param system: If you supply a system there are other templates used then when using only a profile/image/
                        distro.
         :param profile: The profile to generate the pxe-file for.
-        :param distro: If you don't ship an image, this is needed. Otherwise this just supplies information needed for
+        :param distro: If you don't ship an image, this is needed. Otherwise, this just supplies information needed for
                        the templates.
         :param arch: The processor architecture to generate the pxefile for.
         :param image: If you want to be able to deploy an image, supply this parameter.
         :param metadata: Pass additional parameters to the ones being collected during the method.
         :param bootloader_format: Can be any of those returned by utils.get_supported_system_boot_loaders().
-        :return: The generated filecontent for the required item.
+        :return: The generated file-content for the required item.
         """
 
         if arch is None:
@@ -1227,7 +1284,7 @@ class TFTPGen:
 
         # generate the kernel options and append line:
         kernel_options = self.build_kernel_options(
-            system, profile, distro, image, arch, metadata["autoinstall"]  # type: ignore
+            system, profile, distro, image, arch  # type: ignore
         )
         metadata["kernel_options"] = kernel_options
 
@@ -1235,6 +1292,7 @@ class TFTPGen:
             append_line = f"append initrd={metadata['initrd_path']}"
         else:
             append_line = "append "
+        # TODO if cloud-init then add nocloud-net to kernel options
         append_line = f"{append_line}{kernel_options}"
         if distro and distro.os_version.startswith("xenserver620"):
             append_line = f"{kernel_options}"
@@ -1424,7 +1482,6 @@ class TFTPGen:
         distro: Optional["Distro"],
         image: Optional["Image"],
         arch: enums.Archs,
-        autoinstall_path: str,
     ) -> str:
         """
         Builds the full kernel options line.
@@ -1434,8 +1491,6 @@ class TFTPGen:
         :param distro: Although the profile contains the distribution please specify it explicitly here.
         :param image: The image to generate the kernel options for.
         :param arch: The processor architecture to generate the kernel options for.
-        :param autoinstall_path: The autoinstallation path. Normally this will be a URL because you want to pass a link
-                                 to an autoyast, preseed or kickstart file.
         :return: The generated kernel line options.
         """
 
@@ -1461,7 +1516,7 @@ class TFTPGen:
         else:
             raise ValueError("Impossible to find object for kernel options")
 
-        append_line = ""
+        append_line = AppendLine(self.api)
         kopts: Dict[str, Any] = blended.get("kernel_options", {})
         kopts = utils.revert_strip_none(kopts)  # type: ignore
 
@@ -1476,12 +1531,16 @@ class TFTPGen:
 
         # support additional initrd= entries in kernel options.
         if "initrd" in kopts:
-            append_line = f",{kopts.pop('initrd')}"
+            append_line.append_raw(f",{kopts.pop('initrd')}")
         hkopts = utils.dict_to_string(kopts)
-        append_line = f"{append_line} {hkopts}"
+        if hkopts:
+            append_line.append_raw(hkopts)
 
         # automatic installation file path rewriting (get URLs for local files)
-        if autoinstall_path:
+        if blended.get("autoinstall"):
+
+            if system is None and profile is None:
+                raise ValueError("Neither profile nor system based!")
 
             # FIXME: need to make shorter rewrite rules for these URLs
 
@@ -1512,79 +1571,89 @@ class TFTPGen:
                 httpserveraddress = blended["http_server"]
 
             protocol = self.settings.autoinstall_scheme
-            if system is not None:
-                autoinstall_path = f"{protocol}://{httpserveraddress}/cblr/svc/op/autoinstall/system/{system.name}"
-            elif profile is not None:
-                autoinstall_path = f"{protocol}://{httpserveraddress}/cblr/svc/op/autoinstall/profile/{profile.name}"
-            else:
-                raise ValueError("Neither profile nor system based!")
+            obj_type = "system" if system is not None else "profile"
+            autoinstall_path = (
+                f"{protocol}://{httpserveraddress}/cblr/svc/op/autoinstall/{obj_type}/{blended['name']}/"
+                f"file/{blended['autoinstall']['name']}"
+            )
 
             if distro is None:
                 raise ValueError("Distro for kernel command line not found!")
 
+            autoinstall_tags = blended["autoinstall"]["tags"]
+
             if distro.breed == "redhat":
 
                 if distro.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
-                    append_line += f" kssendmac ks={autoinstall_path}"
+                    append_line.append_key("kssendmac")
+                    append_line.append_key_value("ks", autoinstall_path)
                     if blended["autoinstall_meta"].get("tree"):
-                        append_line += f" repo={blended['autoinstall_meta']['tree']}"
+                        append_line.append_key_value(
+                            "repo", blended["autoinstall_meta"]["tree"]
+                        )
                 else:
-                    append_line += f" inst.ks.sendmac inst.ks={autoinstall_path}"
+                    append_line.append_key("inst.ks.sendmac")
+                    append_line.append_key_value("inst.ks", autoinstall_path)
                     if blended["autoinstall_meta"].get("tree"):
-                        append_line += (
-                            f" inst.repo={blended['autoinstall_meta']['tree']}"
+                        append_line.append_key_value(
+                            "inst.repo", blended["autoinstall_meta"]["tree"]
                         )
                 ipxe = blended["enable_ipxe"]
                 if ipxe:
-                    append_line = append_line.replace(
-                        "ksdevice=bootif", "ksdevice=${net0/mac}"
-                    )
+                    append_line.replace_key("ksdevice", "bootif", "${net0/mac}")
             elif distro.breed == "suse":
-                append_line = f"{append_line} autoyast={autoinstall_path}"
+                # TODO: Autoyast vs Agama
+                if enums.AutoinstallerType.AUTOYAST.value in autoinstall_tags:
+                    append_line.append_key_value("autoyast", autoinstall_path)
+                elif enums.AutoinstallerType.AGAMA.value in autoinstall_tags:
+                    append_line.append_key_value("inst.auto", autoinstall_path)
+                else:
+                    self.logger.warning("Unsupported autoinstaller type for SUSE!")
                 if management_mac and distro.arch not in (
                     enums.Archs.S390,
                     enums.Archs.S390X,
                 ):
-                    append_line += f" netdevice={management_mac}"
+                    append_line.append_key_value("netdevice", management_mac)
             elif distro.breed in ("debian", "ubuntu"):
-                append_line = (
-                    f"{append_line}auto-install/enable=true priority=critical "
-                    f"netcfg/choose_interface=auto url={autoinstall_path}"
-                )
+                # Cloud-Init
+                if enums.AutoinstallerType.CLOUDINIT.value in autoinstall_tags:
+                    append_line.append_key_value("ds", f"nocloud;s={autoinstall_path}")
+                elif enums.AutoinstallerType.PRESEED.value in autoinstall_tags:
+                    append_line.append_key_value("auto-install/enable", "true")
+                    append_line.append_key_value("priority", "critical")
+                    append_line.append_key_value("netcfg/choose_interface", "auto")
+                    append_line.append_key_value("url", autoinstall_path)
+                else:
+                    self.logger.warning(
+                        "Unsupported autoinstaller type for Debian/Ubuntu!"
+                    )
                 if management_interface:
-                    append_line += f" netcfg/choose_interface={management_interface}"
+                    append_line.append_key_value(
+                        "netcfg/choose_interface", management_interface
+                    )
             elif distro.breed == "freebsd":
-                append_line = f"{append_line} ks={autoinstall_path}"
-
-                # rework kernel options for debian distros
-                translations = {"ksdevice": "interface", "lang": "locale"}
-                for key, value in translations.items():
-                    append_line = append_line.replace(f"{key}=", f"{value}=")
-
-                # interface=bootif causes a failure
-                append_line = append_line.replace("interface=bootif", "")
+                append_line.append_key_value("ks", autoinstall_path)
             elif distro.breed == "vmware":
                 if distro.os_version.find("esxi") != -1:
                     # ESXi is very picky, it's easier just to redo the
                     # entire append line here since
                     hkopts = utils.dict_to_string(kopts)
-                    append_line = f"{hkopts} ks={autoinstall_path}"
+                    append_line.append_key_value("ks", autoinstall_path)
                 else:
-                    append_line = f"{append_line} vmkopts=debugLogToSerial:1 mem=512M ks={autoinstall_path}"
-                # interface=bootif causes a failure
-                append_line = append_line.replace("ksdevice=bootif", "")
+                    append_line.append_key_value("vmkopts", "debugLogToSerial:1")
+                    append_line.append_key_value("mem", "512M")
+                    append_line.append_key_value("ks", autoinstall_path)
             elif distro.breed == "xen":
                 if distro.os_version.find("xenserver620") != -1:
                     img_path = os.path.join("/images", distro.name)
-                    append_line = (
+                    return (
                         f"append {img_path}/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1,"
                         f"vga --- {img_path}/vmlinuz xencons=hvc console=hvc0 console=tty0 install"
                         f" answerfile={autoinstall_path} --- {img_path}/install.img"
                     )
-                    return append_line
             elif distro.breed == "powerkvm":
-                append_line += " kssendmac"
-                append_line = f"{append_line} kvmp.inst.auto={autoinstall_path}"
+                append_line.append_key("kssendmac")
+                append_line.append_key_value("kvmp.inst.auto", autoinstall_path)
 
         if distro is not None and (distro.breed in ["debian", "ubuntu"]):
             # Hostname is required as a parameter, the one in the preseed is not respected, so calculate if we have one
@@ -1610,22 +1679,18 @@ class TFTPGen:
 
             # At least for debian deployments configured for DHCP networking this values are not used, but specifying
             # here avoids questions
-            append_line = f"{append_line} hostname={hostname}"
-            append_line = f"{append_line} domain={domain}"
+            append_line.append_key_value("hostname", hostname)
+            append_line.append_key_value("domain", domain)
 
             # A similar issue exists with suite name, as installer requires the existence of "stable" in the dists
             # directory
-            append_line = f"{append_line} suite={distro.os_version}"
+            append_line.append_key_value("suite", distro.os_version)
 
         # append necessary kernel args for arm architectures
         if arch is enums.Archs.ARM:
-            append_line = f"{append_line} fixrtc vram=48M omapfb.vram=0:24M"
-
-        # do variable substitution on the append line
-        # promote all of the autoinstall_meta variables
-        if "autoinstall_meta" in blended:
-            blended.update(blended["autoinstall_meta"])
-        append_line = self.api.templar.render(append_line, utils.flatten(blended), None)  # type: ignore
+            append_line.append_key("fixrtc")
+            append_line.append_key_value("vram", "48M")
+            append_line.append_key_value("omapfb.vram", "=0:24M")
 
         # For now console=ttySx,BAUDRATE are only set for systems
         # This could get enhanced for profile/distro via utils.blender (inheritance)
@@ -1645,15 +1710,17 @@ class TFTPGen:
                 else:
                     serial_baud_rate = system.serial_baud_rate.value
 
-                append_line = (
-                    f"{append_line} console=ttyS{serial_device},{serial_baud_rate}"
+                append_line.append_key_value(
+                    "console", f"ttyS{serial_device},{serial_baud_rate}"
                 )
 
+        rendered_append_line = append_line.render(blended)
+
         # FIXME - the append_line length limit is architecture specific
-        if len(append_line) >= 1023:
+        if len(rendered_append_line) >= 1023:
             self.logger.warning("warning: kernel option length exceeds 1023")
 
-        return append_line
+        return rendered_append_line
 
     def write_templates(
         self,
@@ -1882,12 +1949,9 @@ class TFTPGen:
                 distro,  # type: ignore
                 None,
                 distro.arch,  # type: ignore
-                blended.get("autoinstall", None),  # type: ignore
             )
         elif what == "profile":
-            kopts = self.build_kernel_options(
-                None, obj, distro, None, distro.arch, blended.get("autoinstall", None)  # type: ignore
-            )
+            kopts = self.build_kernel_options(None, obj, distro, None, distro.arch)  # type: ignore
         # pylint: disable-next=possibly-used-before-assignment
         blended["kopts"] = kopts  # type: ignore
         blended["kernel_file"] = os.path.basename(distro.kernel)  # type: ignore

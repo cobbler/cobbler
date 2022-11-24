@@ -156,6 +156,8 @@ function restore_keys
             fi
             break
         fi
+        break
+        fi
     done &
  fi
 }

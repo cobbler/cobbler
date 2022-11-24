@@ -499,6 +499,7 @@ class BaseItem(ABC):
             "ks_meta",
             "remote_grub_kernel",
             "remote_grub_initrd",
+            "built_in",
         ]
         result = self.to_dict()
         for key in keys_to_drop:

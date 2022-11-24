@@ -9,8 +9,8 @@ from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs,im
     BenchmarkFixture,
 )
 
-from cobbler import autoinstall_manager
 from cobbler.api import CobblerAPI
+from cobbler.autoinstall.manager import AutoInstallationManager
 from cobbler.items.distro import Distro
 
 from tests.performance import CobblerTree
@@ -45,12 +45,9 @@ def test_get_autoinstall(
         return (cobbler_api, what), {}
 
     def item_get_autoinstall(api: CobblerAPI, what: str):
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(cobbler_api)
+        autoinstall_mgr = AutoInstallationManager(cobbler_api)
         for test_item in api.get_items(what):
-            if what == "profile":
-                autoinstall_mgr.generate_autoinstall(profile=test_item.name)
-            elif what == "system":
-                autoinstall_mgr.generate_autoinstall(system=test_item.name)
+            autoinstall_mgr.generate_autoinstall(test_item, None)  # type: ignore
 
     # Arrange
     cobbler_api.settings().cache_enabled = cache_enabled

@@ -118,6 +118,8 @@ def setup_cobblerd_systemd(
     """
     Use the embedded systemd service file and install it into the system.
     """
+    # FIXME: Template systemd http service dependency
+    # FIXME: Cobblerd Binary Path
     systemd_service_files = resource_files.joinpath("config").joinpath("service")
     systemd_service_directory = base_path
     systemd_service_directory.mkdir(parents=True, exist_ok=True)
@@ -220,6 +222,8 @@ def setup_cobblerd(
     web_root_misc_directory = var_path / "misc"
     web_root_misc_directory.mkdir(parents=True, exist_ok=True)
     copy_directory(web_root_misc_files, web_root_misc_directory)
+    # TFTP Root Files
+    # TODO: Copy GRUB files into TFTP-root
 
     # Now template all files that need it
     configure_files = [

@@ -1,0 +1,9 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/users -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+    "root": {
+    {%- if agama_root_ssh_public_key is defined %}
+        "sshPublicKey": "{{ agama_root_ssh_public_key }}",
+    {%- endif %}
+        "hashedPassword": true,
+        "password": {{ agama_root_password|default(default_password_crypted)|tojson }}
+    }
