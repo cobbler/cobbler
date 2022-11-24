@@ -238,7 +238,6 @@ class CobblerXMLRPCInterface:
         self.shared_secret = utils.get_shared_secret()
         random.seed(time.time())
         self.tftpgen = tftpgen.TFTPGen(api)
-        self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api)
         # Semaphore that suspends the execution of the background_load_items when the execution
         # of any command or any other task begins until it finishes.
         self.load_items_lock = threading.Semaphore()
@@ -2426,19 +2425,18 @@ class CobblerXMLRPCInterface:
 
     def get_autoinstall_templates(self, token: Optional[str] = None, **rest: Any):
         """
-        Returns all of the automatic OS installation templates that are in use by the system.
+        Returns all automatic OS installation templates that are in use by the system.
 
         :param token: The API-token obtained via the login() method.
         :param rest: This is dropped in this method since it is not needed here.
         :return: A list with all templates.
         """
         self._log("get_autoinstall_templates", token=token)
-        # self.check_access(token, "get_autoinstall_templates")
-        return self.autoinstall_mgr.get_autoinstall_templates()
+        return self.api.get_autoinstall_templates()
 
     def get_autoinstall_snippets(self, token: Optional[str] = None, **rest: Any):
         """
-        Returns all the automatic OS installation templates' snippets.
+        Returns all automatic OS installation templates' snippets.
 
         :param token: The API-token obtained via the login() method.
         :param rest: This is dropped in this method since it is not needed here.
@@ -2446,11 +2444,11 @@ class CobblerXMLRPCInterface:
         """
 
         self._log("get_autoinstall_snippets", token=token)
-        return self.autoinstall_mgr.get_autoinstall_snippets()
+        return self.api.get_autoinstall_snippets()
 
     def is_autoinstall_in_use(self, ai: str, token: Optional[str] = None, **rest: Any):
         """
-        Check if the autoinstall for a system is in use.
+        Check if the auto-installation for a system is in use.
 
         :param ai: The name of the system which could potentially be in autoinstall mode.
         :param token: The API-token obtained via the login() method.
@@ -2458,36 +2456,27 @@ class CobblerXMLRPCInterface:
         :return: True if this is the case, otherwise False.
         """
         self._log("is_autoinstall_in_use", token=token)
-        return self.autoinstall_mgr.is_autoinstall_in_use(ai)
+        return self.api.is_autoinstall_in_use(ai)
 
     def generate_autoinstall(
-        self,
-        profile: Optional[str] = None,
-        system: Optional[str] = None,
-        REMOTE_ADDR: Optional[Any] = None,
-        REMOTE_MAC: Optional[Any] = None,
-        **rest: Any,
-    ) -> str:
+        self, profile=None, system=None, autoinstaller_type="", autoinstaller_file=""
+    ):
         """
-        Generate the autoinstallation file and return it.
+        Generate the auto-installation file and return it.
 
-        :param profile: The profile to generate the file for.
-        :param system: The system to generate the file for.
-        :param REMOTE_ADDR: This is dropped in this method since it is not needed here.
-        :param REMOTE_MAC: This is dropped in this method since it is not needed here.
-        :param rest: This is dropped in this method since it is not needed here.
+        :param profile: The profile name to generate the file for.
+        :param system: The system name to generate the file for.
+        :param autoinstaller_type: TODO
+        :param autoinstaller_file: TODO
         :return: The str representation of the file.
         """
-        # TODO: Remove unneed params: REMOTE_ADDR, REMOTE_MAC, rest
         self._log("generate_autoinstall")
-        try:
-            return self.autoinstall_mgr.generate_autoinstall(profile, system)
-        except Exception:
-            utils.log_exc()
-            return (
-                "# This automatic OS installation file had errors that prevented it from being rendered "
-                "correctly.\n# The cobbler.log should have information relating to this failure."
-            )
+        return self.api.generate_autoinstall(
+            profile=profile,
+            system=system,
+            autoinstaller_type=autoinstaller_type,
+            autoinstaller_file=autoinstaller_file,
+        )
 
     def generate_profile_autoinstall(self, profile: str):
         """
@@ -2496,7 +2485,7 @@ class CobblerXMLRPCInterface:
         :param profile: The profile to generate the file for.
         :return: The str representation of the file.
         """
-        return self.generate_autoinstall(profile=profile)
+        return self.api.generate_profile_autoinstall(profile_name=profile)
 
     def generate_system_autoinstall(self, system: str):
         """
@@ -2505,7 +2494,7 @@ class CobblerXMLRPCInterface:
         :param system: The system to generate the file for.
         :return: The str representation of the file.
         """
-        return self.generate_autoinstall(system=system)
+        return self.api.generate_system_autoinstall(system_name=system)
 
     def generate_ipxe(
         self,
@@ -3397,11 +3386,11 @@ class CobblerXMLRPCInterface:
 
             if obj.is_management_supported():
                 if not image_based:
-                    _dict["pxelinux.cfg"] = self.tftpgen.write_pxe_file(
+                    _dict["pxelinux.cfg"] = self.api.generate_pxe_file(
                         None, obj, profile, distro, arch  # type: ignore
                     )
                 else:
-                    _dict["pxelinux.cfg"] = self.tftpgen.write_pxe_file(
+                    _dict["pxelinux.cfg"] = self.api.generate_pxe_file(
                         None, obj, None, None, arch, image=profile  # type: ignore
                     )
 
@@ -3773,7 +3762,7 @@ class CobblerXMLRPCInterface:
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
 
-        return self.autoinstall_mgr.read_autoinstall_template(file_path)
+        return self.api.read_autoinstall_template(file_path)
 
     def write_autoinstall_template(self, file_path: str, data: str, token: str) -> bool:
         """
@@ -3789,7 +3778,7 @@ class CobblerXMLRPCInterface:
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
 
-        self.autoinstall_mgr.write_autoinstall_template(file_path, data)
+        self.api.write_autoinstall_template(file_path, data)
 
         return True
 
@@ -3805,7 +3794,7 @@ class CobblerXMLRPCInterface:
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
 
-        self.autoinstall_mgr.remove_autoinstall_template(file_path)
+        self.api.remove_autoinstall_template(file_path)
 
         return True
 
@@ -3821,7 +3810,7 @@ class CobblerXMLRPCInterface:
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
 
-        return self.autoinstall_mgr.read_autoinstall_snippet(file_path)
+        return self.api.read_autoinstall_snippet(file_path)
 
     def write_autoinstall_snippet(self, file_path: str, data: str, token: str) -> bool:
         """
@@ -3837,7 +3826,7 @@ class CobblerXMLRPCInterface:
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
 
-        self.autoinstall_mgr.write_autoinstall_snippet(file_path, data)
+        self.api.write_autoinstall_snippet(file_path, data)
 
         return True
 
@@ -3854,7 +3843,7 @@ class CobblerXMLRPCInterface:
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
 
-        self.autoinstall_mgr.remove_autoinstall_snippet(file_path)
+        self.api.remove_autoinstall_snippet(file_path)
 
         return True
 
@@ -3866,8 +3855,7 @@ class CobblerXMLRPCInterface:
         :return: The config data as a json for Koan.
         """
         self._log(f"get_config_data for {hostname}")
-        obj = configgen.ConfigGen(self.api, hostname)
-        return obj.gen_config_data_for_koan()
+        return self.api.get_config_data(hostname)
 
     def clear_system_logs(self, object_id: str, token: str) -> bool:
         """

@@ -129,7 +129,7 @@ V2.8.5:
 import copy
 from typing import TYPE_CHECKING, Any, List, Union
 
-from cobbler import autoinstall_manager, enums, validate
+from cobbler import enums, validate
 from cobbler.cexceptions import CX
 from cobbler.decorator import InheritableProperty, LazyProperty
 from cobbler.items.abstract.bootable_item import BootableItem
@@ -252,9 +252,10 @@ class Image(BootableItem):
 
         :param autoinstall: local automatic installation template file path
         """
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api)
-        self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(
-            autoinstall
+        self._autoinstall = (
+            self.api.autoinstall_mgr.validate_autoinstall_template_file_path(
+                autoinstall
+            )
         )
 
     @LazyProperty

@@ -628,9 +628,10 @@ class Profile(BootableItem):
 
         :param autoinstall: local automatic installation template path
         """
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api)
-        self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(
-            autoinstall
+        self._autoinstall = (
+            self.api.autoinstall_mgr.validate_autoinstall_template_file_path(
+                autoinstall
+            )
         )
 
     @InheritableProperty
