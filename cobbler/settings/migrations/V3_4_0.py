@@ -6,6 +6,9 @@ Migration from V3.3.1 to V3.3.2
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 import configparser
 import pathlib
+import glob
+import os
+import json
 from configparser import ConfigParser
 
 from schema import Optional, Schema, SchemaError
@@ -287,4 +290,32 @@ def migrate(settings: dict) -> dict:
         if include_directory.is_dir() and include_directory.exists():
             include_directory.rmdir()
 
+    # migrate stored cobbler collections
+    migrate_cobbler_collections("/var/lib/cobbler/collections/")
+
     return normalize(settings)
+
+
+def migrate_cobbler_collections(collections_dir: str):
+    """
+    Manipulate the main Cobbler stored collections and migrate deprecated settings
+    to work with newer Cobbler versions.
+
+    :param collections_dir: The directory of Cobbler where the collections files are.
+    """
+    helper.backup_dir(collections_dir)
+    for collection_file in glob.glob(
+        os.path.join(collections_dir, "**/*.json"), recursive=True
+    ):
+        data = None
+        with open(collection_file, encoding="utf-8") as _f:
+            data = json.loads(_f.read())
+
+        # migrate interface.interface_type from emptry string to "NA"
+        if "interfaces" in data:
+            for iface in data["interfaces"]:
+                if data["interfaces"][iface]["interface_type"] == "":
+                    data["interfaces"][iface]["interface_type"] = "NA"
+
+        with open(collection_file, "w", encoding="utf-8") as _f:
+            _f.write(json.dumps(data))
