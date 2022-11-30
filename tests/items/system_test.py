@@ -672,7 +672,7 @@ def test_from_dict_with_network_interface(cobbler_api):
     "value,expected_exception,expected_result",
     [
         ("foobar_not_existing", pytest.raises(ValueError), None),
-        ("", does_not_raise(), enums.NetworkInterfaceType.NA),
+        ("", pytest.raises(ValueError), None),
         ("na", does_not_raise(), enums.NetworkInterfaceType.NA),
         ("bond", does_not_raise(), enums.NetworkInterfaceType.BOND),
         ("bond_slave", does_not_raise(), enums.NetworkInterfaceType.BOND_SLAVE),
