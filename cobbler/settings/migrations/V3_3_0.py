@@ -6,14 +6,11 @@ Migration from V3.2.1 to V3.3.0
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
-import datetime
 import glob
 import ipaddress
 import json
 import os
 import socket
-
-from shutil import copytree
 
 from schema import Optional, Schema, SchemaError
 
@@ -389,18 +386,6 @@ def migrate(settings: dict) -> dict:
     return normalize(settings)
 
 
-def backup_dir(dir_path: str):
-    """
-    Copies the directory tree and adds a suffix ".backup.XXXXXXXXX" to it.
-
-    :param dir_path: The full path to the directory which should be backed up.
-    :raises FileNotFoundError: In case the path specified was not existing.
-    """
-    src = os.path.normpath(dir_path)
-    now_iso = datetime.datetime.now().isoformat()
-    copytree(dir_path, f"{src}.backup.{now_iso}")
-
-
 def migrate_cobbler_collections(collections_dir: str):
     """
     Manipulate the main Cobbler stored collections and migrate deprecated settings
@@ -408,7 +393,7 @@ def migrate_cobbler_collections(collections_dir: str):
 
     :param collections_dir: The directory of Cobbler where the collections files are.
     """
-    backup_dir(collections_dir)
+    helper.backup_dir(collections_dir)
     for collection_file in glob.glob(
         os.path.join(collections_dir, "**/*.json"), recursive=True
     ):
