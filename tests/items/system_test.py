@@ -669,6 +669,47 @@ def test_from_dict_with_network_interface(cobbler_api):
 
 
 @pytest.mark.parametrize(
+    "value,expected_exception,expected_result",
+    [
+        ("foobar_not_existing", pytest.raises(ValueError), None),
+        ("", pytest.raises(ValueError), None),
+        ("na", does_not_raise(), enums.NetworkInterfaceType.NA),
+        ("bond", does_not_raise(), enums.NetworkInterfaceType.BOND),
+        ("bond_slave", does_not_raise(), enums.NetworkInterfaceType.BOND_SLAVE),
+        ("bridge", does_not_raise(), enums.NetworkInterfaceType.BRIDGE),
+        ("bridge_slave", does_not_raise(), enums.NetworkInterfaceType.BRIDGE_SLAVE),
+        (
+            "bonded_bridge_slave",
+            does_not_raise(),
+            enums.NetworkInterfaceType.BONDED_BRIDGE_SLAVE,
+        ),
+        ("bmc", does_not_raise(), enums.NetworkInterfaceType.BMC),
+        ("infiniband", does_not_raise(), enums.NetworkInterfaceType.INFINIBAND),
+        (0, does_not_raise(), enums.NetworkInterfaceType.NA),
+        (1, does_not_raise(), enums.NetworkInterfaceType.BOND),
+        (2, does_not_raise(), enums.NetworkInterfaceType.BOND_SLAVE),
+        (3, does_not_raise(), enums.NetworkInterfaceType.BRIDGE),
+        (4, does_not_raise(), enums.NetworkInterfaceType.BRIDGE_SLAVE),
+        (5, does_not_raise(), enums.NetworkInterfaceType.BONDED_BRIDGE_SLAVE),
+        (6, does_not_raise(), enums.NetworkInterfaceType.BMC),
+        (7, does_not_raise(), enums.NetworkInterfaceType.INFINIBAND),
+    ],
+)
+def test_network_interface_type(
+    cobbler_api, value, expected_exception, expected_result
+):
+    # Arrange
+    interface = NetworkInterface(cobbler_api)
+
+    # Act
+    with expected_exception:
+        interface.interface_type = value
+
+        # Assert
+        assert interface.interface_type == expected_result
+
+
+@pytest.mark.parametrize(
     "input_mac,input_ipv4,input_ipv6,expected_result",
     [
         ("AA:BB:CC:DD:EE:FF", "192.168.1.2", "::1", True),

@@ -6,6 +6,9 @@ Helper module which contains shared logic for adjusting the settings.
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
+import datetime
+import os
+from shutil import copytree
 from typing import List, Union
 
 
@@ -161,3 +164,15 @@ def key_drop_if_default(settings: dict, defaults: dict) -> dict:
             if settings[key] == defaults[key]:
                 settings.pop(key)
     return settings
+
+
+def backup_dir(dir_path: str):
+    """
+    Copies the directory tree and adds a suffix ".backup.XXXXXXXXX" to it.
+
+    :param dir_path: The full path to the directory which should be backed up.
+    :raises FileNotFoundError: In case the path specified was not existing.
+    """
+    src = os.path.normpath(dir_path)
+    now_iso = datetime.datetime.now().isoformat()
+    copytree(dir_path, f"{src}.backup.{now_iso}")
