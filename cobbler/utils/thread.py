@@ -5,7 +5,7 @@ This module is responsible for managing the custom common threading logic Cobble
 import logging
 import pathlib
 from threading import Thread
-from typing import Callable
+from typing import Optional, Callable
 
 from cobbler import enums
 from cobbler import utils
@@ -24,7 +24,7 @@ class CobblerThread(Thread):
         task_name: str,
         api,
         run: Callable,
-        on_done: Callable = None,
+        on_done: Optional[Callable] = None,
     ):
         """
         This constructor creates a Cobbler thread which then may be run by calling ``run()``.

@@ -6,7 +6,7 @@ This module contains the specific code for generating standalone or airgapped IS
 
 import os
 import re
-from typing import Dict, List
+from typing import Optional, Dict, List
 
 from cobbler import utils
 
@@ -318,7 +318,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
         self,
         iso: str = "autoinst.iso",
         buildisodir: str = "",
-        profiles: List[str] = None,
+        profiles: Optional[List[str]] = None,
         xorrisofs_opts: str = "",
         distro_name: str = "",
         airgapped: bool = False,

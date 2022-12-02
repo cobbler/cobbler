@@ -1198,7 +1198,7 @@ class CobblerAPI:
     def find_items(
         self,
         what: str = "",
-        criteria: dict = None,
+        criteria: Optional[dict] = None,
         name: str = "",
         return_list: bool = True,
         no_errors: bool = False,

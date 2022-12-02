@@ -747,7 +747,7 @@ def rsync_files(src: str, dst: str, args: str, quiet: bool = True) -> bool:
     return True
 
 
-def run_triggers(api, ref=None, globber: str = "", additional: list = None):
+def run_triggers(api, ref=None, globber: str = "", additional: Optional[list] = None):
     """Runs all the trigger scripts in a given directory.
     Example: ``/var/lib/cobbler/triggers/blah/*``
 

@@ -76,22 +76,23 @@ Starting with 3.2.1
 Migration matrix
 ################
 
-=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
-To/From  <2.8.5   2.8.5   3.0.0   3.0.1   3.1.0   3.1.1   3.1.2   3.2.0   3.2.1   3.3.0   3.3.1   3.3.2
-=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
-2.8.5      x        o       --      --      --      --      --      --      --      --      --      --
-3.0.0      x        x       o       --      --      --      --      --      --      --      --      --
-3.0.1      x        x       x       o       --      --      --      --      --      --      --      --
-3.1.0      x        x       x       x       o       --      --      --      --      --      --      --
-3.1.1      x        x       x       x       x       o       --      --      --      --      --      --
-3.1.2      x        x       x       x       x       x       o       --      --      --      --      --
-3.2.0      x        x       x       x       x       x       x       o       --      --      --      --
-3.2.1      x        x       x       x       x       x       x       x       o       --      --      --
-3.3.0      x        x       x       x       x       x       x       x       x       o       --      --
-3.3.1      x        x       x       x       x       x       x       x       x       x       o       --
-3.3.2      x        x       x       x       x       x       x       x       x       x       x       o
-main       --       --      --      --      --      --      --      --      --      --      --      --
-=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
+To/From  <2.8.5   2.8.5   3.0.0   3.0.1   3.1.0   3.1.1   3.1.2   3.2.0   3.2.1   3.3.0   3.3.1   3.3.2   3.3.3
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
+2.8.5      x        o       --      --      --      --      --      --      --      --      --      --      --
+3.0.0      x        x       o       --      --      --      --      --      --      --      --      --      --
+3.0.1      x        x       x       o       --      --      --      --      --      --      --      --      --
+3.1.0      x        x       x       x       o       --      --      --      --      --      --      --      --
+3.1.1      x        x       x       x       x       o       --      --      --      --      --      --      --
+3.1.2      x        x       x       x       x       x       o       --      --      --      --      --      --
+3.2.0      x        x       x       x       x       x       x       o       --      --      --      --      --
+3.2.1      x        x       x       x       x       x       x       x       o       --      --      --      --
+3.3.0      x        x       x       x       x       x       x       x       x       o       --      --      --
+3.3.1      x        x       x       x       x       x       x       x       x       x       o       --      --
+3.3.2      x        x       x       x       x       x       x       x       x       x       x       o       --
+3.3.3      x        x       x       x       x       x       x       x       x       x       x       x       o
+main       --       --      --      --      --      --      --      --      --      --      --      --      --
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
 
 **Legend**: x: supported, o: same version, -: not supported
 
@@ -183,6 +184,21 @@ autoinstall
 If no autoinstall template is specified to profile add, use this template.
 
 default: ``default.ks``
+
+autoinstall_scheme
+====================
+
+This should contain the scheme over which the autoinstall-file is available.
+
+This is setting does not setup your api for HTTPS, it just changes the way the url for your profiles and systems are
+generated.
+
+Choices:
+
+- ``http``
+- ``https``
+
+default: ``http``
 
 autoinstall_snippets_dir
 ========================
@@ -485,16 +501,6 @@ http_port
 Change this port if Apache is not running plain text on port 80. Most people can leave this alone.
 
 default: ``80``
-
-include
-=======
-
-Include other configuration snippets with this regular expression. This is a list of folders.
-
-default: ``[ "/etc/cobbler/settings.d/*.settings" ]``
-
-.. note::
-   Will be deprecated in future releases.
 
 iso_template_dir
 ================

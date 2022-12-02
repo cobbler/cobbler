@@ -596,7 +596,7 @@ class TFTPGen:
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
 
-    def get_menu_level(self, menu=None, arch: enums.Archs = None) -> dict:
+    def get_menu_level(self, menu=None, arch: Optional[enums.Archs] = None) -> dict:
         """
         Generates menu items for submenus, pxe, ipxe and grub.
 
@@ -1021,11 +1021,15 @@ class TFTPGen:
                 httpserveraddress = blended["http_server"]
 
             local_autoinstall_file = not re.match(r"[a-zA-Z]*://.*", autoinstall_path)
+            protocol = self.settings.autoinstall_scheme
             if local_autoinstall_file:
                 if system is not None:
-                    autoinstall_path = f"http://{httpserveraddress}/cblr/svc/op/autoinstall/system/{system.name}"
+                    autoinstall_path = f"{protocol}://{httpserveraddress}/cblr/svc/op/autoinstall/system/{system.name}"
                 else:
-                    autoinstall_path = f"http://{httpserveraddress}/cblr/svc/op/autoinstall/profile/{profile.name}"
+                    autoinstall_path = (
+                        f"{protocol}://{httpserveraddress}/"
+                        f"cblr/svc/op/autoinstall/profile/{profile.name}"
+                    )
 
             if distro.breed is None or distro.breed == "redhat":
 
@@ -1343,9 +1347,11 @@ class TFTPGen:
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
         if obj.enable_ipxe:
-            blended[
-                "img_path"
-            ] = f"http://{self.settings.server}:{self.settings.http_port}/cobbler/links/{distro.name}"
+            protocol = self.api.settings().autoinstall_scheme
+            blended["img_path"] = (
+                f"{protocol}://{self.settings.server}:{self.settings.http_port}/"
+                f"cobbler/links/{distro.name}"
+            )
         else:
             blended["img_path"] = os.path.join("/images", distro.name)
 
@@ -1415,9 +1421,11 @@ class TFTPGen:
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
         if obj.enable_ipxe:
-            blended[
-                "img_path"
-            ] = f"http://{self.settings.server}:{self.settings.http_port}/cobbler/links/{distro.name}"
+            protocol = self.api.settings().autoinstall_scheme
+            blended["img_path"] = (
+                f"{protocol}://{self.settings.server}:{self.settings.http_port}/"
+                f"cobbler/links/{distro.name}"
+            )
         else:
             blended["img_path"] = os.path.join("/images", distro.name)
 
@@ -1473,7 +1481,10 @@ class TFTPGen:
             remote_boot_files = utils.file_is_remote(kernel_path)
 
             if remote_boot_files:
-                loaders_path = "http://@@http_server@@/cobbler/images/@@distro_name@@/"
+                protocol = self.api.settings().autoinstall_scheme
+                loaders_path = (
+                    f"{protocol}://@@http_server@@/cobbler/images/@@distro_name@@/"
+                )
                 initrd_path = loaders_path + os.path.basename(initrd_path)
             else:
                 (loaders_path, _) = os.path.split(kernel_path)

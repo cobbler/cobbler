@@ -6,7 +6,7 @@ This module contains the specific code to generate a network bootable ISO.
 
 import os
 import re
-from typing import List
+from typing import Optional, List
 
 from cobbler import utils
 from cobbler.utils import input_converters
@@ -234,9 +234,11 @@ class AppendLineBuilder:
         # directory
         self.append_line += f" suite={self.dist.os_version}"
 
-    def _generate_append_suse(self):
+    def _generate_append_suse(self, scheme: str = "http"):
         """
         Special adjustments for generating the append line for suse.
+
+        :param scheme: This can be either ``http`` or ``https``.
         :return: The updated append line. If the distribution is not SUSE, then nothing is changed.
         """
         if self.data.get("proxy", "") != "":
@@ -246,7 +248,7 @@ class AppendLineBuilder:
             del self.data["kernel_options"]["install"]
         else:
             self.append_line += (
-                f" install=http://{self.data['server']}:{self.data['http_port']}/cblr/"
+                f" install={scheme}://{self.data['server']}:{self.data['http_port']}/cblr/"
                 f"links/{self.dist.name}"
             )
         if self.data["kernel_options"].get("autoyast", "") != "":
@@ -328,18 +330,22 @@ class AppendLineBuilder:
             if self.data.get("name_servers") != "":
                 self.system_dns = self.data["name_servers"]
 
-    def generate_system(self, dist, system, exclude_dns: bool) -> str:
+    def generate_system(
+        self, dist, system, exclude_dns: bool, scheme: str = "http"
+    ) -> str:
         """
-        Generate the append line for a netbooting system.
+        Generate the append-line for a net-booting system.
+
         :param dist: The distribution associated with the system.
         :param system: The system itself
         :param exclude_dns: Whether to include the DNS config or not.
+        :param scheme: The scheme that is used to read the autoyast file from the server
         """
         self.dist = dist
 
         self.append_line = f"  APPEND initrd={self.distro_name}.img"
         if self.dist.breed == "suse":
-            self._generate_append_suse()
+            self._generate_append_suse(scheme=scheme)
         elif self.dist.breed == "redhat":
             self._generate_append_redhat()
         elif dist.breed in ["ubuntu", "debian"]:
@@ -360,10 +366,11 @@ class AppendLineBuilder:
         self.append_line += buildiso.add_remaining_kopts(self.data["kernel_options"])
         return self.append_line
 
-    def generate_profile(self, distro_breed: str) -> str:
+    def generate_profile(self, distro_breed: str, protocol: str = "http") -> str:
         """
         Generate the append line for the kernel for a network installation.
         :param distro_breed: The name of the distribution breed.
+        :param protocol: The scheme that is used to read the autoyast file from the server
         :return: The generated append line.
         """
         self.append_line = f" append initrd={self.distro_name}.img"
@@ -378,7 +385,7 @@ class AppendLineBuilder:
                 del self.data["kernel_options"]["install"]
             else:
                 self.append_line += (
-                    f" install=http://{self.data['server']}:{self.data['http_port']}/cblr/"
+                    f" install={protocol}://{self.data['server']}:{self.data['http_port']}/cblr/"
                     f"links/{self.distro_name}"
                 )
             if self.data["kernel_options"].get("autoyast", "") != "":
@@ -409,7 +416,7 @@ class NetbootBuildiso(buildiso.BuildIso):
     This class contains all functionality related to building network installation images.
     """
 
-    def filter_systems(self, selected_items: List[str] = None) -> list:
+    def filter_systems(self, selected_items: Optional[List[str]] = None) -> list:
         """
         Return a list of valid system objects selected from all systems by name, or everything if ``selected_items`` is
         empty.
@@ -461,13 +468,17 @@ class NetbootBuildiso(buildiso.BuildIso):
         cfglines.append(f"  KERNEL {distname}.krn")
 
         data = utils.blender(self.api, False, system)
+        autoinstall_scheme = self.api.settings().autoinstall_scheme
         if not re.match(r"[a-z]+://.*", data["autoinstall"]):
-            data[
-                "autoinstall"
-            ] = f"http://{data['server']}:{data['http_port']}/cblr/svc/op/autoinstall/system/{system.name}"
+            data["autoinstall"] = (
+                f"{autoinstall_scheme}://{data['server']}:{data['http_port']}/cblr/svc/op/autoinstall/"
+                f"system/{system.name}"
+            )
 
         append_builder = AppendLineBuilder(distro_name=distname, data=data)
-        append_line = append_builder.generate_system(dist, system, exclude_dns)
+        append_line = append_builder.generate_system(
+            dist, system, exclude_dns, autoinstall_scheme
+        )
         cfglines.append(append_line)
 
     def _generate_netboot_profile(self, profile, cfglines: List[str]):
@@ -495,16 +506,18 @@ class NetbootBuildiso(buildiso.BuildIso):
             )
 
         if not re.match(r"[a-z]+://.*", data["autoinstall"]):
-            data[
-                "autoinstall"
-            ] = f"http://{data['server']}:{data['http_port']}/cblr/svc/op/autoinstall/profile/{profile.name}"
+            autoinstall_scheme = self.api.settings().autoinstall_scheme
+            data["autoinstall"] = (
+                f"{autoinstall_scheme}://{data['server']}:{data['http_port']}/cblr/svc/op/autoinstall/"
+                f"profile/{profile.name}"
+            )
 
         append_builder = AppendLineBuilder(distro_name=distname, data=data)
         append_line = append_builder.generate_profile(dist.breed)
         cfglines.append(append_line)
 
     def generate_netboot_iso(
-        self, systems: List[str] = None, exclude_dns: bool = False
+        self, systems: Optional[List[str]] = None, exclude_dns: bool = False
     ):
         """
         Creates the ``isolinux.cfg`` for a network bootable ISO image.
@@ -533,10 +546,10 @@ class NetbootBuildiso(buildiso.BuildIso):
         self,
         iso: str = "autoinst.iso",
         buildisodir: str = "",
-        profiles: List[str] = None,
+        profiles: Optional[List[str]] = None,
         xorrisofs_opts: str = "",
         distro_name: str = "",
-        systems: List[str] = None,
+        systems: Optional[List[str]] = None,
         exclude_dns: bool = False,
     ):
         """

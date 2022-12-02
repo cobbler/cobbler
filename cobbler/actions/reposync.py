@@ -772,7 +772,8 @@ class RepoSync:
             optgpgcheck = False
             if output:
                 if repo.mirror_locally:
-                    line = f"baseurl=http://${{http_server}}/cobbler/repo_mirror/{repo.name}\n"
+                    protocol = self.api.settings().autoinstall_scheme
+                    line = f"baseurl={protocol}://${{http_server}}/cobbler/repo_mirror/{repo.name}\n"
                 else:
                     mstr = repo.mirror
                     if mstr.startswith("/"):

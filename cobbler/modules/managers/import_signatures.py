@@ -729,7 +729,8 @@ class _ImportSignatureManager(ManagerModule):
                     self.logger.warning(
                         "symlink creation failed: %s, %s", base, dest_link
                     )
-            tree = f"http://@@http_server@@/cblr/links/{distribution.name}"
+            protocol = self.api.settings().autoinstall_scheme
+            tree = f"{protocol}://@@http_server@@/cblr/links/{distribution.name}"
             self.set_install_tree(distribution, tree)
         else:
             # Where we assign the automated installation file source is relative to our current directory and the input
@@ -877,8 +878,9 @@ class _ImportSignatureManager(ManagerModule):
                 f"{distribution.name}-{counter}.repo",
             )
 
-            repo_url = f"http://@@http_server@@/cobbler/distro_mirror/config/{distribution.name}-{counter}.repo"
-            repo_url2 = f"http://@@http_server@@/cobbler/distro_mirror/{urlseg}"
+            protocol = self.api.settings().autoinstall_scheme
+            repo_url = f"{protocol}://@@http_server@@/cobbler/distro_mirror/config/{distribution.name}-{counter}.repo"
+            repo_url2 = f"{protocol}://@@http_server@@/cobbler/distro_mirror/{urlseg}"
 
             distribution.source_repos.append([repo_url, repo_url2])
 
@@ -894,7 +896,7 @@ class _ImportSignatureManager(ManagerModule):
                 config_file.write(f"[core-{counter}]\n")
                 config_file.write(f"name=core-{counter}\n")
                 config_file.write(
-                    f"baseurl=http://@@http_server@@/cobbler/distro_mirror/{urlseg}\n"
+                    f"baseurl={protocol}://@@http_server@@/cobbler/distro_mirror/{urlseg}\n"
                 )
                 config_file.write("enabled=1\n")
                 config_file.write("gpgcheck=0\n")

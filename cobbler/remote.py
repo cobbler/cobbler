@@ -2514,7 +2514,9 @@ class CobblerXMLRPCInterface:
         self._log("generate_ipxe")
         return self.api.generate_ipxe(profile, image, system)
 
-    def generate_bootcfg(self, profile: str = None, system: str = None, **rest) -> str:
+    def generate_bootcfg(
+        self, profile: Optional[str] = None, system: Optional[str] = None, **rest
+    ) -> str:
         """
         This generates the bootcfg for a system which is related to a certain profile.
 
@@ -3291,7 +3293,7 @@ class CobblerXMLRPCInterface:
             return {}
         return self.get_system_as_rendered(system.name)
 
-    def get_distro_as_rendered(self, name: str, token: str = None, **rest):
+    def get_distro_as_rendered(self, name: str, token: Optional[str] = None, **rest):
         """
         Get distribution after passing through Cobbler's inheritance engine.
 
@@ -3307,7 +3309,7 @@ class CobblerXMLRPCInterface:
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
-    def get_profile_as_rendered(self, name: str, token: str = None, **rest):
+    def get_profile_as_rendered(self, name: str, token: Optional[str] = None, **rest):
         """
         Get profile after passing through Cobbler's inheritance engine.
 
@@ -3323,7 +3325,7 @@ class CobblerXMLRPCInterface:
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
-    def get_system_as_rendered(self, name: str, token: str = None, **rest):
+    def get_system_as_rendered(self, name: str, token: Optional[str] = None, **rest):
         """
         Get profile after passing through Cobbler's inheritance engine.
 
@@ -3371,7 +3373,7 @@ class CobblerXMLRPCInterface:
             return self.xmlrpc_hacks(_dict)
         return self.xmlrpc_hacks({})
 
-    def get_repo_as_rendered(self, name: str, token: str = None, **rest):
+    def get_repo_as_rendered(self, name: str, token: Optional[str] = None, **rest):
         """
         Get repository after passing through Cobbler's inheritance engine.
 
@@ -3387,7 +3389,7 @@ class CobblerXMLRPCInterface:
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
-    def get_image_as_rendered(self, name: str, token: str = None, **rest):
+    def get_image_as_rendered(self, name: str, token: Optional[str] = None, **rest):
         """
         Get repository after passing through Cobbler's inheritance engine.
 
@@ -3403,7 +3405,7 @@ class CobblerXMLRPCInterface:
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
-    def get_mgmtclass_as_rendered(self, name: str, token: str = None, **rest):
+    def get_mgmtclass_as_rendered(self, name: str, token: Optional[str] = None, **rest):
         """
         Get management class after passing through Cobbler's inheritance engine
 
@@ -3419,7 +3421,7 @@ class CobblerXMLRPCInterface:
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
-    def get_package_as_rendered(self, name: str, token: str = None, **rest):
+    def get_package_as_rendered(self, name: str, token: Optional[str] = None, **rest):
         """
         Get package after passing through Cobbler's inheritance engine
 
@@ -3435,7 +3437,7 @@ class CobblerXMLRPCInterface:
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
-    def get_file_as_rendered(self, name: str, token: str = None, **rest):
+    def get_file_as_rendered(self, name: str, token: Optional[str] = None, **rest):
         """
         Get file after passing through Cobbler's inheritance engine
 

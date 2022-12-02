@@ -50,6 +50,7 @@ class Settings:
         Constructor.
         """
         self.auto_migrate_settings = False
+        self.autoinstall_scheme = "http"
         self.allow_duplicate_hostnames = False
         self.allow_duplicate_ips = False
         self.allow_duplicate_macs = False
