@@ -417,7 +417,10 @@ def test_local_get_cobbler_api_url():
     result = utils.local_get_cobbler_api_url()
 
     # Assert
-    assert result == "http://192.168.1.1:80/cobbler_api"
+    assert result in [
+        "http://192.168.1.1:80/cobbler_api",
+        "http://127.0.0.1:80/cobbler_api",
+    ]
 
 
 def test_local_get_cobbler_xmlrpc_url():
