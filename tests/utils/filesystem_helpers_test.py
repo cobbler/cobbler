@@ -10,19 +10,27 @@ from tests.conftest import does_not_raise
 
 
 @pytest.mark.parametrize(
-    "test_src,test_dst,expected_result",
+    "test_src,is_symlink,test_dst,expected_result",
     [
         # ("", "", False), --> This has a task in utils.py
-        ("/usr/bin/os-release", "/tmp", True),
-        ("/etc/os-release", "/tmp", False),
+        ("/tmp/not-safe-file", True, "/tmp/dst", False),
+        ("/tmp/safe-file", False, "/tmp/dst", True),
     ],
 )
-def test_is_safe_to_hardlink(cobbler_api, test_src, test_dst, expected_result):
+def test_is_safe_to_hardlink(
+    cobbler_api, test_src, is_symlink, test_dst, expected_result
+):
     # Arrange
-    # TODO: Generate cases
+    if is_symlink and test_src:
+        os.symlink("/foobar/test", test_src)
+    elif test_src:
+        open(test_src, "w").close()
 
     # Act
     result = filesystem_helpers.is_safe_to_hardlink(test_src, test_dst, cobbler_api)
+
+    # Cleanup
+    os.remove(test_src)
 
     # Assert
     assert expected_result == result
