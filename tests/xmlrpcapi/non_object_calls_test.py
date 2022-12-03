@@ -106,24 +106,6 @@ def test_sync(
     assert isinstance(event_log, str)
 
 
-def test_get_autoinstall_templates(remote: CobblerXMLRPCInterface, token: str):
-    """
-    Test: get autoinstall templates
-    """
-
-    result = remote.get_autoinstall_templates(token)
-    assert len(result) > 0
-
-
-def test_get_autoinstall_snippets(remote: CobblerXMLRPCInterface, token: str):
-    """
-    Test: get autoinstall snippets
-    """
-
-    result = remote.get_autoinstall_snippets(token)
-    assert len(result) > 0
-
-
 def test_generate_autoinstall(remote: CobblerXMLRPCInterface):
     """
     Test: generate autoinstall content

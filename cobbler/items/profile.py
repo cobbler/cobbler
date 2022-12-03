@@ -557,6 +557,7 @@ class Profile(BootableItem):
         :getter: Either the inherited name or the one specific to this profile.
         :setter: The name of the new autoinstall template is validated. The path should come in the format of a ``str``.
         """
+        # FIXME: Implement return Template
         return self._resolve(["autoinstall"])
 
     @autoinstall.setter

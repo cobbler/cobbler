@@ -67,40 +67,6 @@ def fixture_cobbler_xmlrpc_base(
 
 
 @pytest.fixture(scope="function")
-def testsnippet() -> str:
-    """
-    Fixture that provides a valid minimalistic Cobbler Snippet.
-    """
-    return "# This is a small simple testsnippet!"
-
-
-@pytest.fixture(scope="function")
-def snippet_add(
-    remote: CobblerXMLRPCInterface, token: str
-) -> Callable[[str, str], None]:
-    """
-    Fixture that adds a snippet to Cobbler.
-    """
-
-    def _snippet_add(name: str, data: str) -> None:
-        remote.write_autoinstall_snippet(name, data, token)
-
-    return _snippet_add
-
-
-@pytest.fixture(scope="function")
-def snippet_remove(remote: CobblerXMLRPCInterface, token: str) -> Callable[[str], None]:
-    """
-    Fixture that removed a snippet from Cobbler.
-    """
-
-    def _snippet_remove(name: str):
-        remote.remove_autoinstall_snippet(name, token)
-
-    return _snippet_remove
-
-
-@pytest.fixture(scope="function")
 def create_distro(remote: CobblerXMLRPCInterface, token: str):
     """
     Fixture that creates a distro and adds it to Cobbler.

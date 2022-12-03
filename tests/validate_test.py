@@ -26,6 +26,9 @@ from tests.conftest import does_not_raise
     ],
 )
 def test_hostname(input_dnsname: Any, expected_result: str, expected_exception: Any):
+    """
+    TODO
+    """
     # Arrange
 
     # Act
@@ -47,6 +50,9 @@ def test_hostname(input_dnsname: Any, expected_result: str, expected_exception: 
     ],
 )
 def test_ipv4_address(input_addr: Any, expected_result: str, expected_exception: Any):
+    """
+    TODO
+    """
     # Arrange
     # Act
     with expected_exception:
@@ -57,6 +63,9 @@ def test_ipv4_address(input_addr: Any, expected_result: str, expected_exception:
 
 
 def test_validate_os_version():
+    """
+    TODO
+    """
     # Arrange
     signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
 
@@ -68,6 +77,9 @@ def test_validate_os_version():
 
 
 def test_validate_breed():
+    """
+    TODO
+    """
     # Arrange
     signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
 
@@ -79,6 +91,9 @@ def test_validate_breed():
 
 
 def test_set_repos(cobbler_api: CobblerAPI):
+    """
+    TODO
+    """
     # Arrange
 
     # Act
@@ -92,6 +107,9 @@ def test_set_repos(cobbler_api: CobblerAPI):
 
 
 def test_set_virt_file_size():
+    """
+    TODO
+    """
     # Arrange
 
     # Act
@@ -115,6 +133,9 @@ def test_set_virt_file_size():
     ],
 )
 def test_set_virt_auto_boot(test_autoboot: Any, expectation: Any):
+    """
+    TODO
+    """
     # Arrange
 
     # Act
@@ -138,6 +159,9 @@ def test_set_virt_auto_boot(test_autoboot: Any, expectation: Any):
     ],
 )
 def test_set_virt_pxe_boot(test_input: Any, expected_exception: Any):
+    """
+    TODO
+    """
     # Arrange
 
     # Act
@@ -150,6 +174,9 @@ def test_set_virt_pxe_boot(test_input: Any, expected_exception: Any):
 
 
 def test_set_virt_ram():
+    """
+    TODO
+    """
     # Arrange
 
     # Act
@@ -160,6 +187,9 @@ def test_set_virt_ram():
 
 
 def test_set_virt_bridge():
+    """
+    TODO
+    """
     # Arrange
 
     # Act
@@ -170,6 +200,9 @@ def test_set_virt_bridge():
 
 
 def test_validate_virt_path():
+    """
+    TODO
+    """
     # Arrange
     test_location = "/somerandomfakelocation"
 
@@ -193,6 +226,9 @@ def test_validate_virt_path():
     ],
 )
 def test_set_virt_cpus(value: Any, expected_exception: Any):
+    """
+    TODO
+    """
     # Arrange
 
     # Act
@@ -207,6 +243,9 @@ def test_set_virt_cpus(value: Any, expected_exception: Any):
 
 
 def test_set_serial_device():
+    """
+    TODO
+    """
     # Arrange
 
     # Act
@@ -217,6 +256,9 @@ def test_set_serial_device():
 
 
 def test_set_serial_baud_rate():
+    """
+    TODO
+    """
     # Arrange
 
     # Act
@@ -243,6 +285,9 @@ def test_set_serial_baud_rate():
     ],
 )
 def test_validate_boot_remote_file(test_value: Any, expected_result: bool):
+    """
+    TODO
+    """
     # Arrange
 
     # Act
@@ -269,6 +314,9 @@ def test_validate_boot_remote_file(test_value: Any, expected_result: bool):
     ],
 )
 def test_validate_grub_remote_file(test_value: Any, expected_result: bool):
+    """
+    TODO
+    """
     # Arrange
 
     # Act
@@ -279,6 +327,9 @@ def test_validate_grub_remote_file(test_value: Any, expected_result: bool):
 
 
 def test_validate_uuid():
+    """
+    TODO
+    """
     # Arrange
     test_uuid = uuid.uuid4().hex
     expected_result = True

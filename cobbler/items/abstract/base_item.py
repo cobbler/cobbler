@@ -95,7 +95,7 @@ class BaseItem(ABC):
             return match  # type: ignore
 
         if isinstance(from_search, str):
-            if isinstance(from_obj, list):
+            if isinstance(from_obj, (list, set)):
                 from_search = input_converters.input_string_or_list(from_search)
                 for list_element in from_search:
                     if list_element not in from_obj:

@@ -10,12 +10,14 @@ This is some of the code behind 'cobbler sync'.
 
 import os
 import subprocess
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
+from cobbler import enums
 from cobbler.modules.managers import DnsManagerModule
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.items.template import Template
 
 
 MANAGER = None
@@ -52,17 +54,29 @@ class _NDjbDnsManager(DnsManagerModule):
         """
         This writes the new dns configuration file to the disc.
         """
-        template_file = "/etc/cobbler/ndjbdns.template"
-        data_file = "/etc/ndjbdns/data"
-        data_dir = os.path.dirname(data_file)
+        search_result = self.api.find_template(
+            True, False, tags=enums.TemplateTag.NDJBDNS.value
+        )
+        if search_result is None or not isinstance(search_result, list):
+            raise TypeError("Search result for ndjbdns Template must of of type list!")
+        ndjbdns_template: Optional["Template"] = None
+        for template in search_result:
+            if enums.TemplateTag.ACTIVE.value in template.tags:
+                ndjbdns_template = template
+                break
+            if enums.TemplateTag.DEFAULT.value in template.tags:
+                ndjbdns_template = template
 
+        if ndjbdns_template is None:
+            raise ValueError(
+                "Neither specific nor default ndjbdns template could be found inside Cobbler!"
+            )
+
+        data_dir = os.path.dirname(self.api.settings().ndjbdns_data_file)
         a_records: Dict[str, str] = {}
 
-        with open(template_file, "r", encoding="UTF-8") as template_fd:
-            template_content = template_fd.read()
-
         for system in self.systems:
-            for _, interface in list(system.interfaces.items()):
+            for interface in system.interfaces.values():
                 host = interface.dns.name
                 ip_address = interface.ipv4.address
 
@@ -75,7 +89,11 @@ class _NDjbDnsManager(DnsManagerModule):
         for host, ip_address in list(a_records.items()):
             template_vars["forward"].append((host, ip_address))
 
-        self.templar.render(template_content, template_vars, data_file)
+        self.api.templar.render(
+            ndjbdns_template.content,
+            template_vars,
+            self.api.settings().ndjbdns_data_file,
+        )
 
         with subprocess.Popen(
             ["/usr/bin/tinydns-data"], cwd=data_dir

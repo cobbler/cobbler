@@ -16,7 +16,7 @@ from cobbler.items.distro import Distro
 from cobbler.items.image import Image
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
-from cobbler.templar import Templar
+from cobbler.templates import Templar
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
@@ -348,7 +348,7 @@ def test_get_menu_level(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     mocker.patch.object(test_gen, "get_submenus")
     mocker.patch.object(test_gen, "get_profiles_menu")
     mocker.patch.object(test_gen, "get_images_menu")
-    test_gen.templar = mocker.MagicMock(spec=Templar, autospec=True)
+    test_gen.api.templar = mocker.MagicMock(spec=Templar, autospec=True)
 
     # Act
     result = test_gen.get_menu_level()
@@ -412,7 +412,7 @@ def test_build_kernel_options(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     mocker.patch("cobbler.utils.dict_to_string", return_value="")
     # FIXME: Mock self.settings.server - maybe?
     # FIXME: Mock self.settings.convert_server_to_ip - maybe?
-    test_gen.templar = mocker.MagicMock(spec=Templar, autospec=True)
+    test_gen.api.templar = mocker.MagicMock(spec=Templar, autospec=True)
 
     # Act
     test_gen.build_kernel_options(None, None, None, None, enums.Archs.X86_64, "")
@@ -434,7 +434,7 @@ def test_write_templates(
     test_distro = create_distro()
     test_gen = tftpgen.TFTPGen(cobbler_api)
     mocker.patch("cobbler.utils.blender", return_value={})
-    test_gen.templar = mocker.MagicMock(spec=Templar, autospec=True)
+    test_gen.api.templar = mocker.MagicMock(spec=Templar, autospec=True)
     # FIXME: Mock self.bootloc
     # FIXME: Mock self.settings.webdir - maybe?
     # FIXME: Mock open()
@@ -496,7 +496,7 @@ def test_generate_bootcfg(
     # FIXME: Mock self.settings.http_port - maybe?
     mocker.patch.object(test_gen, "build_kernel_options")
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
-    test_gen.templar = mocker.MagicMock(spec=Templar, autospec=True)
+    test_gen.api.templar = mocker.MagicMock(spec=Templar, autospec=True)
 
     # Act
     result = test_gen.generate_bootcfg("profile", test_profile.name)
@@ -521,14 +521,14 @@ def test_generate_script(
     mocker.patch("cobbler.utils.blender", return_value={})
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
     mocker.patch("os.path.exists", return_value=True)
-    test_gen.templar = mocker.MagicMock(spec=Templar, autospec=True)
+    test_gen.api.templar = mocker.MagicMock(spec=Templar, autospec=True)
 
     # Act
     result = test_gen.generate_script("profile", test_profile.name, "script_name.xml")
 
     # Assert
     assert isinstance(result, mocker.MagicMock)
-    test_gen.templar.render.assert_called_with(  # type: ignore
+    test_gen.api.templar.render.assert_called_with(  # type: ignore
         "test", {"img_path": f"/images/{test_distro.name}"}, None
     )
 

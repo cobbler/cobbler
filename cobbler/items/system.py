@@ -861,7 +861,7 @@ class System(BootableItem):
         order. In general, users who are PXE booting first in the boot order won't create system definitions, so this
         feature primarily comes into play for programmatic users of the API, who want to initially create a system with
         netboot enabled and then disable it after the system installs, as triggered by some action in automatic
-        installation file's %post section. For this reason, this option is not urfaced in the CLI, output, or
+        installation file's %post section. For this reason, this option is not surfaced in the CLI, output, or
         documentation (yet).
 
         Use of this option does not affect the ability to use PXE menus. If an admin has machines set up to PXE only
@@ -883,6 +883,7 @@ class System(BootableItem):
         :getter: Returns the value for ``autoinstall``.
         :setter: Sets the value for the property ``autoinstall``.
         """
+        # FIXME: Implement return Template
         return self._resolve(["autoinstall"])
 
     @autoinstall.setter

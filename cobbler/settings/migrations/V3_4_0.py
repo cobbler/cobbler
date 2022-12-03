@@ -17,7 +17,7 @@ from typing import Any, Dict
 
 from schema import Optional, Schema, SchemaError  # type: ignore
 
-from cobbler.settings.migrations import V3_3_5, helper
+from cobbler.settings.migrations import V3_3_7, helper
 
 schema = Schema(
     {
@@ -30,12 +30,10 @@ schema = Schema(
         Optional("anamon_enabled"): bool,
         Optional("auth_token_expiration"): int,
         Optional("authn_pam_service"): str,
-        Optional("autoinstall_snippets_dir"): str,
         Optional("autoinstall_templates_dir"): str,
         Optional("bind_chroot_path"): str,
         Optional("bind_zonefile_path"): str,
         Optional("bind_master"): str,
-        Optional("boot_loader_conf_template_dir"): str,
         Optional("bootloaders_dir"): str,
         Optional("bootloaders_formats"): dict,
         Optional("bootloaders_modules"): list,
@@ -47,6 +45,7 @@ schema = Schema(
         Optional("syslinux_dir"): str,
         Optional("syslinux_memdisk_folder"): str,
         Optional("syslinux_pxelinux_folder"): str,
+        Optional("genders_settings_file"): str,
         Optional("grub2_mod_dir"): str,
         Optional("grubconfig_dir"): str,
         Optional("build_reporting_enabled"): bool,
@@ -75,12 +74,11 @@ schema = Schema(
         Optional("default_virt_type"): str,
         Optional("dnsmasq_ethers_file"): str,
         Optional("dnsmasq_hosts_file"): str,
+        Optional("dnsmasq_settings_file"): str,
         Optional("enable_ipxe"): bool,
         Optional("enable_menu"): bool,
         Optional("extra_settings_list"): [str],
         Optional("http_port"): int,
-        Optional("iso_template_dir"): str,
-        Optional("jinja2_includedir"): str,
         Optional("kernel_options"): dict,
         Optional("ldap_anonymous_bind"): bool,
         Optional("ldap_base_dn"): str,
@@ -97,8 +95,6 @@ schema = Schema(
         Optional("ldap_tls_reqcert"): str,
         Optional("ldap_tls_cipher_suite"): str,
         Optional("bind_manage_ipmi"): bool,
-        # TODO: Remove following line
-        Optional("manage_dhcp"): bool,
         Optional("manage_dhcp_v4"): bool,
         Optional("manage_dhcp_v6"): bool,
         Optional("manage_dns"): bool,
@@ -109,6 +105,7 @@ schema = Schema(
         Optional("manage_tftpd"): bool,
         Optional("next_server_v4"): str,
         Optional("next_server_v6"): str,
+        Optional("ndjbdns_data_file"): str,
         Optional("nsupdate_enabled"): bool,
         Optional("nsupdate_log"): str,
         Optional("nsupdate_tsig_algorithm"): str,
@@ -155,7 +152,7 @@ schema = Schema(
         Optional("yum_post_install_mirror"): bool,
         Optional("yumdownloader_flags"): str,
         Optional("windows_enabled"): bool,
-        Optional("windows_template_dir"): str,
+        Optional("windows_wimupdate_location"): str,
         Optional("samba_distro_share"): str,
         Optional("modules"): {
             Optional("authentication"): {
@@ -340,13 +337,18 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     :return: The migrated dict
     """
 
-    if not V3_3_5.validate(settings):
-        raise SchemaError("V3.3.5: Schema error while validating")
+    if not V3_3_7.validate(settings):
+        raise SchemaError("V3.3.7: Schema error while validating")
 
     # rename keys and update their value if needed
     include = settings.pop("include")
-    include = settings.pop("mgmt_classes")
-    include = settings.pop("mgmt_parameters")
+    settings.pop("mgmt_classes")
+    settings.pop("mgmt_parameters")
+    settings.pop("manage_dhcp")
+    jinja2_includedir = settings.pop("jinja2_includedir")
+    iso_template_dir = settings.pop("iso_template_dir")
+    boot_loader_conf_template_dir = settings.pop("boot_loader_conf_template_dir")
+    autoinstall_snippets_dir = settings.pop("autoinstall_snippets_dir")
 
     # Do mongodb.conf migration
     mongodb_config = "/etc/cobbler/mongodb.conf"
@@ -412,6 +414,22 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     modules_config_path = pathlib.Path(modules_config)
     if modules_config_path.exists():
         modules_config_path.unlink()
+
+    # Migrate Jinja include directory to new location
+    # TODO: Implement
+    _ = jinja2_includedir
+
+    # Migrate ISO template directory to new location
+    # TODO: Implement
+    _ = iso_template_dir
+
+    # Migrate boot-loader conf template directory to new location
+    # TODO: Implement
+    _ = boot_loader_conf_template_dir
+
+    # Migrate autoinstall snippets directory to new location
+    # TODO: Implement
+    _ = autoinstall_snippets_dir
 
     # Drop defaults
     # pylint: disable-next=import-outside-toplevel

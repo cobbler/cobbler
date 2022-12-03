@@ -1241,9 +1241,9 @@ def kopts_overwrite(
             kopts["textmode"] = ["1"]
         if system_name and cobbler_server_hostname:
             # only works if pxe_just_once is enabled in global settings
-            kopts[
-                "info"
-            ] = f"http://{cobbler_server_hostname}/cblr/svc/op/nopxe/system/{system_name}"
+            kopts["info"] = (
+                f"http://{cobbler_server_hostname}/cblr/svc/op/nopxe/system/{system_name}"
+            )
 
 
 def is_str_int(value: str) -> bool:
@@ -1334,7 +1334,7 @@ def create_files_if_not_existing(files: List[str]) -> None:
     Create empty files if they don't already exist. If they exist, do nothing.
 
     :param files: A list of the files to create. If the base directory doesn't
-                  exist, create it too.
+        exist, create it too.
     raises OSError: In case the file cannot be created.
     """
     for file in files:

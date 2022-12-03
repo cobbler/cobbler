@@ -126,7 +126,6 @@ def test_replicate_data(mocker: MockerFixture, replicate_obj: replicate.Replicat
     expected_rsync_it_calls = [
         mocker.call("cobbler-distros/config/", "/srv/www/cobbler/distro_mirror/config"),
         mocker.call("cobbler-templates", "/var/lib/cobbler/templates"),
-        mocker.call("cobbler-snippets", "/var/lib/cobbler/snippets"),
         mocker.call("cobbler-triggers", "/var/lib/cobbler/triggers"),
         mocker.call("cobbler-scripts", "/var/lib/cobbler/scripts"),
     ]

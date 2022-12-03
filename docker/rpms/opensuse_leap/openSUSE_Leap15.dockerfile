@@ -34,6 +34,7 @@ RUN zypper install -y          \
     python3-Sphinx             \
     python3-sphinx_rtd_theme   \
     python3-gunicorn           \
+    python3-importlib_resources \
     python3-Cheetah3           \
     python3-Sphinx             \
     python3-dnspython          \
