@@ -13,8 +13,6 @@ import logging
 from abc import abstractmethod
 from typing import TYPE_CHECKING, List
 
-from cobbler import templar
-
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.items.distro import Distro
@@ -52,7 +50,6 @@ class ManagerModule:
         self.systems = self.api.systems()
         self.settings = self.api.settings()
         self.repos = self.api.repos()
-        self.templar = templar.Templar(self.api)
 
     def write_configs(self) -> None:
         """

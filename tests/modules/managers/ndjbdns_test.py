@@ -8,7 +8,6 @@ from cobbler.api import CobblerAPI
 from cobbler.items.network_interface import NetworkInterface
 from cobbler.items.system import System
 from cobbler.modules.managers import ndjbdns
-from cobbler.templar import Templar
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
@@ -76,7 +75,6 @@ def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI)
     mock_system.interfaces["default"].ipv6_address = "::1"
     ndjbdns.MANAGER = None
     test_manager = ndjbdns.get_manager(cobbler_api)
-    test_manager.templar = mocker.MagicMock(spec=Templar, autospec=True)
     test_manager.systems = [mock_system]  # type: ignore[reportAttributeAccessIssue]
 
     # Act

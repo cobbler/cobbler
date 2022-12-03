@@ -84,7 +84,7 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
 
         config_copy = config_data.copy()  # template rendering changes the passed dict
         self.logger.info("Writing %s", settings_file)
-        self.templar.render(template_data, config_copy, settings_file)
+        self.api.templar.render(template_data, config_copy, settings_file)
 
     def gen_full_config(self) -> Dict[str, str]:
         """Generate DHCP configuration for all systems."""

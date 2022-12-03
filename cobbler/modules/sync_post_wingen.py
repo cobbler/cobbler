@@ -47,7 +47,7 @@ import re
 import tempfile
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from cobbler import templar, tftpgen, utils
+from cobbler import utils
 from cobbler.utils import filesystem_helpers
 
 try:
@@ -342,8 +342,8 @@ def run(api: "CobblerAPI", args: Any):
 
     profiles = api.profiles()
     systems = api.systems()
-    templ = templar.Templar(api)
-    tgen = tftpgen.TFTPGen(api)
+    templ = api.templar
+    tgen = api.tftpgen
 
     with open(
         os.path.join(settings.windows_template_dir, POST_INST_CMD_TEMPLATE_NAME),

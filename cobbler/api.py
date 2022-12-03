@@ -135,6 +135,7 @@ from cobbler import (
     module_loader,
     power_manager,
     settings,
+    templates,
     tftpgen,
     utils,
     validate,
@@ -257,6 +258,7 @@ class CobblerAPI:
             # FIXME: pass more loggers around, and also see that those using things via tasks construct their own
             #  yumgen/tftpgen versus reusing this one, which has the wrong logger (most likely) for background tasks.
 
+            self.templar = templates.Templar(self)
             self.autoinstallgen = autoinstallgen.AutoInstallationGen(self)
             self.yumgen = yumgen.YumGen(self)
             self.tftpgen = tftpgen.TFTPGen(self)

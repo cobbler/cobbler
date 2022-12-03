@@ -139,6 +139,7 @@ if __name__ == "__main__":
             "systemd-python",
             "gunicorn",
             "dataclasses; python_version < '3.7'",
+            "importlib-resources",
         ],
         extras_require={
             "windows": [

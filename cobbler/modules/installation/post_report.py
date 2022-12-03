@@ -10,8 +10,11 @@ import smtplib
 from builtins import str
 from typing import TYPE_CHECKING, List
 
-from cobbler import templar, utils
+from cobbler import utils
 from cobbler.cexceptions import CX
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -97,7 +100,7 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
     ) as input_template:
         input_data = input_template.read()
 
-        message = templar.Templar(api).render(input_data, metadata, None)
+        message = api.templar.render(input_data, metadata, None)
 
         sendmail = True
         for prefix in settings.build_reporting_ignorelist:

@@ -151,7 +151,7 @@ from typing import (
 )
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 
-from cobbler import autoinstall_manager, configgen, enums, tftpgen, utils
+from cobbler import autoinstall_manager, configgen, enums, utils
 from cobbler.cexceptions import CX
 from cobbler.items import network_interface, system
 from cobbler.items.abstract import base_item
@@ -237,7 +237,6 @@ class CobblerXMLRPCInterface:
         self.events: Dict[str, CobblerEvent] = {}
         self.shared_secret = utils.get_shared_secret()
         random.seed(time.time())
-        self.tftpgen = tftpgen.TFTPGen(api)
         self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api)
         # Semaphore that suspends the execution of the background_load_items when the execution
         # of any command or any other task begins until it finishes.
@@ -3397,11 +3396,11 @@ class CobblerXMLRPCInterface:
 
             if obj.is_management_supported():
                 if not image_based:
-                    _dict["pxelinux.cfg"] = self.tftpgen.write_pxe_file(
+                    _dict["pxelinux.cfg"] = self.api.tftpgen.write_pxe_file(
                         None, obj, profile, distro, arch  # type: ignore
                     )
                 else:
-                    _dict["pxelinux.cfg"] = self.tftpgen.write_pxe_file(
+                    _dict["pxelinux.cfg"] = self.api.tftpgen.write_pxe_file(
                         None, obj, None, None, arch, image=profile  # type: ignore
                     )
 

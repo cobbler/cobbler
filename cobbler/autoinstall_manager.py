@@ -7,7 +7,7 @@ import logging
 import os
 from typing import TYPE_CHECKING, Any, List, Optional
 
-from cobbler import autoinstallgen, utils
+from cobbler import utils
 from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:
@@ -33,7 +33,7 @@ class AutoInstallationManager:
         self.api = api
         self.snippets_base_dir = api.settings().autoinstall_snippets_dir
         self.templates_base_dir = api.settings().autoinstall_templates_dir
-        self.autoinstallgen = autoinstallgen.AutoInstallationGen(api)
+        self.autoinstallgen = api.autoinstallgen
         self.logger = logging.getLogger()
 
     def validate_autoinstall_template_file_path(
