@@ -37,3 +37,6 @@ cobbler version
 
 echo "Execute system-test-env"
 make system-test-env
+
+echo "Update pytest"
+pip install --break-system-packages -U pytest
