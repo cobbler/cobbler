@@ -14,7 +14,7 @@ import re
 import shutil
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Tuple, Union
 
-from cobbler import templar, utils
+from cobbler import enums, utils
 from cobbler.enums import Archs
 from cobbler.utils import filesystem_helpers, input_converters
 
@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from cobbler.items.distro import Distro
     from cobbler.items.profile import Profile
     from cobbler.items.system import System
+    from cobbler.items.template import Template
 
 
 def add_remaining_kopts(kopts: Dict[str, Union[str, List[str]]]) -> str:
@@ -97,7 +98,6 @@ class BuildIso:
         self.distmap: Dict[str, str] = {}
         self.distctr = 0
         self.logger = logging.getLogger()
-        self.templar = templar.Templar(api)
         self.isolinuxdir = ""
 
         # based on https://uefi.org/sites/default/files/resources/UEFI%20Spec%202.8B%20May%202020.pdf
@@ -107,26 +107,91 @@ class BuildIso:
         }
 
         # grab the header from buildiso.header file
-        self.iso_template = (
-            pathlib.Path(self.api.settings().iso_template_dir)
-            .joinpath("buildiso.template")
-            .read_text(encoding="UTF-8")
+        search_result = self.api.find_template(
+            True, False, tags=enums.TemplateTag.ISO_BUILDISO.value
         )
-        self.isolinux_menuentry_template = (
-            pathlib.Path(api.settings().iso_template_dir)
-            .joinpath("isolinux_menuentry.template")
-            .read_text(encoding="UTF-8")
+        if search_result is None or not isinstance(search_result, list):
+            raise TypeError(
+                "Search result for iPXE Menu Template must of of type list!"
+            )
+        iso_template: Optional["Template"] = None
+        for template in search_result:
+            if enums.TemplateTag.ACTIVE.value in template.tags:
+                iso_template = template
+                break
+            if enums.TemplateTag.DEFAULT.value in template.tags:
+                iso_template = template
+
+        if iso_template is None:
+            raise ValueError(
+                "Neither specific nor default iPXE menu template could be found inside Cobbler!"
+            )
+
+        self.iso_template = iso_template.content
+
+        search_result = self.api.find_template(
+            True, False, tags=enums.TemplateTag.ISO_ISOLINUX_MENUENTRY.value
         )
-        self.grub_menuentry_template = (
-            pathlib.Path(api.settings().iso_template_dir)
-            .joinpath("grub_menuentry.template")
-            .read_text(encoding="UTF-8")
+        if search_result is None or not isinstance(search_result, list):
+            raise TypeError(
+                "Search result for isolinux menu entry must of of type list!"
+            )
+        isolinux_menu_entry_template: Optional["Template"] = None
+        for template in search_result:
+            if enums.TemplateTag.ACTIVE.value in template.tags:
+                isolinux_menu_entry_template = template
+                break
+            if enums.TemplateTag.DEFAULT.value in template.tags:
+                isolinux_menu_entry_template = template
+
+        if isolinux_menu_entry_template is None:
+            raise ValueError(
+                "Neither specific nor default isolinux menu entry template could be found inside Cobbler!"
+            )
+
+        self.isolinux_menuentry_template = isolinux_menu_entry_template.content
+
+        search_result = self.api.find_template(
+            True, False, tags=enums.TemplateTag.ISO_GRUB_MENUENTRY.value
         )
-        self.bootinfo_template = (
-            pathlib.Path(api.settings().iso_template_dir)
-            .joinpath("bootinfo.template")
-            .read_text(encoding="UTF-8")
+        if search_result is None or not isinstance(search_result, list):
+            raise TypeError(
+                "Search result for GRUB menu entry Template must of of type list!"
+            )
+        grub_menuentry_template: Optional["Template"] = None
+        for template in search_result:
+            if enums.TemplateTag.ACTIVE.value in template.tags:
+                grub_menuentry_template = template
+                break
+            if enums.TemplateTag.DEFAULT.value in template.tags:
+                grub_menuentry_template = template
+
+        if grub_menuentry_template is None:
+            raise ValueError(
+                "Neither specific nor default GRUB menu entry template could be found inside Cobbler!"
+            )
+
+        self.grub_menuentry_template = grub_menuentry_template.content
+
+        search_result = self.api.find_template(
+            True, False, tags=enums.TemplateTag.ISO_BOOTINFO.value
         )
+        if search_result is None or not isinstance(search_result, list):
+            raise TypeError("Search result for bootinfo Template must of of type list!")
+        bootinfo_template: Optional["Template"] = None
+        for template in search_result:
+            if enums.TemplateTag.ACTIVE.value in template.tags:
+                bootinfo_template = template
+                break
+            if enums.TemplateTag.DEFAULT.value in template.tags:
+                bootinfo_template = template
+
+        if bootinfo_template is None:
+            raise ValueError(
+                "Neither specific nor default bootinfo template could be found inside Cobbler!"
+            )
+
+        self.bootinfo_template = bootinfo_template.content
 
     def _find_distro_source(self, known_file: str, distro_mirror: str) -> str:
         """
@@ -349,7 +414,7 @@ class BuildIso:
         :param kernel_path: Path to the kernel image file.
         :param initrd_path: Path to the initrd (initial RAM disk) image file.
         """
-        return self.templar.render(
+        return self.api.templar.render(
             self.grub_menuentry_template,
             out_path=None,
             search_table={
@@ -364,7 +429,7 @@ class BuildIso:
         self, append_line: str, menu_name: str, kernel_path: str, menu_indent: int = 0
     ) -> str:
         """Render a single isolinux.cfg menu entry."""
-        return self.templar.render(
+        return self.api.templar.render(
             self.isolinux_menuentry_template,
             out_path=None,
             search_table={
@@ -373,16 +438,16 @@ class BuildIso:
                 "append_line": append_line.lstrip(),
                 "menu_indent": menu_indent,
             },
-            template_type="jinja2",
+            template_type="jinja",
         )
 
     def _render_bootinfo_txt(self, distro_name: str) -> str:
         """Render bootinfo.txt for ppc."""
-        return self.templar.render(
+        return self.api.templar.render(
             self.bootinfo_template,
             out_path=None,
             search_table={"distro_name": distro_name},
-            template_type="jinja2",
+            template_type="jinja",
         )
 
     def _copy_grub_into_esp(self, esp_image_location: str, arch: Archs):

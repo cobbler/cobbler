@@ -42,6 +42,7 @@ RUN apt-get update -qq && \
     python3-pymongo \
     python3-pytest \
     python3-setuptools \
+    python3-importlib-resources  \
     python3-simplejson  \
     python3-sphinx \
     python3-sphinx-rtd-theme \

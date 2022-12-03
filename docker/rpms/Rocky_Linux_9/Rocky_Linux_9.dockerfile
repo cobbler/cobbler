@@ -53,6 +53,7 @@ RUN touch /var/lib/rpm/* &&   \
     python3-cheetah           \
     python3-magic             \
     python3-dns               \
+    python3-importlib-resources \
     python3-ldap              \
     python3-librepo           \
     python3-pymongo           \
@@ -78,8 +79,8 @@ RUN touch /var/lib/rpm/* &&   \
 RUN dnf --enablerepo=plus -y install openldap-servers
 RUN dnf --enablerepo=highavailability -y install fence-agents-all
 
-COPY ./docker/rpms/Fedora_37/supervisord/supervisord.conf /etc/supervisord.conf
-COPY ./docker/rpms/Fedora_37/supervisord/conf.d /etc/supervisord/conf.d
+COPY ./docker/rpms/Fedora_41/supervisord/supervisord.conf /etc/supervisord.conf
+COPY ./docker/rpms/Fedora_41/supervisord/conf.d /etc/supervisord/conf.d
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler

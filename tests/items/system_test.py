@@ -106,7 +106,7 @@ def test_to_dict_resolved_profile(
     # Assert
     assert isinstance(result, dict)
     assert result.get("kernel_options") == {"test": True, "my_value": 10}
-    assert result.get("autoinstall") == "default.ks"
+    assert result.get("autoinstall", {}).get("name") == "built-in-default.ks"
     assert enums.VALUE_INHERITED not in str(result)
 
 
@@ -128,7 +128,6 @@ def test_to_dict_resolved_image(
 
     # Act
     result = system.to_dict(resolved=True)
-    print(str(result))
 
     # Assert
     assert isinstance(result, dict)
@@ -175,10 +174,10 @@ def test_autoinstall(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.autoinstall = ""
+    system.autoinstall = ""  # type: ignore[assignment]
 
     # Assert
-    assert system.autoinstall == ""
+    assert system.autoinstall is None
 
 
 @pytest.mark.parametrize(
@@ -1101,7 +1100,7 @@ def test_profile_inherit(
             if parent_obj is not None:
                 setting = getattr(parent_obj, settings_name)
                 if new_key == "autoinstall":
-                    new_value = "default.ks"
+                    new_value = "built-in-default.ks"
                 elif new_key == "boot_loaders":
                     new_value = ["grub"]
                 elif new_key == "next_server_v4":
@@ -1126,7 +1125,10 @@ def test_profile_inherit(
             setattr(system, new_key, enums.VALUE_INHERITED)
 
             # Assert
-            assert prev_value == new_value
+            if new_key == "autoinstall":
+                assert prev_value.name == new_value
+            else:
+                assert prev_value == new_value
             assert prev_value == getattr(system, new_key)
 
 
@@ -1167,7 +1169,7 @@ def test_image_inherit(
             if parent_obj is not None:
                 setting = getattr(parent_obj, settings_name)
                 if new_key == "autoinstall":
-                    new_value = "default.ks"
+                    new_value = "built-in-default.ks"
                 elif new_key == "boot_loaders":
                     new_value = ["grub"]
                 elif new_key == "next_server_v4":
@@ -1192,5 +1194,8 @@ def test_image_inherit(
             setattr(system, new_key, enums.VALUE_INHERITED)
 
             # Assert
-            assert prev_value == new_value
+            if new_key == "autoinstall":
+                assert prev_value.name == new_value
+            else:
+                assert prev_value == new_value
             assert prev_value == getattr(system, new_key)

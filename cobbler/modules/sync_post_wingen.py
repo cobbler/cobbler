@@ -47,7 +47,7 @@ import re
 import tempfile
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from cobbler import templar, tftpgen, utils
+from cobbler import enums, utils
 from cobbler.utils import filesystem_helpers
 
 try:
@@ -79,12 +79,8 @@ except Exception:
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.items.distro import Distro
+    from cobbler.items.template import Template
 
-
-ANSWERFILE_TEMPLATE_NAME = "answerfile.template"
-POST_INST_CMD_TEMPLATE_NAME = "post_inst_cmd.template"
-STARTNET_TEMPLATE_NAME = "startnet.template"
-WIMUPDATE = "/usr/bin/wimupdate"
 
 logger = logging.getLogger()
 
@@ -342,26 +338,68 @@ def run(api: "CobblerAPI", args: Any):
 
     profiles = api.profiles()
     systems = api.systems()
-    templ = templar.Templar(api)
-    tgen = tftpgen.TFTPGen(api)
+    templ = api.templar
+    tgen = api.tftpgen
 
-    with open(
-        os.path.join(settings.windows_template_dir, POST_INST_CMD_TEMPLATE_NAME),
-        encoding="UTF-8",
-    ) as template_win:
-        post_tmpl_data = template_win.read()
+    search_result = api.find_template(
+        True, False, tags=enums.TemplateTag.WINDOWS_POST_INST_CMD.value
+    )
+    if search_result is None or not isinstance(search_result, list):
+        raise TypeError(
+            "Search result for Windows Post Install CMD Template must of of type list!"
+        )
+    windows_post_inst_cmd_template: Optional["Template"] = None
+    for template in search_result:
+        if enums.TemplateTag.ACTIVE.value in template.tags:
+            windows_post_inst_cmd_template = template
+            break
+        if enums.TemplateTag.DEFAULT.value in template.tags:
+            windows_post_inst_cmd_template = template
 
-    with open(
-        os.path.join(settings.windows_template_dir, ANSWERFILE_TEMPLATE_NAME),
-        encoding="UTF-8",
-    ) as template_win:
-        tmpl_data = template_win.read()
+    if windows_post_inst_cmd_template is None:
+        raise ValueError(
+            "Neither specific nor default Windows Post Install CMD template could be found inside Cobbler!"
+        )
 
-    with open(
-        os.path.join(settings.windows_template_dir, STARTNET_TEMPLATE_NAME),
-        encoding="UTF-8",
-    ) as template_start:
-        tmplstart_data = template_start.read()
+    search_result = api.find_template(
+        True, False, tags=enums.TemplateTag.WINDOWS_POST_INST_CMD.value
+    )
+    if search_result is None or not isinstance(search_result, list):
+        raise TypeError(
+            "Search result for Windows Answerfile Template must of of type list!"
+        )
+    windows_answerfile_template: Optional["Template"] = None
+    for template in search_result:
+        if enums.TemplateTag.ACTIVE.value in template.tags:
+            windows_answerfile_template = template
+            break
+        if enums.TemplateTag.DEFAULT.value in template.tags:
+            windows_answerfile_template = template
+
+    if windows_answerfile_template is None:
+        raise ValueError(
+            "Neither specific nor default Windows Answerfile template could be found inside Cobbler!"
+        )
+
+    search_result = api.find_template(
+        True, False, tags=enums.TemplateTag.WINDOWS_POST_INST_CMD.value
+    )
+    if search_result is None or not isinstance(search_result, list):
+        raise TypeError(
+            "Search result for Windows Start Net Template must of of type list!"
+        )
+    windows_startnet_template: Optional["Template"] = None
+    for template in search_result:
+        if enums.TemplateTag.ACTIVE.value in template.tags:
+            windows_startnet_template = template
+            break
+        if enums.TemplateTag.DEFAULT.value in template.tags:
+            windows_startnet_template = template
+
+    if windows_startnet_template is None:
+        raise ValueError(
+            "Neither specific nor default Windows Start Net template could be found inside Cobbler!"
+        )
 
     def gen_win_files(distro: "Distro", meta: Dict[str, Any]):
         boot_path = os.path.join(settings.webdir, "links", distro.name, "boot")
@@ -399,7 +437,7 @@ def run(api: "CobblerAPI", args: Any):
             if not os.path.exists(post_install_dir):
                 filesystem_helpers.mkdir(post_install_dir)
 
-            data = templ.render(post_tmpl_data, meta, None)
+            data = templ.render(windows_post_inst_cmd_template.content, meta, None)
             post_install_script = os.path.join(
                 post_install_dir, meta["post_install_script"]
             )
@@ -408,7 +446,7 @@ def run(api: "CobblerAPI", args: Any):
                 pi_file.write(data)
 
         if "answerfile" in meta:
-            data = templ.render(tmpl_data, meta, None)
+            data = templ.render(windows_answerfile_template.content, meta, None)
             answerfile_name = os.path.join(distro_dir, meta["answerfile"])
             logger.info("Build answer file: %s", answerfile_name)
             with open(answerfile_name, "w", encoding="UTF-8") as answerfile:
@@ -450,7 +488,7 @@ def run(api: "CobblerAPI", args: Any):
                     )
                     return 1
 
-                bcd_name = "bcd"
+                bcd_name = b"bcd"
                 if is_bcd:
                     bcd_name = meta["bcd"]
                     if len(bcd_name) != 3:
@@ -465,13 +503,13 @@ def run(api: "CobblerAPI", args: Any):
                 pat2 = re.compile(rb"(\\.B.o.o.t.\\.)(B)(.)(C)(.)(D)", re.IGNORECASE)
 
                 bcd_name = bytes(
-                    "\\g<1>"
+                    b"\\g<1>"
                     + bcd_name[0]
-                    + "\\g<3>"
+                    + b"\\g<3>"
                     + bcd_name[1]
-                    + "\\g<5>"
+                    + b"\\g<5>"
                     + bcd_name[2],
-                    "utf-8",
+                    b"utf-8",
                 )
                 with open(tl_file_name, "rb") as file:
                     out = file.read()
@@ -538,8 +576,8 @@ def run(api: "CobblerAPI", args: Any):
             cmd = ["/usr/bin/cp", "--reflink=auto", wim_pl_name, ps_file_name]
             utils.subprocess_call(cmd, shell=False)
 
-            if os.path.exists(WIMUPDATE):
-                data = templ.render(tmplstart_data, meta, None)
+            if os.path.exists(api.settings().windows_wimupdate_location):
+                data = templ.render(windows_startnet_template.content, meta, None)
                 with tempfile.NamedTemporaryFile() as pi_file:
                     pi_file.write(bytes(data, "utf-8"))
                     pi_file.flush()
@@ -554,7 +592,7 @@ def run(api: "CobblerAPI", args: Any):
                             startnet_path = file
 
                     cmd = [
-                        WIMUPDATE,
+                        api.settings().windows_wimupdate_location,
                         ps_file_name,
                         f"--command=add {pi_file.name} {startnet_path}",
                     ]

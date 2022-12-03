@@ -2,7 +2,7 @@
 Tests that validate the functionality of the module that is responsible for generating auto-installation control files.
 """
 
-from unittest.mock import MagicMock
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -13,16 +13,18 @@ from cobbler.items.profile import Profile
 from cobbler.items.system import System
 from cobbler.settings import Settings
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
 
 @pytest.fixture(name="api_mock")
-def fixture_api_mock():
+def fixture_api_mock(mocker: "MockerFixture"):
     """
     Fixture to create an API mock to allow testing the autoinstallation manager more independently of the global test
     settings.
     """
-    api_mock = MagicMock(spec=CobblerAPI)
-    settings_mock = MagicMock(name="autoinstall_setting_mock", spec=Settings)
-    settings_mock.autoinstall_snippets_dir = "/var/lib/cobbler/snippets"
+    api_mock = mocker.MagicMock(spec=CobblerAPI)
+    settings_mock = mocker.MagicMock(name="autoinstall_setting_mock", spec=Settings)
     settings_mock.autoinstall_templates_dir = "/var/lib/cobbler/templates"
     settings_mock.next_server_v4 = ""
     settings_mock.next_server_v6 = ""
@@ -42,12 +44,13 @@ def fixture_api_mock():
     api_mock.settings.return_value = settings_mock
     test_distro = Distro(api_mock)
     test_distro.name = "test"
-    api_mock.distros.return_value = MagicMock(return_value=[test_distro])
+    api_mock.distros.return_value = mocker.MagicMock(return_value=[test_distro])
     test_profile = Profile(api_mock)
     test_profile.name = "test"
-    api_mock.profiles.return_value = MagicMock(return_value=[test_profile])
+    api_mock.profiles.return_value = mocker.MagicMock(return_value=[test_profile])
     test_system = System(api_mock)
     test_system.name = "test"
+    api_mock.autoinstallgen = mocker.MagicMock()
     return api_mock
 
 

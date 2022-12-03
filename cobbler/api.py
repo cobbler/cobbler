@@ -137,6 +137,7 @@ from cobbler import (
     module_loader,
     power_manager,
     settings,
+    templates,
     tftpgen,
     utils,
     validate,
@@ -165,6 +166,7 @@ from cobbler.items import menu, network_interface
 from cobbler.items import profile as profile_module
 from cobbler.items import repo
 from cobbler.items import system as system_module
+from cobbler.items import template
 from cobbler.items.abstract import bootable_item as item_base
 from cobbler.items.abstract.inheritable_item import InheritableItem
 from cobbler.utils import filesystem_helpers, input_converters, signatures
@@ -178,6 +180,7 @@ if TYPE_CHECKING:
     from cobbler.cobbler_collections.profiles import Profiles
     from cobbler.cobbler_collections.repos import Repos
     from cobbler.cobbler_collections.systems import Systems
+    from cobbler.cobbler_collections.templates import Templates
     from cobbler.items.abstract.base_item import BaseItem
     from cobbler.items.abstract.bootable_item import BootableItem
     from cobbler.remote import TransactionTuple
@@ -257,13 +260,15 @@ class CobblerAPI:
                 "authorization", "module", "authorization.allowall"
             )
 
-            # FIXME: pass more loggers around, and also see that those using things via tasks construct their own
-            #  yumgen/tftpgen versus reusing this one, which has the wrong logger (most likely) for background tasks.
-
+            self.templar = templates.Templar(self)
             self.autoinstallgen = autoinstallgen.AutoInstallationGen(self)
             self.yumgen = yumgen.YumGen(self)
             self.tftpgen = tftpgen.TFTPGen(self)
             self.__directory_startup_preparations()
+            # To intialize the templates, everything else needs to be set up beforehand as they are adding items.
+            self.templar.load_template_providers()
+            self.templar.load_built_in_templates()
+            self._collection_mgr.templates().refresh_content()
             self.logger.debug("API handle initialized")
 
     def __directory_startup_preparations(self) -> None:
@@ -472,6 +477,7 @@ class CobblerAPI:
                 "profile",
                 "system",
                 "network_interface",
+                "template",
             ]
         elif obj == self.get_signatures():
             item_types = ["distro", "image", "profile", "system"]
@@ -554,6 +560,12 @@ class CobblerAPI:
         Return the current list of network interfaces
         """
         return self._collection_mgr.network_interfaces()
+
+    def templates(self) -> "Templates":
+        """
+        Return the current list of templates
+        """
+        return self._collection_mgr.templates()
 
     # =======================================================================
 
@@ -810,6 +822,15 @@ class CobblerAPI:
         """
         self._collection_mgr.network_interfaces().copy(ref, newname)
 
+    def copy_template(self, ref: "template.Template", newname: str) -> None:
+        """
+        This method copies a template which is just different in the name of the object.
+
+        :param ref: The object itself which gets copied.
+        :param newname: The new name of the newly created object.
+        """
+        self._collection_mgr.templates().copy(ref, newname)
+
     # ==========================================================================
 
     def remove_item(
@@ -1030,6 +1051,32 @@ class CobblerAPI:
             with_sync=with_sync,
         )
 
+    def remove_template(
+        self,
+        ref: Union["template.Template", str],
+        recursive: bool = False,
+        delete: bool = True,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+    ) -> None:
+        """
+        Remove a template from Cobbler.
+
+        :param ref: The internal unique handle for the item.
+        :param recursive: If the item should recursively should delete dependencies on itself.
+        :param delete: Not known what this parameter does exactly.
+        :param with_triggers: Whether you would like to have the removal triggers executed or not.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        """
+        self.remove_item(
+            "network_interface",
+            ref,
+            recursive=recursive,
+            delete=delete,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+        )
+
     # ==========================================================================
 
     def rename_item(self, what: str, ref: "BaseItem", newname: str) -> None:
@@ -1103,6 +1150,15 @@ class CobblerAPI:
     ) -> None:
         """
         Rename a network interface to a new name.
+
+        :param ref: The internal unique handle for the item.
+        :param newname: The new name for the item.
+        """
+        self.rename_item("network_interface", ref, newname)
+
+    def rename_template(self, ref: "template.Template", newname: str) -> None:
+        """
+        Rename a template to a new name.
 
         :param ref: The internal unique handle for the item.
         :param newname: The new name for the item.
@@ -1211,10 +1267,20 @@ class CobblerAPI:
         Returns a new empty network interface object. This file is not automatically persisted. Persistence is achieved
         via ``save()``.
 
-        :return: An empty Menu object.
+        :return: An empty Network Interface object.
         """
         self.log("new_network_interface", kwargs)
         return network_interface.NetworkInterface(self, **kwargs)
+
+    def new_template(self, **kwargs: Any) -> "template.Template":
+        """
+        Returns a new empty template object. This file is not automatically persisted. Persistence is achieved
+        via ``save()``.
+
+        :return: An empty Template object.
+        """
+        self.log("new_network_interface", kwargs)
+        return template.Template(self, **kwargs)
 
     # ==========================================================================
     def add_remove_items(self, items: List["TransactionTuple"]) -> None:
@@ -1476,7 +1542,7 @@ class CobblerAPI:
         with_sync: bool = True,
     ) -> None:
         """
-        Add a submenu to Cobbler.
+        Add a Network Interface to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
@@ -1486,6 +1552,32 @@ class CobblerAPI:
         """
         self.add_item(
             "network_interface",
+            ref,
+            check_for_duplicate_names=check_for_duplicate_names,
+            save=save,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+        )
+
+    def add_template(
+        self,
+        ref: "template.Template",
+        check_for_duplicate_names: bool = False,
+        save: bool = True,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+    ) -> None:
+        """
+        Add a Template to Cobbler.
+
+        :param ref: The identifier for the object to add to a collection.
+        :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
+        :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        """
+        self.add_item(
+            "template",
             ref,
             check_for_duplicate_names=check_for_duplicate_names,
             save=save,
@@ -1724,6 +1816,24 @@ class CobblerAPI:
             return_list=return_list, no_errors=no_errors, **kwargs
         )
 
+    def find_template(
+        self,
+        return_list: bool = False,
+        no_errors: bool = False,
+        **kwargs: "FIND_KWARGS",
+    ) -> Optional[Union[List["template.Template"], "template.Template",]]:
+        """
+        Find a network interface via a name or keys specified in the ``**kargs``.
+
+        :param return_list: If only the first result or all results should be returned.
+        :param no_errors: Silence some errors which would raise if this turned to False.
+        :param kwargs: Additional key-value pairs which may help in finding the desired objects.
+        :return: A single object or a list of all search results.
+        """
+        return self._collection_mgr.templates().find(
+            return_list=return_list, no_errors=no_errors, **kwargs
+        )
+
     # ==========================================================================
 
     @staticmethod
@@ -1840,6 +1950,19 @@ class CobblerAPI:
         :return: The list of files which are newer then the given timestamp.
         """
         return self.__since(mtime, self.network_interfaces, collapse=collapse)
+
+    def get_templates_since(
+        self, mtime: float, collapse: bool = False
+    ) -> List["template.Template"]:
+        """
+        Return templates modified since a certain time (in seconds since Epoch)
+
+        :param mtime: The timestamp which marks the gate if an object is included or not.
+        :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
+                         objects.
+        :return: The list of files which are newer then the given timestamp.
+        """
+        return self.__since(mtime, self.templates, collapse=collapse)
 
     # ==========================================================================
 

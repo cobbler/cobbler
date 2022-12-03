@@ -333,7 +333,7 @@ def find_file(
     """
     Given a path glob and a file regex, return a full path of the file.
 
-    :param: glob_path: Glob of a path, e.g. Path('/var/*/rhn')
+    :param: glob_path: Glob of a path, e.g. ``Path('/var/*/rhn')``
     :param: file_regex: A regex for a filename in the path
     :return: The full file path or None if no file was found
     """

@@ -141,7 +141,6 @@ def test_from_list(
     # Assert
     assert len(system_collection.listing) == 1
     for key, indx in system_collection.indexes.items():
-        print(key)
         if key in ("name", "profile", "image"):
             assert len(indx) == 1
         else:
@@ -829,7 +828,6 @@ def test_find_by_indexes(
             results[indx].append(system_collection.find_by_indexes(arg))
 
     # Assert
-    print(results)
     for indx, result in results.items():
         assert isinstance(result[0], list)
         assert len(result[0]) == 1

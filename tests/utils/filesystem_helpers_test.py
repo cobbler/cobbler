@@ -1,3 +1,7 @@
+"""
+TODO
+"""
+
 import os
 import pathlib
 import shutil
@@ -29,11 +33,14 @@ def test_is_safe_to_hardlink(
     test_dst: str,
     expected_result: bool,
 ):
+    """
+    TODO
+    """
     # Arrange
     if is_symlink and test_src:
         os.symlink("/foobar/test", test_src)
     elif test_src:
-        open(test_src, "w").close()
+        open(test_src, "w", encoding="UTF-8").close()
 
     # Act
     result = filesystem_helpers.is_safe_to_hardlink(test_src, test_dst, cobbler_api)
@@ -47,6 +54,9 @@ def test_is_safe_to_hardlink(
 
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
 def test_hashfile():
+    """
+    TODO
+    """
     # Arrange
     # TODO: Create testfile
     testfilepath = "/dev/shm/bigtestfile"
@@ -61,6 +71,9 @@ def test_hashfile():
 
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
 def test_cachefile():
+    """
+    TODO
+    """
     # Arrange
     cache_src = ""
     cache_dst = ""
@@ -76,6 +89,9 @@ def test_cachefile():
 
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
 def test_linkfile(cobbler_api: CobblerAPI):
+    """
+    TODO
+    """
     # Arrange
     test_source = ""
     test_destination = ""
@@ -89,6 +105,9 @@ def test_linkfile(cobbler_api: CobblerAPI):
 
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
 def test_copyfile():
+    """
+    TODO
+    """
     # Arrange
     test_source = ""
     test_destination = ""
@@ -102,6 +121,9 @@ def test_copyfile():
 
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
 def test_copyremotefile():
+    """
+    TODO
+    """
     # Arrange
     test_source = ""
     test_destination = ""
@@ -115,6 +137,9 @@ def test_copyremotefile():
 
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
 def test_mkdirimage():
+    """
+    TODO
+    """
     # Arrange
     test_path = pathlib.Path("/tmp")
     test_image_location = ""
@@ -128,6 +153,9 @@ def test_mkdirimage():
 
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
 def test_copyfileimage():
+    """
+    TODO
+    """
     # Arrange
     test_src = ""
     test_image_location = ""
@@ -141,6 +169,9 @@ def test_copyfileimage():
 
 
 def test_rmfile(tmp_path: Path):
+    """
+    TODO
+    """
     # Arrange
     tfile = tmp_path / "testfile"
 
@@ -152,6 +183,9 @@ def test_rmfile(tmp_path: Path):
 
 
 def test_rmglob_files(tmp_path: Path):
+    """
+    TODO
+    """
     # Arrange
     tfile1 = tmp_path / "file1.tfile"
     tfile2 = tmp_path / "file2.tfile"
@@ -165,6 +199,9 @@ def test_rmglob_files(tmp_path: Path):
 
 
 def test_rmtree_contents():
+    """
+    TODO
+    """
     # Arrange
     testfolder = "/dev/shm/"
     testfiles = ["test1", "blafile", "testremove"]
@@ -179,6 +216,9 @@ def test_rmtree_contents():
 
 
 def test_rmtree():
+    """
+    TODO
+    """
     # Arrange
     testtree = "/dev/shm/testtree"
     os.mkdir(testtree)
@@ -194,6 +234,9 @@ def test_rmtree():
 
 
 def test_mkdir():
+    """
+    TODO
+    """
     # TODO: Check how already existing folder is handled.
     # Arrange
     testfolder = "/dev/shm/testfoldercreation/testmkdir"
@@ -219,6 +262,9 @@ def test_mkdir():
     [("/tmp/test/a", "/tmp/test/a/b/c", "/b/c"), ("/tmp/test/a", "/opt/test/a", "")],
 )
 def test_path_tail(test_first_path: str, test_second_path: str, expected_result: str):
+    """
+    TODO
+    """
     # Arrange
     # TODO: Check if this actually makes sense...
 
@@ -238,12 +284,18 @@ def test_path_tail(test_first_path: str, test_second_path: str, expected_result:
     ],
 )
 def test_safe_filter(test_input: str, expected_exception: Any):
+    """
+    TODO
+    """
     # Arrange, Act & Assert
     with expected_exception:
-        assert filesystem_helpers.safe_filter(test_input) is None
+        filesystem_helpers.safe_filter(test_input)
 
 
 def test_create_web_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
+    """
+    TODO
+    """
     # Arrange
     settings_mock = mocker.MagicMock()
     settings_mock.webdir = "/my/custom/webdir"
@@ -261,6 +313,9 @@ def test_create_web_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
 
 
 def test_create_tftpboot_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
+    """
+    TODO
+    """
     # Arrange
     settings_mock = mocker.MagicMock()
     settings_mock.tftpboot_location = "/srv/tftpboot"
@@ -279,6 +334,9 @@ def test_create_tftpboot_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
 
 
 def test_create_trigger_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
+    """
+    TODO
+    """
     # Arrange
     mock_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
     mocker.patch("pathlib.Path.exists", return_value=False)
@@ -287,10 +345,13 @@ def test_create_trigger_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
     filesystem_helpers.create_trigger_dirs(cobbler_api)
 
     # Assert
-    assert mock_mkdir.call_count == 66
+    assert mock_mkdir.call_count == 75
 
 
 def test_create_json_database_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
+    """
+    TODO
+    """
     # Arrange
     mock_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
     mocker.patch("pathlib.Path.exists", return_value=False)
@@ -301,4 +362,4 @@ def test_create_json_database_dirs(mocker: MockerFixture, cobbler_api: CobblerAP
     # Assert
     mock_mkdir.assert_any_call("/var/lib/cobbler/collections")
     # 1 collections parent directory + (1 child directory per item type * 9 item types atm)
-    assert mock_mkdir.call_count == 8
+    assert mock_mkdir.call_count == 9

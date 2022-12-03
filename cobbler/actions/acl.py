@@ -77,7 +77,6 @@ class AclConfig:
         :param isuser: If true then the ``who`` may be a user. If false then ``who`` may be a group.
         :param who: The user or group to be added or removed.
         """
-        snipdir = self.settings.autoinstall_snippets_dir
         tftpboot = self.settings.tftpboot_location
 
         process_dirs = {
@@ -88,8 +87,6 @@ class AclConfig:
             tftpboot: "rwx",
             "/var/lib/cobbler/triggers": "rwx",
         }
-        if not snipdir.startswith("/var/lib/cobbler/"):
-            process_dirs[snipdir] = "r"
 
         for directory, how in process_dirs.items():
             cmd = [

@@ -4,7 +4,6 @@ ISC DHCP server.
 """
 
 from typing import TYPE_CHECKING, Any, Generator, List
-from unittest.mock import MagicMock, Mock
 
 import pytest
 
@@ -21,9 +20,12 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture(name="api_mock_tftp")
-def fixture_api_mock_tftp() -> CobblerAPI:
-    api_mock_tftp = MagicMock(spec=CobblerAPI)
-    settings_mock = MagicMock(
+def fixture_api_mock_tftp(mocker: "MockerFixture") -> CobblerAPI:
+    """
+    TODO
+    """
+    api_mock_tftp = mocker.MagicMock(spec=CobblerAPI)
+    settings_mock = mocker.MagicMock(
         name="in_tftpd_setting_mock", spec=Settings, autospec=True
     )
     settings_mock.server = "127.0.0.1"
@@ -43,13 +45,15 @@ def fixture_api_mock_tftp() -> CobblerAPI:
     settings_mock.virt_auto_boot = True
     settings_mock.default_name_servers = []
     settings_mock.default_name_servers_search = []
+    settings_mock.redhat_management_server = "xmlrpc.rhn.redhat.com"
+    settings_mock.redhat_management_key = ""
     settings_mock.manage_dhcp_v4 = True
     settings_mock.manage_dhcp_v6 = True
-    settings_mock.jinja2_includedir = ""
     settings_mock.default_virt_disk_driver = "raw"
     settings_mock.tftpboot_location = "/var/lib/tftpboot"
     settings_mock.webdir = "/srv/www/cobbler"
     settings_mock.cache_enabled = False
+    settings_mock.to_dict.return_value = {"server": "127.0.0.1"}
     api_mock_tftp.settings.return_value = settings_mock
     test_distro = Distro(api_mock_tftp)
     test_distro.name = "test"
@@ -58,23 +62,29 @@ def fixture_api_mock_tftp() -> CobblerAPI:
     test_system = System(api_mock_tftp)
     test_system.name = "test"
     api_mock_tftp.find_system.return_value = test_system
-    api_mock_tftp.distros = MagicMock(return_value=[test_distro])
-    api_mock_tftp.profiles = MagicMock(return_value=[test_profile])
-    api_mock_tftp.systems = MagicMock(return_value=[test_system])
-    api_mock_tftp.repos = MagicMock(return_value=[])
+    api_mock_tftp.distros = mocker.MagicMock(return_value=[test_distro])
+    api_mock_tftp.profiles = mocker.MagicMock(return_value=[test_profile])
+    api_mock_tftp.systems = mocker.MagicMock(return_value=[test_system])
+    api_mock_tftp.repos = mocker.MagicMock(return_value=[])
+    api_mock_tftp.tftpgen = mocker.MagicMock(spec=TFTPGen, autospec=True)
     return api_mock_tftp
 
 
 @pytest.fixture(name="reset_singleton", scope="function", autouse=True)
 def fixture_reset_singleton() -> Generator[Any, Any, Any]:
+    """
+    TODO
+    """
     in_tftpd.MANAGER = None
     yield
     in_tftpd.MANAGER = None
 
 
 def test_register():
-    # Arrange
-    # Act
+    """
+    TODO
+    """
+    # Arrange & Act
     result = in_tftpd.register()
 
     # Assert
@@ -82,13 +92,20 @@ def test_register():
 
 
 def test_manager_what():
+    """
+    TODO
+    """
+    # pylint: disable=protected-access
     # Arrange & Act & Assert
     assert in_tftpd._InTftpdManager.what() == "in_tftpd"  # type: ignore[reportPrivateUsage]
 
 
-def test_tftpd_singleton(reset_singleton: Any):
+def test_tftpd_singleton(mocker: "MockerFixture"):
+    """
+    TODO
+    """
     # Arrange
-    mcollection = Mock()
+    mcollection = mocker.Mock()
 
     # Act
     manager_1 = in_tftpd.get_manager(mcollection)
@@ -98,25 +115,24 @@ def test_tftpd_singleton(reset_singleton: Any):
     assert manager_1 == manager_2
 
 
-@pytest.mark.skip(
-    "TODO: in utils.blender() we have the problem that 'server' is not available."
-)
-def test_manager_write_boot_files_distro(
-    api_mock_tftp: CobblerAPI, reset_singleton: Any
-):
+def test_manager_write_boot_files_distro(api_mock_tftp: CobblerAPI):
+    """
+    TODO
+    """
     # Arrange
     manager_obj = in_tftpd.get_manager(api_mock_tftp)
 
     # Act
-    result = manager_obj.write_boot_files_distro(api_mock_tftp.distros()[0])  # type: ignore[reportUnknownArgumentType]
+    result = manager_obj.write_boot_files_distro(api_mock_tftp.distros()[0])  # type: ignore[reportUnknownArgumentType,index]
 
     # Assert
     assert result == 0
 
 
-def test_manager_write_boot_files(
-    mocker: "MockerFixture", api_mock_tftp: CobblerAPI, reset_singleton: Any
-):
+def test_manager_write_boot_files(mocker: "MockerFixture", api_mock_tftp: CobblerAPI):
+    """
+    TODO
+    """
     # Arrange
     manager_obj = in_tftpd.get_manager(api_mock_tftp)
     mocker.patch.object(manager_obj, "write_boot_files_distro")
@@ -126,43 +142,43 @@ def test_manager_write_boot_files(
 
     # Assert
     # pylint: disable=no-member
-    assert manager_obj.write_boot_files_distro.call_count == 1  # type: ignore[reportFunctionMemberAccess]
+    assert manager_obj.write_boot_files_distro.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
     assert result == 0
 
 
-def test_manager_sync_single_system(
-    mocker: "MockerFixture", api_mock_tftp: CobblerAPI, reset_singleton: Any
-):
+def test_manager_sync_single_system(api_mock_tftp: CobblerAPI):
+    """
+    TODO
+    """
     # Arrange
     manager_obj = in_tftpd.get_manager(api_mock_tftp)
-    tftpgen_mock = MagicMock(spec=TFTPGen, autospec=True)
-    mocker.patch.object(manager_obj, "tftpgen", return_value=tftpgen_mock)
+    tftpgen_mock = api_mock_tftp.tftpgen
 
     # Act
-    manager_obj.sync_single_system(None, None)  # type: ignore[reportArgumentType]
+    manager_obj.sync_single_system(None, None)  # type: ignore[reportArgumentType,arg-type]
 
     # Assert
     # pylint: disable=no-member
-    assert manager_obj.tftpgen.write_all_system_files.call_count == 1  # type: ignore[reportFunctionMemberAccess]
-    assert manager_obj.tftpgen.write_templates.call_count == 1  # type: ignore[reportFunctionMemberAccess]
+    assert tftpgen_mock.write_all_system_files.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
+    assert tftpgen_mock.write_templates.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
 
 
-def test_manager_add_single_distro(
-    mocker: "MockerFixture", api_mock_tftp: CobblerAPI, reset_singleton: Any
-):
+def test_manager_add_single_distro(mocker: "MockerFixture", api_mock_tftp: CobblerAPI):
+    """
+    TODO
+    """
     # Arrange
     manager_obj = in_tftpd.get_manager(api_mock_tftp)
-    tftpgen_mock = MagicMock(spec=TFTPGen, autospec=True)
-    mocker.patch.object(manager_obj, "tftpgen", return_value=tftpgen_mock)
+    tftpgen_mock = api_mock_tftp.tftpgen
     mocker.patch.object(manager_obj, "write_boot_files_distro")
 
     # Act
-    manager_obj.add_single_distro(None)  # type: ignore[reportArgumentType]
+    manager_obj.add_single_distro(None)  # type: ignore[reportArgumentType,arg-type]
 
     # Assert
     # pylint: disable=no-member
-    assert manager_obj.tftpgen.copy_single_distro_files.call_count == 1  # type: ignore[reportFunctionMemberAccess]
-    assert manager_obj.write_boot_files_distro.call_count == 1  # type: ignore[reportFunctionMemberAccess]
+    assert tftpgen_mock.copy_single_distro_files.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
+    assert manager_obj.write_boot_files_distro.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
 
 
 @pytest.mark.parametrize(
@@ -175,12 +191,13 @@ def test_sync_systems(
     input_systems: List[str],
     input_verbose: bool,
     expected_output: str,
-    reset_singleton: Any,
 ):
+    """
+    TODO
+    """
     # Arrange
     manager_obj = in_tftpd.get_manager(api_mock_tftp)
-    tftpgen_mock = MagicMock(spec=TFTPGen, autospec=True)
-    mocker.patch.object(manager_obj, "tftpgen", return_value=tftpgen_mock)
+    tftpgen_mock = api_mock_tftp.tftpgen
     single_system_mock = mocker.patch.object(manager_obj, "sync_single_system")
 
     # Act
@@ -188,27 +205,27 @@ def test_sync_systems(
 
     # Assert
     # pylint: disable=no-member
-    assert manager_obj.tftpgen.get_menu_items.call_count == 1  # type: ignore[reportFunctionMemberAccess]
+    assert tftpgen_mock.get_menu_items.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
     assert single_system_mock.call_count == 1
-    assert manager_obj.tftpgen.make_pxe_menu.call_count == 1  # type: ignore[reportFunctionMemberAccess]
+    assert tftpgen_mock.make_pxe_menu.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
 
 
-def test_manager_sync(
-    mocker: "MockerFixture", api_mock_tftp: CobblerAPI, reset_singleton: Any
-):
+def test_manager_sync(api_mock_tftp: CobblerAPI):
+    """
+    TODO
+    """
     # Arrange
     manager_obj = in_tftpd.get_manager(api_mock_tftp)
-    tftpgen_mock = MagicMock(spec=TFTPGen, autospec=True)
-    mocker.patch.object(manager_obj, "tftpgen", return_value=tftpgen_mock)
+    tftpgen_mock = api_mock_tftp.tftpgen
 
     # Act
     manager_obj.sync()
 
     # Assert
     # pylint: disable=no-member
-    assert manager_obj.tftpgen.copy_bootloaders.call_count == 1  # type: ignore[reportFunctionMemberAccess]
-    assert manager_obj.tftpgen.copy_single_distro_files.call_count == 1  # type: ignore[reportFunctionMemberAccess]
-    assert manager_obj.tftpgen.copy_images.call_count == 1  # type: ignore[reportFunctionMemberAccess]
-    assert manager_obj.tftpgen.get_menu_items.call_count == 1  # type: ignore[reportFunctionMemberAccess]
-    assert manager_obj.tftpgen.write_all_system_files.call_count == 1  # type: ignore[reportFunctionMemberAccess]
-    assert manager_obj.tftpgen.make_pxe_menu.call_count == 1  # type: ignore[reportFunctionMemberAccess]
+    assert tftpgen_mock.copy_bootloaders.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
+    assert tftpgen_mock.copy_single_distro_files.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
+    assert tftpgen_mock.copy_images.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
+    assert tftpgen_mock.get_menu_items.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
+    assert tftpgen_mock.write_all_system_files.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
+    assert tftpgen_mock.make_pxe_menu.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]

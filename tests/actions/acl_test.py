@@ -126,6 +126,5 @@ def test_modacl(
     acl_object.modacl(input_isadd, input_isuser, input_user)
 
     # Assert
-    print(mock_subprocess_call.mock_calls)
     mock_subprocess_call.assert_any_call(expected_first_setfacl, shell=False)
     assert mock_die.call_count == expected_mock_die_count

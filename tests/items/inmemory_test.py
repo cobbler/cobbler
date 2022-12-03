@@ -31,6 +31,9 @@ def fixture_inmemory_api() -> CobblerAPI:
     manager.CollectionManager.has_loaded = False
     manager.CollectionManager.__shared_state = {}  # type: ignore[reportPrivateUsage]
     api._collection_mgr = manager.CollectionManager(api)  # type: ignore[reportPrivateUsage]
+    api.templar.load_template_providers()
+    api.templar.load_built_in_templates()
+    api._collection_mgr.templates().refresh_content()  # type: ignore[reportPrivateUsage]
     return api
 
 
@@ -146,16 +149,16 @@ def test_inmemory(
 
     inmemory_api.deserialize()
 
-    test_repo: Repo = inmemory_api.find_repo(uid=test_repo.uid)  # type: ignore[reportAssignmentType]
-    test_menu1: Menu = inmemory_api.find_menu(uid=test_menu1.uid)  # type: ignore[reportAssignmentType]
-    test_menu2: Menu = inmemory_api.find_menu(uid=test_menu2.uid)  # type: ignore[reportAssignmentType]
-    test_distro: Distro = inmemory_api.find_distro(uid=test_distro.uid)  # type: ignore[reportAssignmentType]
-    test_profile1: Profile = inmemory_api.find_profile(uid=test_profile1.uid)  # type: ignore[reportAssignmentType]
-    test_profile2: Profile = inmemory_api.find_profile(uid=test_profile2.uid)  # type: ignore[reportAssignmentType]
-    test_profile3: Profile = inmemory_api.find_profile(uid=test_profile3.uid)  # type: ignore[reportAssignmentType]
-    test_image: Image = inmemory_api.find_image(uid=test_image.uid)  # type: ignore[reportAssignmentType]
-    test_system1: System = inmemory_api.find_system(uid=test_system1.uid)  # type: ignore[reportAssignmentType]
-    test_system2: System = inmemory_api.find_system(uid=test_system2.uid)  # type: ignore[reportAssignmentType]
+    test_repo: Repo = inmemory_api.find_repo(uid=test_repo.uid)  # type: ignore[reportAssignmentType,no-redef]
+    test_menu1: Menu = inmemory_api.find_menu(uid=test_menu1.uid)  # type: ignore[reportAssignmentType,no-redef]
+    test_menu2: Menu = inmemory_api.find_menu(uid=test_menu2.uid)  # type: ignore[reportAssignmentType,no-redef]
+    test_distro: Distro = inmemory_api.find_distro(uid=test_distro.uid)  # type: ignore[reportAssignmentType,no-redef]
+    test_profile1: Profile = inmemory_api.find_profile(uid=test_profile1.uid)  # type: ignore[reportAssignmentType,no-redef]
+    test_profile2: Profile = inmemory_api.find_profile(uid=test_profile2.uid)  # type: ignore[reportAssignmentType,no-redef]
+    test_profile3: Profile = inmemory_api.find_profile(uid=test_profile3.uid)  # type: ignore[reportAssignmentType,no-redef]
+    test_image: Image = inmemory_api.find_image(uid=test_image.uid)  # type: ignore[reportAssignmentType,no-redef]
+    test_system1: System = inmemory_api.find_system(uid=test_system1.uid)  # type: ignore[reportAssignmentType,no-redef]
+    test_system2: System = inmemory_api.find_system(uid=test_system2.uid)  # type: ignore[reportAssignmentType,no-redef]
 
     # Act
     result = True

@@ -75,7 +75,9 @@ class ItemOption(ABC, Generic[ITEM]):
         """
         result: Dict[str, Any] = {}
         for key, value in self.__dict__.items():
-            if key in ("_api", "_item"):
+            if key in ("_api", "_item") or key.startswith(
+                f"_{self.__class__.__name__}__"
+            ):
                 continue
             new_key = key[1:].lower()
             if isinstance(value, (str, bool, int, float)):

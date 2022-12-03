@@ -180,7 +180,6 @@ def test_netboot_generate_boot_loader_configs(
         matching_isolinux_distro_kopts,
         matching_isolinux_profile_kopts,
     ]:
-        print(iterable_to_check)
         # one entry for the profile, one for the system
         assert len(iterable_to_check) == 2  # type: ignore
 
@@ -250,7 +249,6 @@ def test_netboot_generate_boot_loader_config_for_profile_only(
         matching_isolinux_distro_kopts,
         matching_isolinux_profile_kopts,
     ]:
-        print(iterable_to_check)
         # one entry for the profile, and none for the system
         assert len(iterable_to_check) == 1  # type: ignore
 

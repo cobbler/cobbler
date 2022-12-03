@@ -10,13 +10,14 @@ This is some of the code behind 'cobbler sync'.
 import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
-from cobbler import utils
+from cobbler import enums, utils
 from cobbler.modules.managers import DhcpManagerModule, DnsManagerModule
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.items.distro import Distro
     from cobbler.items.system import System
+    from cobbler.items.template import Template
 
 
 MANAGER = None
@@ -73,18 +74,31 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
         if not config_data:
             raise ValueError("No config to write.")
 
-        settings_file = "/etc/dnsmasq.conf"
-        template_file = "/etc/cobbler/dnsmasq.template"
+        search_result = self.api.find_template(
+            True, False, tags=enums.TemplateTag.DNSMASQ.value
+        )
+        if search_result is None or not isinstance(search_result, list):
+            raise TypeError("Search result for dnsmasq Template must of of type list!")
+        dnsmasq_template: Optional["Template"] = None
+        for template in search_result:
+            if enums.TemplateTag.ACTIVE.value in template.tags:
+                dnsmasq_template = template
+                break
+            if enums.TemplateTag.DEFAULT.value in template.tags:
+                dnsmasq_template = template
 
-        try:
-            with open(template_file, "r", encoding="UTF-8") as template_file_fd:
-                template_data = template_file_fd.read()
-        except Exception as error:
-            raise OSError(f"error writing template to file: {template_file}") from error
+        if dnsmasq_template is None:
+            raise ValueError(
+                "Neither specific nor default dnsmasq Template could be found inside Cobbler!"
+            )
 
         config_copy = config_data.copy()  # template rendering changes the passed dict
-        self.logger.info("Writing %s", settings_file)
-        self.templar.render(template_data, config_copy, settings_file)
+        self.logger.info("Writing %s", self.api.settings().dnsmasq_settings_file)
+        self.api.templar.render(
+            dnsmasq_template.content,
+            config_copy,
+            self.api.settings().dnsmasq_settings_file,
+        )
 
     def gen_full_config(self) -> Dict[str, str]:
         """Generate DHCP configuration for all systems."""

@@ -75,7 +75,6 @@ def test_key_rename(example_dict: ExampleDictType):
     helper.key_rename(rename, "a", example_dict)
 
     # Assert
-    print(example_dict)
     assert example_dict["b"].get("u") is None
     assert example_dict["b"]["a"] == 1
 
@@ -110,5 +109,4 @@ def test_key_drop_if_default_2(example_dict: ExampleDictType):
     result = helper.key_drop_if_default(value_dict, example_dict)
 
     # Assert
-    print(value_dict)
     assert result == {"a": {"r": 5}}

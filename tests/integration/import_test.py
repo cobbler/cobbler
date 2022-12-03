@@ -79,12 +79,9 @@ def test_import_iso(
     """
     # Arrange
     iso_directory = listings_directory / breed / version
-    print(iso_directory)
     for iso in iso_directory.iterdir():
-        print(iso)
         if iso.is_dir() and iso.name.endswith(".iso"):
             iso_folder = tmp_path / iso.name
-            print(iso_folder)
             iso_folder.mkdir()
             index = (iso / "index").read_text(encoding="UTF-8").splitlines()
             for file in index:

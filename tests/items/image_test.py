@@ -79,10 +79,10 @@ def test_autoinstall(cobbler_api: CobblerAPI):
     image = Image(cobbler_api)
 
     # Act
-    image.autoinstall = ""
+    image.autoinstall = ""  # type: ignore[assignment]
 
     # Assert
-    assert image.autoinstall == ""
+    assert image.autoinstall is None
 
 
 def test_file(cobbler_api: CobblerAPI):
@@ -368,7 +368,7 @@ def test_to_dict_resolved(create_image: Callable[[], Image]):
 
     # Assert
     assert isinstance(result, dict)
-    assert result.get("autoinstall") == "default.ks"
+    assert result.get("autoinstall", {}).get("name") == "built-in-default.ks"
     assert enums.VALUE_INHERITED not in str(result)
 
 
@@ -381,6 +381,10 @@ def test_inheritance(
     """
     # Arrange
     mocker.patch.object(cobbler_api, "settings", return_value=test_settings)
+    test_template = cobbler_api.new_template(
+        name="test_inheritance", template_type="cheetah"
+    )
+    cobbler_api.add_template(test_template)
     image = Image(cobbler_api)
 
     # Act
@@ -413,5 +417,8 @@ def test_inheritance(
             setattr(image, new_key, enums.VALUE_INHERITED)
 
             # Assert
-            assert prev_value == new_value
+            if key == "_autoinstall":
+                assert prev_value == test_template
+            else:
+                assert prev_value == new_value
             assert prev_value == getattr(image, new_key)

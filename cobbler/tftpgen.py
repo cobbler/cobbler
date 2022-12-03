@@ -15,7 +15,7 @@ import re
 import socket
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
-from cobbler import enums, grub, templar, utils
+from cobbler import enums, grub, utils
 from cobbler.cexceptions import CX
 from cobbler.enums import Archs, ImageTypes
 from cobbler.utils import filesystem_helpers, input_converters
@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from cobbler.items.menu import Menu
     from cobbler.items.profile import Profile
     from cobbler.items.system import System
+    from cobbler.items.template import Template
 
 
 class TFTPGen:
@@ -49,7 +50,6 @@ class TFTPGen:
         self.repos = api.repos()
         self.images = api.images()
         self.menus = api.menus()
-        self.templar = templar.Templar(self.api)
         self.bootloc = self.settings.tftpboot_location
 
     def copy_bootloaders(self, dest: str) -> None:
@@ -578,14 +578,27 @@ class TFTPGen:
         metadata["menu_items"] = menu_items.get("pxe", "")
         metadata["menu_labels"] = menu_labels.get("pxe", "")
         outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
-        with open(
-            os.path.join(
-                self.settings.boot_loader_conf_template_dir, "pxe_menu.template"
-            ),
-            encoding="UTF-8",
-        ) as template_src:
-            template_data = template_src.read()
-            boot_menu["pxe"] = self.templar.render(template_data, metadata, outfile)
+        search_result = self.api.find_template(
+            True, False, tags=enums.TemplateTag.PXE_MENU.value
+        )
+        if search_result is None or not isinstance(search_result, list):
+            raise TypeError("Search result for PXE Menu Template must of of type list!")
+        pxe_menu_template: Optional["Template"] = None
+        for template in search_result:
+            if enums.TemplateTag.ACTIVE.value in template.tags:
+                pxe_menu_template = template
+                break
+            if enums.TemplateTag.DEFAULT.value in template.tags:
+                pxe_menu_template = template
+
+        if pxe_menu_template is None:
+            raise ValueError(
+                "Neither specific nor default PXE menu template could be found inside Cobbler!"
+            )
+
+        boot_menu["pxe"] = self.api.templar.render(
+            pxe_menu_template.content, metadata, outfile
+        )
 
     def _make_pxe_menu_ipxe(
         self,
@@ -602,20 +615,35 @@ class TFTPGen:
         :param menu_labels: The dictionary with the labels that are shown in the menu.
         :param boot_menu: The dictionary which contains the iPXE menu and its data.
         """
-        if self.settings.enable_ipxe:
-            metadata["menu_items"] = menu_items.get("ipxe", "")
-            metadata["menu_labels"] = menu_labels.get("ipxe", "")
-            outfile = os.path.join(self.bootloc, "ipxe", "default.ipxe")
-            with open(
-                os.path.join(
-                    self.settings.boot_loader_conf_template_dir, "ipxe_menu.template"
-                ),
-                encoding="UTF-8",
-            ) as template_src:
-                template_data = template_src.read()
-                boot_menu["ipxe"] = self.templar.render(
-                    template_data, metadata, outfile
-                )
+        if not self.settings.enable_ipxe:
+            return
+
+        metadata["menu_items"] = menu_items.get("ipxe", "")
+        metadata["menu_labels"] = menu_labels.get("ipxe", "")
+        outfile = os.path.join(self.bootloc, "ipxe", "default.ipxe")
+        search_result = self.api.find_template(
+            True, False, tags=enums.TemplateTag.IPXE_MENU.value
+        )
+        if search_result is None or not isinstance(search_result, list):
+            raise TypeError(
+                "Search result for iPXE Menu Template must of of type list!"
+            )
+        ipxe_menu_template: Optional["Template"] = None
+        for template in search_result:
+            if enums.TemplateTag.ACTIVE.value in template.tags:
+                ipxe_menu_template = template
+                break
+            if enums.TemplateTag.DEFAULT.value in template.tags:
+                ipxe_menu_template = template
+
+        if ipxe_menu_template is None:
+            raise ValueError(
+                "Neither specific nor default iPXE menu template could be found inside Cobbler!"
+            )
+
+        boot_menu["ipxe"] = self.api.templar.render(
+            ipxe_menu_template.content, metadata, outfile
+        )
 
     def _make_pxe_menu_grub(
         self, boot_menu: Dict[str, Union[Dict[str, str], str]]
@@ -676,14 +704,26 @@ class TFTPGen:
         """
         metadata["menu_items"] = metadata["menu_items"].get("pxe", "")  # type: ignore
         metadata["menu_labels"] = metadata["menu_labels"].get("pxe", "")  # type: ignore
-        with open(
-            os.path.join(
-                self.settings.boot_loader_conf_template_dir, "pxe_menu.template"
-            ),
-            encoding="UTF-8",
-        ) as template_src:
-            template_data = template_src.read()
-            return self.templar.render(template_data, metadata, None)
+
+        search_result = self.api.find_template(
+            True, False, tags=enums.TemplateTag.PXE_MENU.value
+        )
+        if search_result is None or not isinstance(search_result, list):
+            raise TypeError("Search result for PXE Menu Template must of of type list!")
+        pxe_menu_template: Optional["Template"] = None
+        for template in search_result:
+            if enums.TemplateTag.ACTIVE.value in template.tags:
+                pxe_menu_template = template
+                break
+            if enums.TemplateTag.DEFAULT.value in template.tags:
+                pxe_menu_template = template
+
+        if pxe_menu_template is None:
+            raise ValueError(
+                "Neither specific nor default PXE menu template could be found inside Cobbler!"
+            )
+
+        return self.api.templar.render(pxe_menu_template.content, metadata, None)
 
     def _generate_pxe_menu_ipxe(
         self,
@@ -696,14 +736,28 @@ class TFTPGen:
         """
         metadata["menu_items"] = metadata["menu_items"].get("ipxe", "")  # type: ignore
         metadata["menu_labels"] = metadata["menu_labels"].get("ipxe", "")  # type: ignore
-        with open(
-            os.path.join(
-                self.settings.boot_loader_conf_template_dir, "ipxe_menu.template"
-            ),
-            encoding="UTF-8",
-        ) as template_src:
-            template_data = template_src.read()
-            return self.templar.render(template_data, metadata, None)
+
+        search_result = self.api.find_template(
+            True, False, tags=enums.TemplateTag.IPXE_MENU.value
+        )
+        if search_result is None or not isinstance(search_result, list):
+            raise TypeError(
+                "Search result for iPXE Menu Template must of of type list!"
+            )
+        ipxe_menu_template: Optional["Template"] = None
+        for template in search_result:
+            if enums.TemplateTag.ACTIVE.value in template.tags:
+                ipxe_menu_template = template
+                break
+            if enums.TemplateTag.DEFAULT.value in template.tags:
+                ipxe_menu_template = template
+
+        if ipxe_menu_template is None:
+            raise ValueError(
+                "Neither specific nor default iPXE menu template could be found inside Cobbler!"
+            )
+
+        return self.api.templar.render(ipxe_menu_template.content, metadata, None)
 
     def get_menu_items(
         self, arch: Optional[enums.Archs] = None
@@ -988,19 +1042,30 @@ class TFTPGen:
                     metadata["parent_menu_label"] = parent_menu.display_name
 
         for boot_loader in boot_loaders:
-            template = (
-                pathlib.Path(self.settings.boot_loader_conf_template_dir)
-                / f"{boot_loader.value}_submenu.template"
+            search_result = self.api.find_template(
+                True, False, tags=f"{boot_loader.value}_submenu"
             )
-            if template.exists():
-                with open(template, encoding="UTF-8") as template_fh:
-                    template_data[boot_loader] = template_fh.read()
-            else:
+            if search_result is None or not isinstance(search_result, list):
+                raise TypeError(
+                    f"Search result for {boot_loader} Sub-Menu Template must of of type list!"
+                )
+            submenu_template: Optional["Template"] = None
+            for template in search_result:
+                if enums.TemplateTag.ACTIVE.value in template.tags:
+                    submenu_template = template
+                    break
+                if enums.TemplateTag.DEFAULT.value in template.tags:
+                    submenu_template = template
+
+            if submenu_template is None:
                 self.logger.warning(
                     'Template for building a submenu not found for bootloader "%s"! Submenu '
                     "structure thus missing for this bootloader.",
                     boot_loader.value,
                 )
+                continue
+
+            template_data[boot_loader] = submenu_template.content
 
         self.get_submenus(menu, metadata, arch)
         nested_menu_items = metadata["menu_items"]
@@ -1050,7 +1115,7 @@ class TFTPGen:
                 metadata["menu_items"] = menu_items[boot_loader]
                 if boot_loader in menu_labels:
                     metadata["menu_labels"] = menu_labels[boot_loader]
-                menu_items[boot_loader] = self.templar.render(
+                menu_items[boot_loader] = self.api.templar.render(
                     template_data[boot_loader], metadata, None
                 )
                 if boot_loader == enums.BootLoader.IPXE:
@@ -1128,10 +1193,6 @@ class TFTPGen:
         # just some random variables
         buffer = ""
 
-        template = os.path.join(
-            self.settings.boot_loader_conf_template_dir,
-            bootloader_format.value + ".template",
-        )
         self.build_kernel(metadata, system, profile, distro, image, bootloader_format)  # type: ignore
 
         # generate the kernel options and append line:
@@ -1171,8 +1232,7 @@ class TFTPGen:
                     buffer += f"set serial_baud={serial_baud_rate}\n"
                     buffer += f"set serial_line={serial_device}\n"
 
-        # for esxi, generate bootcfg_path metadata
-        # and write boot.cfg files for systems and pxe
+        # for esxi, generate bootcfg_path metadata and write boot.cfg files for systems and pxe
         if distro and distro.os_version.startswith("esxi"):
             if system:
                 if filename:
@@ -1192,14 +1252,33 @@ class TFTPGen:
 
         # get the template
         if metadata["kernel_path"] is not None:  # type: ignore
-            with open(template, encoding="UTF-8") as template_fh:
-                template_data = template_fh.read()
+            search_result = self.api.find_template(
+                True, False, tags=bootloader_format.value
+            )
+            if search_result is None or not isinstance(search_result, list):
+                raise TypeError(
+                    f"Search result for {bootloader_format.value} Template must of of type list!"
+                )
+            bootloader_template: Optional["Template"] = None
+            for template in search_result:
+                if enums.TemplateTag.ACTIVE.value in template.tags:
+                    bootloader_template = template
+                    break
+                if enums.TemplateTag.DEFAULT.value in template.tags:
+                    bootloader_template = template
+
+            if bootloader_template is None:
+                raise ValueError(
+                    f"Neither specific nor default {bootloader_format.value} template could be found inside Cobbler!"
+                )
+
+            template_data = bootloader_template.content
         else:
             # this is something we can't PXE boot
             template_data = "\n"
 
         # save file and/or return results, depending on how called.
-        buffer += self.templar.render(template_data, metadata, None)
+        buffer += self.api.templar.render(template_data, metadata, None)
 
         if filename is not None:
             self.logger.info("generating: %s", filename)
@@ -1402,18 +1481,13 @@ class TFTPGen:
             else:
                 httpserveraddress = blended["http_server"]
 
-            local_autoinstall_file = not re.match(r"[a-zA-Z]*://.*", autoinstall_path)
             protocol = self.settings.autoinstall_scheme
-            if local_autoinstall_file:
-                if system is not None:
-                    autoinstall_path = f"{protocol}://{httpserveraddress}/cblr/svc/op/autoinstall/system/{system.name}"
-                elif profile is not None:
-                    autoinstall_path = (
-                        f"{protocol}://{httpserveraddress}/"
-                        f"cblr/svc/op/autoinstall/profile/{profile.name}"
-                    )
-                else:
-                    raise ValueError("Neither profile nor system based!")
+            if system is not None:
+                autoinstall_path = f"{protocol}://{httpserveraddress}/cblr/svc/op/autoinstall/system/{system.name}"
+            elif profile is not None:
+                autoinstall_path = f"{protocol}://{httpserveraddress}/cblr/svc/op/autoinstall/profile/{profile.name}"
+            else:
+                raise ValueError("Neither profile nor system based!")
 
             if distro is None:
                 raise ValueError("Distro for kernel command line not found!")
@@ -1521,7 +1595,7 @@ class TFTPGen:
         # promote all of the autoinstall_meta variables
         if "autoinstall_meta" in blended:
             blended.update(blended["autoinstall_meta"])
-        append_line = self.templar.render(append_line, utils.flatten(blended), None)  # type: ignore
+        append_line = self.api.templar.render(append_line, utils.flatten(blended), None)  # type: ignore
 
         # For now console=ttySx,BAUDRATE are only set for systems
         # This could get enhanced for profile/distro via utils.blender (inheritance)
@@ -1613,8 +1687,10 @@ class TFTPGen:
                 continue
 
             # Run the source and destination files through templar first to allow for variables in the path
-            template = self.templar.render(template, blended, None).strip()
-            dest = os.path.normpath(self.templar.render(dest, blended, None).strip())
+            template = self.api.templar.render(template, blended, None).strip()
+            dest = os.path.normpath(
+                self.api.templar.render(dest, blended, None).strip()
+            )
             # Get the path for the destination output
             dest_dir = os.path.normpath(os.path.dirname(dest))
 
@@ -1663,7 +1739,7 @@ class TFTPGen:
             with open(template, encoding="UTF-8") as template_fh:
                 template_data = template_fh.read()
 
-            buffer = self.templar.render(template_data, blended, None)
+            buffer = self.api.templar.render(template_data, blended, None)
             results[dest] = buffer
 
             if write_file:
@@ -1786,16 +1862,25 @@ class TFTPGen:
         blended["kopts"] = kopts  # type: ignore
         blended["kernel_file"] = os.path.basename(distro.kernel)  # type: ignore
 
-        template = os.path.join(
-            self.settings.boot_loader_conf_template_dir, "bootcfg.template"
+        search_result = self.api.find_template(
+            True, False, tags=enums.TemplateTag.BOOTCFG.value
         )
-        if not os.path.exists(template):
-            return f"# boot.cfg template not found for the {what} named {name} (filename={template})"
+        if search_result is None or not isinstance(search_result, list):
+            raise TypeError("Search result for bootcfg Template must of of type list!")
+        bootcfg_template: Optional["Template"] = None
+        for template in search_result:
+            if enums.TemplateTag.ACTIVE.value in template.tags:
+                bootcfg_template = template
+                break
+            if enums.TemplateTag.DEFAULT.value in template.tags:
+                bootcfg_template = template
 
-        with open(template, encoding="UTF-8") as template_fh:
-            template_data = template_fh.read()
+        if bootcfg_template is None:
+            raise ValueError(
+                "Neither specific nor default bootcfg Template could be found inside Cobbler!"
+            )
 
-        return self.templar.render(template_data, blended, None)
+        return self.api.templar.render(bootcfg_template.content, blended, None)
 
     def generate_script(self, what: str, objname: str, script_name: str) -> str:
         """
@@ -1853,7 +1938,7 @@ class TFTPGen:
         with open(template, encoding="UTF-8") as template_fh:
             template_data = template_fh.read()
 
-        return self.templar.render(template_data, blended, None)
+        return self.api.templar.render(template_data, blended, None)
 
     def _build_windows_initrd(
         self, loader_name: str, custom_loader_name: str, bootloader_format: str

@@ -164,7 +164,7 @@ V2.8.5:
 import copy
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-from cobbler import autoinstall_manager, enums, validate
+from cobbler import enums, validate
 from cobbler.cexceptions import CX
 from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.items.distro import Distro
@@ -175,6 +175,7 @@ from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.items.template import Template
 
     InheritableProperty = property
     LazyProperty = property
@@ -550,26 +551,37 @@ class Profile(BootableItem):
         self._filename = filename
 
     @InheritableProperty
-    def autoinstall(self) -> str:
+    def autoinstall(self) -> Optional["Template"]:
         """
-        Represents the automatic OS installation template file path, this must be a local file.
+        Represents the automatic OS installation template object.
 
-        :getter: Either the inherited name or the one specific to this profile.
-        :setter: The name of the new autoinstall template is validated. The path should come in the format of a ``str``.
+        :getter: The template object that is configured.
+        :setter: The name, UID or Template object. This property may be set to ``<<inherit>>``.
         """
-        return self._resolve(["autoinstall"])
+        if self._autoinstall == "":
+            return None
+        autoinstall = self._resolve(["autoinstall"])
+        if validate.validate_uuid(autoinstall):
+            search_result = self.api.find_template(False, False, uid=autoinstall)
+        elif hasattr(autoinstall, "TYPE_NAME"):
+            return autoinstall
+        else:
+            # Built-In Templates save the names to survive serialization.
+            search_result = self.api.find_template(False, False, name=autoinstall)
+        if search_result is None:
+            raise ValueError("No search result for given template UID/Name!")
+        if isinstance(search_result, list):
+            raise ValueError("Ambigous template match name detected!")
+        return search_result
 
     @autoinstall.setter
-    def autoinstall(self, autoinstall: str):
+    def autoinstall(self, autoinstall: Union[str, "Template"]):
         """
         Setter for the ``autoinstall`` property.
 
-        :param autoinstall: local automatic installation template path
+        :param autoinstall: local automatic installation template name, UID or Template object.
         """
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api)
-        self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(
-            autoinstall
-        )
+        self._autoinstall = validate.validate_template(self.api, autoinstall)
 
     @InheritableProperty
     def virt_bridge(self) -> str:

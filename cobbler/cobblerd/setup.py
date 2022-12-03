@@ -185,59 +185,17 @@ def setup_cobblerd(
     cobbler_config = resource_files.joinpath("config").joinpath("cobbler")
     copy_directory(cobbler_config, etc_path)
     # Autoinstall Content
-    autoinstall_template_files = resource_files.joinpath("autoinstall_templates")
-    autoinstall_snippets_files = resource_files.joinpath("autoinstall_snippets")
-    autoinstall_scripts_files = resource_files.joinpath("autoinstall_scripts")
     autoinstall_templates_path = var_path / "templates"
-    autoinstall_snippets_path = var_path / "snippets"
-    autoinstall_scripts_path = var_path / "scripts"
     autoinstall_templates_path.mkdir(parents=True, exist_ok=True)
-    autoinstall_snippets_path.mkdir(parents=True, exist_ok=True)
-    autoinstall_scripts_path.mkdir(parents=True, exist_ok=True)
-    copy_directory(autoinstall_template_files, var_path / "templates")
-    copy_directory(autoinstall_snippets_files, var_path / "snippets")
-    copy_directory(autoinstall_scripts_files, var_path / "scripts")
     # Move distro_signatures.json to /var/lib/cobbler
     signatures_filename = "distro_signatures.json"
     (etc_path / signatures_filename).rename((var_path / signatures_filename))
-    # Create GRUB configs
-    bootloader_config_files = resource_files.joinpath("templates").joinpath(
-        "boot_loader_conf"
-    )
-    boot_loader_config_directory = etc_path / "boot_loader_conf"
-    boot_loader_config_directory.mkdir(parents=True, exist_ok=True)
-    copy_directory(bootloader_config_files, boot_loader_config_directory)
-    template_files = resource_files.joinpath("templates").joinpath("etc")
-    copy_directory(template_files, etc_path)
-    reporting_config_files = resource_files.joinpath("templates").joinpath("reporting")
-    reporting_config_directory = etc_path / "reporting"
-    reporting_config_directory.mkdir(parents=True, exist_ok=True)
-    copy_directory(reporting_config_files, reporting_config_directory)
-    windows_config_files = resource_files.joinpath("templates").joinpath("windows")
-    windows_config_directory = etc_path / "windows"
-    windows_config_directory.mkdir(parents=True, exist_ok=True)
-    copy_directory(windows_config_files, windows_config_directory)
-    zone_template_files = resource_files.joinpath("templates").joinpath(
-        "zone_templates"
-    )
-    zone_template_directory = etc_path / "zone_templates"
-    zone_template_directory.mkdir(parents=True, exist_ok=True)
-    copy_directory(zone_template_files, zone_template_directory)
-    iso_config_files = resource_files.joinpath("templates").joinpath("iso")
-    iso_config_directory = etc_path / "iso"
-    iso_config_directory.mkdir(parents=True, exist_ok=True)
-    copy_directory(iso_config_files, iso_config_directory)
     # Create Apache & Nginx config
     webconfigpath = get_prefixed_path(distro_options.webconfig, base_path)
     if "apache" in scope or "full" in scope:
         setup_cobblerd_apache(webconfigpath, resource_files)
     if "nginx" in scope or "full" in scope:
         setup_cobblerd_nginx(base_path, resource_files)
-    # Create Cheetah Macros
-    cheetah_macros_file = (
-        resource_files.joinpath("config").joinpath("cheetah").joinpath("cheetah_macros")
-    )
-    copy_file(cheetah_macros_file, etc_path / "cheetah_macros")
     # Create logrotate config
     setup_cobblerd_logrotate(base_path, resource_files)
     # Create rsync config

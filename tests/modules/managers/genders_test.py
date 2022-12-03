@@ -4,25 +4,30 @@ Tests that validate the functionality of the module that is responsible for mana
 
 import time
 from typing import TYPE_CHECKING
-from unittest.mock import MagicMock
 
 import pytest
 
+from cobbler import enums
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
+from cobbler.items.template import Template
 from cobbler.modules.managers import genders
 from cobbler.settings import Settings
+from cobbler.templates import Templar
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
-@pytest.fixture
-def api_genders_mock() -> CobblerAPI:
+@pytest.fixture(name="api_genders_mock")
+def fixture_api_genders_mock(mocker: "MockerFixture") -> CobblerAPI:
+    """
+    TODO
+    """
     # pylint: disable=protected-access
-    settings_mock = MagicMock(name="genders_setting_mock", spec=Settings)
+    settings_mock = mocker.MagicMock(name="genders_setting_mock", spec=Settings)
     settings_mock.server = "127.0.0.1"
     settings_mock.default_template_type = "cheetah"
     settings_mock.cheetah_import_whitelist = ["re"]
@@ -34,6 +39,7 @@ def api_genders_mock() -> CobblerAPI:
     settings_mock.default_virt_bridge = ""
     settings_mock.default_virt_type = "auto"
     settings_mock.default_virt_ram = 64
+    settings_mock.genders_settings_file = "/etc/genders"
     settings_mock.restart_dhcp = True
     settings_mock.enable_ipxe = True
     settings_mock.enable_menu = True
@@ -43,10 +49,9 @@ def api_genders_mock() -> CobblerAPI:
     settings_mock.manage_dhcp_v4 = True
     settings_mock.manage_dhcp_v6 = True
     settings_mock.manage_genders = True
-    settings_mock.jinja2_includedir = ""
     settings_mock.default_virt_disk_driver = "raw"
     settings_mock.cache_enabled = False
-    api_mock = MagicMock(autospec=True, spec=CobblerAPI)
+    api_mock = mocker.MagicMock(autospec=True, spec=CobblerAPI)
     api_mock.settings.return_value = settings_mock
     test_distro = Distro(api_mock)
     test_distro.name = "test_distro"
@@ -58,12 +63,21 @@ def api_genders_mock() -> CobblerAPI:
     test_system = System(api_mock)
     test_system.name = "test_system"
     test_system._parent = test_profile.name  # type: ignore[reportPrivateUsage]
+    test_template = Template(
+        api_mock, tags={enums.TemplateTag.ACTIVE.value, enums.TemplateTag.GENDERS.value}
+    )
+    test_template._Template__content = "test"  # type: ignore
     api_mock.find_system.return_value = [test_system]
+    api_mock.find_template.return_value = [test_template]
     api_mock.systems.return_value = [test_system]
+    api_mock.templar = mocker.MagicMock(autospec=True, spec=Templar)
     return api_mock
 
 
 def test_register():
+    """
+    TODO
+    """
     # Arrange
     # Act
     result = genders.register()
@@ -73,11 +87,11 @@ def test_register():
 
 
 def test_write_genders_file(mocker: "MockerFixture", api_genders_mock: CobblerAPI):
+    """
+    TODO
+    """
     # Arrange
-    templar_mock = mocker.patch(
-        "cobbler.modules.managers.genders.Templar", autospec=True
-    )
-    mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
+    templar_mock = api_genders_mock.templar
     mocker.patch(
         "time.gmtime",
         return_value=time.struct_time((2000, 1, 1, 0, 0, 0, 0, 1, 1)),
@@ -86,14 +100,14 @@ def test_write_genders_file(mocker: "MockerFixture", api_genders_mock: CobblerAP
     # Act
     genders.write_genders_file(
         api_genders_mock,
-        "profiles_genders_value",  # type: ignore[reportArgumentType]
-        "distros_genders_value",  # type: ignore[reportArgumentType]
-        "mgmtcls_genders_value",  # type: ignore[reportArgumentType]
+        "profiles_genders_value",  # type: ignore[reportArgumentType,arg-type]
+        "distros_genders_value",  # type: ignore[reportArgumentType,arg-type]
+        "mgmtcls_genders_value",  # type: ignore[reportArgumentType,arg-type]
     )
 
     # Assert
-    assert templar_mock.return_value.render.call_count == 1
-    templar_mock.return_value.render.assert_called_with(
+    assert templar_mock.render.call_count == 1  # type: ignore
+    templar_mock.render.assert_called_with(  # type: ignore
         "test",
         {
             "date": "Mon Jan  1 00:00:00 2000",
@@ -106,6 +120,9 @@ def test_write_genders_file(mocker: "MockerFixture", api_genders_mock: CobblerAP
 
 
 def test_run(mocker: "MockerFixture", api_genders_mock: CobblerAPI):
+    """
+    TODO
+    """
     # Arrange
     genders_mock = mocker.patch(
         "cobbler.modules.managers.genders.write_genders_file", autospec=True

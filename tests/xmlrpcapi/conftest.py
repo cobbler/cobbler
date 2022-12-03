@@ -3,8 +3,8 @@ Fixtures that are shared by the XML-RPC tests that are in the "xmlrpcapi" module
 """
 
 import os
+import pathlib
 import sys
-from pathlib import Path
 from typing import Any, Callable, Dict, Tuple, Union
 
 import pytest
@@ -64,40 +64,6 @@ def fixture_cobbler_xmlrpc_base(
     if not token:
         sys.exit(1)
     return remote, token
-
-
-@pytest.fixture(scope="function")
-def testsnippet() -> str:
-    """
-    Fixture that provides a valid minimalistic Cobbler Snippet.
-    """
-    return "# This is a small simple testsnippet!"
-
-
-@pytest.fixture(scope="function")
-def snippet_add(
-    remote: CobblerXMLRPCInterface, token: str
-) -> Callable[[str, str], None]:
-    """
-    Fixture that adds a snippet to Cobbler.
-    """
-
-    def _snippet_add(name: str, data: str) -> None:
-        remote.write_autoinstall_snippet(name, data, token)
-
-    return _snippet_add
-
-
-@pytest.fixture(scope="function")
-def snippet_remove(remote: CobblerXMLRPCInterface, token: str) -> Callable[[str], None]:
-    """
-    Fixture that removed a snippet from Cobbler.
-    """
-
-    def _snippet_remove(name: str):
-        remote.remove_autoinstall_snippet(name, token)
-
-    return _snippet_remove
 
 
 @pytest.fixture(scope="function")
@@ -192,32 +158,26 @@ def remove_system(remote: CobblerXMLRPCInterface, token: str):
     return _remove_system
 
 
-@pytest.fixture(scope="function")
-def create_autoinstall_template(
+@pytest.fixture(name="create_autoinstall_template", scope="function")
+def fixture_create_autoinstall_template(
     remote: CobblerXMLRPCInterface, token: str
-) -> Callable[[str, str], None]:
+) -> Callable[[str, str], str]:
     """
     Fixture that creates an autoinstall template and adds it to Cobbler.
     """
 
-    def _create_autoinstall_template(filename: str, content: str):
-        remote.write_autoinstall_template(filename, content, token)
+    def _create_autoinstall_template(filename: str, content: str) -> str:
+        template_path = pathlib.Path("/var/lib/cobbler/templates") / filename
+        template_path.write_text(content, encoding="UTF-8")
+        template = remote.new_template(token)
+        remote.modify_template(template, ["name"], filename, token)
+        remote.modify_template(template, ["template_type"], "cheetah", token)
+        remote.modify_template(template, ["uri", "schema"], "file", token)
+        remote.modify_template(template, ["uri", "path"], filename, token)
+        remote.save_template(template, token, "new")
+        return template
 
     return _create_autoinstall_template
-
-
-@pytest.fixture(scope="function")
-def remove_autoinstall_template(
-    remote: CobblerXMLRPCInterface, token: str
-) -> Callable[[str], None]:
-    """
-    TOFixture that removes an autoinstall template from Cobbler.DO
-    """
-
-    def _remove_autoinstall_template(name: str):
-        remote.remove_autoinstall_template(name, token)
-
-    return _remove_autoinstall_template
 
 
 @pytest.fixture(scope="function")
@@ -378,19 +338,10 @@ def create_testmenu(remote: CobblerXMLRPCInterface, token: str):
 
 
 @pytest.fixture(scope="function")
-def template_files(redhat_autoinstall: str, suse_autoyast: str, ubuntu_preseed: str):
+def template_files(create_autoinstall_template: Callable[[str, str], str]):
     """
     Create the template files and remove them afterwards.
-
-    :return:
     """
-    folder = "/var/lib/cobbler/templates"
-    Path(os.path.join(folder, redhat_autoinstall)).touch()
-    Path(os.path.join(folder, suse_autoyast)).touch()
-    Path(os.path.join(folder, ubuntu_preseed)).touch()
-
-    yield
-
-    os.remove(os.path.join(folder, redhat_autoinstall))
-    os.remove(os.path.join(folder, suse_autoyast))
-    os.remove(os.path.join(folder, ubuntu_preseed))
+    create_autoinstall_template("test.ks", "")
+    create_autoinstall_template("test.xml", "")
+    create_autoinstall_template("test.seed", "")

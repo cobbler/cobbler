@@ -68,8 +68,9 @@ class StandaloneBuildiso(buildiso.BuildIso):
         self.logger.info("Writing auto-installation config files")
         self.logger.debug(data)
         for file_name, autoinstall in data.items():
-            with open(output_dir / f"{file_name}.cfg", "w") as f:
-                f.write(autoinstall.config)
+            (output_dir / f"{file_name}.cfg").write_text(
+                autoinstall.config, encoding="UTF-8"
+            )
 
     def _generate_descendant_config(
         self,
@@ -348,7 +349,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
             self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)  # type: ignore[union-attr]
         else:
             raise ValueError(
-                "cobbler buildiso does not work for arch={distro_obj.arch}"
+                f"cobbler buildiso does not work for arch={distro_obj.arch}"
             )
 
         if not filesource:

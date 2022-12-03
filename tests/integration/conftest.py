@@ -173,6 +173,28 @@ def fixture_create_network_interface(
     return _create_network_interface
 
 
+@pytest.fixture(name="create_autoinstall_template", scope="function")
+def fixture_create_autoinstall_template(
+    remote: CobblerXMLRPCInterface, token: str
+) -> Callable[[str, str], str]:
+    """
+    Fixture that creates an autoinstall template and adds it to Cobbler.
+    """
+
+    def _create_autoinstall_template(filename: str, content: str) -> str:
+        template_path = pathlib.Path("/var/lib/cobbler/templates") / filename
+        template_path.write_text(content, encoding="UTF-8")
+        template = remote.new_template(token)
+        remote.modify_template(template, ["name"], filename, token)
+        remote.modify_template(template, ["template_type"], "cheetah", token)
+        remote.modify_template(template, ["uri", "schema"], "file", token)
+        remote.modify_template(template, ["uri", "path"], filename, token)
+        remote.save_template(template, token, "new")
+        return template
+
+    return _create_autoinstall_template
+
+
 @pytest.fixture(scope="function")
 def wait_task_end() -> WaitTaskEndType:
     """

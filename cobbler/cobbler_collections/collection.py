@@ -27,7 +27,16 @@ from typing import (
 
 from cobbler import enums, utils
 from cobbler.cexceptions import CX
-from cobbler.items import distro, image, menu, network_interface, profile, repo, system
+from cobbler.items import (
+    distro,
+    image,
+    menu,
+    network_interface,
+    profile,
+    repo,
+    system,
+    template,
+)
 from cobbler.items.abstract.base_item import BaseItem
 from cobbler.items.abstract.inheritable_item import InheritableItem
 
@@ -160,6 +169,15 @@ class Collection(Generic[ITEM]):
         """
         if ref is None:  # type: ignore
             raise CX("cannot delete an object that does not exist")
+
+        if isinstance(ref, template.Template) and ref.built_in:
+            # Built-in templates cannot be copied
+            self.logger.warning(
+                "Prevented attempt to remove built-in template %s with name %s!",
+                ref.uid,
+                ref.name,
+            )
+            return
 
         for item_type in InheritableItem.TYPE_DEPENDENCIES[ref.COLLECTION_TYPE]:
             dep_type_items = self.api.find_items(
@@ -376,6 +394,14 @@ class Collection(Generic[ITEM]):
         :param with_sync: If a sync should be triggered when the object is copying.
         :param with_triggers: If triggers should be run when the object is copying.
         """
+        if isinstance(ref, template.Template) and ref.built_in:
+            # Built-in templates cannot be copied
+            self.logger.warning(
+                "Prevented attempt to copy built-in template %s with name %s!",
+                ref.uid,
+                ref.name,
+            )
+            return
         copied_item: ITEM = ref.make_clone()  # type: ignore[assignment]
         copied_item.ctime = time.time()
         copied_item.name = newname
@@ -409,7 +435,15 @@ class Collection(Generic[ITEM]):
         # Change the name of the object
         ref.name = newname
         # Save just this item
-        self.collection_mgr.serialize_one_item(ref)
+        if isinstance(ref, template.Template) and ref.built_in:
+            self.logger.debug(
+                "Skipped serialization of built-in template %s with name %s!",
+                ref.uid,
+                ref.name,
+            )
+        else:
+            # Skip serialization if this is a built-in template
+            self.collection_mgr.serialize_one_item(ref)
 
         # for a repo, rename the mirror directory
         if isinstance(ref, repo.Repo):
@@ -529,7 +563,15 @@ class Collection(Generic[ITEM]):
         # perform filesystem operations
         if save:
             # Save just this item if possible, if not, save the whole collection
-            self.collection_mgr.serialize_one_item(ref)
+            if isinstance(ref, template.Template) and ref.built_in:
+                self.logger.debug(
+                    "Skipped serialization of built-in template %s with name %s!",
+                    ref.uid,
+                    ref.name,
+                )
+            else:
+                # Skip serialization if this is a built-in template
+                self.collection_mgr.serialize_one_item(ref)
 
             if with_sync:
                 self.add_quick_pxe_sync(ref, rebuild_menu=rebuild_menu)
@@ -582,11 +624,16 @@ class Collection(Generic[ITEM]):
             self.lite_sync.add_single_distro(ref, rebuild_menu=rebuild_menu)
         elif isinstance(ref, image.Image):
             self.lite_sync.add_single_image(ref, rebuild_menu=rebuild_menu)
-        elif isinstance(ref, repo.Repo):
-            pass
-        elif isinstance(ref, menu.Menu):
-            pass
-        elif isinstance(ref, network_interface.NetworkInterface):
+        elif isinstance(ref, template.Template):
+            ref.refresh_content()
+        elif isinstance(
+            ref,
+            (
+                repo.Repo,
+                menu.Menu,
+                network_interface.NetworkInterface,
+            ),
+        ):
             pass
         else:
             self.logger.error(

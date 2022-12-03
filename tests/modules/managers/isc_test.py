@@ -7,12 +7,15 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from cobbler import enums
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
 from cobbler.items.system import NetworkInterface, System
+from cobbler.items.template import Template
 from cobbler.modules.managers import isc
 from cobbler.settings import Settings
+from cobbler.templates import Templar
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
@@ -24,6 +27,7 @@ def fixture_api_isc_mock(mocker: "MockerFixture"):
     Mock to prevent the full creation of a CobblerAPI and Settings object.
     """
     settings_mock = mocker.MagicMock(name="isc_setting_mock", spec=Settings)
+    settings_mock.autoinstall = "built-in-default.ks"
     settings_mock.server = "127.0.0.1"
     settings_mock.default_template_type = "cheetah"
     settings_mock.cheetah_import_whitelist = ["re"]
@@ -43,13 +47,11 @@ def fixture_api_isc_mock(mocker: "MockerFixture"):
     settings_mock.default_name_servers_search = []
     settings_mock.manage_dhcp_v4 = True
     settings_mock.manage_dhcp_v6 = True
-    settings_mock.jinja2_includedir = ""
     settings_mock.default_virt_disk_driver = "raw"
     settings_mock.cache_enabled = False
     settings_mock.allow_duplicate_hostnames = True
     settings_mock.allow_duplicate_macs = True
     settings_mock.allow_duplicate_ips = True
-    settings_mock.autoinstall_snippets_dir = ""
     settings_mock.autoinstall_templates_dir = ""
     api_mock = mocker.MagicMock(autospec=True, spec=CobblerAPI)
     api_mock.settings.return_value = settings_mock  # type: ignore
@@ -59,7 +61,7 @@ def fixture_api_isc_mock(mocker: "MockerFixture"):
     test_profile = Profile(api_mock)
     test_profile.name = "test"
     # pylint: disable-next=protected-access
-    test_profile._parent = test_distro.name  # type: ignore
+    test_profile._distro = test_distro.uid  # type: ignore
     api_mock.profiles.return_value = [test_profile]  # type: ignore
     mocker.patch(
         "cobbler.items.system.System.interfaces",
@@ -83,6 +85,7 @@ def fixture_api_isc_mock(mocker: "MockerFixture"):
     test_system._parent = test_profile.name  # type: ignore
     api_mock.systems.return_value = [test_system]  # type: ignore
     api_mock.repos.return_value = []  # type: ignore
+    api_mock.templar = mocker.MagicMock(autospec=True, spec=Templar)
     return api_mock
 
 
@@ -139,7 +142,14 @@ def test_manager_write_v4_config(mocker: "MockerFixture", api_isc_mock: CobblerA
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
     isc.MANAGER = None
     manager = isc.get_manager(api_isc_mock)
-    mocked_templar = mocker.patch.object(manager, "templar", autospec=True)
+    mocked_templar = api_isc_mock.templar
+    test_template = Template(
+        api_isc_mock,
+        tags={enums.TemplateTag.DHCPV4.value, enums.TemplateTag.ACTIVE.value},
+    )
+    # pylint: disable-next=protected-access
+    test_template._Template__content = "test"  # type: ignore
+    api_isc_mock.find_template.return_value = [test_template]  # type: ignore
     mock_server_config = {  # type: ignore
         "cobbler_server": "127.0.0.1:80",
         "date": "Mon Jan  1 00:00:00 2000",
@@ -167,7 +177,14 @@ def test_manager_write_v6_config(mocker: "MockerFixture", api_isc_mock: CobblerA
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
     isc.MANAGER = None
     manager = isc.get_manager(api_isc_mock)
-    mocked_templar = mocker.patch.object(manager, "templar", autospec=True)
+    mocked_templar = api_isc_mock.templar
+    test_template = Template(
+        api_isc_mock,
+        tags={enums.TemplateTag.DHCPV6.value, enums.TemplateTag.ACTIVE.value},
+    )
+    # pylint: disable-next=protected-access
+    test_template._Template__content = "test"  # type: ignore
+    api_isc_mock.find_template.return_value = [test_template]  # type: ignore
     mock_server_config = {  # type: ignore
         "dhcp_tags": {"default": {}},
         "next_server_v4": "127.0.0.1",
@@ -268,11 +285,14 @@ def test_manager_gen_full_config(mocker: "MockerFixture", api_isc_mock: CobblerA
     mock_distro = Distro(api_isc_mock)
     mock_distro.redhat_management_key = ""
     mock_profile = Profile(api_isc_mock)
-    mock_profile.autoinstall = ""
+    mock_profile._distro = mock_distro.uid  # type: ignore
+    mock_profile.autoinstall = ""  # type: ignore
     mock_profile._distro = mock_distro.uid  # type: ignore
     mock_profile.proxy = ""
     mock_profile.virt.file_size = ""  # type: ignore
     mock_system = System(api_isc_mock)
+    mock_system.autoinstall = ""  # type: ignore
+    mock_system._profile = mock_profile.uid  # type: ignore
     mock_system.name = "test_manager_regen_hosts_system"
     mock_system._profile = mock_profile.uid  # type: ignore
     mock_interface = NetworkInterface(api_isc_mock, mock_system.uid)
@@ -348,11 +368,12 @@ def test_manager_remove_single_system(
     mock_distro = Distro(api_isc_mock)
     mock_distro.redhat_management_key = ""
     mock_profile = Profile(api_isc_mock)
-    mock_profile.autoinstall = ""
+    mock_profile.autoinstall = ""  # type: ignore
     mock_profile._distro = mock_distro.uid  # type: ignore
     mock_profile.proxy = ""
     mock_profile.virt.file_size = ""  # type: ignore
     mock_system = System(api_isc_mock)
+    mock_system.autoinstall = ""  # type: ignore
     mock_system.name = "test_manager_regen_hosts_system"
     mock_system._profile = mock_profile.uid  # type: ignore
     mock_interface = NetworkInterface(api_isc_mock, mock_system.uid)
@@ -401,7 +422,8 @@ def test_manager_sync_single_system(mocker: "MockerFixture", api_isc_mock: Cobbl
     mock_distro = Distro(api_isc_mock)
     mock_distro.redhat_management_key = ""
     mock_profile = Profile(api_isc_mock)
-    mock_profile.autoinstall = ""
+    mock_profile._distro = mock_distro.uid  # type: ignore
+    mock_profile.autoinstall = ""  # type: ignore
     mock_profile._distro = mock_distro.uid  # type: ignore
     mock_profile.proxy = ""
     mock_profile.virt.file_size = ""  # type: ignore
@@ -421,6 +443,8 @@ def test_manager_sync_single_system(mocker: "MockerFixture", api_isc_mock: Cobbl
         ),
     )
     mock_system = System(api_isc_mock)
+    mock_system.autoinstall = ""  # type: ignore
+    mock_system._profile = mock_profile.uid  # type: ignore
     mock_system.name = "test_manager_regen_hosts_system"
     mock_system._profile = mock_profile.uid  # type: ignore
     mocker.patch.object(mock_system, "get_conceptual_parent", return_value=mock_profile)

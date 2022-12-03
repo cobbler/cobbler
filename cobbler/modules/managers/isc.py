@@ -19,8 +19,10 @@ from cobbler.utils import process_management
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.items.distro import Distro
+    from cobbler.items.network_interface import NetworkInterface
     from cobbler.items.profile import Profile
-    from cobbler.items.system import NetworkInterface, System
+    from cobbler.items.system import System
+    from cobbler.items.template import Template
 
 MANAGER = None
 
@@ -296,35 +298,49 @@ class _IscManager(DhcpManagerModule):
         :param template_file: The location of the DHCP template.
         :param settings_file: The location of the final config file.
         """
-        try:
-            with open(template_file, "r", encoding="UTF-8") as template_fd:
-                template_data = template_fd.read()
-        except OSError as e:
-            self.logger.error("Can't read dhcp template '%s':\n%s", template_file, e)
-            return
-        config_copy = config_data.copy()  # template rendering changes the passed dict
+        search_result = self.api.find_template(True, False, tags=template_file)
+        if search_result is None or not isinstance(search_result, list):
+            raise TypeError("Search result for DHCP Template must of of type list!")
+        dhcp_template: Optional["Template"] = None
+        for template in search_result:
+            if enums.TemplateTag.ACTIVE.value in template.tags:
+                dhcp_template = template
+                break
+            if enums.TemplateTag.DEFAULT.value in template.tags:
+                dhcp_template = template
+
+        if dhcp_template is None:
+            raise ValueError(
+                "Neither specific nor default DHCP template could be found inside Cobbler!"
+            )
+
         self.logger.info("Writing %s", settings_file)
-        self.templar.render(template_data, config_copy, settings_file)
+        self.api.templar.render(
+            dhcp_template.content,
+            config_data.copy(),  # template rendering changes the passed dict
+            settings_file,
+        )
 
     def write_v4_config(
         self,
         config_data: Optional[Dict[Any, Any]] = None,
-        template_file: str = "/etc/cobbler/dhcp.template",
     ):
         """Write DHCP files for IPv4.
 
         :param config_data: DHCP data to write.
-        :param template_file: The location of the DHCP template.
         :param settings_file: The location of the final config file.
         """
         if not config_data:
             raise ValueError("No config to write.")
-        self._write_config(config_data, template_file, self.settings_file_v4)
+        self._write_config(
+            config_data,
+            enums.TemplateTag.DHCPV4.value,
+            self.settings_file_v4,
+        )
 
     def write_v6_config(
         self,
         config_data: Optional[Dict[Any, Any]] = None,
-        template_file: str = "/etc/cobbler/dhcp6.template",
     ):
         """Write DHCP files for IPv6.
 
@@ -334,7 +350,11 @@ class _IscManager(DhcpManagerModule):
         """
         if not config_data:
             raise ValueError("No config to write.")
-        self._write_config(config_data, template_file, self.settings_file_v6)
+        self._write_config(
+            config_data,
+            enums.TemplateTag.DHCPV6.value,
+            self.settings_file_v6,
+        )
 
     def restart_dhcp(self, service_name: str, version: int) -> int:
         """

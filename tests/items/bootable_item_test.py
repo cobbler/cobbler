@@ -284,10 +284,9 @@ def test_dump_vars(cobbler_api: CobblerAPI):
     result = titem.dump_vars(formatted_output=False)
 
     # Assert
-    print(result)
     assert "default_ownership" in result
     assert "owners" in result
-    assert len(result) == 170
+    assert len(result) == 168
 
 
 def test_to_dict(cobbler_api: CobblerAPI):

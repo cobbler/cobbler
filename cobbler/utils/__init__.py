@@ -506,7 +506,6 @@ def blender(
                 raise ValueError(
                     f'Child with the name "{key}" of parent object "{root_obj.name}" did not exist!'
                 )
-                continue
             results["children"][key] = child.to_dict()
 
     # sanitize output for koan and kernel option lines, etc
@@ -598,7 +597,7 @@ def __consolidate(node: Union["ITEM", "Settings"], results: Dict[Any, Any]) -> D
     :return: A dictionary with the consolidated data.
     """
     node_data = node.to_dict(resolved=True)
-    # If the node has any data items labelled <<inherit>> we need to expunge them. So that they do not override the
+    # If the node has any data items labeled <<inherit>> we need to expunge them. So that they do not override the
     # supernodes.
     for key in node_data:
         value = node_data[key]
@@ -609,9 +608,9 @@ def __consolidate(node: Union["ITEM", "Settings"], results: Dict[Any, Any]) -> D
                 results[key] = getattr(node, key)
             # Old keys should have no inherit and thus are not a real property
             if key == "kickstart":
-                results[key] = getattr(type(node), "autoinstall").fget(node)
+                results[key] = getattr(node, "autoinstall").to_dict(resolved=True)
             elif key == "ks_meta":
-                results[key] = getattr(type(node), "autoinstall_meta").fget(node)
+                results[key] = getattr(node, "autoinstall_meta")
         else:
             if isinstance(value, dict):
                 results[key] = value.copy()
@@ -621,7 +620,6 @@ def __consolidate(node: Union["ITEM", "Settings"], results: Dict[Any, Any]) -> D
                 results[key] = value.to_dict(resolved=True)
             else:
                 results[key] = value
-
     return results
 
 
@@ -1334,7 +1332,7 @@ def create_files_if_not_existing(files: List[str]) -> None:
     Create empty files if they don't already exist. If they exist, do nothing.
 
     :param files: A list of the files to create. If the base directory doesn't
-                  exist, create it too.
+        exist, create it too.
     raises OSError: In case the file cannot be created.
     """
     for file in files:

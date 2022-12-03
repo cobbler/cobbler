@@ -2,6 +2,7 @@
 Test to verify the functionallity of the isc bind module.
 """
 
+import pathlib
 import time
 from typing import TYPE_CHECKING, Any
 
@@ -99,9 +100,9 @@ def test_write_configs(
     mock_named_template = mocker.mock_open(read_data=named_template)
     mock_secondary_template = mocker.mock_open(read_data="garbage")
     mock_zone_template = mocker.mock_open(read_data="garbage 2")
-    mock_bind_serial = mocker.mock_open()
     mock_etc_named_conf = mocker.mock_open()
     mock_etc_secondary_conf = mocker.mock_open()
+    mock_pathlib_path = mocker.patch.object(pathlib.Path, "write_text")
 
     def mock_open(*args: Any, **kwargs: Any):
         if args[0] == "/etc/cobbler/named.template":
@@ -110,8 +111,6 @@ def test_write_configs(
             return mock_secondary_template(*args, **kwargs)
         if args[0] == "/etc/cobbler/zone.template":
             return mock_zone_template(*args, **kwargs)
-        if args[0] == "/var/lib/cobbler/bind_serial":
-            return mock_bind_serial(*args, **kwargs)
         if args[0] == "/etc/named.conf":
             return mock_etc_named_conf(*args, **kwargs)
         if args[0] == "/etc/secondary.conf":
@@ -127,11 +126,9 @@ def test_write_configs(
 
     # Assert
     # TODO: Extend assertions
-    mock_bind_serial.assert_any_call(
-        "/var/lib/cobbler/bind_serial", "r", encoding="UTF-8"
+    mock_pathlib_path.assert_called_once_with(
+        time.strftime("%Y%m%d00"), encoding="UTF-8"
     )
-    mock_bind_serial_handle = mock_bind_serial()
-    mock_bind_serial_handle.write.assert_any_call(time.strftime("%Y%m%d00"))
     open_mock.assert_not_called()
 
 

@@ -90,8 +90,8 @@ test-rocky9: ## Executes the testscript for testing cobbler in a docker containe
 test-rocky10: ## Executes the testscript for testing cobbler in a docker container on Rocky Linux 10.
 	./docker/rpms/build-and-install-rpms.sh rl10 docker/rpms/Rocky_Linux_10/Rocky_Linux_10.dockerfile
 
-test-fedora37: ## Executes the testscript for testing cobbler in a docker container on Fedora 37.
-	./docker/rpms/build-and-install-rpms.sh fc37 docker/rpms/Fedora_37/Fedora37.dockerfile
+test-fedora41: ## Executes the testscript for testing cobbler in a docker container on Fedora 41.
+	./docker/rpms/build-and-install-rpms.sh fc41 docker/rpms/Fedora_41/Fedora41.dockerfile
 
 test-debian11: ## Executes the testscript for testing cobbler in a docker container on Debian 11.
 	./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile
