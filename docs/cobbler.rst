@@ -810,13 +810,13 @@ memdisk - Oracle / Sun Maintenance CD
 -------------------------------------
 
 The 'memdisk' image type can be used to PXE boot Oracle / Sun maintenance CDs.
-`Their manual <http://docs.oracle.com/cd/E19121-01/sf.x2250/820-4593-12/AppB.html#50540564_72480>`_ gives details on how
-to copy the image from a CD to a PXE server. The procedure is even easier with Cobbler since the system takes care of most of
-it for you.
+`Their manual <https://docs.oracle.com/cd/E19121-01/sf.x2250/820-4593-12/AppB.html#50540564_72480>`_ gives details on
+how to copy the image from a CD to a PXE server. The procedure is even easier with Cobbler since the system takes care
+of most of it for you.
 
 Take your ISO for the boot CD and mount it as a loopback mount somewhere on your Cobbler server then copy the
-``boot.img`` file into your tftpboot directory. Then add an image of type ``memdisk`` which uses it. Right now the following shell command will fail due to a known bug but the web interface can be used instead
-to add the image.
+``boot.img`` file into your tftpboot directory. Then add an image of type ``memdisk`` which uses it. Right now the
+following shell command will fail due to a known bug but the web interface can be used instead to add the image.
 
 .. code-block:: shell
 

@@ -135,7 +135,7 @@ Booting from BIOS firmware
     the mboot.c32 plugin to work with SYSLINUX version 3.86 and tests PXE booting only with that version. Other versions
     might be incompatible.*
 
-SYSLINUX packages (all versions) can be found at `<http://www.kernel.org/pub/linux/utils/boot/syslinux/>`_.
+SYSLINUX packages (all versions) can be found at `<https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/>`_.
 While syslinux 4.x still worked for ESXi (as for example syslinux 4.05 on rhel7), latest syslinux 6.x is not compatible
 with the ``mboot.c32`` plugin (as for example syslinux 6.04 on rhel8).
 
