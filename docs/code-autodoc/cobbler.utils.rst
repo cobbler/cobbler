@@ -4,6 +4,14 @@ cobbler.utils package
 Submodules
 ----------
 
+cobbler.utils.event module
+--------------------------
+
+.. automodule:: cobbler.utils.event
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 cobbler.utils.filesystem\_helpers module
 ----------------------------------------
 
@@ -40,6 +48,14 @@ cobbler.utils.signatures module
 -------------------------------
 
 .. automodule:: cobbler.utils.signatures
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+cobbler.utils.thread module
+---------------------------
+
+.. automodule:: cobbler.utils.thread
    :members:
    :undoc-members:
    :show-inheritance:
