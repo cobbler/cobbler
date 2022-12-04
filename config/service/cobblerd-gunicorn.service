@@ -1,0 +1,12 @@
+[Unit]
+Description=Cobbler Gunicorn Daemon
+After=syslog.target network.target
+Wants=cobblerd.service
+
+[Service]
+ExecStart=/usr/bin/gunicorn cobbler.services:application
+PrivateTmp=yes
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

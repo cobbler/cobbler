@@ -52,6 +52,7 @@ of the following packages:
 - python-netaddr
 - python-librepo
 - python-schema
+- python-gunicorn
 - PyYAML / python-yaml
 - fence-agents
 - rsync
@@ -199,8 +200,8 @@ Source
 ######
 
 .. warning:: Cobbler is not suited to be run outside of custom paths or being installed into a virtual environment. We
-             are working hard to get there but it is not possible yet. If you try this and it works, please report to our
-             GitHub repository and tell us what is left to support this conveniently.
+             are working hard to get there but it is not possible yet. If you try this and it works, please report to
+             our GitHub repository and tell us what is left to support this conveniently.
 
 
 Installation
@@ -213,8 +214,8 @@ The latest source code is available through git:
     $ git clone https://github.com/cobbler/cobbler.git
     $ cd cobbler
 
-The release30 branch corresponds to the official release version for the 3.0.x series. The master branch is the
-development series, and always uses an odd number for the minor version (for example, 3.1.0).
+The release30 branch corresponds to the official release version for the 3.0.x series. The main branch is the
+development series.
 
 When building from source, make sure you have the correct prerequisites. The Makefile uses a script called
 `distro_build_configs.sh` which sets the correct environment variables. Be sure to source it if you do not use the
@@ -240,8 +241,9 @@ To install Cobbler, finish the installation in any of both cases, use these step
 #. Copy the systemd service file for `cobblerd` from ``/etc/cobbler/cobblerd.service`` to your systemd unit directory
    (``/etc/systemd/system``) and adjust ``ExecStart`` from ``/usr/bin/cobblerd`` to ``/usr/local/bin/cobblerd``.
 #. Install ``python3-gunicorn`` or the package responsible for your distro.
+#. Take the systemd service file ``cobblerd-gunicorn-service`` and copy it into your unit directory.
 #. Enable the proxy module of Apache2 (``a2enmod proxy`` or something similar) if not enabled.
-#. Restart Apache and ``cobblerd``.
+#. Restart Apache, ``cobblerd`` and ``cobblerd-gunicorn``.
 
 Be advised that we don't copy the service file into the correct directory and that the path to the binary may be wrong
 depending on the location of the binary on your system. Do this manually and then you should be good to go. The same is

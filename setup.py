@@ -616,6 +616,7 @@ if __name__ == "__main__":
                     "config/rotate/cobblerd_rotate",
                     "config/rsync/import_rsync_whitelist",
                     "config/rsync/rsync.exclude",
+                    "config/service/cobblerd-gunicorn.service",
                     "config/version",
                 ],
             ),
