@@ -12,8 +12,9 @@ DHCP Management
 
 Cobbler can optionally help you manage DHCP server. This feature is off by default.
 
-Choose either ``management = isc_and_bind`` in ``/etc/cobbler/dhcp.template`` or ``management = "dnsmasq"`` in
-``/etc/cobbler/modules.conf``.  Then set ``manage_dhcp=1`` in ``/etc/cobbler/settings.yaml``.
+Choose either ``modules.dhcp.module: "managers.isc"`` or ``modules.dhcp.module: "dnsmasq"`` in the settings. For this
+setting to take effect ``manage_dhcp: true`` and at least one of ``manage_dhcp_v4`` or ``manage_dhcp_v6`` must be also
+set to ``true``.
 
 This allows DHCP to be managed via "cobbler system add" commands, when you specify the mac address and IP address for
 systems you add into Cobbler.
@@ -39,11 +40,11 @@ DNS configuration management
 
 Cobbler can optionally manage DNS configuration using BIND and dnsmasq.
 
-Choose either ``module = managers.bind`` or ``module = managers.dnsmasq`` in ``/etc/cobbler/modules.conf`` and then
-enable ``manage_dns`` in ``/etc/cobbler/settings.yaml``.
+Choose either ``modules.dns.module: "managers.bind"`` or ``modules.dns.module: "managers.dnsmasq"`` in the settings. To
+enable the choice enable ``manage_dns`` in the settings.
 
-You may also choose ``module = managers.ndjbdns`` as a management engine for DNS. For this the DNS server tools of
-D.J. Bernstein need to be installed. For more information please refer to `<https://cr.yp.to/djbdns.html>`_
+You may also choose ``modules.dns.module: "managers.ndjbdns"`` as a management engine for DNS. For this the DNS server
+tools of D.J. Bernstein need to be installed. For more information please refer to `<https://cr.yp.to/djbdns.html>`_
 
 This feature is off by default. If using BIND, you must define the zones to be managed with the options
 ``manage_forward_zones`` and ``manage_reverse_zones``.

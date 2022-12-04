@@ -169,7 +169,7 @@ If you want to be explicit with distribution definition, however, here's how it 
 |                 | objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what       |
 |                 | Cobbler users can edit particular objects.This only applies to the Cobbler WebUI and XML-RPC        |
 |                 | interface, not the "cobbler" command line tool run from the shell. Furthermore, this is only        |
-|                 | respected by the ``authz_ownership`` module which must be enabled in ``/etc/cobbler/modules.conf``. |
+|                 | respected by the ``authorization.ownership`` module which must be enabled in the settings.          |
 |                 | The value for ``--owners`` is a space separated list of users and groups as specified in            |
 |                 | ``/etc/cobbler/users.conf``. For more information see the users.conf file as well as the Cobbler    |
 |                 | Wiki. In the default Cobbler configuration, this value is completely ignored, as is ``users.conf``. |
@@ -262,8 +262,8 @@ listed below:
 |                     | objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what  |
 |                     | Cobbler users can edit particular objects.This only applies to the Cobbler WebUI and XML-RPC   |
 |                     | interface, not the "cobbler" command line tool run from the shell. Furthermore, this is only   |
-|                     | respected by the ``authz_ownership`` module which must be enabled in                           |
-|                     | ``/etc/cobbler/modules.conf``. The value for ``--owners`` is a space separated list of users   |
+|                     | respected by the ``authorization.ownership`` module which must be enabled in                   |
+|                     | the settings. The value for ``--owners`` is a space separated list of users                    |
 |                     | and groups as specified in ``/etc/cobbler/users.conf``.                                        |
 |                     | For more information see the users.conf file as well as the Cobbler                            |
 |                     | Wiki. In the default Cobbler configuration, this value is completely ignored, as is            |
@@ -601,8 +601,8 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 |                     | objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what  |
 |                     | Cobbler users can edit particular objects.This only applies to the Cobbler WebUI and XML-RPC   |
 |                     | interface, not the "cobbler" command line tool run from the shell. Furthermore, this is only   |
-|                     | respected by the ``authz_ownership`` module which must be enabled in                           |
-|                     | ``/etc/cobbler/modules.conf``. The value for ``--owners`` is a space separated list of users   |
+|                     | respected by the ``authorization.ownership`` module which must be enabled in                   |
+|                     | the settings. The value for ``--owners`` is a space separated list of users                    |
 |                     | and groups as specified in ``/etc/cobbler/users.conf``.                                        |
 |                     | For more information see the users.conf file as well as the Cobbler                            |
 |                     | Wiki. In the default Cobbler configuration, this value is completely ignored, as is            |
@@ -751,8 +751,8 @@ probably be overkill, though it can be very useful for larger setups (labs, data
 |                  | objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what     |
 |                  | Cobbler users can edit particular objects.This only applies to the Cobbler WebUI and XML-RPC      |
 |                  | interface, not the "cobbler" command line tool run from the shell. Furthermore, this is only      |
-|                  | respected by the ``authz_ownership`` module which must be enabled in                              |
-|                  | ``/etc/cobbler/modules.conf``. The value for ``--owners`` is a space separated list of users      |
+|                  | respected by the ``authorization.ownership`` module which must be enabled in                      |
+|                  | the settings. The value for ``--owners`` is a space separated list of users                       |
 |                  | and groups as specified in ``/etc/cobbler/users.conf``.                                           |
 |                  | For more information see the users.conf file as well as the Cobbler                               |
 |                  | Wiki. In the default Cobbler configuration, this value is completely ignored, as is               |
