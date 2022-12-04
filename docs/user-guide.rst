@@ -16,6 +16,7 @@ User Guide
    The TFTP Directory <user-guide/tftp>
    Internal Database <user-guide/internal-database>
    HTTP API <user-guide/http-api>
+   HTTPboot <user-guide/httpboot>
 
 
 API
