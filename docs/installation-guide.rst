@@ -239,11 +239,14 @@ To preserve your existing configuration files, snippets and automatic installati
 To install Cobbler, finish the installation in any of both cases, use these steps:
 
 #. Copy the systemd service file for `cobblerd` from ``/etc/cobbler/cobblerd.service`` to your systemd unit directory
-   (``/etc/systemd/system``) and adjust ``ExecStart`` from ``/usr/bin/cobblerd`` to ``/usr/local/bin/cobblerd``.
+   (``/etc/systemd/system``).
 #. Install ``python3-gunicorn`` or the package responsible for your distro.
 #. Take the systemd service file ``cobblerd-gunicorn-service`` and copy it into your unit directory.
 #. Enable the proxy module of Apache2 (``a2enmod proxy`` or something similar) if not enabled.
 #. Restart Apache, ``cobblerd`` and ``cobblerd-gunicorn``.
+
+.. note:: Depending on your distributions FHS implementation you might need to adjust ``ExecStart`` from
+          ``/usr/bin/cobblerd`` to ``/usr/local/bin/cobblerd`` in the ``cobblerd.service`` file.
 
 Be advised that we don't copy the service file into the correct directory and that the path to the binary may be wrong
 depending on the location of the binary on your system. Do this manually and then you should be good to go. The same is
