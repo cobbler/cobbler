@@ -1102,11 +1102,8 @@ most of the other Cobbler commands (currently: distro, profile, system, repo, im
 
 .. code-block:: shell
 
-    $ cobbler report --name=[object-name]
+    $ cobbler report
 
---name=[object-name]
-
-Optional parameter which filters for object with the given name.
 
 .. _cobbler-cli-reposync:
 
