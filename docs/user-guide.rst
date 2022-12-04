@@ -17,6 +17,7 @@ User Guide
    Internal Database <user-guide/internal-database>
    HTTP API <user-guide/http-api>
    HTTPboot <user-guide/httpboot>
+   Power Management <user-guide/power-management>
 
 
 API
@@ -42,15 +43,6 @@ Cobbler can help with booting images physically and virtually, though the usage 
 by the type of image. Non-image based deployments are generally easier to work with and lead to more sustainable
 infrastructure. Some manual use of other commands beyond of what is typically required of Cobbler may be needed to
 prepare images for use with this feature.
-
-.. _power-management:
-
-Power Management
-################
-
-Cobbler contains a power management feature that allows the user to associate system records in Cobbler with the power
-management configuration attached to them. This can ease installation by making it easy to reassign systems to new
-operating systems and then reboot those systems.
 
 Non-import (manual) workflow
 ############################
