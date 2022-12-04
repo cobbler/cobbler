@@ -553,6 +553,7 @@ if __name__ == "__main__":
         extras_require={
             "lint": ["pyflakes", "pycodestyle", "pylint", "black", "mypy"],
             "test": ["pytest>6", "pytest-cov", "codecov", "pytest-mock"],
+            "docs": ["sphinx", "sphinx-rtd-theme", "sphinxcontrib-apidoc"],
         },
         packages=find_packages(exclude=["*tests*"]),
         scripts=[
