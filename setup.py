@@ -161,6 +161,7 @@ if __name__ == "__main__":
                 "types-mock",
                 "types-urllib3",
                 "isort",
+                "pre-commit",
             ],
             "test": [
                 "pytest>6",
