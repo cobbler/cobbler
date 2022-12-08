@@ -8,7 +8,7 @@ OS and version.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 # SPDX-FileCopyrightText: John Eckersberg <jeckersb@redhat.com>
 
-from typing import Dict, List, Callable, Any, Optional
+from typing import Dict, Callable, Any, Optional
 
 import glob
 import gzip
@@ -20,12 +20,10 @@ import stat
 
 import magic
 
-from cobbler.items import profile, distro
 from cobbler.cexceptions import CX
 from cobbler import enums, utils
 from cobbler.manager import ManagerModule
 
-import cobbler.items.repo as item_repo
 from cobbler.utils import filesystem_helpers
 
 HAS_HIVEX = True
@@ -101,7 +99,7 @@ class _ImportSignatureManager(ManagerModule):
         self.signature = None
         self.found_repos = {}
 
-    def get_file_lines(self, filename: str):
+    def get_file_lines(self, filename: str) -> list:
         """
         Get lines from a file, which may or may not be compressed. If compressed then it will be uncompressed using
         ``gzip`` as the algorithm.
@@ -137,11 +135,11 @@ class _ImportSignatureManager(ManagerModule):
         self,
         path: str,
         name: str,
-        network_root=None,
-        autoinstall_file=None,
+        network_root: Optional[str] = None,
+        autoinstall_file: Optional[str] = None,
         arch: Optional[str] = None,
-        breed=None,
-        os_version=None,
+        breed: Optional[str] = None,
+        os_version: Optional[str] = None,
     ):
         """
         This is the main entry point in a manager. It is a required function for import modules.
@@ -497,8 +495,7 @@ class _ImportSignatureManager(ManagerModule):
                     "skipping import, as distro name already exists: %s", name
                 )
                 continue
-            self.logger.info("creating new distro: %s", name)
-            new_distro = distro.Distro(self.api)
+            new_distro = self.api.new_distro()
 
             if name.find("-autoboot") != -1:
                 # this is an artifact of some EL-3 imports
@@ -532,8 +529,7 @@ class _ImportSignatureManager(ManagerModule):
             existing_profile = self.profiles.find(name=name)
 
             if existing_profile is None:
-                self.logger.info("creating new profile: %s", name)
-                new_profile = profile.Profile(self.api)
+                new_profile = self.api.new_profile()
             else:
                 self.logger.info(
                     "skipping existing profile, name already exists: %s", name
@@ -702,7 +698,7 @@ class _ImportSignatureManager(ManagerModule):
 
         return name
 
-    def configure_tree_location(self, distribution: distro.Distro):
+    def configure_tree_location(self, distribution):
         """
         Once a distribution is identified, find the part of the distribution that has the URL in it that we want to use
         for automating the Linux distribution installation, and create a autoinstall_meta variable $tree that contains
@@ -740,7 +736,7 @@ class _ImportSignatureManager(ManagerModule):
             tree = self.network_root[:-1] + tail
             self.set_install_tree(distribution, tree)
 
-    def set_install_tree(self, distribution: distro.Distro, url: str):
+    def set_install_tree(self, distribution, url: str):
         """
         Simple helper function to set the tree automated installation metavariable.
 
@@ -752,7 +748,7 @@ class _ImportSignatureManager(ManagerModule):
     # ==========================================================================
     # Repo Functions
 
-    def repo_finder(self, distros_added: List[distro.Distro]):
+    def repo_finder(self, distros_added: list):
         """
         This routine looks through all distributions and tries to find any applicable repositories in those
         distributions for post-install usage.
@@ -791,7 +787,7 @@ class _ImportSignatureManager(ManagerModule):
     # ==========================================================================
     # yum-specific
 
-    def yum_repo_adder(self, distro: distro.Distro):
+    def yum_repo_adder(self, distro):
         """
         For yum, we recursively scan the rootdir for repos to add
 
@@ -800,7 +796,7 @@ class _ImportSignatureManager(ManagerModule):
         self.logger.info("starting descent into %s for %s", self.rootdir, distro.name)
         import_walker(self.rootdir, self.yum_repo_scanner, distro)
 
-    def yum_repo_scanner(self, distro: distro.Distro, dirname: str, fnames):
+    def yum_repo_scanner(self, distro, dirname: str, fnames):
         """
         This is an import_walker routine that looks for potential yum repositories to be added to the configuration for
         post-install usage.
@@ -831,7 +827,7 @@ class _ImportSignatureManager(ManagerModule):
                     )
                     continue
 
-    def yum_process_comps_file(self, comps_path: str, distribution: distro.Distro):
+    def yum_process_comps_file(self, comps_path: str, distribution):
         """
         When importing Fedora/EL certain parts of the install tree can also be used as yum repos containing packages
         that might not yet be available via updates in yum. This code identifies those areas. Existing repodata will be
@@ -931,7 +927,7 @@ class _ImportSignatureManager(ManagerModule):
     # ==========================================================================
     # apt-specific
 
-    def apt_repo_adder(self, distribution: distro.Distro):
+    def apt_repo_adder(self, distribution):
         """
         Automatically import apt repositories when importing signatures.
 
@@ -946,7 +942,7 @@ class _ImportSignatureManager(ManagerModule):
         if not mirror:
             mirror = "http://archive.ubuntu.com/ubuntu"
 
-        repo = item_repo.Repo(self.api)
+        repo = self.api.new_repo()
         repo.breed = enums.RepoBreeds.APT
         repo.arch = distribution.arch
         repo.keep_updated = True
@@ -991,7 +987,8 @@ class _ImportSignatureManager(ManagerModule):
     # ==========================================================================
     # rhn-specific
 
-    def rhn_repo_adder(self, distribution: distro.Distro):
+    @staticmethod
+    def rhn_repo_adder(distribution):
         """
         Not currently used.
 
@@ -1002,7 +999,8 @@ class _ImportSignatureManager(ManagerModule):
     # ==========================================================================
     # rsync-specific
 
-    def rsync_repo_adder(self, distribution: distro.Distro):
+    @staticmethod
+    def rsync_repo_adder(distribution):
         """
         Not currently used.
 
