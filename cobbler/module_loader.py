@@ -63,7 +63,7 @@ class ModuleLoader:
             basename = filename.replace(self.mod_path, "")
             modname = ""
 
-            if basename in ("__pycache__", "__init__.py"):
+            if "__pycache__" in basename or "__init__.py" in basename:
                 continue
 
             if basename[0] == "/":
