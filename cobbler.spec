@@ -261,6 +261,7 @@ mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd_rotate %{buildroot}%{_sysconfdir}
 # systemd
 mkdir -p %{buildroot}%{_unitdir}
 mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd.service %{buildroot}%{_unitdir}
+mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd-gunicorn.service %{buildroot}%{_unitdir}
 %if 0%{?suse_version}
 mkdir -p %{buildroot}%{_sbindir}
 ln -sf service %{buildroot}%{_sbindir}/rccobblerd
@@ -286,6 +287,7 @@ fi
 
 %post
 %systemd_post cobblerd.service
+%systemd_post cobblerd-gunicorn.service
 # Fixup permission for world readable settings files
 chmod 640 %{_sysconfdir}/cobbler/settings.yaml
 chmod 640 %{_sysconfdir}/cobbler/users.conf
@@ -294,9 +296,11 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
 
 %preun
 %systemd_preun cobblerd.service
+%systemd_preun cobblerd-gunicorn.service
 
 %postun
 %systemd_postun_with_restart cobblerd.service
+%systemd_postun_with_restart cobblerd-gunicorn.service
 
 %files
 %license COPYING
@@ -357,6 +361,7 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
 %{python3_sitelib}/cobbler/
 %{python3_sitelib}/cobbler-*
 %{_unitdir}/cobblerd.service
+%{_unitdir}/cobblerd-gunicorn.service
 %if 0%{?suse_version}
 %{_sbindir}/rccobblerd
 %endif

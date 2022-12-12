@@ -17,9 +17,13 @@ and introduce a CMS onto your client systems.
 
 One option is cobbler's own lightweight CMS. For that, see the document `Built-In Configuration Management`_.
 
-Here we discuss the other option: deploying a CMS such as `cfengine3 <http://cfengine.com/>`_,
-`puppet <http://puppetlabs.com/>`_, `bcfg2 <http://bcfg2.org>`_, `Chef <http://wiki.opscode.com/display/chef/Home>`_,
-etc.
+Here we discuss the other option: deploying a CMS such as
+
+* `cfengine3 <https://cfengine.com/>`_,
+* `puppet <https://puppet.com/>`_,
+* `bcfg2 <http://bcfg2.org>`_,
+* `Chef <https://www.chef.io/products/chef-infrastructure-management>`_,
+* etc.
 
 Cobbler doesn't force you to chose a particular CMS (or to use one at all), though it helps if you do some things to
 link cobbler's profiles with the "profiles" of the CMS. This, in general, makes management of both a lot easier.
@@ -110,8 +114,7 @@ Built-In Configuration Management
 Cobbler is not just an installation server, it can also enable two different types of ongoing configuration management
 system (CMS):
 
-* integration with an established external CMS such as `cfengine3 <http://cfengine.com/>`_, `bcfg2 <http://bcfg2.org>`_,
-  `Chef <http://wiki.opscode.com/display/chef/Home>`_, or `puppet <http://puppetlabs.com/>`_.
+* integration with an established external CMS such as cfengine3, bcfg2, Chef, or puppet.
 * its own, much simpler, lighter-weight, internal CMS, discussed here.
 
 Setting up
@@ -120,7 +123,7 @@ Setting up
 Cobbler's internal CMS is focused around packages and templated configuration files, and installing these on client
 systems.
 
-This all works using the same `Cheetah-powered <http://cheetahtemplate.org>`_ templating engine used in
+This all works using the same `Cheetah-powered <https://cheetahtemplate.org>`_ templating engine used in
 kickstart templating, so once you learn about the power of treating your distribution answer
 files as templates, you can use the same templating to drive your CMS configuration files.
 
@@ -352,13 +355,13 @@ bcfg2 support
 
 Documentation to be added
 
-Chef
-####
+Chef support
+############
 
 Documentation to be added.
 
 There is some integration information on bootstrapping chef clients with cobbler in
-[this blog article](http://blog.milford.io/2012/03/getting-a-basic-cobbler-server-going-on-centos/)
+`this blog article <https://web.archive.org/web/20140213051741/http://blog.milford.io/2012/03/getting-a-basic-cobbler-server-going-on-centos/>`_
 
 Conclusion
 ##########
@@ -366,10 +369,3 @@ Conclusion
 Hopefully this should get you started in linking up your provisioning configuration with your CMS implementation. The
 examples provided are for Puppet, but we can (in the future) presumably extend ``--mgmt-classes`` to work with other
 tools... Just let us know what you are interested in, or perhaps take a shot at creating a patch for it.
-
-Attachments
-###########
-
--   [puppet\_node.py](/cobbler/attachment/wiki/UsingCobblerWithConfigManagementSystem/puppet_node.py)
-    (2.5 kB) -Alternate External Nodes Script, added by shenson on
-    12/09/10 20:33:36.

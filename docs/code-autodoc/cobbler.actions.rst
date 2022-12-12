@@ -36,6 +36,14 @@ cobbler.actions.hardlink module
    :undoc-members:
    :show-inheritance:
 
+cobbler.actions.importer module
+-------------------------------
+
+.. automodule:: cobbler.actions.importer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 cobbler.actions.log module
 --------------------------
 

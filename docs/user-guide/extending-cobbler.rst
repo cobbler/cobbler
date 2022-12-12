@@ -162,11 +162,11 @@ See Also
 
 * The Cobbler command line itself (it's implemented in Cobbler modules so it's easy to add new commands)
 
-Python Files And modules.conf
-=============================
+Python Files and the configuration
+==================================
 
 To create a module, add a Python file in ``/usr/lib/python$version/site-packages/cobbler/modules``. Then, in the
-appropriate part of ``/etc/cobbler/modules.conf``, reference the name of your module so Cobbler knows that you want to
+appropriate part of the configuration, reference the name of your module so Cobbler knows that you want to
 activate the module.
 
 (:ref:`triggers` that are Python modules, as well as CLI Python modules don't need to be listed in this file, they
@@ -176,13 +176,9 @@ An example from the serializers is:
 
 .. code-block:: yaml
 
-    [serializers]
-    settings = serializer.file
-
-The format of ``/etc/cobbler/modules.conf`` is that of Python's ConfigParser module.
-
-A setup file consists of sections, lead by a "[section]" header, and followed by "name: value" entries with
-continuations and such in the style of RFC 822.
+    modules:
+      serializers:
+        module: "serializer.file"
 
 Each module, regardless of it's nature, must have the following function that returns the type of module (as a string)
 on an acceptable load (when the module can be loaded) or raises an exception otherwise.
