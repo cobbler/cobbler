@@ -343,7 +343,10 @@ def migrate(settings: dict) -> dict:
                 new_item[key] = transform_key(key, old_item[key])
 
             if new_type in add:
-                new_item.update(add[new_type])
+                # We only add items if they don't exist
+                for item in add[new_type]:
+                    if item not in new_item:
+                        new_item[item] = add[new_type][item]
 
             serialize_item(new_type, new_item)
 
