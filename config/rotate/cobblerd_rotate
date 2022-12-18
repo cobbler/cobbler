@@ -2,12 +2,11 @@
    compress
    dateext
    maxage 14
-   rotate 99
-   size=+4096k
+   minsize 4M
    missingok
    notifempty
-   rotate 4
-   weekly
+   rotate 9
+   daily
    create 644 root root
    postrotate
       /usr/bin/systemctl try-reload-or-restart cobblerd
