@@ -246,9 +246,7 @@ def migrate(settings: dict) -> dict:
 
         filename += ".json"
         with open(filename, "w", encoding="UTF-8") as item_fd:
-            data = json.dumps(
-                item, encoding="utf-8", sort_keys=sort_keys, indent=indent
-            )
+            data = json.dumps(item, sort_keys=sort_keys, indent=indent)
             item_fd.write(data)
 
     def deserialize_raw_old(collection_types):
@@ -258,7 +256,7 @@ def migrate(settings: dict) -> dict:
         for file in all_files:
             with open(file, encoding="UTF-8") as item_fd:
                 json_data = item_fd.read()
-                _dict = json.loads(json_data, encoding="utf-8")
+                _dict = json.loads(json_data)
                 results.append(_dict)
         return results
 
@@ -343,7 +341,10 @@ def migrate(settings: dict) -> dict:
                 new_item[key] = transform_key(key, old_item[key])
 
             if new_type in add:
-                new_item.update(add[new_type])
+                # We only add items if they don't exist
+                for item in add[new_type]:
+                    if item not in new_item:
+                        new_item[item] = add[new_type][item]
 
             serialize_item(new_type, new_item)
 

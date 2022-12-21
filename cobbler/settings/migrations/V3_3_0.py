@@ -406,9 +406,11 @@ def migrate_cobbler_collections(collections_dir: str):
             if data[key] is None:
                 data[key] = ""
 
-        # boot_loader -> boot_loaders
-        if "boot_loader" in data:
+        # boot_loader -> boot_loaders (preserving possible existing value)
+        if "boot_loader" in data and "boot_loaders" not in data:
             data["boot_loaders"] = data.pop("boot_loader")
+        elif "boot_loader" in data:
+            data.pop("boot_loader")
 
         # next_server -> next_server_v4, next_server_v6
         if "next_server" in data:
