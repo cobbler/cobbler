@@ -1,3 +1,4 @@
+import os
 from cobbler.utils import mtab
 
 
@@ -13,13 +14,19 @@ def test_get_mtab():
 
 def test_get_file_device_path():
     # Arrange
+    test_symlink = "/tmp/test_symlink"
+    os.symlink("/foobar/test", test_symlink)
 
     # Act
-    result = mtab.get_file_device_path("/etc/os-release")
+    result = mtab.get_file_device_path(test_symlink)
+
+    # Cleanup
+    os.remove(test_symlink)
 
     # Assert
-    # TODO Does not work in all environments (e.g. openSUSE TW with BTRFS)
-    assert result == ("overlay", "/usr/lib/os-release")
+    assert len(result) == 2
+    assert isinstance(result[0], str)
+    assert result[1] == "/foobar/test"
 
 
 def test_is_remote_file():
