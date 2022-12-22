@@ -1,6 +1,6 @@
 # vim: ft=dockerfile
 
-FROM fedora:34
+FROM fedora:37
 
 RUN dnf makecache
 
@@ -62,8 +62,8 @@ RUN dnf install -y          \
     time                    \
     iproute
 
-COPY ./docker/rpms/Fedora_34/supervisord/supervisord.conf /etc/supervisord.conf
-COPY ./docker/rpms/Fedora_34/supervisord/conf.d /etc/supervisord/conf.d
+COPY ./docker/rpms/Fedora_37/supervisord/supervisord.conf /etc/supervisord.conf
+COPY ./docker/rpms/Fedora_37/supervisord/conf.d /etc/supervisord/conf.d
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler

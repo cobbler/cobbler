@@ -17,7 +17,7 @@ Known packages by distros
 This is the most convenient way and should be the default for most people. Production usage is advised only from these
 four sources or from source with Git Tags.
 
-- `Fedora 34 <https://src.fedoraproject.org/rpms/cobbler>`_ - ``dnf install cobbler``
+- `Fedora 37 <https://src.fedoraproject.org/rpms/cobbler>`_ - ``dnf install cobbler``
 - `CentOS 8 <https://src.fedoraproject.org/rpms/cobbler>`_:
     - ``dnf install epel-release``
     - ``dnf module enable cobbler``
@@ -112,7 +112,7 @@ Packages
 We leave packaging to downstream; this means you have to check the repositories provided by your distribution vendor.
 However we provide docker files for
 
-- Fedora 34
+- Fedora 37
 - openSUSE Leap 15.3
 - openSUSE Tumbleweed
 - Rocky Linux 8
@@ -126,7 +126,7 @@ which will give you packages which will work better then building from source yo
 
 To build the packages you to need to execute the following in the root folder of the cloned repository:
 
-- Fedora 34: ``./docker/rpms/build-and-install-rpms.sh fc34 docker/rpms/Fedora_34/Fedora34.dockerfile``
+- Fedora 37: ``./docker/rpms/build-and-install-rpms.sh fc37 docker/rpms/Fedora_37/Fedora37.dockerfile``
 - CentOS 8: ``./docker/rpms/build-and-install-rpms.sh el8 docker/rpms/CentOS_8/CentOS8.dockerfile``
 - Debian 10: ``./docker/debs/build-and-install-debs.sh deb10 docker/debs/Debian_10/Debian10.dockerfile``
 - Debian 11: ``./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile``

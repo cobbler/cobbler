@@ -82,8 +82,8 @@ release: clean qa authors sdist ## Creates the full release.
 test-centos8: ## Executes the testscript for testing cobbler in a docker container on CentOS8.
 	./docker/rpms/build-and-install-rpms.sh el8 docker/rpms/CentOS_8/CentOS8.dockerfile
 
-test-fedora34: ## Executes the testscript for testing cobbler in a docker container on Fedora 33.
-	./docker/rpms/build-and-install-rpms.sh fc34 docker/rpms/Fedora_34/Fedora34.dockerfile
+test-fedora37: ## Executes the testscript for testing cobbler in a docker container on Fedora 37.
+	./docker/rpms/build-and-install-rpms.sh fc37 docker/rpms/Fedora_37/Fedora37.dockerfile
 
 test-debian10: ## Executes the testscript for testing cobbler in a docker container on Debian 10.
 	./docker/debs/build-and-install-debs.sh deb10 docker/debs/Debian_10/Debian10.dockerfile

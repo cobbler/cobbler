@@ -13,7 +13,7 @@
 # published by the Open Source Initiative.
 #
 # Supported/tested build targets:
-# - Fedora: 34
+# - Fedora: 37
 # - CentOS + EPEL: 8
 # - SLE: 15sp1
 # - openSUSE: Leap 15.4, Tumbleweed
