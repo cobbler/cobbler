@@ -25,3 +25,6 @@ override_dh_auto_clean:
 override_dh_auto_install:
 	@source ./distro_build_configs.sh; \
 	dh_auto_install
+
+override_dh_install:
+	dh_install --sourcedir="debian/python3-cobbler"
