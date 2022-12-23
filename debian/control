@@ -43,3 +43,21 @@ Description: Install server
  integrated yum mirroring, and built-in DHCP/DNS Management.
  Cobbler has a Python and XMLRPC API for integration with other
  applications. There is also a web interface available.
+
+Package: cobbler-tests
+Architecture: all
+Depends:
+ cobbler,
+ ${python3:Depends},
+ ${misc:Depends}
+Description: Unit test for Cobbler
+ Unit test files from the Cobbler project
+
+Package: cobbler-tests-containers
+Architecture: all
+Depends:
+ cobbler,
+ ${python3:Depends},
+ ${misc:Depends}
+Description: Files to test Cobbler in containers
+ Dockerfiles and scripts to setup testing containers

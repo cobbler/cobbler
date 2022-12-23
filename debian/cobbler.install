@@ -1,0 +1,8 @@
+etc/
+usr/bin/
+usr/lib/
+var/log/
+var/lib/
+usr/share/man/
+usr/share/bash-completion
+usr/share/cobbler/bin/
