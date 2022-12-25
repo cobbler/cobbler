@@ -5,5 +5,5 @@ dnspython
 pyyaml
 distro
 sphinx_rtd_theme==1.0.0
-file-magic
+file-magic==0.4.1
 schema
