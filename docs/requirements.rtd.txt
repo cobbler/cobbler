@@ -2,7 +2,7 @@ Sphinx>4
 netaddr
 Cheetah3
 dnspython
-pyyaml
+pyyaml==6.0
 distro
 sphinx_rtd_theme==1.0.0
 file-magic
