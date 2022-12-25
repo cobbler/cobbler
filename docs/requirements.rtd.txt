@@ -1,6 +1,6 @@
 Sphinx>4
 netaddr
-Cheetah3
+Cheetah3==3.2.6.post2
 dnspython
 pyyaml
 distro
