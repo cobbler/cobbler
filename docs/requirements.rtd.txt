@@ -3,7 +3,7 @@ netaddr
 Cheetah3
 dnspython
 pyyaml
-distro
+distro==1.8.0
 sphinx_rtd_theme==1.0.0
 file-magic
 schema
