@@ -1,7 +1,7 @@
 Sphinx>4
 netaddr
 Cheetah3
-dnspython
+dnspython==2.2.1
 pyyaml
 distro
 sphinx_rtd_theme==1.0.0
