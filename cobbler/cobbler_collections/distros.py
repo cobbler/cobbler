@@ -65,7 +65,7 @@ class Distros(collection.Collection):
         if not recursive:
             for profile in self.api.profiles():
                 if profile.distro and profile.distro.name == name:
-                    raise CX("removal would orphan profile: %s" % profile.name)
+                    raise CX(f"removal would orphan profile: {profile.name}")
 
         kernel = obj.kernel
         if recursive:

@@ -53,9 +53,9 @@ class Images(collection.Collection):
 
         # first see if any Groups use this distro
         if not recursive:
-            for v in self.api.systems():
-                if v.image is not None and v.image == name:
-                    raise CX("removal would orphan system: %s" % v.name)
+            for system in self.api.systems():
+                if system.image is not None and system.image == name:
+                    raise CX(f"removal would orphan system: {system.name}")
 
         if recursive:
             kids = self.api.find_items("system", {"image": obj.name})
