@@ -260,16 +260,15 @@ class Collection:
 
         # Save the old name
         oldname = ref.name
-        # Reserve the new name
-        self.listing[newname] = None
-        # Delete the old item
-        self.collection_mgr.serialize_delete_one_item(ref)
-        self.listing.pop(oldname)
-        # Change the name of the object
-        ref.name = newname
-        # Save just this item
-        self.collection_mgr.serialize_one_item(ref)
-        self.listing[newname] = ref
+        with self.lock:
+            # Delete the old item
+            self.collection_mgr.serialize_delete_one_item(ref)
+            self.listing.pop(oldname.lower())
+            # Change the name of the object
+            ref.name = newname
+            # Save just this item
+            self.collection_mgr.serialize_one_item(ref)
+            self.listing[newname.lower()] = ref
 
         # for mgmt classes, update all objects that use it
         if ref.COLLECTION_TYPE == "mgmtclass":
