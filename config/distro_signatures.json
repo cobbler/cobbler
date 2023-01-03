@@ -118,7 +118,7 @@
         "signatures": [
           "BaseOS"
         ],
-        "version_file": "(redhat|sl|slf|centos|oraclelinux|vzlinux)-release-(?!notes)([\\w]*-)*8(Server)*[\\.-]+(.*)\\.rpm",
+        "version_file": "(redhat|sl|slf|almalinux|centos|oraclelinux|rocky|vzlinux)-release-(?!notes)([\\w]*-)*8(Server)*[\\.-]+(.*)\\.rpm",
         "version_file_regex": null,
         "kernel_arch": "kernel-(.*).rpm",
         "kernel_arch_regex": null,
@@ -145,7 +145,7 @@
         "signatures": [
           "BaseOS"
         ],
-        "version_file": "(redhat|sl|slf|centos|oraclelinux|vzlinux)-release-(?!notes)([\\w]*-)*9(Server)*[\\.-]+(.*)\\.rpm",
+        "version_file": "(redhat|sl|slf|almalinux|centos|oraclelinux|rocky|vzlinux)-release-(?!notes)([\\w]*-)*9(Server)*[\\.-]+(.*)\\.rpm",
         "version_file_regex": null,
         "kernel_arch": "kernel-(.*).rpm",
         "kernel_arch_regex": null,
@@ -956,6 +956,29 @@
         ],
         "version_file": "Release",
         "version_file_regex": "Codename: buster",
+        "kernel_arch": "linux-headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.gz",
+        "isolinux_ok": false,
+        "default_kickstart": "/var/lib/cobbler/kickstarts/sample.seed",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "bullseye": {
+        "signatures": [
+          "dists"
+        ],
+        "version_file": "Release",
+        "version_file_regex": "Codename: bullseye",
         "kernel_arch": "linux-headers-(.*)\\.deb",
         "kernel_arch_regex": null,
         "supported_arches": [
