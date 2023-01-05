@@ -81,7 +81,7 @@ class RepoSync:
         self.api = api
         self.settings = api.settings()
         self.repos = api.repos()
-        self.rflags = self.settings.reposync_flags
+        self.rflags = self.settings.reposync_flags.split()
         self.tries = tries
         self.nofail = nofail
         self.logger = logging.getLogger()
@@ -271,9 +271,9 @@ class RepoSync:
                             )
 
             blended = utils.blender(self.api, False, repo)
-            flags = blended.get("createrepo_flags", "(ERROR: FLAGS)")
+            flags = blended.get("createrepo_flags", "(ERROR: FLAGS)").split()
             try:
-                cmd = ["createrepo"] + mdoptions + [flags, pipes.quote(dirname)]
+                cmd = ["createrepo"] + mdoptions + flags + [pipes.quote(dirname)]
                 utils.subprocess_call(cmd, shell=False)
             except Exception:
                 utils.log_exc()
@@ -349,27 +349,24 @@ class RepoSync:
 
         dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
 
-        spacer = ""
+        spacer = []
         if not repo.mirror.startswith("rsync://") and not repo.mirror.startswith("/"):
-            spacer = "-e ssh"
+            spacer = ["-e ssh"]
         if not repo.mirror.endswith("/"):
             repo.mirror = f"{repo.mirror}/"
 
-        flags = ""
+        flags = []
         for repo_option in repo.rsyncopts:
             if repo.rsyncopts[repo_option]:
-                flags += f" {repo_option} {repo.rsyncopts[repo_option]}"
+                flags.append(f"{repo_option} {repo.rsyncopts[repo_option]}")
             else:
-                flags += f" {repo_option}"
+                flags.append(f"{repo_option}")
 
-        if flags == "":
-            flags = self.settings.reposync_rsync_flags
+        if not flags:
+            flags = self.settings.reposync_rsync_flags.split()
 
-        cmd = [
-            "rsync",
-            flags,
-            "--delete-after",
-            spacer,
+        cmd = ["rsync"] + flags + ["--delete-after"]
+        cmd += spacer + [
             "--delete",
             "--exclude-from=/etc/cobbler/rsync.exclude",
             pipes.quote(repo.mirror),
@@ -385,9 +382,8 @@ class RepoSync:
         if "--archive" in flags:
             archive = True
         else:
-            # split flags and skip all --{options} as we need to look for combined flags like -vaH
-            flag = flags.split()
-            for option in flag:
+            # skip all flags --{options} as we need to look for combined flags like -vaH
+            for option in flags:
                 if option.startswith("--"):
                     pass
                 else:
@@ -401,7 +397,8 @@ class RepoSync:
 
     # ====================================================================================
 
-    def reposync_cmd(self) -> str:
+    @staticmethod
+    def reposync_cmd() -> list:
 
         """
         Determine reposync command
@@ -413,9 +410,9 @@ class RepoSync:
             raise CX("no librepo found, please install python3-librepo")
 
         if os.path.exists("/usr/bin/dnf"):
-            cmd = "/usr/bin/dnf reposync"
+            cmd = ["/usr/bin/dnf", "reposync"]
         elif os.path.exists("/usr/bin/reposync"):
-            cmd = "/usr/bin/reposync"
+            cmd = ["/usr/bin/reposync"]
         else:
             # Warn about not having yum-utils.  We don't want to require it in the package because Fedora 22+ has moved
             # to dnf.
@@ -470,11 +467,10 @@ class RepoSync:
             # Counter-intuitive, but we want the newish kernels too
             arch = "i686"
 
-        cmd = [
-            self.reposync_cmd(),
-            self.rflags,
+        cmd = self.reposync_cmd()
+        cmd += self.rflags + [
             f"--repo={pipes.quote(rest)}",
-            f"-p={pipes.quote(repos_path)}",
+            f"--download-path={pipes.quote(repos_path)}",
         ]
         if arch != "none":
             cmd.append(f'--arch="{arch}"')
@@ -568,12 +564,13 @@ class RepoSync:
 
         if not has_rpm_list:
             # If we have not requested only certain RPMs, use reposync
-            cmd = (
-                f"{cmd} {self.rflags} --config={temp_file} --repoid={pipes.quote(repo.name)}"
-                f" -p {pipes.quote(repos_path)}"
-            )
+            cmd += self.rflags + [
+                f"--config={temp_file}",
+                f"--repoid={pipes.quote(repo.name)}",
+                f"--download-path={pipes.quote(repos_path)}",
+            ]
             if arch != "none":
-                cmd = f"{cmd} -a {arch}"
+                cmd.append(f"--arch={arch}")
 
         else:
             # Create the output directory if it doesn't exist
@@ -581,12 +578,11 @@ class RepoSync:
                 os.makedirs(dest_path)
 
             # Older yumdownloader sometimes explodes on --resolvedeps if this happens to you, upgrade yum & yum-utils
-            extra_flags = self.settings.yumdownloader_flags
+            extra_flags = self.settings.yumdownloader_flags.split()
             cmd = [
                 "/usr/bin/dnf",
                 "download",
-                extra_flags,
-            ]
+            ] + extra_flags
             if arch == "src":
                 cmd.append("--source")
             cmd += [
@@ -594,8 +590,8 @@ class RepoSync:
                 f"--enablerepo={pipes.quote(repo.name)}",
                 f"-c={temp_file}",
                 f"--destdir={pipes.quote(dest_path)}",
-                " ".join(repo.rpm_list),
             ]
+            cmd += repo.rpm_list
 
         # Now regardless of whether we're doing yumdownloader or reposync or whether the repo was http://, ftp://, or
         # rhn://, execute all queued commands here.  Any failure at any point stops the operation.

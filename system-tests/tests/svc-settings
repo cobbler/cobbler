@@ -51,7 +51,7 @@ cat >${tmp}/a <<-EOF
     "client_use_localhost": false,
     "cobbler_master": "",
     "convert_server_to_ip": false,
-    "createrepo_flags": "-c cache -s sha",
+    "createrepo_flags": "--cachedir=cache --update",
     "autoinstall": "default.ks",
     "default_name_servers": [],
     "default_name_servers_search": [],
