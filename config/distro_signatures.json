@@ -118,15 +118,42 @@
         "signatures": [
           "BaseOS"
         ],
-        "version_file": "(redhat|sl|slf|centos|oraclelinux|vzlinux)-release-(?!notes)([\\w]*-)*8(Server)*[\\.-]+(.*)\\.rpm",
+        "version_file": "(redhat|sl|slf|almalinux|centos|oraclelinux|rocky|vzlinux)-release-(?!notes)([\\w]*-)*8(Server)*[\\.-]+(.*)\\.rpm",
         "version_file_regex": null,
         "kernel_arch": "kernel-(.*).rpm",
         "kernel_arch_regex": null,
         "supported_arches": [
           "aarch64",
-          "i386",
-          "x86_64",
-          "ppc64le"
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_kickstart": "/var/lib/cobbler/kickstarts/sample_end.ks",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "rhel9": {
+        "signatures": [
+          "BaseOS"
+        ],
+        "version_file": "(redhat|sl|slf|almalinux|centos|oraclelinux|rocky|vzlinux)-release-(?!notes)([\\w]*-)*9(Server)*[\\.-]+(.*)\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*).rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "ppc64le",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -616,9 +643,173 @@
         "kernel_arch_regex": null,
         "supported_arches": [
           "aarch64",
-          "i386",
-          "x86_64",
-          "ppc64le"
+          "armhfp",
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_kickstart": "sample.ks",
+        "kernel_options": "repo=$tree",
+        "kernel_options_post": "",
+        "boot_files": [],
+        "boot_loaders": {
+          "ppc64": [
+            "grub"
+          ]
+        }
+      },
+      "fedora33": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(fedora)-release-33-(.*)\\.noarch\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "armhfp",
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_kickstart": "sample.ks",
+        "kernel_options": "repo=$tree",
+        "kernel_options_post": "",
+        "boot_files": [],
+        "boot_loaders": {
+          "ppc64": [
+            "grub"
+          ]
+        }
+      },
+      "fedora34": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(fedora)-release-34-(.*)\\.noarch\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "armhfp",
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_kickstart": "sample.ks",
+        "kernel_options": "repo=$tree",
+        "kernel_options_post": "",
+        "boot_files": [],
+        "boot_loaders": {
+          "ppc64": [
+            "grub"
+          ]
+        }
+      },
+      "fedora35": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(fedora)-release-35-(.*)\\.noarch\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "armhfp",
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_kickstart": "sample.ks",
+        "kernel_options": "repo=$tree",
+        "kernel_options_post": "",
+        "boot_files": [],
+        "boot_loaders": {
+          "ppc64": [
+            "grub"
+          ]
+        }
+      },
+      "fedora36": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(fedora)-release-36-(.*)\\.noarch\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_kickstart": "sample.ks",
+        "kernel_options": "repo=$tree",
+        "kernel_options_post": "",
+        "boot_files": [],
+        "boot_loaders": {
+          "ppc64": [
+            "grub"
+          ]
+        }
+      },
+      "fedora37": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(fedora)-release-37-(.*)\\.noarch\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "ppc64le",
+          "s390x",
+          "x86_64"
         ],
         "supported_repo_breeds": [
           "rsync",
@@ -765,6 +956,29 @@
         ],
         "version_file": "Release",
         "version_file_regex": "Codename: buster",
+        "kernel_arch": "linux-headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.gz",
+        "isolinux_ok": false,
+        "default_kickstart": "/var/lib/cobbler/kickstarts/sample.seed",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "bullseye": {
+        "signatures": [
+          "dists"
+        ],
+        "version_file": "Release",
+        "version_file_regex": "Codename: bullseye",
         "kernel_arch": "linux-headers-(.*)\\.deb",
         "kernel_arch_regex": null,
         "supported_arches": [
