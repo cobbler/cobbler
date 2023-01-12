@@ -35,11 +35,14 @@ cobbler4j/target
 # Testrun output
 test.log
 
-# IntelliJ IDEA + venv
+# IDEs
 .idea/
-# Normal venv.
+.fleet/
+.vscode/
+
+# Python
+.venv/
 venv/
-# Venv for developnig with Python3 for the futurize branch.
 venv3/
 
 # Coverage
