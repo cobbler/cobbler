@@ -7,7 +7,7 @@ on:
     branches: [ main, release* ]
 
 jobs:
-  lint_docs:
+  docs:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
@@ -21,7 +21,7 @@ jobs:
       run:  rstcheck -r docs
     - name: Run doc8
       run: doc8 --ignore D001 docs
-  lint_shellscripts:
+  shellscripts:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -29,6 +29,31 @@ jobs:
         uses: ludeeus/action-shellcheck@master
         with:
           scandir: './scripts'
+  pyright:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.6'
+          cache: 'pip' # caching pip dependencies
+          cache-dependency-path: '**/setup.py'
+      - name: Install system dependencies
+        run: sudo apt-get install -y libldap2-dev libsasl2-dev
+      - name: Install Python dependencies
+        run: pip install .[test,extra,docs,lint]
+      - name: Get changed files
+        # https://github.com/tj-actions/changed-files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          files: |
+            *.py
+            **/*.py
+      - uses: jakebailey/pyright-action@v1
+        # https://github.com/jakebailey/pyright-action
+        with:
+          extra-args: ${{ steps.changed-files.outputs.all_changed_files }}
   python_black:
     name: black formatter
     runs-on: ubuntu-latest
