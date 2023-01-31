@@ -357,14 +357,13 @@ class TFTPGen:
 
         boot_menu = {}
         metadata = self.get_menu_items()
-        loader_metadata = metadata
         menu_items = metadata["menu_items"]
         menu_labels = metadata["menu_labels"]
-        loader_metadata["pxe_timeout_profile"] = timeout_action
+        metadata["pxe_timeout_profile"] = timeout_action
 
         # Write the PXE menu:
-        loader_metadata["menu_items"] = menu_items["pxe"]
-        loader_metadata["menu_labels"] = menu_labels["pxe"]
+        metadata["menu_items"] = menu_items.get("pxe", "")
+        metadata["menu_labels"] = menu_labels.get("pxe", "")
         outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
         with open(
             os.path.join(
@@ -373,14 +372,12 @@ class TFTPGen:
             encoding="UTF-8",
         ) as template_src:
             template_data = template_src.read()
-            boot_menu["pxe"] = self.templar.render(
-                template_data, loader_metadata, outfile
-            )
+            boot_menu["pxe"] = self.templar.render(template_data, metadata, outfile)
 
         if self.settings.enable_ipxe:
             # Write the iPXE menu:
-            loader_metadata["menu_items"] = menu_items["ipxe"]
-            loader_metadata["menu_labels"] = menu_labels["ipxe"]
+            metadata["menu_items"] = menu_items.get("ipxe", "")
+            metadata["menu_labels"] = menu_labels.get("ipxe", "")
             outfile = os.path.join(self.bootloc, "ipxe", "default.ipxe")
             with open(
                 os.path.join(
@@ -390,7 +387,7 @@ class TFTPGen:
             ) as template_src:
                 template_data = template_src.read()
                 boot_menu["ipxe"] = self.templar.render(
-                    template_data, loader_metadata, outfile
+                    template_data, metadata, outfile
                 )
 
         # Write the grub menu:
