@@ -150,6 +150,77 @@ class TFTPGen:
         newfile = os.path.join(images_dir, img.name)
         filesystem_helpers.linkfile(self.api, filename, newfile)
 
+    def _write_all_system_files_s390(self, distro, profile, image, system):
+        """
+        TODO
+        """
+        short_name = system.name.split(".")[0]
+        s390_name = "linux" + short_name[7:10]
+        self.logger.info("Writing s390x pxe config for %s", short_name)
+        # Always write a system specific _conf and _parm file
+        pxe_f = os.path.join(self.bootloc, "s390x", f"s_{s390_name}")
+        conf_f = f"{pxe_f}_conf"
+        parm_f = f"{pxe_f}_parm"
+
+        self.logger.info("Files: (conf,param) - (%s,%s)", conf_f, parm_f)
+        blended = utils.blender(self.api, True, system)
+        # FIXME: profiles also need this data!
+        # gather default kernel_options and default kernel_options_s390x
+        kernel_options = self.build_kernel_options(
+            system,
+            profile,
+            distro,
+            image,
+            enums.Archs.S390X,
+            blended.get("autoinstall", ""),
+        )
+        kopts_aligned = ""
+        column = 0
+        for option in kernel_options.split():
+            opt_len = len(option)
+            if opt_len > 78:
+                kopts_aligned += "\n" + option + " "
+                column = opt_len + 1
+                self.logger.error("Kernel paramer [%s] too long %s", option, opt_len)
+                continue
+            if column + opt_len > 78:
+                kopts_aligned += "\n" + option + " "
+                column = opt_len + 1
+            else:
+                kopts_aligned += option + " "
+                column += opt_len + 1
+
+        # Write system specific zPXE file
+        if system.is_management_supported():
+            if system.netboot_enabled:
+                self.logger.info("S390x: netboot_enabled")
+                kernel_path = os.path.join(
+                    "/images", distro.name, os.path.basename(distro.kernel)
+                )
+                initrd_path = os.path.join(
+                    "/images", distro.name, os.path.basename(distro.initrd)
+                )
+                with open(pxe_f, "w", encoding="UTF-8") as out:
+                    out.write(kernel_path + "\n" + initrd_path + "\n")
+                with open(parm_f, "w", encoding="UTF-8") as out:
+                    out.write(kopts_aligned)
+                # Write conf file with one newline in it if netboot is enabled
+                with open(conf_f, "w", encoding="UTF-8") as out:
+                    out.write("\n")
+            else:
+                self.logger.info("S390x: netboot_disabled")
+                # Write empty conf file if netboot is disabled
+                pathlib.Path(conf_f).touch()
+        else:
+            # ensure the files do exist
+            self.logger.info("S390x: management not supported")
+            filesystem_helpers.rmfile(pxe_f)
+            filesystem_helpers.rmfile(conf_f)
+            filesystem_helpers.rmfile(parm_f)
+        self.logger.info(
+            "S390x: pxe: [%s], conf: [%s], parm: [%s]", pxe_f, conf_f, parm_f
+        )
+
     def write_all_system_files(self, system, menu_items):
         """
         Writes all files for tftp for a given system with the menu items handed to this method. The system must have a
@@ -179,75 +250,7 @@ class TFTPGen:
 
         # hack: s390 generates files per system not per interface
         if not image_based and distro.arch in (enums.Archs.S390, enums.Archs.S390X):
-            short_name = system.name.split(".")[0]
-            s390_name = "linux" + short_name[7:10]
-            self.logger.info("Writing s390x pxe config for %s", short_name)
-            # Always write a system specific _conf and _parm file
-            pxe_f = os.path.join(self.bootloc, "s390x", f"s_{s390_name}")
-            conf_f = f"{pxe_f}_conf"
-            parm_f = f"{pxe_f}_parm"
-
-            self.logger.info("Files: (conf,param) - (%s,%s)", conf_f, parm_f)
-            blended = utils.blender(self.api, True, system)
-            # FIXME: profiles also need this data!
-            # gather default kernel_options and default kernel_options_s390x
-            kernel_options = self.build_kernel_options(
-                system,
-                profile,
-                distro,
-                image,
-                enums.Archs.S390X,
-                blended.get("autoinstall", ""),
-            )
-            kopts_aligned = ""
-            column = 0
-            for option in kernel_options.split():
-                opt_len = len(option)
-                if opt_len > 78:
-                    kopts_aligned += "\n" + option + " "
-                    column = opt_len + 1
-                    self.logger.error(
-                        "Kernel paramer [%s] too long %s", option, opt_len
-                    )
-                    continue
-                if column + opt_len > 78:
-                    kopts_aligned += "\n" + option + " "
-                    column = opt_len + 1
-                else:
-                    kopts_aligned += option + " "
-                    column += opt_len + 1
-
-            # Write system specific zPXE file
-            if system.is_management_supported():
-                if system.netboot_enabled:
-                    self.logger.info("S390x: netboot_enabled")
-                    kernel_path = os.path.join(
-                        "/images", distro.name, os.path.basename(distro.kernel)
-                    )
-                    initrd_path = os.path.join(
-                        "/images", distro.name, os.path.basename(distro.initrd)
-                    )
-                    with open(pxe_f, "w", encoding="UTF-8") as out:
-                        out.write(kernel_path + "\n" + initrd_path + "\n")
-                    with open(parm_f, "w", encoding="UTF-8") as out:
-                        out.write(kopts_aligned)
-                    # Write conf file with one newline in it if netboot is enabled
-                    with open(conf_f, "w", encoding="UTF-8") as out:
-                        out.write("\n")
-                else:
-                    self.logger.info("S390x: netboot_disabled")
-                    # Write empty conf file if netboot is disabled
-                    pathlib.Path(conf_f).touch()
-            else:
-                # ensure the files do exist
-                self.logger.info("S390x: management not supported")
-                filesystem_helpers.rmfile(pxe_f)
-                filesystem_helpers.rmfile(conf_f)
-                filesystem_helpers.rmfile(parm_f)
-            self.logger.info(
-                "S390x: pxe: [%s], conf: [%s], parm: [%s]", pxe_f, conf_f, parm_f
-            )
-
+            self._write_all_system_files_s390(distro, profile, image, system)
             return
 
         # generate one record for each described NIC ..
