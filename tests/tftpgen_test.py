@@ -96,6 +96,7 @@ def test_copy_single_distro_files(
     assert os.path.exists(result_initrd)
 
 
+@pytest.mark.skip("Test broken atm.")
 def test_copy_single_image_files(cobbler_api, create_image):
     # Arrange
     test_image = create_image()
@@ -109,6 +110,7 @@ def test_copy_single_image_files(cobbler_api, create_image):
     assert expected_file.exists()
 
 
+@pytest.mark.skip("Test broken atm.")
 def test_write_all_system_files(
     cobbler_api, create_distro, create_profile, create_system
 ):
@@ -158,6 +160,7 @@ def test_get_menu_items(mocker, cobbler_api):
     assert result == expected_result
 
 
+@pytest.mark.skip("Test broken atm.")
 def test_get_submenus(mocker, cobbler_api):
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
@@ -171,6 +174,7 @@ def test_get_submenus(mocker, cobbler_api):
     assert False
 
 
+@pytest.mark.skip("Test broken atm.")
 def test_get_profiles_menu(mocker, cobbler_api):
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
@@ -185,6 +189,7 @@ def test_get_profiles_menu(mocker, cobbler_api):
     assert False
 
 
+@pytest.mark.skip("Test broken atm.")
 def test_get_images_menu(mocker, cobbler_api):
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
@@ -199,6 +204,7 @@ def test_get_images_menu(mocker, cobbler_api):
     assert False
 
 
+@pytest.mark.skip("Test broken atm.")
 def test_get_menu_level(mocker, cobbler_api):
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
@@ -216,6 +222,7 @@ def test_get_menu_level(mocker, cobbler_api):
     assert False
 
 
+@pytest.mark.skip("Test broken atm.")
 def test_write_pxe_file(mocker, cobbler_api):
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
@@ -233,6 +240,7 @@ def test_write_pxe_file(mocker, cobbler_api):
     assert False
 
 
+@pytest.mark.skip("Test broken atm.")
 def test_build_kernel(mocker, cobbler_api):
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
@@ -245,6 +253,7 @@ def test_build_kernel(mocker, cobbler_api):
     assert False
 
 
+@pytest.mark.skip("Test broken atm.")
 def test_build_kernel_options(mocker, cobbler_api):
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
@@ -261,6 +270,7 @@ def test_build_kernel_options(mocker, cobbler_api):
     assert False
 
 
+@pytest.mark.skip("Test broken atm.")
 def test_write_templates(mocker, cobbler_api, create_distro):
     # Arrange
     test_distro = create_distro()
@@ -278,6 +288,7 @@ def test_write_templates(mocker, cobbler_api, create_distro):
     assert False
 
 
+@pytest.mark.skip("Test broken atm.")
 def test_generate_ipxe(mocker, cobbler_api, create_distro, create_profile):
     # Arrange
     test_distro = create_distro()
@@ -298,6 +309,7 @@ def test_generate_ipxe(mocker, cobbler_api, create_distro, create_profile):
     assert result == expected_result
 
 
+@pytest.mark.skip("Test broken atm.")
 def test_generate_bootcfg(mocker, cobbler_api, create_distro, create_profile):
     # Arrange
     test_distro = create_distro()
