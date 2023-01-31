@@ -161,8 +161,7 @@ class TFTPGen:
         profile = system.get_conceptual_parent()
         if profile is None:
             raise CX(
-                "system %(system)s references a missing profile %(profile)s"
-                % {"system": system.name, "profile": system.profile}
+                f"system {system.name} references a missing profile {system.profile}"
             )
 
         distro = profile.get_conceptual_parent()
@@ -171,8 +170,7 @@ class TFTPGen:
         if distro is None:
             if profile.COLLECTION_TYPE == "profile":
                 raise CX(
-                    "profile %(profile)s references a missing distro %(distro)s"
-                    % {"profile": system.profile, "distro": profile.distro}
+                    f"profile {system.profile} references a missing distro {profile.distro}"
                 )
             image_based = True
             image = profile
