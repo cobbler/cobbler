@@ -351,9 +351,8 @@ class TFTPGen:
         # only do this if there is NOT a system named default.
         default = self.systems.find(name="default")
 
-        if default is None:
-            timeout_action = "local"
-        else:
+        timeout_action = "local"
+        if default is not None:
             timeout_action = default.profile
 
         boot_menu = {}
