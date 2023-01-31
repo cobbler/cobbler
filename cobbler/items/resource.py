@@ -1,5 +1,31 @@
 """
-An Resource is a serializable thing that can appear in a Collection
+A Resource is a serializable thing that can appear in a Collection
+
+Changelog:
+
+Current Schema:
+    * action: enums.ResourceAction
+    * mode: str
+    * owner: str
+    * group: str
+    * path: str
+    * template: str
+V3.3.4:
+    * No changes
+V3.3.3:
+    * No changes
+V3.3.2:
+    * No changes
+V3.3.1:
+    * No changes
+V3.3.0:
+    * Added:
+        * action: enums.ResourceAction
+        * mode: str
+        * owner: str
+        * group: str
+        * path: str
+        * template: str
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

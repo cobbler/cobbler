@@ -1,5 +1,38 @@
 """
 All code belonging to Cobbler systems. This includes network interfaces.
+
+Changelog:
+
+Current Schema:
+    *
+V3.3.4:
+    * No changes
+V3.3.3:
+    * No changes
+V3.3.2:
+    * No changes
+V3.3.1:
+    * No changes
+V3.3.0:
+    *
+V3.2.2:
+    * No changes
+V3.2.1:
+    * No changes
+V3.2.0:
+    * No changes
+V3.1.2:
+    * No changes
+V3.1.1:
+    * No changes
+V3.1.0:
+    * No changes
+V3.0.1:
+    * No changes
+V3.0.0:
+    * No changes
+V2.8.5:
+
 """
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2006-2008, Red Hat, Inc and Others

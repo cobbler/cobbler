@@ -1,5 +1,21 @@
 """
 Cobbler module that contains the code for a Cobbler menu object.
+
+Changelog:
+
+Current Schema:
+    * display_name: str
+V3.3.4:
+    * No changes
+V3.3.3:
+    * No changes
+V3.3.2:
+    * No changes
+V3.3.1:
+    * No changes
+V3.3.0:
+    * Added:
+        * display_name: str
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

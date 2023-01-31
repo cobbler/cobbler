@@ -1,5 +1,65 @@
 """
 Cobbler module that contains the code for a Cobbler file object.
+
+Changelog:
+
+Current Schema:
+    * is_dir: bool
+V3.3.4:
+    * No changes
+V3.3.3:
+    * No changes
+V3.3.2:
+    * No changes
+V3.3.1:
+    * No changes
+V3.3.0:
+    * Removed:
+        * uid: str
+        * depth: float
+        * comment: str
+        * ctime: float
+        * mtime: float
+        * owners: Union[list, SETTINGS:default_ownership]
+        * name: str
+        * action: str
+        * group: str
+        * mode: str
+        * owner: str
+        * path: str
+        * template: str
+V3.2.2:
+    * No changes
+V3.2.1:
+    * No changes
+V3.2.0:
+    * No changes
+V3.1.2:
+    * No changes
+V3.1.1:
+    * No changes
+V3.1.0:
+    * No changes
+V3.0.1:
+    * No changes
+V3.0.0:
+    * No changes
+V2.8.5:
+    * Added:
+        * uid: str
+        * depth: float
+        * comment: str
+        * ctime: float
+        * mtime: float
+        * owners: Union[list, SETTINGS:default_ownership]
+        * name: str
+        * is_dir: bool
+        * action: str
+        * group: str
+        * mode: str
+        * owner: str
+        * path: str
+        * template: str
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

@@ -1,5 +1,61 @@
 """
 Cobbler module that contains the code for a Cobbler mgmtclass object.
+
+Changelog:
+
+Current Schema:
+    * is_definition: bool
+    * params: dict
+    * class_name: str
+    * files: list
+    * packages: list
+V3.3.4:
+    * No changes
+V3.3.3:
+    * No changes
+V3.3.2:
+    * No changes
+V3.3.1:
+    * No changes
+V3.3.0:
+    * Removed:
+        * ctime: int
+        * depth: float
+        * mtime: int
+        * uid: str
+        * comment: str
+        * name: str
+        * owners: Union[list, SETTINGS:default_ownership]
+V3.2.2:
+    * No changes
+V3.2.1:
+    * No changes
+V3.2.0:
+    * No changes
+V3.1.2:
+    * No changes
+V3.1.1:
+    * No changes
+V3.1.0:
+    * No changes
+V3.0.1:
+    * No changes
+V3.0.0:
+    * No changes
+V2.8.5:
+    * Added:
+        * ctime: int
+        * depth: float
+        * is_definition: bool
+        * mtime: int
+        * uid: str
+        * class_name: str
+        * comment: str
+        * files: list
+        * name: str
+        * owners: Union[list, SETTINGS:default_ownership]
+        * packages: list
+        * params: dict
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

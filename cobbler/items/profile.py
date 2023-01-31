@@ -1,5 +1,155 @@
 """
 Cobbler module that contains the code for a Cobbler profile object.
+
+Changelog:
+
+Current Schema:
+    * template_files: dict
+    * autoinstall: enums.VALUE_INHERITED
+    * boot_loaders: Union[list, str]
+    * dhcp_tag: str
+    * distro: str
+    * enable_ipxe: bool
+    * enable_menu: bool
+    * name_servers: list
+    * name_servers_search: list
+    * next_server_v4: enums.VALUE_INHERITED
+    * next_server_v6: enums.VALUE_INHERITED
+    * filename: str
+    * proxy: enums.VALUE_INHERITED
+    * redhat_management_key: enums.VALUE_INHERITED
+    * repos: list
+    * server: enums.VALUE_INHERITED
+    * menu: str
+    * display_name: str
+    * virt_auto_boot: bool
+    * virt_bridge: enums.VALUE_INHERITED
+    * virt_cpus: Union[int, str]
+    * virt_disk_driver: enums.VirtDiskDrivers
+    * virt_file_size: enums.VALUE_INHERITED
+    * virt_path: str
+    * virt_ram: enums.VALUE_INHERITED
+    * virt_type: enums.VirtType
+
+    * boot_files: enums.VALUE_INHERITED
+    * fetchable_files: enums.VALUE_INHERITED
+    * autoinstall_meta: enums.VALUE_INHERITED
+    * kernel_options: enums.VALUE_INHERITED
+    * kernel_options_post: enums.VALUE_INHERITED
+    * mgmt_classes: enums.VALUE_INHERITED
+    * mgmt_parameters: enums.VALUE_INHERITED
+V3.3.4:
+    * No changes
+V3.3.3:
+    * Changed:
+        * next_server_v4: str -> enums.VALUE_INHERITED
+        * next_server_v6: str -> enums.VALUE_INHERITED
+        * virt_bridge: str -> enums.VALUE_INHERITED
+        * virt_file_size: int -> enums.VALUE_INHERITED
+        * virt_ram: int -> enums.VALUE_INHERITED
+V3.3.2:
+    * No changes
+V3.3.1:
+    * No changes
+V3.3.0:
+    * Added:
+        * boot_loaders: Union[list, str]
+        * enable_ipxe: bool
+        * next_server_v4: str
+        * next_server_v6: str
+        * menu: str
+    * Removed:
+        * enable_gpxe: Union[bool, SETTINGS:enable_gpxe]
+        * next_server: Union[str, inherit]
+    * Changed:
+        * autoinstall: Union[str, SETTINGS:default_kickstart] -> enums.VALUE_INHERITED
+        * enable_menu: Union[bool, SETTINGS:enable_menu] -> bool
+        * name_servers: Union[list, SETTINGS:default_name_servers] -> list
+        * name_servers_search: Union[list, SETTINGS:default_name_servers_search] -> list
+        * filename: Union[str, inherit] -> str
+        * proxy: Union[str, SETTINGS:proxy_url_int] -> enums.VALUE_INHERITED
+        * redhat_management_key: Union[str, inherit] -> enums.VALUE_INHERITED
+        * server: Union[str, inherit] -> enums.VALUE_INHERITED
+        * virt_auto_boot: Union[bool, SETTINGS:virt_auto_boot] -> bool
+        * virt_bridge: Union[str, SETTINGS:default_virt_bridge] -> str
+        * virt_cpus: int -> Union[int, str]
+        * virt_disk_driver: Union[str, SETTINGS:default_virt_disk_driver] -> enums.VirtDiskDrivers
+        * virt_file_size: Union[int, SETTINGS:default_virt_file_size] -> int
+        * virt_ram: Union[int, SETTINGS:default_virt_ram] -> int
+        * virt_type: Union[str, SETTINGS:default_virt_type] -> enums.VirtType
+        * boot_files: list/dict? -> enums.VALUE_INHERITED
+        * fetchable_files: dict -> enums.VALUE_INHERITED
+        * autoinstall_meta: dict -> enums.VALUE_INHERITED
+        * kernel_options: dict -> enums.VALUE_INHERITED
+        * kernel_options_post: dict -> enums.VALUE_INHERITED
+        * mgmt_classes: list -> enums.VALUE_INHERITED
+        * mgmt_parameters: Union[str, inherit] -> enums.VALUE_INHERITED
+        (mgmt_classes parameter has a duplicate)
+V3.2.2:
+    * No changes
+V3.2.1:
+    * No changes
+V3.2.0:
+    * Added:
+        * filename: Union[str, inherit]
+V3.1.2:
+    * No changes
+V3.1.1:
+    * No changes
+V3.1.0:
+    * No changes
+V3.0.1:
+    * No changes
+V3.0.0:
+    * Added:
+        * next_server: Union[str, inherit]
+    * Removed:
+        * redhat_management_server: Union[str, inherit]
+        * template_remote_kickstarts: Union[bool, SETTINGS:template_remote_kickstarts]
+    * Changed:
+        * Renamed: kickstart -> autoinstall
+        * Renamed: ks_meta -> autoinstall_meta
+        * autoinstall: Union[str, SETTINGS:default_kickstart] -> Union[str, SETTINGS:default_autoinstall]
+V2.8.5:
+    * Added
+        * ctime: int
+        * depth: int
+        * mtime: int
+        * uid: str
+
+        * kickstart: Union[str, SETTINGS:default_kickstart]
+        * ks_meta: dict
+        * boot_files: list/dict?
+        * comment: str
+        * dhcp_tag: str
+        * distro: str
+        * enable_gpxe: Union[bool, SETTINGS:enable_gpxe]
+        * enable_menu: Union[bool, SETTINGS:enable_menu]
+        * fetchable_files: dict
+        * kernel_options: dict
+        * kernel_options_post: dict
+        * mgmt_classes: list
+        * mgmt_parameters: Union[str, inherit]
+        * name: str
+        * name_servers: Union[list, SETTINGS:default_name_servers]
+        * name_servers_search: Union[list, SETTINGS:default_name_servers_search]
+        * owners: Union[list, SETTINGS:default_ownership]
+        * parent: str
+        * proxy: Union[str, SETTINGS:proxy_url_int]
+        * redhat_management_key: Union[str, inherit]
+        * redhat_management_server: Union[str, inherit]
+        * template_remote_kickstarts: Union[bool, SETTINGS:template_remote_kickstarts]
+        * repos: list
+        * server: Union[str, inherit]
+        * template_files: dict
+        * virt_auto_boot: Union[bool, SETTINGS:virt_auto_boot]
+        * virt_bridge: Union[str, SETTINGS:default_virt_bridge]
+        * virt_cpus: int
+        * virt_disk_driver: Union[str, SETTINGS:default_virt_disk_driver]
+        * virt_file_size: Union[int, SETTINGS:default_virt_file_size]
+        * virt_path: str
+        * virt_ram: Union[int, SETTINGS:default_virt_ram]
+        * virt_type: Union[str, SETTINGS:default_virt_type]
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

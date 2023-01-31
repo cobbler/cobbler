@@ -1,5 +1,103 @@
 """
 Cobbler module that contains the code for a Cobbler image object.
+
+Changelog:
+
+Current Schema:
+    * arch: enums.Archs
+    * autoinstall: enums.VALUE_INHERITED
+    * breed: str
+    * file: str
+    * image_type: enums.ImageTypes
+    * network_count: int
+    * os_version: str
+    * boot_loaders: Union[list, str]
+    * menu: str
+    * display_name: str
+    * virt_auto_boot: bool
+    * virt_bridge: str
+    * virt_cpus: int
+    * virt_disk_driver: enums.VirtDiskDrivers
+    * virt_file_size: enums.VALUE_INHERITED
+    * virt_path: str
+    * virt_ram: int
+    * virt_type: enums.VirtType
+V3.3.4:
+    * Changes:
+        * boot_loaders: list -> Union[list, str]
+V3.3.3:
+    * Changes:
+        * virt_file_size: float -> enum.VALUE_INHERITED
+V3.3.2:
+    * No changes
+V3.3.1:
+    * No changes
+V3.3.0:
+    * Added:
+        * boot_loaders: list
+        * menu: str
+        * supported_boot_loaders: list
+    * Removed:
+        * ctime: float
+        * mtime: float
+        * depth: int
+        * parent: str
+        * uid: str
+        * comment: str
+        * name: str
+    * Changes:
+        * arch: str -> enums.Archs
+        * autoinstall: str -> enums.VALUE_INHERITED
+        * image_type: str -> enums.ImageTypes
+        * virt_auto_boot: Union[bool, SETTINGS:virt_auto_boot] -> bool
+        * virt_bridge: Union[str, SETTINGS:default_virt_bridge] -> str
+        * virt_disk_driver: Union[str, SETTINGS:default_virt_disk_driver] -> enums.VirtDiskDrivers
+        * virt_file_size: Union[float, SETTINGS:default_virt_file_size] -> float
+        * virt_ram: Union[int, SETTINGS:default_virt_ram] -> int
+        * virt_type: Union[str, SETTINGS:default_virt_type] -> enums.VirtType
+V3.2.2:
+    * No changes
+V3.2.1:
+    * No changes
+V3.2.0:
+    * No changes
+V3.1.2:
+    * No changes
+V3.1.1:
+    * No changes
+V3.1.0:
+    * No changes
+V3.0.1:
+    * No changes
+V3.0.0:
+    * Changes:
+        * Rename: kickstart -> autoinstall
+V2.8.5:
+    * Added:
+        * ctime: float
+        * depth: int
+        * mtime: float
+        * parent: str
+        * uid: str
+
+        * arch: str
+        * kickstart: str
+        * breed: str
+        * comment: str
+        * file: str
+        * image_type: str
+        * name: str
+        * network_count: int
+        * os_version: str
+        * owners: Union[list, SETTINGS:default_ownership]
+        * virt_auto_boot: Union[bool, SETTINGS:virt_auto_boot]
+        * virt_bridge: Union[str, SETTINGS:default_virt_bridge]
+        * virt_cpus: int
+        * virt_disk_driver: Union[str, SETTINGS:default_virt_disk_driver]
+        * virt_file_size: Union[float, SETTINGS:default_virt_file_size]
+        * virt_path: str
+        * virt_ram: Union[int, SETTINGS:default_virt_ram]
+        * virt_type: Union[str, SETTINGS:default_virt_type]
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

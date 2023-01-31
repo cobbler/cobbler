@@ -1,5 +1,106 @@
 """
 Cobbler module that contains the code for a Cobbler distro object.
+
+Changelog:
+
+Schema: From -> To
+
+current Schema:
+    * tree_build_time: float
+    * arch: enums.Archs
+    * boot_loaders: Union[list, str]
+    * breed: str
+    * initrd: str
+    * kernel: str
+    * mgmt_classes: list
+    * os_version: str
+    * redhat_management_key: enums.VALUE_INHERTIED
+    * source_repos: list[str]
+    * fetchable_files: dict
+    * remote_boot_kernel: str
+    * remote_grub_kernel: str
+    * remote_boot_initrd: str
+    * remote_grub_initrd: str
+    * supported_bootloaders: list[str]
+V3.3.4:
+    * No changes
+V3.3.3:
+    * Changed:
+        * redhat_management_key: str -> Union[str, inherit]
+V3.3.2:
+    * No changes
+V3.3.1:
+    * No changes
+V3.3.0:
+    * Removed:
+        * ctime: float
+        * depth: int
+        * mtime: float
+        * uid: str
+        * kernel_options: dict
+        * kernel_options_post: dict
+        * autoinstall_meta: dict
+        * boot_files: list/dict
+        * template_files: list/dict
+        * comment: str
+        * name: str
+        * owners: list[str]
+    * Changed:
+        * tree_build_time: str -> float
+        * arch: str -> Union[list, str]
+        * fetchable_files: list/dict? -> dict
+        * boot_loader -> boot_loaders (rename)
+V3.2.2:
+    * No changes
+V3.2.1:
+    * No changes
+V3.2.0:
+    * No changes
+V3.1.2:
+    * Added:
+        * remote_boot_kernel: str
+        * remote_grub_kernel: str
+        * remote_boot_initrd: str
+        * remote_grub_initrd: str
+V3.1.1:
+    * No changes
+V3.1.0:
+    * No changes
+V3.0.1:
+    * No changes
+V3.0.0 (File: cobbler/item_distro.py):
+    * Added:
+        * boot_loader: Union[str, inherit]
+    * Changed:
+        * rename: ks_meta -> autoinstall_meta
+        * redhat_management_key: Union[str, inherit] -> str
+    * Removed:
+        * redhat_management_server: Union[str, inherit]
+V2.8.5 (File: cobbler/item_distro.py):
+    * Added:
+        * name: str
+        * ctime: float
+        * mtime: float
+        * uid: str
+        * owners: Union[list, SETTINGS:default_ownership]
+        * kernel: str
+        * initrd: str
+        * kernel_options: dict
+        * kernel_options_post: dict
+        * ks_meta: dict
+        * arch: str
+        * breed: str
+        * os_version: str
+        * source_repos: list
+        * depth: int
+        * comment: str
+        * tree_build_time: str
+        * mgmt_classes: list
+        * boot_files: list/dict?
+        * fetchable_files: list/dict?
+        * template_files: list/dict?
+        * redhat_management_key: Union[str, inherit]
+        * redhat_management_server: Union[str, inherit]
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

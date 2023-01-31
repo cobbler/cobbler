@@ -1,5 +1,97 @@
 """
 Cobbler module that contains the code for a Cobbler repo object.
+
+Changelog:
+
+Current Schema:
+    * breed: enums.RepoBreeds
+    * arch: enums.RepoArchs
+    * environment: dict
+    * yumopts: dict
+    * rsyncopts: dict
+    * mirror_type: enums.MirrorType
+    * apt_components: list
+    * apt_dists: list
+    * createrepo_flags: enums.VALUE_INHERITED
+    * keep_updated: bool
+    * mirror: str
+    * mirror_locally: bool
+    * priority: int
+    * proxy: enums.VALUE_INHERITED
+    * rpm_list: list
+    * os_version: str
+V3.3.4:
+    * No changes
+V3.3.3:
+    * No changes
+V3.3.2:
+    * No changes
+V3.3.1:
+    * No changes
+V3.3.0:
+    * Added:
+        * os_version: str
+    * Removed:
+        * ctime: float
+        * depth: float
+        * mtime: float
+        * parent: str
+        * uid: str
+        * comment: str
+        * name: str
+        * owners: Union[list, SETTINGS:default_ownership]
+    * Changes:
+        * breed: str -> enums.RepoBreeds
+        * arch: str -> enums.RepoArchs
+        * rsyncopts: dict/str? -> dict
+        * mirror_type: str -> enums.MirrorType
+        * apt_components: list/str? -> list
+        * apt_dists: list/str? -> list
+        * createrepo_flags: Union[dict, inherit] -> enums.VALUE_INHERITED
+        * proxy: Union[str, inherit] -> enums.VALUE_INHERITED
+V3.2.2:
+    * No changes
+V3.2.1:
+    * Added:
+        * mirror_type: str
+V3.2.0:
+    * Added:
+        * rsyncopts: dict/str?
+V3.1.2:
+    * No changes
+V3.1.1:
+    * No changes
+V3.1.0:
+    * No changes
+V3.0.1:
+    * No changes
+V3.0.0:
+    * Changes:
+        * proxy: Union[str, inherit, SETTINGS:proxy_url_ext] -> Union[str, inherit]
+V2.8.5:
+    * Added:
+        * ctime: float
+        * depth: float
+        * mtime: float
+        * parent: str
+        * uid: str
+
+        * apt_components: list/str?
+        * apt_dists: list/str?
+        * arch: str
+        * breed: str
+        * comment: str
+        * createrepo_flags: Union[dict, inherit]
+        * environment: dict
+        * keep_updated: bool
+        * mirror: str
+        * mirror_locally: bool
+        * name: str
+        * owners: Union[list, SETTINGS:default_ownership]
+        * priority: int
+        * proxy: Union[str, inherit, SETTINGS:proxy_url_ext]
+        * rpm_list: list
+        * yumopts: dict
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
