@@ -1207,7 +1207,7 @@ class TFTPGen:
 
         # FIXME: img_path and local_img_path should probably be moved up into the blender function to ensure they're
         #  consistently available to templates across the board.
-        if blended["distro_name"]:
+        if blended.get("distro_name", False):
             blended["img_path"] = os.path.join("/images", blended["distro_name"])
             blended["local_img_path"] = os.path.join(
                 self.bootloc, "images", blended["distro_name"]
