@@ -487,6 +487,53 @@ class TFTPGen:
         metadata["menu_items"] = nested_menu_items
         metadata["menu_labels"] = menu_labels
 
+    def _get_item_menu(
+        self,
+        arch,
+        boot_loader,
+        current_menu_items,
+        menu_labels,
+        distro=None,
+        profile=None,
+        image=None,
+    ):
+        """
+        TODO
+        """
+        if image is not None and profile is not None:
+            raise ValueError('"image" and "profile" are mutually exclusive arguments')
+        target_item = None
+        if image is None:
+            target_item = profile
+        elif profile is None:
+            target_item = image
+
+        contents = self.write_pxe_file(
+            filename=None,
+            system=None,
+            profile=profile,
+            distro=distro,
+            arch=arch,
+            image=image,
+            bootloader_format=boot_loader,
+        )
+        if contents and contents != "":
+            if boot_loader not in current_menu_items:
+                current_menu_items[boot_loader] = ""
+            current_menu_items[boot_loader] += contents
+
+            if boot_loader not in menu_labels:
+                menu_labels[boot_loader] = []
+
+            # iPXE Level menu
+            if boot_loader == "ipxe":
+                display_name = target_item.name
+                if target_item.display_name and target_item.display_name != "":
+                    display_name = target_item.display_name
+                menu_labels["ipxe"].append(
+                    {"name": target_item.name, "display_name": display_name}
+                )
+
     def get_profiles_menu(self, menu, metadata: dict, arch: enums.Archs):
         """
         Generates profiles metadata for pxe, ipxe and grub.
@@ -526,31 +573,15 @@ class TFTPGen:
             for boot_loader in boot_loaders:
                 if boot_loader not in profile.boot_loaders:
                     continue
-                contents = self.write_pxe_file(
-                    filename=None,
-                    system=None,
-                    profile=profile,
+                self._get_item_menu(
+                    arch,
+                    boot_loader,
+                    current_menu_items,
+                    menu_labels,
                     distro=distro,
-                    arch=arch,
+                    profile=profile,
                     image=None,
-                    bootloader_format=boot_loader,
                 )
-                if contents and contents != "":
-                    if boot_loader not in current_menu_items:
-                        current_menu_items[boot_loader] = ""
-                    current_menu_items[boot_loader] += contents
-
-                    if boot_loader not in menu_labels:
-                        menu_labels[boot_loader] = []
-
-                    # iPXE Level menu
-                    if boot_loader == "ipxe":
-                        display_name = profile.name
-                        if profile.display_name and profile.display_name != "":
-                            display_name = profile.display_name
-                        menu_labels["ipxe"].append(
-                            {"name": profile.name, "display_name": display_name}
-                        )
 
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
@@ -583,31 +614,9 @@ class TFTPGen:
                 for boot_loader in boot_loaders:
                     if boot_loader not in image.boot_loaders:
                         continue
-                    contents = self.write_pxe_file(
-                        filename=None,
-                        system=None,
-                        profile=None,
-                        distro=None,
-                        arch=arch,
-                        image=image,
-                        bootloader_format=boot_loader,
+                    self._get_item_menu(
+                        arch, boot_loader, current_menu_items, menu_labels, image=image
                     )
-                    if contents and contents != "":
-                        if boot_loader not in current_menu_items:
-                            current_menu_items[boot_loader] = ""
-                        current_menu_items[boot_loader] += contents
-
-                        if boot_loader not in menu_labels:
-                            menu_labels[boot_loader] = []
-
-                        # iPXE Level menu
-                        if boot_loader == "ipxe":
-                            display_name = image.name
-                            if image.display_name and image.display_name != "":
-                                display_name = image.display_name
-                            menu_labels["ipxe"].append(
-                                {"name": image.name, "display_name": display_name}
-                            )
 
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
