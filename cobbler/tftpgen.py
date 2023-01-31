@@ -1183,19 +1183,13 @@ class TFTPGen:
                 for modules in bootmodules:
                     blended["esx_modules"] = modules.replace("/", "")
 
-        autoinstall_meta = blended.get("autoinstall_meta", {})
-        try:
-            del blended["autoinstall_meta"]
-        except Exception:
-            pass
-        blended.update(autoinstall_meta)  # make available at top level
+        # Make "autoinstall_meta" available at top level
+        autoinstall_meta = blended.pop("autoinstall_meta", {})
+        blended.update(autoinstall_meta)
 
-        templates = blended.get("template_files", {})
-        try:
-            del blended["template_files"]
-        except Exception:
-            pass
-        blended.update(templates)  # make available at top level
+        # Make "template_files" available at top level
+        templates = blended.pop("template_files", {})
+        blended.update(templates)
 
         templates = input_converters.input_string_or_dict(templates)
 
@@ -1403,12 +1397,9 @@ class TFTPGen:
 
         blended = utils.blender(self.api, False, obj)
 
-        autoinstall_meta = blended.get("autoinstall_meta", {})
-        try:
-            del blended["autoinstall_meta"]
-        except Exception:
-            pass
-        blended.update(autoinstall_meta)  # make available at top level
+        # Promote autoinstall_meta to top-level
+        autoinstall_meta = blended.pop("autoinstall_meta", {})
+        blended.update(autoinstall_meta)
 
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
