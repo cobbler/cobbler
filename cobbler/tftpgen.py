@@ -251,7 +251,7 @@ class TFTPGen:
             return
 
         # generate one record for each described NIC ..
-        for (name, _) in list(system.interfaces.items()):
+        for (name, _) in system.interfaces.items():
 
             # Passing "pxe" here is a hack, but we need to make sure that
             # get_config_filename() will return a filename in the pxelinux
@@ -947,7 +947,7 @@ class TFTPGen:
             blended = utils.blender(self.api, False, system)
             # find the first management interface
             try:
-                for intf in list(system.interfaces.keys()):
+                for intf in system.interfaces.keys():
                     if system.interfaces[intf].management:
                         management_interface = intf
                         if system.interfaces[intf].mac_address:
@@ -1050,7 +1050,7 @@ class TFTPGen:
 
                 # rework kernel options for debian distros
                 translations = {"ksdevice": "interface", "lang": "locale"}
-                for key, value in list(translations.items()):
+                for key, value in translations.items():
                     append_line = append_line.replace(f"{key}=", f"{value}=")
 
                 # interface=bootif causes a failure
@@ -1200,7 +1200,7 @@ class TFTPGen:
                 self.bootloc, "images", blended["distro_name"]
             )
 
-        for template in list(templates.keys()):
+        for template in templates.keys():
             dest = templates[template]
             if dest is None:
                 continue
