@@ -549,9 +549,17 @@ if __name__ == "__main__":
             "file-magic",
             "schema",
             "gunicorn",
+            "importlib-resources",
         ],
         extras_require={
-            "lint": ["pyflakes", "pycodestyle", "pylint", "black", "mypy"],
+            "lint": [
+                "pyflakes",
+                "pycodestyle",
+                "pylint",
+                "black",
+                "mypy",
+                "pre-commit",
+            ],
             "test": ["pytest>6", "pytest-cov", "codecov", "pytest-mock"],
             "docs": ["sphinx", "sphinx-rtd-theme", "sphinxcontrib-apidoc"],
         },
@@ -580,19 +588,12 @@ if __name__ == "__main__":
             "config/nginx/cobbler.conf",
             "config/cobbler/settings.yaml",
             "config/service/cobblerd.service",
-            "templates/etc/named.template",
-            "templates/etc/secondary.template",
+            # "templates/etc/named.template",
+            # "templates/etc/secondary.template",
         ],
         man_pages=["docs/cobblerd.rst", "docs/cobbler-conf.rst", "docs/cobbler.rst"],
         data_files=[
             ("%s" % webconfig, ["build/config/apache/cobbler.conf"]),
-            ("%s/templates" % libpath, glob("autoinstall_templates/*")),
-            (
-                "%s/templates/install_profiles" % libpath,
-                glob("autoinstall_templates/install_profiles/*"),
-            ),
-            ("%s/snippets" % libpath, glob("autoinstall_snippets/*", recursive=True)),
-            ("%s/scripts" % libpath, glob("autoinstall_scripts/*")),
             ("%s" % libpath, ["config/cobbler/distro_signatures.json"]),
             ("share/cobbler/bin", glob("scripts/*")),
             ("%s/loaders" % libpath, []),
@@ -622,22 +623,6 @@ if __name__ == "__main__":
                 ],
             ),
             ("%s" % etcpath, glob("cobbler/etc/*")),
-            (
-                "%s" % etcpath,
-                [
-                    "templates/etc/named.template",
-                    "templates/etc/genders.template",
-                    "templates/etc/secondary.template",
-                    "templates/etc/zone.template",
-                    "templates/etc/dnsmasq.template",
-                    "templates/etc/rsync.template",
-                    "templates/etc/dhcp.template",
-                    "templates/etc/dhcp6.template",
-                    "templates/etc/ndjbdns.template",
-                ],
-            ),
-            ("%s/iso" % etcpath, glob("templates/iso/*")),
-            ("%s/boot_loader_conf" % etcpath, glob("templates/boot_loader_conf/*")),
             # completion_file
             ("%s" % completion_path, ["config/bash/completion/cobbler"]),
             ("%s/grub_config" % libpath, glob("config/grub/*")),
@@ -647,17 +632,12 @@ if __name__ == "__main__":
             # dirs
             ("%s/grub_config/grub/system" % libpath, []),
             ("%s/grub_config/grub/system_link" % libpath, []),
-            ("%s/reporting" % etcpath, glob("templates/reporting/*")),
             # logfiles
             ("%s/cobbler/kicklog" % logpath, []),
             ("%s/cobbler/syslog" % logpath, []),
             ("%s/httpd/cobbler" % logpath, []),
             ("%s/cobbler/anamon" % logpath, []),
             ("%s/cobbler/tasks" % logpath, []),
-            # zone-specific templates directory
-            ("%s/zone_templates" % etcpath, glob("templates/zone_templates/*")),
-            # windows-specific templates directory
-            ("%s/windows" % etcpath, glob("templates/windows/*")),
             ("%s" % etcpath, ["config/cobbler/logging_config.conf"]),
             # man pages
             ("%s/man1" % docpath, glob("build/sphinx/man/*.1")),

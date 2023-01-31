@@ -7,7 +7,10 @@ Base class for modules.managers.* classes
 # SPDX-FileCopyrightText: Thomas Renninger <trenn@suse.de>
 
 import logging
-from cobbler import templar
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class ManagerModule:
@@ -28,7 +31,7 @@ class ManagerModule:
         """
         return "undefined"
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         """
         Constructor
 
@@ -41,7 +44,6 @@ class ManagerModule:
         self.systems = self.api.systems()
         self.settings = self.api.settings()
         self.repos = self.api.repos()
-        self.templar = templar.Templar(self.api)
 
     def write_configs(self):
         """

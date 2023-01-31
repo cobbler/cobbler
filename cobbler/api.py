@@ -57,6 +57,7 @@ from cobbler.items import (
     system,
 )
 from cobbler.decorator import InheritableDictProperty
+from cobbler import templates
 
 
 # notes on locking:
@@ -102,7 +103,7 @@ class CobblerAPI:
             self.is_cobblerd = is_cobblerd
             if is_cobblerd:
                 main_thread = threading.main_thread()
-                main_thread.setName("Daemon")
+                main_thread.name = "Daemon"
 
             self.logger = logging.getLogger()
 
@@ -137,6 +138,7 @@ class CobblerAPI:
             # FIXME: pass more loggers around, and also see that those using things via tasks construct their own
             #  yumgen/tftpgen versus reusing this one, which has the wrong logger (most likely) for background tasks.
 
+            self.templar = templates.Templar(self)
             self.autoinstallgen = autoinstallgen.AutoInstallationGen(self)
             self.yumgen = yumgen.YumGen(self)
             self.tftpgen = tftpgen.TFTPGen(self)

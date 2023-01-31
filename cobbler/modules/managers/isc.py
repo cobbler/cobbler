@@ -220,7 +220,7 @@ class _IscManager(ManagerModule):
         }
 
         self.logger.info("generating %s", self.settings_file_v4)
-        self.templar.render(template_data, metadata, self.settings_file_v4)
+        self.api.templar.render(template_data, metadata, self.settings_file_v4)
 
     def write_v6_config(self, template_file="/etc/cobbler/dhcp6.template"):
         """
@@ -385,7 +385,7 @@ class _IscManager(ManagerModule):
 
         if self.logger is not None:
             self.logger.info("generating %s", self.settings_file_v6)
-        self.templar.render(template_data, metadata, self.settings_file_v6)
+        self.api.templar.render(template_data, metadata, self.settings_file_v6)
 
     def restart_dhcp(self, service_name: str) -> int:
         """

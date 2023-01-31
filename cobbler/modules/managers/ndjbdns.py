@@ -70,7 +70,7 @@ class _NDjbDnsManager(ManagerModule):
         for host, ip_address in list(a_records.items()):
             template_vars["forward"].append((host, ip_address))
 
-        self.templar.render(template_content, template_vars, data_file)
+        self.api.templar.render(template_content, template_vars, data_file)
 
         with subprocess.Popen(
             ["/usr/bin/tinydns-data"], cwd=data_dir

@@ -9,19 +9,28 @@ such function and is now used to implement Cobbler's SNIPPET:: syntax.
 # SPDX-FileCopyrightText: US Government work; No explicit copyright attached to this file.
 
 import logging
-import os.path
+import os
+import pprint
 import re
-from typing import Match, Optional, TextIO, Tuple, Union
+from typing import Optional, Union, TextIO, Tuple, Match
 
-from Cheetah.Template import Template
-
+from cobbler.cexceptions import CX
 from cobbler import utils
+from cobbler.templates import BaseTemplateProvider
+
+try:
+    from Cheetah.Template import Template as CheetahTemplate
+
+    CHEETAH_AVAILABLE = True
+except ModuleNotFoundError:
+    CheetahTemplate = None  # pylint: disable=invalid-name
+    CHEETAH_AVAILABLE = False
+
+logger = logging.getLogger()
 
 
 # This class is defined using the Cheetah language. Using the 'compile' function we can compile the source directly into
 # a Python class. This class will allow us to define the cheetah builtins.
-
-logger = logging.getLogger()
 
 
 def read_macro_file(location="/etc/cobbler/cheetah_macros"):
@@ -45,17 +54,17 @@ def generate_cheetah_macros():
     """
     try:
         macro_file = read_macro_file()
-        return Template.compile(
+        return CheetahTemplate.compile(
             source=macro_file,
             moduleName="cobbler.template_api",
             className="CheetahMacros",
         )
     except FileNotFoundError:
         logger.warning("Cheetah Macros file note found. Using empty template.")
-        return Template.compile(source="")
+        return CheetahTemplate.compile(source="")
 
 
-class CobblerTemplate(generate_cheetah_macros()):
+class CobblerCheetahTemplate(generate_cheetah_macros()):
     """
     This class will allow us to include any pure python builtin functions.
     It derives from the cheetah-compiled class above. This way, we can include both types (cheetah and pure python) of
@@ -81,7 +90,7 @@ class CobblerTemplate(generate_cheetah_macros()):
         # This follows all of the rules of snippets and advanced snippets. First it searches for a per-system snippet,
         # then a per-profile snippet, then a general snippet. If none is found, a comment explaining the error is
         # substituted.
-        self.BuiltinTemplate = Template.compile(
+        self.BuiltinTemplate = CheetahTemplate.compile(
             source="\n".join(
                 [
                     "#def SNIPPET($file)",
@@ -241,3 +250,98 @@ class CobblerTemplate(generate_cheetah_macros()):
             return character
 
         return "".join([escchar(c) for c in value])
+
+
+class CheetahTemplateProvider(BaseTemplateProvider):
+    """
+    Provides support for the Cheetah template language to Cobbler.
+
+    See: https://cheetahtemplate.org/
+    """
+
+    template_language = "cheetah"
+
+    @property
+    def template_type_available(self) -> bool:
+        return CHEETAH_AVAILABLE
+
+    def check_for_invalid_imports(self, data: str):
+        """
+        Ensure that Cheetah code is not importing Python modules that may allow for advanced privileges by ensuring we
+        whitelist the imports that we allow.
+
+        :param data: The Cheetah code to check.
+        :raises CX: Raised in case there could be a pontentially insecure import in the template.
+        """
+        lines = data.split("\n")
+        for line in lines:
+            if "#import" in line or "#from" in line:
+                rest = (
+                    line.replace("#import", "")
+                    .replace("#from", "")
+                    .replace("import", ".")
+                    .replace(" ", "")
+                    .strip()
+                )
+                if rest not in self.api.settings().cheetah_import_whitelist:
+                    raise CX(f"Potentially insecure import in template: {rest}")
+
+    def render(self, raw_data: str, search_table: dict) -> str:
+        self.check_for_invalid_imports(raw_data)
+
+        # Backward support for Cobbler's legacy (and slightly more readable) template syntax.
+        raw_data = raw_data.replace("TEMPLATE::", "$")
+
+        # HACK: the autoinstall_meta field may contain nfs://server:/mount in which case this is likely WRONG for
+        # automated installation files, which needs the NFS directive instead. Do this to make the templates work.
+        newdata = ""
+        if "tree" in search_table and search_table["tree"].startswith("nfs://"):
+            for line in raw_data.split("\n"):
+                if line.find("--url") != -1 and line.find("url ") != -1:
+                    rest = search_table["tree"][6:]  # strip off "nfs://" part
+                    try:
+                        (server, directory) = rest.split(":", 2)
+                    except Exception as error:
+                        raise SyntaxError(
+                            f"Invalid syntax for NFS path given during import: {search_table['tree']}"
+                        ) from error
+                    line = f"nfs --server {server} --dir {directory}"
+                    # But put the URL part back in so koan can still see what the original value was
+                    line += "\n" + f"#url --url={search_table['tree']}"
+                newdata += line + "\n"
+            raw_data = newdata
+
+        # Tell Cheetah not to blow up if it can't find a symbol for something.
+        raw_data = "#errorCatcher ListErrors\n" + raw_data
+
+        table_copy = search_table.copy()
+
+        # For various reasons we may want to call a module inside a template and pass it all of the template variables.
+        # The variable "template_universe" serves this purpose to make it easier to iterate through all of the variables
+        # without using internal Cheetah variables
+
+        search_table.update({"template_universe": table_copy})
+
+        # Now do full templating scan, where we will also templatify the snippet insertions
+        template = CobblerCheetahTemplate.compile(
+            moduleName="cobbler.template_api",
+            className="CobblerDynamicTemplate",
+            source=raw_data,
+            compilerSettings={"useStackFrame": False},
+            baseclass=CobblerCheetahTemplate,
+        )
+
+        try:
+            generated_template_class = template(searchList=[search_table])
+            data_out = str(generated_template_class)
+            self.last_errors = generated_template_class.errorCatcher().listErrors()
+            if self.last_errors:
+                self.logger.warning("errors were encountered rendering the template")
+                self.logger.warning("\n%s", pprint.pformat(self.last_errors))
+        except Exception as error:
+            self.logger.error(utils.cheetah_exc(error))
+            raise CX(
+                "Error templating file, check cobbler.log for more details"
+            ) from error
+
+        return data_out

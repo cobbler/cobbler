@@ -7,12 +7,14 @@ import re
 import binascii
 import logging
 import tempfile
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from cobbler import utils
-from cobbler import templar
-from cobbler import tftpgen
+from cobbler import templates
 from cobbler.utils import filesystem_helpers
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 HAS_HIVEX = True
 try:
@@ -243,7 +245,7 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
     h.commit(new_bcd)
 
 
-def run(api, args):
+def run(api: "CobblerAPI", args):
     """
     TODO
 
@@ -263,8 +265,8 @@ def run(api, args):
 
     profiles = api.profiles()
     systems = api.systems()
-    templ = templar.Templar(api)
-    tgen = tftpgen.TFTPGen(api)
+    templ = api.templar
+    tgen = api.tftpgen
 
     with open(
         os.path.join(settings.windows_template_dir, POST_INST_CMD_TEMPLATE_NAME),

@@ -1,6 +1,5 @@
 from cobbler.modules.managers import ndjbdns
 from cobbler.items.system import NetworkInterface, System
-from cobbler.templar import Templar
 
 
 def test_register():
@@ -61,7 +60,6 @@ def test_manager_write_configs(mocker, cobbler_api):
     mock_system.interfaces["default"].ipv6_address = "::1"
     ndjbdns.MANAGER = None
     test_manager = ndjbdns.get_manager(cobbler_api)
-    test_manager.templar = mocker.MagicMock(spec=Templar, autospec=True)
     test_manager.systems = [mock_system]
 
     # Act

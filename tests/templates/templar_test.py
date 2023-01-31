@@ -1,7 +1,6 @@
 import pytest
 
-from cobbler.cexceptions import CX
-from cobbler.templar import Templar
+from cobbler.templates import Templar
 
 
 @pytest.fixture(scope="function")
@@ -27,16 +26,6 @@ def setup_cheetah_macros_file():
         )
 
 
-def test_check_for_invalid_imports(cobbler_api):
-    # Arrange
-    test_templar = Templar(cobbler_api)
-    testdata = "#import json"
-
-    # Act & Assert
-    with pytest.raises(CX):
-        test_templar.check_for_invalid_imports(testdata)
-
-
 def test_render(cobbler_api):
     # Arrange
     test_templar = Templar(cobbler_api)
@@ -53,7 +42,7 @@ def test_render_cheetah(cobbler_api):
     test_templar = Templar(cobbler_api)
 
     # Act
-    result = test_templar.render_cheetah("$test", {"test": 5})
+    result = test_templar.render("$test", {"test": 5}, None, "cheetah")
 
     # Assert
     assert result == "5"
@@ -66,7 +55,7 @@ def test_cheetah_macros(cobbler_api):
     templar = Templar(cobbler_api)
 
     # Act
-    result = templar.render_cheetah("$myMethodInMacros(5)", {})
+    result = templar.render("$myMethodInMacros(5)", {}, None, "cheetah")
 
     # Assert
     assert result == "Text in method: 5\n"
@@ -77,7 +66,7 @@ def test_render_jinja2(cobbler_api):
     test_templar = Templar(cobbler_api)
 
     # Act
-    result = test_templar.render_jinja2("{{ foo }}", {"foo": "Test successful"})
+    result = test_templar.render("{{ foo }}", {"foo": "Test successful"}, None, "jinja")
 
     # Assert
     assert result == "Test successful"

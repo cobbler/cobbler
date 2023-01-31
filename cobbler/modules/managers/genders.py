@@ -8,7 +8,12 @@ import logging
 import sys
 import os
 import time
-from cobbler.templar import Templar
+from typing import TYPE_CHECKING
+
+from cobbler import templates
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path = f"{plib}/cobbler"
@@ -28,7 +33,9 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/change/*"
 
 
-def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_genders):
+def write_genders_file(
+    config: "CobblerAPI", profiles_genders, distros_genders, mgmtcls_genders
+):
     """
     Genders file is over-written when ``manage_genders`` is set in our settings.
 
@@ -51,11 +58,10 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
         "mgmtcls_genders": mgmtcls_genders,
     }
 
-    templar_inst = Templar(config)
-    templar_inst.render(template_data, metadata, SETTINGS_FILE)
+    config.templar.render(template_data, metadata, SETTINGS_FILE)
 
 
-def run(api, args) -> int:
+def run(api: "CobblerAPI", args) -> int:
     """
     Mandatory Cobbler trigger hook.
 

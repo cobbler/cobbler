@@ -8,11 +8,14 @@ Builds out filesystem trees/data based on the object tree. This is the code behi
 
 import urllib.parse
 import xml.dom.minidom
+from typing import TYPE_CHECKING
 
-from cobbler import templar
 from cobbler import utils
 from cobbler import validate
 from cobbler.cexceptions import CX
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class AutoInstallationGen:
@@ -20,7 +23,7 @@ class AutoInstallationGen:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         """
         Constructor
 
@@ -29,7 +32,6 @@ class AutoInstallationGen:
         """
         self.api = api
         self.settings = api.settings()
-        self.templar = templar.Templar(self.api)
 
     def createAutoYaSTScript(self, document, script, name):
         """
@@ -327,7 +329,7 @@ class AutoInstallationGen:
             )
             raw_data = utils.read_file_contents(autoinstall_path)
 
-            data = self.templar.render(raw_data, meta, None)
+            data = self.api.templar.render(raw_data, meta, None)
 
             return data
         except FileNotFoundError:
@@ -366,4 +368,4 @@ class AutoInstallationGen:
         :return: The list of error messages which are available. This may not only contain error messages related to
                  generating autoinstallation configuration and scripts.
         """
-        return self.templar.last_errors
+        return self.api.templar.last_errors

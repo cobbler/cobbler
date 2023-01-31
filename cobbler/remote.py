@@ -18,7 +18,7 @@ import time
 import re
 import xmlrpc.server
 from socketserver import ThreadingMixIn
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, TYPE_CHECKING
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 
 from cobbler import enums
@@ -28,7 +28,6 @@ from cobbler.items import (
     item,
     system,
 )
-from cobbler import tftpgen
 from cobbler import utils
 from cobbler.utils import signatures
 from cobbler.utils.event import CobblerEvent
@@ -39,6 +38,9 @@ from cobbler.validate import (
     validate_obj_name,
     validate_uuid,
 )
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 EVENT_TIMEOUT = 7 * 24 * 60 * 60  # 1 week
 CACHE_TIMEOUT = 10 * 60  # 10 minutes
@@ -51,7 +53,7 @@ class CobblerXMLRPCInterface:
     Most read-write operations require a token returned from "login". Read operations do not.
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         """
         Constructor. Requires a Cobbler API handle.
 
@@ -65,7 +67,7 @@ class CobblerXMLRPCInterface:
         self.events: Dict[str, CobblerEvent] = {}
         self.shared_secret = utils.get_shared_secret()
         random.seed(time.time())
-        self.tftpgen = tftpgen.TFTPGen(api)
+        self.tftpgen = self.api.tftpgen
         self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api)
 
     def check(self, token: str) -> list:

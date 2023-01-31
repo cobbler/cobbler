@@ -39,6 +39,7 @@ RUN apt-get update -qq && \
     python3-pymongo \
     python3-pytest \
     python3-setuptools \
+    python3-importlib-resources  \
     python3-sphinx \
     python3-tz \
     python3-yaml \

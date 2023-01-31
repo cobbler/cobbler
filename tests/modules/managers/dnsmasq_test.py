@@ -1,11 +1,9 @@
 import time
-from unittest.mock import MagicMock
 
 from cobbler.modules.managers import dnsmasq
 from cobbler.items.system import NetworkInterface, System
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
-from cobbler.templar import Templar
 
 
 def test_register():
@@ -51,7 +49,6 @@ def test_manager_write_configs(mocker, cobbler_api):
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
     test_manager.systems = [mock_system]
-    test_manager.templar = MagicMock(spec=Templar, autospec=True)
 
     # Act
     test_manager.write_configs()

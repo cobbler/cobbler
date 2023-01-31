@@ -10,11 +10,14 @@ given system (hostname)
 
 import json
 import string
-from typing import Dict, Union
+from typing import Dict, Union, TYPE_CHECKING
 
 from cobbler.cexceptions import CX
-from cobbler import template_api
 from cobbler import utils
+from cobbler.templates.cheetah import CobblerCheetahTemplate
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 # FIXME: This is currently getting the blendered data. Make use of the object and only process the required data.
 # FIXME: Obsolete this class. All methods are wrappers or tailcalls except gen_config_data and this can be integrated
@@ -27,7 +30,7 @@ class ConfigGen:
     Mainly used by Koan to configure systems.
     """
 
-    def __init__(self, cobbler_api, hostname: str):
+    def __init__(self, cobbler_api: "CobblerAPI", hostname: str):
         """
         Constructor. Requires a Cobbler API handle.
 
@@ -133,7 +136,7 @@ class ConfigGen:
             if not _file.is_dir:
                 file_data[file]["template"] = self.resolve_resource_var(_file.template)
                 try:
-                    template_api_instance = template_api.CobblerTemplate(
+                    template_api_instance = CobblerCheetahTemplate(
                         file=file_data[file]["template"], searchList=[self.host_vars]
                     )
                     file_data[file]["content"] = template_api_instance.respond()

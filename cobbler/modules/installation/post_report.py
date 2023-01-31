@@ -8,9 +8,13 @@ Post install trigger for Cobbler to send out a pretty email report that contains
 
 from builtins import str
 import smtplib
+from typing import TYPE_CHECKING
+
 from cobbler.cexceptions import CX
-from cobbler import templar
 from cobbler import utils
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 def register() -> str:
@@ -24,7 +28,7 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/install/post/*"
 
 
-def run(api, args) -> int:
+def run(api: "CobblerAPI", args) -> int:
     """
     This is the mandatory Cobbler module run trigger hook.
 
@@ -93,7 +97,7 @@ def run(api, args) -> int:
     ) as input_template:
         input_data = input_template.read()
 
-        message = templar.Templar(api).render(input_data, metadata, None)
+        message = api.templar.render(input_data, metadata, None)
 
         sendmail = True
         for prefix in settings.build_reporting_ignorelist:

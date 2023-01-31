@@ -9,7 +9,7 @@ import os.path
 import shutil
 from typing import List
 
-from cobbler import templar
+from cobbler import templates
 from cobbler import utils
 from cobbler import tftpgen
 
@@ -62,14 +62,12 @@ class _InTftpdManager(ManagerModule):
         metadata["web_img_path"] = os.path.join(
             self.webdir, "distro_mirror", distro.name
         )
-        # Create the templar instance.  Used to template the target directory
-        templater = templar.Templar(self.api)
 
         # Loop through the dict of boot files, executing a cp for each one
         self.logger.info("processing boot_files for distro: %s", distro.name)
         for boot_file in list(target["boot_files"].keys()):
-            rendered_target_file = templater.render(boot_file, metadata, None)
-            rendered_source_file = templater.render(
+            rendered_target_file = self.api.templar.render(boot_file, metadata, None)
+            rendered_source_file = self.api.templar.render(
                 target["boot_files"][boot_file], metadata, None
             )
             try:

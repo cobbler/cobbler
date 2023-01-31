@@ -315,46 +315,16 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
 %doc docs/developer-guide.rst docs/quickstart-guide.rst docs/installation-guide.rst
 %dir %{_sysconfdir}/cobbler
 %config(noreplace) %{_sysconfdir}/cobbler/auth.conf
-%dir %{_sysconfdir}/cobbler/boot_loader_conf
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grub.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grub_menu.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grub_submenu.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxe.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxe_menu.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxe_submenu.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxe.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxe_menu.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxe_submenu.template
 %config(noreplace) %{_sysconfdir}/cobbler/cheetah_macros
-%config(noreplace) %{_sysconfdir}/cobbler/dhcp.template
-%config(noreplace) %{_sysconfdir}/cobbler/dhcp6.template
-%config(noreplace) %{_sysconfdir}/cobbler/dnsmasq.template
-%config(noreplace) %{_sysconfdir}/cobbler/genders.template
 %config(noreplace) %{_sysconfdir}/cobbler/import_rsync_whitelist
-%dir %{_sysconfdir}/cobbler/iso
-%config(noreplace) %{_sysconfdir}/cobbler/iso/buildiso.template
 %config(noreplace) %{_sysconfdir}/cobbler/logging_config.conf
-%config(noreplace) %{_sysconfdir}/cobbler/named.template
-%config(noreplace) %{_sysconfdir}/cobbler/ndjbdns.template
-%dir %{_sysconfdir}/cobbler/reporting
-%config(noreplace) %{_sysconfdir}/cobbler/reporting/build_report_email.template
 %config(noreplace) %{_sysconfdir}/cobbler/rsync.exclude
-%config(noreplace) %{_sysconfdir}/cobbler/rsync.template
-%config(noreplace) %{_sysconfdir}/cobbler/secondary.template
 %attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/settings.yaml
 %attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/users.conf
 %attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/users.digest
 %config(noreplace) %{_sysconfdir}/cobbler/version
-%config(noreplace) %{_sysconfdir}/cobbler/zone.template
-%dir %{_sysconfdir}/cobbler/zone_templates
-%config(noreplace) %{_sysconfdir}/cobbler/zone_templates/foo.example.com
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
 %config(noreplace) %{apache_webconfigdir}/cobbler.conf
-%dir %{_sysconfdir}/cobbler/windows
-%config(noreplace) %{_sysconfdir}/cobbler/windows/answerfile.template
-%config(noreplace) %{_sysconfdir}/cobbler/windows/post_inst_cmd.template
-%config(noreplace) %{_sysconfdir}/cobbler/windows/startnet.template
 %{_bindir}/cobbler
 %{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd

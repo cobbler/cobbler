@@ -121,7 +121,7 @@ class _DnsmasqManager(ManagerModule):
                 f"insert_cobbler_system_definitions_{system}"
             ] = system_definitions[system]
 
-        self.templar.render(template_data, metadata, settings_file)
+        self.api.templar.render(template_data, metadata, settings_file)
 
     def regen_ethers(self):
         """

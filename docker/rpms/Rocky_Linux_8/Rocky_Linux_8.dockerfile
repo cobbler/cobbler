@@ -50,6 +50,7 @@ RUN touch /var/lib/rpm/* &&   \
     python3-cheetah           \
     python3-magic             \
     python3-dns               \
+    python3-importlib-resources \
     python3-ldap              \
     python3-librepo           \
     python3-pymongo           \
