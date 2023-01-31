@@ -425,6 +425,38 @@ class TFTPGen:
         """
         return self.get_menu_level(None, arch)
 
+    def _get_submenu_child(
+        self, child, arch, boot_loaders, nested_menu_items, menu_labels
+    ):
+        """
+        TODO
+        """
+        temp_metadata = self.get_menu_level(child, arch)
+        temp_items = temp_metadata["menu_items"]
+
+        for boot_loader in boot_loaders:
+            if boot_loader in temp_items:
+                if boot_loader in nested_menu_items:
+                    nested_menu_items[boot_loader] += temp_items[boot_loader]
+                else:
+                    nested_menu_items[boot_loader] = temp_items[boot_loader]
+
+            if boot_loader not in menu_labels:
+                menu_labels[boot_loader] = []
+
+            if "ipxe" in temp_items:
+                display_name = (
+                    child.display_name
+                    if child.display_name and child.display_name != ""
+                    else child.name
+                )
+                menu_labels[boot_loader].append(
+                    {
+                        "name": child.name,
+                        "display_name": display_name + " -> [submenu]",
+                    }
+                )
+
     def get_submenus(self, menu, metadata: dict, arch: enums.Archs):
         """
         Generates submenus metatdata for pxe, ipxe and grub.
@@ -448,31 +480,9 @@ class TFTPGen:
         boot_loaders = utils.get_supported_system_boot_loaders()
 
         for child in childs:
-            temp_metadata = self.get_menu_level(child, arch)
-            temp_items = temp_metadata["menu_items"]
-
-            for boot_loader in boot_loaders:
-                if boot_loader in temp_items:
-                    if boot_loader in nested_menu_items:
-                        nested_menu_items[boot_loader] += temp_items[boot_loader]
-                    else:
-                        nested_menu_items[boot_loader] = temp_items[boot_loader]
-
-                if boot_loader not in menu_labels:
-                    menu_labels[boot_loader] = []
-
-                if "ipxe" in temp_items:
-                    display_name = (
-                        child.display_name
-                        if child.display_name and child.display_name != ""
-                        else child.name
-                    )
-                    menu_labels[boot_loader].append(
-                        {
-                            "name": child.name,
-                            "display_name": display_name + " -> [submenu]",
-                        }
-                    )
+            self._get_submenu_child(
+                child, arch, boot_loaders, nested_menu_items, menu_labels
+            )
 
         metadata["menu_items"] = nested_menu_items
         metadata["menu_labels"] = menu_labels
