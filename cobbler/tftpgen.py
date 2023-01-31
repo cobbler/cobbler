@@ -359,7 +359,15 @@ class TFTPGen:
         menu_labels = metadata["menu_labels"]
         metadata["pxe_timeout_profile"] = timeout_action
 
-        # Write the PXE menu:
+        self._make_pxe_menu_pxe(metadata, menu_items, menu_labels, boot_menu)
+        self._make_pxe_menu_ipxe(metadata, menu_items, menu_labels, boot_menu)
+        self._make_pxe_menu_grub(boot_menu)
+        return boot_menu
+
+    def _make_pxe_menu_pxe(self, metadata, menu_items, menu_labels, boot_menu):
+        """
+        Write the PXE menu
+        """
         metadata["menu_items"] = menu_items.get("pxe", "")
         metadata["menu_labels"] = menu_labels.get("pxe", "")
         outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
@@ -372,8 +380,11 @@ class TFTPGen:
             template_data = template_src.read()
             boot_menu["pxe"] = self.templar.render(template_data, metadata, outfile)
 
+    def _make_pxe_menu_ipxe(self, metadata, menu_items, menu_labels, boot_menu):
+        """
+        Write the iPXE menu
+        """
         if self.settings.enable_ipxe:
-            # Write the iPXE menu:
             metadata["menu_items"] = menu_items.get("ipxe", "")
             metadata["menu_labels"] = menu_labels.get("ipxe", "")
             outfile = os.path.join(self.bootloc, "ipxe", "default.ipxe")
@@ -388,16 +399,18 @@ class TFTPGen:
                     template_data, metadata, outfile
                 )
 
-        # Write the grub menu:
+    def _make_pxe_menu_grub(self, boot_menu):
+        """
+        Write the grub menu
+        """
         for arch in enums.Archs:
             arch_metadata = self.get_menu_items(arch)
             arch_menu_items = arch_metadata["menu_items"]
 
             boot_menu["grub"] = arch_menu_items
-            outfile = os.path.join(self.bootloc, "grub", f"{arch.value}_menu_items.cfg")
-            with open(outfile, "w+", encoding="UTF-8") as grub_arch_fd:
-                grub_arch_fd.write(arch_menu_items["grub"])
-        return boot_menu
+            outfile = os.path.join(self.bootloc, "grub", f"{arch}_menu_items.cfg")
+            with open(outfile, "w+") as fd:
+                fd.write(arch_menu_items.get("grub", ""))
 
     def get_menu_items(self, arch: Optional[enums.Archs] = None) -> dict:
         """
