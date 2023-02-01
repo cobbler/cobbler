@@ -18,6 +18,7 @@
 + CentOS/
 + Packages/
 + Packages/*/
++ BaseOS/
 + Server/
 + Client/
 + SL/
