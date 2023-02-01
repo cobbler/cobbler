@@ -150,9 +150,14 @@ class TFTPGen:
         newfile = os.path.join(images_dir, img.name)
         filesystem_helpers.linkfile(self.api, filename, newfile)
 
-    def _write_all_system_files_s390(self, distro, profile, image, system):
+    def _write_all_system_files_s390(self, distro, profile, image, system) -> None:
         """
-        TODO
+        Write all files for a given system to TFTP that is of the architecture of s390[x].
+
+        :param distro: The distro to generate the files for.
+        :param profile: The profile to generate the files for.
+        :param image: The image to generate the files for.
+        :param system: The system to generate the files for.
         """
         short_name = system.name.split(".")[0]
         s390_name = "linux" + short_name[7:10]
@@ -227,7 +232,7 @@ class TFTPGen:
         profile attached. Otherwise this method throws an error.
 
         :param system: The system to generate files for.
-        :param menu_items: TODO
+        :param menu_items: The list of labels that are used for displaying the menu entry.
         """
         profile = system.get_conceptual_parent()
         if profile is None:
@@ -367,9 +372,14 @@ class TFTPGen:
         self._make_pxe_menu_grub(boot_menu)
         return boot_menu
 
-    def _make_pxe_menu_pxe(self, metadata, menu_items, menu_labels, boot_menu):
+    def _make_pxe_menu_pxe(self, metadata, menu_items, menu_labels, boot_menu) -> None:
         """
         Write the PXE menu
+
+        :param metadata: The metadata dictionary that contains the metdata for the template.
+        :param menu_items: The dictionary with the data for the menu.
+        :param menu_labels: The dictionary with the labels that are shown in the menu.
+        :param boot_menu: The dictionary which contains the PXE menu and its data.
         """
         metadata["menu_items"] = menu_items.get("pxe", "")
         metadata["menu_labels"] = menu_labels.get("pxe", "")
@@ -383,9 +393,14 @@ class TFTPGen:
             template_data = template_src.read()
             boot_menu["pxe"] = self.templar.render(template_data, metadata, outfile)
 
-    def _make_pxe_menu_ipxe(self, metadata, menu_items, menu_labels, boot_menu):
+    def _make_pxe_menu_ipxe(self, metadata, menu_items, menu_labels, boot_menu) -> None:
         """
         Write the iPXE menu
+
+        :param metadata: The metadata dictionary that contains the metdata for the template.
+        :param menu_items: The dictionary with the data for the menu.
+        :param menu_labels: The dictionary with the labels that are shown in the menu.
+        :param boot_menu: The dictionary which contains the iPXE menu and its data.
         """
         if self.settings.enable_ipxe:
             metadata["menu_items"] = menu_items.get("ipxe", "")
@@ -402,9 +417,11 @@ class TFTPGen:
                     template_data, metadata, outfile
                 )
 
-    def _make_pxe_menu_grub(self, boot_menu):
+    def _make_pxe_menu_grub(self, boot_menu) -> None:
         """
         Write the grub menu
+
+        :param boot_menu: The dictionary which contains the GRUB menu and its data.
         """
         for arch in enums.Archs:
             arch_metadata = self.get_menu_items(arch)
@@ -427,9 +444,15 @@ class TFTPGen:
 
     def _get_submenu_child(
         self, child, arch, boot_loaders, nested_menu_items, menu_labels
-    ):
+    ) -> None:
         """
-        TODO
+        Generate a single entry for a submenu.
+
+        :param child: The child item to generate the entry for.
+        :param arch: The architecture to generate the entry for.
+        :param boot_loaders: The list of boot loaders to generate the entry for.
+        :param nested_menu_items: The nested menu items.
+        :param menu_labels: The list of labels that are used for displaying the menu entry.
         """
         temp_metadata = self.get_menu_level(child, arch)
         temp_items = temp_metadata["menu_items"]
@@ -496,9 +519,17 @@ class TFTPGen:
         distro=None,
         profile=None,
         image=None,
-    ):
+    ) -> None:
         """
-        TODO
+        Common logic for generating both profile and image based menu entries.
+
+        :param arch: The architecture to generate the entries for.
+        :param boot_loader: The bootloader that the item menu is generated for.
+        :param current_menu_items: The already generated menu items.
+        :param menu_labels: The list of labels that are used for displaying the menu entry.
+        :param distro: The distro to generate the entries for.
+        :param profile: The profile to generate the entries for.
+        :param image: The image to generate the entries for.
         """
         if image is not None and profile is not None:
             raise ValueError('"image" and "profile" are mutually exclusive arguments')
