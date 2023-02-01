@@ -18,7 +18,7 @@ import time
 import re
 import xmlrpc.server
 from socketserver import ThreadingMixIn
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 
 from cobbler import enums
@@ -2077,17 +2077,13 @@ class CobblerXMLRPCInterface:
         :param field_name: The fieldname to check.
         :return: True if the fields is related to a network interface, otherwise False.
         """
-        # FIXME: This is not tested and I believe prone to errors. Needs explicit testing.
-        if field_name in ("delete_interface", "rename_interface"):
+        if field_name in ("interface", "delete_interface", "rename_interface"):
             return True
 
-        interface = system.NetworkInterface(self.api)
         fields = []
-        for attribute in interface.__dict__:
-            if attribute.startswith("_") and (
-                "api" not in attribute or "logger" in attribute
-            ):
-                fields.append(attribute[1:])
+        for key, value in system.NetworkInterface.__dict__.items():
+            if isinstance(value, property):
+                fields.append(key)
 
         return field_name in fields
 
@@ -2173,8 +2169,6 @@ class CobblerXMLRPCInterface:
         if edit_type != "remove":
             # FIXME: this doesn't know about interfaces yet!
             # if object type is system and fields add to dict and then modify when done, rather than now.
-            imods = {}
-            # FIXME: needs to know about how to delete interfaces too!
             priority_attributes = ["name", "parent", "distro", "profile", "image"]
             for attr_name in priority_attributes:
                 if attr_name in attributes:
@@ -2182,7 +2176,7 @@ class CobblerXMLRPCInterface:
                         object_type, handle, attr_name, attributes.pop(attr_name), token
                     )
             have_interface_keys = False
-            for (key, value) in list(attributes.items()):
+            for (key, value) in attributes.items():
                 if self.__is_interface_field(key):
                     have_interface_keys = True
                 if object_type != "system" or not self.__is_interface_field(key):
@@ -2208,10 +2202,6 @@ class CobblerXMLRPCInterface:
 
                     self.modify_item(object_type, handle, key, value, token)
 
-                else:
-                    modkey = f"{key}-{attributes.get('interface', '')}"
-                    imods[modkey] = value
-
             if object_type == "system" and have_interface_keys:
                 self.__interface_edits(handle, attributes, object_name)
         else:
@@ -2236,64 +2226,69 @@ class CobblerXMLRPCInterface:
         self.save_item(object_type, handle, token)
         return True
 
-    def __interface_edits(self, handle, attributes, object_name):
-        if (
-            "delete_interface" not in attributes
-            and "rename_interface" not in attributes
-        ):
-            # This if is taking care of interface logic. The interfaces are a dict, thus when we get the obj via
-            # the api we get references to the original interfaces dict. Thus this trick saves us the pain of
-            # writing the modified obj back to the collection. Always remember that dicts are mutable.
-            system_to_edit = self.__get_object(handle)
-            if system_to_edit is None:
-                raise ValueError(
-                    f'No system found with the specified name (name given: "{object_name}")!'
-                )
+    def __interface_edits(
+        self, handle: str, attributes: Dict[str, Any], object_name: str
+    ):
+        """
+        Handles all edits in relation to network interfaces.
 
-            # If we don't have an explicit interface name use the default interface or require an explicit
-            # interface if default cannot be found.
-            if (
-                len(system_to_edit.interfaces) > 1
-                and attributes.get("interface") is None
-            ):
-                if "default" not in system_to_edit.interfaces.keys():
-                    raise ValueError("Interface is required.")
-                interface_name = "default"
-            if len(system_to_edit.interfaces) == 1:
-                interface_name = attributes.get(
-                    "interface", next(iter(system_to_edit.interfaces))
-                )
-            else:
-                interface_name = attributes.get("interface", "default")
-            self.logger.debug('Interface "%s" is being edited.', interface_name)
-            interface = system_to_edit.interfaces.get(interface_name)
-            if interface is None:
-                # If the interface is not existing, create a new one.
-                interface = system.NetworkInterface(self.api)
-            for attribute_key in attributes:
-                if self.__is_interface_field(attribute_key):
-                    if hasattr(interface, attribute_key):
-                        setattr(interface, attribute_key, attributes[attribute_key])
-                    else:
-                        self.logger.warning(
-                            'Network interface field "%s" could not be set. Skipping it.',
-                            attribute_key,
-                        )
-                else:
-                    self.logger.debug(
-                        "Field %s was not an interface field.", attribute_key
-                    )
-            system_to_edit.interfaces.update({interface_name: interface})
-        elif "delete_interface" in attributes:
+        :param handle: XML-RPC handle for the system that is being edited.
+        :param attributes: The attributes that are being passed by the CLI to the server.
+        :param object_name: The system name.
+        """
+        if "delete_interface" in attributes:
             if attributes.get("interface") is None:
                 raise ValueError("Interface is required for deletion.")
             system_to_edit = self.__get_object(handle)
             system_to_edit.delete_interface(attributes.get("interface"))
-        elif "rename_interface" in attributes:
+            return
+
+        if "rename_interface" in attributes:
             system_to_edit = self.__get_object(handle)
             system_to_edit.rename_interface(
                 attributes.get("interface", ""), attributes.get("rename_interface", "")
             )
+            return
+
+        # This if is taking care of interface logic. The interfaces are a dict, thus when we get the obj via
+        # the api we get references to the original interfaces dict. Thus this trick saves us the pain of
+        # writing the modified obj back to the collection. Always remember that dicts are mutable.
+        system_to_edit = self.__get_object(handle)
+        if system_to_edit is None:
+            raise ValueError(
+                f'No system found with the specified name (name given: "{object_name}")!'
+            )
+
+        # If we don't have an explicit interface name use the default interface or require an explicit
+        # interface if default cannot be found.
+        if len(system_to_edit.interfaces) > 1 and attributes.get("interface") is None:
+            if "default" not in system_to_edit.interfaces.keys():
+                raise ValueError("Interface is required.")
+            interface_name = "default"
+        if len(system_to_edit.interfaces) == 1:
+            interface_name = attributes.get(
+                "interface", next(iter(system_to_edit.interfaces))
+            )
+        else:
+            interface_name = attributes.get("interface", "default")
+        attributes.pop("interface", None)
+        self.logger.debug('Interface "%s" is being edited.', interface_name)
+        interface = system_to_edit.interfaces.get(interface_name)
+        if interface is None:
+            # If the interface is not existing, create a new one.
+            interface = system.NetworkInterface(self.api)
+        for attribute_key in attributes:
+            if self.__is_interface_field(attribute_key):
+                if hasattr(interface, attribute_key):
+                    setattr(interface, attribute_key, attributes[attribute_key])
+                else:
+                    self.logger.warning(
+                        'Network interface field "%s" could not be set. Skipping it.',
+                        attribute_key,
+                    )
+            else:
+                self.logger.debug("Field %s was not an interface field.", attribute_key)
+        system_to_edit.interfaces.update({interface_name: interface})
 
     def save_item(self, what: str, object_id: str, token, editmode: str = "bypass"):
         """
