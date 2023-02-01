@@ -150,19 +150,94 @@ class TFTPGen:
         newfile = os.path.join(images_dir, img.name)
         filesystem_helpers.linkfile(self.api, filename, newfile)
 
+    def _write_all_system_files_s390(self, distro, profile, image, system) -> None:
+        """
+        Write all files for a given system to TFTP that is of the architecture of s390[x].
+
+        :param distro: The distro to generate the files for.
+        :param profile: The profile to generate the files for.
+        :param image: The image to generate the files for.
+        :param system: The system to generate the files for.
+        """
+        short_name = system.name.split(".")[0]
+        s390_name = "linux" + short_name[7:10]
+        self.logger.info("Writing s390x pxe config for %s", short_name)
+        # Always write a system specific _conf and _parm file
+        pxe_f = os.path.join(self.bootloc, "s390x", f"s_{s390_name}")
+        conf_f = f"{pxe_f}_conf"
+        parm_f = f"{pxe_f}_parm"
+
+        self.logger.info("Files: (conf,param) - (%s,%s)", conf_f, parm_f)
+        blended = utils.blender(self.api, True, system)
+        # FIXME: profiles also need this data!
+        # gather default kernel_options and default kernel_options_s390x
+        kernel_options = self.build_kernel_options(
+            system,
+            profile,
+            distro,
+            image,
+            enums.Archs.S390X,
+            blended.get("autoinstall", ""),
+        )
+        kopts_aligned = ""
+        column = 0
+        for option in kernel_options.split():
+            opt_len = len(option)
+            if opt_len > 78:
+                kopts_aligned += "\n" + option + " "
+                column = opt_len + 1
+                self.logger.error("Kernel paramer [%s] too long %s", option, opt_len)
+                continue
+            if column + opt_len > 78:
+                kopts_aligned += "\n" + option + " "
+                column = opt_len + 1
+            else:
+                kopts_aligned += option + " "
+                column += opt_len + 1
+
+        # Write system specific zPXE file
+        if system.is_management_supported():
+            if system.netboot_enabled:
+                self.logger.info("S390x: netboot_enabled")
+                kernel_path = os.path.join(
+                    "/images", distro.name, os.path.basename(distro.kernel)
+                )
+                initrd_path = os.path.join(
+                    "/images", distro.name, os.path.basename(distro.initrd)
+                )
+                with open(pxe_f, "w", encoding="UTF-8") as out:
+                    out.write(kernel_path + "\n" + initrd_path + "\n")
+                with open(parm_f, "w", encoding="UTF-8") as out:
+                    out.write(kopts_aligned)
+                # Write conf file with one newline in it if netboot is enabled
+                with open(conf_f, "w", encoding="UTF-8") as out:
+                    out.write("\n")
+            else:
+                self.logger.info("S390x: netboot_disabled")
+                # Write empty conf file if netboot is disabled
+                pathlib.Path(conf_f).touch()
+        else:
+            # ensure the files do exist
+            self.logger.info("S390x: management not supported")
+            filesystem_helpers.rmfile(pxe_f)
+            filesystem_helpers.rmfile(conf_f)
+            filesystem_helpers.rmfile(parm_f)
+        self.logger.info(
+            "S390x: pxe: [%s], conf: [%s], parm: [%s]", pxe_f, conf_f, parm_f
+        )
+
     def write_all_system_files(self, system, menu_items):
         """
         Writes all files for tftp for a given system with the menu items handed to this method. The system must have a
         profile attached. Otherwise this method throws an error.
 
         :param system: The system to generate files for.
-        :param menu_items: TODO
+        :param menu_items: The list of labels that are used for displaying the menu entry.
         """
         profile = system.get_conceptual_parent()
         if profile is None:
             raise CX(
-                "system %(system)s references a missing profile %(profile)s"
-                % {"system": system.name, "profile": system.profile}
+                f"system {system.name} references a missing profile {system.profile}"
             )
 
         distro = profile.get_conceptual_parent()
@@ -171,8 +246,7 @@ class TFTPGen:
         if distro is None:
             if profile.COLLECTION_TYPE == "profile":
                 raise CX(
-                    "profile %(profile)s references a missing distro %(distro)s"
-                    % {"profile": system.profile, "distro": profile.distro}
+                    f"profile {system.profile} references a missing distro {profile.distro}"
                 )
             image_based = True
             image = profile
@@ -181,79 +255,11 @@ class TFTPGen:
 
         # hack: s390 generates files per system not per interface
         if not image_based and distro.arch in (enums.Archs.S390, enums.Archs.S390X):
-            short_name = system.name.split(".")[0]
-            s390_name = "linux" + short_name[7:10]
-            self.logger.info("Writing s390x pxe config for %s", short_name)
-            # Always write a system specific _conf and _parm file
-            pxe_f = os.path.join(self.bootloc, "s390x", f"s_{s390_name}")
-            conf_f = f"{pxe_f}_conf"
-            parm_f = f"{pxe_f}_parm"
-
-            self.logger.info("Files: (conf,param) - (%s,%s)", conf_f, parm_f)
-            blended = utils.blender(self.api, True, system)
-            # FIXME: profiles also need this data!
-            # gather default kernel_options and default kernel_options_s390x
-            kernel_options = self.build_kernel_options(
-                system,
-                profile,
-                distro,
-                image,
-                enums.Archs.S390X,
-                blended.get("autoinstall", ""),
-            )
-            kopts_aligned = ""
-            column = 0
-            for option in kernel_options.split():
-                opt_len = len(option)
-                if opt_len > 78:
-                    kopts_aligned += "\n" + option + " "
-                    column = opt_len + 1
-                    self.logger.error(
-                        "Kernel paramer [%s] too long %s", option, opt_len
-                    )
-                    continue
-                if column + opt_len > 78:
-                    kopts_aligned += "\n" + option + " "
-                    column = opt_len + 1
-                else:
-                    kopts_aligned += option + " "
-                    column += opt_len + 1
-
-            # Write system specific zPXE file
-            if system.is_management_supported():
-                if system.netboot_enabled:
-                    self.logger.info("S390x: netboot_enabled")
-                    kernel_path = os.path.join(
-                        "/images", distro.name, os.path.basename(distro.kernel)
-                    )
-                    initrd_path = os.path.join(
-                        "/images", distro.name, os.path.basename(distro.initrd)
-                    )
-                    with open(pxe_f, "w", encoding="UTF-8") as out:
-                        out.write(kernel_path + "\n" + initrd_path + "\n")
-                    with open(parm_f, "w", encoding="UTF-8") as out:
-                        out.write(kopts_aligned)
-                    # Write conf file with one newline in it if netboot is enabled
-                    with open(conf_f, "w", encoding="UTF-8") as out:
-                        out.write("\n")
-                else:
-                    self.logger.info("S390x: netboot_disabled")
-                    # Write empty conf file if netboot is disabled
-                    pathlib.Path(conf_f).touch()
-            else:
-                # ensure the files do exist
-                self.logger.info("S390x: management not supported")
-                filesystem_helpers.rmfile(pxe_f)
-                filesystem_helpers.rmfile(conf_f)
-                filesystem_helpers.rmfile(parm_f)
-            self.logger.info(
-                "S390x: pxe: [%s], conf: [%s], parm: [%s]", pxe_f, conf_f, parm_f
-            )
-
+            self._write_all_system_files_s390(distro, profile, image, system)
             return
 
         # generate one record for each described NIC ..
-        for (name, _) in list(system.interfaces.items()):
+        for (name, _) in system.interfaces.items():
 
             # Passing "pxe" here is a hack, but we need to make sure that
             # get_config_filename() will return a filename in the pxelinux
@@ -351,38 +357,54 @@ class TFTPGen:
         # only do this if there is NOT a system named default.
         default = self.systems.find(name="default")
 
-        if default is None:
-            timeout_action = "local"
-        else:
+        timeout_action = "local"
+        if default is not None:
             timeout_action = default.profile
 
         boot_menu = {}
         metadata = self.get_menu_items()
-        loader_metadata = metadata
         menu_items = metadata["menu_items"]
         menu_labels = metadata["menu_labels"]
-        loader_metadata["pxe_timeout_profile"] = timeout_action
+        metadata["pxe_timeout_profile"] = timeout_action
 
-        # Write the PXE menu:
-        if "pxe" in menu_items:
-            loader_metadata["menu_items"] = menu_items["pxe"]
-            loader_metadata["menu_labels"] = menu_labels["pxe"]
-            outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
-            with open(
-                os.path.join(
-                    self.settings.boot_loader_conf_template_dir, "pxe_menu.template"
-                ),
-                encoding="UTF-8",
-            ) as template_src:
-                template_data = template_src.read()
-                boot_menu["pxe"] = self.templar.render(
-                    template_data, loader_metadata, outfile
-                )
+        self._make_pxe_menu_pxe(metadata, menu_items, menu_labels, boot_menu)
+        self._make_pxe_menu_ipxe(metadata, menu_items, menu_labels, boot_menu)
+        self._make_pxe_menu_grub(boot_menu)
+        return boot_menu
 
-        # Write the iPXE menu:
-        if "ipxe" in menu_items:
-            loader_metadata["menu_items"] = menu_items["ipxe"]
-            loader_metadata["menu_labels"] = menu_labels["ipxe"]
+    def _make_pxe_menu_pxe(self, metadata, menu_items, menu_labels, boot_menu) -> None:
+        """
+        Write the PXE menu
+
+        :param metadata: The metadata dictionary that contains the metdata for the template.
+        :param menu_items: The dictionary with the data for the menu.
+        :param menu_labels: The dictionary with the labels that are shown in the menu.
+        :param boot_menu: The dictionary which contains the PXE menu and its data.
+        """
+        metadata["menu_items"] = menu_items.get("pxe", "")
+        metadata["menu_labels"] = menu_labels.get("pxe", "")
+        outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
+        with open(
+            os.path.join(
+                self.settings.boot_loader_conf_template_dir, "pxe_menu.template"
+            ),
+            encoding="UTF-8",
+        ) as template_src:
+            template_data = template_src.read()
+            boot_menu["pxe"] = self.templar.render(template_data, metadata, outfile)
+
+    def _make_pxe_menu_ipxe(self, metadata, menu_items, menu_labels, boot_menu) -> None:
+        """
+        Write the iPXE menu
+
+        :param metadata: The metadata dictionary that contains the metdata for the template.
+        :param menu_items: The dictionary with the data for the menu.
+        :param menu_labels: The dictionary with the labels that are shown in the menu.
+        :param boot_menu: The dictionary which contains the iPXE menu and its data.
+        """
+        if self.settings.enable_ipxe:
+            metadata["menu_items"] = menu_items.get("ipxe", "")
+            metadata["menu_labels"] = menu_labels.get("ipxe", "")
             outfile = os.path.join(self.bootloc, "ipxe", "default.ipxe")
             with open(
                 os.path.join(
@@ -392,22 +414,23 @@ class TFTPGen:
             ) as template_src:
                 template_data = template_src.read()
                 boot_menu["ipxe"] = self.templar.render(
-                    template_data, loader_metadata, outfile
+                    template_data, metadata, outfile
                 )
 
-        # Write the grub menu:
+    def _make_pxe_menu_grub(self, boot_menu) -> None:
+        """
+        Write the grub menu
+
+        :param boot_menu: The dictionary which contains the GRUB menu and its data.
+        """
         for arch in enums.Archs:
             arch_metadata = self.get_menu_items(arch)
             arch_menu_items = arch_metadata["menu_items"]
 
-            if "grub" in arch_menu_items:
-                boot_menu["grub"] = arch_menu_items
-                outfile = os.path.join(
-                    self.bootloc, "grub", f"{arch.value}_menu_items.cfg"
-                )
-                with open(outfile, "w+", encoding="UTF-8") as grub_arch_fd:
-                    grub_arch_fd.write(arch_menu_items["grub"])
-        return boot_menu
+            boot_menu["grub"] = arch_menu_items
+            outfile = os.path.join(self.bootloc, "grub", f"{arch}_menu_items.cfg")
+            with open(outfile, "w+") as fd:
+                fd.write(arch_menu_items.get("grub", ""))
 
     def get_menu_items(self, arch: Optional[enums.Archs] = None) -> dict:
         """
@@ -418,6 +441,44 @@ class TFTPGen:
                   utils.get_supported_system_boot_loaders().
         """
         return self.get_menu_level(None, arch)
+
+    def _get_submenu_child(
+        self, child, arch, boot_loaders, nested_menu_items, menu_labels
+    ) -> None:
+        """
+        Generate a single entry for a submenu.
+
+        :param child: The child item to generate the entry for.
+        :param arch: The architecture to generate the entry for.
+        :param boot_loaders: The list of boot loaders to generate the entry for.
+        :param nested_menu_items: The nested menu items.
+        :param menu_labels: The list of labels that are used for displaying the menu entry.
+        """
+        temp_metadata = self.get_menu_level(child, arch)
+        temp_items = temp_metadata["menu_items"]
+
+        for boot_loader in boot_loaders:
+            if boot_loader in temp_items:
+                if boot_loader in nested_menu_items:
+                    nested_menu_items[boot_loader] += temp_items[boot_loader]
+                else:
+                    nested_menu_items[boot_loader] = temp_items[boot_loader]
+
+            if boot_loader not in menu_labels:
+                menu_labels[boot_loader] = []
+
+            if "ipxe" in temp_items:
+                display_name = (
+                    child.display_name
+                    if child.display_name and child.display_name != ""
+                    else child.name
+                )
+                menu_labels[boot_loader].append(
+                    {
+                        "name": child.name,
+                        "display_name": display_name + " -> [submenu]",
+                    }
+                )
 
     def get_submenus(self, menu, metadata: dict, arch: enums.Archs):
         """
@@ -442,34 +503,67 @@ class TFTPGen:
         boot_loaders = utils.get_supported_system_boot_loaders()
 
         for child in childs:
-            temp_metadata = self.get_menu_level(child, arch)
-            temp_items = temp_metadata["menu_items"]
-
-            for boot_loader in boot_loaders:
-                if boot_loader in temp_items:
-                    if boot_loader in nested_menu_items:
-                        nested_menu_items[boot_loader] += temp_items[boot_loader]
-                    else:
-                        nested_menu_items[boot_loader] = temp_items[boot_loader]
-
-                if boot_loader not in menu_labels:
-                    menu_labels[boot_loader] = []
-
-                if "ipxe" in temp_items:
-                    display_name = (
-                        child.display_name
-                        if child.display_name and child.display_name != ""
-                        else child.name
-                    )
-                    menu_labels[boot_loader].append(
-                        {
-                            "name": child.name,
-                            "display_name": display_name + " -> [submenu]",
-                        }
-                    )
+            self._get_submenu_child(
+                child, arch, boot_loaders, nested_menu_items, menu_labels
+            )
 
         metadata["menu_items"] = nested_menu_items
         metadata["menu_labels"] = menu_labels
+
+    def _get_item_menu(
+        self,
+        arch,
+        boot_loader,
+        current_menu_items,
+        menu_labels,
+        distro=None,
+        profile=None,
+        image=None,
+    ) -> None:
+        """
+        Common logic for generating both profile and image based menu entries.
+
+        :param arch: The architecture to generate the entries for.
+        :param boot_loader: The bootloader that the item menu is generated for.
+        :param current_menu_items: The already generated menu items.
+        :param menu_labels: The list of labels that are used for displaying the menu entry.
+        :param distro: The distro to generate the entries for.
+        :param profile: The profile to generate the entries for.
+        :param image: The image to generate the entries for.
+        """
+        if image is not None and profile is not None:
+            raise ValueError('"image" and "profile" are mutually exclusive arguments')
+        target_item = None
+        if image is None:
+            target_item = profile
+        elif profile is None:
+            target_item = image
+
+        contents = self.write_pxe_file(
+            filename=None,
+            system=None,
+            profile=profile,
+            distro=distro,
+            arch=arch,
+            image=image,
+            bootloader_format=boot_loader,
+        )
+        if contents and contents != "":
+            if boot_loader not in current_menu_items:
+                current_menu_items[boot_loader] = ""
+            current_menu_items[boot_loader] += contents
+
+            if boot_loader not in menu_labels:
+                menu_labels[boot_loader] = []
+
+            # iPXE Level menu
+            if boot_loader == "ipxe":
+                display_name = target_item.name
+                if target_item.display_name and target_item.display_name != "":
+                    display_name = target_item.display_name
+                menu_labels["ipxe"].append(
+                    {"name": target_item.name, "display_name": display_name}
+                )
 
     def get_profiles_menu(self, menu, metadata: dict, arch: enums.Archs):
         """
@@ -510,31 +604,15 @@ class TFTPGen:
             for boot_loader in boot_loaders:
                 if boot_loader not in profile.boot_loaders:
                     continue
-                contents = self.write_pxe_file(
-                    filename=None,
-                    system=None,
-                    profile=profile,
+                self._get_item_menu(
+                    arch,
+                    boot_loader,
+                    current_menu_items,
+                    menu_labels,
                     distro=distro,
-                    arch=arch,
+                    profile=profile,
                     image=None,
-                    bootloader_format=boot_loader,
                 )
-                if contents and contents != "":
-                    if boot_loader not in current_menu_items:
-                        current_menu_items[boot_loader] = ""
-                    current_menu_items[boot_loader] += contents
-
-                    if boot_loader not in menu_labels:
-                        menu_labels[boot_loader] = []
-
-                    # iPXE Level menu
-                    if boot_loader == "ipxe":
-                        display_name = profile.name
-                        if profile.display_name and profile.display_name != "":
-                            display_name = profile.display_name
-                        menu_labels["ipxe"].append(
-                            {"name": profile.name, "display_name": display_name}
-                        )
 
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
@@ -567,31 +645,9 @@ class TFTPGen:
                 for boot_loader in boot_loaders:
                     if boot_loader not in image.boot_loaders:
                         continue
-                    contents = self.write_pxe_file(
-                        filename=None,
-                        system=None,
-                        profile=None,
-                        distro=None,
-                        arch=arch,
-                        image=image,
-                        bootloader_format=boot_loader,
+                    self._get_item_menu(
+                        arch, boot_loader, current_menu_items, menu_labels, image=image
                     )
-                    if contents and contents != "":
-                        if boot_loader not in current_menu_items:
-                            current_menu_items[boot_loader] = ""
-                        current_menu_items[boot_loader] += contents
-
-                        if boot_loader not in menu_labels:
-                            menu_labels[boot_loader] = []
-
-                        # iPXE Level menu
-                        if boot_loader == "ipxe":
-                            display_name = image.name
-                            if image.display_name and image.display_name != "":
-                                display_name = image.display_name
-                            menu_labels["ipxe"].append(
-                                {"name": image.name, "display_name": display_name}
-                            )
 
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
@@ -853,6 +909,7 @@ class TFTPGen:
         Generates kernel and initrd metadata.
 
         :param metadata: Pass additional parameters to the ones being collected during the method.
+        :param system: The system to generate the pxe-file for.
         :param profile: The profile to generate the pxe-file for.
         :param distro: If you don't ship an image, this is needed. Otherwise this just supplies information needed for
                        the templates.
@@ -956,7 +1013,7 @@ class TFTPGen:
             blended = utils.blender(self.api, False, system)
             # find the first management interface
             try:
-                for intf in list(system.interfaces.keys()):
+                for intf in system.interfaces.keys():
                     if system.interfaces[intf].management:
                         management_interface = intf
                         if system.interfaces[intf].mac_address:
@@ -1059,7 +1116,7 @@ class TFTPGen:
 
                 # rework kernel options for debian distros
                 translations = {"ksdevice": "interface", "lang": "locale"}
-                for key, value in list(translations.items()):
+                for key, value in translations.items():
                     append_line = append_line.replace(f"{key}=", f"{value}=")
 
                 # interface=bootif causes a failure
@@ -1191,31 +1248,25 @@ class TFTPGen:
                 for modules in bootmodules:
                     blended["esx_modules"] = modules.replace("/", "")
 
-        autoinstall_meta = blended.get("autoinstall_meta", {})
-        try:
-            del blended["autoinstall_meta"]
-        except Exception:
-            pass
-        blended.update(autoinstall_meta)  # make available at top level
+        # Make "autoinstall_meta" available at top level
+        autoinstall_meta = blended.pop("autoinstall_meta", {})
+        blended.update(autoinstall_meta)
 
-        templates = blended.get("template_files", {})
-        try:
-            del blended["template_files"]
-        except Exception:
-            pass
-        blended.update(templates)  # make available at top level
+        # Make "template_files" available at top level
+        templates = blended.pop("template_files", {})
+        blended.update(templates)
 
         templates = input_converters.input_string_or_dict(templates)
 
         # FIXME: img_path and local_img_path should probably be moved up into the blender function to ensure they're
         #  consistently available to templates across the board.
-        if blended["distro_name"]:
+        if blended.get("distro_name", False):
             blended["img_path"] = os.path.join("/images", blended["distro_name"])
             blended["local_img_path"] = os.path.join(
                 self.bootloc, "images", blended["distro_name"]
             )
 
-        for template in list(templates.keys()):
+        for template in templates.keys():
             dest = templates[template]
             if dest is None:
                 continue
@@ -1411,12 +1462,9 @@ class TFTPGen:
 
         blended = utils.blender(self.api, False, obj)
 
-        autoinstall_meta = blended.get("autoinstall_meta", {})
-        try:
-            del blended["autoinstall_meta"]
-        except Exception:
-            pass
-        blended.update(autoinstall_meta)  # make available at top level
+        # Promote autoinstall_meta to top-level
+        autoinstall_meta = blended.pop("autoinstall_meta", {})
+        blended.update(autoinstall_meta)
 
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
