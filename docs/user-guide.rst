@@ -19,6 +19,7 @@ User Guide
    HTTPboot <user-guide/httpboot>
    Power Management <user-guide/power-management>
    Boot CD <user-guide/boot-cd>
+   Advanced Networking <user-guide/advanced-networking>
 
 
 API
