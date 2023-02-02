@@ -45,10 +45,9 @@ COPY ./tests/setup_files/supervisord/conf.d /etc/supervisord/conf.d
 #RUN ["sed", "-i", "s/SECRET_KEY.*/'SECRET_KEY\ =\ \"qwertyuiopasdfghl;\"'/", "cobbler/web/settings.py"]
 
 # Install optional stuff
-RUN ["pip3", "install", "pymongo", "Jinja2" ]
+RUN ["pip3", "install", "Jinja2" ]
 # Install and upgrade all dependencies
-RUN ["pip3", "install", "--upgrade", "pip"]
-RUN ["pip3", "install", ".[lint,test]"]
+RUN ["pip3", "install", "-e", ".[lint,test]"]
 
 # Install cobbler
 RUN ["make", "install"]

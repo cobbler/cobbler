@@ -8,14 +8,14 @@ services:
       dockerfile: docker/openSUSE_Leap.dockerfile
     container_name: cobbler-test-openSUSE-Leap
 
-  centos8-build:
-    image: local/cobbler-centos8
-    container_name: cobbler-centos8
+  rockylinux8-build:
+    image: local/cobbler-rockylinux8
+    container_name: cobbler-rockylinux8
     build:
       context: .
-      dockerfile: docker/CentOS8.dockerfile
+      dockerfile: docker/Rocky_Linux_8.dockerfile
     volumes:
-      - ./rpm-build/el8:/usr/src/cobbler/rpm-build
+      - ./rpm-build/rl8:/usr/src/cobbler/rpm-build
 
   fedora33-build:
     image: local/cobbler-fedora33

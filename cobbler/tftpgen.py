@@ -325,7 +325,7 @@ class TFTPGen:
         # Write the grub menu:
         for arch in utils.get_valid_archs():
             arch_menu_items = self.get_menu_items(arch)
-            if(arch_menu_items['grub']):
+            if (arch_menu_items['grub']):
                 outfile = os.path.join(self.bootloc, "grub", "{0}_menu_items.cfg".format(arch))
                 fd = open(outfile, "w+")
                 fd.write(arch_menu_items['grub'])
