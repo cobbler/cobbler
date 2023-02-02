@@ -114,7 +114,7 @@ build: ## Runs the Python Build.
 install: build ## Runs the build target and then installs via setup.py
 	# Debian/Ubuntu requires an additional parameter in setup.py
 	@source distro_build_configs.sh; \
-	${PYTHON} setup.py install --root $(DESTDIR) -f
+	${PYTHON} setup.py install --skip-build --root $(DESTDIR) -f
 
 devinstall: ## This deletes the /usr/share/cobbler directory and then runs the targets savestate, install and restorestate.
 	-rm -rf $(DESTDIR)/usr/share/cobbler
