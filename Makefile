@@ -109,7 +109,7 @@ test-debian10: ## Executes the testscript for testing cobbler in a docker contai
 
 build: ## Runs the Python Build.
 	@source distro_build_configs.sh; \
-	${PYTHON} setup.py build -f
+	${PYTHON} setup.py build -e "$(PYTHON)" -f
 
 install: build ## Runs the build target and then installs via setup.py
 	# Debian/Ubuntu requires an additional parameter in setup.py
