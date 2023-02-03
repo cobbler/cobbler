@@ -82,7 +82,7 @@ class MongoDBSerializer(StorageBase):
         collection = self.mongodb_database[collection.collection_type()]
         data = collection.find_one({"name": item.name})
         if data:
-            collection.update({"name": item.name}, item.serialize())
+            collection.replace_one({"name": item.name}, item.serialize())
         else:
             collection.insert_one(item.serialize())
 
