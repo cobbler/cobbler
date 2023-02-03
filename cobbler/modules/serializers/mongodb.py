@@ -102,7 +102,7 @@ class MongoDBSerializer(StorageBase):
             return settings.read_settings_file()
 
         collection = self.mongodb_database[collection_type]
-        return collection.find()
+        return list(collection.find({}, {"_id": False}))
 
     def deserialize(self, collection, topological: bool = True):
         datastruct = self.deserialize_raw(collection.collection_type())
