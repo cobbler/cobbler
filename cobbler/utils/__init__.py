@@ -480,9 +480,10 @@ def blender(api_handle, remove_dicts: bool, root_obj):
         for key in child_names:
             child = api_handle.find_items("", name=key, return_list=False)
             if child is None:
-                raise ValueError(
-                    f'Child with the name "{key}" of parent object "{root_obj.name}" did not exist!'
+                logger.error(
+                    f'Child with the name "{key}" did not exist! This child is referenced in consolidated object "{root_obj.name}".'
                 )
+                continue
             results["children"][key] = child.to_dict()
 
     # sanitize output for koan and kernel option lines, etc
