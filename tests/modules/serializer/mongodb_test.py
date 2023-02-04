@@ -79,12 +79,16 @@ def test_deserialize_raw(mongodb_obj):
     mongodb_obj.mongodb["cobbler"][collection_type].insert_one(
         {"name": "testitem", "arch": "x86_64"}
     )
+    mongodb_obj.mongodb["cobbler"][collection_type].insert_one(
+        {"name": "testitem2", "arch": "x86_64"}
+    )
 
     # Act
     result = mongodb_obj.deserialize_raw(collection_type)
 
     # Assert
-    assert len(list(result)) == 1
+    assert isinstance(result, list)
+    assert len(result) == 2
 
 
 def test_deserialize(mocker, mongodb_obj):
