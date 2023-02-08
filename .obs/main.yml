@@ -1,0 +1,10 @@
+workflow:
+  steps:
+    - trigger_services:
+        project: home:cobbler-project:ci
+        package: cobbler
+  filters:
+    event: push
+    branches:
+      only:
+        - main
