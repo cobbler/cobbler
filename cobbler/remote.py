@@ -34,6 +34,7 @@ from threading import Thread
 from typing import Dict, List, Optional, Union
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 
+from cobbler import enums
 from cobbler import autoinstall_manager
 from cobbler import configgen
 from cobbler.items import item, package, system, image, profile, repo, mgmtclass, distro, file, menu
@@ -712,7 +713,52 @@ class CobblerXMLRPCInterface:
         .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.get_item_resolved_value`
         """
         self._log("get_item_resolved_value(%s)" % item_uuid, attribute=attribute)
-        return self.api.get_item_resolved_value(item_uuid, attribute)
+        return_value = self.api.get_item_resolved_value(item_uuid, attribute)
+        if return_value is None:
+            self._log(
+                "get_item_resolved_value(%s): returned None" % item_uuid,
+                attribute=attribute,
+            )
+            raise ValueError(
+                'None is not a valid value for the resolved attribute "%s". Please fix the item(s) '
+                'starting at uuid "%s"' % (attribute, item_uuid)
+            )
+        elif isinstance(return_value, enums.ConvertableEnum):
+            return return_value.value
+        elif isinstance(
+            return_value,
+            (utils.DHCP, enums.NetworkInterfaceType, enums.BaudRates, item.Item),
+        ):
+            return return_value.name
+        elif isinstance(return_value, dict):
+            if (
+                attribute == "interfaces"
+                and len(return_value) > 0
+                and all(
+                    isinstance(value, system.NetworkInterface)
+                    for value in return_value.values()
+                )
+            ):
+                interface_return_value = {}
+                for interface_name in return_value:
+                    interface_return_value[interface_name] = return_value[
+                        interface_name
+                    ].to_dict(resolved=True)
+                return interface_return_value
+            return self.xmlrpc_hacks(return_value)
+
+        if not isinstance(
+            return_value, (str, int, float, bool, tuple, bytes, bytearray, dict, list)
+        ):
+            self._log(
+                "get_item_resolved_value(%s): Cannot return XML-RPC compliant type. Please add a case to convert"
+                ' type "%s" to an XML-RPC compliant type!'
+                % (item_uuid, type(return_value))
+            )
+            raise ValueError(
+                "Cannot return XML-RPC compliant type. See logs for more information!"
+            )
+        return return_value
 
     def get_item(self, what: str, name: str, flatten=False, resolved: bool = False):
         """

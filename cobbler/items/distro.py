@@ -34,6 +34,8 @@ class Distro(item.Item):
     A Cobbler distribution object
     """
 
+    # Constants
+    TYPE_NAME = "distro"
     COLLECTION_TYPE = "distro"
 
     def __init__(self, api, *args, **kwargs):

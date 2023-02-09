@@ -4,6 +4,8 @@ import pytest
 import time
 import re
 
+from tests.conftest import does_not_raise
+
 TEST_POWER_MANAGEMENT = True
 TEST_SYSTEM = ""
 
@@ -186,8 +188,60 @@ def test_get_random_mac(remote, token):
     assert match_obj
 
 
+@pytest.mark.parametrize(
+    "input_attribute,checked_object,expected_result,expected_exception",
+    [
+        ("kernel_options", "system", {"a": "1", "b": "2", "d": "~"}, does_not_raise()),
+        ("arch", "distro", "x86_64", does_not_raise()),
+        ("distro", "profile", "testdistro_item_resolved_value", does_not_raise()),
+        ("profile", "system", "testprofile_item_resolved_value", does_not_raise()),
+        (
+            "interfaces",
+            "system",
+            {
+                "eth0": {
+                    "bonding_opts": "",
+                    "bridge_opts": "",
+                    "cnames": [],
+                    "connected_mode": False,
+                    "dhcp_tag": "",
+                    "dns_name": "",
+                    "if_gateway": "",
+                    "interface_master": "",
+                    "interface_type": "NA",
+                    "ip_address": "",
+                    "ipv6_address": "",
+                    "ipv6_default_gateway": "",
+                    "ipv6_mtu": "",
+                    "ipv6_prefix": "",
+                    "ipv6_secondaries": [],
+                    "ipv6_static_routes": [],
+                    "mac_address": "aa:bb:cc:dd:ee:ff",
+                    "management": False,
+                    "mtu": "",
+                    "netmask": "",
+                    "static": False,
+                    "static_routes": [],
+                    "virt_bridge": "",
+                }
+            },
+            does_not_raise(),
+        ),
+        ("modify_interface", "system", {}, pytest.raises(ValueError)),
+        ("doesnt_exist", "system", {}, pytest.raises(AttributeError)),
+    ],
+)
 def test_get_item_resolved_value(
-    remote, token, create_distro, create_profile, create_system, create_kernel_initrd
+    remote,
+    token,
+    create_distro,
+    create_profile,
+    create_system,
+    create_kernel_initrd,
+    input_attribute,
+    checked_object,
+    expected_result,
+    expected_exception,
 ):
     # Arrange
     fk_kernel = "vmlinuz1"
@@ -203,11 +257,24 @@ def test_get_item_resolved_value(
     create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
     test_system_handle = create_system(name_system, name_profile)
     remote.modify_system(test_system_handle, "kernel_options", "!c !e", token=token)
-    test_system = remote.get_system(name_system, token=token)
-    expected_result = {"a": "1", "b": "2", "d": None}
+    remote.modify_system(
+        test_system_handle,
+        "modify_interface",
+        {"macaddress-eth0": "aa:bb:cc:dd:ee:ff"},
+        token=token,
+    )
+    if checked_object == "distro":
+        test_item = remote.get_distro(name_distro, token=token)
+    elif checked_object == "profile":
+        test_item = remote.get_profile(name_profile, token=token)
+    elif checked_object == "system":
+        test_item = remote.get_system(name_system, token=token)
+    else:
+        raise ValueError("checked_object has wrong value")
 
     # Act
-    result = remote.get_item_resolved_value(test_system.get("uid"), "kernel_options")
+    with expected_exception:
+        result = remote.get_item_resolved_value(test_item.get("uid"), input_attribute)
 
-    # Assert
-    assert expected_result == result
+        # Assert
+        assert expected_result == result
