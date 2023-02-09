@@ -379,7 +379,7 @@ class Collection:
             raise TypeError("API error: storing wrong data type in collection")
 
         # failure of a pre trigger will prevent the object from being added
-        if save and with_triggers:
+        if save and with_triggers and self.api.is_cobblerd:
             utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
 
         self.lock.acquire()
@@ -394,7 +394,7 @@ class Collection:
             self.logger.debug("Added child \"%s\" to parent \"%s\"", ref.name, ref.parent.name)
 
         # perform filesystem operations
-        if save:
+        if save and self.api.is_cobblerd:
             # Save just this item if possible, if not, save the whole collection
             self.collection_mgr.serialize_one_item(ref)
             if ref.parent:
