@@ -308,7 +308,10 @@ for old_type in [
 
         if not args.only_fix_autoinstall:
             if new_type in add:
-                new_item.update(add[new_type])
+                # We only add items if they don't exist
+                for item in add[new_type]:
+                    if item not in new_item:
+                        new_item[item] = add[new_type][item]
 
             # Switch "virtio26" and "generic26" OS version to "generic" distro breed
             if new_item.get("os_version") in ["generic26", "virtio26"]:
