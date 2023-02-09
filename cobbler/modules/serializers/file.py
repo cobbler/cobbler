@@ -25,12 +25,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import glob
 import json
+import logging
 
 import cobbler.api as capi
 from cobbler import settings
 from cobbler.cexceptions import CX
 
 libpath = "/var/lib/cobbler/collections"
+
+logger = logging.getLogger()
 
 
 def register() -> str:
@@ -154,7 +157,10 @@ def deserialize(collection, topological: bool = True):
     datastruct = deserialize_raw(collection.collection_types())
     if topological and isinstance(datastruct, list):
         datastruct.sort(key=lambda x: x.get("depth", 1))
-    if isinstance(datastruct, dict):
-        collection.from_dict(datastruct)
-    elif isinstance(datastruct, list):
-        collection.from_list(datastruct)
+    try:
+        if isinstance(datastruct, dict):
+            collection.from_dict(datastruct)
+        elif isinstance(datastruct, list):
+            collection.from_list(datastruct)
+    except Exception as exc:
+        logger.error(f"Error while loading a collection: {exc}. Skipping this collection!")

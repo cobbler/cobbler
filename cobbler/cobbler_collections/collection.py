@@ -198,8 +198,12 @@ class Collection:
         if _list is None:
             return
         for item_dict in _list:
-            item = self.factory_produce(self.api, item_dict)
-            self.add(item)
+            try:
+                item = self.factory_produce(self.api, item_dict)
+                self.add(item)
+            except Exception as exc:
+                self.logger.error(f"Error while loading a collection: {exc}. Skipping this collection!")
+
 
     def copy(self, ref, newname):
         """
