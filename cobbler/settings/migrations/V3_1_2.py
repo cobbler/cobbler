@@ -86,6 +86,7 @@ schema = Schema({
     Optional("nsupdate_tsig_algorithm", default="hmac-sha512"): str,
     Optional("nsupdate_tsig_key", default=[ "cobbler_update_key.","hvnK54HFJXFasHjzjEn09ASIkCOGYSnofRq4ejsiBHz3udVyGiuebFGAswSjKUxNuhmllPrkI0HRSSmM2qvZug==" ]): list,
     "power_management_default_type": str,
+    Optional("proxies", default=[]): [str],
     Optional("proxy_url_ext", default=""): Or(None, str),
     "proxy_url_int": str,
     "puppet_auto_setup": int,
@@ -115,6 +116,7 @@ schema = Schema({
     Optional("signature_url", default="https://cobbler.github.io/signatures/3.0.x/latest.json"): str,
     "sign_puppet_certs_automatically": int,
     "tftpboot_location": str,
+    Optional("tftpsync_timeout", default=15): int,
     "virt_auto_boot": int,
     "webdir": str,
     "webdir_whitelist": list,
@@ -122,7 +124,7 @@ schema = Schema({
     "yum_distro_priority": int,
     "yum_post_install_mirror": int,
     "yumdownloader_flags": str,
-}, ignore_extra_keys=False)
+}, ignore_extra_keys=True)
 
 
 def validate(settings: dict) -> bool:

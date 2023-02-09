@@ -219,6 +219,7 @@ schema = Schema(
             default="https://cobbler.github.io/signatures/3.0.x/latest.json",
         ): str,
         "tftpboot_location": str,
+        Optional("tftpsync_timeout", default=15): int,
         "virt_auto_boot": bool,
         "webdir": str,
         "webdir_whitelist": [str],
@@ -230,7 +231,7 @@ schema = Schema(
         Optional("windows_template_dir", default="/etc/cobbler/windows"): str,
         Optional("samba_distro_share", default="DISTRO"): str,
     },
-    ignore_extra_keys=False,
+    ignore_extra_keys=True,
 )
 
 

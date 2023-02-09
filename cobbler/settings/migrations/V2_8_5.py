@@ -82,6 +82,7 @@ schema = Schema({
     "mgmt_parameters": dict,
     "next_server": str,
     "power_management_default_type": str,
+    Optional("proxies", default=[]): [str],
     "power_template_dir": str,
     "proxy_url_ext": str,
     "proxy_url_int": str,
@@ -119,7 +120,7 @@ schema = Schema({
     "yum_distro_priority": int,
     "yum_post_install_mirror": int,
     "yumdownloader_flags": str,
-}, ignore_extra_keys=False)
+}, ignore_extra_keys=True)
 
 
 def validate(settings: dict) -> bool:

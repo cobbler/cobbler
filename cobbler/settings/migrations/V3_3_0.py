@@ -6,6 +6,13 @@ Migration from V3.2.1 to V3.3.0
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
+import datetime
+import glob
+import ipaddress
+import json
+import os
+
+from shutil import copytree
 
 from schema import Optional, Schema, SchemaError
 
@@ -117,6 +124,7 @@ schema = Schema({
     Optional("nsupdate_tsig_algorithm", default="hmac-sha512"): str,
     Optional("nsupdate_tsig_key", default=[]): [str],
     "power_management_default_type": str,
+    Optional("proxies", default=[]): [str],
     "proxy_url_ext": str,
     "proxy_url_int": str,
     "puppet_auto_setup": bool,
@@ -148,6 +156,7 @@ schema = Schema({
     Optional("signature_path", default="/var/lib/cobbler/distro_signatures.json"): str,
     Optional("signature_url", default="https://cobbler.github.io/signatures/3.0.x/latest.json"): str,
     "tftpboot_location": str,
+    Optional("tftpsync_timeout", default=15): int,
     "virt_auto_boot": bool,
     "webdir": str,
     "webdir_whitelist": [str],
@@ -158,7 +167,7 @@ schema = Schema({
     Optional("windows_enabled", default=False): bool,
     Optional("windows_template_dir", default="/etc/cobbler/windows"): str,
     Optional("samba_distro_share", default="DISTRO"): str,
-}, ignore_extra_keys=False)
+}, ignore_extra_keys=True)
 
 
 def validate(settings: dict) -> bool:
@@ -212,6 +221,11 @@ def migrate(settings: dict) -> dict:
     helper.key_rename(old_setting, "next_server_v4", settings)
     helper.key_set_value(new_setting, settings)
 
+    power_type = helper.key_get("power_management_default_type", settings)
+    if power_type.value == "ipmitool":
+        new_setting = helper.Setting("power_management_default_type", "ipmilanplus")
+        helper.key_set_value(new_setting, settings)
+
     # add missing keys
     # name - value pairs
     missing_keys = {'auto_migrate_settings': True,
@@ -250,4 +264,83 @@ def migrate(settings: dict) -> dict:
     # delete removed keys
     helper.key_delete("cache_enabled", settings)
 
+    # migrate stored cobbler collections
+    migrate_cobbler_collections("/var/lib/cobbler/collections/")
+
     return normalize(settings)
+
+
+def backup_dir(dir_path: str):
+    """
+    Copies the directory tree and adds a suffix ".backup.XXXXXXXXX" to it.
+
+    :param dir_path: The full path to the directory which should be backed up.
+    :raises FileNotFoundError: In case the path specified was not existing.
+    """
+    copytree(dir_path, "%s.backup.%s" % (os.path.normpath(dir_path), datetime.datetime.now().isoformat()))
+
+
+def migrate_cobbler_collections(collections_dir: str):
+    """
+    Manipulate the main Cobbler stored collections and migrate deprecated settings
+    to work with newer Cobbler versions.
+
+    :param collections_dir: The directory of Cobbler where the collections files are.
+    """
+    backup_dir(collections_dir)
+    for f in glob.glob(os.path.join(collections_dir, "**/*.json"), recursive=True):
+        data = None
+        with open(f) as _f:
+            data = json.loads(_f.read())
+
+        # null values to empty strings
+        for key in data:
+            if data[key] is None:
+                data[key] = ""
+
+        # boot_loader -> boot_loaders
+        if "boot_loader" in data:
+            data["boot_loaders"] = data.pop("boot_loader")
+
+        # next_server -> next_server_v4, next_server_v6
+        if "next_server" in data:
+            addr = data["next_server"]
+            if addr == "<<inherit>>":
+                data["next_server_v4"] = addr
+                data["next_server_v6"] = addr
+                data.pop("next_server")
+            else:
+                _ip = ipaddress.ip_address(addr)
+                if isinstance(_ip, ipaddress.IPv4Address):
+                    data["next_server_v4"] = data.pop("next_server")
+                elif isinstance(_ip, ipaddress.IPv6Address):
+                    data["next_server_v6"] = data.pop("next_server")
+
+        # enable_gpxe -> enable_ipxe
+        if "enable_gpxe" in data:
+            data["enable_ipxe"] = data.pop("enable_gpxe")
+
+        # ipmitool power_type -> ipmilan power_type
+        if "power_type" in data and data["power_type"] == "ipmitool":
+            data["power_type"] = "ipmilanplus"
+
+        # serial_device (str) -> serial_device (int)
+        if "serial_device" in data and data["serial_device"] == "":
+            data["serial_device"] = -1
+        elif "serial_device" in data and isinstance(data["serial_device"], str):
+            try:
+                data["serial_device"] = int(data["serial_device"])
+            except Exception as e:
+                print(f"ERROR casting 'serial_device' attribute to int: {e}")
+
+        # serial_baud_rate (str) -> serial_baud_rate (int)
+        if "serial_baud_rate" in data and data["serial_baud_rate"] == "":
+            data["serial_baud_rate"] = -1
+        elif "serial_baud_rate" in data and isinstance(data["serial_baud_rate"], str):
+            try:
+                data["serial_baud_rate"] = int(data["serial_baud_rate"])
+            except Exception as e:
+                print(f"ERROR casting 'serial_baud_rate' attribute to int: {e}")
+
+        with open(f, "w") as _f:
+            _f.write(json.dumps(data))
