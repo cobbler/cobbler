@@ -17,7 +17,7 @@ import logging
 import pprint
 import re
 import uuid
-from typing import Any, List, Type, Union
+from typing import Any, List, Type, Union, Dict
 
 import yaml
 
@@ -128,7 +128,8 @@ class Item:
         self._template_files = {}
         self._last_cached_mtime = 0
         self._owners: Union[list, str] = enums.VALUE_INHERITED
-        self._cached_dict = ""
+        self._cached_dict: Dict[bool, Any] = {True: None, False: None}
+        self._cached_dict_valid = False
         self._mgmt_classes: Union[list, str] = []
         self._mgmt_parameters: Union[dict, str] = {}
         self._conceptual_parent = None
@@ -147,6 +148,47 @@ class Item:
         if isinstance(other, Item):
             return self._uid == other.uid
         return False
+
+    def __setattr__(self, name, value):
+        """
+        Intercepting an attempt to assign a value to an attribute.
+
+        :name: The attribute name.
+        :value: The attribute value.
+        """
+        if (
+            name.startswith("_")
+            and not name.startswith("__")
+            and name
+            not in (
+                "_conceptual_parent",
+                "_last_cached_mtime",
+                "_cached_dict",
+                "_cached_dict_valid",
+                "_supported_boot_loaders",
+            )
+        ):
+            # Avoid recursive call to __setattr__
+            self._cached_dict_valid = False
+#            self._invalidate_to_dict_cache()
+        super().__setattr__(name, value)
+
+    def _invalidate_to_dict_cache(self):
+         self.__dict__["_cached_dict"] = {True: None, False: None}
+         # If this item was invalidated, we need to invalidate children
+         # and parents
+         if hasattr(self, "children"):
+             for child in self.children:
+                 child = self.api.find_items(what="", name=child)
+                 if child:
+                     child.__dict__["_cached_dict"] = {True: None, False: None}
+         self.__invalidate_parents_to_dict_cache(self)
+
+    def __invalidate_parents_to_dict_cache(self, node):
+        if not hasattr(node, "parent") or not node.parent:
+            return
+        node.parent.__dict__["_cached_dict"] = {True: None, False: None}
+        self.__invalidate_parents_to_dict_cache(node.parent)
 
     def _resolve(self, property_name: str) -> Any:
         """
@@ -892,7 +934,7 @@ class Item:
                     raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from error
                 result.pop(key)
         if len(result) > 0:
-            raise KeyError("The following keys supplied could not be set: %s" % result.keys())
+            raise KeyError("The following keys supplied could not be set: %s" % list(result.keys()))
 
     def to_dict(self, resolved: bool = False) -> dict:
         """
@@ -902,10 +944,17 @@ class Item:
                      objects raw value.
         :return: A dictionary with all values present in this object.
         """
+        # We check if cached dict exists and that children list has not changed.
+        # If children list has changed, we need to recalculate the dict.
+        if self._cached_dict[resolved] and self._cached_dict_valid and self._cached_dict[resolved]["children"] == self.children:
+            return self._cached_dict[resolved]
+        elif self._cached_dict[resolved] and not self._cached_dict_valid:
+            self._invalidate_to_dict_cache()
+
         value = {}
         for key in self.__dict__:
             if key.startswith("_") and not key.startswith("__"):
-                if key in ("_conceptual_parent", "_last_cached_mtime", "_cached_dict", "_supported_boot_loaders"):
+                if key in ("_conceptual_parent", "_last_cached_mtime", "_cached_dict", "_cached_dict_valid", "_supported_boot_loaders"):
                     continue
                 new_key = key[1:].lower()
                 key_value = self.__dict__[key]
@@ -937,6 +986,8 @@ class Item:
             value.update({"kickstart": value["autoinstall"]})
         if "autoinstall_meta" in value:
             value.update({"ks_meta": value["autoinstall_meta"]})
+        self._cached_dict[resolved] = value
+        self._cached_dict_valid = True
         return value
 
     def serialize(self) -> dict:
