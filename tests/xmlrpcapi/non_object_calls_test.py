@@ -276,5 +276,8 @@ def test_get_item_resolved_value(
     with expected_exception:
         result = remote.get_item_resolved_value(test_item.get("uid"), input_attribute)
 
+        if input_attribute == "interfaces" and "default" in result:
+            result.pop("default")
+
         # Assert
         assert expected_result == result

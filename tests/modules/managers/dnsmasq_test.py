@@ -61,8 +61,8 @@ def test_manager_write_configs(mocker, cobbler_api):
         {
             "insert_cobbler_system_definitions": "dhcp-host=net:x86_64,aa:bb:cc:dd:ee:ff,host.example.org,192.168.1.2,[::1]\n",
             "date": "Mon Jan  1 00:00:00 2000",
-            "cobbler_server": "192.168.1.1",
-            "next_server_v4": "192.168.1.1",
+            "cobbler_server": "127.0.0.1",
+            "next_server_v4": "127.0.0.1",
             "next_server_v6": "::1",
         },
         "/etc/dnsmasq.conf",

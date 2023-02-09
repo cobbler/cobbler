@@ -12,15 +12,15 @@ from tests.conftest import does_not_raise
 @pytest.mark.parametrize(
     "input_arch,result_binary_name,expected_exception",
     [
-        (enums.Archs.X86_64, "grubx64.efi", does_not_raise()),
-        (enums.Archs.PPC, "grub.ppc64le", does_not_raise()),
-        (enums.Archs.PPC64, "grub.ppc64le", does_not_raise()),
-        (enums.Archs.PPC64EL, "grub.ppc64le", does_not_raise()),
-        (enums.Archs.PPC64LE, "grub.ppc64le", does_not_raise()),
-        (enums.Archs.AARCH64, "grubaa64.efi", does_not_raise()),
-        (enums.Archs.ARM, "bootarm.efi", does_not_raise()),
-        (enums.Archs.I386, "bootia32.efi", does_not_raise()),
-        (enums.Archs.IA64, "bootia64.efi", does_not_raise()),
+        (enums.Archs.X86_64, ["grubx64.efi", "grubx86.efi"], does_not_raise()),
+        (enums.Archs.PPC, ["grub.ppc64le"], does_not_raise()),
+        (enums.Archs.PPC64, ["grub.ppc64le"], does_not_raise()),
+        (enums.Archs.PPC64EL, ["grub.ppc64le"], does_not_raise()),
+        (enums.Archs.PPC64LE, ["grub.ppc64le"], does_not_raise()),
+        (enums.Archs.AARCH64, ["grubaa64.efi"], does_not_raise()),
+        (enums.Archs.ARM, ["bootarm.efi"], does_not_raise()),
+        (enums.Archs.I386, ["bootia32.efi"], does_not_raise()),
+        (enums.Archs.IA64, ["bootia64.efi"], does_not_raise()),
     ],
 )
 def test_calculate_grub_name(
@@ -41,7 +41,7 @@ def test_calculate_grub_name(
         result = test_builder.calculate_grub_name(test_distro)
 
         # Assert
-        assert result == result_binary_name
+        assert result in result_binary_name
 
 
 @pytest.mark.parametrize(

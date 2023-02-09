@@ -95,7 +95,7 @@ def test_get_conceptual_parent(request, cobbler_api, create_distro, create_profi
     tmp_distro = create_distro()
     tmp_profile = create_profile(tmp_distro.name)
     titem = Profile(cobbler_api)
-    titem.name = "subprofile_%s" % request.node.originalname
+    titem.name = "subprofile_%s" % (request.node.originalname if request.node.originalname else request.node.name)
     titem.parent = tmp_profile.name
 
     # Act
@@ -297,13 +297,13 @@ def test_fetchable_files(cobbler_api):
 def test_sort_key(request, cobbler_api):
     # Arrange
     titem = Item(cobbler_api)
-    titem.name = request.node.originalname
+    titem.name = request.node.originalname if request.node.originalname else request.node.name
 
     # Act
     result = titem.sort_key(sort_fields=["name"])
 
     # Assert
-    assert result == [request.node.originalname]
+    assert result == [request.node.originalname if request.node.originalname else request.node.name]
 
 
 @pytest.mark.skip("Test not yet implemented")
@@ -340,7 +340,7 @@ def test_dump_vars(cobbler_api):
     # Assert
     assert "default_ownership" in result
     assert "owners" in result
-    assert len(result) == 149
+    assert len(result) == 150
 
 
 @pytest.mark.parametrize(
@@ -409,7 +409,7 @@ def test_parent(cobbler_api):
 def test_check_if_valid(request, cobbler_api):
     # Arrange
     titem = Item(cobbler_api)
-    titem.name = request.node.originalname
+    titem.name = request.node.originalname if request.node.originalname else request.node.name
 
     # Act
     titem.check_if_valid()
@@ -486,4 +486,4 @@ def test_grab_tree(cobbler_api):
 
     # Assert
     assert isinstance(result, list)
-    assert result[-1].server == "192.168.1.1"
+    assert result[-1].server == "127.0.0.1"

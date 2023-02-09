@@ -44,7 +44,7 @@ def test_copy_single_distro_file(cobbler_api):
     generator = tftpgen.TFTPGen(cobbler_api)
 
     # Arrange
-    distro_file = "/code/tests/test_data/dummy_initramfs"
+    distro_file = "/usr/share/cobbler/tests/test_data/dummy_initramfs"
     distro_dir = "/srv/tftpboot/images/"
     symlink_ok = True
     initramfs_dst_path = "/srv/tftpboot/images/dummy_initramfs"

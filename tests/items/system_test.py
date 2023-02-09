@@ -220,7 +220,7 @@ def test_netboot_enabled(cobbler_api, value, expected):
     "input_next_server,expected_exception,expected_result",
     [
         ("", does_not_raise(), ""),
-        ("<<inherit>>", does_not_raise(), "192.168.1.1"),
+        ("<<inherit>>", does_not_raise(), "127.0.0.1"),
         (False, pytest.raises(TypeError), ""),
     ],
 )
@@ -404,8 +404,8 @@ def test_redhat_management_key(
 @pytest.mark.parametrize(
     "input_server,expected_exception,expected_result",
     [
-        ("", does_not_raise(), "192.168.1.1"),
-        ("<<inherit>>", does_not_raise(), "192.168.1.1"),
+        ("", does_not_raise(), "127.0.0.1"),
+        ("<<inherit>>", does_not_raise(), "127.0.0.1"),
         ("1.1.1.1", does_not_raise(), "1.1.1.1"),
         (False, pytest.raises(TypeError), None),
     ],

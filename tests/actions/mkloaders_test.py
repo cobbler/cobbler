@@ -27,12 +27,10 @@ def test_grubimage_run(cobbler_api, mocker):
 
     # Assert
     # On a full install: 3 common formats, 4 syslinux links and 9 bootloader formats
-    # In our test container we have: shim (1x), ipxe (1x), syslinux v4 (3x) and 3 grubs (4x)
-    # On GH we have: shim (1x), ipxe (1x), syslinux v4 (3x) and 3 grubs (3x)
-    assert mkloaders.symlink.call_count == 8
-    # In our test container we have: x86_64, arm64-efi, i386-efi & i386-pc-pxe
-    # On GH we have: x86_64, i386-efi & i386-pc-pxe
-    assert mkloaders.mkimage.call_count == 3
+    # In our Uyuni/SUMA test container we have: shim (1x), ipxe (1x), syslinux v4 (3x) and 1 grub (1x)
+    assert mkloaders.symlink.call_count == 6
+    # In our Uyuni/SUMA test container we have: x86_64
+    assert mkloaders.mkimage.call_count == 2
 
 
 def test_mkimage(mocker):

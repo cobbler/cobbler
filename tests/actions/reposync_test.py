@@ -46,6 +46,7 @@ def remove_repo(api):
         api.remove_repo(test_repo.name)
 
 
+@pytest.mark.skip("Slow test as it downloads few GB of data packages")
 class TestRepoSync:
     @pytest.mark.usefixtures("remove_repo")
     @pytest.mark.parametrize(

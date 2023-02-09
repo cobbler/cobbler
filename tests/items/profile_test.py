@@ -157,7 +157,7 @@ def test_dhcp_tag(cobbler_api):
     "input_server,expected_exception,expected_result",
     [
         ("", does_not_raise(), ""),
-        ("<<inherit>>", does_not_raise(), "192.168.1.1"),
+        ("<<inherit>>", does_not_raise(), "127.0.0.1"),
         (False, pytest.raises(TypeError), ""),
     ],
 )

@@ -26,8 +26,8 @@ def test_generate_system(
     # TODO: Make tests more sophisticated
     assert (
         result
-        == "  APPEND initrd=%s.img install=http://192.168.1.1:80/cblr/links/%s autoyast=default.ks"
-        % (request.node.originalname, request.node.originalname)
+        == "  APPEND initrd=%s.img install=http://127.0.0.1:80/cblr/links/%s autoyast=default.ks"
+        % (request.node.name, request.node.name)
     )
 
 
@@ -46,6 +46,6 @@ def test_generate_profile(request, cobbler_api, create_distro, create_profile):
     # TODO: Make tests more sophisticated
     assert (
         result
-        == " append initrd=%s.img install=http://192.168.1.1:80/cblr/links/%s autoyast=default.ks"
-        % (request.node.originalname, request.node.originalname)
+        == "  APPEND initrd=%s.img install=http://127.0.0.1:80/cblr/links/%s autoyast=default.ks"
+        % (request.node.name, request.node.name)
     )

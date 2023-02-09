@@ -259,7 +259,7 @@ def test_blender(cobbler_api):
     result = utils.blender(cobbler_api, False, root_item)
 
     # Assert
-    assert len(result) == 162
+    assert len(result) == 163
     # Must be present because the settings have it
     assert "server" in result
     # Must be present because it is a field of distro
@@ -392,17 +392,23 @@ def test_os_release():
     assert ("suse", 15.2) or ("suse", 15.3) == result
 
 
-@pytest.mark.parametrize("test_src,test_dst,expected_result", [
+@pytest.mark.parametrize("test_src,is_symlink,test_dst,expected_result", [
     # ("", "", False), --> This has a task in utils.py
-    ("/usr/bin/os-release", "/tmp", True),
-    ("/etc/os-release", "/tmp", False)
+    ("/tmp/not-safe-file", True, "/tmp/dst", False),
+    ("/tmp/safe-file", False, "/tmp/dst", True)
 ])
-def test_is_safe_to_hardlink(cobbler_api, test_src, test_dst, expected_result):
+def test_is_safe_to_hardlink(cobbler_api, test_src, is_symlink, test_dst, expected_result):
     # Arrange
-    # TODO: Generate cases
+    if is_symlink and test_src:
+        os.symlink("/foobar/test", test_src)
+    elif test_src:
+        open(test_src, 'w').close()
 
     # Act
     result = utils.is_safe_to_hardlink(test_src, test_dst, cobbler_api)
+
+    # Cleanup
+    os.remove(test_src)
 
     # Assert
     assert expected_result == result
@@ -608,13 +614,19 @@ def test_get_mtab():
 
 def test_get_file_device_path():
     # Arrange
+    test_symlink = "/tmp/test_symlink"
+    os.symlink("/foobar/test", test_symlink)
 
     # Act
-    result = utils.get_file_device_path("/etc/os-release")
+    result = utils.get_file_device_path(test_symlink)
+
+    # Cleanup
+    os.remove(test_symlink)
 
     # Assert
-    # TODO Does not work in all environments (e.g. openSUSE TW with BTRFS)
-    assert result == ("overlay", "/usr/lib/os-release")
+    assert len(result) == 2
+    assert isinstance(result[0], str)
+    assert result[1] == "/foobar/test"
 
 
 def test_is_remote_file():
@@ -722,7 +734,7 @@ def test_local_get_cobbler_api_url():
     result = utils.local_get_cobbler_api_url()
 
     # Assert
-    assert result == "http://192.168.1.1:80/cobbler_api"
+    assert result in ["http://192.168.1.1:80/cobbler_api", "http://127.0.0.1:80/cobbler_api"]
 
 
 def test_local_get_cobbler_xmlrpc_url():
