@@ -92,7 +92,7 @@ class AppendLineBuilder:
         This generates the DNS configuration for the system to boot for the append line.
         :param exclude_dns: If this flag is set to True, the DNS configuration is skipped.
         """
-        if not exclude_dns or self.system_dns is not None:
+        if not exclude_dns and self.system_dns is not None:
             if self.dist.breed == "suse":
                 nameserver_key = "nameserver"
             elif self.dist.breed == "redhat":
@@ -194,7 +194,6 @@ class AppendLineBuilder:
         """
         Try to add static ip boot options to avoid DHCP (interface/ip/netmask/gw/dns)
         Check for overrides first and clear them from kernel_options
-        :return: The Tuple with the interface, IP, Netmask, Gateway and DNS information.
         """
         self._generate_static_ip_boot_interface()
         self._generate_static_ip_boot_ip()
