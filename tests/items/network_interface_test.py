@@ -297,29 +297,43 @@ def test_virt_bridge(
 
 
 @pytest.mark.parametrize(
-    "input_interface_type,expected_result,expected_exception",
+    "value,expected_exception,expected_result",
     [
-        ([], enums.NetworkInterfaceType.NA, pytest.raises(TypeError)),
-        (0, enums.NetworkInterfaceType.NA, does_not_raise()),
-        (100, enums.NetworkInterfaceType.NA, pytest.raises(ValueError)),
-        ("INVALID", enums.NetworkInterfaceType.NA, pytest.raises(ValueError)),
-        # TODO: Create test for last ValueError
-        ("NA", enums.NetworkInterfaceType.NA, does_not_raise()),
-        ("na", enums.NetworkInterfaceType.NA, does_not_raise()),
+        ("foobar_not_existing", pytest.raises(ValueError), None),
+        ("", does_not_raise(), enums.NetworkInterfaceType.NA),
+        ("na", does_not_raise(), enums.NetworkInterfaceType.NA),
+        ("bond", does_not_raise(), enums.NetworkInterfaceType.BOND),
+        ("bond_slave", does_not_raise(), enums.NetworkInterfaceType.BOND_SLAVE),
+        ("bridge", does_not_raise(), enums.NetworkInterfaceType.BRIDGE),
+        ("bridge_slave", does_not_raise(), enums.NetworkInterfaceType.BRIDGE_SLAVE),
+        (
+            "bonded_bridge_slave",
+            does_not_raise(),
+            enums.NetworkInterfaceType.BONDED_BRIDGE_SLAVE,
+        ),
+        ("bmc", does_not_raise(), enums.NetworkInterfaceType.BMC),
+        ("infiniband", does_not_raise(), enums.NetworkInterfaceType.INFINIBAND),
+        (0, does_not_raise(), enums.NetworkInterfaceType.NA),
+        (1, does_not_raise(), enums.NetworkInterfaceType.BOND),
+        (2, does_not_raise(), enums.NetworkInterfaceType.BOND_SLAVE),
+        (3, does_not_raise(), enums.NetworkInterfaceType.BRIDGE),
+        (4, does_not_raise(), enums.NetworkInterfaceType.BRIDGE_SLAVE),
+        (5, does_not_raise(), enums.NetworkInterfaceType.BONDED_BRIDGE_SLAVE),
+        (6, does_not_raise(), enums.NetworkInterfaceType.BMC),
+        (7, does_not_raise(), enums.NetworkInterfaceType.INFINIBAND),
     ],
 )
-def test_interface_type(
-    cobbler_api: CobblerAPI, input_interface_type, expected_result, expected_exception
+def test_network_interface_type(
+    cobbler_api, value, expected_exception, expected_result
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
-        interface.interface_type = input_interface_type
+        interface.interface_type = value
 
         # Assert
-        assert isinstance(interface.interface_type, enums.NetworkInterfaceType)
         assert interface.interface_type == expected_result
 
 
