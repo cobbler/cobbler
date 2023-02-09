@@ -9,6 +9,7 @@ from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
+from cobbler.items.image import Image
 
 
 @contextmanager
@@ -37,7 +38,7 @@ def reset_items(cobbler_api):
     for system in cobbler_api.systems():
         cobbler_api.remove_system(system.name)
     for image in cobbler_api.images():
-        cobbler_api.remove_distro(image.name)
+        cobbler_api.remove_image(image.name)
     for profile in cobbler_api.profiles():
         cobbler_api.remove_profile(profile.name)
     for distro in cobbler_api.distros():
@@ -109,15 +110,34 @@ def create_profile(request, cobbler_api):
 
 
 @pytest.fixture(scope="function")
+def create_image(request, cobbler_api):
+    """
+    Returns a function which has no arguments. The function returns an image object. The image is already added to the
+    CobblerAPI.
+    """
+
+    def _create_image():
+        test_image = Image(cobbler_api)
+        test_image.name = request.node.originalname
+        cobbler_api.add_image(test_image)
+        return test_image
+
+    return _create_image
+
+
+@pytest.fixture(scope="function")
 def create_system(request, cobbler_api):
     """
     Returns a function which has the profile name as an argument. The function returns a system object. The system is
     already added to the CobblerAPI.
     """
 
-    def _create_system(profile_name="", image_name=""):
+    def _create_system(profile_name="", image_name="", name=""):
         test_system = System(cobbler_api)
-        test_system.name = request.node.originalname
+        if name == "":
+            test_system.name = request.node.originalname
+        else:
+            test_system.name = name
         if profile_name != "":
             test_system.profile = profile_name
         if image_name != "":

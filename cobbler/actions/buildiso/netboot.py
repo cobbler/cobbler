@@ -430,7 +430,15 @@ class NetbootBuildiso(buildiso.BuildIso):
         """
         if selected_items is None:
             selected_items = []
-        return self.filter_items(self.api.systems(), selected_items)
+        found_systems = self.filter_items(self.api.systems(), selected_items)
+        # Now filter all systems out that are image based as we don't know about their kernel and initrds
+        return_systems = []
+        for system in found_systems:
+            # All systems not underneath a profile should be skipped
+            if system.get_conceptual_parent().TYPE_NAME == "profile":
+                return_systems.append(system)
+        # Now finally return
+        return return_systems
 
     def make_shorter(self, distname: str) -> str:
         """
