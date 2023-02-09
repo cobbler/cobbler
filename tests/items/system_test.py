@@ -644,6 +644,7 @@ def test_serial_baud_rate(cobbler_api, value, expected_exception):
 def test_from_dict_with_network_interface(cobbler_api):
     # Arrange
     system = System(cobbler_api)
+    system.interfaces = {"default": NetworkInterface(cobbler_api)}
     sys_dict = system.to_dict()
 
     # Act
@@ -663,6 +664,7 @@ def test_from_dict_with_network_interface(cobbler_api):
 def test_is_management_supported(cobbler_api, input_mac, input_ipv4, input_ipv6, expected_result):
     # Arrange
     system = System(cobbler_api)
+    system.interfaces = {"default": NetworkInterface(cobbler_api)}
     system.interfaces["default"].mac_address = input_mac
     system.interfaces["default"].ip_address = input_ipv4
     system.interfaces["default"].ipv6_address = input_ipv6

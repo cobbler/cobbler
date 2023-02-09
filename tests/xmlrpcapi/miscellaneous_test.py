@@ -720,6 +720,305 @@ class TestMiscellaneous:
         # Assert
         assert result
 
+    def test_xapi_system_edit(
+        self,
+        remote,
+        token,
+        create_kernel_initrd,
+        create_distro,
+        create_profile,
+        remove_system,
+    ):
+        # Arrange
+        name_distro = "testsystem_xapi_edit"
+        name_profile = "testsystem_xapi_edit"
+        name_system = "testsystem_xapi_edit"
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+        create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
+
+        # Act
+        result = remote.xapi_object_edit(
+            "system",
+            name_system,
+            "add",
+            {
+                "name": name_system,
+                "profile": name_profile,
+            },
+            token,
+        )
+
+        # Assert
+        assert result
+        assert len(remote.get_system("testsystem_xapi_edit").get("interfaces", {})) == 1
+        assert "default" in remote.get_system("testsystem_xapi_edit").get(
+            "interfaces", {}
+        )
+
+        # Cleanup
+        remove_system(name_system)
+
+    def test_xapi_system_edit_interface_name(
+        self,
+        remote,
+        token,
+        create_kernel_initrd,
+        create_distro,
+        create_profile,
+        remove_system,
+    ):
+        # Arrange
+        name_distro = "testsystem_xapi_edit"
+        name_profile = "testsystem_xapi_edit"
+        name_system = "testsystem_xapi_edit"
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+        create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
+
+        # Act
+        result = remote.xapi_object_edit(
+            "system",
+            name_system,
+            "add",
+            {
+                "name": name_system,
+                "profile": name_profile,
+                "interface": "eth1",
+            },
+            token,
+        )
+
+        # Assert
+        assert result
+        assert len(remote.get_system("testsystem_xapi_edit").get("interfaces", {})) == 1
+        assert "eth1" in remote.get_system("testsystem_xapi_edit").get("interfaces", {})
+
+    def test_xapi_system_edit_two_interfaces(
+        self,
+        remote,
+        token,
+        create_kernel_initrd,
+        create_distro,
+        create_profile,
+    ):
+        # Arrange
+        name_distro = "testsystem_xapi_edit"
+        name_profile = "testsystem_xapi_edit"
+        name_system = "testsystem_xapi_edit"
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+        create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
+
+        # Act
+        result_add = remote.xapi_object_edit(
+            "system",
+            name_system,
+            "add",
+            {
+                "name": name_system,
+                "profile": name_profile,
+            },
+            token,
+        )
+        result_edit = remote.xapi_object_edit(
+            "system",
+            name_system,
+            "edit",
+            {
+                "name": name_system,
+                "interface": "eth1",
+            },
+            token,
+        )
+
+        # Assert
+        assert result_add
+        assert result_edit
+        assert len(remote.get_system("testsystem_xapi_edit").get("interfaces", {})) == 2
+        assert "default" in remote.get_system("testsystem_xapi_edit").get(
+            "interfaces", {}
+        )
+        assert "eth1" in remote.get_system("testsystem_xapi_edit").get("interfaces", {})
+
+    def test_xapi_system_edit_two_interfaces_no_default(
+        self,
+        remote,
+        token,
+        create_kernel_initrd,
+        create_distro,
+        create_profile,
+    ):
+        # Arrange
+        name_distro = "testsystem_xapi_edit"
+        name_profile = "testsystem_xapi_edit"
+        name_system = "testsystem_xapi_edit"
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+        create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
+
+        # Act
+        result_add = remote.xapi_object_edit(
+            "system",
+            name_system,
+            "add",
+            {
+                "name": name_system,
+                "profile": name_profile,
+                "interface": "eth1",
+            },
+            token,
+        )
+        result_edit = remote.xapi_object_edit(
+            "system",
+            name_system,
+            "edit",
+            {
+                "name": name_system,
+                "interface": "eth2",
+            },
+            token,
+        )
+
+        # Assert
+        assert result_add
+        assert result_edit
+        assert len(remote.get_system("testsystem_xapi_edit").get("interfaces", {})) == 2
+        assert "eth1" in remote.get_system("testsystem_xapi_edit").get("interfaces", {})
+        assert "eth2" in remote.get_system("testsystem_xapi_edit").get("interfaces", {})
+
+    def test_xapi_system_edit_two_interfaces_default(
+        self,
+        remote,
+        token,
+        create_kernel_initrd,
+        create_distro,
+        create_profile,
+    ):
+        # Arrange
+        name_distro = "testsystem_xapi_edit"
+        name_profile = "testsystem_xapi_edit"
+        name_system = "testsystem_xapi_edit"
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+        create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
+        remote.xapi_object_edit(
+            "system",
+            name_system,
+            "add",
+            {
+                "name": name_system,
+                "profile": name_profile,
+            },
+            token,
+        )
+        remote.xapi_object_edit(
+            "system",
+            name_system,
+            "edit",
+            {
+                "name": name_system,
+                "interface": "eth2",
+            },
+            token,
+        )
+
+        # Act
+        result = remote.xapi_object_edit(
+            "system",
+            name_system,
+            "edit",
+            {
+                "name": name_system,
+                "mac_address": "aa:bb:cc:dd:ee:ff",
+            },
+            token,
+        )
+
+        # Assert
+        assert result
+        assert (
+            remote.get_system(name_system)
+            .get("interfaces", {})
+            .get("default", {})
+            .get("mac_address")
+            == "aa:bb:cc:dd:ee:ff"
+        )
+
+    def test_xapi_system_edit_two_interfaces_no_default_negative(
+        self,
+        remote,
+        token,
+        create_kernel_initrd,
+        create_distro,
+        create_profile,
+    ):
+        # Arrange
+        name_distro = "testsystem_xapi_edit"
+        name_profile = "testsystem_xapi_edit"
+        name_system = "testsystem_xapi_edit"
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+        create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
+        remote.xapi_object_edit(
+            "system",
+            name_system,
+            "add",
+            {
+                "name": name_system,
+                "profile": name_profile,
+                "interface": "eth1",
+            },
+            token,
+        )
+        remote.xapi_object_edit(
+            "system",
+            name_system,
+            "edit",
+            {
+                "name": name_system,
+                "interface": "eth2",
+            },
+            token,
+        )
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            remote.xapi_object_edit(
+                "system",
+                name_system,
+                "edit",
+                {
+                    "name": name_system,
+                    "mac_address": "aa:bb:cc:dd:ee:ff",
+                },
+                token,
+            )
+
     @pytest.mark.usefixtures(
         "create_testdistro",
         "create_testmenu",
