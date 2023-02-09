@@ -67,7 +67,7 @@
 %define apache_group www
 
 %define apache_dir /srv/www
-%define apache_webconfigdir /etc/apache2/vhosts.d
+%define apache_webconfigdir /etc/apache2/conf.d
 %define apache_mod_wsgi apache2-mod_wsgi-python%{python3_pkgversion}
 %define tftpboot_dir /srv/tftpboot
 

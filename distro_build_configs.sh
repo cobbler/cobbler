@@ -10,7 +10,7 @@ export STATEPATH="/tmp/cobbler_settings/devinstall"
 
 export HTTPD_SERVICE="apache2.service"
 export WEBROOT="/srv/www";
-export WEBCONFIG="/etc/apache2/vhosts.d";
+export WEBCONFIG="/etc/apache2/conf.d";
 export WEBROOTCONFIG="/etc/apache2";
 export TFTPROOT="/srv/tftpboot"
 export ZONEFILES="/var/lib/named"
