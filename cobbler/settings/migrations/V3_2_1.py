@@ -189,6 +189,10 @@ def migrate(settings: dict) -> dict:
             settings[mgmt_parameters]["from_cobbler"]
         )
 
+    # proxy_url_ext -> None to ''
+    if settings["proxy_url_ext"] is None:
+        settings["proxy_url_ext"] = ""
+
     # rename old settings filename
     filename = "/etc/cobbler/settings"
     if os.path.exists(filename):

@@ -446,7 +446,7 @@ always_write_dhcp_entries: 0
 # external proxy - used by: get-loaders, reposync, signature update
 # eg: proxy_url_ext: "http://192.168.1.1:8080" (HTTP)
 # or: proxy_url_ext: "https://192.168.1.1:8443" (HTTPS)
-proxy_url_ext: ""
+proxy_url_ext:
 
 # internal proxy - used by systems to reach cobbler for templates
 # eg: proxy_url_int: "http://10.0.0.1:8080"
