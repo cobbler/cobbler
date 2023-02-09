@@ -312,19 +312,18 @@ class TFTPGen:
         loader_metadata["pxe_timeout_profile"] = timeout_action
 
         # Write the PXE menu:
-        if 'pxe' in menu_items:
-            loader_metadata["menu_items"] = menu_items['pxe']
-            loader_metadata["menu_labels"] = {}
-            outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
-            template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "pxe_menu.template"))
-            template_data = template_src.read()
-            boot_menu['pxe'] = self.templar.render(template_data, loader_metadata, outfile)
-            template_src.close()
+        loader_metadata["menu_items"] = menu_items.get('pxe', '')
+        loader_metadata["menu_labels"] = {}
+        outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
+        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "pxe_menu.template"))
+        template_data = template_src.read()
+        boot_menu['pxe'] = self.templar.render(template_data, loader_metadata, outfile)
+        template_src.close()
 
-        # Write the iPXE menu:
-        if 'ipxe' in menu_items:
-            loader_metadata["menu_items"] = menu_items['ipxe']
-            loader_metadata["menu_labels"] = menu_labels['ipxe']
+        if self.settings.enable_ipxe:
+            # Write the iPXE menu:
+            loader_metadata["menu_items"] = menu_items.get('ipxe', '')
+            loader_metadata["menu_labels"] = menu_labels.get('ipxe', '')
             outfile = os.path.join(self.bootloc, "ipxe", "default.ipxe")
             template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "ipxe_menu.template"))
             template_data = template_src.read()
@@ -336,11 +335,12 @@ class TFTPGen:
             arch_metadata = self.get_menu_items(arch)
             arch_menu_items = arch_metadata["menu_items"]
 
-            if 'grub' in arch_menu_items:
-                boot_menu["grub"] = arch_menu_items
-                outfile = os.path.join(self.bootloc, "grub", "{0}_menu_items.cfg".format(arch.value))
-                with open(outfile, "w+") as fd:
-                    fd.write(arch_menu_items["grub"])
+            boot_menu["grub"] = arch_menu_items
+            outfile = os.path.join(self.bootloc, "grub", "{0}_menu_items.cfg".format(arch.value))
+            with open(outfile, "w+") as fd:
+                fd.write(arch_menu_items.get("grub", ""))
+
+        self.logger.info("tftpgen: boot menu - '%s'", boot_menu)
         return boot_menu
 
     def get_menu_items(self, arch: Optional[enums.Archs] = None) -> dict:
