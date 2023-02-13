@@ -2,12 +2,17 @@ import glob
 import os
 import pathlib
 import shutil
+from typing import Callable, Optional
 
 import pytest
+from pytest_mock import MockerFixture
 
 from cobbler import enums
 from cobbler import tftpgen
+from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
+from cobbler.items.profile import Profile
+from cobbler.items.system import System
 from cobbler.templar import Templar
 
 
@@ -110,21 +115,46 @@ def test_copy_single_image_files(cobbler_api, create_image):
     assert expected_file.exists()
 
 
-@pytest.mark.skip("Test broken atm.")
 def test_write_all_system_files(
-    cobbler_api, create_distro, create_profile, create_system
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Callable[[str, str, str], System],
 ):
+    """
+    Test that asserts if the "write_all_system_files" subroutine is working as intended.
+
+    Two main scenarios must be tested for
+
+    * normal hardware and
+    * S390(X) hardware
+
+    as they generate a different set of files. This method handles only GRUB and pxelinux.
+
+    ESXI bootloader and iPXE generation is handled in a different test.
+    """
     # Arrange
     test_distro = create_distro()
     test_profile = create_profile(test_distro.name)
-    test_system = create_system(profile_name=test_profile.name)
+    test_system = create_system(profile_name=test_profile.name)  # type: ignore
     test_gen = tftpgen.TFTPGen(cobbler_api)
+    result = {}
+    mock_write_pxe_file = mocker.patch.object(
+        test_gen, "write_pxe_file", mocker.MagicMock()
+    )
+    mock_fs_helpers_rmfile = mocker.patch("cobbler.utils.filesystem_helpers.rmfile")
+    mock_fs_helpers_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
+    mock_os_symlink = mocker.patch("os.symlink")
 
     # Act
-    test_gen.write_all_system_files(test_system, None)
+    test_gen.write_all_system_files(test_system, result)
 
     # Assert
-    assert False
+    assert mock_write_pxe_file.assert_called
+    assert mock_fs_helpers_rmfile.assert_called
+    assert mock_fs_helpers_mkdir.assert_called
+    assert mock_os_symlink.assert_called
 
 
 def test_write_all_system_files_s390(
