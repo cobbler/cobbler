@@ -2,14 +2,18 @@
 name: 🚀 Feature request
 about: Suggest a feature / idea
 title: ''
-labels: Feature Request
+labels: enhancement
 assignees: ''
 
 ---
 
 ### Is your feature request related to a problem?
 
-<!--- A clear and concise description of what the problem is. Ex. I'm always frustrated when [...] -->
+<!-- Please mind the double space at the end to keep the markdown linebreak intact! -->
+
+As a <!-- please describe your role -->  
+I want to <!-- please describe the goal -->  
+so that I can <!-- please describe the purpose why you want to reach your goal -->
 
 ### Provide a detailed description of the proposed feature
 
