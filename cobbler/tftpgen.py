@@ -163,7 +163,7 @@ class TFTPGen:
         s390_name = "linux" + short_name[7:10]
         self.logger.info("Writing s390x pxe config for %s", short_name)
         # Always write a system specific _conf and _parm file
-        pxe_f = os.path.join(self.bootloc, "s390x", f"s_{s390_name}")
+        pxe_f = os.path.join(self.bootloc, enums.Archs.S390X.value, f"s_{s390_name}")
         conf_f = f"{pxe_f}_conf"
         parm_f = f"{pxe_f}_parm"
 
