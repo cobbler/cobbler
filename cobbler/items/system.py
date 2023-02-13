@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from ipaddress import AddressValueError
 
-from cobbler import autoinstall_manager, enums, power_manager, utils, validate
+from cobbler import enums, power_manager, utils, validate
 from cobbler.utils import input_converters, filesystem_helpers
 from cobbler.cexceptions import CX
 from cobbler.items.item import Item
@@ -1788,9 +1788,10 @@ class System(Item):
 
         :param autoinstall: local automatic installation template file path
         """
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api)
-        self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(
-            autoinstall
+        self._autoinstall = (
+            self.api.autoinstall_mgr.validate_autoinstall_template_file_path(
+                autoinstall
+            )
         )
 
     @property

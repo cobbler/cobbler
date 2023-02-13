@@ -264,6 +264,7 @@ class MirrorType(ConvertableEnum):
     This enum represents all mirror types which Cobbler can manage.
     """
 
+    NONE = "none"
     METALINK = "metalink"
     MIRRORLIST = "mirrorlist"
     BASEURL = "baseurl"

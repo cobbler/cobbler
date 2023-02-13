@@ -9,7 +9,7 @@ Cobbler module that contains the code for a Cobbler image object.
 import uuid
 from typing import Union
 
-from cobbler import autoinstall_manager, enums, validate
+from cobbler import enums, validate
 from cobbler.cexceptions import CX
 from cobbler.items import item
 from cobbler.decorator import InheritableProperty
@@ -135,9 +135,10 @@ class Image(item.Item):
 
         :param autoinstall: local automatic installation template file path
         """
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api)
-        self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(
-            autoinstall
+        self._autoinstall = (
+            self.api.autoinstall_mgr.validate_autoinstall_template_file_path(
+                autoinstall
+            )
         )
 
     @property

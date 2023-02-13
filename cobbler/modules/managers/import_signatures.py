@@ -8,7 +8,7 @@ OS and version.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 # SPDX-FileCopyrightText: John Eckersberg <jeckersb@redhat.com>
 
-from typing import Dict, Callable, Any, Optional
+from typing import Dict, Callable, Any, Optional, TYPE_CHECKING
 
 import glob
 import gzip
@@ -41,6 +41,9 @@ try:
     APT_AVAILABLE = True
 except ImportError:
     APT_AVAILABLE = False
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 MANAGER = None
 
@@ -93,7 +96,7 @@ class _ImportSignatureManager(ManagerModule):
         """
         return "import/signatures"
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         super().__init__(api)
 
         self.signature = None
@@ -966,7 +969,8 @@ class _ImportSignatureManager(ManagerModule):
         self.api.add_repo(repo)
         # FIXME: Add the found/generated repos to the profiles that were created during the import process
 
-    def get_repo_mirror_from_apt(self):
+    @staticmethod
+    def get_repo_mirror_from_apt():
         """
         This tries to determine the apt mirror/archive to use (when processing repos) if the host machine is Debian or
         Ubuntu.

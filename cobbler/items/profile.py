@@ -9,7 +9,6 @@ Cobbler module that contains the code for a Cobbler profile object.
 import uuid
 from typing import Optional, Union
 
-from cobbler import autoinstall_manager
 from cobbler.items import item
 from cobbler import validate, enums
 from cobbler.utils import input_converters
@@ -500,9 +499,10 @@ class Profile(item.Item):
 
         :param autoinstall: local automatic installation template path
         """
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api)
-        self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(
-            autoinstall
+        self._autoinstall = (
+            self.api.autoinstall_mgr.validate_autoinstall_template_file_path(
+                autoinstall
+            )
         )
 
     @InheritableProperty
