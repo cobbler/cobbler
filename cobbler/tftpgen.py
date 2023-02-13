@@ -13,7 +13,7 @@ import os.path
 import pathlib
 import re
 import socket
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 from cobbler import enums, templar, utils
 from cobbler.cexceptions import CX
@@ -22,13 +22,20 @@ from cobbler.utils import input_converters
 from cobbler.validate import validate_autoinstall_script_name
 from cobbler.utils import filesystem_helpers
 
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.items.distro import Distro
+    from cobbler.items.image import Image
+    from cobbler.items.profile import Profile
+    from cobbler.items.system import System
+
 
 class TFTPGen:
     """
     Generate files provided by TFTP server
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         """
         Constructor
         """
@@ -150,9 +157,30 @@ class TFTPGen:
         newfile = os.path.join(images_dir, img.name)
         filesystem_helpers.linkfile(self.api, filename, newfile)
 
-    def _write_all_system_files_s390(self, distro, profile, image, system) -> None:
+    def _write_all_system_files_s390(
+        self, distro: "Distro", profile: "Profile", image: "Image", system: "System"
+    ) -> None:
         """
         Write all files for a given system to TFTP that is of the architecture of s390[x].
+
+        Directory structure for netboot enabled systems:
+
+        .. code-block::
+
+           TFTP Directory/
+               S390X/
+                   s_<system_name>
+                   s_<system_name>_conf
+                   s_<system_name>_parm
+
+        Directory structure for netboot disabled systems:
+
+        .. code-block::
+
+           TFTP Directory/
+               S390X/
+                   s_<system_name>_conf
+
 
         :param distro: The distro to generate the files for.
         :param profile: The profile to generate the files for.
@@ -235,10 +263,25 @@ class TFTPGen:
             "S390x: pxe: [%s], conf: [%s], parm: [%s]", pxe_f, conf_f, parm_f
         )
 
-    def write_all_system_files(self, system, menu_items):
+    def write_all_system_files(
+        self, system: "System", menu_items: Dict[str, Union[str, Dict[str, str]]]
+    ) -> None:
         """
         Writes all files for tftp for a given system with the menu items handed to this method. The system must have a
         profile attached. Otherwise this method throws an error.
+
+        Directory structure:
+
+        .. code-block::
+
+           TFTP Directory/
+               pxelinux.cfg/
+                   01-aa-bb-cc-dd-ee-ff
+               grub/
+                   system/
+                       aa:bb:cc:dd:ee:ff
+                   system_link/
+                       <system_name>
 
         :param system: The system to generate files for.
         :param menu_items: The list of labels that are used for displaying the menu entry.
@@ -1589,6 +1632,18 @@ class TFTPGen:
         """
         Write a boot.cfg file for the ESXi boot loader(s), and create a symlink to
         esxi UEFI bootloaders (mboot.efi)
+
+        Directory structure:
+
+        .. code-block::
+
+           TFTP Directory/
+               esxi/
+                   mboot.efi
+                   system/
+                       <system_name>/
+                          boot.cfg
+                          mboot.efi
 
         :param what: Either "profile" or "system". Profiles are not currently used.
         :param name: The name of the item which the file should be generated for.
