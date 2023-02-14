@@ -204,7 +204,10 @@ class AppendLineBuilder:
             self.append_line += (
                 f" proxy={self.data['proxy']} http_proxy={self.data['proxy']}"
             )
-        self.append_line += f" inst.ks={self.data['autoinstall']}"
+        if self.dist.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
+            self.append_line += " ks=%s" % self.data["autoinstall"]
+        else:
+            self.append_line += " inst.ks=%s" % self.data["autoinstall"]
 
     def _generate_append_debian(self, system):
         """
@@ -366,10 +369,13 @@ class AppendLineBuilder:
         self.append_line += buildiso.add_remaining_kopts(self.data["kernel_options"])
         return self.append_line
 
-    def generate_profile(self, distro_breed: str, protocol: str = "http") -> str:
+    def generate_profile(
+        self, distro_breed: str, os_version: str, protocol: str = "http"
+    ) -> str:
         """
         Generate the append line for the kernel for a network installation.
         :param distro_breed: The name of the distribution breed.
+        :param os_version: The OS version of the distribution.
         :param protocol: The scheme that is used to read the autoyast file from the server
         :return: The generated append line.
         """
@@ -400,7 +406,10 @@ class AppendLineBuilder:
                 self.append_line += (
                     f" proxy={self.data['proxy']} http_proxy={self.data['proxy']}"
                 )
-            self.append_line += f" inst.ks={self.data['autoinstall']}"
+            if os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
+                self.append_line += " ks=%s" % self.data["autoinstall"]
+            else:
+                self.append_line += " inst.ks=%s" % self.data["autoinstall"]
         elif distro_breed in ["ubuntu", "debian"]:
             self.append_line += (
                 f" auto-install/enable=true url={self.data['autoinstall']}"
@@ -513,7 +522,7 @@ class NetbootBuildiso(buildiso.BuildIso):
             )
 
         append_builder = AppendLineBuilder(distro_name=distname, data=data)
-        append_line = append_builder.generate_profile(dist.breed)
+        append_line = append_builder.generate_profile(dist.breed, dist.os_version)
         cfglines.append(append_line)
 
     def generate_netboot_iso(
