@@ -124,7 +124,7 @@ cheetah_import_whitelist:
  - "re"
  - "time"
  - "netaddr"
-createrepo_flags: "-c cache -s sha"
+createrepo_flags: "--cachedir=cache --update"
 autoinstall: "default.ks"
 default_name_servers: []
 default_name_servers_search: []
@@ -251,6 +251,7 @@ cheetah_import_whitelist:
 - re
 - time
 - netaddr
+createrepo_flags: --cachedir=cache --update
 default_password_crypted: /UHC.
 grub2_mod_dir: '@@grub_mod_folder@@'
 ldap_base_dn: DC=example,DC=com

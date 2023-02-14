@@ -281,7 +281,7 @@ createrepo_flags
 
 Default ``createrepo_flags`` to use for new repositories.
 
-default: ``"-c cache -s sha"``
+default: ``"--cachedir=cache --update"``
 
 default_name_*
 ##############
@@ -767,10 +767,10 @@ default: ``"-avzH"``
 reposync_flags
 ##############
 
-Flags to use for yum's reposync. If your version of yum reposync does not support ``-l``, you may need to remove that
-option.
+Flags to use for yum's reposync. If your version of yum reposync does not support some options, you may need to remove
+that options.
 
-default: ``"-l -n -d"``
+default: ``"--newest-only --delete --refresh --remote-time"``
 
 reposync_rsync_flags
 ####################
