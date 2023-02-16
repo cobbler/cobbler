@@ -179,21 +179,30 @@ class TFTPGen:
             enums.Archs.S390X,
             blended.get("autoinstall", ""),
         )
+
+        # parm file format is fixed to 80 chars per line.
+        # All the lines are concatenated without spaces when being passed to the kernel.
+        #
+        # Recommendation: one parameter per line (ending with whitespace)
+        #
+        # NOTE: If a parameter is too long to fit into the 80 characters limit it can simply
+        # be continued in the first column of the next line.
+        #
+        # https://www.debian.org/releases/stable/s390x/ch05s01.en.html
+        # https://documentation.suse.com/sles/15-SP1/html/SLES-all/cha-zseries.html#sec-appdendix-parm-examples
+        # https://wiki.ubuntu.com/S390X/InstallationGuide
+        _parmfile_fixed_line_len = 79
         kopts_aligned = ""
-        column = 0
-        for option in kernel_options.split():
-            opt_len = len(option)
-            if opt_len > 78:
-                kopts_aligned += "\n" + option + " "
-                column = opt_len + 1
-                self.logger.error("Kernel paramer [%s] too long %s", option, opt_len)
-                continue
-            if column + opt_len > 78:
-                kopts_aligned += "\n" + option + " "
-                column = opt_len + 1
-            else:
-                kopts_aligned += option + " "
-                column += opt_len + 1
+        kopts = kernel_options.strip()
+        # Only in case we have kernel options
+        if kopts:
+            for option in [
+                kopts[i : i + _parmfile_fixed_line_len]
+                for i in range(0, len(kopts), _parmfile_fixed_line_len)
+            ]:
+                # If chunk contains multiple parameters (separated by whitespaces)
+                # then we put them in separated lines followed by whitespace
+                kopts_aligned += option.replace(" ", " \n") + "\n"
 
         # Write system specific zPXE file
         if system.is_management_supported():

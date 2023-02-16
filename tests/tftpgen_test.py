@@ -127,6 +127,40 @@ def test_write_all_system_files(
     assert False
 
 
+def test_write_all_system_files_s390(
+    mocker, cobbler_api, create_distro, create_profile, create_system, create_image
+):
+
+    # Arrange
+    test_distro = create_distro()
+    test_distro.kernel_options = {
+        "foobar1": "whatever",
+        "autoyast": "http://xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/this-is-a-long-string-that-need-to-be-splitted/zzzzzzzzzzzzzzzzz",
+        "foobar2": "woohooo",
+    }
+    test_profile = create_profile(test_distro.name)
+    test_system = create_system(profile_name=test_profile.name)
+    test_system.netboot_enabled = True
+    test_image = create_image()
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    mocker.patch.object(test_system, "is_management_supported", return_value=True)
+    open_mock = mocker.mock_open()
+    open_mock.write = mocker.MagicMock()
+    mocker.patch("builtins.open", open_mock)
+
+    # Act
+    test_gen._write_all_system_files_s390(
+        test_distro, test_profile, test_image, test_system
+    )
+
+    # Assert - ensure generated parm file has fixed 80 characters format
+    open_mock().write.assert_called()
+    open_mock().write.assert_any_call(
+        "foobar1=whatever \nautoyast=http://xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/this-is-a-\nlong-string-that-need-to-be-splitted/zzzzzzzzzzzzzzzzz \nfoobar2=woohooo\n"
+    )
+
+
 def test_make_pxe_menu(mocker, cobbler_api):
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
