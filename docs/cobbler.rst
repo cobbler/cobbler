@@ -478,36 +478,39 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 |                     |                                                                                                |
 |                     | Example:                                                                                       |
 |                     |                                                                                                |
-|                     | cobbler system edit --name=foo \                                                               |
-|                     |                     --interface=eth0 \                                                         |
-|                     |                     --mac=AA:BB:CC:DD:EE:00 \                                                  |
-|                     |                     --interface-type=bond_slave \                                              |
-|                     |                     --interface-master=bond0                                                   |
+|                     | .. code-block::                                                                                |
 |                     |                                                                                                |
-|                     | cobbler system edit --name=foo \                                                               |
-|                     |                     --interface=eth1 \                                                         |
-|                     |                     --mac=AA:BB:CC:DD:EE:01 \                                                  |
-|                     |                     --interface-type=bond_slave \                                              |
-|                     |                     --interface-master=bond0                                                   |
-|                     |                                                                                                |
-|                     | cobbler system edit --name=foo \                                                               |
-|                     |                     --interface=bond0 \                                                        |
-|                     |                     --interface-type=bond \                                                    |
-|                     |                     --bonding-opts="mode=active-backup miimon=100" \                           |
-|                     |                     --ip-address=192.168.0.63 \                                                |
-|                     |                     --netmask=255.255.255.0 \                                                  |
-|                     |                     --gateway=192.168.0.1 \                                                    |
-|                     |                     --static=1                                                                 |
+|                     |     cobbler system edit --name=foo \                                                           |
+|                     |                         --interface=eth0 \                                                     |
+|                     |                         --mac=AA:BB:CC:DD:EE:00 \                                              |
+|                     |                         --interface-type=bond_slave \                                          |
+|                     |                         --interface-master=bond0                                               |
+|                     |     cobbler system edit --name=foo \                                                           |
+|                     |                         --interface=eth1 \                                                     |
+|                     |                         --mac=AA:BB:CC:DD:EE:01 \                                              |
+|                     |                         --interface-type=bond_slave \                                          |
+|                     |                         --interface-master=bond0                                               |
+|                     |     cobbler system edit --name=foo \                                                           |
+|                     |                         --interface=bond0 \                                                    |
+|                     |                         --interface-type=bond \                                                |
+|                     |                         --bonding-opts="mode=active-backup miimon=100" \                       |
+|                     |                         --ip-address=192.168.0.63 \                                            |
+|                     |                         --netmask=255.255.255.0 \                                              |
+|                     |                         --gateway=192.168.0.1 \                                                |
+|                     |                         --static=1                                                             |
 |                     |                                                                                                |
 |                     | More information about networking setup is available at                                        |
-|                     | https://github.com/cobbler/cobbler/wiki/Advanced-networking                                    |
+|                     | :doc:`Advanced Networking </user-guide/advanced-networking>`                                   |
 |                     |                                                                                                |
 |                     | To review what networking configuration you have for any object, run "cobbler system report"   |
 |                     | at any time:                                                                                   |
 |                     |                                                                                                |
 |                     | Example:                                                                                       |
 |                     |                                                                                                |
-|                     | cobbler system report --name=foo                                                               |
+|                     | .. code-block::                                                                                |
+|                     |                                                                                                |
+|                     |     cobbler system report --name=foo                                                           |
+|                     |                                                                                                |
 +---------------------+------------------------------------------------------------------------------------------------+
 | if-gateway          | If you are using static IP configurations and have multiple interfaces, use this to define     |
 |                     | different gateway for each interface.                                                          |
