@@ -2,8 +2,10 @@ import json
 import os
 import pathlib
 import time
+from typing import Any, Dict, List, Union
 
 import pytest
+from cobbler.remote import CobblerXMLRPCInterface
 
 from cobbler.utils import get_shared_secret
 
@@ -554,14 +556,38 @@ class TestMiscellaneous:
         assert resultlogout
         assert not resulttokencheck
 
-    def test_modify_setting(self, remote, token):
+    @pytest.mark.parametrize(
+        "setting_name,input_allow_dynamic_settings,input_value,expected_result",
+        [
+            ("auth_token_expiration", True, 7200, 0),
+            ("manage_dhcp", True, True, 0),
+            ("manage_dhcp", False, True, 1),
+            ("bootloaders_ipxe_folder", True, "/my/test/folder", 0),
+            ("bootloaders_modules", True, ["fake", "bootloaders"], 0),
+            ("mongodb", True, {"host": "test", "port": 1234}, 0),
+        ],
+    )
+    def test_modify_setting(
+        self,
+        remote: CobblerXMLRPCInterface,
+        token: str,
+        setting_name: str,
+        input_allow_dynamic_settings: bool,
+        input_value: Union[str, bool, float, int, Dict[Any, Any], List[Any]],
+        expected_result: int,
+    ):
+        """
+        Test that all types of settings can be successfully set or not.
+        """
         # Arrange
+        remote.api.settings().allow_dynamic_settings = input_allow_dynamic_settings
 
         # Act
-        result = remote.modify_setting("auth_token_expiration", 7200, token)
+        result = remote.modify_setting(setting_name, input_value, token)
 
         # Assert
-        assert result == 1
+        assert result == expected_result
+        assert remote.get_settings().get(setting_name) == input_value
 
     def test_read_autoinstall_template(
         self, remote, token, create_autoinstall_template, remove_autoinstall_template

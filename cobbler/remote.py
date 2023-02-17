@@ -2014,7 +2014,12 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("menu", object_id, attribute, arg, token)
 
-    def modify_setting(self, setting_name: str, value, token: str) -> int:
+    def modify_setting(
+        self,
+        setting_name: str,
+        value: Union[str, bool, float, int, Dict[Any, Any], List[Any]],
+        token: str,
+    ) -> int:
         """
         Modify a single attribute of a setting.
 
@@ -2038,10 +2043,10 @@ class CobblerXMLRPCInterface:
         try:
             if isinstance(getattr(self.api.settings(), setting_name), str):
                 value = str(value)
-            elif isinstance(getattr(self.api.settings(), setting_name), int):
-                value = int(value)
             elif isinstance(getattr(self.api.settings(), setting_name), bool):
                 value = self.api.input_boolean(value)
+            elif isinstance(getattr(self.api.settings(), setting_name), int):
+                value = int(value)
             elif isinstance(getattr(self.api.settings(), setting_name), float):
                 value = float(value)
             elif isinstance(getattr(self.api.settings(), setting_name), list):
