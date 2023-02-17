@@ -14,7 +14,7 @@ import tempfile
 import threading
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 from schema import SchemaError
 
@@ -57,6 +57,9 @@ from cobbler.items import (
     system,
 )
 from cobbler.decorator import InheritableDictProperty
+
+if TYPE_CHECKING:
+    from cobbler.settings import Settings
 
 
 # notes on locking:
@@ -383,7 +386,7 @@ class CobblerAPI:
         """
         return self.get_items("image")
 
-    def settings(self):
+    def settings(self) -> "Settings":
         """
         Return the application configuration
         """
