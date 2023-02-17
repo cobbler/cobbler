@@ -2,6 +2,7 @@ import os
 import shutil
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Callable
 
 import pytest
 
@@ -19,13 +20,13 @@ def does_not_raise():
 
 @pytest.fixture(scope="function")
 def cobbler_api() -> CobblerAPI:
-    CobblerAPI.__shared_state = {}
-    CobblerAPI.__has_loaded = False
+    CobblerAPI.__shared_state = {}  # type: ignore
+    CobblerAPI.__has_loaded = False  # type: ignore
     return CobblerAPI()
 
 
 @pytest.fixture(scope="function", autouse=True)
-def reset_settings_yaml(tmp_path):
+def reset_settings_yaml(tmp_path: Path):
     filename = "settings.yaml"
     filepath = "/etc/cobbler/%s" % filename
     shutil.copy(filepath, tmp_path.joinpath(filename))
@@ -34,7 +35,7 @@ def reset_settings_yaml(tmp_path):
 
 
 @pytest.fixture(scope="function", autouse=True)
-def reset_items(cobbler_api):
+def reset_items(cobbler_api: CobblerAPI):
     for system in cobbler_api.systems():
         cobbler_api.remove_system(system.name)
     for image in cobbler_api.images():
@@ -56,8 +57,8 @@ def reset_items(cobbler_api):
 
 
 @pytest.fixture(scope="function")
-def create_testfile(tmp_path):
-    def _create_testfile(filename):
+def create_testfile(tmp_path: Path):
+    def _create_testfile(filename: str):
         path = os.path.join(tmp_path, filename)
         if not os.path.exists(path):
             Path(path).touch()
@@ -67,8 +68,8 @@ def create_testfile(tmp_path):
 
 
 @pytest.fixture(scope="function")
-def create_kernel_initrd(create_testfile):
-    def _create_kernel_initrd(name_kernel, name_initrd):
+def create_kernel_initrd(create_testfile: Callable[[str], str]):
+    def _create_kernel_initrd(name_kernel: str, name_initrd: str) -> str:
         create_testfile(name_kernel)
         return os.path.dirname(create_testfile(name_initrd))
 
@@ -76,7 +77,13 @@ def create_kernel_initrd(create_testfile):
 
 
 @pytest.fixture(scope="function")
-def create_distro(request, cobbler_api, create_kernel_initrd, fk_kernel, fk_initrd):
+def create_distro(
+    request: "pytest.FixtureRequest",
+    cobbler_api: CobblerAPI,
+    create_kernel_initrd: Callable[[str, str], str],
+    fk_kernel: str,
+    fk_initrd: str,
+):
     """
     Returns a function which has no arguments. The function returns a distro object. The distro is already added to
     the CobblerAPI.
@@ -99,13 +106,13 @@ def create_distro(request, cobbler_api, create_kernel_initrd, fk_kernel, fk_init
 
 
 @pytest.fixture(scope="function")
-def create_profile(request, cobbler_api):
+def create_profile(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     """
     Returns a function which has the distro name as an argument. The function returns a profile object. The profile is
     already added to the CobblerAPI.
     """
 
-    def _create_profile(distro_name):
+    def _create_profile(distro_name: str) -> Profile:
         test_profile = Profile(cobbler_api)
         test_profile.name = (
             request.node.originalname
@@ -120,13 +127,13 @@ def create_profile(request, cobbler_api):
 
 
 @pytest.fixture(scope="function")
-def create_image(request, cobbler_api):
+def create_image(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     """
     Returns a function which has no arguments. The function returns an image object. The image is already added to the
     CobblerAPI.
     """
 
-    def _create_image():
+    def _create_image() -> Image:
         test_image = Image(cobbler_api)
         test_image.name = (
             request.node.originalname
@@ -140,13 +147,13 @@ def create_image(request, cobbler_api):
 
 
 @pytest.fixture(scope="function")
-def create_system(request, cobbler_api):
+def create_system(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     """
     Returns a function which has the profile name as an argument. The function returns a system object. The system is
     already added to the CobblerAPI.
     """
 
-    def _create_system(profile_name="", image_name="", name=""):
+    def _create_system(profile_name: str = "", image_name: str = "", name: str = ""):
         test_system = System(cobbler_api)
         if name == "":
             test_system.name = (
@@ -191,7 +198,7 @@ def cleanup_leftover_items():
 
 
 @pytest.fixture(scope="function")
-def fk_initrd(request):
+def fk_initrd(request: "pytest.FixtureRequest") -> str:
     """
     The path to the first fake initrd.
 
@@ -203,7 +210,7 @@ def fk_initrd(request):
 
 
 @pytest.fixture(scope="function")
-def fk_kernel(request):
+def fk_kernel(request: "pytest.FixtureRequest") -> str:
     """
     The path to the first fake kernel.
 
@@ -215,7 +222,7 @@ def fk_kernel(request):
 
 
 @pytest.fixture(scope="function")
-def redhat_autoinstall():
+def redhat_autoinstall() -> str:
     """
     The path to the test.ks file for redhat autoinstall.
 
@@ -225,7 +232,7 @@ def redhat_autoinstall():
 
 
 @pytest.fixture(scope="function")
-def suse_autoyast():
+def suse_autoyast() -> str:
     """
     The path to the suse autoyast xml-file.
     :return: A path as a string.
@@ -234,7 +241,7 @@ def suse_autoyast():
 
 
 @pytest.fixture(scope="function")
-def ubuntu_preseed():
+def ubuntu_preseed() -> str:
     """
     The path to the ubuntu preseed file.
     :return: A path as a string.
