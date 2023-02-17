@@ -18,7 +18,7 @@ import time
 import re
 import xmlrpc.server
 from socketserver import ThreadingMixIn
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 
 from cobbler import enums
@@ -40,6 +40,9 @@ from cobbler.validate import (
     validate_uuid,
 )
 
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+
 EVENT_TIMEOUT = 7 * 24 * 60 * 60  # 1 week
 CACHE_TIMEOUT = 10 * 60  # 10 minutes
 
@@ -51,7 +54,7 @@ class CobblerXMLRPCInterface:
     Most read-write operations require a token returned from "login". Read operations do not.
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         """
         Constructor. Requires a Cobbler API handle.
 
@@ -1303,7 +1306,7 @@ class CobblerXMLRPCInterface:
             return False
         return True
 
-    def get_item_handle(self, what: str, name: str):
+    def get_item_handle(self, what: str, name: str) -> str:
         """
         Given the name of an object (or other search parameters), return a reference (object id) that can be used with
         ``modify_*`` functions or ``save_*`` functions to manipulate that object.
@@ -2050,9 +2053,9 @@ class CobblerXMLRPCInterface:
             elif isinstance(getattr(self.api.settings(), setting_name), float):
                 value = float(value)
             elif isinstance(getattr(self.api.settings(), setting_name), list):
-                value = self.api.input_string_or_list(value)
+                value = self.api.input_string_or_list_no_inherit(value)
             elif isinstance(getattr(self.api.settings(), setting_name), dict):
-                value = self.api.input_string_or_dict(value)
+                value = self.api.input_string_or_dict_no_inherit(value)
             else:
                 self.logger.error(
                     "modify_setting(%s) - Wrong type for value", setting_name
