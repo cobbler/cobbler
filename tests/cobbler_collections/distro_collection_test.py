@@ -117,20 +117,27 @@ def test_copy(
     assert new_item_name in distro_collection.listing
 
 
-def test_rename(cobbler_api: CobblerAPI, distro_collection: distros.Distros):
+@pytest.mark.parametrize(
+    "input_new_name",
+    [
+        ("to_be_renamed"),
+        ("UpperCase"),
+    ],
+)
+def test_rename(
+    cobbler_api: CobblerAPI, distro_collection: distros.Distros, input_new_name: str
+):
     # Arrange
-    name = "to_be_renamed"
     item1 = distro.Distro(cobbler_api)
-    item1.name = name
+    item1.name = "old_name"
     distro_collection.add(item1)
 
     # Act
-    new_name = "new_name"
-    distro_collection.rename(item1, new_name)
+    distro_collection.rename(item1, input_new_name)
 
     # Assert
-    assert new_name in distro_collection.listing
-    assert distro_collection.listing.get(new_name).name == new_name
+    assert input_new_name in distro_collection.listing
+    assert distro_collection.listing.get(input_new_name).name == input_new_name
 
 
 def test_collection_add(cobbler_api: CobblerAPI, distro_collection: distros.Distros):
