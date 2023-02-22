@@ -117,12 +117,43 @@ def test_copy_single_image_files(
     assert expected_file.exists()
 
 
-def test_write_all_system_files(
-    mocker: "MockerFixture",
+@pytest.fixture()
+def setup_test_write_all_system_files(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], Distro],
     create_profile: Callable[[str], Profile],
     create_system: Callable[[str, str, str], System],
+):
+    """
+    Setup fixture for "test_write_all_system_files".
+    """
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.name)
+    test_system: System = create_system(profile_name=test_profile.name)  # type: ignore
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+    return test_system, test_gen
+
+
+@pytest.mark.parametrize(
+    "mock_is_management_supported,mock_get_config_filename,expected_pxe_file,expected_rmfile,expected_mkdir,expected_symlink",
+    [
+        (True, ["A", "B"], 2, 1, 1, 1),
+        (True, ["A", None], 1, 0, 0, 0),
+        (True, [None, "B"], 1, 1, 1, 1),
+        # TODO: Add image based scenario
+        (False, ["A", "B"], 0, 2, 0, 0),
+        (False, ["A", None], 0, 1, 0, 0),
+    ],
+)
+def test_write_all_system_files(
+    mocker: "MockerFixture",
+    setup_test_write_all_system_files: Tuple[System, tftpgen.TFTPGen],
+    mock_is_management_supported: bool,
+    mock_get_config_filename: List[Any],
+    expected_pxe_file: int,
+    expected_rmfile: int,
+    expected_mkdir: int,
+    expected_symlink: int,
 ):
     """
     Test that asserts if the "write_all_system_files" subroutine is working as intended.
@@ -137,13 +168,19 @@ def test_write_all_system_files(
     ESXI bootloader and iPXE generation is handled in a different test.
     """
     # Arrange
-    test_distro = create_distro()
-    test_profile = create_profile(test_distro.name)
-    test_system = create_system(profile_name=test_profile.name)  # type: ignore
-    test_gen = tftpgen.TFTPGen(cobbler_api)
+    test_system, test_gen = setup_test_write_all_system_files
     result = {}
-    mock_write_pxe_file = mocker.patch.object(
-        test_gen, "write_pxe_file", mocker.MagicMock()
+    mocker.patch.object(
+        test_system,
+        "is_management_supported",
+        return_value=mock_is_management_supported,
+    )
+    mocker.patch.object(
+        test_system, "get_config_filename", side_effect=mock_get_config_filename
+    )
+    mock_write_pxe_file = mocker.patch.object(test_gen, "write_pxe_file")
+    mock_write_pxe_file_s390 = mocker.patch.object(
+        test_gen, "_write_all_system_files_s390"
     )
     mock_fs_helpers_rmfile = mocker.patch("cobbler.utils.filesystem_helpers.rmfile")
     mock_fs_helpers_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
@@ -153,10 +190,11 @@ def test_write_all_system_files(
     test_gen.write_all_system_files(test_system, result)
 
     # Assert
-    assert mock_write_pxe_file.assert_called
-    assert mock_fs_helpers_rmfile.assert_called
-    assert mock_fs_helpers_mkdir.assert_called
-    assert mock_os_symlink.assert_called
+    assert mock_write_pxe_file_s390.call_count == 0
+    assert mock_write_pxe_file.call_count == expected_pxe_file
+    assert mock_fs_helpers_rmfile.call_count == expected_rmfile
+    assert mock_fs_helpers_mkdir.call_count == expected_mkdir
+    assert mock_os_symlink.call_count == expected_symlink
 
 
 def test_write_all_system_files_s390(
@@ -167,7 +205,9 @@ def test_write_all_system_files_s390(
     create_system: Callable[[str, str, str], System],
     create_image: Callable[[], Image],
 ):
-
+    """
+    Test that asserts if the generated kernel options are longer then 79 character we insert a newline for S390X.
+    """
     # Arrange
     test_distro = create_distro()
     test_distro.kernel_options = {
@@ -176,7 +216,7 @@ def test_write_all_system_files_s390(
         "foobar2": "woohooo",
     }
     test_profile = create_profile(test_distro.name)
-    test_system = create_system(profile_name=test_profile.name)
+    test_system: System = create_system(profile_name=test_profile.name)  # type: ignore
     test_system.netboot_enabled = True
     test_image = create_image()
     test_gen = tftpgen.TFTPGen(cobbler_api)
