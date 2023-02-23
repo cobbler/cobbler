@@ -1,3 +1,7 @@
+"""
+Top most "conftest.py" which is available for all tests of our codebase.
+"""
+
 import os
 import shutil
 from contextlib import contextmanager
@@ -58,7 +62,11 @@ def reset_items(cobbler_api: CobblerAPI):
 
 @pytest.fixture(scope="function")
 def create_testfile(tmp_path: Path):
-    def _create_testfile(filename: str):
+    """
+    Provides a method that creates a testfile inside the directory for one single test with a given name.
+    """
+
+    def _create_testfile(filename: str) -> str:
         path = os.path.join(tmp_path, filename)
         if not os.path.exists(path):
             Path(path).touch()
@@ -69,7 +77,12 @@ def create_testfile(tmp_path: Path):
 
 @pytest.fixture(scope="function")
 def create_kernel_initrd(create_testfile: Callable[[str], str]):
-    def _create_kernel_initrd(name_kernel: str, name_initrd: str) -> str:
+    """
+    Provides a method that touches two empty files that can act as a kernel and initrd. The folder with the two files
+    is returned.
+    """
+
+    def _create_kernel_initrd(name_kernel: str, name_initrd: str):
         create_testfile(name_kernel)
         return os.path.dirname(create_testfile(name_initrd))
 
@@ -89,9 +102,9 @@ def create_distro(
     the CobblerAPI.
     """
 
-    def _create_distro():
+    def _create_distro() -> Distro:
         test_folder = create_kernel_initrd(fk_kernel, fk_initrd)
-        test_distro = Distro(cobbler_api)
+        test_distro = cobbler_api.new_distro()
         test_distro.name = (
             request.node.originalname
             if request.node.originalname
@@ -113,7 +126,7 @@ def create_profile(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     """
 
     def _create_profile(distro_name: str) -> Profile:
-        test_profile = Profile(cobbler_api)
+        test_profile = cobbler_api.new_profile()
         test_profile.name = (
             request.node.originalname
             if request.node.originalname
@@ -134,7 +147,7 @@ def create_image(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     """
 
     def _create_image() -> Image:
-        test_image = Image(cobbler_api)
+        test_image = cobbler_api.new_image()
         test_image.name = (
             request.node.originalname
             if request.node.originalname
@@ -153,8 +166,10 @@ def create_system(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     already added to the CobblerAPI.
     """
 
-    def _create_system(profile_name: str = "", image_name: str = "", name: str = ""):
-        test_system = System(cobbler_api)
+    def _create_system(
+        profile_name: str = "", image_name: str = "", name: str = ""
+    ) -> System:
+        test_system = cobbler_api.new_system()
         if name == "":
             test_system.name = (
                 request.node.originalname
