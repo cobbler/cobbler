@@ -7,7 +7,7 @@ Repository of the Cobbler object model
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import weakref
-from typing import Union, Dict, Any
+from typing import TYPE_CHECKING, Union, Dict, Any
 
 from cobbler.cexceptions import CX
 from cobbler import serializer
@@ -23,6 +23,10 @@ from cobbler.cobbler_collections.systems import Systems
 from cobbler.cobbler_collections.menus import Menus
 
 
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+
+
 class CollectionManager:
     """
     Manages a definitive copy of all data cobbler_collections with weakrefs pointing back into the class so they can
@@ -32,7 +36,7 @@ class CollectionManager:
     has_loaded = False
     __shared_state: Dict[str, Any] = {}
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         """
         Constructor which loads all content if this action was not performed before.
         """
@@ -40,7 +44,7 @@ class CollectionManager:
         if not CollectionManager.has_loaded:
             self.__load(api)
 
-    def __load(self, api):
+    def __load(self, api: "CobblerAPI"):
         """
         Load all collections from the disk into Cobbler.
 

@@ -97,7 +97,7 @@ def run(api, args) -> int:
 
         sendmail = True
         for prefix in settings.build_reporting_ignorelist:
-            if prefix != "" and name.lower().startswith(prefix):
+            if prefix != "" and name.startswith(prefix):
                 sendmail = False
 
         if sendmail:

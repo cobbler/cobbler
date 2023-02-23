@@ -45,7 +45,6 @@ class Packages(collection.Collection):
 
         :raises CX: In case the object does not exist.
         """
-        name = name.lower()
         obj = self.find(name=name)
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")

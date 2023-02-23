@@ -51,8 +51,6 @@ class Distros(collection.Collection):
         :raises CX: In case any subitem (profiles or systems) would be orphaned. If the option ``recursive`` is set then
                     the orphaned items would be removed automatically.
         """
-        name = name.lower()
-
         obj = self.find(name=name)
 
         if obj is None:
@@ -61,7 +59,7 @@ class Distros(collection.Collection):
         # first see if any Groups use this distro
         if not recursive:
             for profile in self.api.profiles():
-                if profile.distro and profile.distro.name.lower() == name:
+                if profile.distro and profile.distro.name == name:
                     raise CX(f"removal would orphan profile: {profile.name}")
 
         kernel = obj.kernel
