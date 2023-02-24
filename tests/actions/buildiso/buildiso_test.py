@@ -4,6 +4,7 @@ import pytest
 
 from cobbler import enums
 from cobbler.actions import buildiso
+from cobbler.actions.buildiso import LoaderCfgsParts
 from cobbler.actions.buildiso.netboot import NetbootBuildiso
 from cobbler.actions.buildiso.standalone import StandaloneBuildiso
 from tests.conftest import does_not_raise
@@ -87,10 +88,40 @@ def test_copy_boot_files(cobbler_api, create_distro, tmpdir):
     testdistro = create_distro()
 
     # Act
-    build_iso.copy_boot_files(testdistro, target_folder)
+    build_iso._copy_boot_files(testdistro.kernel, testdistro.initrd, target_folder)
 
     # Assert
     assert len(os.listdir(target_folder)) == 2
+
+def test_netboot_generate_boot_loader_configs(
+    cobbler_api, create_distro, create_profile, create_system
+):
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.name)
+    test_system = create_system(test_profile.name)
+    build_iso = NetbootBuildiso(cobbler_api)
+
+    # Act
+    result = build_iso._generate_boot_loader_configs(
+        [test_profile.name], [test_system.name], True
+    )
+    matching_isolinux_kernel = [
+        part for part in result.isolinux if "KERNEL /1.krn" in part
+    ]
+    matching_isolinux_initrd = [
+        part for part in result.isolinux if "initrd=/1.img" in part
+    ]
+    # Assert
+    assert isinstance(result, LoaderCfgsParts)
+    for iterable_to_check in [
+        matching_isolinux_kernel,
+        matching_isolinux_initrd,
+        result.bootfiles_copysets,
+    ]:
+        print(iterable_to_check)
+        # one entry for the profile, one for the system
+        assert len(iterable_to_check) == 2
+
 
 
 def test_filter_system(cobbler_api, create_distro, create_profile, create_system):

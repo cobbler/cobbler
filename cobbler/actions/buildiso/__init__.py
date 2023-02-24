@@ -11,9 +11,9 @@ import logging
 import os
 import pathlib
 import shutil
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, NamedTuple, Optional
 
-from cobbler import utils
+from cobbler import templar, utils
 from cobbler.enums import Archs
 
 
@@ -40,6 +40,29 @@ def add_remaining_kopts(kopts: dict) -> str:
     return " ".join(append_line)
 
 
+class BootFilesCopyset(NamedTuple):
+    src_kernel: str
+    src_initrd: str
+    new_filename: str
+
+
+class LoaderCfgsParts(NamedTuple):
+    isolinux: List[str]
+    bootfiles_copysets: List[BootFilesCopyset]
+
+
+class BuildisoDirs(NamedTuple):
+    root: pathlib.Path
+    isolinux: pathlib.Path
+    autoinstall: pathlib.Path
+    repo: pathlib.Path
+
+
+class Autoinstall(NamedTuple):
+    config: str
+    repos: List[str]
+
+
 class BuildIso:
     """
     Handles conversion of internal state to the isolinux tree layout
@@ -53,8 +76,7 @@ class BuildIso:
         self.distmap = {}
         self.distctr = 0
         self.logger = logging.getLogger()
-
-        self.profiles: List[str] = []
+        self.templar = templar.Templar(api)
         self.isolinuxdir = ""
 
         # grab the header from buildiso.header file
@@ -63,24 +85,35 @@ class BuildIso:
             .joinpath("buildiso.template")
             .read_text()
         )
+        self.isolinux_menuentry_template = (
+            pathlib.Path(api.settings().iso_template_dir)
+            .joinpath("isolinux_menuentry.template")
+            .read_text(encoding="UTF-8")
+        )
 
-    def copy_boot_files(self, distro, destdir: str, new_filename: str = ""):
+    def _copy_boot_files(
+        self, kernel_path, initrd_path, destdir: str, new_filename: str = ""
+    ):
         """Copy kernel/initrd to destdir with (optional) newfile prefix
-        :param distro: Distro object to return the boot files for.
+        :param kernel_path: Path to a a distro's kernel.
+        :param initrd_path: Path to a a distro's initrd.
         :param destdir: The destination directory.
         :param new_filename: The file new filename. Kernel and Initrd have different extensions to seperate them from
                              each another.
         """
-        self.logger.info("copying kernels and initrds for standalone distro")
-        kernel = pathlib.Path(distro.kernel)
-        initrd = pathlib.Path(distro.initrd)
+        kernel_source = pathlib.Path(kernel_path)
+        initrd_source = pathlib.Path(initrd_path)
         path_destdir = pathlib.Path(destdir)
-        if not new_filename:
-            shutil.copyfile(kernel, path_destdir.joinpath(kernel.name))
-            shutil.copyfile(initrd, path_destdir.joinpath(initrd.name))
+
+        if new_filename:
+            kernel_dest = str(path_destdir / f"{new_filename}.krn")
+            initrd_dest = str(path_destdir / f"{new_filename}.img")
         else:
-            shutil.copyfile(kernel, path_destdir.joinpath("%s.krn" % new_filename))
-            shutil.copyfile(initrd, path_destdir.joinpath("%s.img" % new_filename))
+            kernel_dest = str(path_destdir / kernel_source.name)
+            initrd_dest = str(path_destdir / initrd_source.name)
+
+        utils.copyfile(str(kernel_source), kernel_dest)
+        utils.copyfile(str(initrd_source), initrd_dest)
 
     def filter_profiles(self, selected_items: List[str] = None) -> list:
         """
@@ -121,7 +154,33 @@ class BuildIso:
 
         return filtered_objects
 
-    def __copy_files(self, iso_distro, buildisodir: str = ""):
+    def parse_distro(self, distro_name):
+        """Find and return distro object.
+
+        Raises ValueError if the distro is not found.
+        """
+        distro_obj = self.api.find_distro(name=distro_name)
+        if distro_obj is None:
+            raise ValueError(f"Distribution {distro_name} not found.")
+        return distro_obj
+
+    def parse_profiles(self, profiles, distro_obj):
+        profile_names = utils.input_string_or_list_no_inherit(profiles)
+        if profile_names:
+            self.logger.debug("Checking that %s belong to distro %s", profiles, distro_obj.name)
+            orphans = set(profile_names) - set(distro_obj.children)
+            if len(orphans) > 0:
+                raise ValueError(
+                    "When building a standalone ISO, all --profiles must be"
+                    " under --distro. Extra --profiles: {}".format(
+                        ",".join(sorted(str(o for o in orphans)))
+                    )
+                )
+            return self.filter_profiles(profile_names)
+        else:
+            return self.filter_profiles(distro_obj.children)
+
+    def _copy_isolinux_files(self):
         """
         This method copies the required and optional files from syslinux into the directories we use for building the
         ISO.
@@ -171,20 +230,21 @@ class BuildIso:
                 "Required file(s) not found. Please check your syslinux installation"
             )
 
-        self.logger.info("copying GRUB2 files")
-        bootloader_directory = pathlib.Path(self.api.settings().bootloaders_dir)
-        grub_efi = bootloader_directory.joinpath(
-            "grub", self.calculate_grub_name(iso_distro)
+    def _render_isolinux_entry(
+        self, append_line: str, menu_name: str, kernel_path: str, menu_indent: int = 0
+    ) -> str:
+        """Render a single isolinux.cfg menu entry."""
+        return self.templar.render(
+            self.isolinux_menuentry_template,
+            out_path=None,
+            search_table={
+                "menu_name": menu_name,
+                "kernel_path": kernel_path,
+                "append_line": append_line.lstrip(),
+                "menu_indent": menu_indent,
+            },
+            template_type="jinja2",
         )
-        buildiso_directory = pathlib.Path(buildisodir)
-        grub_target = buildiso_directory.joinpath("grub", "grub.efi")
-        if grub_efi.exists():
-            utils.copyfile(str(grub_efi), str(grub_target), symlink=True)
-        else:
-            self.logger.error('The following files were not found: "%s"', grub_efi)
-            raise FileNotFoundError(
-                "Required file(s) not found. Please check your GRUB 2 installation"
-            )
 
     def calculate_grub_name(self, distro) -> str:
         """
@@ -231,7 +291,20 @@ class BuildIso:
             % (str(desired_arch.value), str(matches.values()))
         )
 
-    def __prepare_buildisodir(self, buildisodir: str = "") -> str:
+    def _write_isolinux_cfg(
+        self, cfg_parts: List[str], output_dir: pathlib.Path
+    ) -> None:
+        """Write isolinux.cfg.
+
+        :param cfg_parts: List of str that is written to the config, joined by newlines.
+        :param output_dir: pathlib.Path that the isolinux.cfg file is written into.
+        """
+        output_file = output_dir / "isolinux.cfg"
+        self.logger.info("Writing %s", output_file)
+        with open(output_file, "w") as f:
+            f.write("\n".join(cfg_parts))
+
+    def _prepare_buildisodir(self, buildisodir: str = "") -> str:
         """
         This validated the path and type of the buildiso directory and then (re-)creates the apropiate directories.
         :param buildisodir: The directory in which the build of the ISO takes place. If an empty string then the default
@@ -258,40 +331,23 @@ class BuildIso:
         os.makedirs(buildisodir)
 
         self.isolinuxdir = os.path.join(buildisodir, "isolinux")
-
-        self.logger.info("building tree for isolinux")
-        if not os.path.exists(self.isolinuxdir):
-            os.makedirs(self.isolinuxdir)
-        self.logger.info("building tree for GRUB 2")
-        grub_dir = os.path.join(buildisodir, "grub")
-        if not os.path.exists(grub_dir):
-            os.makedirs(grub_dir)
         return buildisodir
 
-    def _prepare_iso(
-        self,
-        buildisodir: str = "",
-        iso_distro: str = "",
-        profiles: Optional[Union[str, list]] = None,
-    ):
-        """
-        Validates the directories we use for building the ISO and copies files to the right place.
-        :param buildisodir: The directory to use for building the ISO. If an empty string then the default directory is
-                            used.
-        :param iso_distro: The distro to use for building the ISO.
-        :param profiles: The profiles to generate the ISO for.
-        :return: The normalized directory for further processing.
-        """
-        try:
-            iso_distro = self.api.find_distro(name=iso_distro)
-        except ValueError as value_error:
-            raise ValueError(
-                'Not existent distribution name passed to "cobbler buildiso"!'
-            ) from value_error
-        buildisodir = self.__prepare_buildisodir(buildisodir)
-        self.__copy_files(iso_distro, buildisodir)
-        self.profiles = utils.input_string_or_list_no_inherit(profiles)
-        return buildisodir
+    def create_buildiso_dirs(self, buildiso_root: str) -> BuildisoDirs:
+        """Create directories in the buildiso root."""
+        root = pathlib.Path(buildiso_root)
+        isolinuxdir = root / "isolinux"
+        autoinstalldir = root / "autoinstall"
+        repodir = root / "repo_mirror"
+        for d in [isolinuxdir, autoinstalldir, repodir]:
+            d.mkdir(parents=True)
+
+        return BuildisoDirs(
+            root=root,
+            isolinux=isolinuxdir,
+            autoinstall=autoinstalldir,
+            repo=repodir,
+        )
 
     def _generate_iso(self, xorrisofs_opts: str, iso: str, buildisodir: str):
         """
