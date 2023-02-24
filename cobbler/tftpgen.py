@@ -151,6 +151,37 @@ class TFTPGen:
         Writes all files for tftp for a given system with the menu items handed to this method. The system must have a
         profile attached. Otherwise this method throws an error.
 
+        Directory structure:
+
+        .. code-block::
+
+           TFTP Directory/
+               pxelinux.cfg/
+                   01-aa-bb-cc-dd-ee-ff
+               grub/
+                   system/
+                       aa:bb:cc:dd:ee:ff
+                   system_link/
+                       <system_name>
+
+        Directory structure for netboot enabled S390X systems:
+
+        .. code-block::
+
+           TFTP Directory/
+               S390X/
+                   s_<system_name>
+                   s_<system_name>_conf
+                   s_<system_name>_parm
+
+        Directory structure for netboot disabled S390X systems:
+
+        .. code-block::
+
+           TFTP Directory/
+               S390X/
+                   s_<system_name>_conf
+
         :param system: The system to generate files for.
         :param menu_items: TODO
         """
@@ -178,7 +209,7 @@ class TFTPGen:
             s390_name = 'linux' + short_name[7:10]
             self.logger.info("Writing s390x pxe config for %s", short_name)
             # Always write a system specific _conf and _parm file
-            pxe_f = os.path.join(self.bootloc, enums.Archs.S390X, "s_%s" % s390_name)
+            pxe_f = os.path.join(self.bootloc, enums.Archs.S390X.value, "s_%s" % s390_name)
             conf_f = "%s_conf" % pxe_f
             parm_f = "%s_parm" % pxe_f
 
@@ -187,22 +218,30 @@ class TFTPGen:
             # FIXME: profiles also need this data!
             # gather default kernel_options and default kernel_options_s390x
             kernel_options = self.build_kernel_options(system, profile, distro,
-                                                       image, "s390x", blended.get("autoinstall", ""))
+                                                       image, enums.Archs.S390X.value, blended.get("autoinstall", ""))
+            # parm file format is fixed to 80 chars per line.
+            # All the lines are concatenated without spaces when being passed to the kernel.
+            #
+            # Recommendation: one parameter per line (ending with whitespace)
+            #
+            # NOTE: If a parameter is too long to fit into the 80 characters limit it can simply
+            # be continued in the first column of the next line.
+            #
+            # https://www.debian.org/releases/stable/s390x/ch05s01.en.html
+            # https://documentation.suse.com/sles/15-SP1/html/SLES-all/cha-zseries.html#sec-appdendix-parm-examples
+            # https://wiki.ubuntu.com/S390X/InstallationGuide
+            _parmfile_fixed_line_len = 79
             kopts_aligned = ""
-            column = 0
-            for option in kernel_options.split():
-                opt_len = len(option)
-                if opt_len > 78:
-                    kopts_aligned += '\n' + option + ' '
-                    column = opt_len + 1
-                    self.logger.error("Kernel paramer [%s] too long %s" % (option, opt_len))
-                    continue
-                if column + opt_len > 78:
-                    kopts_aligned += '\n' + option + ' '
-                    column = opt_len + 1
-                else:
-                    kopts_aligned += option + ' '
-                    column += opt_len + 1
+            kopts = kernel_options.strip()
+            # Only in case we have kernel options
+            if kopts:
+                for option in [
+                    kopts[i : i + _parmfile_fixed_line_len]
+                    for i in range(0, len(kopts), _parmfile_fixed_line_len)
+                ]:
+                    # If chunk contains multiple parameters (separated by whitespaces)
+                    # then we put them in separated lines followed by whitespace
+                    kopts_aligned += option.replace(" ", " \n") + "\n"
 
             # Write system specific zPXE file
             if system.is_management_supported():
