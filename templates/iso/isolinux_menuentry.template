@@ -1,0 +1,8 @@
+LABEL {{ menu_name }}
+{%- if menu_indent %}
+  MENU INDENT {{ menu_indent }}
+{% endif %}
+  MENU LABEL {{ menu_name }}
+  KERNEL {{ kernel_path }}
+  {{ append_line }}
+

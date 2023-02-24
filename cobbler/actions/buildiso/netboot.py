@@ -4,12 +4,12 @@ This module contains the specific code to generate a network bootable ISO.
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import os
 import re
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from cobbler import utils
 from cobbler.actions import buildiso
+from cobbler.actions.buildiso import BootFilesCopyset, LoaderCfgsParts
 from cobbler.utils import input_converters
 
 
@@ -429,6 +429,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         """
         Return a list of valid system objects selected from all systems by name, or everything if ``selected_items`` is
         empty.
+
         :param selected_items: A list of names to include in the returned list.
         :return: A list of valid systems. If an error occurred this is logged and an empty list is returned.
         """
@@ -448,6 +449,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         """
         Return a short distro identifier which is basically an internal counter which is mapped via the real distro
         name.
+
         :param distname: The distro name to return an identifier for.
         :return: A short distro identifier
         """
@@ -458,60 +460,61 @@ class NetbootBuildiso(buildiso.BuildIso):
         self.distmap[distname] = str(self.distctr)
         return str(self.distctr)
 
-    def _generate_netboot_system(self, system, cfglines: List[str], exclude_dns: bool):
+    def _generate_boot_loader_configs(
+        self, profile_names: List[str], system_names: List[str], exclude_dns: bool
+    ) -> LoaderCfgsParts:
+        """Generate boot loader configuration.
+
+        The configuration is placed as parts into a list. The elements expect to
+        be joined by newlines for writing.
+
+        :param profile_names: Profile filter, can be an empty list for "all profiles".
+        :param system_names: System filter, can be an empty list for "all systems".
+        :param exclude_dns: Used for system kernel cmdline.
         """
-        Generates the ISOLINUX cfg configuration for any systems included in the image.
-        :param system: The system which the configuration should be generated for.
-        :param cfglines: The already existing lines of the configuration.
-        :param exclude_dns: If DNS configuration should be excluded or not.
-        """
-        self.logger.info("processing system: %s", system.name)
-        profile = system.get_conceptual_parent()
-        dist = profile.get_conceptual_parent()
-        distname = self.make_shorter(dist.name)
-        self.copy_boot_files(dist, self.isolinuxdir, distname)
-
-        cfglines.append("")
-        cfglines.append(f"LABEL {system.name}")
-        cfglines.append(f"  MENU LABEL {system.name}")
-        cfglines.append(f"  KERNEL {distname}.krn")
-
-        data = utils.blender(self.api, False, system)
-        autoinstall_scheme = self.api.settings().autoinstall_scheme
-        if not re.match(r"[a-z]+://.*", data["autoinstall"]):
-            data["autoinstall"] = (
-                f"{autoinstall_scheme}://{data['server']}:{data['http_port']}/cblr/svc/op/autoinstall/"
-                f"system/{system.name}"
-            )
-
-        append_builder = AppendLineBuilder(distro_name=distname, data=data)
-        append_line = append_builder.generate_system(
-            dist, system, exclude_dns, autoinstall_scheme
+        isolinux_cfg_parts, files_to_copy = [self.iso_template], []
+        isolinux_cfg_parts.append("MENU SEPARATOR")
+        self._generate_profiles_loader_configs(
+            profile_names, isolinux_cfg_parts, files_to_copy
         )
-        cfglines.append(append_line)
+        self._generate_systems_loader_configs(
+            system_names, exclude_dns, isolinux_cfg_parts, files_to_copy
+        )
+        return LoaderCfgsParts(
+            isolinux=isolinux_cfg_parts,
+            bootfiles_copysets=files_to_copy,
+        )
 
-    def _generate_netboot_profile(self, profile, cfglines: List[str]):
+    def _generate_profiles_loader_configs(
+        self,
+        profiles: List[str],
+        isolinux_cfg_parts: List[str],
+        bootfiles_copyset: List[BootFilesCopyset],
+    ) -> None:
+        """Generate isolinux configuration for profiles.
+
+        The passed in isolinux_cfg_parts list is changed in-place.
+
+        :param profiles: Profile filter, can be empty for "all profiles".
+        :param isolinux_cfg_parts: Output parameter for isolinux configuration.
+        :param bootfiles_copyset: Output parameter for bootfiles copyset.
         """
-        Generates the ISOLINUX cfg configuration for any profiles included in the image.
-        :param profile: The profile which the configuration should be generated for.
-        :param cfglines: The already existing lines of the configuration.
+        for profile in self.filter_profiles(profiles):
+            isolinux, to_copy = self._generate_profile_config(profile)
+            isolinux_cfg_parts.append(isolinux)
+            bootfiles_copyset.append(to_copy)
+
+    def _generate_profile_config(self, profile) -> Tuple[str, BootFilesCopyset]:
+        """Generate isolinux configuration for a single profile.
+
+        :param profile: Profile object to generate the configuration for.
         """
-        self.logger.info('Processing profile: "%s"', profile.name)
-        dist = profile.get_conceptual_parent()
-        distname = self.make_shorter(dist.name)
-        self.copy_boot_files(dist, self.isolinuxdir, distname)
-
-        cfglines.append("")
-        cfglines.append(f"LABEL {profile.name}")
-        cfglines.append(f"  MENU LABEL {profile.name}")
-        cfglines.append(f"  kernel {distname}.krn")
-
-        data = utils.blender(self.api, False, profile)
-
-        # SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
-        if dist is not None:
+        distro = profile.get_conceptual_parent()
+        distroname = self.make_shorter(distro.name)
+        data = utils.blender(self.api, False, distro)
+        if distro is not None:  # SUSE uses 'textmode' instead of 'text'
             utils.kopts_overwrite(
-                data["kernel_options"], self.api.settings().server, dist.breed
+                data["kernel_options"], self.api.settings().server, distro.breed
             )
 
         if not re.match(r"[a-z]+://.*", data["autoinstall"]):
@@ -521,35 +524,76 @@ class NetbootBuildiso(buildiso.BuildIso):
                 f"profile/{profile.name}"
             )
 
-        append_builder = AppendLineBuilder(distro_name=distname, data=data)
-        append_line = append_builder.generate_profile(dist.breed, dist.os_version)
-        cfglines.append(append_line)
+        append_line = AppendLineBuilder(
+            distro_name=distroname, data=data
+        ).generate_profile(distro.breed, distro.os_version)
+        kernel_path = distroname + ".krn"
 
-    def generate_netboot_iso(
-        self, systems: Optional[List[str]] = None, exclude_dns: bool = False
-    ):
+        isolinux_cfg = self._render_isolinux_entry(
+            append_line, menu_name=distro.name, kernel_path=kernel_path
+        )
+        return (
+            isolinux_cfg,
+            BootFilesCopyset(distro.kernel, distro.initrd, distroname),
+        )
+
+    def _generate_systems_loader_configs(
+        self,
+        system_names: List[str],
+        exclude_dns: bool,
+        isolinux_cfg_parts: List[str],
+        files_to_copy: List[BootFilesCopyset],
+    ) -> None:
+        """Generate isolinux configuration for systems.
+
+        The passed in isolinux_cfg_parts list is changed in-place.
+
+        :param systems: System filter, can be empty for "all profiles".
+        :param isolinux_cfg_parts: Output parameter for isolinux configuration.
+        :param bootfiles_copyset: Output parameter for bootfiles copyset.
         """
-        Creates the ``isolinux.cfg`` for a network bootable ISO image.
-        :param systems: The filter to generate a netboot iso for. You may specify multiple systems on the CLI space
-                        separated.
-        :param exclude_dns: If this is True then the dns server is skipped. False will set it.
+        for system in self.filter_systems(system_names):
+            isolinux, to_copy = self._generate_system_config(
+                system, exclude_dns=exclude_dns
+            )
+            isolinux_cfg_parts.append(isolinux)
+            files_to_copy.append(to_copy)
+
+    def _generate_system_config(
+        self, system, exclude_dns
+    ) -> Tuple[str, BootFilesCopyset]:
+        """Generate isolinux configuration for a single system.
+
+        :param system: System object to generate the configuration for.
+        :exclude_dns: Control if DNS configuration is part of the kernel cmdline.
         """
-        # setup isolinux.cfg
-        isolinuxcfg = os.path.join(self.isolinuxdir, "isolinux.cfg")
-        cfglines = [self.iso_template]
+        profile = system.get_conceptual_parent()
+        distro = (
+            profile.get_conceptual_parent()
+        )  # FIXME: pass distro, it's known from CLI
+        distroname = self.make_shorter(distro.name)
 
-        # iterate through selected profiles
-        for profile in self.filter_profiles(self.profiles):
-            self._generate_netboot_profile(profile, cfglines)
-        cfglines.append("MENU SEPARATOR")
-        # iterate through all selected systems
-        for system in self.filter_systems(systems):
-            self._generate_netboot_system(system, cfglines, exclude_dns)
-        cfglines.append("")
-        cfglines.append("MENU END")
+        data = utils.blender(self.api, False, system)
+        autoinstall_scheme = self.api.settings().autoinstall_scheme
+        if not re.match(r"[a-z]+://.*", data["autoinstall"]):
+            data["autoinstall"] = (
+                f"{autoinstall_scheme}://{data['server']}:{data['http_port']}/cblr/svc/op/autoinstall/"
+                f"system/{system.name}"
+            )
 
-        with open(isolinuxcfg, "w+", encoding="UTF-8") as cfg:
-            cfg.writelines(f"{line}\n" for line in cfglines)
+        append_line = AppendLineBuilder(
+            distro_name=distroname, data=data
+        ).generate_system(distro, system, exclude_dns)
+        kernel_path = distroname + ".krn"
+
+        isolinux_cfg = self._render_isolinux_entry(
+            append_line, menu_name=system.name, kernel_path=kernel_path
+        )
+
+        return (
+            isolinux_cfg,
+            BootFilesCopyset(distro.kernel, distro.initrd, distroname),
+        )
 
     def run(
         self,
@@ -563,10 +607,12 @@ class NetbootBuildiso(buildiso.BuildIso):
         **kwargs,
     ):
         """
-        Run the whole iso generation from bottom to top. Per default this builds an ISO for all available systems
-        and profiles.
-        This is the only method which should be called from non-class members. The ``profiles`` and ``system``
-        parameters can be combined.
+        Generate a net-installer for a distribution.
+
+        By default, the ISO includes all available systems and profiles. Specify
+        ``profiles`` and ``systems`` to only include the selected systems and
+        profiles. Both parameters can be provided at the same time.
+
         :param iso: The name of the iso. Defaults to "autoinst.iso".
         :param buildisodir: This overwrites the directory from the settings in which the iso is built in.
         :param profiles: The filter to generate the ISO only for selected profiles.
@@ -578,7 +624,28 @@ class NetbootBuildiso(buildiso.BuildIso):
         """
         del kwargs  # just accepted for polymorphism
 
-        buildisodir = self._prepare_iso(buildisodir, distro_name, profiles)
-        systems = input_converters.input_string_or_list_no_inherit(systems)
-        self.generate_netboot_iso(systems, exclude_dns)
+        _ = self.parse_distro(distro_name)
+        system_names = input_converters.input_string_or_list_no_inherit(systems)
+        profile_names = input_converters.input_string_or_list_no_inherit(profiles)
+        loader_config_parts = self._generate_boot_loader_configs(
+            system_names, profile_names, exclude_dns
+        )
+
+        buildisodir = self._prepare_buildisodir(buildisodir)
+        dirs = self.create_buildiso_dirs(buildisodir)
+
+        # fill temporary directory with binaries
+        self._copy_isolinux_files()
+        for copyset in loader_config_parts.bootfiles_copysets:
+            self._copy_boot_files(
+                copyset.src_kernel,
+                copyset.src_initrd,
+                str(buildisodir),
+                copyset.new_filename,
+            )
+
+        # fill temporary directory with config files
+        self._write_isolinux_cfg(loader_config_parts.isolinux, dirs.isolinux)
+
+        # build ISO off the temporary directory
         self._generate_iso(xorrisofs_opts, iso, buildisodir)

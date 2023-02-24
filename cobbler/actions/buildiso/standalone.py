@@ -4,14 +4,17 @@ This module contains the specific code for generating standalone or airgapped IS
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import itertools
 import os
+import pathlib
 import re
-from typing import Dict, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
 
 from cobbler import utils
 from cobbler.actions import buildiso
+from cobbler.actions.buildiso import Autoinstall, BootFilesCopyset, LoaderCfgsParts
 
-cdregex = re.compile(r"^\s*url .*\n", re.IGNORECASE | re.MULTILINE)
+CDREGEX = re.compile(r"^\s*url .*\n", re.IGNORECASE | re.MULTILINE)
 
 
 def _generate_append_line_standalone(data: dict, distro, descendant) -> str:
@@ -47,258 +50,145 @@ class StandaloneBuildiso(buildiso.BuildIso):
     This class contains all functionality related to building self-contained installation images.
     """
 
-    def _validate_standalone_args(self, distro_name: str, source: str):
+    def _find_distro_source(self, known_file: str, distro_mirror: str) -> str:
         """
-        If building standalone, we only want --distro and --profiles (optional), systems are disallowed
-        :param distro_name: The name of the distribution we want to install.
-        :param source: The source which we copy to the ISO as an installation base.
-        """
-        if not distro_name:
-            raise ValueError(
-                "When building a standalone ISO, you must specify a --distro"
-            )
-        base_distro = self.api.find_distro(name=distro_name)
-        if base_distro is None:
-            raise ValueError("Distro specified was not found!")
-        source = self._validate_standalone_filesource(source, base_distro)
-        if not os.path.exists(source):
-            raise ValueError(f'The specified source "{source}" does not exist!')
+        Find a distro source tree based on a known file.
 
-        # Ensure all profiles specified are children of the distro
-        if self.profiles:
-            orphan_profiles = [
-                profile
-                for profile in self.profiles
-                if profile not in base_distro.children
-            ]
-            if len(orphan_profiles) > 0:
+        :param known_file: Path to a file that's known to be part of the distribution,
+            commonly the path to the kernel.
+        :raises ValueError: When no installation source was not found.
+        :return: Root of the distribution's source tree.
+        """
+        self.logger.debug("Trying to locate source.")
+        (source_head, source_tail) = os.path.split(known_file)
+        filesource = None
+        while source_tail != "":
+            if source_head == distro_mirror:
+                filesource = os.path.join(source_head, source_tail)
+                self.logger.debug("Found source in %s", filesource)
+                break
+            (source_head, source_tail) = os.path.split(source_head)
+
+        if filesource:
+            return filesource
+        else:
+            raise ValueError(
+                "No installation source found. When building a standalone (incl. airgapped) ISO"
+                " you must specify a --source if the distro install tree is not hosted locally"
+            )
+
+    def _write_autoinstall_cfg(
+        self, data: Dict[str, Autoinstall], output_dir: pathlib.Path
+    ):
+        self.logger.info("Writing auto-installation config files")
+        self.logger.debug(data)
+        for file_name, autoinstall in data.items():
+            with open(output_dir / f"{file_name}.cfg", "w") as f:
+                f.write(autoinstall.config)
+
+    def _generate_descendant_config(
+        self, descendant, menu_indent: int, distro, append_line: str
+    ) -> Tuple[str, BootFilesCopyset]:
+        kernel_path = f"/{os.path.basename(distro.kernel)}"
+        isolinux_cfg = self._render_isolinux_entry(
+            append_line,
+            menu_name=descendant.name,
+            kernel_path=kernel_path,
+            menu_indent=menu_indent,
+        )
+        return (
+            isolinux_cfg,
+            BootFilesCopyset(distro.kernel, distro.initrd, ""),
+        )
+
+    def validate_repos(
+        self, profile_name: str, repo_names: List[str], repo_mirrordir: pathlib.Path
+    ):
+        """Sanity checks for repos to sync.
+
+        This function checks that repos are known to cobbler and have a local mirror directory.
+        Raises ValueError if any repo fails the validation.
+        """
+        for repo_name in repo_names:
+            repo_obj = self.api.find_repo(name=repo_name)
+            if repo_obj is None:
                 raise ValueError(
-                    "When building a standalone ISO, all --profiles must be under --distro"
+                    f"Repository {repo_name}, referenced by {profile_name}, not found."
+                )
+            if not repo_obj.mirror_locally:
+                raise ValueError(
+                    f"Repository {repo_name} is not configured for local mirroring."
+                )
+            if not repo_mirrordir.joinpath(repo_name).exists():
+                raise ValueError(
+                    f"Local mirror directory missing for repository {repo_name}"
                 )
 
-    def _sync_airgapped_repos(self, airgapped: bool, repo_names_to_copy: dict):
-        """
-        Syncs all repositories locally available into the image if the is supposed to be airgapped.
-        :param airgapped: If false this method is doing nothing.
-        :param repo_names_to_copy: The names of the repositories which should be included.
-        :raises RuntimeError: In case the rsync of the repository was not successful.
-        """
+    def _generate_item(
+        self,
+        descendant_obj,
+        distro_obj,
+        airgapped,
+        cfg_parts,
+        repo_mirrordir,
+        autoinstall_data,
+    ):
+        data: dict = utils.blender(self.api, False, descendant_obj)
+        utils.kopts_overwrite(
+            data["kernel_options"], self.api.settings().server, distro_obj.breed
+        )
+        append_line = _generate_append_line_standalone(data, distro_obj, descendant_obj)
+        name = descendant_obj.name
+        config_args = {
+            "descendant": descendant_obj,
+            "distro": distro_obj,
+            "append_line": append_line,
+        }
+        if descendant_obj.COLLECTION_TYPE == "profile":
+            config_args.update({"menu_indent": 0})
+            autoinstall_args = {"profile": descendant_obj}
+        else:  # system
+            config_args.update({"menu_indent": 4})
+            autoinstall_args = {"system": descendant_obj}
+        isolinux, to_copy = self._generate_descendant_config(**config_args)
+        autoinstall = self.api.autoinstallgen.generate_autoinstall(**autoinstall_args)
+
+        if distro_obj.breed == "redhat":
+            autoinstall = CDREGEX.sub("cdrom\n", autoinstall, count=1)
+
+        repos = []
         if airgapped:
-            # copy any repos found in profiles or systems to the iso build
-            repodir = os.path.abspath(
-                os.path.join(self.isolinuxdir, "..", "repo_mirror")
-            )
-            if not os.path.exists(repodir):
-                os.makedirs(repodir)
-
-            for repo_name in repo_names_to_copy:
-                self.logger.info(" - copying repo '%s' for airgapped ISO", repo_name)
-                rsync_successful = utils.rsync_files(
-                    repo_names_to_copy[repo_name],
-                    os.path.join(repodir, repo_name),
-                    "--exclude=TRANS.TBL --exclude=cache/ --no-g",
-                    quiet=True,
+            repos = data.get("repos", [])
+            if repos:
+                self.validate_repos(name, repos, repo_mirrordir)
+                autoinstall = re.sub(
+                    rf"^(\s*repo --name=\S+ --baseurl=).*/cobbler/distro_mirror/{distro_obj.name}/?(.*)",
+                    rf"\1 file:///mnt/source/repo_mirror/\2",
+                    autoinstall,
+                    re.MULTILINE,
                 )
-                if not rsync_successful:
-                    raise RuntimeError(f'rsync of repo "{repo_name}" failed')
+            autoinstall = self._update_repos_in_autoinstall_data(autoinstall, repos)
+        cfg_parts.isolinux.append(isolinux)
+        cfg_parts.bootfiles_copysets.append(to_copy)
+        autoinstall_data[name] = Autoinstall(autoinstall, repos)
 
-    def _validate_standalone_filesource(self, filesource: str, distro) -> str:
-        """
-        Validate that the path to the installation sources is making sense. If they do then normalize the path and
-        return it.
-        :param filesource: The path to the installation sources.
-        :param distro: The distribution of which the kernel is used for booting the image.
-        :raises ValueError: In case the installation source was not found.
-        :return: Normalized filesource which points to the absolute path of the source tree.
-        """
-        if not filesource:
-            # Try to determine the source from the distro kernel path
-            self.logger.debug("Trying to locate source for distro")
-            (source_head, source_tail) = os.path.split(distro.kernel)
-            distro_mirror = os.path.join(self.api.settings().webdir, "distro_mirror")
-            while source_tail != "":
-                if source_head == distro_mirror:
-                    filesource = os.path.join(source_head, source_tail)
-                    self.logger.debug("Found source in %s", filesource)
-                    return filesource
-                (source_head, source_tail) = os.path.split(source_head)
-            # Can't find the source, raise an error
-            raise ValueError(
-                "Error, no installation source found. When building a standalone or airgapped ISO, you must specify a "
-                "--source if the distro install tree is not hosted locally"
-            )
-        return filesource
-
-    def _generate_autoinstall_data(
-        self, descendant, distro, airgapped: bool, data: dict, repo_names_to_copy: dict
-    ) -> str:
-        """
-        Generates the autoinstall script for the distro/profile/system we want to install.
-        :param descendant: The descendant to generate the ISO for.
-        :param distro: The distro to generate the ISO for.
-        :param airgapped: Whether the ISO should be bootable in an airgapped environment or not.
-        :param data: The data for the append line of the kernel.
-        :param repo_names_to_copy: The repositories to include in case of an airgapped environment.
-        :return: The generated script for the ISO.
-        """
-        autoinstall_data = ""
-        if descendant.COLLECTION_TYPE == "profile":
-            autoinstall_data = self.api.autoinstallgen.generate_autoinstall_for_profile(
-                descendant.name
-            )
-        elif descendant.COLLECTION_TYPE == "system":
-            autoinstall_data = self.api.autoinstallgen.generate_autoinstall_for_system(
-                descendant.name
-            )
-
-        if distro.breed == "redhat":
-            autoinstall_data = cdregex.sub("cdrom\n", autoinstall_data, count=1)
-
-        if airgapped:
-            for repo_name in data.get("repos", []):
-                repo_obj = self.api.find_repo(repo_name)
-                error = (
-                    f"{descendant.COLLECTION_TYPE} {descendant.name} refers to repo {repo_name}, which"
-                    " {error_message}; cannot build airgapped ISO"
-                )
-
-                if repo_obj is None:
-                    raise ValueError(error.format(error_message="does not exist"))
-                if not repo_obj.mirror_locally:
-                    raise ValueError(
-                        error.format(
-                            error_message="is not configured for local mirroring"
-                        )
-                    )
-                mirrordir = os.path.join(
-                    self.api.settings().webdir, "repo_mirror", repo_obj.name
-                )
-                if not os.path.exists(mirrordir):
-                    raise ValueError(
-                        error.format(
-                            error_message="has a missing local mirror directory"
-                        )
-                    )
-
-                repo_names_to_copy[repo_obj.name] = mirrordir
-
-                # update the baseurl in autoinstall_data to use the cdrom copy of this repo
-                reporegex = re.compile(
-                    rf"^(\s*repo --name={repo_obj.name} --baseurl=).*", re.MULTILINE
-                )
-                autoinstall_data = reporegex.sub(
-                    r"\1" + "file:///mnt/source/repo_mirror/" + repo_obj.name,
-                    autoinstall_data,
-                )
-
-            # rewrite any split-tree repos, such as in redhat, to use cdrom
-            srcreporegex = re.compile(
-                rf"^(\s*repo --name=\S+ --baseurl=).*/cobbler/distro_mirror/{distro.name}/?(.*)",
+    def _update_repos_in_autoinstall_data(self, autoinstall_data, repos_names) -> str:
+        for repo_name in repos_names:
+            autoinstall_data = re.sub(
+                rf"^(\s*repo --name={repo_name} --baseurl=).*",
+                rf"\1 file:///mnt/source/repo_mirror/{repo_name}",
+                autoinstall_data,
                 re.MULTILINE,
-            )
-            autoinstall_data = srcreporegex.sub(
-                r"\1" + "file:///mnt/source" + r"\2", autoinstall_data
             )
         return autoinstall_data
 
-    def _generate_descendant(
-        self,
-        descendant,
-        cfglines: List[str],
-        distro,
-        airgapped: bool,
-        repo_names_to_copy: dict,
-    ):
+    def _copy_distro_files(self, filesource: str, output_dir: str):
+        """Copy the distro tree in filesource to output_dir.
+
+        :param filesource: Path to root of the distro source tree.
+        :param output_dir: Path to the directory into which to copy all files.
+        :raises RuntimeError: rsync command failed.
         """
-        Generate the ISOLINUX cfg configuration file for the descendant.
-        :param descendant: The descendant to generate the config file for. Must be a profile or system object.
-        :param cfglines: The content of the file which has already been generated.
-        :param distro: The parent distro.
-        :param airgapped: Whether the generated ISO should be bootable in an airgapped environment or not.
-        :param repo_names_to_copy: The repository names to copy in the case of an airgapped environment.
-        """
-        menu_indent = 0
-        if descendant.COLLECTION_TYPE == "system":
-            menu_indent = 4
-
-        data = utils.blender(self.api, False, descendant)
-
-        # SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
-        if distro is not None:
-            utils.kopts_overwrite(
-                data["kernel_options"], self.api.settings().server, distro.breed
-            )
-
-        cfglines.append("")
-        cfglines.append(f"LABEL {descendant.name}")
-        if menu_indent:
-            cfglines.append(f"  MENU INDENT {menu_indent:d}")
-        cfglines.append(f"  MENU LABEL {descendant.name}")
-        cfglines.append(f"  KERNEL {os.path.basename(distro.kernel)}")
-
-        cfglines.append(_generate_append_line_standalone(data, distro, descendant))
-
-        autoinstall_data = self._generate_autoinstall_data(
-            descendant, distro, airgapped, data, repo_names_to_copy
-        )
-        autoinstall_name = os.path.join(self.isolinuxdir, f"{descendant.name}.cfg")
-        with open(autoinstall_name, "w+", encoding="UTF-8") as autoinstall_file:
-            autoinstall_file.write(autoinstall_data)
-
-    def generate_standalone_iso(
-        self, distro_name: str, filesource: str, airgapped: bool
-    ):
-        """Creates the ``isolinux.cfg`` for a standalone or airgapped ISO image. And copies possible repositories to
-        the image source folder.
-        :param distro_name: The name of the Cobbler distribution.
-        :param filesource: The source directory for the ISO. This gets rsynced into isolinuxdir.
-        :param airgapped: Whether the repositories have to be locally available or the internet is reachable.
-        """
-        # Get the distro object for the requested distro and then get all of its descendants (profiles/sub-profiles/
-        # systems) with sort=True for profile/system hierarchy to allow menu indenting
-        distro = self.api.find_distro(name=distro_name)
-        if distro is None:
-            raise ValueError(
-                f'Distro "{distro_name}" was not found, aborting generation of ISO-file!'
-            )
-
-        self.copy_boot_files(distro, self.isolinuxdir)
-
-        self.logger.info("generating an isolinux.cfg")
-
-        cfglines = [self.iso_template]
-
-        repo_names_to_copy: Dict[str, str] = {}
-
-        for descendant in distro.children:
-            descendant = self.api.find_items(what="", name=descendant)
-            # if a list of profiles was given, skip any others and their systems
-            if len(self.profiles) > 0 and (
-                (
-                    descendant.COLLECTION_TYPE == "profile"
-                    and descendant.name not in self.profiles
-                )
-                or (
-                    descendant.COLLECTION_TYPE == "system"
-                    and descendant.profile not in self.profiles
-                )
-            ):
-                continue
-            self._generate_descendant(
-                descendant, cfglines, distro, airgapped, repo_names_to_copy
-            )
-
-        cfglines.append("")
-        cfglines.append("MENU END")
-        with open(
-            os.path.join(self.isolinuxdir, "isolinux.cfg"), "w+", encoding="UTF-8"
-        ) as cfg:
-            cfg.writelines(f"{l}\n" for l in cfglines)
-        self.logger.info("done writing config")
-
-        self._sync_airgapped_repos(airgapped, repo_names_to_copy)
-
-        # copy distro files last, since they take the most time
         cmd = [
             "rsync",
             "-rlptgu",
@@ -309,12 +199,42 @@ class StandaloneBuildiso(buildiso.BuildIso):
             "--exclude",
             "isolinux/",
             f"{filesource}/",
-            f"{self.isolinuxdir}/../",
+            f"{output_dir}/",
         ]
-        self.logger.info('- copying distro "%s" files (%s)', distro_name, cmd)
-        rsync_return_code = utils.subprocess_call(cmd, shell=False)
-        if rsync_return_code:
-            raise OSError("rsync of distro files failed")
+        self.logger.info("- copying distro files (%s)", cmd)
+        rc = utils.subprocess_call(cmd, shell=False)
+        if rc != 0:
+            raise RuntimeError("rsync of distro files failed")
+
+    def _copy_repos(
+        self,
+        autoinstall_data: Iterable[Autoinstall],
+        source_dir: pathlib.Path,
+        output_dir: pathlib.Path,
+    ):
+        """Copy repos for airgapped ISOs.
+
+        The caller of this function has to check if an airgapped ISO is built.
+        :param autoinstall_data: Iterable of Autoinstall records that contain the lists of repos.
+        :param source_dir: Path to the directory containing the repos.
+        :param output_dir: Path to the directory into which to copy all files.
+        :raises RuntimeError: rsync command failed.
+        """
+        for repo in itertools.chain.from_iterable(ai.repos for ai in autoinstall_data):
+            self.logger.info(" - copying repo '%s' for airgapped iso", repo)
+            cmd = [
+                "rsync",
+                "-rlptgu",
+                "--exclude",
+                "boot.cat",
+                "--exclude",
+                "TRANS.TBL",
+                f"{source_dir / repo}/",
+                str(output_dir),
+            ]
+            rc = utils.subprocess_call(cmd, shell=False)
+            if rc != 0:
+                raise RuntimeError(f"Copying of repo {repo} failed.")
 
     def run(
         self,
@@ -342,7 +262,57 @@ class StandaloneBuildiso(buildiso.BuildIso):
         """
         del kwargs  # just accepted for polymorphism
 
-        buildisodir = self._prepare_iso(buildisodir, distro_name, profiles)
-        self._validate_standalone_args(distro_name, source)
-        self.generate_standalone_iso(distro_name, source, airgapped)
+        distro_obj = self.parse_distro(distro_name)
+        profile_objs = self.parse_profiles(profiles, distro_obj)
+        filesource = source
+        loader_config_parts = LoaderCfgsParts([self.iso_template], [])
+        autoinstall_data: Dict[str, Autoinstall] = {}
+        buildisodir = self._prepare_buildisodir(buildisodir)
+        buildiso_dirs = self.create_buildiso_dirs(buildisodir)
+        repo_mirrordir = pathlib.Path(self.api.settings().webdir) / "repo_mirror"
+        distro_mirrordir = pathlib.Path(self.api.settings().webdir) / "distro_mirror"
+
+        for profile_obj in profile_objs:
+            self._generate_item(
+                descendant_obj=profile_obj,
+                distro_obj=distro_obj,
+                airgapped=airgapped,
+                cfg_parts=loader_config_parts,
+                repo_mirrordir=repo_mirrordir,
+                autoinstall_data=autoinstall_data,
+            )
+            for descendant in profile_obj.descendants:
+                # handle everything below this top-level profile
+                self._generate_item(
+                    descendant_obj=descendant,
+                    distro_obj=distro_obj,
+                    airgapped=airgapped,
+                    cfg_parts=loader_config_parts,
+                    repo_mirrordir=repo_mirrordir,
+                    autoinstall_data=autoinstall_data,
+                )
+
+        # fill temporary directory with binaries (kernel, initrd, installer, what else?)
+        self._copy_isolinux_files()
+        for copyset in loader_config_parts.bootfiles_copysets:
+            self._copy_boot_files(
+                copyset.src_kernel,
+                copyset.src_initrd,
+                str(buildiso_dirs.root),
+                copyset.new_filename,
+            )
+        if not filesource:
+            filesource = self._find_distro_source(
+                distro_obj.kernel, str(distro_mirrordir)
+            )
+        self._copy_distro_files(filesource, str(buildiso_dirs.root))
+
+        # sync repos
+        if airgapped:
+            buildiso_dirs.repo.mkdir(exist_ok=True)
+            self._copy_repos(
+                autoinstall_data.values(), repo_mirrordir, buildiso_dirs.repo
+            )
+        self._write_isolinux_cfg(loader_config_parts.isolinux, buildiso_dirs.isolinux)
+        self._write_autoinstall_cfg(autoinstall_data, buildiso_dirs.autoinstall)
         self._generate_iso(xorrisofs_opts, iso, buildisodir)
