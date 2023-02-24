@@ -74,7 +74,9 @@ Building net-installer ISOs
 You have to provide the following parameters:
 
 * ``--systems``: Filter the systems you want to build the ISO for.
-* ``--exclude-dns``: Flag to add the nameservers (and other DNS information) to the append line or not.
+* ``--exclude-dns``: Flag to add the nameservers (and other DNS information) to the append line or not. This only has
+                     an effect in case you supply ``--systems``and the system contains the ``--name-servers``
+                     configuration.
 
 Examples
 ########
