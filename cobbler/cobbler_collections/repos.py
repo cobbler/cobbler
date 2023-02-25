@@ -53,7 +53,6 @@ class Repos(collection.Collection):
         """
         # NOTE: with_delete isn't currently meaningful for repos
         # but is left in for consistancy in the API.  Unused.
-        name = name.lower()
         obj = self.find(name=name)
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")

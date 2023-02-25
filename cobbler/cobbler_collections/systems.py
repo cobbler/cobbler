@@ -51,7 +51,6 @@ class Systems(collection.Collection):
 
         :raises CX: In case the name of the object was not given.
         """
-        name = name.lower()
         obj = self.find(name=name)
 
         if obj is None:

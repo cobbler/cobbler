@@ -54,16 +54,15 @@ class Menus(collection.Collection):
         :param recursive: In case you want to delete all objects this menu references.
         :raises CX: Raised in case you want to delete a none existing menu.
         """
-        name = name.lower()
         obj = self.find(name=name)
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")
 
         for profile in self.api.profiles():
-            if profile.menu and profile.menu.lower() == name:
+            if profile.menu and profile.menu == name:
                 profile.menu = ""
         for image in self.api.images():
-            if image.menu and image.menu.lower() == name:
+            if image.menu and image.menu == name:
                 image.menu = ""
 
         if recursive:

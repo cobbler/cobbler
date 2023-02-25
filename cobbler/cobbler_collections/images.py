@@ -48,7 +48,6 @@ class Images(collection.Collection):
         :raises CX: In case object does not exist or it would orhan a system.
         """
         # NOTE: with_delete isn't currently meaningful for repos but is left in for consistency in the API. Unused.
-        name = name.lower()
         obj = self.find(name=name)
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")
@@ -56,7 +55,7 @@ class Images(collection.Collection):
         # first see if any Groups use this distro
         if not recursive:
             for system in self.api.systems():
-                if system.image is not None and system.image.lower() == name:
+                if system.image is not None and system.image == name:
                     raise CX(f"removal would orphan system: {system.name}")
 
         if recursive:
