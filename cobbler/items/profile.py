@@ -7,15 +7,17 @@ Cobbler module that contains the code for a Cobbler profile object.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import uuid
-from typing import Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from cobbler import autoinstall_manager
 from cobbler.items import item
 from cobbler import validate, enums
 from cobbler.utils import input_converters
 from cobbler.cexceptions import CX
-from cobbler.items.distro import Distro
 from cobbler.decorator import InheritableProperty
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Profile(item.Item):
@@ -26,7 +28,7 @@ class Profile(item.Item):
     TYPE_NAME = "profile"
     COLLECTION_TYPE = "profile"
 
-    def __init__(self, api, *args, **kwargs):
+    def __init__(self, api: "CobblerAPI", *args, **kwargs):
         """
 
         :param api: The Cobbler API object which is used for resolving information.
@@ -36,13 +38,13 @@ class Profile(item.Item):
         super().__init__(api, *args, **kwargs)
         self._template_files = {}
         self._autoinstall = enums.VALUE_INHERITED
-        self._boot_loaders: Union[list, str] = enums.VALUE_INHERITED
+        self._boot_loaders: Union[List[str], str] = enums.VALUE_INHERITED
         self._dhcp_tag = ""
         self._distro = ""
-        self._enable_ipxe = api.settings().enable_ipxe
-        self._enable_menu = api.settings().enable_menu
-        self._name_servers = api.settings().default_name_servers
-        self._name_servers_search = api.settings().default_name_servers_search
+        self._enable_ipxe = enums.VALUE_INHERITED
+        self._enable_menu = enums.VALUE_INHERITED
+        self._name_servers = enums.VALUE_INHERITED
+        self._name_servers_search = enums.VALUE_INHERITED
         self._next_server_v4 = enums.VALUE_INHERITED
         self._next_server_v6 = enums.VALUE_INHERITED
         self._filename = ""
@@ -52,7 +54,7 @@ class Profile(item.Item):
         self._server = enums.VALUE_INHERITED
         self._menu = ""
         self._display_name = ""
-        self._virt_auto_boot = api.settings().virt_auto_boot
+        self._virt_auto_boot = enums.VALUE_INHERITED
         self._virt_bridge = enums.VALUE_INHERITED
         self._virt_cpus: Union[int, str] = 1
         self._virt_disk_driver = enums.VirtDiskDrivers.INHERITED
@@ -69,6 +71,9 @@ class Profile(item.Item):
         self._kernel_options_post = enums.VALUE_INHERITED
         self._mgmt_classes = enums.VALUE_INHERITED
         self._mgmt_parameters = enums.VALUE_INHERITED
+
+        if self._is_subobject:
+            self._filename = enums.VALUE_INHERITED
 
         # Use setters to validate settings
         self.virt_disk_driver = api.settings().default_virt_disk_driver
@@ -387,7 +392,7 @@ class Profile(item.Item):
             raise TypeError("Field server of object profile needs to be of type str!")
         self._server = server
 
-    @property
+    @InheritableProperty
     def next_server_v4(self) -> str:
         """
         Represents the next server for IPv4.
@@ -395,7 +400,7 @@ class Profile(item.Item):
         :getter: The IP for the next server.
         :setter: May raise a ``TypeError`` if the new value is not of type ``str``.
         """
-        return self._next_server_v4
+        return self._resolve("next_server_v4")
 
     @next_server_v4.setter
     def next_server_v4(self, server: str = ""):
@@ -412,7 +417,7 @@ class Profile(item.Item):
         else:
             self._next_server_v4 = validate.ipv4_address(server)
 
-    @property
+    @InheritableProperty
     def next_server_v6(self) -> str:
         r"""
         Represents the next server for IPv6.
@@ -420,7 +425,7 @@ class Profile(item.Item):
         :getter: The IP for the next server.
         :setter: May raise a ``TypeError`` if the new value is not of type ``str``.
         """
-        return self._next_server_v6
+        return self._resolve("next_server_v6")
 
     @next_server_v6.setter
     def next_server_v6(self, server: str = ""):
@@ -471,7 +476,7 @@ class Profile(item.Item):
                 filename = ""
         self._filename = filename
 
-    @property
+    @InheritableProperty
     def autoinstall(self) -> str:
         """
         Represents the automatic OS installation template file path, this must be a local file.
@@ -479,19 +484,7 @@ class Profile(item.Item):
         :getter: Either the inherited name or the one specific to this profile.
         :setter: The name of the new autoinstall template is validated. The path should come in the format of a ``str``.
         """
-        if self._autoinstall == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None and isinstance(parent, Profile):
-                return self.parent.autoinstall
-            if parent is not None and isinstance(parent, Distro):
-                return self.api.settings().autoinstall
-            self.logger.info(
-                'Profile "%s" did not have a valid parent of type Profile but autoinstall is set to '
-                '"<<inherit>>".',
-                self.name,
-            )
-            return ""
-        return self._autoinstall
+        return self._resolve("autoinstall")
 
     @autoinstall.setter
     def autoinstall(self, autoinstall: str):

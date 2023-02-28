@@ -226,7 +226,7 @@ def test_get_random_mac(remote, token):
                     "netmask": "",
                     "static": False,
                     "static_routes": [],
-                    "virt_bridge": "",
+                    "virt_bridge": "xenbr0",
                 }
             },
             does_not_raise(),

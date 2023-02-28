@@ -85,7 +85,24 @@ def test_to_dict(cobbler_api):
     assert isinstance(result, dict)
     assert "autoinstall_meta" in result
     assert "ks_meta" in result
+    assert result.get("boot_loaders") == enums.VALUE_INHERITED
     # TODO check more fields
+
+
+def test_to_dict_resolved(cobbler_api, create_distro):
+    # Arrange
+    test_distro = create_distro()
+    test_distro.kernel_options = {"test": True}
+    cobbler_api.add_distro(test_distro)
+
+    # Act
+    result = test_distro.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("kernel_options") == {"test": True}
+    assert result.get("boot_loaders") == ["grub", "pxe", "ipxe"]
+    assert enums.VALUE_INHERITED not in str(result)
 
 
 # Properties Tests

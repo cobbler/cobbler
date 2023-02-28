@@ -1,3 +1,4 @@
+from cobbler import enums
 from cobbler.items.menu import Menu
 
 
@@ -31,3 +32,26 @@ def test_display_name(cobbler_api):
 
     # Assert
     assert menu.display_name == ""
+
+
+def test_to_dict(cobbler_api):
+    # Arrange
+    titem = Menu(cobbler_api)
+
+    # Act
+    result = titem.to_dict()
+
+    # Assert
+    assert isinstance(result, dict)
+
+
+def test_to_dict_resolved(cobbler_api):
+    # Arrange
+    titem = Menu(cobbler_api)
+
+    # Act
+    result = titem.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert enums.VALUE_INHERITED not in str(result)

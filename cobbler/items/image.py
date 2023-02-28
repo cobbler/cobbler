@@ -7,13 +7,16 @@ Cobbler module that contains the code for a Cobbler image object.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import uuid
-from typing import Union
+from typing import TYPE_CHECKING, List, Union
 
 from cobbler import autoinstall_manager, enums, validate
 from cobbler.cexceptions import CX
 from cobbler.items import item
 from cobbler.decorator import InheritableProperty
 from cobbler.utils import input_converters, signatures
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Image(item.Item):
@@ -24,7 +27,7 @@ class Image(item.Item):
     TYPE_NAME = "image"
     COLLECTION_TYPE = "image"
 
-    def __init__(self, api, *args, **kwargs):
+    def __init__(self, api: "CobblerAPI", *args, **kwargs):
         """
         Constructor
 
@@ -40,19 +43,20 @@ class Image(item.Item):
         self._image_type = enums.ImageTypes.DIRECT
         self._network_count = 0
         self._os_version = ""
-        self._boot_loaders: Union[list, str] = enums.VALUE_INHERITED
+        self._supported_boot_loaders: List[str] = []
+        self._boot_loaders: Union[List[str], str] = enums.VALUE_INHERITED
         self._menu = ""
         self._display_name = ""
-        self._virt_auto_boot = False
-        self._virt_bridge = ""
+        self._virt_auto_boot: Union[str, bool] = enums.VALUE_INHERITED
+        self._virt_bridge = enums.VALUE_INHERITED
         self._virt_cpus = 0
-        self._virt_disk_driver = enums.VirtDiskDrivers.RAW
-        self._virt_file_size = enums.VALUE_INHERITED
+        self._virt_disk_driver: enums.VirtDiskDrivers = enums.VirtDiskDrivers.INHERITED
+        self._virt_file_size: Union[str, float] = enums.VALUE_INHERITED
         self._virt_path = ""
-        self._virt_ram = 0
-        self._virt_type = enums.VirtType.AUTO
+        self._virt_ram: Union[str, int] = enums.VALUE_INHERITED
+        self._virt_type: Union[str, enums.VirtType] = enums.VirtType.INHERITED
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         if name == "kickstart":
             return self.autoinstall
         raise AttributeError(f'Attribute "{name}" did not exist on object type Image.')
@@ -112,7 +116,7 @@ class Image(item.Item):
         """
         self._arch = enums.Archs.to_enum(arch)
 
-    @property
+    @InheritableProperty
     def autoinstall(self) -> str:
         """
         Property for the automatic installation file path, this must be a local file.
@@ -126,7 +130,7 @@ class Image(item.Item):
         :getter: The path relative to the template directory.
         :setter: The location of the template relative to the template base directory.
         """
-        return self._autoinstall
+        return self._resolve("autoinstall")
 
     @autoinstall.setter
     def autoinstall(self, autoinstall: str):
@@ -334,7 +338,7 @@ class Image(item.Item):
             )
         self._network_count = network_count
 
-    @property
+    @InheritableProperty
     def virt_auto_boot(self) -> bool:
         r"""
         Whether the VM should be booted when booting the host or not.
@@ -342,7 +346,7 @@ class Image(item.Item):
         :getter: ``True`` means autoboot is enabled, otherwise VM is not booted automatically.
         :setter: The new state for the property.
         """
-        return self._virt_auto_boot
+        return self._resolve("virt_auto_boot")
 
     @virt_auto_boot.setter
     def virt_auto_boot(self, num: bool):
@@ -353,7 +357,7 @@ class Image(item.Item):
         """
         self._virt_auto_boot = validate.validate_virt_auto_boot(num)
 
-    @property
+    @InheritableProperty
     def virt_file_size(self) -> float:
         r"""
         The size of the image and thus the usable size for the guest.
@@ -376,7 +380,7 @@ class Image(item.Item):
         """
         self._virt_file_size = validate.validate_virt_file_size(num)
 
-    @property
+    @InheritableProperty
     def virt_disk_driver(self) -> enums.VirtDiskDrivers:
         """
         The type of disk driver used for storing the image.
@@ -384,7 +388,7 @@ class Image(item.Item):
         :getter: The enum type representation of the disk driver.
         :setter: May be a ``str`` with the name of the disk driver or from the enum type directly.
         """
-        return self._virt_disk_driver
+        return self._resolve_enum("virt_disk_driver", enums.VirtDiskDrivers)
 
     @virt_disk_driver.setter
     def virt_disk_driver(self, driver: enums.VirtDiskDrivers):
@@ -395,7 +399,7 @@ class Image(item.Item):
         """
         self._virt_disk_driver = enums.VirtDiskDrivers.to_enum(driver)
 
-    @property
+    @InheritableProperty
     def virt_ram(self) -> int:
         """
         The amount of RAM given to the guest in MB.
@@ -403,7 +407,7 @@ class Image(item.Item):
         :getter: The amount of RAM currently assigned to the image.
         :setter: The new amount of ram. Must be an integer.
         """
-        return self._virt_ram
+        return self._resolve("virt_ram")
 
     @virt_ram.setter
     def virt_ram(self, num: int):
@@ -414,7 +418,7 @@ class Image(item.Item):
         """
         self._virt_ram = validate.validate_virt_ram(num)
 
-    @property
+    @InheritableProperty
     def virt_type(self) -> enums.VirtType:
         """
         The type of image used.
@@ -422,7 +426,7 @@ class Image(item.Item):
         :getter: The value of the virtual machine.
         :setter: May be of the enum type or a str which is then converted to the enum type.
         """
-        return self._virt_type
+        return self._resolve_enum("virt_type", enums.VirtType)
 
     @virt_type.setter
     def virt_type(self, vtype: enums.VirtType):
@@ -433,7 +437,7 @@ class Image(item.Item):
         """
         self._virt_type = enums.VirtType.to_enum(vtype)
 
-    @property
+    @InheritableProperty
     def virt_bridge(self) -> str:
         r"""
         The name of the virtual bridge used for networking.
@@ -443,7 +447,7 @@ class Image(item.Item):
         :getter: The name of the bridge.
         :setter: The new name of the bridge. If set to an empty ``str``, it will be taken from the settings.
         """
-        return self._virt_bridge
+        return self._resolve("virt_bridge")
 
     @virt_bridge.setter
     def virt_bridge(self, vbridge: str):
@@ -517,24 +521,20 @@ class Image(item.Item):
         self._display_name = display_name
 
     @property
-    def supported_boot_loaders(self):
+    def supported_boot_loaders(self) -> List[str]:
         """
         Read only property which represents the subset of settable bootloaders.
 
         :getter: The bootloaders which are available for being set.
         """
-        try:
-            # If we have already loaded the supported boot loaders from the signature, use that data
-            return self._supported_boot_loaders
-        except Exception:
-            # otherwise, refresh from the signatures / defaults
+        if len(self._supported_boot_loaders) == 0:
             self._supported_boot_loaders = signatures.get_supported_distro_boot_loaders(
                 self
             )
-            return self._supported_boot_loaders
+        return self._supported_boot_loaders
 
     @InheritableProperty
-    def boot_loaders(self) -> list:
+    def boot_loaders(self) -> List[str]:
         """
         Represents the boot loaders which are able to boot this image.
 

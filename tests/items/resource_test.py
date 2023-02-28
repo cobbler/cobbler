@@ -23,6 +23,29 @@ def test_make_clone(cobbler_api):
     assert result != resource
 
 
+def test_to_dict(cobbler_api):
+    # Arrange
+    titem = Resource(cobbler_api)
+
+    # Act
+    result = titem.to_dict()
+
+    # Assert
+    assert isinstance(result, dict)
+
+
+def test_to_dict_resolved(cobbler_api):
+    # Arrange
+    titem = Resource(cobbler_api)
+
+    # Act
+    result = titem.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert enums.VALUE_INHERITED not in str(result)
+
+
 # Properties Tests
 
 

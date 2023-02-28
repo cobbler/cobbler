@@ -29,7 +29,21 @@ def test_network_interface_to_dict(cobbler_api):
     assert isinstance(result, dict)
     assert "logger" not in result
     assert "api" not in result
+    assert result.get("virt_bridge") == enums.VALUE_INHERITED
     assert len(result) == 23
+
+
+def test_network_interface_to_dict_resolved(cobbler_api):
+    # Arrange
+    interface = NetworkInterface(cobbler_api)
+
+    # Act
+    result = interface.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("virt_bridge") == "xenbr0"
+    assert enums.VALUE_INHERITED not in str(result)
 
 
 @pytest.mark.parametrize(

@@ -293,7 +293,7 @@ class Settings:
         buf += f"kernel options  : {self.__dict__['kernel_options']}\n"
         return buf
 
-    def to_dict(self, resolved: bool = False) -> dict:
+    def to_dict(self, resolved: bool = False) -> Dict[str, Any]:
         """
         Return an easily serializable representation of the config.
 

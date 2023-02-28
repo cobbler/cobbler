@@ -1,6 +1,8 @@
+from typing import Callable
 import pytest
 
 from cobbler import enums
+from cobbler.api import CobblerAPI
 from cobbler.utils import signatures
 from cobbler.items.image import Image
 from tests.conftest import does_not_raise
@@ -245,3 +247,28 @@ def test_boot_loaders(cobbler_api):
 
     # Assert
     assert image.boot_loaders == []
+
+
+def test_to_dict(create_image: Callable[[], Image]):
+    # Arrange
+    test_image = create_image()
+
+    # Act
+    result = test_image.to_dict(resolved=False)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("autoinstall") == enums.VALUE_INHERITED
+
+
+def test_to_dict_resolved(create_image: Callable[[], Image]):
+    # Arrange
+    test_image = create_image()
+
+    # Act
+    result = test_image.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("autoinstall") == "default.ks"
+    assert enums.VALUE_INHERITED not in str(result)
