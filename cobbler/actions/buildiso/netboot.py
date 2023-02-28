@@ -424,7 +424,7 @@ class AppendLineBuilder:
                 ]
                 if isinstance(install_options, list):
                     install_options = install_options[0]
-                    self.append_line += f" install={install_options}"
+                self.append_line += f" install={install_options}"
                 del self.data["kernel_options"]["install"]
             else:
                 self.append_line += (
