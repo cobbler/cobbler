@@ -1,5 +1,6 @@
 import pytest
 
+from cobbler import enums
 from cobbler.items.file import File
 from tests.conftest import does_not_raise
 
@@ -23,6 +24,29 @@ def test_make_clone(cobbler_api):
 
     # Assert
     assert clone != file
+
+
+def test_to_dict(cobbler_api):
+    # Arrange
+    titem = File(cobbler_api)
+
+    # Act
+    result = titem.to_dict()
+
+    # Assert
+    assert isinstance(result, dict)
+
+
+def test_to_dict_resolved(cobbler_api):
+    # Arrange
+    titem = File(cobbler_api)
+
+    # Act
+    result = titem.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert enums.VALUE_INHERITED not in str(result)
 
 
 # Properties Tests

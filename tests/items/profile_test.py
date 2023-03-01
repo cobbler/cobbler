@@ -49,6 +49,28 @@ def test_to_dict(cobbler_api, cleanup_to_dict):
     # Assert
     assert len(result) == 45
     assert result["distro"] == "test_to_dict_distro"
+    assert result.get("boot_loaders") == enums.VALUE_INHERITED
+
+
+def test_to_dict_resolved(cobbler_api, create_distro):
+    # Arrange
+    test_distro = create_distro()
+    test_distro.kernel_options = {"test": True}
+    cobbler_api.add_distro(test_distro)
+    titem = Profile(cobbler_api)
+    titem.name = "to_dict_resolved_profile"
+    titem.distro = test_distro.name
+    titem.kernel_options = {"my_value": 5}
+    cobbler_api.add_profile(titem)
+
+    # Act
+    result = titem.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("kernel_options") == {"test": True, "my_value": 5}
+    assert result.get("boot_loaders") == ["grub", "pxe", "ipxe"]
+    assert enums.VALUE_INHERITED not in str(result)
 
 
 # Properties Tests

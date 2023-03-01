@@ -26,6 +26,31 @@ def test_make_clone(cobbler_api):
     assert result != repo
 
 
+def test_to_dict(cobbler_api):
+    # Arrange
+    titem = Repo(cobbler_api)
+
+    # Act
+    result = titem.to_dict()
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("proxy") == enums.VALUE_INHERITED
+
+
+def test_to_dict_resolved(cobbler_api):
+    # Arrange
+    titem = Repo(cobbler_api)
+
+    # Act
+    result = titem.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("proxy") == ""
+    assert enums.VALUE_INHERITED not in str(result)
+
+
 # Properties Tests
 
 

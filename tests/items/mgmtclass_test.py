@@ -1,3 +1,4 @@
+from cobbler import enums
 from cobbler.items.mgmtclass import Mgmtclass
 
 
@@ -87,3 +88,26 @@ def test_class_name(cobbler_api):
 
     # Assert
     assert mgmtclass.class_name == ""
+
+
+def test_to_dict(cobbler_api):
+    # Arrange
+    titem = Mgmtclass(cobbler_api)
+
+    # Act
+    result = titem.to_dict()
+
+    # Assert
+    assert isinstance(result, dict)
+
+
+def test_to_dict_resolved(cobbler_api):
+    # Arrange
+    titem = Mgmtclass(cobbler_api)
+
+    # Act
+    result = titem.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert enums.VALUE_INHERITED not in str(result)

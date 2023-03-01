@@ -1,3 +1,4 @@
+from cobbler import enums
 from cobbler.items.package import Package
 
 
@@ -42,3 +43,26 @@ def test_version(cobbler_api):
 
     # Assert
     assert package.version == ""
+
+
+def test_to_dict(cobbler_api):
+    # Arrange
+    titem = Package(cobbler_api)
+
+    # Act
+    result = titem.to_dict()
+
+    # Assert
+    assert isinstance(result, dict)
+
+
+def test_to_dict_resolved(cobbler_api):
+    # Arrange
+    titem = Package(cobbler_api)
+
+    # Act
+    result = titem.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert enums.VALUE_INHERITED not in str(result)

@@ -52,7 +52,7 @@ class Distro(item.Item):
         self._remote_grub_kernel = ""
         self._remote_boot_initrd = ""
         self._remote_grub_initrd = ""
-        self._supported_boot_loaders = []
+        self._supported_boot_loaders: List[str] = []
 
     def __getattr__(self, name):
         if name == "ks_meta":
@@ -403,7 +403,7 @@ class Distro(item.Item):
         self._arch = enums.Archs.to_enum(arch)
 
     @property
-    def supported_boot_loaders(self):
+    def supported_boot_loaders(self) -> List[str]:
         """
         Some distributions, particularly on powerpc, can only be netbooted using specific bootloaders.
 

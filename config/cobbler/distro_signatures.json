@@ -3271,7 +3271,7 @@
         "kernel_options_post": "",
         "boot_files": []
       },
-      "XP": {
+      "xp": {
         "signatures": [
           "amd64",
           "i386",

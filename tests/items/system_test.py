@@ -1,6 +1,7 @@
 import pytest
 
 from cobbler import enums
+from cobbler.items.profile import Profile
 from cobbler.items.system import NetworkInterface, System
 from cobbler.cexceptions import CX
 from tests.conftest import does_not_raise
@@ -25,6 +26,65 @@ def test_make_clone(cobbler_api):
 
     # Assert
     assert result != system
+
+
+def test_to_dict(cobbler_api):
+    # Arrange
+    titem = System(cobbler_api)
+
+    # Act
+    result = titem.to_dict()
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("autoinstall") == enums.VALUE_INHERITED
+
+
+def test_to_dict_resolved_profile(cobbler_api, create_distro):
+    # Arrange
+    test_distro = create_distro()
+    test_distro.kernel_options = {"test": True}
+    cobbler_api.add_distro(test_distro)
+    titem = Profile(cobbler_api)
+    titem.name = "to_dict_resolved_profile"
+    titem.distro = test_distro.name
+    titem.kernel_options = {"my_value": 5}
+    cobbler_api.add_profile(titem)
+    system = System(cobbler_api)
+    system.name = "to_dict_resolved_system_profile"
+    system.profile = titem.name
+    system.kernel_options = {"my_value": 10}
+    cobbler_api.add_system(system)
+
+    # Act
+    result = system.to_dict(resolved=True)
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("kernel_options") == {"test": True, "my_value": 10}
+    assert result.get("autoinstall") == "default.ks"
+    assert enums.VALUE_INHERITED not in str(result)
+
+
+def test_to_dict_resolved_image(cobbler_api, create_image):
+    # Arrange
+    test_image = create_image()
+    test_image.kernel_options = {"test": True}
+    cobbler_api.add_image(test_image)
+    system = System(cobbler_api)
+    system.name = "to_dict_resolved_system_image"
+    system.image = test_image.name
+    system.kernel_options = {"my_value": 5}
+    cobbler_api.add_system(system)
+
+    # Act
+    result = system.to_dict(resolved=True)
+    print(str(result))
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("kernel_options") == {"test": True, "my_value": 5}
+    assert enums.VALUE_INHERITED not in str(result)
 
 
 # Properties Tests

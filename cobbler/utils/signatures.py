@@ -3,13 +3,21 @@ TODO
 """
 
 import json
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from cobbler import utils
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.items.distro import Distro
+    from cobbler.items.image import Image
 
 SIGNATURE_CACHE = {}
 
 
-def get_supported_distro_boot_loaders(distro, api_handle=None):
+def get_supported_distro_boot_loaders(
+    distro: Union["Distro", "Image"], api_handle: Optional["CobblerAPI"] = None
+) -> List[str]:
     """
     This is trying to return you the list of known bootloaders if all resorts fail. Otherwise this returns a list which
     contains only the subset of bootloaders which are available by the distro in the argument.

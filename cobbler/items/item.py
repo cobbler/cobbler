@@ -13,7 +13,7 @@ import logging
 import pprint
 import re
 import uuid
-from typing import Any, List, Type, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Type, Union
 
 import yaml
 
@@ -21,6 +21,10 @@ from cobbler import utils, enums
 from cobbler.utils import input_converters
 from cobbler.cexceptions import CX
 from cobbler.decorator import InheritableProperty, InheritableDictProperty
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+
 
 RE_OBJECT_NAME = re.compile(r"[a-zA-Z0-9_\-.:]*$")
 
@@ -91,7 +95,7 @@ class Item:
 
         raise TypeError(f"find cannot compare type: {type(from_obj)}")
 
-    def __init__(self, api, is_subobject: bool = False):
+    def __init__(self, api: "CobblerAPI", is_subobject: bool = False):
         """
         Constructor.  Requires a back reference to the CobblerAPI object.
 
@@ -132,7 +136,7 @@ class Item:
         self._last_cached_mtime = 0
         self._owners: Union[list, str] = enums.VALUE_INHERITED
         self._cached_dict = ""
-        self._mgmt_classes: Union[list, str] = []
+        self._mgmt_classes: Union[list, str] = enums.VALUE_INHERITED
         self._mgmt_parameters: Union[dict, str] = {}
         self._conceptual_parent = None
         self._is_subobject = is_subobject
@@ -905,7 +909,7 @@ class Item:
                 f"The following keys supplied could not be set: {result.keys()}"
             )
 
-    def to_dict(self, resolved: bool = False) -> dict:
+    def to_dict(self, resolved: bool = False) -> Dict[str, Any]:
         """
         This converts everything in this object to a dictionary.
 
@@ -913,7 +917,7 @@ class Item:
                      objects raw value.
         :return: A dictionary with all values present in this object.
         """
-        value = {}
+        value: Dict[str, Any] = {}
         for key, key_value in self.__dict__.items():
             if key.startswith("_") and not key.startswith("__"):
                 if key in (
@@ -925,7 +929,10 @@ class Item:
                     continue
                 new_key = key[1:].lower()
                 if isinstance(key_value, enum.Enum):
-                    value[new_key] = key_value.value
+                    if resolved:
+                        value[new_key] = getattr(self, new_key).value
+                    else:
+                        value[new_key] = key_value.value
                 elif new_key == "interfaces":
                     # This is the special interfaces dict. Lets fix it before it gets to the normal process.
                     serialized_interfaces = {}
@@ -933,7 +940,7 @@ class Item:
                     for interface_key in interfaces:
                         serialized_interfaces[interface_key] = interfaces[
                             interface_key
-                        ].to_dict()
+                        ].to_dict(resolved)
                     value[new_key] = serialized_interfaces
                 elif isinstance(key_value, list):
                     value[new_key] = copy.deepcopy(key_value)

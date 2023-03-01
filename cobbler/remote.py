@@ -2594,7 +2594,7 @@ class CobblerXMLRPCInterface:
         data = utils.blender(self.api, True, obj)
         return self.xmlrpc_hacks(data)
 
-    def get_settings(self, token=None, **rest) -> dict:
+    def get_settings(self, token=None, **rest) -> Dict[str, Any]:
         """
         Return the contents of our settings file, which is a dict.
 

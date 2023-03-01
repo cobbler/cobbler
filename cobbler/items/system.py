@@ -54,7 +54,7 @@ class NetworkInterface:
         self._netmask = ""
         self._static = False
         self._static_routes = []
-        self._virt_bridge = ""
+        self._virt_bridge = enums.VALUE_INHERITED
 
     def from_dict(self, dictionary: dict):
         """
@@ -88,7 +88,6 @@ class NetworkInterface:
                 continue
             if key.startswith("_"):
                 new_key = key[1:].lower()
-                key_value = key_value
                 if isinstance(key_value, enum.Enum):
                     result[new_key] = key_value.name.lower()
                 elif (
@@ -359,7 +358,7 @@ class NetworkInterface:
         """
         self._if_gateway = validate.ipv4_address(gateway)
 
-    @property
+    @InheritableProperty
     def virt_bridge(self) -> str:
         """
         virt_bridge property. If set to ``<<inherit>>`` this will read the value from the setting "default_virt_bridge".
@@ -1187,6 +1186,8 @@ class System(Item):
         :getter: Returns the value for ``filename``.
         :setter: Sets the value for the property ``filename``.
         """
+        if self.image != "":
+            return ""
         return self._resolve("filename")
 
     @filename.setter
