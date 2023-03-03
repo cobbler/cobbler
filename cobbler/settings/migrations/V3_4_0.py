@@ -166,6 +166,7 @@ schema = Schema(
             Optional("host"): str,
             Optional("port"): int,
         },
+        Optional("cache_enabled"): bool,
         Optional("autoinstall_scheme"): str,
     },
     ignore_extra_keys=False,

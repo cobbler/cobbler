@@ -35,6 +35,7 @@ def api_isc_mock():
     settings_mock.manage_dhcp_v6 = True
     settings_mock.jinja2_includedir = ""
     settings_mock.default_virt_disk_driver = "raw"
+    settings_mock.cache_enabled = False
     api_mock = MagicMock(autospec=True, spec=CobblerAPI)
     api_mock.settings.return_value = settings_mock
     test_distro = Distro(api_mock)

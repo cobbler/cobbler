@@ -26,12 +26,17 @@ class Resource(item.Item):
         Constructor.
         """
         super().__init__(api, *args, **kwargs)
+        # Prevent attempts to clear the to_dict cache before the object is initialized.
+        self._has_initialized = False
+
         self._action = enums.ResourceAction.CREATE
         self._mode = ""
         self._owner = ""
         self._group = ""
         self._path = ""
         self._template = ""
+        if not self._has_initialized:
+            self._has_initialized = True
 
     #
     # override some base class methods first (item.Item)

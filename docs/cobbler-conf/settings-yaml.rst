@@ -1128,3 +1128,10 @@ port
 The port where MongoDB is running.
 
 default: ``27017``
+
+cache_enabled
+#############
+
+If set to ``True``, allows the results of some internal operations to be cached, but may slow down editing of objects.
+
+default: ``False``

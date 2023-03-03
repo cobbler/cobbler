@@ -57,6 +57,7 @@ from cobbler.items import (
     system,
 )
 from cobbler.decorator import InheritableDictProperty
+from cobbler.cexceptions import CX
 
 if TYPE_CHECKING:
     from cobbler.settings import Settings
@@ -331,6 +332,34 @@ class CobblerAPI:
             )
         return data
 
+    # ==========================================================================
+
+    def clean_items_cache(self, obj: Union[settings.Settings, Dict]):
+        """
+        Items cache invalidation in case of settings or singatures changes.
+        Cobbler internal use only.
+        """
+        if obj is None or isinstance(obj, settings.Settings):
+            item_types = [
+                "package",
+                "file",
+                "mgmtclass",
+                "repo",
+                "distro",
+                "menu",
+                "image",
+                "profile",
+                "system",
+            ]
+        elif obj == self.get_signatures():
+            item_types = ["distro", "image", "profile", "system"]
+        else:
+            raise CX(f"Wrong object type {type(obj)} for cache invalidation!")
+
+        for item_type in item_types:
+            for item_obj in self.get_items(item_type):
+                item_obj.cache.set_dict_cache(None, True)
+
     # ==========================================================
 
     def get_item(self, what: str, name: str):
@@ -499,7 +528,7 @@ class CobblerAPI:
             return
         # Deduplicate - only for dict
         if isinstance(property_object_of_attribute, InheritableDictProperty):
-            parent_item = desired_item.parent
+            parent_item = desired_item.logical_parent
             if hasattr(parent_item, attribute):
                 parent_value = getattr(parent_item, attribute)
                 dict_value = input_converters.input_string_or_dict(value)
@@ -1582,6 +1611,7 @@ class CobblerAPI:
                 signature_fd.write(sigjson.text)
 
             signatures.load_signatures(self.settings().signature_path)
+            self.clean_items_cache(self.get_signatures())
         except Exception:
             utils.log_exc()
 

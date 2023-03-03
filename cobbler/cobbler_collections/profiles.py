@@ -56,34 +56,22 @@ class Profiles(collection.Collection):
             raise CX(f"cannot delete an object that does not exist: {name}")
 
         if recursive:
-            kids = obj.get_children()
+            kids = obj.descendants
+            kids.sort(key=lambda x: -x.depth)
             for k in kids:
-                if self.api.find_profile(name=k) is not None:
-                    self.api.remove_profile(
-                        k,
-                        recursive=recursive,
-                        delete=with_delete,
-                        with_triggers=with_triggers,
-                    )
-                else:
-                    self.api.remove_system(
-                        k,
-                        recursive=recursive,
-                        delete=with_delete,
-                        with_triggers=with_triggers,
-                    )
+                self.api.remove_item(
+                    k.COLLECTION_TYPE,
+                    k,
+                    recursive=False,
+                    delete=with_delete,
+                    with_triggers=with_triggers,
+                )
 
         if with_delete:
             if with_triggers:
                 utils.run_triggers(
                     self.api, obj, "/var/lib/cobbler/triggers/delete/profile/pre/*", []
                 )
-
-        if obj.parent is not None and obj.name in obj.parent.children:
-            obj.parent.children.remove(obj.name)
-            # ToDo: Only serialize parent object, use:
-            #       Use self.collection_mgr.serialize_one_item(obj.parent)
-            self.api.serialize()
 
         with self.lock:
             del self.listing[name]

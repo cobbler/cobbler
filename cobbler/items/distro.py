@@ -37,6 +37,9 @@ class Distro(item.Item):
         :param kwargs: Place for extra parameters in this distro object.
         """
         super().__init__(api, *args, **kwargs)
+        # Prevent attempts to clear the to_dict cache before the object is initialized.
+        self._has_initialized = False
+
         self._tree_build_time = 0.0
         self._arch = enums.Archs.X86_64
         self._boot_loaders: Union[list, str] = enums.VALUE_INHERITED
@@ -53,6 +56,8 @@ class Distro(item.Item):
         self._remote_boot_initrd = ""
         self._remote_grub_initrd = ""
         self._supported_boot_loaders: List[str] = []
+        if not self._has_initialized:
+            self._has_initialized = True
 
     def __getattr__(self, name):
         if name == "ks_meta":
@@ -481,25 +486,6 @@ class Distro(item.Item):
                 "Field redhat_management_key of object distro needs to be of type str!"
             )
         self._redhat_management_key = management_key
-
-    @property
-    def children(self) -> list:
-        """
-        This property represents all children of a distribution. It should not be set manually.
-
-        :getter: The children of the distro.
-        :setter: No validation is done because this is a Cobbler internal property.
-        """
-        return self._children
-
-    @children.setter
-    def children(self, value: list):
-        """
-        Setter for the children property.
-
-        :param value: The new children of the distro.
-        """
-        self._children = value
 
     def find_distro_path(self):
         """

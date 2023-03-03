@@ -36,6 +36,9 @@ class Profile(item.Item):
         :param kwargs:
         """
         super().__init__(api, *args, **kwargs)
+        # Prevent attempts to clear the to_dict cache before the object is initialized.
+        self._has_initialized = False
+
         self._template_files = {}
         self._autoinstall = enums.VALUE_INHERITED
         self._boot_loaders: Union[List[str], str] = enums.VALUE_INHERITED
@@ -78,6 +81,8 @@ class Profile(item.Item):
         # Use setters to validate settings
         self.virt_disk_driver = api.settings().default_virt_disk_driver
         self.virt_type = api.settings().default_virt_type
+        if not self._has_initialized:
+            self._has_initialized = True
 
     def __getattr__(self, name):
         if name == "kickstart":
@@ -138,57 +143,6 @@ class Profile(item.Item):
     #
 
     @property
-    def parent(self) -> Optional[item.Item]:
-        r"""
-        Instead of a ``--distro``, set the parent of this object to another profile and use the values from the parent
-        instead of this one where the values for this profile aren't filled in, and blend them together where they
-        are dictionaries. Basically this enables profile inheritance. To use this, the object MUST have been
-        constructed with ``is_subobject=True`` or the default values for everything will be screwed up and this will
-        likely NOT work. So, API users -- make sure you pass ``is_subobject=True`` into the constructor when using this.
-
-        Return object next highest up the tree. If this property is not set it falls back to the value of the
-        ``distro``. In case neither distro nor parent is set, it returns None (which would make the profile invalid).
-
-        :getter: The parent object which can be either another profile, a distro or None in case the object could not be
-                 resolved.
-        :setter: The name of the parent object. Might throw a ``CX`` in case the object could not be found.
-        """
-        if not self._parent:
-            parent = self.distro
-            if parent is None:
-                return None
-            return parent
-        return self.api.profiles().find(name=self._parent)
-
-    @parent.setter
-    def parent(self, parent: str):
-        r"""
-        Setter for the ``parent`` property.
-
-        :param parent: The name of the parent object.
-        :raises CX: In case self parentage is found or the profile given could not be found.
-        """
-        if not isinstance(parent, str):
-            raise TypeError('Property "parent" must be of type str!')
-        old_parent = self.parent
-        if isinstance(old_parent, item.Item) and self.name in old_parent.children:
-            old_parent.children.remove(self.name)
-        if not parent:
-            self._parent = ""
-            return
-        if parent == self.name:
-            # check must be done in two places as setting parent could be called before/after setting name...
-            raise CX("self parentage is weird")
-        found = self.api.profiles().find(name=parent)
-        if found is None:
-            raise CX(f'profile "{parent}" not found, inheritance not possible')
-        self._parent = parent
-        self.depth = found.depth + 1
-        new_parent = self.parent
-        if isinstance(new_parent, item.Item) and self.name not in new_parent.children:
-            new_parent.children.append(self.name)
-
-    @property
     def arch(self):
         """
         This represents the architecture of a profile. It is read only.
@@ -196,8 +150,8 @@ class Profile(item.Item):
         :getter: ``None`` or the parent architecture.
         """
         # FIXME: This looks so wrong. It cries: Please open a bug for me!
-        parent = self.parent
-        if parent:
+        parent = self.logical_parent
+        if parent is not None:
             return parent.arch
         return None
 
@@ -229,15 +183,10 @@ class Profile(item.Item):
         distro = self.api.distros().find(name=distro_name)
         if distro is None:
             raise ValueError(f'distribution "{distro_name}" not found')
-        old_parent = self.parent
-        if isinstance(old_parent, item.Item) and self.name in old_parent.children:
-            old_parent.children.remove(self.name)
         self._distro = distro_name
         self.depth = (
             distro.depth + 1
         )  # reset depth if previously a subprofile and now top-level
-        if self.name not in distro.children:
-            distro.children.append(self.name)
 
     @InheritableProperty
     def name_servers(self) -> list:
@@ -463,14 +412,10 @@ class Profile(item.Item):
         if not isinstance(filename, str):
             raise TypeError("Field filename of object profile needs to be of type str!")
         parent = self.parent
-        if (
-            filename == enums.VALUE_INHERITED
-            and parent
-            and parent.TYPE_NAME == "distro"
-        ):
+        if filename == enums.VALUE_INHERITED and parent is None:
             filename = ""
         if not filename:
-            if parent and parent.TYPE_NAME == "profile":
+            if parent:
                 filename = enums.VALUE_INHERITED
             else:
                 filename = ""
@@ -740,6 +685,8 @@ class Profile(item.Item):
             boot_loaders_split = input_converters.input_string_or_list(boot_loaders)
 
             parent = self.parent
+            if parent is None:
+                parent = self.distro
             if parent is not None:
                 parent_boot_loaders = parent.boot_loaders
             else:
@@ -801,22 +748,3 @@ class Profile(item.Item):
         :param display_name: The new display_name. If ``None`` the display_name will be set to an emtpy string.
         """
         self._display_name = display_name
-
-    @property
-    def children(self) -> list:
-        """
-        This property represents all children of a distribution. It should not be set manually.
-
-        :getter: The children of the distro.
-        :setter: No validation is done because this is a Cobbler internal property.
-        """
-        return self._children
-
-    @children.setter
-    def children(self, value: list):
-        """
-        Setter for the children property.
-
-        :param value: The new children of the distro.
-        """
-        self._children = value

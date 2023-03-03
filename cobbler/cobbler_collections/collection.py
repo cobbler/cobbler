@@ -99,7 +99,7 @@ class Collection:
             "Please implement this in a child class of this class."
         )
 
-    def get(self, name: str):
+    def get(self, name: str) -> Optional[item_base.Item]:
         """
         Return object with name in the collection
 
@@ -282,23 +282,26 @@ class Collection:
             self.collection_mgr.serialize_one_item(ref)
             self.listing[newname] = ref
 
-        # for mgmt classes, update all objects that use it
-        if ref.COLLECTION_TYPE == "mgmtclass":
-            for what in ["distro", "profile", "system"]:
-                items = self.api.find_items(what, {"mgmt_classes": oldname})
-                for item in items:
-                    for i in range(0, len(item.mgmt_classes)):
-                        if item.mgmt_classes[i] == oldname:
-                            item.mgmt_classes[i] = newname
-                    self.api.add_item(what, item, save=True)
-
-        # for menus, update all objects that use it
-        if ref.COLLECTION_TYPE == "menu":
-            for what in ["profile", "image"]:
-                items = self.api.find_items(what, {"menu": oldname})
-                for item in items:
-                    item.menu = newname
-                    self.api.add_item(what, item, save=True)
+        for dep_type in item_base.Item.TYPE_DEPENDENCIES[ref.COLLECTION_TYPE]:
+            items = self.api.find_items(dep_type[0], {dep_type[1]: oldname})
+            for item in items:
+                attr = getattr(item, "_" + dep_type[1])
+                if isinstance(attr, (str, item_base.Item)):
+                    setattr(item, dep_type[1], newname)
+                elif isinstance(attr, list):
+                    for i, attr_val in enumerate(attr):
+                        if attr_val == oldname:
+                            attr[i] = newname
+                else:
+                    raise CX(
+                        f'Internal error, unknown attribute type {type(attr)} for "{item.name}"!'
+                    )
+                self.api.get_items(item.COLLECTION_TYPE).add(
+                    item,
+                    save=True,
+                    with_sync=with_sync,
+                    with_triggers=with_triggers,
+                )
 
         # for a repo, rename the mirror directory
         if ref.COLLECTION_TYPE == "repo":
@@ -332,40 +335,6 @@ class Collection:
                         distro_obj.kernel = distro_obj.kernel.replace(path, newpath)
                         distro_obj.initrd = distro_obj.initrd.replace(path, newpath)
                         self.collection_mgr.serialize_one_item(distro_obj)
-
-        if ref.COLLECTION_TYPE in ("profile", "system"):
-            if ref.parent is not None:
-                ref.parent.children.remove(oldname)
-
-        # Now descend to any direct ancestors and point them at the new object allowing the original object to be
-        # removed without orphanage. Direct ancestors will either be profiles or systems. Note that we do have to
-        # care as setting the parent is only really meaningful for subprofiles. We ideally want a more generic parent
-        # setter.
-        kids = ref.get_children()
-        for k in kids:
-            if self.api.find_profile(name=k) is not None:
-                k = self.api.find_profile(name=k)
-                if ref.COLLECTION_TYPE == "distro":
-                    k.distro = newname
-                else:
-                    k.parent = newname
-                self.api.profiles().add(
-                    k, save=True, with_sync=with_sync, with_triggers=with_triggers
-                )
-            elif self.api.find_menu(name=k) is not None:
-                k = self.api.find_menu(name=k)
-                k.parent = newname
-                self.api.menus().add(
-                    k, save=True, with_sync=with_sync, with_triggers=with_triggers
-                )
-            elif self.api.find_system(name=k) is not None:
-                k = self.api.find_system(name=k)
-                k.profile = newname
-                self.api.systems().add(
-                    k, save=True, with_sync=with_sync, with_triggers=with_triggers
-                )
-            else:
-                raise CX(f'Internal error, unknown child type for child "{k}"!')
 
     def add(
         self,
@@ -440,13 +409,6 @@ class Collection:
         with self.lock:
             self.listing[ref.name] = ref
 
-        # update children cache in parent object in case it is not in there already
-        if ref.parent and ref.name not in ref.parent.children:
-            ref.parent.children.append(ref.name)
-            self.logger.debug(
-                'Added child "%s" to parent "%s"', ref.name, ref.parent.name
-            )
-
         # perform filesystem operations
         if save:
             # Save just this item if possible, if not, save the whole collection
@@ -465,8 +427,15 @@ class Collection:
                     # we don't need openvz containers to be network bootable
                     if ref.virt_type == "openvz":
                         ref.enable_menu = False
-                    self.lite_sync.add_single_profile(ref.name)
-                    self.api.sync_systems(systems=ref.get_children())
+                    self.lite_sync.add_single_profile(ref)
+                    self.api.sync_systems(
+                        systems=self.find(
+                            "system",
+                            return_list=True,
+                            no_errors=False,
+                            **{"profile": ref.name},
+                        )
+                    )
                 elif isinstance(ref, distro.Distro):
                     self.lite_sync.add_single_distro(ref.name)
                 elif isinstance(ref, image.Image):
