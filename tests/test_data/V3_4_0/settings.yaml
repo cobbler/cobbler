@@ -618,5 +618,9 @@ mongodb:
   host: "localhost"
   port: 27017
 
+# A cache of some internal operations can speed up their execution, but can slow down
+# editing objects.
+cache_enabled: false
+
 # list settings keys to exclude from validation - helpful to validate and migrate custom settings
 extra_settings_list: []

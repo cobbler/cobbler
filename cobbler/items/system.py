@@ -769,6 +769,9 @@ class System(Item):
         :param api: The Cobbler API
         """
         super().__init__(api, *args, **kwargs)
+        # Prevent attempts to clear the to_dict cache before the object is initialized.
+        self._has_initialized = False
+
         self._interfaces: Dict[str, NetworkInterface] = {}
         self._ipv6_autoconfiguration = False
         self._repos_enabled = False
@@ -818,6 +821,8 @@ class System(Item):
         self._kernel_options_post = enums.VALUE_INHERITED
         self._mgmt_parameters = enums.VALUE_INHERITED
         self._mgmt_classes = enums.VALUE_INHERITED
+        if not self._has_initialized:
+            self._has_initialized = True
 
     def __getattr__(self, name):
         if name == "kickstart":
@@ -853,55 +858,6 @@ class System(Item):
             self.image = dictionary["image"]
         self._remove_depreacted_dict_keys(dictionary)
         super().from_dict(dictionary)
-
-    @property
-    def parent(self) -> Optional[Item]:
-        """
-        Return object next highest up the tree. This may be a profile or an image.
-
-        :getter: Returns the value for ``parent``.
-        :setter: Sets the value for the property ``parent``.
-        :returns: None when there is no parent or the corresponding Item.
-        """
-        if not self._parent and self.profile:
-            return self.api.profiles().find(name=self.profile)
-        if not self._parent and self.image:
-            return self.api.images().find(name=self.image)
-        if self._parent:
-            # We don't know what type this is, so we need to let find_items() do the magic of guessing that.
-            return self.api.find_items(what="", name=self._parent, return_list=False)
-        return None
-
-    @parent.setter
-    def parent(self, value: str):
-        r"""
-        Setter for the ``parent`` property.
-
-        :param value: The name of a profile, an image or another System.
-        :raises TypeError: In case value was not of type ``str``.
-        :raises ValueError: In case the specified name does not map to an existing profile, image or system.
-        """
-        if not isinstance(value, str):
-            raise TypeError("The name of the parent must be of type str.")
-        if not value:
-            self._parent = ""
-            return
-        # FIXME: Add an exists method so we don't need to play try-catch here.
-        try:
-            self.api.systems().find(name=value)
-        except ValueError:
-            pass
-        try:
-            self.api.profiles().find(name=value)
-        except ValueError:
-            pass
-        try:
-            self.api.images().find(name=value)
-        except ValueError as value_error:
-            raise ValueError(
-                f'Neither a system, profile or image could be found with the name "{value}".'
-            ) from value_error
-        self._parent = value
 
     def check_if_valid(self):
         """
@@ -1081,7 +1037,7 @@ class System(Item):
         else:
             boot_loaders_split = boot_loaders
 
-        parent = self.parent
+        parent = self.logical_parent
         if parent is not None:
             parent_boot_loaders = parent.boot_loaders
         else:
@@ -1490,29 +1446,9 @@ class System(Item):
         if profile is None:
             raise ValueError(f'Profile with the name "{profile_name}" is not existing')
 
-        old_parent = self.parent
-        if isinstance(old_parent, Item):
-            if self.name in old_parent.children:
-                old_parent.children.remove(self.name)
-            else:
-                self.logger.debug(
-                    'Name of System "%s" was not found in the children of Item "%s"',
-                    self.name,
-                    self.parent.name,
-                )
-        else:
-            self.logger.debug(
-                'Parent of System "%s" not found. Thus skipping removal from children list.',
-                self.name,
-            )
-
         self.image = ""  # mutual exclusion rule
-
         self._profile = profile_name
         self.depth = profile.depth + 1  # subprofiles have varying depths.
-        new_parent = self.parent
-        if isinstance(new_parent, Item) and self.name not in new_parent.children:
-            new_parent.children.append(self.name)
 
     @property
     def image(self) -> str:
@@ -1545,29 +1481,9 @@ class System(Item):
         if img is None:
             raise ValueError(f'Image with the name "{image_name}" is not existing')
 
-        old_parent = self.parent
-        if isinstance(old_parent, Item):
-            if self.name in old_parent.children:
-                old_parent.children.remove(self.name)
-            else:
-                self.logger.debug(
-                    'Name of System "%s" was not found in the children of Item "%s"',
-                    self.name,
-                    self.parent.name,
-                )
-        else:
-            self.logger.debug(
-                'Parent of System "%s" not found. Thus skipping removal from children list.',
-                self.name,
-            )
-
         self.profile = ""  # mutual exclusion rule
-
         self._image = image_name
         self.depth = img.depth + 1
-        new_parent = self.parent
-        if isinstance(new_parent, Item) and self.name not in new_parent.children:
-            new_parent.children.append(self.name)
 
     @InheritableProperty
     def virt_cpus(self) -> int:
@@ -2030,25 +1946,6 @@ class System(Item):
         :param baud_rate: The new value for the ``baud_rate`` property.
         """
         self._serial_baud_rate = validate.validate_serial_baud_rate(baud_rate)
-
-    @property
-    def children(self) -> List[str]:
-        """
-        children property.
-
-        :getter: Returns the value for ``children``.
-        :setter: Sets the value for the property ``children``.
-        """
-        return self._children
-
-    @children.setter
-    def children(self, value: List[str]):
-        """
-        Setter for the children of the System class.
-
-        :param value: The new value for the ``children`` property.
-        """
-        self._children = value
 
     def get_config_filename(self, interface: str, loader: Optional[str] = None):
         """

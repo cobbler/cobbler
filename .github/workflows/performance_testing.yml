@@ -1,4 +1,4 @@
-name: Testing Cobbler
+name: Performance testing
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main, release* ]
 
 jobs:
-  run_tests:
+  run_performance_tests:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -19,9 +19,9 @@ jobs:
         shell: 'script -q -e -c "bash {0}"'
         run: |
           docker exec -u 0 -it cobbler bash -c "./docker/develop/scripts/setup-supervisor.sh"
-      - name: Run the Tests inside the Docker Container
+      - name: Run the Performance Tests inside the Docker Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          docker exec -u 0 -it cobbler bash -c "pytest --cov=./cobbler --benchmark-skip && git config --global --add safe.directory /code && codecov --token=1064928c-6477-41be-9ac2-7ce5e6d1fd8b --commit=${GITHUB_SHA}"
+          docker exec -u 0 -it cobbler bash -c "pytest --cov=./cobbler --benchmark-only --benchmark-autosave tests/performance"
       - name: Stop and remove the container
         run: docker stop cobbler && docker rm cobbler

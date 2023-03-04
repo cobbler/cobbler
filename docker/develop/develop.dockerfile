@@ -44,6 +44,7 @@ RUN zypper install --no-recommends -y \
     python3-pytest-cov         \
     python3-pytest-mock        \
     python3-pytest-pythonpath  \
+    python3-pytest-benchmark   \
     python3-netaddr            \
     python3-pymongo            \
     python3-gunicorn           \

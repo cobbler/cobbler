@@ -541,14 +541,10 @@ class TFTPGen:
         :param arch: The processor architecture to generate the menu items for. (Optional)
         """
         if menu:
-            child_names = menu.get_children(sort_list=True)
-            childs = []
-            for child in child_names:
-                child = self.api.find_menu(name=child)
-                if child is not None:
-                    childs.append(child)
+            childs = menu.children
         else:
-            childs = [child for child in self.menus if child.parent is None]
+            childs = self.api.find_items("menu", {"parent": ""})
+        childs.sort(key=lambda child: child.name)
 
         nested_menu_items = {}
         menu_labels = {}
@@ -625,19 +621,14 @@ class TFTPGen:
         :param metadata: Pass additional parameters to the ones being collected during the method.
         :param arch: The processor architecture to generate the menu items for. (Optional)
         """
-        if menu:
-            profile_list = [
-                profile for profile in self.profiles if profile.menu == menu.name
-            ]
-        else:
-            profile_list = [
-                profile
-                for profile in self.profiles
-                if profile.menu is None or profile.menu == ""
-            ]
-        profile_list = sorted(profile_list, key=lambda profile: profile.name)
+        menu_name = ""
+        if menu is not None:
+            menu_name = menu.name
+        profile_filter = {"menu": menu_name}
         if arch:
-            profile_list = [profile for profile in profile_list if profile.arch == arch]
+            profile_filter["arch"] = arch.value
+        profile_list = self.api.find_items("profile", profile_filter)
+        profile_list.sort(key=lambda profile: profile.name)
 
         current_menu_items = {}
         menu_labels = metadata["menu_labels"]
@@ -677,12 +668,13 @@ class TFTPGen:
         :param metadata: Pass additional parameters to the ones being collected during the method.
         :param arch: The processor architecture to generate the menu items for. (Optional)
         """
-        if menu:
-            image_list = [image for image in self.images if image.menu == menu.name]
-        else:
-            image_list = [
-                image for image in self.images if image.menu is None or image.menu == ""
-            ]
+        menu_name = ""
+        if menu is not None:
+            menu_name = menu.name
+        image_filter = {"menu": menu_name}
+        if arch:
+            image_filter["arch"] = arch.value
+        image_list = self.api.find_items("image", image_filter)
         image_list = sorted(image_list, key=lambda image: image.name)
 
         current_menu_items = metadata["menu_items"]

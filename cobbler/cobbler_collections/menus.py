@@ -55,22 +55,25 @@ class Menus(collection.Collection):
         :raises CX: Raised in case you want to delete a none existing menu.
         """
         obj = self.find(name=name)
-        if obj is None:
+        if obj is None or not isinstance(obj, menu.Menu):
             raise CX(f"cannot delete an object that does not exist: {name}")
 
-        for profile in self.api.profiles():
-            if profile.menu and profile.menu == name:
-                profile.menu = ""
-        for image in self.api.images():
-            if image.menu and image.menu == name:
-                image.menu = ""
+        for item_type in ["image", "profile"]:
+            items = self.api.find_items(item_type, {"menu": obj.name}, return_list=True)
+            for item in items:
+                item.menu = ""
 
         if recursive:
-            kids = obj.get_children()
+            kids = obj.descendants
+            kids.sort(key=lambda x: -x.depth)
             for kid in kids:
-                self.remove(
-                    kid, with_delete=with_delete, with_sync=False, recursive=recursive
-                )
+                if self.api.find_menu(name=kid) is not None:
+                    self.api.remove_menu(
+                        kid,
+                        recursive=False,
+                        delete=with_delete,
+                        with_triggers=with_triggers,
+                    )
 
         if with_delete:
             if with_triggers:

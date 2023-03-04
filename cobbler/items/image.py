@@ -36,6 +36,9 @@ class Image(item.Item):
         :param kwargs: The keyword arguments which should be passed additionally to the base Item class constructor.
         """
         super().__init__(api, *args, **kwargs)
+        # Prevent attempts to clear the to_dict cache before the object is initialized.
+        self._has_initialized = False
+
         self._arch = enums.Archs.X86_64
         self._autoinstall = enums.VALUE_INHERITED
         self._breed = ""
@@ -55,6 +58,9 @@ class Image(item.Item):
         self._virt_path = ""
         self._virt_ram: Union[str, int] = enums.VALUE_INHERITED
         self._virt_type: Union[str, enums.VirtType] = enums.VirtType.INHERITED
+        self._supported_boot_loaders = []
+        if not self._has_initialized:
+            self._has_initialized = True
 
     def __getattr__(self, name: str):
         if name == "kickstart":
@@ -573,22 +579,3 @@ class Image(item.Item):
             self._boot_loaders = boot_loaders_split
         else:
             self._boot_loaders = []
-
-    @property
-    def children(self) -> list:
-        """
-        This property represents all children of an image. It should not be set manually.
-
-        :getter: The children of the image.
-        :setter: No validation is done because this is a Cobbler internal property.
-        """
-        return self._children
-
-    @children.setter
-    def children(self, value: list):
-        """
-        Setter for the children property.
-
-        :param value: The new children of the distro.
-        """
-        self._children = value

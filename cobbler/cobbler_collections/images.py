@@ -59,7 +59,7 @@ class Images(collection.Collection):
                     raise CX(f"removal would orphan system: {system.name}")
 
         if recursive:
-            kids = obj.get_children()
+            kids = self.api.find_items("system", {"image": obj.name})
             for k in kids:
                 self.api.remove_system(k, recursive=True)
 
