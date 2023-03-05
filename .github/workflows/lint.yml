@@ -29,8 +29,8 @@ jobs:
         uses: ludeeus/action-shellcheck@master
         with:
           scandir: './scripts'
-  linter_name:
-    name: runner/black formatter
+  python_black:
+    name: black formatter
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
