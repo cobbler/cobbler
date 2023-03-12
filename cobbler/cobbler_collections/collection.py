@@ -9,7 +9,6 @@ This module contains the code for the abstract base collection that powers all t
 import logging
 import time
 import os
-import uuid
 from threading import Lock
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
@@ -108,6 +107,14 @@ class Collection:
         """
         return self.listing.get(name, None)
 
+    def get_names(self) -> List[str]:
+        """
+        Return list of names in the collection.
+
+        :return: list of names in the collection.
+        """
+        return list(self.listing)
+
     def find(
         self,
         name: str = "",
@@ -146,8 +153,15 @@ class Collection:
             except Exception:
                 return self.listing.get(kargs["name"], None)
 
+        if self.api.settings().lazy_start:
+            # Forced deserialization of the entire collection to prevent deadlock in the search loop
+            for obj_name in self.get_names():
+                obj = self.get(obj_name)
+                if obj is not None and not obj.inmemory:
+                    obj.deserialize()
+
         with self.lock:
-            for (_, obj) in list(self.listing.items()):
+            for obj in self:
                 if obj.find_match(kargs, no_errors=no_errors):
                     matches.append(obj)
 
@@ -218,9 +232,11 @@ class Collection:
                 item = self.factory_produce(self.api, item_dict)
                 self.add(item)
             except Exception as exc:
+                print(item_dict)
                 self.logger.error(
-                    "Error while loading a collection: %s. Skipping this collection!",
+                    "Error while loading a collection: %s. Skipping collection %s!",
                     exc,
+                    self.collection_type(),
                 )
 
     def copy(self, ref: item_base.Item, newname: str):
@@ -230,20 +246,19 @@ class Collection:
         :param ref: The reference to the object which should be copied.
         :param newname: The new name for the copied object.
         """
-        ref = ref.make_clone()
-        ref.uid = uuid.uuid4().hex
-        ref.ctime = time.time()
-        ref.name = newname
-        if ref.COLLECTION_TYPE == "system":
+        copied_item = ref.make_clone()
+        copied_item.ctime = time.time()
+        copied_item.name = newname
+        if copied_item.COLLECTION_TYPE == "system":
             # this should only happen for systems
-            for interface in ref.interfaces:
+            for interface in copied_item.interfaces:
                 # clear all these out to avoid DHCP/DNS conflicts
-                ref.interfaces[interface].dns_name = ""
-                ref.interfaces[interface].mac_address = ""
-                ref.interfaces[interface].ip_address = ""
+                copied_item.interfaces[interface].dns_name = ""
+                copied_item.interfaces[interface].mac_address = ""
+                copied_item.interfaces[interface].ip_address = ""
 
         self.add(
-            ref,
+            copied_item,
             save=True,
             with_copy=True,
             with_triggers=True,
@@ -368,9 +383,6 @@ class Collection:
 
         ref.check_if_valid()
 
-        if ref.uid == "":
-            ref.uid = uuid.uuid4().hex
-
         if save:
             now = float(time.time())
             if ref.ctime == 0.0:
@@ -413,8 +425,6 @@ class Collection:
         if save:
             # Save just this item if possible, if not, save the whole collection
             self.collection_mgr.serialize_one_item(ref)
-            if ref.parent:
-                self.collection_mgr.serialize_one_item(ref.parent)
 
             if with_sync:
                 if isinstance(ref, system.System):

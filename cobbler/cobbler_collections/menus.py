@@ -5,10 +5,14 @@ Cobbler module that at runtime holds all menus in Cobbler.
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2021 Yuriy Chelpanov <yuriy.chelpanov@gmail.com>
 
+from typing import TYPE_CHECKING, Any, Dict
 from cobbler.items import menu
 from cobbler.cobbler_collections import collection
 from cobbler import utils
 from cobbler.cexceptions import CX
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Menus(collection.Collection):
@@ -24,17 +28,15 @@ class Menus(collection.Collection):
     def collection_types() -> str:
         return "menus"
 
-    def factory_produce(self, api, item_dict):
+    def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]):
         """
-        Return a Menu forged from item_dict
+        Return a Menu forged from seed_data
 
-        :param api: The cobblerd API.
-        :param item_dict: The seed data.
-        :return: A new menu instance.
+        :param api: Parameter is skipped.
+        :param seed_data: Data to seed the object with.
+        :returns: The created object.
         """
-        new_menu = menu.Menu(api)
-        new_menu.from_dict(item_dict)
-        return new_menu
+        return menu.Menu(self.api, **seed_data)
 
     def remove(
         self,

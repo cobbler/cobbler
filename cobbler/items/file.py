@@ -6,12 +6,16 @@ Cobbler module that contains the code for a Cobbler file object.
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Kelsey Hightower <kelsey.hightower@gmail.com>
 
-import uuid
+import copy
+from typing import TYPE_CHECKING, Any
 
 from cobbler.utils import input_converters
 from cobbler.items import resource
-
+from cobbler.decorator import LazyProperty
 from cobbler.cexceptions import CX
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class File(resource.Resource):
@@ -22,19 +26,20 @@ class File(resource.Resource):
     TYPE_NAME = "file"
     COLLECTION_TYPE = "file"
 
-    def __init__(self, api, *args, **kwargs):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
         """
         Constructor.
 
         :param api: The Cobbler API object which is used for resolving information.
-        :param args: The arguments which should be passed additionally to a Resource.
-        :param kwargs: The keyword arguments which should be passed additionally to a Resource.
         """
-        super().__init__(api, *args, **kwargs)
+        super().__init__(api)
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
         self._is_dir = False
+
+        if len(kwargs) > 0:
+            self.from_dict(kwargs)
         if not self._has_initialized:
             self._has_initialized = True
 
@@ -48,20 +53,9 @@ class File(resource.Resource):
 
         :return: The cloned instance of this object.
         """
-        _dict = self.to_dict()
-        cloned = File(self.api)
-        cloned.from_dict(_dict)
-        cloned.uid = uuid.uuid4().hex
-        return cloned
-
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
+        _dict = copy.deepcopy(self.to_dict())
+        _dict.pop("uid", None)
+        return File(self.api, **_dict)
 
     def check_if_valid(self):
         """
@@ -71,6 +65,8 @@ class File(resource.Resource):
         :raises CX: Raised in case a required argument is missing
         """
         super().check_if_valid()
+        if not self.inmemory:
+            return
         if not self.path:
             raise CX("path is required")
         if not self.owner:
@@ -86,9 +82,9 @@ class File(resource.Resource):
     # specific methods for item.File
     #
 
-    @property
+    @LazyProperty
     def is_dir(self):
-        """
+        r"""
         Is this a directory or not.
 
         :getter: Returns the value of ``is_dir``
@@ -98,7 +94,7 @@ class File(resource.Resource):
 
     @is_dir.setter
     def is_dir(self, is_dir: bool):
-        """
+        r"""
         If true, treat file resource as a directory. Templates are ignored.
 
         :param is_dir: This is the path to check if it is a directory.

@@ -286,8 +286,8 @@ def remove_testdistro(remote: CobblerXMLRPCInterface, token: str):
 def create_testdistro(
     remote: CobblerXMLRPCInterface,
     token: str,
-    fk_kernel,
-    fk_initrd,
+    fk_kernel: str,
+    fk_initrd: str,
     create_kernel_initrd: Callable[[str, str], str],
 ):
     """

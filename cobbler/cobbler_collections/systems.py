@@ -6,10 +6,14 @@ Cobbler module that at runtime holds all systems in Cobbler.
 # SPDX-FileCopyrightText: Copyright 2008-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
+from typing import TYPE_CHECKING, Any, Dict
 from cobbler.cobbler_collections import collection
-from cobbler.items import system as system
+from cobbler.items import system
 from cobbler import utils
 from cobbler.cexceptions import CX
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Systems(collection.Collection):
@@ -26,17 +30,17 @@ class Systems(collection.Collection):
     def collection_types() -> str:
         return "systems"
 
-    def factory_produce(self, api, item_dict):
+    def factory_produce(
+        self, api: "CobblerAPI", seed_data: Dict[str, Any]
+    ) -> system.System:
         """
-        Return a Distro forged from item_dict
+        Return a Distro forged from seed_data
 
-        :param api: TODO
-        :param item_dict: TODO
-        :returns: TODO
+        :param api: Parameter is skipped.
+        :param seed_data: Data to seed the object with.
+        :returns: The created object.
         """
-        new_system = system.System(api)
-        new_system.from_dict(item_dict)
-        return new_system
+        return system.System(self.api, **seed_data)
 
     def remove(
         self,

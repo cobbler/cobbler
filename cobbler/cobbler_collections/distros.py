@@ -8,12 +8,16 @@ Cobbler module that at runtime holds all distros in Cobbler.
 
 import os.path
 import glob
+from typing import TYPE_CHECKING, Any, Dict
 
 from cobbler.cobbler_collections import collection
 from cobbler.items import distro
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import filesystem_helpers
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Distros(collection.Collection):
@@ -29,17 +33,19 @@ class Distros(collection.Collection):
     def collection_types() -> str:
         return "distros"
 
-    def factory_produce(self, api, item_dict):
+    def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]):
         """
-        Return a Distro forged from item_dict
+        Return a Distro forged from seed_data
+
+        :param api: Parameter is skipped.
+        :param seed_data: Data to seed the object with.
+        :returns: The created object.
         """
-        new_distro = distro.Distro(api)
-        new_distro.from_dict(item_dict)
-        return new_distro
+        return distro.Distro(self.api, **seed_data)
 
     def remove(
         self,
-        name,
+        name: str,
         with_delete: bool = True,
         with_sync: bool = True,
         with_triggers: bool = True,
@@ -62,7 +68,6 @@ class Distros(collection.Collection):
                 if profile.distro and profile.distro.name == name:
                     raise CX(f"removal would orphan profile: {profile.name}")
 
-        kernel = obj.kernel
         if recursive:
             kids = self.api.find_items("profile", {"distro": obj.name})
             for k in kids:
@@ -100,8 +105,9 @@ class Distros(collection.Collection):
         settings = self.api.settings()
         possible_storage = glob.glob(settings.webdir + "/distro_mirror/*")
         path = None
+        kernel = obj.kernel
         for storage in possible_storage:
-            if os.path.dirname(obj.kernel).find(storage) != -1:
+            if os.path.dirname(kernel).find(storage) != -1:
                 path = storage
                 continue
 

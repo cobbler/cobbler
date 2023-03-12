@@ -6,9 +6,14 @@ Cobbler module that contains the code for a Cobbler package object.
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Kelsey Hightower <kelsey.hightower@gmail.com>
 
-import uuid
+import copy
+from typing import TYPE_CHECKING, Any
 
 from cobbler.items import resource
+from cobbler.decorator import LazyProperty
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Package(resource.Resource):
@@ -19,20 +24,22 @@ class Package(resource.Resource):
     TYPE_NAME = "package"
     COLLECTION_TYPE = "package"
 
-    def __init__(self, api, *args, **kwargs):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
         """
         Constructor
 
         :param api: The Cobbler API object which is used for resolving information.
-        :param args: The arguments which should be passed additionally to a Resource.
-        :param kwargs: The keyword arguments which should be passed additionally to a Resource.
+        :param item_dict: Dictionary of properties to initialize the object.
         """
-        super().__init__(api, *args, **kwargs)
+        super().__init__(api)
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
         self._installer = ""
         self._version = ""
+
+        if len(kwargs) > 0:
+            self.from_dict(kwargs)
         if not self._has_initialized:
             self._has_initialized = True
 
@@ -46,26 +53,15 @@ class Package(resource.Resource):
 
         :return: The cloned instance of this object.
         """
-        _dict = self.to_dict()
-        cloned = Package(self.api)
-        cloned.from_dict(_dict)
-        cloned.uid = uuid.uuid4().hex
-        return cloned
-
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
+        _dict = copy.deepcopy(self.to_dict())
+        _dict.pop("uid", None)
+        return Package(self.api, **_dict)
 
     #
     # specific methods for item.Package
     #
 
-    @property
+    @LazyProperty
     def installer(self) -> str:
         """
         Installer property.
@@ -89,7 +85,7 @@ class Package(resource.Resource):
             )
         self._installer = installer.lower()
 
-    @property
+    @LazyProperty
     def version(self) -> str:
         """
         Version property.

@@ -81,3 +81,18 @@ def test_deserialize(mocker, serializer_obj):
 
     # Assert
     storage_object_mock.deserialize.assert_called_with(input_collection, True)
+
+
+def test_deserialize_item(mocker, serializer_obj):
+    # Arrange
+    storage_object_mock = mocker.patch.object(serializer_obj, "storage_object")
+    input_collection_type = mocker.MagicMock()
+    input_name = mocker.MagicMock()
+
+    # Act
+    serializer_obj.deserialize_item(input_collection_type, input_name)
+
+    # Assert
+    storage_object_mock.deserialize_item.assert_called_with(
+        input_collection_type, input_name
+    )

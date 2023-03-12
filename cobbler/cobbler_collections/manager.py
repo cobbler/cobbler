@@ -13,6 +13,7 @@ from cobbler.cexceptions import CX
 from cobbler import serializer
 from cobbler import validate
 from cobbler.settings import Settings
+from cobbler.items.item import Item
 from cobbler.cobbler_collections.distros import Distros
 from cobbler.cobbler_collections.files import Files
 from cobbler.cobbler_collections.images import Images
@@ -185,8 +186,6 @@ class CollectionManager:
 
         :raises CX: if there is an error in deserialization
         """
-        old_cache_enabled = self.api.settings().cache_enabled
-        self.api.settings().cache_enabled = False
         for collection in (
             self._menus,
             self._distros,
@@ -205,7 +204,15 @@ class CollectionManager:
                     f"serializer: error loading collection {collection.collection_type()}: {error}."
                     f"Check your settings!"
                 ) from error
-        self.api.settings().cache_enabled = old_cache_enabled
+
+    def deserialize_one_item(self, obj: Item) -> dict:
+        """
+        Load a collection item from disk
+
+        :param obj: collection item
+        """
+        collection_type = self.get_items(obj.COLLECTION_TYPE).collection_types()
+        return self.__serializer.deserialize_item(collection_type, obj.name)
 
     def get_items(
         self, collection_type: str

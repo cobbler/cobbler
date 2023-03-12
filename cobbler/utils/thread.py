@@ -5,10 +5,14 @@ This module is responsible for managing the custom common threading logic Cobble
 import logging
 import pathlib
 from threading import Thread
-from typing import Optional, Callable
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Callable, Union
 
 from cobbler import enums
 from cobbler import utils
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.remote import CobblerXMLRPCInterface
 
 
 class CobblerThread(Thread):
@@ -19,12 +23,12 @@ class CobblerThread(Thread):
     def __init__(
         self,
         event_id: str,
-        remote,
-        options: dict,
+        remote: "CobblerXMLRPCInterface",
+        options: Optional[Union[List[str], Dict[str, Any]]],
         task_name: str,
-        api,
-        run: Callable,
-        on_done: Optional[Callable] = None,
+        api: "CobblerAPI",
+        run: Callable[["CobblerThread"], None],
+        on_done: Optional[Callable[["CobblerThread"], None]] = None,
     ):
         """
         This constructor creates a Cobbler thread which then may be run by calling ``run()``.
@@ -41,12 +45,12 @@ class CobblerThread(Thread):
         self.event_id = event_id
         self.remote = remote
         self.logger = logging.getLogger()
-        self.__task_log_handler = None
+        self.__task_log_handler: Optional[logging.FileHandler] = None
         self.__setup_logger()
         self._run = run
         self.on_done = on_done
         if options is None:
-            options = {}
+            options = []
         self.options = options
         self.task_name = task_name
         self.api = api
@@ -70,7 +74,7 @@ class CobblerThread(Thread):
 
         :param new_state: The new state of the task.
         """
-        if not isinstance(new_state, enums.EventStatus):
+        if not isinstance(new_state, enums.EventStatus):  # type: ignore
             raise TypeError('"new_state" needs to be of type enums.EventStatus!')
         if self.event_id not in self.remote.events:
             raise ValueError('"event_id" not existing!')
@@ -82,7 +86,7 @@ class CobblerThread(Thread):
         elif new_state == enums.EventStatus.FAILED:
             self.logger.error("### TASK FAILED ###")
 
-    def run(self):
+    def run(self) -> None:
         """
         Run the thread.
 
@@ -93,26 +97,27 @@ class CobblerThread(Thread):
             if utils.run_triggers(
                 api=self.api,
                 globber=f"/var/lib/cobbler/triggers/task/{self.task_name}/pre/*",
-                additional=self.options,
+                additional=self.options if isinstance(self.options, list) else [],
             ):
                 self._set_task_state(enums.EventStatus.FAILED)
-                return False
+                return
             return_code = self._run(self)
             if return_code is not None and not return_code:
                 self._set_task_state(enums.EventStatus.FAILED)
             else:
                 self._set_task_state(enums.EventStatus.COMPLETE)
                 if self.on_done is not None:
-                    self.on_done()
+                    self.on_done(self)
                 utils.run_triggers(
                     api=self.api,
                     globber=f"/var/lib/cobbler/triggers/task/{self.task_name}/post/*",
-                    additional=self.options,
+                    additional=self.options if isinstance(self.options, list) else [],
                 )
             return return_code
         except Exception:
             utils.log_exc()
             self._set_task_state(enums.EventStatus.FAILED)
-            return False
+            return
         finally:
-            self.logger.removeHandler(self.__task_log_handler)
+            if self.__task_log_handler is not None:
+                self.logger.removeHandler(self.__task_log_handler)

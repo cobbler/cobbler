@@ -168,6 +168,7 @@ schema = Schema(
         },
         Optional("cache_enabled"): bool,
         Optional("autoinstall_scheme"): str,
+        Optional("lazy_start"): bool,
     },
     ignore_extra_keys=False,
 )
