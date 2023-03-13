@@ -325,6 +325,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
         distro_name: str = "",
         airgapped: bool = False,
         source="",
+        **kwargs,
     ):
         """
         Run the whole iso generation from bottom to top. Per default this builds an ISO for all available systems
@@ -339,6 +340,8 @@ class StandaloneBuildiso(buildiso.BuildIso):
         :param airgapped: This option implies ``standalone=True``.
         :param source: If the iso should be offline available this is the path to the sources of the image.
         """
+        del kwargs  # just accepted for polymorphism
+
         buildisodir = self._prepare_iso(buildisodir, distro_name, profiles)
         self._validate_standalone_args(distro_name, source)
         self.generate_standalone_iso(distro_name, source, airgapped)

@@ -560,6 +560,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         distro_name: str = "",
         systems: Optional[List[str]] = None,
         exclude_dns: bool = False,
+        **kwargs,
     ):
         """
         Run the whole iso generation from bottom to top. Per default this builds an ISO for all available systems
@@ -575,6 +576,8 @@ class NetbootBuildiso(buildiso.BuildIso):
                         systems.
         :param exclude_dns: Whether the repositories have to be locally available or the internet is reachable.
         """
+        del kwargs  # just accepted for polymorphism
+
         buildisodir = self._prepare_iso(buildisodir, distro_name, profiles)
         systems = input_converters.input_string_or_list_no_inherit(systems)
         self.generate_netboot_iso(systems, exclude_dns)
