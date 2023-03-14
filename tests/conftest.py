@@ -8,6 +8,7 @@ import pytest
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
+from cobbler.items.image import Image
 from cobbler.items.system import NetworkInterface, System
 
 
