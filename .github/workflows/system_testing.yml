@@ -2,9 +2,9 @@ name: System testing
 
 on:
   push:
-    branches: [ main, release* ]
+    branches: [ suma/4.3, suma/head, uyuni/master ]
   pull_request:
-    branches: [ main, release* ]
+    branches: [ suma/4.3, suma/head, uyuni/master ]
 
 jobs:
   run_system_test:

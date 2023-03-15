@@ -13,10 +13,10 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ main, release* ]
+    branches: [ suma/4.3, suma/head, uyuni/master ]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ main ]
+    branches: [ suma/4.3, suma/head, uyuni/master ]
   schedule:
     - cron: '36 22 * * 3'
 
