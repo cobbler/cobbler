@@ -7,7 +7,9 @@ memory.
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
+import contextlib
 import logging
+import re
 import os
 import pathlib
 import shutil
@@ -48,12 +50,14 @@ class BootFilesCopyset(NamedTuple):
 
 class LoaderCfgsParts(NamedTuple):
     isolinux: List[str]
+    grub: List[str]
     bootfiles_copysets: List[BootFilesCopyset]
 
 
 class BuildisoDirs(NamedTuple):
     root: pathlib.Path
     isolinux: pathlib.Path
+    grub: pathlib.Path
     autoinstall: pathlib.Path
     repo: pathlib.Path
 
@@ -79,6 +83,13 @@ class BuildIso:
         self.templar = templar.Templar(api)
         self.isolinuxdir = ""
 
+        # based on https://uefi.org/sites/default/files/resources/UEFI%20Spec%202.8B%20May%202020.pdf
+        # FIXME: PowerPC is missing from the table
+        self.efi_fallback_renames = {
+            "grubaa64": "bootaa64.efi",
+            "grubx64.efi": "bootx64.efi",
+        }
+
         # grab the header from buildiso.header file
         self.iso_template = (
             pathlib.Path(self.api.settings().iso_template_dir)
@@ -90,6 +101,38 @@ class BuildIso:
             .joinpath("isolinux_menuentry.template")
             .read_text(encoding="UTF-8")
         )
+        self.grub_menuentry_template = (
+            pathlib.Path(api.settings().iso_template_dir)
+            .joinpath("grub_menuentry.template")
+            .read_text(encoding="UTF-8")
+        )
+
+    def _find_distro_source(self, known_file: str, distro_mirror: str) -> str:
+        """
+        Find a distro source tree based on a known file.
+
+        :param known_file: Path to a file that's known to be part of the distribution,
+            commonly the path to the kernel.
+        :raises ValueError: When no installation source was not found.
+        :return: Root of the distribution's source tree.
+        """
+        self.logger.debug("Trying to locate source.")
+        (source_head, source_tail) = os.path.split(known_file)
+        filesource = None
+        while source_tail != "":
+            if source_head == distro_mirror:
+                filesource = os.path.join(source_head, source_tail)
+                self.logger.debug("Found source in %s", filesource)
+                break
+            (source_head, source_tail) = os.path.split(source_head)
+
+        if filesource:
+            return filesource
+        else:
+            raise ValueError(
+                "No installation source found. When building a standalone (incl. airgapped) ISO"
+                " you must specify a --source if the distro install tree is not hosted locally"
+            )
 
     def _copy_boot_files(
         self, kernel_path, initrd_path, destdir: str, new_filename: str = ""
@@ -230,6 +273,20 @@ class BuildIso:
                 "Required file(s) not found. Please check your syslinux installation"
             )
 
+    def _render_grub_entry(
+        self, append_line, menu_name, kernel_path, initrd_path
+    ) -> str:
+        return self.templar.render(
+            self.grub_menuentry_template,
+            out_path=None,
+            search_table={
+                "menu_name": menu_name,
+                "kernel_path": kernel_path,
+                "initrd_path": initrd_path,
+                "kernel_options": re.sub(r".*initrd=\S+", "", append_line),
+            },
+        )
+
     def _render_isolinux_entry(
         self, append_line: str, menu_name: str, kernel_path: str, menu_indent: int = 0
     ) -> str:
@@ -246,7 +303,17 @@ class BuildIso:
             template_type="jinja2",
         )
 
-    def calculate_grub_name(self, distro) -> str:
+    def _copy_grub_into_esp(self, esp_image_location: str, arch: Archs):
+        grub_name = self.calculate_grub_name(arch)
+        efi_name = self.efi_fallback_renames.get(grub_name, grub_name)
+        with self._mount_esp(esp_image_location) as mountpoint:
+            esp_efi_boot = self._create_efi_boot_dir(mountpoint)
+            grub_binary = (
+                pathlib.Path(self.api.settings().bootloaders_dir) / "grub" / grub_name
+            )
+            utils.copyfile(str(grub_binary), f"{esp_efi_boot}/{efi_name}")
+
+    def calculate_grub_name(self, desired_arch: Archs) -> str:
         """
         This function checks the bootloaders_formats in our settings and then checks if there is a match between the
         architectures and the distribution architecture.
@@ -254,7 +321,6 @@ class BuildIso:
         """
         loader_formats = self.api.settings().bootloaders_formats
         grub_binary_names: Dict[str, str] = {}
-        desired_arch = distro.arch
 
         for (loader_format, values) in loader_formats.items():
             name = values.get("binary_name", None)
@@ -304,6 +370,74 @@ class BuildIso:
         with open(output_file, "w") as f:
             f.write("\n".join(cfg_parts))
 
+    def _write_grub_cfg(self, cfg_parts: List[str], output_dir: pathlib.Path) -> None:
+        """Write grub.cfg.
+
+        :param cfg_parts: List of str that is written to the config, joined by newlines.
+        :param output_dir: pathlib.Path that the grub.cfg file is written into.
+        """
+        output_file = output_dir / "grub.cfg"
+        self.logger.info("Writing %s", output_file)
+        with open(output_file, "w") as f:
+            f.write("\n".join(cfg_parts))
+
+    def _create_esp_image_file(self, tmpdir: str) -> str:
+        esp = pathlib.Path(tmpdir) / "efi"
+        mkfs_cmd = ["mkfs.fat", "-C", str(esp), "3528"]
+        rc = utils.subprocess_call(mkfs_cmd, shell=False)
+        if rc != 0:
+            self.logger.error("Could not create ESP image file")
+            raise Exception  # TODO: use proper exception
+        return str(esp)
+
+    @contextlib.contextmanager
+    def _mount_esp(self, esp_path: str):
+        def mount(esp_path: str, mountpoint: pathlib.Path) -> None:
+            mp.mkdir()
+
+            mount_cmd = ["mount", "-o", "loop", esp_path, mountpoint]
+            rc = utils.subprocess_call(mount_cmd, shell=False)
+            if rc != 0:
+                self.logger.error(
+                    "Could not mount ESP image file %s at %s", esp_path, mountpoint
+                )
+                raise Exception  # TODO: use concrete exception
+
+        def umount(mountpoint: pathlib.Path) -> None:
+            unmount_cmd = ["umount", mountpoint]
+            rc = utils.subprocess_call(unmount_cmd, shell=False)
+            if rc != 0:
+                self.logger.error("Could not unmount ESP image file at %s", mountpoint)
+                raise Exception  # TODO: use concrete exception
+            mountpoint.rmdir()
+
+        mp = pathlib.Path(esp_path + "_mounted")
+        try:
+            mount(esp_path, mp)
+            yield str(mp)
+        finally:
+            umount(mp)
+
+    def _create_efi_boot_dir(self, esp_mountpoint: str) -> str:
+        efi_boot = pathlib.Path(esp_mountpoint) / "EFI" / "BOOT"
+        self.logger.info("Creating %s", efi_boot)
+        efi_boot.mkdir(parents=True)
+        return str(efi_boot)
+
+    def _find_esp(self, root_dir: pathlib.Path) -> Optional[str]:
+        """Walk root directory and look for an ESP."""
+        candidates = [str(match) for match in root_dir.glob("**/efi")]
+        if len(candidates) == 0:
+            return None
+        elif len(candidates) == 1:
+            return candidates[0]
+        else:
+            self.logger.info(
+                "Found multiple ESP (%s), choosing %s", candidates, candidates[0]
+            )
+            return candidates[0]
+
+
     def _prepare_buildisodir(self, buildisodir: str = "") -> str:
         """
         This validated the path and type of the buildiso directory and then (re-)creates the apropiate directories.
@@ -337,24 +471,27 @@ class BuildIso:
         """Create directories in the buildiso root."""
         root = pathlib.Path(buildiso_root)
         isolinuxdir = root / "isolinux"
+        grubdir = root / "EFI" / "BOOT"
         autoinstalldir = root / "autoinstall"
         repodir = root / "repo_mirror"
-        for d in [isolinuxdir, autoinstalldir, repodir]:
+        for d in [isolinuxdir, grubdir, autoinstalldir, repodir]:
             d.mkdir(parents=True)
 
         return BuildisoDirs(
             root=root,
             isolinux=isolinuxdir,
+            grub=grubdir,
             autoinstall=autoinstalldir,
             repo=repodir,
         )
 
-    def _generate_iso(self, xorrisofs_opts: str, iso: str, buildisodir: str):
+    def _generate_iso(self, xorrisofs_opts: str, iso: str, buildisodir: str, esp_path: str):
         """
         Build the final xorrisofs command which is then executed on the disk.
         :param xorrisofs_opts: The additional options for xorrisofs.
         :param iso: The name of the output iso.
         :param buildisodir: The directory in which we build the ISO.
+        :param esp_path: The absolute path to the EFI system partition.
         """
         running_on, _ = utils.os_release()
         if running_on in ("suse", "centos", "virtuozzo", "redhat"):
@@ -365,7 +502,7 @@ class BuildIso:
             isohdpfx_location = pathlib.Path(self.api.settings().syslinux_dir).joinpath(
                 "mbr/isohdpfx.bin"
             )
-        efi_img_location = "grub/grub.efi"
+        esp_relative_path = pathlib.Path(esp_path).relative_to(buildisodir)
         cmd_list = [
             "xorriso",
             "-as",
@@ -383,7 +520,7 @@ class BuildIso:
             "-boot-info-table",
             "-eltorito-alt-boot",
             "-e",
-            efi_img_location,
+            str(esp_relative_path),
             "-no-emul-boot",
             "-isohybrid-gpt-basdat",
             "-V",
