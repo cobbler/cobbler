@@ -4,13 +4,14 @@ This module contains the specific code to generate a network bootable ISO.
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import pathlib
 import re
 from typing import List, Optional, Tuple
 
 from cobbler import utils
 from cobbler.actions import buildiso
 from cobbler.actions.buildiso import BootFilesCopyset, LoaderCfgsParts
-from cobbler.utils import input_converters
+from cobbler.utils import filesystem_helpers, input_converters
 
 
 class AppendLineBuilder:
@@ -346,7 +347,7 @@ class AppendLineBuilder:
         """
         self.dist = dist
 
-        self.append_line = f"  APPEND initrd={self.distro_name}.img"
+        self.append_line = f"  APPEND initrd=/{self.distro_name}.img"
         if self.dist.breed == "suse":
             self._generate_append_suse(scheme=scheme)
         elif self.dist.breed == "redhat":
@@ -379,7 +380,7 @@ class AppendLineBuilder:
         :param protocol: The scheme that is used to read the autoyast file from the server
         :return: The generated append line.
         """
-        self.append_line = f" append initrd={self.distro_name}.img"
+        self.append_line = f" append initrd=/{self.distro_name}.img"
         if distro_breed == "suse":
             if self.data.get("proxy", "") != "":
                 self.append_line += f" proxy={self.data['proxy']}"
@@ -472,24 +473,16 @@ class NetbootBuildiso(buildiso.BuildIso):
         :param system_names: System filter, can be an empty list for "all systems".
         :param exclude_dns: Used for system kernel cmdline.
         """
-        isolinux_cfg_parts, files_to_copy = [self.iso_template], []
-        isolinux_cfg_parts.append("MENU SEPARATOR")
-        self._generate_profiles_loader_configs(
-            profile_names, isolinux_cfg_parts, files_to_copy
-        )
+        loader_config_parts = LoaderCfgsParts([self.iso_template], [], [])
+        loader_config_parts.isolinux.append("MENU SEPARATOR")
+        self._generate_profiles_loader_configs(profile_names, loader_config_parts)
         self._generate_systems_loader_configs(
-            system_names, exclude_dns, isolinux_cfg_parts, files_to_copy
+            system_names, exclude_dns, loader_config_parts
         )
-        return LoaderCfgsParts(
-            isolinux=isolinux_cfg_parts,
-            bootfiles_copysets=files_to_copy,
-        )
+        return loader_config_parts
 
     def _generate_profiles_loader_configs(
-        self,
-        profiles: List[str],
-        isolinux_cfg_parts: List[str],
-        bootfiles_copyset: List[BootFilesCopyset],
+        self, profiles: List[str], loader_cfg_parts: LoaderCfgsParts
     ) -> None:
         """Generate isolinux configuration for profiles.
 
@@ -500,11 +493,12 @@ class NetbootBuildiso(buildiso.BuildIso):
         :param bootfiles_copyset: Output parameter for bootfiles copyset.
         """
         for profile in self.filter_profiles(profiles):
-            isolinux, to_copy = self._generate_profile_config(profile)
-            isolinux_cfg_parts.append(isolinux)
-            bootfiles_copyset.append(to_copy)
+            isolinux, grub, to_copy = self._generate_profile_config(profile)
+            loader_cfg_parts.isolinux.append(isolinux)
+            loader_cfg_parts.grub.append(grub)
+            loader_cfg_parts.bootfiles_copysets.append(to_copy)
 
-    def _generate_profile_config(self, profile) -> Tuple[str, BootFilesCopyset]:
+    def _generate_profile_config(self, profile) -> Tuple[str, str, BootFilesCopyset]:
         """Generate isolinux configuration for a single profile.
 
         :param profile: Profile object to generate the configuration for.
@@ -527,13 +521,21 @@ class NetbootBuildiso(buildiso.BuildIso):
         append_line = AppendLineBuilder(
             distro_name=distroname, data=data
         ).generate_profile(distro.breed, distro.os_version)
-        kernel_path = distroname + ".krn"
+        kernel_path = f"/{distroname}.krn"
+        initrd_path = f"/{distroname}.img"
 
         isolinux_cfg = self._render_isolinux_entry(
             append_line, menu_name=distro.name, kernel_path=kernel_path
         )
+        grub_cfg = self._render_grub_entry(
+            append_line,
+            menu_name=distro.name,
+            kernel_path=kernel_path,
+            initrd_path=initrd_path,
+        )
         return (
             isolinux_cfg,
+            grub_cfg,
             BootFilesCopyset(distro.kernel, distro.initrd, distroname),
         )
 
@@ -541,8 +543,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         self,
         system_names: List[str],
         exclude_dns: bool,
-        isolinux_cfg_parts: List[str],
-        files_to_copy: List[BootFilesCopyset],
+        loader_cfg_parts: LoaderCfgsParts,
     ) -> None:
         """Generate isolinux configuration for systems.
 
@@ -553,15 +554,16 @@ class NetbootBuildiso(buildiso.BuildIso):
         :param bootfiles_copyset: Output parameter for bootfiles copyset.
         """
         for system in self.filter_systems(system_names):
-            isolinux, to_copy = self._generate_system_config(
+            isolinux, grub, to_copy = self._generate_system_config(
                 system, exclude_dns=exclude_dns
             )
-            isolinux_cfg_parts.append(isolinux)
-            files_to_copy.append(to_copy)
+            loader_cfg_parts.isolinux.append(isolinux)
+            loader_cfg_parts.grub.append(grub)
+            loader_cfg_parts.bootfiles_copysets.append(to_copy)
 
     def _generate_system_config(
         self, system, exclude_dns
-    ) -> Tuple[str, BootFilesCopyset]:
+    ) -> Tuple[str, str, BootFilesCopyset]:
         """Generate isolinux configuration for a single system.
 
         :param system: System object to generate the configuration for.
@@ -584,16 +586,28 @@ class NetbootBuildiso(buildiso.BuildIso):
         append_line = AppendLineBuilder(
             distro_name=distroname, data=data
         ).generate_system(distro, system, exclude_dns)
-        kernel_path = distroname + ".krn"
+        kernel_path = f"/{distroname}.krn"
+        initrd_path = f"/{distroname}.img"
 
         isolinux_cfg = self._render_isolinux_entry(
             append_line, menu_name=system.name, kernel_path=kernel_path
         )
+        grub_cfg = self._render_grub_entry(
+            append_line,
+            menu_name=distro.name,
+            kernel_path=kernel_path,
+            initrd_path=initrd_path,
+        )
 
         return (
             isolinux_cfg,
+            grub_cfg,
             BootFilesCopyset(distro.kernel, distro.initrd, distroname),
         )
+
+    def _copy_esp(self, esp_source: str, buildisodir: str):
+        """Copy existing EFI System Partition into the buildisodir."""
+        filesystem_helpers.copyfile(esp_source, buildisodir + "/efi")
 
     def run(
         self,
@@ -624,7 +638,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         """
         del kwargs  # just accepted for polymorphism
 
-        _ = self.parse_distro(distro_name)
+        distro_obj = self.parse_distro(distro_name)
         system_names = input_converters.input_string_or_list_no_inherit(systems)
         profile_names = input_converters.input_string_or_list_no_inherit(profiles)
         loader_config_parts = self._generate_boot_loader_configs(
@@ -632,7 +646,8 @@ class NetbootBuildiso(buildiso.BuildIso):
         )
 
         buildisodir = self._prepare_buildisodir(buildisodir)
-        dirs = self.create_buildiso_dirs(buildisodir)
+        buildiso_dirs = self.create_buildiso_dirs(buildisodir)
+        distro_mirrordir = pathlib.Path(self.api.settings().webdir) / "distro_mirror"
 
         # fill temporary directory with binaries
         self._copy_isolinux_files()
@@ -640,12 +655,26 @@ class NetbootBuildiso(buildiso.BuildIso):
             self._copy_boot_files(
                 copyset.src_kernel,
                 copyset.src_initrd,
-                str(buildisodir),
+                str(buildiso_dirs.root),
                 copyset.new_filename,
             )
 
-        # fill temporary directory with config files
-        self._write_isolinux_cfg(loader_config_parts.isolinux, dirs.isolinux)
+        try:
+            filesource = self._find_distro_source(
+                distro_obj.kernel, str(distro_mirrordir)
+            )
+            self.logger.info("filesource=%s", filesource)
+            distro_esp = self._find_esp(pathlib.Path(filesource))
+            self.logger.info("esp=%s", distro_esp)
+        except ValueError:
+            distro_esp = None
 
-        # build ISO off the temporary directory
-        self._generate_iso(xorrisofs_opts, iso, buildisodir)
+        if distro_esp is not None:
+            self._copy_esp(distro_esp, buildisodir)
+        else:
+            esp_location = self._create_esp_image_file(buildisodir)
+            self._copy_grub_into_esp(esp_location, distro_obj.arch)
+
+        self._write_isolinux_cfg(loader_config_parts.isolinux, buildiso_dirs.isolinux)
+        self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
+        self._generate_iso(xorrisofs_opts, iso, buildisodir, buildisodir + "/efi")

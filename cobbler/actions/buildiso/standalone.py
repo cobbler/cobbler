@@ -25,20 +25,20 @@ def _generate_append_line_standalone(data: dict, distro, descendant) -> str:
     :param descendant: The profile or system which is underneath the distro.
     :return: The base append_line which we need for booting the built ISO. Contains initrd and autoinstall parameter.
     """
-    append_line = f"  APPEND initrd={os.path.basename(distro.initrd)}"
+    append_line = f"  APPEND initrd=/{os.path.basename(distro.initrd)}"
     if distro.breed == "redhat":
         if distro.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
-            append_line += f" ks=cdrom:/isolinux/{descendant.name}.cfg"
+            append_line += f" ks=cdrom:/autoinstall/{descendant.name}.cfg"
         else:
-            append_line += f" inst.ks=cdrom:/isolinux/{descendant.name}.cfg"
+            append_line += f" inst.ks=cdrom:/autoinstall/{descendant.name}.cfg"
     elif distro.breed == "suse":
         append_line += (
-            f" autoyast=file:///isolinux/{descendant.name}.cfg install=cdrom:///"
+            f" autoyast=file:///autoinstall/{descendant.name}.cfg install=cdrom:///"
         )
         if "install" in data["kernel_options"]:
             del data["kernel_options"]["install"]
     elif distro.breed in ["ubuntu", "debian"]:
-        append_line += f" auto-install/enable=true preseed/file=/cdrom/isolinux/{descendant.name}.cfg"
+        append_line += f" auto-install/enable=true preseed/file=/cdrom/autoinstall/{descendant.name}.cfg"
 
     # add remaining kernel_options to append_line
     append_line += buildiso.add_remaining_kopts(data["kernel_options"])
@@ -49,33 +49,6 @@ class StandaloneBuildiso(buildiso.BuildIso):
     """
     This class contains all functionality related to building self-contained installation images.
     """
-
-    def _find_distro_source(self, known_file: str, distro_mirror: str) -> str:
-        """
-        Find a distro source tree based on a known file.
-
-        :param known_file: Path to a file that's known to be part of the distribution,
-            commonly the path to the kernel.
-        :raises ValueError: When no installation source was not found.
-        :return: Root of the distribution's source tree.
-        """
-        self.logger.debug("Trying to locate source.")
-        (source_head, source_tail) = os.path.split(known_file)
-        filesource = None
-        while source_tail != "":
-            if source_head == distro_mirror:
-                filesource = os.path.join(source_head, source_tail)
-                self.logger.debug("Found source in %s", filesource)
-                break
-            (source_head, source_tail) = os.path.split(source_head)
-
-        if filesource:
-            return filesource
-        else:
-            raise ValueError(
-                "No installation source found. When building a standalone (incl. airgapped) ISO"
-                " you must specify a --source if the distro install tree is not hosted locally"
-            )
 
     def _write_autoinstall_cfg(
         self, data: Dict[str, Autoinstall], output_dir: pathlib.Path
@@ -88,16 +61,24 @@ class StandaloneBuildiso(buildiso.BuildIso):
 
     def _generate_descendant_config(
         self, descendant, menu_indent: int, distro, append_line: str
-    ) -> Tuple[str, BootFilesCopyset]:
+    ) -> Tuple[str, str, BootFilesCopyset]:
         kernel_path = f"/{os.path.basename(distro.kernel)}"
+        initrd_path = f"/{os.path.basename(distro.initrd)}"
         isolinux_cfg = self._render_isolinux_entry(
             append_line,
             menu_name=descendant.name,
             kernel_path=kernel_path,
             menu_indent=menu_indent,
         )
+        grub_cfg = self._render_grub_entry(
+            append_line,
+            menu_name=distro.name,
+            kernel_path=kernel_path,
+            initrd_path=initrd_path,
+        )
         return (
             isolinux_cfg,
+            grub_cfg,
             BootFilesCopyset(distro.kernel, distro.initrd, ""),
         )
 
@@ -150,7 +131,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
         else:  # system
             config_args.update({"menu_indent": 4})
             autoinstall_args = {"system": descendant_obj}
-        isolinux, to_copy = self._generate_descendant_config(**config_args)
+        isolinux, grub, to_copy = self._generate_descendant_config(**config_args)
         autoinstall = self.api.autoinstallgen.generate_autoinstall(**autoinstall_args)
 
         if distro_obj.breed == "redhat":
@@ -169,6 +150,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
                 )
             autoinstall = self._update_repos_in_autoinstall_data(autoinstall, repos)
         cfg_parts.isolinux.append(isolinux)
+        cfg_parts.grub.append(grub)
         cfg_parts.bootfiles_copysets.append(to_copy)
         autoinstall_data[name] = Autoinstall(autoinstall, repos)
 
@@ -265,13 +247,14 @@ class StandaloneBuildiso(buildiso.BuildIso):
         distro_obj = self.parse_distro(distro_name)
         profile_objs = self.parse_profiles(profiles, distro_obj)
         filesource = source
-        loader_config_parts = LoaderCfgsParts([self.iso_template], [])
+        loader_config_parts = LoaderCfgsParts([self.iso_template], [], [])
         autoinstall_data: Dict[str, Autoinstall] = {}
         buildisodir = self._prepare_buildisodir(buildisodir)
         buildiso_dirs = self.create_buildiso_dirs(buildisodir)
         repo_mirrordir = pathlib.Path(self.api.settings().webdir) / "repo_mirror"
         distro_mirrordir = pathlib.Path(self.api.settings().webdir) / "distro_mirror"
 
+        # generate configs, list of repos, and autoinstall data
         for profile_obj in profile_objs:
             self._generate_item(
                 descendant_obj=profile_obj,
@@ -292,7 +275,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
                     autoinstall_data=autoinstall_data,
                 )
 
-        # fill temporary directory with binaries (kernel, initrd, installer, what else?)
+        # copy isolinux, kernels, initrds, and distro files (e.g. installer)
         self._copy_isolinux_files()
         for copyset in loader_config_parts.bootfiles_copysets:
             self._copy_boot_files(
@@ -307,6 +290,13 @@ class StandaloneBuildiso(buildiso.BuildIso):
             )
         self._copy_distro_files(filesource, str(buildiso_dirs.root))
 
+        # create EFI system partition (ESP) if needed, uses the ESP from the
+        # distro if it was copied
+        esp_location = self._find_esp(buildiso_dirs.root)
+        if esp_location is None:
+            esp_location = self._create_esp_image_file(buildisodir)
+            self._copy_grub_into_esp(esp_location, distro_obj.arch)
+
         # sync repos
         if airgapped:
             buildiso_dirs.repo.mkdir(exist_ok=True)
@@ -314,5 +304,6 @@ class StandaloneBuildiso(buildiso.BuildIso):
                 autoinstall_data.values(), repo_mirrordir, buildiso_dirs.repo
             )
         self._write_isolinux_cfg(loader_config_parts.isolinux, buildiso_dirs.isolinux)
+        self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
         self._write_autoinstall_cfg(autoinstall_data, buildiso_dirs.autoinstall)
-        self._generate_iso(xorrisofs_opts, iso, buildisodir)
+        self._generate_iso(xorrisofs_opts, iso, buildisodir, esp_location)

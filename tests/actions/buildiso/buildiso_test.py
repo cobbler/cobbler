@@ -30,17 +30,13 @@ def test_calculate_grub_name(
     result_binary_name,
     expected_exception,
     cobbler_api,
-    create_distro,
 ):
     # Arrange
     test_builder = buildiso.BuildIso(cobbler_api)
-    test_distro = create_distro()
-    test_distro.arch = input_arch
-    cobbler_api.add_distro(test_distro)
 
     # Act
     with expected_exception:
-        result = test_builder.calculate_grub_name(test_distro)
+        result = test_builder.calculate_grub_name(input_arch)
 
         # Assert
         assert result == result_binary_name
@@ -113,11 +109,16 @@ def test_netboot_generate_boot_loader_configs(
     matching_isolinux_initrd = [
         part for part in result.isolinux if "initrd=/1.img" in part
     ]
+    matching_grub_kernel = [part for part in result.grub if "linux /1.krn" in part]
+    matching_grub_initrd = [part for part in result.grub if "initrd /1.img" in part]
+
     # Assert
     assert isinstance(result, LoaderCfgsParts)
     for iterable_to_check in [
         matching_isolinux_kernel,
         matching_isolinux_initrd,
+        matching_grub_kernel,
+        matching_grub_initrd,
         result.bootfiles_copysets,
     ]:
         print(iterable_to_check)
