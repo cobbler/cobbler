@@ -934,7 +934,7 @@ def test_service_restart_supervisord(mocker):
     # TODO Mock supervisor API and return value
 
     # Act
-    result = utils.service_restart("dhcpd")
+    result = utils.service_restart("tftpd")
 
     # Assert
     assert result == 0
