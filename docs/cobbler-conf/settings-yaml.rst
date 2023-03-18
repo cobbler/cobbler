@@ -1135,3 +1135,16 @@ cache_enabled
 If set to ``True``, allows the results of some internal operations to be cached, but may slow down editing of objects.
 
 default: ``False``
+
+lazy_start
+##########
+
+Set to ``True`` to speed up the start of the Cobbler. When storing collections as files, the directory with the names
+of the collection elements will be scanned without reading and parsing the files themselves. In the case of storing
+collections in the database, a projection query is made that includes only the names of the collection elements.
+The first time an attribute of an element other than a name is accessed, a full read of all other attributes will be
+performed, and a recursive full read of all elements on which this element depends. At startup, a background task is
+also launched, which, when idle, fills in all the properties of the elements of the collections.
+Suitable for configurations with a large number of elements placed on a slow device (HDD, network).
+
+default: ``False``

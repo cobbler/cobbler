@@ -192,4 +192,5 @@ def test_normalize_v3_4_0_full():
     assert new_settings["mongodb"] == {"host": "localhost", "port": 27017}
     assert "cache_enabled" in new_settings
     assert new_settings["cache_enabled"] == False
-    assert len(V3_4_0.normalize(new_settings)) == 134
+    assert new_settings["lazy_start"] == False
+    assert len(V3_4_0.normalize(new_settings)) == 135

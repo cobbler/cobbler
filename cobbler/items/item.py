@@ -20,7 +20,7 @@ import yaml
 from cobbler import utils, enums
 from cobbler.utils import input_converters
 from cobbler.cexceptions import CX
-from cobbler.decorator import InheritableProperty, InheritableDictProperty
+from cobbler.decorator import LazyProperty, InheritableProperty, InheritableDictProperty
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -34,7 +34,7 @@ class ItemCache:
     A Cobbler ItemCache object.
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         """
         Constructor
 
@@ -49,12 +49,15 @@ class ItemCache:
          {True:  cache_value or None,
           False: cache_value or None}
         """
-        self._cached_dict: Dict[bool, Optional[Dict]] = {True: None, False: None}
+        self._cached_dict: Dict[bool, Optional[Dict[str, Any]]] = {
+            True: None,
+            False: None,
+        }
 
         self.api = api
         self.settings = api.settings()
 
-    def get_dict_cache(self, resolved: bool) -> Optional[Dict]:
+    def get_dict_cache(self, resolved: bool) -> Optional[Dict[str, Any]]:
         """
         Gettinging the dict cache.
 
@@ -65,7 +68,7 @@ class ItemCache:
             return self._cached_dict[resolved]
         return None
 
-    def set_dict_cache(self, value: Optional[Dict], resolved: bool):
+    def set_dict_cache(self, value: Optional[Dict[str, Any]], resolved: bool):
         """
         Setter for the dict cache.
 
@@ -224,14 +227,14 @@ class Item:
         raise TypeError(f"find cannot compare type: {type(from_obj)}")
 
     @staticmethod
-    def __is_dict_key(name) -> bool:
+    def __is_dict_key(name: str) -> bool:
         """
         Whether the attribute is part of the item's to_dict or not
 
         :name: The attribute name.
         """
         return (
-            name.startswith("_")
+            name[:1] == "_"
             and "__" not in name
             and name
             not in {
@@ -239,10 +242,11 @@ class Item:
                 "_cache",
                 "_supported_boot_loaders",
                 "_has_initialized",
+                "_inmemory",
             }
         )
 
-    def __init__(self, api: "CobblerAPI", is_subobject: bool = False):
+    def __init__(self, api: "CobblerAPI", is_subobject: bool = False, **kwargs: Any):
         """
         Constructor.  Requires a back reference to the CobblerAPI object.
 
@@ -257,6 +261,8 @@ class Item:
                                profile
                                     profile  <-- created with is_subobject=True
                                          system   <-- created as normal
+                           image
+                               system
                            menu
                                menu
 
@@ -264,6 +270,9 @@ class Item:
         (and only should be used) for profiles at this time.  Objects that are children of
         objects of the same type (i.e. subprofiles) need to pass this in as True.  Otherwise, just
         use False for is_subobject and the parent object will (therefore) have a different type.
+
+        The keyword arguments are used to seed the object. This is the preferred way over ``from_dict`` starting with
+        Cobbler version 3.4.0.
 
         :param api: The Cobbler API object which is used for resolving information.
         :param is_subobject: See above extensive description.
@@ -290,13 +299,21 @@ class Item:
         self._mgmt_classes: Union[list, str] = enums.VALUE_INHERITED
         self._mgmt_parameters: Union[dict, str] = {}
         self._is_subobject = is_subobject
+        self._inmemory = True
 
         self.logger = logging.getLogger()
         self.api = api
+
+        if len(kwargs) > 0:
+            kwargs.update({"is_subobject": is_subobject})
+            Item.from_dict(self, kwargs)
+        if self._uid == "":
+            self._uid = uuid.uuid4().hex
+
         if not self._has_initialized:
             self._has_initialized = True
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any):
         """
         Comparison based on the uid for our items.
 
@@ -310,6 +327,8 @@ class Item:
     def __hash__(self):
         """
         Hash table for Items.
+        Requires special handling if the uid value changes and the Item
+        is present in set, frozenset, and dict types.
 
         :return: hash(uid).
         """
@@ -322,7 +341,7 @@ class Item:
         :name: The attribute name.
         :value: The attribute value.
         """
-        if self.__is_dict_key(name) and self._has_initialized:
+        if Item.__is_dict_key(name) and self._has_initialized:
             self.clean_cache(name)
         super().__setattr__(name, value)
 
@@ -453,6 +472,16 @@ class Item:
 
         :param uid: The new uid.
         """
+        if self._uid != uid and self.COLLECTION_TYPE != Item.COLLECTION_TYPE:
+            name = self.name.lower()
+            collection = self.api.get_items(self.COLLECTION_TYPE)
+            with collection.lock:
+                if collection.get(name) is not None:
+                    # Changing the hash of an object requires special handling.
+                    collection.listing.pop(name)
+                    self._uid = uid
+                    collection.listing[name] = self
+                    return
         self._uid = uid
 
     @property
@@ -503,7 +532,7 @@ class Item:
             raise ValueError(f"Invalid characters in name: '{name}'")
         self._name = name
 
-    @property
+    @LazyProperty
     def comment(self) -> str:
         """
         For every object you are able to set a unique comment which will be persisted on the object.
@@ -688,7 +717,7 @@ class Item:
                 )
         self._mgmt_parameters = mgmt_parameters
 
-    @property
+    @LazyProperty
     def template_files(self) -> dict:
         """
         File mappings for built-in configuration management
@@ -714,7 +743,7 @@ class Item:
         except TypeError as error:
             raise TypeError("invalid template files specified") from error
 
-    @property
+    @LazyProperty
     def boot_files(self) -> dict:
         """
         Files copied into tftpboot beyond the kernel/initrd
@@ -768,7 +797,7 @@ class Item:
         except TypeError as error:
             raise TypeError("invalid fetchable files specified") from error
 
-    @property
+    @LazyProperty
     def depth(self) -> int:
         """
         This represents the logical depth of an object in the category of the same items. Important for the order of
@@ -811,8 +840,8 @@ class Item:
             raise TypeError("mtime needs to be of type float")
         self._mtime = mtime
 
-    @property
-    def parent(self) -> Any:
+    @LazyProperty
+    def parent(self):
         """
         This property contains the name of the parent of an object. In case there is not parent this return
         None.
@@ -845,6 +874,7 @@ class Item:
         self._parent = parent
         self.depth = found.depth + 1
 
+    @LazyProperty
     def get_parent(self) -> str:
         """
         This method returns the name of the parent for the object. In case there is not parent this return
@@ -852,7 +882,7 @@ class Item:
         """
         return self._parent
 
-    def get_conceptual_parent(self) -> Any:
+    def get_conceptual_parent(self):
         """
         The parent may just be a superclass for something like a subprofile. Get the first parent of a different type.
 
@@ -904,7 +934,7 @@ class Item:
         results = []
         list_items = self.api.get_items(self.COLLECTION_TYPE)
         for obj in list_items:
-            if obj.get_parent() == self._name:
+            if obj.get_parent == self._name:
                 results.append(obj)
         return results
 
@@ -943,7 +973,7 @@ class Item:
                     results.update(dep_item.descendants)
         return list(results)
 
-    @property
+    @LazyProperty
     def is_subobject(self) -> bool:
         """
         Weather the object is a subobject of another object or not.
@@ -1090,7 +1120,7 @@ class Item:
         raise NotImplementedError("Must be implemented in a specific Item")
 
     @classmethod
-    def _remove_depreacted_dict_keys(cls, dictionary: dict):
+    def _remove_depreacted_dict_keys(cls, dictionary: Dict[str, Any]):
         """
         This method does remove keys which should not be deserialized and are only there for API compatibility in
         :meth:`~cobbler.items.item.Item.to_dict`.
@@ -1104,7 +1134,7 @@ class Item:
         if "children" in dictionary:
             dictionary.pop("children")
 
-    def from_dict(self, dictionary: dict):
+    def from_dict(self, dictionary: Dict[str, Any]):
         """
         Modify this object to take on values in ``dictionary``.
 
@@ -1112,6 +1142,11 @@ class Item:
         :raises AttributeError: In case during the process of setting a value for an attribute an error occurred.
         :raises KeyError: In case there were keys which could not be set in the item dictionary.
         """
+        self._remove_depreacted_dict_keys(dictionary)
+        if len(dictionary) == 0:
+            return
+        old_has_initialized = self._has_initialized
+        self._has_initialized = False
         result = copy.deepcopy(dictionary)
         for key in dictionary:
             lowered_key = key.lower()
@@ -1125,6 +1160,8 @@ class Item:
                         f'Attribute "{lowered_key}" could not be set!'
                     ) from error
                 result.pop(key)
+        self._has_initialized = old_has_initialized
+        self.clean_cache()
         if len(result) > 0:
             raise KeyError(
                 f"The following keys supplied could not be set: {result.keys()}"
@@ -1138,6 +1175,8 @@ class Item:
                      objects raw value.
         :return: A dictionary with all values present in this object.
         """
+        if not self.inmemory:
+            self.deserialize()
         cached_result = self.cache.get_dict_cache(resolved)
         if cached_result is not None:
             return cached_result
@@ -1182,7 +1221,7 @@ class Item:
         self.cache.set_dict_cache(value, resolved)
         return value
 
-    def serialize(self) -> dict:
+    def serialize(self) -> Dict[str, Any]:
         """
         This method is a proxy for :meth:`~cobbler.items.item.Item.to_dict` and contains additional logic for
         serialization to a persistent location.
@@ -1200,12 +1239,31 @@ class Item:
             result.pop(key, "")
         return result
 
-    def deserialize(self, item_dict: dict):
+    def deserialize(self):
         """
-        This is currently a proxy for :py:meth:`~cobbler.items.item.Item.from_dict` .
+        Deserializes the object itself and, if necessary, recursively all the objects it depends on.
+        """
 
-        :param item_dict: The dictionary with the data to deserialize.
-        """
+        def deserialize_ancestor(ancestor_item_type: str, ancestor_name: str):
+            if ancestor_name not in {"", enums.VALUE_INHERITED}:
+                ancestor = self.api.get_items(ancestor_item_type).get(ancestor_name)
+                if ancestor is not None and not ancestor.inmemory:
+                    ancestor.deserialize()
+
+        item_dict = self.api.deserialize_item(self)
+        if item_dict["inmemory"]:
+            for ancestor_item_type, ancestor_deps in Item.TYPE_DEPENDENCIES.items():
+                for ancestor_dep in ancestor_deps:
+                    if self.TYPE_NAME == ancestor_dep[0]:
+                        attr_name = ancestor_dep[1]
+                        if attr_name not in item_dict:
+                            continue
+                        attr_val = item_dict[attr_name]
+                        if isinstance(attr_val, str):
+                            deserialize_ancestor(ancestor_item_type, attr_val)
+                        elif isinstance(attr_val, list):
+                            for ancestor_name in attr_val:
+                                deserialize_ancestor(ancestor_item_type, ancestor_name)
         self.from_dict(item_dict)
 
     def grab_tree(self) -> list:
@@ -1250,7 +1308,7 @@ class Item:
         if not self.api.settings().cache_enabled:
             return
 
-        if name is not None:
+        if name is not None and self._inmemory:
             attr = getattr(type(self), name[1:])
             if (
                 isinstance(attr, (InheritableProperty, InheritableDictProperty))
@@ -1272,4 +1330,25 @@ class Item:
                     Can be Item, Settings or SIGNATURE_CACHE.
         :param name: The name of Item attribute or None.
         """
-        self._clean_dict_cache(name)
+        if self._inmemory:
+            self._clean_dict_cache(name)
+
+    @property
+    def inmemory(self) -> bool:
+        r"""
+        If set to ``false``, only the Item name is in memory. The rest of the Item's properties can be retrieved
+        either on demand or as a result of the ``load_items`` background task.
+
+        :getter: The inmemory for the item.
+        :setter: The new inmemory value for the object. Should only be used by the Cobbler serializers.
+        """
+        return self._inmemory
+
+    @inmemory.setter
+    def inmemory(self, inmemory: bool):
+        """
+        Setter for the inmemory of the item.
+
+        :param inmemory: The new inmemory value.
+        """
+        self._inmemory = inmemory

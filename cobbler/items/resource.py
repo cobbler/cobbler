@@ -6,12 +6,15 @@ An Resource is a serializable thing that can appear in a Collection
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Kelsey Hightower <kelsey.hightower@gmail.com>
 
-import uuid
-from typing import Union
+import copy
+from typing import TYPE_CHECKING, Any, Union
 
 from cobbler import enums
-
 from cobbler.items import item
+from cobbler.decorator import LazyProperty
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Resource(item.Item):
@@ -21,11 +24,13 @@ class Resource(item.Item):
     TODO: Type declarations in the method signatures and type checks in the bodys.
     """
 
-    def __init__(self, api, *args, **kwargs):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
         """
         Constructor.
+
+        :param api: The Cobbler API object which is used for resolving information.
         """
-        super().__init__(api, *args, **kwargs)
+        super().__init__(api)
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
@@ -35,6 +40,9 @@ class Resource(item.Item):
         self._group = ""
         self._path = ""
         self._template = ""
+
+        if len(kwargs) > 0:
+            self.from_dict(kwargs)
         if not self._has_initialized:
             self._has_initialized = True
 
@@ -48,26 +56,15 @@ class Resource(item.Item):
 
         :return: The cloned instance of this object.
         """
-        _dict = self.to_dict()
-        cloned = Resource(self.api)
-        cloned.from_dict(_dict)
-        cloned.uid = uuid.uuid4().hex
-        return cloned
-
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
+        _dict = copy.deepcopy(self.to_dict())
+        _dict.pop("uid", None)
+        return Resource(self.api, **_dict)
 
     #
     # specific methods for item.File
     #
 
-    @property
+    @LazyProperty
     def action(self) -> enums.ResourceAction:
         """
         Action property.
@@ -90,7 +87,7 @@ class Resource(item.Item):
         """
         self._action = enums.ResourceAction.to_enum(action)
 
-    @property
+    @LazyProperty
     def group(self) -> str:
         """
         Group property.
@@ -112,7 +109,7 @@ class Resource(item.Item):
             raise TypeError("Field group of object resource needs to be of type str!")
         self._group = group
 
-    @property
+    @LazyProperty
     def mode(self) -> str:
         """
         Mode property.
@@ -134,7 +131,7 @@ class Resource(item.Item):
             raise TypeError("Field mode in object resource needs to be of type str!")
         self._mode = mode
 
-    @property
+    @LazyProperty
     def owner(self) -> str:
         """
         Owner property.
@@ -156,7 +153,7 @@ class Resource(item.Item):
             raise TypeError("Field owner in object resource needs to be of type str!")
         self._owner = owner
 
-    @property
+    @LazyProperty
     def path(self) -> str:
         """
         Path property.
@@ -178,7 +175,7 @@ class Resource(item.Item):
             raise TypeError("Field path in object resource needs to be of type str!")
         self._path = path
 
-    @property
+    @LazyProperty
     def template(self) -> str:
         """
         Template property.

@@ -18,7 +18,7 @@ import time
 import re
 import xmlrpc.server
 from socketserver import ThreadingMixIn
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 
 from cobbler import enums
@@ -63,7 +63,7 @@ class CobblerXMLRPCInterface:
         self.api = api
         self.logger = logging.getLogger()
         self.token_cache: Dict[str, tuple] = {}
-        self.unsaved_items = {}
+        self.unsaved_items: Dict[str, Any] = {}
         self.timestamp = self.api.last_modified_time()
         self.events: Dict[str, CobblerEvent] = {}
         self.shared_secret = utils.get_shared_secret()
@@ -427,12 +427,12 @@ class CobblerXMLRPCInterface:
 
     def __start_task(
         self,
-        thr_obj_fn,
+        thr_obj_fn: Callable[[CobblerThread], None],
         token: str,
         role_name: str,
         name: str,
-        args: dict,
-        on_done=None,
+        args: Dict[str, Any],
+        on_done: Optional[Callable[[CobblerThread], None]] = None,
     ):
         """
         Starts a new background task.
@@ -1761,7 +1761,9 @@ class CobblerXMLRPCInterface:
         """
         return self.rename_item("menu", object_id, newname, token)
 
-    def new_item(self, what: str, token: str, is_subobject: bool = False):
+    def new_item(
+        self, what: str, token: str, is_subobject: bool = False, **kwargs: Any
+    ) -> str:
         """Creates a new (unconfigured) object, returning an object handle that can be used.
 
         Creates a new (unconfigured) object, returning an object handle that can be used with ``modify_*`` methods and
@@ -1775,7 +1777,7 @@ class CobblerXMLRPCInterface:
         """
         self._log(f"new_item({what})", token=token)
         self.check_access(token, f"new_{what}")
-        new_item = self.api.new_item(what, is_subobject)
+        new_item = self.api.new_item(what, is_subobject, **kwargs)
         self.unsaved_items[new_item.uid] = (time.time(), new_item)
         return new_item.uid
 

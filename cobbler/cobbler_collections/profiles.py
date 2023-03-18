@@ -6,10 +6,14 @@ Cobbler module that at runtime holds all profiles in Cobbler.
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
+from typing import TYPE_CHECKING, Any, Dict
 from cobbler.cobbler_collections import collection
-from cobbler.items import profile as profile
+from cobbler.items import profile
 from cobbler import utils
 from cobbler.cexceptions import CX
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Profiles(collection.Collection):
@@ -25,13 +29,11 @@ class Profiles(collection.Collection):
     def collection_types() -> str:
         return "profiles"
 
-    def factory_produce(self, api, item_dict):
+    def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]):
         """
-        Return a Distro forged from item_dict
+        Return a Distro forged from seed_data
         """
-        new_profile = profile.Profile(api)
-        new_profile.from_dict(item_dict)
-        return new_profile
+        return profile.Profile(self.api, **seed_data)
 
     def remove(
         self,

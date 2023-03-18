@@ -101,17 +101,52 @@ class MongoDBSerializer(StorageBase):
         if collection_type == "settings":
             return settings.read_settings_file()
 
+        results = []
+        projection = None
         collection = self.mongodb_database[collection_type]
-        return list(collection.find({}, {"_id": False}))
+        lazy_start = self.api.settings().lazy_start
+        if lazy_start:
+            projection = ["name"]
+
+        # pymongo.cursor.Cursor
+        cursor = collection.find(projection=projection)
+        for result in cursor:
+            self._remove_id(result)
+            result["inmemory"] = not lazy_start
+            results.append(result)
+        return results
 
     def deserialize(self, collection, topological: bool = True):
         datastruct = self.deserialize_raw(collection.collection_type())
         if topological and isinstance(datastruct, list):
-            datastruct.sort(key=lambda x: x["depth"])
+            datastruct.sort(key=lambda x: x.get("depth", 1))
         if isinstance(datastruct, dict):
             collection.from_dict(datastruct)
         elif isinstance(datastruct, list):
             collection.from_list(datastruct)
+
+    def deserialize_item(self, collection_type: str, name: str) -> dict:
+        """
+        Get a collection item from database.
+
+        :param collection_type: The collection type to fetch.
+        :param name: collection Item name
+        :return: Dictionary of the collection item.
+        """
+        mongodb_collection = self.mongodb_database[collection_type]
+        result = mongodb_collection.find_one({"name": name})
+        if result is None:
+            raise CX(
+                f"Item {name} of collection {collection_type} was not found in MongoDB database {self.database_name}!"
+            )
+        self._remove_id(result)
+        result["inmemory"] = True
+        return result
+
+    @staticmethod
+    def _remove_id(_dict: dict):
+        if "_id" in _dict:
+            _dict.pop("_id")
 
 
 def storage_factory(api):

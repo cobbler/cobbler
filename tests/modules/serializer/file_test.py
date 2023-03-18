@@ -9,6 +9,7 @@ from cobbler.cobbler_collections.collection import Collection
 from cobbler.modules.serializers import file
 from cobbler.cexceptions import CX
 from cobbler.settings import Settings
+from tests.conftest import does_not_raise
 
 
 @pytest.fixture()
@@ -242,3 +243,42 @@ def test_deserialize(
     # Assert
     assert stub_from.called
     stub_from.assert_called_with(expected_result)
+
+
+@pytest.mark.parametrize(
+    "input_collection_type,input_item,expected_result,expected_exception",
+    [
+        (
+            "distros",
+            {"name": "test"},
+            {"name": "test", "inmemory": True},
+            does_not_raise(),
+        ),
+        (
+            "distros",
+            {"name": "test"},
+            {"name": "fake", "inmemory": True},
+            pytest.raises(CX),
+        ),
+    ],
+)
+def test_deserialize_item(
+    mocker,
+    input_collection_type,
+    input_item,
+    expected_result,
+    expected_exception,
+    serializer_obj,
+):
+    # Arrange
+    mocked_input = mocker.mock_open(read_data=json.dumps(input_item))()
+    mocker.patch("builtins.open", return_value=mocked_input)
+
+    # Act
+    with expected_exception:
+        result = serializer_obj.deserialize_item(
+            input_collection_type, expected_result["name"]
+        )
+
+        # Assert
+        assert result == expected_result

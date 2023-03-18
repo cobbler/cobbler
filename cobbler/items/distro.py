@@ -7,8 +7,8 @@ Cobbler module that contains the code for a Cobbler distro object.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 import glob
 import os
-import uuid
-from typing import List, Union
+import copy
+from typing import TYPE_CHECKING, Any, List, Union
 
 from cobbler import enums, validate
 from cobbler.items import item
@@ -16,7 +16,10 @@ from cobbler import utils
 from cobbler.utils import input_converters, signatures
 from cobbler.cexceptions import CX
 from cobbler import grub
-from cobbler.decorator import InheritableProperty
+from cobbler.decorator import LazyProperty, InheritableProperty
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Distro(item.Item):
@@ -28,21 +31,19 @@ class Distro(item.Item):
     TYPE_NAME = "distro"
     COLLECTION_TYPE = "distro"
 
-    def __init__(self, api, *args, **kwargs):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
         """
         This creates a Distro object.
 
         :param api: The Cobbler API object which is used for resolving information.
-        :param args: Place for extra parameters in this distro object.
-        :param kwargs: Place for extra parameters in this distro object.
         """
-        super().__init__(api, *args, **kwargs)
+        super().__init__(api)
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
         self._tree_build_time = 0.0
         self._arch = enums.Archs.X86_64
-        self._boot_loaders: Union[list, str] = enums.VALUE_INHERITED
+        self._boot_loaders: Union[List[str], str] = enums.VALUE_INHERITED
         self._breed = ""
         self._initrd = ""
         self._kernel = ""
@@ -56,10 +57,13 @@ class Distro(item.Item):
         self._remote_boot_initrd = ""
         self._remote_grub_initrd = ""
         self._supported_boot_loaders: List[str] = []
+
+        if len(kwargs) > 0:
+            self.from_dict(kwargs)
         if not self._has_initialized:
             self._has_initialized = True
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         if name == "ks_meta":
             return self.autoinstall_meta
         raise AttributeError(f'Attribute "{name}" did not exist on object type Distro.')
@@ -75,15 +79,12 @@ class Distro(item.Item):
         :return: The cloned object. Not persisted on the disk or in a database.
         """
         # FIXME: Change unique base attributes
-        _dict = self.to_dict()
+        _dict = copy.deepcopy(self.to_dict())
         # Drop attributes which are computed from other attributes
-        computed_properties = ["remote_grub_initrd", "remote_grub_kernel"]
+        computed_properties = ["remote_grub_initrd", "remote_grub_kernel", "uid"]
         for property_name in computed_properties:
             _dict.pop(property_name, None)
-        cloned = Distro(self.api)
-        cloned.from_dict(_dict)
-        cloned.uid = uuid.uuid4().hex
-        return cloned
+        return Distro(self.api, **_dict)
 
     @classmethod
     def _remove_depreacted_dict_keys(cls, dictionary: dict):
@@ -96,22 +97,13 @@ class Distro(item.Item):
             dictionary.pop("parent")
         super()._remove_depreacted_dict_keys(dictionary)
 
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        if "name" in dictionary:
-            self.name = dictionary["name"]
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
-
     def check_if_valid(self):
         """
         Check if a distro object is valid. If invalid an exception is raised.
         """
         super().check_if_valid()
+        if not self.inmemory:
+            return
         if self.kernel is None:
             raise CX(f"Error with distro {self.name} - kernel is required")
 
@@ -137,7 +129,7 @@ class Distro(item.Item):
             "Setting the parent of a distribution is not supported. Ignoring action!"
         )
 
-    @property
+    @LazyProperty
     def kernel(self) -> str:
         """
         Specifies a kernel. The kernel parameter is a full path, a filename in the configured kernel directory or a
@@ -167,7 +159,7 @@ class Distro(item.Item):
             )
         self._kernel = kernel
 
-    @property
+    @LazyProperty
     def remote_boot_kernel(self) -> str:
         """
         URL to a remote kernel. If the bootloader supports this feature, it directly tries to retrieve the kernel and
@@ -208,7 +200,7 @@ class Distro(item.Item):
         self._remote_grub_kernel = parsed_url
         self._remote_boot_kernel = remote_boot_kernel
 
-    @property
+    @LazyProperty
     def tree_build_time(self) -> float:
         """
         Represents the import time of the distro. If not imported, this field is not meaningful.
@@ -233,7 +225,7 @@ class Distro(item.Item):
             raise TypeError("datestamp needs to be of type float")
         self._tree_build_time = datestamp
 
-    @property
+    @LazyProperty
     def breed(self) -> str:
         """
         The repository system breed. This decides some defaults for most actions with a repo in Cobbler.
@@ -252,7 +244,7 @@ class Distro(item.Item):
         """
         self._breed = validate.validate_breed(breed)
 
-    @property
+    @LazyProperty
     def os_version(self) -> str:
         r"""
         The operating system version which the image contains.
@@ -271,9 +263,9 @@ class Distro(item.Item):
         """
         self._os_version = validate.validate_os_version(os_version, self.breed)
 
-    @property
+    @LazyProperty
     def initrd(self) -> str:
-        """
+        r"""
         Specifies an initrd image. Path search works as in set_kernel. File must be named appropriately.
 
         :getter: The current path to the initrd.
@@ -299,9 +291,9 @@ class Distro(item.Item):
             return
         raise ValueError("initrd not found")
 
-    @property
+    @LazyProperty
     def remote_grub_kernel(self) -> str:
-        """
+        r"""
         This is tied to the ``remote_boot_kernel`` property. It contains the URL of that field in a format which grub
         can use directly.
 
@@ -309,7 +301,7 @@ class Distro(item.Item):
         """
         return self._remote_grub_kernel
 
-    @property
+    @LazyProperty
     def remote_grub_initrd(self) -> str:
         r"""
         This is tied to the ``remote_boot_initrd`` property. It contains the URL of that field in a format which grub
@@ -319,7 +311,7 @@ class Distro(item.Item):
         """
         return self._remote_grub_initrd
 
-    @property
+    @LazyProperty
     def remote_boot_initrd(self) -> str:
         r"""
         URL to a remote initrd. If the bootloader supports this feature, it directly tries to retrieve the initrd and
@@ -332,7 +324,7 @@ class Distro(item.Item):
 
     @remote_boot_initrd.setter
     def remote_boot_initrd(self, remote_boot_initrd: str):
-        """
+        r"""
         The setter for the ``remote_boot_initrd`` property.
 
         :param remote_boot_initrd: The new value for the property.
@@ -357,9 +349,9 @@ class Distro(item.Item):
         self._remote_grub_initrd = parsed_url
         self._remote_boot_initrd = remote_boot_initrd
 
-    @property
+    @LazyProperty
     def source_repos(self) -> list:
-        """
+        r"""
         A list of http:// URLs on the Cobbler server that point to yum configuration files that can be used to
         install core packages. Use by ``cobbler import`` only.
 
@@ -382,7 +374,7 @@ class Distro(item.Item):
             )
         self._source_repos = repos
 
-    @property
+    @LazyProperty
     def arch(self):
         """
         The field is mainly relevant to PXE provisioning.
@@ -422,7 +414,7 @@ class Distro(item.Item):
 
     @InheritableProperty
     def boot_loaders(self) -> list:
-        """
+        r"""
         All boot loaders for which Cobbler generates entries for.
 
         .. note:: This property can be set to ``<<inherit>>``.
@@ -463,7 +455,7 @@ class Distro(item.Item):
 
     @InheritableProperty
     def redhat_management_key(self) -> str:
-        """
+        r"""
         Get the redhat management key. This is probably only needed if you have spacewalk, uyuni or SUSE Manager
         running.
 
@@ -488,7 +480,7 @@ class Distro(item.Item):
         self._redhat_management_key = management_key
 
     def find_distro_path(self):
-        """
+        r"""
         This returns the absolute path to the distro under the ``distro_mirror`` directory. If that directory doesn't
         contain the kernel, the directory of the kernel in the distro is returned.
 

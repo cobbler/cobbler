@@ -286,10 +286,6 @@ class TestSystem:
         "create_testmenu",
         "create_testprofile",
         "create_testsystem",
-        "remove_testdistro",
-        "remove_testmenu",
-        "remove_testprofile",
-        "remove_testsystem",
     )
     def test_copy_system(self, remote, token):
         """
@@ -303,9 +299,6 @@ class TestSystem:
 
         # Assert
         assert result
-
-        # Cleanup
-        remote.remove_system("testsytemcopy", token)
 
     @pytest.mark.usefixtures(
         "create_testdistro",

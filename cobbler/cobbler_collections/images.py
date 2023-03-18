@@ -6,10 +6,14 @@ Cobbler module that at runtime holds all images in Cobbler.
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
+from typing import TYPE_CHECKING, Any, Dict
 from cobbler.cobbler_collections import collection
-from cobbler.items import image as image
+from cobbler.items import image
 from cobbler import utils
 from cobbler.cexceptions import CX
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Images(collection.Collection):
@@ -26,17 +30,19 @@ class Images(collection.Collection):
     def collection_types() -> str:
         return "images"
 
-    def factory_produce(self, api, item_dict):
+    def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]):
         """
-        Return a Distro forged from item_dict
+        Return a Distro forged from seed_data
+
+        :param api: Parameter is skipped.
+        :param seed_data: Data to seed the object with.
+        :returns: The created object.
         """
-        new_image = image.Image(api)
-        new_image.from_dict(item_dict)
-        return new_image
+        return image.Image(self.api, **seed_data)
 
     def remove(
         self,
-        name,
+        name: str,
         with_delete: bool = True,
         with_sync: bool = True,
         with_triggers: bool = True,

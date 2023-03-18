@@ -66,6 +66,19 @@ class StorageBase:
             "The implementation for the configured serializer is missing!"
         )
 
+    def deserialize_item(self, collection_type: str, name: str) -> dict:
+        """
+        Get a collection item from database and parse it into an object.
+
+        :param collection_type: The collection type to fetch.
+        :param item: collection item
+        :param topological: If the collection list should be sorted by the collection dict depth value or not.
+        :return: The first element of the collection requested.
+        """
+        raise NotImplementedError(
+            "The implementation for the configured serializer is missing!"
+        )
+
 
 def register() -> str:
     """
