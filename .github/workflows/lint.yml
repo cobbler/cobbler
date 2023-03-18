@@ -53,6 +53,7 @@ jobs:
       - uses: jakebailey/pyright-action@v1
         # https://github.com/jakebailey/pyright-action
         with:
+          version: '1.1.291'
           extra-args: ${{ steps.changed-files.outputs.all_changed_files }}
   python_black:
     name: black formatter

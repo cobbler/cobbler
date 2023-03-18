@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+"""
+Setup module for Cobbler
+"""
+
 import codecs
 import glob as _glob
 import os
@@ -52,9 +56,9 @@ grub_mod_folder = os.environ.get("GRUB_MOD_FOLDER", "/usr/share/grub2")
 #####################################################################
 
 
-def glob(*args, **kwargs):
+def glob(*args: str, **kwargs: Any) -> List[str]:
     recursive = kwargs.get("recursive", False)
-    results = []
+    results: List[str] = []
     for arg in args:
         for elem in _glob.glob(arg):
             # Now check if we should handle/check those results.
@@ -78,8 +82,10 @@ def glob(*args, **kwargs):
     return results
 
 
-def read_readme_file():
-    # read the contents of your README file
+def read_readme_file() -> str:
+    """
+    read the contents of your README file
+    """
     this_directory = os.path.abspath(os.path.dirname(__file__))
     with open(os.path.join(this_directory, "README.md"), encoding="utf-8") as f:
         return f.read()
@@ -108,7 +114,9 @@ def gen_build_version():
         if cmd.returncode == 0:
             gitstamp, gitdate = data.decode("utf8").split("\n")
 
-    with open(os.path.join(OUTPUT_DIR, "version"), "w+") as version_file:
+    with open(
+        os.path.join(OUTPUT_DIR, "version"), "w+", encoding="UTF-8"
+    ) as version_file:
         config = ConfigParser()
         config.add_section("cobbler")
         config.set("cobbler", "gitdate", str(gitdate))
@@ -127,7 +135,7 @@ def gen_build_version():
 
 
 class Distribution(_Distribution):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         self.configure_files = []
         self.configure_values = {}
         self.man_pages = []
@@ -139,7 +147,7 @@ class Distribution(_Distribution):
 #####################################################################
 
 
-class build_py(_build_py):
+class BuildPy(_build_py):
     """Specialized Python source builder."""
 
     def run(self):
@@ -152,7 +160,7 @@ class build_py(_build_py):
 #####################################################################
 
 
-class build(_build):
+class Build(_build):
     """Specialized Python source builder."""
 
     def run(self):
@@ -164,9 +172,13 @@ class build(_build):
 #####################################################################
 
 
-class build_man(BuildDoc):
+class BuildMan(BuildDoc):  # type: ignore
+    """
+    TODO
+    """
+
     def initialize_options(self):
-        BuildDoc.initialize_options(self)
+        BuildDoc.initialize_options(self)  # type: ignore
         self.builder = "man"
 
 
@@ -175,7 +187,10 @@ class build_man(BuildDoc):
 #####################################################################
 
 
-class build_cfg(Command):
+class BuildCfg(Command):
+    """
+    TODO
+    """
 
     description = "configure files (copy and substitute options)"
 
@@ -211,6 +226,9 @@ class build_cfg(Command):
     boolean_options = ["force"]
 
     def initialize_options(self):
+        """
+        TODO
+        """
         self.build_dir = None
         self.force = None
         self.install_base = None
@@ -224,6 +242,9 @@ class build_cfg(Command):
         self.root = None
 
     def finalize_options(self):
+        """
+        TODO
+        """
         self.set_undefined_options(
             "build", ("build_base", "build_dir"), ("force", "force")
         )
@@ -255,38 +276,44 @@ class build_cfg(Command):
             virtualenv = ""
 
         # The values to expand.
-        self.configure_values = {
+        self.configure_values = {  # type: ignore
             "python_executable": sys.executable,
             "virtualenv": virtualenv,
-            "install_base": os.path.normpath(self.install_base),
-            "install_platbase": os.path.normpath(self.install_platbase),
-            "install_scripts": os.path.normpath(self.install_scripts),
-            "install_data": os.path.normpath(self.install_data),
-            "install_purelib": os.path.normpath(self.install_purelib),
-            "install_platlib": os.path.normpath(self.install_platlib),
-            "install_lib": os.path.normpath(self.install_lib),
-            "install_headers": os.path.normpath(self.install_headers),
+            "install_base": os.path.normpath(self.install_base),  # type: ignore
+            "install_platbase": os.path.normpath(self.install_platbase),  # type: ignore
+            "install_scripts": os.path.normpath(self.install_scripts),  # type: ignore
+            "install_data": os.path.normpath(self.install_data),  # type: ignore
+            "install_purelib": os.path.normpath(self.install_purelib),  # type: ignore
+            "install_platlib": os.path.normpath(self.install_platlib),  # type: ignore
+            "install_lib": os.path.normpath(self.install_lib),  # type: ignore
+            "install_headers": os.path.normpath(self.install_headers),  # type: ignore
         }
-        self.configure_values.update(self.distribution.configure_values)
+        self.configure_values.update(self.distribution.configure_values)  # type: ignore
 
     def run(self):
+        """
+        TODO
+        """
         # On dry-run ignore missing source files.
-        if self.dry_run:
+        if self.dry_run:  # type: ignore
             mode = "newer"
         else:
             mode = "error"
         # Work on all files
-        for infile in self.distribution.configure_files:
+        for infile in self.distribution.configure_files:  # type: ignore
             # We copy the files to build/
-            outfile = os.path.join(self.build_dir, infile)
+            outfile = os.path.join(self.build_dir, infile)  # type: ignore
             # check if the file is out of date
-            if self.force or dep_util.newer_group([infile, "setup.py"], outfile, mode):
+            if self.force or dep_util.newer_group([infile, "setup.py"], outfile, mode):  # type: ignore
                 # It is. Configure it
-                self.configure_one_file(infile, outfile)
+                self.configure_one_file(infile, outfile)  # type: ignore
 
-    def configure_one_file(self, infile, outfile):
+    def configure_one_file(self, infile: str, outfile: str):
+        """
+        TODO
+        """
         self.announce("configuring %s" % infile, 3)
-        if not self.dry_run:
+        if not self.dry_run:  # type: ignore
             # Read the file
             with codecs.open(infile, "r", "utf-8") as fh:
                 before = fh.read()
@@ -297,28 +324,31 @@ class build_cfg(Command):
                 os.makedirs(outdir)
             # Write it into build/
             with codecs.open(outfile, "w", "utf-8") as fh:
-                fh.write(self.substitute_values(before, self.configure_values))
+                fh.write(self.substitute_values(before, self.configure_values))  # type: ignore
             # The last step is to copy the permission bits
             shutil.copymode(infile, outfile)
 
-    def substitute_values(self, string, values):
+    def substitute_values(self, string: str, values: Dict[str, Any]) -> str:
+        """
+        TODO
+        """
         for name, val in list(values.items()):
             # print("replacing @@%s@@ with %s" % (name, val))
-            string = string.replace("@@%s@@" % (name), val)
+            string = string.replace(f"@@{name}@@", val)
         return string
 
 
-def has_configure_files(build):
+def has_configure_files(build: Build):
     """Check if the distribution has configuration files to work on."""
-    return bool(build.distribution.configure_files)
+    return bool(build.distribution.configure_files)  # type: ignore
 
 
-def has_man_pages(build):
+def has_man_pages(build: Build):
     """Check if the distribution has configuration files to work on."""
-    return bool(build.distribution.man_pages)
+    return bool(build.distribution.man_pages)  # type: ignore
 
 
-build.sub_commands.extend(
+Build.sub_commands.extend(
     (("build_man", has_man_pages), ("build_cfg", has_configure_files))
 )
 
@@ -328,20 +358,23 @@ build.sub_commands.extend(
 #####################################################################
 
 
-class install(_install):
+class Install(_install):
     """Specialised python package installer.
 
     It does some required chown calls in addition to the usual stuff.
     """
 
-    def __init__(self, *args):
+    def __init__(self, *args: Any):
         _install.__init__(self, *args)
 
-    def change_owner(self, path, owner):
+    def change_owner(self, path: str, owner: str):
+        """
+        TODO
+        """
         user = pwd.getpwnam(owner)
         try:
             self.announce("changing mode of %s" % path, 3)
-            if not self.dry_run:
+            if not self.dry_run:  # type: ignore
                 # os.walk does not include the toplevel directory
                 os.lchown(path, user.pw_uid, -1)
                 # Now walk the directory and change them all
@@ -350,17 +383,20 @@ class install(_install):
                         os.lchown(os.path.join(root, dirname), user.pw_uid, -1)
                     for filename in files:
                         os.lchown(os.path.join(root, filename), user.pw_uid, -1)
-        except OSError as e:
+        except OSError as os_error:
             # We only check for errno = 1 (EPERM) here because its kinda
             # expected when installing as a non root user.
-            if e.errno == 1:
+            if os_error.errno == 1:
                 self.warn("Could not change owner: You have insufficient permissions.")
             else:
-                raise e
+                raise os_error
 
     def run(self):
+        """
+        TODO
+        """
         # Run the usual stuff.
-        _install.run(self)
+        _install.run(self)  # type: ignore
 
         # If --root wasn't specified default to /usr/local
         if self.root is None:
@@ -372,17 +408,29 @@ class install(_install):
 #####################################################################
 
 
-class test_command(Command):
+class TestCommand(Command):
+    """
+    TODO
+    """
+
     user_options = []
 
     def initialize_options(self):
-        pass
+        """
+        TODO
+        """
 
     def finalize_options(self):
-        pass
+        """
+        TODO
+        """
 
     def run(self):
+        """
+        TODO
+        """
         import pytest
+        from coverage import Coverage  # type: ignore
 
         cov = Coverage()
         cov.erase()
@@ -392,8 +440,8 @@ class test_command(Command):
 
         cov.stop()
         cov.save()
-        cov.html_report(directory="covhtml")
-        sys.exit(int(bool(len(result.failures) > 0 or len(result.errors) > 0)))
+        cov.html_report(directory="covhtml")  # type: ignore
+        sys.exit(int(bool(len(result.failures) > 0 or len(result.errors) > 0)))  # type: ignore
 
 
 #####################################################################
@@ -401,7 +449,10 @@ class test_command(Command):
 #####################################################################
 
 
-class statebase(Command):
+class Statebase(Command):
+    """
+    TODO
+    """
 
     user_options = [
         ("statepath=", None, "directory to backup configuration"),
@@ -409,17 +460,23 @@ class statebase(Command):
     ]
 
     def initialize_options(self):
+        """
+        TODO
+        """
         self.statepath = statepath
         self.root = None
 
     def finalize_options(self):
+        """
+        TODO
+        """
         pass
 
-    def _copy(self, frm, to):
+    def _copy(self, frm: str, to: str):
         if os.path.isdir(frm):
             to = os.path.join(to, os.path.basename(frm))
             self.announce("copying %s/ to %s/" % (frm, to), 3)
-            if not self.dry_run:
+            if not self.dry_run:  # type: ignore
                 if os.path.exists(to):
                     shutil.rmtree(to)
                 shutil.copytree(frm, to)
@@ -427,7 +484,7 @@ class statebase(Command):
             self.announce(
                 "copying %s to %s" % (frm, os.path.join(to, os.path.basename(frm))), 3
             )
-            if not self.dry_run:
+            if not self.dry_run:  # type: ignore
                 shutil.copy2(frm, to)
 
 
@@ -436,11 +493,15 @@ class statebase(Command):
 #####################################################################
 
 
-class restorestate(statebase):
-    def _copy(self, frm, to):
+class Restorestate(Statebase):
+    """
+    TODO
+    """
+
+    def _copy(self, frm: str, to: str):
         if self.root:
             to = self.root + to
-        statebase._copy(self, frm, to)
+        super()._copy(frm, to)
 
     def run(self):
         self.announce("restoring the current configuration from %s" % self.statepath, 3)
@@ -462,22 +523,25 @@ class restorestate(statebase):
 #####################################################################
 
 
-class savestate(statebase):
+class Savestate(Statebase):
 
     description = "Backup the current configuration to /tmp/cobbler_settings."
 
-    def _copy(self, frm, to):
+    def _copy(self, frm: str, to: str) -> None:
         if self.root:
             frm = self.root + frm
-        statebase._copy(self, frm, to)
+        super()._copy(frm, to)
 
     def run(self):
-        self.announce("backing up the current configuration to %s" % self.statepath, 3)
+        """
+        TODO
+        """
+        self.announce(f"backing up the current configuration to {self.statepath}", 3)
         if os.path.exists(self.statepath):
-            self.announce("deleting existing %s" % self.statepath, 3)
-            if not self.dry_run:
+            self.announce("deleting existing {self.statepath}", 3)
+            if not self.dry_run:  # type: ignore
                 shutil.rmtree(self.statepath)
-        if not self.dry_run:
+        if not self.dry_run:  # type: ignore
             os.makedirs(self.statepath)
         self._copy(os.path.join(libpath, "collections"), self.statepath)
         self._copy(os.path.join(webconfig, "cobbler.conf"), self.statepath)
@@ -498,14 +562,14 @@ if __name__ == "__main__":
     setup(
         distclass=Distribution,
         cmdclass={
-            "build": build,
-            "build_py": build_py,
-            "test": test_command,
-            "install": install,
-            "savestate": savestate,
-            "restorestate": restorestate,
-            "build_cfg": build_cfg,
-            "build_man": build_man,
+            "build": Build,
+            "build_py": BuildPy,
+            "test": TestCommand,
+            "install": Install,
+            "savestate": Savestate,
+            "restorestate": Restorestate,
+            "build_cfg": BuildCfg,
+            "build_man": BuildMan,
         },
         name="cobbler",
         version=VERSION,
@@ -538,7 +602,7 @@ if __name__ == "__main__":
             "pyyaml",
             "netaddr",
             "Cheetah3",
-            "pymongo",
+            "pymongo<4.2",  # Cobbler requires Python 3.6; Version 4.2+ requires Python 3.7
             "distro",
             "python-ldap",
             "dnspython",
@@ -547,13 +611,29 @@ if __name__ == "__main__":
             "gunicorn",
         ],
         extras_require={
-            "lint": ["pyflakes", "pycodestyle", "pylint", "black", "mypy"],
+            "windows": [
+                # "hivex",
+                "pefile"
+            ],
+            "extra": ["psutil"],  # debugging startup performance
+            "lint": [
+                # pyright is not written in Python and has to be installed differently.
+                "pyflakes",
+                "pycodestyle",
+                "pylint",
+                "black==22.3.0",  # See .pre-commit-config.yaml
+                "types-requests",
+                "types-PyYAML",
+                "types-psutil",
+                "types-netaddr",
+                "isort",
+            ],
             "test": [
                 "pytest>6",
                 "pytest-cov",
-                "codecov",
+                "coverage",
                 "pytest-mock",
-                "pytest-benchmark",
+                "pytest-benchmark"
             ],
             "docs": ["sphinx", "sphinx-rtd-theme", "sphinxcontrib-apidoc"],
         },
