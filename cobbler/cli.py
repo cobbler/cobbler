@@ -2582,7 +2582,11 @@ class CobblerCLI:
                 "--only", dest="only", help="update only this repository name"
             )
             self.parser.add_option(
-                "--tries", dest="tries", help="try each repo this many times", default=1
+                "--tries",
+                dest="tries",
+                help="try each repo this many times",
+                default=1,
+                type="int",
             )
             self.parser.add_option(
                 "--no-fail",
