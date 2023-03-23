@@ -1,6 +1,5 @@
 # start late_apt_repo_config
 cat<<EOF>/etc/apt/sources.list
-deb http://$http_server/cblr/links/$distro_name $os_version main
 #set $repo_data = $getVar("repo_data",[])
 #for $repo in $repo_data
  #for $dist in $repo.apt_dists
