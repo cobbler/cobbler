@@ -5,11 +5,14 @@ Cobbler module that contains the code for a Cobbler menu object.
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2021 Yuriy Chelpanov <yuriy.chelpanov@gmail.com>
 
-import uuid
-from typing import List, Optional
+import copy
+from typing import TYPE_CHECKING, Any
 
 from cobbler.items import item
-from cobbler.cexceptions import CX
+from cobbler.decorator import LazyProperty
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Menu(item.Item):
@@ -20,15 +23,20 @@ class Menu(item.Item):
     TYPE_NAME = "menu"
     COLLECTION_TYPE = "menu"
 
-    def __init__(self, api, *args, **kwargs):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
         """
         Constructor
+
+        :param api: The Cobbler API object which is used for resolving information.
         """
-        super().__init__(api, *args, **kwargs)
+        super().__init__(api)
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
         self._display_name = ""
+
+        if len(kwargs) > 0:
+            self.from_dict(kwargs)
         if not self._has_initialized:
             self._has_initialized = True
 
@@ -42,26 +50,15 @@ class Menu(item.Item):
 
         :return: The cloned instance of this object.
         """
-        _dict = self.to_dict()
-        cloned = Menu(self.api)
-        cloned.from_dict(_dict)
-        cloned.uid = uuid.uuid4().hex
-        return cloned
-
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
+        _dict = copy.deepcopy(self.to_dict())
+        _dict.pop("uid", None)
+        return Menu(self.api, **_dict)
 
     #
     # specific methods for item.Menu
     #
 
-    @property
+    @LazyProperty
     def display_name(self) -> str:
         """
         Returns the display name.

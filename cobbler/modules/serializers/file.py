@@ -12,6 +12,7 @@ import os
 import glob
 import json
 import logging
+from typing import Any, Dict
 
 import cobbler.api as capi
 from cobbler import settings
@@ -101,12 +102,21 @@ class FileSerializer(StorageBase):
 
         path = os.path.join(self.libpath, collection_type)
         all_files = glob.glob(f"{path}/*.json")
+        lazy_start = self.api.settings().lazy_start
 
         for file in all_files:
-            with open(file, encoding="UTF-8") as file_descriptor:
-                json_data = file_descriptor.read()
-                _dict = json.loads(json_data)
-                results.append(_dict)
+            (name, _) = os.path.splitext(os.path.basename(file))
+            if lazy_start:
+                _dict = {"name": name, "inmemory": False}
+            else:
+                with open(file, encoding="UTF-8") as file_descriptor:
+                    json_data = file_descriptor.read()
+                    _dict = json.loads(json_data)
+                    if _dict["name"] != name:
+                        raise CX(
+                            f"The file name {name}.json does not match the {_dict['name']} {collection_type}!"
+                        )
+            results.append(_dict)
         return results
 
     def deserialize(self, collection, topological: bool = True):
@@ -120,8 +130,29 @@ class FileSerializer(StorageBase):
                 collection.from_list(datastruct)
         except Exception as exc:
             logger.error(
-                f"Error while loading a collection: {exc}. Skipping this collection!"
+                "Error while loading a collection: %s. Skipping collection %s!",
+                exc,
+                collection.collection_type(),
             )
+
+    def deserialize_item(self, collection_type: str, name: str) -> Dict[str, Any]:
+        """
+        Get a collection item from disk and parse it into an object.
+
+        :param collection_type: The collection type to fetch.
+        :param name: collection Item name
+        :return: Dictionary of the collection item.
+        """
+        path = os.path.join(self.libpath, collection_type, f"{name}.json")
+        with open(path, encoding="UTF-8") as file_descriptor:
+            json_data = file_descriptor.read()
+            _dict = json.loads(json_data)
+            if _dict["name"] != name:
+                raise CX(
+                    f"The file name {name}.json does not match the {_dict['name']} {collection_type}!"
+                )
+        _dict["inmemory"] = True
+        return _dict
 
 
 def storage_factory(api):

@@ -283,6 +283,7 @@ class Settings:
         self.windows_template_dir = "/etc/cobbler/windows"
         self.samba_distro_share = "DISTRO"
         self.cache_enabled = False
+        self.lazy_start = False
 
     def to_string(self) -> str:
         """

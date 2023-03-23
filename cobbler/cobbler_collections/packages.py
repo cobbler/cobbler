@@ -5,10 +5,15 @@ Cobbler module that at runtime holds all packages in Cobbler.
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2010, Kelsey Hightower <kelsey.hightower@gmail.com>
 
+from typing import TYPE_CHECKING, Any, Dict
+
 from cobbler.cobbler_collections import collection
-from cobbler.items import package as package
+from cobbler.items import package
 from cobbler import utils
 from cobbler.cexceptions import CX
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Packages(collection.Collection):
@@ -24,17 +29,19 @@ class Packages(collection.Collection):
     def collection_types() -> str:
         return "packages"
 
-    def factory_produce(self, api, item_dict):
+    def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]):
         """
-        Return a Package forged from item_dict
+        Return a Package forged from seed_data.
+
+        :param api: Parameter is skipped.
+        :param seed_data: Data to seed the object with.
+        :returns: The created object.
         """
-        new_package = package.Package(api)
-        new_package.from_dict(item_dict)
-        return new_package
+        return package.Package(self.api, **seed_data)
 
     def remove(
         self,
-        name,
+        name: str,
         with_delete: bool = True,
         with_sync: bool = True,
         with_triggers: bool = True,

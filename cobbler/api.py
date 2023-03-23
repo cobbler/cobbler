@@ -14,7 +14,7 @@ import tempfile
 import threading
 from configparser import ConfigParser
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from schema import SchemaError
 
@@ -61,6 +61,7 @@ from cobbler.cexceptions import CX
 
 if TYPE_CHECKING:
     from cobbler.settings import Settings
+    from cobbler.items import item
 
 
 # notes on locking:
@@ -76,7 +77,7 @@ class CobblerAPI:
     Cli apps and daemons should import api.py, and no other Cobbler code.
     """
 
-    __shared_state = {}
+    __shared_state: Dict[str, Any] = {}
     __has_loaded = False
 
     def __init__(
@@ -957,7 +958,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def new_item(self, what: str = "", is_subobject: bool = False):
+    def new_item(self, what: str = "", is_subobject: bool = False, **kwargs: Any):
         """
         Creates a new (unconfigured) object. The object is not persisted.
 
@@ -968,22 +969,22 @@ class CobblerAPI:
         """
         try:
             enums.ItemTypes(what)  # verify that <what> is an ItemTypes member
-            return getattr(self, f"new_{what}")(is_subobject=is_subobject)
+            return getattr(self, f"new_{what}")(is_subobject, **kwargs)
         except (ValueError, AttributeError) as error:
             raise Exception(f"internal error, collection name is {what}") from error
 
-    def new_distro(self, is_subobject: bool = False):
+    def new_distro(self, is_subobject: bool = False, **kwargs: Any) -> distro.Distro:
         """
         Returns a new empty distro object. This distro is not automatically persisted. Persistance is achieved via
         ``save()``.
 
-        :param is_subobject: If the object created is a subobject or not.
+        :param is_subobject: If the object is a subobject of an already existing object or not.
         :return: An empty Distro object.
         """
-        self.log("new_distro", [is_subobject])
-        return distro.Distro(self, is_subobject=is_subobject)
+        self.log("new_distro", kwargs)
+        return distro.Distro(self, is_subobject, **kwargs)
 
-    def new_profile(self, is_subobject: bool = False):
+    def new_profile(self, is_subobject: bool = False, **kwargs: Any) -> profile.Profile:
         """
         Returns a new empty profile object. This profile is not automatically persisted. Persistence is achieved via
         ``save()``.
@@ -991,10 +992,10 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty Profile object.
         """
-        self.log("new_profile", [is_subobject])
-        return profile.Profile(self, is_subobject=is_subobject)
+        self.log("new_profile", kwargs)
+        return profile.Profile(self, is_subobject, kwargs)
 
-    def new_system(self, is_subobject: bool = False):
+    def new_system(self, is_subobject: bool = False, **kwargs: Any):
         """
         Returns a new empty system object. This system is not automatically persisted. Persistence is achieved via
         ``save()``.
@@ -1002,10 +1003,10 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty System object.
         """
-        self.log("new_system", [is_subobject])
-        return system.System(self, is_subobject=is_subobject)
+        self.log("new_system", kwargs)
+        return system.System(self, is_subobject, kwargs)
 
-    def new_repo(self, is_subobject: bool = False):
+    def new_repo(self, is_subobject: bool = False, **kwargs: Any):
         """
         Returns a new empty repo object. This repository is not automatically persisted. Persistence is achieved via
         ``save()``.
@@ -1013,10 +1014,10 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty repo object.
         """
-        self.log("new_repo", [is_subobject])
-        return repo.Repo(self, is_subobject=is_subobject)
+        self.log("new_repo", kwargs)
+        return repo.Repo(self, is_subobject, kwargs)
 
-    def new_image(self, is_subobject: bool = False):
+    def new_image(self, is_subobject: bool = False, **kwargs: Any):
         """
         Returns a new empty image object. This image is not automatically persisted. Persistence is achieved via
         ``save()``.
@@ -1024,10 +1025,10 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty image object.
         """
-        self.log("new_image", [is_subobject])
-        return image.Image(self, is_subobject=is_subobject)
+        self.log("new_image", kwargs)
+        return image.Image(self, is_subobject, kwargs)
 
-    def new_mgmtclass(self, is_subobject: bool = False):
+    def new_mgmtclass(self, is_subobject: bool = False, **kwargs: Any):
         """
         Returns a new empty mgmtclass object. This mgmtclass is not automatically persisted. Persistence is achieved via
         ``save()``.
@@ -1035,10 +1036,10 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty mgmtclass object.
         """
-        self.log("new_mgmtclass", [is_subobject])
-        return mgmtclass.Mgmtclass(self, is_subobject=is_subobject)
+        self.log("new_mgmtclass", kwargs)
+        return mgmtclass.Mgmtclass(self, is_subobject, kwargs)
 
-    def new_package(self, is_subobject: bool = False):
+    def new_package(self, is_subobject: bool = False, **kwargs: Any):
         """
         Returns a new empty package object. This package is not automatically persisted. Persistence is achieved via
         ``save()``.
@@ -1046,10 +1047,10 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty Package object.
         """
-        self.log("new_package", [is_subobject])
-        return package.Package(self, is_subobject=is_subobject)
+        self.log("new_package", kwargs)
+        return package.Package(self, is_subobject, kwargs)
 
-    def new_file(self, is_subobject: bool = False):
+    def new_file(self, is_subobject: bool = False, **kwargs: Any):
         """
         Returns a new empty file object. This file is not automatically persisted. Persistence is achieved via
         ``save()``.
@@ -1057,10 +1058,10 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty File object.
         """
-        self.log("new_file", [is_subobject])
-        return file.File(self, is_subobject=is_subobject)
+        self.log("new_file", kwargs)
+        return file.File(self, is_subobject, kwargs)
 
-    def new_menu(self, is_subobject: bool = False):
+    def new_menu(self, is_subobject: bool = False, **kwargs: Any):
         """
         Returns a new empty menu object. This file is not automatically persisted. Persistence is achieved via
         ``save()``.
@@ -1068,8 +1069,8 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty File object.
         """
-        self.log("new_menu", [is_subobject])
-        return menu.Menu(self, is_subobject=is_subobject)
+        self.log("new_menu", kwargs)
+        return menu.Menu(self, is_subobject, kwargs)
 
     # ==========================================================================
 
@@ -2028,6 +2029,13 @@ class CobblerAPI:
         Cobbler internal use only.
         """
         return self._collection_mgr.deserialize()
+
+    def deserialize_item(self, obj: "item.Item") -> Dict[str, Any]:
+        """
+        Load cobbler item from disk.
+        Cobbler internal use only.
+        """
+        return self._collection_mgr.deserialize_one_item(obj)
 
     # ==========================================================================
 

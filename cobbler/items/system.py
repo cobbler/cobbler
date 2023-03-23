@@ -7,8 +7,8 @@ All code belonging to Cobbler systems. This includes network interfaces.
 
 import enum
 import logging
-import uuid
-from typing import Any, Dict, List, Optional, Union
+import copy
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from ipaddress import AddressValueError
 
@@ -16,7 +16,10 @@ from cobbler import autoinstall_manager, enums, power_manager, utils, validate
 from cobbler.utils import input_converters, filesystem_helpers
 from cobbler.cexceptions import CX
 from cobbler.items.item import Item
-from cobbler.decorator import InheritableProperty
+from cobbler.decorator import LazyProperty, InheritableProperty
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class NetworkInterface:
@@ -24,7 +27,7 @@ class NetworkInterface:
     A subobject of a Cobbler System which represents the network interfaces
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
         """
         Constructor.
 
@@ -34,7 +37,7 @@ class NetworkInterface:
         self.__api = api
         self._bonding_opts = ""
         self._bridge_opts = ""
-        self._cnames = []
+        self._cnames: List[str] = []
         self._connected_mode = False
         self._dhcp_tag = ""
         self._dns_name = ""
@@ -46,17 +49,20 @@ class NetworkInterface:
         self._ipv6_default_gateway = ""
         self._ipv6_mtu = ""
         self._ipv6_prefix = ""
-        self._ipv6_secondaries = []
-        self._ipv6_static_routes = []
+        self._ipv6_secondaries: List[str] = []
+        self._ipv6_static_routes: List[str] = []
         self._mac_address = ""
         self._management = False
         self._mtu = ""
         self._netmask = ""
         self._static = False
-        self._static_routes = []
+        self._static_routes: List[str] = []
         self._virt_bridge = enums.VALUE_INHERITED
 
-    def from_dict(self, dictionary: dict):
+        if len(kwargs) > 0:
+            self.from_dict(kwargs)
+
+    def from_dict(self, dictionary: Dict[str, Any]):
         """
         Initializes the object with attributes from the dictionary.
 
@@ -74,7 +80,7 @@ class NetworkInterface:
                 str(dictionary_keys),
             )
 
-    def to_dict(self, resolved: bool = False) -> dict:
+    def to_dict(self, resolved: bool = False) -> Dict[str, Any]:
         """
         This converts everything in this object to a dictionary.
 
@@ -82,7 +88,7 @@ class NetworkInterface:
                          objects raw value.
         :return: A dictionary with all values present in this object.
         """
-        result = {}
+        result: Dict[str, Any] = {}
         for key, key_value in self.__dict__.items():
             if "__" in key:
                 continue
@@ -101,16 +107,16 @@ class NetworkInterface:
         return result
 
     # These two methods are currently not used, but we do want to use them in the future, so let's define them.
-    def serialize(self):
+    def serialize(self) -> Dict[str, Any]:
         """
         This method is a proxy for :meth:`~cobbler.items.item.Item.to_dict` and contains additional logic for
         serialization to a persistent location.
 
         :return: The dictionary with the information for serialization.
         """
-        self.to_dict()
+        return self.to_dict()
 
-    def deserialize(self, interface_dict: dict):
+    def deserialize(self, interface_dict: Dict[str, Any]):
         """
         This is currently a proxy for :py:meth:`~cobbler.items.item.Item.from_dict` .
 
@@ -142,7 +148,7 @@ class NetworkInterface:
         self._dhcp_tag = dhcp_tag
 
     @property
-    def cnames(self) -> list:
+    def cnames(self) -> List[str]:
         """
         cnames property.
 
@@ -152,7 +158,7 @@ class NetworkInterface:
         return self._cnames
 
     @cnames.setter
-    def cnames(self, cnames: list):
+    def cnames(self, cnames: List[str]):
         """
         Setter for the cnames of the NetworkInterface class.
 
@@ -161,7 +167,7 @@ class NetworkInterface:
         self._cnames = input_converters.input_string_or_list_no_inherit(cnames)
 
     @property
-    def static_routes(self) -> list:
+    def static_routes(self) -> List[str]:
         """
         static_routes property.
 
@@ -171,7 +177,7 @@ class NetworkInterface:
         return self._static_routes
 
     @static_routes.setter
-    def static_routes(self, routes: list):
+    def static_routes(self, routes: List[str]):
         """
         Setter for the static_routes of the NetworkInterface class.
 
@@ -695,7 +701,7 @@ class NetworkInterface:
             ) from error
         self._connected_mode = truthiness
 
-    def modify_interface(self, _dict: dict):
+    def modify_interface(self, _dict: Dict[str, Any]):
         """
         Modify the interface
 
@@ -762,13 +768,13 @@ class System(Item):
     TYPE_NAME = "system"
     COLLECTION_TYPE = "system"
 
-    def __init__(self, api, *args, **kwargs):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
         """
         Constructor
 
         :param api: The Cobbler API
         """
-        super().__init__(api, *args, **kwargs)
+        super().__init__(api)
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
@@ -776,7 +782,7 @@ class System(Item):
         self._ipv6_autoconfiguration = False
         self._repos_enabled = False
         self._autoinstall = enums.VALUE_INHERITED
-        self._boot_loaders: Union[list, str] = enums.VALUE_INHERITED
+        self._boot_loaders: Union[List[str], str] = enums.VALUE_INHERITED
         self._enable_ipxe: Union[bool, str] = enums.VALUE_INHERITED
         self._gateway = ""
         self._hostname = ""
@@ -821,10 +827,13 @@ class System(Item):
         self._kernel_options_post = enums.VALUE_INHERITED
         self._mgmt_parameters = enums.VALUE_INHERITED
         self._mgmt_classes = enums.VALUE_INHERITED
+
+        if len(kwargs) > 0:
+            self.from_dict(kwargs)
         if not self._has_initialized:
             self._has_initialized = True
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         if name == "kickstart":
             return self.autoinstall
         if name == "ks_meta":
@@ -836,28 +845,9 @@ class System(Item):
     #
 
     def make_clone(self):
-        _dict = self.to_dict()
-        cloned = System(self.api)
-        cloned.from_dict(_dict)
-        cloned.uid = uuid.uuid4().hex
-        return cloned
-
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        if "name" in dictionary:
-            self.name = dictionary["name"]
-        if "parent" in dictionary:
-            self.parent = dictionary["parent"]
-        if "profile" in dictionary:
-            self.profile = dictionary["profile"]
-        if "image" in dictionary:
-            self.image = dictionary["image"]
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
+        _dict = copy.deepcopy(self.to_dict())
+        _dict.pop("uid", None)
+        return System(self.api, **_dict)
 
     def check_if_valid(self):
         """
@@ -866,6 +856,8 @@ class System(Item):
         :raises CX: In case name is missing. Additionally either image or profile is required.
         """
         super().check_if_valid()
+        if not self.inmemory:
+            return
 
         # System specific validation
         if self.profile is None or self.profile == "":
@@ -878,7 +870,7 @@ class System(Item):
     # specific methods for item.System
     #
 
-    @property
+    @LazyProperty
     def interfaces(self) -> Dict[str, NetworkInterface]:
         r"""
         Represents all interfaces owned by the system.
@@ -959,7 +951,7 @@ class System(Item):
         self.interfaces[new_name] = self.interfaces[old_name]
         del self.interfaces[old_name]
 
-    @property
+    @LazyProperty
     def hostname(self) -> str:
         """
         hostname property.
@@ -980,7 +972,7 @@ class System(Item):
             raise TypeError("Field hostname of object system needs to be of type str!")
         self._hostname = value
 
-    @property
+    @LazyProperty
     def status(self) -> str:
         """
         status property.
@@ -1281,7 +1273,7 @@ class System(Item):
             self.__create_interface(interface_name)
         return self._interfaces[interface_name]
 
-    @property
+    @LazyProperty
     def gateway(self):
         """
         gateway property.
@@ -1301,7 +1293,7 @@ class System(Item):
         """
         self._gateway = validate.ipv4_address(gateway)
 
-    @property
+    @LazyProperty
     def name_servers(self) -> list:
         """
         name_servers property.
@@ -1323,7 +1315,7 @@ class System(Item):
         """
         self._name_servers = validate.name_servers(data)
 
-    @property
+    @LazyProperty
     def name_servers_search(self) -> list:
         """
         name_servers_search property.
@@ -1343,7 +1335,7 @@ class System(Item):
         """
         self._name_servers_search = validate.name_servers_search(data)
 
-    @property
+    @LazyProperty
     def ipv6_autoconfiguration(self) -> bool:
         """
         ipv6_autoconfiguration property.
@@ -1365,7 +1357,7 @@ class System(Item):
             raise TypeError("ipv6_autoconfiguration needs to be of type bool")
         self._ipv6_autoconfiguration = value
 
-    @property
+    @LazyProperty
     def ipv6_default_device(self) -> str:
         """
         ipv6_default_device property.
@@ -1415,7 +1407,7 @@ class System(Item):
             raise TypeError("enable_ipxe needs to be of type bool")
         self._enable_ipxe = enable_ipxe
 
-    @property
+    @LazyProperty
     def profile(self) -> str:
         """
         profile property.
@@ -1450,7 +1442,7 @@ class System(Item):
         self._profile = profile_name
         self.depth = profile.depth + 1  # subprofiles have varying depths.
 
-    @property
+    @LazyProperty
     def image(self) -> str:
         """
         image property.
@@ -1573,7 +1565,7 @@ class System(Item):
             return
         self._virt_auto_boot = validate.validate_virt_auto_boot(value)
 
-    @property
+    @LazyProperty
     def virt_pxe_boot(self) -> bool:
         """
         virt_pxe_boot property.
@@ -1656,7 +1648,7 @@ class System(Item):
         """
         self._virt_path = validate.validate_virt_path(path, for_system=True)
 
-    @property
+    @LazyProperty
     def netboot_enabled(self) -> bool:
         """
         netboot_enabled property.
@@ -1710,7 +1702,7 @@ class System(Item):
             autoinstall
         )
 
-    @property
+    @LazyProperty
     def power_type(self) -> str:
         """
         power_type property.
@@ -1736,7 +1728,7 @@ class System(Item):
         power_manager.validate_power_type(power_type)
         self._power_type = power_type
 
-    @property
+    @LazyProperty
     def power_identity_file(self) -> str:
         """
         power_identity_file property.
@@ -1761,7 +1753,7 @@ class System(Item):
         filesystem_helpers.safe_filter(power_identity_file)
         self._power_identity_file = power_identity_file
 
-    @property
+    @LazyProperty
     def power_options(self) -> str:
         """
         power_options property.
@@ -1786,7 +1778,7 @@ class System(Item):
         filesystem_helpers.safe_filter(power_options)
         self._power_options = power_options
 
-    @property
+    @LazyProperty
     def power_user(self) -> str:
         """
         power_user property.
@@ -1811,7 +1803,7 @@ class System(Item):
         filesystem_helpers.safe_filter(power_user)
         self._power_user = power_user
 
-    @property
+    @LazyProperty
     def power_pass(self) -> str:
         """
         power_pass property.
@@ -1836,7 +1828,7 @@ class System(Item):
         filesystem_helpers.safe_filter(power_pass)
         self._power_pass = power_pass
 
-    @property
+    @LazyProperty
     def power_address(self) -> str:
         """
         power_address property.
@@ -1861,7 +1853,7 @@ class System(Item):
         filesystem_helpers.safe_filter(power_address)
         self._power_address = power_address
 
-    @property
+    @LazyProperty
     def power_id(self) -> str:
         """
         power_id property.
@@ -1884,7 +1876,7 @@ class System(Item):
         filesystem_helpers.safe_filter(power_id)
         self._power_id = power_id
 
-    @property
+    @LazyProperty
     def repos_enabled(self) -> bool:
         """
         repos_enabled property.
@@ -1909,7 +1901,7 @@ class System(Item):
             )
         self._repos_enabled = repos_enabled
 
-    @property
+    @LazyProperty
     def serial_device(self) -> int:
         """
         serial_device property. "-1" disables the serial device functionality completely.
@@ -1928,7 +1920,7 @@ class System(Item):
         """
         self._serial_device = validate.validate_serial_device(device_number)
 
-    @property
+    @LazyProperty
     def serial_baud_rate(self) -> enums.BaudRates:
         """
         serial_baud_rate property. The value "disabled" will disable the functionality completely.
@@ -1988,7 +1980,7 @@ class System(Item):
             return utils.get_host_ip(ip_address)
         return self.name
 
-    @property
+    @LazyProperty
     def display_name(self) -> str:
         """
         Returns the display name.

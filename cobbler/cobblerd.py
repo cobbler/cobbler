@@ -7,6 +7,7 @@ Cobbler daemon for logging remote syslog traffic during automatic installation
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import binascii
+import logging
 import logging.config
 import os
 import pwd
@@ -55,7 +56,7 @@ def regen_ss_file():
     os.lchown("/var/lib/cobbler/web.ss", pwd.getpwnam(http_user)[2], -1)
 
 
-def do_xmlrpc_rw(cobbler_api: CobblerAPI, port):
+def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int):
     """
     This trys to bring up the Cobbler xmlrpc_api and restart it if it fails.
 

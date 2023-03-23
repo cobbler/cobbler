@@ -5,11 +5,15 @@ Cobbler module that contains the code for a Cobbler mgmtclass object.
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2010, Kelsey Hightower <kelsey.hightower@gmail.com>
 
-import uuid
-from typing import Union
+import copy
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 
 from cobbler.items import item
 from cobbler.utils import input_converters
+from cobbler.decorator import LazyProperty
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Mgmtclass(item.Item):
@@ -20,23 +24,24 @@ class Mgmtclass(item.Item):
     TYPE_NAME = "mgmtclass"
     COLLECTION_TYPE = "mgmtclass"
 
-    def __init__(self, api, *args, **kwargs):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
         """
         Constructor.
 
         :param api: The Cobbler API object which is used for resolving information.
-        :param args: The arguments which should be passed additionally to the base Item class constructor.
-        :param kwargs: The keyword arguments which should be passed additionally to the base Item class constructor.
         """
-        super().__init__(api, *args, **kwargs)
+        super().__init__(api)
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
         self._is_definition = False
-        self._params = {}
+        self._params: Dict[str, Any] = {}
         self._class_name = ""
-        self._files = []
-        self._packages = []
+        self._files: List[str] = []
+        self._packages: List[str] = []
+
+        if len(kwargs) > 0:
+            self.from_dict(kwargs)
         if not self._has_initialized:
             self._has_initialized = True
 
@@ -51,27 +56,16 @@ class Mgmtclass(item.Item):
         :return: The cloned instance of this object.
         """
 
-        _dict = self.to_dict()
-        cloned = Mgmtclass(self.api)
-        cloned.from_dict(_dict)
-        cloned.uid = uuid.uuid4().hex
-        return cloned
-
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
+        _dict = copy.deepcopy(self.to_dict())
+        _dict.pop("uid", None)
+        return Mgmtclass(self.api, **_dict)
 
     #
     # specific methods for item.Mgmtclass
     #
 
-    @property
-    def packages(self) -> list:
+    @LazyProperty
+    def packages(self) -> List[str]:
         """
         Packages property.
 
@@ -81,7 +75,7 @@ class Mgmtclass(item.Item):
         return self._packages
 
     @packages.setter
-    def packages(self, packages: list):
+    def packages(self, packages: List[str]):
         """
         Setter for the packages of the management class.
 
@@ -89,8 +83,8 @@ class Mgmtclass(item.Item):
         """
         self._packages = input_converters.input_string_or_list(packages)
 
-    @property
-    def files(self) -> list:
+    @LazyProperty
+    def files(self) -> List[str]:
         """
         Files property.
 
@@ -100,7 +94,7 @@ class Mgmtclass(item.Item):
         return self._files
 
     @files.setter
-    def files(self, files: Union[str, list]):
+    def files(self, files: Union[str, List[str]]):
         """
         Setter for the files of the object.
 
@@ -108,8 +102,8 @@ class Mgmtclass(item.Item):
         """
         self._files = input_converters.input_string_or_list(files)
 
-    @property
-    def params(self) -> dict:
+    @LazyProperty
+    def params(self) -> Dict[str, Any]:
         """
         Params property.
 
@@ -119,7 +113,7 @@ class Mgmtclass(item.Item):
         return self._params
 
     @params.setter
-    def params(self, params: dict):
+    def params(self, params: Dict[str, Any]):
         """
         Setter for the params of the management class.
 
@@ -133,7 +127,7 @@ class Mgmtclass(item.Item):
         except TypeError as error:
             raise TypeError("invalid value for params") from error
 
-    @property
+    @LazyProperty
     def is_definition(self) -> bool:
         """
         Is_definition property.
@@ -156,7 +150,7 @@ class Mgmtclass(item.Item):
             raise TypeError("Field is_defintion from mgmtclass must be of type bool.")
         self._is_definition = isdef
 
-    @property
+    @LazyProperty
     def class_name(self) -> str:
         """
         The name of the management class.

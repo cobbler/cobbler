@@ -136,8 +136,7 @@ class Replicate:
 
             if not rdata["uid"] in local_objects:
                 creator = getattr(self.api, f"new_{obj_type}")
-                newobj = creator()
-                newobj.from_dict(utils.revert_strip_none(rdata))
+                newobj = creator(utils.revert_strip_none(rdata))
                 try:
                     self.logger.info("adding %s %s", obj_type, rdata["name"])
                     if not self.api.add_item(obj_type, newobj):
@@ -170,8 +169,7 @@ class Replicate:
                         self.logger.info("removing %s %s", obj_type, ldata["name"])
                         self.api.remove_item(obj_type, ldata["name"], recursive=True)
                     creator = getattr(self.api, f"new_{obj_type}")
-                    newobj = creator()
-                    newobj.from_dict(utils.revert_strip_none(rdata))
+                    newobj = creator(utils.revert_strip_none(rdata))
                     try:
                         self.logger.info("updating %s %s", obj_type, rdata["name"])
                         if not self.api.add_item(obj_type, newobj):

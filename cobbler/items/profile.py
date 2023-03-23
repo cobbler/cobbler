@@ -6,15 +6,15 @@ Cobbler module that contains the code for a Cobbler profile object.
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-import uuid
-from typing import TYPE_CHECKING, List, Optional, Union
+import copy
+from typing import TYPE_CHECKING, List, Union, Any
 
 from cobbler import autoinstall_manager
 from cobbler.items import item
 from cobbler import validate, enums
 from cobbler.utils import input_converters
 from cobbler.cexceptions import CX
-from cobbler.decorator import InheritableProperty
+from cobbler.decorator import LazyProperty, InheritableProperty
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -28,14 +28,13 @@ class Profile(item.Item):
     TYPE_NAME = "profile"
     COLLECTION_TYPE = "profile"
 
-    def __init__(self, api: "CobblerAPI", *args, **kwargs):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
         """
+        Constructor
 
         :param api: The Cobbler API object which is used for resolving information.
-        :param args:
-        :param kwargs:
         """
-        super().__init__(api, *args, **kwargs)
+        super().__init__(api)
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
@@ -81,10 +80,13 @@ class Profile(item.Item):
         # Use setters to validate settings
         self.virt_disk_driver = api.settings().default_virt_disk_driver
         self.virt_type = api.settings().default_virt_type
+
+        if len(kwargs) > 0:
+            self.from_dict(kwargs)
         if not self._has_initialized:
             self._has_initialized = True
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         if name == "kickstart":
             return self.autoinstall
         if name == "ks_meta":
@@ -103,11 +105,9 @@ class Profile(item.Item):
 
         :return: The cloned instance of this object.
         """
-        _dict = self.to_dict()
-        cloned = Profile(self.api)
-        cloned.from_dict(_dict)
-        cloned.uid = uuid.uuid4().hex
-        return cloned
+        _dict = copy.deepcopy(self.to_dict())
+        _dict.pop("uid", None)
+        return Profile(self.api, **_dict)
 
     def check_if_valid(self):
         """
@@ -117,26 +117,13 @@ class Profile(item.Item):
         """
         # name validation
         super().check_if_valid()
+        if not self.inmemory:
+            return
 
         # distro validation
         distro = self.get_conceptual_parent()
         if distro is None:
             raise CX(f"Error with profile {self.name} - distro is required")
-
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        if "name" in dictionary:
-            self.name = dictionary["name"]
-        if "parent" in dictionary:
-            self.parent = dictionary["parent"]
-        if "distro" in dictionary:
-            self.distro = dictionary["distro"]
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
 
     #
     # specific methods for item.Profile
@@ -155,7 +142,7 @@ class Profile(item.Item):
             return parent.arch
         return None
 
-    @property
+    @LazyProperty
     def distro(self):
         """
         The parent distro of a profile. This is not representing the Distro but the id of it.
@@ -295,7 +282,7 @@ class Profile(item.Item):
             raise TypeError("enable_menu needs to be of type bool")
         self._enable_menu = enable_menu
 
-    @property
+    @LazyProperty
     def dhcp_tag(self) -> str:
         """
         Represents the VLAN tag the DHCP Server is in/answering to.
@@ -467,7 +454,7 @@ class Profile(item.Item):
             return
         self._virt_auto_boot = validate.validate_virt_auto_boot(num)
 
-    @property
+    @LazyProperty
     def virt_cpus(self) -> int:
         """
         The amount of vCPU cores used in case the image is being deployed on top of a VM host.
@@ -594,7 +581,7 @@ class Profile(item.Item):
         """
         self._virt_bridge = validate.validate_virt_bridge(vbridge)
 
-    @property
+    @LazyProperty
     def virt_path(self) -> str:
         """
         The path to the place where the image will be stored.
@@ -613,7 +600,7 @@ class Profile(item.Item):
         """
         self._virt_path = validate.validate_virt_path(path)
 
-    @property
+    @LazyProperty
     def repos(self) -> list:
         """
         The repositories to add once the system is provisioned.
@@ -704,7 +691,7 @@ class Profile(item.Item):
         else:
             self._boot_loaders = []
 
-    @property
+    @LazyProperty
     def menu(self) -> str:
         r"""
         Property to represent the menu which this image should be put into.
@@ -730,7 +717,7 @@ class Profile(item.Item):
                 raise CX(f"menu {menu} not found")
         self._menu = menu
 
-    @property
+    @LazyProperty
     def display_name(self) -> str:
         """
         Returns the display name.

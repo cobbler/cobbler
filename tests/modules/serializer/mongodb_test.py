@@ -1,6 +1,11 @@
+from typing import ContextManager
 import pytest
 
+import copy
+
 from cobbler.modules.serializers import mongodb
+from cobbler.cexceptions import CX
+from tests.conftest import does_not_raise
 
 
 @pytest.fixture
@@ -108,3 +113,38 @@ def test_deserialize(mocker, mongodb_obj):
     assert mock_deserialize_raw.call_count == 1
     assert mock_collection.from_list.call_count == 1
     mock_collection.from_list.assert_called_with(return_deserialize_raw)
+
+
+@pytest.mark.parametrize(
+    "item_name,expected_exception",
+    [
+        (
+            "testitem",
+            does_not_raise(),
+        ),
+        (
+            None,
+            pytest.raises(CX),
+        ),
+    ],
+)
+def test_deserialize_item(
+    mongodb_obj: mongodb.MongoDBSerializer, item_name: str, expected_exception
+):
+    # Arrange
+    collection_type = "distro"
+    input_value = {"name": item_name, "arch": "x86_64"}
+    test_item = copy.deepcopy(input_value)
+    if item_name is not None:
+        mongodb_obj.mongodb["cobbler"][collection_type].insert_one(test_item)
+
+    expected_value = input_value.copy()
+    expected_value["inmemory"] = True
+
+    # Act
+    with expected_exception:
+        result = mongodb_obj.deserialize_item(collection_type, item_name)
+        print(result)
+
+        # Assert
+        assert result in (expected_value, {"inmemory": True})

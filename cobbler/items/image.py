@@ -6,13 +6,13 @@ Cobbler module that contains the code for a Cobbler image object.
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-import uuid
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, List, Union, Any
+import copy
 
 from cobbler import autoinstall_manager, enums, validate
 from cobbler.cexceptions import CX
 from cobbler.items import item
-from cobbler.decorator import InheritableProperty
+from cobbler.decorator import LazyProperty, InheritableProperty
 from cobbler.utils import input_converters, signatures
 
 if TYPE_CHECKING:
@@ -27,15 +27,13 @@ class Image(item.Item):
     TYPE_NAME = "image"
     COLLECTION_TYPE = "image"
 
-    def __init__(self, api: "CobblerAPI", *args, **kwargs):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
         """
         Constructor
 
         :param api: The Cobbler API object which is used for resolving information.
-        :param args: The arguments which should be passed additionally to the base Item class constructor.
-        :param kwargs: The keyword arguments which should be passed additionally to the base Item class constructor.
         """
-        super().__init__(api, *args, **kwargs)
+        super().__init__(api)
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
@@ -58,7 +56,10 @@ class Image(item.Item):
         self._virt_path = ""
         self._virt_ram: Union[str, int] = enums.VALUE_INHERITED
         self._virt_type: Union[str, enums.VirtType] = enums.VirtType.INHERITED
-        self._supported_boot_loaders = []
+        self._supported_boot_loaders: List[str] = []
+
+        if len(kwargs):
+            self.from_dict(kwargs)
         if not self._has_initialized:
             self._has_initialized = True
 
@@ -77,30 +78,15 @@ class Image(item.Item):
 
         :return: The cloned instance of this object.
         """
-        _dict = self.to_dict()
-        cloned = Image(self.api)
-        cloned.from_dict(_dict)
-        cloned.uid = uuid.uuid4().hex
-        return cloned
-
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        if "name" in dictionary:
-            self.name = dictionary["name"]
-        if "parent" in dictionary:
-            self.parent = dictionary["parent"]
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
+        _dict = copy.deepcopy(self.to_dict())
+        _dict.pop("uid", None)
+        return Image(self.api, **_dict)
 
     #
     # specific methods for item.Image
     #
 
-    @property
+    @LazyProperty
     def arch(self) -> enums.Archs:
         """
         Represents the architecture the image has. If deployed to a physical host this should be enforced, a virtual
@@ -150,7 +136,7 @@ class Image(item.Item):
             autoinstall
         )
 
-    @property
+    @LazyProperty
     def file(self) -> str:
         """
         Stores the image location. This should be accessible on all nodes that need to access it.
@@ -214,7 +200,7 @@ class Image(item.Item):
 
         self._file = uri
 
-    @property
+    @LazyProperty
     def os_version(self) -> str:
         r"""
         The operating system version which the image contains.
@@ -233,7 +219,7 @@ class Image(item.Item):
         """
         self._os_version = validate.validate_os_version(os_version, self.breed)
 
-    @property
+    @LazyProperty
     def breed(self) -> str:
         r"""
         The operating system breed.
@@ -252,7 +238,7 @@ class Image(item.Item):
         """
         self._breed = validate.validate_breed(breed)
 
-    @property
+    @LazyProperty
     def image_type(self) -> enums.ImageTypes:
         """
         Indicates what type of image this is.
@@ -296,7 +282,7 @@ class Image(item.Item):
             )
         self._image_type = image_type
 
-    @property
+    @LazyProperty
     def virt_cpus(self) -> int:
         """
         The amount of vCPU cores used in case the image is being deployed on top of a VM host.
@@ -315,7 +301,7 @@ class Image(item.Item):
         """
         self._virt_cpus = validate.validate_virt_cpus(num)
 
-    @property
+    @LazyProperty
     def network_count(self) -> int:
         """
         Represents the number of virtual NICs this image has.
@@ -464,7 +450,7 @@ class Image(item.Item):
         """
         self._virt_bridge = validate.validate_virt_bridge(vbridge)
 
-    @property
+    @LazyProperty
     def virt_path(self) -> str:
         """
         Represents the location where the image for the VM is stored.
@@ -483,7 +469,7 @@ class Image(item.Item):
         """
         self._virt_path = validate.validate_virt_path(path)
 
-    @property
+    @LazyProperty
     def menu(self) -> str:
         """
         Property to represent the menu which this image should be put into.
@@ -507,7 +493,7 @@ class Image(item.Item):
                 raise CX(f"menu {menu} not found")
         self._menu = menu
 
-    @property
+    @LazyProperty
     def display_name(self) -> str:
         """
         Returns the display name.
@@ -549,10 +535,10 @@ class Image(item.Item):
         """
         if self._boot_loaders == enums.VALUE_INHERITED:
             return self.supported_boot_loaders
-        return self._boot_loaders
+        return self._boot_loaders  # type: ignore
 
     @boot_loaders.setter
-    def boot_loaders(self, boot_loaders: list):
+    def boot_loaders(self, boot_loaders: Union[str, List[str]]):
         """
         Setter of the boot loaders.
 

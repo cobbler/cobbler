@@ -7,12 +7,16 @@ Cobbler module that at runtime holds all repos in Cobbler.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import os.path
+from typing import TYPE_CHECKING, Any, Dict
 
 from cobbler.cobbler_collections import collection
 from cobbler.items import repo
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import filesystem_helpers
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Repos(collection.Collection):
@@ -30,17 +34,19 @@ class Repos(collection.Collection):
     def collection_types() -> str:
         return "repos"
 
-    def factory_produce(self, api, item_dict):
+    def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]):
         """
-        Return a Distro forged from item_dict
+        Return a Distro forged from seed_data
+
+        :param api: Parameter is skipped.
+        :param seed_data: The data the object is initalized with.
+        :returns: The created repository.
         """
-        new_repo = repo.Repo(api)
-        new_repo.from_dict(item_dict)
-        return new_repo
+        return repo.Repo(self.api, **seed_data)
 
     def remove(
         self,
-        name,
+        name: str,
         with_delete: bool = True,
         with_sync: bool = True,
         with_triggers: bool = True,
