@@ -60,7 +60,8 @@ RUN apt-get update -qq && \
     libapache2-mod-wsgi-py3 \
     iproute2 \
     systemd \
-    supervisor && \
+    supervisor \
+    dosfstools && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Make /bin/sh point to bash, not dash
