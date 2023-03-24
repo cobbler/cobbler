@@ -62,7 +62,8 @@ RUN touch /var/lib/rpm/* &&   \
     syslinux                  \
     tftp-server               \
     fence-agents              \
-    supervisor
+    supervisor                \
+    dosfstools
 
 # Dependencies for system tests
 RUN touch /var/lib/rpm/* &&   \
