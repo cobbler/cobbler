@@ -18,22 +18,6 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from schema import SchemaError
 
-from cobbler.actions import importer
-from cobbler import validate
-from cobbler.actions import (
-    status,
-    hardlink,
-    sync,
-    replicate,
-    report,
-    log,
-    acl,
-    check,
-    reposync,
-    mkloaders,
-)
-from cobbler.actions.buildiso.standalone import StandaloneBuildiso
-from cobbler.actions.buildiso.netboot import NetbootBuildiso
 from cobbler import (
     autoinstall_manager,
     autoinstallgen,
@@ -41,10 +25,30 @@ from cobbler import (
     enums,
     module_loader,
     power_manager,
+    settings,
+    tftpgen,
+    utils,
+    validate,
+    yumgen,
 )
-from cobbler import settings, tftpgen, utils, yumgen
-from cobbler.utils import input_converters, signatures, filesystem_helpers
+from cobbler.actions import (
+    acl,
+    check,
+    hardlink,
+    importer,
+    log,
+    mkloaders,
+    replicate,
+    report,
+    reposync,
+    status,
+    sync,
+)
+from cobbler.actions.buildiso.netboot import NetbootBuildiso
+from cobbler.actions.buildiso.standalone import StandaloneBuildiso
+from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import manager
+from cobbler.decorator import InheritableDictProperty
 from cobbler.items import (
     distro,
     file,
@@ -56,12 +60,11 @@ from cobbler.items import (
     repo,
     system,
 )
-from cobbler.decorator import InheritableDictProperty
-from cobbler.cexceptions import CX
+from cobbler.utils import filesystem_helpers, input_converters, signatures
 
 if TYPE_CHECKING:
-    from cobbler.settings import Settings
     from cobbler.items import item
+    from cobbler.settings import Settings
 
 
 # notes on locking:

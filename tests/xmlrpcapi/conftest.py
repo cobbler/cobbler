@@ -6,8 +6,8 @@ from typing import Any, Callable, Dict, Tuple, Union
 import pytest
 
 from cobbler.api import CobblerAPI
-from cobbler.utils import get_shared_secret
 from cobbler.remote import CobblerXMLRPCInterface
+from cobbler.utils import get_shared_secret
 
 
 @pytest.fixture(scope="function")

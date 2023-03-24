@@ -17,11 +17,12 @@ import shutil
 import traceback
 from pathlib import Path
 from typing import Any, Dict, Hashable, List, Optional
+
 import yaml
 from schema import SchemaError, SchemaMissingKeyError, SchemaWrongKeyError
 
-from cobbler.utils import input_converters
 from cobbler.settings import migrations
+from cobbler.utils import input_converters
 
 
 class Settings:

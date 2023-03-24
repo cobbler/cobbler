@@ -1,8 +1,8 @@
 import pytest
 
-from tests.conftest import does_not_raise
-
 from cobbler.utils import input_converters
+
+from tests.conftest import does_not_raise
 
 
 @pytest.mark.parametrize(

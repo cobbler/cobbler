@@ -9,8 +9,8 @@ Cobbler module that contains the code for a Cobbler package object.
 import copy
 from typing import TYPE_CHECKING, Any
 
-from cobbler.items import resource
 from cobbler.decorator import LazyProperty
+from cobbler.items import resource
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

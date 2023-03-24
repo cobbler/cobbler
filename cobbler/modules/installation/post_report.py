@@ -6,11 +6,11 @@ Post install trigger for Cobbler to send out a pretty email report that contains
 # SPDX-FileCopyrightText: Copyright 2008-2009 Bill Peck <bpeck@redhat.com>
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-from builtins import str
 import smtplib
+from builtins import str
+
+from cobbler import templar, utils
 from cobbler.cexceptions import CX
-from cobbler import templar
-from cobbler import utils
 
 
 def register() -> str:

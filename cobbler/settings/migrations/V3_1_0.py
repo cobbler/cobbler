@@ -8,6 +8,7 @@ Migration from V3.0.1 to V3.1.0
 
 
 from schema import SchemaError
+
 from cobbler.settings.migrations import V3_0_1
 
 # schema identical to V3_0_1

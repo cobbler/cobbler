@@ -9,10 +9,7 @@ import os.path
 import shutil
 from typing import List
 
-from cobbler import templar
-from cobbler import utils
-from cobbler import tftpgen
-
+from cobbler import templar, tftpgen, utils
 from cobbler.cexceptions import CX
 from cobbler.manager import ManagerModule
 from cobbler.utils import filesystem_helpers

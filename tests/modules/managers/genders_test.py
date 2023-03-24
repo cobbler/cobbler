@@ -4,12 +4,12 @@ from unittest.mock import MagicMock
 import pytest
 
 from cobbler.api import CobblerAPI
-from cobbler.modules.managers import genders
-from cobbler.settings import Settings
 from cobbler.items.distro import Distro
+from cobbler.items.mgmtclass import Mgmtclass
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
-from cobbler.items.mgmtclass import Mgmtclass
+from cobbler.modules.managers import genders
+from cobbler.settings import Settings
 
 
 @pytest.fixture

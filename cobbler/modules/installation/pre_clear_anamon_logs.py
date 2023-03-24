@@ -11,8 +11,8 @@ import glob
 import logging
 import os
 
-from cobbler.utils import filesystem_helpers
 from cobbler.cexceptions import CX
+from cobbler.utils import filesystem_helpers
 
 PATH_PREFIX = "/var/log/cobbler/anamon/"
 

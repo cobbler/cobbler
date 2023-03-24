@@ -6,11 +6,11 @@ This module contains the specific code to generate a network bootable ISO.
 
 import os
 import re
-from typing import Optional, List
+from typing import List, Optional
 
 from cobbler import utils
-from cobbler.utils import input_converters
 from cobbler.actions import buildiso
+from cobbler.utils import input_converters
 
 
 class AppendLineBuilder:

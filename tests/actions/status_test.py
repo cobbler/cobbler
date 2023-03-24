@@ -1,7 +1,7 @@
 import pytest
 
-from cobbler.actions.status import InstallStatus
 from cobbler.actions import status
+from cobbler.actions.status import InstallStatus
 
 
 def test_collect_logfiles(mocker):

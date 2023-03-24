@@ -9,9 +9,8 @@ allow certain users/groups to access those specific objects.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 
-from configparser import ConfigParser
-
 import os
+from configparser import ConfigParser
 from typing import Dict
 
 

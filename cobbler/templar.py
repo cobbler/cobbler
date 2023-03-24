@@ -12,7 +12,7 @@ import os
 import os.path
 import pprint
 import re
-from typing import Optional, Union, TextIO
+from typing import Optional, TextIO, Union
 
 from cobbler import utils
 from cobbler.cexceptions import CX

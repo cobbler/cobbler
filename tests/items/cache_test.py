@@ -1,21 +1,14 @@
-import os
-
 import pytest
 
-# from cobbler import enums
-from cobbler.items.package import Package
-from cobbler.items.file import File
-from cobbler.items.mgmtclass import Mgmtclass
-from cobbler.items.repo import Repo
-from cobbler.items.distro import Distro
-from cobbler.items.menu import Menu
-from cobbler.items.profile import Profile
-from cobbler.items.system import System
-from cobbler.items.item import Item
-from cobbler.settings import Settings
-from tests.conftest import does_not_raise
 from cobbler.cexceptions import CX
-from cobbler.decorator import InheritableProperty, InheritableDictProperty
+from cobbler.items.file import File
+from cobbler.items.item import Item
+from cobbler.items.menu import Menu
+from cobbler.items.mgmtclass import Mgmtclass
+from cobbler.items.package import Package
+from cobbler.items.repo import Repo
+
+from tests.conftest import does_not_raise
 
 
 def test_collection_types(cobbler_api):

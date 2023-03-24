@@ -8,8 +8,8 @@ Cobbler module that contains the code for a Cobbler menu object.
 import copy
 from typing import TYPE_CHECKING, Any
 
-from cobbler.items import item
 from cobbler.decorator import LazyProperty
+from cobbler.items import item
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 
-import yaml
-import requests
 import sys
 
+import requests
+import yaml
 
 if __name__ == "__main__":
     hostname = None

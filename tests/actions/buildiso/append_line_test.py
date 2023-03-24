@@ -1,5 +1,5 @@
-from cobbler.actions.buildiso.netboot import AppendLineBuilder
 from cobbler import utils
+from cobbler.actions.buildiso.netboot import AppendLineBuilder
 
 
 def test_init():

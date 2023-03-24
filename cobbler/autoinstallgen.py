@@ -9,9 +9,7 @@ Builds out filesystem trees/data based on the object tree. This is the code behi
 import urllib.parse
 import xml.dom.minidom
 
-from cobbler import templar
-from cobbler import utils
-from cobbler import validate
+from cobbler import templar, utils, validate
 from cobbler.cexceptions import CX
 
 

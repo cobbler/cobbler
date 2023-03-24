@@ -15,7 +15,7 @@ from cobbler.modules.serializers import StorageBase
 
 try:
     from pymongo import MongoClient
-    from pymongo.errors import ConnectionFailure, ConfigurationError
+    from pymongo.errors import ConfigurationError, ConnectionFailure
 
     PYMONGO_LOADED = True
 except ModuleNotFoundError:

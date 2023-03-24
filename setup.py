@@ -1,27 +1,23 @@
 #!/usr/bin/env python3
 
-import os
-import sys
-import time
-import glob as _glob
-
-from setuptools import setup
-from setuptools import Command
-from setuptools.command.install import install as _install
-from setuptools import Distribution as _Distribution
-from setuptools.command.build_py import build_py as _build_py
-from setuptools import dep_util
-from distutils.command.build import build as _build
-from configparser import ConfigParser
-from setuptools import find_packages
-from sphinx.setup_command import BuildDoc
-
 import codecs
-from coverage import Coverage
+import glob as _glob
+import os
 import pwd
 import shutil
 import subprocess
+import sys
+import time
+from configparser import ConfigParser
+from distutils.command.build import build as _build
 
+from coverage import Coverage
+from setuptools import Command
+from setuptools import Distribution as _Distribution
+from setuptools import dep_util, find_packages, setup
+from setuptools.command.build_py import build_py as _build_py
+from setuptools.command.install import install as _install
+from sphinx.setup_command import BuildDoc
 
 VERSION = "3.4.0"
 OUTPUT_DIR = "config"

@@ -9,9 +9,8 @@ not authz_allowall, which will most likely NOT do what you want.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 
-from configparser import SafeConfigParser
-
 import os
+from configparser import SafeConfigParser
 from typing import Dict
 
 CONFIG_FILE = "/etc/cobbler/users.conf"

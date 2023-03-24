@@ -2,12 +2,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from cobbler.api import CobblerAPI
-from cobbler.settings import Settings
 from cobbler import autoinstall_manager
+from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
+from cobbler.settings import Settings
 
 
 @pytest.fixture

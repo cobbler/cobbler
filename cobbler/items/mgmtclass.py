@@ -8,9 +8,9 @@ Cobbler module that contains the code for a Cobbler mgmtclass object.
 import copy
 from typing import TYPE_CHECKING, Any, Dict, List, Union
 
+from cobbler.decorator import LazyProperty
 from cobbler.items import item
 from cobbler.utils import input_converters
-from cobbler.decorator import LazyProperty
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

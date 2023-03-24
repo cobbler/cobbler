@@ -11,8 +11,8 @@ import os
 import shutil
 
 from schema import Optional, Or, Schema, SchemaError
-from cobbler.settings.migrations import helper
-from cobbler.settings.migrations import V2_8_5
+
+from cobbler.settings.migrations import V2_8_5, helper
 
 schema = Schema(
     {

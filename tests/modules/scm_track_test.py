@@ -2,8 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from cobbler.cexceptions import CX
 from cobbler.api import CobblerAPI
+from cobbler.cexceptions import CX
 from cobbler.modules import scm_track
 from cobbler.settings import Settings
 

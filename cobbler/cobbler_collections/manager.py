@@ -7,23 +7,21 @@ Repository of the Cobbler object model
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import weakref
-from typing import TYPE_CHECKING, Union, Dict, Any
+from typing import TYPE_CHECKING, Any, Dict, Union
 
+from cobbler import serializer, validate
 from cobbler.cexceptions import CX
-from cobbler import serializer
-from cobbler import validate
-from cobbler.settings import Settings
-from cobbler.items.item import Item
 from cobbler.cobbler_collections.distros import Distros
 from cobbler.cobbler_collections.files import Files
 from cobbler.cobbler_collections.images import Images
+from cobbler.cobbler_collections.menus import Menus
 from cobbler.cobbler_collections.mgmtclasses import Mgmtclasses
 from cobbler.cobbler_collections.packages import Packages
 from cobbler.cobbler_collections.profiles import Profiles
 from cobbler.cobbler_collections.repos import Repos
 from cobbler.cobbler_collections.systems import Systems
-from cobbler.cobbler_collections.menus import Menus
-
+from cobbler.items.item import Item
+from cobbler.settings import Settings
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

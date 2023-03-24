@@ -12,8 +12,10 @@ Tool to manage the settings of Cobbler without the daemon running.
 import argparse
 import sys
 from typing import List
-from schema import Optional, SchemaError
+
 import yaml
+from schema import Optional, SchemaError
+
 from cobbler import settings
 from cobbler.settings import migrations
 from cobbler.settings.migrations import EMPTY_VERSION, helper

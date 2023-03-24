@@ -7,9 +7,10 @@ Any org_admin or kickstart_admin can get in.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 
+from xmlrpc.client import Error, ServerProxy
+
 from cobbler.cexceptions import CX
 from cobbler.utils import log_exc
-from xmlrpc.client import ServerProxy, Error
 
 
 def register() -> str:

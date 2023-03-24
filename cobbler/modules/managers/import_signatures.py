@@ -8,8 +8,6 @@ OS and version.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 # SPDX-FileCopyrightText: John Eckersberg <jeckersb@redhat.com>
 
-from typing import Dict, Callable, Any, Optional
-
 import glob
 import gzip
 import os
@@ -17,13 +15,13 @@ import os.path
 import re
 import shutil
 import stat
+from typing import Any, Callable, Dict, Optional
 
 import magic
 
-from cobbler.cexceptions import CX
 from cobbler import enums, utils
+from cobbler.cexceptions import CX
 from cobbler.manager import ManagerModule
-
 from cobbler.utils import filesystem_helpers
 
 HAS_HIVEX = True

@@ -5,18 +5,17 @@ All code belonging to Cobbler systems. This includes network interfaces.
 # SPDX-FileCopyrightText: Copyright 2006-2008, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
+import copy
 import enum
 import logging
-import copy
+from ipaddress import AddressValueError
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-from ipaddress import AddressValueError
-
 from cobbler import autoinstall_manager, enums, power_manager, utils, validate
-from cobbler.utils import input_converters, filesystem_helpers
 from cobbler.cexceptions import CX
+from cobbler.decorator import InheritableProperty, LazyProperty
 from cobbler.items.item import Item
-from cobbler.decorator import LazyProperty, InheritableProperty
+from cobbler.utils import filesystem_helpers, input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

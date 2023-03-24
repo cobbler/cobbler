@@ -7,16 +7,16 @@ Cobbler module that is related to validating data for other internal Cobbler mod
 
 import re
 import shlex
-from urllib.parse import urlparse
 from ipaddress import AddressValueError, NetmaskValueError
 from typing import Union
+from urllib.parse import urlparse
 from uuid import UUID
 
 import netaddr
 
 from cobbler import enums, utils
-from cobbler.utils import input_converters, signatures
 from cobbler.items import item
+from cobbler.utils import input_converters, signatures
 
 RE_HOSTNAME = re.compile(
     r"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])"

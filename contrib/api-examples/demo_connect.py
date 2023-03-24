@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from xmlrpc.client import ServerProxy
 import optparse
+from xmlrpc.client import ServerProxy
 
 if __name__ == "__main__":
     p = optparse.OptionParser()

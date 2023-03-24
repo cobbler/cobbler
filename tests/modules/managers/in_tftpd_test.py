@@ -3,12 +3,12 @@ from unittest.mock import MagicMock, Mock
 import pytest
 
 from cobbler.api import CobblerAPI
-from cobbler.modules.managers import in_tftpd
-from cobbler.tftpgen import TFTPGen
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
+from cobbler.modules.managers import in_tftpd
 from cobbler.settings import Settings
+from cobbler.tftpgen import TFTPGen
 
 
 @pytest.fixture

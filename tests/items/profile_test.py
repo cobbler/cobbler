@@ -1,9 +1,10 @@
 import pytest
 
-from cobbler.cexceptions import CX
 from cobbler import enums
+from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
+
 from tests.conftest import does_not_raise
 
 

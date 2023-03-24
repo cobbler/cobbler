@@ -5,9 +5,10 @@ Cobbler Module that manages the cluster configuration tool from CHAOS. For more 
 
 import distutils.sysconfig
 import logging
-import sys
 import os
+import sys
 import time
+
 from cobbler.templar import Templar
 
 plib = distutils.sysconfig.get_python_lib()

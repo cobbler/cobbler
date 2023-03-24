@@ -8,6 +8,7 @@ from schema import SchemaError
 
 from cobbler import settings
 from cobbler.settings import Settings
+
 from tests.conftest import does_not_raise
 
 

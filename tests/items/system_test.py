@@ -1,9 +1,10 @@
 import pytest
 
 from cobbler import enums
+from cobbler.cexceptions import CX
 from cobbler.items.profile import Profile
 from cobbler.items.system import NetworkInterface, System
-from cobbler.cexceptions import CX
+
 from tests.conftest import does_not_raise
 
 

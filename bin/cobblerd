@@ -7,14 +7,14 @@ Wrapper for cobbler's remote syslog watching daemon.
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-import logging
-import sys
-import os
-import traceback
 import argparse
-import cobbler.cobblerd as app
-import cobbler.api as cobbler_api
+import logging
+import os
+import sys
+import traceback
 
+import cobbler.api as cobbler_api
+import cobbler.cobblerd as app
 
 logger = logging.getLogger()
 

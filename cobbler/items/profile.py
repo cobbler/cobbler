@@ -7,14 +7,13 @@ Cobbler module that contains the code for a Cobbler profile object.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import copy
-from typing import TYPE_CHECKING, List, Union, Any
+from typing import TYPE_CHECKING, Any, List, Union
 
-from cobbler import autoinstall_manager
-from cobbler.items import item
-from cobbler import validate, enums
-from cobbler.utils import input_converters
+from cobbler import autoinstall_manager, enums, validate
 from cobbler.cexceptions import CX
-from cobbler.decorator import LazyProperty, InheritableProperty
+from cobbler.decorator import InheritableProperty, LazyProperty
+from cobbler.items import item
+from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

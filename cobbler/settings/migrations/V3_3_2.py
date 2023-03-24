@@ -7,6 +7,7 @@ Migration from V3.3.1 to V3.3.2
 
 
 from schema import SchemaError
+
 from cobbler.settings.migrations import V3_3_1
 
 schema = V3_3_1.schema

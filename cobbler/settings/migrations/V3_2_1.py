@@ -10,9 +10,8 @@ import os
 
 from schema import Optional, Schema, SchemaError
 
+from cobbler.settings.migrations import V3_2_0, helper
 from cobbler.utils import input_converters
-from cobbler.settings.migrations import helper
-from cobbler.settings.migrations import V3_2_0
 
 schema = Schema(
     {

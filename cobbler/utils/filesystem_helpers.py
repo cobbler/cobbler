@@ -8,14 +8,14 @@ import hashlib
 import json
 import logging
 import os
+import pathlib
 import shutil
 import urllib
-import pathlib
 from typing import Union
 
+from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import log_exc, mtab
-from cobbler import utils
 
 logger = logging.getLogger()
 

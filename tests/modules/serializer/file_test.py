@@ -5,10 +5,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from cobbler.cexceptions import CX
 from cobbler.cobbler_collections.collection import Collection
 from cobbler.modules.serializers import file
-from cobbler.cexceptions import CX
 from cobbler.settings import Settings
+
 from tests.conftest import does_not_raise
 
 

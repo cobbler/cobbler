@@ -12,9 +12,8 @@ import xmlrpc.client
 import pytest
 
 from cobbler.api import CobblerAPI
-from cobbler.utils import get_shared_secret
 from cobbler.modules.authentication import pam
-
+from cobbler.utils import get_shared_secret
 
 # ==================== Start tnpconsultants ====================
 

@@ -7,8 +7,9 @@ Wrapper for cobbler
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-import cobbler.cli as app
 import sys
+
+import cobbler.cli as app
 
 PROFILING = False
 

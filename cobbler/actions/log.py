@@ -7,9 +7,9 @@ Cobbler Trigger Module that managed the logs associated with a Cobbler system.
 # SPDX-FileCopyrightText: Bill Peck <bpeck@redhat.com>
 
 import glob
+import logging
 import os
 import os.path
-import logging
 import pathlib
 
 

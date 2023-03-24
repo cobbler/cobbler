@@ -5,8 +5,8 @@ import time
 from typing import Any, Callable, Dict, List, Union
 
 import pytest
-from cobbler.remote import CobblerXMLRPCInterface
 
+from cobbler.remote import CobblerXMLRPCInterface
 from cobbler.utils import get_shared_secret
 
 

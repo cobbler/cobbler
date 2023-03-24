@@ -2,8 +2,8 @@ import os.path
 from typing import Callable
 
 import pytest
-from cobbler.api import CobblerAPI
 
+from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import distros
 from cobbler.cobbler_collections.manager import CollectionManager

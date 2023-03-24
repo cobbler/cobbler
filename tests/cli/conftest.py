@@ -1,4 +1,5 @@
 import pytest
+
 from cobbler.cli import CobblerCLI
 
 

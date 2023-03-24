@@ -1,7 +1,7 @@
 import pytest
 
-from cobbler.cexceptions import CX
 from cobbler.actions import acl
+from cobbler.cexceptions import CX
 
 from tests.conftest import does_not_raise
 

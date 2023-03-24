@@ -9,10 +9,10 @@ Cobbler module that at runtime holds all repos in Cobbler.
 import os.path
 from typing import TYPE_CHECKING, Any, Dict
 
-from cobbler.cobbler_collections import collection
-from cobbler.items import repo
 from cobbler import utils
 from cobbler.cexceptions import CX
+from cobbler.cobbler_collections import collection
+from cobbler.items import repo
 from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:

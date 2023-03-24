@@ -7,10 +7,11 @@ Cobbler module that at runtime holds all images in Cobbler.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 from typing import TYPE_CHECKING, Any, Dict
-from cobbler.cobbler_collections import collection
-from cobbler.items import image
+
 from cobbler import utils
 from cobbler.cexceptions import CX
+from cobbler.cobbler_collections import collection
+from cobbler.items import image
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

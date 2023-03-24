@@ -1,10 +1,12 @@
+from unittest.mock import MagicMock, Mock, PropertyMock, create_autospec
+
 import pytest
-from unittest.mock import Mock, MagicMock, create_autospec, PropertyMock
 
 import cobbler.actions.sync
 import cobbler.modules.managers.bind
 import cobbler.modules.managers.isc
 from cobbler.items.image import Image
+
 from tests.conftest import does_not_raise
 
 

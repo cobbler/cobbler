@@ -1,6 +1,7 @@
+import pytest
+
 from cobbler import enums
 from cobbler.items.repo import Repo
-import pytest
 
 from tests.conftest import does_not_raise
 

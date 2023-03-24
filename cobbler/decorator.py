@@ -4,6 +4,7 @@ This module provides decorators that are required for Cobbler to work as expecte
 # The idea for the subclassed property decorators is from: https://stackoverflow.com/a/59313599/4730773
 
 from typing import Any, Optional
+
 from cobbler.items import item
 
 

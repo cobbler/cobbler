@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-from xmlrpc.client import ServerProxy
 import optparse
+from xmlrpc.client import ServerProxy
 
 p = optparse.OptionParser()
 p.add_option("-u", "--user", dest="user", default="test")

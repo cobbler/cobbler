@@ -11,7 +11,6 @@ import logging
 import os
 import re
 from typing import List
-
 from xmlrpc.client import ServerProxy
 
 from cobbler import utils

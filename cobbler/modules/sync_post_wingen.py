@@ -2,26 +2,21 @@
 TODO
 """
 
-import os
-import re
 import binascii
 import logging
+import os
+import re
 import tempfile
 from typing import Optional
 
-from cobbler import utils
-from cobbler import templar
-from cobbler import tftpgen
+from cobbler import templar, tftpgen, utils
 from cobbler.utils import filesystem_helpers
 
 HAS_HIVEX = True
 try:
-    import pefile
     import hivex
-    from hivex.hive_types import REG_DWORD
-    from hivex.hive_types import REG_BINARY
-    from hivex.hive_types import REG_SZ
-    from hivex.hive_types import REG_MULTI_SZ
+    import pefile
+    from hivex.hive_types import REG_BINARY, REG_DWORD, REG_MULTI_SZ, REG_SZ
 except Exception:
     HAS_HIVEX = False
 

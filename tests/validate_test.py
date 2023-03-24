@@ -5,6 +5,7 @@ import pytest
 
 from cobbler import enums, validate
 from cobbler.utils import signatures
+
 from tests.conftest import does_not_raise
 
 
