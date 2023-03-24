@@ -5,16 +5,15 @@ Migration from V3.3.1 to V3.3.2
 # SPDX-FileCopyrightText: 2022 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 import configparser
-import pathlib
 import glob
-import os
 import json
+import os
+import pathlib
 from configparser import ConfigParser
 
 from schema import Optional, Schema, SchemaError
 
-from cobbler.settings.migrations import helper
-from cobbler.settings.migrations import V3_3_3
+from cobbler.settings.migrations import V3_3_3, helper
 
 schema = Schema(
     {

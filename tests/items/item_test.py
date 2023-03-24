@@ -3,15 +3,16 @@ import os
 import pytest
 
 from cobbler import enums
-from cobbler.items.package import Package
-from cobbler.items.file import File
-from cobbler.items.mgmtclass import Mgmtclass
-from cobbler.items.repo import Repo
 from cobbler.items.distro import Distro
-from cobbler.items.menu import Menu
-from cobbler.items.profile import Profile
-from cobbler.items.system import System
+from cobbler.items.file import File
 from cobbler.items.item import Item
+from cobbler.items.menu import Menu
+from cobbler.items.mgmtclass import Mgmtclass
+from cobbler.items.package import Package
+from cobbler.items.profile import Profile
+from cobbler.items.repo import Repo
+from cobbler.items.system import System
+
 from tests.conftest import does_not_raise
 
 

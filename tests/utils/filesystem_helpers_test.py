@@ -6,6 +6,7 @@ import pytest
 
 from cobbler.cexceptions import CX
 from cobbler.utils import filesystem_helpers
+
 from tests.conftest import does_not_raise
 
 

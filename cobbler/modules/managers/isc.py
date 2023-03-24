@@ -10,11 +10,10 @@ This is some of the code behind 'cobbler sync'.
 import shutil
 import time
 
-from cobbler import utils
-from cobbler import enums
-from cobbler.utils import process_management
+from cobbler import enums, utils
 from cobbler.enums import Archs
 from cobbler.manager import ManagerModule
+from cobbler.utils import process_management
 
 MANAGER = None
 

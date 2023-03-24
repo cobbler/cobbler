@@ -1,10 +1,11 @@
+import copy
 from typing import ContextManager
+
 import pytest
 
-import copy
-
-from cobbler.modules.serializers import mongodb
 from cobbler.cexceptions import CX
+from cobbler.modules.serializers import mongodb
+
 from tests.conftest import does_not_raise
 
 

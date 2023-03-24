@@ -6,10 +6,10 @@ from pathlib import Path
 import pytest
 from netaddr.ip import IPAddress
 
-from cobbler import enums
-from cobbler import utils
+from cobbler import enums, utils
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
+
 from tests.conftest import does_not_raise
 
 

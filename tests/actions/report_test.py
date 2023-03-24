@@ -3,6 +3,7 @@ import contextlib
 import pytest
 
 from cobbler.actions import report
+
 from tests.conftest import does_not_raise
 
 

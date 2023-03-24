@@ -6,10 +6,9 @@ This module contains the specific code for generating standalone or airgapped IS
 
 import os
 import re
-from typing import Optional, Dict, List
+from typing import Dict, List, Optional
 
 from cobbler import utils
-
 from cobbler.actions import buildiso
 
 cdregex = re.compile(r"^\s*url .*\n", re.IGNORECASE | re.MULTILINE)

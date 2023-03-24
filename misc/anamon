@@ -23,13 +23,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os
-import sys
-import string
-import time
-import re
 import base64
+import os
+import re
 import shlex
+import string
+import sys
+import time
 
 try:
     from xmlrpc.client import Server

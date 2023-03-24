@@ -11,17 +11,15 @@ import glob
 import logging
 import os
 import time
-from typing import Optional, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 
+from cobbler import templar, tftpgen, utils
 from cobbler.cexceptions import CX
-from cobbler import templar
-from cobbler import tftpgen
-from cobbler import utils
 from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:
-    from cobbler.items.system import System
     from cobbler.items.profile import Profile
+    from cobbler.items.system import System
 
 
 class CobblerSync:

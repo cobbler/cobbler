@@ -7,18 +7,18 @@ to remember different power management tools syntaxes.  This makes rebooting a s
 # SPDX-FileCopyrightText: Copyright 2008-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-import json
 import glob
+import json
 import logging
 import os
-from pathlib import Path
-import stat
 import re
+import stat
 import time
+from pathlib import Path
 from typing import Optional
 
-from cobbler.cexceptions import CX
 from cobbler import utils
+from cobbler.cexceptions import CX
 
 # Try the power command 3 times before giving up. Some power switches are flaky.
 POWER_RETRIES = 3

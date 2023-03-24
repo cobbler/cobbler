@@ -6,10 +6,11 @@ Cobbler module that at runtime holds all menus in Cobbler.
 # SPDX-FileCopyrightText: Copyright 2021 Yuriy Chelpanov <yuriy.chelpanov@gmail.com>
 
 from typing import TYPE_CHECKING, Any, Dict
-from cobbler.items import menu
-from cobbler.cobbler_collections import collection
+
 from cobbler import utils
 from cobbler.cexceptions import CX
+from cobbler.cobbler_collections import collection
+from cobbler.items import menu
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

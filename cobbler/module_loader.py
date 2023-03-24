@@ -7,18 +7,17 @@ Module loader, adapted for Cobbler usage
 # SPDX-FileCopyrightText: Adrian Likins <alikins@redhat.com>
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-import logging
-from importlib import import_module
-
 import glob
+import logging
 import os
-from typing import Optional, Dict, Any
+from importlib import import_module
+from typing import Any, Dict, Optional
 
 from cobbler.cexceptions import CX
 from cobbler.utils import log_exc
 
 # add cobbler/modules to python path
-import cobbler
+import cobbler  # isort: skip
 
 
 class ModuleLoader:

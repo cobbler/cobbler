@@ -1,6 +1,7 @@
 import pytest
 
 from cobbler import grub
+
 from tests.conftest import does_not_raise
 
 

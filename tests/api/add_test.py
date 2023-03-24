@@ -2,11 +2,11 @@
 Tests that are ensuring the correct functionality of the CobblerAPI in regard to adding items via it.
 """
 
-from pathlib import Path
 import pathlib
+from pathlib import Path
 from typing import Callable
-from cobbler.api import CobblerAPI
 
+from cobbler.api import CobblerAPI
 from cobbler.items.image import Image
 
 

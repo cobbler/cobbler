@@ -2,10 +2,10 @@ import os
 
 import pytest
 
-from cobbler import enums
+from cobbler import cexceptions, enums
 from cobbler.actions import reposync
 from cobbler.items.repo import Repo
-from cobbler import cexceptions
+
 from tests.conftest import does_not_raise
 
 

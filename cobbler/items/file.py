@@ -9,10 +9,10 @@ Cobbler module that contains the code for a Cobbler file object.
 import copy
 from typing import TYPE_CHECKING, Any
 
-from cobbler.utils import input_converters
-from cobbler.items import resource
-from cobbler.decorator import LazyProperty
 from cobbler.cexceptions import CX
+from cobbler.decorator import LazyProperty
+from cobbler.items import resource
+from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

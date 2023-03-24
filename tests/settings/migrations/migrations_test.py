@@ -14,20 +14,19 @@ import yaml
 from cobbler import settings
 from cobbler.settings import migrations
 from cobbler.settings.migrations import (
-    V3_3_0,
-    V3_2_1,
-    V3_2_0,
-    V3_1_2,
-    V3_1_1,
-    V3_1_0,
-    V3_0_1,
     V3_0_0,
+    V3_0_1,
+    V3_1_0,
+    V3_1_1,
+    V3_1_2,
+    V3_2_0,
+    V3_2_1,
+    V3_3_0,
     V3_3_1,
     V3_3_2,
     V3_3_3,
     V3_4_0,
 )
-
 
 modules_conf_location = "/etc/cobbler/modules.conf"
 

@@ -4,16 +4,16 @@ rather related pytest-benchmark. Thus the different style in usage.
 """
 
 from typing import Callable
-from cobbler.api import CobblerAPI
 
-from cobbler.items.package import Package
-from cobbler.items.file import File
-from cobbler.items.mgmtclass import Mgmtclass
-from cobbler.items.repo import Repo
+from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
+from cobbler.items.file import File
 from cobbler.items.image import Image
 from cobbler.items.menu import Menu
+from cobbler.items.mgmtclass import Mgmtclass
+from cobbler.items.package import Package
 from cobbler.items.profile import Profile
+from cobbler.items.repo import Repo
 from cobbler.items.system import System
 
 

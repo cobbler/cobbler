@@ -8,8 +8,7 @@ Migration from V3.3.0 to V3.3.1
 
 from schema import Optional, Schema, SchemaError
 
-from cobbler.settings.migrations import helper
-from cobbler.settings.migrations import V3_3_0
+from cobbler.settings.migrations import V3_3_0, helper
 
 schema = Schema(
     {

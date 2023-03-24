@@ -1,2 +1,8 @@
 [build-system]
 requires = ["coverage", "distro", "sphinx", "setuptools", "wheel"]
+
+[tool.isort]
+profile = "black"
+known_cobbler="cobbler"
+known_tests="tests"
+sections="FUTURE,STDLIB,FIRSTPARTY,THIRDPARTY,LOCALFOLDER,COBBLER,TESTS"

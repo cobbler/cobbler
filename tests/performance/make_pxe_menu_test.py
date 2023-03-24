@@ -3,8 +3,8 @@ Test module to assert the performance of creating the PXE menu.
 """
 
 from typing import Any, Callable, Dict, Tuple
-import pytest
 
+import pytest
 from pytest_benchmark.fixture import BenchmarkFixture
 
 from cobbler.api import CobblerAPI

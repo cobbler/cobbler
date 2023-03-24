@@ -12,9 +12,8 @@ import json
 import string
 from typing import Dict, Union
 
+from cobbler import template_api, utils
 from cobbler.cexceptions import CX
-from cobbler import template_api
-from cobbler import utils
 
 # FIXME: This is currently getting the blendered data. Make use of the object and only process the required data.
 # FIXME: Obsolete this class. All methods are wrappers or tailcalls except gen_config_data and this can be integrated

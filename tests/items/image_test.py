@@ -1,10 +1,12 @@
 from typing import Callable
+
 import pytest
 
 from cobbler import enums
 from cobbler.api import CobblerAPI
-from cobbler.utils import signatures
 from cobbler.items.image import Image
+from cobbler.utils import signatures
+
 from tests.conftest import does_not_raise
 
 

@@ -7,31 +7,21 @@ This module contains the code for the abstract base collection that powers all t
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import logging
-import time
 import os
+import time
 from threading import Lock
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from cobbler import utils
-from cobbler.items import (
-    package,
-    system,
-    item as item_base,
-    image,
-    profile,
-    repo,
-    mgmtclass,
-    distro,
-    file,
-    menu,
-)
-
 from cobbler.cexceptions import CX
+from cobbler.items import distro, file, image
+from cobbler.items import item as item_base
+from cobbler.items import menu, mgmtclass, package, profile, repo, system
 
 if TYPE_CHECKING:
+    from cobbler.actions.sync import CobblerSync
     from cobbler.api import CobblerAPI
     from cobbler.cobbler_collections.manager import CollectionManager
-    from cobbler.actions.sync import CobblerSync
 
 
 class Collection:

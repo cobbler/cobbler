@@ -9,8 +9,7 @@ This is the code behind 'cobbler sync'.
 
 import pathlib
 
-from cobbler import templar
-from cobbler import utils
+from cobbler import templar, utils
 
 
 class YumGen:

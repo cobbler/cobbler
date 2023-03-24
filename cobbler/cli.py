@@ -14,9 +14,7 @@ import traceback
 import xmlrpc.client
 from typing import Optional
 
-from cobbler import enums
-from cobbler import power_manager
-from cobbler import utils
+from cobbler import enums, power_manager, utils
 from cobbler.utils import signatures
 
 INVALID_TASK = "<<invalid>>"

@@ -9,14 +9,14 @@ Tests for the Cobbler settings normalizations
 import yaml
 
 from cobbler.settings.migrations import (
-    V3_3_0,
-    V3_2_1,
-    V3_2_0,
-    V3_1_2,
-    V3_1_1,
-    V3_1_0,
-    V3_0_1,
     V3_0_0,
+    V3_0_1,
+    V3_1_0,
+    V3_1_1,
+    V3_1_2,
+    V3_2_0,
+    V3_2_1,
+    V3_3_0,
     V3_3_1,
     V3_3_2,
     V3_3_3,

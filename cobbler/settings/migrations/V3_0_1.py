@@ -7,6 +7,7 @@ Migration from V3.0.0 to V3.0.1
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
 from schema import SchemaError
+
 from cobbler.settings.migrations import V3_0_0
 
 # schema identical to V3_0_0

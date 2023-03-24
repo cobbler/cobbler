@@ -10,8 +10,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Tuple
 
 import pytest
 
-from cobbler import enums
-from cobbler import tftpgen
+from cobbler import enums, tftpgen
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image

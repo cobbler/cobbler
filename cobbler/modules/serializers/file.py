@@ -8,10 +8,10 @@ It uses multiple JSON files in /var/lib/cobbler/collections/distros, profiles, e
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-import os
 import glob
 import json
 import logging
+import os
 from typing import Any, Dict
 
 import cobbler.api as capi

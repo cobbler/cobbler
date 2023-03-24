@@ -18,9 +18,8 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Union
 from cobbler import enums, templar, utils
 from cobbler.cexceptions import CX
 from cobbler.enums import Archs, ImageTypes
-from cobbler.utils import input_converters
+from cobbler.utils import filesystem_helpers, input_converters
 from cobbler.validate import validate_autoinstall_script_name
-from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

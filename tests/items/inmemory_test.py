@@ -2,23 +2,23 @@
 TODO
 """
 
-from typing import Callable
-import pytest
-
 import os
 import pathlib
+from typing import Callable
+
+import pytest
 
 from cobbler.api import CobblerAPI
-from cobbler.items.package import Package
-from cobbler.items.file import File
-from cobbler.items.mgmtclass import Mgmtclass
-from cobbler.items.repo import Repo
-from cobbler.items.image import Image
-from cobbler.items.distro import Distro
-from cobbler.items.menu import Menu
-from cobbler.items.profile import Profile
-from cobbler.items.system import System
 from cobbler.cobbler_collections import manager
+from cobbler.items.distro import Distro
+from cobbler.items.file import File
+from cobbler.items.image import Image
+from cobbler.items.menu import Menu
+from cobbler.items.mgmtclass import Mgmtclass
+from cobbler.items.package import Package
+from cobbler.items.profile import Profile
+from cobbler.items.repo import Repo
+from cobbler.items.system import System
 
 
 @pytest.fixture(scope="function")

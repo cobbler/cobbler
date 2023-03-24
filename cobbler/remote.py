@@ -13,27 +13,20 @@ import keyword
 import logging
 import os
 import random
+import re
 import stat
 import time
-import re
 import xmlrpc.server
 from socketserver import ThreadingMixIn
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 
-from cobbler import enums
-from cobbler import autoinstall_manager
-from cobbler import configgen
-from cobbler.items import (
-    item,
-    system,
-)
-from cobbler import tftpgen
-from cobbler import utils
+from cobbler import autoinstall_manager, configgen, enums, tftpgen, utils
+from cobbler.cexceptions import CX
+from cobbler.items import item, system
 from cobbler.utils import signatures
 from cobbler.utils.event import CobblerEvent
 from cobbler.utils.thread import CobblerThread
-from cobbler.cexceptions import CX
 from cobbler.validate import (
     validate_autoinstall_script_name,
     validate_obj_name,

@@ -6,13 +6,13 @@ Cobbler module that contains the code for a Cobbler image object.
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-from typing import TYPE_CHECKING, List, Union, Any
 import copy
+from typing import TYPE_CHECKING, Any, List, Union
 
 from cobbler import autoinstall_manager, enums, validate
 from cobbler.cexceptions import CX
+from cobbler.decorator import InheritableProperty, LazyProperty
 from cobbler.items import item
-from cobbler.decorator import LazyProperty, InheritableProperty
 from cobbler.utils import input_converters, signatures
 
 if TYPE_CHECKING:

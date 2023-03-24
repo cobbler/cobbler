@@ -6,8 +6,7 @@ or preseed files.
 import logging
 import os
 
-from cobbler import autoinstallgen
-from cobbler import utils
+from cobbler import autoinstallgen, utils
 from cobbler.utils import filesystem_helpers
 
 TEMPLATING_ERROR = 1

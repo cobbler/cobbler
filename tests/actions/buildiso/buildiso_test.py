@@ -6,6 +6,7 @@ from cobbler import enums
 from cobbler.actions import buildiso
 from cobbler.actions.buildiso.netboot import NetbootBuildiso
 from cobbler.actions.buildiso.standalone import StandaloneBuildiso
+
 from tests.conftest import does_not_raise
 
 

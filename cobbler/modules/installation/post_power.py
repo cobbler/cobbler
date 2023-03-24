@@ -5,8 +5,8 @@ Post install trigger for Cobbler to power cycle the guest if needed
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2010 Bill Peck <bpeck@redhat.com>
 
-from threading import Thread
 import time
+from threading import Thread
 
 
 class RebootSystemThread(Thread):

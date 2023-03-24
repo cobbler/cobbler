@@ -10,10 +10,10 @@ import copy
 from typing import TYPE_CHECKING, Any, Union
 
 from cobbler import enums
-from cobbler.utils import input_converters
 from cobbler.cexceptions import CX
+from cobbler.decorator import InheritableProperty, LazyProperty
 from cobbler.items import item
-from cobbler.decorator import LazyProperty, InheritableProperty
+from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

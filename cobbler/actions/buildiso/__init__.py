@@ -14,8 +14,8 @@ import shutil
 from typing import Dict, List, Optional, Union
 
 from cobbler import utils
-from cobbler.utils import input_converters, filesystem_helpers
 from cobbler.enums import Archs
+from cobbler.utils import filesystem_helpers, input_converters
 
 
 def add_remaining_kopts(kopts: dict) -> str:

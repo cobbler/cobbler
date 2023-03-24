@@ -7,7 +7,9 @@ Tests for the Cobbler settings migration helpers
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
 import copy
+
 import pytest
+
 from cobbler.settings.migrations import helper
 
 

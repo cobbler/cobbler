@@ -10,8 +10,8 @@ Choice of authentication module is in /etc/cobbler/modules.conf
 
 import traceback
 
-from cobbler.cexceptions import CX
 from cobbler import enums
+from cobbler.cexceptions import CX
 
 
 def register() -> str:

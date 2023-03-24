@@ -13,14 +13,14 @@ import logging
 import pprint
 import re
 import uuid
-from typing import TYPE_CHECKING, Any, Dict, List, Type, Union, Tuple, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union
 
 import yaml
 
-from cobbler import utils, enums
-from cobbler.utils import input_converters
+from cobbler import enums, utils
 from cobbler.cexceptions import CX
-from cobbler.decorator import LazyProperty, InheritableProperty, InheritableDictProperty
+from cobbler.decorator import InheritableDictProperty, InheritableProperty, LazyProperty
+from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

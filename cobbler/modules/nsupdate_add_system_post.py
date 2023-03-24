@@ -9,11 +9,12 @@ Replace (or remove) records in DNS zone for systems created (or removed) by Cobb
 #   - python-dnspython (Debian)
 #   - python-dns (RH/CentOS)
 
+import time
+
 import dns.query
+import dns.resolver
 import dns.tsigkeyring
 import dns.update
-import dns.resolver
-import time
 
 from cobbler.cexceptions import CX
 

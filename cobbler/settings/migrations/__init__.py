@@ -23,7 +23,7 @@ from importlib import import_module
 from inspect import signature
 from pathlib import Path
 from types import ModuleType
-from typing import Tuple, Dict, List, Union, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
 from schema import Schema
 

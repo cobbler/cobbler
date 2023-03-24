@@ -3,8 +3,8 @@ Test module to assert the performance of retrieving an autoinstallation file.
 """
 
 from typing import Any, Callable, Dict, Tuple
-import pytest
 
+import pytest
 from pytest_benchmark.fixture import BenchmarkFixture
 
 from cobbler import autoinstall_manager
@@ -13,6 +13,7 @@ from cobbler.items.distro import Distro
 from cobbler.items.image import Image
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
+
 from tests.performance import CobblerTree
 
 

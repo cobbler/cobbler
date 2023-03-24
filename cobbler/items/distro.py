@@ -5,18 +5,17 @@ Cobbler module that contains the code for a Cobbler distro object.
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
+
+import copy
 import glob
 import os
-import copy
 from typing import TYPE_CHECKING, Any, List, Union
 
-from cobbler import enums, validate
-from cobbler.items import item
-from cobbler import utils
-from cobbler.utils import input_converters, signatures
+from cobbler import enums, grub, utils, validate
 from cobbler.cexceptions import CX
-from cobbler import grub
-from cobbler.decorator import LazyProperty, InheritableProperty
+from cobbler.decorator import InheritableProperty, LazyProperty
+from cobbler.items import item
+from cobbler.utils import input_converters, signatures
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

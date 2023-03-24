@@ -7,10 +7,10 @@ Cobbler module that at runtime holds all packages in Cobbler.
 
 from typing import TYPE_CHECKING, Any, Dict
 
-from cobbler.cobbler_collections import collection
-from cobbler.items import package
 from cobbler import utils
 from cobbler.cexceptions import CX
+from cobbler.cobbler_collections import collection
+from cobbler.items import package
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

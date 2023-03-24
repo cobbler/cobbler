@@ -1,8 +1,8 @@
 import os
+import re
+import time
 
 import pytest
-import time
-import re
 
 from tests.conftest import does_not_raise
 

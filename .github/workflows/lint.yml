@@ -38,3 +38,12 @@ jobs:
         with:
           options: "--check --safe --verbose"
           version: "22.3.0"
+  python_isort:
+    name: isort formatter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - uses: isort/isort-action@v1.1.0
+        with:
+          configuration: --check-only --diff --profile=black

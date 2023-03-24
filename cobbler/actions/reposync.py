@@ -11,14 +11,14 @@ import logging
 import os
 import os.path
 import pipes
-import stat
 import shutil
+import stat
 from typing import Any, Dict, Optional, Tuple
 
 from cobbler import utils
-from cobbler.enums import RepoArchs, RepoBreeds, MirrorType
-from cobbler.utils import filesystem_helpers, os_release
 from cobbler.cexceptions import CX
+from cobbler.enums import MirrorType, RepoArchs, RepoBreeds
+from cobbler.utils import filesystem_helpers, os_release
 
 HAS_LIBREPO = False
 try:

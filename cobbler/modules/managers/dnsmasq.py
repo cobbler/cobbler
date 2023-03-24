@@ -9,8 +9,8 @@ This is some of the code behind 'cobbler sync'.
 
 import time
 
-from cobbler.utils import process_management
 from cobbler.manager import ManagerModule
+from cobbler.utils import process_management
 
 MANAGER = None
 

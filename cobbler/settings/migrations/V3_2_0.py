@@ -7,8 +7,8 @@ Migration from V3.1.2 to V3.2.0
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
 from schema import Optional, Or, Schema, SchemaError
-from cobbler.settings.migrations import helper
-from cobbler.settings.migrations import V3_1_2
+
+from cobbler.settings.migrations import V3_1_2, helper
 
 schema = Schema(
     {

@@ -5,10 +5,9 @@ This module is responsible for managing the custom common threading logic Cobble
 import logging
 import pathlib
 from threading import Thread
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Callable, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
-from cobbler import enums
-from cobbler import utils
+from cobbler import enums, utils
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

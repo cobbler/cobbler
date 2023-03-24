@@ -3,8 +3,9 @@ import os
 import pytest
 
 from cobbler import enums
-from cobbler.utils import signatures
 from cobbler.items.distro import Distro
+from cobbler.utils import signatures
+
 from tests.conftest import does_not_raise
 
 

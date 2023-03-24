@@ -6,14 +6,14 @@ Cobbler module that at runtime holds all distros in Cobbler.
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-import os.path
 import glob
+import os.path
 from typing import TYPE_CHECKING, Any, Dict
 
-from cobbler.cobbler_collections import collection
-from cobbler.items import distro
 from cobbler import utils
 from cobbler.cexceptions import CX
+from cobbler.cobbler_collections import collection
+from cobbler.items import distro
 from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:

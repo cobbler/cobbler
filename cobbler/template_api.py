@@ -17,7 +17,6 @@ from Cheetah.Template import Template
 
 from cobbler import utils
 
-
 # This class is defined using the Cheetah language. Using the 'compile' function we can compile the source directly into
 # a Python class. This class will allow us to define the cheetah builtins.
 

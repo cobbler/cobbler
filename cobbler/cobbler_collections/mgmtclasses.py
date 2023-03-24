@@ -6,10 +6,11 @@ Cobbler module that at runtime holds all mgmtclasses in Cobbler.
 # SPDX-FileCopyrightText: Copyright 2010, Kelsey Hightower <kelsey.hightower@gmail.com>
 
 from typing import TYPE_CHECKING, Any, Dict
-from cobbler.cobbler_collections import collection
-from cobbler.items import mgmtclass
+
 from cobbler import utils
 from cobbler.cexceptions import CX
+from cobbler.cobbler_collections import collection
+from cobbler.items import mgmtclass
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

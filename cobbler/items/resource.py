@@ -10,8 +10,8 @@ import copy
 from typing import TYPE_CHECKING, Any, Union
 
 from cobbler import enums
-from cobbler.items import item
 from cobbler.decorator import LazyProperty
+from cobbler.items import item
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI

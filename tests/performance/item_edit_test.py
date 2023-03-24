@@ -3,9 +3,10 @@ Test module to assert the performance of editing items.
 """
 
 from typing import Any, Callable, Dict, Tuple
-import pytest
 
+import pytest
 from pytest_benchmark.fixture import BenchmarkFixture
+
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image

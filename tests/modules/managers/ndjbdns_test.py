@@ -1,5 +1,5 @@
-from cobbler.modules.managers import ndjbdns
 from cobbler.items.system import NetworkInterface, System
+from cobbler.modules.managers import ndjbdns
 from cobbler.templar import Templar
 
 

@@ -7,7 +7,6 @@ from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
 
-
 # TODO: If the action items of the configgen class are done then the tests need to test the robustness of the class.
 
 

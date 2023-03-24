@@ -3,11 +3,11 @@ from unittest.mock import create_autospec
 
 import pytest
 
-from cobbler import enums
-from cobbler import settings
-from cobbler.api import CobblerAPI
+from cobbler import enums, settings
 from cobbler.actions.buildiso.netboot import NetbootBuildiso
 from cobbler.actions.buildiso.standalone import StandaloneBuildiso
+from cobbler.api import CobblerAPI
+
 from tests.conftest import does_not_raise
 
 
