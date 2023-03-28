@@ -479,7 +479,7 @@ class TFTPGen:
             arch_menu_items = arch_metadata["menu_items"]
 
             boot_menu["grub"] = arch_menu_items
-            outfile = os.path.join(self.bootloc, "grub", f"{arch}_menu_items.cfg")
+            outfile = os.path.join(self.bootloc, "grub", f"{arch.value}_menu_items.cfg")
             with open(outfile, "w+") as fd:
                 fd.write(arch_menu_items.get("grub", ""))
 
