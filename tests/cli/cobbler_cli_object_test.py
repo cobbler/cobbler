@@ -1,9 +1,4 @@
-"""
-TODO
-"""
-
 import os
-from typing import Any, Callable, Dict, List, Tuple
 
 import pytest
 
@@ -32,13 +27,9 @@ def teardown():
 
 
 @pytest.fixture(scope="function")
-def generate_run_cmd_array() -> Callable[[Dict[str, str]], List[str]]:
-    """
-    TODO
-    """
-
-    def _generate_run_cmd_array(dict_to_convert: Dict[str, str]) -> List[str]:
-        result_array: List[str] = []
+def generate_run_cmd_array():
+    def _generate_run_cmd_array(dict_to_convert):
+        result_array = []
         for key in dict_to_convert:
             result_array.append("--%s=%s" % (key, dict_to_convert[key]))
         return result_array
@@ -47,31 +38,20 @@ def generate_run_cmd_array() -> Callable[[Dict[str, str]], List[str]]:
 
 
 @pytest.fixture(scope="function")
-def add_object_via_cli(
-    run_cmd: Callable[[Any], Tuple[str, str]],
-    generate_run_cmd_array: Callable[[Dict[str, str]], List[str]],
-):
-    """
-    TODO
-    """
-
-    def _add_object_via_cli(object_type: str, attributes: Dict[str, str]):
+def add_object_via_cli(run_cmd, generate_run_cmd_array):
+    def _add_object_via_cli(object_type, attributes):
         cmd_list = [object_type, "add"]
         options = generate_run_cmd_array(attributes)
         cmd_list.extend(options)
-        run_cmd(cmd=cmd_list)  # type: ignore
+        run_cmd(cmd=cmd_list)
 
     return _add_object_via_cli
 
 
 @pytest.fixture(scope="function")
-def remove_object_via_cli(run_cmd: Callable[[Any], Tuple[str, str]]):
-    """
-    TODO
-    """
-
-    def _remove_object_via_cli(object_type: str, name: str):
-        run_cmd(cmd=[object_type, "remove", f"--name={name}"])  # type: ignore
+def remove_object_via_cli(run_cmd):
+    def _remove_object_via_cli(object_type, name):
+        run_cmd(cmd=[object_type, "remove", "--name=%s" % name])
 
     return _remove_object_via_cli
 
@@ -82,7 +62,7 @@ class TestCobblerCliTestObject:
     Test CLI commands on objects
     """
 
-    def test_report(self, run_cmd: Callable[[Any], Tuple[str, str]]):
+    def test_report(self, run_cmd):
         # Arrange
         expected = """distros:
 ==========
@@ -132,12 +112,7 @@ menus:
             "menu",
         ],
     )
-    def test_report_with_type(
-        self, run_cmd: Callable[[Any], Tuple[str, str]], object_type: str
-    ):
-        """
-        TODO
-        """
+    def test_report_with_type(self, run_cmd, object_type):
         # Arrange
 
         # Act
@@ -160,9 +135,7 @@ menus:
             "menu",
         ],
     )
-    def test_report_with_type_and_name(
-        self, run_cmd: Callable[[Any], Tuple[str, str]], object_type: str
-    ):
+    def test_report_with_type_and_name(self, run_cmd, object_type):
         # Arrange
         name = "notexisting"
 
@@ -243,20 +216,17 @@ menus:
     )
     def test_edit(
         self,
-        run_cmd: Callable[[Any], Tuple[str, str]],
+        run_cmd,
         add_object_via_cli,
         remove_object_via_cli,
         create_kernel_initrd,
-        fk_kernel: str,
-        fk_initrd: str,
-        object_type: str,
-        attributes: Dict[str, str],
-        to_change: List[str],
-        attr_long_name: str,
+        fk_kernel,
+        fk_initrd,
+        object_type,
+        attributes,
+        to_change,
+        attr_long_name,
     ):
-        """
-        TODO
-        """
         # Arrange
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
@@ -307,6 +277,14 @@ menus:
             cmd=[object_type, "report", "--name=%s" % attributes["name"]]
         )
 
+        # Cleanup
+        remove_object_via_cli(object_type, attributes["name"])
+        if object_type == "profile":
+            remove_object_via_cli("distro", name_distro_profile)
+        elif object_type == "system":
+            remove_object_via_cli("profile", name_profile_system)
+            remove_object_via_cli("distro", name_distro_system)
+
         # Assert
         expected = attr_long_name + ":'" + to_change[1] + "'"
         print('Expected: "' + expected + '"')
@@ -354,7 +332,7 @@ menus:
     )
     def test_find(
         self,
-        run_cmd: Callable[[Any], Tuple[str, str]],
+        run_cmd,
         add_object_via_cli,
         remove_object_via_cli,
         create_kernel_initrd,
@@ -407,6 +385,14 @@ menus:
             cmd=[object_type, "find", "--name='%s'" % attributes["name"]]
         )
 
+        # Cleanup
+        remove_object_via_cli(object_type, attributes["name"])
+        if object_type == "profile":
+            remove_object_via_cli("distro", name_distro_profile)
+        elif object_type == "system":
+            remove_object_via_cli("profile", name_profile_system)
+            remove_object_via_cli("distro", name_distro_system)
+
         # Assert
         lines = outputstd.split("\n")
         assert len(lines) >= 1
@@ -452,18 +438,15 @@ menus:
     )
     def test_copy(
         self,
-        run_cmd: Callable[[Any], Tuple[str, str]],
+        run_cmd,
         add_object_via_cli,
         remove_object_via_cli,
         create_kernel_initrd,
-        fk_initrd: str,
-        fk_kernel: str,
-        object_type: str,
-        attributes: Dict[str, str],
+        fk_initrd,
+        fk_kernel,
+        object_type,
+        attributes,
     ):
-        """
-        TODO
-        """
         # Arrange
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
         kernel_path = os.path.join(folder, fk_kernel)
@@ -500,7 +483,7 @@ menus:
                 "profile", {"name": name_profile_system, "distro": name_distro_system}
             )
         add_object_via_cli(object_type, attributes)
-        new_object_name = f"{attributes['name']}-copy"
+        new_object_name = "%s-copy" % attributes["name"]
 
         # Act
         (outputstd, outputerr) = run_cmd(
@@ -511,6 +494,15 @@ menus:
                 "--newname=%s" % new_object_name,
             ]
         )
+
+        # Cleanup
+        remove_object_via_cli(object_type, attributes["name"])
+        remove_object_via_cli(object_type, new_object_name)
+        if object_type == "profile":
+            remove_object_via_cli("distro", name_distro_profile)
+        elif object_type == "system":
+            remove_object_via_cli("profile", name_profile_system)
+            remove_object_via_cli("distro", name_distro_system)
 
         # Assert
         assert not outputstd
@@ -556,7 +548,7 @@ menus:
     )
     def test_rename(
         self,
-        run_cmd: Callable[[Any], Tuple[str, str]],
+        run_cmd,
         add_object_via_cli,
         remove_object_via_cli,
         create_kernel_initrd,
@@ -613,6 +605,14 @@ menus:
             ]
         )
 
+        # Cleanup
+        remove_object_via_cli(object_type, new_object_name)
+        if object_type == "profile":
+            remove_object_via_cli("distro", name_distro_profile)
+        elif object_type == "system":
+            remove_object_via_cli("profile", name_profile_system)
+            remove_object_via_cli("distro", name_distro_system)
+
         # Assert
         assert not outputstd
 
@@ -651,7 +651,7 @@ menus:
     )
     def test_add(
         self,
-        run_cmd: Callable[[Any], Tuple[str, str]],
+        run_cmd,
         remove_object_via_cli,
         generate_run_cmd_array,
         create_kernel_initrd,
@@ -704,6 +704,14 @@ menus:
         # Act
         (outputstd, outputerr) = run_cmd(cmd=cmd_list)
 
+        # Cleanup
+        remove_object_via_cli(object_type, attributes["name"])
+        if object_type == "profile":
+            remove_object_via_cli("distro", name_distro_profile)
+        elif object_type == "system":
+            remove_object_via_cli("profile", name_profile_system)
+            remove_object_via_cli("distro", name_distro_system)
+
         # Assert
         assert not outputstd
 
@@ -748,14 +756,14 @@ menus:
     )
     def test_remove(
         self,
-        run_cmd: Callable[[Any], Tuple[str, str]],
+        run_cmd,
         add_object_via_cli,
         remove_object_via_cli,
         create_kernel_initrd,
-        fk_initrd: str,
-        fk_kernel: str,
-        object_type: str,
-        attributes: Dict[str, str],
+        fk_initrd,
+        fk_kernel,
+        object_type,
+        attributes,
     ):
         # Arrange
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
@@ -798,6 +806,13 @@ menus:
         (outputstd, outputerr) = run_cmd(
             cmd=[object_type, "remove", "--name=%s" % attributes["name"]]
         )
+
+        # Cleanup
+        if object_type == "profile":
+            remove_object_via_cli("distro", name_distro_profile)
+        elif object_type == "system":
+            remove_object_via_cli("profile", name_profile_system)
+            remove_object_via_cli("distro", name_distro_system)
 
         # Assert
         assert not outputstd
