@@ -1,3 +1,7 @@
+"""
+Fixtures that are shared by the XML-RPC tests that are in the "xmlrpcapi" module.
+"""
+
 import os
 import sys
 from pathlib import Path
@@ -33,14 +37,14 @@ def token(cobbler_xmlrpc_base: Tuple[CobblerXMLRPCInterface, str]) -> str:
 
 
 @pytest.fixture(scope="function")
-def cobbler_xmlrpc_base(cobbler_api: CobblerAPI):
+def cobbler_xmlrpc_base(cobbler_api: CobblerAPI) -> Tuple[CobblerXMLRPCInterface, str]:
     """
     Initialises the api object and makes it available to the test.
     """
     # create XML-RPC client and connect to server
     remote = CobblerXMLRPCInterface(cobbler_api)
     shared_secret = get_shared_secret()
-    token = remote.login("", shared_secret)
+    token = remote.login("", shared_secret)  # type: ignore
     if not token:
         sys.exit(1)
     return remote, token
@@ -48,6 +52,9 @@ def cobbler_xmlrpc_base(cobbler_api: CobblerAPI):
 
 @pytest.fixture(scope="function")
 def testsnippet() -> str:
+    """
+    Fixture that provides a valid minimalistic Cobbler Snippet.
+    """
     return "# This is a small simple testsnippet!"
 
 
@@ -55,6 +62,10 @@ def testsnippet() -> str:
 def snippet_add(
     remote: CobblerXMLRPCInterface, token: str
 ) -> Callable[[str, str], None]:
+    """
+    Fixture that adds a snippet to Cobbler.
+    """
+
     def _snippet_add(name: str, data: str) -> None:
         remote.write_autoinstall_snippet(name, data, token)
 
@@ -62,7 +73,11 @@ def snippet_add(
 
 
 @pytest.fixture(scope="function")
-def snippet_remove(remote: CobblerXMLRPCInterface, token: str):
+def snippet_remove(remote: CobblerXMLRPCInterface, token: str) -> Callable[[str], None]:
+    """
+    Fixture that removed a snippet from Cobbler.
+    """
+
     def _snippet_remove(name: str):
         remote.remove_autoinstall_snippet(name, token)
 
@@ -71,6 +86,10 @@ def snippet_remove(remote: CobblerXMLRPCInterface, token: str):
 
 @pytest.fixture(scope="function")
 def create_distro(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Fixture that creates a distro and adds it to Cobbler.
+    """
+
     def _create_distro(
         name: str, arch: str, breed: str, path_kernel: str, path_initrd: str
     ) -> str:
@@ -88,6 +107,10 @@ def create_distro(remote: CobblerXMLRPCInterface, token: str):
 
 @pytest.fixture(scope="function")
 def remove_distro(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Fixture that removes a distro from Cobbler.
+    """
+
     def _remove_distro(name: str):
         remote.remove_distro(name, token)
 
@@ -96,6 +119,10 @@ def remove_distro(remote: CobblerXMLRPCInterface, token: str):
 
 @pytest.fixture(scope="function")
 def create_profile(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Fixture that creates a profile and adds it to Cobbler.
+    """
+
     def _create_profile(
         name: str, distro: str, kernel_options: Union[Dict[str, Any], str]
     ) -> str:
@@ -111,6 +138,10 @@ def create_profile(remote: CobblerXMLRPCInterface, token: str):
 
 @pytest.fixture(scope="function")
 def remove_profile(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Fixture that removes a profile from Cobbler.
+    """
+
     def _remove_profile(name: str):
         remote.remove_profile(name, token)
 
@@ -119,6 +150,10 @@ def remove_profile(remote: CobblerXMLRPCInterface, token: str):
 
 @pytest.fixture(scope="function")
 def create_system(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Fixture that creates a system and adds it to Cobbler.
+    """
+
     def _create_system(name: str, profile: str) -> str:
         system = remote.new_system(token)
         remote.modify_system(system, "name", name, token)
@@ -131,6 +166,10 @@ def create_system(remote: CobblerXMLRPCInterface, token: str):
 
 @pytest.fixture(scope="function")
 def remove_system(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Fixture that removes a system from Cobbler.
+    """
+
     def _remove_system(name: str):
         remote.remove_system(name, token)
 
@@ -139,8 +178,19 @@ def remove_system(remote: CobblerXMLRPCInterface, token: str):
 
 @pytest.fixture(scope="function")
 def create_file(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Fixture that creates a file and adds it to Cobbler.
+    """
+
     def _create_file(
-        name: str, is_directory, action, group, mode, owner, path, template
+        name: str,
+        is_directory: bool,
+        action: str,
+        group: str,
+        mode: str,
+        owner: str,
+        path: str,
+        template: str,
     ):
         file_id = remote.new_file(token)
 
@@ -161,6 +211,10 @@ def create_file(remote: CobblerXMLRPCInterface, token: str):
 
 @pytest.fixture(scope="function")
 def remove_file(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Fixture that removes a file from Cobbler.
+    """
+
     def _remove_file(name: str):
         remote.remove_file(name, token)
 
@@ -169,6 +223,10 @@ def remove_file(remote: CobblerXMLRPCInterface, token: str):
 
 @pytest.fixture()
 def create_mgmt_class(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Fixture that creates a mgmt class and adds it to Cobbler.
+    """
+
     def _create_mgmt_class(name: str):
         mgmtclass = remote.new_mgmtclass(token)
         remote.modify_mgmtclass(mgmtclass, "name", name, token)
@@ -180,6 +238,10 @@ def create_mgmt_class(remote: CobblerXMLRPCInterface, token: str):
 
 @pytest.fixture(scope="function")
 def remove_mgmt_class(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Fixture that removes a mgmt class from Cobbler.
+    """
+
     def _remove_mgmt_class(name: str):
         remote.remove_mgmtclass(name, token)
 
@@ -187,15 +249,27 @@ def remove_mgmt_class(remote: CobblerXMLRPCInterface, token: str):
 
 
 @pytest.fixture(scope="function")
-def create_autoinstall_template(remote: CobblerXMLRPCInterface, token: str):
-    def _create_autoinstall_template(filename, content):
+def create_autoinstall_template(
+    remote: CobblerXMLRPCInterface, token: str
+) -> Callable[[str, str], None]:
+    """
+    Fixture that creates an autoinstall template and adds it to Cobbler.
+    """
+
+    def _create_autoinstall_template(filename: str, content: str):
         remote.write_autoinstall_template(filename, content, token)
 
     return _create_autoinstall_template
 
 
 @pytest.fixture(scope="function")
-def remove_autoinstall_template(remote: CobblerXMLRPCInterface, token: str):
+def remove_autoinstall_template(
+    remote: CobblerXMLRPCInterface, token: str
+) -> Callable[[str], None]:
+    """
+    TOFixture that removes an autoinstall template from Cobbler.DO
+    """
+
     def _remove_autoinstall_template(name: str):
         remote.remove_autoinstall_template(name, token)
 
@@ -203,8 +277,14 @@ def remove_autoinstall_template(remote: CobblerXMLRPCInterface, token: str):
 
 
 @pytest.fixture(scope="function")
-def create_repo(remote: CobblerXMLRPCInterface, token: str):
-    def _create_repo(name: str, mirror, mirror_locally):
+def create_repo(
+    remote: CobblerXMLRPCInterface, token: str
+) -> Callable[[str, str, bool], str]:
+    """
+    Fixture that creates a repository and adds it to Cobbler.
+    """
+
+    def _create_repo(name: str, mirror: str, mirror_locally: bool):
         repo = remote.new_repo(token)
         remote.modify_repo(repo, "name", name, token)
         remote.modify_repo(repo, "mirror", mirror, token)
@@ -217,6 +297,10 @@ def create_repo(remote: CobblerXMLRPCInterface, token: str):
 
 @pytest.fixture(scope="function")
 def remove_repo(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Fixture that removes a repo from Cobbler.
+    """
+
     def _remove_repo(name: str):
         remote.remove_repo(name, token)
 
@@ -225,7 +309,11 @@ def remove_repo(remote: CobblerXMLRPCInterface, token: str):
 
 @pytest.fixture(scope="function")
 def create_menu(remote: CobblerXMLRPCInterface, token: str):
-    def _create_menu(name, display_name):
+    """
+    Fixture that creates a menu and adds it to Cobbler.
+    """
+
+    def _create_menu(name: str, display_name: str):
         menu_id = remote.new_menu(token)
 
         remote.modify_menu(menu_id, "name", name, token)
@@ -239,14 +327,18 @@ def create_menu(remote: CobblerXMLRPCInterface, token: str):
 
 @pytest.fixture(scope="function")
 def remove_menu(remote: CobblerXMLRPCInterface, token: str):
-    def _remove_menu(name):
+    """
+    Fixture that removes a menu from Cobbler.
+    """
+
+    def _remove_menu(name: str):
         remote.remove_menu(name, token)
 
     return _remove_menu
 
 
 @pytest.fixture(scope="function")
-def create_testprofile(remote: CobblerXMLRPCInterface, token):
+def create_testprofile(remote: CobblerXMLRPCInterface, token: str):
     """
     Create a profile with the name "testprofile0"
     :param remote: See the corresponding fixture.
