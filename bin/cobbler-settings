@@ -16,7 +16,7 @@ import yaml
 from cobbler import settings
 from cobbler.settings import migrations
 from cobbler.settings.migrations import EMPTY_VERSION, helper
-from cobbler.utils import input_converters
+from cobbler import utils
 
 
 # TODO: Transform this into a lamda/list comprehension
@@ -134,15 +134,15 @@ def modify(args: argparse.Namespace) -> int:
     if isinstance(Optional, key_type):
         key_type = schema._schema[setting_obj.key_name].name
     if key_type == bool:
-        setting_obj.value = input_converters.input_boolean(setting_obj.value)
+        setting_obj.value = utils.input_boolean(setting_obj.value)
     elif key_type == int:
         setting_obj.value = int(setting_obj.value)
     elif key_type == float:
         setting_obj.value = float(setting_obj.value)
     elif key_type == list:
-        setting_obj.value = input_converters.input_string_or_list(setting_obj.value)
+        setting_obj.value = utils.input_string_or_list(setting_obj.value)
     elif key_type == dict:
-        setting_obj.value = input_converters.input_string_or_dict(setting_obj.value)
+        setting_obj.value = utils.input_string_or_dict(setting_obj.value)
     elif key_type == str:
         setting_obj.value = setting_obj.value
     else:
