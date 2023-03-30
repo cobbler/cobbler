@@ -9,9 +9,9 @@ set -x -e -o pipefail
 OLD_CONFIG="${tmp}/settings-old.yaml"
 NEW_CONFIG="${tmp}/settings-new.yaml"
 EXPECTED_CONFIG="${tmp}/settings-expected.yaml"
-NEW_VERSION="3.4.0"
+NEW_VERSION="3.3.0"
 
-# Test migration from 3.3.2 to 3.4.0
+# Test migration from 3.3.2 to 3.3.3
 cat <<-END >$OLD_CONFIG
 auto_migrate_settings: false
 allow_duplicate_hostnames: false
