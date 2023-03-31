@@ -1151,7 +1151,7 @@ class TFTPGen:
                     append_line += f" netdevice={management_mac}"
             elif distro.breed in ("debian", "ubuntu"):
                 append_line = (
-                    f"{append_line} auto-install/enable=true priority=critical"
+                    f"{append_line}auto-install/enable=true priority=critical "
                     f"netcfg/choose_interface=auto url={autoinstall_path}"
                 )
                 if management_interface:
