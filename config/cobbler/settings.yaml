@@ -426,7 +426,7 @@ replicate_repo_rsync_options: "-avzH"
 # always write DHCP entries, regardless if netboot is enabled
 always_write_dhcp_entries: false
 
-# External proxy - used by: "get-loaders", "reposync", "signature update"
+# External proxy - used by: reposync", "signature update"
 # Eg: "http://192.168.1.1:8080" (HTTP), "https://192.168.1.1:8443" (HTTPS)
 proxy_url_ext: ""
 
