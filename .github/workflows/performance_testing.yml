@@ -14,7 +14,7 @@ jobs:
       - name: Pull Docker Test Container
         run: docker pull registry.opensuse.org/home/schoolguy/branches/opensuse/templates/images/tumbleweed/containers/opensuse/cobbler-github-ci:latest
       - name: Run previously built Docker Container
-        run: docker run --cap-add=NET_ADMIN -t -d -v $PWD:/code --name cobbler registry.opensuse.org/home/schoolguy/branches/opensuse/templates/images/tumbleweed/containers/opensuse/cobbler-github-ci:latest
+        run: docker run --privileged -t -d -v $PWD:/code --name cobbler registry.opensuse.org/home/schoolguy/branches/opensuse/templates/images/tumbleweed/containers/opensuse/cobbler-github-ci:latest
       - name: Setup Cobbler in the Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
