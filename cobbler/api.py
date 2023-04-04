@@ -2157,28 +2157,18 @@ class CobblerAPI:
             raise TypeError('Argument "airgapped" needs to be of type bool!')
         if airgapped:
             standalone = True
-        if standalone:
-            standalone_builder = StandaloneBuildiso(self)
-            standalone_builder.run(
-                iso=iso,
-                buildisodir=buildisodir,
-                profiles=profiles,
-                xorrisofs_opts=xorrisofs_opts,
-                distro_name=distro_name,
-                airgapped=airgapped,
-                source=source,
-            )
-        else:
-            netboot_builder = NetbootBuildiso(self)
-            netboot_builder.run(
-                iso=iso,
-                buildisodir=buildisodir,
-                profiles=profiles,
-                xorrisofs_opts=xorrisofs_opts,
-                distro_name=distro_name,
-                systems=systems,
-                exclude_dns=exclude_dns,
-            )
+        Builder = StandaloneBuildiso if standalone else NetbootBuildiso
+        Builder(self).run(
+            iso=iso,
+            buildisodir=buildisodir,
+            profiles=profiles,
+            xorrisofs_opts=xorrisofs_opts,
+            distro_name=distro_name,
+            airgapped=airgapped,
+            source=source,
+            systems=systems,
+            exclude_dns=exclude_dns,
+        )
 
     # ==========================================================================
 

@@ -173,6 +173,7 @@ Requires:       %{createrepo_pkg}
 Requires:       fence-agents
 Requires:       rsync
 Requires:       xorriso
+Requires:       dosfstools
 %{?python_enable_dependency_generator}
 %if ! (%{defined python_enable_dependency_generator} || %{defined python_disable_dependency_generator})
 Requires:       %{py3_module_cheetah}
@@ -334,6 +335,8 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
 %config(noreplace) %{_sysconfdir}/cobbler/import_rsync_whitelist
 %dir %{_sysconfdir}/cobbler/iso
 %config(noreplace) %{_sysconfdir}/cobbler/iso/buildiso.template
+%config(noreplace) %{_sysconfdir}/cobbler/iso/isolinux_menuentry.template
+%config(noreplace) %{_sysconfdir}/cobbler/iso/grub_menuentry.template
 %config(noreplace) %{_sysconfdir}/cobbler/logging_config.conf
 %config(noreplace) %{_sysconfdir}/cobbler/named.template
 %config(noreplace) %{_sysconfdir}/cobbler/ndjbdns.template

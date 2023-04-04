@@ -26,7 +26,7 @@ def test_generate_system(
     # TODO: Make tests more sophisticated
     assert (
         result
-        == "  APPEND initrd=%s.img install=http://192.168.1.1:80/cblr/links/%s autoyast=default.ks"
+        == "  APPEND initrd=/%s.img install=http://192.168.1.1:80/cblr/links/%s autoyast=default.ks"
         % (request.node.originalname, request.node.originalname)
     )
 
@@ -49,7 +49,7 @@ def test_generate_system_redhat(
     # Assert
     # Very basic test yes but this is the expected result atm
     # TODO: Make tests more sophisticated
-    assert result == f"  APPEND initrd={test_distro.name}.img inst.ks=default.ks"
+    assert result == f"  APPEND initrd=/{test_distro.name}.img inst.ks=default.ks"
 
 
 def test_generate_profile(request, cobbler_api, create_distro, create_profile):
@@ -67,7 +67,7 @@ def test_generate_profile(request, cobbler_api, create_distro, create_profile):
     # TODO: Make tests more sophisticated
     assert (
         result
-        == " append initrd=%s.img install=http://192.168.1.1:80/cblr/links/%s autoyast=default.ks"
+        == " append initrd=/%s.img install=http://192.168.1.1:80/cblr/links/%s autoyast=default.ks"
         % (request.node.originalname, request.node.originalname)
     )
 
@@ -87,7 +87,7 @@ def test_generate_profile_rhel7(cobbler_api, create_distro, create_profile):
     # Assert
     # Very basic test yes but this is the expected result atm
     # TODO: Make tests more sophisticated
-    assert result == f" append initrd={test_distro.name}.img inst.ks=default.ks"
+    assert result == f" append initrd=/{test_distro.name}.img inst.ks=default.ks"
 
 
 def test_generate_profile_rhel6(cobbler_api, create_distro, create_profile):
@@ -105,4 +105,4 @@ def test_generate_profile_rhel6(cobbler_api, create_distro, create_profile):
     # Assert
     # Very basic test yes but this is the expected result atm
     # TODO: Make tests more sophisticated
-    assert result == f" append initrd={test_distro.name}.img ks=default.ks"
+    assert result == f" append initrd=/{test_distro.name}.img ks=default.ks"
