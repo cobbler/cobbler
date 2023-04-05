@@ -7,9 +7,6 @@ cp /code/docker/develop/supervisord/supervisord.conf /etc/
 echo "Setup openLDAP"
 /code/docker/develop/scripts/setup-openldap.sh
 
-echo "Setup reposync"
-/code/docker/develop/scripts/setup-reposync.sh
-
 echo "Install Cobbler"
 cd /code || exit
 make install
