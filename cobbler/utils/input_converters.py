@@ -3,12 +3,14 @@ TODO
 """
 
 import shlex
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from cobbler import enums
 
 
-def input_string_or_list_no_inherit(options: Optional[Union[str, list]]) -> list:
+def input_string_or_list_no_inherit(
+    options: Optional[Union[str, List[Any]]]
+) -> List[Any]:
     """
     Accepts a delimited list of stuff or a list, but always returns a list.
 
@@ -21,15 +23,18 @@ def input_string_or_list_no_inherit(options: Optional[Union[str, list]]) -> list
         return []
     if isinstance(options, list):
         return options
-    if isinstance(options, str):
+    if isinstance(options, str):  # type: ignore
         tokens = shlex.split(options)
         return tokens
     raise TypeError("invalid input type")
 
 
-def input_string_or_list(options: Optional[Union[str, list]]) -> Union[list, str]:
+def input_string_or_list(
+    options: Optional[Union[str, List[Any]]]
+) -> Union[List[Any], str]:
     """
     Accepts a delimited list of stuff or a list, but always returns a list.
+
     :param options: The object to split into a list.
     :return: str when this functions get's passed ``<<inherit>>``. if option is delete then an empty list is returned.
              Otherwise, this function tries to return the arg option or tries to split it into a list.
@@ -41,8 +46,8 @@ def input_string_or_list(options: Optional[Union[str, list]]) -> Union[list, str
 
 
 def input_string_or_dict(
-    options: Union[str, list, dict], allow_multiples=True
-) -> Union[str, dict]:
+    options: Union[str, List[Any], Dict[Any, Any]], allow_multiples: bool = True
+) -> Union[str, Dict[Any, Any]]:
     """
     Older Cobbler files stored configurations in a flat way, such that all values for strings. Newer versions of Cobbler
     allow dictionaries. This function is used to allow loading of older value formats so new users of Cobbler aren't
@@ -59,8 +64,8 @@ def input_string_or_dict(
 
 
 def input_string_or_dict_no_inherit(
-    options: Union[str, list, dict], allow_multiples=True
-) -> dict:
+    options: Union[str, List[Any], Dict[Any, Any]], allow_multiples: bool = True
+) -> Dict[Any, Any]:
     """
     See :meth:`~cobbler.utils.input_converters.input_string_or_dict`
     """
@@ -96,7 +101,7 @@ def input_string_or_dict_no_inherit(
         # make sure we have no empty entries
         new_dict.pop("", None)
         return new_dict
-    if isinstance(options, dict):
+    if isinstance(options, dict):  # type: ignore
         options.pop("", None)
         return options
     raise TypeError("invalid input type")
@@ -132,11 +137,11 @@ def input_int(value: Union[str, int, float]) -> int:
             converted_value = int(value)
         except ValueError as value_error:
             raise TypeError(error_message) from value_error
-        if not isinstance(converted_value, int):
+        if not isinstance(converted_value, int):  # type: ignore
             raise TypeError(error_message)
         return converted_value
     if isinstance(value, bool):
         return int(value)
-    if isinstance(value, int):
+    if isinstance(value, int):  # type: ignore
         return value
     raise TypeError(error_message)

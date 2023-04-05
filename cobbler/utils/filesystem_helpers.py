@@ -10,17 +10,21 @@ import logging
 import os
 import pathlib
 import shutil
-import urllib
-from typing import Union
+import urllib.request
+from typing import TYPE_CHECKING, Dict, Optional, Tuple, Union
 
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import log_exc, mtab
 
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+
+
 logger = logging.getLogger()
 
 
-def is_safe_to_hardlink(src: str, dst: str, api) -> bool:
+def is_safe_to_hardlink(src: str, dst: str, api: "CobblerAPI") -> bool:
     """
     Determine if it is safe to hardlink a file to the destination path.
 
@@ -39,6 +43,8 @@ def is_safe_to_hardlink(src: str, dst: str, api) -> bool:
     # Do not hardlink to a symbolic link! Chances are high the new link will be dangling.
     if pathlib.Path(src).is_symlink():
         return False
+    if dev1 is None:
+        return False
     if dev1.find(":") != -1:
         # Is a remote file
         return False
@@ -54,7 +60,7 @@ def is_safe_to_hardlink(src: str, dst: str, api) -> bool:
     return False
 
 
-def sha1_file(file_path: Union[str, os.PathLike], buffer_size=65536) -> str:
+def sha1_file(file_path: Union[str, pathlib.Path], buffer_size: int = 65536) -> str:
     """
     This function is emulating the functionality of the sha1sum tool.
 
@@ -73,7 +79,7 @@ def sha1_file(file_path: Union[str, os.PathLike], buffer_size=65536) -> str:
     return sha1.hexdigest()
 
 
-def hashfile(file_name: str, lcache=None):
+def hashfile(file_name: str, lcache: Optional[pathlib.Path] = None) -> Optional[str]:
     r"""
     Returns the sha1sum of the file
 
@@ -82,11 +88,13 @@ def hashfile(file_name: str, lcache=None):
                    of the hash. The hash looked up would be checked against the Cobbler internal mtime of the object.
     :return: The sha1 sum or None if the file doesn't exist.
     """
-    hashfile_db = {}
+    hashfile_db: Dict[str, Tuple[float, str]] = {}
+    if lcache is None:
+        return None
+
     dbfile = pathlib.Path(lcache) / "link_cache.json"
-    if lcache is not None:
-        if dbfile.exists():
-            hashfile_db = json.loads(dbfile.read_text(encoding="utf-8"))
+    if dbfile.exists():
+        hashfile_db = json.loads(dbfile.read_text(encoding="utf-8"))
 
     file = pathlib.Path(file_name)
     if file.exists():
@@ -104,7 +112,7 @@ def hashfile(file_name: str, lcache=None):
     return None
 
 
-def cachefile(src: str, dst: str):
+def cachefile(src: str, dst: str) -> None:
     """
     Copy a file into a cache and link it into place. Use this with caution, otherwise you could end up copying data
     twice if the cache is not on the same device as the destination.
@@ -116,6 +124,9 @@ def cachefile(src: str, dst: str):
     if not lcache.is_dir():
         lcache.mkdir()
     key = hashfile(src, lcache=lcache)
+    if key is None:
+        logger.info("Cachefile skipped due to missing key for it!")
+        return None
     cachefile_obj = lcache / key
     if not cachefile_obj.exists():
         logger.info("trying to create cache file %s", cachefile_obj)
@@ -125,7 +136,9 @@ def cachefile(src: str, dst: str):
     os.link(cachefile_obj, dst)
 
 
-def linkfile(api, src: str, dst: str, symlink_ok: bool = False, cache: bool = True):
+def linkfile(
+    api: "CobblerAPI", src: str, dst: str, symlink_ok: bool = False, cache: bool = True
+) -> None:
     """
     Attempt to create a link dst that points to src. Because file systems suck we attempt several different methods or
     bail to just copying the file.
@@ -148,7 +161,7 @@ def linkfile(api, src: str, dst: str, symlink_ok: bool = False, cache: bool = Tr
                 logger.info("removing: %s", dst)
                 dst_obj.unlink()
             else:
-                return
+                return None
         elif dst_obj.is_symlink():
             # existing path exists and is a symlink, update the symlink
             logger.info("removing: %s", dst)
@@ -159,7 +172,7 @@ def linkfile(api, src: str, dst: str, symlink_ok: bool = False, cache: bool = Tr
         try:
             logger.info("trying hardlink %s -> %s", src, dst)
             os.link(src, dst)
-            return
+            return None
         except (IOError, OSError):
             # hardlink across devices, or link already exists we'll just symlink it if we can or otherwise copy it
             pass
@@ -169,14 +182,14 @@ def linkfile(api, src: str, dst: str, symlink_ok: bool = False, cache: bool = Tr
         try:
             logger.info("trying symlink %s -> %s", src, dst)
             dst_obj.symlink_to(src_obj)
-            return
+            return None
         except (IOError, OSError):
             pass
 
     if cache:
         try:
             cachefile(src, dst)
-            return
+            return None
         except (IOError, OSError):
             pass
 
@@ -184,7 +197,7 @@ def linkfile(api, src: str, dst: str, symlink_ok: bool = False, cache: bool = Tr
     copyfile(src, dst)
 
 
-def copyfile(src: str, dst: str, symlink=False):
+def copyfile(src: str, dst: str, symlink: bool = False) -> None:
     """
     Copy a file from source to the destination.
 
@@ -212,7 +225,7 @@ def copyfile(src: str, dst: str, symlink=False):
             # raise CX("Error copying %(src)s to %(dst)s" % { "src" : src, "dst" : dst})
 
 
-def copyremotefile(src: str, dst1: str, api=None):
+def copyremotefile(src: str, dst1: str, api: Optional["CobblerAPI"] = None) -> None:
     """
     Copys a file from a remote place to the local destionation.
 
@@ -232,36 +245,7 @@ def copyremotefile(src: str, dst1: str, api=None):
         ) from error
 
 
-def copyfile_pattern(
-    pattern,
-    dst,
-    require_match: bool = True,
-    symlink_ok: bool = False,
-    cache: bool = True,
-    api=None,
-):
-    """
-    Copy 1 or more files with a pattern into a destination.
-
-    :param pattern: The pattern for finding the required files.
-    :param dst: The destination for the file(s) found.
-    :param require_match: If the glob pattern does not find files should an error message be thrown or not.
-    :param symlink_ok: If it is okay to just use a symlink to link the file to the destination.
-    :param cache: If it is okay to use a file from the cache (which could be possibly newer) or not.
-    :param api: Passed to ``linkfile()``.
-    :raises CX: Raised in case files not found according to ``pattern``.
-    """
-    files = glob.glob(pattern)
-    if require_match and not len(files) > 0:
-        raise CX(f"Could not find files matching {pattern}")
-    dst_obj = pathlib.Path(dst)
-    for file in files:
-        file_obj = pathlib.Path(file)
-        dst1 = dst_obj / file_obj.name
-        linkfile(api, file, str(dst1), symlink_ok=symlink_ok, cache=cache)
-
-
-def rmfile(path: str):
+def rmfile(path: str) -> None:
     """
     Delete a single file.
 
@@ -276,7 +260,7 @@ def rmfile(path: str):
         logger.warning('Could not remove file "%s": %s', path, ioe.strerror)
 
 
-def rmtree_contents(path: str):
+def rmtree_contents(path: str) -> None:
     """
     Delete the content of a folder with a glob pattern.
 
@@ -287,7 +271,7 @@ def rmtree_contents(path: str):
         rmtree(rmtree_path)
 
 
-def rmtree(path: str):
+def rmtree(path: str) -> None:
     """
     Delete a complete directory or just a single file.
 
@@ -305,7 +289,7 @@ def rmtree(path: str):
             raise CX(f"Error deleting {path}") from ioe
 
 
-def rmglob_files(path: str, glob_pattern: str):
+def rmglob_files(path: str, glob_pattern: str) -> None:
     """
     Deletes all files in ``path`` with ``glob_pattern`` with the help of ``rmfile()``.
 
@@ -316,7 +300,7 @@ def rmglob_files(path: str, glob_pattern: str):
         rmfile(str(rm_path))
 
 
-def mkdir(path: str, mode=0o755):
+def mkdir(path: str, mode: int = 0o755) -> None:
     """
     Create directory with a given mode.
 
@@ -334,7 +318,7 @@ def mkdir(path: str, mode=0o755):
             raise CX(f"Error creating {path}") from os_error
 
 
-def path_tail(apath, bpath) -> str:
+def path_tail(apath: str, bpath: str) -> str:
     """
     Given two paths (B is longer than A), find the part in B not in A
 
@@ -346,13 +330,13 @@ def path_tail(apath, bpath) -> str:
     if position != 0:
         return ""
     rposition = position + len(apath)
-    result = bpath[rposition:]
+    result: str = bpath[rposition:]
     if not result.startswith("/"):
         result = "/" + result
     return result
 
 
-def safe_filter(var):
+def safe_filter(var: Optional[str]) -> None:
     r"""
     This function does nothing if the argument does not find any semicolons or two points behind each other.
 
@@ -360,12 +344,12 @@ def safe_filter(var):
     :raises CX: In case any ``..`` or ``/`` is found in ``var``.
     """
     if var is None:
-        return
+        return None
     if var.find("..") != -1 or var.find(";") != -1:
         raise CX("Invalid characters found in input")
 
 
-def __create_if_not_exists(path: pathlib.Path):
+def __create_if_not_exists(path: pathlib.Path) -> None:
     """
     Creates a directory if it has not already been created.
 
@@ -375,7 +359,7 @@ def __create_if_not_exists(path: pathlib.Path):
         mkdir(str(path))
 
 
-def __symlink_if_not_exists(source: pathlib.Path, target: pathlib.Path):
+def __symlink_if_not_exists(source: pathlib.Path, target: pathlib.Path) -> None:
     """
     Symlinks a directory if the symlink doesn't exist.
 
@@ -386,7 +370,7 @@ def __symlink_if_not_exists(source: pathlib.Path, target: pathlib.Path):
         target.symlink_to(source)
 
 
-def create_web_dirs(api):
+def create_web_dirs(api: "CobblerAPI") -> None:
     """
     Create directories for HTTP content
 
@@ -417,7 +401,7 @@ def create_web_dirs(api):
         copyfile(str((misc_path / file)), str(webroot_misc))
 
 
-def create_tftpboot_dirs(api):
+def create_tftpboot_dirs(api: "CobblerAPI") -> None:
     """
     Create directories for tftpboot images
 
@@ -453,7 +437,7 @@ def create_tftpboot_dirs(api):
     __symlink_if_not_exists(pathlib.Path("../pxelinux.cfg"), esxi_pxelinux_link)
 
 
-def create_trigger_dirs(api):
+def create_trigger_dirs(api: "CobblerAPI") -> None:
     """
     Creates the directories that the user/admin can fill with dynamically executed scripts.
 
@@ -553,7 +537,7 @@ def create_trigger_dirs(api):
         __create_if_not_exists(directory_path)
 
 
-def create_json_database_dirs(api):
+def create_json_database_dirs(api: "CobblerAPI") -> None:
     """
     Creates the database directories for the file serializer
 

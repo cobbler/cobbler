@@ -11,10 +11,14 @@ import fnmatch
 import logging
 import os
 import xmlrpc.client
-from typing import Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from cobbler import utils
 from cobbler.utils import filesystem_helpers
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+
 
 OBJ_TYPES = [
     "distro",
@@ -33,7 +37,7 @@ class Replicate:
     This class contains the magic to replicate a Cobbler instance to another Cobbler instance.
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI") -> None:
         """
         Constructor
 
@@ -41,16 +45,16 @@ class Replicate:
         """
         self.api = api
         self.settings = api.settings()
-        self.remote = None
-        self.uri = None
+        self.remote: Optional[xmlrpc.client.ServerProxy] = None
+        self.uri: Optional[str] = None
         self.logger = logging.getLogger()
         self.master = ""
-        self.local_data = {}
-        self.remote_data = {}
-        self.remote_settings = None
-        self.remote_names = {}
-        self.remote_dict = {}
-        self.must_include = {
+        self.local_data: Dict[Any, Any] = {}
+        self.remote_data: Dict[Any, Any] = {}
+        self.remote_settings: Dict[str, Any] = {}
+        self.remote_names: Dict[Any, Any] = {}
+        self.remote_dict: Dict[str, Dict[str, Any]] = {}
+        self.must_include: Dict[str, Dict[str, Any]] = {
             "distro": {},
             "profile": {},
             "system": {},
@@ -61,21 +65,23 @@ class Replicate:
             "file": {},
         }
         self.port = ""
-        self.distro_patterns = []
-        self.profile_patterns = []
-        self.system_patterns = []
-        self.repo_patterns = []
-        self.image_patterns = []
-        self.mgmtclass_patterns = []
-        self.package_patterns = []
-        self.file_patterns = []
+        self.distro_patterns: List[str] = []
+        self.profile_patterns: List[str] = []
+        self.system_patterns: List[str] = []
+        self.repo_patterns: List[str] = []
+        self.image_patterns: List[str] = []
+        self.mgmtclass_patterns: List[str] = []
+        self.package_patterns: List[str] = []
+        self.file_patterns: List[str] = []
         self.omit_data = False
         self.prune = False
         self.sync_all = False
         self.use_ssl = False
         self.local = None
 
-    def rsync_it(self, from_path: str, to_path: str, object_type: Optional[str] = None):
+    def rsync_it(
+        self, from_path: str, to_path: str, object_type: Optional[str] = None
+    ) -> None:
         """
         Rsync from a source to a destination with the rsync options Cobbler was configured with.
 
@@ -100,7 +106,7 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def remove_objects_not_on_master(self, obj_type: str):
+    def remove_objects_not_on_master(self, obj_type: str) -> None:
         """
         Remove objects on this slave which are not on the master.
 
@@ -119,7 +125,7 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def add_objects_not_on_local(self, obj_type: str):
+    def add_objects_not_on_local(self, obj_type: str) -> None:
         """
         Add objects locally which are not present on the slave but on the master.
 
@@ -148,7 +154,7 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def replace_objects_newer_on_remote(self, obj_type: str):
+    def replace_objects_newer_on_remote(self, obj_type: str) -> None:
         """
         Replace objects which are newer on the local slave then on the remote slave
 
@@ -181,11 +187,22 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def replicate_data(self):
+    def replicate_data(self) -> None:
         """
         Replicate the local and remote data to each another.
         """
-        self.remote_settings = self.remote.get_settings()
+        if self.remote is None:
+            self.logger.warning("Remote server unavailable. No data replicated.")
+            return
+
+        if self.local is None:
+            self.logger.warning("Local server unavailable. No data replicated.")
+            return
+
+        remote_settings = self.remote.get_settings()
+        if not isinstance(remote_settings, dict):
+            raise TypeError("Remote server passed unexpected data for settings")
+        self.remote_settings = remote_settings
         self.logger.info("Querying Both Servers")
         for what in OBJ_TYPES:
             self.remote_data[what] = self.remote.get_items(what)
@@ -209,6 +226,10 @@ class Replicate:
                 if self.must_include["distro"][distro] == 1:
                     self.logger.info("Rsyncing distro %s", distro)
                     target = self.remote.get_distro(distro)
+                    if not isinstance(target, dict):
+                        raise TypeError(
+                            "Remote server passed unexpected data for distro"
+                        )
                     target_webdir = os.path.join(
                         self.remote_settings["webdir"], "distro_mirror"
                     )
@@ -266,7 +287,7 @@ class Replicate:
         for what in OBJ_TYPES:
             self.replace_objects_newer_on_remote(what)
 
-    def link_distros(self):
+    def link_distros(self) -> None:
         """
         Link a distro from its location into the web directory to make it available for usage.
         """
@@ -274,7 +295,7 @@ class Replicate:
             self.logger.debug("Linking Distro %s", distro.name)
             distro.link_distro()
 
-    def generate_include_map(self):
+    def generate_include_map(self) -> None:
         """
         Method that generates the information that is required to perform the replicate option.
         """
@@ -386,7 +407,7 @@ class Replicate:
         omit_data: bool = False,
         sync_all: bool = False,
         use_ssl: bool = False,
-    ):
+    ) -> None:
         """
         Get remote profiles and distros and sync them locally
 

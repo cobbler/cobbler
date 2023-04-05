@@ -1,10 +1,19 @@
+"""
+Test module to test the functionallity of generating the installation log summary.
+"""
+
 import pytest
+from pytest_mock import MockerFixture
 
 from cobbler.actions import status
 from cobbler.actions.status import InstallStatus
+from cobbler.api import CobblerAPI
 
 
-def test_collect_logfiles(mocker):
+def test_collect_logfiles(mocker: MockerFixture):
+    """
+    Test that validates the collect_logfiles subroutine.
+    """
     # Arrange
     mocker.patch(
         "glob.glob",
@@ -26,12 +35,13 @@ def test_collect_logfiles(mocker):
     assert result == expected_result
 
 
-def test_scan_logfiles(mocker, cobbler_api):
+def test_scan_logfiles(mocker: MockerFixture, cobbler_api: CobblerAPI):
+    """
+    Test that validates the scan_logfiles subroutine.
+    """
     # Arrange
-    mocker.patch("gzip.open", mocker.mock_open(read_data="test test test test test"))
-    mocker.patch(
-        "builtins.open", mocker.mock_open(read_data="test test test test test")
-    )
+    mocker.patch("gzip.open", mocker.mock_open(read_data="test test test test 0.0"))
+    mocker.patch("builtins.open", mocker.mock_open(read_data="test test test test 0.0"))
     test_status = status.CobblerStatusReport(cobbler_api, "text")
     mocker.patch.object(
         test_status, "collect_logfiles", return_value=["/test/test", "/test/test.gz"]
@@ -45,7 +55,10 @@ def test_scan_logfiles(mocker, cobbler_api):
     assert mock_catalog.call_count == 2
 
 
-def test_catalog(cobbler_api):
+def test_catalog(cobbler_api: CobblerAPI):
+    """
+    Test that validates the catalog subroutine.
+    """
     # Arrange
     test_status = status.CobblerStatusReport(cobbler_api, "text")
     expected_result = InstallStatus()
@@ -72,7 +85,16 @@ def test_catalog(cobbler_api):
         (99900, 0, "installing (1m 40s)"),
     ],
 )
-def test_process_results(mocker, cobbler_api, input_start, input_stop, expected_status):
+def test_process_results(
+    mocker: MockerFixture,
+    cobbler_api: CobblerAPI,
+    input_start: int,
+    input_stop: int,
+    expected_status: str,
+):
+    """
+    Test that validates the process_results subroutine.
+    """
     # Arrange
     mocker.patch("time.time", return_value=100000)
     test_status = status.CobblerStatusReport(cobbler_api, "text")
@@ -92,7 +114,10 @@ def test_process_results(mocker, cobbler_api, input_start, input_stop, expected_
     assert test_status.ip_data["192.168.0.1"].state == expected_status
 
 
-def test_get_printable_results(cobbler_api):
+def test_get_printable_results(cobbler_api: CobblerAPI):
+    """
+    Test that validates the get_printable_results subroutine.
+    """
     # Arrange
     test_status = status.CobblerStatusReport(cobbler_api, "text")
 
@@ -105,9 +130,17 @@ def test_get_printable_results(cobbler_api):
 
 
 @pytest.mark.parametrize(
-    "input_mode,expected_result", [("text", str), ("non-text", dict)]
+    "input_mode,expected_result", [("text", str), ("non-text", dict)]  # type: ignore
 )
-def test_run(mocker, cobbler_api, input_mode, expected_result):
+def test_run(
+    mocker: MockerFixture,
+    cobbler_api: CobblerAPI,
+    input_mode: str,
+    expected_result: type,
+):
+    """
+    Test that validates the class that generates the report as a whole.
+    """
     # Arrange
     test_status = status.CobblerStatusReport(cobbler_api, input_mode)
     mocker.patch.object(test_status, "scan_logfiles")

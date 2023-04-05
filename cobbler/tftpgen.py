@@ -13,7 +13,7 @@ import os.path
 import pathlib
 import re
 import socket
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from cobbler import enums, templar, utils
 from cobbler.cexceptions import CX
@@ -23,8 +23,10 @@ from cobbler.validate import validate_autoinstall_script_name
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.cobbler_collections.collection import ITEM_UNION
     from cobbler.items.distro import Distro
     from cobbler.items.image import Image
+    from cobbler.items.menu import Menu
     from cobbler.items.profile import Profile
     from cobbler.items.system import System
 
@@ -50,7 +52,7 @@ class TFTPGen:
         self.templar = templar.Templar(self.api)
         self.bootloc = self.settings.tftpboot_location
 
-    def copy_bootloaders(self, dest):
+    def copy_bootloaders(self, dest: str) -> None:
         """
         Copy bootloaders to the configured tftpboot directory
         NOTE: we support different arch's if defined in our settings file.
@@ -83,11 +85,11 @@ class TFTPGen:
             shell=False,
         )
 
-    def copy_images(self):
+    def copy_images(self) -> None:
         """
         Like copy_distros except for images.
         """
-        errors = list()
+        errors: List[CX] = []
         for i in self.images:
             try:
                 self.copy_single_image_files(i)
@@ -95,7 +97,9 @@ class TFTPGen:
                 errors.append(cobbler_exception)
                 self.logger.error(cobbler_exception.value)
 
-    def copy_single_distro_file(self, d_file: str, distro_dir: str, symlink_ok: bool):
+    def copy_single_distro_file(
+        self, d_file: str, distro_dir: str, symlink_ok: bool
+    ) -> None:
         """
         Copy a single file (kernel/initrd) to distro's images directory
 
@@ -105,7 +109,7 @@ class TFTPGen:
                             run in chroot environments (tftpd,..)
         :raises FileNotFoundError: Raised in case no kernel was found.
         """
-        full_path = utils.find_kernel(d_file)
+        full_path: Optional[str] = utils.find_kernel(d_file)
 
         if not full_path:
             full_path = utils.find_initrd(d_file)
@@ -127,7 +131,9 @@ class TFTPGen:
             dst = os.path.join(distro_dir, b_file)
             filesystem_helpers.copyremotefile(full_path, dst, api=None)
 
-    def copy_single_distro_files(self, distro, dirtree, symlink_ok: bool):
+    def copy_single_distro_files(
+        self, distro: "Distro", dirtree: str, symlink_ok: bool
+    ):
         """
         Copy the files needed for a single distro.
 
@@ -140,7 +146,7 @@ class TFTPGen:
         self.copy_single_distro_file(distro.kernel, distro_dir, symlink_ok)
         self.copy_single_distro_file(distro.initrd, distro_dir, symlink_ok)
 
-    def copy_single_image_files(self, img):
+    def copy_single_image_files(self, img: "Image"):
         """
         Copies an image to the images directory of Cobbler.
 
@@ -285,28 +291,30 @@ class TFTPGen:
         :param system: The system to generate files for.
         :param menu_items: The list of labels that are used for displaying the menu entry.
         """
-        profile = system.get_conceptual_parent()
-        if profile is None:
+        system_parent: Optional[
+            Union["Profile", "Image"]
+        ] = system.get_conceptual_parent()  # type: ignore
+        if system_parent is None:
             raise CX(
                 f"system {system.name} references a missing profile {system.profile}"
             )
 
-        distro = profile.get_conceptual_parent()
-        image_based = False
-        image = None
+        distro: Optional["Distro"] = system_parent.get_conceptual_parent()  # type: ignore
+        # TODO: Check if we can do this with isinstance and without a circular import.
         if distro is None:
-            if profile.COLLECTION_TYPE == "profile":
-                raise CX(
-                    f"profile {system.profile} references a missing distro {profile.distro}"
-                )
-            image_based = True
-            image = profile
+            if system_parent.COLLECTION_TYPE == "profile":
+                raise CX(f"profile {system.profile} references a missing distro!")
+            image: Optional["Image"] = system_parent  # type: ignore
+            profile = None
+        else:
+            profile: Optional["Profile"] = system_parent  # type: ignore
+            image = None
 
         pxe_metadata = {"menu_items": menu_items}
 
         # hack: s390 generates files per system not per interface
-        if not image_based and distro.arch in (enums.Archs.S390, enums.Archs.S390X):
-            self._write_all_system_files_s390(distro, profile, image, system)
+        if distro is not None and distro.arch in (enums.Archs.S390, enums.Archs.S390X):
+            self._write_all_system_files_s390(distro, profile, image, system)  # type: ignore
             return
 
         # generate one record for each described NIC ..
@@ -334,13 +342,12 @@ class TFTPGen:
                 )
                 continue
 
-            if image_based:
+            if profile is None and image is not None:
                 working_arch = image.arch
-            else:
+            elif distro is not None:
                 working_arch = distro.arch
-
-            if working_arch is None:
-                raise CX("internal error, invalid arch supplied")
+            else:
+                raise ValueError("Arch could not be fetched!")
 
             # for tftp only ...
             if working_arch in [
@@ -359,7 +366,7 @@ class TFTPGen:
                 continue
 
             if system.is_management_supported():
-                if not image_based:
+                if image is None:
                     if pxe_path:
                         self.write_pxe_file(
                             pxe_path,
@@ -367,7 +374,7 @@ class TFTPGen:
                             profile,
                             distro,
                             working_arch,
-                            metadata=pxe_metadata,
+                            metadata=pxe_metadata,  # type: ignore
                         )
                     if grub_path:
                         self.write_pxe_file(
@@ -384,16 +391,16 @@ class TFTPGen:
                         )
                         filesystem_helpers.rmfile(link_path)
                         filesystem_helpers.mkdir(os.path.dirname(link_path))
-                        os.symlink(os.path.join("..", "system", grub_name), link_path)
+                        os.symlink(os.path.join("..", "system", grub_name), link_path)  # type: ignore
                 else:
                     self.write_pxe_file(
                         pxe_path,
                         system,
-                        None,
-                        None,
+                        profile,
+                        distro,
                         working_arch,
-                        image=profile,
-                        metadata=pxe_metadata,
+                        image=image,
+                        metadata=pxe_metadata,  # type: ignore
                     )
             else:
                 # ensure the file doesn't exist
@@ -401,7 +408,7 @@ class TFTPGen:
                 if grub_path:
                     filesystem_helpers.rmfile(grub_path)
 
-    def make_pxe_menu(self) -> Dict[str, str]:
+    def make_pxe_menu(self) -> Dict[str, Union[str, Dict[str, str]]]:
         """
         Generates pxe, ipxe and grub boot menus.
         """
@@ -409,21 +416,27 @@ class TFTPGen:
         default = self.systems.find(name="default")
 
         timeout_action = "local"
-        if default is not None:
+        if default is not None and not isinstance(default, list):
             timeout_action = default.profile
 
-        boot_menu = {}
+        boot_menu: Dict[str, Union[Dict[str, str], str]] = {}
         metadata = self.get_menu_items()
         menu_items = metadata["menu_items"]
         menu_labels = metadata["menu_labels"]
         metadata["pxe_timeout_profile"] = timeout_action
 
-        self._make_pxe_menu_pxe(metadata, menu_items, menu_labels, boot_menu)
-        self._make_pxe_menu_ipxe(metadata, menu_items, menu_labels, boot_menu)
+        self._make_pxe_menu_pxe(metadata, menu_items, menu_labels, boot_menu)  # type: ignore
+        self._make_pxe_menu_ipxe(metadata, menu_items, menu_labels, boot_menu)  # type: ignore
         self._make_pxe_menu_grub(boot_menu)
         return boot_menu
 
-    def _make_pxe_menu_pxe(self, metadata, menu_items, menu_labels, boot_menu) -> None:
+    def _make_pxe_menu_pxe(
+        self,
+        metadata: Dict[str, Union[str, Dict[str, str]]],
+        menu_items: Dict[str, Any],
+        menu_labels: Dict[str, Any],
+        boot_menu: Dict[str, Union[Dict[str, str], str]],
+    ) -> None:
         """
         Write the PXE menu
 
@@ -444,7 +457,13 @@ class TFTPGen:
             template_data = template_src.read()
             boot_menu["pxe"] = self.templar.render(template_data, metadata, outfile)
 
-    def _make_pxe_menu_ipxe(self, metadata, menu_items, menu_labels, boot_menu) -> None:
+    def _make_pxe_menu_ipxe(
+        self,
+        metadata: Dict[str, Union[str, Dict[str, str]]],
+        menu_items: Dict[str, Any],
+        menu_labels: Dict[str, Any],
+        boot_menu: Dict[str, Union[Dict[str, str], str]],
+    ) -> None:
         """
         Write the iPXE menu
 
@@ -468,7 +487,9 @@ class TFTPGen:
                     template_data, metadata, outfile
                 )
 
-    def _make_pxe_menu_grub(self, boot_menu) -> None:
+    def _make_pxe_menu_grub(
+        self, boot_menu: Dict[str, Union[Dict[str, str], str]]
+    ) -> None:
         """
         Write the grub menu
 
@@ -481,9 +502,11 @@ class TFTPGen:
             boot_menu["grub"] = arch_menu_items
             outfile = os.path.join(self.bootloc, "grub", f"{arch.value}_menu_items.cfg")
             with open(outfile, "w+") as fd:
-                fd.write(arch_menu_items.get("grub", ""))
+                fd.write(arch_menu_items.get("grub", ""))  # type: ignore
 
-    def get_menu_items(self, arch: Optional[enums.Archs] = None) -> dict:
+    def get_menu_items(
+        self, arch: Optional[enums.Archs] = None
+    ) -> Dict[str, Union[str, Dict[str, str]]]:
         """
         Generates menu items for pxe, ipxe and grub. Grub menu items are grouped into submenus by profile.
 
@@ -494,7 +517,12 @@ class TFTPGen:
         return self.get_menu_level(None, arch)
 
     def _get_submenu_child(
-        self, child, arch, boot_loaders, nested_menu_items, menu_labels
+        self,
+        child: "Menu",
+        arch: Optional[enums.Archs],
+        boot_loaders: List[str],
+        nested_menu_items: Dict[str, Any],
+        menu_labels: Dict[str, Any],
     ) -> None:
         """
         Generate a single entry for a submenu.
@@ -511,9 +539,9 @@ class TFTPGen:
         for boot_loader in boot_loaders:
             if boot_loader in temp_items:
                 if boot_loader in nested_menu_items:
-                    nested_menu_items[boot_loader] += temp_items[boot_loader]
+                    nested_menu_items[boot_loader] += temp_items[boot_loader]  # type: ignore
                 else:
-                    nested_menu_items[boot_loader] = temp_items[boot_loader]
+                    nested_menu_items[boot_loader] = temp_items[boot_loader]  # type: ignore
 
             if boot_loader not in menu_labels:
                 menu_labels[boot_loader] = []
@@ -531,7 +559,12 @@ class TFTPGen:
                     }
                 )
 
-    def get_submenus(self, menu, metadata: dict, arch: enums.Archs):
+    def get_submenus(
+        self,
+        menu: Optional["Menu"],
+        metadata: Dict[Any, Any],
+        arch: Optional[enums.Archs],
+    ):
         """
         Generates submenus metatdata for pxe, ipxe and grub.
 
@@ -542,16 +575,20 @@ class TFTPGen:
         if menu:
             childs = menu.children
         else:
-            childs = self.api.find_items("menu", {"parent": ""})
+            childs = self.api.find_menu(return_list=True, **{"parent": ""})
+        if childs is None:
+            childs = []
+        if not isinstance(childs, list):
+            raise ValueError("children was expected to be a list!")
         childs.sort(key=lambda child: child.name)
 
-        nested_menu_items = {}
-        menu_labels = {}
+        nested_menu_items: Dict[str, List[Dict[str, str]]] = {}
+        menu_labels: Dict[str, List[Dict[str, str]]] = {}
         boot_loaders = utils.get_supported_system_boot_loaders()
 
         for child in childs:
             self._get_submenu_child(
-                child, arch, boot_loaders, nested_menu_items, menu_labels
+                child, arch, boot_loaders, nested_menu_items, menu_labels  # type: ignore
             )
 
         metadata["menu_items"] = nested_menu_items
@@ -559,13 +596,13 @@ class TFTPGen:
 
     def _get_item_menu(
         self,
-        arch,
-        boot_loader,
-        current_menu_items,
-        menu_labels,
-        distro=None,
-        profile=None,
-        image=None,
+        arch: Optional[enums.Archs],
+        boot_loader: str,
+        current_menu_items: Dict[str, Any],
+        menu_labels: Dict[str, Any],
+        distro: Optional["Distro"] = None,
+        profile: Optional["Profile"] = None,
+        image: Optional["Image"] = None,
     ) -> None:
         """
         Common logic for generating both profile and image based menu entries.
@@ -578,13 +615,15 @@ class TFTPGen:
         :param profile: The profile to generate the entries for.
         :param image: The image to generate the entries for.
         """
-        if image is not None and profile is not None:
-            raise ValueError('"image" and "profile" are mutually exclusive arguments')
         target_item = None
         if image is None:
             target_item = profile
         elif profile is None:
             target_item = image
+        if target_item is None:
+            raise ValueError(
+                '"image" and "profile" are mutually exclusive arguments! At least one of both must be given!'
+            )
 
         contents = self.write_pxe_file(
             filename=None,
@@ -612,7 +651,12 @@ class TFTPGen:
                     {"name": target_item.name, "display_name": display_name}
                 )
 
-    def get_profiles_menu(self, menu, metadata: dict, arch: enums.Archs):
+    def get_profiles_menu(
+        self,
+        menu: Optional["Menu"],
+        metadata: Dict[str, Any],
+        arch: Optional[enums.Archs],
+    ):
         """
         Generates profiles metadata for pxe, ipxe and grub.
 
@@ -626,10 +670,14 @@ class TFTPGen:
         profile_filter = {"menu": menu_name}
         if arch:
             profile_filter["arch"] = arch.value
-        profile_list = self.api.find_items("profile", profile_filter)
+        profile_list = self.api.find_profile(return_list=True, **profile_filter)
+        if profile_list is None:
+            profile_list = []
+        if not isinstance(profile_list, list):
+            raise ValueError("find_profile was expexted to return a list!")
         profile_list.sort(key=lambda profile: profile.name)
 
-        current_menu_items = {}
+        current_menu_items: Dict[str, Any] = {}
         menu_labels = metadata["menu_labels"]
 
         for profile in profile_list:
@@ -641,7 +689,7 @@ class TFTPGen:
             boot_loaders = profile.boot_loaders
 
             if distro:
-                arch = distro.arch
+                arch = distro.arch  # type: ignore
 
             for boot_loader in boot_loaders:
                 if boot_loader not in profile.boot_loaders:
@@ -651,7 +699,7 @@ class TFTPGen:
                     boot_loader,
                     current_menu_items,
                     menu_labels,
-                    distro=distro,
+                    distro=distro,  # type: ignore
                     profile=profile,
                     image=None,
                 )
@@ -659,7 +707,12 @@ class TFTPGen:
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
 
-    def get_images_menu(self, menu, metadata: dict, arch: enums.Archs):
+    def get_images_menu(
+        self,
+        menu: Optional["Menu"],
+        metadata: Dict[str, Any],
+        arch: Optional[enums.Archs],
+    ) -> None:
         """
         Generates profiles metadata for pxe, ipxe and grub.
 
@@ -673,7 +726,11 @@ class TFTPGen:
         image_filter = {"menu": menu_name}
         if arch:
             image_filter["arch"] = arch.value
-        image_list = self.api.find_items("image", image_filter)
+        image_list = self.api.find_image(return_list=True, **image_filter)
+        if image_list is None:
+            image_list = []
+        if not isinstance(image_list, list):
+            raise ValueError("find_image was expexted to return a list!")
         image_list = sorted(image_list, key=lambda image: image.name)
 
         current_menu_items = metadata["menu_items"]
@@ -695,7 +752,9 @@ class TFTPGen:
         metadata["menu_items"] = current_menu_items
         metadata["menu_labels"] = menu_labels
 
-    def get_menu_level(self, menu=None, arch: Optional[enums.Archs] = None) -> dict:
+    def get_menu_level(
+        self, menu: Optional["Menu"] = None, arch: Optional[enums.Archs] = None
+    ) -> Dict[str, Union[str, Dict[str, str]]]:
         """
         Generates menu items for submenus, pxe, ipxe and grub.
 
@@ -704,10 +763,10 @@ class TFTPGen:
         :returns: A dictionary with the pxe and grub menu items. It has the keys from
                   utils.get_supported_system_boot_loaders().
         """
-        metadata = {}
+        metadata: Dict[str, Any] = {}
         metadata["parent_menu_name"] = "Cobbler"
         metadata["parent_menu_label"] = "Cobbler"
-        template_data = {}
+        template_data: Dict[str, Any] = {}
         boot_loaders = utils.get_supported_system_boot_loaders()
 
         if menu:
@@ -725,12 +784,12 @@ class TFTPGen:
                     metadata["parent_menu_label"] = parent_menu.display_name
 
         for boot_loader in boot_loaders:
-            template = os.path.join(
+            template: str = os.path.join(
                 self.settings.boot_loader_conf_template_dir,
                 f"{boot_loader}_submenu.template",
             )
             if os.path.exists(template):
-                with open(template, encoding="UTF-8") as template_fh:
+                with open(template, encoding="UTF-8") as template_fh:  # type: ignore
                     template_data[boot_loader] = template_fh.read()
             else:
                 self.logger.warning(
@@ -746,7 +805,7 @@ class TFTPGen:
         self.get_images_menu(menu, metadata, arch)
         current_menu_items = metadata["menu_items"]
 
-        menu_items = {}
+        menu_items: Dict[str, Any] = {}
         menu_labels = metadata["menu_labels"]
         line_pat = re.compile(r"^(.+)$", re.MULTILINE)
         line_sub = "\t\\g<1>"
@@ -798,13 +857,13 @@ class TFTPGen:
 
     def write_pxe_file(
         self,
-        filename,
-        system,
-        profile,
-        distro,
-        arch: Archs,
-        image=None,
-        metadata=None,
+        filename: Optional[str],
+        system: Optional["System"],
+        profile: Optional["Profile"],
+        distro: Optional["Distro"],
+        arch: Optional[Archs],
+        image: Optional["Image"] = None,
+        metadata: Optional[Dict[str, Union[str, Dict[str, str]]]] = None,
         bootloader_format: str = "pxe",
     ) -> str:
         """
@@ -831,7 +890,8 @@ class TFTPGen:
             raise CX("missing arch")
 
         if image and not os.path.exists(image.file):
-            return None  # nfs:// URLs or something, can't use for TFTP
+            # nfs:// URLs or something, can't use for TFTP
+            return None  # type: ignore
 
         if metadata is None:
             metadata = {}
@@ -856,10 +916,10 @@ class TFTPGen:
             if image.display_name and image.display_name != "":
                 metadata["menu_label"] = image.display_name
         if boot_loaders is None or bootloader_format not in boot_loaders:
-            return None
+            return None  # type: ignore
 
         settings = input_converters.input_string_or_dict(self.settings.to_dict())
-        metadata.update(settings)
+        metadata.update(settings)  # type: ignore
         # ---
         # just some random variables
         buffer = ""
@@ -867,11 +927,11 @@ class TFTPGen:
         template = os.path.join(
             self.settings.boot_loader_conf_template_dir, bootloader_format + ".template"
         )
-        self.build_kernel(metadata, system, profile, distro, image, bootloader_format)
+        self.build_kernel(metadata, system, profile, distro, image, bootloader_format)  # type: ignore
 
         # generate the kernel options and append line:
         kernel_options = self.build_kernel_options(
-            system, profile, distro, image, arch, metadata["autoinstall"]
+            system, profile, distro, image, arch, metadata["autoinstall"]  # type: ignore
         )
         metadata["kernel_options"] = kernel_options
 
@@ -926,7 +986,7 @@ class TFTPGen:
                 return ""
 
         # get the template
-        if metadata["kernel_path"] is not None:
+        if metadata["kernel_path"] is not None:  # type: ignore
             with open(template, encoding="UTF-8") as template_fh:
                 template_data = template_fh.read()
         else:
@@ -946,7 +1006,13 @@ class TFTPGen:
         return buffer
 
     def build_kernel(
-        self, metadata, system, profile, distro, image=None, boot_loader: str = "pxe"
+        self,
+        metadata: Dict[str, Any],
+        system: "System",
+        profile: "Profile",
+        distro: "Distro",
+        image: Optional["Image"] = None,
+        boot_loader: str = "pxe",
     ):
         """
         Generates kernel and initrd metadata.
@@ -959,9 +1025,9 @@ class TFTPGen:
         :param image: If you want to be able to deploy an image, supply this parameter.
         :param boot_loader: Can be any of those returned by utils.get_supported_system_boot_loaders().
         """
-        kernel_path = None
-        initrd_path = None
-        img_path = None
+        kernel_path: Optional[str] = None
+        initrd_path: Optional[str] = None
+        img_path: Optional[str] = None
 
         # ---
 
@@ -1026,16 +1092,22 @@ class TFTPGen:
         if "kernel" in autoinstall_meta:
             kernel_path = autoinstall_meta["kernel"]
 
-            if not utils.file_is_remote(kernel_path):
-                kernel_path = os.path.join(img_path, os.path.basename(kernel_path))
+            if not utils.file_is_remote(kernel_path):  # type: ignore
+                kernel_path = os.path.join(img_path, os.path.basename(kernel_path))  # type: ignore
             metadata["kernel_path"] = kernel_path
 
         metadata["initrd"] = self._generate_initrd(
-            autoinstall_meta, kernel_path, initrd_path, boot_loader
+            autoinstall_meta, kernel_path, initrd_path, boot_loader  # type: ignore
         )
 
     def build_kernel_options(
-        self, system, profile, distro, image, arch: enums.Archs, autoinstall_path
+        self,
+        system: Optional["System"],
+        profile: Optional["Profile"],
+        distro: Optional["Distro"],
+        image: Optional["Image"],
+        arch: enums.Archs,
+        autoinstall_path: str,
     ) -> str:
         """
         Builds the full kernel options line.
@@ -1067,12 +1139,14 @@ class TFTPGen:
                 pass
         elif profile is not None:
             blended = utils.blender(self.api, False, profile)
-        else:
+        elif image is not None:
             blended = utils.blender(self.api, False, image)
+        else:
+            raise ValueError("Impossible to find object for kernel options")
 
         append_line = ""
-        kopts = blended.get("kernel_options", {})
-        kopts = utils.revert_strip_none(kopts)
+        kopts: Dict[str, Any] = blended.get("kernel_options", {})
+        kopts = utils.revert_strip_none(kopts)  # type: ignore
 
         # SUSE and other distro specific kernel additions or modifications
         if distro is not None:
@@ -1125,13 +1199,18 @@ class TFTPGen:
             if local_autoinstall_file:
                 if system is not None:
                     autoinstall_path = f"{protocol}://{httpserveraddress}/cblr/svc/op/autoinstall/system/{system.name}"
-                else:
+                elif profile is not None:
                     autoinstall_path = (
                         f"{protocol}://{httpserveraddress}/"
                         f"cblr/svc/op/autoinstall/profile/{profile.name}"
                     )
+                else:
+                    raise ValueError("Neither profile nor system based!")
 
-            if distro.breed is None or distro.breed == "redhat":
+            if distro is None:
+                raise ValueError("Distro for kernel command line not found!")
+
+            if distro.breed == "redhat":
 
                 if distro.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
                     append_line += " kssendmac ks=%s" % autoinstall_path
@@ -1196,7 +1275,7 @@ class TFTPGen:
             # In Ubuntu, this is at least used for the volume group name when using LVM.
             domain = "local.lan"
             if system is not None:
-                if system.hostname is not None and system.hostname != "":
+                if system.hostname != "":
                     # If this is a FQDN, grab the first bit
                     hostname = system.hostname.split(".")[0]
                     _domain = system.hostname.split(".")[1:]
@@ -1209,7 +1288,7 @@ class TFTPGen:
                 # in the hostname.
                 # FIXME: Really this should remove all characters that are
                 # forbidden in hostnames
-                hostname = profile.name.replace("_", "")
+                hostname = profile.name.replace("_", "")  # type: ignore
 
             # At least for debian deployments configured for DHCP networking this values are not used, but specifying
             # here avoids questions
@@ -1228,7 +1307,7 @@ class TFTPGen:
         # promote all of the autoinstall_meta variables
         if "autoinstall_meta" in blended:
             blended.update(blended["autoinstall_meta"])
-        append_line = self.templar.render(append_line, utils.flatten(blended), None)
+        append_line = self.templar.render(append_line, utils.flatten(blended), None)  # type: ignore
 
         # For now console=ttySx,BAUDRATE are only set for systems
         # This could get enhanced for profile/distro via utils.blender (inheritance)
@@ -1259,7 +1338,10 @@ class TFTPGen:
         return append_line
 
     def write_templates(
-        self, obj, write_file: bool = False, path=None
+        self,
+        obj: Union["ITEM_UNION"],  # type: ignore
+        write_file: bool = False,
+        path: Optional[str] = None,
     ) -> Dict[str, str]:
         """
         A semi-generic function that will take an object with a template_files dict {source:destiation}, and generate a
@@ -1273,7 +1355,7 @@ class TFTPGen:
         """
         self.logger.info("Writing template files for %s", obj.name)
 
-        results = {}
+        results: Dict[str, str] = {}
 
         try:
             templates = obj.template_files
@@ -1283,9 +1365,9 @@ class TFTPGen:
         blended = utils.blender(self.api, False, obj)
 
         if obj.COLLECTION_TYPE == "distro":
-            if re.search("esxi[567]", obj.os_version) is not None:
+            if re.search("esxi[567]", obj.os_version) is not None:  # type: ignore
                 with open(
-                    os.path.join(os.path.dirname(obj.kernel), "boot.cfg"),
+                    os.path.join(os.path.dirname(obj.kernel), "boot.cfg"),  # type: ignore
                     encoding="UTF-8",
                 ) as realbootcfg_fd:
                     realbootcfg = realbootcfg_fd.read()
@@ -1301,7 +1383,7 @@ class TFTPGen:
         templates = blended.pop("template_files", {})
         blended.update(templates)
 
-        templates = input_converters.input_string_or_dict(templates)
+        templates = input_converters.input_string_or_dict_no_inherit(templates)
 
         # FIXME: img_path and local_img_path should probably be moved up into the blender function to ensure they're
         #  consistently available to templates across the board.
@@ -1378,24 +1460,24 @@ class TFTPGen:
         if what.lower() not in ("profile", "image", "system"):
             return "# ipxe is only valid for profiles, images and systems"
 
-        distro = None
-        image = None
-        profile = None
-        system = None
+        distro: Optional["Distro"] = None
+        image: Optional["Image"] = None
+        profile: Optional["Profile"] = None
+        system: Optional["System"] = None
         if what == "profile":
-            profile = self.api.find_profile(name=name)
+            profile = self.api.find_profile(name=name)  # type: ignore
             if profile:
-                distro = profile.get_conceptual_parent()
+                distro = profile.get_conceptual_parent()  # type: ignore
         elif what == "image":
-            image = self.api.find_image(name=name)
+            image = self.api.find_image(name=name)  # type: ignore
         else:
-            system = self.api.find_system(name=name)
+            system = self.api.find_system(name=name)  # type: ignore
             if system:
-                profile = system.get_conceptual_parent()
+                profile = system.get_conceptual_parent()  # type: ignore
             if profile and profile.COLLECTION_TYPE == "profile":
-                distro = profile.get_conceptual_parent()
+                distro = profile.get_conceptual_parent()  # type: ignore
             else:
-                image = profile
+                image = profile  # type: ignore
                 profile = None
 
         if distro:
@@ -1423,17 +1505,17 @@ class TFTPGen:
 
         if what == "profile":
             obj = self.api.find_profile(name=name)
-            distro = obj.get_conceptual_parent()
+            distro = obj.get_conceptual_parent()  # type: ignore
         else:
             obj = self.api.find_system(name=name)
-            profile = obj.get_conceptual_parent()
-            distro = profile.get_conceptual_parent()
+            profile = obj.get_conceptual_parent()  # type: ignore
+            distro = profile.get_conceptual_parent()  # type: ignore
 
-        blended = utils.blender(self.api, False, obj)
+        blended = utils.blender(self.api, False, obj)  # type: ignore
 
-        if distro.os_version.startswith("esxi"):
+        if distro.os_version.startswith("esxi"):  # type: ignore
             with open(
-                os.path.join(os.path.dirname(distro.kernel), "boot.cfg"),
+                os.path.join(os.path.dirname(distro.kernel), "boot.cfg"),  # type: ignore
                 encoding="UTF-8",
             ) as bootcfg_fd:
                 bootmodules = re.findall(r"modules=(.*)", bootcfg_fd.read())
@@ -1442,31 +1524,31 @@ class TFTPGen:
 
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
-        if obj.enable_ipxe:
+        if obj.enable_ipxe:  # type: ignore
             protocol = self.api.settings().autoinstall_scheme
             blended["img_path"] = (
                 f"{protocol}://{self.settings.server}:{self.settings.http_port}/"
-                f"cobbler/links/{distro.name}"
+                f"cobbler/links/{distro.name}"  # type: ignore
             )
         else:
-            blended["img_path"] = os.path.join("/images", distro.name)
+            blended["img_path"] = os.path.join("/images", distro.name)  # type: ignore
 
         # generate the kernel options:
         if what == "system":
             kopts = self.build_kernel_options(
-                obj,
-                profile,
-                distro,
+                obj,  # type: ignore
+                profile,  # type: ignore
+                distro,  # type: ignore
                 None,
-                distro.arch,
+                distro.arch,  # type: ignore
                 blended.get("autoinstall", None),
             )
         elif what == "profile":
             kopts = self.build_kernel_options(
-                None, obj, distro, None, distro.arch, blended.get("autoinstall", None)
+                None, obj, distro, None, distro.arch, blended.get("autoinstall", None)  # type: ignore
             )
-        blended["kopts"] = kopts
-        blended["kernel_file"] = os.path.basename(distro.kernel)
+        blended["kopts"] = kopts  # type: ignore
+        blended["kernel_file"] = os.path.basename(distro.kernel)  # type: ignore
 
         template = os.path.join(
             self.settings.boot_loader_conf_template_dir, "bootcfg.template"
@@ -1498,12 +1580,14 @@ class TFTPGen:
         if not validate_autoinstall_script_name(script_name):
             raise ValueError('"script_name" handed to generate_script was not valid!')
 
-        if not obj:
+        if not obj or isinstance(obj, list):
             return f'# "{what}" named "{objname}" not found'
 
-        distro = obj.get_conceptual_parent()
-        while distro.get_conceptual_parent():
-            distro = distro.get_conceptual_parent()
+        distro: Optional["Distro"] = obj.get_conceptual_parent()  # type: ignore
+        if distro is None or isinstance(distro, list):
+            raise ValueError("Something is wrong!")
+        while distro.get_conceptual_parent():  # type: ignore
+            distro = distro.get_conceptual_parent()  # type: ignore
 
         blended = utils.blender(self.api, False, obj)
 
@@ -1517,10 +1601,10 @@ class TFTPGen:
             protocol = self.api.settings().autoinstall_scheme
             blended["img_path"] = (
                 f"{protocol}://{self.settings.server}:{self.settings.http_port}/"
-                f"cobbler/links/{distro.name}"
+                f"cobbler/links/{distro.name}"  # type: ignore
             )
         else:
-            blended["img_path"] = os.path.join("/images", distro.name)
+            blended["img_path"] = os.path.join("/images", distro.name)  # type: ignore
 
         scripts_root = "/var/lib/cobbler/scripts"
         template = os.path.normpath(os.path.join(scripts_root, script_name))
@@ -1555,7 +1639,11 @@ class TFTPGen:
         return initrd_line
 
     def _generate_initrd(
-        self, autoinstall_meta: dict, kernel_path, initrd_path, bootloader_format: str
+        self,
+        autoinstall_meta: Dict[Any, Any],
+        kernel_path: str,
+        initrd_path: str,
+        bootloader_format: str,
     ) -> List[str]:
         """
         Generate a initrd metadata.
@@ -1566,7 +1654,7 @@ class TFTPGen:
         :param bootloader_format: Can be any of those returned by get_supported_system_boot_loaders.
         :return: The array of additional boot load files.
         """
-        initrd = []
+        initrd: List[str] = []
         if "initrd" in autoinstall_meta:
             initrd = autoinstall_meta["initrd"]
 

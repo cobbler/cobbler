@@ -10,11 +10,14 @@ import glob
 import logging
 import os
 import re
-from typing import List
+from typing import TYPE_CHECKING, List
 from xmlrpc.client import ServerProxy
 
 from cobbler import utils
 from cobbler.utils import process_management
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class CobblerCheck:
@@ -23,7 +26,7 @@ class CobblerCheck:
     serving up content. This is the code behind 'cobbler check'.
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI") -> None:
         """
         Constructor
 
@@ -34,7 +37,7 @@ class CobblerCheck:
         self.logger = logging.getLogger()
         self.checked_family = ""
 
-    def run(self) -> list:
+    def run(self) -> List[str]:
         """
         The CLI usage is "cobbler check" before "cobbler sync".
 
@@ -86,7 +89,7 @@ class CobblerCheck:
 
         return status
 
-    def check_for_ksvalidator(self, status):
+    def check_for_ksvalidator(self, status: List[str]) -> None:
         """
         Check if the ``ksvalidator`` is present in ``/usr/bin``.
 
@@ -101,7 +104,7 @@ class CobblerCheck:
             status.append("ksvalidator was not found, install pykickstart")
 
     @staticmethod
-    def check_for_cman(status):
+    def check_for_cman(status: List[str]) -> None:
         """
         Check if the fence agents are available. This is done through checking if the binary ``fence_ilo`` is present
         in ``/sbin`` or ``/usr/sbin``.
@@ -117,7 +120,7 @@ class CobblerCheck:
                 "features. install cman or fence-agents to use them"
             )
 
-    def check_service(self, status, which, notes=""):
+    def check_service(self, status: List[str], which: str, notes: str = "") -> None:
         """
         Check if the service command is available or the old init.d system has to be used.
 
@@ -167,7 +170,7 @@ class CobblerCheck:
             )
             return
 
-    def check_iptables(self, status: List[str]):
+    def check_iptables(self, status: List[str]) -> None:
         """
         Check if iptables is running. If yes print the needed ports. This is unavailable on Debian, SUSE and CentOS7 as
         a service. However this only indicates that the way of persisting the iptable rules are persisted via other
@@ -185,7 +188,7 @@ class CobblerCheck:
                     f"since iptables may be running, ensure 69, 80/443, and {self.settings.xmlrpc_port} are unblocked"
                 )
 
-    def check_yum(self, status: List[str]):
+    def check_yum(self, status: List[str]) -> None:
         """
         Check if the yum-stack is available. On Debian based distros this will always return without checking.
 
@@ -223,7 +226,7 @@ class CobblerCheck:
                 "yumdownloader is not installed, install yum-utils or dnf-plugins-core"
             )
 
-    def check_debmirror(self, status: List[str]):
+    def check_debmirror(self, status: List[str]) -> None:
         """
         Check if debmirror is available and the config file for it exists. If the distro family is suse then this will
         pass without checking.
@@ -252,7 +255,7 @@ class CobblerCheck:
                             "comment out 'arches' on /etc/debmirror.conf for proper debian support"
                         )
 
-    def check_name(self, status: List[str]):
+    def check_name(self, status: List[str]) -> None:
         """
         If the server name in the config file is still set to localhost automatic installations run from koan will not
         have proper kernel line parameters.
@@ -277,7 +280,7 @@ class CobblerCheck:
                 "something other than ::1, and should match the IP of the boot server on the PXE network."
             )
 
-    def check_selinux(self, status: List[str]):
+    def check_selinux(self, status: List[str]) -> None:
         """
         Suggests various SELinux rules changes to run Cobbler happily with SELinux in enforcing mode.
 
@@ -295,7 +298,7 @@ class CobblerCheck:
                 "https://github.com/cobbler/cobbler/wiki/Selinux"
             )
 
-    def check_for_default_password(self, status: List[str]):
+    def check_for_default_password(self, status: List[str]) -> None:
         """
         Check if the default password of Cobbler was changed.
 
@@ -310,15 +313,15 @@ class CobblerCheck:
                 "generate new one"
             )
 
-    def check_for_unreferenced_repos(self, status: List[str]):
+    def check_for_unreferenced_repos(self, status: List[str]) -> None:
         """
         Check if there are repositories which are not used and thus could be removed.
 
         :param status: The status list with possible problems.
         """
-        repos = []
-        referenced = []
-        not_found = []
+        repos: List[str] = []
+        referenced: List[str] = []
+        not_found: List[str] = []
         for repo in self.api.repos():
             repos.append(repo.name)
         for profile in self.api.profiles():
@@ -334,15 +337,15 @@ class CobblerCheck:
                 f" {', '.join(not_found)}"
             )
 
-    def check_for_unsynced_repos(self, status: List[str]):
+    def check_for_unsynced_repos(self, status: List[str]) -> None:
         """
         Check if there are unsynchronized repositories which need an update.
 
         :param status: The status list with possible problems.
         """
-        need_sync = []
+        need_sync: List[str] = []
         for repo in self.api.repos():
-            if repo.mirror_locally == 1:
+            if repo.mirror_locally is True:
                 lookfor = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
                 if not os.path.exists(lookfor):
                     need_sync.append(repo.name)
@@ -353,7 +356,7 @@ class CobblerCheck:
             )
 
     @staticmethod
-    def check_dhcpd_bin(status: List[str]):
+    def check_dhcpd_bin(status: List[str]) -> None:
         """
         Check if dhcpd is installed.
 
@@ -363,7 +366,7 @@ class CobblerCheck:
             status.append("dhcpd is not installed")
 
     @staticmethod
-    def check_dnsmasq_bin(status: List[str]):
+    def check_dnsmasq_bin(status: List[str]) -> None:
         """
         Check if dnsmasq is installed.
 
@@ -374,7 +377,7 @@ class CobblerCheck:
             status.append("dnsmasq is not installed and/or in path")
 
     @staticmethod
-    def check_bind_bin(status: List[str]):
+    def check_bind_bin(status: List[str]) -> None:
         """
         Check if bind is installed.
 
@@ -386,7 +389,7 @@ class CobblerCheck:
             status.append("named is not installed and/or in path")
 
     @staticmethod
-    def check_for_wget_curl(status: List[str]):
+    def check_for_wget_curl(status: List[str]) -> None:
         """
         Check to make sure wget or curl is installed
 
@@ -401,7 +404,7 @@ class CobblerCheck:
             )
 
     @staticmethod
-    def check_bootloaders(status: List[str]):
+    def check_bootloaders(status: List[str]) -> None:
         """
         Check if network bootloaders are installed
 
@@ -427,7 +430,7 @@ class CobblerCheck:
         }
 
         # look for bootloaders at the glob locations above
-        found_bootloaders = []
+        found_bootloaders: List[str] = []
         items = list(bootloaders.keys())
         for loader_name in items:
             patterns = bootloaders[loader_name]
@@ -435,7 +438,7 @@ class CobblerCheck:
                 matches = glob.glob(pattern)
                 if len(matches) > 0:
                     found_bootloaders.append(loader_name)
-        not_found = []
+        not_found: List[str] = []
 
         # invert the list of what we've found so we can report on what we haven't found
         for loader_name in items:
@@ -451,7 +454,7 @@ class CobblerCheck:
                 "menu.c32."
             )
 
-    def check_tftpd_dir(self, status: List[str]):
+    def check_tftpd_dir(self, status: List[str]) -> None:
         """
         Check if cobbler.conf's tftpboot directory exists
 
@@ -464,7 +467,7 @@ class CobblerCheck:
         if not os.path.exists(bootloc):
             status.append(f"please create directory: {bootloc}")
 
-    def check_ctftpd_dir(self, status: List[str]):
+    def check_ctftpd_dir(self, status: List[str]) -> None:
         """
         Check if ``cobbler.conf``'s tftpboot directory exists.
 
@@ -477,7 +480,7 @@ class CobblerCheck:
         if not os.path.exists(bootloc):
             status.append(f"please create directory: {bootloc}")
 
-    def check_rsync_conf(self, status: List[str]):
+    def check_rsync_conf(self, status: List[str]) -> None:
         """
         Check that rsync is enabled to autostart.
 
@@ -492,7 +495,7 @@ class CobblerCheck:
             ):
                 status.append("enable and start rsyncd.service with systemctl")
 
-    def check_dhcpd_conf(self, status: List[str]):
+    def check_dhcpd_conf(self, status: List[str]) -> None:
         """
         NOTE: this code only applies if Cobbler is *NOT* set to generate a ``dhcp.conf`` file.
 

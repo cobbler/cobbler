@@ -8,8 +8,13 @@ This is the code behind 'cobbler sync'.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import pathlib
+from typing import TYPE_CHECKING, List
 
 from cobbler import templar, utils
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.items.item import Item
 
 
 class YumGen:
@@ -17,7 +22,7 @@ class YumGen:
     TODO
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         """
         Constructor
 
@@ -27,7 +32,7 @@ class YumGen:
         self.settings = api.settings()
         self.templar = templar.Templar(self.api)
 
-    def get_yum_config(self, obj, is_profile: bool) -> str:
+    def get_yum_config(self, obj: "Item", is_profile: bool) -> str:
         """
         Return one large yum repo config blob suitable for use by any target system that requests it.
 
@@ -38,9 +43,9 @@ class YumGen:
 
         totalbuf = ""
 
-        blended = utils.blender(self.api, False, obj)
+        blended = utils.blender(self.api, False, obj)  # type: ignore
 
-        input_files = []
+        input_files: List[pathlib.Path] = []
 
         # Tack on all the install source repos IF there is more than one. This is basically to support things like
         # RHEL5 split trees if there is only one, then there is no need to do this.

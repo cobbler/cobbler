@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Files(collection.Collection):
+class Files(collection.Collection[file.File]):
     """
     Files provide a container for file resources.
     """
@@ -56,6 +56,10 @@ class Files(collection.Collection):
 
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")
+
+        if isinstance(obj, list):
+            # Will never happen, but we want to make mypy happy.
+            raise CX("Ambiguous match detected!")
 
         if with_delete:
             if with_triggers:

@@ -3,9 +3,13 @@ Restarts the DHCP and/or DNS after a Cobbler sync to apply changes to the config
 """
 
 import logging
+from typing import TYPE_CHECKING, List
 
 from cobbler import utils
 from cobbler.utils import process_management
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 logger = logging.getLogger()
 
@@ -21,7 +25,7 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/sync/post/*"
 
 
-def run(api, args) -> int:
+def run(api: "CobblerAPI", args: List[str]) -> int:
     """
     Run the trigger via this method, meaning in this case that depending on the settings dns and/or dhcp services are
     restarted.

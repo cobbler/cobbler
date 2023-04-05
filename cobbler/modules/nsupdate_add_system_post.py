@@ -10,6 +10,7 @@ Replace (or remove) records in DNS zone for systems created (or removed) by Cobb
 #   - python-dns (RH/CentOS)
 
 import time
+from typing import IO, TYPE_CHECKING, Any, List, Optional
 
 import dns.query
 import dns.resolver
@@ -18,10 +19,14 @@ import dns.update
 
 from cobbler.cexceptions import CX
 
-LOGF = None
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
-def nslog(msg):
+LOGF: Optional[IO[str]] = None
+
+
+def nslog(msg: str) -> None:
     """
     Log a message to the logger.
 
@@ -44,7 +49,7 @@ def register() -> str:
     return ""
 
 
-def run(api, args):
+def run(api: "CobblerAPI", args: List[Any]):
     """
     This method executes the trigger, meaning in this case that it updates the dns configuration.
 
@@ -70,7 +75,7 @@ def run(api, args):
 
     # read our settings
     if str(settings.nsupdate_log) is not None:
-        LOGF = open(str(settings.nsupdate_log), "a+", encoding="UTF-8")
+        LOGF = open(str(settings.nsupdate_log), "a+", encoding="UTF-8")  # type: ignore
         nslog(f">> starting {__name__} {args}\n")
 
     if str(settings.nsupdate_tsig_key) is not None:
@@ -89,6 +94,9 @@ def run(api, args):
 
     # get information about this system
     system = api.find_system(args[0])
+
+    if system is None or isinstance(system, list):
+        raise ValueError("Search result was ambigous!")
 
     # process all interfaces and perform dynamic update for those with --dns-name
     for (name, interface) in system.interfaces.items():
@@ -109,45 +117,46 @@ def run(api, args):
         nslog(f"lookup for '{domain}' domain master nameserver... ")
 
         # get master nameserver ip address
-        answers = dns.resolver.query(domain + ".", dns.rdatatype.SOA)
-        soa_mname = answers[0].mname
+        answers = dns.resolver.query(domain + ".", dns.rdatatype.SOA)  # type: ignore
+        soa_mname = answers[0].mname  # type: ignore
         soa_mname_ip = None
 
-        for rrset in answers.response.additional:
-            if rrset.name == soa_mname:
-                soa_mname_ip = str(rrset.items[0].address)
+        for rrset in answers.response.additional:  # type: ignore
+            if rrset.name == soa_mname:  # type: ignore
+                soa_mname_ip = str(rrset.items[0].address)  # type: ignore
 
         if soa_mname_ip is None:
-            ip_address = dns.resolver.query(soa_mname, "A")
-            for answer in ip_address:
-                soa_mname_ip = answer.to_text()
+            ip_address = dns.resolver.query(soa_mname, "A")  # type: ignore
+            for answer in ip_address:  # type: ignore
+                soa_mname_ip = answer.to_text()  # type: ignore
 
         nslog(f"{soa_mname} [{soa_mname_ip}]\n")
         nslog(f"{action} dns record for {host}.{domain} [{host_ip}] .. ")
 
         # try to update zone with new record
         update = dns.update.Update(
-            domain + ".", keyring=keyring, keyalgorithm=keyring_algo
+            domain + ".", keyring=keyring, keyalgorithm=keyring_algo  # type: ignore
         )
 
         if action == "replace":
-            update.replace(host, 3600, dns.rdatatype.A, host_ip)
-            update.replace(
+            update.replace(host, 3600, dns.rdatatype.A, host_ip)  # type: ignore
+            update.replace(  # type: ignore
                 host,
                 3600,
-                dns.rdatatype.TXT,
+                dns.rdatatype.TXT,  # type: ignore
                 f'"cobbler (date: {time.strftime("%c")})"',
             )
         else:
-            update.delete(host, dns.rdatatype.A, host_ip)
-            update.delete(host, dns.rdatatype.TXT)
+            update.delete(host, dns.rdatatype.A, host_ip)  # type: ignore
+            update.delete(host, dns.rdatatype.TXT)  # type: ignore
 
         try:
-            response = dns.query.tcp(update, soa_mname_ip)
-            rcode_txt = dns.rcode.to_text(response.rcode())
-        except dns.tsig.PeerBadKey as error:
+            response = dns.query.tcp(update, soa_mname_ip)  # type: ignore
+            rcode_txt = dns.rcode.to_text(response.rcode())  # type: ignore
+        except dns.tsig.PeerBadKey as error:  # type: ignore
             nslog("failed (refused key)\n>> done\n")
-            LOGF.close()
+            if LOGF is not None:
+                LOGF.close()
 
             raise CX(
                 f"nsupdate failed, server '{soa_mname}' refusing our key"
@@ -156,14 +165,16 @@ def run(api, args):
         nslog(f"response code: {rcode_txt}\n")
 
         # notice user about update failure
-        if response.rcode() != dns.rcode.NOERROR:
+        if response.rcode() != dns.rcode.NOERROR:  # type: ignore
             nslog(">> done\n")
-            LOGF.close()
+            if LOGF is not None:
+                LOGF.close()
 
             raise CX(
                 f"nsupdate failed (response: {rcode_txt}, name: {host}.{domain}, ip {host_ip}, name server {soa_mname})"
             )
 
     nslog(">> done\n")
-    LOGF.close()
+    if LOGF is not None:
+        LOGF.close()
     return 0

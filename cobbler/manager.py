@@ -7,8 +7,12 @@ Base class for modules.managers.* classes
 # SPDX-FileCopyrightText: Thomas Renninger <trenn@suse.de>
 
 import logging
+from typing import TYPE_CHECKING
 
 from cobbler import templar
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class ManagerModule:
@@ -22,14 +26,14 @@ class ManagerModule:
     """
 
     @staticmethod
-    def what():
+    def what() -> str:
         """
         Static method to identify the manager module.
         Must be overwritten by the inheriting class
         """
         return "undefined"
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         """
         Constructor
 
@@ -44,7 +48,7 @@ class ManagerModule:
         self.repos = self.api.repos()
         self.templar = templar.Templar(self.api)
 
-    def write_configs(self):
+    def write_configs(self) -> None:
         """
         Write module specific config files.
         E.g. dhcp manager would write ``/etc/dhcpd.conf`` here
@@ -55,8 +59,9 @@ class ManagerModule:
         Write module specific config files.
         E.g. dhcp manager would write ``/etc/dhcpd.conf`` here
         """
+        return 0
 
-    def regen_ethers(self):
+    def regen_ethers(self) -> None:
         """
         ISC/BIND doesn't use this. It is there for compatibility reasons with other managers.
         """

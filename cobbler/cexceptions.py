@@ -1,6 +1,7 @@
 """
 Custom exceptions for Cobbler
 """
+from typing import Any, Iterable
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
@@ -12,7 +13,7 @@ class CobblerException(Exception):
     This is the default Cobbler exception where all other exceptions are inheriting from.
     """
 
-    def __init__(self, value, *args):
+    def __init__(self, value: Any, *args: Iterable[str]):
         """
         Default constructor for the Exception.
 
@@ -29,7 +30,7 @@ class CobblerException(Exception):
         # this is a hack to work around some odd exception handling in older pythons
         self.from_cobbler = 1
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         This is the string representation of the base Cobbler Exception.
         :return: self.value as a string represented.

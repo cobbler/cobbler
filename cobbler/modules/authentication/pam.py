@@ -39,6 +39,11 @@ from ctypes import (
     sizeof,
 )
 from ctypes.util import find_library
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+
 
 LIBPAM = CDLL(find_library("pam"))
 LIBC = CDLL(find_library("c"))
@@ -48,7 +53,7 @@ CALLOC.restype = c_void_p
 CALLOC.argtypes = [c_uint, c_uint]
 
 STRDUP = LIBC.strdup
-STRDUP.argstypes = [c_char_p]
+STRDUP.argstypes = [c_char_p]  # type: ignore
 STRDUP.restype = POINTER(c_char)  # NOT c_char_p !!!!
 
 # Various constants
@@ -125,29 +130,29 @@ PAM_ACCT_MGMT.restype = c_int
 PAM_ACCT_MGMT.argtypes = [PamHandle, c_int]
 
 
-def authenticate(api_handle, username: str, password: str) -> bool:
+def authenticate(api_handle: "CobblerAPI", username: str, password: str) -> bool:
     """
     Validate PAM authentication, returning whether the authentication was successful or not.
 
-    :param api_handle: Used for resolving the the pam service name and getting the Logger.
+    :param api_handle: Used for resolving the pam service name and getting the Logger.
     :param username: The username to log in with.
     :param password: The password to log in with.
     :returns: True if the given username and password authenticate for the given service. Otherwise False
     """
 
     @CONV_FUNC
-    def my_conv(n_messages, messages, p_response, app_data):
+    def my_conv(n_messages, messages, p_response, app_data):  # type: ignore
         """
         Simple conversation function that responds to any prompt where the echo is off with the supplied password
         """
         # Create an array of n_messages response objects
         addr = CALLOC(n_messages, sizeof(PamResponse))
         p_response[0] = cast(addr, POINTER(PamResponse))
-        for i in range(n_messages):
-            if messages[i].contents.msg_style == PAM_PROMPT_ECHO_OFF:
+        for i in range(n_messages):  # type: ignore
+            if messages[i].contents.msg_style == PAM_PROMPT_ECHO_OFF:  # type: ignore
                 pw_copy = STRDUP(password.encode())
-                p_response.contents[i].resp = cast(pw_copy, c_char_p)
-                p_response.contents[i].resp_retcode = 0
+                p_response.contents[i].resp = cast(pw_copy, c_char_p)  # type: ignore
+                p_response.contents[i].resp_retcode = 0  # type: ignore
         return 0
 
     try:

@@ -8,16 +8,24 @@ import itertools
 import os
 import pathlib
 import re
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Union
 
 from cobbler import utils
 from cobbler.actions import buildiso
 from cobbler.actions.buildiso import Autoinstall, BootFilesCopyset, LoaderCfgsParts
 
+if TYPE_CHECKING:
+    from cobbler.items.distro import Distro
+    from cobbler.items.profile import Profile
+    from cobbler.items.system import System
+
+
 CDREGEX = re.compile(r"^\s*url .*\n", re.IGNORECASE | re.MULTILINE)
 
 
-def _generate_append_line_standalone(data: dict, distro, descendant) -> str:
+def _generate_append_line_standalone(
+    data: Dict[Any, Any], distro: "Distro", descendant: Union["Profile", "System"]
+) -> str:
     """
     Generates the append line for the kernel so the installation can be done unattended.
     :param data: The values for the append line. The key "kernel_options" must be present.
@@ -60,7 +68,11 @@ class StandaloneBuildiso(buildiso.BuildIso):
                 f.write(autoinstall.config)
 
     def _generate_descendant_config(
-        self, descendant, menu_indent: int, distro, append_line: str
+        self,
+        descendant: Union["Profile", "System"],
+        menu_indent: int,
+        distro: "Distro",
+        append_line: str,
     ) -> Tuple[str, str, BootFilesCopyset]:
         kernel_path = f"/{os.path.basename(distro.kernel)}"
         initrd_path = f"/{os.path.basename(distro.initrd)}"
@@ -92,9 +104,9 @@ class StandaloneBuildiso(buildiso.BuildIso):
         """
         for repo_name in repo_names:
             repo_obj = self.api.find_repo(name=repo_name)
-            if repo_obj is None:
+            if repo_obj is None or isinstance(repo_obj, list):
                 raise ValueError(
-                    f"Repository {repo_name}, referenced by {profile_name}, not found."
+                    f"Repository {repo_name}, referenced by {profile_name}, not found or ambiguous."
                 )
             if not repo_obj.mirror_locally:
                 raise ValueError(
@@ -107,20 +119,20 @@ class StandaloneBuildiso(buildiso.BuildIso):
 
     def _generate_item(
         self,
-        descendant_obj,
-        distro_obj,
-        airgapped,
-        cfg_parts,
-        repo_mirrordir,
-        autoinstall_data,
+        descendant_obj: Union["Profile", "System"],
+        distro_obj: "Distro",
+        airgapped: bool,
+        cfg_parts: LoaderCfgsParts,
+        repo_mirrordir: pathlib.Path,
+        autoinstall_data: Dict[str, Any],
     ):
-        data: dict = utils.blender(self.api, False, descendant_obj)
+        data: Dict[Any, Any] = utils.blender(self.api, False, descendant_obj)
         utils.kopts_overwrite(
             data["kernel_options"], self.api.settings().server, distro_obj.breed
         )
         append_line = _generate_append_line_standalone(data, distro_obj, descendant_obj)
         name = descendant_obj.name
-        config_args = {
+        config_args: Dict[str, Any] = {
             "descendant": descendant_obj,
             "distro": distro_obj,
             "append_line": append_line,
@@ -154,7 +166,9 @@ class StandaloneBuildiso(buildiso.BuildIso):
         cfg_parts.bootfiles_copysets.append(to_copy)
         autoinstall_data[name] = Autoinstall(autoinstall, repos)
 
-    def _update_repos_in_autoinstall_data(self, autoinstall_data, repos_names) -> str:
+    def _update_repos_in_autoinstall_data(
+        self, autoinstall_data: str, repos_names: List[str]
+    ) -> str:
         for repo_name in repos_names:
             autoinstall_data = re.sub(
                 rf"^(\s*repo --name={repo_name} --baseurl=).*",
@@ -226,8 +240,8 @@ class StandaloneBuildiso(buildiso.BuildIso):
         xorrisofs_opts: str = "",
         distro_name: str = "",
         airgapped: bool = False,
-        source="",
-        **kwargs,
+        source: str = "",
+        **kwargs: Any,
     ):
         """
         Run the whole iso generation from bottom to top. Per default this builds an ISO for all available systems
@@ -267,7 +281,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
             for descendant in profile_obj.descendants:
                 # handle everything below this top-level profile
                 self._generate_item(
-                    descendant_obj=descendant,
+                    descendant_obj=descendant,  # type: ignore
                     distro_obj=distro_obj,
                     airgapped=airgapped,
                     cfg_parts=loader_config_parts,

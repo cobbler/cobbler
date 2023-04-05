@@ -7,18 +7,29 @@ import logging
 import os
 import re
 import tempfile
-from typing import Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from cobbler import templar, tftpgen, utils
 from cobbler.utils import filesystem_helpers
 
-HAS_HIVEX = True
 try:
-    import hivex
-    import pefile
-    from hivex.hive_types import REG_BINARY, REG_DWORD, REG_MULTI_SZ, REG_SZ
+    import hivex  # type: ignore
+    import pefile  # type: ignore
+    from hivex.hive_types import REG_BINARY  # type: ignore
+    from hivex.hive_types import REG_DWORD  # type: ignore
+    from hivex.hive_types import REG_MULTI_SZ  # type: ignore
+    from hivex.hive_types import REG_SZ  # type: ignore
+
+    HAS_HIVEX = True
 except Exception:
-    HAS_HIVEX = False
+    # This is only defined once in each case.
+    HAS_HIVEX = False  # type: ignore
+
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.items.distro import Distro
+
 
 ANSWERFILE_TEMPLATE_NAME = "answerfile.template"
 POST_INST_CMD_TEMPLATE_NAME = "post_inst_cmd.template"
@@ -38,12 +49,14 @@ def register() -> Optional[str]:
         logging.info(
             "python3-hivex not found. If you need Automatic Windows Installation support, please install."
         )
-        return
+        return None
 
     return "/var/lib/cobbler/triggers/sync/post/*"
 
 
-def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
+def bcdedit(
+    orig_bcd: str, new_bcd: str, wim: str, sdi: str, startoptions: Optional[str] = None
+):
     """
     TODO
 
@@ -55,11 +68,11 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
     :return: TODO
     """
 
-    def winpath_length(wp, add):
+    def winpath_length(wp: str, add: int):
         wpl = add + 2 * len(wp)
         return wpl.to_bytes((wpl.bit_length() + 7) // 8, "big")
 
-    def guid2binary(g):
+    def guid2binary(g: str):
         guid = (
             g[7]
             + g[8]
@@ -97,19 +110,19 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
     wim = wim.replace("/", "\\")
     sdi = sdi.replace("/", "\\")
 
-    h = hivex.Hivex(orig_bcd, write=True)
-    root = h.root()
-    objs = h.node_get_child(root, "Objects")
+    h = hivex.Hivex(orig_bcd, write=True)  # type: ignore
+    root = h.root()  # type: ignore
+    objs = h.node_get_child(root, "Objects")  # type: ignore
 
-    for n in h.node_children(objs):
-        h.node_delete_child(n)
+    for n in h.node_children(objs):  # type: ignore
+        h.node_delete_child(n)  # type: ignore
 
-    b = h.node_add_child(objs, "{9dea862c-5cdd-4e70-acc1-f32b344d4795}")
-    d = h.node_add_child(b, "Description")
-    h.node_set_value(d, {"key": "Type", "t": REG_DWORD, "value": b"\x02\x00\x10\x10"})
-    e = h.node_add_child(b, "Elements")
-    e1 = h.node_add_child(e, "25000004")
-    h.node_set_value(
+    b = h.node_add_child(objs, "{9dea862c-5cdd-4e70-acc1-f32b344d4795}")  # type: ignore
+    d = h.node_add_child(b, "Description")  # type: ignore
+    h.node_set_value(d, {"key": "Type", "t": REG_DWORD, "value": b"\x02\x00\x10\x10"})  # type: ignore
+    e = h.node_add_child(b, "Elements")  # type: ignore
+    e1 = h.node_add_child(e, "25000004")  # type: ignore
+    h.node_set_value(  # type: ignore
         e1,
         {
             "key": "Element",
@@ -117,8 +130,8 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
             "value": b"\x1e\x00\x00\x00\x00\x00\x00\x00",
         },
     )
-    e1 = h.node_add_child(e, "12000004")
-    h.node_set_value(
+    e1 = h.node_add_child(e, "12000004")  # type: ignore
+    h.node_set_value(  # type: ignore
         e1,
         {
             "key": "Element",
@@ -126,8 +139,8 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
             "value": "Windows Boot Manager\0".encode(encoding="utf-16le"),
         },
     )
-    e1 = h.node_add_child(e, "24000001")
-    h.node_set_value(
+    e1 = h.node_add_child(e, "24000001")  # type: ignore
+    h.node_set_value(  # type: ignore
         e1,
         {
             "key": "Element",
@@ -137,15 +150,15 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
             ),
         },
     )
-    e1 = h.node_add_child(e, "16000048")
-    h.node_set_value(e1, {"key": "Element", "t": REG_BINARY, "value": b"\x01"})
+    e1 = h.node_add_child(e, "16000048")  # type: ignore
+    h.node_set_value(e1, {"key": "Element", "t": REG_BINARY, "value": b"\x01"})  # type: ignore
 
-    b = h.node_add_child(objs, "{65c31250-afa2-11df-8045-000c29f37d88}")
-    d = h.node_add_child(b, "Description")
-    h.node_set_value(d, {"key": "Type", "t": REG_DWORD, "value": b"\x03\x00\x20\x13"})
-    e = h.node_add_child(b, "Elements")
-    e1 = h.node_add_child(e, "12000004")
-    h.node_set_value(
+    b = h.node_add_child(objs, "{65c31250-afa2-11df-8045-000c29f37d88}")  # type: ignore
+    d = h.node_add_child(b, "Description")  # type: ignore
+    h.node_set_value(d, {"key": "Type", "t": REG_DWORD, "value": b"\x03\x00\x20\x13"})  # type: ignore
+    e = h.node_add_child(b, "Elements")  # type: ignore
+    e1 = h.node_add_child(e, "12000004")  # type: ignore
+    h.node_set_value(  # type: ignore
         e1,
         {
             "key": "Element",
@@ -153,8 +166,8 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
             "value": "Windows PE\0".encode(encoding="utf-16le"),
         },
     )
-    e1 = h.node_add_child(e, "22000002")
-    h.node_set_value(
+    e1 = h.node_add_child(e, "22000002")  # type: ignore
+    h.node_set_value(  # type: ignore
         e1,
         {
             "key": "Element",
@@ -162,13 +175,13 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
             "value": "\\Windows\0".encode(encoding="utf-16le"),
         },
     )
-    e1 = h.node_add_child(e, "26000010")
-    h.node_set_value(e1, {"key": "Element", "t": REG_BINARY, "value": b"\x01"})
-    e1 = h.node_add_child(e, "26000022")
-    h.node_set_value(e1, {"key": "Element", "t": REG_BINARY, "value": b"\x01"})
-    e1 = h.node_add_child(e, "11000001")
+    e1 = h.node_add_child(e, "26000010")  # type: ignore
+    h.node_set_value(e1, {"key": "Element", "t": REG_BINARY, "value": b"\x01"})  # type: ignore
+    e1 = h.node_add_child(e, "26000022")  # type: ignore
+    h.node_set_value(e1, {"key": "Element", "t": REG_BINARY, "value": b"\x01"})  # type: ignore
+    e1 = h.node_add_child(e, "11000001")  # type: ignore
     guid = guid2binary("{ae5534e0-a924-466c-b836-758539a3ee3a}")
-    wimval = {
+    wimval = {  # type: ignore
         "key": "Element",
         "t": REG_BINARY,
         "value": guid
@@ -185,13 +198,13 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
         + wim.encode(encoding="utf_16_le")
         + b"\x00\x00",
     }
-    h.node_set_value(e1, wimval)
-    e1 = h.node_add_child(e, "21000001")
-    h.node_set_value(e1, wimval)
+    h.node_set_value(e1, wimval)  # type: ignore
+    e1 = h.node_add_child(e, "21000001")  # type: ignore
+    h.node_set_value(e1, wimval)  # type: ignore
 
     if startoptions:
-        e1 = h.node_add_child(e, "12000030")
-        h.node_set_value(
+        e1 = h.node_add_child(e, "12000030")  # type: ignore
+        h.node_set_value(  # type: ignore
             e1,
             {
                 "key": "Element",
@@ -200,12 +213,12 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
             },
         )
 
-    b = h.node_add_child(objs, "{ae5534e0-a924-466c-b836-758539a3ee3a}")
-    d = h.node_add_child(b, "Description")
-    h.node_set_value(d, {"key": "Type", "t": REG_DWORD, "value": b"\x00\x00\x00\x30"})
-    e = h.node_add_child(b, "Elements")
-    e1 = h.node_add_child(e, "12000004")
-    h.node_set_value(
+    b = h.node_add_child(objs, "{ae5534e0-a924-466c-b836-758539a3ee3a}")  # type: ignore
+    d = h.node_add_child(b, "Description")  # type: ignore
+    h.node_set_value(d, {"key": "Type", "t": REG_DWORD, "value": b"\x00\x00\x00\x30"})  # type: ignore
+    e = h.node_add_child(b, "Elements")  # type: ignore
+    e1 = h.node_add_child(e, "12000004")  # type: ignore
+    h.node_set_value(  # type: ignore
         e1,
         {
             "key": "Element",
@@ -213,8 +226,8 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
             "value": "Ramdisk Options\0".encode(encoding="utf-16le"),
         },
     )
-    e1 = h.node_add_child(e, "32000004")
-    h.node_set_value(
+    e1 = h.node_add_child(e, "32000004")  # type: ignore
+    h.node_set_value(  # type: ignore
         e1,
         {
             "key": "Element",
@@ -222,8 +235,8 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
             "value": sdi.encode(encoding="utf-16le") + b"\x00\x00",
         },
     )
-    e1 = h.node_add_child(e, "31000003")
-    h.node_set_value(
+    e1 = h.node_add_child(e, "31000003")  # type: ignore
+    h.node_set_value(  # type: ignore
         e1,
         {
             "key": "Element",
@@ -235,10 +248,10 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
             b"\x00\x00\x00\x00\x00\x00\x00\x00",
         },
     )
-    h.commit(new_bcd)
+    h.commit(new_bcd)  # type: ignore
 
 
-def run(api, args):
+def run(api: "CobblerAPI", args: Any):
     """
     TODO
 
@@ -279,7 +292,7 @@ def run(api, args):
     ) as template_start:
         tmplstart_data = template_start.read()
 
-    def gen_win_files(distro, meta):
+    def gen_win_files(distro: "Distro", meta: Dict[str, Any]):
         (kernel_path, kernel_name) = os.path.split(distro.kernel)
         distro_path = distro.find_distro_path()
         distro_dir = wim_file_name = os.path.join(
@@ -407,9 +420,9 @@ def run(api, args):
 
             if not is_wimboot:
                 if distro.os_version not in ("XP", "2003") or is_winpe:
-                    pe = pefile.PE(wl_file_name, fast_load=True)
-                    pe.OPTIONAL_HEADER.CheckSum = pe.generate_checksum()
-                    pe.write(filename=wl_file_name)
+                    pe = pefile.PE(wl_file_name, fast_load=True)  # type: ignore
+                    pe.OPTIONAL_HEADER.CheckSum = pe.generate_checksum()  # type: ignore
+                    pe.write(filename=wl_file_name)  # type: ignore
 
                 with open(distro.kernel, "rb") as file:
                     data = file.read()
@@ -484,7 +497,10 @@ def run(api, args):
                     utils.subprocess_call(cmd, shell=False)
 
     for profile in profiles:
-        distro = profile.get_conceptual_parent()
+        distro: Optional["Distro"] = profile.get_conceptual_parent()  # type: ignore
+
+        if distro is None:
+            raise ValueError("Distro not found!")
 
         if distro and distro.breed == "windows":
             logger.info("Profile: %s", profile.name)
@@ -500,7 +516,7 @@ def run(api, args):
         if not profile or not autoinstall_meta or autoinstall_meta == {}:
             continue
 
-        distro = profile.get_conceptual_parent()
+        distro = profile.get_conceptual_parent()  # type: ignore
 
         if distro and distro.breed == "windows":
             logger.info("System: %s", system.name)

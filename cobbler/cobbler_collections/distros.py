@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Distros(collection.Collection):
+class Distros(collection.Collection[distro.Distro]):
     """
     A distro represents a network bootable matched set of kernels and initrd files.
     """
@@ -33,7 +33,9 @@ class Distros(collection.Collection):
     def collection_types() -> str:
         return "distros"
 
-    def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]):
+    def factory_produce(
+        self, api: "CobblerAPI", seed_data: Dict[str, Any]
+    ) -> "distro.Distro":
         """
         Return a Distro forged from seed_data
 
@@ -50,7 +52,7 @@ class Distros(collection.Collection):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = False,
-    ):
+    ) -> None:
         """
         Remove element named 'name' from the collection
 
@@ -62,14 +64,22 @@ class Distros(collection.Collection):
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")
 
+        if isinstance(obj, list):
+            # Will never happen, but we want to make mypy happy.
+            raise CX("Ambiguous match detected!")
+
         # first see if any Groups use this distro
         if not recursive:
             for profile in self.api.profiles():
-                if profile.distro and profile.distro.name == name:
+                if profile.distro and profile.distro.name == name:  # type: ignore
                     raise CX(f"removal would orphan profile: {profile.name}")
 
         if recursive:
-            kids = self.api.find_items("profile", {"distro": obj.name})
+            kids = self.api.find_profile(return_list=True, **{"distro": obj.name})
+            if kids is None:
+                kids = []
+            if not isinstance(kids, list):
+                raise ValueError("find_items is expected to return a list or None!")
             for k in kids:
                 self.api.remove_profile(
                     k,

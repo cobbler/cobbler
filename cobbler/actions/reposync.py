@@ -13,23 +13,29 @@ import os.path
 import pipes
 import shutil
 import stat
-from typing import Any, Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.enums import MirrorType, RepoArchs, RepoBreeds
 from cobbler.utils import filesystem_helpers, os_release
 
-HAS_LIBREPO = False
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.items.repo import Repo
+
 try:
-    import librepo
+    import librepo  # type: ignore
 
     HAS_LIBREPO = True
 except ModuleNotFoundError:
-    pass
+    # This is a constant since it is only defined once.
+    HAS_LIBREPO = False  # type: ignore
 
 
-def repo_walker(top, func, arg):
+def repo_walker(
+    top: str, func: Callable[[Any, str, List[str]], None], arg: Any
+) -> None:
     """
     Directory tree walk with callback function.
 
@@ -53,13 +59,13 @@ def repo_walker(top, func, arg):
         return
     func(arg, top, names)
     for name in names:
-        name = os.path.join(top, name)
+        path_name = os.path.join(top, name)
         try:
-            file_stats = os.lstat(name)
+            file_stats = os.lstat(path_name)
         except os.error:
             continue
         if stat.S_ISDIR(file_stats.st_mode):
-            repo_walker(name, func, arg)
+            repo_walker(path_name, func, arg)
 
 
 class RepoSync:
@@ -69,7 +75,7 @@ class RepoSync:
 
     # ==================================================================================
 
-    def __init__(self, api, tries: int = 1, nofail: bool = False):
+    def __init__(self, api: "CobblerAPI", tries: int = 1, nofail: bool = False) -> None:
         """
         Constructor
 
@@ -90,7 +96,7 @@ class RepoSync:
 
     # ===================================================================
 
-    def run(self, name: Optional[str] = None, verbose: bool = True):
+    def run(self, name: Optional[str] = None, verbose: bool = True) -> None:
         """
         Syncs the current repo configuration file with the filesystem.
 
@@ -122,7 +128,7 @@ class RepoSync:
             # Set the environment keys specified for this repo and save the old one if they modify an existing variable.
 
             env = repo.environment
-            old_env = {}
+            old_env: Dict[str, Any] = {}
 
             for k in list(env.keys()):
                 self.logger.debug("setting repo environment: %s=%s", k, env[k])
@@ -173,7 +179,7 @@ class RepoSync:
 
     # ==================================================================================
 
-    def sync(self, repo):
+    def sync(self, repo: "Repo") -> None:
 
         """
         Conditionally sync a repo, based on type.
@@ -198,7 +204,7 @@ class RepoSync:
 
     # ====================================================================================
 
-    def librepo_getinfo(self, dirname: str) -> dict:
+    def librepo_getinfo(self, dirname: str) -> Dict[Any, Any]:
 
         """
         Used to get records from a repomd.xml file of downloaded rpmmd repository.
@@ -206,25 +212,26 @@ class RepoSync:
         :param dirname: The local path of rpmmd repository.
         :return: The dict representing records from a repomd.xml file of rpmmd repository.
         """
+        # FIXME: Librepo has no typing stubs.
 
-        librepo_handle = librepo.Handle()
-        librepo_result = librepo.Result()
-        librepo_handle.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
-        librepo_handle.setopt(librepo.LRO_URLS, [dirname])
-        librepo_handle.setopt(librepo.LRO_LOCAL, True)
-        librepo_handle.setopt(librepo.LRO_CHECKSUM, True)
-        librepo_handle.setopt(librepo.LRO_IGNOREMISSING, True)
+        librepo_handle = librepo.Handle()  # type: ignore
+        librepo_result = librepo.Result()  # type: ignore
+        librepo_handle.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)  # type: ignore
+        librepo_handle.setopt(librepo.LRO_URLS, [dirname])  # type: ignore
+        librepo_handle.setopt(librepo.LRO_LOCAL, True)  # type: ignore
+        librepo_handle.setopt(librepo.LRO_CHECKSUM, True)  # type: ignore
+        librepo_handle.setopt(librepo.LRO_IGNOREMISSING, True)  # type: ignore
 
         try:
-            librepo_handle.perform(librepo_result)
-        except librepo.LibrepoException as error:
-            raise CX("librepo error: " + dirname + " - " + error.args[1]) from error
+            librepo_handle.perform(librepo_result)  # type: ignore
+        except librepo.LibrepoException as error:  # type: ignore
+            raise CX("librepo error: " + dirname + " - " + error.args[1]) from error  # type: ignore
 
-        return librepo_result.getinfo(librepo.LRR_RPMMD_REPOMD).get("records", {})
+        return librepo_result.getinfo(librepo.LRR_RPMMD_REPOMD).get("records", {})  # type: ignore
 
     # ====================================================================================
 
-    def createrepo_walker(self, repo, dirname: str, fnames):
+    def createrepo_walker(self, repo: "Repo", dirname: str, fnames: Any) -> None:
         """
         Used to run createrepo on a copied Yum mirror.
 
@@ -236,7 +243,7 @@ class RepoSync:
             utils.remove_yum_olddata(dirname)
 
             # add any repo metadata we can use
-            mdoptions = []
+            mdoptions: List[str] = []
             origin_path = os.path.join(dirname, ".origin")
             repodata_path = os.path.join(origin_path, "repodata")
 
@@ -282,7 +289,7 @@ class RepoSync:
 
     # ====================================================================================
 
-    def wget_sync(self, repo):
+    def wget_sync(self, repo: "Repo") -> None:
 
         """
         Handle mirroring of directories using wget
@@ -326,7 +333,7 @@ class RepoSync:
 
     # ====================================================================================
 
-    def rsync_sync(self, repo):
+    def rsync_sync(self, repo: "Repo") -> None:
 
         """
         Handle copying of rsync:// and rsync-over-ssh repos.
@@ -349,13 +356,13 @@ class RepoSync:
 
         dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
 
-        spacer = []
+        spacer: List[str] = []
         if not repo.mirror.startswith("rsync://") and not repo.mirror.startswith("/"):
             spacer = ["-e ssh"]
         if not repo.mirror.endswith("/"):
             repo.mirror = f"{repo.mirror}/"
 
-        flags = []
+        flags: List[str] = []
         for repo_option in repo.rsyncopts:
             if repo.rsyncopts[repo_option]:
                 flags.append(f"{repo_option} {repo.rsyncopts[repo_option]}")
@@ -398,7 +405,7 @@ class RepoSync:
     # ====================================================================================
 
     @staticmethod
-    def reposync_cmd() -> list:
+    def reposync_cmd() -> List[str]:
 
         """
         Determine reposync command
@@ -421,7 +428,7 @@ class RepoSync:
 
     # ====================================================================================
 
-    def rhn_sync(self, repo):
+    def rhn_sync(self, repo: "Repo") -> None:
 
         """
         Handle mirroring of RHN repos.
@@ -499,7 +506,7 @@ class RepoSync:
 
     def gen_urlgrab_ssl_opts(
         self, yumopts: Dict[str, Any]
-    ) -> Tuple[Optional[Tuple], bool]:
+    ) -> Tuple[Optional[Tuple[Any, ...]], bool]:
         """
         This function translates yum repository options into the appropriate options for python-requests
 
@@ -523,7 +530,7 @@ class RepoSync:
 
     # ====================================================================================
 
-    def yum_sync(self, repo):
+    def yum_sync(self, repo: "Repo") -> None:
 
         """
         Handle copying of http:// and ftp:// yum repos.
@@ -616,38 +623,38 @@ class RepoSync:
             self.logger.info("Deleted old repo metadata for %s", repodata_path)
             shutil.rmtree(repodata_path, ignore_errors=False, onerror=None)
 
-        librepo_handle = librepo.Handle()
-        librepo_result = librepo.Result()
-        librepo_handle.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
-        librepo_handle.setopt(librepo.LRO_CHECKSUM, True)
-        librepo_handle.setopt(librepo.LRO_DESTDIR, temp_path)
+        librepo_handle = librepo.Handle()  # type: ignore
+        librepo_result = librepo.Result()  # type: ignore
+        librepo_handle.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)  # type: ignore
+        librepo_handle.setopt(librepo.LRO_CHECKSUM, True)  # type: ignore
+        librepo_handle.setopt(librepo.LRO_DESTDIR, temp_path)  # type: ignore
 
         if repo.mirror_type == MirrorType.METALINK:
-            librepo_handle.setopt(librepo.LRO_METALINKURL, repo.mirror)
+            librepo_handle.setopt(librepo.LRO_METALINKURL, repo.mirror)  # type: ignore
         elif repo.mirror_type == MirrorType.MIRRORLIST:
-            librepo_handle.setopt(librepo.LRO_MIRRORLISTURL, repo.mirror)
+            librepo_handle.setopt(librepo.LRO_MIRRORLISTURL, repo.mirror)  # type: ignore
         elif repo.mirror_type == MirrorType.BASEURL:
-            librepo_handle.setopt(librepo.LRO_URLS, [repo.mirror])
+            librepo_handle.setopt(librepo.LRO_URLS, [repo.mirror])  # type: ignore
 
         if verify:
-            librepo_handle.setopt(librepo.LRO_SSLVERIFYPEER, True)
-            librepo_handle.setopt(librepo.LRO_SSLVERIFYHOST, True)
+            librepo_handle.setopt(librepo.LRO_SSLVERIFYPEER, True)  # type: ignore
+            librepo_handle.setopt(librepo.LRO_SSLVERIFYHOST, True)  # type: ignore
 
         if cert:
             sslcacert, sslclientcert, sslclientkey = cert
-            librepo_handle.setopt(librepo.LRO_SSLCACERT, sslcacert)
-            librepo_handle.setopt(librepo.LRO_SSLCLIENTCERT, sslclientcert)
-            librepo_handle.setopt(librepo.LRO_SSLCLIENTKEY, sslclientkey)
+            librepo_handle.setopt(librepo.LRO_SSLCACERT, sslcacert)  # type: ignore
+            librepo_handle.setopt(librepo.LRO_SSLCLIENTCERT, sslclientcert)  # type: ignore
+            librepo_handle.setopt(librepo.LRO_SSLCLIENTKEY, sslclientkey)  # type: ignore
 
         if proxy:
-            librepo_handle.setopt(librepo.LRO_PROXY, proxy)
-            librepo_handle.setopt(librepo.LRO_PROXYTYPE, librepo.PROXY_HTTP)
+            librepo_handle.setopt(librepo.LRO_PROXY, proxy)  # type: ignore
+            librepo_handle.setopt(librepo.LRO_PROXYTYPE, librepo.PROXY_HTTP)  # type: ignore
 
         try:
-            librepo_handle.perform(librepo_result)
-        except librepo.LibrepoException as exception:
+            librepo_handle.perform(librepo_result)  # type: ignore
+        except librepo.LibrepoException as exception:  # type: ignore
             raise CX(
-                "librepo error: " + temp_path + " - " + exception.args[1]
+                "librepo error: " + temp_path + " - " + exception.args[1]  # type: ignore
             ) from exception
 
         # now run createrepo to rebuild the index
@@ -656,7 +663,7 @@ class RepoSync:
 
     # ====================================================================================
 
-    def apt_sync(self, repo):
+    def apt_sync(self, repo: "Repo") -> None:
         """
         Handle copying of http:// and ftp:// debian repos.
 
@@ -733,7 +740,9 @@ class RepoSync:
             if return_code != 0:
                 raise CX("cobbler reposync failed")
 
-    def create_local_file(self, dest_path: str, repo, output: bool = True) -> str:
+    def create_local_file(
+        self, dest_path: str, repo: "Repo", output: bool = True
+    ) -> str:
         """
         Creates Yum config files for use by reposync
 
@@ -826,7 +835,7 @@ class RepoSync:
 
     # ==================================================================================
 
-    def update_permissions(self, repo_path):
+    def update_permissions(self, repo_path: str) -> None:
         """
         Verifies that permissions and contexts after an rsync are as expected.
         Sending proper rsync flags should prevent the need for this, though this is largely a safeguard.

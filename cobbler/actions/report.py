@@ -9,9 +9,13 @@ FIXME: reinstante functionality for 2.0
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import re
-from typing import Optional
+from typing import TYPE_CHECKING, Any, Dict, List
 
 from cobbler import utils
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.cobbler_collections.collection import ITEM, Collection
 
 
 class Report:
@@ -19,7 +23,7 @@ class Report:
     TODO
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         """
         Constructor
 
@@ -34,7 +38,9 @@ class Report:
         self.report_noheaders = None
         self.array_re = re.compile(r"([^[]+)\[([^]]+)\]")
 
-    def fielder(self, structure: dict, fields_list: list):
+    def fielder(
+        self, structure: Dict[str, Any], fields_list: List[str]
+    ) -> Dict[str, str]:
         """
         Return data from a subset of fields of some item
 
@@ -42,7 +48,7 @@ class Report:
         :param fields_list: The list of fields which should be returned.
         :return: The same item with only the given subset of information.
         """
-        item = {}
+        item: Dict[str, Any] = {}
 
         for field in fields_list:
             internal = self.array_re.search(field)
@@ -64,7 +70,9 @@ class Report:
                         )
         return item
 
-    def reporting_csv(self, info, order: list, noheaders: bool) -> str:
+    def reporting_csv(
+        self, info: List[Dict[str, str]], order: List[Any], noheaders: bool
+    ) -> str:
         """
         Formats data on 'info' for csv output
 
@@ -103,7 +111,9 @@ class Report:
 
         return outputheaders + outputbody
 
-    def reporting_trac(self, info, order: list, noheaders: bool) -> str:
+    def reporting_trac(
+        self, info: List[Dict[str, str]], order: List[Any], noheaders: bool
+    ) -> str:
         """
         Formats data on 'info' for trac wiki table output
 
@@ -142,7 +152,9 @@ class Report:
 
         return outputheaders + outputbody
 
-    def reporting_doku(self, info, order: list, noheaders: bool) -> str:
+    def reporting_doku(
+        self, info: List[Dict[str, str]], order: List[Any], noheaders: bool
+    ) -> str:
         """
         Formats data on 'info' for doku wiki table output
 
@@ -182,7 +194,9 @@ class Report:
 
         return outputheaders + outputbody
 
-    def reporting_mediawiki(self, info, order: list, noheaders: bool) -> str:
+    def reporting_mediawiki(
+        self, info: List[Dict[str, str]], order: List[Any], noheaders: bool
+    ) -> str:
         """
         Formats data on 'info' for mediawiki table output
 
@@ -234,8 +248,12 @@ class Report:
         return opentable + outputheaders + outputbody + closetable
 
     def print_formatted_data(
-        self, data, order: list, report_type: str, noheaders: bool
-    ):
+        self,
+        data: List[Dict[str, str]],
+        order: List[str],
+        report_type: str,
+        noheaders: bool,
+    ) -> None:
         """
         Used for picking the correct format to output data as
 
@@ -255,18 +273,20 @@ class Report:
         else:
             raise ValueError("Unknown report type selected!")
 
-    def reporting_print_sorted(self, collection):
+    @staticmethod
+    def reporting_print_sorted(collection: "Collection[ITEM]") -> None:
         """
         Prints all objects in a collection sorted by name
 
         :param collection: The collection to print.
         """
-        collection = [x for x in collection]
-        collection.sort(key=lambda x: x.name)
-        for item in collection:
-            print(item.to_string())
+        result = [x for x in collection]
+        result.sort(key=lambda x: x.name)
+        for item in result:
+            print(item.to_string())  # type: ignore
 
-    def reporting_list_names2(self, collection, name: str):
+    @staticmethod
+    def reporting_list_names2(collection: "Collection[ITEM]", name: str) -> None:
         """
         Prints a specific object in a collection.
 
@@ -275,11 +295,15 @@ class Report:
         """
         obj = collection.get(name)
         if obj is not None:
-            print(obj.to_string())
+            print(obj.to_string())  # type: ignore
 
     def reporting_print_all_fields(
-        self, collection, report_name: str, report_type: str, report_noheaders: bool
-    ) -> str:
+        self,
+        collection: "Collection[ITEM]",
+        report_name: str,
+        report_type: str,
+        report_noheaders: bool,
+    ) -> None:
         """
         Prints all fields in a collection as a table given the report type
 
@@ -291,25 +315,25 @@ class Report:
         """
         # per-item hack
         if report_name:
-            collection = collection.find(name=report_name)
+            collection = collection.find(name=report_name)  # type: ignore
             if collection:
-                collection = [collection]
+                collection = [collection]  # type: ignore
             else:
-                return ""
+                return None
 
-        collection = [x for x in collection]
-        collection.sort(key=lambda x: x.name)
-        data = []
+        collection = [x for x in collection]  # type: ignore
+        collection.sort(key=lambda x: x.name)  # type: ignore
+        data: List[Dict[str, str]] = []
         out_order = []
         count = 0
         for item_obj in collection:
-            item = {}
-            if item_obj.ITEM_TYPE == "settings":
+            item: Dict[str, str] = {}
+            if item_obj.ITEM_TYPE == "settings":  # type: ignore
                 structure = item_obj.to_dict()
             else:
-                structure = item_obj.to_list()
+                structure = item_obj.to_list()  # type: ignore
 
-            for (key, value) in list(structure.items()):
+            for (key, value) in list(structure.items()):  # type: ignore
                 # exception for systems which could have > 1 interface
                 if key == "interfaces":
                     for (device, info) in list(value.items()):
@@ -317,12 +341,12 @@ class Report:
                             item[info_header] = str(device) + ": " + str(info_value)
                             # needs to create order list for print_formatted_fields
                             if count == 0:
-                                out_order.append(info_header)
+                                out_order.append(info_header)  # type: ignore
                 else:
                     item[key] = value
                     # needs to create order list for print_formatted_fields
                     if count == 0:
-                        out_order.append(key)
+                        out_order.append(key)  # type: ignore
 
             count = count + 1
 
@@ -337,12 +361,12 @@ class Report:
 
     def reporting_print_x_fields(
         self,
-        collection,
+        collection: "Collection[ITEM]",
         report_name: str,
         report_type: str,
         report_fields: str,
         report_noheaders: bool,
-    ):
+    ) -> None:
         """
         Prints specific fields in a collection as a table given the report type
 
@@ -354,23 +378,25 @@ class Report:
         """
         # per-item hack
         if report_name:
-            collection = collection.find(name=report_name)
-            if collection:
-                collection = [collection]
+            search_results: List["ITEM"] = collection.find(
+                name=report_name, return_list=True
+            )  # type: ignore
+            if search_results:
+                search_results = [search_results]  # type: ignore
             else:
                 return
 
-        collection = [x for x in collection]
-        collection.sort(key=lambda x: x.name)
-        data = []
+        search_results = [x for x in collection]
+        search_results.sort(key=lambda x: x.name)
+        data: List[Dict[str, str]] = []
         fields_list = report_fields.replace(" ", "").split(",")
 
-        for item in collection:
-            if item.ITEM_TYPE == "settings":
+        for item in search_results:
+            if item.ITEM_TYPE == "settings":  # type: ignore
                 structure = item.to_dict()
             else:
-                structure = item.to_list()
-            item = self.fielder(structure, fields_list)
+                structure = item.to_list()  # type: ignore
+            item = self.fielder(structure, fields_list)  # type: ignore
             data.append(item)
 
         self.print_formatted_data(
@@ -384,12 +410,12 @@ class Report:
 
     def run(
         self,
-        report_what: Optional[str] = None,
-        report_name: Optional[str] = None,
-        report_type: Optional[str] = None,
-        report_fields: Optional[str] = None,
-        report_noheaders: Optional[bool] = None,
-    ):
+        report_what: str = "",
+        report_name: str = "",
+        report_type: str = "",
+        report_fields: str = "",
+        report_noheaders: bool = False,
+    ) -> None:
         """
         Get remote profiles and distros and sync them locally
 
@@ -423,10 +449,10 @@ class Report:
                 ):
                     if report_name:
                         self.reporting_list_names2(
-                            self.api.get_items(collection_name), report_name
+                            self.api.get_items(collection_name), report_name  # type: ignore
                         )
                     else:
-                        self.reporting_print_sorted(self.api.get_items(collection_name))
+                        self.reporting_print_sorted(self.api.get_items(collection_name))  # type: ignore
 
         elif report_type == "text" and report_fields != "all":
             utils.die("The 'text' type can only be used with field set to 'all'")
@@ -450,7 +476,7 @@ class Report:
                     f"{collection_name}es",
                 ):
                     self.reporting_print_all_fields(
-                        self.api.get_items(collection_name),
+                        self.api.get_items(collection_name),  # type: ignore
                         report_name,
                         report_type,
                         report_noheaders,
@@ -475,7 +501,7 @@ class Report:
                     f"{collection_name}es",
                 ):
                     self.reporting_print_x_fields(
-                        self.api.get_items(collection_name),
+                        self.api.get_items(collection_name),  # type: ignore
                         report_name,
                         report_type,
                         report_fields,

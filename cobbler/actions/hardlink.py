@@ -9,8 +9,12 @@ Hard links Cobbler content together to save space.
 
 import logging
 import os
+from typing import TYPE_CHECKING
 
 from cobbler import utils
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class HardLinker:
@@ -18,7 +22,7 @@ class HardLinker:
     TODO
     """
 
-    def __init__(self, api=None):
+    def __init__(self, api: "CobblerAPI") -> None:
         """
         Constructor
 
@@ -41,7 +45,7 @@ class HardLinker:
         if not self.hardlink:
             utils.die("please install 'hardlink' to use this feature")
 
-    def run(self):
+    def run(self) -> int:
         """
         Simply hardlinks directories that are Cobbler managed.
         """

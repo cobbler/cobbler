@@ -23,7 +23,7 @@ class Menu(item.Item):
     TYPE_NAME = "menu"
     COLLECTION_TYPE = "menu"
 
-    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any) -> None:
         """
         Constructor
 
@@ -44,7 +44,7 @@ class Menu(item.Item):
     # override some base class methods first (item.Item)
     #
 
-    def make_clone(self):
+    def make_clone(self) -> "Menu":
         """
         Clone this file object. Please manually adjust all value yourself to make the cloned object unique.
 
@@ -69,7 +69,7 @@ class Menu(item.Item):
         return self._display_name
 
     @display_name.setter
-    def display_name(self, display_name: str):
+    def display_name(self, display_name: str) -> None:
         """
         Setter for the display_name of the item.
 

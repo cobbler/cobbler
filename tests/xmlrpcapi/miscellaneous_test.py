@@ -1,3 +1,7 @@
+"""
+Test module to test functions that cannot be grouped into more distinct categories.
+"""
+
 import json
 import os
 import pathlib
@@ -43,8 +47,8 @@ def test_disable_netboot(
     remote: CobblerXMLRPCInterface,
     token: str,
     create_distro: Callable[[str, str, str, str, str], str],
-    create_profile,
-    create_system,
+    create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
+    create_system: Callable[[str, str], str],
     create_kernel_initrd: Callable[[str, str], str],
 ):
     # Arrange
@@ -113,10 +117,10 @@ def test_find_items_paged(
     # 'num_pages': 2, 'num_items': 2, 'start_item': 0, 'end_item': 1, 'items_per_page': 1,
     # 'items_per_page_list': [10, 20, 50, 100, 200, 500]}}
     assert type(result) == dict
-    assert type(result.get("items")) == list
-    assert "pageinfo" in result
-    assert "pages" in result["pageinfo"]
-    assert result["pageinfo"]["pages"] == [1, 2]
+    assert type(result.get("items")) == list  # type: ignore
+    assert "pageinfo" in result  # type: ignore
+    assert "pages" in result["pageinfo"]  # type: ignore
+    assert result["pageinfo"]["pages"] == [1, 2]  # type: ignore
 
 
 @pytest.mark.skip(
@@ -127,8 +131,8 @@ def test_find_system_by_dns_name(
     remote: CobblerXMLRPCInterface,
     token: str,
     create_distro: Callable[[str, str, str, str, str], str],
-    create_profile,
-    create_system,
+    create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
+    create_system: Callable[[str, str], str],
     create_kernel_initrd: Callable[[str, str], str],
 ):
     # Arrange
@@ -157,8 +161,8 @@ def test_find_system_by_dns_name(
 def test_generate_script(
     remote: CobblerXMLRPCInterface,
     create_distro: Callable[[str, str, str, str, str], str],
-    create_profile,
-    create_kernel_initrd,
+    create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
+    create_kernel_initrd: Callable[[str, str], str],
 ):
     # Arrange
     fk_kernel = "vmlinuz1"
@@ -184,7 +188,7 @@ def test_get_item_as_rendered(
     remote: CobblerXMLRPCInterface,
     token: str,
     create_distro: Callable[[str, str, str, str, str], str],
-    create_kernel_initrd,
+    create_kernel_initrd: Callable[[str, str], str],
 ):
     # Arrange
     fk_kernel = "vmlinuz1"
@@ -205,7 +209,7 @@ def test_get_item_as_rendered(
 def test_get_s_since(
     remote: CobblerXMLRPCInterface,
     create_distro: Callable[[str, str, str, str, str], str],
-    create_kernel_initrd,
+    create_kernel_initrd: Callable[[str, str], str],
 ):
     # Arrange
     fk_kernel = "vmlinuz1"
@@ -227,7 +231,7 @@ def test_get_s_since(
     assert len(result) == 1
 
 
-def test_get_authn_module_name(remote, token):
+def test_get_authn_module_name(remote: CobblerXMLRPCInterface, token: str):
     # Arrange
 
     # Act
@@ -240,9 +244,9 @@ def test_get_authn_module_name(remote, token):
 def test_get_blended_data(
     remote: CobblerXMLRPCInterface,
     create_distro: Callable[[str, str, str, str, str], str],
-    create_profile,
-    create_system,
-    create_kernel_initrd,
+    create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
+    create_system: Callable[[str, str], str],
+    create_kernel_initrd: Callable[[str, str], str],
 ):
     # Arrange
     fk_kernel = "vmlinuz1"
@@ -268,9 +272,9 @@ def test_get_config_data(
     remote: CobblerXMLRPCInterface,
     token: str,
     create_distro: Callable[[str, str, str, str, str], str],
-    create_profile,
-    create_system,
-    create_kernel_initrd,
+    create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
+    create_system: Callable[[str, str], str],
+    create_kernel_initrd: Callable[[str, str], str],
 ):
     # Arrange
     fk_kernel = "vmlinuz1"
@@ -299,9 +303,9 @@ def test_get_repos_compatible_with_profile(
     remote: CobblerXMLRPCInterface,
     token: str,
     create_distro: Callable[[str, str, str, str, str], str],
-    create_profile,
-    create_repo,
-    create_kernel_initrd,
+    create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
+    create_repo: Callable[[str, str, bool], str],
+    create_kernel_initrd: Callable[[str, str], str],
 ):
     # Arrange
     fk_kernel = "vmlinuz1"
@@ -348,10 +352,10 @@ def test_get_status(remote: CobblerXMLRPCInterface, token: str):
 def test_get_template_file_for_profile(
     remote: CobblerXMLRPCInterface,
     create_distro: Callable[[str, str, str, str, str], str],
-    create_profile,
-    create_autoinstall_template,
-    remove_autoinstall_template,
-    create_kernel_initrd,
+    create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
+    create_autoinstall_template: Callable[[str, str], None],
+    remove_autoinstall_template: Callable[[str], None],
+    create_kernel_initrd: Callable[[str, str], str],
 ):
     # Arrange
     fk_kernel = "vmlinuz1"
@@ -381,11 +385,11 @@ def test_get_template_file_for_profile(
 def test_get_template_file_for_system(
     remote: CobblerXMLRPCInterface,
     create_distro: Callable[[str, str, str, str, str], str],
-    create_profile,
-    create_system,
-    create_autoinstall_template,
-    remove_autoinstall_template,
-    create_kernel_initrd,
+    create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
+    create_system: Callable[[str, str], str],
+    create_autoinstall_template: Callable[[str, str], None],
+    remove_autoinstall_template: Callable[[str], None],
+    create_kernel_initrd: Callable[[str, str], str],
 ):
     # Arrange
     fk_kernel = "vmlinuz1"
@@ -417,8 +421,8 @@ def test_is_autoinstall_in_use(
     remote: CobblerXMLRPCInterface,
     token: str,
     create_distro: Callable[[str, str, str, str, str], str],
-    create_profile,
-    create_kernel_initrd,
+    create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
+    create_kernel_initrd: Callable[[str, str], str],
 ):
     # Arrange
     fk_kernel = "vmlinuz1"
@@ -439,9 +443,12 @@ def test_is_autoinstall_in_use(
 
 
 def test_logout(remote: CobblerXMLRPCInterface):
+    """
+    Assert that any action with a token is not successful after using the "logout" method to invalidate the token.
+    """
     # Arrange
     shared_secret = get_shared_secret()
-    newtoken = remote.login("", shared_secret)
+    newtoken = remote.login("", shared_secret)  # type: ignore
 
     # Act
     resultlogout = remote.logout(newtoken)
@@ -488,8 +495,8 @@ def test_modify_setting(
 def test_read_autoinstall_template(
     remote: CobblerXMLRPCInterface,
     token: str,
-    create_autoinstall_template,
-    remove_autoinstall_template,
+    create_autoinstall_template: Callable[[str, str], None],
+    remove_autoinstall_template: Callable[[str], None],
 ):
     # Arrange
     name = "test_template_name"
@@ -506,7 +513,9 @@ def test_read_autoinstall_template(
 
 
 def test_write_autoinstall_template(
-    remote: CobblerXMLRPCInterface, token: str, remove_autoinstall_template
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    remove_autoinstall_template: Callable[[str], None],
 ):
     # Arrange
     name = "testtemplate"
@@ -522,7 +531,9 @@ def test_write_autoinstall_template(
 
 
 def test_remove_autoinstall_template(
-    remote: CobblerXMLRPCInterface, token: str, create_autoinstall_template
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    create_autoinstall_template: Callable[[str, str], None],
 ):
     # Arrange
     name = "test_template_remove"
@@ -536,7 +547,11 @@ def test_remove_autoinstall_template(
 
 
 def test_read_autoinstall_snippet(
-    remote: CobblerXMLRPCInterface, token: str, testsnippet, snippet_add, snippet_remove
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    testsnippet: str,
+    snippet_add: Callable[[str, str], None],
+    snippet_remove: Callable[[str], None],
 ):
     # Arrange
     snippet_name = "testsnippet_read"
@@ -553,7 +568,10 @@ def test_read_autoinstall_snippet(
 
 
 def test_write_autoinstall_snippet(
-    remote: CobblerXMLRPCInterface, token: str, testsnippet, snippet_remove
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    testsnippet: str,
+    snippet_remove: Callable[[str], None],
 ):
     # Arrange
     # See fixture: testsnippet
@@ -570,7 +588,10 @@ def test_write_autoinstall_snippet(
 
 
 def test_remove_autoinstall_snippet(
-    remote: CobblerXMLRPCInterface, token: str, snippet_add, testsnippet
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    snippet_add: Callable[[str, str], None],
+    testsnippet: str,
 ):
     # Arrange
     name = "testsnippet_remove"
@@ -586,10 +607,10 @@ def test_remove_autoinstall_snippet(
 def test_run_install_triggers(
     remote: CobblerXMLRPCInterface,
     token: str,
-    create_kernel_initrd,
+    create_kernel_initrd: Callable[[str, str], str],
     create_distro: Callable[[str, str, str, str, str], str],
-    create_profile,
-    create_system,
+    create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
+    create_system: Callable[[str, str], str],
 ):
     # Arrange
     fk_kernel = "vmlinuz1"

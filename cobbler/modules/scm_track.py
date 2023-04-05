@@ -9,9 +9,13 @@ Cobbler Trigger Module that puts the content of the Cobbler data directory under
 
 
 import os
+from typing import TYPE_CHECKING, Any
 
 from cobbler import utils
 from cobbler.cexceptions import CX
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 def register() -> str:
@@ -24,7 +28,7 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/change/*"
 
 
-def run(api, args):
+def run(api: "CobblerAPI", args: Any):
     """
     Runs the trigger, meaning in this case track any changed which happen to a config or data file.
 

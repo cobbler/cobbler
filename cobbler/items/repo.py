@@ -7,7 +7,7 @@ Cobbler module that contains the code for a Cobbler repo object.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import copy
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 
 from cobbler import enums
 from cobbler.cexceptions import CX
@@ -27,7 +27,7 @@ class Repo(item.Item):
     TYPE_NAME = "repo"
     COLLECTION_TYPE = "repo"
 
-    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any) -> None:
         """
         Constructor
 
@@ -39,19 +39,19 @@ class Repo(item.Item):
 
         self._breed = enums.RepoBreeds.NONE
         self._arch = enums.RepoArchs.NONE
-        self._environment = {}
-        self._yumopts = {}
-        self._rsyncopts = {}
+        self._environment: Dict[Any, Any] = {}
+        self._yumopts: Dict[str, str] = {}
+        self._rsyncopts: Dict[str, Any] = {}
         self._mirror_type = enums.MirrorType.BASEURL
-        self._apt_components = []
-        self._apt_dists = []
+        self._apt_components: List[str] = []
+        self._apt_dists: List[str] = []
         self._createrepo_flags = enums.VALUE_INHERITED
         self._keep_updated = False
         self._mirror = ""
         self._mirror_locally = False
         self._priority = 0
         self._proxy = enums.VALUE_INHERITED
-        self._rpm_list = []
+        self._rpm_list: List[str] = []
         self._os_version = ""
 
         if len(kwargs) > 0:
@@ -63,7 +63,7 @@ class Repo(item.Item):
     # override some base class methods first (item.Item)
     #
 
-    def make_clone(self):
+    def make_clone(self) -> "Repo":
         """
         Clone this file object. Please manually adjust all value yourself to make the cloned object unique.
 
@@ -73,7 +73,7 @@ class Repo(item.Item):
         _dict.pop("uid", None)
         return Repo(self.api, **_dict)
 
-    def check_if_valid(self):
+    def check_if_valid(self) -> None:
         """
         Checks if the object is valid. Currently checks for name and mirror to be present.
 
@@ -89,7 +89,7 @@ class Repo(item.Item):
     # specific methods for item.Repo
     #
 
-    def _guess_breed(self):
+    def _guess_breed(self) -> None:
         """
         Guess the breed of a mirror.
         """
@@ -118,14 +118,14 @@ class Repo(item.Item):
         return self._mirror
 
     @mirror.setter
-    def mirror(self, mirror: str):
+    def mirror(self, mirror: str) -> None:
         r"""
         Setter for the mirror property.
 
         :param mirror: The mirror URI.
         :raises TypeError: In case mirror is not of type ``str``.
         """
-        if not isinstance(mirror, str):
+        if not isinstance(mirror, str):  # type: ignore
             raise TypeError("Field mirror of object repo needs to be of type str!")
         self._mirror = mirror
         if not self.arch:
@@ -147,7 +147,7 @@ class Repo(item.Item):
         return self._mirror_type
 
     @mirror_type.setter
-    def mirror_type(self, mirror_type: Union[str, enums.MirrorType]):
+    def mirror_type(self, mirror_type: Union[str, enums.MirrorType]) -> None:
         r"""
         Setter for the ``mirror_type`` property.
 
@@ -164,7 +164,7 @@ class Repo(item.Item):
                     f"mirror_type choices include: {list(map(str, enums.MirrorType))}"
                 ) from error
         # Now the mirror_type MUST be of the type of enums.
-        if not isinstance(mirror_type, enums.MirrorType):
+        if not isinstance(mirror_type, enums.MirrorType):  # type: ignore
             raise TypeError("mirror_type needs to be of type enums.MirrorType")
         self._mirror_type = mirror_type
 
@@ -179,7 +179,7 @@ class Repo(item.Item):
         return self._keep_updated
 
     @keep_updated.setter
-    def keep_updated(self, keep_updated: bool):
+    def keep_updated(self, keep_updated: bool) -> None:
         """
         Setter for the keep_updated property.
 
@@ -187,14 +187,14 @@ class Repo(item.Item):
         :raises TypeError: In case the conversion to a bool was unsuccessful.
         """
         keep_updated = input_converters.input_boolean(keep_updated)
-        if not isinstance(keep_updated, bool):
+        if not isinstance(keep_updated, bool):  # type: ignore
             raise TypeError(
                 "Field keep_updated of object repo needs to be of type bool!"
             )
         self._keep_updated = keep_updated
 
     @LazyProperty
-    def yumopts(self) -> dict:
+    def yumopts(self) -> Dict[Any, Any]:
         r"""
         Options for the yum tool. Should be presented in the same way as the ``kernel_options``.
 
@@ -204,7 +204,7 @@ class Repo(item.Item):
         return self._yumopts
 
     @yumopts.setter
-    def yumopts(self, options: Union[str, dict]):
+    def yumopts(self, options: Union[str, Dict[Any, Any]]) -> None:
         """
         Kernel options are a space delimited list.
 
@@ -212,14 +212,14 @@ class Repo(item.Item):
         :raises ValueError: In case the presented data could not be parsed into a dictionary.
         """
         try:
-            self._yumopts = input_converters.input_string_or_dict(
+            self._yumopts = input_converters.input_string_or_dict_no_inherit(
                 options, allow_multiples=False
             )
         except TypeError as error:
             raise TypeError("invalid yum options") from error
 
     @LazyProperty
-    def rsyncopts(self) -> dict:
+    def rsyncopts(self) -> Dict[Any, Any]:
         r"""
         Options for ``rsync`` when being used for repo management.
 
@@ -229,7 +229,7 @@ class Repo(item.Item):
         return self._rsyncopts
 
     @rsyncopts.setter
-    def rsyncopts(self, options: Union[str, dict]):
+    def rsyncopts(self, options: Union[str, Dict[Any, Any]]) -> None:
         """
         Setter for the ``rsyncopts`` property.
 
@@ -237,14 +237,14 @@ class Repo(item.Item):
         :raises ValueError: In case the options provided can't be parsed.
         """
         try:
-            self._rsyncopts = input_converters.input_string_or_dict(
+            self._rsyncopts = input_converters.input_string_or_dict_no_inherit(
                 options, allow_multiples=False
             )
         except TypeError as error:
             raise TypeError("invalid rsync options") from error
 
     @LazyProperty
-    def environment(self) -> dict:
+    def environment(self) -> Dict[Any, Any]:
         """
         Yum can take options from the environment. This puts them there before each reposync.
 
@@ -254,7 +254,7 @@ class Repo(item.Item):
         return self._environment
 
     @environment.setter
-    def environment(self, options: Union[str, dict]):
+    def environment(self, options: Union[str, Dict[Any, Any]]) -> None:
         r"""
         Setter for the ``environment`` property.
 
@@ -262,7 +262,7 @@ class Repo(item.Item):
         :raises ValueError: In case the variables provided could not be parsed.
         """
         try:
-            self._environment = input_converters.input_string_or_dict(
+            self._environment = input_converters.input_string_or_dict_no_inherit(
                 options, allow_multiples=False
             )
         except TypeError as error:
@@ -279,7 +279,7 @@ class Repo(item.Item):
         return self._priority
 
     @priority.setter
-    def priority(self, priority: int):
+    def priority(self, priority: int) -> None:
         r"""
         Setter for the ``priority`` property.
 
@@ -298,7 +298,7 @@ class Repo(item.Item):
         self._priority = converted_value
 
     @LazyProperty
-    def rpm_list(self) -> list:
+    def rpm_list(self) -> List[str]:
         """
         Rather than mirroring the entire contents of a repository (Fedora Extras, for instance, contains games, and we
         probably don't want those), make it possible to list the packages one wants out of those repos, so only those
@@ -310,13 +310,13 @@ class Repo(item.Item):
         return self._rpm_list
 
     @rpm_list.setter
-    def rpm_list(self, rpms: Union[str, list]):
+    def rpm_list(self, rpms: Union[str, List[str]]) -> None:
         """
         Setter for the ``rpm_list`` property.
 
         :param rpms: The rpm to mirror. This may be a string or list.
         """
-        self._rpm_list = input_converters.input_string_or_list(rpms)
+        self._rpm_list = input_converters.input_string_or_list_no_inherit(rpms)
 
     @InheritableProperty
     def createrepo_flags(self) -> str:
@@ -331,7 +331,7 @@ class Repo(item.Item):
         """
         return self._resolve("createrepo_flags")
 
-    @createrepo_flags.setter
+    @createrepo_flags.setter  # type: ignore[no-redef]
     def createrepo_flags(self, createrepo_flags: str):
         """
         Setter for the ``createrepo_flags`` property.
@@ -339,7 +339,7 @@ class Repo(item.Item):
         :param createrepo_flags: The createrepo flags which are passed additionally to the default ones.
         :raises TypeError: In case the flags were not of the correct type.
         """
-        if not isinstance(createrepo_flags, str):
+        if not isinstance(createrepo_flags, str):  # type: ignore
             raise TypeError(
                 "Field createrepo_flags of object repo needs to be of type str!"
             )
@@ -356,7 +356,7 @@ class Repo(item.Item):
         return self._breed
 
     @breed.setter
-    def breed(self, breed: Union[str, enums.RepoBreeds]):
+    def breed(self, breed: Union[str, enums.RepoBreeds]) -> None:
         """
         Setter for the repository system breed.
 
@@ -377,7 +377,7 @@ class Repo(item.Item):
         return self._os_version
 
     @os_version.setter
-    def os_version(self, os_version: str):
+    def os_version(self, os_version: str) -> None:
         r"""
         Setter for the operating system version.
 
@@ -407,7 +407,7 @@ class Repo(item.Item):
         return self._arch
 
     @arch.setter
-    def arch(self, arch: Union[str, enums.RepoArchs]):
+    def arch(self, arch: Union[str, enums.RepoArchs]) -> None:
         r"""
         Override the arch used for reposync
 
@@ -437,7 +437,7 @@ class Repo(item.Item):
         return self._mirror_locally
 
     @mirror_locally.setter
-    def mirror_locally(self, value: bool):
+    def mirror_locally(self, value: bool) -> None:
         """
         Setter for the local mirror property.
 
@@ -445,12 +445,12 @@ class Repo(item.Item):
         :raises TypeError: In case the value is not of type ``bool``.
         """
         value = input_converters.input_boolean(value)
-        if not isinstance(value, bool):
+        if not isinstance(value, bool):  # type: ignore
             raise TypeError("mirror_locally needs to be of type bool")
         self._mirror_locally = value
 
     @LazyProperty
-    def apt_components(self) -> list:
+    def apt_components(self) -> List[str]:
         """
         Specify the section of Debian to mirror. Defaults to "main,contrib,non-free,main/debian-installer".
 
@@ -460,16 +460,16 @@ class Repo(item.Item):
         return self._apt_components
 
     @apt_components.setter
-    def apt_components(self, value: Union[str, list]):
+    def apt_components(self, value: Union[str, List[str]]) -> None:
         """
         Setter for the apt command property.
 
         :param value: The new value for ``apt_components``.
         """
-        self._apt_components = input_converters.input_string_or_list(value)
+        self._apt_components = input_converters.input_string_or_list_no_inherit(value)
 
     @LazyProperty
-    def apt_dists(self) -> list:
+    def apt_dists(self) -> List[str]:
         r"""
         This decides which installer images are downloaded. For more information please see:
         https://www.debian.org/CD/mirroring/index.html or the manpage of ``debmirror``.
@@ -480,13 +480,13 @@ class Repo(item.Item):
         return self._apt_dists
 
     @apt_dists.setter
-    def apt_dists(self, value: Union[str, list]):
+    def apt_dists(self, value: Union[str, List[str]]) -> None:
         """
         Setter for the apt dists.
 
         :param value: The new value for ``apt_dists``.
         """
-        self._apt_dists = input_converters.input_string_or_list(value)
+        self._apt_dists = input_converters.input_string_or_list_no_inherit(value)
 
     @InheritableProperty
     def proxy(self) -> str:
@@ -500,7 +500,7 @@ class Repo(item.Item):
         """
         return self._resolve("proxy_url_ext")
 
-    @proxy.setter
+    @proxy.setter  # type: ignore[no-redef]
     def proxy(self, value: str):
         r"""
         Setter for the proxy setting of the repository.
@@ -508,6 +508,6 @@ class Repo(item.Item):
         :param value: The new proxy which will be used for the repository.
         :raises TypeError: In case the new value is not of type ``str``.
         """
-        if not isinstance(value, str):
+        if not isinstance(value, str):  # type: ignore
             raise TypeError("Field proxy in object repo needs to be of type str!")
         self._proxy = value

@@ -4,6 +4,7 @@ This module contains logic to support the events Cobbler generates in its XML-RP
 
 import time
 import uuid
+from typing import List, Union
 
 from cobbler import enums
 
@@ -13,7 +14,7 @@ class CobblerEvent:
     This is a small helper class that represents an event in Cobbler.
     """
 
-    def __init__(self, name="", statetime=0.0):
+    def __init__(self, name: str = "", statetime: float = 0.0) -> None:
         """
         Default Constructor that initializes the event id.
 
@@ -24,17 +25,17 @@ class CobblerEvent:
         self.statetime = statetime
         self.__name = name
         self.state = enums.EventStatus.INFO
-        self.read_by_who = []
+        self.read_by_who: List[str] = []
         # Initialize the even_id
         self.__generate_event_id()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.__members())
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> Union[str, List[str], float]:
         return self.__members()[idx]
 
-    def __members(self) -> list:
+    def __members(self) -> List[Union[str, float, List[str]]]:
         """
         Lists the members with their current values.
 
@@ -43,20 +44,20 @@ class CobblerEvent:
         return [self.statetime, self.name, self.state.value, self.read_by_who]
 
     @property
-    def event_id(self):
+    def event_id(self) -> str:
         """
         Read only property to retrieve the internal ID of the event.
         """
         return self.__event_id
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Read only property to retrieve the human-readable name of the event.
         """
         return self.__name
 
-    def __generate_event_id(self):
+    def __generate_event_id(self) -> None:
         """
         Generate an event id based on the current timestamp
 

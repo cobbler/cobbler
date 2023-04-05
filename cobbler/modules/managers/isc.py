@@ -9,11 +9,17 @@ This is some of the code behind 'cobbler sync'.
 
 import shutil
 import time
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from cobbler import enums, utils
 from cobbler.enums import Archs
 from cobbler.manager import ManagerModule
 from cobbler.utils import process_management
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.items.distro import Distro
+    from cobbler.items.profile import Profile
 
 MANAGER = None
 
@@ -35,20 +41,22 @@ class _IscManager(ManagerModule):
         """
         return "isc"
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         super().__init__(api)
 
         self.settings_file_v4 = utils.dhcpconf_location(enums.DHCP.V4)
         self.settings_file_v6 = utils.dhcpconf_location(enums.DHCP.V6)
 
-    def write_v4_config(self, template_file="/etc/cobbler/dhcp.template"):
+    def write_v4_config(
+        self, template_file: str = "/etc/cobbler/dhcp.template"
+    ) -> None:
         """
         DHCPv4 files are written when ``manage_dhcp_v4`` is set in our settings.
 
         :param template_file: The location of the DHCP template.
         """
 
-        blender_cache = {}
+        blender_cache: Dict[str, Any] = {}
 
         with open(template_file, "r", encoding="UTF-8") as template_fd:
             template_data = template_fd.read()
@@ -57,18 +65,20 @@ class _IscManager(ManagerModule):
         counter = 0
 
         # We used to just loop through each system, but now we must loop through each network interface of each system.
-        dhcp_tags = {"default": {}}
+        dhcp_tags: Dict[str, Any] = {"default": {}}
 
         # FIXME: ding should evolve into the new dhcp_tags dict
-        ding = {}
-        ignore_macs = []
+        ding: Dict[str, Any] = {}
+        ignore_macs: List[str] = []
 
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
                 continue
 
-            profile = system.get_conceptual_parent()
-            distro = profile.get_conceptual_parent()
+            profile: Optional["Profile"] = system.get_conceptual_parent()  # type: ignore
+            if profile is None:
+                raise ValueError("Profile for System not found!")
+            distro: Optional["Distro"] = profile.get_conceptual_parent()  # type: ignore
 
             # if distro is None then the profile is really an image record
             for (name, system_interface) in list(system.interfaces.items()):
@@ -78,11 +88,11 @@ class _IscManager(ManagerModule):
                 interface = system_interface.to_dict()
 
                 if interface["if_gateway"]:
-                    interface["gateway"] = interface["if_gateway"]
+                    interface["gateway"] = system_interface.if_gateway
                 else:
                     interface["gateway"] = system.gateway
 
-                mac = interface["mac_address"]
+                mac = system_interface.mac_address
 
                 if interface["interface_type"] in (
                     "bond_slave",
@@ -111,7 +121,7 @@ class _IscManager(ManagerModule):
                     dhcp_tag = system.interfaces[interface["interface_master"]].dhcp_tag
                     host = system.interfaces[interface["interface_master"]].dns_name
 
-                    if ip_address is None or ip_address == "":
+                    if ip_address == "":
                         for (interface_name, interface_object) in list(
                             system.interfaces.items()
                         ):
@@ -119,7 +129,6 @@ class _IscManager(ManagerModule):
                                 interface_name.startswith(
                                     interface["interface_master"] + "."
                                 )
-                                and interface_object.ip_address is not None
                                 and interface_object.ip_address != ""
                             ):
                                 ip_address = interface_object.ip_address
@@ -136,7 +145,7 @@ class _IscManager(ManagerModule):
                 if distro is not None:
                     interface["distro"] = distro.to_dict()
 
-                if mac is None or mac == "":
+                if mac == "":
                     # can't write a DHCP entry for this system
                     continue
 
@@ -170,11 +179,13 @@ class _IscManager(ManagerModule):
                 # For esxi/UEFI export filename_esxi as path to efi bootloader
                 if distro and distro.os_version.startswith("esxi"):
                     interface["filename_esxi"] = "/".join(
-                        [
+                        (
                             "esxi/system",
-                            system.get_config_filename(interface=name, loader="pxe"),
+                            # In case the config filename is None we take an empty string.
+                            system.get_config_filename(interface=name, loader="pxe")
+                            or "",
                             "mboot.efi",
-                        ]
+                        )
                     )
 
                 # Explicitly declare filename for other (non x86) archs as in DHCP discover package mostly the
@@ -221,14 +232,16 @@ class _IscManager(ManagerModule):
         self.logger.info("generating %s", self.settings_file_v4)
         self.templar.render(template_data, metadata, self.settings_file_v4)
 
-    def write_v6_config(self, template_file="/etc/cobbler/dhcp6.template"):
+    def write_v6_config(
+        self, template_file: str = "/etc/cobbler/dhcp6.template"
+    ) -> None:
         """
         DHCPv6 files are written when ``manage_dhcp_v6`` is set in our settings.
 
         :param template_file: The location of the DHCP template.
         """
 
-        blender_cache = {}
+        blender_cache: Dict[str, Any] = {}
 
         with open(template_file, "r", encoding="UTF-8") as template_fd:
             template_data = template_fd.read()
@@ -237,18 +250,22 @@ class _IscManager(ManagerModule):
         counter = 0
 
         # We used to just loop through each system, but now we must loop through each network interface of each system.
-        dhcp_tags = {"default": {}}
+        dhcp_tags: Dict[str, Any] = {"default": {}}
 
         # FIXME: ding should evolve into the new dhcp_tags dict
-        ding = {}
-        ignore_macs = []
+        ding: Dict[Any, Any] = {}
+        ignore_macs: List[str] = []
 
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
                 continue
 
-            profile = system.get_conceptual_parent()
-            distro = profile.get_conceptual_parent()
+            profile: Optional["Profile"] = system.get_conceptual_parent()  # type: ignore
+            if profile is None:
+                raise ValueError("Profile not found!")
+            distro: Optional["Distro"] = profile.get_conceptual_parent()  # type: ignore
+            if distro is None:
+                raise ValueError("Distro not found!")
 
             # if distro is None then the profile is really an image record
             for (name, system_interface) in list(system.interfaces.items()):
@@ -298,7 +315,6 @@ class _IscManager(ManagerModule):
                                 interface_name.startswith(
                                     interface["interface_master"] + "."
                                 )
-                                and interface_object.ipv6_address is not None
                                 and interface_object.ipv6_address != ""
                             ):
                                 ip_v6 = interface_object.ipv6_address
@@ -310,8 +326,7 @@ class _IscManager(ManagerModule):
                     dhcp_tag = interface["dhcp_tag"]
                     host = interface["dns_name"]
 
-                if distro is not None:
-                    interface["distro"] = distro.to_dict()
+                interface["distro"] = distro.to_dict()
 
                 if not mac or not ip_v6:
                     # can't write a DHCP entry for this system
@@ -345,7 +360,7 @@ class _IscManager(ManagerModule):
 
                 # Explicitly declare filename for other (non x86) archs as in DHCP discover package mostly the
                 # architecture cannot be differed due to missing bits...
-                if distro is not None and not interface.get("filename"):
+                if not interface.get("filename"):
                     if distro.arch == Archs.PPC:
                         interface["filename"] = "grub/grub.ppc"
                     elif distro.arch == Archs.PPC64:
@@ -382,8 +397,7 @@ class _IscManager(ManagerModule):
             "dhcp_tags": dhcp_tags,
         }
 
-        if self.logger is not None:
-            self.logger.info("generating %s", self.settings_file_v6)
+        self.logger.info("generating %s", self.settings_file_v6)
         self.templar.render(template_data, metadata, self.settings_file_v6)
 
     def restart_dhcp(self, service_name: str) -> int:
@@ -394,6 +408,9 @@ class _IscManager(ManagerModule):
         :param service_name: The name of the DHCP service.
         """
         dhcpd_path = shutil.which(service_name)
+        if dhcpd_path is None:
+            self.logger.error("%s path could not be found", service_name)
+            return -1
         return_code_service_restart = utils.subprocess_call(
             [dhcpd_path, "-t", "-q"], shell=False
         )
@@ -404,7 +421,7 @@ class _IscManager(ManagerModule):
             self.logger.error("%s service failed", service_name)
         return return_code_service_restart
 
-    def write_configs(self):
+    def write_configs(self) -> None:
         if self.settings.manage_dhcp_v4:
             self.write_v4_config()
         if self.settings.manage_dhcp_v6:
@@ -425,7 +442,7 @@ class _IscManager(ManagerModule):
         return ret
 
 
-def get_manager(api):
+def get_manager(api: "CobblerAPI") -> _IscManager:
     """
     Creates a manager object to manage an isc dhcp server.
 
@@ -436,5 +453,5 @@ def get_manager(api):
     global MANAGER  # pylint: disable=global-statement
 
     if not MANAGER:
-        MANAGER = _IscManager(api)
+        MANAGER = _IscManager(api)  # type: ignore
     return MANAGER

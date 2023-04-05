@@ -5,8 +5,9 @@ Migration from V3.3.2 to V3.3.3
 # SPDX-FileCopyrightText: 2022 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
+from typing import Any, Dict
 
-from schema import Optional, Schema, SchemaError
+from schema import Optional, Schema, SchemaError  # type: ignore
 
 schema = Schema(
     {
@@ -228,12 +229,12 @@ schema = Schema(
         Optional("windows_enabled", default=False): bool,
         Optional("windows_template_dir", default="/etc/cobbler/windows"): str,
         Optional("samba_distro_share", default="DISTRO"): str,
-    },
+    },  # type: ignore
     ignore_extra_keys=False,
 )
 
 
-def validate(settings: dict) -> bool:
+def validate(settings: Dict[str, Any]) -> bool:
     """
     Checks that a given settings dict is valid according to the reference V3.3.1 schema ``schema``.
 
@@ -241,23 +242,24 @@ def validate(settings: dict) -> bool:
     :return: True if valid settings dict otherwise False.
     """
     try:
-        schema.validate(settings)
+        schema.validate(settings)  # type: ignore
     except SchemaError:
         return False
     return True
 
 
-def normalize(settings: dict) -> dict:
+def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
     If data in ``settings`` is valid the validated data is returned.
 
     :param settings: The settings dict to validate.
     :return: The validated dict.
     """
-    return schema.validate(settings)
+    # We are aware of our schema and thus can safely ignore this.
+    return schema.validate(settings)  # type: ignore
 
 
-def migrate(settings: dict) -> dict:
+def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
     Migration of the settings ``settings`` to version V3.3.1 settings
 

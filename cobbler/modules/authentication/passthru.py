@@ -6,7 +6,12 @@ what Apache trusts.
 # SPDX-FileCopyrightText: Copyright 2007-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
+from typing import TYPE_CHECKING
+
 from cobbler import utils
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 def register() -> str:
@@ -18,7 +23,7 @@ def register() -> str:
     return "authn"
 
 
-def authenticate(api_handle, username, password) -> bool:
+def authenticate(api_handle: "CobblerAPI", username: str, password: str) -> bool:
     """
     Validate a username/password combo. Uses cobbler_auth_helper
 

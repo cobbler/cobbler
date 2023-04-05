@@ -9,10 +9,13 @@ Choice of authentication module is in /etc/cobbler/modules.conf
 
 import hashlib
 import os
-from typing import List
+from typing import TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
-def hashfun(api, text: str) -> str:
+def hashfun(api: "CobblerAPI", text: str) -> str:
     """
     Converts a str object to a hash which was configured in modules.conf of the Cobbler settings.
 
@@ -44,7 +47,8 @@ def hashfun(api, text: str) -> str:
     else:
         errortext = f"The hashfunction (Currently: {hashfunction}) must be one of the defined in the settings!"
         raise ValueError(errortext)
-    return hashalgorithm.hexdigest()
+    # FIXME: Add case for SHAKE
+    return hashalgorithm.hexdigest()  # type: ignore
 
 
 def register() -> str:
@@ -64,7 +68,7 @@ def __parse_storage() -> List[List[str]]:
         return []
     with open("/etc/cobbler/users.digest", encoding="utf-8") as users_digest_fd:
         data = users_digest_fd.read()
-    results = []
+    results: List[List[str]] = []
     lines = data.split("\n")
     for line in lines:
         try:
@@ -76,7 +80,7 @@ def __parse_storage() -> List[List[str]]:
     return results
 
 
-def authenticate(api_handle, username: str, password: str) -> bool:
+def authenticate(api_handle: "CobblerAPI", username: str, password: str) -> bool:
     """
     Validate a username/password combo.
 

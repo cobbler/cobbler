@@ -4,8 +4,7 @@ TODO
 
 import logging
 import os
-import xmlrpc
-from xmlrpc.client import ServerProxy
+from xmlrpc.client import Fault, ServerProxy
 
 from cobbler import utils
 
@@ -44,7 +43,7 @@ def is_service() -> bool:
     return os.path.exists("/usr/sbin/service")
 
 
-def service_restart(service_name: str):
+def service_restart(service_name: str) -> int:
     """
     Restarts a daemon service independent of the underlining process manager. Currently, supervisord, systemd and SysV
     are supported. Checks which manager is present is done in the order just described.
@@ -54,20 +53,21 @@ def service_restart(service_name: str):
     """
     if is_supervisord():
         with ServerProxy("http://localhost:9001/RPC2") as server:
+            process_state = (
+                -1
+            )  # Not redundant because we could run otherwise in an UnboundLocalError
             try:
-                process_state = (
-                    -1
-                )  # Not redundant because we could run otherwise in an UnboundLocalError
-                process_state = server.supervisor.getProcessInfo(service_name).get(
-                    "state"
-                )
+                process_info = server.supervisor.getProcessInfo(service_name)
+                if not isinstance(process_info, dict):
+                    raise ValueError("TODO")
+                process_state = process_info.get("state", -1)
                 if process_state in (10, 20):
                     server.supervisor.stopProcess(service_name)
                 if server.supervisor.startProcess(service_name):  # returns a boolean
                     return 0
                 logger.error('Restarting service "%s" failed', service_name)
                 return 1
-            except xmlrpc.client.Fault as client_fault:
+            except Fault as client_fault:
                 logger.error(
                     'Restarting service "%s" failed (supervisord process state was "%s")',
                     service_name,

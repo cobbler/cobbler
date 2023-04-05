@@ -1,7 +1,6 @@
 """
 Cobbler module that at runtime holds all menus in Cobbler.
 """
-
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2021 Yuriy Chelpanov <yuriy.chelpanov@gmail.com>
 
@@ -16,7 +15,7 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Menus(collection.Collection):
+class Menus(collection.Collection[menu.Menu]):
     """
     A menu represents an element of the hierarchical boot menu.
     """
@@ -29,7 +28,9 @@ class Menus(collection.Collection):
     def collection_types() -> str:
         return "menus"
 
-    def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]):
+    def factory_produce(
+        self, api: "CobblerAPI", seed_data: Dict[str, Any]
+    ) -> menu.Menu:
         """
         Return a Menu forged from seed_data
 
@@ -46,7 +47,7 @@ class Menus(collection.Collection):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = False,
-    ):
+    ) -> None:
         """
         Remove element named 'name' from the collection
 
@@ -63,20 +64,24 @@ class Menus(collection.Collection):
 
         for item_type in ["image", "profile"]:
             items = self.api.find_items(item_type, {"menu": obj.name}, return_list=True)
+            if items is None:
+                continue
+            if not isinstance(items, list):
+                raise ValueError("Expected list or None from find_items!")
             for item in items:
                 item.menu = ""
 
         if recursive:
             kids = obj.descendants
             kids.sort(key=lambda x: -x.depth)
-            for kid in kids:
-                if self.api.find_menu(name=kid) is not None:
-                    self.api.remove_menu(
-                        kid,
-                        recursive=False,
-                        delete=with_delete,
-                        with_triggers=with_triggers,
-                    )
+            for k in kids:
+                self.api.remove_item(
+                    k.COLLECTION_TYPE,
+                    k,
+                    recursive=False,
+                    delete=with_delete,
+                    with_triggers=with_triggers,
+                )
 
         if with_delete:
             if with_triggers:

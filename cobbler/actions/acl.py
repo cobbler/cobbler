@@ -9,10 +9,13 @@ access to hand-edit various cobbler_collections files and other useful things.
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from cobbler import utils
 from cobbler.cexceptions import CX
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class AclConfig:
@@ -20,7 +23,7 @@ class AclConfig:
     TODO
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI") -> None:
         """
         Constructor
 
@@ -35,7 +38,7 @@ class AclConfig:
         addgroup: Optional[str] = None,
         removeuser: Optional[str] = None,
         removegroup: Optional[str] = None,
-    ):
+    ) -> None:
         """
         Automate setfacl commands. Only one of the four may be specified but one option also must be specified.
 
@@ -62,7 +65,7 @@ class AclConfig:
         if not args_ok:
             raise CX("no arguments specified, nothing to do")
 
-    def modacl(self, isadd: bool, isuser: bool, who: str):
+    def modacl(self, isadd: bool, isuser: bool, who: str) -> None:
         """
         Modify the acls for Cobbler on the filesystem.
 

@@ -2,15 +2,19 @@
 Authentication module that uses Spacewalk's auth system.
 Any org_admin or kickstart_admin can get in.
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2007-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-
+from typing import TYPE_CHECKING
 from xmlrpc.client import Error, ServerProxy
 
 from cobbler.cexceptions import CX
 from cobbler.utils import log_exc
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 def register() -> str:
@@ -20,7 +24,7 @@ def register() -> str:
     return "authn"
 
 
-def __looks_like_a_token(password) -> bool:
+def __looks_like_a_token(password: str) -> bool:
     """
     What spacewalk sends us could be an internal token or it could be a password if it's long and lowercase hex, it's
     /likely/ a token, and we should try to treat it as a token first, if not, we should treat it as a password.  All of
@@ -35,7 +39,9 @@ def __looks_like_a_token(password) -> bool:
     return password.lower() == password and len(password) > 45
 
 
-def __check_auth_token(xmlrpc_client, api_handle, username, password):
+def __check_auth_token(
+    xmlrpc_client: "ServerProxy", api_handle: "CobblerAPI", username: str, password: str
+):
     """
     This checks if the auth token is valid.
 
@@ -43,7 +49,7 @@ def __check_auth_token(xmlrpc_client, api_handle, username, password):
     :param api_handle: The api instance to retrieve settings of.
     :param username: The username to try.
     :param password: The password to try.
-    :return: In any error case this will return 0. Otherwise the return value of the API which should be 1.
+    :return: In any error case this will return 0. Otherwise, the return value of the API which should be 1.
     """
     # If the token is not a token this will raise an exception rather than return an integer.
     try:
@@ -56,7 +62,11 @@ def __check_auth_token(xmlrpc_client, api_handle, username, password):
 
 
 def __check_user_login(
-    xmlrpc_client, api_handle, user_enabled: bool, username, password
+    xmlrpc_client: ServerProxy,
+    api_handle: "CobblerAPI",
+    user_enabled: bool,
+    username: str,
+    password: str,
 ) -> bool:
     """
     This actually performs the login to spacewalk.
@@ -68,20 +78,24 @@ def __check_user_login(
     :param password: The password to log in.
     :return: True if users are allowed to log in and he is of the role ``config_admin`` or ``org_admin``.
     """
+    logger = api_handle.logger
     try:
         session = xmlrpc_client.auth.login(username, password)
         # login success by username, role must also match and user_enabled needs to be true.
         roles = xmlrpc_client.user.listRoles(session, username)
+        if not isinstance(roles, list):
+            # FIXME: Double check what the actual API is for this!
+            logger.warning("Uyuni/SUMA returned roles not as a list!")
+            return False
         if user_enabled and ("config_admin" in roles or "org_admin" in roles):
             return True
     except Error:
-        logger = api_handle.logger
         logger.error("Error while checking user authentication data.")
         log_exc()
     return False
 
 
-def authenticate(api_handle, username: str, password: str) -> bool:
+def authenticate(api_handle: "CobblerAPI", username: str, password: str) -> bool:
     # pylint: disable=line-too-long
     """
     Validate a username/password combo. This will pass the username and password back to Spacewalk to see if this

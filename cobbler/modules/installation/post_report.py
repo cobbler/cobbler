@@ -8,9 +8,13 @@ Post install trigger for Cobbler to send out a pretty email report that contains
 
 import smtplib
 from builtins import str
+from typing import TYPE_CHECKING, List
 
 from cobbler import templar, utils
 from cobbler.cexceptions import CX
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 def register() -> str:
@@ -24,7 +28,7 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/install/post/*"
 
 
-def run(api, args) -> int:
+def run(api: "CobblerAPI", args: List[str]) -> int:
     """
     This is the mandatory Cobbler module run trigger hook.
 
@@ -55,6 +59,9 @@ def run(api, args) -> int:
     else:
         return 1
 
+    if target is None or isinstance(target, list):
+        raise ValueError("Error retrieving system/profile.")
+
     # collapse the object down to a rendered datastructure
     target = utils.blender(api, False, target)
 
@@ -62,7 +69,7 @@ def run(api, args) -> int:
         raise CX("failure looking up target")
 
     to_addr = settings.build_reporting_email
-    if to_addr == "":
+    if len(to_addr) < 1:
         return 0
 
     # add the ability to specify an MTA for servers that don't run their own

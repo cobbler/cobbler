@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Mgmtclasses(collection.Collection):
+class Mgmtclasses(collection.Collection[mgmtclass.Mgmtclass]):
     """
     A mgmtclass provides a container for management resources.
     """
@@ -46,15 +46,20 @@ class Mgmtclasses(collection.Collection):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = False,
-    ):
+    ) -> None:
         """
         Remove element named 'name' from the collection
 
         :raises CX: In case the object does not exist.
         """
         obj = self.find(name=name)
+
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")
+
+        if isinstance(obj, list):
+            # Will never happen, but we want to make mypy happy.
+            raise CX("Ambiguous match detected!")
 
         if with_delete:
             if with_triggers:

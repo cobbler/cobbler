@@ -11,7 +11,10 @@ import glob
 import gzip
 import re
 import time
-from typing import Dict, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Union
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class InstallStatus:
@@ -19,18 +22,18 @@ class InstallStatus:
     Helper class that represents the current state of the installation of a system or profile.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Default constructor.
         """
-        self.most_recent_start = -1
-        self.most_recent_stop = -1
+        self.most_recent_start = -1.0
+        self.most_recent_stop = -1.0
         self.most_recent_target = ""
-        self.seen_start = -1
-        self.seen_stop = -1
+        self.seen_start = -1.0
+        self.seen_stop = -1.0
         self.state = "?"
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """
         Equality function that overrides the default behavior.
 
@@ -54,7 +57,7 @@ class CobblerStatusReport:
     TODO
     """
 
-    def __init__(self, api, mode: str):
+    def __init__(self, api: "CobblerAPI", mode: str) -> None:
         """
         Constructor
 
@@ -75,15 +78,15 @@ class CobblerStatusReport:
                   x is a number equal or greater than zero.
         """
         unsorted_files = glob.glob("/var/log/cobbler/install.log*")
-        files_dict = {}
+        files_dict: Dict[int, str] = {}
         log_id_re = re.compile(r"install.log.(\d+)")
         for fname in unsorted_files:
             id_match = log_id_re.search(fname)
             if id_match:
                 files_dict[int(id_match.group(1))] = fname
 
-        files = []
-        sorted_ids = sorted(files_dict, key=files_dict.get, reverse=True)
+        files: List[str] = []
+        sorted_ids = sorted(files_dict.keys(), reverse=True)
         for file_id in sorted_ids:
             files.append(files_dict[file_id])
         if "/var/log/cobbler/install.log" in unsorted_files:
@@ -91,7 +94,7 @@ class CobblerStatusReport:
 
         return files
 
-    def scan_logfiles(self):
+    def scan_logfiles(self) -> None:
         """
         Scan the installation log-files - starting with the oldest file.
         """
@@ -107,7 +110,7 @@ class CobblerStatusReport:
                     continue
                 (profile_or_system, name, ip_address, start_or_stop, timestamp) = tokens
                 self.catalog(
-                    profile_or_system, name, ip_address, start_or_stop, timestamp
+                    profile_or_system, name, ip_address, start_or_stop, float(timestamp)
                 )
             logile_fd.close()
 
@@ -115,10 +118,10 @@ class CobblerStatusReport:
         self,
         profile_or_system: str,
         name: str,
-        ip_address,
+        ip_address: str,
         start_or_stop: str,
         timestamp: float,
-    ):
+    ) -> None:
         """
         Add a system to ``cobbler status``.
 
@@ -154,7 +157,7 @@ class CobblerStatusReport:
         elem.most_recent_stop = mrstop
         elem.most_recent_target = mrtarg
 
-    def process_results(self) -> dict:
+    def process_results(self) -> Dict[Any, Any]:
         """
         Look through all systems which were collected and update the status.
 
@@ -162,7 +165,7 @@ class CobblerStatusReport:
         """
         # FIXME: this should update the times here
         tnow = int(time.time())
-        for ip_address, elem in self.ip_data.items():
+        for _, elem in self.ip_data.items():
             start = int(elem.most_recent_start)
             stop = int(elem.most_recent_stop)
             if stop > start:
@@ -204,7 +207,7 @@ class CobblerStatusReport:
             buf += "\n" + printable_status_format % line
         return buf
 
-    def run(self) -> Union[dict, str]:
+    def run(self) -> Union[Dict[Any, Any], str]:
         """
         Calculate and print a automatic installation status report.
         """

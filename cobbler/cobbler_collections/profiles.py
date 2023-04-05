@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Profiles(collection.Collection):
+class Profiles(collection.Collection[profile.Profile]):
     """
     A profile represents a distro paired with an automatic OS installation template file.
     """
@@ -30,7 +30,7 @@ class Profiles(collection.Collection):
     def collection_types() -> str:
         return "profiles"
 
-    def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]):
+    def factory_produce(self, api: "CobblerAPI", seed_data: Dict[Any, Any]):
         """
         Return a Distro forged from seed_data
         """
@@ -51,12 +51,17 @@ class Profiles(collection.Collection):
         """
         if not recursive:
             for system in self.api.systems():
-                if system.profile is not None and system.profile == name:
+                if system.profile == name:
                     raise CX(f"removal would orphan system: {system.name}")
 
         obj = self.find(name=name)
+
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")
+
+        if isinstance(obj, list):
+            # Will never happen, but we want to make mypy happy.
+            raise CX("Ambiguous match detected!")
 
         if recursive:
             kids = obj.descendants

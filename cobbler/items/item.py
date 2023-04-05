@@ -13,6 +13,7 @@ import logging
 import pprint
 import re
 import uuid
+from abc import abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union
 
 import yaml
@@ -24,6 +25,12 @@ from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.cobbler_collections.collection import ITEM, ITEM_UNION
+    from cobbler.items.distro import Distro
+    from cobbler.items.menu import Menu
+    from cobbler.items.profile import Profile
+    from cobbler.items.system import System
+    from cobbler.settings import Settings
 
 
 RE_OBJECT_NAME = re.compile(r"[a-zA-Z0-9_\-.:]*$")
@@ -172,9 +179,9 @@ class Item:
     @classmethod
     def __find_compare(
         cls,
-        from_search: Union[str, list, dict, bool],
-        from_obj: Union[str, list, dict, bool],
-    ):
+        from_search: Union[str, List[Any], Dict[Any, Any], bool],
+        from_obj: Union[str, List[Any], Dict[Any, Any], bool],
+    ) -> bool:
         """
         Only one of the two parameters shall be given in this method. If you give both ``from_obj`` will be preferred.
 
@@ -188,17 +195,17 @@ class Item:
             # FIXME: fnmatch is only used for string to string comparisons which should cover most major usage, if
             #        not, this deserves fixing
             from_obj_lower = from_obj.lower()
-            from_search_lower = from_search.lower()
+            from_search_lower = from_search.lower()  # type: ignore
             # It's much faster to not use fnmatch if it's not needed
             if (
                 "?" not in from_search_lower
                 and "*" not in from_search_lower
                 and "[" not in from_search_lower
             ):
-                match = from_obj_lower == from_search_lower
+                match = from_obj_lower == from_search_lower  # type: ignore
             else:
-                match = fnmatch.fnmatch(from_obj_lower, from_search_lower)
-            return match
+                match = fnmatch.fnmatch(from_obj_lower, from_search_lower)  # type: ignore
+            return match  # type: ignore
 
         if isinstance(from_search, str):
             if isinstance(from_obj, list):
@@ -211,14 +218,14 @@ class Item:
                 from_search = input_converters.input_string_or_dict(
                     from_search, allow_multiples=True
                 )
-                for dict_key in list(from_search.keys()):
+                for dict_key in list(from_search.keys()):  # type: ignore
                     dict_value = from_search[dict_key]
                     if dict_key not in from_obj:
                         return False
                     if not (dict_value == from_obj[dict_key]):
                         return False
                 return True
-            if isinstance(from_obj, bool):
+            if isinstance(from_obj, bool):  # type: ignore
                 inp = from_search.lower() in ["true", "1", "y", "yes"]
                 if inp == from_obj:
                     return True
@@ -282,22 +289,23 @@ class Item:
 
         self._parent = ""
         self._depth = 0
+        self._children: List[str] = []
         self._ctime = 0.0
         self._mtime = 0.0
         self._uid = uuid.uuid4().hex
         self._name = ""
         self._comment = ""
-        self._kernel_options: Union[dict, str] = {}
-        self._kernel_options_post: Union[dict, str] = {}
-        self._autoinstall_meta: Union[dict, str] = {}
-        self._fetchable_files: Union[dict, str] = {}
-        self._boot_files: Union[dict, str] = {}
-        self._template_files = {}
+        self._kernel_options: Union[Dict[Any, Any], str] = {}
+        self._kernel_options_post: Union[Dict[Any, Any], str] = {}
+        self._autoinstall_meta: Union[Dict[Any, Any], str] = {}
+        self._fetchable_files: Union[Dict[Any, Any], str] = {}
+        self._boot_files: Union[Dict[Any, Any], str] = {}
+        self._template_files: Dict[str, Any] = {}
         self._last_cached_mtime = 0
-        self._owners: Union[list, str] = enums.VALUE_INHERITED
+        self._owners: Union[List[Any], str] = enums.VALUE_INHERITED
         self._cache: ItemCache = ItemCache(api)
-        self._mgmt_classes: Union[list, str] = enums.VALUE_INHERITED
-        self._mgmt_parameters: Union[dict, str] = {}
+        self._mgmt_classes: Union[List[Any], str] = enums.VALUE_INHERITED
+        self._mgmt_parameters: Union[Dict[Any, Any], str] = {}
         self._is_subobject = is_subobject
         self._inmemory = True
 
@@ -313,7 +321,7 @@ class Item:
         if not self._has_initialized:
             self._has_initialized = True
 
-    def __eq__(self, other: Any):
+    def __eq__(self, other: Any) -> bool:
         """
         Comparison based on the uid for our items.
 
@@ -334,7 +342,7 @@ class Item:
         """
         return hash(self._uid)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any):
         """
         Intercepting an attempt to assign a value to an attribute.
 
@@ -421,7 +429,7 @@ class Item:
 
         return attribute_value
 
-    def _resolve_dict(self, property_name: str) -> dict:
+    def _resolve_dict(self, property_name: str) -> Dict[str, Any]:
         """
         Merge the ``property_name`` dictionary of the object with the ``property_name`` of all its parents. The value
         of the child takes precedence over the value of the parent.
@@ -440,7 +448,7 @@ class Item:
         attribute_value = getattr(self, attribute)
         settings = self.api.settings()
 
-        merged_dict = {}
+        merged_dict: Dict[str, Any] = {}
 
         logical_parent = self.logical_parent
         if logical_parent is not None and hasattr(logical_parent, property_name):
@@ -466,7 +474,7 @@ class Item:
         return self._uid
 
     @uid.setter
-    def uid(self, uid: str):
+    def uid(self, uid: str) -> None:
         """
         Setter for the uid of the item.
 
@@ -480,7 +488,7 @@ class Item:
                     # Changing the hash of an object requires special handling.
                     collection.listing.pop(name)
                     self._uid = uid
-                    collection.listing[name] = self
+                    collection.listing[name] = self  # type: ignore
                     return
         self._uid = uid
 
@@ -495,19 +503,19 @@ class Item:
         return self._ctime
 
     @ctime.setter
-    def ctime(self, ctime: float):
+    def ctime(self, ctime: float) -> None:
         """
         Setter for the ctime property.
 
         :param ctime: The time the object was created.
         :raises TypeError: In case ``ctime`` was not of type float.
         """
-        if not isinstance(ctime, float):
+        if not isinstance(ctime, float):  # type: ignore
             raise TypeError("ctime needs to be of type float")
         self._ctime = ctime
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Property which represents the objects name.
 
@@ -518,7 +526,7 @@ class Item:
         return self._name
 
     @name.setter
-    def name(self, name: str):
+    def name(self, name: str) -> None:
         """
         The objects name.
 
@@ -526,7 +534,7 @@ class Item:
         :raises TypeError: In case ``name`` was not of type str.
         :raises ValueError: In case there were disallowed characters in the name.
         """
-        if not isinstance(name, str):
+        if not isinstance(name, str):  # type: ignore
             raise TypeError("name must of be type str")
         if not RE_OBJECT_NAME.match(name):
             raise ValueError(f"Invalid characters in name: '{name}'")
@@ -543,7 +551,7 @@ class Item:
         return self._comment
 
     @comment.setter
-    def comment(self, comment: str):
+    def comment(self, comment: str) -> None:
         """
         Setter for the comment of the item.
 
@@ -552,7 +560,7 @@ class Item:
         self._comment = comment
 
     @InheritableProperty
-    def owners(self) -> list:
+    def owners(self) -> List[Any]:
         """
         This is a feature which is related to the ownership module of Cobbler which gives only specific people access
         to specific records. Otherwise this is just a cosmetic feature to allow assigning records to specific users.
@@ -568,19 +576,19 @@ class Item:
         """
         return self._resolve("owners")
 
-    @owners.setter
-    def owners(self, owners: Union[str, list]):
+    @owners.setter  # type: ignore[no-redef]
+    def owners(self, owners: Union[str, List[Any]]):
         """
         Setter for the ``owners`` property.
 
         :param owners: The new list of owners. Will not be validated for existence.
         """
-        if not isinstance(owners, (str, list)):
+        if not isinstance(owners, (str, list)):  # type: ignore
             raise TypeError("owners must be str or list!")
         self._owners = input_converters.input_string_or_list(owners)
 
     @InheritableDictProperty
-    def kernel_options(self) -> dict:
+    def kernel_options(self) -> Dict[Any, Any]:
         """
         Kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
 
@@ -591,8 +599,8 @@ class Item:
         """
         return self._resolve_dict("kernel_options")
 
-    @kernel_options.setter
-    def kernel_options(self, options):
+    @kernel_options.setter  # type: ignore[no-redef]
+    def kernel_options(self, options: Dict[str, Any]):
         """
         Setter for ``kernel_options``.
 
@@ -607,7 +615,7 @@ class Item:
             raise TypeError("invalid kernel options") from error
 
     @InheritableDictProperty
-    def kernel_options_post(self) -> dict:
+    def kernel_options_post(self) -> Dict[str, Any]:
         """
         Post kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
 
@@ -618,8 +626,8 @@ class Item:
         """
         return self._resolve_dict("kernel_options_post")
 
-    @kernel_options_post.setter
-    def kernel_options_post(self, options):
+    @kernel_options_post.setter  # type: ignore[no-redef]
+    def kernel_options_post(self, options: Union[Dict[Any, Any], str]) -> None:
         """
         Setter for ``kernel_options_post``.
 
@@ -634,7 +642,7 @@ class Item:
             raise TypeError("invalid post kernel options") from error
 
     @InheritableDictProperty
-    def autoinstall_meta(self) -> dict:
+    def autoinstall_meta(self) -> Dict[Any, Any]:
         """
         A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a dict.
         The meta tags are used as input to the templating system to preprocess automatic installation template files.
@@ -646,8 +654,8 @@ class Item:
         """
         return self._resolve_dict("autoinstall_meta")
 
-    @autoinstall_meta.setter
-    def autoinstall_meta(self, options: dict):
+    @autoinstall_meta.setter  # type: ignore[no-redef]
+    def autoinstall_meta(self, options: Dict[Any, Any]):
         """
         Setter for the ``autoinstall_meta`` property.
 
@@ -658,7 +666,7 @@ class Item:
         self._autoinstall_meta = value
 
     @InheritableProperty
-    def mgmt_classes(self) -> list:
+    def mgmt_classes(self) -> List[Any]:
         """
         Assigns a list of configuration management classes that can be assigned to any object, such as those used by
         Puppet's external_nodes feature.
@@ -670,19 +678,19 @@ class Item:
         """
         return self._resolve("mgmt_classes")
 
-    @mgmt_classes.setter
-    def mgmt_classes(self, mgmt_classes: Union[list, str]):
+    @mgmt_classes.setter  # type: ignore[no-redef]
+    def mgmt_classes(self, mgmt_classes: Union[List[Any], str]):
         """
         Setter for the ``mgmt_classes`` property.
 
         :param mgmt_classes: The new options for the management classes of an item.
         """
-        if not isinstance(mgmt_classes, (str, list)):
+        if not isinstance(mgmt_classes, (str, list)):  # type: ignore
             raise TypeError("mgmt_classes has to be either str or list")
         self._mgmt_classes = input_converters.input_string_or_list(mgmt_classes)
 
     @InheritableDictProperty
-    def mgmt_parameters(self) -> dict:
+    def mgmt_parameters(self) -> Dict[Any, Any]:
         """
         Parameters which will be handed to your management application (Must be a valid YAML dictionary)
 
@@ -693,15 +701,15 @@ class Item:
         """
         return self._resolve_dict("mgmt_parameters")
 
-    @mgmt_parameters.setter
-    def mgmt_parameters(self, mgmt_parameters: Union[str, dict]):
+    @mgmt_parameters.setter  # type: ignore[no-redef]
+    def mgmt_parameters(self, mgmt_parameters: Union[str, Dict[Any, Any]]):
         """
         A YAML string which can be assigned to any object, this is used by Puppet's external_nodes feature.
 
         :param mgmt_parameters: The management parameters for an item.
         :raises TypeError: In case the parsed YAML isn't of type dict afterwards.
         """
-        if not isinstance(mgmt_parameters, (str, dict)):
+        if not isinstance(mgmt_parameters, (str, dict)):  # type: ignore
             raise TypeError("mgmt_parameters must be of type str or dict")
         if isinstance(mgmt_parameters, str):
             if mgmt_parameters == enums.VALUE_INHERITED:
@@ -718,7 +726,7 @@ class Item:
         self._mgmt_parameters = mgmt_parameters
 
     @LazyProperty
-    def template_files(self) -> dict:
+    def template_files(self) -> Dict[Any, Any]:
         """
         File mappings for built-in configuration management
 
@@ -729,7 +737,7 @@ class Item:
         return self._template_files
 
     @template_files.setter
-    def template_files(self, template_files: dict):
+    def template_files(self, template_files: Union[str, Dict[Any, Any]]) -> None:
         """
         A comma seperated list of source=destination templates that should be generated during a sync.
 
@@ -737,14 +745,14 @@ class Item:
         :raises ValueError: In case the conversion from non dict values was not successful.
         """
         try:
-            self._template_files = input_converters.input_string_or_dict(
+            self._template_files = input_converters.input_string_or_dict_no_inherit(
                 template_files, allow_multiples=False
             )
         except TypeError as error:
             raise TypeError("invalid template files specified") from error
 
     @LazyProperty
-    def boot_files(self) -> dict:
+    def boot_files(self) -> Dict[Any, Any]:
         """
         Files copied into tftpboot beyond the kernel/initrd
 
@@ -755,7 +763,7 @@ class Item:
         return self._resolve_dict("boot_files")
 
     @boot_files.setter
-    def boot_files(self, boot_files: dict):
+    def boot_files(self, boot_files: Dict[Any, Any]) -> None:
         """
         A comma separated list of req_name=source_file_path that should be fetchable via tftp.
 
@@ -771,7 +779,7 @@ class Item:
             raise TypeError("invalid boot files specified") from error
 
     @InheritableDictProperty
-    def fetchable_files(self) -> dict:
+    def fetchable_files(self) -> Dict[Any, Any]:
         """
         A comma seperated list of ``virt_name=path_to_template`` that should be fetchable via tftp or a webserver
 
@@ -783,8 +791,8 @@ class Item:
         """
         return self._resolve_dict("fetchable_files")
 
-    @fetchable_files.setter
-    def fetchable_files(self, fetchable_files: Union[str, dict]):
+    @fetchable_files.setter  # type: ignore[no-redef]
+    def fetchable_files(self, fetchable_files: Union[str, Dict[Any, Any]]):
         """
         Setter for the fetchable files.
 
@@ -809,13 +817,13 @@ class Item:
         return self._depth
 
     @depth.setter
-    def depth(self, depth: int):
+    def depth(self, depth: int) -> None:
         """
         Setter for depth.
 
         :param depth: The new value for depth.
         """
-        if not isinstance(depth, int):
+        if not isinstance(depth, int):  # type: ignore
             raise TypeError("depth needs to be of type int")
         self._depth = depth
 
@@ -830,18 +838,18 @@ class Item:
         return self._mtime
 
     @mtime.setter
-    def mtime(self, mtime: float):
+    def mtime(self, mtime: float) -> None:
         """
         Setter for the modification time of the object.
 
         :param mtime: The new modification time.
         """
-        if not isinstance(mtime, float):
+        if not isinstance(mtime, float):  # type: ignore
             raise TypeError("mtime needs to be of type float")
         self._mtime = mtime
 
     @LazyProperty
-    def parent(self):
+    def parent(self) -> Optional[Union["System", "Profile", "Distro", "Menu"]]:
         """
         This property contains the name of the parent of an object. In case there is not parent this return
         None.
@@ -849,18 +857,18 @@ class Item:
         :getter: Returns the parent object or None if it can't be resolved via the Cobbler API.
         :setter: The name of the new logical parent.
         """
-        if self._parent is None or self._parent == "":
+        if self._parent == "":
             return None
-        return self.api.get_items(self.COLLECTION_TYPE).get(self._parent)
+        return self.api.get_items(self.COLLECTION_TYPE).get(self._parent)  # type: ignore
 
     @parent.setter
-    def parent(self, parent: str):
+    def parent(self, parent: str) -> None:
         """
         Set the parent object for this object.
 
         :param parent: The new parent object. This needs to be a descendant in the logical inheritance chain.
         """
-        if not isinstance(parent, str):
+        if not isinstance(parent, str):  # type: ignore
             raise TypeError('Property "parent" must be of type str!')
         if not parent:
             self._parent = ""
@@ -882,13 +890,13 @@ class Item:
         """
         return self._parent
 
-    def get_conceptual_parent(self):
+    def get_conceptual_parent(self) -> Optional["ITEM_UNION"]:
         """
         The parent may just be a superclass for something like a subprofile. Get the first parent of a different type.
 
         :return: The first item which is conceptually not from the same type.
         """
-        if self is None:
+        if self is None:  # type: ignore
             return None
 
         curr_obj = self
@@ -905,7 +913,9 @@ class Item:
                     prev_level_item = self.api.find_items(
                         prev_level_type, name=prev_level_name, return_list=False
                     )
-                    if prev_level_item is not None:
+                    if prev_level_item is not None and not isinstance(
+                        prev_level_item, list
+                    ):
                         return prev_level_item
         return None
 
@@ -924,27 +934,25 @@ class Item:
         return parent
 
     @property
-    def children(self) -> List[Any]:
+    def children(self) -> List["ITEM_UNION"]:
         """
         The list of logical children of any depth.
-
         :getter: An empty list in case of items which don't have logical children.
         :setter: Replace the list of children completely with the new provided one.
         """
-        results = []
+        results: List[Any] = []
         list_items = self.api.get_items(self.COLLECTION_TYPE)
         for obj in list_items:
             if obj.get_parent == self._name:
                 results.append(obj)
         return results
 
-    def tree_walk(self) -> List[Any]:
+    def tree_walk(self) -> List["ITEM_UNION"]:
         """
         Get all children related by parent/child relationship.
-
         :return: The list of children objects.
         """
-        results = []
+        results: List[Any] = []
         for child in self.children:
             results.append(child)
             results.extend(child.tree_walk())
@@ -952,7 +960,7 @@ class Item:
         return results
 
     @property
-    def descendants(self) -> list:
+    def descendants(self) -> List["ITEM_UNION"]:
         """
         Get objects that depend on this object, i.e. those that would be affected by a cascading delete, etc.
 
@@ -962,12 +970,14 @@ class Item:
         """
         childs = self.tree_walk()
         results = set(childs)
-        childs.append(self)
+        childs.append(self)  # type: ignore
         for child in childs:
             for item_type in Item.TYPE_DEPENDENCIES[child.COLLECTION_TYPE]:
                 dep_type_items = self.api.find_items(
-                    item_type[0], {item_type[1]: child.name}
+                    item_type[0], {item_type[1]: child.name}, return_list=True
                 )
+                if dep_type_items is None or not isinstance(dep_type_items, list):
+                    raise ValueError("Expected list to be returned by find_items")
                 results.update(dep_type_items)
                 for dep_item in dep_type_items:
                     results.update(dep_item.descendants)
@@ -984,20 +994,20 @@ class Item:
         return self._is_subobject
 
     @is_subobject.setter
-    def is_subobject(self, value: bool):
+    def is_subobject(self, value: bool) -> None:
         """
         Setter for the property ``is_subobject``.
 
         :param value: The boolean value whether this is a subobject or not.
         :raises TypeError: In case the value was not of type bool.
         """
-        if not isinstance(value, bool):
+        if not isinstance(value, bool):  # type: ignore
             raise TypeError(
                 "Field is_subobject of object item needs to be of type bool!"
             )
         self._is_subobject = value
 
-    def sort_key(self, sort_fields: list):
+    def sort_key(self, sort_fields: List[Any]):
         """
         Convert the item to a dict and sort the data after specific given fields.
 
@@ -1007,7 +1017,7 @@ class Item:
         data = self.to_dict()
         return [data.get(x, "") for x in sort_fields]
 
-    def find_match(self, kwargs, no_errors=False):
+    def find_match(self, kwargs: Dict[str, Any], no_errors: bool = False) -> bool:
         """
         Find from a given dict if the item matches the kv-pairs.
 
@@ -1028,7 +1038,9 @@ class Item:
 
         return True
 
-    def find_match_single_key(self, data, key, value, no_errors: bool = False) -> bool:
+    def find_match_single_key(
+        self, data: Dict[str, Any], key: str, value: Any, no_errors: bool = False
+    ) -> bool:
         """
         Look if the data matches or not. This is an alternative for ``find_match()``.
 
@@ -1091,7 +1103,7 @@ class Item:
 
     def dump_vars(
         self, formatted_output: bool = True, remove_dicts: bool = False
-    ) -> Union[dict, str]:
+    ) -> Union[Dict[str, Any], str]:
         """
         Dump all variables.
 
@@ -1099,12 +1111,12 @@ class Item:
         :param remove_dicts: If True the dictionaries will be put into str form.
         :return: The raw or formatted data.
         """
-        raw = utils.blender(self.api, remove_dicts, self)
+        raw = utils.blender(self.api, remove_dicts, self)  # type: ignore
         if formatted_output:
             return pprint.pformat(raw)
         return raw
 
-    def check_if_valid(self):
+    def check_if_valid(self) -> None:
         """
         Raise exceptions if the object state is inconsistent.
 
@@ -1113,14 +1125,15 @@ class Item:
         if not self.name:
             raise CX("Name is required")
 
-    def make_clone(self):
+    @abstractmethod
+    def make_clone(self) -> "ITEM":  # type: ignore
         """
         Must be defined in any subclass
         """
         raise NotImplementedError("Must be implemented in a specific Item")
 
     @classmethod
-    def _remove_depreacted_dict_keys(cls, dictionary: Dict[str, Any]):
+    def _remove_depreacted_dict_keys(cls, dictionary: Dict[Any, Any]) -> None:
         """
         This method does remove keys which should not be deserialized and are only there for API compatibility in
         :meth:`~cobbler.items.item.Item.to_dict`.
@@ -1134,7 +1147,7 @@ class Item:
         if "children" in dictionary:
             dictionary.pop("children")
 
-    def from_dict(self, dictionary: Dict[str, Any]):
+    def from_dict(self, dictionary: Dict[Any, Any]) -> None:
         """
         Modify this object to take on values in ``dictionary``.
 
@@ -1167,7 +1180,7 @@ class Item:
                 f"The following keys supplied could not be set: {result.keys()}"
             )
 
-    def to_dict(self, resolved: bool = False) -> Dict[str, Any]:
+    def to_dict(self, resolved: bool = False) -> Dict[Any, Any]:
         """
         This converts everything in this object to a dictionary.
 
@@ -1181,7 +1194,7 @@ class Item:
         if cached_result is not None:
             return cached_result
 
-        value = {}
+        value: Dict[str, Any] = {}
         for key, key_value in self.__dict__.items():
             if self.__is_dict_key(key):
                 new_key = key[1:].lower()
@@ -1200,12 +1213,12 @@ class Item:
                         ].to_dict(resolved)
                     value[new_key] = serialized_interfaces
                 elif isinstance(key_value, list):
-                    value[new_key] = copy.deepcopy(key_value)
+                    value[new_key] = copy.deepcopy(key_value)  # type: ignore
                 elif isinstance(key_value, dict):
                     if resolved:
                         value[new_key] = getattr(self, new_key)
                     else:
-                        value[new_key] = copy.deepcopy(key_value)
+                        value[new_key] = copy.deepcopy(key_value)  # type: ignore
                 elif (
                     isinstance(key_value, str)
                     and key_value == enums.VALUE_INHERITED
@@ -1215,7 +1228,7 @@ class Item:
                 else:
                     value[new_key] = key_value
         if "autoinstall" in value:
-            value.update({"kickstart": value["autoinstall"]})
+            value.update({"kickstart": value["autoinstall"]})  # type: ignore
         if "autoinstall_meta" in value:
             value.update({"ks_meta": value["autoinstall_meta"]})
         self.cache.set_dict_cache(value, resolved)
@@ -1239,7 +1252,7 @@ class Item:
             result.pop(key, "")
         return result
 
-    def deserialize(self):
+    def deserialize(self) -> None:
         """
         Deserializes the object itself and, if necessary, recursively all the objects it depends on.
         """
@@ -1261,19 +1274,20 @@ class Item:
                         attr_val = item_dict[attr_name]
                         if isinstance(attr_val, str):
                             deserialize_ancestor(ancestor_item_type, attr_val)
-                        elif isinstance(attr_val, list):
+                        elif isinstance(attr_val, list):  # type: ignore
+                            attr_val: List[str]
                             for ancestor_name in attr_val:
                                 deserialize_ancestor(ancestor_item_type, ancestor_name)
         self.from_dict(item_dict)
 
-    def grab_tree(self) -> list:
+    def grab_tree(self) -> List[Union["Item", "Settings"]]:
         """
         Climb the tree and get every node.
 
         :return: The list of items with all parents from that object upwards the tree. Contains at least the item
                  itself and the settings of Cobbler.
         """
-        results = [self]
+        results: List[Union["Item", "Settings"]] = [self]
         parent = self.logical_parent
         while parent is not None:
             results.append(parent)

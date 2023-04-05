@@ -20,11 +20,9 @@ if TYPE_CHECKING:
 class Resource(item.Item):
     """
     Base Class for management resources.
-
-    TODO: Type declarations in the method signatures and type checks in the bodys.
     """
 
-    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any) -> None:
         """
         Constructor.
 
@@ -50,7 +48,7 @@ class Resource(item.Item):
     # override some base class methods first (item.Item)
     #
 
-    def make_clone(self):
+    def make_clone(self) -> "Resource":
         """
         Clone this file object. Please manually adjust all values yourself to make the cloned object unique.
 
@@ -75,7 +73,7 @@ class Resource(item.Item):
         return self._action
 
     @action.setter
-    def action(self, action: Union[str, enums.ResourceAction]):
+    def action(self, action: Union[str, enums.ResourceAction]) -> None:
         """
         All management resources have an action. Actions determine weather most resources should be created or removed,
         and if packages should be installed or uninstalled.
@@ -98,14 +96,14 @@ class Resource(item.Item):
         return self._group
 
     @group.setter
-    def group(self, group: str):
+    def group(self, group: str) -> None:
         """
         Unix group ownership of a file or directory.
 
         :param group: The group which the resource will belong to.
         :raise TypeError: Raised in case ``group`` is no string. Raises a TypeError.
         """
-        if not isinstance(group, str):
+        if not isinstance(group, str):  # type: ignore
             raise TypeError("Field group of object resource needs to be of type str!")
         self._group = group
 
@@ -120,14 +118,14 @@ class Resource(item.Item):
         return self._mode
 
     @mode.setter
-    def mode(self, mode: str):
+    def mode(self, mode: str) -> None:
         """
         Unix file permission mode ie: '0644' assigned to file and directory resources.
 
         :param mode: The mode which the resource will have.
         :raise TypeError: Raised in case ``mode`` is no string.
         """
-        if not isinstance(mode, str):
+        if not isinstance(mode, str):  # type: ignore
             raise TypeError("Field mode in object resource needs to be of type str!")
         self._mode = mode
 
@@ -142,14 +140,14 @@ class Resource(item.Item):
         return self._owner
 
     @owner.setter
-    def owner(self, owner: str):
+    def owner(self, owner: str) -> None:
         """
         Unix owner of a file or directory.
 
         :param owner: The owner whom the resource will belong to.
         :raise TypeError: Raised in case ``owner`` is no string.
         """
-        if not isinstance(owner, str):
+        if not isinstance(owner, str):  # type: ignore
             raise TypeError("Field owner in object resource needs to be of type str!")
         self._owner = owner
 
@@ -164,14 +162,14 @@ class Resource(item.Item):
         return self._path
 
     @path.setter
-    def path(self, path: str):
+    def path(self, path: str) -> None:
         """
         File path used by file and directory resources.
 
         :param path: Normally an absolute path of the file or directory to create or manage.
         :raise TypeError: Raised in case ``path`` is no string.
         """
-        if not isinstance(path, str):
+        if not isinstance(path, str):  # type: ignore
             raise TypeError("Field path in object resource needs to be of type str!")
         self._path = path
 
@@ -186,7 +184,7 @@ class Resource(item.Item):
         return self._template
 
     @template.setter
-    def template(self, template: str):
+    def template(self, template: str) -> None:
         """
         Path to cheetah template on Cobbler's local file system. Used to generate file data shipped to koan via json.
         All templates have access to flatten autoinstall_meta data.
@@ -194,7 +192,7 @@ class Resource(item.Item):
         :param template: The template to use for the resource.
         :raise TypeError: Raised in case ``template`` is no string.
         """
-        if not isinstance(template, str):
+        if not isinstance(template, str):  # type: ignore
             raise TypeError(
                 "Field template in object resource needs to be of type str!"
             )

@@ -6,3 +6,9 @@ profile = "black"
 known_cobbler="cobbler"
 known_tests="tests"
 sections="FUTURE,STDLIB,FIRSTPARTY,THIRDPARTY,LOCALFOLDER,COBBLER,TESTS"
+
+[tool.pyright]
+pythonVersion = "3.6"
+typeCheckingMode = "strict"
+useLibraryCodeForTypes = true
+reportImportCycles = "warning"

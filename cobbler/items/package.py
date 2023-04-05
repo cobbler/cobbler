@@ -24,7 +24,7 @@ class Package(resource.Resource):
     TYPE_NAME = "package"
     COLLECTION_TYPE = "package"
 
-    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any) -> None:
         """
         Constructor
 
@@ -79,7 +79,7 @@ class Package(resource.Resource):
         :param installer: This parameter will be lowercased regardless of what string you give it.
         :raises TypeError: Raised in case ``installer`` is no string.
         """
-        if not isinstance(installer, str):
+        if not isinstance(installer, str):  # type: ignore
             raise TypeError(
                 "Field installer of package object needs to be of type str!"
             )
@@ -104,6 +104,6 @@ class Package(resource.Resource):
                         is a string.
         :raises TypeError: Raised in case ``version`` is no string.
         """
-        if not isinstance(version, str):
+        if not isinstance(version, str):  # type: ignore
             raise TypeError("Field version of package object needs to be of type str!")
         self._version = version

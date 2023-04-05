@@ -27,7 +27,7 @@ class Image(item.Item):
     TYPE_NAME = "image"
     COLLECTION_TYPE = "image"
 
-    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any) -> None:
         """
         Constructor
 
@@ -56,7 +56,6 @@ class Image(item.Item):
         self._virt_path = ""
         self._virt_ram: Union[str, int] = enums.VALUE_INHERITED
         self._virt_type: Union[str, enums.VirtType] = enums.VirtType.INHERITED
-        self._supported_boot_loaders: List[str] = []
 
         if len(kwargs):
             self.from_dict(kwargs)
@@ -160,7 +159,7 @@ class Image(item.Item):
         :param filename: The location where the image is stored.
         :raises SyntaxError: In case a protocol was found.
         """
-        if not isinstance(filename, str):
+        if not isinstance(filename, str):  # type: ignore
             raise TypeError("file must be of type str to be parsable.")
 
         if not filename:
@@ -211,7 +210,7 @@ class Image(item.Item):
         return self._os_version
 
     @os_version.setter
-    def os_version(self, os_version):
+    def os_version(self, os_version: str):
         """
         Set the operating system version with this setter.
 
@@ -261,7 +260,7 @@ class Image(item.Item):
         :raises TypeError: In case a disallowed type was found.
         :raises ValueError: In case the conversion from str could not successfully executed.
         """
-        if not isinstance(image_type, (enums.ImageTypes, str)):
+        if not isinstance(image_type, (enums.ImageTypes, str)):  # type: ignore
             raise TypeError("image_type must be of type str or enum.ImageTypes")
         if isinstance(image_type, str):
             if not image_type:
@@ -274,7 +273,7 @@ class Image(item.Item):
                     f"image_type choices include: {list(map(str, enums.ImageTypes))}"
                 ) from error
         # str was converted now it must be an enum.ImageTypes
-        if not isinstance(image_type, enums.ImageTypes):
+        if not isinstance(image_type, enums.ImageTypes):  # type: ignore
             raise TypeError("image_type needs to be of type enums.ImageTypes")
         if image_type not in enums.ImageTypes:
             raise ValueError(
@@ -315,16 +314,16 @@ class Image(item.Item):
         return self._network_count
 
     @network_count.setter
-    def network_count(self, network_count: int):
+    def network_count(self, network_count: Union[int, str]):
         """
         Setter for the number of networks.
 
         :param network_count: If None or emtpy will be set to ``1``, otherwise the given integer value will be set.
         :raises TypeError: In case the network_count was not of type int.
         """
-        if network_count is None or network_count == "":
+        if network_count is None or network_count == "":  # type: ignore
             network_count = 1
-        if not isinstance(network_count, int):
+        if not isinstance(network_count, int):  # type: ignore
             raise TypeError(
                 "Field network_count of object image needs to be of type int."
             )
@@ -535,10 +534,12 @@ class Image(item.Item):
         """
         if self._boot_loaders == enums.VALUE_INHERITED:
             return self.supported_boot_loaders
+        # The following line is missleading for pyright since it doesn't understand
+        # that we use only a constant with str type.
         return self._boot_loaders  # type: ignore
 
-    @boot_loaders.setter
-    def boot_loaders(self, boot_loaders: Union[str, List[str]]):
+    @boot_loaders.setter  # type: ignore[no-redef]
+    def boot_loaders(self, boot_loaders: Union[List[str], str]):
         """
         Setter of the boot loaders.
 

@@ -23,7 +23,7 @@ if os.geteuid() == 0 and os.path.exists("/etc/cobbler/logging_config.conf"):
 logger = logging.getLogger()
 
 
-def core(cobbler_api: CobblerAPI):
+def core(cobbler_api: CobblerAPI) -> None:
     """
     Starts Cobbler.
 
@@ -36,7 +36,7 @@ def core(cobbler_api: CobblerAPI):
     do_xmlrpc_rw(cobbler_api, xmlrpc_port)
 
 
-def regen_ss_file():
+def regen_ss_file() -> None:
     """
     This is only used for Kerberos auth at the moment. It identifies XMLRPC requests from Apache that have already been
     cleared by Kerberos.
@@ -53,10 +53,10 @@ def regen_ss_file():
         http_user = "www-data"
     elif family == "suse":
         http_user = "wwwrun"
-    os.lchown("/var/lib/cobbler/web.ss", pwd.getpwnam(http_user)[2], -1)
+    os.lchown(ssfile, pwd.getpwnam(http_user)[2], -1)
 
 
-def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int):
+def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int) -> None:
     """
     This trys to bring up the Cobbler xmlrpc_api and restart it if it fails.
 
@@ -67,7 +67,8 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int):
         cobbler_api, remote.CobblerXMLRPCInterface
     )
     server = remote.CobblerXMLRPCServer(("127.0.0.1", port))
-    server.logRequests = 0  # don't print stuff
+    # don't log requests; ignore mypy due to multiple inheritance & protocols being 3.8+
+    server.logRequests = False  # type: ignore[attr-defined]
     logger.debug("XMLRPC running on %s", port)
     server.register_instance(xinterface)
     start_time = ""

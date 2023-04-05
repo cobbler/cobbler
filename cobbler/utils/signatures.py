@@ -3,7 +3,7 @@ TODO
 """
 
 import json
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from cobbler import utils
 
@@ -12,11 +12,12 @@ if TYPE_CHECKING:
     from cobbler.items.distro import Distro
     from cobbler.items.image import Image
 
-SIGNATURE_CACHE = {}
+
+signature_cache: Dict[str, Any] = {}
 
 
 def get_supported_distro_boot_loaders(
-    distro: Union["Distro", "Image"], api_handle: Optional["CobblerAPI"] = None
+    item: Union["Distro", "Image"], api_handle: Optional["CobblerAPI"] = None
 ) -> List[str]:
     """
     This is trying to return you the list of known bootloaders if all resorts fail. Otherwise this returns a list which
@@ -28,19 +29,20 @@ def get_supported_distro_boot_loaders(
     """
     try:
         # Try to read from the signature
-        return api_handle.get_signatures()["breeds"][distro.breed][distro.os_version][
-            "boot_loaders"
-        ][distro.arch.value]
+        if api_handle is not None:
+            return api_handle.get_signatures()["breeds"][item.breed][item.os_version][
+                "boot_loaders"
+            ][item.arch.value]
+        raise Exception("Fall through to cache for signatures!")
     except Exception:
         try:
             # Try to read directly from the cache
-            return SIGNATURE_CACHE["breeds"][distro.breed][distro.os_version][
+            return signature_cache["breeds"][item.breed][item.os_version][
                 "boot_loaders"
-            ][distro.arch.value]
+            ][item.arch.value]
         except Exception:
             try:
-                # Else use some well-known defaults
-                return {
+                well_known_defaults = {
                     "ppc": ["grub", "pxe"],
                     "ppc64": ["grub", "pxe"],
                     "ppc64le": ["grub", "pxe"],
@@ -48,13 +50,15 @@ def get_supported_distro_boot_loaders(
                     "aarch64": ["grub"],
                     "i386": ["grub", "pxe", "ipxe"],
                     "x86_64": ["grub", "pxe", "ipxe"],
-                }[distro.arch.value]
+                }
+                # Else use some well-known defaults
+                return well_known_defaults[item.arch.value]
             except Exception:
                 # Else return the globally known list
                 return utils.get_supported_system_boot_loaders()
 
 
-def load_signatures(filename, cache: bool = True):
+def load_signatures(filename: str, cache: bool = True) -> None:
     """
     Loads the import signatures for distros.
 
@@ -62,25 +66,25 @@ def load_signatures(filename, cache: bool = True):
     :param cache: If the cache should be set with the newly read data.
     """
     # Signature cache is module wide and thus requires global
-    global SIGNATURE_CACHE  # pylint: disable=global-statement
+    global signature_cache  # pylint: disable=global-statement,invalid-name
 
     with open(filename, "r", encoding="UTF-8") as signature_file_fd:
         sigjson = signature_file_fd.read()
     sigdata = json.loads(sigjson)
     if cache:
-        SIGNATURE_CACHE = sigdata
+        signature_cache = sigdata
 
 
-def get_valid_breeds() -> list:
+def get_valid_breeds() -> List[str]:
     """
     Return a list of valid breeds found in the import signatures
     """
-    if "breeds" in SIGNATURE_CACHE:
-        return list(SIGNATURE_CACHE["breeds"].keys())
+    if "breeds" in signature_cache:
+        return list(signature_cache["breeds"].keys())
     return []
 
 
-def get_valid_os_versions_for_breed(breed) -> list:
+def get_valid_os_versions_for_breed(breed: str) -> List[str]:
     """
     Return a list of valid os-versions for the given breed
 
@@ -90,36 +94,36 @@ def get_valid_os_versions_for_breed(breed) -> list:
     """
     os_versions = []
     if breed in get_valid_breeds():
-        os_versions = list(SIGNATURE_CACHE["breeds"][breed].keys())
+        os_versions = list(signature_cache["breeds"][breed].keys())
     return os_versions
 
 
-def get_valid_os_versions() -> list:
+def get_valid_os_versions() -> List[str]:
     """
     Return a list of valid os-versions found in the import signatures
 
     :return: All operating system versions which are known to Cobbler according to the signature cache.
     """
-    os_versions = []
+    os_versions: List[str] = []
     try:
         for breed in get_valid_breeds():
-            os_versions += list(SIGNATURE_CACHE["breeds"][breed].keys())
+            os_versions.extend(list(signature_cache["breeds"][breed].keys()))
     except Exception:
         pass
     return utils.uniquify(os_versions)
 
 
-def get_valid_archs():
+def get_valid_archs() -> List[str]:
     """
     Return a list of valid architectures found in the import signatures
 
     :return: All architectures which are known to Cobbler according to the signature cache.
     """
-    archs = []
+    archs: List[str] = []
     try:
         for breed in get_valid_breeds():
-            for operating_system in list(SIGNATURE_CACHE["breeds"][breed].keys()):
-                archs += SIGNATURE_CACHE["breeds"][breed][operating_system][
+            for operating_system in list(signature_cache["breeds"][breed].keys()):
+                archs += signature_cache["breeds"][breed][operating_system][
                     "supported_arches"
                 ]
     except Exception:

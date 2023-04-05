@@ -13,21 +13,27 @@ import os
 import pathlib
 import re
 import shutil
-from typing import Dict, List, NamedTuple, Optional
+from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 
 from cobbler import templar, utils
 from cobbler.enums import Archs
 from cobbler.utils import filesystem_helpers, input_converters
 
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.cobbler_collections.collection import ITEM, Collection
+    from cobbler.items.distro import Distro
+    from cobbler.items.profile import Profile
 
-def add_remaining_kopts(kopts: dict) -> str:
+
+def add_remaining_kopts(kopts: Dict[str, Union[str, List[str]]]) -> str:
     """Add remaining kernel_options to append_line
     :param kopts: The kernel options which are not present in append_line.
     :return: A single line with all kernel options from the dictionary in the string. Starts with a space.
     """
     append_line = [""]  # empty str to ensure the returned str starts with a space
     for option, args in kopts.items():
-        if args is None:
+        if args is None:  # type: ignore
             append_line.append(f"{option}")
             continue
 
@@ -73,12 +79,12 @@ class BuildIso:
     Handles conversion of internal state to the isolinux tree layout
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI") -> None:
         """Constructor which initializes things here. The collection manager pulls all other dependencies in.
         :param api: The API instance which holds all information about objects in Cobbler.
         """
         self.api = api
-        self.distmap = {}
+        self.distmap: Dict[str, str] = {}
         self.distctr = 0
         self.logger = logging.getLogger()
         self.templar = templar.Templar(api)
@@ -136,7 +142,7 @@ class BuildIso:
             )
 
     def _copy_boot_files(
-        self, kernel_path, initrd_path, destdir: str, new_filename: str = ""
+        self, kernel_path: str, initrd_path: str, destdir: str, new_filename: str = ""
     ):
         """Copy kernel/initrd to destdir with (optional) newfile prefix
         :param kernel_path: Path to a a distro's kernel.
@@ -159,7 +165,9 @@ class BuildIso:
         filesystem_helpers.copyfile(str(kernel_source), kernel_dest)
         filesystem_helpers.copyfile(str(initrd_source), initrd_dest)
 
-    def filter_profiles(self, selected_items: Optional[List[str]] = None) -> list:
+    def filter_profiles(
+        self, selected_items: Optional[List[str]] = None
+    ) -> List["Profile"]:
         """
         Return a list of valid profile objects selected from all profiles by name, or everything if ``selected_items``
         is empty.
@@ -170,9 +178,12 @@ class BuildIso:
             selected_items = []
         return self.filter_items(self.api.profiles(), selected_items)
 
-    def filter_items(self, all_objs, selected_items: List[str]) -> list:
+    def filter_items(
+        self, all_objs: "Collection[ITEM]", selected_items: List[str]
+    ) -> List["ITEM"]:
         """Return a list of valid profile or system objects selected from all profiles or systems by name, or everything
         if selected_items is empty.
+
         :param all_objs: The collection of items to filter.
         :param selected_items: The list of names
         :raises ValueError: Second option that this error is raised
@@ -181,12 +192,12 @@ class BuildIso:
         """
         # No profiles/systems selection is made, let's return everything.
         if len(selected_items) == 0:
-            return all_objs
+            return list(all_objs)
 
-        filtered_objects = []
+        filtered_objects: List["ITEM"] = []
         for name in selected_items:
             item_object = all_objs.find(name=name)
-            if item_object is not None:
+            if item_object is not None and not isinstance(item_object, list):
                 filtered_objects.append(item_object)
                 selected_items.remove(name)
 
@@ -198,17 +209,27 @@ class BuildIso:
 
         return filtered_objects
 
-    def parse_distro(self, distro_name):
-        """Find and return distro object.
+    def parse_distro(self, distro_name: str) -> "Distro":
+        """
+        Find and return distro object.
 
-        Raises ValueError if the distro is not found.
+        :param distro_name: Name of the distribution to parse.
+        :raises ValueError: If the distro is not found.
         """
         distro_obj = self.api.find_distro(name=distro_name)
-        if distro_obj is None:
-            raise ValueError(f"Distribution {distro_name} not found.")
+        if distro_obj is None or isinstance(distro_obj, list):
+            raise ValueError(f"Distribution {distro_name} not found or ambigous.")
         return distro_obj
 
-    def parse_profiles(self, profiles, distro_obj):
+    def parse_profiles(
+        self, profiles: Optional[List[str]], distro_obj: "Distro"
+    ) -> List["Profile"]:
+        """
+        TODO
+
+        :param profiles: TODO
+        :param distro_obj: TODO
+        """
         profile_names = input_converters.input_string_or_list_no_inherit(profiles)
         if profile_names:
             orphans = set(profile_names) - set(distro_obj.children)
@@ -221,7 +242,7 @@ class BuildIso:
                 )
             return self.filter_profiles(profile_names)
         else:
-            return self.filter_profiles(distro_obj.children)
+            return self.filter_profiles(distro_obj.children)  # type: ignore[reportGeneralTypeIssues]
 
     def _copy_isolinux_files(self):
         """
@@ -274,8 +295,16 @@ class BuildIso:
             )
 
     def _render_grub_entry(
-        self, append_line, menu_name, kernel_path, initrd_path
+        self, append_line: str, menu_name: str, kernel_path: str, initrd_path: str
     ) -> str:
+        """
+        TODO
+
+        :param append_line: TODO
+        :param menu_name: TODO
+        :param kernel_path: TODO
+        :param initrd_path: TODO
+        """
         return self.templar.render(
             self.grub_menuentry_template,
             out_path=None,
@@ -329,7 +358,7 @@ class BuildIso:
 
         for (loader_format, values) in loader_formats.items():
             name = values.get("binary_name", None)
-            if name is not None:
+            if name is not None and isinstance(name, str):
                 grub_binary_names[loader_format.lower()] = name
 
         if desired_arch in (Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL):
@@ -399,7 +428,7 @@ class BuildIso:
         def mount(esp_path: str, mountpoint: pathlib.Path) -> None:
             mp.mkdir()
 
-            mount_cmd = ["mount", "-o", "loop", esp_path, mountpoint]
+            mount_cmd: List[str] = ["mount", "-o", "loop", esp_path, str(mountpoint)]
             rc = utils.subprocess_call(mount_cmd, shell=False)
             if rc != 0:
                 self.logger.error(
@@ -408,7 +437,7 @@ class BuildIso:
                 raise Exception  # TODO: use concrete exception
 
         def umount(mountpoint: pathlib.Path) -> None:
-            unmount_cmd = ["umount", mountpoint]
+            unmount_cmd: List[str] = ["umount", str(mountpoint)]
             rc = utils.subprocess_call(unmount_cmd, shell=False)
             if rc != 0:
                 self.logger.error("Could not unmount ESP image file at %s", mountpoint)
@@ -450,7 +479,7 @@ class BuildIso:
         :raises TypeError: In case the specified argument is not of type str.
         :return: The validated and normalized directory with appropriate subfolders provisioned.
         """
-        if not isinstance(buildisodir, str):
+        if not isinstance(buildisodir, str):  # type: ignore
             raise TypeError("buildisodir needs to be of type str!")
         if not buildisodir:
             buildisodir = self.api.settings().buildisodir

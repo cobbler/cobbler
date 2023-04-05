@@ -8,9 +8,16 @@ This is some of the code behind 'cobbler sync'.
 # SPDX-FileCopyrightText: John Eckersberg <jeckersb@redhat.com>
 
 import time
+from typing import TYPE_CHECKING, Dict, Optional
 
 from cobbler.manager import ManagerModule
 from cobbler.utils import process_management
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.items.distro import Distro
+    from cobbler.items.profile import Profile
+
 
 MANAGER = None
 
@@ -38,7 +45,7 @@ class _DnsmasqManager(ManagerModule):
         """
         return "dnsmasq"
 
-    def write_configs(self):
+    def write_configs(self) -> None:
         """
         DHCP files are written when ``manage_dhcp`` is set in our settings.
 
@@ -54,7 +61,7 @@ class _DnsmasqManager(ManagerModule):
         except Exception as error:
             raise OSError(f"error writing template to file: {template_file}") from error
 
-        system_definitions = {}
+        system_definitions: Dict[str, str] = {}
 
         # we used to just loop through each system, but now we must loop
         # through each network interface of each system.
@@ -64,8 +71,12 @@ class _DnsmasqManager(ManagerModule):
             if not system.is_management_supported(cidr_ok=False):
                 continue
 
-            profile = system.get_conceptual_parent()
-            distro = profile.get_conceptual_parent()
+            profile: Optional["Profile"] = system.get_conceptual_parent()  # type: ignore
+            if profile is None:
+                raise ValueError("Profile for system not found!")
+            distro: Optional["Distro"] = profile.get_conceptual_parent()  # type: ignore
+            if distro is None:
+                raise ValueError("Distro for system not found!")
             for interface in system.interfaces.values():
 
                 mac = interface.mac_address
@@ -123,7 +134,7 @@ class _DnsmasqManager(ManagerModule):
 
         self.templar.render(template_data, metadata, settings_file)
 
-    def regen_ethers(self):
+    def regen_ethers(self) -> None:
         """
         This function regenerates the ethers file. To get more information please read ``man ethers``, the format is
         also in there described.
@@ -140,10 +151,10 @@ class _DnsmasqManager(ManagerModule):
                     if not mac:
                         # can't write this w/o a MAC address
                         continue
-                    if ip_address is not None and ip_address != "":
+                    if ip_address != "":
                         ethers_fh.write(mac.upper() + "\t" + ip_address + "\n")
 
-    def regen_hosts(self):
+    def regen_hosts(self) -> None:
         """
         This rewrites the hosts file and thus also rewrites the dns config.
         """
@@ -161,22 +172,12 @@ class _DnsmasqManager(ManagerModule):
                     ipv6 = interface.ipv6_address
                     if not mac:
                         continue
-                    if (
-                        host is not None
-                        and host != ""
-                        and ipv6 is not None
-                        and ipv6 != ""
-                    ):
+                    if host != "" and ipv6 != "":
                         regen_hosts_fd.write(ipv6 + "\t" + host + "\n")
-                    elif (
-                        host is not None
-                        and host != ""
-                        and ipv4 is not None
-                        and ipv4 != ""
-                    ):
+                    elif host != "" and ipv4 != "":
                         regen_hosts_fd.write(ipv4 + "\t" + host + "\n")
 
-    def restart_service(self):
+    def restart_service(self) -> int:
         """
         This restarts the dhcp server and thus applied the newly written config files.
         """
@@ -188,9 +189,10 @@ class _DnsmasqManager(ManagerModule):
             if return_code_service_restart != 0:
                 self.logger.error("%s service failed", service_name)
             return return_code_service_restart
+        return 0
 
 
-def get_manager(api):
+def get_manager(api: "CobblerAPI") -> _DnsmasqManager:
     """
     Creates a manager object to manage a dnsmasq server.
 
@@ -201,5 +203,5 @@ def get_manager(api):
     global MANAGER  # pylint: disable=global-statement
 
     if not MANAGER:
-        MANAGER = _DnsmasqManager(api)
+        MANAGER = _DnsmasqManager(api)  # type: ignore
     return MANAGER

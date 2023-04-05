@@ -11,7 +11,11 @@ not authz_allowall, which will most likely NOT do what you want.
 
 import os
 from configparser import SafeConfigParser
-from typing import Dict
+from typing import TYPE_CHECKING, Any, Dict
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+
 
 CONFIG_FILE = "/etc/cobbler/users.conf"
 
@@ -25,7 +29,7 @@ def register() -> str:
     return "authz"
 
 
-def __parse_config() -> Dict[str, dict]:
+def __parse_config() -> Dict[str, Dict[Any, Any]]:
     """
     Parse the the users.conf file.
 
@@ -35,7 +39,7 @@ def __parse_config() -> Dict[str, dict]:
         return {}
     config = SafeConfigParser()
     config.read(CONFIG_FILE)
-    alldata = {}
+    alldata: Dict[str, Dict[str, Any]] = {}
     groups = config.sections()
     for group in groups:
         alldata[str(group)] = {}
@@ -45,7 +49,13 @@ def __parse_config() -> Dict[str, dict]:
     return alldata
 
 
-def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int:
+def authorize(
+    api_handle: "CobblerAPI",
+    user: str,
+    resource: str,
+    arg1: Any = None,
+    arg2: Any = None,
+) -> int:
     """
     Validate a user against a resource. All users in the file are permitted by this module.
 
@@ -59,7 +69,7 @@ def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int
     # FIXME: this must be modified to use the new ACL engine
 
     data = __parse_config()
-    for group, group_data in data.items():
+    for _, group_data in data.items():
         if user.lower() in group_data:
             return 1
     return 0

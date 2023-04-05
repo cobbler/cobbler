@@ -8,8 +8,13 @@ https://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
 """
 import logging
 import re
+from typing import TYPE_CHECKING, List
 
 from cobbler import utils
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+
 
 logger = logging.getLogger()
 
@@ -23,7 +28,7 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/install/post/*"
 
 
-def run(api, args) -> int:
+def run(api: "CobblerAPI", args: List[str]) -> int:
     """
     The obligatory Cobbler modules hook.
 
@@ -47,10 +52,12 @@ def run(api, args) -> int:
         return 0
 
     system = api.find_system(name)
-    system = utils.blender(api, False, system)
-    hostname = system["hostname"]
+    if system is None or isinstance(system, list):
+        raise ValueError("Ambigous search match!")
+    blendered_system = utils.blender(api, False, system)
+    hostname = blendered_system["hostname"]
     if not re.match(r"[\w-]+\..+", hostname):
-        search_domains = system["name_servers_search"]
+        search_domains = blendered_system["name_servers_search"]
         if search_domains:
             hostname += "." + search_domains[0]
     puppetca_path = settings.puppetca_path

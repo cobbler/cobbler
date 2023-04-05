@@ -1,14 +1,16 @@
 """
 Migration from V3.2.0 to V3.2.1
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
 import os
+from typing import Any, Dict
 
-from schema import Optional, Schema, SchemaError
+from schema import Optional, Schema, SchemaError  # type: ignore
 
 from cobbler.settings.migrations import V3_2_0, helper
 from cobbler.utils import input_converters
@@ -135,12 +137,12 @@ schema = Schema(
         "yum_distro_priority": int,
         "yum_post_install_mirror": bool,
         "yumdownloader_flags": str,
-    },
+    },  # type: ignore
     ignore_extra_keys=False,
 )
 
 
-def validate(settings: dict) -> bool:
+def validate(settings: Dict[str, Any]) -> bool:
     """
     Checks that a given settings dict is valid according to the reference schema ``schema``.
 
@@ -148,23 +150,24 @@ def validate(settings: dict) -> bool:
     :return: True if valid settings dict otherwise False.
     """
     try:
-        schema.validate(settings)
+        schema.validate(settings)  # type: ignore
     except SchemaError:
         return False
     return True
 
 
-def normalize(settings: dict) -> dict:
+def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
     If data in ``settings`` is valid the validated data is returned.
 
     :param settings: The settings dict to validate.
     :return: The validated dict.
     """
-    return schema.validate(settings)
+    # We are aware of our schema and thus can safely ignore this.
+    return schema.validate(settings)  # type: ignore
 
 
-def migrate(settings: dict) -> dict:
+def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
     Migration of the settings ``settings`` to the V3.2.1 settings
 

@@ -9,7 +9,7 @@ Cobbler module that contains the code for a Cobbler distro object.
 import copy
 import glob
 import os
-from typing import TYPE_CHECKING, Any, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 
 from cobbler import enums, grub, utils, validate
 from cobbler.cexceptions import CX
@@ -86,7 +86,7 @@ class Distro(item.Item):
         return Distro(self.api, **_dict)
 
     @classmethod
-    def _remove_depreacted_dict_keys(cls, dictionary: dict):
+    def _remove_depreacted_dict_keys(cls, dictionary: Dict[Any, Any]):
         r"""
         See :meth:`~cobbler.items.item.Item._remove_depreacted_dict_keys`.
 
@@ -118,7 +118,7 @@ class Distro(item.Item):
         return None
 
     @parent.setter
-    def parent(self, value):
+    def parent(self, parent: str):
         """
         Setter for the parent property.
 
@@ -149,7 +149,7 @@ class Distro(item.Item):
         :raises TypeError: If kernel was not of type str.
         :raises ValueError: If the kernel was not found.
         """
-        if not isinstance(kernel, str):
+        if not isinstance(kernel, str):  # type: ignore
             raise TypeError("kernel was not of type str")
         if not utils.find_kernel(kernel):
             raise ValueError(
@@ -179,7 +179,7 @@ class Distro(item.Item):
         :raises TypeError: Raised in case the URL is not of type str.
         :raises ValueError: Raised in case the validation is not succeeding.
         """
-        if not isinstance(remote_boot_kernel, str):
+        if not isinstance(remote_boot_kernel, str):  # type: ignore
             raise TypeError(
                 "Field remote_boot_kernel of distro needs to be of type str!"
             )
@@ -220,7 +220,7 @@ class Distro(item.Item):
         """
         if isinstance(datestamp, int):
             datestamp = float(datestamp)
-        if not isinstance(datestamp, float):
+        if not isinstance(datestamp, float):  # type: ignore
             raise TypeError("datestamp needs to be of type float")
         self._tree_build_time = datestamp
 
@@ -281,7 +281,7 @@ class Distro(item.Item):
         :raises TypeError: In case the value was not of type ``str``.
         :raises ValueError: In case the new value was not found or specified.
         """
-        if not isinstance(initrd, str):
+        if not isinstance(initrd, str):  # type: ignore
             raise TypeError("initrd must be of type str")
         if not initrd:
             raise ValueError("initrd not specified")
@@ -330,7 +330,7 @@ class Distro(item.Item):
         :raises TypeError: In case the value was not of type ``str``.
         :raises ValueError: In case the new value could not be validated successfully.
         """
-        if not isinstance(remote_boot_initrd, str):
+        if not isinstance(remote_boot_initrd, str):  # type: ignore
             raise TypeError("remote_boot_initrd must be of type str!")
         if not remote_boot_initrd:
             self._remote_boot_initrd = remote_boot_initrd
@@ -349,8 +349,8 @@ class Distro(item.Item):
         self._remote_boot_initrd = remote_boot_initrd
 
     @LazyProperty
-    def source_repos(self) -> list:
-        r"""
+    def source_repos(self) -> List[Any]:
+        """
         A list of http:// URLs on the Cobbler server that point to yum configuration files that can be used to
         install core packages. Use by ``cobbler import`` only.
 
@@ -360,14 +360,14 @@ class Distro(item.Item):
         return self._source_repos
 
     @source_repos.setter
-    def source_repos(self, repos: list):
+    def source_repos(self, repos: List[Any]):
         r"""
         Setter for the ``source_repos`` property.
 
         :param repos: The list of URLs.
         :raises TypeError: In case the value was not of type ``str``.
         """
-        if not isinstance(repos, list):
+        if not isinstance(repos, list):  # type: ignore
             raise TypeError(
                 "Field source_repos in object distro needs to be of type list."
             )
@@ -412,8 +412,8 @@ class Distro(item.Item):
         return self._supported_boot_loaders
 
     @InheritableProperty
-    def boot_loaders(self) -> list:
-        r"""
+    def boot_loaders(self) -> List[str]:
+        """
         All boot loaders for which Cobbler generates entries for.
 
         .. note:: This property can be set to ``<<inherit>>``.
@@ -424,10 +424,12 @@ class Distro(item.Item):
         """
         if self._boot_loaders == enums.VALUE_INHERITED:
             return self.supported_boot_loaders
-        return self._boot_loaders
+        # The following line is missleading for pyright since it doesn't understand
+        # that we use only a constant with str type.
+        return self._boot_loaders  # type: ignore
 
-    @boot_loaders.setter
-    def boot_loaders(self, boot_loaders: List[str]):
+    @boot_loaders.setter  # type: ignore[no-redef]
+    def boot_loaders(self, boot_loaders: Union[str, List[str]]):
         """
         Set the bootloader for the distro.
 
@@ -442,7 +444,7 @@ class Distro(item.Item):
                 return
             boot_loaders = input_converters.input_string_or_list(boot_loaders)
 
-        if not isinstance(boot_loaders, list):
+        if not isinstance(boot_loaders, list):  # type: ignore
             raise TypeError("boot_loaders needs to be of type list!")
 
         if not set(boot_loaders).issubset(self.supported_boot_loaders):
@@ -464,7 +466,7 @@ class Distro(item.Item):
         """
         return self._resolve("redhat_management_key")
 
-    @redhat_management_key.setter
+    @redhat_management_key.setter  # type: ignore[no-redef]
     def redhat_management_key(self, management_key: str):
         """
         Set the redhat management key. This is probably only needed if you have spacewalk, uyuni or SUSE Manager
@@ -472,7 +474,7 @@ class Distro(item.Item):
 
         :param management_key: The redhat management key.
         """
-        if not isinstance(management_key, str):
+        if not isinstance(management_key, str):  # type: ignore
             raise TypeError(
                 "Field redhat_management_key of object distro needs to be of type str!"
             )
