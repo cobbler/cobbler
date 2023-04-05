@@ -11,6 +11,8 @@ PYFLAKES = $(shell { command -v pyflakes-3 || command -v pyflakes3 || command -v
 PYCODESTYLE := $(shell { command -v pycodestyle-3 || command -v pycodestyle3 || command -v pycodestyle; } 2> /dev/null)
 HTTPD = $(shell which httpd)
 APACHE2 = $(shell which apache2)
+EXECUTOR = $(shell { command -v podman || command -v docker; }  2> /dev/null)
+CONTAINER_TAG ?= latest
 
 # Debian / Ubuntu have /bin/sh -> dash
 SHELL = /bin/bash
@@ -94,6 +96,9 @@ release: clean qa authors sdist ## Creates the full release.
 	@cp dist/*.gz release/
 	@cp distro_build_configs.sh release/
 	@cp cobbler.spec release/
+
+test-image: ## Builds the test container image
+	$(EXECUTOR) build -f docker/develop/develop.dockerfile -t cobbler-test:$(CONTAINER_TAG)
 
 test-centos8: ## Executes the testscript for testing cobbler in a docker container on CentOS8.
 	./docker/rpms/build-and-install-rpms.sh el8 docker/rpms/CentOS_8/CentOS8.dockerfile
