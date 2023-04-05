@@ -10,10 +10,14 @@ given system (hostname)
 
 import json
 import string
-from typing import Dict, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Set, Union
 
 from cobbler import template_api, utils
 from cobbler.cexceptions import CX
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.enums import ResourceAction
 
 # FIXME: This is currently getting the blendered data. Make use of the object and only process the required data.
 # FIXME: Obsolete this class. All methods are wrappers or tailcalls except gen_config_data and this can be integrated
@@ -26,7 +30,7 @@ class ConfigGen:
     Mainly used by Koan to configure systems.
     """
 
-    def __init__(self, cobbler_api, hostname: str):
+    def __init__(self, cobbler_api: "CobblerAPI", hostname: str):
         """
         Constructor. Requires a Cobbler API handle.
 
@@ -35,16 +39,17 @@ class ConfigGen:
         # FIXME: This should work via the system name or system record and if that doesn't exist it should not fail.
         self.hostname = hostname
         self.__api = cobbler_api
-        self.system = self.__api.find_system(hostname=self.hostname)
-        if self.system is None:
-            raise ValueError("The specified hostname did not exist!")
+        target_system = self.__api.find_system(hostname=self.hostname)
+        if target_system is None or isinstance(target_system, list):
+            raise ValueError("The specified hostname did not exist or was ambigous!")
+        self.system = target_system
         # This below var needs a dict but the method may possibly return an empty str.
         self.host_vars = self.get_cobbler_resource("autoinstall_meta")
         self.mgmtclasses = self.get_cobbler_resource("mgmt_classes")
 
     # ----------------------------------------------------------------------
 
-    def resolve_resource_var(self, string_data: str) -> str:
+    def resolve_resource_var(self, string_data: Union["ResourceAction", str]) -> str:
         """
         Substitute variables in strings with data from the ``autoinstall_meta`` dictionary of the system.
 
@@ -55,11 +60,13 @@ class ConfigGen:
         """
         if not isinstance(self.host_vars, dict):
             return ""
-        return string.Template(string_data).substitute(self.host_vars)
+        return string.Template(str(string_data)).substitute(self.host_vars)
 
     # ----------------------------------------------------------------------
 
-    def get_cobbler_resource(self, resource_key: str) -> Union[list, str, dict]:
+    def get_cobbler_resource(
+        self, resource_key: str
+    ) -> Union[List[Any], str, Dict[Any, Any]]:
         """
         Wrapper around Cobbler blender method
 
@@ -74,7 +81,7 @@ class ConfigGen:
 
     # ----------------------------------------------------------------------
 
-    def gen_config_data(self) -> dict:
+    def gen_config_data(self) -> Dict[Any, Any]:
         """
         Generate configuration data for repos, files and packages.
 
@@ -85,11 +92,13 @@ class ConfigGen:
             "repo_data": self.__api.get_repo_config_for_system(self.system),
             "repos_enabled": self.get_cobbler_resource("repos_enabled"),
         }
-        package_set = set()
-        file_set = set()
+        package_set: Set[str] = set()
+        file_set: Set[str] = set()
 
         for mgmtclass in self.mgmtclasses:
             _mgmtclass = self.__api.find_mgmtclass(name=mgmtclass)
+            if _mgmtclass is None or isinstance(_mgmtclass, list):
+                raise ValueError("Ambigous or no search result!")
             for package in _mgmtclass.packages:
                 package_set.add(package)
             for file in _mgmtclass.files:
@@ -99,7 +108,7 @@ class ConfigGen:
         pkg_data: Dict[str, Dict[str, str]] = {}
         for package in package_set:
             _package = self.__api.find_package(name=package)
-            if _package is None:
+            if _package is None or isinstance(_package, list):
                 raise CX(f"{package} package resource is not defined")
             pkg_data[package] = {}
             pkg_data[package]["action"] = self.resolve_resource_var(_package.action)
@@ -114,11 +123,11 @@ class ConfigGen:
         config_data["packages"] = pkg_data
 
         # Generate File data
-        file_data: Dict[str, Dict[str, str]] = {}
+        file_data: Dict[str, Dict[str, Union[str, bool]]] = {}
         for file in file_set:
             _file = self.__api.find_file(name=file)
 
-            if _file is None:
+            if _file is None or isinstance(_file, list):
                 raise CX(f"{file} file resource is not defined")
 
             file_data[file] = {}
@@ -135,11 +144,11 @@ class ConfigGen:
                     template_api_instance = template_api.CobblerTemplate(
                         file=file_data[file]["template"], searchList=[self.host_vars]
                     )
-                    file_data[file]["content"] = template_api_instance.respond()
-                except Exception:
-                    utils.die(
+                    file_data[file]["content"] = template_api_instance.respond()  # type: ignore
+                except Exception as exception:
+                    raise ValueError(
                         f"Missing template for this file resource {file_data[file]}"
-                    )
+                    ) from exception
 
         config_data["files"] = file_data
         return config_data

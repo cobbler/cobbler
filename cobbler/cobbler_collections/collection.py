@@ -9,10 +9,21 @@ This module contains the code for the abstract base collection that powers all t
 import logging
 import os
 import time
+from abc import abstractmethod
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Generic,
+    Iterator,
+    List,
+    Optional,
+    TypeVar,
+    Union,
+)
 
-from cobbler import utils
+from cobbler import enums, utils
 from cobbler.cexceptions import CX
 from cobbler.items import distro, file, image
 from cobbler.items import item as item_base
@@ -24,7 +35,24 @@ if TYPE_CHECKING:
     from cobbler.cobbler_collections.manager import CollectionManager
 
 
-class Collection:
+ITEM = TypeVar("ITEM", bound=item_base.Item)
+FIND_KWARGS = Union[  # pylint: disable=invalid-name
+    str, int, bool, Dict[Any, Any], List[Any]
+]
+ITEM_UNION = Union[  # pylint: disable=invalid-name
+    "package.Package",
+    "system.System",
+    "image.Image",
+    "profile.Profile",
+    "repo.Repo",
+    "mgmtclass.Mgmtclass",
+    "distro.Distro",
+    "file.File",
+    "menu.Menu",
+]
+
+
+class Collection(Generic[ITEM]):
     """
     Base class for any serializable list of things.
     """
@@ -36,13 +64,13 @@ class Collection:
         :param collection_mgr: The collection manager to resolve all information with.
         """
         self.collection_mgr = collection_mgr
-        self.listing: Dict[str, item_base.Item] = {}
+        self.listing: Dict[str, ITEM] = {}
         self.api = self.collection_mgr.api
-        self.lite_sync: Optional["CobblerSync"] = None
+        self.__lite_sync: Optional["CobblerSync"] = None
         self.lock = Lock()
         self.logger = logging.getLogger()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[ITEM]:
         """
         Iterator for the collection. Allows list comprehensions, etc.
         """
@@ -55,17 +83,27 @@ class Collection:
         """
         return len(list(self.listing.values()))
 
-    def factory_produce(
-        self, api: "CobblerAPI", seed_data: Dict[str, Any]
-    ) -> item_base.Item:
+    @property
+    def lite_sync(self) -> "CobblerSync":
+        """
+        Provide a ready to use CobblerSync object.
+
+        :getter: Return the object that can update the filesystem state to a new one.
+        """
+        if self.__lite_sync is None:
+            self.__lite_sync = self.api.get_sync()
+        return self.__lite_sync
+
+    @abstractmethod
+    def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]) -> ITEM:
         """
         Must override in subclass. Factory_produce returns an Item object from dict.
 
         :param api: The API to resolve all information with.
         :param seed_data: Unused Parameter in the base collection.
         """
-        raise NotImplementedError()
 
+    @abstractmethod
     def remove(
         self,
         name: str,
@@ -84,16 +122,13 @@ class Collection:
         :param recursive: recursively delete children
         :returns: NotImplementedError
         """
-        raise NotImplementedError(
-            "Please implement this in a child class of this class."
-        )
 
     def get(self, name: str) -> Optional[item_base.Item]:
         """
         Return object with name in the collection
 
         :param name: The name of the object to retrieve from the collection.
-        :return: The object if it exists. Otherwise None.
+        :return: The object if it exists. Otherwise, "None".
         """
         return self.listing.get(name, None)
 
@@ -110,8 +145,8 @@ class Collection:
         name: str = "",
         return_list: bool = False,
         no_errors: bool = False,
-        **kargs: Any,
-    ) -> Union[List[item_base.Item], item_base.Item, None]:
+        **kargs: FIND_KWARGS,
+    ) -> Optional[Union[List[ITEM], ITEM]]:
         """
         Return first object in the collection that matches all item='value' pairs passed, else return None if no objects
         can be found. When return_list is set, can also return a list.  Empty list would be returned instead of None in
@@ -125,7 +160,7 @@ class Collection:
         :return: The first item or a list with all matches.
         :raises ValueError: In case no arguments for searching were specified.
         """
-        matches = []
+        matches: List[ITEM] = []
 
         if name:
             kargs["name"] = name
@@ -139,9 +174,9 @@ class Collection:
         # performance: if the only key is name we can skip the whole loop
         if len(kargs) == 1 and "name" in kargs and not return_list:
             try:
-                return self.listing.get(kargs["name"], None)
+                return self.listing.get(kargs["name"], None)  # type: ignore
             except Exception:
-                return self.listing.get(kargs["name"], None)
+                return self.listing.get(name, None)
 
         if self.api.settings().lazy_start:
             # Forced deserialization of the entire collection to prevent deadlock in the search loop
@@ -201,51 +236,50 @@ class Collection:
                 new_dict[key] = _dict[key]
         return new_dict
 
-    def to_list(self) -> List[item_base.Item]:
+    def to_list(self) -> List[Dict[str, Any]]:
         """
         Serialize the collection
 
         :return: All elements of the collection as a list.
         """
-        return [x.to_dict() for x in list(self.listing.values())]
+        return [item_obj.to_dict() for item_obj in list(self.listing.values())]
 
-    def from_list(self, _list: List[Dict[str, Any]]):
+    def from_list(self, _list: List[Dict[str, Any]]) -> None:
         """
         Create all collection object items from ``_list``.
 
         :param _list: The list with all item dictionaries.
         """
-        if _list is None:
+        if _list is None:  # type: ignore
             return
         for item_dict in _list:
             try:
                 item = self.factory_produce(self.api, item_dict)
                 self.add(item)
             except Exception as exc:
-                print(item_dict)
                 self.logger.error(
                     "Error while loading a collection: %s. Skipping collection %s!",
                     exc,
                     self.collection_type(),
                 )
 
-    def copy(self, ref: item_base.Item, newname: str):
+    def copy(self, ref: ITEM, newname: str):
         """
         Copy an object with a new name into the same collection.
 
         :param ref: The reference to the object which should be copied.
         :param newname: The new name for the copied object.
         """
-        copied_item = ref.make_clone()
+        copied_item: ITEM = ref.make_clone()
         copied_item.ctime = time.time()
         copied_item.name = newname
-        if copied_item.COLLECTION_TYPE == "system":
+        if copied_item.COLLECTION_TYPE == "system":  # type: ignore
             # this should only happen for systems
-            for interface in copied_item.interfaces:
+            for interface in copied_item.interfaces:  # type: ignore
                 # clear all these out to avoid DHCP/DNS conflicts
-                copied_item.interfaces[interface].dns_name = ""
-                copied_item.interfaces[interface].mac_address = ""
-                copied_item.interfaces[interface].ip_address = ""
+                copied_item.interfaces[interface].dns_name = ""  # type: ignore
+                copied_item.interfaces[interface].mac_address = ""  # type: ignore
+                copied_item.interfaces[interface].ip_address = ""  # type: ignore
 
         self.add(
             copied_item,
@@ -258,7 +292,7 @@ class Collection:
 
     def rename(
         self,
-        ref: item_base.Item,
+        ref: "ITEM",
         newname: str,
         with_sync: bool = True,
         with_triggers: bool = True,
@@ -288,13 +322,19 @@ class Collection:
             self.listing[newname] = ref
 
         for dep_type in item_base.Item.TYPE_DEPENDENCIES[ref.COLLECTION_TYPE]:
-            items = self.api.find_items(dep_type[0], {dep_type[1]: oldname})
+            items = self.api.find_items(
+                dep_type[0], {dep_type[1]: oldname}, return_list=True
+            )
+            if items is None:
+                continue
+            if not isinstance(items, list):
+                raise ValueError("Unexepcted return value from find_items!")
             for item in items:
                 attr = getattr(item, "_" + dep_type[1])
                 if isinstance(attr, (str, item_base.Item)):
                     setattr(item, dep_type[1], newname)
                 elif isinstance(attr, list):
-                    for i, attr_val in enumerate(attr):
+                    for i, attr_val in enumerate(attr):  # type: ignore
                         if attr_val == oldname:
                             attr[i] = newname
                 else:
@@ -302,14 +342,15 @@ class Collection:
                         f'Internal error, unknown attribute type {type(attr)} for "{item.name}"!'
                     )
                 self.api.get_items(item.COLLECTION_TYPE).add(
-                    item,
+                    item,  # type: ignore
                     save=True,
                     with_sync=with_sync,
                     with_triggers=with_triggers,
                 )
 
         # for a repo, rename the mirror directory
-        if ref.COLLECTION_TYPE == "repo":
+        if isinstance(ref, repo.Repo):
+            # if ref.COLLECTION_TYPE == "repo":
             path = os.path.join(self.api.settings().webdir, "repo_mirror")
             old_path = os.path.join(path, oldname)
             if os.path.exists(old_path):
@@ -317,11 +358,12 @@ class Collection:
                 os.renames(old_path, new_path)
 
         # for a distro, rename the mirror and references to it
-        if ref.COLLECTION_TYPE == "distro":
-            path = ref.find_distro_path()
+        if isinstance(ref, distro.Distro):
+            # if ref.COLLECTION_TYPE == "distro":
+            path = ref.find_distro_path()  # type: ignore
 
             # create a symlink for the new distro name
-            ref.link_distro()
+            ref.link_distro()  # type: ignore
 
             # Test to see if the distro path is based directly on the name of the distro. If it is, things need to
             # updated accordingly.
@@ -343,14 +385,14 @@ class Collection:
 
     def add(
         self,
-        ref: item_base.Item,
+        ref: ITEM,
         save: bool = False,
         with_copy: bool = False,
         with_triggers: bool = True,
         with_sync: bool = True,
         quick_pxe_update: bool = False,
         check_for_duplicate_names: bool = False,
-    ):
+    ) -> None:
         """
         Add an object to the collection
 
@@ -368,7 +410,7 @@ class Collection:
         :raises TypError: Raised in case ``ref`` is None.
         :raises ValueError: Raised in case the name of ``ref`` is empty.
         """
-        if ref is None:
+        if ref is None:  # type: ignore
             raise TypeError("Unable to add a None object")
 
         ref.check_if_valid()
@@ -378,9 +420,6 @@ class Collection:
             if ref.ctime == 0.0:
                 ref.ctime = now
             ref.mtime = now
-
-        if self.lite_sync is None:
-            self.lite_sync = self.api.get_sync()
 
         # migration path for old API parameter that I've renamed.
         if with_copy and not save:
@@ -393,9 +432,11 @@ class Collection:
 
         # Avoid adding objects to the collection with the same name
         if check_for_duplicate_names:
-            for item in self.listing.values():
-                if item.name == ref.name:
-                    raise CX("An object already exists with that name. Try 'edit'?")
+            for item_obj in self.listing.values():
+                if item_obj.name == ref.name:
+                    raise CX(
+                        f'An object with that name "{ref.name}" exists already. Try "edit"?'
+                    )
 
         if ref.COLLECTION_TYPE != self.collection_type():
             raise TypeError("API error: storing wrong data type in collection")
@@ -419,13 +460,13 @@ class Collection:
             if with_sync:
                 if isinstance(ref, system.System):
                     # we don't need openvz containers to be network bootable
-                    if ref.virt_type == "openvz":
+                    if ref.virt_type == enums.VirtType.OPENVZ:
                         ref.netboot_enabled = False
                     self.lite_sync.add_single_system(ref.name)
                     self.api.sync_systems(systems=[ref.name])
                 elif isinstance(ref, profile.Profile):
                     # we don't need openvz containers to be network bootable
-                    if ref.virt_type == "openvz":
+                    if ref.virt_type == "openvz":  # type: ignore
                         ref.enable_menu = False
                     self.lite_sync.add_single_profile(ref)
                     self.api.sync_systems(
@@ -434,7 +475,7 @@ class Collection:
                             return_list=True,
                             no_errors=False,
                             **{"profile": ref.name},
-                        )
+                        )  # type: ignore
                     )
                 elif isinstance(ref, distro.Distro):
                     self.lite_sync.add_single_distro(ref.name)
@@ -451,7 +492,9 @@ class Collection:
                 elif isinstance(ref, menu.Menu):
                     pass
                 else:
-                    print(f"Internal error. Object type not recognized: {type(ref)}")
+                    self.logger.error(
+                        "Internal error. Object type not recognized: %s", type(ref)
+                    )
             if not with_sync and quick_pxe_update:
                 if isinstance(ref, system.System):
                     self.lite_sync.update_system_netboot_status(ref.name)
@@ -477,28 +520,24 @@ class Collection:
         """
         # FIXME: No to_string() method in any of the items present!
         values = list(self.listing.values())[:]  # copy the values
-        values.sort()  # sort the copy (2.3 fix)
+        values.sort(key=lambda x: x.name if x else "")  # sort the copy (2.3 fix)
         results = []
         for _, value in enumerate(values):
-            results.append(value.to_string())
+            results.append(value.to_string())  # type: ignore
         if len(values) > 0:
             return "\n\n".join(results)
         return "No objects found"
 
     @staticmethod
+    @abstractmethod
     def collection_type() -> str:
         """
         Returns the string key for the name of the collection (used by serializer etc)
         """
-        raise NotImplementedError(
-            'Please implement the method "collection_type" in your Collection!'
-        )
 
     @staticmethod
+    @abstractmethod
     def collection_types() -> str:
         """
         Returns the string key for the plural name of the collection (used by serializer)
         """
-        raise NotImplementedError(
-            'Please implement the method "collection_types" in your Collection!'
-        )

@@ -14,8 +14,8 @@ import sys
 import time
 from configparser import ConfigParser
 from distutils.command.build import build as _build
+from typing import Any, Dict, List
 
-from coverage import Coverage
 from setuptools import Command
 from setuptools import Distribution as _Distribution
 from setuptools import dep_util, find_packages, setup
@@ -632,8 +632,8 @@ if __name__ == "__main__":
                 "pytest>6",
                 "pytest-cov",
                 "coverage",
-                "pytest-mock",
-                "pytest-benchmark"
+                "pytest-mock>3.3.0",
+                "pytest-benchmark",
             ],
             "docs": ["sphinx", "sphinx-rtd-theme", "sphinxcontrib-apidoc"],
         },

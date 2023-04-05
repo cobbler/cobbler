@@ -4,9 +4,13 @@ that is essentially calling ``modules/mangers/import_signatures.py`` with some p
 """
 import logging
 import os
+from typing import TYPE_CHECKING, Optional
 
 from cobbler import utils
 from cobbler.utils import filesystem_helpers
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class Importer:
@@ -14,7 +18,7 @@ class Importer:
     Wrapper class to adhere to the style of all other actions.
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI") -> None:
         """
         Constructor to initialize the class.
 
@@ -27,12 +31,12 @@ class Importer:
         self,
         mirror_url: str,
         mirror_name: str,
-        network_root=None,
-        autoinstall_file=None,
-        rsync_flags=None,
-        arch=None,
-        breed=None,
-        os_version=None,
+        network_root: Optional[str] = None,
+        autoinstall_file: Optional[str] = None,
+        rsync_flags: Optional[str] = None,
+        arch: Optional[str] = None,
+        breed: Optional[str] = None,
+        os_version: Optional[str] = None,
     ) -> bool:
         """
         Automatically import a directory tree full of distribution files.
@@ -153,10 +157,11 @@ class Importer:
                     )
                     return False
 
-        import_module = self.api.get_module_by_name(
-            "managers.import_signatures"
-        ).get_import_manager(self.api)
-        import_module.run(
+        import_module = self.api.get_module_by_name("managers.import_signatures")
+        if import_module is None:
+            raise ImportError("Could not retrieve import signatures module!")
+        import_manager = import_module.get_import_manager(self.api)
+        import_manager.run(
             path, mirror_name, network_root, autoinstall_file, arch, breed, os_version
         )
         return True

@@ -10,9 +10,14 @@ Cobbler Module Trigger that will clear the anamon logs.
 import glob
 import logging
 import os
+from typing import TYPE_CHECKING, List
 
 from cobbler.cexceptions import CX
 from cobbler.utils import filesystem_helpers
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+
 
 PATH_PREFIX = "/var/log/cobbler/anamon/"
 
@@ -29,7 +34,7 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/install/pre/*"
 
 
-def run(api, args) -> int:
+def run(api: "CobblerAPI", args: List[str]) -> int:
     """
     The list of args should have one element:
         - 1: the name of the system or profile
@@ -47,7 +52,7 @@ def run(api, args) -> int:
     settings = api.settings()
 
     # Remove any files matched with the given glob pattern
-    def unlink_files(globex):
+    def unlink_files(globex: str) -> None:
         for file in glob.glob(globex):
             if os.path.isfile(file):
                 filesystem_helpers.rmfile(file)

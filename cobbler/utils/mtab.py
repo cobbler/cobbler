@@ -3,7 +3,7 @@ We cache the contents of ``/etc/mtab``. The following module is used to keep our
 """
 
 import os
-from typing import Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 MTAB_MTIME = None
 MTAB_MAP = []
@@ -29,23 +29,23 @@ class MntEntObj:
                       arguments: "mnt_fsname", "mnt_dir", "mnt_type", "mnt_opts", "mnt_freq" and "mnt_passno". The order
                       must be preserved, as well as the separation by whitespace.
         """
-        if input_data and isinstance(input_data, str):
-            (
-                self.mnt_fsname,
-                self.mnt_dir,
-                self.mnt_type,
-                self.mnt_opts,
-                self.mnt_freq,
-                self.mnt_passno,
-            ) = input_data.split()
+        if input_data and isinstance(input_data, str):  # type: ignore
+            split_data = input_data.split()
+            self.mnt_fsname = split_data[0]
+            self.mnt_dir = split_data[1]
+            self.mnt_type = split_data[2]
+            self.mnt_opts = split_data[3]
+            self.mnt_freq = int(split_data[4])
+            self.mnt_passno = int(split_data[5])
 
-    def __dict__(self) -> dict:
+    def __dict__(self) -> Dict[str, Any]:  # type: ignore
         """
         This maps all variables available in this class to a dictionary. The name of the keys is identical to the names
         of the variables.
 
         :return: The dictionary representation of an instance of this class.
         """
+        # See https://github.com/python/mypy/issues/6523 why this is ignored
         return {
             "mnt_fsname": self.mnt_fsname,
             "mnt_dir": self.mnt_dir,
@@ -55,7 +55,7 @@ class MntEntObj:
             "mnt_passno": self.mnt_passno,
         }
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         This is the object representation of a mounted filesystem as a string. It can be fed to the constructor of this
         class.
@@ -65,7 +65,7 @@ class MntEntObj:
         return f"{self.mnt_fsname} {self.mnt_dir} {self.mnt_type} {self.mnt_opts} {self.mnt_freq} {self.mnt_passno}"
 
 
-def get_mtab(mtab="/etc/mtab", vfstype: bool = False) -> list:
+def get_mtab(mtab: str = "/etc/mtab", vfstype: bool = False) -> List[MntEntObj]:
     """
     Get the list of mtab entries. If a custom mtab should be read then the location can be overridden via a parameter.
 
@@ -78,14 +78,14 @@ def get_mtab(mtab="/etc/mtab", vfstype: bool = False) -> list:
     global MTAB_MTIME, MTAB_MAP  # pylint: disable=global-statement
 
     mtab_stat = os.stat(mtab)
-    if mtab_stat.st_mtime != MTAB_MTIME:
+    if mtab_stat.st_mtime != MTAB_MTIME:  # type: ignore
         # cache is stale ... refresh
-        MTAB_MTIME = mtab_stat.st_mtime
-        MTAB_MAP = __cache_mtab__(mtab)
+        MTAB_MTIME = mtab_stat.st_mtime  # type: ignore
+        MTAB_MAP = __cache_mtab__(mtab)  # type: ignore
 
     # was a specific fstype requested?
     if vfstype:
-        mtab_type_map = []
+        mtab_type_map: List[MntEntObj] = []
         for ent in MTAB_MAP:
             if ent.mnt_type == "nfs":
                 mtab_type_map.append(ent)
@@ -94,7 +94,7 @@ def get_mtab(mtab="/etc/mtab", vfstype: bool = False) -> list:
     return MTAB_MAP
 
 
-def __cache_mtab__(mtab="/etc/mtab"):
+def __cache_mtab__(mtab: str = "/etc/mtab") -> List[MntEntObj]:
     """
     Open the mtab and cache it inside Cobbler. If it is guessed that the mtab hasn't changed the cache data is used.
 
@@ -102,12 +102,14 @@ def __cache_mtab__(mtab="/etc/mtab"):
     :return: The mtab content stripped from empty lines (if any are present).
     """
     with open(mtab, encoding="UTF-8") as mtab_fd:
-        mtab = [MntEntObj(line) for line in mtab_fd.read().split("\n") if len(line) > 0]
+        result = [
+            MntEntObj(line) for line in mtab_fd.read().split("\n") if len(line) > 0
+        ]
 
-    return mtab
+    return result
 
 
-def get_file_device_path(fname):
+def get_file_device_path(fname: str) -> Tuple[Optional[str], str]:
     """
     What this function attempts to do is take a file and return:
         - the device the file is on
@@ -125,10 +127,10 @@ def get_file_device_path(fname):
     fname = os.path.realpath(fname)
 
     # convert mtab to a dict
-    mtab_dict = {}
+    mtab_dict: Dict[str, str] = {}
     try:
         for ent in get_mtab():
-            mtab_dict[ent.mnt_dir] = ent.mnt_fsname
+            mtab_dict[ent.mnt_dir] = ent.mnt_fsname  # type: ignore
     except Exception:
         pass
 
@@ -152,7 +154,7 @@ def get_file_device_path(fname):
     return mtab_dict[fdir], fname
 
 
-def is_remote_file(file) -> bool:
+def is_remote_file(file: str) -> bool:
     """
     This function is trying to detect if the file in the argument is remote or not.
 
@@ -160,6 +162,8 @@ def is_remote_file(file) -> bool:
     :return: If remote True, otherwise False.
     """
     (dev, _) = get_file_device_path(file)
+    if dev is None:
+        return False
     if dev.find(":") != -1:
         return True
     return False

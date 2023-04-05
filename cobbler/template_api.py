@@ -11,9 +11,9 @@ such function and is now used to implement Cobbler's SNIPPET:: syntax.
 import logging
 import os.path
 import re
-from typing import Match, Optional, TextIO, Tuple, Union
+from typing import Any, Match, Optional, TextIO, Tuple, Union
 
-from Cheetah.Template import Template
+from Cheetah.Template import Template  # type: ignore
 
 from cobbler import utils
 
@@ -23,7 +23,7 @@ from cobbler import utils
 logger = logging.getLogger()
 
 
-def read_macro_file(location="/etc/cobbler/cheetah_macros"):
+def read_macro_file(location: str = "/etc/cobbler/cheetah_macros") -> str:
     """
     TODO
 
@@ -36,7 +36,7 @@ def read_macro_file(location="/etc/cobbler/cheetah_macros"):
         return macro_file.read()
 
 
-def generate_cheetah_macros():
+def generate_cheetah_macros() -> Template:
     """
     TODO
 
@@ -44,24 +44,24 @@ def generate_cheetah_macros():
     """
     try:
         macro_file = read_macro_file()
-        return Template.compile(
+        return Template.compile(  # type: ignore
             source=macro_file,
             moduleName="cobbler.template_api",
             className="CheetahMacros",
         )
     except FileNotFoundError:
         logger.warning("Cheetah Macros file note found. Using empty template.")
-        return Template.compile(source="")
+        return Template.compile(source="")  # type: ignore
 
 
-class CobblerTemplate(generate_cheetah_macros()):
+class CobblerTemplate(generate_cheetah_macros()):  # type: ignore
     """
     This class will allow us to include any pure python builtin functions.
     It derives from the cheetah-compiled class above. This way, we can include both types (cheetah and pure python) of
-    builtins in the same base template. We don't need to override __init__
+    builtins in the same base template.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         """
         Constructor for this derived class. We include two additional default templates.
 
@@ -80,7 +80,7 @@ class CobblerTemplate(generate_cheetah_macros()):
         # This follows all of the rules of snippets and advanced snippets. First it searches for a per-system snippet,
         # then a per-profile snippet, then a general snippet. If none is found, a comment explaining the error is
         # substituted.
-        self.BuiltinTemplate = Template.compile(
+        self.BuiltinTemplate = Template.compile(  # type: ignore
             source="\n".join(
                 [
                     "#def SNIPPET($file)",
@@ -95,7 +95,7 @@ class CobblerTemplate(generate_cheetah_macros()):
             )
             + "\n"
         )
-        super().__init__(**kwargs)
+        super().__init__(**kwargs)  # type: ignore
 
     # OK, so this function gets called by Cheetah.Template.Template.__init__ to compile the template into a class. This
     # is probably a kludge, but it add a baseclass argument to the standard compile (see Cheetah's compile docstring)
@@ -103,7 +103,7 @@ class CobblerTemplate(generate_cheetah_macros()):
     # in the base class above) will be accessible to all cheetah templates compiled by Cobbler.
 
     @classmethod
-    def compile(cls, *args, **kwargs) -> bytes:
+    def compile(cls, *args: Any, **kwargs: Any) -> bytes:
         """
         Compile a cheetah template with Cobbler modifications. Modifications include ``SNIPPET::`` syntax replacement
         and inclusion of Cobbler builtin methods. Please be aware that you cannot use the ``baseclass`` attribute of
@@ -114,17 +114,17 @@ class CobblerTemplate(generate_cheetah_macros()):
         :return: The compiled template.
         """
 
-        def replacer(match: Match):
+        def replacer(match: Match[str]) -> str:
             return f"$SNIPPET('{match.group(1)}')"
 
         def preprocess(
-            source: Optional[str], file: Union[TextIO, str]
-        ) -> Tuple[str, Union[TextIO, str]]:
+            source: Optional[str], file: Optional[Union[TextIO, str]]
+        ) -> Tuple[str, Optional[Union[TextIO, str]]]:
             # Normally, the cheetah compiler worries about this, but we need to preprocess the actual source.
             if source is None:
-                if hasattr(file, "read"):
+                if isinstance(file, TextIO):
                     source = file.read()
-                else:
+                elif isinstance(file, str):
                     if os.path.exists(file):
                         with open(file, "r", encoding="UTF-8") as snippet_fd:
                             source = "#errorCatcher Echo\n" + snippet_fd.read()
@@ -134,7 +134,7 @@ class CobblerTemplate(generate_cheetah_macros()):
                 file = None
 
             snippet_regex = re.compile(r"SNIPPET::([A-Za-z0-9_\-/.]+)")
-            results = snippet_regex.sub(replacer, source)
+            results = snippet_regex.sub(replacer, source or "")
             return results, file
 
         preprocessors = [preprocess]
@@ -142,8 +142,8 @@ class CobblerTemplate(generate_cheetah_macros()):
             preprocessors.extend(kwargs["preprocessors"])
         kwargs["preprocessors"] = preprocessors
 
-        # Now let Cheetah do the actual compilation
-        return super().compile(*args, **kwargs)
+        # Now let Cheetah do the actual compilation - mypy can't introspect Cheetah
+        return super().compile(*args, **kwargs)  # type: ignore
 
     def read_snippet(self, file: str) -> Optional[str]:
         """
@@ -158,16 +158,16 @@ class CobblerTemplate(generate_cheetah_macros()):
         :raises AttributeError: Raised in case ``autoinstall_snippets_dir`` is missing.
         :raises FileNotFoundError: Raised in case some files are not found.
         """
-        if not self.varExists("autoinstall_snippets_dir"):
+        if not self.varExists("autoinstall_snippets_dir"):  # type: ignore
             raise AttributeError(
                 '"autoinstall_snippets_dir" is required to find snippets'
             )
 
         for snippet_class in ("system", "profile", "distro"):
-            if self.varExists(f"{snippet_class}_name"):
+            if self.varExists(f"{snippet_class}_name"):  # type: ignore
                 full_path = (
-                    f"{self.getVar('autoinstall_snippets_dir')}/per_{snippet_class}/{file}/"
-                    f"{self.getVar(f'{snippet_class}_name')}"
+                    f"{self.getVar('autoinstall_snippets_dir')}/per_{snippet_class}/{file}/"  # type: ignore
+                    f"{self.getVar(f'{snippet_class}_name')}"  # type: ignore
                 )
                 try:
                     contents = utils.read_file_contents(full_path, fetch_if_remote=True)
@@ -176,14 +176,16 @@ class CobblerTemplate(generate_cheetah_macros()):
                     pass
 
         try:
-            full_path = f"{self.getVar('autoinstall_snippets_dir')}/{file}"
-            return "#errorCatcher ListErrors\n" + utils.read_file_contents(
-                full_path, fetch_if_remote=True
-            )
+            full_path = f"{self.getVar('autoinstall_snippets_dir')}/{file}"  # type: ignore
+            file_content = utils.read_file_contents(full_path, fetch_if_remote=True)
+            if isinstance(file_content, str):
+                return "#errorCatcher ListErrors\n" + file_content
+            else:
+                return "Error reading error list from Cheetah!"
         except FileNotFoundError:
             return None
 
-    def SNIPPET(self, file: str):
+    def SNIPPET(self, file: str) -> Any:
         """
         Include the contents of the named snippet here. This is equivalent to the #include directive in Cheetah, except
         that it searches for system and profile specific snippets, and it includes the snippet's namespace.
@@ -197,7 +199,7 @@ class CobblerTemplate(generate_cheetah_macros()):
         """
         # First, do the actual inclusion. Cheetah (when processing #include) will track the inclusion in
         # self._CHEETAH__cheetahIncludes
-        result = self.BuiltinTemplate.SNIPPET(self, file)
+        result = self.BuiltinTemplate.SNIPPET(self, file)  # type: ignore
 
         # Now do our dirty work: locate the new include, and append its searchList to ours. We have to compute the full
         # path again? Eww.
@@ -209,13 +211,13 @@ class CobblerTemplate(generate_cheetah_macros()):
         if snippet_contents:
             # Only include what we don't already have. Because Cheetah passes our searchList into included templates,
             # the snippet's searchList will include this templates searchList. We need to avoid duplicating entries.
-            child_list = self._CHEETAH__cheetahIncludes[snippet_contents].searchList()
-            my_list = self.searchList()
-            for child_elem in child_list:
+            child_list = self._CHEETAH__cheetahIncludes[snippet_contents].searchList()  # type: ignore
+            my_list = self.searchList()  # type: ignore
+            for child_elem in child_list:  # type: ignore
                 if child_elem not in my_list:
-                    my_list.append(child_elem)
+                    my_list.append(child_elem)  # type: ignore
 
-        return result
+        return result  # type: ignore
 
     # pylint: disable=R0201
     def sedesc(self, value: str) -> str:

@@ -10,8 +10,13 @@ This is some of the code behind 'cobbler sync'.
 
 import os
 import subprocess
+from typing import TYPE_CHECKING, Any, Dict
 
 from cobbler.manager import ManagerModule
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+
 
 MANAGER = None
 
@@ -40,10 +45,10 @@ class _NDjbDnsManager(ManagerModule):
         """
         return "ndjbdns"
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI") -> None:
         super().__init__(api)
 
-    def write_configs(self):
+    def write_configs(self) -> None:
         """
         This writes the new dns configuration file to the disc.
         """
@@ -51,7 +56,7 @@ class _NDjbDnsManager(ManagerModule):
         data_file = "/etc/ndjbdns/data"
         data_dir = os.path.dirname(data_file)
 
-        a_records = {}
+        a_records: Dict[str, str] = {}
 
         with open(template_file, "r", encoding="UTF-8") as template_fd:
             template_content = template_fd.read()
@@ -66,7 +71,7 @@ class _NDjbDnsManager(ManagerModule):
                         raise Exception(f"Duplicate DNS name: {host}")
                     a_records[host] = ip_address
 
-        template_vars = {"forward": []}
+        template_vars: Dict[str, Any] = {"forward": []}
         for host, ip_address in list(a_records.items()):
             template_vars["forward"].append((host, ip_address))
 
@@ -81,7 +86,7 @@ class _NDjbDnsManager(ManagerModule):
                 raise Exception("Could not regenerate tinydns data file.")
 
 
-def get_manager(api):
+def get_manager(api: "CobblerAPI") -> _NDjbDnsManager:
     """
     Creates a manager object to manage an isc dhcp server.
 
@@ -92,5 +97,5 @@ def get_manager(api):
     global MANAGER  # pylint: disable=global-statement
 
     if not MANAGER:
-        MANAGER = _NDjbDnsManager(api)
+        MANAGER = _NDjbDnsManager(api)  # type: ignore
     return MANAGER

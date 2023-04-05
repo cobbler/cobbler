@@ -25,6 +25,12 @@ from cobbler.settings import Settings
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.cobbler_collections.collection import ITEM, Collection
+    from cobbler.settings import Settings
+
+    COLLECTION_UNION = Union[
+        Menus, Distros, Repos, Profiles, Images, Systems, Mgmtclasses, Packages, Files
+    ]
 
 
 class CollectionManager:
@@ -36,7 +42,7 @@ class CollectionManager:
     has_loaded = False
     __shared_state: Dict[str, Any] = {}
 
-    def __init__(self, api: "CobblerAPI"):
+    def __init__(self, api: "CobblerAPI") -> None:
         """
         Constructor which loads all content if this action was not performed before.
         """
@@ -44,7 +50,7 @@ class CollectionManager:
         if not CollectionManager.has_loaded:
             self.__load(api)
 
-    def __load(self, api: "CobblerAPI"):
+    def __load(self, api: "CobblerAPI") -> None:
         """
         Load all collections from the disk into Cobbler.
 
@@ -64,7 +70,7 @@ class CollectionManager:
         self._files = Files(weakref.proxy(self))
         self._menus = Menus(weakref.proxy(self))
 
-    def distros(self):
+    def distros(self) -> Distros:
         """
         Return the definitive copy of the Distros collection
         """
@@ -82,7 +88,7 @@ class CollectionManager:
         """
         return self._systems
 
-    def settings(self):
+    def settings(self) -> "Settings":
         """
         Return the definitive copy of the application settings
         """
@@ -118,13 +124,13 @@ class CollectionManager:
         """
         return self._files
 
-    def menus(self):
+    def menus(self) -> Menus:
         """
         Return the definitive copy of the Menus collection
         """
         return self._menus
 
-    def serialize(self):
+    def serialize(self) -> None:
         """
         Save all cobbler_collections to disk
         """
@@ -139,16 +145,16 @@ class CollectionManager:
         self.__serializer.serialize(self._files)
         self.__serializer.serialize(self._menus)
 
-    def serialize_one_item(self, item):
+    def serialize_one_item(self, item: "ITEM") -> None:  # type: ignore
         """
         Save a collection item to disk
 
         :param item: collection item
         """
-        collection = self.get_items(item.COLLECTION_TYPE)
+        collection: "Collection[ITEM]" = self.get_items(item.COLLECTION_TYPE)  # type: ignore
         self.__serializer.serialize_item(collection, item)
 
-    def serialize_item(self, collection, item):
+    def serialize_item(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         """
         Save a collection item to disk
 
@@ -160,16 +166,16 @@ class CollectionManager:
         """
         self.__serializer.serialize_item(collection, item)
 
-    def serialize_delete_one_item(self, item):
+    def serialize_delete_one_item(self, item: "ITEM") -> None:  # type: ignore
         """
         Save a collection item to disk
 
         :param item: collection item
         """
-        collection = self.get_items(item.COLLECTION_TYPE)
-        self.__serializer.serialize_delete(collection, item)
+        collection: "COLLECTION_UNION" = self.get_items(item.COLLECTION_TYPE)  # type: ignore
+        self.__serializer.serialize_delete(collection, item)  # type: ignore
 
-    def serialize_delete(self, collection, item):
+    def serialize_delete(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         """
         Delete a collection item from disk
 
@@ -178,12 +184,13 @@ class CollectionManager:
         """
         self.__serializer.serialize_delete(collection, item)
 
-    def deserialize(self):
+    def deserialize(self) -> None:
         """
         Load all cobbler_collections from disk
 
         :raises CX: if there is an error in deserialization
         """
+        collection: "COLLECTION_UNION"
         for collection in (
             self._menus,
             self._distros,
@@ -196,14 +203,14 @@ class CollectionManager:
             self._files,
         ):
             try:
-                self.__serializer.deserialize(collection)
+                self.__serializer.deserialize(collection)  # type: ignore
             except Exception as error:
                 raise CX(
                     f"serializer: error loading collection {collection.collection_type()}: {error}."
                     f"Check your settings!"
                 ) from error
 
-    def deserialize_one_item(self, obj: Item) -> dict:
+    def deserialize_one_item(self, obj: Item) -> Dict[str, Any]:
         """
         Load a collection item from disk
 
@@ -224,7 +231,7 @@ class CollectionManager:
         Packages,
         Files,
         Menus,
-        Settings,
+        "Settings",
     ]:
         """
         Get a full collection of a single type.
@@ -246,7 +253,7 @@ class CollectionManager:
             Packages,
             Files,
             Menus,
-            Settings,
+            "Settings",
         ]
         if validate.validate_obj_type(collection_type) and hasattr(
             self, f"_{collection_type}s"
@@ -254,8 +261,6 @@ class CollectionManager:
             result = getattr(self, f"_{collection_type}s")
         elif collection_type == "mgmtclass":
             result = self._mgmtclasses
-        elif collection_type == "settings":
-            result = self.api.settings()
         else:
             raise CX(
                 f'internal error, collection name "{collection_type}" not supported'

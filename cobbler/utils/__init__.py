@@ -20,14 +20,30 @@ import urllib.parse
 import urllib.request
 from functools import reduce
 from pathlib import Path
-from typing import List, Optional, Pattern, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Hashable,
+    List,
+    Optional,
+    Pattern,
+    Tuple,
+    Union,
+)
 
 import distro
-import netaddr
+from netaddr.ip import IPAddress, IPNetwork
 
 from cobbler import enums, settings
 from cobbler.cexceptions import CX
-from cobbler.utils import mtab, process_management
+from cobbler.utils import process_management
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.cobbler_collections.collection import ITEM, ITEM_UNION
+    from cobbler.items.item import Item
+    from cobbler.settings import Settings
 
 CHEETAH_ERROR_DISCLAIMER = """
 # *** ERROR ***
@@ -53,12 +69,12 @@ re_kernel = re.compile(
 re_initrd = re.compile(r"(initrd(.*)\.img|ramdisk\.image\.gz|boot\.sdi|imgpayld\.tgz)")
 
 
-# all logging from utils.die goes to the main log even if there
-# is another log.
-logger = logging.getLogger()
+# all logging from utils.die goes to the main log even if there is another log.
+# logging.getLogger is not annotated fully according to pylance.
+logger = logging.getLogger()  # type: ignore
 
 
-def die(msg: str):
+def die(msg: str) -> None:
     """
     This method let's Cobbler crash with an exception. Log the exception once in the per-task log or the main log if
     this is not a background op.
@@ -77,7 +93,7 @@ def die(msg: str):
     raise CX(msg)
 
 
-def log_exc():
+def log_exc() -> None:
     """
     Log an exception.
     """
@@ -90,7 +106,7 @@ def log_exc():
     )
 
 
-def get_exc(exc, full: bool = True):
+def get_exc(exc: Exception, full: bool = True) -> str:
     """
     This tries to analyze if an exception comes from Cobbler and potentially enriches or shortens the exception.
 
@@ -112,7 +128,7 @@ def get_exc(exc, full: bool = True):
     return buf
 
 
-def cheetah_exc(exc) -> str:
+def cheetah_exc(exc: Exception) -> str:
     """
     Converts an exception thrown by Cheetah3 into a custom error message.
 
@@ -126,7 +142,7 @@ def cheetah_exc(exc) -> str:
     return CHEETAH_ERROR_DISCLAIMER + buf
 
 
-def pretty_hex(ip_address, length=8) -> str:
+def pretty_hex(ip_address: IPAddress, length: int = 8) -> str:
     """
     Pads an IP object with leading zeroes so that the result is _length_ hex digits.  Also do an upper().
 
@@ -140,7 +156,7 @@ def pretty_hex(ip_address, length=8) -> str:
     return hexval.upper()
 
 
-def get_host_ip(ip_address, shorten=True) -> str:
+def get_host_ip(ip_address: str, shorten: bool = True) -> str:
     """
     Return the IP encoding needed for the TFTP boot tree.
 
@@ -148,11 +164,11 @@ def get_host_ip(ip_address, shorten=True) -> str:
     :param shorten: Whether the IP-Address should be shortened or not.
     :return: The IP encoded as a hexadecimal value.
     """
-    ip_address = netaddr.ip.IPAddress(ip_address)
-    cidr = netaddr.ip.IPNetwork(ip_address)
+    ip_address_obj = IPAddress(ip_address)
+    cidr = IPNetwork(ip_address)
 
     if len(cidr) == 1:  # Just an IP, e.g. a /32
-        return pretty_hex(ip_address)
+        return pretty_hex(ip_address_obj)
 
     pretty = pretty_hex(cidr[0])
     if not shorten or len(cidr) <= 8:
@@ -163,16 +179,15 @@ def get_host_ip(ip_address, shorten=True) -> str:
     return pretty[0:-cutoff]
 
 
-def _IP(ip_address):
+def _IP(ip_address: Union[str, IPAddress]) -> IPAddress:
     """
     Returns a netaddr.IP object representing an ip.
     If ip is already an netaddr.IP instance just return it.
     Else return a new instance
     """
-    ip_class = netaddr.ip.IPAddress
-    if isinstance(ip_address, ip_class) or ip_address == "":
+    if isinstance(ip_address, IPAddress):
         return ip_address
-    return ip_class(ip_address)
+    return IPAddress(ip_address)
 
 
 def is_ip(strdata: str) -> bool:
@@ -188,7 +203,7 @@ def is_ip(strdata: str) -> bool:
     return True
 
 
-def get_random_mac(api_handle, virt_type="xenpv") -> str:
+def get_random_mac(api_handle: "CobblerAPI", virt_type: str = "xenpv") -> str:
     """
     Generate a random MAC address.
 
@@ -224,15 +239,15 @@ def get_random_mac(api_handle, virt_type="xenpv") -> str:
     else:
         raise CX("virt mac assignment not yet supported")
 
-    mac = ":".join([f"{x:02x}" for x in mac])
+    result = ":".join([f"{x:02x}" for x in mac])
     systems = api_handle.systems()
     while systems.find(mac_address=mac):
-        mac = get_random_mac(api_handle)
+        result = get_random_mac(api_handle)
 
-    return mac
+    return result
 
 
-def find_matching_files(directory: str, regex: Pattern[str]) -> list:
+def find_matching_files(directory: str, regex: Pattern[str]) -> List[str]:
     """
     Find all files in a given directory that match a given regex. Can't use glob directly as glob doesn't take regexen.
     The search does not include subdirectories.
@@ -242,7 +257,7 @@ def find_matching_files(directory: str, regex: Pattern[str]) -> list:
     :return: An array of files which apply to the regex.
     """
     files = glob.glob(os.path.join(directory, "*"))
-    results = []
+    results: List[str] = []
     for file in files:
         if regex.match(os.path.basename(file)):
             results.append(file)
@@ -262,12 +277,16 @@ def find_highest_files(directory: str, unversioned: str, regex: Pattern[str]) ->
     files = find_matching_files(directory, regex)
     get_numbers = re.compile(r"(\d+).(\d+).(\d+)")
 
-    def max2(first, second):
+    def max2(first: str, second: str) -> str:
         """
         Returns the larger of the two values
         """
-        first_value = get_numbers.search(os.path.basename(first)).groups()
-        second_value = get_numbers.search(os.path.basename(second)).groups()
+        first_match = get_numbers.search(os.path.basename(first))
+        second_match = get_numbers.search(os.path.basename(second))
+        if not (first_match and second_match):
+            raise ValueError("Could not detect version numbers correctly!")
+        first_value = first_match.groups()
+        second_value = second_match.groups()
 
         if first_value > second_value:
             return first
@@ -290,7 +309,7 @@ def find_kernel(path: str) -> str:
     :param path: The path to check for a kernel.
     :return: path if at the specified location a possible match for a kernel was found, otherwise an empty string.
     """
-    if not isinstance(path, str):
+    if not isinstance(path, str):  # type: ignore
         raise TypeError("path must be of type str!")
 
     if os.path.isfile(path):
@@ -305,7 +324,7 @@ def find_kernel(path: str) -> str:
     return ""
 
 
-def remove_yum_olddata(path: os.PathLike):
+def remove_yum_olddata(path: Union[str, "os.PathLike[str]"]) -> None:
     """
     Delete .olddata folders that might be present from a failed run of createrepo.
 
@@ -354,7 +373,9 @@ def find_initrd(path: str) -> Optional[str]:
     return None
 
 
-def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
+def read_file_contents(
+    file_location: str, fetch_if_remote: bool = False
+) -> Optional[str]:
     """
     Reads the contents of a file, which could be referenced locally or as a URI.
 
@@ -394,8 +415,10 @@ def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
             logger.warning("File does not exist: %s", file_location)
             raise FileNotFoundError(f"File not found: {file_location}") from error
 
+    return None
 
-def remote_file_exists(file_url) -> bool:
+
+def remote_file_exists(file_url: str) -> bool:
     """
     Return True if the remote file exists.
 
@@ -411,7 +434,7 @@ def remote_file_exists(file_url) -> bool:
         return False
 
 
-def file_is_remote(file_location) -> bool:
+def file_is_remote(file_location: str) -> bool:
     """
     Returns true if the file is remote and referenced via a protocol we support.
 
@@ -426,7 +449,9 @@ def file_is_remote(file_location) -> bool:
     return False
 
 
-def blender(api_handle, remove_dicts: bool, root_obj):
+def blender(
+    api_handle: "CobblerAPI", remove_dicts: bool, root_obj: "ITEM_UNION"  # type: ignore
+) -> Dict[str, Any]:
     """
     Combine all of the data in an object tree from the perspective of that point on the tree, and produce a merged
     dictionary containing consolidated data.
@@ -438,7 +463,7 @@ def blender(api_handle, remove_dicts: bool, root_obj):
     """
     tree = root_obj.grab_tree()
     tree.reverse()  # start with top of tree, override going down
-    results = {}
+    results: Dict[str, Any] = {}
     for node in tree:
         __consolidate(node, results)
 
@@ -446,17 +471,17 @@ def blender(api_handle, remove_dicts: bool, root_obj):
     # EXAMPLE: $ip == $ip0, $ip1, $ip2 and so on.
 
     if root_obj.COLLECTION_TYPE == "system":
-        for (name, interface) in list(root_obj.interfaces.items()):
+        for (name, interface) in list(root_obj.interfaces.items()):  # type: ignore
             intf_dict = interface.to_dict()
             for key in intf_dict:
                 results[f"{key}_{name}"] = intf_dict[key]
 
     # If the root object is a profile or system, add in all repo data for repos that belong to the object chain
     if root_obj.COLLECTION_TYPE in ("profile", "system"):
-        repo_data = []
+        repo_data: List[Dict[Any, Any]] = []
         for repo in results.get("repos", []):
             repo = api_handle.find_repo(name=repo)
-            if repo:
+            if repo and not isinstance(repo, list):
                 repo_data.append(repo.to_dict())
         # Sorting is courtesy of https://stackoverflow.com/a/73050/4730773
         results["repo_data"] = sorted(
@@ -478,17 +503,19 @@ def blender(api_handle, remove_dicts: bool, root_obj):
         results["children"] = {}
         # logger.info("Children: %s", child_names)
         for key in child_names:
-            child = api_handle.find_items("", name=key, return_list=False)
-            if child is None:
-                logger.error(
-                    f'Child with the name "{key}" did not exist! This child is referenced in consolidated object "{root_obj.name}".'
+            # We use return_list=False, thus this is only Optional[ITEM]
+            child = api_handle.find_items("", name=key, return_list=False)  # type: ignore
+            if child is None or isinstance(child, list):
+                raise ValueError(
+                    f'Child with the name "{key}" of parent object "{root_obj.name}" did not exist!'
                 )
                 continue
             results["children"][key] = child.to_dict()
 
     # sanitize output for koan and kernel option lines, etc
     if remove_dicts:
-        results = flatten(results)
+        # We know we pass a dict, thus we will always get the right type!
+        results = flatten(results)  # type: ignore
 
     # Add in some variables for easier templating as these variables change based on object type.
     if "interfaces" in results:
@@ -515,7 +542,7 @@ def blender(api_handle, remove_dicts: bool, root_obj):
     return results
 
 
-def flatten(data: dict) -> Optional[dict]:
+def flatten(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     Convert certain nested dicts to strings. This is only really done for the ones koan needs as strings this should
     not be done for everything
@@ -524,7 +551,7 @@ def flatten(data: dict) -> Optional[dict]:
     :return: None (if data is None) or the flattened string.
     """
 
-    if data is None or not isinstance(data, dict):
+    if data is None or not isinstance(data, dict):  # type: ignore
         return None
     if "environment" in data:
         data["environment"] = dict_to_string(data["environment"])
@@ -543,16 +570,16 @@ def flatten(data: dict) -> Optional[dict]:
     if "fetchable_files" in data:
         data["fetchable_files"] = dict_to_string(data["fetchable_files"])
     if "repos" in data and isinstance(data["repos"], list):
-        data["repos"] = " ".join(data["repos"])
+        data["repos"] = " ".join(data["repos"])  # type: ignore
     if "rpm_list" in data and isinstance(data["rpm_list"], list):
-        data["rpm_list"] = " ".join(data["rpm_list"])
+        data["rpm_list"] = " ".join(data["rpm_list"])  # type: ignore
 
     # Note -- we do not need to flatten "interfaces" as koan does not expect it to be a string, nor do we use it on a
     # kernel options line, etc...
     return data
 
 
-def uniquify(seq: list) -> list:
+def uniquify(seq: List[Any]) -> List[Any]:
     """
     Remove duplicates from the sequence handed over in the args.
 
@@ -564,7 +591,7 @@ def uniquify(seq: list) -> list:
     # FIXME: if this is actually slower than some other way, overhaul it
     # For above there is a better version: https://www.peterbe.com/plog/fastest-way-to-uniquify-a-list-in-python-3.6
     seen = {}
-    result = []
+    result: List[Any] = []
     for item in seq:
         if item in seen:
             continue
@@ -573,7 +600,7 @@ def uniquify(seq: list) -> list:
     return result
 
 
-def __consolidate(node, results: dict) -> dict:
+def __consolidate(node: Union["ITEM", "Settings"], results: Dict[Any, Any]) -> Dict[Any, Any]:  # type: ignore
     """
     Merge data from a given node with the aggregate of all data from past scanned nodes. Dictionaries and arrays are
     treated specially.
@@ -585,7 +612,7 @@ def __consolidate(node, results: dict) -> dict:
 
     # If the node has any data items labelled <<inherit>> we need to expunge them. So that they do not override the
     # supernodes.
-    node_data_copy = {}
+    node_data_copy: Dict[Any, Any] = {}
     for key in node_data:
         value = node_data[key]
         if value == enums.VALUE_INHERITED:
@@ -639,7 +666,7 @@ def __consolidate(node, results: dict) -> dict:
     return results
 
 
-def dict_removals(results: dict, subkey: str):
+def dict_removals(results: Dict[Any, Any], subkey: str) -> None:
     """
     Remove entries from a dictionary starting with a "!".
 
@@ -651,7 +678,7 @@ def dict_removals(results: dict, subkey: str):
     return dict_annihilate(results[subkey])
 
 
-def dict_annihilate(dictionary: dict):
+def dict_annihilate(dictionary: Dict[Any, Any]) -> None:
     """
     Annihilate entries marked for removal. This method removes all entries with
     key names starting with "!". If a ``dictionary`` contains keys "!xxx" and
@@ -667,7 +694,7 @@ def dict_annihilate(dictionary: dict):
             del dictionary[key]
 
 
-def dict_to_string(_dict: dict) -> Union[str, dict]:
+def dict_to_string(_dict: Dict[Any, Any]) -> Union[str, Dict[Any, Any]]:
     """
     Convert a dictionary to a printable string. Used primarily in the kernel options string and for some legacy stuff
     where koan expects strings (though this last part should be changed to dictionaries)
@@ -679,7 +706,7 @@ def dict_to_string(_dict: dict) -> Union[str, dict]:
     """
 
     buffer = ""
-    if not isinstance(_dict, dict):
+    if not isinstance(_dict, dict):  # type: ignore
         return _dict
     for key in _dict:
         value = _dict[key]
@@ -688,6 +715,7 @@ def dict_to_string(_dict: dict) -> Union[str, dict]:
         elif isinstance(value, list):
             # this value is an array, so we print out every
             # key=value
+            item: Any
             for item in value:
                 # strip possible leading and trailing whitespaces
                 _item = str(item).strip()
@@ -748,7 +776,12 @@ def rsync_files(src: str, dst: str, args: str, quiet: bool = True) -> bool:
     return True
 
 
-def run_triggers(api, ref=None, globber: str = "", additional: Optional[list] = None):
+def run_triggers(
+    api: "CobblerAPI",
+    ref: Optional["Item"] = None,
+    globber: str = "",
+    additional: Optional[List[Any]] = None,
+) -> None:
     """Runs all the trigger scripts in a given directory.
     Example: ``/var/lib/cobbler/triggers/blah/*``
 
@@ -768,7 +801,7 @@ def run_triggers(api, ref=None, globber: str = "", additional: Optional[list] = 
     if additional is None:
         additional = []
     for module in modules:
-        arglist = []
+        arglist: List[str] = []
         if ref:
             arglist.append(ref.name)
         for argument in additional:
@@ -846,7 +879,7 @@ def get_family() -> str:
     return distro_name
 
 
-def os_release():
+def os_release() -> Tuple[str, float]:
     """
     Get the os version of the linux distro. If the get_family() method succeeds then the result is normalized.
 
@@ -855,6 +888,7 @@ def os_release():
     family = get_family()
     distro_name = distro.name().lower()
     distro_version = distro.version()
+    make = "unknown"
     if family == "redhat":
         if "fedora" in distro_name:
             make = "fedora"
@@ -886,6 +920,8 @@ def os_release():
             make = "unknown"
         return make, float(distro_version)
 
+    return make, 0.0
+
 
 def is_selinux_enabled() -> bool:
     """
@@ -912,7 +948,9 @@ def command_existing(cmd: str) -> bool:
     return shutil.which(cmd) is not None
 
 
-def subprocess_sp(cmd, shell: bool = True, process_input=None):
+def subprocess_sp(
+    cmd: Union[str, List[str]], shell: bool = True, process_input: Any = None
+) -> Tuple[str, int]:
     """
     Call a shell process and redirect the output for internal usage.
 
@@ -939,16 +977,20 @@ def subprocess_sp(cmd, shell: bool = True, process_input=None):
         ) as subprocess_popen_obj:
             (out, err) = subprocess_popen_obj.communicate(process_input)
             return_code = subprocess_popen_obj.returncode
-    except OSError:
+    except OSError as os_error:
         log_exc()
-        die(f"OS Error, command not found?  While running: {cmd}")
+        raise ValueError(
+            f"OS Error, command not found?  While running: {cmd}"
+        ) from os_error
 
     logger.info("received on stdout: %s", out)
     logger.debug("received on stderr: %s", err)
     return out, return_code
 
 
-def subprocess_call(cmd, shell: bool = False, process_input=None):
+def subprocess_call(
+    cmd: Union[str, List[str]], shell: bool = False, process_input: Any = None
+) -> int:
     """
     A simple subprocess call with no output capturing.
 
@@ -961,7 +1003,9 @@ def subprocess_call(cmd, shell: bool = False, process_input=None):
     return return_code
 
 
-def subprocess_get(cmd, shell: bool = True, process_input=None):
+def subprocess_get(
+    cmd: Union[str, List[str]], shell: bool = True, process_input: Any = None
+) -> str:
     """
     A simple subprocess call with no return code capturing.
 
@@ -1033,7 +1077,10 @@ def local_get_cobbler_xmlrpc_url() -> str:
     return f"http://127.0.0.1:{data.get('xmlrpc_port', '25151')}"
 
 
-def strip_none(data, omit_none: bool = False):
+def strip_none(
+    data: Optional[Union[List[Any], Dict[Any, Any], int, str, float]],
+    omit_none: bool = False,
+) -> Union[List[Any], Dict[Any, Any], int, str, float]:
     """
     Remove "None" entries from datastructures. Used prior to communicating with XMLRPC.
 
@@ -1046,7 +1093,7 @@ def strip_none(data, omit_none: bool = False):
         data = "~"
 
     elif isinstance(data, list):
-        data2 = []
+        data2: List[Any] = []
         for element in data:
             if omit_none and element is None:
                 pass
@@ -1055,18 +1102,20 @@ def strip_none(data, omit_none: bool = False):
         return data2
 
     elif isinstance(data, dict):
-        data2 = {}
+        data3: Dict[Any, Any] = {}
         for key in list(data.keys()):
             if omit_none and data[key] is None:
                 pass
             else:
-                data2[str(key)] = strip_none(data[key])
-        return data2
+                data3[str(key)] = strip_none(data[key])
+        return data3
 
     return data
 
 
-def revert_strip_none(data):
+def revert_strip_none(
+    data: Union[str, int, float, bool, List[Any], Dict[Any, Any]]
+) -> Optional[Union[str, int, float, bool, List[Any], Dict[Any, Any]]]:
     """
     Does the opposite to strip_none. If a value which represents None is detected, it replaces it with None.
 
@@ -1077,21 +1126,21 @@ def revert_strip_none(data):
         return None
 
     if isinstance(data, list):
-        data2 = []
+        data2: List[Any] = []
         for element in data:
             data2.append(revert_strip_none(element))
         return data2
 
     if isinstance(data, dict):
-        data2 = {}
-        for key in list(data.keys()):
-            data2[key] = revert_strip_none(data[key])
-        return data2
+        data3: Dict[Any, Any] = {}
+        for key in data.keys():
+            data3[key] = revert_strip_none(data[key])
+        return data3
 
     return data
 
 
-def lod_to_dod(_list: list, indexkey) -> dict:
+def lod_to_dod(_list: List[Any], indexkey: Hashable) -> Dict[Any, Any]:
     r"""
     Things like ``get_distros()`` returns a list of a dictionaries. Convert this to a dict of dicts keyed off of an
     arbitrary field.
@@ -1102,13 +1151,13 @@ def lod_to_dod(_list: list, indexkey) -> dict:
     :param indexkey: The position to use as dictionary keys.
     :return: The converted dictionary. It is not guaranteed that the same key is not used multiple times.
     """
-    results = {}
+    results: Dict[Any, Any] = {}
     for item in _list:
         results[item[indexkey]] = item
     return results
 
 
-def lod_sort_by_key(list_to_sort: list, indexkey) -> list:
+def lod_sort_by_key(list_to_sort: List[Any], indexkey: Hashable) -> List[Any]:
     """
     Sorts a list of dictionaries by a given key in the dictionaries.
 
@@ -1209,18 +1258,18 @@ def compare_versions_gt(ver1: str, ver2: str) -> bool:
     :return: True if ver1 is greater, otherwise False.
     """
 
-    def versiontuple(version):
+    def versiontuple(version: str) -> Tuple[int, ...]:
         return tuple(map(int, (version.split("."))))
 
     return versiontuple(ver1) > versiontuple(ver2)
 
 
 def kopts_overwrite(
-    kopts: dict,
+    kopts: Dict[Any, Any],
     cobbler_server_hostname: str = "",
     distro_breed: str = "",
     system_name: str = "",
-):
+) -> None:
     """
     SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
 
@@ -1230,13 +1279,13 @@ def kopts_overwrite(
     :param system_name: The system to overwrite the kopts for.
     """
     # Type checks
-    if not isinstance(kopts, dict):
+    if not isinstance(kopts, dict):  # type: ignore
         raise TypeError("kopts needs to be of type dict")
-    if not isinstance(cobbler_server_hostname, str):
+    if not isinstance(cobbler_server_hostname, str):  # type: ignore
         raise TypeError("cobbler_server_hostname needs to be of type str")
-    if not isinstance(distro_breed, str):
+    if not isinstance(distro_breed, str):  # type: ignore
         raise TypeError("distro_breed needs to be of type str")
-    if not isinstance(system_name, str):
+    if not isinstance(system_name, str):  # type: ignore
         raise TypeError("system_name needs to be of type str")
     # Function logic
     if distro_breed == "suse":
@@ -1260,7 +1309,7 @@ def is_str_int(value: str) -> bool:
     :param value: The value to check
     :return: True if conversion is successful
     """
-    if not isinstance(value, str):
+    if not isinstance(value, str):  # type: ignore
         raise TypeError("value needs to be of type string")
     try:
         converted = int(value)
@@ -1278,7 +1327,7 @@ def is_str_float(value: str) -> bool:
     :param value: The value to check
     :return: True if conversion is successful
     """
-    if not isinstance(value, str):
+    if not isinstance(value, str):  # type: ignore
         raise TypeError("value needs to be of type string")
     if is_str_int(value):
         return True

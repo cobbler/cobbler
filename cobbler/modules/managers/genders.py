@@ -8,8 +8,13 @@ import logging
 import os
 import sys
 import time
+from typing import TYPE_CHECKING, Any, Dict, Union
 
 from cobbler.templar import Templar
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path = f"{plib}/cobbler"
@@ -29,7 +34,12 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/change/*"
 
 
-def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_genders):
+def write_genders_file(
+    config: "CobblerAPI",
+    profiles_genders: Dict[str, str],
+    distros_genders: Dict[str, str],
+    mgmtcls_genders: Dict[str, str],
+):
     """
     Genders file is over-written when ``manage_genders`` is set in our settings.
 
@@ -45,7 +55,7 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
     except Exception as error:
         raise OSError(f"error reading template: {TEMPLATE_FILE}") from error
 
-    metadata = {
+    metadata: Dict[str, Union[str, Dict[str, str]]] = {
         "date": time.asctime(time.gmtime()),
         "profiles_genders": profiles_genders,
         "distros_genders": distros_genders,
@@ -56,7 +66,7 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
     templar_inst.render(template_data, metadata, SETTINGS_FILE)
 
 
-def run(api, args) -> int:
+def run(api: "CobblerAPI", args: Any) -> int:
     """
     Mandatory Cobbler trigger hook.
 
@@ -68,9 +78,9 @@ def run(api, args) -> int:
     if not api.settings().manage_genders:
         return 0
 
-    profiles_genders = {}
-    distros_genders = {}
-    mgmtcls_genders = {}
+    profiles_genders: Dict[str, str] = {}
+    distros_genders: Dict[str, str] = {}
+    mgmtcls_genders: Dict[str, str] = {}
 
     # let's populate our dicts
 
@@ -82,7 +92,10 @@ def run(api, args) -> int:
     for prof in api.profiles():
         # create the key
         profiles_genders[prof.name] = ""
-        for system in api.find_system(profile=prof.name, return_list=True):
+        my_systems = api.find_system(profile=prof.name, return_list=True)
+        if my_systems is None or not isinstance(my_systems, list):
+            raise ValueError("Search error!")
+        for system in my_systems:
             profiles_genders[prof.name] += system.name + ","
         # remove a trailing comma
         profiles_genders[prof.name] = profiles_genders[prof.name][:-1]
@@ -93,7 +106,10 @@ def run(api, args) -> int:
     for dist in api.distros():
         # create the key
         distros_genders[dist.name] = ""
-        for system in api.find_system(distro=dist.name, return_list=True):
+        my_systems = api.find_system(distro=dist.name, return_list=True)
+        if my_systems is None or not isinstance(my_systems, list):
+            raise ValueError("Search error!")
+        for system in my_systems:
             distros_genders[dist.name] += system.name + ","
         # remove a trailing comma
         distros_genders[dist.name] = distros_genders[dist.name][:-1]
@@ -104,7 +120,10 @@ def run(api, args) -> int:
     for mgmtcls in api.mgmtclasses():
         # create the key
         mgmtcls_genders[mgmtcls.name] = ""
-        for system in api.find_system(mgmt_classes=mgmtcls.name, return_list=True):
+        my_systems = api.find_system(mgmt_classes=mgmtcls.name, return_list=True)
+        if my_systems is None or not isinstance(my_systems, list):
+            raise ValueError("Search error!")
+        for system in my_systems:
             mgmtcls_genders[mgmtcls.name] += system.name + ","
         # remove a trailing comma
         mgmtcls_genders[mgmtcls.name] = mgmtcls_genders[mgmtcls.name][:-1]

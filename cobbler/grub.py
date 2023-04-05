@@ -5,7 +5,7 @@ Module that contains GRUB related helper functionality.
 import logging
 from typing import Optional
 
-import netaddr
+import netaddr  # type: ignore
 
 
 def parse_grub_remote_file(file_location: str) -> Optional[str]:
@@ -17,7 +17,7 @@ def parse_grub_remote_file(file_location: str) -> Optional[str]:
     :raises TypeError: In case file_location is not of type ``str``.
     :raises ValueError: In case the file location does not contain a valid IPv4 or IPv6 address
     """
-    if not isinstance(file_location, str):
+    if not isinstance(file_location, str):  # type: ignore
         raise TypeError('"file_location" should be of type "str"')
     if file_location.startswith("ftp://"):
         logging.warning(

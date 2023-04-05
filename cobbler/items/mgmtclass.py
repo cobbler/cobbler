@@ -24,7 +24,7 @@ class Mgmtclass(item.Item):
     TYPE_NAME = "mgmtclass"
     COLLECTION_TYPE = "mgmtclass"
 
-    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any) -> None:
         """
         Constructor.
 
@@ -49,7 +49,7 @@ class Mgmtclass(item.Item):
     # override some base class methods first (item.Item)
     #
 
-    def make_clone(self):
+    def make_clone(self) -> "Mgmtclass":
         """
         Clone this file object. Please manually adjust all value yourself to make the cloned object unique.
 
@@ -75,13 +75,13 @@ class Mgmtclass(item.Item):
         return self._packages
 
     @packages.setter
-    def packages(self, packages: List[str]):
+    def packages(self, packages: List[str]) -> None:
         """
         Setter for the packages of the management class.
 
         :param packages: A string or list which contains the new packages.
         """
-        self._packages = input_converters.input_string_or_list(packages)
+        self._packages = input_converters.input_string_or_list_no_inherit(packages)
 
     @LazyProperty
     def files(self) -> List[str]:
@@ -94,13 +94,13 @@ class Mgmtclass(item.Item):
         return self._files
 
     @files.setter
-    def files(self, files: Union[str, List[str]]):
+    def files(self, files: Union[str, List[str]]) -> None:
         """
         Setter for the files of the object.
 
         :param files: A string or list which contains the new files.
         """
-        self._files = input_converters.input_string_or_list(files)
+        self._files = input_converters.input_string_or_list_no_inherit(files)
 
     @LazyProperty
     def params(self) -> Dict[str, Any]:
@@ -113,7 +113,7 @@ class Mgmtclass(item.Item):
         return self._params
 
     @params.setter
-    def params(self, params: Dict[str, Any]):
+    def params(self, params: Dict[str, Any]) -> None:
         """
         Setter for the params of the management class.
 
@@ -121,7 +121,7 @@ class Mgmtclass(item.Item):
         :raises TypeError: Raised in case ``params`` is invalid.
         """
         try:
-            self._params = input_converters.input_string_or_dict(
+            self._params = input_converters.input_string_or_dict_no_inherit(
                 params, allow_multiples=True
             )
         except TypeError as error:
@@ -138,7 +138,7 @@ class Mgmtclass(item.Item):
         return self._is_definition
 
     @is_definition.setter
-    def is_definition(self, isdef: bool):
+    def is_definition(self, isdef: bool) -> None:
         """
         Setter for property ``is_defintion``.
 
@@ -146,7 +146,7 @@ class Mgmtclass(item.Item):
         :raises TypeError: Raised in case ``isdef`` is not a boolean.
         """
         isdef = input_converters.input_boolean(isdef)
-        if not isinstance(isdef, bool):
+        if not isinstance(isdef, bool):  # type: ignore
             raise TypeError("Field is_defintion from mgmtclass must be of type bool.")
         self._is_definition = isdef
 
@@ -161,7 +161,7 @@ class Mgmtclass(item.Item):
         return self._class_name
 
     @class_name.setter
-    def class_name(self, name: str):
+    def class_name(self, name: str) -> None:
         """
         Setter for the name of the management class.
 
@@ -169,7 +169,7 @@ class Mgmtclass(item.Item):
         :raises TypeError: Raised in case ``name`` is not a string.
         :raises ValueError: Raised in case ``name`` contains invalid characters.
         """
-        if not isinstance(name, str):
+        if not isinstance(name, str):  # type: ignore
             raise TypeError("class name must be a string")
         for letter in name:
             if not letter.isalnum() and letter not in ["_", "-", ".", ":", "+"]:

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Repos(collection.Collection):
+class Repos(collection.Collection[repo.Repo]):
     """
     Repositories in Cobbler are way to create a local mirror of a yum repository.
     When used in conjunction with a mirrored distro tree (see "cobbler import"),
@@ -60,8 +60,13 @@ class Repos(collection.Collection):
         # NOTE: with_delete isn't currently meaningful for repos
         # but is left in for consistancy in the API.  Unused.
         obj = self.find(name=name)
+
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")
+
+        if isinstance(obj, list):
+            # Will never happen, but we want to make mypy happy.
+            raise CX("Ambiguous match detected!")
 
         if with_delete:
             if with_triggers:

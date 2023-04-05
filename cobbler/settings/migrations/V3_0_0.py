@@ -9,8 +9,9 @@ import glob
 import json
 import os
 import shutil
+from typing import Any, Dict, List
 
-from schema import Optional, Or, Schema, SchemaError
+from schema import Optional, Or, Schema, SchemaError  # type: ignore
 
 from cobbler.settings.migrations import V2_8_5, helper
 
@@ -140,12 +141,12 @@ schema = Schema(
         "yum_distro_priority": int,
         "yum_post_install_mirror": int,
         "yumdownloader_flags": str,
-    },
+    },  # type: ignore
     ignore_extra_keys=False,
 )
 
 
-def validate(settings: dict) -> bool:
+def validate(settings: Dict[str, Any]) -> bool:
     """
     Checks that a given settings dict is valid according to the reference schema ``schema``.
 
@@ -153,23 +154,24 @@ def validate(settings: dict) -> bool:
     :return: True if valid settings dict otherwise False.
     """
     try:
-        schema.validate(settings)
+        schema.validate(settings)  # type: ignore
     except SchemaError:
         return False
     return True
 
 
-def normalize(settings: dict) -> dict:
+def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
     If data in ``settings`` is valid the validated data is returned.
 
     :param settings: The settings dict to validate.
     :return: The validated dict.
     """
-    return schema.validate(settings)
+    # We are aware of our schema and thus can safely ignore this.
+    return schema.validate(settings)  # type: ignore
 
 
-def migrate(settings: dict) -> dict:
+def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
     Migration of the settings ``settings`` to the V3.0.0 settings
 
@@ -228,7 +230,7 @@ def migrate(settings: dict) -> dict:
         helper.key_delete(key, settings)
 
     # START: migrate-data-v2-to-v3
-    def serialize_item(collection, item):
+    def serialize_item(collection: str, item: Dict[str, Any]) -> None:
         """
         Save a collection item to file system
 
@@ -249,7 +251,7 @@ def migrate(settings: dict) -> dict:
             data = json.dumps(item, sort_keys=sort_keys, indent=indent)
             item_fd.write(data)
 
-    def deserialize_raw_old(collection_types):
+    def deserialize_raw_old(collection_types: str) -> List[Dict[str, Any]]:
         results = []
         all_files = glob.glob(f"/var/lib/cobbler/config/{collection_types}/*")
 
@@ -257,17 +259,17 @@ def migrate(settings: dict) -> dict:
             with open(file, encoding="UTF-8") as item_fd:
                 json_data = item_fd.read()
                 _dict = json.loads(json_data)
-                results.append(_dict)
-        return results
+                results.append(_dict)  # type: ignore
+        return results  # type: ignore
 
-    def substitute_paths(value):
+    def substitute_paths(value: Any) -> Any:
         if isinstance(value, list):
-            value = [substitute_paths(x) for x in value]
+            value = [substitute_paths(x) for x in value]  # type: ignore
         elif isinstance(value, str):
             value = value.replace("/ks_mirror/", "/distro_mirror/")
         return value
 
-    def transform_key(key, value):
+    def transform_key(key: str, value: Any) -> Any:
         if key in transform:
             ret_value = transform[key](value)
         else:

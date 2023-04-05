@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Systems(collection.Collection):
+class Systems(collection.Collection[system.System]):
     """
     Systems are hostnames/MACs/IP names and the associated profile
     they belong to.
@@ -50,7 +50,7 @@ class Systems(collection.Collection):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = False,
-    ):
+    ) -> None:
         """
         Remove element named 'name' from the collection
 
@@ -60,6 +60,10 @@ class Systems(collection.Collection):
 
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")
+
+        if isinstance(obj, list):
+            # Will never happen, but we want to make mypy happy.
+            raise CX("Ambiguous match detected!")
 
         if with_delete:
             if with_triggers:

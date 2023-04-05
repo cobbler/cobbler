@@ -7,8 +7,12 @@ Cobbler Module Trigger that will mark a system as installed in ``cobbler status`
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import time
+from typing import TYPE_CHECKING, List
 
 from cobbler import validate
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 def register() -> str:
@@ -20,7 +24,7 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/install/post/*"
 
 
-def run(api, args) -> int:
+def run(api: "CobblerAPI", args: List[str]) -> int:
     """
     The method runs the trigger, meaning this logs that an installation has ended.
 

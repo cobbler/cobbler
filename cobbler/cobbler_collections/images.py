@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Images(collection.Collection):
+class Images(collection.Collection[image.Image]):
     """
     A image instance represents a ISO or virt image we want to track
     and repeatedly install.  It differs from a answer-file based installation.
@@ -48,7 +48,7 @@ class Images(collection.Collection):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = True,
-    ):
+    ) -> None:
         """
         Remove element named 'name' from the collection
 
@@ -56,17 +56,26 @@ class Images(collection.Collection):
         """
         # NOTE: with_delete isn't currently meaningful for repos but is left in for consistency in the API. Unused.
         obj = self.find(name=name)
+
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")
+
+        if isinstance(obj, list):
+            # Will never happen, but we want to make mypy happy.
+            raise CX("Ambiguous match detected!")
 
         # first see if any Groups use this distro
         if not recursive:
             for system in self.api.systems():
-                if system.image is not None and system.image == name:
+                if system.image == name:
                     raise CX(f"removal would orphan system: {system.name}")
 
         if recursive:
-            kids = self.api.find_items("system", {"image": obj.name})
+            kids = self.api.find_system(return_list=True, **{"image": obj.name})
+            if kids is None:
+                kids = []
+            if not isinstance(kids, list):
+                raise ValueError("Expected list or None from find_items!")
             for k in kids:
                 self.api.remove_system(k, recursive=True)
 

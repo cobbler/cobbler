@@ -4,10 +4,11 @@ except the Python standard library.
 """
 
 import enum
-from typing import Union
+from typing import TypeVar, Union
 
 VALUE_INHERITED = "<<inherit>>"
 VALUE_NONE = "none"
+CONVERTABLEENUM = TypeVar("CONVERTABLEENUM", bound="ConvertableEnum")
 
 
 class ConvertableEnum(enum.Enum):
@@ -16,7 +17,7 @@ class ConvertableEnum(enum.Enum):
     """
 
     @classmethod
-    def to_enum(cls, value: Union[str, "ConvertableEnum"]) -> "ConvertableEnum":
+    def to_enum(cls, value: Union[str, CONVERTABLEENUM]) -> CONVERTABLEENUM:
         """
         This method converts the chosen str to the corresponding enum type.
 
@@ -25,18 +26,21 @@ class ConvertableEnum(enum.Enum):
         :raises TypeError: In case value was not of type str.
         :raises ValueError: In case value was not in the range of valid values.
         """
+        # mypy cannot handle the MRO in case we make this a real abstract class
+        # Thus since we use this like an abstract class we will just add the three ignores here since we
+        # are sure that this will be okay.
         try:
             if isinstance(value, str):
                 if value == VALUE_INHERITED:
                     try:
-                        return cls["INHERITED"]
+                        return cls["INHERITED"]  # type: ignore
                     except KeyError as key_error:
                         raise ValueError(
                             "The enum given does not support inheritance!"
                         ) from key_error
-                return cls[value.upper()]
+                return cls[value.upper()]  # type: ignore
             if isinstance(value, cls):
-                return value
+                return value  # type: ignore
             raise TypeError(f"{value} must be a str or Enum")
         except KeyError:
             raise ValueError(f"{value} must be one of {list(cls)}") from KeyError
@@ -264,6 +268,7 @@ class MirrorType(ConvertableEnum):
     This enum represents all mirror types which Cobbler can manage.
     """
 
+    NONE = "none"
     METALINK = "metalink"
     MIRRORLIST = "mirrorlist"
     BASEURL = "baseurl"

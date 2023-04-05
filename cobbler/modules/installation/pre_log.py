@@ -3,8 +3,12 @@ TODO
 """
 
 import time
+from typing import TYPE_CHECKING, List
 
 from cobbler import validate
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 def register() -> str:
@@ -17,7 +21,7 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/install/pre/*"
 
 
-def run(api, args: list) -> int:
+def run(api: "CobblerAPI", args: List[str]) -> int:
     """
     The method runs the trigger, meaning this logs that an installation has started.
 

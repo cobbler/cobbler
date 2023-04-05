@@ -12,12 +12,15 @@ import os
 import os.path
 import pprint
 import re
-from typing import Optional, TextIO, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, TextIO, Union
 
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.template_api import CobblerTemplate
 from cobbler.utils import filesystem_helpers
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 try:
     import jinja2
@@ -25,7 +28,7 @@ try:
     JINJA2_AVAILABLE = True
 except ModuleNotFoundError:
     # FIXME: log a message here
-    JINJA2_AVAILABLE = False
+    JINJA2_AVAILABLE = False  # type: ignore
 
 
 class Templar:
@@ -34,17 +37,17 @@ class Templar:
     via our self-defined API in this class.
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         """
         Constructor
 
         :param api: The main API instance which is used by the current running server.
         """
         self.settings = api.settings()
-        self.last_errors = []
+        self.last_errors: List[Any] = []
         self.logger = logging.getLogger()
 
-    def check_for_invalid_imports(self, data: str):
+    def check_for_invalid_imports(self, data: str) -> None:
         """
         Ensure that Cheetah code is not importing Python modules that may allow for advanced privileges by ensuring we
         whitelist the imports that we allow.
@@ -68,9 +71,9 @@ class Templar:
     def render(
         self,
         data_input: Union[TextIO, str],
-        search_table: dict,
+        search_table: Dict[Any, Any],
         out_path: Optional[str],
-        template_type="default",
+        template_type: str = "default",
     ) -> str:
         """
         Render data_input back into a file.
@@ -91,7 +94,7 @@ class Templar:
         if template_type is None:
             raise ValueError('"template_type" can\'t be "None"!')
 
-        if not isinstance(template_type, str):
+        if not isinstance(template_type, str):  # type: ignore
             raise TypeError('"template_type" must be of type "str"!')
 
         if template_type not in ("default", "jinja2", "cheetah"):
@@ -133,9 +136,7 @@ class Templar:
         # string replacements for @@xyz@@ in data_out with prior regex lookups of keys
         regex = r"@@[\S]*?@@"
         regex_matches = re.finditer(regex, data_out, re.MULTILINE)
-        matches = {
-            match.group() for match_num, match in enumerate(regex_matches, start=1)
-        }
+        matches = {match.group() for _, match in enumerate(regex_matches, start=1)}
         for match in matches:
             data_out = data_out.replace(match, search_table[match.strip("@@")])
 
@@ -151,7 +152,7 @@ class Templar:
 
         return data_out
 
-    def render_cheetah(self, raw_data, search_table: dict) -> str:
+    def render_cheetah(self, raw_data: str, search_table: Dict[Any, Any]) -> str:
         """
         Render data_input back into a file.
 
@@ -207,12 +208,12 @@ class Templar:
         )
 
         try:
-            generated_template_class = template(searchList=[search_table])
-            data_out = str(generated_template_class)
-            self.last_errors = generated_template_class.errorCatcher().listErrors()
+            generated_template_class = template(searchList=[search_table])  # type: ignore
+            data_out = str(generated_template_class)  # type: ignore
+            self.last_errors = generated_template_class.errorCatcher().listErrors()  # type: ignore
             if self.last_errors:
                 self.logger.warning("errors were encountered rendering the template")
-                self.logger.warning("\n%s", pprint.pformat(self.last_errors))
+                self.logger.warning("\n%s", pprint.pformat(self.last_errors))  # type: ignore
         except Exception as error:
             self.logger.error(utils.cheetah_exc(error))
             raise CX(
@@ -221,7 +222,7 @@ class Templar:
 
         return data_out
 
-    def render_jinja2(self, raw_data: str, search_table: dict) -> str:
+    def render_jinja2(self, raw_data: str, search_table: Dict[Any, Any]) -> str:
         """
         Render data_input back into a file.
 

@@ -12,6 +12,9 @@ import typing
 
 from cobbler import utils
 
+if typing.TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+
 
 # NOTE: does not warrant being a class, but all Cobbler actions use a class's ".run()" as the entrypoint
 class MkLoaders:
@@ -19,7 +22,7 @@ class MkLoaders:
     Action to create bootloader images.
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI") -> None:
         """
         MkLoaders constructor.
 
@@ -29,8 +32,10 @@ class MkLoaders:
         self.bootloaders_dir = pathlib.Path(api.settings().bootloaders_dir)
         # GRUB 2
         self.grub2_mod_dir = pathlib.Path(api.settings().grub2_mod_dir)
-        self.boot_loaders_formats: typing.Dict = api.settings().bootloaders_formats
-        self.modules: typing.List = api.settings().bootloaders_modules
+        self.boot_loaders_formats: typing.Dict[
+            typing.Any, typing.Any
+        ] = api.settings().bootloaders_formats
+        self.modules: typing.List[str] = api.settings().bootloaders_modules
         # Syslinux
         self.syslinux_folder = pathlib.Path(api.settings().syslinux_dir)
         self.syslinux_memdisk_folder = pathlib.Path(
@@ -45,7 +50,7 @@ class MkLoaders:
         # iPXE
         self.ipxe_folder = pathlib.Path(api.settings().bootloaders_ipxe_folder)
 
-    def run(self):
+    def run(self) -> None:
         """
         Run GrubImages action. If the files or executables for the bootloader is not available we bail out and skip the
         creation after it is logged that this is not available.
@@ -57,7 +62,7 @@ class MkLoaders:
         self.make_syslinux()
         self.make_grub()
 
-    def make_shim(self):
+    def make_shim(self) -> None:
         """
         Create symlink of the shim bootloader in case it is available on the system.
         """
@@ -97,7 +102,7 @@ class MkLoaders:
             skip_existing=True,
         )
 
-    def make_ipxe(self):
+    def make_ipxe(self) -> None:
         """
         Create symlink of the iPXE bootloader in case it is available on the system.
         """
@@ -113,7 +118,7 @@ class MkLoaders:
             skip_existing=True,
         )
 
-    def make_syslinux(self):
+    def make_syslinux(self) -> None:
         """
         Create symlink of the important syslinux bootloader files in case they are available on the system.
         """
@@ -163,7 +168,7 @@ class MkLoaders:
             skip_existing=True,
         )
 
-    def make_grub(self):
+    def make_grub(self) -> None:
         """
         Create symlink of the GRUB 2 bootloader in case it is available on the system. Additionally build the loaders
         for other architectures if the modules to do so are available.
@@ -211,7 +216,7 @@ class MkLoaders:
                 skip_existing=True,
             )
 
-    def create_directories(self):
+    def create_directories(self) -> None:
         """
         Create the required directories so that this succeeds. If existing, do nothing. This should create the tree for
         all supported bootloaders, regardless of the capabilities to symlink/install/build them.
@@ -229,7 +234,9 @@ class MkLoaders:
 # NOTE: move this to cobbler.utils?
 # cobbler.utils.linkfile does a lot of things, it might be worth it to have a
 # function just for symbolic links
-def symlink(target: pathlib.Path, link: pathlib.Path, skip_existing: bool = False):
+def symlink(
+    target: pathlib.Path, link: pathlib.Path, skip_existing: bool = False
+) -> None:
     """Create a symlink LINK pointing to TARGET.
 
     :param target: File/directory that the link will point to. The file/directory must exist.
@@ -250,7 +257,9 @@ def symlink(target: pathlib.Path, link: pathlib.Path, skip_existing: bool = Fals
             raise
 
 
-def mkimage(image_format: str, image_filename: pathlib.Path, modules: typing.List):
+def mkimage(
+    image_format: str, image_filename: pathlib.Path, modules: typing.List[str]
+) -> None:
     """Create a bootable image of GRUB using grub2-mkimage.
 
     :param image_format: Format of the image that is being created. See man(1)

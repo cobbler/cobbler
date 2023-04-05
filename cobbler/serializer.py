@@ -12,12 +12,12 @@ import os
 import pathlib
 import sys
 import time
-from typing import TYPE_CHECKING, Any, Dict
+from types import ModuleType
+from typing import TYPE_CHECKING, Any, Dict, Optional, TextIO
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.cobbler_collections.collection import Collection
-    from cobbler.items.item import Item
+    from cobbler.cobbler_collections.collection import ITEM, Collection
 
 
 class Serializer:
@@ -34,12 +34,12 @@ class Serializer:
         self.api = api
         self.logger = logging.getLogger()
         self.lock_enabled = True
-        self.lock_handle = None
+        self.lock_handle: Optional[TextIO] = None
         self.lock_file_location = "/var/lib/cobbler/lock"
         self.storage_module = self.__get_storage_module()
         self.storage_object = self.storage_module.storage_factory(api)
 
-    def __grab_lock(self):
+    def __grab_lock(self) -> None:
         """
         Dual purpose locking:
         (A) flock to avoid multiple process access
@@ -56,7 +56,7 @@ class Serializer:
             self.logger.exception("File locking error.", exc_info=exception)
             sys.exit(7)
 
-    def __release_lock(self, with_changes: bool = False):
+    def __release_lock(self, with_changes: bool = False) -> None:
         """
         Releases the lock on the resource that is currently being written.
 
@@ -73,7 +73,7 @@ class Serializer:
             fcntl.flock(self.lock_handle.fileno(), fcntl.LOCK_UN)
             self.lock_handle.close()
 
-    def serialize(self, collection: "Collection"):
+    def serialize(self, collection: "Collection[ITEM]") -> None:
         """
         Save a collection to disk
 
@@ -84,7 +84,7 @@ class Serializer:
         self.storage_object.serialize(collection)
         self.__release_lock()
 
-    def serialize_item(self, collection: "Collection", item: "Item"):
+    def serialize_item(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         """
         Save a collection item to disk
 
@@ -96,7 +96,7 @@ class Serializer:
         self.storage_object.serialize_item(collection, item)
         self.__release_lock(with_changes=True)
 
-    def serialize_delete(self, collection: "Collection", item: "Item"):
+    def serialize_delete(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         """
         Delete a collection item from disk
 
@@ -108,7 +108,9 @@ class Serializer:
         self.storage_object.serialize_delete(collection, item)
         self.__release_lock(with_changes=True)
 
-    def deserialize(self, collection: "Collection", topological: bool = True):
+    def deserialize(
+        self, collection: "Collection[ITEM]", topological: bool = True
+    ) -> None:
         """
         Load a collection from disk.
 
@@ -133,7 +135,7 @@ class Serializer:
         self.__release_lock()
         return result
 
-    def __get_storage_module(self):
+    def __get_storage_module(self) -> ModuleType:
         """
         Look up configured module in the settings
 

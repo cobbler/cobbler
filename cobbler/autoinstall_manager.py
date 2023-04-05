@@ -5,9 +5,15 @@ or preseed files.
 
 import logging
 import os
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from cobbler import autoinstallgen, utils
 from cobbler.utils import filesystem_helpers
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.items.item import Item
+
 
 TEMPLATING_ERROR = 1
 KICKSTART_ERROR = 2
@@ -18,7 +24,7 @@ class AutoInstallationManager:
     Manage automatic installation templates, snippets and final files
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         """
         Constructor for the autoinstall manager.
 
@@ -45,7 +51,7 @@ class AutoInstallationManager:
         :raises ValueError: Raised in case template file is invalid.
         """
 
-        if not isinstance(autoinstall, str):
+        if not isinstance(autoinstall, str):  # type: ignore
             raise TypeError("Invalid input, autoinstall must be a string")
         autoinstall = autoinstall.strip()
 
@@ -72,14 +78,14 @@ class AutoInstallationManager:
 
         return autoinstall
 
-    def get_autoinstall_templates(self) -> list:
+    def get_autoinstall_templates(self) -> List[str]:
         """
         Get automatic OS installation templates
 
         :returns: A list of automatic installation templates
         """
 
-        files = []
+        files: List[str] = []
         for root, _, filenames in os.walk(self.templates_base_dir):
             for filename in filenames:
                 rel_root = root[len(self.templates_base_dir) + 1 :]
@@ -166,7 +172,7 @@ class AutoInstallationManager:
         :raises OSError: Raised in case snippet file location is not found.
         """
 
-        if not isinstance(snippet, str):
+        if not isinstance(snippet, str):  # type: ignore
             raise TypeError("Invalid input, snippet must be a string")
         snippet = snippet.strip()
 
@@ -183,13 +189,13 @@ class AutoInstallationManager:
 
         return snippet
 
-    def get_autoinstall_snippets(self) -> list:
+    def get_autoinstall_snippets(self) -> List[str]:
         """
         Get a list of all autoinstallation snippets.
 
         :return: The list of snippets
         """
-        files = []
+        files: List[str] = []
         for root, _, filenames in os.walk(self.snippets_base_dir):
 
             for filename in filenames:
@@ -269,7 +275,9 @@ class AutoInstallationManager:
                 return True
         return False
 
-    def generate_autoinstall(self, profile=None, system=None) -> str:
+    def generate_autoinstall(
+        self, profile: Optional[str] = None, system: Optional[str] = None
+    ) -> str:
         """
         Generates the autoinstallation for a system or a profile. You may only specifify one parameter. If you specify
         both, the system is generated and the profile argument is ignored.
@@ -284,7 +292,7 @@ class AutoInstallationManager:
             return self.autoinstallgen.generate_autoinstall_for_profile(profile)
         return ""
 
-    def log_autoinstall_validation_errors(self, errors_type: int, errors: list):
+    def log_autoinstall_validation_errors(self, errors_type: int, errors: List[Any]):
         """
         Log automatic installation file errors
 
@@ -306,7 +314,7 @@ class AutoInstallationManager:
         elif errors_type == KICKSTART_ERROR:
             self.logger.warning("Kickstart validation errors: %s", errors[0])
 
-    def validate_autoinstall_file(self, obj, is_profile: bool) -> list:
+    def validate_autoinstall_file(self, obj: "Item", is_profile: bool) -> List[Any]:
         """
         Validate automatic installation file used by a system/profile.
 
@@ -315,7 +323,7 @@ class AutoInstallationManager:
         :returns: [bool, int, list] list with validation result, errors type and list of errors
         """
 
-        blended = utils.blender(self.api, False, obj)
+        blended = utils.blender(self.api, False, obj)  # type: ignore
 
         # get automatic installation template
         autoinstall = blended["autoinstall"]
@@ -330,9 +338,9 @@ class AutoInstallationManager:
         self.logger.info("----------------------------")
         self.logger.debug("osversion: %s", os_version)
         if is_profile:
-            self.generate_autoinstall(profile=obj)
+            self.generate_autoinstall(profile=obj.name)
         else:
-            self.generate_autoinstall(system=obj)
+            self.generate_autoinstall(system=obj.name)
         last_errors = self.autoinstallgen.get_last_errors()
         if len(last_errors) > 0:
             return [False, TEMPLATING_ERROR, last_errors]

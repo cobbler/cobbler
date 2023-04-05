@@ -12,12 +12,16 @@ import glob
 import json
 import logging
 import os
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, List
 
 import cobbler.api as capi
 from cobbler import settings
 from cobbler.cexceptions import CX
 from cobbler.modules.serializers import StorageBase
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.cobbler_collections.collection import ITEM, Collection
 
 logger = logging.getLogger()
 
@@ -36,7 +40,7 @@ def what() -> str:
     return "serializer/file"
 
 
-def _find_double_json_files(filename: str):
+def _find_double_json_files(filename: str) -> None:
     """
     Finds a file with duplicate .json ending and renames it.
     :param filename: Filename to be checked
@@ -56,11 +60,11 @@ class FileSerializer(StorageBase):
     TODO
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI") -> None:
         super().__init__(api)
         self.libpath = "/var/lib/cobbler/collections"
 
-    def serialize_item(self, collection, item):
+    def serialize_item(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         if not item.name:
             raise CX("name unset for item!")
 
@@ -80,7 +84,7 @@ class FileSerializer(StorageBase):
             data = json.dumps(_dict, sort_keys=sort_keys, indent=indent)
             file_descriptor.write(data)
 
-    def serialize_delete(self, collection, item):
+    def serialize_delete(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         collection_types = collection.collection_types()
         filename = os.path.join(self.libpath, collection_types, item.name + ".json")
         _find_double_json_files(filename)
@@ -88,17 +92,17 @@ class FileSerializer(StorageBase):
         if os.path.exists(filename):
             os.remove(filename)
 
-    def serialize(self, collection):
+    def serialize(self, collection: "Collection[ITEM]") -> None:
         # do not serialize settings
         if collection.collection_type() != "setting":
             for item in collection:
                 self.serialize_item(collection, item)
 
-    def deserialize_raw(self, collection_type: str):
+    def deserialize_raw(self, collection_type: str) -> List[Dict[str, Any]]:
         if collection_type == "settings":
-            return settings.read_settings_file()
+            return settings.read_settings_file()  # type: ignore
 
-        results = []
+        results: List[Dict[str, Any]] = []
 
         path = os.path.join(self.libpath, collection_type)
         all_files = glob.glob(f"{path}/*.json")
@@ -119,14 +123,17 @@ class FileSerializer(StorageBase):
             results.append(_dict)
         return results
 
-    def deserialize(self, collection, topological: bool = True):
+    def deserialize(
+        self, collection: "Collection[ITEM]", topological: bool = True
+    ) -> None:
         datastruct = self.deserialize_raw(collection.collection_types())
-        if topological and isinstance(datastruct, list):
+        if topological and isinstance(datastruct, list):  # type: ignore
             datastruct.sort(key=lambda x: x.get("depth", 1))
         try:
             if isinstance(datastruct, dict):
-                collection.from_dict(datastruct)
-            elif isinstance(datastruct, list):
+                # This is currently the corner case for the settings type.
+                collection.from_dict(datastruct)  # type: ignore
+            elif isinstance(datastruct, list):  # type: ignore
                 collection.from_list(datastruct)
         except Exception as exc:
             logger.error(
@@ -155,7 +162,7 @@ class FileSerializer(StorageBase):
         return _dict
 
 
-def storage_factory(api):
+def storage_factory(api: "CobblerAPI") -> FileSerializer:
     """
     TODO
     """

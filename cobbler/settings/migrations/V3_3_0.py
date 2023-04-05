@@ -1,6 +1,7 @@
 """
 Migration from V3.2.1 to V3.3.0
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
@@ -11,8 +12,9 @@ import ipaddress
 import json
 import os
 import socket
+from typing import Any, Dict
 
-from schema import Optional, Schema, SchemaError
+from schema import Optional, Schema, SchemaError  # type: ignore
 
 from cobbler.settings.migrations import V3_2_1, helper
 
@@ -227,12 +229,12 @@ schema = Schema(
         Optional("windows_enabled", default=False): bool,
         Optional("windows_template_dir", default="/etc/cobbler/windows"): str,
         Optional("samba_distro_share", default="DISTRO"): str,
-    },
+    },  # type: ignore
     ignore_extra_keys=False,
 )
 
 
-def validate(settings: dict) -> bool:
+def validate(settings: Dict[str, Any]) -> bool:
     """
     Checks that a given settings dict is valid according to the reference V3.3.0 schema ``schema``.
 
@@ -240,23 +242,24 @@ def validate(settings: dict) -> bool:
     :return: True if valid settings dict otherwise False.
     """
     try:
-        schema.validate(settings)
+        schema.validate(settings)  # type: ignore
     except SchemaError:
         return False
     return True
 
 
-def normalize(settings: dict) -> dict:
+def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
     If data in ``settings`` is valid the validated data is returned.
 
     :param settings: The settings dict to validate.
     :return: The validated dict.
     """
-    return schema.validate(settings)
+    # We are aware of our schema and thus can safely ignore this.
+    return schema.validate(settings)  # type: ignore
 
 
-def migrate(settings: dict) -> dict:
+def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
     Migration of the settings ``settings`` to version V3.3.0 settings
 
@@ -385,7 +388,7 @@ def migrate(settings: dict) -> dict:
     return normalize(settings)
 
 
-def migrate_cobbler_collections(collections_dir: str):
+def migrate_cobbler_collections(collections_dir: str) -> None:
     """
     Manipulate the main Cobbler stored collections and migrate deprecated settings
     to work with newer Cobbler versions.
@@ -423,7 +426,7 @@ def migrate_cobbler_collections(collections_dir: str):
                     _ip = ipaddress.ip_address(addr)
                     if isinstance(_ip, ipaddress.IPv4Address):
                         data["next_server_v4"] = data.pop("next_server")
-                    elif isinstance(_ip, ipaddress.IPv6Address):
+                    elif isinstance(_ip, ipaddress.IPv6Address):  # type: ignore
                         data["next_server_v6"] = data.pop("next_server")
                 except ValueError:
                     # next_server is a hostname so we need to resolve hostname

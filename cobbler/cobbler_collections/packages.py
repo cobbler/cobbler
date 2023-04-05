@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Packages(collection.Collection):
+class Packages(collection.Collection[package.Package]):
     """
     A package provides a container for package resources.
     """
@@ -29,7 +29,9 @@ class Packages(collection.Collection):
     def collection_types() -> str:
         return "packages"
 
-    def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]):
+    def factory_produce(
+        self, api: "CobblerAPI", seed_data: Dict[str, Any]
+    ) -> package.Package:
         """
         Return a Package forged from seed_data.
 
@@ -53,8 +55,13 @@ class Packages(collection.Collection):
         :raises CX: In case the object does not exist.
         """
         obj = self.find(name=name)
+
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")
+
+        if isinstance(obj, list):
+            # Will never happen, but we want to make mypy happy.
+            raise CX("Ambiguous match detected!")
 
         if with_delete:
             if with_triggers:

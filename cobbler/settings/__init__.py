@@ -16,10 +16,14 @@ import pathlib
 import shutil
 import traceback
 from pathlib import Path
-from typing import Any, Dict, Hashable, List, Optional
+from typing import Any, Dict, List, Optional
 
 import yaml
-from schema import SchemaError, SchemaMissingKeyError, SchemaWrongKeyError
+from schema import (  # type: ignore
+    SchemaError,
+    SchemaMissingKeyError,
+    SchemaWrongKeyError,
+)
 
 from cobbler.settings import migrations
 from cobbler.utils import input_converters
@@ -46,7 +50,7 @@ class Settings:
         """
         return "settings"
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Constructor.
         """
@@ -146,8 +150,8 @@ class Settings:
         ]
         self.grubconfig_dir = "/var/lib/cobbler/grub_config"
         self.build_reporting_enabled = False
-        self.build_reporting_email = []
-        self.build_reporting_ignorelist = []
+        self.build_reporting_email: List[str] = []
+        self.build_reporting_ignorelist: List[str] = []
         self.build_reporting_sender = ""
         self.build_reporting_smtp_server = "localhost"
         self.build_reporting_subject = ""
@@ -159,8 +163,8 @@ class Settings:
         self.convert_server_to_ip = False
         self.createrepo_flags = "-c cache -s sha"
         self.autoinstall = "default.ks"
-        self.default_name_servers = []
-        self.default_name_servers_search = []
+        self.default_name_servers: List[str] = []
+        self.default_name_servers_search: List[str] = []
         self.default_ownership = ["admin"]
         self.default_password_crypted = r"\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac."
         self.default_template_type = "cheetah"
@@ -171,12 +175,12 @@ class Settings:
         self.default_virt_type = "xenpv"
         self.enable_ipxe = False
         self.enable_menu = True
-        self.extra_settings_list = []
+        self.extra_settings_list: List[str] = []
         self.grub2_mod_dir = "/usr/share/grub2/"
         self.http_port = 80
         self.iso_template_dir = "/etc/cobbler/iso"
         self.jinja2_includedir = "/var/lib/cobbler/jinja2"
-        self.kernel_options = {}
+        self.kernel_options: Dict[str, Any] = {}
         self.ldap_anonymous_bind = True
         self.ldap_base_dn = "DC=devel,DC=redhat,DC=com"
         self.ldap_port = 389
@@ -197,12 +201,12 @@ class Settings:
         self.manage_dhcp_v6 = False
         self.manage_dhcp_v4 = False
         self.manage_dns = False
-        self.manage_forward_zones = []
-        self.manage_reverse_zones = []
+        self.manage_forward_zones: List[str] = []
+        self.manage_reverse_zones: List[str] = []
         self.manage_genders = False
         self.manage_rsync = False
         self.manage_tftpd = True
-        self.mgmt_classes = []
+        self.mgmt_classes: List[str] = []
         self.mgmt_parameters = {"from_cobbler": 1}
         self.modules = {
             "authentication": {
@@ -221,9 +225,9 @@ class Settings:
         self.nsupdate_enabled = False
         self.nsupdate_log = "/var/log/cobbler/nsupdate.log"
         self.nsupdate_tsig_algorithm = "hmac-sha512"
-        self.nsupdate_tsig_key = []
+        self.nsupdate_tsig_key: List[str] = []
         self.power_management_default_type = "ipmilanplus"
-        self.proxies = []
+        self.proxies: List[str] = []
         self.proxy_url_ext = ""
         self.proxy_url_int = ""
         self.puppet_auto_setup = False
@@ -309,7 +313,7 @@ class Settings:
         # TODO: Deprecate and remove. Tailcall is not needed.
         return self.__dict__
 
-    def from_dict(self, new_values: dict):
+    def from_dict(self, new_values: Dict[str, Any]) -> Optional["Settings"]:
         """
         Modify this object to load values in dictionary. If the handed dict would lead to an invalid object it is
         silently discarded.
@@ -319,12 +323,14 @@ class Settings:
         :param new_values: The dictionary with settings to replace.
         :return: Returns the settings instance this method was called from.
         """
-        if new_values is None:
+        if new_values is None:  # type: ignore[reportUnnecessaryComparison]
             logging.warning("Not loading empty settings dictionary!")
-            return
+            return None
 
-        old_settings = self.__dict__
-        self.__dict__.update(new_values)
+        old_settings = self.__dict__  # pylint: disable=access-member-before-definition
+        self.__dict__.update(  # pylint: disable=access-member-before-definition
+            new_values
+        )
 
         if not self.is_valid():
             self.__dict__ = old_settings
@@ -346,7 +352,7 @@ class Settings:
             return False
         return True
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         """
         This returns the current value of the setting named in the args.
 
@@ -375,9 +381,9 @@ class Settings:
 
     def save(
         self,
-        filepath="/etc/cobbler/settings.yaml",
+        filepath: str = "/etc/cobbler/settings.yaml",
         ignore_keys: Optional[List[str]] = None,
-    ):
+    ) -> None:
         """
         Saves the settings to the disk.
         :param filepath: This sets the path of the settingsfile to write.
@@ -389,8 +395,8 @@ class Settings:
 
 
 def validate_settings(
-    settings_content: dict, ignore_keys: Optional[List[str]] = None
-) -> dict:
+    settings_content: Dict[str, Any], ignore_keys: Optional[List[str]] = None
+) -> Dict[str, Any]:
     """
     This function performs logical validation of our loaded YAML files.
     This function will:
@@ -414,7 +420,7 @@ def validate_settings(
     return result
 
 
-def read_yaml_file(filepath="/etc/cobbler/settings.yaml") -> Dict[Hashable, Any]:
+def read_yaml_file(filepath: str = "/etc/cobbler/settings.yaml") -> Dict[str, Any]:
     """
     Reads settings files from ``filepath`` and saves the content in a dictionary.
 
@@ -429,7 +435,7 @@ def read_yaml_file(filepath="/etc/cobbler/settings.yaml") -> Dict[Hashable, Any]
         )
     try:
         with open(filepath, encoding="UTF-8") as main_settingsfile:
-            filecontent = yaml.safe_load(main_settingsfile.read())
+            filecontent: Dict[str, Any] = yaml.safe_load(main_settingsfile.read())
     except yaml.YAMLError as error:
         traceback.print_exc()
         raise yaml.YAMLError(f'"{filepath}" is not a valid YAML file') from error
@@ -437,8 +443,9 @@ def read_yaml_file(filepath="/etc/cobbler/settings.yaml") -> Dict[Hashable, Any]
 
 
 def read_settings_file(
-    filepath="/etc/cobbler/settings.yaml", ignore_keys: Optional[List[str]] = None
-) -> Dict[Hashable, Any]:
+    filepath: str = "/etc/cobbler/settings.yaml",
+    ignore_keys: Optional[List[str]] = None,
+) -> Dict[str, Any]:
     """
     Utilizes ``read_yaml_file()``. If the read settings file is invalid in the context of Cobbler we will return an
     empty dictionary.
@@ -475,8 +482,8 @@ def read_settings_file(
 
 
 def update_settings_file(
-    data: dict,
-    filepath="/etc/cobbler/settings.yaml",
+    data: Dict[str, Any],
+    filepath: str = "/etc/cobbler/settings.yaml",
     ignore_keys: Optional[List[str]] = None,
 ) -> bool:
     """
@@ -548,8 +555,10 @@ def update_settings_file(
 
 
 def migrate(
-    yaml_dict: dict, settings_path: Path, ignore_keys: Optional[List[str]] = None
-) -> dict:
+    yaml_dict: Dict[str, Any],
+    settings_path: Path,
+    ignore_keys: Optional[List[str]] = None,
+) -> Dict[str, Any]:
     """
     Migrates the current settings
 

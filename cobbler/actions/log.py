@@ -11,6 +11,11 @@ import logging
 import os
 import os.path
 import pathlib
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.items.system import System
 
 
 class LogTool:
@@ -18,7 +23,7 @@ class LogTool:
     Helpers for dealing with System logs, anamon, etc..
     """
 
-    def __init__(self, system, api):
+    def __init__(self, system: "System", api: "CobblerAPI"):
         """
         Log library constructor requires a Cobbler system object.
         """
@@ -27,7 +32,7 @@ class LogTool:
         self.settings = api.settings()
         self.logger = logging.getLogger()
 
-    def clear(self):
+    def clear(self) -> None:
         """
         Clears the system logs
         """
@@ -47,6 +52,4 @@ class LogTool:
                 with open(log, "w", encoding="UTF-8") as log_fd:
                     log_fd.truncate()
             except IOError as error:
-                self.logger.info("Failed to Truncate '%s':%s ", log, error)
-            except OSError as error:
                 self.logger.info("Failed to Truncate '%s':%s ", log, error)

@@ -26,7 +26,7 @@ class File(resource.Resource):
     TYPE_NAME = "file"
     COLLECTION_TYPE = "file"
 
-    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
+    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any) -> None:
         """
         Constructor.
 
@@ -47,7 +47,7 @@ class File(resource.Resource):
     # override some base class methods first (item.Item)
     #
 
-    def make_clone(self):
+    def make_clone(self) -> "File":
         """
         Clone this file object. Please manually adjust all values yourself to make the cloned object unique.
 
@@ -57,7 +57,7 @@ class File(resource.Resource):
         _dict.pop("uid", None)
         return File(self.api, **_dict)
 
-    def check_if_valid(self):
+    def check_if_valid(self) -> None:
         """
         Checks if the object is valid. This is the case if name, path, owner, group, and mode are set.
         Templates are only required for files if ``is_dir`` is true then template is not required.
@@ -83,8 +83,8 @@ class File(resource.Resource):
     #
 
     @LazyProperty
-    def is_dir(self):
-        r"""
+    def is_dir(self) -> bool:
+        """
         Is this a directory or not.
 
         :getter: Returns the value of ``is_dir``
@@ -93,14 +93,14 @@ class File(resource.Resource):
         return self._is_dir
 
     @is_dir.setter
-    def is_dir(self, is_dir: bool):
-        r"""
+    def is_dir(self, is_dir: bool) -> None:
+        """
         If true, treat file resource as a directory. Templates are ignored.
 
         :param is_dir: This is the path to check if it is a directory.
         :raises TypeError: Raised in case ``is_dir`` is not a boolean.
         """
         is_dir = input_converters.input_boolean(is_dir)
-        if not isinstance(is_dir, bool):
+        if not isinstance(is_dir, bool):  # type: ignore
             raise TypeError("Field is_dir in object file needs to be of type bool!")
         self._is_dir = is_dir

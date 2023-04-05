@@ -11,7 +11,13 @@ allow certain users/groups to access those specific objects.
 
 import os
 from configparser import ConfigParser
-from typing import Dict
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.items.item import Item
+    from cobbler.items.profile import Profile
+    from cobbler.items.system import System
 
 
 def register() -> str:
@@ -23,7 +29,7 @@ def register() -> str:
     return "authz"
 
 
-def __parse_config() -> Dict[str, dict]:
+def __parse_config() -> Dict[str, Dict[str, Any]]:
     """
     Parse the "users.conf" of Cobbler and return all data in a dictionary.
 
@@ -35,9 +41,9 @@ def __parse_config() -> Dict[str, dict]:
         raise FileNotFoundError("/etc/cobbler/users.conf does not exist")
     # Make users case sensitive to handle kerberos
     config = ConfigParser()
-    config.optionxform = str
+    config.optionxform = lambda optionstr: optionstr
     config.read(etcfile)
-    alldata = {}
+    alldata: Dict[str, Dict[str, Any]] = {}
     sections = config.sections()
     for group in sections:
         alldata[str(group)] = {}
@@ -47,7 +53,9 @@ def __parse_config() -> Dict[str, dict]:
     return alldata
 
 
-def __authorize_autoinst(api_handle, groups, user, autoinst) -> int:
+def __authorize_autoinst(
+    api_handle: "CobblerAPI", groups: List[str], user: str, autoinst: str
+) -> int:
     """
     The authorization rules for automatic installation file editing are a bit of a special case. Non-admin users can
     edit a automatic installation file only if all objects that depend on that automatic installation file are editable
@@ -71,16 +79,26 @@ def __authorize_autoinst(api_handle, groups, user, autoinst) -> int:
     :param autoinst: The automatic installation in question.
     :return: ``1`` if the user is allowed and otherwise ``0``.
     """
-
-    lst = api_handle.find_profile(autoinst=autoinst, return_list=True)
-    lst.extend(api_handle.find_system(autoinst=autoinst, return_list=True))
+    lst: List[Union["Profile", "System"]] = []
+    my_profiles = api_handle.find_profile(autoinst=autoinst, return_list=True)
+    if my_profiles is None or not isinstance(my_profiles, list):
+        raise ValueError("list of profile was not a list")
+    lst.extend(my_profiles)
+    del my_profiles
+    my_systems = api_handle.find_system(autoinst=autoinst, return_list=True)
+    if my_systems is None or not isinstance(my_systems, list):
+        raise ValueError("list of profile was not a list")
+    lst.extend(my_systems)
+    del my_systems
     for obj in lst:
         if not __is_user_allowed(obj, groups, user, "write_autoinst", autoinst, None):
             return 0
     return 1
 
 
-def __authorize_snippet(api_handle, groups, user, autoinst) -> int:
+def __authorize_snippet(
+    api_handle: "CobblerAPI", groups: List[str], user: str, autoinst: str
+) -> int:
     """
     Only allow admins to edit snippets -- since we don't have detection to see where each snippet is in use.
 
@@ -97,7 +115,9 @@ def __authorize_snippet(api_handle, groups, user, autoinst) -> int:
     return 1
 
 
-def __is_user_allowed(obj, groups, user, resource, arg1, arg2) -> int:
+def __is_user_allowed(
+    obj: "Item", groups: List[str], user: str, resource: Any, arg1: Any, arg2: Any
+) -> int:
     """
     Check if a user is allowed to access the resource in question.
 
@@ -123,13 +143,19 @@ def __is_user_allowed(obj, groups, user, resource, arg1, arg2) -> int:
             # user match
             return 1
         # else look for a group match
-    for group in groups:
-        if group == allowed:
-            return 1
+        for group in groups:
+            if group == allowed:
+                return 1
     return 0
 
 
-def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int:
+def authorize(
+    api_handle: "CobblerAPI",
+    user: str,
+    resource: str,
+    arg1: Optional[str] = None,
+    arg2: Any = None,
+) -> int:
     """
     Validate a user against a resource. All users in the file are permitted by this module.
 
@@ -172,7 +198,7 @@ def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int
     # FIXME: deal with the problem of deleted parents and promotion
 
     found_user = False
-    found_groups = []
+    found_groups: List[str] = []
     grouplist = list(user_groups.keys())
     for group in grouplist:
         for group_user in user_groups[group]:
@@ -196,6 +222,10 @@ def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int
     # Now we have a modify_operation op, so we must check ownership of the object. Remove ops pass in arg1 as a string
     # name, saves pass in actual objects, so we must treat them differently. Automatic installaton files are even more
     # special so we call those out to another function, rather than going through the rest of the code here.
+
+    if arg1 is None:
+        # We require to have an item name available, otherwise no search can be performed.
+        return 0
 
     if resource.find("write_autoinstall_template") != -1:
         return __authorize_autoinst(api_handle, found_groups, user, arg1)
@@ -223,7 +253,10 @@ def authorize(api_handle, user: str, resource: str, arg1=None, arg2=None) -> int
         elif resource == "remove_image":
             obj = api_handle.find_image(arg1)
     elif resource.find("save") != -1 or resource.find("modify") != -1:
-        obj = arg1
+        obj = api_handle.find_items(what="", name=arg1)
+
+    if obj is None or isinstance(obj, list):
+        raise ValueError("Object not found or found multiple times!")
 
     # if the object has no ownership data, allow access regardless
     if obj is None or obj.owners is None or obj.owners == []:

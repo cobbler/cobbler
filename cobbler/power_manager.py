@@ -15,23 +15,27 @@ import re
 import stat
 import time
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from cobbler import utils
 from cobbler.cexceptions import CX
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.items.system import System
 
 # Try the power command 3 times before giving up. Some power switches are flaky.
 POWER_RETRIES = 3
 
 
-def get_power_types() -> list:
+def get_power_types() -> List[str]:
     """
     Get possible power management types.
 
     :returns: Possible power management types
     """
 
-    power_types = []
+    power_types: List[str] = []
     fence_files = glob.glob("/usr/sbin/fence_*") + glob.glob("/sbin/fence_*")
     for fence in fence_files:
         fence_name = os.path.basename(fence).replace("fence_", "")
@@ -41,7 +45,7 @@ def get_power_types() -> list:
     return power_types
 
 
-def validate_power_type(power_type: str):
+def validate_power_type(power_type: str) -> None:
     """
     Check if a power management type is valid.
 
@@ -79,7 +83,7 @@ class PowerManager:
     Handles power management in systems
     """
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         """
         Constructor
 
@@ -89,7 +93,12 @@ class PowerManager:
         self.settings = api.settings()
         self.logger = logging.getLogger()
 
-    def _check_power_conf(self, system, user, password):
+    def _check_power_conf(
+        self,
+        system: "System",
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+    ) -> None:
         """
         Prints a warning for invalid power configurations.
 
@@ -97,7 +106,6 @@ class PowerManager:
         :param password: The password for the power command of the system. This overrules the one specified in the
                          system.
         :param system: Cobbler system
-        :type system: System
         """
 
         if (system.power_pass or password) and system.power_identity_file:
@@ -125,13 +133,16 @@ class PowerManager:
             )
 
     def _get_power_input(
-        self, system, power_operation: str, user: str, password: str
+        self,
+        system: "System",
+        power_operation: str,
+        user: Optional[str] = None,
+        password: Optional[str] = None,
     ) -> str:
         """
         Creates an option string for the fence agent from the system data. This is an internal method.
 
         :param system: Cobbler system
-        :type system: System
         :param power_operation: power operation. Valid values: on, off, status. Rebooting is implemented as a set of 2
                                 operations (off and on) in a higher level method.
         :param user: user to override system.power_user
@@ -160,7 +171,7 @@ class PowerManager:
 
     def _power(
         self,
-        system,
+        system: "System",
         power_operation: str,
         user: Optional[str] = None,
         password: Optional[str] = None,
@@ -170,7 +181,6 @@ class PowerManager:
         Internal method
 
         :param system: Cobbler system
-        :type system: System
         :param power_operation: power operation. Valid values: on, off, status. Rebooting is implemented as a set of 2
                                 operations (off and on) in a higher level method.
         :param user: power management user. If user and password are not supplied, environment variables
@@ -182,7 +192,7 @@ class PowerManager:
 
         power_command = get_power_command(system.power_type)
         if not power_command:
-            utils.die("no power type set for system")
+            raise ValueError("no power type set for system")
 
         power_info = {
             "type": system.power_type,
@@ -195,10 +205,10 @@ class PowerManager:
 
         self.logger.info("cobbler power configuration is: %s", json.dumps(power_info))
 
-        # if no username/password data, check the environment
-        if not system.power_user and not user:
+        # if no username/password data, check the environment, empty user/password could be valid
+        if not system.power_user and user is None:
             user = os.environ.get("COBBLER_POWER_USER", "")
-        if not system.power_pass and not password:
+        if not system.power_pass and password is None:
             password = os.environ.get("COBBLER_POWER_PASS", "")
 
         power_input = self._get_power_input(system, power_operation, user, password)
@@ -231,18 +241,21 @@ class PowerManager:
                             return True
                         return False
                     error_msg = f"command succeeded (rc={return_code}), but output ('{output}') was not understood"
-                    utils.die(error_msg)
                     raise CX(error_msg)
             time.sleep(2)
 
         if not return_code == 0:
             error_msg = f"command failed (rc={return_code}), please validate the physical setup and cobbler config"
-            utils.die(error_msg)
             raise CX(error_msg)
 
+        return None
+
     def power_on(
-        self, system, user: Optional[str] = None, password: Optional[str] = None
-    ):
+        self,
+        system: "System",
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+    ) -> None:
         """
         Powers up a system that has power management configured.
 
@@ -255,8 +268,11 @@ class PowerManager:
         self._power(system, "on", user, password)
 
     def power_off(
-        self, system, user: Optional[str] = None, password: Optional[str] = None
-    ):
+        self,
+        system: "System",
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+    ) -> None:
         """
         Powers down a system that has power management configured.
 
@@ -269,8 +285,11 @@ class PowerManager:
         self._power(system, "off", user, password)
 
     def reboot(
-        self, system, user: Optional[str] = None, password: Optional[str] = None
-    ):
+        self,
+        system: "System",
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+    ) -> None:
         """
         Reboot a system that has power management configured.
 
@@ -285,7 +304,10 @@ class PowerManager:
         self.power_on(system, user, password)
 
     def get_power_status(
-        self, system, user: Optional[str] = None, password: Optional[str] = None
+        self,
+        system: "System",
+        user: Optional[str] = None,
+        password: Optional[str] = None,
     ) -> Optional[bool]:
         """
         Get power status for a system that has power management configured.

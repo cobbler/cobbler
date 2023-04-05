@@ -7,12 +7,18 @@ This is some of the code behind 'cobbler sync'.
 import glob
 import os.path
 import shutil
-from typing import List
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 from cobbler import templar, tftpgen, utils
 from cobbler.cexceptions import CX
 from cobbler.manager import ManagerModule
 from cobbler.utils import filesystem_helpers
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
+    from cobbler.items.distro import Distro
+    from cobbler.items.system import System
+
 
 MANAGER = None
 
@@ -34,14 +40,14 @@ class _InTftpdManager(ManagerModule):
         """
         return "in_tftpd"
 
-    def __init__(self, api):
+    def __init__(self, api: "CobblerAPI"):
         super().__init__(api)
 
         self.tftpgen = tftpgen.TFTPGen(api)
         self.bootloc = api.settings().tftpboot_location
         self.webdir = api.settings().webdir
 
-    def write_boot_files_distro(self, distro):
+    def write_boot_files_distro(self, distro: "Distro") -> int:
         """
         TODO
 
@@ -69,6 +75,8 @@ class _InTftpdManager(ManagerModule):
             rendered_source_file = templater.render(
                 target["boot_files"][boot_file], metadata, None
             )
+            file = ""  # to prevent unboundlocalerror
+            filedst = ""  # to prevent unboundlocalerror
             try:
                 for file in glob.glob(rendered_source_file):
                     if file == rendered_source_file:
@@ -94,7 +102,7 @@ class _InTftpdManager(ManagerModule):
 
         return 0
 
-    def write_boot_files(self):
+    def write_boot_files(self) -> int:
         """
         Copy files in ``profile["boot_files"]`` into the TFTP server folder. Used for vmware currently.
 
@@ -105,7 +113,11 @@ class _InTftpdManager(ManagerModule):
 
         return 0
 
-    def sync_single_system(self, system, menu_items=None):
+    def sync_single_system(
+        self,
+        system: "System",
+        menu_items: Optional[Dict[str, Union[str, Dict[str, str]]]] = None,
+    ) -> None:
         """
         Write out new ``pxelinux.cfg`` files to the TFTP server folder (or grub/system/<mac> in grub case)
 
@@ -118,7 +130,7 @@ class _InTftpdManager(ManagerModule):
         # generate any templates listed in the distro
         self.tftpgen.write_templates(system)
 
-    def add_single_distro(self, distro):
+    def add_single_distro(self, distro: "Distro") -> None:
         """
         TODO
 
@@ -127,7 +139,7 @@ class _InTftpdManager(ManagerModule):
         self.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
         self.write_boot_files_distro(distro)
 
-    def sync_systems(self, systems: List[str], verbose: bool = True):
+    def sync_systems(self, systems: List[str], verbose: bool = True) -> None:
         """
         Write out specified systems as separate files to the TFTP server folder.
 
@@ -135,23 +147,23 @@ class _InTftpdManager(ManagerModule):
         :param verbose: Whether the TFTP server should log this verbose or not.
         """
         if not (
-            isinstance(systems, list)
-            and all(isinstance(sys_name, str) for sys_name in systems)
+            isinstance(systems, list)  # type: ignore
+            and all(isinstance(sys_name, str) for sys_name in systems)  # type: ignore
         ):
             raise TypeError("systems needs to be a list of strings")
 
-        if not isinstance(verbose, bool):
+        if not isinstance(verbose, bool):  # type: ignore
             raise TypeError("verbose needs to be of type bool")
 
-        self.tftpgen.verbose = verbose
-
-        system_objs = []
+        system_objs: List["System"] = []
         for system_name in systems:
             # get the system object:
             system_obj = self.api.find_system(name=system_name)
             if system_obj is None:
                 self.logger.info("did not find any system named %s", system_name)
                 continue
+            if isinstance(system_obj, list):
+                raise ValueError("Ambiguous match detected!")
             system_objs.append(system_obj)
 
         menu_items = self.tftpgen.get_menu_items()
@@ -161,13 +173,10 @@ class _InTftpdManager(ManagerModule):
         self.logger.info("generating PXE menu structure")
         self.tftpgen.make_pxe_menu()
 
-    def sync(self, verbose: bool = True):
+    def sync(self) -> int:
         """
         Write out all files to /tftpdboot
-
-        :param verbose: Whether the tftp server should log this verbose or not.
         """
-        self.tftpgen.verbose = verbose
         self.logger.info("copying bootloaders")
         self.tftpgen.copy_bootloaders(self.bootloc)
 
@@ -194,8 +203,10 @@ class _InTftpdManager(ManagerModule):
         self.logger.info("generating PXE menu structure")
         self.tftpgen.make_pxe_menu()
 
+        return 0
 
-def get_manager(api):
+
+def get_manager(api: "CobblerAPI") -> _InTftpdManager:
     """
     Creates a manager object to manage an in_tftp server.
 
@@ -206,5 +217,5 @@ def get_manager(api):
     global MANAGER  # pylint: disable=global-statement
 
     if not MANAGER:
-        MANAGER = _InTftpdManager(api)
+        MANAGER = _InTftpdManager(api)  # type: ignore
     return MANAGER
