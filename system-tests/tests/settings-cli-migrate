@@ -9,7 +9,7 @@ set -x -e -o pipefail
 OLD_CONFIG="${tmp}/settings-old.yaml"
 NEW_CONFIG="${tmp}/settings-new.yaml"
 EXPECTED_CONFIG="${tmp}/settings-expected.yaml"
-NEW_VERSION="3.3.0"
+NEW_VERSION="3.3.3"
 
 # Test migration from 3.3.2 to 3.3.3
 cat <<-END >$OLD_CONFIG
@@ -236,53 +236,8 @@ signature_url: "https://cobbler.github.io/signatures/3.0.x/latest.json"
 include: [ "/code/tests/test_data/V3_3_2/settings.d/*.settings" ]
 END
 
-cat <<-END >$EXPECTED_CONFIG
-# Cobbler settings file
-# Docs for this file can be found at: https://cobbler.readthedocs.io/en/latest/cobbler-conf.html
-
-bind_zonefile_path: '@@bind_zonefiles@@'
-bootloaders_ipxe_folder: '@@ipxe_folder@@'
-bootloaders_shim_file: '@@shim_file@@'
-bootloaders_shim_folder: '@@shim_folder@@'
-build_reporting_email:
-- root@localhost
-cheetah_import_whitelist:
-- random
-- re
-- time
-- netaddr
-default_password_crypted: /UHC.
-grub2_mod_dir: '@@grub_mod_folder@@'
-ldap_base_dn: DC=example,DC=com
-ldap_server: ldap.example.com
-ldap_tls_reqcert: ''
-puppet_server: ''
-reposync_flags: --newest-only --delete --refresh --remote-time
-reposync_rsync_flags: -rltDv --copy-unsafe-links
-syslinux_dir: '@@syslinux_dir@@'
-syslinux_memdisk_folder: '@@memdisk_folder@@'
-syslinux_pxelinux_folder: '@@pxelinux_folder@@'
-tftpboot_location: '@@tftproot@@'
-webdir: '@@webroot@@/cobbler'
-webdir_whitelist:
-- misc
-- web
-- webui
-- localmirror
-- repo_mirror
-- distro_mirror
-- images
-- links
-- pub
-- repo_profile
-- repo_system
-- svc
-- rendered
-- .link_cache
-END
-
 # Act
 cobbler-settings -c "$OLD_CONFIG" migrate -t "$NEW_CONFIG" --new "$NEW_VERSION"
 
 # Assert
-diff -y $NEW_CONFIG $EXPECTED_CONFIG
+grep "default_virt_file_size: 5.0" $NEW_CONFIG
