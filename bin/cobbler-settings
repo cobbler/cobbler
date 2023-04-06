@@ -119,9 +119,14 @@ def modify(args: argparse.Namespace) -> int:
     try:
         key_type = schema._schema[setting_obj.key_name]
     except KeyError:
-        try:
-            key_type = schema._schema[Optional(setting_obj.key_name)]
-        except KeyError:
+        key_found = False
+        for entry in schema._schema:
+            if isinstance(entry, Optional):
+                if entry._schema == setting_obj.key_name:
+                    key_type = schema._schema[entry]
+                    key_found = True
+                    break
+        if not key_found:
             print("Requested key not found in the settings!")
             return 1
     if key_type not in (bool, int, float, str, dict, list):
