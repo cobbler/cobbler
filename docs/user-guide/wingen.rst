@@ -142,18 +142,22 @@ Preparing for an unattended network installation of Windows
 * ``dnf install python3-pefile python3-hivex wimlib-utils``
 * enable Windows support in settings ``/etc/cobbler/settings.yaml``:
 
-.. code::
+    .. code::
 
-    windows_enabled: true
+        windows_enabled: true
 
-* import the Windows distributions to ``/var/www/cobbler/distro_mirror``:
+* If you have ``file 5.37`` or newer installed (openSUSE Tumbleweed, Debian 11, RHEL/Rocky Linux 9, Fedora 37)
+  you can easily import the Wibdows distro:
 
-.. code::
+    .. code::
 
-    cobbler import --name=Win10_EN-x64 --path=/mnt
+        cobbler import --name=Win10_EN-x64 --path=/mnt
 
-This command will determine the version and architecture of the Windows distribution, will extract the necessary boot
-files from the distribution and create a distro and profile named ``Win10_EN-x64``.
+    This command will determine the version and architecture of the Windows distribution, will extract the necessary boot
+    files from the distribution and create a distro and profile named ``Win10_EN-x64``.
+
+    For openSUSE Leap, Debian 10, RHEL/Rocky Linux 8 you need copy files from ``/mnt`` to ``/var/www/cobbler/distro_mirror/Win10_EN-x64``
+    and create a distro and profile with the ``cobbler add distro/profile`` commands.
 
 * For customization winpe.win you need
 
