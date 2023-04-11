@@ -87,7 +87,11 @@ def test_boot_loaders(
     tmp_distro = create_distro()
     tmp_profile = create_profile(tmp_distro.name)
     system = System(cobbler_api)
-    system.name = request.node.originalname
+    system.name = (
+        request.node.originalname
+        if request.node.originalname
+        else request.node.name
+    )
     system.profile = tmp_profile.name
 
     # Act
