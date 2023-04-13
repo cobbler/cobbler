@@ -119,6 +119,8 @@ def modify(args: argparse.Namespace) -> int:
     try:
         key_type = schema._schema[setting_obj.key_name]
     except KeyError:
+        # There seems to be a bug that causes direct dict lookup to fail when a key is Optional. However the for loop
+        # works as expected.
         key_found = False
         for entry in schema._schema:
             if isinstance(entry, Optional):
