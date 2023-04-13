@@ -132,6 +132,9 @@ def modify(args: argparse.Namespace) -> int:
             print("Requested key not found in the settings!")
             return 1
     if key_type not in (bool, int, float, str, dict, list):
+        # Schema can have as a valid list type "list" but it may also have
+        # "[str]". The same concept applies to "dict". To cover this case we
+        # need the following if-elif-else block.
         if isinstance(key_type, list):
             key_type = list
         elif isinstance(key_type, dict):
