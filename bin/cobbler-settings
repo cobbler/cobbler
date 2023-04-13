@@ -136,6 +136,7 @@ def modify(args: argparse.Namespace) -> int:
             key_type = dict
         else:
             print("Unsupported type!")
+            return 1
     if isinstance(Optional, key_type):
         key_type = schema._schema[setting_obj.key_name].name
     if key_type == bool:
