@@ -1,18 +1,34 @@
-# vim: ft=dockerfile
+# Define the names/tags of the container
+#!BuildTag: cobbler-test-github:latest cobbler-test-github:main cobbler-test-github:main.%RELEASE%
 
-# WARNING! This is not in any way production ready. It is just for testing!
-FROM registry.opensuse.org/opensuse/leap:15.4
+FROM opensuse/tumbleweed
+
+# Define labels according to https://en.opensuse.org/Building_derived_containers
+# labelprefix=org.opensuse.example
+LABEL org.opencontainers.image.title="cobbler-test-github"
+LABEL org.opencontainers.image.description="This contains the environment to run the testsuites of Cobbler inside a container."
+LABEL org.opencontainers.image.version="0.1.0.%RELEASE%"
+LABEL org.opensuse.reference="registry.opensuse.org/home/cobbler-project/github-ci/cobbler-test-github:main.%RELEASE%"
+LABEL org.openbuildservice.disturl="%DISTURL%"
+LABEL org.opencontainers.image.created="%BUILDTIME%"
+# endlabelprefix
 
 # ENV Variables we are using.
 ENV container docker
 ENV DISTRO SUSE
+# Add Developer scripts to PATH
+ENV PATH="/code/docker/develop/scripts:${PATH}"
+
+# Tmp fix for debugedit
+RUN zypper install -y gdb
 
 # Runtime & dev dependencies
 RUN zypper install --no-recommends -y \
     acl                        \
     apache2                    \
     apache2-devel              \
-    nginx                      \
+    apache2-mod_wsgi           \
+    python310-gunicorn         \
     bash-completion            \
     createrepo_c               \
     fence-agents               \
@@ -23,31 +39,26 @@ RUN zypper install --no-recommends -y \
     make                       \
     curl                       \
     wget2                      \
-    python3                    \
-    python3-Sphinx             \
-    python3-coverage           \
-    python3-devel              \
-    python3-distro             \
-    python3-schema             \
-    python3-setuptools         \
-    python3-pip                \
-    python3-wheel              \
-    python3-Cheetah3           \
-    python3-distro             \
-    python3-dnspython          \
-    python3-Jinja2             \
-    python3-requests           \
-    python3-PyYAML             \
-    python3-pykickstart        \
-    python3-pycodestyle        \
-    python3-pyflakes           \
-    python3-pytest-cov         \
-    python3-pytest-mock        \
-    python3-pytest-pythonpath  \
-    python3-pytest-benchmark   \
-    python3-netaddr            \
-    python3-pymongo            \
-    python3-gunicorn           \
+    python310                  \
+    python310-Sphinx           \
+    python310-coverage         \
+    python310-devel            \
+    python310-distro           \
+    python310-schema           \
+    python310-setuptools       \
+    python310-pip              \
+    python310-wheel            \
+    python310-Cheetah3         \
+    python310-distro           \
+    python310-dnspython        \
+    python310-Jinja2           \
+    python310-requests         \
+    python310-PyYAML           \
+    python310-pykickstart      \
+    python310-netaddr          \
+    python310-pymongo          \
+    python310-pytest-benchmark \
+    python3-librepo            \
     rpm-build                  \
     rsync                      \
     supervisor                 \
@@ -55,18 +66,14 @@ RUN zypper install --no-recommends -y \
     tree                       \
     util-linux                 \
     vim                        \
-    wget                       \
     which                      \
     xorriso                    \
     dosfstools
 
 # Add virtualization repository
-RUN zypper ar https://download.opensuse.org/repositories/Virtualization/15.4/Virtualization.repo
-RUN zypper --gpg-auto-import-keys install -y --from "Virtualization (15.4)" python3-hivex
-RUN zypper rr "Virtualization (15.3)"
-RUN zypper ar https://download.opensuse.org/repositories/devel:/languages:/python/15.4/devel:languages:python.repo
-RUN zypper --gpg-auto-import-keys install -y --from "Python Modules (15.4)" python3-pefile
-RUN zypper rr "Python Modules (15.3)"
+RUN zypper install -y \
+    python3-hivex     \
+    python3-pefile
 
 # Add bootloader packages
 RUN zypper install --no-recommends -y \
@@ -75,8 +82,8 @@ RUN zypper install --no-recommends -y \
     ipxe-bootimgs \
     grub2 \
     grub2-i386-efi \
-    grub2-x86_64-efi \
-    grub2-arm64-efi
+    grub2-x86_64-efi
+#    grub2-arm64-efi
 
 # Required for dhcpd
 RUN zypper install --no-recommends -y \
@@ -85,24 +92,11 @@ RUN zypper install --no-recommends -y \
 
 # Required for ldap tests
 RUN zypper install --no-recommends -y \
+    openssl-1_1                       \
     openldap2                         \
     openldap2-client                  \
     hostname                          \
-    python3-ldap
-
-# Required for reposync tests
-RUN zypper install --no-recommends -y \
-    python3-librepo                   \
-    dnf                               \
-    dnf-plugins-core
-
-# Required for reposync apt test
-RUN zypper install --no-recommends -y \
-    perl-LockFile-Simple              \
-    perl-Net-INET6Glue                \
-    perl-LWP-Protocol-https           \
-    ed
-RUN dnf install -y http://download.fedoraproject.org/pub/fedora/linux/releases/37/Everything/x86_64/os/Packages/d/debmirror-2.36-4.fc37.noarch.rpm
+    python310-ldap
 
 # Dependencies for system-tests
 RUN zypper install --no-recommends -y \
@@ -111,27 +105,42 @@ RUN zypper install --no-recommends -y \
     qemu-kvm                          \
     time
 
-# Allow dhcpd to listen on any interface
-RUN sed -i 's/DHCPD_INTERFACE=""/DHCPD_INTERFACE="ANY"/' /etc/sysconfig/dhcpd
+# Install packages and dependencies via pip
+RUN zypper install --no-recommends -y \
+    python310-codecov            \
+    python310-magic              \
+    python310-pycodestyle        \
+    python310-pyflakes           \
+    python310-pytest             \
+    python310-pytest-cov         \
+    python310-pytest-mock
+
+# Required for reposync tests
+RUN zypper install --no-recommends -y \
+    dnf                               \
+    dnf-plugins-core                  \
+    wget
+
+# Required for reposync apt test
+RUN zypper install --no-recommends -y \
+    perl-LockFile-Simple              \
+    perl-Net-INET6Glue                \
+    perl-LWP-Protocol-https           \
+    ed
+# FIXME: We don't have debmirror in the right OBS projects.
+#RUN dnf install -y http://download.fedoraproject.org/pub/fedora/linux/releases/35/Everything/x86_64/os/Packages/d/debmirror-2.35-2.fc35.noarch.rpm
+
+# Clean zypper cache
+RUN zypper clean -a
 
 # Add Testuser for the PAM tests
 RUN useradd -p $(perl -e 'print crypt("test", "password")') test
-
-# Add Developer scripts to PATH
-ENV PATH="/code/docker/develop/scripts:${PATH}"
-
-# Install packages and dependencies via pip
-RUN pip3 install file-magic
-# We need pytest greater 6
-RUN pip3 install -U pytest
-
-# Install codecov
-RUN curl -Os https://uploader.codecov.io/latest/linux/codecov && chmod +x codecov
 
 # Enable the Apache Modules
 RUN ["a2enmod", "version"]
 RUN ["a2enmod", "proxy"]
 RUN ["a2enmod", "proxy_http"]
+RUN ["a2enmod", "wsgi"]
 
 # create working directory
 RUN ["mkdir", "/code"]
