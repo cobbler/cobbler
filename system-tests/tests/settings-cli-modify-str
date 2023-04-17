@@ -1,0 +1,242 @@
+#!/bin/bash
+# Check that cobbler-settings can modify value from the YAML
+
+# Arrange
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+TEST_CONFIG="${tmp}/settings-str.yaml"
+cat <<-END >$TEST_CONFIG
+buildisodir: "/var/cache/cobbler/buildiso"
+
+auto_migrate_settings: false
+allow_duplicate_hostnames: false
+allow_duplicate_ips: false
+allow_duplicate_macs: false
+allow_dynamic_settings: false
+anamon_enabled: false
+authn_pam_service: "login"
+auth_token_expiration: 3600
+autoinstall_snippets_dir: /var/lib/cobbler/snippets
+autoinstall_templates_dir: /var/lib/cobbler/templates
+boot_loader_conf_template_dir: "/etc/cobbler/boot_loader_conf"
+bootloaders_dir: "/var/lib/cobbler/loaders"
+bootloaders_formats:
+  aarch64:
+    binary_name: grubaa64.efi
+  arm:
+    binary_name: bootarm.efi
+  arm64-efi:
+    binary_name: grubaa64.efi
+    extra_modules:
+      - efinet
+  i386-efi:
+    binary_name: bootia32.efi
+  i386-pc-pxe:
+    binary_name: grub.0
+    mod_dir: i386-pc
+    extra_modules:
+      - chain
+      - pxe
+      - biosdisk
+  i686:
+    binary_name: bootia32.efi
+  IA64:
+    binary_name: bootia64.efi
+  powerpc-ieee1275:
+    binary_name: grub.ppc64le
+    extra_modules:
+      - net
+      - ofnet
+  x86_64-efi:
+    binary_name: grubx86.efi
+    extra_modules:
+      - chain
+      - efinet
+bootloaders_modules:
+  - btrfs
+  - ext2
+  - xfs
+  - jfs
+  - reiserfs
+  - all_video
+  - boot
+  - cat
+  - configfile
+  - echo
+  - fat
+  - font
+  - gfxmenu
+  - gfxterm
+  - gzio
+  - halt
+  - iso9660
+  - jpeg
+  - linux
+  - loadenv
+  - minicmd
+  - normal
+  - part_apple
+  - part_gpt
+  - part_msdos
+  - password_pbkdf2
+  - png
+  - reboot
+  - search
+  - search_fs_file
+  - search_fs_uuid
+  - search_label
+  - sleep
+  - test
+  - "true"
+  - video
+  - mdraid09
+  - mdraid1x
+  - lvm
+  - serial
+  - regexp
+  - tr
+  - tftp
+  - http
+  - luks
+  - gcry_rijndael
+  - gcry_sha1
+  - gcry_sha256
+syslinux_dir: '@@syslinux_dir@@'
+syslinux_memdisk_folder: '@@memdisk_folder@@'
+syslinux_pxelinux_folder: '@@pxelinux_folder@@'
+grub2_mod_dir: '@@grub_mod_folder@@'
+bootloaders_shim_folder: '@@shim_folder@@'
+bootloaders_shim_file: '@@shim_file@@'
+bootloaders_ipxe_folder: '@@ipxe_folder@@'
+build_reporting_enabled: false
+build_reporting_sender: ""
+build_reporting_email: [ 'root@localhost' ]
+build_reporting_smtp_server: "localhost"
+build_reporting_subject: ""
+build_reporting_ignorelist: []
+cheetah_import_whitelist:
+ - "random"
+ - "re"
+ - "time"
+ - "netaddr"
+createrepo_flags: "-c cache -s sha"
+autoinstall: "default.ks"
+default_name_servers: []
+default_name_servers_search: []
+default_ownership:
+ - "admin"
+default_password_crypted: '$1$mF86/UHC$WvcIcX2t6crBz2onWxyac.'
+default_template_type: "cheetah"
+default_virt_bridge: xenbr0
+default_virt_file_size: 5.0
+default_virt_ram: 512
+default_virt_type: xenpv
+enable_ipxe: false
+enable_menu: true
+http_port: 80
+kernel_options: {}
+ldap_server: "ldap.example.com"
+ldap_base_dn: "DC=example,DC=com"
+ldap_port: 389
+ldap_tls: true
+ldap_anonymous_bind: true
+ldap_search_bind_dn: ''
+ldap_search_passwd: ''
+ldap_search_prefix: 'uid='
+ldap_tls_cacertfile: ''
+ldap_tls_keyfile: ''
+ldap_tls_certfile: ''
+ldap_tls_cacertdir: ''
+ldap_tls_cipher_suite: ''
+ldap_tls_reqcert: ''
+mgmt_classes: []
+mgmt_parameters:
+ from_cobbler: true
+puppet_auto_setup: false
+sign_puppet_certs_automatically: false
+puppetca_path: "/usr/bin/puppet"
+remove_old_puppet_certs_automatically: false
+puppet_parameterized_classes: true
+manage_dhcp: false
+manage_dhcp_v6: false
+manage_dhcp_v4: false
+next_server_v4: 127.0.0.1
+next_server_v6: "::1"
+manage_dns: false
+bind_chroot_path: ""
+bind_zonefile_path: "@@bind_zonefiles@@"
+bind_master: 127.0.0.1
+manage_forward_zones: []
+manage_reverse_zones: []
+manage_tftpd: true
+tftpboot_location: "@@tftproot@@"
+manage_rsync: false
+power_management_default_type: 'ipmilanplus'
+pxe_just_once: true
+nopxe_with_triggers: true
+redhat_management_server: "xmlrpc.rhn.redhat.com"
+redhat_management_permissive: false
+redhat_management_key: ""
+register_new_installs: false
+reposync_flags: "--newest-only --delete --refresh --remote-time"
+reposync_rsync_flags: "-rltDv --copy-unsafe-links"
+restart_dns: true
+restart_dhcp: true
+run_install_triggers: true
+scm_track_enabled: false
+scm_track_mode: "git"
+scm_track_author: "cobbler <cobbler@localhost>"
+scm_push_script: "/bin/true"
+server: 127.0.0.1
+client_use_localhost: false
+client_use_https: false
+virt_auto_boot: true
+webdir: "@@webroot@@/cobbler"
+webdir_whitelist:
+  - misc
+  - web
+  - webui
+  - localmirror
+  - repo_mirror
+  - distro_mirror
+  - images
+  - links
+  - pub
+  - repo_profile
+  - repo_system
+  - svc
+  - rendered
+  - .link_cache
+xmlrpc_port: 25151
+yum_post_install_mirror: true
+yum_distro_priority: 1
+yumdownloader_flags: "--resolve"
+serializer_pretty_json: false
+replicate_rsync_options: "-avzH"
+replicate_repo_rsync_options: "-avzH"
+always_write_dhcp_entries: false
+proxy_url_ext: ""
+proxy_url_int: ""
+jinja2_includedir: "/var/lib/cobbler/jinja2"
+convert_server_to_ip: false
+cobbler_master: ""
+default_virt_disk_driver: "raw"
+grubconfig_dir: "/var/lib/cobbler/grub_config"
+iso_template_dir: "/etc/cobbler/iso"
+puppet_server: ""
+puppet_version: 2
+signature_path: "/var/lib/cobbler/distro_signatures.json"
+signature_url: "https://cobbler.github.io/signatures/3.0.x/latest.json"
+include: [ "/code/tests/test_data/V3_3_3/settings.d/*.settings" ]
+END
+
+TEST_KEY="buildisodir"
+TEST_VALUE="/my/custom/directory"
+
+# Act
+cobbler-settings -c "$TEST_CONFIG" modify -k "$TEST_KEY" -v "$TEST_VALUE"
+
+# Assert
+grep "$TEST_KEY: $TEST_VALUE" $TEST_CONFIG

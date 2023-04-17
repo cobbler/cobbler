@@ -83,7 +83,11 @@ def create_distro(request, cobbler_api, create_kernel_initrd, fk_kernel, fk_init
     def _create_distro():
         test_folder = create_kernel_initrd(fk_kernel, fk_initrd)
         test_distro = Distro(cobbler_api)
-        test_distro.name = request.node.originalname
+        test_distro.name = (
+            request.node.originalname
+            if request.node.originalname
+            else request.node.name
+        )
         test_distro.kernel = os.path.join(test_folder, fk_kernel)
         test_distro.initrd = os.path.join(test_folder, fk_initrd)
         cobbler_api.add_distro(test_distro)
@@ -101,7 +105,11 @@ def create_profile(request, cobbler_api):
 
     def _create_profile(distro_name):
         test_profile = Profile(cobbler_api)
-        test_profile.name = request.node.originalname
+        test_profile.name = (
+            request.node.originalname
+            if request.node.originalname
+            else request.node.name
+        )
         test_profile.distro = distro_name
         cobbler_api.add_profile(test_profile)
         return test_profile
@@ -118,7 +126,11 @@ def create_image(request, cobbler_api):
 
     def _create_image():
         test_image = Image(cobbler_api)
-        test_image.name = request.node.originalname
+        test_image.name = (
+            request.node.originalname
+            if request.node.originalname
+            else request.node.name
+        )
         cobbler_api.add_image(test_image)
         return test_image
 
@@ -135,7 +147,11 @@ def create_system(request, cobbler_api):
     def _create_system(profile_name="", image_name="", name=""):
         test_system = System(cobbler_api)
         if name == "":
-            test_system.name = request.node.originalname
+            test_system.name = (
+            request.node.originalname
+            if request.node.originalname
+            else request.node.name
+        )
         else:
             test_system.name = name
         if profile_name != "":
@@ -170,7 +186,11 @@ def fk_initrd(request):
 
     :return: A filename as a string.
     """
-    return "initrd_%s.img" % request.node.originalname
+    return "initrd_%s.img" % (
+            request.node.originalname
+            if request.node.originalname
+            else request.node.name
+        )
 
 
 @pytest.fixture(scope="function")
@@ -180,7 +200,11 @@ def fk_kernel(request):
 
     :return: A path as a string.
     """
-    return "vmlinuz_%s" % request.node.originalname
+    return "vmlinuz_%s" % (
+            request.node.originalname
+            if request.node.originalname
+            else request.node.name
+        )
 
 
 @pytest.fixture(scope="function")
