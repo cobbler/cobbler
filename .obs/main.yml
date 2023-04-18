@@ -3,6 +3,9 @@ workflow:
     - trigger_services:
         project: home:cobbler-project:ci
         package: cobbler
+    - trigger_services:
+        project: home:cobbler-project:github-ci:main
+        package: cobbler-docker-testing
   filters:
     event: push
     branches:
