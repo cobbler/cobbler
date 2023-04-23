@@ -102,6 +102,11 @@
 %define grub2_ia32_efi_pkg grub-efi-ia32
 %define system_release_pkg base-files
 
+# Ubuntu 22.04 and later moved to the C implementation of createrepo
+%if 0%{?ubuntu} >= 22
+%define createrepo_pkg createrepo-c
+%endif
+
 # Debian 11 moved to the C implementation of createrepo
 %if 0%{?debian} == 11
 %define createrepo_pkg createrepo-c
