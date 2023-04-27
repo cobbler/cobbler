@@ -867,13 +867,125 @@
         "kernel_options": "repo=$tree",
         "kernel_options_post": "",
         "boot_files": [],
-        "boot_loaders": []
+        "boot_loaders": {}
+      },
+      "fedora36": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(fedora)-release-36-(.*)\\.noarch\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "armhfp",
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample.ks",
+        "kernel_options": "repo=$tree",
+        "kernel_options_post": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "fedora37": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(fedora)-release-37-(.*)\\.noarch\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample.ks",
+        "kernel_options": "repo=$tree",
+        "kernel_options_post": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "fedora38": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(fedora)-release-38-(.*)\\.noarch\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample.ks",
+        "kernel_options": "repo=$tree",
+        "kernel_options_post": "",
+        "boot_files": [],
+        "boot_loaders": {}
       },
       "cloudlinux6": {
         "signatures": [
           "Packages"
         ],
-        "version_file": "(cloudlinux)-release-(.*)\\.rpm",
+        "version_file": "(cloudlinux)-release-(6.*)\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*).rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "x86_64",
+          "ppc",
+          "ppc64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample.ks",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "cloudlinux7": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(cloudlinux)-release-(7.*)\\.rpm",
         "version_file_regex": null,
         "kernel_arch": "kernel-(.*).rpm",
         "kernel_arch_regex": null,
@@ -1604,6 +1716,58 @@
         "boot_files": [],
         "boot_loaders": {}
       },
+      "groovy": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: groovy|Ubuntu 20.10",
+        "kernel_arch": "linux-headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "hirsute": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: hirsute|Ubuntu 21.04",
+        "kernel_arch": "linux-headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
       "impish": {
         "signatures": [
           "dists",
@@ -1637,6 +1801,58 @@
         ],
         "version_file": "Release|info",
         "version_file_regex": "Suite: jammy|Ubuntu 22.04",
+        "kernel_arch": "linux-headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "kinetic": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: kinetic|Ubuntu 22.10",
+        "kernel_arch": "linux-headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "lunar": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: lunar|Ubuntu 23.04",
         "kernel_arch": "linux-headers-(.*)\\.deb",
         "kernel_arch_regex": null,
         "supported_arches": [
@@ -2377,11 +2593,131 @@
           ]
         }
       },
+      "sles15": {
+        "signatures": [
+          "suse"
+        ],
+        "version_file": "sles-release-15(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64",
+          "s390x",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "linux[64.gz]?",
+        "initrd_file": "initrd[64]?",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample_autoyast.xml",
+        "kernel_options": "install=$tree",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
       "sles15generic": {
         "signatures": [
           "."
         ],
         "version_file": "sles-release-15(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64",
+          "s390x",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "linux[64.gz]?",
+        "initrd_file": "initrd[64]?",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample_autoyast.xml",
+        "kernel_options": "install=$tree",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "sles15sp1": {
+        "signatures": [
+          "suse"
+        ],
+        "version_file": "sles-release-15.1(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64",
+          "s390x",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "linux[64.gz]?",
+        "initrd_file": "initrd[64]?",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample_autoyast.xml",
+        "kernel_options": "install=$tree",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "sles15sp2": {
+        "signatures": [
+          "suse"
+        ],
+        "version_file": "sles-release-15.2(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64",
+          "s390x",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "linux[64.gz]?",
+        "initrd_file": "initrd[64]?",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample_autoyast.xml",
+        "kernel_options": "install=$tree",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "sles15sp3": {
+        "signatures": [
+          "suse"
+        ],
+        "version_file": "sles-release-15.3(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64",
+          "s390x",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "linux[64.gz]?",
+        "initrd_file": "initrd[64]?",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample_autoyast.xml",
+        "kernel_options": "install=$tree",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "sles15sp4": {
+        "signatures": [
+          "suse"
+        ],
+        "version_file": "sles-release-15.4(.*).rpm",
         "version_file_regex": null,
         "kernel_arch": "kernel-(.*)\\.rpm",
         "kernel_arch_regex": null,
@@ -2612,6 +2948,35 @@
         "initrd_file": "imgpayld\\.tgz",
         "isolinux_ok": false,
         "default_autoinstall": "sample_esxi6.ks",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [
+          "*.*"
+        ],
+        "boot_loaders": {
+          "x86_64": [
+            "pxe",
+            "ipxe"
+          ]
+        }
+      },
+      "esxi80": {
+        "signatures": [
+          "b.b00"
+        ],
+        "version_file": "vmware-esx-base-osl\\.txt",
+        "version_file_regex": "^(VMware )?ESXi( )?(v)?8(\\.)?0(\\.)?.*$",
+        "kernel_arch": "tools\\.t00",
+        "kernel_arch_regex": "^.*(x86_64).*$",
+        "supported_arches": [
+          "x86_64"
+        ],
+        "supported_repo_breeds": [],
+        "kernel_file": "b\\.b00",
+        "initrd_file": "imgpayld\\.tgz",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample_esxi8.ks",
         "kernel_options": "",
         "kernel_options_post": "",
         "template_files": "",
@@ -2960,7 +3325,38 @@
         "kernel_arch_regex": null,
         "supported_arches": [
           "i386",
-          "amd64"
+          "amd64",
+          "ppc64",
+          "ppc64le",
+          "ppc64el",
+          "aarch64",
+          "arm"
+        ],
+        "supported_repo_breeds": [],
+        "kernel_file": "base.txz",
+        "initrd_file": "base.txz",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "freebsd12.1": {
+        "signatures": [
+          "boot"
+        ],
+        "version_file": "freebsd-version",
+        "version_file_regex": "USERLAND_VERSION=\"12.1-RELEASE.*\"",
+        "kernel_arch": "device\\.hints",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64",
+          "ppc64",
+          "ppc64le",
+          "ppc64el",
+          "aarch64",
+          "arm"
         ],
         "supported_repo_breeds": [],
         "kernel_file": "base.txz",
@@ -2977,6 +3373,27 @@
         ],
         "version_file": "freebsd-version",
         "version_file_regex": "USERLAND_VERSION=\"11.3-RELEASE.*\"",
+        "kernel_arch": "device\\.hints",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [],
+        "kernel_file": "base.txz",
+        "initrd_file": "base.txz",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "freebsd11.4": {
+        "signatures": [
+          "boot"
+        ],
+        "version_file": "freebsd-version",
+        "version_file_regex": "USERLAND_VERSION=\"11.4-RELEASE.*\"",
         "kernel_arch": "device\\.hints",
         "kernel_arch_regex": null,
         "supported_arches": [
@@ -3027,7 +3444,8 @@
           "ppc64",
           "ppc64le",
           "ppc64el",
-          "aarch64"
+          "aarch64",
+          "arm"
         ],
         "supported_repo_breeds": [],
         "kernel_file": "base.txz",
@@ -3052,7 +3470,34 @@
           "ppc64",
           "ppc64le",
           "ppc64el",
-          "aarch64"
+          "aarch64",
+          "arm"
+        ],
+        "supported_repo_breeds": [],
+        "kernel_file": "base.txz",
+        "initrd_file": "base.txz",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "freebsd12.4": {
+        "signatures": [
+          "boot"
+        ],
+        "version_file": "freebsd-version",
+        "version_file_regex": "USERLAND_VERSION=\"12.4-RELEASE\"",
+        "kernel_arch": "device\\.hints",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64",
+          "ppc64",
+          "ppc64le",
+          "ppc64el",
+          "aarch64",
+          "arm"
         ],
         "supported_repo_breeds": [],
         "kernel_file": "base.txz",
@@ -3069,6 +3514,56 @@
         ],
         "version_file": "freebsd-version",
         "version_file_regex": "USERLAND_VERSION=\"13.0-RELEASE\"",
+        "kernel_arch": "device\\.hints",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64",
+          "ppc64",
+          "ppc64le",
+          "ppc64el",
+          "aarch64"
+        ],
+        "supported_repo_breeds": [],
+        "kernel_file": "base.txz",
+        "initrd_file": "base.txz",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "freebsd13.1": {
+        "signatures": [
+          "boot"
+        ],
+        "version_file": "freebsd-version",
+        "version_file_regex": "USERLAND_VERSION=\"13.1-RELEASE\"",
+        "kernel_arch": "device\\.hints",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64",
+          "ppc64",
+          "ppc64le",
+          "ppc64el",
+          "aarch64"
+        ],
+        "supported_repo_breeds": [],
+        "kernel_file": "base.txz",
+        "initrd_file": "base.txz",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "freebsd13.2": {
+        "signatures": [
+          "boot"
+        ],
+        "version_file": "freebsd-version",
+        "version_file_regex": "USERLAND_VERSION=\"13.2-RELEASE\"",
         "kernel_arch": "device\\.hints",
         "kernel_arch_regex": null,
         "supported_arches": [
@@ -3121,7 +3616,8 @@
         "kernel_arch": "xen\\.gz",
         "kernel_arch_regex": "^.*(x86_64).*$",
         "supported_arches": [
-          "x86_64"
+          "x86_64",
+          "arm"
         ],
         "supported_repo_breeds": [],
         "kernel_file": "mboot\\.c32",
@@ -3143,7 +3639,8 @@
         "kernel_arch": "xen\\.gz",
         "kernel_arch_regex": "^.*(x86_64).*$",
         "supported_arches": [
-          "x86_64"
+          "x86_64",
+          "arm"
         ],
         "supported_repo_breeds": [],
         "kernel_file": "mboot\\.c32",
@@ -3165,7 +3662,8 @@
         "kernel_arch": "xen\\.gz",
         "kernel_arch_regex": "^.*(x86_64).*$",
         "supported_arches": [
-          "x86_64"
+          "x86_64",
+          "arm"
         ],
         "supported_repo_breeds": [],
         "kernel_file": "mboot\\.c32",
@@ -3187,7 +3685,8 @@
         "kernel_arch": "xen\\.gz",
         "kernel_arch_regex": "^.*(x86_64).*$",
         "supported_arches": [
-          "x86_64"
+          "x86_64",
+          "arm"
         ],
         "supported_repo_breeds": [],
         "kernel_file": "mboot\\.c32",
@@ -3209,7 +3708,77 @@
         "kernel_arch": "xen\\.gz",
         "kernel_arch_regex": "^.*(x86_64).*$",
         "supported_arches": [
-          "x86_64"
+          "x86_64",
+          "arm"
+        ],
+        "supported_repo_breeds": [],
+        "kernel_file": "mboot\\.c32",
+        "initrd_file": "xen\\.gz",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": [
+          "install.img"
+        ]
+      },
+      "xenserver740": {
+        "signatures": [
+          "packages.xenserver"
+        ],
+        "version_file": "^XS-REPOSITORY$",
+        "version_file_regex": "^.*product=\"XenServer\" version=\"7\\.4\\.([0-9]+)\".*$",
+        "kernel_arch": "xen\\.gz",
+        "kernel_arch_regex": "^.*(x86_64).*$",
+        "supported_arches": [
+          "x86_64",
+          "arm"
+        ],
+        "supported_repo_breeds": [],
+        "kernel_file": "mboot\\.c32",
+        "initrd_file": "xen\\.gz",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": [
+          "install.img"
+        ]
+      },
+      "xenserver750": {
+        "signatures": [
+          "packages.xenserver"
+        ],
+        "version_file": "^XS-REPOSITORY$",
+        "version_file_regex": "^.*product=\"XenServer\" version=\"7\\.5\\.([0-9]+)\".*$",
+        "kernel_arch": "xen\\.gz",
+        "kernel_arch_regex": "^.*(x86_64).*$",
+        "supported_arches": [
+          "x86_64",
+          "arm"
+        ],
+        "supported_repo_breeds": [],
+        "kernel_file": "mboot\\.c32",
+        "initrd_file": "xen\\.gz",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": [
+          "install.img"
+        ]
+      },
+      "xenserver760": {
+        "signatures": [
+          "packages.xenserver"
+        ],
+        "version_file": "^XS-REPOSITORY$",
+        "version_file_regex": "^.*product=\"XenServer\" version=\"7\\.6\\.([0-9]+)\".*$",
+        "kernel_arch": "xen\\.gz",
+        "kernel_arch_regex": "^.*(x86_64).*$",
+        "supported_arches": [
+          "x86_64",
+          "arm"
         ],
         "supported_repo_breeds": [],
         "kernel_file": "mboot\\.c32",
@@ -3237,7 +3806,16 @@
         "kernel_arch": "(i386|amd64)",
         "kernel_arch_regex": null,
         "supported_arches":["i386","amd64"],
-        "boot_loaders":{"i386":["pxe","ipxe"], "x86_64":["pxe","ipxe"]},
+        "boot_loaders":{
+          "i386":[
+            "pxe",
+            "ipxe"
+          ],
+          "x86_64":[
+            "pxe",
+            "ipxe"
+          ]
+        },
         "supported_repo_breeds": [],
         "kernel_file": "pxeboot\\.n12",
         "initrd_file": "boot\\.sdi",
@@ -3259,7 +3837,16 @@
         "kernel_arch": "install\\.wim",
         "kernel_arch_regex": "^Architecture:.*(x86|x86_64)$",
         "supported_arches":["x86","x86_64"],
-        "boot_loaders":{"i386":["pxe","ipxe"], "x86_64":["pxe","ipxe"]},
+        "boot_loaders":{
+          "i386":[
+            "pxe",
+            "ipxe"
+          ],
+          "x86_64":[
+            "pxe",
+            "ipxe"
+          ]
+        },
         "supported_repo_breeds": [],
         "kernel_file": "pxeboot\\.n12",
         "initrd_file": "boot\\.sdi",
@@ -3278,7 +3865,12 @@
         "kernel_arch": "install\\.wim",
         "kernel_arch_regex": "^Architecture:.*(x86_64)$",
         "supported_arches":["x86_64"],
-        "boot_loaders":{"x86_64":["pxe","ipxe"]},
+        "boot_loaders":{
+          "x86_64":[
+            "pxe",
+            "ipxe"
+          ]
+        },
         "supported_repo_breeds": [],
         "kernel_file": "pxeboot\\.n12",
         "initrd_file": "boot\\.sdi",
@@ -3297,7 +3889,12 @@
         "kernel_arch": "install\\.wim",
         "kernel_arch_regex": "^Architecture:.*(x86_64)$",
         "supported_arches":["x86_64"],
-        "boot_loaders":{"x86_64":["pxe","ipxe"]},
+        "boot_loaders":{
+          "x86_64":[
+            "pxe",
+            "ipxe"
+          ]
+        },
         "supported_repo_breeds": [],
         "kernel_file": "pxeboot\\.n12",
         "initrd_file": "boot\\.sdi",
@@ -3316,7 +3913,36 @@
         "kernel_arch": "install\\.wim",
         "kernel_arch_regex": "^Architecture:.*(x86_64)$",
         "supported_arches":["x86_64"],
-        "boot_loaders":{"x86_64":["pxe","ipxe"]},
+        "boot_loaders":{
+          "x86_64":[
+            "pxe",
+            "ipxe"
+          ]
+        },
+        "supported_repo_breeds": [],
+        "kernel_file": "pxeboot\\.n12",
+        "initrd_file": "boot\\.sdi",
+        "default_autoinstall": "win.ks",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "2022": {
+        "signatures": [
+          "sources",
+          "autorun.inf"
+        ],
+        "version_file": "install\\.wim",
+        "version_file_regex": "^Name:.*Windows Server 2022.*$",
+        "kernel_arch": "install\\.wim",
+        "kernel_arch_regex": "^Architecture:.*(x86_64)$",
+        "supported_arches":["x86_64"],
+        "boot_loaders":{
+          "x86_64":[
+            "pxe",
+            "ipxe"
+          ]
+        },
         "supported_repo_breeds": [],
         "kernel_file": "pxeboot\\.n12",
         "initrd_file": "boot\\.sdi",
@@ -3336,7 +3962,16 @@
         "kernel_arch": "(i386|amd64)",
         "kernel_arch_regex": null,
         "supported_arches":["i386","amd64"],
-        "boot_loaders":{"i386":["pxe","ipxe"], "x86_64":["pxe","ipxe"]},
+        "boot_loaders":{
+          "i386":[
+            "pxe",
+            "ipxe"
+          ],
+          "x86_64":[
+            "pxe",
+            "ipxe"
+          ]
+        },
         "supported_repo_breeds": [],
         "kernel_file": "pxeboot\\.n12",
         "initrd_file": "boot\\.sdi",
@@ -3358,7 +3993,16 @@
         "kernel_arch": "install\\.wim",
         "kernel_arch_regex": "^Architecture:.*(x86|x86_64)$",
         "supported_arches":["x86","x86_64"],
-        "boot_loaders":{"i386":["pxe","ipxe"], "x86_64":["pxe","ipxe"]},
+        "boot_loaders":{
+          "i386":[
+            "pxe",
+            "ipxe"
+          ],
+          "x86_64":[
+            "pxe",
+            "ipxe"
+          ]
+        },
         "supported_repo_breeds": [],
         "kernel_file": "pxeboot\\.n12",
         "initrd_file": "boot\\.sdi",
@@ -3377,7 +4021,16 @@
         "kernel_arch": "install\\.wim",
         "kernel_arch_regex": "^Architecture:.*(x86|x86_64)$",
         "supported_arches":["x86","x86_64"],
-        "boot_loaders":{"i386":["pxe","ipxe"], "x86_64":["pxe","ipxe"]},
+        "boot_loaders":{
+          "i386":[
+            "pxe",
+            "ipxe"
+          ],
+          "x86_64":[
+            "pxe",
+            "ipxe"
+          ]
+        },
         "supported_repo_breeds": [],
         "kernel_file": "pxeboot\\.n12",
         "initrd_file": "boot\\.sdi",
@@ -3396,7 +4049,16 @@
         "kernel_arch": "install\\.wim",
         "kernel_arch_regex": "^Architecture:.*(x86|x86_64)$",
         "supported_arches":["x86","x86_64"],
-        "boot_loaders":{"i386":["pxe","ipxe"], "x86_64":["pxe","ipxe"]},
+        "boot_loaders":{
+          "i386":[
+            "pxe",
+            "ipxe"
+          ],
+          "x86_64":[
+            "pxe",
+            "ipxe"
+          ]
+        },
         "supported_repo_breeds": [],
         "kernel_file": "pxeboot\\.n12",
         "initrd_file": "boot\\.sdi",
@@ -3415,7 +4077,13 @@
         "kernel_arch": "install\\.wim",
         "kernel_arch_regex": "^Architecture:.*(ARM64|x86_64)$",
         "supported_arches":["ARM64","x86_64"],
-        "boot_loaders":{"aarch64":[], "x86_64":["pxe","ipxe"]},
+        "boot_loaders":{
+          "aarch64":[],
+          "x86_64":[
+            "pxe",
+            "ipxe"
+          ]
+        },
         "supported_repo_breeds": [],
         "kernel_file": "pxeboot\\.n12",
         "initrd_file": "boot\\.sdi",
