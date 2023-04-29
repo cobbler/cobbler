@@ -1,5 +1,116 @@
 """
 This module contains all code related to the Cobbler XML-RPC API.
+
+Changelog:
+
+Schema: From -> To
+
+Current Schema: Please refer to the documentation visible of the individual methods.
+
+V3.4.0 (unreleased)
+    * Added:
+        * ``set_item_resolved_value``
+        * ``input_string_or_list_no_inherit``
+        * ``input_string_or_list``
+        * ``input_string_or_dict``
+        * ``input_string_or_dict_no_inherit``
+        * ``input_boolean``
+        * ``input_int``
+
+V3.3.4 (unreleased)
+    * No changes
+
+V3.3.3
+    * Added:
+        * ``get_item_resolved_value``
+        * ``dump_vars``
+
+V3.3.2
+    * No changes
+
+V3.3.1
+    * Changed:
+        * ``background_mkgrub``: Renamed to ``background_mkloaders``
+
+V3.3.0
+    * Added:
+        * ``background_syncsystems``
+        * ``background_mkgrub``
+        * ``get_menu``
+        * ``find_menu``
+        * ``get_menu_handle``
+        * ``remove_menu``
+        * ``copy_menu``
+        * ``rename_menu``
+        * ``new_menu``
+        * ``modify_menu``
+        * ``save_menu``
+        * ``get_valid_distro_boot_loaders``
+        * ``get_valid_image_boot_loaders``
+        * ``get_valid_profile_boot_loaders``
+        * ``get_valid_system_boot_loaders``
+        * ``get_menus_since``
+        * ``get_menu_as_rendered``
+    * Changed:
+        * ``generate_gpxe``: Renamed to ``generate_ipxe``
+    * Removed:
+        * ``background_dlcontent``
+        * ``get_distro_for_koan``
+        * ``get_profile_for_koan``
+        * ``get_system_for_koan``
+        * ``get_repo_for_koan``
+        * ``get_image_for_koan``
+        * ``get_mgmtclass_for_koan``
+        * ``get_package_for_koan``
+        * ``get_file_for_koan``
+        * ``get_file_for_koan``
+
+V3.2.2
+    * No changes
+
+V3.2.1
+    * Added:
+        * ``auto_add_repos``
+
+V3.2.0
+    * No changes
+
+V3.1.2
+    * No changes
+
+V3.1.1
+    * No changes
+
+V3.1.0
+    * No changes
+
+V3.0.1
+    * No changes
+
+V3.0.0
+    * Added:
+        * ``generate_profile_autoinstall``
+        * ``generate_system_autoinstall``
+        * ``get_valid_archs``
+        * ``read_autoinstall_template``
+        * ``write_autoinstall_template``
+        * ``remove_autoinstall_template``
+        * ``read_autoinstall_snippet``
+        * ``write_autoinstall_snippet``
+        * ``remove_autoinstall_snippet``
+    * Changed:
+        * ``get_kickstart_templates``: Renamed to ``get_autoinstall_templates``
+        * ``get_snippets``: Renamed to ``get_autoinstall_snippets``
+        * ``is_kickstart_in_use``: Renamed to ``is_autoinstall_in_use``
+        * ``generate_kickstart``: Renamed to ``generate_autoinstall``
+    * Removed:
+        * ``update``
+        * ``read_or_write_kickstart_template``
+        * ``read_or_write_snippet``
+
+V2.8.5
+    * Inital tracking of changes.
+
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

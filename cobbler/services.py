@@ -1,5 +1,63 @@
 """
 Mod Python service functions for Cobbler's public interface (aka cool stuff that works with wget/curl)
+
+Changelog:
+
+Schema: From -> To
+
+Current Schema: Please refer to the documentation visible of the individual methods.
+
+V3.4.0 (unreleased)
+    * No changes
+
+V3.3.4 (unreleased)
+    * No changes
+
+V3.3.3
+    * Removed:
+        * ``look``
+
+V3.3.2
+    * No changes
+
+V3.3.1
+    * No changes
+
+V3.3.0
+    * Added:
+        * ``settings``
+    * Changed:
+        * ``gpxe``: Renamed to ``ipxe``
+
+V3.2.2
+    * No changes
+
+V3.2.1
+    * No changes
+
+V3.2.0
+    * No changes
+
+V3.1.2
+    * No changes
+
+V3.1.1
+    * No changes
+
+V3.1.0
+    * No changes
+
+V3.0.1
+    * No changes
+
+V3.0.0
+    * Added:
+        * ``autoinstall``
+        * ``find_autoinstall``
+
+V2.8.5
+    * Inital tracking of changes.
+
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
