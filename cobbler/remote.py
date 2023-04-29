@@ -31,7 +31,7 @@ import re
 import xmlrpc.server
 from socketserver import ThreadingMixIn
 from threading import Thread
-from typing import Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 
 from cobbler import enums
@@ -42,6 +42,9 @@ from cobbler import tftpgen
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.validate import validate_autoinstall_script_name, validate_obj_id, validate_obj_name
+
+if TYPE_CHECKING:
+    import xmlrpc.client
 
 EVENT_TIMEOUT = 7 * 24 * 60 * 60  # 1 week
 CACHE_TIMEOUT = 10 * 60  # 10 minutes
@@ -2791,7 +2794,7 @@ class CobblerXMLRPCInterface:
         self.api.sync_dhcp()
         return True
 
-    def upload_log_data(self, sys_name: str, file: str, size: int, offset: int, data: bytes,
+    def upload_log_data(self, sys_name: str, file: str, size: int, offset: int, data: "xmlrpc.client.Binary",
                         token: Optional[str] = None) -> bool:
         """
         This is a logger function used by the "anamon" logging system to upload all sorts of misc data from Anaconda.
@@ -2805,26 +2808,30 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: True if everything succeeded.
         """
-        if not self.__validate_log_data_params(sys_name, file, size, offset, data, token):
-            return False
-        self._log("upload_log_data (file: '%s', size: %s, offset: %s)" % (file, size, offset), token=token,
-                  name=sys_name)
-
         # Check if enabled in self.api.settings()
         if not self.api.settings().anamon_enabled:
             # feature disabled!
             return False
 
-        # Find matching system record
-
-        obj = self.api.find_system(name=sys_name)
-        if obj is None:
-            # system not found!
-            self._log("upload_log_data - WARNING - system '%s' not found in Cobbler" % sys_name, token=token,
-                      name=sys_name)
+        if not self.__validate_log_data_params(sys_name, file, size, offset, data, token):
             return False
+        self._log("upload_log_data (file: '%s', size: %s, offset: %s)" % (file, size, offset), token=token,
+                  name=sys_name)
 
-        return self.__upload_file(obj.name, file, size, offset, data)
+        # Find matching system or profile record
+        obj = self.api.find_system(name=sys_name)
+        if obj is None or isinstance(obj, list):
+            obj = self.api.find_profile(name=sys_name)
+            if obj is None or isinstance(obj, list):
+                # system or profile not found!
+                self._log(
+                    "upload_log_data - WARNING - system or profile not found in Cobbler",
+                    token=token,
+                    name=sys_name,
+                )
+                return False
+
+        return self.__upload_file(obj.name, file, size, offset, data.data)
 
     def __validate_log_data_params(self, sys_name: str, logfile_name: str, size: int, offset: int, data: bytes,
                                    token: Optional[str] = None) -> bool:
@@ -2858,11 +2865,9 @@ class CobblerXMLRPCInterface:
         :param data: base64 encoded file contents
         :return: True if the action succeeded.
         """
-        contents = base64.decodebytes(data)
-        del data
         if offset != -1:
             if size is not None:
-                if size != len(contents):
+                if size != len(data):
                     return False
 
         # FIXME: Get the base directory from Cobbler app-settings
@@ -2894,7 +2899,7 @@ class CobblerXMLRPCInterface:
         fd = os.open(file_name, os.O_RDWR | os.O_CREAT | os.O_CLOEXEC, 0o644)
         # log_error("fd=%r" %fd)
         try:
-            if offset == 0 or (offset == -1 and size == len(contents)):
+            if offset == 0 or (offset == -1 and size == len(data)):
                 # truncate file
                 fcntl.lockf(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 try:
@@ -2907,12 +2912,12 @@ class CobblerXMLRPCInterface:
             else:
                 os.lseek(fd, offset, 0)
             # write contents
-            fcntl.lockf(fd, fcntl.LOCK_EX | fcntl.LOCK_NB, len(contents), 0, 2)
+            fcntl.lockf(fd, fcntl.LOCK_EX | fcntl.LOCK_NB, len(data), 0, 2)
             try:
-                os.write(fd, contents)
+                os.write(fd, data)
                 # log_error("wrote contents")
             finally:
-                fcntl.lockf(fd, fcntl.LOCK_UN, len(contents), 0, 2)
+                fcntl.lockf(fd, fcntl.LOCK_UN, len(data), 0, 2)
             if offset == -1:
                 if size is not None:
                     # truncate file
