@@ -32,9 +32,10 @@ import sys
 import time
 
 try:
-    from xmlrpc.client import Server
+    from xmlrpc.client import Binary, Server
 except ImportError:
-    from xmlrpclib import Server
+    # Python 2
+    from xmlrpclib import Binary, Server
 
 
 # shlex.split support arrived in python-2.3, the following will provide some
@@ -89,7 +90,7 @@ class WatchedFile:
             lap = time.time()
             contents = fo.read(blocksize)
             size = len(contents)
-            data = base64.encodestring(contents)
+            data = Binary(contents)
             if size == 0:
                 offset = -1
                 sz = ofs
@@ -103,7 +104,7 @@ class WatchedFile:
                     "upload_log_data('%s', '%s', %s, %s, ...)\n"
                     % (name, self.alias, sz, offset)
                 )
-                if session.upload_log_data(name, self.alias, sz, offset, data.decode()):
+                if session.upload_log_data(name, self.alias, sz, offset, data):
                     break
                 else:
                     tries = tries + 1
