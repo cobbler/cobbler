@@ -1,20 +1,28 @@
 """
 All code belonging to Cobbler systems. This includes network interfaces.
 
-Changelog:
+Changelog (NetworkInterface):
 
-Current Schema:
-    *
-V3.3.4:
+V3.4.0 (unreleased):
+    * Changes:
+        * Constructor: ``kwargs`` can now be used to seed the item during creation.
+V3.3.4 (unreleased):
     * No changes
 V3.3.3:
-    * No changes
+    * Changed:
+        * ``to_dict()``: Accepts new parameter ``resolved``
+        * ``virt_bridge``: Can now be set to ``<<inherit>>`` to get its value from the settings key
+          ``default_virt_bridge``
 V3.3.2:
     * No changes
 V3.3.1:
     * No changes
 V3.3.0:
-    *
+    * This release switched from pure attributes to properties (getters/setters).
+    * Added:
+        * ``NetworkInterface`` is now a class.
+        * Serialization still happens inside the system collection.
+        * Properties have been used.
 V3.2.2:
     * No changes
 V3.2.1:
@@ -30,8 +38,232 @@ V3.1.0:
 V3.0.1:
     * No changes
 V3.0.0:
-    * No changes
+    * Field defintions now split of ``System`` class
 V2.8.5:
+    * Inital tracking of changes for the changelog.
+    * Field definitions part of ``System`` class
+    * Added:
+        * ``mac_address``: str
+        * ``connected_mode``: bool
+        * ``mtu``: str
+        * ``ip_address``: str
+        * ``interface_type``: str - One of "na", "bond", "bond_slave", "bridge", bridge_slave", "bonded_bridge_slave",
+          "infiniband"
+        * ``interface_master``: str
+        * ``bonding_opts``: str
+        * ``bridge_opts``: str
+        * ``management``: bool
+        * ``static``: bool
+        * ``netmask``: str
+        * ``if_gateway``: str
+        * ``dhcp_tag``: str
+        * ``dns_name``: str
+        * ``static_routes``: List[str]
+        * ``virt_bridge``: str
+        * ``ipv6_address``: str
+        * ``ipv6_prefix``: str
+        * ``ipv6_secondaries``: List[str]
+        * ``ipv6_mtu``: str
+        * ``ipv6_static_routes``: List[str]
+        * ``ipv6_default_gateway``: str
+        * ``cnames``: List[str]
+
+Changelog (System):
+
+V3.4.0 (unreleased):
+    * Added:
+        * ``display_name``: str
+    * Changes:
+        * Constructor: ``kwargs`` can now be used to seed the item during creation.
+        * ``from_dict()``: The method was moved to the base class.
+        * ``parent``: The property was moved to the base class.
+V3.3.4 (unreleased):
+    * Changed:
+        * The network interface ``default`` is not created on object creation.
+V3.3.3:
+    * Changed:
+        * ``boot_loaders``: Can now be set to ``<<inherit>>``
+        * ``next_server_v4``: Can now be set to ``<<inhertit>>``
+        * ``next_server_v6``: Can now be set to ``<<inhertit>>``
+        * ``virt_cpus``: Can now be set to ``<<inhertit>>``
+        * ``virt_file_size``: Can now be set to ``<<inhertit>>``
+        * ``virt_disk_driver``: Can now be set to ``<<inhertit>>``
+        * ``virt_auto_boot``: Can now be set to ``<<inhertit>>``
+        * ``virt_ram``: Can now be set to ``<<inhertit>>``
+        * ``virt_type``: Can now be set to ``<<inhertit>>``
+        * ``virt_path``: Can now be set to ``<<inhertit>>``
+V3.3.2:
+    * No changes
+V3.3.1:
+    * Changed:
+        * ``serial_device``: Default value is now ``-1``
+V3.3.0:
+    * This release switched from pure attributes to properties (getters/setters).
+    * Added:
+        * ``next_server_v4``
+        * ``next_server_v6``
+    * Changed:
+        * ``virt_*``: Cannot be set to inherit anymore
+        * ``enable_gpxe``: Renamed to ``enable_ipxe``
+    * Removed:
+        * ``get_fields()``
+        * ``next_server`` - Please use one of ``next_server_v4`` or ``next_server_v6``
+        * ``set_boot_loader()`` - Moved to ``boot_loader`` property
+        * ``set_server()`` - Moved to ``server`` property
+        * ``set_next_server()`` - Moved to ``next_server`` property
+        * ``set_filename()`` - Moved to ``filename`` property
+        * ``set_proxy()`` - Moved to ``proxy`` property
+        * ``set_redhat_management_key()`` - Moved to ``redhat_management_key`` property
+        * ``get_redhat_management_key()`` - Moved to ``redhat_management_key`` property
+        * ``set_dhcp_tag()`` - Moved to ``NetworkInterface`` class property ``dhcp_tag``
+        * ``set_cnames()`` - Moved to ``NetworkInterface`` class property ``cnames``
+        * ``set_status()`` - Moved to ``status`` property
+        * ``set_static()`` - Moved to ``NetworkInterface`` class property ``static``
+        * ``set_management()`` - Moved to ``NetworkInterface`` class property ``management``
+        * ``set_dns_name()`` - Moved to ``NetworkInterface`` class property ``dns_name``
+        * ``set_hostname()`` - Moved to ``hostname`` property
+        * ``set_ip_address()`` - Moved to ``NetworkInterface`` class property ``ip_address``
+        * ``set_mac_address()`` - Moved to ``NetworkInterface`` class property ``mac_address``
+        * ``set_gateway()`` - Moved to ``gateway`` property
+        * ``set_name_servers()`` - Moved to ``name_servers`` property
+        * ``set_name_servers_search()`` - Moved to ``name_servers_search`` property
+        * ``set_netmask()`` - Moved to ``NetworkInterface`` class property ``netmask``
+        * ``set_if_gateway()`` - Moved to ``NetworkInterface`` class property ``if_gateway``
+        * ``set_virt_bridge()`` - Moved to ``NetworkInterface`` class property ``virt_bridge``
+        * ``set_interface_type()`` - Moved to ``NetworkInterface`` class property ``interface_type``
+        * ``set_interface_master()`` - Moved to ``NetworkInterface`` class property ``interface_master``
+        * ``set_bonding_opts()`` - Moved to ``NetworkInterface`` class property ``bonding_opts``
+        * ``set_bridge_opts()`` - Moved to ``NetworkInterface`` class property ``bridge_opts``
+        * ``set_ipv6_autoconfiguration()`` - Moved to ``ipv6_autoconfiguration`` property
+        * ``set_ipv6_default_device()`` - Moved to ``ipv6_default_device`` property
+        * ``set_ipv6_address()`` - Moved to ``NetworkInterface`` class property ``ipv6_address``
+        * ``set_ipv6_prefix()`` - Moved to ``NetworkInterface`` class property ``ipv6_prefix``
+        * ``set_ipv6_secondaries()`` - Moved to ``NetworkInterface`` class property ``ipv6_secondaries``
+        * ``set_ipv6_default_gateway()`` - Moved to ``NetworkInterface`` class property ``ipv6_default_gateway``
+        * ``set_ipv6_static_routes()`` - Moved to ``NetworkInterface`` class property ``ipv6_static_routes``
+        * ``set_ipv6_mtu()`` - Moved to ``NetworkInterface`` class property ``ipv6_mtu``
+        * ``set_mtu()`` - Moved to ``NetworkInterface`` class property ``mtu``
+        * ``set_connected_mode()`` - Moved to ``NetworkInterface`` class property ``connected_mode``
+        * ``set_enable_gpxe()`` - Moved to ``enable_gpxe`` property
+        * ``set_profile()`` - Moved to ``profile`` property
+        * ``set_image()`` - Moved to ``image`` property
+        * ``set_virt_cpus()`` - Moved to ``virt_cpus`` property
+        * ``set_virt_file_size()`` - Moved to ``virt_file_size`` property
+        * ``set_virt_disk_driver()`` - Moved to ``virt_disk_driver`` property
+        * ``set_virt_auto_boot()`` - Moved to ``virt_auto_boot`` property
+        * ``set_virt_pxe_boot()`` - Moved to ``virt_pxe_boot`` property
+        * ``set_virt_ram()`` - Moved to ``virt_ram`` property
+        * ``set_virt_type()`` - Moved to ``virt_type`` property
+        * ``set_virt_path()`` - Moved to ``virt_path`` property
+        * ``set_netboot_enabled()`` - Moved to ``netboot_enabled`` property
+        * ``set_autoinstall()`` - Moved to ``autoinstall`` property
+        * ``set_power_type()`` - Moved to ``power_type`` property
+        * ``set_power_identity_file()`` - Moved to ``power_identity_file`` property
+        * ``set_power_options()`` - Moved to ``power_options`` property
+        * ``set_power_user()`` - Moved to ``power_user`` property
+        * ``set_power_pass()`` - Moved to ``power_pass`` property
+        * ``set_power_address()`` - Moved to ``power_address`` property
+        * ``set_power_id()`` - Moved to ``power_id`` property
+        * ``set_repos_enabled()`` - Moved to ``repos_enabled`` property
+        * ``set_serial_device()`` - Moved to ``serial_device`` property
+        * ``set_serial_baud_rate()`` - Moved to ``serial_baud_rate`` property
+V3.2.2:
+    * No changes
+V3.2.1:
+    * Added:
+        * ``kickstart``: Resolves as a proxy to ``autoinstall``
+V3.2.0:
+    * No changes
+V3.1.2:
+    * Added:
+        * ``filename``: str - Inheritable
+        * ``set_filename()``
+V3.1.1:
+    * No changes
+V3.1.0:
+    * No changes
+V3.0.1:
+    * File was moved from ``cobbler/item_system.py`` to ``cobbler/items/system.py``.
+V3.0.0:
+    * Field definitions for network interfaces moved to own ``FIELDS`` array
+    * Added:
+        * ``boot_loader``: str - Inheritable
+        * ``next_server``: str - Inheritable
+        * ``power_options``: str
+        * ``power_identity_file``: str
+        * ``serial_device``: int
+        * ``serial_baud_rate``: int - One of "", "2400", "4800", "9600", "19200", "38400", "57600", "115200"
+        * ``set_next_server()``
+        * ``set_serial_device()``
+        * ``set_serial_baud_rate()``
+        * ``get_config_filename()``
+        * ``set_power_identity_file()``
+        * ``set_power_options()``
+    * Changed:
+        * ``kickstart``: Renamed to ``autoinstall``
+        * ``ks_meta``: Renamed to ``autoinstall_meta``
+        * ``from_datastruct``: Renamed to ``from_dict()``
+        * ``set_kickstart()``: Renamed to ``set_autoinstall()``
+    * Removed:
+        * ``redhat_management_server``
+        * ``set_ldap_enabled()``
+        * ``set_monit_enabled()``
+        * ``set_template_remote_kickstarts()``
+        * ``set_redhat_management_server()``
+        * ``set_name()``
+V2.8.5:
+    * Inital tracking of changes for the changelog.
+    * Network interface defintions part of this class
+    * Added:
+        * ``name``: str
+        * ``uid``: str
+        * ``owners``: List[str] - Inheritable
+        * ``profile``: str - Name of the profile
+        * ``image``: str - Name of the image
+        * ``status``: str - One of "", "development", "testing", "acceptance", "production"
+        * ``kernel_options``: Dict[str, Any]
+        * ``kernel_options_post``: Dict[str, Any]
+        * ``ks_meta``: Dict[str, Any]
+        * ``enable_gpxe``: bool - Inheritable
+        * ``proxy``: str - Inheritable
+        * ``netboot_enabled``: bool
+        * ``kickstart``: str - Inheritable
+        * ``comment``: str
+        * ``depth``: int
+        * ``server``: str - Inheritable
+        * ``virt_path``: str - Inheritable
+        * ``virt_type``: str - Inheritable; One of "xenpv", "xenfv", "qemu", "kvm", "vmware", "openvz"
+        * ``virt_cpus``: int - Inheritable
+        * ``virt_file_size``: float - Inheritable
+        * ``virt_disk_driver``: str - Inheritable; One of "<<inherit>>", "raw", "qcow", "qcow2", "aio", "vmdk", "qed"
+        * ``virt_ram``: int - Inheritable
+        * ``virt_auto_boot``: bool - Inheritable
+        * ``virt_pxe_boot``: bool
+        * ``ctime``: float
+        * ``mtime``: float
+        * ``power_type``: str - Default loaded from settings key ``power_management_default_type``
+        * ``power_address``: str
+        * ``power_user``: str
+        * ``power_pass``: str
+        * ``power_id``: str
+        * ``hostname``: str
+        * ``gateway``: str
+        * ``name_servers``: List[str]
+        * ``name_servers_search``: List[str]
+        * ``ipv6_default_device``: str
+        * ``ipv6_autoconfiguration``: bool
+        * ``mgmt_classes``: List[Any] - Inheritable
+        * ``mgmt_parameters``: str - Inheritable
+        * ``boot_files``: Dict[str, Any]/List (Not reverse engineeriable) - Inheritable
+        * ``fetchable_files``: Dict[str, Any] - Inheritable
+        * ``template_files``: Dict[str, Any] - Inheritable
+        * ``redhat_management_key``: str - Inheritable
+        * ``redhat_management_server``: str - Inheritable
+        * ``template_remote_kickstarts``: bool - Default loaded from settings key ``template_remote_kickstarts``
+        * ``repos_enabled``: bool
+        * ``ldap_enabled``: - bool
+        * ``ldap_type``: str - Default loaded from settings key ``ldap_management_default_type``
+        * ``monit_enabled``: bool
 
 """
 # SPDX-License-Identifier: GPL-2.0-or-later

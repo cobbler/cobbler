@@ -3,17 +3,23 @@ Cobbler module that contains the code for a Cobbler menu object.
 
 Changelog:
 
-Current Schema:
-    * display_name: str
-V3.3.4:
+V3.4.0 (unreleased):
+    * Changes:
+        * Constructor: ``kwargs`` can now be used to seed the item during creation.
+        * ``children``: The property was moved to the base class.
+        * ``parent``: The property was moved to the base class.
+        * ``from_dict()``: The method was moved to the base class.
+V3.3.4 (unreleased):
     * No changes
 V3.3.3:
-    * No changes
+    * Changed:
+        * ``check_if_valid()``: Now present in base class.
 V3.3.2:
     * No changes
 V3.3.1:
     * No changes
 V3.3.0:
+    * Inital version of the item type.
     * Added:
         * display_name: str
 """
