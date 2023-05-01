@@ -283,6 +283,12 @@ Requires:       cobbler = %{version}-%{release}
 %description tests
 Unit test files from the Cobbler project
 
+%package tests-containers
+Summary:        Dockerfiles and scripts to setup testing containers
+Requires:       cobbler = %{version}-%{release}
+
+%description tests-containers
+Dockerfiles and scripts to setup testing containers
 
 %prep
 %setup
@@ -484,6 +490,10 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
 %files tests
 %dir %{_datadir}/cobbler/tests
 %{_datadir}/cobbler/tests/*
+
+%files tests-containers
+%dir %{_datadir}/cobbler/docker
+%{_datadir}/cobbler/docker/*
 
 %changelog
 * Thu Dec 19 2019 Neal Gompa <ngompa13@gmail.com>
