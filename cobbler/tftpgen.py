@@ -730,8 +730,10 @@ class TFTPGen:
 
             if distro.breed is None or distro.breed == "redhat":
 
-                append_line += " inst.kssendmac"
-                append_line = "%s inst.ks=%s" % (append_line, autoinstall_path)
+                if distro.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
+                    append_line += " kssendmac ks=%s" % autoinstall_path
+                else:
+                    append_line += " inst.ks.sendmac inst.ks=%s" % autoinstall_path
                 gpxe = blended["enable_gpxe"]
                 if gpxe:
                     append_line = append_line.replace('ksdevice=bootif', 'ksdevice=${net0/mac}')
