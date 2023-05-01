@@ -92,7 +92,7 @@ cheetah_import_whitelist:
 createrepo_flags: "-c cache -s sha"
 
 # if no autoinstall template is specified to profile add, use this template
-default_autoinstall: /var/lib/cobbler/autoinstall_templates/default.ks
+default_autoinstall: /var/lib/cobbler/templates/default.ks
 
 # configure all installed systems to use these nameservers by default
 # unless defined differently in the profile.  For DHCP configurations
@@ -107,7 +107,7 @@ default_ownership:
  - "admin"
 
 # cobbler has various sample automatic installation templates stored
-# in /var/lib/cobbler/autoinstall_templates/.  This controls
+# in /var/lib/cobbler/templates/.  This controls
 # what install (root) password is set up for those
 # systems that reference this variable.  The factory
 # default is "cobbler" and cobbler check will warn if

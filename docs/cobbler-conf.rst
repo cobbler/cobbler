@@ -257,7 +257,7 @@ default_autoinstall
 
 If no autoinstall template is specified to profile add, use this template.
 
-default: ``/var/lib/cobbler/autoinstall_templates/default.ks``
+default: ``/var/lib/cobbler/templates/default.ks``
 
 default_name_*
 ==============
@@ -284,7 +284,7 @@ default:
 default_password_crypted
 ========================
 
-Cobbler has various sample automatic installation templates stored in ``/var/lib/cobbler/autoinstall_templates/``. This
+Cobbler has various sample automatic installation templates stored in ``/var/lib/cobbler/templates/``. This
 controls what install (root) password is set up for those systems that reference this variable. The factory default is
 "cobbler" and Cobbler check will warn if this is not changed. The simplest way to change the password is to run
 ``openssl passwd -1`` and put the output between the ``""``.

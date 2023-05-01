@@ -179,7 +179,7 @@ class CobblerSync:
                 if x not in self.settings.webdir_whitelist:
                     # delete directories that shouldn't exist
                     utils.rmtree(path, logger=self.logger)
-                if x in ["autoinstall_templates", "autoinstall_templates_sys", "images", "systems", "distros", "profiles", "repo_profile", "repo_system", "rendered"]:
+                if x in ["templates", "images", "systems", "distros", "profiles", "repo_profile", "repo_system", "rendered"]:
                     # clean out directory contents
                     utils.rmtree_contents(path, logger=self.logger)
         #
