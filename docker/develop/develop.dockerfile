@@ -83,7 +83,7 @@ RUN zypper install --no-recommends -y \
     shim \
     ipxe-bootimgs \
     grub2 \
-    grub2-i386-efi \
+#    grub2-i386-efi \
     grub2-x86_64-efi \
     grub2-arm64-efi \
     && zypper clean
@@ -130,7 +130,7 @@ RUN zypper install --no-recommends -y \
 RUN sed -i 's/DHCPD_INTERFACE=""/DHCPD_INTERFACE="ANY"/' /etc/sysconfig/dhcpd
 
 # Add Testuser for the PAM tests
-RUN useradd -p "$(perl -e 'print crypt(\"test\", \"password\")')" test
+RUN useradd -p "$(perl -e 'print crypt("test", "password")')" test
 
 # Add Developer scripts to PATH
 ENV PATH="/code/docker/develop/scripts:${PATH}"
