@@ -200,18 +200,6 @@ class CobblerXMLRPCInterface:
             )
         return self.__start_task(runner, token, "aclsetup", "(CLI) ACL Configuration", options)
 
-    def background_dlcontent(self, options, token) -> str:
-        """
-        Download bootloaders and other support files.
-
-        :param options: Unknown what this parameter is doing at the moment.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
-        :return: The id of the task which was started.
-        """
-        def runner(self):
-            self.remote.api.dlcontent(self.options.get("force", False), self.logger)
-        return self.__start_task(runner, token, "get_loaders", "Download Bootloader Content", options)
-
     def background_sync(self, options, token) -> str:
         """
         Run a full Cobbler sync in the background.

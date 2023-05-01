@@ -25,15 +25,6 @@ class TestBackground:
         # Assert
         assert result
 
-    def test_background_dlccontent(self, remote, token):
-        # Arrange
-
-        # Act
-        result = remote.background_dlcontent({}, token)
-
-        # Assert
-        assert result
-
     def test_background_hardlink(self, remote, token):
         # Arrange
 

@@ -25,7 +25,7 @@ import random
 import tempfile
 from typing import Optional
 
-from cobbler.actions import status, dlcontent, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
+from cobbler.actions import status, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
 from cobbler import autoinstall_manager
 from cobbler import clogger
 from cobbler.cobbler_collections import manager
@@ -1273,21 +1273,6 @@ class CobblerAPI:
         self.log("check")
         action_check = check.CobblerCheck(self._collection_mgr, logger=logger)
         return action_check.run()
-
-    # ==========================================================================
-
-    def dlcontent(self, force=False, logger=None):
-        """
-        Downloads bootloader content that may not be avialable in packages for the given arch, ex: if installing on PPC,
-        get syslinux. If installing on x86_64, get elilo, etc.
-
-        :param force: Force the download, although the content may be already downloaded.
-        :param logger: The logger to audit the removal with.
-        """
-        # FIXME: teach code that copies it to grab from the right place
-        self.log("dlcontent")
-        grabber = dlcontent.ContentDownloader(self._collection_mgr, logger=logger)
-        return grabber.run(force)
 
     # ==========================================================================
 

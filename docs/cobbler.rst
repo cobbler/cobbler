@@ -74,7 +74,7 @@ Long Usage:
 .. code-block:: shell
 
     cobbler <distro|profile|system|repo|image|mgmtclass|package|file> ... [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]
-    cobbler <aclsetup|buildiso|import|list|replicate|report|reposync|sync|validate-autoinstalls|version|signature|get-loaders|hardlink> [options|--help]
+    cobbler <aclsetup|buildiso|import|list|replicate|report|reposync|sync|validate-autoinstalls|version|signature|hardlink> [options|--help]
 
 Cobbler distro
 ==============
@@ -1070,15 +1070,6 @@ Example:
 .. code-block:: shell
 
     $ cobbler signature
-
-Cobbler get-loaders
-===================
-
-Example:
-
-.. code-block:: shell
-
-    $ cobbler get-loaders
 
 Cobbler hardlink
 ================
