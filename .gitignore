@@ -41,6 +41,8 @@ test.log
 venv/
 # Venv for developnig with Python3 for the futurize branch.
 venv3/
+# Vscode
+.vscode
 
 # Coverage
 covhtml/
