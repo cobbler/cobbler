@@ -704,5 +704,76 @@ if __name__ == "__main__":
             ("%s/tests/modules" % datadir, glob("tests/modules/*.py")),
             ("%s/tests/modules/authentication" % datadir, glob("tests/modules/authentication/*.py")),
             ("%s/tests/xmlrpcapi" % datadir, glob("tests/xmlrpcapi/*.py")),
+            # tests containers subpackage
+            ("%s/docker" % datadir, glob("docker/*")),
+            ("%s/docker/debs" % datadir, glob("docker/debs/*")),
+            ("%s/docker/debs/Debian_10" % datadir, glob("docker/debs/Debian_10/*")),
+            (
+                "%s/docker/debs/Debian_10/supervisord" % datadir,
+                glob("docker/debs/Debian_10/supervisord/*"),
+            ),
+            (
+                "%s/docker/debs/Debian_10/supervisord/conf.d" % datadir,
+                glob("docker/debs/Debian_10/supervisord/conf.d/*"),
+            ),
+            ("%s/docker/debs/Debian_11" % datadir, glob("docker/debs/Debian_11/*")),
+            (
+                "%s/docker/debs/Debian_11/supervisord" % datadir,
+                glob("docker/debs/Debian_11/supervisord/*"),
+            ),
+            (
+                "%s/docker/debs/Debian_11/supervisord/conf.d" % datadir,
+                glob("docker/debs/Debian_11/supervisord/conf.d/*"),
+            ),
+            ("%s/docker/develop" % datadir, glob("docker/develop/*")),
+            ("%s/docker/develop/openldap" % datadir, glob("docker/develop/openldap/*")),
+            ("%s/docker/develop/pam" % datadir, glob("docker/develop/pam/*")),
+            ("%s/docker/develop/scripts" % datadir, glob("docker/develop/scripts/*")),
+            (
+                "%s/docker/develop/supervisord" % datadir,
+                glob("docker/develop/supervisord/*"),
+            ),
+            (
+                "%s/docker/develop/supervisord/conf.d" % datadir,
+                glob("docker/develop/supervisord/conf.d/*"),
+            ),
+            ("%s/docker/rpms" % datadir, glob("docker/rpms/*")),
+            ("%s/docker/rpms/Fedora_34" % datadir, glob("docker/rpms/Fedora_34/*")),
+            (
+                "%s/docker/rpms/Fedora_34/supervisord" % datadir,
+                glob("docker/rpms/Fedora_34/supervisord/*"),
+            ),
+            (
+                "%s/docker/rpms/Fedora_34/supervisord/conf.d" % datadir,
+                glob("docker/rpms/Fedora_34/supervisord/conf.d/*"),
+            ),
+            (
+                "%s/docker/rpms/Rocky_Linux_8" % datadir,
+                glob("docker/rpms/Rocky_Linux_8/*"),
+            ),
+            (
+                "%s/docker/rpms/opensuse_leap" % datadir,
+                glob("docker/rpms/opensuse_leap/*"),
+            ),
+            (
+                "%s/docker/rpms/opensuse_leap/supervisord" % datadir,
+                glob("docker/rpms/opensuse_leap/supervisord/*"),
+            ),
+            (
+                "%s/docker/rpms/opensuse_leap/supervisord/conf.d" % datadir,
+                glob("docker/rpms/opensuse_leap/supervisord/conf.d/*"),
+            ),
+            (
+                "%s/docker/rpms/opensuse_tumbleweed" % datadir,
+                glob("docker/rpms/opensuse_tumbleweed/*"),
+            ),
+            (
+                "%s/docker/rpms/opensuse_tumbleweed/supervisord" % datadir,
+                glob("docker/rpms/opensuse_tumbleweed/supervisord/*"),
+            ),
+            (
+                "%s/docker/rpms/opensuse_tumbleweed/supervisord/conf.d" % datadir,
+                glob("docker/rpms/opensuse_tumbleweed/supervisord/conf.d/*"),
+            ),
         ],
     )
