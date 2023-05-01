@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import uuid
 from typing import List, Optional
 
-from cobbler.items import item
 from cobbler.cexceptions import CX
+from cobbler.items import item
 
 
 class Menu(item.Item):
@@ -64,7 +64,7 @@ class Menu(item.Item):
         super().from_dict(dictionary)
 
     @property
-    def parent(self) -> Optional['Menu']:
+    def parent(self) -> Optional["Menu"]:
         """
         Parent menu of a menu instance.
 
@@ -83,6 +83,8 @@ class Menu(item.Item):
         :param value: The name of the parent to set.
         :raises CX: Raised in case of self parenting or if the menu with value ``value`` is not found.
         """
+        if not isinstance(value, str):  # type: ignore
+            raise TypeError('Property "parent" must be of type str!')
         old_parent = self._parent
         if isinstance(old_parent, item.Item):
             old_parent.children.remove(self.name)
@@ -123,15 +125,20 @@ class Menu(item.Item):
             raise TypeError("Field children of object menu must be of type list.")
         if isinstance(value, list):
             if not all(isinstance(x, str) for x in value):
-                raise TypeError("Field children of object menu must be of type list and all items need to be menu "
-                                "names (str).")
+                raise TypeError(
+                    "Field children of object menu must be of type list and all items need to be menu "
+                    "names (str)."
+                )
             self._children = []
             for name in value:
                 menu = self.api.find_menu(name=name)
                 if menu is not None:
                     self._children.append(name)
                 else:
-                    self.logger.warning("Menu with the name \"%s\" did not exist. Skipping setting as a child!", name)
+                    self.logger.warning(
+                        'Menu with the name "%s" did not exist. Skipping setting as a child!',
+                        name,
+                    )
 
     #
     # specific methods for item.Menu

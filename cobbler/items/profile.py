@@ -20,12 +20,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import uuid
 from typing import Optional, Union
 
-from cobbler import autoinstall_manager
-from cobbler.items import item
-from cobbler import utils, validate, enums
+from cobbler import autoinstall_manager, enums, utils, validate
 from cobbler.cexceptions import CX
-from cobbler.items.distro import Distro
 from cobbler.decorator import InheritableProperty
+from cobbler.items import item
+from cobbler.items.distro import Distro
 
 
 class Profile(item.Item):
@@ -88,7 +87,9 @@ class Profile(item.Item):
             return self.autoinstall
         elif name == "ks_meta":
             return self.autoinstall_meta
-        raise AttributeError("Attribute \"%s\" did not exist on object type Profile." % name)
+        raise AttributeError(
+            'Attribute "%s" did not exist on object type Profile.' % name
+        )
 
     #
     # override some base class methods first (item.Item)
@@ -172,11 +173,13 @@ class Profile(item.Item):
         :param parent: The name of the parent object.
         :raises CX: In case self parentage is found or the profile given could not be found.
         """
+        if not isinstance(parent, str):  # type: ignore
+            raise TypeError('Property "parent" must be of type str!')
         old_parent = self.parent
         if isinstance(old_parent, item.Item) and self.name in old_parent.children:
             old_parent.children.remove(self.name)
         if not parent:
-            self._parent = ''
+            self._parent = ""
             return
         if parent == self.name:
             # check must be done in two places as setting parent could be called before/after setting name...
@@ -235,7 +238,9 @@ class Profile(item.Item):
         if isinstance(old_parent, item.Item) and self.name in old_parent.children:
             old_parent.children.remove(self.name)
         self._distro = distro_name
-        self.depth = distro.depth + 1    # reset depth if previously a subprofile and now top-level
+        self.depth = (
+            distro.depth + 1
+        )  # reset depth if previously a subprofile and now top-level
         if self.name not in distro.children:
             distro.children.append(self.name)
 
@@ -460,12 +465,21 @@ class Profile(item.Item):
         :param filename: The new ``filename`` for the profile.
         :raises TypeError: In case the new value was not of type ``str``.
         """
-        if not isinstance(filename, str):
+        if not isinstance(filename, str):  # type: ignore
             raise TypeError("Field filename of object profile needs to be of type str!")
+        parent = self.parent
+        if (
+            filename == enums.VALUE_INHERITED
+            and parent
+            and parent.TYPE_NAME == "distro"  # type: ignore
+        ):
+            filename = ""
         if not filename:
-            self._filename = enums.VALUE_INHERITED
-        else:
-            self._filename = filename.strip()
+            if parent and parent.TYPE_NAME == "profile":  # type: ignore
+                filename = enums.VALUE_INHERITED
+            else:
+                filename = ""
+        self._filename = filename
 
     @property
     def autoinstall(self) -> str:
@@ -482,8 +496,11 @@ class Profile(item.Item):
             elif parent is not None and isinstance(parent, Distro):
                 return self.api.settings().autoinstall
             else:
-                self.logger.info("Profile \"%s\" did not have a valid parent of type Profile but autoinstall is set to "
-                                 "\"<<inherit>>\".", self.name)
+                self.logger.info(
+                    'Profile "%s" did not have a valid parent of type Profile but autoinstall is set to '
+                    '"<<inherit>>".',
+                    self.name,
+                )
                 return ""
         return self._autoinstall
 
@@ -495,7 +512,9 @@ class Profile(item.Item):
         :param autoinstall: local automatic installation template path
         """
         autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api)
-        self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
+        self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(
+            autoinstall
+        )
 
     @InheritableProperty
     def virt_auto_boot(self) -> bool:
@@ -742,12 +761,17 @@ class Profile(item.Item):
             if parent is not None:
                 parent_boot_loaders = parent.boot_loaders
             else:
-                self.logger.warning("Parent of profile \"%s\" could not be found for resolving the parent bootloaders.",
-                                    self.name)
+                self.logger.warning(
+                    'Parent of profile "%s" could not be found for resolving the parent bootloaders.',
+                    self.name,
+                )
                 parent_boot_loaders = []
             if not set(boot_loaders_split).issubset(parent_boot_loaders):
-                raise CX("Error with profile \"%s\" - not all boot_loaders are supported (given: \"%s\"; supported:"
-                         "\"%s\")" % (self.name, str(boot_loaders_split), str(parent_boot_loaders)))
+                raise CX(
+                    'Error with profile "%s" - not all boot_loaders are supported (given: "%s"; supported:'
+                    '"%s")'
+                    % (self.name, str(boot_loaders_split), str(parent_boot_loaders))
+                )
             self._boot_loaders = boot_loaders_split
         else:
             self._boot_loaders = []
