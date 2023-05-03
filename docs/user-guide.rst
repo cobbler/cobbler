@@ -21,6 +21,7 @@ User Guide
    Power Management <user-guide/power-management>
    Boot CD <user-guide/boot-cd>
    Advanced Networking <user-guide/advanced-networking>
+   SELinux <user-guide/selinux>
 
 
 API

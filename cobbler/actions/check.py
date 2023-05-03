@@ -295,7 +295,7 @@ class CobblerCheck:
             status.append(
                 "SELinux is enabled. Please review the following wiki page for details on ensuring Cobbler "
                 "works correctly in your SELinux environment:\n    "
-                "https://github.com/cobbler/cobbler/wiki/Selinux"
+                "https://cobbler.readthedocs.io/en/latest/user-guide/selinux.html"
             )
 
     def check_for_default_password(self, status: List[str]) -> None:
