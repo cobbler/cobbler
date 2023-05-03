@@ -9,8 +9,8 @@ Cobbler Trigger Module that checks against a list of hardcoded potential common 
 import glob
 import logging
 import os
-import pathlib
 import re
+import shutil
 from typing import TYPE_CHECKING, List
 from xmlrpc.client import ServerProxy
 
@@ -139,9 +139,7 @@ class CobblerCheck:
         :param status: The status list with possible problems. The status list with possible problems.
         """
         # not doing rpm -q here to be cross-distro friendly
-        if not os.path.exists("/sbin/fence_ilo") and not os.path.exists(
-            "/usr/sbin/fence_ilo"
-        ):
+        if shutil.which("fence_ilo") is None:
             status.append(
                 "fencing tools were not found, and are required to use the (optional) power management "
                 "features. install cman or fence-agents to use them"
@@ -221,34 +219,32 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
-        # FIXME: Replace this with calls which check for the path of these tools.
         if self.checked_family == "debian":
             return
 
-        if not os.path.exists("/usr/bin/createrepo"):
+        createrepo_found = os.path.exists("/usr/bin/createrepo")
+        reposync_found = os.path.exists("/usr/bin/reposync")
+        dnf_found = os.path.exists("/usr/bin/dnf")
+        yumdownloader_found = os.path.exists("/usr/bin/yumdownloader")
+
+        if not createrepo_found:
             status.append(
                 "createrepo package is not installed, needed for cobbler import and cobbler reposync, "
                 "install createrepo?"
             )
 
-        if not os.path.exists("/usr/bin/dnf") and not os.path.exists(
-            "/usr/bin/reposync"
-        ):
+        if not dnf_found and not reposync_found:
             status.append("reposync not installed, install yum-utils")
 
-        if os.path.exists("/usr/bin/dnf") and not os.path.exists("/usr/bin/reposync"):
+        if dnf_found and not reposync_found:
             status.append(
                 "reposync is not installed, install yum-utils or dnf-plugins-core"
             )
 
-        if not os.path.exists("/usr/bin/dnf") and not os.path.exists(
-            "/usr/bin/yumdownloader"
-        ):
+        if not dnf_found and not yumdownloader_found:
             status.append("yumdownloader is not installed, install yum-utils")
 
-        if os.path.exists("/usr/bin/dnf") and not os.path.exists(
-            "/usr/bin/yumdownloader"
-        ):
+        if dnf_found and not yumdownloader_found:
             status.append(
                 "yumdownloader is not installed, install yum-utils or dnf-plugins-core"
             )
@@ -389,7 +385,7 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
-        if not os.path.exists("/usr/sbin/dhcpd"):
+        if shutil.which("dhcpd") is None:
             status.append("dhcpd is not installed")
 
     @staticmethod
@@ -399,8 +395,7 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
-        return_code = utils.subprocess_call(["dnsmasq", "--help"], shell=False)
-        if return_code != 0:
+        if shutil.which("dnsmasq") is None:
             status.append("dnsmasq is not installed and/or in path")
 
     @staticmethod
@@ -410,9 +405,7 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
-        return_code = utils.subprocess_call(["named", "-v"], shell=False)
-        # it should return something like "BIND 9.6.1-P1-RedHat-9.6.1-6.P1.fc11"
-        if return_code != 0:
+        if shutil.which("named") is None:
             status.append("named is not installed and/or in path")
 
     @staticmethod
@@ -422,9 +415,9 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
-        rc_wget = utils.subprocess_call(["wget", "--help"], shell=False)
-        rc_curl = utils.subprocess_call(["curl", "--help"], shell=False)
-        if rc_wget != 0 and rc_curl != 0:
+        rc_wget = shutil.which("wget")
+        rc_curl = shutil.which("curl")
+        if rc_wget is not None and rc_curl is not None:
             status.append(
                 "Neither wget nor curl are installed and/or available in $PATH. Cobbler requires that one "
                 "of these utilities be installed."
