@@ -39,6 +39,7 @@ from cobbler import settings, tftpgen, utils, yumgen
 from cobbler.cobbler_collections import manager
 from cobbler.items import distro, file, image, menu, mgmtclass, package, profile, repo, system
 from cobbler.decorator import InheritableDictProperty
+from cobbler.cexceptions import CX
 
 # FIXME: add --quiet depending on if not --verbose?
 RSYNC_CMD = "rsync -a %s '%s' %s --progress"
@@ -277,6 +278,34 @@ class CobblerAPI:
         else:
             return data
 
+    # ==========================================================================
+
+    def clean_items_cache(self, obj: Union[settings.Settings, Dict]):
+        """
+        Items cache invalidation in case of settings or singatures changes.
+        Cobbler internal use only.
+        """
+        if obj is None or isinstance(obj, settings.Settings):
+            item_types = [
+                "package",
+                "file",
+                "mgmtclass",
+                "repo",
+                "distro",
+                "menu",
+                "image",
+                "profile",
+                "system",
+            ]
+        elif obj == self.get_signatures():
+            item_types = ["distro", "image", "profile", "system"]
+        else:
+            raise CX(f"Wrong object type {type(obj)} for cache invalidation!")
+
+        for item_type in item_types:
+            for item_obj in self.get_items(item_type):
+                item_obj.cache.set_dict_cache(None, True)
+
     # ==========================================================
 
     def get_item(self, what: str, name: str):
@@ -442,7 +471,7 @@ class CobblerAPI:
             return
         # Deduplicate - only for dict
         if isinstance(property_object_of_attribute, InheritableDictProperty):
-            parent_item = desired_item.parent
+            parent_item = desired_item.logical_parent
             if hasattr(parent_item, attribute):
                 parent_value = getattr(parent_item, attribute)
                 dict_value = utils.input_string_or_dict(value)
@@ -1319,7 +1348,8 @@ class CobblerAPI:
             f.close()
 
             utils.load_signatures(self.settings().signature_path)
-        except:
+            self.clean_items_cache(self.get_signatures())
+        except Exception:
             utils.log_exc()
 
     # ==========================================================================

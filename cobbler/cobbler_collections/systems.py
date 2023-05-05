@@ -70,11 +70,6 @@ class Systems(collection.Collection):
                 lite_sync = self.api.get_sync()
                 lite_sync.remove_single_system(name)
 
-        if obj.parent is not None and obj.name in obj.parent.children:
-            obj.parent.children.remove(obj.name)
-            # ToDo: Only serialize parent object, use:
-            #       Use self.collection_mgr.serialize_one_item(obj.parent)
-            self.api.serialize()
 
         self.lock.acquire()
         try:

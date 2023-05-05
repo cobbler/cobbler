@@ -39,8 +39,13 @@ class Package(resource.Resource):
         :param kwargs: The keyword arguments which should be passed additionally to a Resource.
         """
         super().__init__(api, *args, **kwargs)
+        # Prevent attempts to clear the to_dict cache before the object is initialized.
+        self._has_initialized = False
+
         self._installer = ""
         self._version = ""
+        if not self._has_initialized:
+            self._has_initialized = True
 
     #
     # override some base class methods first (item.Item)

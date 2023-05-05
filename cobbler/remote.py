@@ -2000,6 +2000,7 @@ class CobblerXMLRPCInterface:
             return 1
 
         setattr(self.api.settings(), setting_name, value)
+        self.api.clean_items_cache(self.api.settings())
         self.api.settings().save()
         return 0
 

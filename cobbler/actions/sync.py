@@ -25,12 +25,16 @@ import glob
 import logging
 import os
 import time
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 
 from cobbler.cexceptions import CX
 from cobbler import templar
 from cobbler import tftpgen
 from cobbler import utils
+
+if TYPE_CHECKING:
+    from cobbler.items.system import System
+    from cobbler.items.profile import Profile
 
 
 class CobblerSync:
@@ -151,9 +155,6 @@ class CobblerSync:
                 self.tftpgen.write_templates(d, write_file=True)
             except CX as e:
                 self.logger.error(e.value)
-
-        # make the default pxe menu anyway...
-        self.tftpgen.make_pxe_menu()
 
         if self.settings.manage_dhcp:
             self.write_dhcp()
@@ -327,7 +328,7 @@ class CobblerSync:
         # generate any templates listed in the distro
         self.tftpgen.write_templates(distro, write_file=True)
         # cascade sync
-        kids = distro.get_children()
+        kids = self.api.find_items("profile", {"distro": name}, return_list=True)
         for k in kids:
             self.add_single_profile(k, rebuild_menu=False)
         self.tftpgen.make_pxe_menu()
@@ -340,7 +341,7 @@ class CobblerSync:
         """
         image = self.images.find(name=name)
         self.tftpgen.copy_single_image_files(image)
-        kids = image.get_children()
+        kids = self.api.find_items("system", {"image": name})
         for k in kids:
             self.add_single_system(k)
         self.tftpgen.make_pxe_menu()
@@ -370,7 +371,9 @@ class CobblerSync:
         bootloc = self.settings.tftpboot_location
         utils.rmfile(os.path.join(bootloc, "images2", name))
 
-    def add_single_profile(self, name: str, rebuild_menu: bool = True) -> Optional[bool]:
+    def add_single_profile(
+        self, profile: "Profile", rebuild_menu: bool = True
+    ) -> Optional[bool]:
         """
         Sync adding a single profile.
 
@@ -379,7 +382,6 @@ class CobblerSync:
         :return: ``True`` if this succeeded.
         """
         # get the profile object:
-        profile = self.profiles.find(name=name)
         if profile is None:
             # Most likely a subprofile's kid has been removed already, though the object tree has not been reloaded and
             # this is just noise.
@@ -389,10 +391,10 @@ class CobblerSync:
         # Cascade sync
         kids = profile.children
         for k in kids:
-            if self.api.find_profile(name=k) is not None:
-                self.add_single_profile(k, rebuild_menu=False)
-            else:
-                self.add_single_system(k)
+            self.add_single_profile(k, rebuild_menu=False)
+        kids = self.api.find_items("system", {"profile": profile.name})
+        for k in kids:
+            self.add_single_system(k)
         if rebuild_menu:
             self.tftpgen.make_pxe_menu()
         return True

@@ -71,7 +71,7 @@ class Distros(collection.Collection):
 
         kernel = obj.kernel
         if recursive:
-            kids = obj.get_children()
+            kids = self.api.find_items("profile", {"distro": obj.name})
             for k in kids:
                 self.api.remove_profile(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
 

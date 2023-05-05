@@ -76,18 +76,20 @@ def create_kernel_initrd(create_testfile):
 @pytest.fixture(scope="function")
 def create_distro(request, cobbler_api, create_kernel_initrd, fk_kernel, fk_initrd):
     """
-    Returns a function which has no arguments. The function returns a distro object. The distro is already added to
+    Returns a function which has the distro name as an argument. The function returns a distro object. The distro is already added to
     the CobblerAPI.
     """
 
-    def _create_distro():
+    def _create_distro(name="") -> Distro:
         test_folder = create_kernel_initrd(fk_kernel, fk_initrd)
-        test_distro = Distro(cobbler_api)
+        test_distro = cobbler_api.new_distro()
         test_distro.name = (
             request.node.originalname
             if request.node.originalname
             else request.node.name
         )
+        if name != "":
+            test_distro.name = name
         test_distro.kernel = os.path.join(test_folder, fk_kernel)
         test_distro.initrd = os.path.join(test_folder, fk_initrd)
         cobbler_api.add_distro(test_distro)
@@ -99,18 +101,23 @@ def create_distro(request, cobbler_api, create_kernel_initrd, fk_kernel, fk_init
 @pytest.fixture(scope="function")
 def create_profile(request, cobbler_api):
     """
-    Returns a function which has the distro name as an argument. The function returns a profile object. The profile is
+    Returns a function which has the distro or profile name as an argument. The function returns a profile object. The profile is
     already added to the CobblerAPI.
     """
 
-    def _create_profile(distro_name):
-        test_profile = Profile(cobbler_api)
+    def _create_profile(distro_name="", profile_name="", name="") -> Profile:
+        test_profile = cobbler_api.new_profile()
         test_profile.name = (
             request.node.originalname
             if request.node.originalname
             else request.node.name
         )
-        test_profile.distro = distro_name
+        if name != "":
+            test_profile.name = name
+        if profile_name == "":
+            test_profile.distro = distro_name
+        else:
+            test_profile.parent = profile_name
         cobbler_api.add_profile(test_profile)
         return test_profile
 
@@ -120,17 +127,19 @@ def create_profile(request, cobbler_api):
 @pytest.fixture(scope="function")
 def create_image(request, cobbler_api):
     """
-    Returns a function which has no arguments. The function returns an image object. The image is already added to the
+    Returns a function which has the image name as an argument. The function returns an image object. The image is already added to the
     CobblerAPI.
     """
 
-    def _create_image():
-        test_image = Image(cobbler_api)
+    def _create_image(name: str = "") -> Image:
+        test_image = cobbler_api.new_image()
         test_image.name = (
             request.node.originalname
             if request.node.originalname
             else request.node.name
         )
+        if name != "":
+            test_image.name = name
         cobbler_api.add_image(test_image)
         return test_image
 

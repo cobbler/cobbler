@@ -22,7 +22,7 @@ import shutil
 import subprocess
 
 
-VERSION = "3.3.4"
+VERSION = "3.3.5"
 OUTPUT_DIR = "config"
 
 # # Configurable installation roots for various data files.
@@ -493,8 +493,15 @@ if __name__ == "__main__":
             "schema"
         ],
         extras_require={
-            "lint": ["pyflakes", "pycodestyle"],
-            "test": ["pytest", "pytest-cov", "codecov", "pytest-mock"],
+            "lint": ["pyflakes", "pycodestyle", "pylint", "black", "mypy"],
+            "test": [
+                "pytest>6",
+                "pytest-cov",
+                "codecov",
+                "pytest-mock",
+                "pytest-benchmark",
+            ],
+            "docs": ["sphinx", "sphinx-rtd-theme", "sphinxcontrib-apidoc"],
             # We require the current version to properly detect duplicate issues
             # See: https://github.com/twisted/towncrier/releases/tag/22.8.0
             "changelog": ["towncrier>=22.8.0"],
@@ -682,11 +689,49 @@ if __name__ == "__main__":
             ("%s/man1" % docpath, glob("build/sphinx/man/*.1")),
             ("%s/man5" % docpath, glob("build/sphinx/man/*.5")),
             ("%s/man8" % docpath, glob("build/sphinx/man/*.8")),
+            # tests
             ("%s/tests" % datadir, glob("tests/*.py")),
+            ("%s/tests/actions" % datadir, glob("tests/actions/*.py")),
+            ("%s/tests/actions/buildiso" % datadir, glob("tests/actions/buildiso/*.py")),
+            ("%s/tests/api" % datadir, glob("tests/api/*.py")),
             ("%s/tests/cli" % datadir, glob("tests/cli/*.py")),
+            ("%s/tests/collections" % datadir, glob("tests/collections/*.py")),
+            ("%s/tests/items" % datadir, glob("tests/items/*.py")),
             ("%s/tests/modules" % datadir, glob("tests/modules/*.py")),
             ("%s/tests/modules/authentication" % datadir, glob("tests/modules/authentication/*.py")),
+            ("%s/tests/modules/authorization" % datadir, glob("tests/modules/authorization/*.py")),
+            ("%s/tests/modules/installation" % datadir, glob("tests/modules/installation/*.py")),
+            ("%s/tests/modules/managers" % datadir, glob("tests/modules/managers/*.py")),
+            ("%s/tests/modules/serializer" % datadir, glob("tests/modules/serializer/*.py")),
+            ("%s/tests/settings" % datadir, glob("tests/settings/*.py")),
+            ("%s/tests/settings/migrations" % datadir, glob("tests/settings/migrations/*.py")),
+            ("%s/tests/special_cases" % datadir, glob("tests/special_cases/*.py")),
+            ("%s/tests/test_data" % datadir, glob("tests/test_data/*")),
+            ("%s/tests/test_data/V2_8_5" % datadir, glob("tests/test_data/V2_8_5/*")),
+            ("%s/tests/test_data/V3_0_0" % datadir, glob("tests/test_data/V3_0_0/*")),
+            ("%s/tests/test_data/V3_0_0/settings.d" % datadir, glob("tests/test_data/V3_0_0/settings.d/*")),
+            ("%s/tests/test_data/V3_0_1" % datadir, glob("tests/test_data/V3_0_1/*")),
+            ("%s/tests/test_data/V3_0_1/settings.d" % datadir, glob("tests/test_data/V3_0_1/settings.d/*")),
+            ("%s/tests/test_data/V3_1_0" % datadir, glob("tests/test_data/V3_1_0/*")),
+            ("%s/tests/test_data/V3_1_0/settings.d" % datadir, glob("tests/test_data/V3_1_0/settings.d/*")),
+            ("%s/tests/test_data/V3_1_1" % datadir, glob("tests/test_data/V3_1_1/*")),
+            ("%s/tests/test_data/V3_1_1/settings.d" % datadir, glob("tests/test_data/V3_1_1/settings.d/*")),
+            ("%s/tests/test_data/V3_1_2" % datadir, glob("tests/test_data/V3_1_2/*")),
+            ("%s/tests/test_data/V3_1_2/settings.d" % datadir, glob("tests/test_data/V3_1_2/settings.d/*")),
+            ("%s/tests/test_data/V3_2_0" % datadir, glob("tests/test_data/V3_2_0/*")),
+            ("%s/tests/test_data/V3_2_0/settings.d" % datadir, glob("tests/test_data/V3_2_0/settings.d/*")),
+            ("%s/tests/test_data/V3_2_1" % datadir, glob("tests/test_data/V3_2_1/*")),
+            ("%s/tests/test_data/V3_2_1/settings.d" % datadir, glob("tests/test_data/V3_2_1/settings.d/*")),
+            ("%s/tests/test_data/V3_3_0" % datadir, glob("tests/test_data/V3_3_0/*")),
+            ("%s/tests/test_data/V3_3_0/settings.d" % datadir, glob("tests/test_data/V3_3_0/settings.d/*")),
+            ("%s/tests/test_data/V3_3_1" % datadir, glob("tests/test_data/V3_3_1/*")),
+            ("%s/tests/test_data/V3_3_1/settings.d" % datadir, glob("tests/test_data/V3_3_1/settings.d/*")),
+            ("%s/tests/test_data/V3_3_2" % datadir, glob("tests/test_data/V3_3_2/*")),
+            ("%s/tests/test_data/V3_3_2/settings.d" % datadir, glob("tests/test_data/V3_3_2/settings.d/*")),
+            ("%s/tests/test_data/V3_3_3" % datadir, glob("tests/test_data/V3_3_3/*")),
+            ("%s/tests/test_data/V3_3_3/settings.d" % datadir, glob("tests/test_data/V3_3_3/settings.d/*")),
             ("%s/tests/xmlrpcapi" % datadir, glob("tests/xmlrpcapi/*.py")),
+            (f"{datadir}/tests/performance", glob("tests/performance/*.py")),
             # tests containers subpackage
             ("%s/docker" % datadir, glob("docker/*")),
             ("%s/docker/debs" % datadir, glob("docker/debs/*")),
