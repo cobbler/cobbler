@@ -401,14 +401,8 @@ class Profile(item.Item):
         """
         if not isinstance(filename, str):  # type: ignore
             raise TypeError("Field filename of object profile needs to be of type str!")
-        parent = self.parent
-        if filename == enums.VALUE_INHERITED and parent is None:
+        if filename == enums.VALUE_INHERITED and not self.is_subobject:
             filename = ""
-        if not filename:
-            if parent:
-                filename = enums.VALUE_INHERITED
-            else:
-                filename = ""
         self._filename = filename
 
     @InheritableProperty
