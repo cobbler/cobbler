@@ -1,5 +1,67 @@
 """
 Cobbler module that contains the code for a Cobbler package object.
+
+Changelog:
+
+V3.4.0 (unreleased):
+    * Changes:
+        * Constructor: ``kwargs`` can now be used to seed the item during creation.
+        * ``from_dict()``: The method was moved to the base class.
+V3.3.4 (unreleased):
+    * No changes
+V3.3.3:
+    * Changed:
+        * ``check_if_valid()``: Now present in base class (Item).
+V3.3.2:
+    * No changes
+V3.3.1:
+    * No changes
+V3.3.0:
+    * This release switched from pure attributes to properties (getters/setters).
+    * Added:
+        * ``from_dict()``
+    * Moved to base classes (Resource & Item):
+        * ctime: float
+        * depth: float
+        * mtime: float
+        * uid: str
+        * action: str
+        * comment: str
+        * name: str
+        * owners: Union[list, SETTINGS:default_ownership]
+    * Removed:
+        * ``get_fields()``
+V3.2.2:
+    * No changes
+V3.2.1:
+    * No changes
+V3.2.0:
+    * No changes
+V3.1.2:
+    * No changes
+V3.1.1:
+    * No changes
+V3.1.0:
+    * No changes
+V3.0.1:
+    * File was moved from ``cobbler/item_package.py`` to ``cobbler/items/package.py``.
+V3.0.0:
+    * Added:
+        * ``set_installer()``
+        * ``set_version()``
+V2.8.5:
+    * Inital tracking of changes for the changelog.
+    * Added:
+        * ctime: float
+        * depth: float
+        * mtime: float
+        * uid: str
+        * action: str
+        * comment: str
+        * installer: str
+        * name: str
+        * owners: Union[list, SETTINGS:default_ownership]
+        * version: str
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

@@ -1,5 +1,54 @@
 """
-An Resource is a serializable thing that can appear in a Collection
+A Resource is a serializable thing that can appear in a Collection
+
+Changelog:
+
+V3.4.0 (unreleased):
+    * No changes
+V3.3.4 (unreleased):
+    * No changes
+V3.3.3:
+    * No changes
+V3.3.2:
+    * No changes
+V3.3.1:
+    * No changes
+V3.3.0:
+    * This release switched from pure attributes to properties (getters/setters).
+    * File was moved from ``cobbler/resource.py`` to ``cobbler/items/resource.py``.
+    * Added:
+        * action: enums.ResourceAction
+        * mode: str
+        * owner: str
+        * group: str
+        * path: str
+        * template: str
+    * Removed:
+        * ``set_template`` - Please use the property ``template``
+        * ``set_path`` - Please use the property ``path``
+        * ``set_owner`` - Please use the property ``owner``
+        * ``set_mode`` - Please use the property ``mode``
+        * ``set_group`` - Please use the property ``group``
+        * ``set_action`` - Please use the property ``action``
+V3.2.2:
+    * No changes
+V3.2.1:
+    * No changes
+V3.2.0:
+    * No changes
+V3.1.2:
+    * No changes
+V3.1.1:
+    * No changes
+V3.1.0:
+    * No changes
+V3.0.1:
+    * No changes
+V3.0.0:
+    * No changes
+V2.8.5:
+    * Inital tracking of changes for the changelog.
+
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

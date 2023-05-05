@@ -1,5 +1,125 @@
 """
 Cobbler module that contains the code for a Cobbler image object.
+
+Changelog:
+
+V3.4.0 (unreleased):
+    * Added:
+        * ``display_name``
+    * Changed:
+        * Constructor: ``kwargs`` can now be used to seed the item during creation.
+        * ``autoinstall``: Restored inheritance of the property.
+        * ``children``: The proqperty was moved to the base class.
+        * ``from_dict()``: The method was moved to the base class.
+        * ``virt_disk_driver``: Restored inheritance of the property.
+        * ``virt_ram``: Restored inheritance of the property.
+        * ``virt_type``: Restored inheritance of the property.
+        * ``virt_bridge``: Restored inheritance of the property.
+V3.3.4 (unreleased):
+    * No changes
+V3.3.3:
+    * Added:
+        * ``children``
+    * Changes:
+        * ``virt_file_size``: Inherits from the settings again
+        * ``boot_loaders``: Inherits from the settings again
+V3.3.2:
+    * No changes
+V3.3.1:
+    * No changes
+V3.3.0:
+    * This release switched from pure attributes to properties (getters/setters).
+    * Added:
+        * ``boot_loaders``: list
+        * ``menu``: str
+        * ``supported_boot_loaders``: list
+        * ``from_dict()``
+    * Moved to parent class (Item):
+        * ``ctime``: float
+        * ``mtime``: float
+        * ``depth``: int
+        * ``parent``: str
+        * ``uid``: str
+        * ``comment``: str
+        * ``name``: str
+    * Removed:
+        * ``get_fields()``
+        * ``get_parent()``
+        * ``set_arch()`` - Please use the ``arch`` property.
+        * ``set_autoinstall()`` - Please use the ``autoinstall`` property.
+        * ``set_file()`` - Please use the ``file`` property.
+        * ``set_os_version()`` - Please use the ``os_version`` property.
+        * ``set_breed()`` - Please use the ``breed`` property.
+        * ``set_image_type()`` - Please use the ``image_type`` property.
+        * ``set_virt_cpus()`` - Please use the ``virt_cpus`` property.
+        * ``set_network_count()`` - Please use the ``network_count`` property.
+        * ``set_virt_auto_boot()`` - Please use the ``virt_auto_boot`` property.
+        * ``set_virt_file_size()`` - Please use the ``virt_file_size`` property.
+        * ``set_virt_disk_driver()`` - Please use the ``virt_disk_driver`` property.
+        * ``set_virt_ram()`` - Please use the ``virt_ram`` property.
+        * ``set_virt_type()`` - Please use the ``virt_type`` property.
+        * ``set_virt_bridge()`` - Please use the ``virt_bridge`` property.
+        * ``set_virt_path()`` - Please use the ``virt_path`` property.
+        * ``get_valid_image_types()``
+    * Changes:
+        * ``arch``: str -> enums.Archs
+        * ``autoinstall``: str -> enums.VALUE_INHERITED
+        * ``image_type``: str -> enums.ImageTypes
+        * ``virt_auto_boot``: Union[bool, SETTINGS:virt_auto_boot] -> bool
+        * ``virt_bridge``: Union[str, SETTINGS:default_virt_bridge] -> str
+        * ``virt_disk_driver``: Union[str, SETTINGS:default_virt_disk_driver] -> enums.VirtDiskDrivers
+        * ``virt_file_size``: Union[float, SETTINGS:default_virt_file_size] -> float
+        * ``virt_ram``: Union[int, SETTINGS:default_virt_ram] -> int
+        * ``virt_type``: Union[str, SETTINGS:default_virt_type] -> enums.VirtType
+V3.2.2:
+    * No changes
+V3.2.1:
+    * Added:
+        * ``kickstart``: Resolves as a proxy to ``autoinstall``
+V3.2.0:
+    * No changes
+V3.1.2:
+    * No changes
+V3.1.1:
+    * No changes
+V3.1.0:
+    * No changes
+V3.0.1:
+    * No changes
+V3.0.0:
+    * Added:
+        * ``set_autoinstall()``
+    * Changes:
+        * Rename: ``kickstart`` -> ``autoinstall``
+    * Removed:
+        * ``set_kickstart()`` - Please use ``set_autoinstall()``
+V2.8.5:
+    * Inital tracking of changes for the changelog.
+    * Added:
+        * ``ctime``: float
+        * ``depth``: int
+        * ``mtime``: float
+        * ``parent``: str
+        * ``uid``: str
+
+        * ``arch``: str
+        * ``kickstart``: str
+        * ``breed``: str
+        * ``comment``: str
+        * ``file``: str
+        * ``image_type``: str
+        * ``name``: str
+        * ``network_count``: int
+        * ``os_version``: str
+        * ``owners``: Union[list, SETTINGS:default_ownership]
+        * ``virt_auto_boot``: Union[bool, SETTINGS:virt_auto_boot]
+        * ``virt_bridge``: Union[str, SETTINGS:default_virt_bridge]
+        * ``virt_cpus``: int
+        * ``virt_disk_driver``: Union[str, SETTINGS:default_virt_disk_driver]
+        * ``virt_file_size``: Union[float, SETTINGS:default_virt_file_size]
+        * ``virt_path``: str
+        * ``virt_ram``: Union[int, SETTINGS:default_virt_ram]
+        * ``virt_type``: Union[str, SETTINGS:default_virt_type]
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

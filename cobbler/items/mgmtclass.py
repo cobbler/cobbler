@@ -1,5 +1,68 @@
 """
 Cobbler module that contains the code for a Cobbler mgmtclass object.
+
+Changelog:
+
+V3.4.0 (unreleased):
+    * Changed:
+        * ``from_dict()``: The method was moved to the base class (Item)
+V3.3.4 (unreleased):
+    * No changes
+V3.3.3:
+    * Changed:
+        * ``check_if_valid()``: The method was moved to the base class (Item)
+V3.3.2:
+    * No changes
+V3.3.1:
+    * No changes
+V3.3.0:
+    * This release switched from pure attributes to properties (getters/setters).
+    * Moved to base class (Item):
+        * ``ctime``: int
+        * ``depth``: float
+        * ``mtime``: int
+        * ``uid``: str
+        * ``comment``: str
+        * ``name``: str
+        * ``owners``: Union[list, SETTINGS:default_ownership]
+    * Removed:
+        * ``get_fields()``
+        * ``set_packages()`` - Please use the property ``packages``
+        * ``set_files()`` - Please use the property ``files``
+        * ``set_params()`` - Please use the property ``params``
+        * ``set_is_definition()`` - Please use the property ``is_definition``
+        * ``set_class_name()`` - Please use the property ``class_name``
+V3.2.2:
+    * No changes
+V3.2.1:
+    * No changes
+V3.2.0:
+    * No changes
+V3.1.2:
+    * No changes
+V3.1.1:
+    * No changes
+V3.1.0:
+    * No changes
+V3.0.1:
+    * No changes
+V3.0.0:
+    * No changes
+V2.8.5:
+    * Inital tracking of changes for the changelog.
+    * Added:
+        * ``ctime``: int
+        * ``depth``: float
+        * ``is_definition``: bool
+        * ``mtime``: int
+        * ``uid``: str
+        * ``class_name``: str
+        * ``comment``: str
+        * ``files``: list
+        * ``name``: str
+        * ``owners``: Union[list, SETTINGS:default_ownership]
+        * ``packages``: list
+        * ``params``: dict
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

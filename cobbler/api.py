@@ -1,5 +1,111 @@
 """
 This module represents the Cobbler Python API. It is used by the XML-RPC API and can be used by external consumers.
+
+Changelog:
+
+Schema: From -> To
+
+Current Schema: Please refer to the documentation visible of the individual methods.
+
+V3.4.0 (unreleased)
+    * Added:
+        * ``clean_items_cache``
+        * ``new_item``
+        * ``deserialize_item``
+        * ``input_string_or_list_no_inherit``
+        * ``input_string_or_list``
+        * ``input_string_or_dict``
+        * ``input_string_or_dict_no_inherit``
+        * ``input_boolean``
+        * ``input_int``
+    * Changed:
+        * ``new_*``: Accepts kwargs as a last argument now (so a dict) that makes it possible to seed an object
+
+V3.3.4 (unreleased)
+    * No changes
+
+V3.3.3
+    * Added:
+        * ``get_item_resolved_value``
+        * ``set_item_resolved_value``
+    * Changed:
+        * ``dump_vars``: Added boolean parameter ``remove_dicts`` as a new last argument
+
+V3.3.2
+    * No changes
+
+V3.3.1
+    * Changes:
+        * ``add_system``: Parameter ``check_for_duplicate_netinfo`` was removed
+        * ``build_iso``: Replaced default ``None`` arguments with typed arguments
+        * ``create_grub_images``: Renamed to ``mkloaders``
+
+V3.3.0
+    * Added:
+        * ``menus``
+        * ``copy_menu``
+        * ``remove_menu``
+        * ``rename_menu``
+        * ``new_menu``
+        * ``add_menu``
+        * ``find_menu``
+        * ``get_menus_since``
+        * ``sync_systems``
+        * ``sync_dns``
+        * ``get_valid_obj_boot_loaders``
+        * ``create_grub_images``
+    * Changed:
+        * Constructor: Added ``settingsfile_location`` and ``execute_settings_automigration`` as parameters
+        * ``find_items``: Accept an empty ``str`` for ``what`` if the argument ``name`` is given.
+        * ``dump_vars``: Parameter ``format`` was renamed to ``formatted_output``
+        * ``generate_gpxe``: Renamed to ``generate_ipxe``; The second parameter is now ``image`` and accepts the name
+          of one.
+        * ``sync``: Accepts a new parameter called ``what`` which is a ``List[str]`` that signals what should be
+          synced. An empty list signals a full sync.
+        * ``sync_dhcp``: Parameter ``verbose`` was removed
+    * Removed:
+        * The ``logger`` arugment was removed from all methods
+        * ``dlcontent``
+
+V3.2.2
+    * No changes
+
+V3.2.1
+    * Added primitive type annotations for all parameters of all methods
+
+V3.2.0
+    * No changes
+
+V3.1.2
+    * No changes
+
+V3.1.1
+    * No changes
+
+V3.1.0
+    * No changes
+
+V3.0.1
+    * No changes
+
+V3.0.0
+    * Added:
+        * power_system: Replaces power_on, power_off, reboot, power_status
+    * Changed:
+        * import_tree: ``kickstart_file`` is now called ``autoinstall_file``
+    * Removed:
+        * ``update``
+        * ``clear``
+        * ``deserialize_raw``
+        * ``deserialize_item_raw``
+        * ``power_on`` - Replaced by power_system
+        * ``power_off`` - Replaced by power_system
+        * ``reboot`` - Replaced by power_system
+        * ``power_status`` - Replaced by power_system
+
+V2.8.5
+    * Inital tracking of changes.
+
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

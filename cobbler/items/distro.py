@@ -1,5 +1,120 @@
 """
 Cobbler module that contains the code for a Cobbler distro object.
+
+Changelog:
+
+Schema: From -> To
+
+V3.4.0 (unreleased):
+    * Added:
+        * ``find_distro_path()``
+        * ``link_distro()``
+    * Changed:
+        * Constructor: ``kwargs`` can now be used to seed the item during creation.
+        * ``children``: The property was moved to the base class.
+        * ``from_dict()``: The method was moved to the base class.
+V3.3.4 (unreleased):
+    * No changes
+V3.3.3:
+    * Changed:
+        * ``redhat_management_key``: Inherits from the settings again
+V3.3.2:
+    * No changes
+V3.3.1:
+    * No changes
+V3.3.0:
+    * This release switched from pure attributes to properties (getters/setters).
+    * Added:
+        * ``from_dict()``
+    * Moved to base class (Item):
+        * ``ctime``: float
+        * ``depth``: int
+        * ``mtime``: float
+        * ``uid``: str
+        * ``kernel_options``: dict
+        * ``kernel_options_post``: dict
+        * ``autoinstall_meta``: dict
+        * ``boot_files``: list/dict
+        * ``template_files``: list/dict
+        * ``comment``: str
+        * ``name``: str
+        * ``owners``: list[str]
+    * Changed:
+        * ``tree_build_time``: str -> float
+        * ``arch``: str -> Union[list, str]
+        * ``fetchable_files``: list/dict? -> dict
+        * ``boot_loader`` -> boot_loaders (rename)
+    * Removed:
+        * ``get_fields()``
+        * ``get_parent``
+        * ``set_kernel()`` - Please use the property ``kernel``
+        * ``set_remote_boot_kernel()`` - Please use the property ``remote_boot_kernel``
+        * ``set_tree_build_time()`` - Please use the property ``tree_build_time``
+        * ``set_breed()`` - Please use the property ``breed``
+        * ``set_os_version()`` - Please use the property ``os_version``
+        * ``set_initrd()`` - Please use the property ``initrd``
+        * ``set_remote_boot_initrd()`` - Please use the property ``remote_boot_initrd``
+        * ``set_source_repos()`` - Please use the property ``source_repos``
+        * ``set_arch()`` - Please use the property ``arch``
+        * ``get_arch()`` - Please use the property ``arch``
+        * ``set_supported_boot_loaders()`` - Please use the property ``supported_boot_loaders``. It is readonly.
+        * ``set_boot_loader()`` - Please use the property ``boot_loader``
+        * ``set_redhat_management_key()`` - Please use the property ``redhat_management_key``
+        * ``get_redhat_management_key()`` - Please use the property ``redhat_management_key``
+V3.2.2:
+    * No changes
+V3.2.1:
+    * Added:
+        * ``kickstart``: Resolves as a proxy to ``autoinstall``
+V3.2.0:
+    * No changes
+V3.1.2:
+    * Added:
+        * ``remote_boot_kernel``: str
+        * ``remote_grub_kernel``: str
+        * ``remote_boot_initrd``: str
+        * ``remote_grub_initrd``: str
+V3.1.1:
+    * No changes
+V3.1.0:
+    * Added:
+        * ``get_arch()``
+V3.0.1:
+    * File was moved from ``cobbler/item_distro.py`` to ``cobbler/items/distro.py``.
+V3.0.0:
+    * Added:
+        * ``boot_loader``: Union[str, inherit]
+    * Changed:
+        * rename: ``ks_meta`` -> ``autoinstall_meta``
+        * ``redhat_management_key``: Union[str, inherit] -> str
+    * Removed:
+        * ``redhat_management_server``: Union[str, inherit]
+V2.8.5:
+    * Inital tracking of changes for the changelog.
+    * Added:
+        * ``name``: str
+        * ``ctime``: float
+        * ``mtime``: float
+        * ``uid``: str
+        * ``owners``: Union[list, SETTINGS:default_ownership]
+        * ``kernel``: str
+        * ``initrd``: str
+        * ``kernel_options``: dict
+        * ``kernel_options_post``: dict
+        * ``ks_meta``: dict
+        * ``arch``: str
+        * ``breed``: str
+        * ``os_version``: str
+        * ``source_repos``: list
+        * ``depth``: int
+        * ``comment``: str
+        * ``tree_build_time``: str
+        * ``mgmt_classes``: list
+        * ``boot_files``: list/dict?
+        * ``fetchable_files``: list/dict?
+        * ``template_files``: list/dict?
+        * ``redhat_management_key``: Union[str, inherit]
+        * ``redhat_management_server``: Union[str, inherit]
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
