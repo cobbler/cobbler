@@ -222,16 +222,16 @@ class ImportSignatureManager:
                     winpe_path = os.path.join(dest_path, "winpe.wim")
                     if not os.path.exists(dest_path):
                         utils.mkdir(dest_path)
-                    rc = utils.subprocess_call([cmd_path, bootwim_path, "1",
-                                                winpe_path, "--boot"], shell=False)
+                    rc = utils.subprocess_call(self.logger, [cmd_path, bootwim_path, "1",
+                                               winpe_path, "--boot"], shell=False)
                     if rc == 0:
                         cmd = ["/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/Boot/PXE$'" % winpe_path]
-                        pxe_path = utils.subprocess_get(cmd, shell=True)[0:-1]
+                        pxe_path = utils.subprocess_get(self.logger, cmd, shell=True)[0:-1]
                         cmd = ["/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/System32/config/SOFTWARE$'"
                                % winpe_path]
-                        config_path = utils.subprocess_get(cmd, shell=True)[0:-1]
+                        config_path = utils.subprocess_get(self.logger, cmd, shell=True)[0:-1]
                         cmd_path = "/usr/bin/wimextract"
-                        rc = utils.subprocess_call([cmd_path, bootwim_path, "1",
+                        rc = utils.subprocess_call(self.logger, [cmd_path, bootwim_path, "1",
                                                     "%s/pxeboot.n12" % pxe_path,
                                                     "%s/bootmgr.exe" % pxe_path,
                                                     config_path,
@@ -263,13 +263,14 @@ class ImportSignatureManager:
                                     value2 = h.value_value(val)[1]
                                     valobject = {"key": keyname, "t": int(valtype), "value": value2}
                                     new_values.append(valobject)
-                                    h.node_set_values(node, new_values)
-                                    h.commit(software)
 
-                                    cmd_path = "/usr/bin/wimupdate"
-                                    rc = utils.subprocess_call([cmd_path, winpe_path, "--command=add %s %s"
-                                                                % (software, config_path)], shell=False)
-                                    os.remove(software)
+                                h.node_set_values(node, new_values)
+                                h.commit(software)
+
+                                cmd_path = "/usr/bin/wimupdate"
+                                rc = utils.subprocess_call(self.logger, [cmd_path, winpe_path, "--command=add %s %s"
+                                                           % (software, config_path)], shell=False)
+                                os.remove(software)
                             else:
                                 self.logger.info("python3-hivex not found. If you need Automatic Windows "
                                                  "Installation support, please install.")
@@ -315,8 +316,8 @@ class ImportSignatureManager:
                                                 break
                                         else:
                                             continue
-                                    self.logger.debug("Found a matching signature: breed=%s, version=%s",
-                                    breed, version)
+                                    self.logger.debug("Found a matching signature: breed=%s, version=%s" %
+                                    (breed, version))
                                     if not self.breed:
                                         self.breed = breed
                                     if not self.os_version:
