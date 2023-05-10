@@ -1,29 +1,29 @@
 #!/bin/bash
 # Utility script to build DEBs in a Docker container and then install them
 
-set -euo pipefail
+set -eu
 
 SKIP_BUILD=true
 RUN_TESTS=false
 RUN_SYSTEM_TESTS=false
 EXECUTOR=docker
 
-if [ "${1}" == "--with-tests" ]; then
+if [ "${1}" = "--with-tests" ]; then
     RUN_TESTS=true
     shift
 fi
 
-if [ "${1}" == "--with-system-tests" ]; then
+if [ "${1}" = "--with-system-tests" ]; then
     RUN_SYSTEM_TESTS=true
     shift
 fi
 
-if [ "${1}" == "--with-podman" ]; then
+if [ "${1}" = "--with-podman" ]; then
     EXECUTOR=podman
     shift
 fi
 
-if [ "${1}" == "--skip-build" ]; then
+if [ "${1}" = "--skip-build" ]; then
     SKIP_BUILD=false
     shift
 fi
@@ -35,7 +35,7 @@ IMAGE=cobbler:$TAG
 
 # Build container
 echo "==> Build container ..."
-if [[ "$EXECUTOR" == "podman" ]]
+if [ "$EXECUTOR" = "podman" ]
 then
     podman build --format docker -t "$IMAGE" -f "$DOCKERFILE" .
 else
