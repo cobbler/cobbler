@@ -50,7 +50,7 @@ start() {
     python=python
     [ -x /usr/libexec/platform-python ] && python=/usr/libexec/platform-python
     [ -x /usr/bin/python3 ] && python=/usr/bin/python3
-    echo -n $"Starting anamon: "
+    printf "Starting anamon: "
     daemon $python /usr/local/sbin/anamon --watchfile \"$LOGFILES\" --name $COBBLER_NAME --server $COBBLER_SERVER --port ${COBBLER_PORT:-80} --exit
     RETVAL=$?
     [ $RETVAL -eq 0 ] && touch $LOCKFILE
@@ -63,7 +63,7 @@ start() {
 }
 
 stop () {
-    echo -n $"Shutting down anamon: "
+    printf "Shutting down anamon: "
     killproc /usr/local/sbin/anamon
     RETVAL=$?
     [ $RETVAL -eq 0 ] && rm -f $LOCKFILE
@@ -96,7 +96,7 @@ case "$1" in
         RETVAL=$?
         ;;
     *)
-        echo $"Usage: $0 {start|stop|status|restart|condrestart}"
+        echo "Usage: $0 {start|stop|status|restart|condrestart}"
         RETVAL=2
         ;;
 esac
