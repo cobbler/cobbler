@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Check that Cobbler can install a dummy OS
 
-source ${SYSTESTS_PRELUDE} && prepare
+. ${SYSTESTS_PRELUDE} && prepare
 
-set -x -e -o pipefail
+set -x -e
 
 cobbler distro add \
 	--name dummy \
