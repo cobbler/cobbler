@@ -73,4 +73,5 @@ openssl req -utf8 -new -newkey rsa:2048 -nodes -config ldap.conf -out ldap.csr -
 openssl x509 -req -CAkey private/ca-slapd.key -passin pass:cobbler -CA ca-slapd.crt -in ldap.csr -extfile ldap.conf -extensions req_ext -out ldap.crt -CAcreateserial -days 365
 cp /etc/ssl/ca-slapd.crt /etc/pki/trust/anchors
 update-ca-certificates
-chown  ldap:ldap /etc/ssl/{slapd.*,ldap.*}
+chown  ldap:ldap /etc/ssl/slapd.*
+chown  ldap:ldap /etc/ssl/ldap.*
