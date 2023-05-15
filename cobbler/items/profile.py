@@ -162,7 +162,7 @@ V2.8.5:
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import copy
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from cobbler import autoinstall_manager, enums, validate
 from cobbler.cexceptions import CX
@@ -279,6 +279,26 @@ class Profile(item.Item):
         distro = self.get_conceptual_parent()
         if distro is None:
             raise CX(f"Error with profile {self.name} - distro is required")
+
+    def find_match_single_key(
+        self, data: Dict[str, Any], key: str, value: Any, no_errors: bool = False
+    ) -> bool:
+        """
+        Look if the data matches or not. This is an alternative for ``find_match()``.
+
+        :param data: The data to search through.
+        :param key: The key to look for int the item.
+        :param value: The value for the key.
+        :param no_errors: How strict this matching is.
+        :return: Whether the data matches or not.
+        """
+        # special case for profile, since arch is a derived property from the parent distro
+        if key == "arch":
+            if self.arch:
+                return self.arch.value == value
+            return value is None
+
+        return super().find_match_single_key(data, key, value, no_errors)
 
     #
     # specific methods for item.Profile
