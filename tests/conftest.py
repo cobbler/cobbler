@@ -14,6 +14,7 @@ import pytest
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image
+from cobbler.items.menu import Menu
 from cobbler.items.profile import Profile
 from cobbler.items.system import NetworkInterface, System
 
@@ -211,6 +212,31 @@ def create_system(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
         return test_system
 
     return _create_system
+
+
+@pytest.fixture(scope="function")
+def create_menu(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
+    """
+    Returns a function which has the profile name as an argument. The function returns a system object. The system is
+    already added to the CobblerAPI.
+    """
+
+    def _create_menu(name: str = "", display_name: str = "") -> Menu:
+        test_menu = cobbler_api.new_menu()
+
+        if name == "":
+            test_menu.name = (
+                request.node.originalname  # type: ignore
+                if request.node.originalname  # type: ignore
+                else request.node.name
+            )
+
+        test_menu.display_name = display_name
+
+        cobbler_api.add_menu(test_menu)
+        return test_menu
+
+    return _create_menu
 
 
 @pytest.fixture(scope="function", autouse=True)
