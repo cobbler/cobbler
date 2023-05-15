@@ -2,7 +2,7 @@
 Test module to validate the functionallity of the Cobbler Profile item.
 """
 
-from typing import Any, Callable, List
+from typing import Any, Callable, Dict, List
 
 import pytest
 
@@ -684,3 +684,39 @@ def test_display_name(cobbler_api: CobblerAPI):
 
     # Assert
     assert profile.display_name == ""
+
+
+@pytest.mark.parametrize(
+    "data_keys, check_key, check_value, expect_match",
+    [
+        ({"uid": "test-uid"}, "uid", "test-uid", True),
+        ({"menu": "testmenu0"}, "menu", "testmenu0", True),
+        ({"uid": "test", "name": "test-name"}, "uid", "test", True),
+        ({"uid": "test"}, "arch", "x86_64", True),
+        ({"uid": "test"}, "arch", "aarch64", False),
+        ({"depth": "1"}, "name", "test", False),
+        ({"uid": "test", "name": "test-name"}, "menu", "testmenu0", False),
+    ],
+)
+def test_find_match_single_key(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    data_keys: Dict[str, Any],
+    check_key: str,
+    check_value: Any,
+    expect_match: bool,
+):
+    """
+    Assert that a single given key and value match the object or not.
+    """
+    # Arrange
+    test_distro_obj = create_distro()
+    test_distro_obj.arch = enums.Archs.X86_64
+    profile = Profile(cobbler_api)
+    profile.distro = test_distro_obj.name
+
+    # Act
+    result = profile.find_match_single_key(data_keys, check_key, check_value)
+
+    # Assert
+    assert expect_match == result
