@@ -524,23 +524,51 @@ def test_sort_key(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     ]
 
 
-@pytest.mark.skip("Test not yet implemented")
-def test_find_match(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "in_keys, check_keys, expect_match",
+    [
+        ({"uid": "test-uid"}, {"uid": "test-uid"}, True),
+        ({"name": "test-object"}, {"name": "test-object"}, True),
+        ({"comment": "test-comment"}, {"comment": "test-comment"}, True),
+        ({"uid": "test-uid"}, {"uid": ""}, False),
+    ],
+)
+def test_find_match(
+    cobbler_api: CobblerAPI,
+    in_keys: Dict[str, Any],
+    check_keys: Dict[str, Any],
+    expect_match: bool,
+):
     """
     Assert that given a desired amount of key-value pairs is matching the item or not.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Item(cobbler_api, **in_keys)
 
     # Act
-    titem.find_match({})
+    result = titem.find_match(check_keys)
 
     # Assert
-    assert False
+    assert expect_match == result
 
 
-@pytest.mark.skip("Test not yet implemented")
-def test_find_match_single_key(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "data_keys, check_key, check_value, expect_match",
+    [
+        ({"uid": "test-uid"}, "uid", "test-uid", True),
+        ({"menu": "testmenu0"}, "menu", "testmenu0", True),
+        ({"uid": "test", "name": "test-name"}, "uid", "test", True),
+        ({"depth": "1"}, "name", "test", False),
+        ({"uid": "test", "name": "test-name"}, "menu", "testmenu0", False),
+    ],
+)
+def test_find_match_single_key(
+    cobbler_api: CobblerAPI,
+    data_keys: Dict[str, Any],
+    check_key: str,
+    check_value: Any,
+    expect_match: bool,
+):
     """
     Assert that a single given key and value match the object or not.
     """
@@ -548,10 +576,10 @@ def test_find_match_single_key(cobbler_api: CobblerAPI):
     titem = Item(cobbler_api)
 
     # Act
-    titem.find_match_single_key({}, "", "")
+    result = titem.find_match_single_key(data_keys, check_key, check_value)
 
     # Assert
-    assert False
+    assert expect_match == result
 
 
 def test_dump_vars(cobbler_api: CobblerAPI):
