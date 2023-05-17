@@ -254,6 +254,7 @@ Dockerfiles and scripts to setup testing containers
 [ "${TFTPROOT}" != %{tftpboot_dir} ] && echo "ERROR: TFTPROOT: ${TFTPROOT} does not match %{tftpboot_dir}"
 
 %py3_build
+make man
 
 %install
 . distro_build_configs.sh

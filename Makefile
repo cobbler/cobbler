@@ -54,6 +54,9 @@ doc: ## Creates the documentation with sphinx in html form.
 	@echo "creating: documentation"
 	@cd docs; make html > /dev/null 2>&1
 
+man: ## Creates documentation and man pages using Sphinx
+	@${PYTHON} -m sphinx -b man -j auto ./docs ./build/sphinx/man
+
 qa: ## If black is found then it is run.
 ifeq ($(strip $(BLACK)),)
 	@echo "No black found"
