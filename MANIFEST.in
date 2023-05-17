@@ -2,6 +2,7 @@ include COPYING AUTHORS
 include cobbler.spec config/service/cobblerd.service
 include AUTHORS.in README.md
 include distro_build_configs.sh
+include Makefile
 recursive-include misc *
 recursive-include bin *
 recursive-include config *
