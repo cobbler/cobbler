@@ -21,7 +21,6 @@ from setuptools import Distribution as _Distribution
 from setuptools import dep_util, find_packages, setup
 from setuptools.command.build_py import build_py as _build_py
 from setuptools.command.install import install as _install
-from sphinx.setup_command import BuildDoc
 
 VERSION = "3.4.0"
 OUTPUT_DIR = "config"
@@ -165,21 +164,6 @@ class Build(_build):
 
     def run(self):
         _build.run(self)
-
-
-#####################################################################
-# # Build man pages using Sphinx  ###################################
-#####################################################################
-
-
-class BuildMan(BuildDoc):  # type: ignore
-    """
-    TODO
-    """
-
-    def initialize_options(self):
-        BuildDoc.initialize_options(self)  # type: ignore
-        self.builder = "man"
 
 
 #####################################################################
@@ -343,14 +327,7 @@ def has_configure_files(build: Build):
     return bool(build.distribution.configure_files)  # type: ignore
 
 
-def has_man_pages(build: Build):
-    """Check if the distribution has configuration files to work on."""
-    return bool(build.distribution.man_pages)  # type: ignore
-
-
-Build.sub_commands.extend(
-    (("build_man", has_man_pages), ("build_cfg", has_configure_files))
-)
+Build.sub_commands.extend((("build_cfg", has_configure_files),))
 
 
 #####################################################################
@@ -569,7 +546,6 @@ if __name__ == "__main__":
             "savestate": Savestate,
             "restorestate": Restorestate,
             "build_cfg": BuildCfg,
-            "build_man": BuildMan,
         },
         name="cobbler",
         version=VERSION,
