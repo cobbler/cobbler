@@ -1,0 +1,10 @@
+#set $mac = $interfaces['default']["mac_address"]
+## Disable all interfaces that is not used
+default_mac="$mac"
+#raw
+for interface in $(find /sys/class/net -type l -not -lname '*virtual*' -printf '%f\n'); do
+  if ! ip a show "$interface" | grep link/ether | awk '{print $2}' |grep -q "$default_mac"; then
+    sed -i 's/ONBOOT=\("\)\?yes\("\)\?/ONBOOT=\1no\2/g' /etc/sysconfig/network-scripts/ifcfg-"$interface"
+  fi
+done
+#end raw

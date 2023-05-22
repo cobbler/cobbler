@@ -2,11 +2,14 @@
 
 #platform=x86, AMD64, or Intel EM64T
 # System authorization information
-auth  --useshadow  --enablemd5
+authselect --useshadow --passalgo=SHA512 --kickstart
+# Get install destination disk (default sda)
+#set $install_disk = $getVar('use_disk', 'sda')
 # System bootloader configuration
-bootloader --location=mbr
+# bootloader--location=mbr --boot-drive=$install_disk
 # Partition clearing information
 clearpart --all --initlabel
+ignoredisk --only-use=$install_disk
 # Use text mode install
 text
 # Firewall configuration
@@ -60,7 +63,7 @@ $SNIPPET('log_ks_post')
 $yum_config_stanza
 # End yum configuration
 $SNIPPET('post_install_kernel_options')
-$SNIPPET('post_install_network_config')
+$SNIPPET('network_disable_interfaces')
 $SNIPPET('download_config_files')
 $SNIPPET('koan_environment')
 $SNIPPET('redhat_register')

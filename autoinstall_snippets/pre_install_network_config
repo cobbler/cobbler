@@ -65,6 +65,9 @@ get_ifname() {
         #set $iface_type    = $idata["interface_type"]
         #set $iface_master  = $idata["interface_master"]
         #set $static_routes = $idata["static_routes"]
+        #set $ip6           = $idata["ipv6_address"]
+        #set $ip6_prefix    = $idata["ipv6_prefix"]
+        #set $ip6_gw        = $idata["ipv6_default_gateway"]
         #set $devfile       = "/etc/sysconfig/network-scripts/ifcfg-" + $iname
         #if $vlanpattern.match($iname)
             ## If this is a VLAN interface, skip it, anaconda doesn't know
@@ -105,12 +108,16 @@ get_ifname() {
                     #end if
                 #end for
             #end if
-            #if $static and $ip != ""
-                #if $netmask == ""
-                    ## Netmask not provided, default to /24.
-                    #set $netmask = "255.255.255.0"
+            #if $static and ($ip != "" or $ip6 != "")
+                ## Set static proto, don't know yet if ipv4 or ipv6 or both
+                #set $netinfo = "--bootproto=static"
+                #if $ip != ""
+                    #if $netmask == ""
+                        ## Netmask not provided, default to /24.
+                        #set $netmask = "255.255.255.0"
+                    #end if
+                    #set $netinfo = "%s --ip=%s --netmask=%s" % ($netinfo, $ip, $netmask)
                 #end if
-                #set $netinfo = "--bootproto=static --ip=%s --netmask=%s" % ($ip, $netmask)
                 #if $if_gateway != ""
 	                #if $if_gateway == $gateway
 	                   #set $netinfo = "%s --gateway=%s" % ($netinfo, $if_gateway)
@@ -122,6 +129,13 @@ get_ifname() {
     	        #end if
     	        #if $len($name_servers) > 0
     	            #set $netinfo = "%s --nameserver=%s" % ($netinfo, $name_servers[0])
+                #end if
+    	        #if $ip6 != "" and $ip6_gw != ""
+                    #if $ip6_prefix == ""
+                        ## Prefix not provided, default to /64.
+                        #set $ip6_prefix = "64"
+                    #end if
+    	            #set $netinfo = "%s --ipv6=%s/%s --ipv6gateway=%s" % ($netinfo, $ip6, $ip6_prefix, $ip6_gw)
                 #end if
             #else if not $static
                 #set $netinfo = "--bootproto=dhcp"
