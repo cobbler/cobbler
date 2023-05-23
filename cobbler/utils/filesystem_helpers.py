@@ -99,15 +99,14 @@ def hashfile(file_name: str, lcache: Optional[pathlib.Path] = None) -> Optional[
     file = pathlib.Path(file_name)
     if file.exists():
         mtime = file.stat().st_mtime
-        if lcache is not None and file_name in hashfile_db:
+        if file_name in hashfile_db:
             if hashfile_db[file_name][0] >= mtime:
                 return hashfile_db[file_name][1]
 
         key = sha1_file(file_name)
-        if lcache is not None:
-            hashfile_db[file_name] = (mtime, key)
-            __create_if_not_exists(lcache)
-            dbfile.write_text(json.dumps(hashfile_db), encoding="utf-8")
+        hashfile_db[file_name] = (mtime, key)
+        __create_if_not_exists(lcache)
+        dbfile.write_text(json.dumps(hashfile_db), encoding="utf-8")
         return key
     return None
 
