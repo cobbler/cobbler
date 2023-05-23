@@ -1,0 +1,63 @@
+## Can be used to create a partition layout for RHEL 7 and 8 dinamycally
+## using variables in systems `autoinstall_meta` section.
+##
+##    "autoinstall_meta": {
+##       "filesystem_type": "ext4",
+##       "root_device": "sda",
+##       "uefi_create": false,
+##
+##
+#
+# main partition selection
+#
+#set $disk_label = $getVar('disk_label', 'mbr')
+#
+#set $uefi_create = $getVar('uefi_create', 'False')
+#
+#set $fstype = $getVar('filesystem_type', 'ext4')
+#
+#set $tmp_create = $getVar('tmp_create', 'False')
+#set $tmp_size = $getVar('tmp_size', '1024')
+#set $tmp_device = $getVar('tmp_device', '')
+#
+#set $boot_create = $getVar('boot_create', 'False')
+#set $boot_size = $getVar('boot_size', '1024')
+#set $boot_device = $getVar('boot_device', '')
+# 
+#set $swap_create = $getVar('swap_create', 'False')
+#set $swap_size = $getVar('swap_size', '1024')
+#set $swap_device = $getVar('swap_device', '')
+# 
+#set $home_create = $getVar('home_create', 'False')
+#set $home_size = $getVar('home_size', '1 --grow')
+#set $home_device = $getVar('home_device', '')
+#set $home_fsoptions = $getVar('home_fsoptions', 'defaults')
+# 
+#set $root_size = $getVar('root_size', '1 --grow')
+#set $root_device = $getVar('root_device', 'sda')
+#set $root_fsoptions = $getVar('root_fsoptions', 'defaults')
+#
+#if $disk_label == "gpt" and not $uefi_create
+part biosboot --fstype=biosboot --size=1
+#end if
+#
+#if $tmp_create and $tmp_size and $tmp_device
+part /tmp --fstype=$fstype --ondisk=$tmp_device --size=$tmp_size
+#end if
+#
+#if $boot_create and $boot_size and $boot_device
+part /boot --fstype=$fstype --ondisk=$boot_device --size=$boot_size
+#end if
+#
+#if $uefi_create
+part /boot/efi --fstype=efi  --size=200
+#end if
+#
+#if $swap_create and $swap_size and $swap_device
+part swap --fstype=swap --ondisk=$swap_device --size=$swap_size
+#end if
+#if $home_create and $home_device
+part /home --fstype=$fstype --ondisk=$home_device --size=$home_size --fsoptions=$home_fsoptions --label=home
+#end if
+# 
+part / --fstype=$fstype --ondisk=$root_device  --size=$root_size --fsoptions=$root_fsoptions --label=root
