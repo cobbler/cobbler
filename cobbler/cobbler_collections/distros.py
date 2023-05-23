@@ -59,14 +59,10 @@ class Distros(collection.Collection[distro.Distro]):
         :raises CX: In case any subitem (profiles or systems) would be orphaned. If the option ``recursive`` is set then
                     the orphaned items would be removed automatically.
         """
-        obj = self.find(name=name)
+        obj = self.listing.get(name, None)
 
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")
-
-        if isinstance(obj, list):
-            # Will never happen, but we want to make mypy happy.
-            raise CX("Ambiguous match detected!")
 
         # first see if any Groups use this distro
         if not recursive:
@@ -95,7 +91,7 @@ class Distros(collection.Collection[distro.Distro]):
                 )
             if with_sync:
                 lite_sync = self.api.get_sync()
-                lite_sync.remove_single_distro(name)
+                lite_sync.remove_single_distro(obj)
         with self.lock:
             del self.listing[name]
 

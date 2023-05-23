@@ -10,7 +10,7 @@ This is some of the code behind 'cobbler sync'.
 import time
 from typing import TYPE_CHECKING, Dict, Optional
 
-from cobbler.manager import ManagerModule
+from cobbler.modules.managers import DhcpManagerModule, DnsManagerModule
 from cobbler.utils import process_management
 
 if TYPE_CHECKING:
@@ -31,7 +31,7 @@ def register() -> str:
     return "manage"
 
 
-class _DnsmasqManager(ManagerModule):
+class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
     """
     Handles conversion of internal state to the tftpboot tree layout.
     """
@@ -44,6 +44,10 @@ class _DnsmasqManager(ManagerModule):
         :return: Will always return ``dnsmasq``.
         """
         return "dnsmasq"
+
+    def sync_dhcp(self) -> None:
+        self.write_configs()
+        self.restart_service()
 
     def write_configs(self) -> None:
         """

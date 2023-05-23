@@ -21,7 +21,7 @@ import magic  # type: ignore
 
 from cobbler import enums, utils
 from cobbler.cexceptions import CX
-from cobbler.manager import ManagerModule
+from cobbler.modules.managers import ManagerModule
 from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:

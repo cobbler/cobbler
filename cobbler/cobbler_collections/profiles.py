@@ -54,7 +54,7 @@ class Profiles(collection.Collection[profile.Profile]):
                 if system.profile == name:
                     raise CX(f"removal would orphan system: {system.name}")
 
-        obj = self.find(name=name)
+        obj = self.listing.get(name, None)
 
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")
@@ -94,4 +94,4 @@ class Profiles(collection.Collection[profile.Profile]):
                 )
             if with_sync:
                 lite_sync = self.api.get_sync()
-                lite_sync.remove_single_profile(name)
+                lite_sync.remove_single_profile(obj)

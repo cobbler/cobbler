@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from cobbler import enums, utils
 from cobbler.enums import Archs
-from cobbler.manager import ManagerModule
+from cobbler.modules.managers import DhcpManagerModule
 from cobbler.utils import process_management
 
 if TYPE_CHECKING:
@@ -31,7 +31,7 @@ def register() -> str:
     return "manage"
 
 
-class _IscManager(ManagerModule):
+class _IscManager(DhcpManagerModule):
     @staticmethod
     def what() -> str:
         """
@@ -46,6 +46,10 @@ class _IscManager(ManagerModule):
 
         self.settings_file_v4 = utils.dhcpconf_location(enums.DHCP.V4)
         self.settings_file_v6 = utils.dhcpconf_location(enums.DHCP.V6)
+
+    def sync_dhcp(self) -> None:
+        self.write_configs()
+        self.restart_service()
 
     def write_v4_config(
         self, template_file: str = "/etc/cobbler/dhcp.template"

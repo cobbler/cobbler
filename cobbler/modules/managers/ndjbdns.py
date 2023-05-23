@@ -12,7 +12,7 @@ import os
 import subprocess
 from typing import TYPE_CHECKING, Any, Dict
 
-from cobbler.manager import ManagerModule
+from cobbler.modules.managers import DnsManagerModule
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -28,7 +28,7 @@ def register() -> str:
     return "manage"
 
 
-class _NDjbDnsManager(ManagerModule):
+class _NDjbDnsManager(DnsManagerModule):
     """
     Support for Dr. D J Bernstein DNS server.
 
@@ -45,8 +45,8 @@ class _NDjbDnsManager(ManagerModule):
         """
         return "ndjbdns"
 
-    def __init__(self, api: "CobblerAPI") -> None:
-        super().__init__(api)
+    def regen_hosts(self) -> None:
+        self.write_configs()
 
     def write_configs(self) -> None:
         """

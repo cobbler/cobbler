@@ -56,7 +56,7 @@ class Systems(collection.Collection[system.System]):
 
         :raises CX: In case the name of the object was not given.
         """
-        obj = self.find(name=name)
+        obj = self.listing.get(name, None)
 
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")
@@ -72,7 +72,7 @@ class Systems(collection.Collection[system.System]):
                 )
             if with_sync:
                 lite_sync = self.api.get_sync()
-                lite_sync.remove_single_system(name)
+                lite_sync.remove_single_system(obj)
 
         with self.lock:
             del self.listing[name]

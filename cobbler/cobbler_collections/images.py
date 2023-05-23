@@ -55,14 +55,10 @@ class Images(collection.Collection[image.Image]):
         :raises CX: In case object does not exist or it would orhan a system.
         """
         # NOTE: with_delete isn't currently meaningful for repos but is left in for consistency in the API. Unused.
-        obj = self.find(name=name)
+        obj = self.listing.get(name, None)
 
         if obj is None:
             raise CX(f"cannot delete an object that does not exist: {name}")
-
-        if isinstance(obj, list):
-            # Will never happen, but we want to make mypy happy.
-            raise CX("Ambiguous match detected!")
 
         # first see if any Groups use this distro
         if not recursive:
@@ -86,7 +82,7 @@ class Images(collection.Collection[image.Image]):
                 )
             if with_sync:
                 lite_sync = self.api.get_sync()
-                lite_sync.remove_single_image(name)
+                lite_sync.remove_single_image(obj)
 
         with self.lock:
             del self.listing[name]
