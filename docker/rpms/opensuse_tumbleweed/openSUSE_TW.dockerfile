@@ -18,6 +18,7 @@ RUN zypper install -y          \
     wget2                      \
     make                       \
     util-linux                 \
+    openssl                    \
     hardlink                   \
     xorriso                    \
     ipmitool                   \

@@ -39,6 +39,7 @@ RUN zypper install --no-recommends -y \
     make                       \
     curl                       \
     wget2                      \
+    openssl                    \
     python310                  \
     python310-Sphinx           \
     python310-coverage         \
