@@ -143,8 +143,18 @@ class TFTPGen:
         """
         distro_dir = os.path.join(dirtree, "images", distro.name)
         filesystem_helpers.mkdir(distro_dir)
-        self.copy_single_distro_file(distro.kernel, distro_dir, symlink_ok)
-        self.copy_single_distro_file(distro.initrd, distro_dir, symlink_ok)
+        if distro.kernel:
+            self.copy_single_distro_file(distro.kernel, distro_dir, symlink_ok)
+        else:
+            self.copy_single_distro_file(
+                distro.remote_boot_kernel, distro_dir, symlink_ok
+            )
+        if distro.initrd:
+            self.copy_single_distro_file(distro.initrd, distro_dir, symlink_ok)
+        else:
+            self.copy_single_distro_file(
+                distro.remote_boot_initrd, distro_dir, symlink_ok
+            )
 
     def copy_single_image_files(self, img: "Image"):
         """
