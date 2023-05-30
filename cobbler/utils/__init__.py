@@ -352,7 +352,7 @@ def find_initrd(path: str) -> Optional[str]:
     :return: None or the path to the found initrd.
     """
     # FUTURE: try to match kernel/initrd pairs?
-    if path is None:
+    if path is None:  # type: ignore
         return None
 
     if os.path.isfile(path):
@@ -743,7 +743,7 @@ def rsync_files(src: str, dst: str, args: str, quiet: bool = True) -> bool:
     :return: ``True`` on success, otherwise ``False``.
     """
 
-    if args is None:
+    if args is None:  # type: ignore
         args = ""
 
     # Make sure we put a "/" on the end of the source and destination to make sure we don't cause any rsync weirdness.

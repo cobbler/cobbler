@@ -143,8 +143,18 @@ class TFTPGen:
         """
         distro_dir = os.path.join(dirtree, "images", distro.name)
         filesystem_helpers.mkdir(distro_dir)
-        self.copy_single_distro_file(distro.kernel, distro_dir, symlink_ok)
-        self.copy_single_distro_file(distro.initrd, distro_dir, symlink_ok)
+        if distro.kernel:
+            self.copy_single_distro_file(distro.kernel, distro_dir, symlink_ok)
+        else:
+            self.copy_single_distro_file(
+                distro.remote_boot_kernel, distro_dir, symlink_ok
+            )
+        if distro.initrd:
+            self.copy_single_distro_file(distro.initrd, distro_dir, symlink_ok)
+        else:
+            self.copy_single_distro_file(
+                distro.remote_boot_initrd, distro_dir, symlink_ok
+            )
 
     def copy_single_image_files(self, img: "Image"):
         """
@@ -500,9 +510,10 @@ class TFTPGen:
             arch_menu_items = arch_metadata["menu_items"]
 
             boot_menu["grub"] = arch_menu_items
-            outfile = os.path.join(self.bootloc, "grub", f"{arch.value}_menu_items.cfg")
-            with open(outfile, "w+") as fd:
-                fd.write(arch_menu_items.get("grub", ""))  # type: ignore
+            outfile = (
+                pathlib.Path(self.bootloc) / "grub" / f"{arch.value}_menu_items.cfg"
+            )
+            outfile.write_text(arch_menu_items.get("grub", ""), encoding="UTF-8")  # type: ignore
 
     def get_menu_items(
         self, arch: Optional[enums.Archs] = None
@@ -784,12 +795,12 @@ class TFTPGen:
                     metadata["parent_menu_label"] = parent_menu.display_name
 
         for boot_loader in boot_loaders:
-            template: str = os.path.join(
-                self.settings.boot_loader_conf_template_dir,
-                f"{boot_loader}_submenu.template",
+            template = (
+                pathlib.Path(self.settings.boot_loader_conf_template_dir)
+                / f"{boot_loader}_submenu.template"
             )
-            if os.path.exists(template):
-                with open(template, encoding="UTF-8") as template_fh:  # type: ignore
+            if template.exists():
+                with open(template, encoding="UTF-8") as template_fh:
                     template_data[boot_loader] = template_fh.read()
             else:
                 self.logger.warning(
@@ -1339,7 +1350,7 @@ class TFTPGen:
 
     def write_templates(
         self,
-        obj: Union["ITEM_UNION"],  # type: ignore
+        obj: "ITEM_UNION",
         write_file: bool = False,
         path: Optional[str] = None,
     ) -> Dict[str, str]:

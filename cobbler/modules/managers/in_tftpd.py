@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 from cobbler import templar, tftpgen, utils
 from cobbler.cexceptions import CX
-from cobbler.manager import ManagerModule
+from cobbler.modules.managers import TftpManagerModule
 from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:
@@ -30,7 +30,7 @@ def register() -> str:
     return "manage"
 
 
-class _InTftpdManager(ManagerModule):
+class _InTftpdManager(TftpManagerModule):
     @staticmethod
     def what() -> str:
         """

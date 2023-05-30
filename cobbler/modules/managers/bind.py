@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Union
 
 from cobbler import utils
 from cobbler.cexceptions import CX
-from cobbler.manager import ManagerModule
+from cobbler.modules.managers import DnsManagerModule
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -43,7 +43,7 @@ class MetadataZoneHelper:
         self.bind_master = ""
 
 
-class _BindManager(ManagerModule):
+class _BindManager(DnsManagerModule):
     @staticmethod
     def what() -> str:
         """

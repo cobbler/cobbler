@@ -1940,7 +1940,7 @@ class CobblerAPI:
         for repository in base.repos.iter_enabled():  # type: ignore
             auto_name: str = repository.id + "-" + base.conf.releasever + "-" + basearch  # type: ignore
 
-            if self.find_repo(auto_name) is None:
+            if self.find_repo(auto_name) is None:  # type: ignore
                 cobbler_repo = self.new_repo()
                 cobbler_repo.name = auto_name
                 cobbler_repo.breed = enums.RepoBreeds.YUM
