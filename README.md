@@ -4,7 +4,7 @@
 [![PyPI version](https://badge.fury.io/py/cobbler.svg)](https://badge.fury.io/py/cobbler)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/cobbler)
 [![Documentation Status](https://readthedocs.org/projects/cobbler/badge/?version=latest)](https://cobbler.readthedocs.io/en/latest/)
-[![Gitter chat](https://badges.gitter.im/cobbler/gitter.png)](https://gitter.im/cobbler/community)
+[![Matrix](https://img.shields.io/matrix/cobbler-community:matrix.org?label=Chat%20on%20Matrix&logo=matrix)](https://app.element.io/#/room/#cobbler_community:gitter.im)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/c8c0c787c4854aba925d361eacc15811)](https://www.codacy.com/gh/cobbler/cobbler/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=cobbler/cobbler&amp;utm_campaign=Badge_Grade)
 [![Codacy Badge](https://app.codacy.com/project/badge/Coverage/c8c0c787c4854aba925d361eacc15811)](https://www.codacy.com/gh/cobbler/cobbler/dashboard?utm_source=github.com&utm_medium=referral&utm_content=cobbler/cobbler&utm_campaign=Badge_Coverage)
 [![Asciinema](https://img.shields.io/badge/asciinema-Cobbler-success)](https://asciinema.org/~Cobbler)
