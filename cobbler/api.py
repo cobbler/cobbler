@@ -284,6 +284,8 @@ class CobblerAPI:
             self.settings().tftpboot_location,
         ]
         for directory in required_directories:
+            if not pathlib.Path(directory).exists():
+                os.makedirs(directory)
             if not pathlib.Path(directory).is_dir():
                 raise FileNotFoundError(
                     f'Required directory "{directory}" for operation is missing! Aborting startup of Cobbler!'
