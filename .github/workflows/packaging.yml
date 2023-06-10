@@ -3,55 +3,173 @@ name: Building Cobbler packages
 on:
   push:
     branches: [ main, release* ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ main, release* ]
 
 jobs:
-  build-centos8-rpms:
+  build-rockylinux8-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build a Rocky Linux 8 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/rpms/build-and-install-rpms.sh rl8 docker/rpms/Rocky_Linux_8/Rocky_Linux_8.dockerfile
+      - name: Archive RPMs
+        uses: actions/upload-artifact@v3
+        with:
+          name: rpms-rockylinux-8
+          path: |
+            rpm-build/*.rpm
   build-fedora37-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build a Fedora 37 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/rpms/build-and-install-rpms.sh fc37 docker/rpms/Fedora_37/Fedora37.dockerfile
+      - name: Archive RPMs
+        uses: actions/upload-artifact@v3
+        with:
+          name: rpms-fedora-37
+          path: |
+            rpm-build/*.rpm
   build-opensuse-leap-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - name: Install System dependencies
+        run: sudo apt-get install -y rename
       - name: Build a openSUSE Leap 15.3 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/rpms/build-and-install-rpms.sh opensuse-leap docker/rpms/opensuse_leap/openSUSE_Leap153.dockerfile
+      - name: Rename RPM
+        run: |
+          file-rename -v -d -e 's/cobbler-(\d+\.\d+\.\d+)-1\.(\w+)\.rpm/cobbler-$1-1.leap.$2.rpm/' rpm-build/*.rpm
+      - name: Archive RPMs
+        uses: actions/upload-artifact@v3
+        with:
+          name: rpms-opensuse-leap
+          path: |
+            rpm-build/*.rpm
   build-opensuse-tumbleweed-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - name: Install System dependencies
+        run: sudo apt-get install -y rename
       - name: Build a openSUSE Tumbleweed Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/rpms/build-and-install-rpms.sh opensuse-tumbleweed docker/rpms/opensuse_tumbleweed/openSUSE_TW.dockerfile
+      - name: Rename RPM
+        run: |
+          file-rename -v -d -e 's/cobbler-(\d+\.\d+\.\d+)-1\.(\w+)\.rpm/cobbler-$1-1.tw.$2.rpm/' rpm-build/*.rpm
+      - name: Archive RPMs
+        uses: actions/upload-artifact@v3
+        with:
+          name: rpms-opensuse-tumbleweed
+          path: |
+            rpm-build/*.rpm
   build-debian10-debs:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build a Debian 10 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/debs/build-and-install-debs.sh deb10 docker/debs/Debian_10/Debian10.dockerfile
+      - name: Archive DEBs
+        uses: actions/upload-artifact@v3
+        with:
+          name: debs-debian10
+          path: |
+            deb-build/DEBS/all/*.deb
   build-debian11-debs:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build a Debian 11 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile
+      - name: Archive DEBs
+        uses: actions/upload-artifact@v3
+        with:
+          name: debs-debian11
+          path: |
+            deb-build/DEBS/all/*.deb
+  build-wheel:
+    name: Build Python Wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Mark directory as safe for Git
+        run: git config --global --add safe.directory /__w/cobbler/cobbler
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.7'
+          cache: pip
+      - name: Install system dependencies
+        run: >-
+          sudo apt-get install -y
+          tar
+          make
+          libsasl2-dev
+          libldap2-dev
+          libssl-dev
+          tree
+      - name: Install dependencies
+        run: pip3 install .
+      - name: Build a binary wheel and a source tarball
+        run: make release
+      - name: Show tree
+        run: tree
+      - name: Archive Wheel
+        uses: actions/upload-artifact@v3
+        with:
+          name: wheel
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+  create-release:
+    name: Build the release and create a GitHub release
+    runs-on: ubuntu-latest
+    needs: [
+      build-rockylinux8-rpms,
+      build-fedora37-rpms,
+      build-opensuse-leap-rpms,
+      build-opensuse-tumbleweed-rpms,
+      build-debian10-debs,
+      build-debian11-debs,
+      build-wheel
+    ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        name: Download all built artifacts
+        with:
+          path: artifacts
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Release
+        # https://github.com/softprops/action-gh-release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: Cobbler ${{ env.RELEASE_VERSION }}
+          discussion_category_name: "Announcements"
+          files: |
+            artifacts/debs-debian10/*.deb
+            artifacts/debs-debian11/*.deb
+            artifacts/rpms-fedora-37/*.rpm
+            artifacts/rpms-opensuse-leap/*.rpm
+            artifacts/rpms-opensuse-tumbleweed/*.rpm
+            artifacts/rpms-rockylinux-8/*.rpm
+            artifacts/wheel/*.tar.gz
+            artifacts/wheel/*.whl
+          body_path: changelog/${{ env.RELEASE_VERSION }}.md
