@@ -1,0 +1,76 @@
+name: Increase version
+
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onworkflow_dispatchinputs
+
+on:
+  workflow_dispatch:
+    inputs:
+      nextVersionMajor:
+        description: "The next version that will be released"
+        required: true
+        type: choice
+        options:
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+        - "5"
+        - "6"
+        - "7"
+        - "8"
+        - "9"
+      nextVersionMinor:
+        description: "The next version that will be released"
+        required: true
+        type: choice
+        options:
+        - "0"
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+        - "5"
+        - "6"
+        - "7"
+        - "8"
+        - "9"
+      nextVersionPatch:
+        description: "The next version that will be released"
+        required: true
+        type: choice
+        options:
+        - "0"
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+        - "5"
+        - "6"
+        - "7"
+        - "8"
+        - "9"
+
+jobs:
+  create_pull_request:
+    name: "Create Pull Request"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build version
+        run: echo "new_version=${{ inputs.nextVersionMajor }}.${{ inputs.nextVersionMinor }}.${{ inputs.nextVersionPatch }}" >> $GITHUB_ENV
+      - name: Replace version in setup.py
+        run: sed -i '/VERSION = "[0-9].[0-9].[0-9]/s/.$/.'${{ env.new_version }}'"/g' setup.py
+      - name: Replace release in docs/conf.py
+        run: sed -i 's/release = "[0-9].[0-9].[0-9]"/release = "'${{ env.new_version }}'"/g' docs/conf.py
+      - name: Replace version in docs/conf.py
+        run: sed -i 's/version = "[0-9].[0-9]"/version = "'${{ inputs.nextVersionMajor }}'.'${{ inputs.nextVersionMinor }}'"/g' docs/conf.py
+      - name: Replace version in specfile
+        # Taken from: https://codereview.stackexchange.com/a/227390
+        run: sed -ri 's/^(Version:\s*)[^#]*/\1'${{ env.new_version }}'/' cobbler.spec
+      - name: Create Pull Request
+        # https://github.com/peter-evans/create-pull-request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: "[Bot] Update version to ${{ env.new_version }}"
+          delete-branch: true
+          title: "[Bot] Update project version to ${{ env.new_version }}"
