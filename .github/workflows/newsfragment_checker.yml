@@ -1,0 +1,35 @@
+name: newsfragment_checker
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v4
+        with:
+          cache: pip
+      - name: Install system dependencies
+        run: >-
+          sudo apt-get install -y
+          tar
+          make
+          libsasl2-dev
+          libldap2-dev
+          libssl-dev
+          tree
+      - name: Install python dependencies
+        run: pip install .[changelog]
+      - name: Show target branch
+        run: >-
+          echo "Target branch is: $GITHUB_BASE_REF"
+      - name: Get added newsfragments
+        if: ( ! contains(github.event.pull_request.labels.*.name, 'no changelog') )
+        run: towncrier check --compare-with origin/$GITHUB_BASE_REF
+      - name: Print result
+        run: echo "Newsfragment added"

@@ -612,6 +612,9 @@ if __name__ == "__main__":
                 "pytest-benchmark",
             ],
             "docs": ["sphinx", "sphinx-rtd-theme", "sphinxcontrib-apidoc"],
+            # We require the current version to properly detect duplicate issues
+            # See: https://github.com/twisted/towncrier/releases/tag/22.8.0
+            "changelog": ["towncrier>=22.8.0"],
         },
         packages=find_packages(exclude=["*tests*"]),
         scripts=[
