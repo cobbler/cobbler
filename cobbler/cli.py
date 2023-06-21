@@ -696,6 +696,9 @@ def _add_parser_option_from_field(parser, field, settings):
         raise Exception("field %s default value (%s) is not listed in choices (%s)" % (name, default, str(choices)))
     if tooltip != "":
         description += " (%s)" % tooltip
+    field_type = field[7]
+    if field_type != "int" and field_type != 'float':
+        field_type = "string"
 
     # generate option string
     option_string = "--%s" % name.replace("_", "-")
@@ -705,7 +708,7 @@ def _add_parser_option_from_field(parser, field, settings):
         description += " (valid options: %s)" % ",".join(choices)
         parser.add_option(option_string, dest=name, help=description, choices=choices)
     else:
-        parser.add_option(option_string, dest=name, help=description)
+        parser.add_option(option_string, dest=name, help=description, type=field_type)
 
 
 def add_options_from_fields(object_type, parser, fields, network_interface_fields, settings, object_action):
