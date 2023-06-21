@@ -23,10 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import binascii
 import logging.config
 import os
-import pwd
 import time
 
-from cobbler import remote, utils
+from cobbler import remote
 from cobbler.api import CobblerAPI
 
 if os.geteuid() == 0 and os.path.exists('/etc/cobbler/logging_config.conf'):
@@ -60,14 +59,6 @@ def regen_ss_file():
 
     with open(ssfile, 'wb', 0o660) as fd:
         fd.write(binascii.hexlify(data))
-
-    http_user = "apache"
-    family = utils.get_family()
-    if family == "debian":
-        http_user = "www-data"
-    elif family == "suse":
-        http_user = "wwwrun"
-    os.lchown("/var/lib/cobbler/web.ss", pwd.getpwnam(http_user)[2], -1)
 
 
 def do_xmlrpc_rw(cobbler_api: CobblerAPI, port):
