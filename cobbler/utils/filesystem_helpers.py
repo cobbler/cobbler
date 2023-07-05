@@ -10,6 +10,7 @@ import logging
 import os
 import pathlib
 import shutil
+import subprocess
 import urllib.request
 from typing import TYPE_CHECKING, Dict, Optional, Tuple, Union
 
@@ -244,6 +245,23 @@ def copyremotefile(src: str, dst1: str, api: Optional["CobblerAPI"] = None) -> N
         ) from error
 
 
+def copyfileimage(src: str, image_location: str, dst: str) -> None:
+    """
+    Copy a file from source to the destination in the image.
+
+    :param src: The source file.
+    :param image_location: The location of the image.
+    :param dst: The destination for the file.
+    """
+    cmd = ["mcopy", "-i", image_location, src, f"::{dst}"]
+    try:
+        subprocess.run(cmd, check=True)
+    except subprocess.CalledProcessError as error:
+        raise OSError(
+            f"Error while copying file to image ({src} -> {dst}):\n{error}"
+        ) from error
+
+
 def rmfile(path: str) -> None:
     """
     Delete a single file.
@@ -315,6 +333,27 @@ def mkdir(path: str, mode: int = 0o755) -> None:
         if os_error.errno != 17:
             log_exc()
             raise CX(f"Error creating {path}") from os_error
+
+
+def mkdirimage(path: pathlib.Path, image_location: str) -> None:
+    """
+    Create a directory in an image.
+
+    :param path: The path to create the directory at.
+    :param image_location: The location of the image.
+    """
+
+    path_parts = path.parts
+    cmd = ["mmd", "-i", image_location, path]
+    try:
+        # Create all parent directories one by one
+        for p in range(1, len(path_parts) + 1):
+            cmd[-1] = "/".join(path_parts[:p])
+            subprocess.run(cmd, check=True)
+    except subprocess.CalledProcessError as error:
+        raise OSError(
+            f"Error while creating directory in image ({path}):\n{error}"
+        ) from error
 
 
 def path_tail(apath: str, bpath: str) -> str:

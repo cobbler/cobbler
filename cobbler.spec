@@ -174,6 +174,7 @@ Requires:       fence-agents
 Requires:       rsync
 Requires:       xorriso
 Requires:       dosfstools
+Requires:       mtools
 %{?python_enable_dependency_generator}
 %if ! (%{defined python_enable_dependency_generator} || %{defined python_disable_dependency_generator})
 Requires:       %{py3_module_cheetah}

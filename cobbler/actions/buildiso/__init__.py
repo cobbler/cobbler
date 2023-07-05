@@ -340,12 +340,11 @@ class BuildIso:
         """
         grub_name = self.calculate_grub_name(arch)
         efi_name = self.efi_fallback_renames.get(grub_name, grub_name)
-        with self._mount_esp(esp_image_location) as mountpoint:
-            esp_efi_boot = self._create_efi_boot_dir(mountpoint)
-            grub_binary = (
+        esp_efi_boot = self._create_efi_boot_dir(esp_image_location)
+        grub_binary = (
                 pathlib.Path(self.api.settings().bootloaders_dir) / "grub" / grub_name
-            )
-            filesystem_helpers.copyfile(str(grub_binary), f"{esp_efi_boot}/{efi_name}")
+        )
+        filesystem_helpers.copyfileimage(str(grub_binary), esp_image_location, f"{esp_efi_boot}/{efi_name}")
 
     def calculate_grub_name(self, desired_arch: Archs) -> str:
         """
@@ -452,9 +451,9 @@ class BuildIso:
             umount(mp)
 
     def _create_efi_boot_dir(self, esp_mountpoint: str) -> str:
-        efi_boot = pathlib.Path(esp_mountpoint) / "EFI" / "BOOT"
+        efi_boot = pathlib.Path() / "EFI" / "BOOT"
         self.logger.info("Creating %s", efi_boot)
-        efi_boot.mkdir(parents=True)
+        filesystem_helpers.mkdirimage(efi_boot, esp_mountpoint)
         return str(efi_boot)
 
     def _find_esp(self, root_dir: pathlib.Path) -> Optional[str]:
