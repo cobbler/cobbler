@@ -422,34 +422,6 @@ class BuildIso:
             raise Exception  # TODO: use proper exception
         return str(esp)
 
-    @contextlib.contextmanager
-    def _mount_esp(self, esp_path: str):
-        def mount(esp_path: str, mountpoint: pathlib.Path) -> None:
-            mp.mkdir()
-
-            mount_cmd: List[str] = ["mount", "-o", "loop", esp_path, str(mountpoint)]
-            rc = utils.subprocess_call(mount_cmd, shell=False)
-            if rc != 0:
-                self.logger.error(
-                    "Could not mount ESP image file %s at %s", esp_path, mountpoint
-                )
-                raise Exception  # TODO: use concrete exception
-
-        def umount(mountpoint: pathlib.Path) -> None:
-            unmount_cmd: List[str] = ["umount", str(mountpoint)]
-            rc = utils.subprocess_call(unmount_cmd, shell=False)
-            if rc != 0:
-                self.logger.error("Could not unmount ESP image file at %s", mountpoint)
-                raise Exception  # TODO: use concrete exception
-            mountpoint.rmdir()
-
-        mp = pathlib.Path(esp_path + "_mounted")
-        try:
-            mount(esp_path, mp)
-            yield str(mp)
-        finally:
-            umount(mp)
-
     def _create_efi_boot_dir(self, esp_mountpoint: str) -> str:
         efi_boot = pathlib.Path() / "EFI" / "BOOT"
         self.logger.info("Creating %s", efi_boot)

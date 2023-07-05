@@ -347,8 +347,8 @@ def mkdirimage(path: pathlib.Path, image_location: str) -> None:
     cmd = ["mmd", "-i", image_location, path]
     try:
         # Create all parent directories one by one
-        for p in range(1, len(path_parts) + 1):
-            cmd[-1] = "/".join(path_parts[:p])
+        for parent_directory in range(1, len(path_parts) + 1):
+            cmd[-1] = "/".join(path_parts[:parent_directory])
             subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as error:
         raise OSError(
