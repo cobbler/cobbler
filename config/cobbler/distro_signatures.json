@@ -1201,6 +1201,32 @@
         "kernel_options": "",
         "kernel_options_post": "",
         "boot_files": []
+      },
+      "bookworm": {
+        "signatures": [
+          "dists"
+        ],
+        "version_file": "Release",
+        "version_file_regex": "Codename: bookworm",
+        "kernel_arch": "linux-headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64",
+          "aarch64",
+          "ppc64le",
+          "s390x"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.gz",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample.seed",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
       }
     },
     "ubuntu": {
