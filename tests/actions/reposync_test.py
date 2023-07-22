@@ -152,17 +152,17 @@ def test_gen_urlgrab_ssl_opts(reposync_object):
     [
         (
             enums.MirrorType.BASEURL,
-            "http://download.fedoraproject.org/pub/fedora/linux/releases/35/Everything/x86_64/os",
+            "http://download.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os",
             does_not_raise(),
         ),
         (
             enums.MirrorType.MIRRORLIST,
-            "https://mirrors.fedoraproject.org/mirrorlist?repo=fedora-35&arch=x86_64",
+            "https://mirrors.fedoraproject.org/mirrorlist?repo=rawhide&arch=x86_64",
             does_not_raise(),
         ),
         (
             enums.MirrorType.METALINK,
-            "https://mirrors.fedoraproject.org/metalink?repo=fedora-35&arch=x86_64",
+            "https://mirrors.fedoraproject.org/metalink?repo=rawhide&arch=x86_64",
             does_not_raise(),
         ),
     ],
@@ -325,17 +325,17 @@ def test_reposync_apt(
     [
         (
             enums.MirrorType.BASEURL,
-            "http://download.fedoraproject.org/pub/fedora/linux/releases/35/Everything/x86_64/os/Packages/2",
+            "http://download.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/2",
             does_not_raise(),
         ),
         (
             enums.MirrorType.MIRRORLIST,
-            "http://download.fedoraproject.org/pub/fedora/linux/releases/35/Everything/x86_64/os/Packages/2",
+            "http://download.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/2",
             pytest.raises(cexceptions.CX),
         ),
         (
             enums.MirrorType.METALINK,
-            "http://download.fedoraproject.org/pub/fedora/linux/releases/35/Everything/x86_64/os/Packages/2",
+            "http://download.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/2",
             pytest.raises(cexceptions.CX),
         ),
     ],
