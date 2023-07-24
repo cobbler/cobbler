@@ -63,6 +63,7 @@ RUN touch /var/lib/rpm/* &&   \
     tftp-server               \
     fence-agents              \
     supervisor                \
+    mtools                    \
     dosfstools
 
 # Dependencies for system tests

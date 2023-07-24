@@ -65,6 +65,7 @@ RUN apt-get update -qq && \
     systemd \
     systemd-sysv \
     supervisor \
+    mtools \
     dosfstools && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

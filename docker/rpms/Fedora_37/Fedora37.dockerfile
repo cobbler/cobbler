@@ -52,6 +52,7 @@ RUN yum install -y          \
     openldap-servers        \
     openldap-clients        \
     supervisor              \
+    mtools                  \
     dosfstools
 
 # Dependencies for system tests
