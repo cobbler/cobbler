@@ -28,7 +28,7 @@ RUN zypper install --no-recommends -y \
     apache2                    \
     apache2-devel              \
     apache2-mod_wsgi           \
-    python310-gunicorn         \
+    python311-gunicorn         \
     bash-completion            \
     createrepo_c               \
     fence-agents               \
@@ -40,25 +40,25 @@ RUN zypper install --no-recommends -y \
     curl                       \
     wget2                      \
     openssl                    \
-    python310                  \
-    python310-Sphinx           \
-    python310-coverage         \
-    python310-devel            \
-    python310-distro           \
-    python310-schema           \
-    python310-setuptools       \
-    python310-pip              \
-    python310-wheel            \
-    python310-Cheetah3         \
-    python310-distro           \
-    python310-dnspython        \
-    python310-Jinja2           \
-    python310-requests         \
-    python310-PyYAML           \
-    python310-pykickstart      \
-    python310-netaddr          \
-    python310-pymongo          \
-    python310-pytest-benchmark \
+    python311                  \
+    python311-Sphinx           \
+    python311-coverage         \
+    python311-devel            \
+    python311-distro           \
+    python311-schema           \
+    python311-setuptools       \
+    python311-pip              \
+    python311-wheel            \
+    python311-Cheetah3         \
+    python311-distro           \
+    python311-dnspython        \
+    python311-Jinja2           \
+    python311-requests         \
+    python311-PyYAML           \
+    python311-pykickstart      \
+    python311-netaddr          \
+    python311-pymongo          \
+    python311-pytest-benchmark \
     python3-librepo            \
     rpm-build                  \
     rsync                      \
@@ -98,7 +98,7 @@ RUN zypper install --no-recommends -y \
     openldap2                         \
     openldap2-client                  \
     hostname                          \
-    python310-ldap
+    python311-ldap
 
 # Dependencies for system-tests
 RUN zypper install --no-recommends -y \
@@ -109,13 +109,13 @@ RUN zypper install --no-recommends -y \
 
 # Install packages and dependencies via pip
 RUN zypper install --no-recommends -y \
-    python310-codecov            \
-    python310-magic              \
-    python310-pycodestyle        \
-    python310-pyflakes           \
-    python310-pytest             \
-    python310-pytest-cov         \
-    python310-pytest-mock
+    python311-codecov            \
+    python311-magic              \
+    python311-pycodestyle        \
+    python311-pyflakes           \
+    python311-pytest             \
+    python311-pytest-cov         \
+    python311-pytest-mock
 
 # Required for reposync tests
 RUN zypper install --no-recommends -y \
