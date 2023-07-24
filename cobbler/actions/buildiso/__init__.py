@@ -7,7 +7,6 @@ memory.
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-import contextlib
 import logging
 import os
 import pathlib
@@ -340,12 +339,13 @@ class BuildIso:
         """
         grub_name = self.calculate_grub_name(arch)
         efi_name = self.efi_fallback_renames.get(grub_name, grub_name)
-        with self._mount_esp(esp_image_location) as mountpoint:
-            esp_efi_boot = self._create_efi_boot_dir(mountpoint)
-            grub_binary = (
-                pathlib.Path(self.api.settings().bootloaders_dir) / "grub" / grub_name
-            )
-            filesystem_helpers.copyfile(str(grub_binary), f"{esp_efi_boot}/{efi_name}")
+        esp_efi_boot = self._create_efi_boot_dir(esp_image_location)
+        grub_binary = (
+            pathlib.Path(self.api.settings().bootloaders_dir) / "grub" / grub_name
+        )
+        filesystem_helpers.copyfileimage(
+            str(grub_binary), esp_image_location, f"{esp_efi_boot}/{efi_name}"
+        )
 
     def calculate_grub_name(self, desired_arch: Archs) -> str:
         """
@@ -356,7 +356,7 @@ class BuildIso:
         loader_formats = self.api.settings().bootloaders_formats
         grub_binary_names: Dict[str, str] = {}
 
-        for (loader_format, values) in loader_formats.items():
+        for loader_format, values in loader_formats.items():
             name = values.get("binary_name", None)
             if name is not None and isinstance(name, str):
                 grub_binary_names[loader_format.lower()] = name
@@ -423,38 +423,10 @@ class BuildIso:
             raise Exception  # TODO: use proper exception
         return str(esp)
 
-    @contextlib.contextmanager
-    def _mount_esp(self, esp_path: str):
-        def mount(esp_path: str, mountpoint: pathlib.Path) -> None:
-            mp.mkdir()
-
-            mount_cmd: List[str] = ["mount", "-o", "loop", esp_path, str(mountpoint)]
-            rc = utils.subprocess_call(mount_cmd, shell=False)
-            if rc != 0:
-                self.logger.error(
-                    "Could not mount ESP image file %s at %s", esp_path, mountpoint
-                )
-                raise Exception  # TODO: use concrete exception
-
-        def umount(mountpoint: pathlib.Path) -> None:
-            unmount_cmd: List[str] = ["umount", str(mountpoint)]
-            rc = utils.subprocess_call(unmount_cmd, shell=False)
-            if rc != 0:
-                self.logger.error("Could not unmount ESP image file at %s", mountpoint)
-                raise Exception  # TODO: use concrete exception
-            mountpoint.rmdir()
-
-        mp = pathlib.Path(esp_path + "_mounted")
-        try:
-            mount(esp_path, mp)
-            yield str(mp)
-        finally:
-            umount(mp)
-
     def _create_efi_boot_dir(self, esp_mountpoint: str) -> str:
-        efi_boot = pathlib.Path(esp_mountpoint) / "EFI" / "BOOT"
+        efi_boot = pathlib.Path("EFI") / "BOOT"
         self.logger.info("Creating %s", efi_boot)
-        efi_boot.mkdir(parents=True)
+        filesystem_helpers.mkdirimage(efi_boot, esp_mountpoint)
         return str(efi_boot)
 
     def _find_esp(self, root_dir: pathlib.Path) -> Optional[str]:

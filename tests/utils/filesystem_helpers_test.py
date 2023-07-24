@@ -119,6 +119,33 @@ def test_copyfile_pattern():
     assert False
 
 
+@pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
+def test_mkdirimage():
+    # Arrange
+    test_path = ""
+    test_imagelocation = ""
+
+    # Act
+    filesystem_helpers.mkdirimage(test_path, test_image_location)
+
+    # Assert
+    assert False
+
+
+@pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
+def test_copyfileimage():
+    # Arrange
+    test_src = ""
+    test_imagelocation = ""
+    test_dst = ""
+
+    # Act
+    filesystem_helpers.copyfileimage(test_src, test_image_location, test_dst)
+
+    # Assert
+    assert False
+
+
 def test_rmfile(tmpdir: Path):
     # Arrange
     tfile = tmpdir.join("testfile")
