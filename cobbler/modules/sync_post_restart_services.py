@@ -43,19 +43,11 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
     has_restarted_dnsmasq = False
 
     ret_code = 0
-    if settings.manage_dhcp:
-        if which_dhcp_module == "managers.isc":
-            if settings.restart_dhcp:
-                ret_code = utils.subprocess_call(["dhcpd", "-t", "-q"], shell=False)
-                if ret_code != 0:
-                    logger.error("dhcpd -t failed")
-                    return 1
-                dhcp_service_name = utils.dhcp_service_name()
-                ret_code = process_management.service_restart(dhcp_service_name)
-        elif which_dhcp_module == "managers.dnsmasq":
-            if settings.restart_dhcp:
-                service_name = "dnsmasq"
-                ret_code = process_management.service_restart(service_name)
+    if settings.manage_dhcp and settings.restart_dhcp:
+        if which_dhcp_module in ("managers.isc", "managers.dnsmasq"):
+            dhcp_module = api.get_module_from_file("dhcp", "module")
+            ret_code = dhcp_module.get_manager(api).restart_service()
+            if which_dhcp_module == "managers.dnsmasq":
                 has_restarted_dnsmasq = True
         else:
             logger.error("unknown DHCP engine: %s", which_dhcp_module)
