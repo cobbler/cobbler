@@ -501,7 +501,6 @@ class Restorestate(Statebase):
 
 
 class Savestate(Statebase):
-
     description = "Backup the current configuration to /tmp/cobbler_settings."
 
     def _copy(self, frm: str, to: str) -> None:
@@ -602,6 +601,7 @@ if __name__ == "__main__":
                 "types-PyYAML",
                 "types-psutil",
                 "types-netaddr",
+                "types-mock",
                 "isort",
             ],
             "test": [

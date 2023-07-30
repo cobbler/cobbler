@@ -1,0 +1,1 @@
+Restart dhcpd6 service in `cobbler sync`
