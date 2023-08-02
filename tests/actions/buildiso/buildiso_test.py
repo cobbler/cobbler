@@ -96,6 +96,7 @@ def test_netboot_generate_boot_loader_configs(
 ):
     test_distro = create_distro()
     test_profile = create_profile(test_distro.name)
+    test_profile.kernel_options = 'test_option=present'
     test_system = create_system(test_profile.name)
     build_iso = NetbootBuildiso(cobbler_api)
 
@@ -111,6 +112,12 @@ def test_netboot_generate_boot_loader_configs(
     ]
     matching_grub_kernel = [part for part in result.grub if "linux /1.krn" in part]
     matching_grub_initrd = [part for part in result.grub if "initrd /1.img" in part]
+    matching_grub_kerneloption = [
+        part for part in result.grub if "test_option=present" in part
+    ]
+    matching_isolinux_kerneloption = [
+        part for part in result.isolinux if "test_option=present" in part
+    ]
 
     # Assert
     assert isinstance(result, LoaderCfgsParts)
@@ -119,6 +126,8 @@ def test_netboot_generate_boot_loader_configs(
         matching_isolinux_initrd,
         matching_grub_kernel,
         matching_grub_initrd,
+        matching_grub_kerneloption,
+        matching_isolinux_kerneloption,
         result.bootfiles_copysets,
     ]:
         print(iterable_to_check)
