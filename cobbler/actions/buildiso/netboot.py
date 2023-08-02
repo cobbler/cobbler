@@ -546,11 +546,11 @@ class NetbootBuildiso(buildiso.BuildIso):
         if distro is None:
             raise ValueError("Distro of a Profile must not be None!")
         distroname = self.make_shorter(distro.name)
-        data = utils.blender(self.api, False, distro)
-        # SUSE uses 'textmode' instead of 'text'
-        utils.kopts_overwrite(
-            data["kernel_options"], self.api.settings().server, distro.breed
-        )
+        data = utils.blender(self.api, False, profile)
+        if distro is not None:  # SUSE uses 'textmode' instead of 'text'
+            utils.kopts_overwrite(
+                data["kernel_options"], self.api.settings().server, distro.breed
+            )
 
         if not re.match(r"[a-z]+://.*", data["autoinstall"]):
             autoinstall_scheme = self.api.settings().autoinstall_scheme
