@@ -95,9 +95,11 @@ def test_netboot_generate_boot_loader_configs(
     cobbler_api, create_distro, create_profile, create_system
 ):
     test_distro = create_distro()
+    test_distro.kernel_options = 'test_distro_option=distro'
     test_profile = create_profile(test_distro.name)
-    test_profile.kernel_options = 'test_option=present'
+    test_profile.kernel_options = 'test_profile_option=profile'
     test_system = create_system(test_profile.name)
+    test_system.kernel_options = 'test_system_option=system'
     build_iso = NetbootBuildiso(cobbler_api)
 
     # Act
@@ -112,11 +114,23 @@ def test_netboot_generate_boot_loader_configs(
     ]
     matching_grub_kernel = [part for part in result.grub if "linux /1.krn" in part]
     matching_grub_initrd = [part for part in result.grub if "initrd /1.img" in part]
-    matching_grub_kerneloption = [
-        part for part in result.grub if "test_option=present" in part
+    matching_grub_distro_kopts = [
+        part for part in result.grub if "test_distro_option=distro" in part
     ]
-    matching_isolinux_kerneloption = [
-        part for part in result.isolinux if "test_option=present" in part
+    matching_grub_profile_kopts = [
+        part for part in result.grub if "test_profile_option=profile" in part
+    ]
+    matching_grub_system_kopts = [
+        part for part in result.grub if "test_system_option=system" in part
+    ]
+    matching_isolinux_distro_kopts = [
+        part for part in result.isolinux if "test_distro_option=distro" in part
+    ]
+    matching_isolinux_profile_kopts = [
+        part for part in result.isolinux if "test_profile_option=profile" in part
+    ]
+    matching_isolinux_system_kopts = [
+        part for part in result.isolinux if "test_system_option=system" in part
     ]
 
     # Assert
@@ -126,14 +140,19 @@ def test_netboot_generate_boot_loader_configs(
         matching_isolinux_initrd,
         matching_grub_kernel,
         matching_grub_initrd,
-        matching_grub_kerneloption,
-        matching_isolinux_kerneloption,
         result.bootfiles_copysets,
+        matching_grub_distro_kopts,
+        matching_grub_profile_kopts,
+        matching_isolinux_distro_kopts,
+        matching_isolinux_profile_kopts
     ]:
         print(iterable_to_check)
         # one entry for the profile, one for the system
         assert len(iterable_to_check) == 2
 
+    # only system entries have system kernel opts
+    assert len(matching_grub_system_kopts) == 1
+    assert len(matching_isolinux_system_kopts) == 1
 
 def test_filter_system(
     cobbler_api, create_distro, create_profile, create_system, create_image
