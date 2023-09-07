@@ -80,8 +80,10 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
 
     b = h.node_add_child(objs, "{65c31250-afa2-11df-8045-000c29f37d88}")
     d = h.node_add_child(b, "Description")
-    h.node_set_value(d, {"key": "Type", "t": REG_DWORD, "value": b"\x03\x00\x20\x13"})
+    h.node_set_value(d, {"key": "Type", "t": REG_DWORD, "value": b"\x03\x00\x20\x10"})
     e = h.node_add_child(b, "Elements")
+    e1 = h.node_add_child(e, "12000002")
+    h.node_set_value(e1, {"key": "Element", "t": REG_SZ, "value": "\\windows\\system32\\winload.exe\0".encode(encoding="utf-16le"), }, )
     e1 = h.node_add_child(e, "12000004")
     h.node_set_value(e1, {"key": "Element", "t": REG_SZ, "value": "Windows PE\0".encode(encoding="utf-16le")})
     e1 = h.node_add_child(e, "22000002")
@@ -172,9 +174,6 @@ def run(api, args):
         is_wimboot = "wimboot" in kernel_name
 
         if is_wimboot:
-            distro_path = os.path.join(settings.webdir, "distro_mirror", distro.name)
-            kernel_path = os.path.join(distro_path, "boot")
-
             if "kernel" in meta and "wimboot" not in distro.kernel:
                 tgen.copy_single_distro_file(os.path.join(settings.tftpboot_location, kernel_name), distro_dir, False)
                 tgen.copy_single_distro_file(os.path.join(distro_dir, kernel_name), web_dir, True)
@@ -296,7 +295,7 @@ def run(api, args):
                 wim_file_name = meta["winpe"]
 
             if is_wimboot:
-                wim_file_name = '\\Boot\\' + wim_file_name
+                wim_file_name = '\\Boot\\' + "winpe.wim"
                 sdi_file_name = '\\Boot\\' + 'boot.sdi'
             else:
                 wim_file_name = os.path.join("/images", distro.name, wim_file_name)
