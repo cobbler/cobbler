@@ -1,5 +1,43 @@
 """
-TODO
+Create Windows boot files
+
+To create Windows boot files, files are used that must be extracted from the distro. The ``cobbler import``"
+command extracts the required files and places them where the given trigger expects them to be found.
+
+To create boot files per profile/system, the trigger uses the following metadata from ``--autoinstall-meta``:
+    * ``kernel`` - the name of the bootstrap file for profile/system, can be:
+        * any filename, in the case of PXE boot without using ``wimboot`` which is not the same as the filename
+          for other profiles/systems of that distro. The trigger creates it from a copy of ``pxeboot.n12``
+          by replacing the ``bootmgr.exe`` string in the binary copy with the ``bootmgr`` metadata value.
+          In the case of Windows XP/2003, it replaces the ``NTLDR`` string.
+        * in case of PXE boot using ``wimboot``, specify the path to ``wimboot`` in the file system,
+          e.g ``/var/lib/tftpboot/wimboot``
+        * in case of iPXE boot using ``wimboot``, specify the path to ``wimboot`` in the file system or any
+          url that supports iPXE, e.g ``http://@@http_server@@/cobbler/images/@@distro_name@@/wimboot``
+    * ``bootmgr`` - filename of the Boot Manager for the profile/system. The trigger creates it by copying
+      ``bootmgr.exe`` and replacing the ``BCD`` string in the binary copy with the string specified in the
+      ``bcd`` metadata parameter. The filename must be exactly 11 characters long, e.g. ``bootmg1.exe``,
+      ``bootmg2.exe, ..`` and not match the names for other profiles/systems of the same distro.
+      For Windows XP/2003, ``setupldr.exe`` is used as the Boot Manager and the string ``winnt.sif`` is
+      replaced in its copy.
+    * ``bcd`` - The name of the Windows Boot Configuration Data (BCD) file for the profile/system.
+      Must be exactly 3 characters and not the same as names for other profiles/systems on the same
+      distro, e.g. ``000``, ``001``, etc.
+    * ``winpe`` - The name of the Windows PE image file for the profile/system. The trigger copies it
+      from the distro and replaces the ``/Windows/System32/startnet.cmd`` file in it with the one
+      created from the ``startnet.template`` template. Filenames must be unique per the distro.
+    * ``answerfile`` - the name of the answer file for the Windows installation, e.g. ``autounattend01.xml``
+      or`` win01.sif`` for Windows XP/2003. The trigger creates the answerfile from the ``answerfile.template``.
+      Filenames must be unique per the distro.
+    * ``post_install_script`` - The name of the post-installation script file that will be run after Windows is
+      installed. To run a script, its filename is substituted into the answerfile template. Any valid Windows
+      commands can be used in the script, but its usual purpose is to download and run the script for the profile
+      from ``http://@@http_server@@/cblr/svc/op/autoinstall/profile/@@profile_name@@``, for this the script is
+      passed profile name as parameter . The post-installation script is created by a trigger from the
+      ``post_inst_cmd.template`` template  in the ``sources/$OEM$/$1`` distro directory only if it exists.
+      The Windows Installer copies the contents of  this directory to the target host during installation.
+    * any other key/value pairs that can be used in ``startnet.template``, ``answerfile.template``,
+      ``post_inst_cmd.template`` templates
 """
 
 import binascii
@@ -70,14 +108,14 @@ def bcdedit(
     orig_bcd: str, new_bcd: str, wim: str, sdi: str, startoptions: Optional[str] = None
 ):
     """
-    TODO
+    Create new Windows Boot Configuration Data (BCD) based on Microsoft BCD extracted from a WIM image.
 
-    :param orig_bcd: TODO
-    :param new_bcd: TODO
-    :param wim: TODO
-    :param sdi: TODO
-    :param startoptions: TODO
-    :return: TODO
+    :param orig_bcd: Path to the original BCD
+    :param new_bcd: Path to the new customized BCD
+    :param wim: Path to the WIM image
+    :param sdi: Path to the System Deployment Image (SDI)
+    :param startoptions: Other BCD options
+    :return:
     """
 
     def winpath_length(wp: str, add: int):
@@ -139,7 +177,7 @@ def bcdedit(
         {
             "key": "Element",
             "t": REG_BINARY,
-            "value": b"\x1e\x00\x00\x00\x00\x00\x00\x00",
+            "value": b"\x00\x00\x00\x00\x00\x00\x00\x00",
         },
     )
     e1 = h.node_add_child(e, "12000004")  # type: ignore
@@ -167,8 +205,17 @@ def bcdedit(
 
     b = h.node_add_child(objs, "{65c31250-afa2-11df-8045-000c29f37d88}")  # type: ignore
     d = h.node_add_child(b, "Description")  # type: ignore
-    h.node_set_value(d, {"key": "Type", "t": REG_DWORD, "value": b"\x03\x00\x20\x13"})  # type: ignore
+    h.node_set_value(d, {"key": "Type", "t": REG_DWORD, "value": b"\x03\x00\x20\x10"})  # type: ignore
     e = h.node_add_child(b, "Elements")  # type: ignore
+    e1 = h.node_add_child(e, "12000002")  # type: ignore
+    h.node_set_value(  # type: ignore
+        e1,
+        {
+            "key": "Element",
+            "t": REG_SZ,
+            "value": "\\windows\\system32\\winload.exe\0".encode(encoding="utf-16le"),
+        },
+    )
     e1 = h.node_add_child(e, "12000004")  # type: ignore
     h.node_set_value(  # type: ignore
         e1,
@@ -265,11 +312,11 @@ def bcdedit(
 
 def run(api: "CobblerAPI", args: Any):
     """
-    TODO
+    Runs the trigger, meaning in this case creates Windows boot files.
 
-    :param api: TODO
-    :param args: TODO
-    :return: TODO
+    :param api: The api instance of the Cobbler server. Used to look up if windows_enabled is true.
+    :param args: The parameter is currently unused for this trigger.
+    :return: 0 on success, otherwise an exception is risen.
     """
     settings = api.settings()
     if not settings.windows_enabled:
@@ -327,9 +374,6 @@ def run(api: "CobblerAPI", args: Any):
         is_wimboot = "wimboot" in kernel_name
 
         if is_wimboot:
-            distro_path = os.path.join(settings.webdir, "distro_mirror", distro.name)
-            kernel_path = os.path.join(distro_path, "boot")
-
             if "kernel" in meta and "wimboot" not in distro.kernel:
                 tgen.copy_single_distro_file(
                     os.path.join(settings.tftpboot_location, kernel_name),
@@ -343,7 +387,7 @@ def run(api: "CobblerAPI", args: Any):
         if "post_install_script" in meta:
             post_install_dir = distro_path
 
-            if distro.os_version not in ("XP", "2003"):
+            if distro.os_version not in ("xp", "2003"):
                 post_install_dir = os.path.join(post_install_dir, "sources")
 
             post_install_dir = os.path.join(post_install_dir, "$OEM$", "$1")
@@ -373,7 +417,7 @@ def run(api: "CobblerAPI", args: Any):
             wl_file_name = os.path.join(distro_dir, meta["bootmgr"])
             tl_file_name = os.path.join(kernel_path, "bootmgr.exe")
 
-            if distro.os_version in ("XP", "2003") and not is_winpe:
+            if distro.os_version in ("xp", "2003") and not is_winpe:
                 tl_file_name = os.path.join(kernel_path, "setupldr.exe")
 
                 if len(meta["bootmgr"]) != 5:
@@ -437,7 +481,7 @@ def run(api: "CobblerAPI", args: Any):
                 tgen.copy_single_distro_file(wl_file_name, web_dir, True)
 
             if not is_wimboot:
-                if distro.os_version not in ("XP", "2003") or is_winpe:
+                if distro.os_version not in ("xp", "2003") or is_winpe:
                     pe = pefile.PE(wl_file_name, fast_load=True)  # type: ignore
                     pe.OPTIONAL_HEADER.CheckSum = pe.generate_checksum()  # type: ignore
                     pe.write(filename=wl_file_name)  # type: ignore
@@ -467,7 +511,7 @@ def run(api: "CobblerAPI", args: Any):
                 wim_file_name = meta["winpe"]
 
             if is_wimboot:
-                wim_file_name = "\\Boot\\" + wim_file_name
+                wim_file_name = "\\Boot\\" + "winpe.wim"
                 sdi_file_name = "\\Boot\\" + "boot.sdi"
             else:
                 wim_file_name = os.path.join("/images", distro.name, wim_file_name)
