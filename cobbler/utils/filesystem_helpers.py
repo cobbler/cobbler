@@ -256,7 +256,7 @@ def copyfileimage(src: str, image_location: str, dst: str) -> None:
     cmd = ["mcopy", "-n", "-i", image_location, src, "::/" + dst]
     try:
         logger.info('running: "%s"', cmd)
-        subprocess.run(cmd, check=True)
+        utils.subprocess_call(cmd, shell=False)
     except subprocess.CalledProcessError as error:
         raise OSError(
             f"Error while copying file to image ({src} -> {dst}):\n{error.output}"
@@ -345,13 +345,13 @@ def mkdirimage(path: pathlib.Path, image_location: str) -> None:
     """
 
     path_parts = path.parts
-    cmd = ["mmd", "-i", image_location, path]
+    cmd = ["mmd", "-i", image_location, str(path)]
     try:
         # Create all parent directories one by one inside the image
         for parent_directory in range(1, len(path_parts) + 1):
             cmd[-1] = "/".join(path_parts[:parent_directory])
             logger.info('running: "%s"', cmd)
-            subprocess.run(cmd, check=True)
+            utils.subprocess_call(cmd, shell=False)
     except subprocess.CalledProcessError as error:
         raise OSError(
             f"Error while creating directory ({cmd[-1]}) in image {image_location}.\n{error.output}"
