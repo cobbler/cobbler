@@ -10,6 +10,7 @@ import logging
 import os
 import pathlib
 import shutil
+import subprocess
 import urllib.request
 from typing import TYPE_CHECKING, Dict, Optional, Tuple, Union
 
@@ -244,6 +245,24 @@ def copyremotefile(src: str, dst1: str, api: Optional["CobblerAPI"] = None) -> N
         ) from error
 
 
+def copyfileimage(src: str, image_location: str, dst: str) -> None:
+    """
+    Copy a file from source to the destination in the image.
+
+    :param src: The source file.
+    :param image_location: The location of the image.
+    :param dst: The destination for the file.
+    """
+    cmd = ["mcopy", "-n", "-i", image_location, src, "::/" + dst]
+    try:
+        logger.info('running: "%s"', cmd)
+        utils.subprocess_call(cmd, shell=False)
+    except subprocess.CalledProcessError as error:
+        raise OSError(
+            f"Error while copying file to image ({src} -> {dst}):\n{error.output}"
+        ) from error
+
+
 def rmfile(path: str) -> None:
     """
     Delete a single file.
@@ -315,6 +334,28 @@ def mkdir(path: str, mode: int = 0o755) -> None:
         if os_error.errno != 17:
             log_exc()
             raise CX(f"Error creating {path}") from os_error
+
+
+def mkdirimage(path: pathlib.Path, image_location: str) -> None:
+    """
+    Create a directory in an image.
+
+    :param path: The path to create the directory at.
+    :param image_location: The location of the image.
+    """
+
+    path_parts = path.parts
+    cmd = ["mmd", "-i", image_location, str(path)]
+    try:
+        # Create all parent directories one by one inside the image
+        for parent_directory in range(1, len(path_parts) + 1):
+            cmd[-1] = "/".join(path_parts[:parent_directory])
+            logger.info('running: "%s"', cmd)
+            utils.subprocess_call(cmd, shell=False)
+    except subprocess.CalledProcessError as error:
+        raise OSError(
+            f"Error while creating directory ({cmd[-1]}) in image {image_location}.\n{error.output}"
+        ) from error
 
 
 def path_tail(apath: str, bpath: str) -> str:

@@ -1,9 +1,13 @@
 import os
+import pathlib
 import shutil
 from pathlib import Path
+from typing import Any
 
 import pytest
+from pytest_mock import MockerFixture
 
+from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.utils import filesystem_helpers
 
@@ -19,7 +23,11 @@ from tests.conftest import does_not_raise
     ],
 )
 def test_is_safe_to_hardlink(
-    cobbler_api, test_src, is_symlink, test_dst, expected_result
+    cobbler_api: CobblerAPI,
+    test_src: str,
+    is_symlink: bool,
+    test_dst: str,
+    expected_result: bool,
 ):
     # Arrange
     if is_symlink and test_src:
@@ -56,7 +64,6 @@ def test_cachefile():
     # Arrange
     cache_src = ""
     cache_dst = ""
-    api = None
 
     # Act
     filesystem_helpers.cachefile(cache_src, cache_dst)
@@ -68,7 +75,7 @@ def test_cachefile():
 
 
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
-def test_linkfile(cobbler_api):
+def test_linkfile(cobbler_api: CobblerAPI):
     # Arrange
     test_source = ""
     test_destination = ""
@@ -107,36 +114,50 @@ def test_copyremotefile():
 
 
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
-def test_copyfile_pattern():
+def test_mkdirimage():
     # Arrange
-    test_pattern = ""
-    test_destination = ""
+    test_path = pathlib.Path("/tmp")
+    test_image_location = ""
 
     # Act
-    filesystem_helpers.copyfile_pattern(test_pattern, test_destination)
+    filesystem_helpers.mkdirimage(test_path, test_image_location)
 
     # Assert
     assert False
 
 
-def test_rmfile(tmpdir: Path):
+@pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
+def test_copyfileimage():
     # Arrange
-    tfile = tmpdir.join("testfile")
+    test_src = ""
+    test_image_location = ""
+    test_dst = ""
 
     # Act
-    filesystem_helpers.rmfile(tfile)
+    filesystem_helpers.copyfileimage(test_src, test_image_location, test_dst)
+
+    # Assert
+    assert False
+
+
+def test_rmfile(tmp_path: Path):
+    # Arrange
+    tfile = tmp_path / "testfile"
+
+    # Act
+    filesystem_helpers.rmfile(str(tfile))
 
     # Assert
     assert not os.path.exists(tfile)
 
 
-def test_rmglob_files(tmpdir: Path):
+def test_rmglob_files(tmp_path: Path):
     # Arrange
-    tfile1 = tmpdir.join("file1.tfile")
-    tfile2 = tmpdir.join("file2.tfile")
+    tfile1 = tmp_path / "file1.tfile"
+    tfile2 = tmp_path / "file2.tfile"
 
     # Act
-    filesystem_helpers.rmglob_files(tmpdir, "*.tfile")
+    filesystem_helpers.rmglob_files(str(tmp_path), "*.tfile")
 
     # Assert
     assert not os.path.exists(tfile1)
@@ -197,7 +218,7 @@ def test_mkdir():
     "test_first_path,test_second_path,expected_result",
     [("/tmp/test/a", "/tmp/test/a/b/c", "/b/c"), ("/tmp/test/a", "/opt/test/a", "")],
 )
-def test_path_tail(test_first_path, test_second_path, expected_result):
+def test_path_tail(test_first_path: str, test_second_path: str, expected_result: str):
     # Arrange
     # TODO: Check if this actually makes sense...
 
@@ -216,13 +237,13 @@ def test_path_tail(test_first_path, test_second_path, expected_result):
         ("Test..Test", pytest.raises(CX)),
     ],
 )
-def test_safe_filter(test_input, expected_exception):
+def test_safe_filter(test_input: str, expected_exception: Any):
     # Arrange, Act & Assert
     with expected_exception:
         assert filesystem_helpers.safe_filter(test_input) is None
 
 
-def test_create_web_dirs(mocker, cobbler_api):
+def test_create_web_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
     # Arrange
     settings_mock = mocker.MagicMock()
     settings_mock.webdir = "/my/custom/webdir"
@@ -239,7 +260,7 @@ def test_create_web_dirs(mocker, cobbler_api):
     assert mock_copyfile.call_count == 2
 
 
-def test_create_tftpboot_dirs(mocker, cobbler_api):
+def test_create_tftpboot_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
     # Arrange
     settings_mock = mocker.MagicMock()
     settings_mock.tftpboot_location = "/srv/tftpboot"
@@ -257,25 +278,25 @@ def test_create_tftpboot_dirs(mocker, cobbler_api):
     assert mock_path_symlink_to.call_count == 3
 
 
-def test_create_trigger_dirs(mocker):
+def test_create_trigger_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
     # Arrange
     mock_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
     mocker.patch("pathlib.Path.exists", return_value=False)
 
     # Act
-    filesystem_helpers.create_trigger_dirs(None)
+    filesystem_helpers.create_trigger_dirs(cobbler_api)
 
     # Assert
     assert mock_mkdir.call_count == 84
 
 
-def test_create_json_database_dirs(mocker):
+def test_create_json_database_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
     # Arrange
     mock_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
     mocker.patch("pathlib.Path.exists", return_value=False)
 
     # Act
-    filesystem_helpers.create_json_database_dirs(None)
+    filesystem_helpers.create_json_database_dirs(cobbler_api)
 
     # Assert
     mock_mkdir.assert_any_call("/var/lib/cobbler/collections")
