@@ -5,12 +5,15 @@ This module contains the specific code to generate a network bootable ISO.
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import pathlib
+import shutil
 import re
+import textwrap
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 from cobbler import utils
 from cobbler.actions import buildiso
 from cobbler.actions.buildiso import BootFilesCopyset, LoaderCfgsParts
+from cobbler.enums import Archs
 from cobbler.utils import filesystem_helpers, input_converters
 
 if TYPE_CHECKING:
@@ -681,6 +684,9 @@ class NetbootBuildiso(buildiso.BuildIso):
         del kwargs  # just accepted for polymorphism
 
         distro_obj = self.parse_distro(distro_name)
+        if distro_obj.arch not in (Archs.X86_64, Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL):
+            raise ValueError("cobbler buildiso does not work for arch={distro_obj.arch}")
+
         system_names = input_converters.input_string_or_list_no_inherit(systems)
         profile_names = input_converters.input_string_or_list_no_inherit(profiles)
         loader_config_parts = self._generate_boot_loader_configs(
@@ -688,11 +694,44 @@ class NetbootBuildiso(buildiso.BuildIso):
         )
 
         buildisodir = self._prepare_buildisodir(buildisodir)
-        buildiso_dirs = self.create_buildiso_dirs(buildisodir)
         distro_mirrordir = pathlib.Path(self.api.settings().webdir) / "distro_mirror"
 
-        # fill temporary directory with binaries
-        self._copy_isolinux_files()
+        if distro_obj.arch == Archs.X86_64:
+            xorriso_func = self._xorriso_x86_64
+            buildiso_dirs = self.create_buildiso_dirs_x86_64(buildisodir)
+
+            # fill temporary directory with arch-specific binaries
+            self._copy_isolinux_files()
+            try:
+                filesource = self._find_distro_source(
+                    distro_obj.kernel, str(distro_mirrordir)
+                )
+                self.logger.info("filesource=%s", filesource)
+                distro_esp = self._find_esp(pathlib.Path(filesource))
+                self.logger.info("esp=%s", distro_esp)
+            except ValueError:
+                distro_esp = None
+
+            if distro_esp is not None:
+                self._copy_esp(distro_esp, buildisodir)
+            else:
+                esp_location = self._create_esp_image_file(buildisodir)
+                self._copy_grub_into_esp(esp_location, distro_obj.arch)
+
+            self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
+            self._write_isolinux_cfg(loader_config_parts.isolinux, buildiso_dirs.isolinux)
+
+        elif distro_obj.arch in (Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL):
+            xorriso_func = self._xorriso_ppc64le
+            buildiso_dirs = self.create_buildiso_dirs_ppc64le(buildisodir)
+            grub_bin = pathlib.Path(self.api.settings().bootloaders_dir) / "grub"/ "grub.ppc64le"
+            bootinfo_txt = self._render_bootinfo_txt(distro_name)
+            # fill temporary directory with arch-specific binaries
+            utils.copyfile(str(grub_bin), str(buildiso_dirs.grub / "grub.elf"))
+
+            self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
+            self._write_bootinfo(bootinfo_txt, buildiso_dirs.ppc)
+
         for copyset in loader_config_parts.bootfiles_copysets:
             self._copy_boot_files(
                 copyset.src_kernel,
@@ -701,22 +740,4 @@ class NetbootBuildiso(buildiso.BuildIso):
                 copyset.new_filename,
             )
 
-        try:
-            filesource = self._find_distro_source(
-                distro_obj.kernel, str(distro_mirrordir)
-            )
-            self.logger.info("filesource=%s", filesource)
-            distro_esp = self._find_esp(pathlib.Path(filesource))
-            self.logger.info("esp=%s", distro_esp)
-        except ValueError:
-            distro_esp = None
-
-        if distro_esp is not None:
-            self._copy_esp(distro_esp, buildisodir)
-        else:
-            esp_location = self._create_esp_image_file(buildisodir)
-            self._copy_grub_into_esp(esp_location, distro_obj.arch)
-
-        self._write_isolinux_cfg(loader_config_parts.isolinux, buildiso_dirs.isolinux)
-        self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
-        self._generate_iso(xorrisofs_opts, iso, buildisodir, buildisodir + "/efi")
+        xorriso_func(xorrisofs_opts, iso, buildisodir, esp_location)
