@@ -1,10 +1,10 @@
 workflow:
   steps:
     - trigger_services:
-        project: home:cobbler-project:ci
+        project: systemsmanagement:cobbler:ci
         package: cobbler
     - trigger_services:
-        project: home:cobbler-project:github-ci:main
+        project: systemsmanagement:cobbler:github-ci:main
         package: cobbler-docker-testing
   filters:
     event: push
