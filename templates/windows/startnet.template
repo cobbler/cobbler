@@ -1,7 +1,7 @@
 wpeinit
 
 ping 127.0.0.1 -n 10 >nul
-#set $distro_dir = '\\\\' + $http_server + '\\' + $samba_distro_share + '\\' + $distro_name
+#set $distro_dir = '\\\\' + $http_server + '\\' + $samba_distro_share + '\\' + $initrd.split('/')[-3]
 net use z: $distro_dir
 set exit_code=%ERRORLEVEL%
 IF %exit_code% EQU 0 GOTO INSTALL
@@ -10,7 +10,7 @@ pause
 goto EXIT
 
 :INSTALL
-#if $os_version in ('XP', '2003' )
+#if $os_version in ('xp', '2003' )
 #if "clean_disk" in $autoinstall_meta
 echo select disk 0 >disk.scr
 echo clean >>disk.scr
@@ -29,7 +29,7 @@ xcopy z:\\$OEM\$\\$1 c: /y /s /e
 #set $unattended = "/unattend:Z:\\" + $autoinstall_meta["answerfile"]
 #end if
 
-#if $os_version in ('XP', '2003' )
+#if $os_version in ('xp', '2003' )
 #if $arch == 'x86_64'
         #set $win_arch = 'amd64'
 #else if $arch == 'i386'

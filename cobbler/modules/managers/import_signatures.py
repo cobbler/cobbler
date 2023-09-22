@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 
 try:
     import hivex  # type: ignore
-    from hivex.hive_types import REG_SZ  # type: ignore
+    from hivex.hive_types import REG_SZ, REG_EXPAND_SZ  # type: ignore
 
     HAS_HIVEX = True
 except ImportError:
@@ -250,42 +250,34 @@ class _ImportSignatureManager(ManagerModule):
                                 )
                                 hivex_obj = hivex.Hivex(software, write=True)  # type: ignore
                                 root = hivex_obj.root()  # type: ignore
-                                node = hivex_obj.node_get_child(root, "Microsoft")  # type: ignore
-                                node = hivex_obj.node_get_child(node, "Windows NT")  # type: ignore
-                                node = hivex_obj.node_get_child(node, "CurrentVersion")  # type: ignore
-                                hivex_obj.node_set_value(  # type: ignore
-                                    node,
-                                    {
-                                        "key": "SystemRoot",
-                                        "t": REG_SZ,
-                                        "value": "x:\\Windows\0".encode(
-                                            encoding="utf-16le"
-                                        ),
-                                    },
-                                )
-                                node = hivex_obj.node_get_child(node, "WinPE")  # type: ignore
+                                nodes: List[Any] = [root]
+                                pat = "X:\\$windows.~bt"
 
-                                # remove the key InstRoot from the registry
-                                values = hivex_obj.node_values(node)  # type: ignore
-                                new_values = []
+                                while len(nodes) > 0:
+                                    n = nodes.pop()
+                                    nodes.extend(hivex_obj.node_children(n))  # type: ignore
 
-                                for value in values:  # type: ignore
-                                    keyname = hivex_obj.value_key(value)  # type: ignore
+                                    new_values = []
+                                    update_flag = False
+                                    key_vals = hivex_obj.node_values(n)  # type: ignore
+                                    for key_val in key_vals:
+                                        key = hivex_obj.value_key(key_val)  # type: ignore
+                                        val = hivex_obj.node_get_value(n, key)  # type: ignore
+                                        val_type, val_value = hivex_obj.value_value(val)  # type: ignore
+                                        if pat in key:
+                                            key = key.replace(pat, "X:")
+                                            update_flag = True
+                                        if val_type in (REG_SZ, REG_EXPAND_SZ):
+                                            val_string = hivex_obj.value_string(val)  # type: ignore
+                                            if pat in val_string:
+                                                val_string = val_string.replace(pat, "X:")
+                                                val_value = (val_string + "\0").encode(encoding="utf-16le")
+                                                update_flag = True
+                                        new_val = { "key": key, "t": val_type, "value": val_value, }
+                                        new_values.append(new_val)
 
-                                    if keyname == "InstRoot":
-                                        continue
-
-                                    val = hivex_obj.node_get_value(node, keyname)  # type: ignore
-                                    valtype = hivex_obj.value_type(val)[0]  # type: ignore
-                                    value2 = hivex_obj.value_value(val)[1]  # type: ignore
-                                    valobject = {  # type: ignore
-                                        "key": keyname,
-                                        "t": int(valtype),  # type: ignore
-                                        "value": value2,
-                                    }
-                                    new_values.append(valobject)  # type: ignore
-
-                                hivex_obj.node_set_values(node, new_values)  # type: ignore
+                                    if update_flag:
+                                        hivex_obj.node_set_values(n, new_values)  # type: ignore
                                 hivex_obj.commit(software)  # type: ignore
 
                                 cmd_path = "/usr/bin/wimupdate"
@@ -561,7 +553,7 @@ class _ImportSignatureManager(ManagerModule):
                     and os.path.exists(winpe_path)
                 ):
                     new_profile.autoinstall_meta = {
-                        "kernel": os.path.basename(kernel),
+                        "kernel": "pxeboot.0",
                         "bootmgr": "bootmgr.exe",
                         "bcd": "bcd",
                         "winpe": "winpe.wim",

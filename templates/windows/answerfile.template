@@ -3,7 +3,7 @@
 #else if $arch == 'i386'
 	#set $win_arch = 'i386'
 #end if
-#if $os_version not in ('XP', '2003')
+#if $os_version not in ('xp', '2003')
 #set $procarch = 'processorArchitecture="' + $win_arch + '"'
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
