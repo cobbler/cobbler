@@ -682,7 +682,6 @@ class NetbootBuildiso(buildiso.BuildIso):
         :param exclude_dns: Whether the repositories have to be locally available or the internet is reachable.
         """
         del kwargs  # just accepted for polymorphism
-
         distro_obj = self.parse_distro(distro_name)
         if distro_obj.arch not in (Archs.X86_64, Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL):
             raise ValueError("cobbler buildiso does not work for arch={distro_obj.arch}")
@@ -692,7 +691,6 @@ class NetbootBuildiso(buildiso.BuildIso):
         loader_config_parts = self._generate_boot_loader_configs(
             profile_names, system_names, exclude_dns
         )
-
         buildisodir = self._prepare_buildisodir(buildisodir)
         distro_mirrordir = pathlib.Path(self.api.settings().webdir) / "distro_mirror"
 
@@ -728,6 +726,7 @@ class NetbootBuildiso(buildiso.BuildIso):
             bootinfo_txt = self._render_bootinfo_txt(distro_name)
             # fill temporary directory with arch-specific binaries
             utils.copyfile(str(grub_bin), str(buildiso_dirs.grub / "grub.elf"))
+            esp_location = None
 
             self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
             self._write_bootinfo(bootinfo_txt, buildiso_dirs.ppc)

@@ -453,7 +453,6 @@ class BuildIso:
         with open(output_file, "w") as f:
             f.write(bootinfo_txt)
 
-
     def _create_esp_image_file(self, tmpdir: str) -> str:
         esp = pathlib.Path(tmpdir) / "efi"
         mkfs_cmd = ["mkfs.fat", "-C", str(esp), "3528"]
