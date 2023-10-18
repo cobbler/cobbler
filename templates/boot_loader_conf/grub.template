@@ -10,7 +10,15 @@ set default='local'
 menuentry '$menu_name' --class gnu-linux --class gnu --class os {
   echo 'Loading kernel ...'
   clinux $kernel_path $kernel_options
+#if "wimboot" in $kernel_path
+#set $initrd_path = ""
+#for $init in $initrd
+#set $initrd_path += " " + $init
+#end for
+#end if
+#if $breed != "windows" or "wimboot" in $kernel_path
   echo 'Loading initial ramdisk ...'
   cinitrd $initrd_path
+#end if
   echo '...done'
 }

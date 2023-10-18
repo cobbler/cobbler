@@ -344,7 +344,7 @@ Legacy Windows XP and Windows 2003 Server
     --initrd=/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot/boot.sdi \
     --remote-boot-kernel=http://@@http_server@@/cobbler/images/@@distro_name@@/wimboot \
     --remote-boot-initrd=http://@@http_server@@/cobbler/images/@@distro_name@@/boot.sdi \
-    --arch=i386 --breed=windows --os-version=XP \
+    --arch=i386 --breed=windows --os-version=xp \
     --boot-loaders=ipxe --autoinstall-meta='clean_disk'
 
     cobbler distro add --name=Win2k3-Server_EN-x64 \
@@ -370,7 +370,7 @@ Legacy Windows XP and Windows 2003 Server
     cobbler distro add --name=WinXp_EN-i386 \
     --kernel=/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot/pxeboot.n12 \
     --initrd=/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot/boot.sdi \
-    --arch=i386 --breed=windows --os-version=XP \
+    --arch=i386 --breed=windows --os-version=xp \
     --autoinstall-meta='clean_disk'
 
     cobbler distro add --name=Win2k3-Server_EN-x64 \
@@ -462,7 +462,7 @@ Copy the required drivers to the ``i386``
     --kernel=/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot/pxeboot.n12 \
     --initrd=/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot/boot.sdi \
     --boot-files='@@local_img_path@@/i386/=@@web_img_path@@/i386/*.*' \
-    --arch=i386 --breed=windows –os-version=XP
+    --arch=i386 --breed=windows –os-version=xp
 
     cobbler distro add --name=Win2k3-Server_EN-x64 \
     --kernel=/var/www/cobbler/distro_mirror/Win2k3-Server_EN-x64/boot/pxeboot.n12 \

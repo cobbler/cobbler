@@ -27,7 +27,7 @@ import re
 import socket
 from typing import Dict, List, Optional
 
-from cobbler import enums, templar, utils
+from cobbler import enums, templar, utils, grub
 from cobbler.cexceptions import CX
 from cobbler.enums import Archs
 from cobbler.validate import validate_autoinstall_script_name
@@ -774,6 +774,9 @@ class TFTPGen:
 
         metadata["initrd"] = self._generate_initrd(autoinstall_meta, kernel_path, initrd_path, boot_loader)
 
+        if boot_loader == "grub" and utils.file_is_remote(kernel_path):
+            metadata["kernel_path"] = grub.parse_grub_remote_file(kernel_path)
+
     def build_kernel_options(self, system, profile, distro, image, arch: enums.Archs, autoinstall_path) -> str:
         """
         Builds the full kernel options line.
@@ -1248,7 +1251,14 @@ class TFTPGen:
         initrd_line = custom_loader_name
 
         if format == "ipxe":
-            initrd_line = "--name " + loader_name + " " + custom_loader_name + " " + loader_name
+            initrd_line = f"--name {loader_name}  {custom_loader_name}"
+        elif format == "pxe":
+            initrd_line = f"{custom_loader_name}@{loader_name}"
+        elif format == "grub":
+            loader_path = custom_loader_name
+            if utils.file_is_remote(loader_path):
+                loader_path = grub.parse_grub_remote_file(custom_loader_name)
+            initrd_line = f"newc:{loader_name}:{loader_path}"
 
         return initrd_line
 
@@ -1286,7 +1296,13 @@ class TFTPGen:
             if "bcd" in autoinstall_meta:
                 initrd.append(self._build_windows_initrd("bcd", bcd_path + autoinstall_meta["bcd"], format))
             if "winpe" in autoinstall_meta:
-                initrd.append(self._build_windows_initrd("winpe.wim", wim_path + autoinstall_meta["winpe"], format))
+                initrd.append(
+                    self._build_windows_initrd(
+                        autoinstall_meta["winpe"],
+                        wim_path + autoinstall_meta["winpe"],
+                        format,
+                    )
+                )
         else:
             if initrd_path:
                 initrd.append(initrd_path)

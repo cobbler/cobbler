@@ -22,8 +22,19 @@ LABEL $menu_name
 #if $system_local
 	localboot -1
 #else
+#if $breed == "windows"
+#if "wimboot" in $kernel_path
+	kernel linux.c32
+#set $append_line = "append " + $kernel_path
+#for $init in $initrd
+#set $append_line += " initrdfile=" + $init
+#end for
+	$append_line
+#else
 	kernel $kernel_path
-#if $breed != "windows"
+#end if
+#else
+	kernel $kernel_path
 	$append_line
 	ipappend 2
 #end if

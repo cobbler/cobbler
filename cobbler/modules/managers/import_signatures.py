@@ -138,8 +138,8 @@ class _ImportSignatureManager(ManagerModule):
                 return f.readlines()
         else:
             self.logger.info(
-                'Could not detect the filetype and read the content of file "%s". Returning nothing.',
-                filename,
+                'Could not detect the filetype "%s" and read the content of file "%s". Returning nothing.',
+                ftype.mime_type, filename,
             )
         return []
 
@@ -250,7 +250,7 @@ class _ImportSignatureManager(ManagerModule):
                                                 val_string = val_string.replace(pat, "X:")
                                                 val_value = (val_string + "\0").encode(encoding="utf-16le")
                                                 update_flag = True
-                                        new_val = { "key": key, "t": val_type, "value": val_value, }
+                                        new_val = {"key": key, "t": val_type, "value": val_value,}
                                         new_values.append(new_val)
 
                                     if update_flag:
@@ -506,15 +506,19 @@ class _ImportSignatureManager(ManagerModule):
 
             if self.breed == "windows":
                 dest_path = os.path.join(self.path, "boot")
+                kernel_path = f"http://@@http_server@@/images/{name}/wimboot"
+                if new_distro.os_version in ("xp", "2003"):
+                    kernel_path = "pxeboot.0"
                 bootmgr_path = os.path.join(dest_path, "bootmgr.exe")
                 bcd_path = os.path.join(dest_path, "bcd")
                 winpe_path = os.path.join(dest_path, "winpe.wim")
                 if os.path.exists(bootmgr_path) and os.path.exists(bcd_path) and os.path.exists(winpe_path):
-                    new_profile.autoinstall_meta = {"kernel": "pxeboot.0",
+                    new_profile.autoinstall_meta = {"kernel": kernel_path,
                                                     "bootmgr": "bootmgr.exe",
                                                     "bcd": "bcd",
                                                     "winpe": "winpe.wim",
-                                                    "answerfile": "autounattended.xml"}
+                                                    "answerfile": "autounattended.xml",
+                                                    "post_install_script": "post_install.cmd"}
 
             self.profiles.add(new_profile, save=True)
 
