@@ -1251,7 +1251,7 @@ class TFTPGen:
         initrd_line = custom_loader_name
 
         if format == "ipxe":
-            initrd_line = f"--name {loader_name}  {custom_loader_name}"
+            initrd_line = f"--name {loader_name} {custom_loader_name} {loader_name}"
         elif format == "pxe":
             initrd_line = f"{custom_loader_name}@{loader_name}"
         elif format == "grub":
