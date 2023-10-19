@@ -1,169 +1,331 @@
 .. _wingen:
 
-*******************************************
-Automatic Windows installation with Cobbler
-*******************************************
+*********************************
+Windows installation with Cobbler
+*********************************
 
-One of the challenges for creating your own Windows network installation scenario with Cobbler is preparing the necessary files in a Linux environment. However, generating the necessary binaries can be greatly simplified by using the cobbler post trigger on the sync command. Below is an example of such a trigger, which prepares the necessary files for legacy BIOS mode boot. Boot to UEFI Mode with iPXE is simpler and can be implemented by replacing the first 2 steps and several others with creating an iPXE boot menu.
+Supported installation options:
 
-Trigger ``sync_post_wingen.py``:
+* UEFI iPXE install (via ipxe-shimx64.efi, ipxe.efi and wimboot tftp/http)
+* BIOS iPXE install (via ipxe undionly.kpxe and wimboot tftp/http)
+* BIOS PXE install (via syslinux pxelinux.0, linux.c32 and wimboot tftp/http)
+* BIOS PXE install (via grub2 grub.0 and wimboot tftp/http)
+* BIOS PXE install (via windows pxeboot.n12)
 
-- some of the files are created from standard ones (``pxeboot.n12``, ``bootmgr.exe``) by directly replacing one string with another directly in the binary
-- in the process of changing the ``bootmgr.exe`` file, the checksum of the PE file will change and it needs to be recalculated. The trigger does this with ``python-pefile``
-- ``python3-hivex`` is used to modify Windows boot configuration data (BCD). For pxelinux distro boot_loader in BCD, paths to ``winpe.wim`` and ``boot.sdi`` are generated as ``/images/<distro_name>``, and for iPXE with wimboot - ``\Boot``.
-- uses ``wimlib-tools`` to replace ``startnet.cmd startup`` script in WIM image
+Installation Quickstart guide
+#############################
 
-Windows answer files (``autounattended.xml``) are generated using Cobbler templates, with all of its conditional code generation capabilities, depending on the Windows version, architecture (32 or 64 bit), installation profile, etc.
-
-startup scripts for WIM images (startnet.cmd) and a script that is launched after OS installation (``post_install.cmd``) are also generated from templates
-
-Post-installation actions such as installing additional software, etc., are performed using the Automatic Installation Template (``win.ks``).
-
-A logically automatic network installation of Windows 7 and newer can be represented as follows:
-
-PXE + Legacy BIOS Boot
-
-.. code::
-
-    Original files: pxeboot.n12 → bootmgr.exe → BCD → winpe.wim → startnet.cmd → autounattended.xml
-    Cobbler profile 1: pxeboot.001 → boot001.exe → 001 → wi001.wim → startnet.cmd → autounatten001.xml → post_install.cmd profile_name
-    ...
-
-iPXE + UEFI Boot
-
-.. code::
-
-    Original files: ipxe-x86_64.efi → wimboot → bootmgr.exe → BCD → winpe.wim → startnet.cmd → autounattended.xml
-    Cobbler profile 1: ipxe-x86_64.efi → wimboot → bootmgr.exe → 001 → wi001.wim → startnet.cmd → autounatten001.xml → post_install.cmd profile_name
-    ...
-
-For older versions (Windows XP, 2003) + RIS:
-
-.. code::
-
-    Original files: pxeboot.n12 → setupldr.exe → winnt.sif → post_install.cmd profile_name
-    Cobbler profile <xxx>: pxeboot.<xxx> → setup<xxx>.exe → wi<xxx>.sif → post_install.cmd profile_name
-
-Additional Windows metadata
-===========================
-
-Additional metadata for preparing Windows boot files can be passed through the ``--autoinstall-meta`` option for distro, profile or system.
-The source files for Windows boot files should be located in the ``/var/www/cobbler/distro_mirror/<distro_name>/Boot`` directory. The trigger copies them to ``/var/lib/tftpboot/images/<distro_name>`` with the new names specified in the metadata and and changes their contents. The resulting files will be available via tftp and http.
-
-The ``sync_post_wingen`` trigger uses the following set of metadata:
-
-- kernel
-
-    ``kernel`` in autoinstall-meta is only used if the boot kernel is ``pxeboot.n12`` (``--kernel=/path_to_kernel/pxeboot.n12`` in distro).
-    In this case, the trigger copies the ``pxeboot.n12`` file into a file with a new name and replaces:
-    - ``bootmgr.exe`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using Micrisoft ADK/WAIK.
-    - ``NTLDR`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using Legacy RIS.
-    Value of the ``kernel`` key in ``autoinstall-meta`` will be the actual first boot file.
-    If ``--kernel=/path_to_kernel/wimboot`` is in distro, then ``kernel`` key is not used in ``autoinstall-meta``.
-
-- bootmgr
-
-    The bootmgr key value is passed the name of the second boot file in the Windows boot chain. The source file to create it can be:
-    - ``bootmgr.exe`` in case of using Micrisoft ADK/WAIK
-    - ``setupldr.exe`` for Legacy RIS
-
-    Trigger copies the corresponding source file to a file with the name given by this key and replaces in it:
-    - substring ``\Boot\BCD`` to ``\Boot\<bcd_value>``, where ``<bcd_value>`` is the metadata ``bcd`` key value for Micrisoft ADK/WAIK.
-    - substring ``winnt.sif`` with the value passed through the ``answerfile`` metadata key in case of using Legacy RIS.
-
-- bcd
-
-    This key is used to pass the value of the ``BCD`` file name in case of using Micrisoft ADK/WAIK. Any ``BCD`` file from the Windows distribution can be used as a source for this file. The trigger copies it, then removes all boot information from the copy and adds new data from the ``initrd`` value of the distro and the value passed through the ``winpe`` metadata key.
-
-- winpe
-
-    This metadata key allows you to specify the name of the WinPE image. The image is copied by the cp utility trigger with the ``--reflink=auto`` option, which allows to reduce copying time and the size of the disk space on CoW file systems.
-    In the copy of the file, the tribger changes the ``/Windows/System32/startnet.cmd`` script to the script generated from the ``startnet.template`` template.
-
-- answerfile
-
-    This is the name of the answer file for the Windows installation. This file is generated from the ``answerfile.template`` template and is used in:
-    - ``startnet.cmd`` to start WinPE installation
-    - the file name is written to the binary file ``setupldr.exe`` for RIS
-
-- post_install_script
-
-    This is the name of the script to run immediately after the Windows installation completes. The script is specified in the Windows answer file. All the necessary completing the installation actions can be performed directly in this script, or it can be used to get and start additional steps from ``http://<server>/cblr/svc/op/autoinstall/<profile|system>/name``.
-    To make this script available after the installation is complete, the trigger creates it in ``/var/www/cobbler/distro_mirror/<distro_name>/$OEM$/$1`` from the ``post_inst_cmd.template`` template.
-
-The following metadata does not specify boot file names and is an example of using metadata to generate files from Cobbler templates.
-
-- clean_disk
-
-    The presence of this key in the metadata (regardless of its value) leads to the preliminary deletion of all data and the disk partition table before installing the OS.
-    Used in the ``answerfile.template`` and also in ``startnet.template`` in Windows XP and Windows 2003 Server installations using WinPE.
-
-Preparing for an unattended network installation of Windows
-===========================================================
-
-- ``dnf install python3-pefile python3-hivex wimlib-utils``
-- enable Windows support in settings ``/etc/cobbler/settings.d/windows.settings``:
+* ``dnf install python3-pefile python3-hivex wimlib-utils``
+* enable Windows support in settings ``/etc/cobbler/settings.d/windows.settings``:
 
 .. code::
 
     windows_enabled: true
 
-- import the Windows distributions to ``/var/www/cobbler/distro_mirror``:
+* Share ``/var/www/cobbler`` via Samba:
 
-.. code::
-
-    cobbler import --name=Win10_EN-x64 --path=/mnt
-
-This command will determine the version and architecture of the Windows distribution, will extract the necessary boot files from the distribution and create a distro and profile named ``Win10_EN-x64``.
-
-- For customization winpe.win you need
-  - ADK for Windows 10 / 8.1
-
-.. code::
-
-    Start -> Apps -> Windows Kits -> Deployment and Imaging Tools Environment
-
-or
-
-  - WAIK for Windows 7
-
-.. code::
-
-    Start -> All Programs -> Microsoft Windows AIK -> Deployment Tools Command Prompt
-
-.. code::
-
-    copype.cmd <amd64|x86|arm> c:\winpe
-
-After executing the command, the WinPE image will be located in ``.\winpe.wim`` for WAIK and in ``media\sources\boot.wim`` for ADK. You can use either it or replace it with the one that has been obtained as a result of the import of the Windows distribution.
-
-  - If necessary, add drivers to the image
-
-Example:
-
-.. code-block:: shell
-
-    dism /mount-wim /wimfile:media\sources\boot.wim /index:1 /mountdir:mount
-    dism /image:mount /add-driver /driver:D:\NetKVM\w10\amd64
-    dism /image:mount /add-driver /driver:D:\viostor\w10\amd64
-    dism /unmount-wim /mountdir:mount /commit
-
-- Copy the resulting WiNPE image from Windows to the ``boot`` directory of the distro
-- Share ```/var/www/cobbler/distro_mirror``` via Samba:
-
-.. code-block:: shell
+.. code-block::
 
     vi /etc/samba/smb.conf
             [DISTRO]
-            path = /var/www/cobbler/distro_mirror
+            path = /var/www/cobbler
             guest ok = yes
             browseable = yes
             public = yes
             writeable = no
             printable = no
 
+* import the Windows distro:
 
-- You can use ``tftpd.rules`` to indicate the actual locations of the ``bootmgr.exe`` and ``BCD`` files generated by the trigger.
+.. code:: shell
+
+    cobbler import --name=win11 --path=/mnt
+
+This command will determine the version and architecture of the Windows distribution, extract the files ``pxeboot.n12``, ``bootmgr.exe``, ``winpe.wim``
+from the distro into the ``/var/www/cobbler/distro_mirror/win11/boot`` and create a distro and profile named ``win11-x86_64``.
+
+Customization winpe.wim
+=======================
+
+For customization winpe.win you need ADK for Windows.
+
+.. code::
+
+    Start -> Apps -> Windows Kits -> Deployment and Imaging Tools Environment
+
+You can use either ``winpe.wim`` obtained either as a result of cobbler import, or take it from ADK:
+
+.. code:: shell
+
+    copype.cmd <amd64|x86|arm> c:\winpe
+
+If necessary, add drivers to the image:
+
+.. code-block:: shell
+
+    dism /mount-wim /wimfile:media\sources\boot.wim /index:1 /mountdir:mount
+    dism /image:mount /add-driver /driver:D:\NetKVM\w11\amd64
+    dism /image:mount /add-driver /driver:D:\viostor\w11\amd64
+    dism /unmount-wim /mountdir:mount /commit
+
+Copy the resulting WinPE image from Windows to the ``/var/www/cobbler/distro_mirror/win11/boot`` directory of the distro.
+
+UEFI Secure Boot (SB)
+#####################
+
+For SB you can use ``ipxe-shimx64.efi`` (unsigned), ``ipxe.efi`` (unsigned) and ``wimboot`` (signed with a Microsoft key).
+Therefore, in this case, we will need our own keys in order to sign ``ipxe-shimx64.efi``, ``ipxe.efi`` and computer fimware with them.
+
+Creating Secure Boot Keys
+=========================
+
+.. code-block:: shell
+
+    export NAME="DEMO"
+    openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$NAME PK/" -keyout PK.key \
+            -out PK.crt -days 3650 -nodes -sha256
+    openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$NAME KEK/" -keyout KEK.key \
+            -out KEK.crt -days 3650 -nodes -sha256
+    openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$NAME DB/" -keyout DB.key \
+            -out DB.crt -days 3650 -nodes -sha256
+
+    export GUID=`python3 -c 'import uuid; print(str(uuid.uuid1()))'`
+    echo $GUID > myGUID.txt
+
+Provide cobbler with bootloaders
+================================
+
+.. code-block:: shell
+
+    wget https://github.com/ipxe/shim/releases/download/ipxe-15.7/ipxe-shimx64.efi
+    wget https://boot.ipxe.org/ipxe.iso
+    wget https://github.com/ipxe/wimboot/releases/latest/download/wimboot -P /var/lib/cobbler/loaders
+
+    mkdir -p /mnt/{cdrom,disk}
+    mount -o loop,ro ipxe.iso /mnt/cdrom
+    mount -o loop,ro /mnt/cdrom/esp.img /mnt/disk
+
+Signing EFI Binaries and replacing keys in firmware
+===================================================
+
+Signing the bootloaders:
+
+.. code-block:: shell
+
+    sbsign --key DB.key --cert DB.crt --output /var/lib/cobbler/loaders/ipxe-shimx64.efi ipxe-shimx64.efi
+    sbsign --key DB.key --cert DB.crt --output /var/lib/cobbler/loaders/ipxe.efi /mnt/disk/EFI/BOOT/BOOTX64.EFI
+    cobbler sync
+
+Sign the computer firmware with your keys. For VM it can be done like this:
+
+.. code-block:: shell
+
+    rpm -ql python3-virt-firmware | grep '\.pem$'
+        /usr/lib/python3.9/site-packages/virt/firmware/certs/CentOSSecureBootCA2.pem
+        /usr/lib/python3.9/site-packages/virt/firmware/certs/CentOSSecureBootCAkey1.pem
+        /usr/lib/python3.9/site-packages/virt/firmware/certs/MicrosoftCorporationKEKCA2011.pem
+        /usr/lib/python3.9/site-packages/virt/firmware/certs/MicrosoftCorporationUEFICA2011.pem
+        /usr/lib/python3.9/site-packages/virt/firmware/certs/MicrosoftWindowsProductionPCA2011.pem
+        /usr/lib/python3.9/site-packages/virt/firmware/certs/RedHatSecureBootCA3.pem
+        /usr/lib/python3.9/site-packages/virt/firmware/certs/RedHatSecureBootCA5.pem
+        /usr/lib/python3.9/site-packages/virt/firmware/certs/RedHatSecureBootCA6.pem
+        /usr/lib/python3.9/site-packages/virt/firmware/certs/RedHatSecureBootPKKEKkey1.pem
+        /usr/lib/python3.9/site-packages/virt/firmware/certs/fedoraca-20200709.pem
+
+    virt-fw-vars \
+        --input /usr/share/edk2/ovmf/OVMF_VARS.fd \
+        --output /var/lib/libvirt/qemu/nvram/win11_VARS.fd \
+        --set-pk  ${GUID} PK.crt \
+        --add-kek ${GUID} KEK.crt \
+        --add-kek 77fa9abd-0359-4d32-bd60-28f4e78f784b /usr/lib/python3.9/site-packages/virt/firmware/certs/MicrosoftCorporationKEKCA2011.pem \
+        --add-db  ${GUID} DB.crt \
+        --add-db  77fa9abd-0359-4d32-bd60-28f4e78f784b /usr/lib/python3.9/site-packages/virt/firmware/certs/MicrosoftWindowsProductionPCA2011.pem \
+        --add-db  77fa9abd-0359-4d32-bd60-28f4e78f784b /usr/lib/python3.9/site-packages/virt/firmware/certs/MicrosoftCorporationUEFICA2011.pem
+
+Booting from UEFI iPXE HTTP
+###########################
+
+Change ``dhcpd.conf`` to use ``ipxe-shimx64.efi``:
+
+.. code-block::
+
+     class "pxeclients" {
+          match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
+          next-server 192.168.126.1;
+
+          if exists user-class and option user-class = "iPXE" {
+              filename "/ipxe/default.ipxe";
+          }
+          # UEFI-64-1
+          else if option system-arch = 00:07 {
+              filename "ipxe-shimx64.efi";
+          }
+
+The HTTP protocol is used by default in the profile created with the ``cobbler import`` command:
+
+.. code-block:: shell
+
+    cobbler profile report --name=win11-x86_64 | grep Metadata
+        Automatic Installation Metadata :
+            {'kernel': 'http://@@http_server@@/images/win11-x86_64/wimboot',
+             'bootmgr': 'bootmgr.exe',
+             'bcd': 'bcd',
+             'winpe': 'winpe.wim',
+             'answerfile': 'autounattended.xml',
+             'post_install_script': 'post_install.cmd'}
+
+.. code-block:: shell
+
+    cat /var/lib/tftpboot/ipxe/default.ipxe
+    :win11-x86_64
+    kernel http://192.168.124.1/images/win11-x86_64/wimboot
+    initrd --name boot.sdi  http://192.168.124.1/cobbler/images/win11-x86_64/boot.sdi boot.sdi
+    initrd --name bootmgr.exe  http://192.168.124.1/cobbler/images/win11-x86_64/bootmgr.exe bootmgr.exe
+    initrd --name bcd  http://192.168.124.1/cobbler/images/win11-x86_64/bcd bcd
+    initrd --name winpe.wim  http://192.168.124.1/cobbler/images/win11-x86_64/winpe.wim winpe.wim
+
+Booting from BIOS firmware
+##########################
+
+Booting from BIOS iPXE (via ipxe undionly.kpxe and wimboot tftp/http)
+=====================================================================
+
+Change ``dhcpd.conf`` to use ``undionly.kpxe``:
+
+.. code-block::
+
+     class "pxeclients" {
+          match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
+          next-server 192.168.126.1;
+
+          if exists user-class and option user-class = "iPXE" {
+              filename "/ipxe/default.ipxe";
+          }
+          else if option system-arch = 00:00 {
+              filename "undionly.pxe";
+          }
+
+Import distro
+
+.. code:: shell
+
+    cobbler import --name=win10 --path=/mnt
+
+By default, an EFI partition is created for the profile ``win10-x86_64`` in the answerfile, and for BIOS boot we can create a profile with ``uefi=False`` in the metadata:
+
+.. code:: shell
+
+    cobbler profile copy \
+        --name=win10-x86_64 \
+        --newname=win10-bios-pxe-wimboot-http-x86_64 \
+        --autoinstall-meta="kernel=http://@@http_server@@/images/win10-x86_64/wimboot bootmgr=bootmg2.exe bcd=bc2 winpe=winp2.wim answerfile=autounattende2.xml uefi=False"
+    cobbler sync
+
+If you do not want to use the HTTP protocol, you can either change an existing profile or create a new one with ``kernel=wimboot`` in the metadata:
+
+.. code:: shell
+
+    cobbler profile copy \
+        --name=win10-x86_64
+        --newname=win10-bios-ipxe-wimboot-tftp-x86_64 \
+        --autoinstall-meta="kernel=wimboot bootmgr=bootmg3.exe bcd=bc3 winpe=winp3.wim answerfile=autounattende3.xml uefi=False"
+    cobbler sync
+
+.. code:: shell
+
+    cat /var/lib/tftpboot/ipxe/default.ipxe
+    :win10-bios-ipxe-wimboot-tftp-x86_64
+    kernel /images/win10-x86_64/wimboot
+    initrd --name boot.sdi  /images/win10-x86_64/boot.sdi boot.sdi
+    initrd --name bootmgr.exe  /images/win10-x86_64/bootmg3.exe bootmgr.exe
+    initrd --name bcd  /images/win10-x86_64/bc3 bcd
+    initrd --name winp3.wim  /images/win10-x86_64/winp3.wim winp3.wim
+    boot
+
+Booting from BIOS PXE (via syslinux pxelinux.0, linux.c32 and wimboot tftp/http)
+=================================================================================
+
+The ``win10-bios-pxe-wimboot-http-x86_64`` and ``win10-bios-ipxe-wimboot-tftp-x86_64`` profiles created earlier are suitable for this boot method.
+You just need to change ``dhcpd.conf`` to boot via ``pxelinux.0``.
+
+.. code-block::
+
+     class "pxeclients" {
+          match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
+          next-server 192.168.126.1;
+
+          if exists user-class and option user-class = "iPXE" {
+              filename "/ipxe/default.ipxe";
+          }
+          else if option system-arch = 00:00 {
+              filename "pxelinux.0";
+          }
+
+.. code-block:: shell
+
+    cat /var/lib/tftpboot/pxelinux.cfg/default
+    LABEL win10-bios-ipxe-wimboot-tftp-x86_64
+        MENU LABEL win10-bios-ipxe-wimboot-tftp-x86_64
+        kernel linux.c32
+        append /images/win10-x86_64/wimboot initrdfile=/images/win10-x86_64/boot.sdi@boot.sdi initrdfile=/images/win10-x86_64/bootmg3.exe@bootmgr.exe initrdfile=/images/win10-x86_64/bc3@bcd initrdfile=/images/win10-x86_64/winp3.wim@winp3.wim
+    LABEL win10-bios-pxe-wimboot-http-x86_64
+        MENU LABEL win10-bios-pxe-wimboot-http-x86_64
+        kernel linux.c32
+        append http://192.168.124.1/images/win10-x86_64/wimboot initrdfile=http://192.168.124.1/cobbler/images/win10-x86_64/boot.sdi@boot.sdi initrdfile=http://192.168.124.1/cobbler/images/win10-x86_64/bootmg2.exe@bootmgr.exe initrdfile=http://192.168.124.1/cobbler/images/win10-x86_64/bc2@bcd initrdfile=http://192.168.124.1/cobbler/images/win10-x86_64/winp2.wim@winp2.wim
+
+
+Booting from BIOS PXE (via grub2 grub.0 and wimboot tftp/http)
+==============================================================
+
+The ``win10-bios-pxe-wimboot-http-x86_64`` and ``win10-bios-ipxe-wimboot-tftp-x86_64`` profiles created earlier also suitable for this boot method.
+You just need to change ``dhcpd.conf`` to boot via ``grub/grub.0``.
+
+.. code-block::
+
+     class "pxeclients" {
+          match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
+          next-server 192.168.126.1;
+
+          if exists user-class and option user-class = "iPXE" {
+              filename "/ipxe/default.ipxe";
+          }
+          else if option system-arch = 00:00 {
+              filename "grub/grub.0";
+          }
+
+.. code-block:: shell
+
+    cat /var/lib/tftpboot/grub/x86_64_menu_items.cfg
+    menuentry 'win10-bios-ipxe-wimboot-tftp-x86_64' --class gnu-linux --class gnu --class os {
+      echo 'Loading kernel ...'
+      clinux /images/win10-x86_64/wimboot
+      echo 'Loading initial ramdisk ...'
+      cinitrd  newc:boot.sdi:/images/win10-x86_64/boot.sdi newc:bootmgr.exe:/images/win10-x86_64/bootmg3.exe newc:bcd:/images/win10-x86_64/bc3 newc:winp3.wim:/images/win10-x86_64/winp3.wim
+      echo '...done'
+    }
+    menuentry 'win10-bios-pxe-wimboot-http-x86_64' --class gnu-linux --class gnu --class os {
+      echo 'Loading kernel ...'
+      clinux (http,192.168.124.1)/images/win10-x86_64/wimboot
+      echo 'Loading initial ramdisk ...'
+      cinitrd  newc:boot.sdi:(http,192.168.124.1)/cobbler/images/win10-x86_64/boot.sdi newc:bootmgr.exe:(http,192.168.124.1)/cobbler/images/win10-x86_64/bootmg2.exe newc:bcd:(http,192.168.124.1)/cobbler/images/win10-x86_64/bc2 newc:winp2.wim:(http,192.168.124.1)/cobbler/images/win10-x86_64/winp2.wim
+      echo '...done'
+    }
+
+Booting from  BIOS PXE install (via windows pxeboot.n12)
+========================================================
+
+This is the only boot method that does not require ``wimboot``.
+Booting can be done via syslinux (pxelinux.0) or ipxe (undionly.kpxe).
+
+Create a file ``/etc/tftpd.rules``:
+
+.. code-block::
+
+    rg	\\					/ # Convert backslashes to slashes
+    r	(boot1e.\.exe)				/images/win10-x86_64/\1
+    r	(/Boot/)(1E.)				/images/win10-x86_64/\2
+
+Change the tftp service
 
 .. code-block:: shell
 
@@ -171,167 +333,104 @@ Example:
 
 Replace the line in the ``/etc/systemd/system/tftp.service``
 
-.. code::
+.. code-block::
 
     ExecStart=/usr/sbin/in.tftpd -s /var/lib/tftpboot
         to:
     ExecStart=/usr/sbin/in.tftpd -m /etc/tftpd.rules -s /var/lib/tftpboot
 
-Create a file ``/etc/tftpd.rules``:
-
-.. code-block:: shell
-
-    vi /etc/tftpd.rules
-    rg	\\					/ # Convert backslashes to slashes
-    r	(wine.\.sif)				/WinXp_EN-i386/\1
-    r	(xple.)					/WinXp_EN-i386/\1
-
-    r	(wi2k.\.sif)				/Win2k3-Server_EN-x64/\1
-    r	(w2k3.)					/Win2k3-Server_EN-x64/\1
-
-    r	(boot7e.\.exe)				/images/Win7_EN-x64/\1
-    r	(/Boot/)(7E.)				/images/Win7_EN-x64/\2
-
-    r	(boot28.\.exe)				/images/Win2k8-Server_EN-x64/\1
-    r	(/Boot/)(28.)				/images/Win2k8-Server_EN-x64/\2
-
-    r   (boot9r.\.exe)				/images/Win2019-Server_EN-x64/\1
-    r   (/Boot/)(9r.)				/images/Win2019-Server_EN-x64/\2
-
-    r	(boot6e.\.exe)				/images/Win2016-Server_EN-x64/\1
-    r	(/Boot/)(6e.)				/images/Win2016-Server_EN-x64/\2
-
-    r	(boot2e.\.exe)				/images/Win2012-Server_EN-x64/\1
-    r	(/Boot/)(2e.)				/images/Win2012-Server_EN-x64/\2
-
-    r	(boot81.\.exe)				/images/Win8_EN-x64/\1
-    r	(/Boot/)(B8.)				/images/Win8_EN-x64/\2
-
-    r	(boot1e.\.exe)				/images/Win10_EN-x64/\1
-    r	(/Boot/)(1E.)				/images/Win10_EN-x64/\2
-
-    r	(.*)(/WinXp...-i386/)(.*)		/images\2\L\3
-    r	(.*)(/Win2k3-Server_EN-x64/)(.*)	/images\2\L\3
-
-    r	(.*)(bootxea.exe)			/images/WinXp_EN-i386/\2
-    r	(.*)(XEa)				/images/WinXp_EN-i386/\2
-
-    r	(.*)(boot3ea.exe)			/images/Win2k3-Server_EN-x64/\2
-    r	(.*)(3Ea)				/images/Win2k3-Server_EN-x64/\2
-
-Final steps
-===========
-
-- Restart the services:
+Restart the tftp:
 
 .. code-block:: shell
 
     systemctl daemon-reload
     systemctl restart tftp
-    systemctl restart smb
-    systemctl restart nmb
 
-- add additional distros for PXE boot:
+Create a new profile
 
 .. code-block:: shell
 
-    cobbler distro add --name=Win10_EN-x64 \
-    --kernel=/var/www/cobbler/distro_mirror/Win10_EN-x64/boot/pxeboot.n12 \
-    --initrd=/var/www/cobbler/distro_mirror/Win10_EN-x64/boot/boot.sdi \
-    --arch=x86_64 --breed=windows --os-version=10
+    cobbler profile copy \
+        --name=win10-x86_64 \
+        --newname=win10-bios-syslinux-tftp-x86_64 \
+        --autoinstall-meta="kernel=win10a.0 bootmgr=boot1ea.exe bcd=1Ea winpe=winp5.wim answerfile=autounattende5.xml uefi=False"
+    cobbler sync
 
-or for iPXE:
-
-.. code-block:: shell
-
-    cobbler distro add --name=Win10_EN-x64 \
-    --kernel=/var/lib/tftpboot/wimboot \
-    --initrd=/var/www/cobbler/distro_mirror/Win10_EN-x64/boot/boot.sdi \
-    --remote-boot-kernel=http://@@http_server@@/cobbler/images/@@distro_name@@/wimboot \
-    --remote-boot-initrd=http://@@http_server@@/cobbler/images/@@distro_name@@/boot.sdi \
-    --arch=x86_64 --breed=windows --os-version=10 \
-    --boot-loaders=ipxe
-
-- and additional profiles for PXE boot:
+Boot entries were created for this profile:
 
 .. code-block:: shell
 
-    cobbler profile add --name=Win10_EN-x64 --distro=Win10_EN-x64 --autoinstall=win.ks \
-    --autoinstall-meta='kernel=win10a.0 bootmgr=boot1ea.exe bcd=1Ea winpe=winpe.wim answerfile=autounattended.xml'
+    cat /var/lib/tftpboot/pxelinux.cfg/default
+    LABEL win10-bios-syslinux-tftp-x86_64
+        MENU LABEL win10-bios-syslinux-tftp-x86_64
+        kernel /images/win10-x86_64/win10a.0
 
-    cobbler profile add --name=Win10-profile1 --parent=Win10_EN-x64 \
-    --autoinstall-meta='kernel=win10b.0 bootmgr=boot1eb.exe bcd=1Eb winpe=winp1.wim answerfile=autounattende1.xml'
-
-    cobbler profile add --name=Win10-profile2 --parent=Win10_EN-x64 \
-    --autoinstall-meta='kernel=win10c.0 bootmgr=boot1ec.exe bcd=1Ec winpe=winp2.wim answerfile=autounattende2.xml'
-
-The boot menu will look like this:
-
-.. code-block:: shell
-
-        LABEL Win10_EN-x64
-                MENU LABEL Win10_EN-x64
-                kernel /images/Win10_EN-x64/win10a.0
-        LABEL Win10_EN-x64-profile1
-                MENU LABEL Win10_EN-x64-profile1
-                kernel /images/Win10_EN-x64/win10b.0
-        LABEL Win10_EN-x64-profile1
-                MENU LABEL Win10_EN-x64-profile2
-                kernel /images/Win10_EN-x64/win10c.0
-
-or for iPXE:
-
-.. code-block:: shell
-
-    cobbler profile add --name=Win10_EN-x64 --distro=Win10_EN-x64 --autoinstall=win.ks \
-    --autoinstall-meta='bootmgr=boot1ea.exe bcd=1Ea winpe=winpe.wim answerfile=autounattended.xml' \
-    --boot-loaders=ipxe
-
-    cobbler profile add --name=Win10-profile1 --parent=Win10_EN-x64 \
-    --autoinstall-meta='bootmgr=boot1eb.exe bcd=1Eb winpe=winp1.wim answerfile=autounattende1.xml' \
-    --boot-loaders=ipxe
-
-    cobbler profile add --name=Win10-profile2 --parent=Win10_EN-x64 \
-    --autoinstall-meta='bootmgr=boot1ec.exe bcd=1Ec winpe=winp2.wim answerfile=autounattende2.xml' \
-    --boot-loaders=ipxe
-
-The boot menu will look like this:
-
-.. code-block:: shell
-
-    :Win10_EN-x64
-    kernel http://<http_server>/cobbler/images/Win10_EN-x64/wimboot
-    initrd --name boot.sdi http://<http_server>/cobbler/images/Win10_EN-x64/boot.sdi boot.sdi
-    initrd --name bootmgr.exe http://<http_server>/cobbler/images/Win10_EN-x64/boot1ea.exe bootmgr.exe
-    initrd --name bcd http://<http_server>/cobbler/images/Win10_EN-x64/1Ea bcd
-    initrd --name winpe.wim http://<http_server>/cobbler/images/Win10_EN-x64/winpe.wim winpe.wim
+    cat /var/lib/tftpboot/ipxe/default.ipxe
+    :win10-bios-syslinux-tftp-x86_64
+    kernel /images/win10-x86_64/win10a.0
+    initrd /images/win10-x86_64/boot.sdi
     boot
 
-    :Win10_EN-x64-profile1
-    kernel http://<http_server>/cobbler/images/Win10_EN-x64/wimboot
-    initrd --name boot.sdi http://<http_server>/cobbler/images/Win10_EN-x64/boot.sdi boot.sdi
-    initrd --name bootmgr.exe http://<http_server>/cobbler/images/Win10_EN-x64/boot1eb.exe bootmgr.exe
-    initrd --name bcd http://<http_server>/cobbler/images/Win10_EN-x64/1Eb bcd
-    initrd --name winpe.wim http://<http_server>/cobbler/images/Win10_EN-x64/winp1.wim winpe.wim
-    boot
+Additional Windows metadata
+###########################
 
-    :Win10_EN-x64-profile2
-    kernel http://<http_server>/cobbler/images/Win10_EN-x64/wimboot
-    initrd --name boot.sdi http://<http_server>/cobbler/images/Win10_EN-x64/boot.sdi boot.sdi
-    initrd --name bootmgr.exe http://<http_server>/cobbler/images/Win10_EN-x64/boot1ec.exe bootmgr.exe
-    initrd --name bcd http://<http_server>/cobbler/images/Win10_EN-x64/1Ec bcd
-    initrd --name winpe.wim http://<http_server>/cobbler/images/Win10_EN-x64/winp2.wim winpe.wim
-    boot
+Additional metadata for preparing Windows boot files can be passed through the ``--autoinstall-meta`` option for distro, profile or system.
+The source files for Windows boot files should be located in the ``/var/www/cobbler/distro_mirror/<distro_name>/Boot`` directory.
+The trigger copies them to ``/var/lib/tftpboot/images/<distro_name>`` with the new names specified in the metadata and and changes their contents.
+The resulting files will be available via tftp and http.
 
-- cobbler sync
+The ``sync_post_wingen`` trigger uses the following set of metadata:
 
-  - kernel from ``autoinstall-meta`` of profile or from ``kernel`` of distro property will be copied to ``/var/lib/tftpboot/<distro_name>``
-  - if the kernel is ``pxeboot.n12``, then the ``bootmgr.exe`` substring is replaced in the copied copy of kernel with the value passed via ``bootmgr`` of the ``autoinstall-meta`` profile propery
+* kernel
 
-- Install Windows
+    ``kernel`` in autoinstall-meta is only used if the boot kernel is ``pxeboot.n12`` (``--kernel=/path_to_kernel/pxeboot.n12`` in distro).
+    In this case, the trigger copies the ``pxeboot.n12`` file into a file with a new name and replaces:
+
+    - ``bootmgr.exe`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using Micrisoft ADK.
+    - ``NTLDR`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using Legacy RIS.
+
+    Value of the ``kernel`` key in ``autoinstall-meta`` will be the actual first boot file.
+    If ``--kernel=/path_to_kernel/wimboot`` is in distro, then ``kernel`` key is not used in ``autoinstall-meta``.
+
+* bootmgr
+
+    The bootmgr key value is passed the name of the second boot file in the Windows boot chain. The source file to create it can be:
+
+    - ``bootmgr.exe`` in case of using Micrisoft ADK
+    - ``setupldr.exe`` for Legacy RIS
+
+    Trigger copies the corresponding source file to a file with the name given by this key and replaces in it:
+
+    - substring ``\Boot\BCD`` to ``\Boot\<bcd_value>``, where ``<bcd_value>`` is the metadata ``bcd`` key value for Micrisoft ADK.
+    - substring ``winnt.sif`` with the value passed through the ``answerfile`` metadata key in case of using Legacy RIS.
+
+* bcd
+
+    This key is used to pass the value of the ``BCD`` file name in case of using Micrisoft ADK. Any ``BCD`` file from the Windows distribution can be used as a source for this file.
+    The trigger copies it, then removes all boot information from the copy and adds new data from the ``initrd`` value of the distro and the value passed through the ``winpe`` metadata key.
+
+* winpe
+
+    This metadata key allows you to specify the name of the WinPE image. The image is copied by the cp utility trigger with the ``--reflink=auto`` option,
+    which allows to reduce copying time and the size of the disk space on CoW file systems.
+    In the copy of the file, the tribger changes the ``/Windows/System32/startnet.cmd`` script to the script generated from the ``startnet.template`` template.
+
+* answerfile
+
+    This is the name of the answer file for the Windows installation. This file is generated from the ``answerfile.template`` template and is used in:
+
+    - ``startnet.cmd`` to start WinPE installation
+    - the file name is written to the binary file ``setupldr.exe`` for RIS
+
+* post_install_script
+
+    This is the name of the script to run immediately after the Windows installation completes.
+    The script is specified in the Windows answer file. All the necessary completing the installation actions can be performed directly in this script,
+    or it can be used to get and start additional steps from ``http://<server>/cblr/svc/op/autoinstall/<profile|system>/name``.
+    To make this script available after the installation is complete, the trigger creates it in ``/var/www/cobbler/distro_mirror/<distro_name>/$OEM$/$1`` from the ``post_inst_cmd.template`` template.
 
 Legacy Windows XP and Windows 2003 Server
-=========================================
+#########################################
 
 - WinPE 3.0 and winboot can be used to install legacy versions of Windows. ``startnet.template`` contains the code for starting such an installation via ``winnt32.exe``.
 
@@ -475,3 +574,8 @@ Copy the required drivers to the ``i386``
 
     cobbler profile add --name=Win2k3-Server_EN-x64 --distro=Win2k3-Server_EN-x64 --autoinstall=win.ks \
     --autoinstall-meta='kernel=w2k0.0 bootmgr=w2k3l answerfile=wi2k3.sif'
+
+Useful links
+############
+
+ `Managing EFI Boot Loaders for Linux: Controlling Secure Boot <https://www.rodsbooks.com/efi-bootloaders/controlling-sb.html>`_
