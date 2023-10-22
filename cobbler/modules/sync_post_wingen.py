@@ -69,7 +69,7 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
     h.node_set_value(d, {"key": "Type", "t": REG_DWORD, "value": b"\x02\x00\x10\x10"})
     e = h.node_add_child(b, "Elements")
     e1 = h.node_add_child(e, "25000004")
-    h.node_set_value(e1, {"key": "Element", "t": REG_BINARY, "value": b"\x1e\x00\x00\x00\x00\x00\x00\x00"})
+    h.node_set_value(e1, {"key": "Element", "t": REG_BINARY, "value": b"\x00\x00\x00\x00\x00\x00\x00\x00"})
     e1 = h.node_add_child(e, "12000004")
     h.node_set_value(e1, {"key": "Element", "t": REG_SZ, "value": "Windows Boot Manager\0".encode(encoding="utf-16le")})
     e1 = h.node_add_child(e, "24000001")
@@ -80,8 +80,17 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
 
     b = h.node_add_child(objs, "{65c31250-afa2-11df-8045-000c29f37d88}")
     d = h.node_add_child(b, "Description")
-    h.node_set_value(d, {"key": "Type", "t": REG_DWORD, "value": b"\x03\x00\x20\x13"})
+    h.node_set_value(d, {"key": "Type", "t": REG_DWORD, "value": b"\x03\x00\x20\x10"})
     e = h.node_add_child(b, "Elements")
+    e1 = h.node_add_child(e, "12000002")
+    h.node_set_value(
+        e1,
+        {
+            "key": "Element",
+            "t": REG_SZ,
+            "value": "\\windows\\system32\\winload.exe\0".encode(encoding="utf-16le"),
+        },
+    )
     e1 = h.node_add_child(e, "12000004")
     h.node_set_value(e1, {"key": "Element", "t": REG_SZ, "value": "Windows PE\0".encode(encoding="utf-16le")})
     e1 = h.node_add_child(e, "22000002")
@@ -171,18 +180,14 @@ def run(api, args):
         kernel_name = os.path.basename(kernel_name)
         is_wimboot = "wimboot" in kernel_name
 
-        if is_wimboot:
-            distro_path = os.path.join(settings.webdir, "distro_mirror", distro.name)
-            kernel_path = os.path.join(distro_path, "boot")
-
-            if "kernel" in meta and "wimboot" not in distro.kernel:
-                tgen.copy_single_distro_file(os.path.join(settings.tftpboot_location, kernel_name), distro_dir, False)
-                tgen.copy_single_distro_file(os.path.join(distro_dir, kernel_name), web_dir, True)
+        if is_wimboot and "kernel" in meta and "wimboot" not in distro.kernel:
+            tgen.copy_single_distro_file(os.path.join(settings.tftpboot_location, kernel_name), distro_dir, False)
+            tgen.copy_single_distro_file(os.path.join(distro_dir, kernel_name), web_dir, True)
 
         if "post_install_script" in meta:
             post_install_dir = distro_path
 
-            if distro.os_version not in ("XP", "2003"):
+            if distro.os_version not in ("xp", "2003"):
                 post_install_dir = os.path.join(post_install_dir, "sources")
 
             post_install_dir = os.path.join(post_install_dir, "$OEM$", "$1")
@@ -202,15 +207,14 @@ def run(api, args):
             logger.info("Build answer file: %s", answerfile_name)
             with open(answerfile_name, "w+") as answerfile:
                 answerfile.write(data)
-            tgen.copy_single_distro_file(answerfile_name, distro_path, False)
-            tgen.copy_single_distro_file(answerfile_name, web_dir, True)
+            tgen.copy_single_distro_file(answerfile_name, web_dir, False)
 
         if "kernel" in meta and "bootmgr" in meta:
             wk_file_name = os.path.join(distro_dir, kernel_name)
             wl_file_name = os.path.join(distro_dir, meta["bootmgr"])
             tl_file_name = os.path.join(kernel_path, "bootmgr.exe")
 
-            if distro.os_version in ("XP", "2003") and not is_winpe:
+            if distro.os_version in ("xp", "2003") and not is_winpe:
                 tl_file_name = os.path.join(kernel_path, "setupldr.exe")
 
                 if len(meta["bootmgr"]) != 5:
@@ -266,7 +270,7 @@ def run(api, args):
                 tgen.copy_single_distro_file(wl_file_name, web_dir, True)
 
             if not is_wimboot:
-                if distro.os_version not in ("XP", "2003") or is_winpe:
+                if distro.os_version not in ("xp", "2003") or is_winpe:
                     pe = pefile.PE(wl_file_name, fast_load=True)
                     pe.OPTIONAL_HEADER.CheckSum = pe.generate_checksum()
                     pe.write(filename=wl_file_name)
@@ -295,12 +299,11 @@ def run(api, args):
             if is_winpe:
                 wim_file_name = meta["winpe"]
 
+            tftp_image = os.path.join("/images", distro.name)
             if is_wimboot:
-                wim_file_name = '\\Boot\\' + wim_file_name
-                sdi_file_name = '\\Boot\\' + 'boot.sdi'
-            else:
-                wim_file_name = os.path.join("/images", distro.name, wim_file_name)
-                sdi_file_name = os.path.join("/images", distro.name, os.path.basename(distro.initrd))
+                tftp_image = "/Boot"
+            wim_file_name = os.path.join(tftp_image, wim_file_name)
+            sdi_file_name = os.path.join(tftp_image, os.path.basename(distro.initrd))
 
             logger.info(
                 "Build BCD: %s from %s for %s",
@@ -317,7 +320,6 @@ def run(api, args):
 
             cmd = ["/usr/bin/cp", "--reflink=auto", wim_pl_name, ps_file_name]
             utils.subprocess_call(cmd, shell=False)
-            tgen.copy_single_distro_file(ps_file_name, web_dir, True)
 
             if os.path.exists(wimupdate):
                 data = templ.render(tmplstart_data, meta, None)
@@ -329,11 +331,15 @@ def run(api, args):
                 cmd = [wimupdate, ps_file_name, "--command=add %s %s" % (pi_file.name, startnet_path)]
                 utils.subprocess_call(cmd, shell=False)
                 pi_file.close()
+            tgen.copy_single_distro_file(ps_file_name, web_dir, True)
 
     for profile in profiles:
         distro = profile.get_conceptual_parent()
 
-        if distro and distro.breed == "windows":
+        if distro is None:
+            raise ValueError("Distro not found!")
+
+        if distro.breed == "windows":
             logger.info("Profile: %s", profile.name)
             meta = utils.blender(api, False, profile)
             autoinstall_meta = meta.get("autoinstall_meta", {})

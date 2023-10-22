@@ -146,6 +146,21 @@ class MkLoaders:
             self.bootloaders_dir.joinpath("pxelinux.0"),
             skip_existing=True
         )
+        # Make linux.c32 for syslinux + wimboot
+        libcom32_c32_path = self.syslinux_folder.joinpath("libcom32.c32")
+        if syslinux_version > 4 and libcom32_c32_path.exists():
+            symlink(
+                self.syslinux_pxelinux_folder.joinpath("linux.c32"),
+                self.bootloaders_dir.joinpath("linux.c32"),
+                skip_existing=True,
+            )
+            # Make libcom32.c32
+            # 'linux.c32' depends on 'libcom32.c32'
+            symlink(
+                self.syslinux_pxelinux_folder.joinpath("libcom32.c32"),
+                self.bootloaders_dir.joinpath("libcom32.c32"),
+                skip_existing=True,
+            )
 
     def make_grub(self):
         """

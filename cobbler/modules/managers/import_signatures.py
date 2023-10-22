@@ -34,7 +34,7 @@ import magic
 HAS_HIVEX = True
 try:
     import hivex
-    from hivex.hive_types import REG_SZ
+    from hivex.hive_types import REG_SZ, REG_EXPAND_SZ
 except Exception:
     HAS_HIVEX = False
 
@@ -138,8 +138,8 @@ class _ImportSignatureManager(ManagerModule):
                 return f.readlines()
         else:
             self.logger.info(
-                'Could not detect the filetype and read the content of file "%s". Returning nothing.',
-                filename,
+                'Could not detect the filetype "%s" and read the content of file "%s". Returning nothing.',
+                ftype.mime_type, filename,
             )
         return []
 
@@ -227,30 +227,34 @@ class _ImportSignatureManager(ManagerModule):
                                 software = os.path.join(dest_path, os.path.basename(config_path))
                                 h = hivex.Hivex(software, write=True)
                                 root = h.root()
-                                node = h.node_get_child(root, "Microsoft")
-                                node = h.node_get_child(node, "Windows NT")
-                                node = h.node_get_child(node, "CurrentVersion")
-                                h.node_set_value(node, {"key": "SystemRoot", "t": REG_SZ,
-                                                        "value": "x:\\Windows\0".encode(encoding="utf-16le")})
-                                node = h.node_get_child(node, "WinPE")
+                                nodes: List[Any] = [root]
+                                pat = "X:\\$windows.~bt"
 
-                                # remove the key InstRoot from the registry
-                                values = h.node_values(node)
-                                new_values = []
+                                while len(nodes) > 0:
+                                    n = nodes.pop()
+                                    nodes.extend(h.node_children(n))
 
-                                for value in values:
-                                    keyname = h.value_key(value)
+                                    new_values = []
+                                    update_flag = False
+                                    key_vals = h.node_values(n)
+                                    for key_val in key_vals:
+                                        key = h.value_key(key_val)
+                                        val = h.node_get_value(n, key)
+                                        val_type, val_value = h.value_value(val)
+                                        if pat in key:
+                                            key = key.replace(pat, "X:")
+                                            update_flag = True
+                                        if val_type in (REG_SZ, REG_EXPAND_SZ):
+                                            val_string = h.value_string(val)
+                                            if pat in val_string:
+                                                val_string = val_string.replace(pat, "X:")
+                                                val_value = (val_string + "\0").encode(encoding="utf-16le")
+                                                update_flag = True
+                                        new_val = {"key": key, "t": val_type, "value": val_value,}
+                                        new_values.append(new_val)
 
-                                    if keyname == "InstRoot":
-                                        continue
-
-                                    val = h.node_get_value(node, keyname)
-                                    valtype = h.value_type(val)[0]
-                                    value2 = h.value_value(val)[1]
-                                    valobject = {"key": keyname, "t": int(valtype), "value": value2}
-                                    new_values.append(valobject)
-
-                                h.node_set_values(node, new_values)
+                                    if update_flag:
+                                        h.node_set_values(n, new_values)
                                 h.commit(software)
 
                                 cmd_path = "/usr/bin/wimupdate"
@@ -502,15 +506,19 @@ class _ImportSignatureManager(ManagerModule):
 
             if self.breed == "windows":
                 dest_path = os.path.join(self.path, "boot")
+                kernel_path = f"http://@@http_server@@/images/{name}/wimboot"
+                if new_distro.os_version in ("xp", "2003"):
+                    kernel_path = "pxeboot.0"
                 bootmgr_path = os.path.join(dest_path, "bootmgr.exe")
                 bcd_path = os.path.join(dest_path, "bcd")
                 winpe_path = os.path.join(dest_path, "winpe.wim")
                 if os.path.exists(bootmgr_path) and os.path.exists(bcd_path) and os.path.exists(winpe_path):
-                    new_profile.autoinstall_meta = {"kernel": os.path.basename(kernel),
+                    new_profile.autoinstall_meta = {"kernel": kernel_path,
                                                     "bootmgr": "bootmgr.exe",
                                                     "bcd": "bcd",
                                                     "winpe": "winpe.wim",
-                                                    "answerfile": "autounattended.xml"}
+                                                    "answerfile": "autounattended.xml",
+                                                    "post_install_script": "post_install.cmd"}
 
             self.profiles.add(new_profile, save=True)
 
