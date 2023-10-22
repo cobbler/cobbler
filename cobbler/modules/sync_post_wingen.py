@@ -92,32 +92,21 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
     h.node_set_value(e1, {"key": "Element", "t": REG_BINARY, "value": b"\x01"})
     e1 = h.node_add_child(e, "11000001")
     guid = guid2binary("{ae5534e0-a924-466c-b836-758539a3ee3a}")
-    h.node_set_value(e1, {"key": "Element",
-                          "t": REG_BINARY,
-                          "value": guid + b"\x00\x00\x00\x00\x01\x00\x00\x00"
-                                        + winpath_length(wim, 126)
-                                        + b"\x00\x00\x00\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-                                          b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00 "
-                                        + winpath_length(wim, 86)
-                                        + b"\x00\x00\x00\x05\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x48\x00\x00"
-                                          b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-                                          b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-                                          b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-                                          b"\x00\x00\x00\x00\x00\x00\x00" + wim.encode(encoding="utf_16_le")
-                                        + b"\x00\x00"})
+    wimval = {"key": "Element",
+              "t": REG_BINARY,
+              "value": guid + b"\x00\x00\x00\x00\x01\x00\x00\x00" + winpath_length(wim, 126)
+                            + b"\x00\x00\x00\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                              b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00"
+                            + winpath_length(wim, 86)
+                            + b"\x00\x00\x00\x05\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x48\x00\x00"
+                              b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                              b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                              b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                              b"\x00\x00\x00\x00\x00\x00\x00" + wim.encode(encoding="utf_16_le")
+                            + b"\x00\x00"}
+    h.node_set_value(e1, wimval)
     e1 = h.node_add_child(e, "21000001")
-    h.node_set_value(e1, {"key": "Element",
-                          "t": REG_BINARY,
-                          "value": guid + b"\x00\x00\x00\x00\x01\x00\x00\x00" + winpath_length(wim, 126)
-                                        + b"\x00\x00\x00\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-                                          b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00 "
-                                        + winpath_length(wim, 86)
-                                        + b"\x00\x00\x00\x05\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x48\x00\x00"
-                                          b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-                                          b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-                                          b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-                                          b"\x00\x00\x00\x00\x00\x00\x00" + wim.encode(encoding="utf_16_le")
-                                        + b"\x00\x00"})
+    h.node_set_value(e1, wimval)
 
     if startoptions:
         e1 = h.node_add_child(e, "12000030")
