@@ -1227,6 +1227,29 @@
         "kernel_options": "",
         "kernel_options_post": "",
         "boot_files": []
+      },
+      "astralinux2.12": {
+          "signatures": [
+            "dists"
+          ],
+          "version_file": "Release",
+          "version_file_regex": "",
+          "kernel_arch": "linux-headers-(.*)\\.deb",
+          "kernel_arch_regex": null,
+          "supported_arches": [
+            "amd64",
+            "aarch64"
+          ],
+          "supported_repo_breeds": [
+            "apt"
+          ],
+          "kernel_file": "vmlinuz(.*)",
+          "initrd_file": "initrd(.*)\\.gz",
+          "isolinux_ok": false,
+          "default_autoinstall": "sample.seed",
+          "kernel_options": "",
+          "kernel_options_post": "",
+          "boot_files": []
       }
     },
     "ubuntu": {
@@ -4192,3 +4215,5 @@
     }
   }
 }
+
+      
