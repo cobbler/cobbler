@@ -8,12 +8,22 @@ import itertools
 import os
 import pathlib
 import re
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
 
 from cobbler import utils
-from cobbler.enums import Archs
 from cobbler.actions import buildiso
 from cobbler.actions.buildiso import Autoinstall, BootFilesCopyset, LoaderCfgsParts
+from cobbler.enums import Archs
 from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:
@@ -141,12 +151,18 @@ class StandaloneBuildiso(buildiso.BuildIso):
         }
         if descendant_obj.COLLECTION_TYPE == "profile":
             config_args.update({"menu_indent": 0})
-            autoinstall_args = {"profile": descendant_obj}
+            profile_obj = cast("Profile", descendant_obj)
+            isolinux, grub, to_copy = self._generate_descendant_config(**config_args)
+            autoinstall = self.api.autoinstallgen.generate_autoinstall(
+                profile=profile_obj
+            )
         else:  # system
             config_args.update({"menu_indent": 4})
-            autoinstall_args = {"system": descendant_obj}
-        isolinux, grub, to_copy = self._generate_descendant_config(**config_args)
-        autoinstall = self.api.autoinstallgen.generate_autoinstall(**autoinstall_args)
+            system_obj = cast("System", descendant_obj)
+            isolinux, grub, to_copy = self._generate_descendant_config(**config_args)
+            autoinstall = self.api.autoinstallgen.generate_autoinstall(
+                system=system_obj
+            )
 
         if distro_obj.breed == "redhat":
             autoinstall = CDREGEX.sub("cdrom\n", autoinstall, count=1)
@@ -166,7 +182,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
         cfg_parts.isolinux.append(isolinux)
         cfg_parts.grub.append(grub)
         cfg_parts.bootfiles_copysets.append(to_copy)
-        autoinstall_data[name] = Autoinstall(autoinstall, repos)
+        autoinstall_data[name] = Autoinstall(autoinstall, cast(List[str], repos))
 
     def _update_repos_in_autoinstall_data(
         self, autoinstall_data: str, repos_names: List[str]
@@ -261,8 +277,16 @@ class StandaloneBuildiso(buildiso.BuildIso):
         del kwargs  # just accepted for polymorphism
 
         distro_obj = self.parse_distro(distro_name)
-        if distro_obj.arch not in (Archs.X86_64, Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL):
-            raise ValueError("cobbler buildiso does not work for arch={distro_obj.arch}")
+        if distro_obj.arch not in (
+            Archs.X86_64,
+            Archs.PPC,
+            Archs.PPC64,
+            Archs.PPC64LE,
+            Archs.PPC64EL,
+        ):
+            raise ValueError(
+                "cobbler buildiso does not work for arch={distro_obj.arch}"
+            )
 
         profile_objs = self.parse_profiles(profiles, distro_obj)
         filesource = source
@@ -271,6 +295,9 @@ class StandaloneBuildiso(buildiso.BuildIso):
         buildisodir = self._prepare_buildisodir(buildisodir)
         repo_mirrordir = pathlib.Path(self.api.settings().webdir) / "repo_mirror"
         distro_mirrordir = pathlib.Path(self.api.settings().webdir) / "distro_mirror"
+        esp_location = ""
+        xorriso_func = None
+        buildiso_dirs = None
 
         # generate configs, list of repos, and autoinstall data
         for profile_obj in profile_objs:
@@ -306,19 +333,30 @@ class StandaloneBuildiso(buildiso.BuildIso):
                 self._copy_grub_into_esp(esp_location, distro_obj.arch)
 
             self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
-            self._write_isolinux_cfg(loader_config_parts.isolinux, buildiso_dirs.isolinux)
+            self._write_isolinux_cfg(
+                loader_config_parts.isolinux, buildiso_dirs.isolinux
+            )
 
         elif distro_obj.arch in (Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL):
             xorriso_func = self._xorriso_ppc64le
             buildiso_dirs = self.create_buildiso_dirs_ppc64le(buildisodir)
-            grub_bin = pathlib.Path(self.api.settings().bootloaders_dir) / "grub"/ "grub.ppc64le"
+            grub_bin = (
+                pathlib.Path(self.api.settings().bootloaders_dir)
+                / "grub"
+                / "grub.ppc64le"
+            )
             bootinfo_txt = self._render_bootinfo_txt(distro_name)
             # fill temporary directory with arch-specific binaries
-            filesystem_helpers.copyfile(str(grub_bin), str(buildiso_dirs.grub / "grub.elf"))
+            filesystem_helpers.copyfile(
+                str(grub_bin), str(buildiso_dirs.grub / "grub.elf")
+            )
 
             self._write_bootinfo(bootinfo_txt, buildiso_dirs.ppc)
             self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
-
+        else:
+            raise ValueError(
+                "cobbler buildiso does not work for arch={distro_obj.arch}"
+            )
 
         if not filesource:
             filesource = self._find_distro_source(

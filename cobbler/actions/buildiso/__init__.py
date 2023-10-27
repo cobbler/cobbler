@@ -49,19 +49,21 @@ def add_remaining_kopts(kopts: Dict[str, Union[str, List[str]]]) -> str:
     return " ".join(append_line)
 
 
-class BootFilesCopyset(NamedTuple):
+class BootFilesCopyset(NamedTuple):  # pylint: disable=missing-class-docstring
     src_kernel: str
     src_initrd: str
     new_filename: str
 
 
-class LoaderCfgsParts(NamedTuple):
+class LoaderCfgsParts(NamedTuple):  # pylint: disable=missing-class-docstring
     isolinux: List[str]
     grub: List[str]
     bootfiles_copysets: List[BootFilesCopyset]
 
 
-class BuildisoDirsX86_64(NamedTuple):
+class BuildisoDirsX86_64(
+    NamedTuple
+):  # noqa: N801 pylint: disable=invalid-name,missing-class-docstring
     root: pathlib.Path
     isolinux: pathlib.Path
     grub: pathlib.Path
@@ -69,17 +71,15 @@ class BuildisoDirsX86_64(NamedTuple):
     repo: pathlib.Path
 
 
-class BuildisoDirsPPC64LE(NamedTuple):
+class BuildisoDirsPPC64LE(NamedTuple):  # pylint: disable=missing-class-docstring
     root: pathlib.Path
     grub: pathlib.Path
     ppc: pathlib.Path
     autoinstall: pathlib.Path
     repo: pathlib.Path
 
-BuildisoDirs = Union[BuildisoDirsX86_64, BuildisoDirsPPC64LE]
 
-
-class Autoinstall(NamedTuple):
+class Autoinstall(NamedTuple):  # pylint: disable=missing-class-docstring
     config: str
     repos: List[str]
 
@@ -356,7 +356,7 @@ class BuildIso:
             self.bootinfo_template,
             out_path=None,
             search_table={"distro_name": distro_name},
-            template_type="jinja2"
+            template_type="jinja2",
         )
 
     def _copy_grub_into_esp(self, esp_image_location: str, arch: Archs):
@@ -552,8 +552,8 @@ class BuildIso:
         ppcdir = root / "ppc"
         autoinstalldir = root / "autoinstall"
         repodir = root / "repo_mirror"
-        for d in [grubdir, ppcdir, autoinstalldir, repodir]:
-            d.mkdir(parents=True)
+        for _d in [grubdir, ppcdir, autoinstalldir, repodir]:
+            _d.mkdir(parents=True)
 
         return BuildisoDirsPPC64LE(
             root=root,
@@ -576,7 +576,7 @@ class BuildIso:
         :param iso: The name of the output iso.
         :param buildisodir: The directory in which we build the ISO.
         """
-        del esp_path # just accepted for polymorphism
+        del esp_path  # just accepted for polymorphism
 
         cmd = [
             "xorriso",
@@ -585,17 +585,19 @@ class BuildIso:
         ]
         if xorrisofs_opts != "":
             cmd.append(xorrisofs_opts)
-        cmd.extend([
-            "-chrp-boot",
-            "-hfs-bless-by",
-            "p",
-            "boot",
-            "-V",
-            "COBBLER_INSTALL",
-            "-o",
-            iso,
-            buildisodir,
-        ])
+        cmd.extend(
+            [
+                "-chrp-boot",
+                "-hfs-bless-by",
+                "p",
+                "boot",
+                "-V",
+                "COBBLER_INSTALL",
+                "-o",
+                iso,
+                buildisodir,
+            ]
+        )
 
         xorrisofs_return_code = utils.subprocess_call(cmd, shell=False)
         if xorrisofs_return_code != 0:

@@ -5,9 +5,7 @@ This module contains the specific code to generate a network bootable ISO.
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import pathlib
-import shutil
 import re
-import textwrap
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 from cobbler import utils
@@ -683,8 +681,16 @@ class NetbootBuildiso(buildiso.BuildIso):
         """
         del kwargs  # just accepted for polymorphism
         distro_obj = self.parse_distro(distro_name)
-        if distro_obj.arch not in (Archs.X86_64, Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL):
-            raise ValueError("cobbler buildiso does not work for arch={distro_obj.arch}")
+        if distro_obj.arch not in (
+            Archs.X86_64,
+            Archs.PPC,
+            Archs.PPC64,
+            Archs.PPC64LE,
+            Archs.PPC64EL,
+        ):
+            raise ValueError(
+                "cobbler buildiso does not work for arch={distro_obj.arch}"
+            )
 
         system_names = input_converters.input_string_or_list_no_inherit(systems)
         profile_names = input_converters.input_string_or_list_no_inherit(profiles)
@@ -692,7 +698,10 @@ class NetbootBuildiso(buildiso.BuildIso):
             profile_names, system_names, exclude_dns
         )
         buildisodir = self._prepare_buildisodir(buildisodir)
+        buildiso_dirs = None
         distro_mirrordir = pathlib.Path(self.api.settings().webdir) / "distro_mirror"
+        xorriso_func = None
+        esp_location = ""
 
         if distro_obj.arch == Archs.X86_64:
             xorriso_func = self._xorriso_x86_64
@@ -717,19 +726,30 @@ class NetbootBuildiso(buildiso.BuildIso):
                 self._copy_grub_into_esp(esp_location, distro_obj.arch)
 
             self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
-            self._write_isolinux_cfg(loader_config_parts.isolinux, buildiso_dirs.isolinux)
+            self._write_isolinux_cfg(
+                loader_config_parts.isolinux, buildiso_dirs.isolinux
+            )
 
         elif distro_obj.arch in (Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL):
             xorriso_func = self._xorriso_ppc64le
             buildiso_dirs = self.create_buildiso_dirs_ppc64le(buildisodir)
-            grub_bin = pathlib.Path(self.api.settings().bootloaders_dir) / "grub"/ "grub.ppc64le"
+            grub_bin = (
+                pathlib.Path(self.api.settings().bootloaders_dir)
+                / "grub"
+                / "grub.ppc64le"
+            )
             bootinfo_txt = self._render_bootinfo_txt(distro_name)
             # fill temporary directory with arch-specific binaries
-            filesystem_helpers.copyfile(str(grub_bin), str(buildiso_dirs.grub / "grub.elf"))
-            esp_location = None
+            filesystem_helpers.copyfile(
+                str(grub_bin), str(buildiso_dirs.grub / "grub.elf")
+            )
 
             self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
             self._write_bootinfo(bootinfo_txt, buildiso_dirs.ppc)
+        else:
+            raise ValueError(
+                "cobbler buildiso does not work for arch={distro_obj.arch}"
+            )
 
         for copyset in loader_config_parts.bootfiles_copysets:
             self._copy_boot_files(
