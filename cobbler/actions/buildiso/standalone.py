@@ -14,6 +14,7 @@ from cobbler import utils
 from cobbler.enums import Archs
 from cobbler.actions import buildiso
 from cobbler.actions.buildiso import Autoinstall, BootFilesCopyset, LoaderCfgsParts
+from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:
     from cobbler.items.distro import Distro
@@ -313,7 +314,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
             grub_bin = pathlib.Path(self.api.settings().bootloaders_dir) / "grub"/ "grub.ppc64le"
             bootinfo_txt = self._render_bootinfo_txt(distro_name)
             # fill temporary directory with arch-specific binaries
-            utils.copyfile(str(grub_bin), str(buildiso_dirs.grub / "grub.elf"))
+            filesystem_helpers.copyfile(str(grub_bin), str(buildiso_dirs.grub / "grub.elf"))
 
             self._write_bootinfo(bootinfo_txt, buildiso_dirs.ppc)
             self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)

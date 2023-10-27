@@ -725,7 +725,7 @@ class NetbootBuildiso(buildiso.BuildIso):
             grub_bin = pathlib.Path(self.api.settings().bootloaders_dir) / "grub"/ "grub.ppc64le"
             bootinfo_txt = self._render_bootinfo_txt(distro_name)
             # fill temporary directory with arch-specific binaries
-            utils.copyfile(str(grub_bin), str(buildiso_dirs.grub / "grub.elf"))
+            filesystem_helpers.copyfile(str(grub_bin), str(buildiso_dirs.grub / "grub.elf"))
             esp_location = None
 
             self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
