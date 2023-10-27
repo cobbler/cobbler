@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Check that Cobbler is able to build a customized ISO based for PPC64LE
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+build_iso_test=${TEST_NAME#buildiso-}
+
+trap cleanup EXIT
+
+cleanup() {
+        mountpoint -q ${mp} && umount ${mp}
+        rmdir ${mp}
+}
+
+set -x -e -o pipefail
+
+wget -nv -P "${tmp}/" https://download.opensuse.org/distribution/leap/15.3/iso/openSUSE-Leap-15.3-DVD-ppc64le-Current.iso
+mp=$(mktemp -dt leap-mp-XXX)
+mount -o loop,ro "${tmp}/openSUSE-Leap-15.3-DVD-ppc64le-Current.iso" "${mp}"
+cobbler import --name leap --path "${mp}"
+
+# Install grub2-ppc64le and run cobbler mkloaders
+zypper ar https://download.opensuse.org/ports/ppc/tumbleweed/repo/oss/ tumbleweed_os_ppc64le
+zypper ref
+zypper in -y grub2-powerpc-ieee1275
+cobbler mkloaders
+
+# Preparations
+cobbler system add --name testbed --profile leap-ppc64le
+
+# Tmp: Create "/var/cache/cobbler" because it does not exist per default
+mkdir -p /var/cache/cobbler/buildiso
+
+# Real test
+cobbler buildiso --profile="leap-ppc64le" --distro="leap-ppc64le" \
+                 --source="${mp}" --tempdir="/var/cache/cobbler/buildiso" --iso="${tmp}/autoinst.iso"
+
+# Check ISO exists & is bootable
+cat >${tmp}/a <<-EOF
+MBR CHRP cyl-align-off
+EOF
+xorriso -indev ${tmp}/autoinst.iso -toc 2>/dev/null | sed -En 's/^Boot record.* \(system area only\) , (.*)$/\1/p' >>${tmp}/b
+
+diff ${tmp}/{a,b}
