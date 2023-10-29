@@ -872,7 +872,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def add_item(self, what: str, ref, check_for_duplicate_names: bool = False, save: bool = True):
+    def add_item(self, what: str, ref, check_for_duplicate_names: bool = False, save: bool = True, with_triggers: bool = True):
         """
         Add an abstract item to a collection of its specific items. This is not meant for external use. Please reefer
         to one of the specific methods ``add_<type>``.
@@ -881,99 +881,109 @@ class CobblerAPI:
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
         self.log("add_item(%s)" % what, [ref.name])
-        self.get_items(what).add(ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
+        self.get_items(what).add(ref, check_for_duplicate_names=check_for_duplicate_names, save=save, with_triggers=with_triggers)
 
-    def add_distro(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
+    def add_distro(self, ref, check_for_duplicate_names: bool = False, save: bool = True, with_triggers: bool = True):
         """
         Add a distribution to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
-        self.add_item("distro", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
+        self.add_item("distro", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, with_triggers=with_triggers)
 
-    def add_profile(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
+    def add_profile(self, ref, check_for_duplicate_names: bool = False, save: bool = True, with_triggers: bool = True):
         """
         Add a profile to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
-        self.add_item("profile", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
+        self.add_item("profile", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, with_triggers=with_triggers)
 
-    def add_system(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
+    def add_system(self, ref, check_for_duplicate_names: bool = False, save: bool = True, with_triggers: bool = True):
         """
         Add a system to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
-        self.add_item("system", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
+        self.add_item("system", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, with_triggers=with_triggers)
 
-    def add_repo(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
+    def add_repo(self, ref, check_for_duplicate_names: bool = False, save: bool = True, with_triggers: bool = True):
         """
         Add a repository to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
-        self.add_item("repo", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
+        self.add_item("repo", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, with_triggers=with_triggers)
 
-    def add_image(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
+    def add_image(self, ref, check_for_duplicate_names: bool = False, save: bool = True, with_triggers: bool = True):
         """
         Add an image to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
-        self.add_item("image", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
+        self.add_item("image", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, with_triggers=with_triggers)
 
-    def add_mgmtclass(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
+    def add_mgmtclass(self, ref, check_for_duplicate_names: bool = False, save: bool = True, with_triggers: bool = True):
         """
         Add a management class to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
-        self.add_item("mgmtclass", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
+        self.add_item("mgmtclass", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, with_triggers=with_triggers)
 
-    def add_package(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
+    def add_package(self, ref, check_for_duplicate_names: bool = False, save: bool = True, with_triggers: bool = True):
         """
         Add a package to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
-        self.add_item("package", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
+        self.add_item("package", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, with_triggers=with_triggers)
 
-    def add_file(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
+    def add_file(self, ref, check_for_duplicate_names: bool = False, save: bool = True, with_triggers: bool = True):
         """
         Add a file to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
-        self.add_item("file", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
+        self.add_item("file", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, with_triggers=with_triggers)
 
-    def add_menu(self, ref, check_for_duplicate_names=False, save=True):
+    def add_menu(self, ref, check_for_duplicate_names=False, save=True, with_triggers: bool = True):
         """
         Add a submenu to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
-        self.add_item("menu", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
+        self.add_item("menu", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, with_triggers=with_triggers)
 
     # ==========================================================================
 
