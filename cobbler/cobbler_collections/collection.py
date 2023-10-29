@@ -404,7 +404,7 @@ class Collection(Generic[ITEM]):
                           deserialization, in which case extra semantics around the add don't really apply. So, in that
                           case, don't run any triggers and don't deal with any actual files.
         :param with_sync: If a sync should be triggered when the object is renamed.
-        :param with_triggers: If triggers should be run when the object is renamed.
+        :param with_triggers: If triggers should be run when the object is added.
         :param quick_pxe_update: This decides if there should be run a quick or full update after the add was done.
         :param check_for_duplicate_names: If the name of an object should be unique or not.
         :raises TypError: Raised in case ``ref`` is None.

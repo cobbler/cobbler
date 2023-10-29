@@ -1239,6 +1239,7 @@ class CobblerAPI:
         ref: "ITEM_UNION",
         check_for_duplicate_names: bool = False,
         save: bool = True,
+        with_triggers: bool = True,
     ) -> None:
         """
         Add an abstract item to a collection of its specific items. This is not meant for external use. Please reefer
@@ -1248,10 +1249,14 @@ class CobblerAPI:
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
         self.log(f"add_item({what})", [ref.name])
         self.get_items(what).add(
-            ref, check_for_duplicate_names=check_for_duplicate_names, save=save  # type: ignore
+            ref,  # type: ignore
+            check_for_duplicate_names=check_for_duplicate_names,
+            save=save,
+            with_triggers=with_triggers,
         )
 
     def add_distro(
@@ -1259,6 +1264,7 @@ class CobblerAPI:
         ref: "distro.Distro",
         check_for_duplicate_names: bool = False,
         save: bool = True,
+        with_triggers: bool = True,
     ) -> None:
         """
         Add a distribution to Cobbler.
@@ -1266,12 +1272,14 @@ class CobblerAPI:
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
         self.add_item(
             "distro",
             ref,
             check_for_duplicate_names=check_for_duplicate_names,
             save=save,
+            with_triggers=with_triggers,
         )
 
     def add_profile(
@@ -1279,6 +1287,7 @@ class CobblerAPI:
         ref: "profile_module.Profile",
         check_for_duplicate_names: bool = False,
         save: bool = True,
+        with_triggers: bool = True,
     ) -> None:
         """
         Add a profile to Cobbler.
@@ -1286,12 +1295,14 @@ class CobblerAPI:
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
         self.add_item(
             "profile",
             ref,
             check_for_duplicate_names=check_for_duplicate_names,
             save=save,
+            with_triggers=with_triggers,
         )
 
     def add_system(
@@ -1299,6 +1310,7 @@ class CobblerAPI:
         ref: "system_module.System",
         check_for_duplicate_names: bool = False,
         save: bool = True,
+        with_triggers: bool = True,
     ) -> None:
         """
         Add a system to Cobbler.
@@ -1306,12 +1318,14 @@ class CobblerAPI:
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
         self.add_item(
             "system",
             ref,
             check_for_duplicate_names=check_for_duplicate_names,
             save=save,
+            with_triggers=with_triggers,
         )
 
     def add_repo(
@@ -1319,6 +1333,7 @@ class CobblerAPI:
         ref: "repo.Repo",
         check_for_duplicate_names: bool = False,
         save: bool = True,
+        with_triggers: bool = True,
     ) -> None:
         """
         Add a repository to Cobbler.
@@ -1326,9 +1341,14 @@ class CobblerAPI:
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
         self.add_item(
-            "repo", ref, check_for_duplicate_names=check_for_duplicate_names, save=save
+            "repo",
+            ref,
+            check_for_duplicate_names=check_for_duplicate_names,
+            save=save,
+            with_triggers=with_triggers,
         )
 
     def add_image(
@@ -1336,6 +1356,7 @@ class CobblerAPI:
         ref: "image_module.Image",
         check_for_duplicate_names: bool = False,
         save: bool = True,
+        with_triggers: bool = True,
     ) -> None:
         """
         Add an image to Cobbler.
@@ -1343,9 +1364,14 @@ class CobblerAPI:
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
         self.add_item(
-            "image", ref, check_for_duplicate_names=check_for_duplicate_names, save=save
+            "image",
+            ref,
+            check_for_duplicate_names=check_for_duplicate_names,
+            save=save,
+            with_triggers=with_triggers,
         )
 
     def add_mgmtclass(
@@ -1353,6 +1379,7 @@ class CobblerAPI:
         ref: "mgmtclass.Mgmtclass",
         check_for_duplicate_names: bool = False,
         save: bool = True,
+        with_triggers: bool = True,
     ) -> None:
         """
         Add a management class to Cobbler.
@@ -1360,12 +1387,14 @@ class CobblerAPI:
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
         self.add_item(
             "mgmtclass",
             ref,
             check_for_duplicate_names=check_for_duplicate_names,
             save=save,
+            with_triggers=with_triggers,
         )
 
     def add_package(
@@ -1373,6 +1402,7 @@ class CobblerAPI:
         ref: "package.Package",
         check_for_duplicate_names: bool = False,
         save: bool = True,
+        with_triggers: bool = True,
     ) -> None:
         """
         Add a package to Cobbler.
@@ -1380,12 +1410,14 @@ class CobblerAPI:
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
         self.add_item(
             "package",
             ref,
             check_for_duplicate_names=check_for_duplicate_names,
             save=save,
+            with_triggers=with_triggers,
         )
 
     def add_file(
@@ -1393,6 +1425,7 @@ class CobblerAPI:
         ref: "file.File",
         check_for_duplicate_names: bool = False,
         save: bool = True,
+        with_triggers: bool = True,
     ) -> None:
         """
         Add a file to Cobbler.
@@ -1400,9 +1433,14 @@ class CobblerAPI:
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
         self.add_item(
-            "file", ref, check_for_duplicate_names=check_for_duplicate_names, save=save
+            "file",
+            ref,
+            check_for_duplicate_names=check_for_duplicate_names,
+            save=save,
+            with_triggers=with_triggers,
         )
 
     def add_menu(
@@ -1410,6 +1448,7 @@ class CobblerAPI:
         ref: "menu.Menu",
         check_for_duplicate_names: bool = False,
         save: bool = True,
+        with_triggers: bool = True,
     ) -> None:
         """
         Add a submenu to Cobbler.
@@ -1417,9 +1456,14 @@ class CobblerAPI:
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
         """
         self.add_item(
-            "menu", ref, check_for_duplicate_names=check_for_duplicate_names, save=save
+            "menu",
+            ref,
+            check_for_duplicate_names=check_for_duplicate_names,
+            save=save,
+            with_triggers=with_triggers,
         )
 
     # ==========================================================================
