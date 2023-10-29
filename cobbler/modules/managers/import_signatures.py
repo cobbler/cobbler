@@ -528,25 +528,21 @@ class _ImportSignatureManager(ManagerModule):
             self.api.add_distro(new_distro, save=True)
             distros_added.append(new_distro)
 
-            # see if the profile name is already used, if so, skip it and
-            # do not modify the existing profile
-
+            # see if the profile name is already used, if so, skip it and do not modify the existing profile
             existing_profile = self.profiles.find(name=name)
-
-            if existing_profile is None:
-                new_profile = self.api.new_profile(
-                    name=name,
-                    distro=name,
-                    autoinstall=self.autoinstall_file,  # type: ignore
-                )
-            else:
+            if existing_profile is not None:
                 self.logger.info(
                     "skipping existing profile, name already exists: %s", name
                 )
                 continue
 
-            # depending on the name of the profile we can
-            # define a good virt-type for usage with koan
+            new_profile = self.api.new_profile(
+                name=name,
+                distro=name,
+                autoinstall=self.autoinstall_file,  # type: ignore
+            )
+
+            # depending on the name of the profile we can define a good virt-type for usage with koan
             if name.find("-xen") != -1:
                 new_profile.virt_type = enums.VirtType.XENPV
             elif name.find("vmware") != -1:
