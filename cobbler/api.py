@@ -1144,7 +1144,7 @@ class CobblerAPI:
         :return: An empty Profile object.
         """
         self.log("new_profile", kwargs)
-        return profile_module.Profile(self, is_subobject, kwargs)
+        return profile_module.Profile(self, is_subobject, **kwargs)
 
     def new_system(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1157,7 +1157,7 @@ class CobblerAPI:
         :return: An empty System object.
         """
         self.log("new_system", kwargs)
-        return system_module.System(self, is_subobject, kwargs)
+        return system_module.System(self, is_subobject, **kwargs)
 
     def new_repo(self, is_subobject: bool = False, **kwargs: Any) -> "repo.Repo":
         """
@@ -1181,7 +1181,7 @@ class CobblerAPI:
         :return: An empty image object.
         """
         self.log("new_image", kwargs)
-        return image_module.Image(self, is_subobject, kwargs)
+        return image_module.Image(self, is_subobject, **kwargs)
 
     def new_mgmtclass(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1194,7 +1194,7 @@ class CobblerAPI:
         :return: An empty mgmtclass object.
         """
         self.log("new_mgmtclass", kwargs)
-        return mgmtclass.Mgmtclass(self, is_subobject, kwargs)
+        return mgmtclass.Mgmtclass(self, is_subobject, **kwargs)
 
     def new_package(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1207,7 +1207,7 @@ class CobblerAPI:
         :return: An empty Package object.
         """
         self.log("new_package", kwargs)
-        return package.Package(self, is_subobject, kwargs)
+        return package.Package(self, is_subobject, **kwargs)
 
     def new_file(self, is_subobject: bool = False, **kwargs: Any) -> "file.File":
         """
@@ -1218,7 +1218,7 @@ class CobblerAPI:
         :return: An empty File object.
         """
         self.log("new_file", kwargs)
-        return file.File(self, is_subobject, kwargs)
+        return file.File(self, is_subobject, **kwargs)
 
     def new_menu(self, is_subobject: bool = False, **kwargs: Any) -> "menu.Menu":
         """
@@ -1229,7 +1229,7 @@ class CobblerAPI:
         :return: An empty File object.
         """
         self.log("new_menu", kwargs)
-        return menu.Menu(self, is_subobject, kwargs)
+        return menu.Menu(self, is_subobject, **kwargs)
 
     # ==========================================================================
 
