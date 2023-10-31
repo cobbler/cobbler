@@ -1,0 +1,5 @@
+<chrp-boot>
+<description>COBBLER INSTALL</description>
+<os-name>{{ distro_name }}</os-name>
+<boot-script>boot &device;:1,\\boot\\grub.elf</boot-script>
+</chrp-boot>
