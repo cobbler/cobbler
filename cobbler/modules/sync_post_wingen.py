@@ -14,7 +14,6 @@ from cobbler.utils import filesystem_helpers
 
 try:
     import hivex  # type: ignore
-    import pefile  # type: ignore
     from hivex.hive_types import REG_BINARY  # type: ignore
     from hivex.hive_types import REG_DWORD  # type: ignore
     from hivex.hive_types import REG_MULTI_SZ  # type: ignore
@@ -25,6 +24,13 @@ except Exception:
     # This is only defined once in each case.
     HAS_HIVEX = False  # type: ignore
 
+try:
+    import pefile  # type: ignore
+
+    HAS_PEFILE = True
+except Exception:
+    # This is only defined once in each case.
+    HAS_PEFILE = False  # type: ignore
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -48,6 +54,12 @@ def register() -> Optional[str]:
     if not HAS_HIVEX:
         logging.info(
             "python3-hivex not found. If you need Automatic Windows Installation support, please install."
+        )
+        return None
+
+    if not HAS_PEFILE:
+        logging.info(
+            "python3-pefile not found. If you need Automatic Windows Installation support, please install."
         )
         return None
 
@@ -264,7 +276,13 @@ def run(api: "CobblerAPI", args: Any):
         return 0
     if not HAS_HIVEX:
         logger.info(
-            "python3-hivex or python3-pefile not found. If you need Automatic Windows Installation support, "
+            "python3-hivex not found. If you need Automatic Windows Installation support, "
+            "please install."
+        )
+        return 0
+    if not HAS_PEFILE:
+        logger.info(
+            "python3-pefile not found. If you need Automatic Windows Installation support, "
             "please install."
         )
         return 0
