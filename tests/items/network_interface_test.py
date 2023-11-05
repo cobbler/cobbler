@@ -55,7 +55,7 @@ def test_network_interface_to_dict_resolved(cobbler_api: CobblerAPI):
 
     # Assert
     assert isinstance(result, dict)
-    assert result.get("virt_bridge") == "xenbr0"
+    assert result.get("virt_bridge") == "virbr0"
     assert enums.VALUE_INHERITED not in str(result)
 
 
@@ -293,8 +293,8 @@ def test_if_gateway(cobbler_api: CobblerAPI):
 @pytest.mark.parametrize(
     "input_virt_bridge,expected_result,expected_exception",
     [
-        ("", "xenbr0", does_not_raise()),
-        ("<<inherit>>", "xenbr0", does_not_raise()),
+        ("", "virbr0", does_not_raise()),
+        ("<<inherit>>", "virbr0", does_not_raise()),
         ("test", "test", does_not_raise()),
         (0, "", pytest.raises(TypeError)),
     ],

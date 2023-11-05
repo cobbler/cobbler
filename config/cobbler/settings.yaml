@@ -199,12 +199,12 @@ default_password_crypted: "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac."
 default_template_type: "cheetah"
 
 # for libvirt based installs in koan, if no virt bridge
-# is specified, which bridge do we try?  For EL 4/5 hosts
-# this should be xenbr0, for all versions of Fedora, try
-# "virbr0".  This can be overriden on a per-profile
+# is specified, which bridge do we try?  For defauit libvirt
+# NAT nework use "virbr0".  For bridged networks, use bridge
+# device name (e.g. "br0"). This can be overriden on a per-profile
 # basis or at the koan command line though this saves
 # typing to just set it here to the most common option.
-default_virt_bridge: xenbr0
+default_virt_bridge: virbr0
 
 # use this as the default disk size for virt guests (GB)
 default_virt_file_size: 5.0
@@ -214,9 +214,10 @@ default_virt_ram: 512
 
 # if koan is invoked without --virt-type and no virt-type
 # is set on the profile/system, what virtualization type
-# should be assumed?  Values: xenpv, xenfv, qemu, vmware
+# should be assumed?
+# Values: qemu, kvm, xenpv, xenfv, vmware, vmwarew, openvz, auto
 # (NOTE: this does not change what virt_type is chosen by import)
-default_virt_type: xenpv
+default_virt_type: kvm
 
 # The virtualization disk format
 default_virt_disk_driver: "raw"

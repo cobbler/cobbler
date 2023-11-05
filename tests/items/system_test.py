@@ -845,7 +845,7 @@ def test_virt_ram(
 @pytest.mark.parametrize(
     "value,expected_exception, expected_result",
     [
-        ("<<inherit>>", does_not_raise(), enums.VirtType.XENPV),
+        ("<<inherit>>", does_not_raise(), enums.VirtType.KVM),
         ("qemu", does_not_raise(), enums.VirtType.QEMU),
         (enums.VirtType.QEMU, does_not_raise(), enums.VirtType.QEMU),
         ("", pytest.raises(ValueError), None),

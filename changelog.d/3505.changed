@@ -1,0 +1,3 @@
+Changed default `virt_bridge` from `xenbr0` to `virbr0`
+Changed default `virt_type` from `xenpv` to `kvm`
+Updated documentation to show all `virt_type` values

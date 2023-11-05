@@ -395,11 +395,11 @@ default: ``"cheetah"``
 default_virt_bridge
 ###################
 
-For libvirt based installs in Koan, if no virt-bridge is specified, which bridge do we try? For EL 4/5 hosts this should
-be ``xenbr0``, for all versions of Fedora, try ``virbr0``. This can be overridden on a per-profile basis or at the Koan
-command line though this saves typing to just set it here to the most common option.
+For libvirt based installs in Koan, if no virt-bridge is specified, which bridge do we try?  For defauit libvirt NAT
+nework use "virbr0".  For bridged networks, use bridge device name (e.g. "br0").  This can be overridden on a
+per-profile basis or at the Koan command line though this saves typing to just set it here to the most common option.
 
-default: ``xenbr0``
+default: ``virbr0``
 
 default_virt_disk_driver
 ########################
@@ -430,14 +430,19 @@ should be assumed?
 
 Current valid values are:
 
+- ``qemu``
+- ``kvm``
 - ``xenpv``
 - ``xenfv``
 - ``qemu``
 - ``vmware``
+- ``vmwarew``
+- ``openvz``
+- ``auto``
 
 **NOTE**: this does not change what ``virt_type`` is chosen by import.
 
-default: ``xenpv``
+default: ``kvm``
 
 enable_ipxe
 ###########

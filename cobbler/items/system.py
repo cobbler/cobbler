@@ -6,6 +6,8 @@ Changelog (NetworkInterface):
 V3.4.0 (unreleased):
     * Changes:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
+        * ``virt_type``: str - Inheritable; One of "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz" or
+          "auto".
 V3.3.4 (unreleased):
     * No changes
 V3.3.3:

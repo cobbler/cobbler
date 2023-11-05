@@ -205,7 +205,7 @@ default_template_type: "cheetah"
 # "virbr0".  This can be overriden on a per-profile
 # basis or at the koan command line though this saves
 # typing to just set it here to the most common option.
-default_virt_bridge: xenbr0
+default_virt_bridge: virbr0
 
 # use this as the default disk size for virt guests (GB)
 default_virt_file_size: 5.0
@@ -217,7 +217,7 @@ default_virt_ram: 512
 # is set on the profile/system, what virtualization type
 # should be assumed?  Values: xenpv, xenfv, qemu, vmware
 # (NOTE: this does not change what virt_type is chosen by import)
-default_virt_type: xenpv
+default_virt_type: kvm
 
 # enable iPXE booting? Enabling this option will cause Cobbler
 # to copy the undionly.kpxe file to the tftp root directory,
