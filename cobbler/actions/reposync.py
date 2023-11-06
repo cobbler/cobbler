@@ -767,7 +767,7 @@ class RepoSync:
         self.logger.debug("creating: %s", fname)
         if not os.path.exists(dest_path):
             filesystem_helpers.mkdir(dest_path)
-        with open(fname, "w+", encoding="UTF-8") as config_file:
+        with open(fname, "w", encoding="UTF-8") as config_file:
             if not output:
                 config_file.write("[main]\nreposdir=/dev/null\n")
             config_file.write(f"[{repo.name}]\n")

@@ -147,7 +147,7 @@ class Templar:
         # if requested, write the data out to a file
         if out_path is not None:
             filesystem_helpers.mkdir(os.path.dirname(out_path))
-            with open(out_path, "w+", encoding="UTF-8") as file_descriptor:
+            with open(out_path, "w", encoding="UTF-8") as file_descriptor:
                 file_descriptor.write(data_out)
 
         return data_out

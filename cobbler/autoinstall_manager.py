@@ -136,7 +136,7 @@ class AutoInstallationManager:
                 f"unable to create directory for automatic OS installation template at {file_path}"
             )
 
-        with open(file_full_path, "w+", encoding="UTF-8") as fileh:
+        with open(file_full_path, "w", encoding="UTF-8") as fileh:
             fileh.write(data)
 
         return True
@@ -243,7 +243,7 @@ class AutoInstallationManager:
                 f"unable to create directory for automatic OS installation snippet at {file_path}"
             )
 
-        with open(file_full_path, "w+", encoding="UTF-8") as fileh:
+        with open(file_full_path, "w", encoding="UTF-8") as fileh:
             fileh.write(data)
 
     def remove_autoinstall_snippet(self, file_path: str) -> bool:

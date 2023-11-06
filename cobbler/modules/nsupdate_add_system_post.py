@@ -75,7 +75,7 @@ def run(api: "CobblerAPI", args: List[Any]):
 
     # read our settings
     if str(settings.nsupdate_log) is not None:
-        LOGF = open(str(settings.nsupdate_log), "a+", encoding="UTF-8")  # type: ignore
+        LOGF = open(str(settings.nsupdate_log), "a", encoding="UTF-8")  # type: ignore
         nslog(f">> starting {__name__} {args}\n")
 
     if str(settings.nsupdate_tsig_key) is not None:
