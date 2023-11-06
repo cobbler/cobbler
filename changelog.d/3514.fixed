@@ -1,0 +1,2 @@
+Add missing `managers.` prefix for dnsmasq in DHCP Management documentation
+Add note about needing to set enable-menu for profiles to appear in PXE menu
