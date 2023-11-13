@@ -237,9 +237,15 @@ class AppendLineBuilder:
             "rhel6",
             "fedora16",
         ]:
-            self.append_line += " ks=%s" % self.data["autoinstall"]
+            self.append_line += f" ks={self.data['autoinstall']}"
+            if self.data["autoinstall_meta"].get("tree"):
+                self.append_line += f" repo={self.data['autoinstall_meta']['tree']}"
         else:
-            self.append_line += " inst.ks=%s" % self.data["autoinstall"]
+            self.append_line += f" inst.ks={self.data['autoinstall']}"
+            if self.data["autoinstall_meta"].get("tree"):
+                self.append_line += (
+                    f" inst.repo={self.data['autoinstall_meta']['tree']}"
+                )
 
     def _generate_append_debian(self, system: "System") -> None:
         """
@@ -445,9 +451,15 @@ class AppendLineBuilder:
                     f" proxy={self.data['proxy']} http_proxy={self.data['proxy']}"
                 )
             if os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
-                self.append_line += " ks=%s" % self.data["autoinstall"]
+                self.append_line += f" ks={self.data['autoinstall']}"
+                if self.data["autoinstall_meta"].get("tree"):
+                    self.append_line += f" repo={self.data['autoinstall_meta']['tree']}"
             else:
-                self.append_line += " inst.ks=%s" % self.data["autoinstall"]
+                self.append_line += f" inst.ks={self.data['autoinstall']}"
+                if self.data["autoinstall_meta"].get("tree"):
+                    self.append_line += (
+                        f" inst.repo={self.data['autoinstall_meta']['tree']}"
+                    )
         elif distro_breed in ["ubuntu", "debian"]:
             self.append_line += (
                 f" auto-install/enable=true url={self.data['autoinstall']}"

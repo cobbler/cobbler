@@ -38,9 +38,11 @@ def _generate_append_line_standalone(
     append_line = f"  APPEND initrd=/{os.path.basename(distro.initrd)}"
     if distro.breed == "redhat":
         if distro.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
-            append_line += f" ks=cdrom:/autoinstall/{descendant.name}.cfg"
+            append_line += f" ks=cdrom:/autoinstall/{descendant.name}.cfg  repo=cdrom"
         else:
-            append_line += f" inst.ks=cdrom:/autoinstall/{descendant.name}.cfg"
+            append_line += (
+                f" inst.ks=cdrom:/autoinstall/{descendant.name}.cfg inst.repo=cdrom"
+            )
     elif distro.breed == "suse":
         append_line += (
             f" autoyast=file:///autoinstall/{descendant.name}.cfg install=cdrom:///"
