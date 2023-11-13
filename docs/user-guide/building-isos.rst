@@ -14,6 +14,8 @@ Per default this builds an ISO for all available systems and profiles.
 
 If you want to generate multiple ISOs you need to execute this command multiple times (with different ``--iso`` names).
 
+NOTE: This feature is currently only supported for the following architectures: x86_64, ppc, ppc64, ppc64le and ppc64el.
+
 Under the hood
 ##############
 
