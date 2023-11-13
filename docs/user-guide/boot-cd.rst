@@ -12,7 +12,7 @@ DHCP Management
 
 Cobbler can optionally help you manage DHCP server. This feature is off by default.
 
-Choose either ``modules.dhcp.module: "managers.isc"`` or ``modules.dhcp.module: "dnsmasq"`` in the settings. For this
+Choose either ``modules.dhcp.module: "managers.isc"`` or ``modules.dhcp.module: "managers.dnsmasq"`` in the settings. For this
 setting to take effect ``manage_dhcp: true`` and at least one of ``manage_dhcp_v4`` or ``manage_dhcp_v6`` must be also
 set to ``true``.
 
