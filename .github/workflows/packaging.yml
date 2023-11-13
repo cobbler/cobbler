@@ -12,7 +12,7 @@ jobs:
   build-rockylinux8-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build a Rocky Linux 8 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
@@ -26,7 +26,7 @@ jobs:
   build-fedora37-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build a Fedora 37 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
@@ -40,7 +40,7 @@ jobs:
   build-opensuse-leap-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install System dependencies
         run: sudo apt-get install -y rename
       - name: Build a openSUSE Leap 15.3 Package
@@ -59,7 +59,7 @@ jobs:
   build-opensuse-tumbleweed-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install System dependencies
         run: sudo apt-get install -y rename
       - name: Build a openSUSE Tumbleweed Package
@@ -78,7 +78,7 @@ jobs:
   build-debian10-debs:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build a Debian 10 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
@@ -92,7 +92,7 @@ jobs:
   build-debian11-debs:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build a Debian 11 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
@@ -107,7 +107,7 @@ jobs:
     name: Build Python Wheel
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Mark directory as safe for Git
         run: git config --global --add safe.directory /__w/cobbler/cobbler
       - uses: actions/setup-python@v4
@@ -149,7 +149,7 @@ jobs:
       build-wheel
     ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v3
         name: Download all built artifacts
         with:

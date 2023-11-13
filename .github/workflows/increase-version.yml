@@ -55,7 +55,7 @@ jobs:
     name: "Create Pull Request"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build version
         run: echo "new_version=${{ inputs.nextVersionMajor }}.${{ inputs.nextVersionMinor }}.${{ inputs.nextVersionPatch }}" >> $GITHUB_ENV
       - name: Replace version in setup.py
