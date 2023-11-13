@@ -62,7 +62,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: psf/black@stable
         with:
-          options: "--check --safe --verbose"
+          options: "--check --diff --safe --verbose"
           version: "22.3.0"
   python_isort:
     name: isort formatter
