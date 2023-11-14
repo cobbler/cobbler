@@ -8,17 +8,7 @@ import itertools
 import os
 import pathlib
 import re
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Union
 
 from cobbler import utils
 from cobbler.actions import buildiso
@@ -162,7 +152,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
         if distro_obj.breed == "redhat":
             autoinstall = CDREGEX.sub("cdrom\n", autoinstall, count=1)
 
-        repos = []
+        repos: List[str] = []
         if airgapped:
             repos = data.get("repos", [])
             if repos:
@@ -177,7 +167,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
         cfg_parts.isolinux.append(isolinux)
         cfg_parts.grub.append(grub)
         cfg_parts.bootfiles_copysets.append(to_copy)
-        autoinstall_data[name] = Autoinstall(autoinstall, cast(List[str], repos))
+        autoinstall_data[name] = Autoinstall(autoinstall, repos)
 
     def _update_repos_in_autoinstall_data(
         self, autoinstall_data: str, repos_names: List[str]
