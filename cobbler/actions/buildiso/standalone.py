@@ -13,6 +13,8 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Un
 from cobbler import utils
 from cobbler.actions import buildiso
 from cobbler.actions.buildiso import Autoinstall, BootFilesCopyset, LoaderCfgsParts
+from cobbler.enums import Archs
+from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:
     from cobbler.items.distro import Distro
@@ -137,6 +139,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
             "distro": distro_obj,
             "append_line": append_line,
         }
+
         if descendant_obj.COLLECTION_TYPE == "profile":
             config_args.update({"menu_indent": 0})
             autoinstall_args = {"profile": descendant_obj}
@@ -144,12 +147,12 @@ class StandaloneBuildiso(buildiso.BuildIso):
             config_args.update({"menu_indent": 4})
             autoinstall_args = {"system": descendant_obj}
         isolinux, grub, to_copy = self._generate_descendant_config(**config_args)
-        autoinstall = self.api.autoinstallgen.generate_autoinstall(**autoinstall_args)
+        autoinstall = self.api.autoinstallgen.generate_autoinstall(**autoinstall_args)  # type: ignore
 
         if distro_obj.breed == "redhat":
             autoinstall = CDREGEX.sub("cdrom\n", autoinstall, count=1)
 
-        repos = []
+        repos: List[str] = []
         if airgapped:
             repos = data.get("repos", [])
             if repos:
@@ -259,14 +262,27 @@ class StandaloneBuildiso(buildiso.BuildIso):
         del kwargs  # just accepted for polymorphism
 
         distro_obj = self.parse_distro(distro_name)
+        if distro_obj.arch not in (
+            Archs.X86_64,
+            Archs.PPC,
+            Archs.PPC64,
+            Archs.PPC64LE,
+            Archs.PPC64EL,
+        ):
+            raise ValueError(
+                "cobbler buildiso does not work for arch={distro_obj.arch}"
+            )
+
         profile_objs = self.parse_profiles(profiles, distro_obj)
         filesource = source
         loader_config_parts = LoaderCfgsParts([self.iso_template], [], [])
         autoinstall_data: Dict[str, Autoinstall] = {}
         buildisodir = self._prepare_buildisodir(buildisodir)
-        buildiso_dirs = self.create_buildiso_dirs(buildisodir)
         repo_mirrordir = pathlib.Path(self.api.settings().webdir) / "repo_mirror"
         distro_mirrordir = pathlib.Path(self.api.settings().webdir) / "distro_mirror"
+        esp_location = ""
+        xorriso_func = None
+        buildiso_dirs = None
 
         # generate configs, list of repos, and autoinstall data
         for profile_obj in profile_objs:
@@ -288,9 +304,51 @@ class StandaloneBuildiso(buildiso.BuildIso):
                     repo_mirrordir=repo_mirrordir,
                     autoinstall_data=autoinstall_data,
                 )
+        if distro_obj.arch == Archs.X86_64:
+            xorriso_func = self._xorriso_x86_64
+            buildiso_dirs = self.create_buildiso_dirs_x86_64(buildisodir)
 
-        # copy isolinux, kernels, initrds, and distro files (e.g. installer)
-        self._copy_isolinux_files()
+            # fill temporary directory with arch-specific binaries
+            self._copy_isolinux_files()
+            # create EFI system partition (ESP) if needed, uses the ESP from the
+            # distro if it was copied
+            esp_location = self._find_esp(buildiso_dirs.root)
+            if esp_location is None:
+                esp_location = self._create_esp_image_file(buildisodir)
+                self._copy_grub_into_esp(esp_location, distro_obj.arch)
+
+            self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
+            self._write_isolinux_cfg(
+                loader_config_parts.isolinux, buildiso_dirs.isolinux
+            )
+
+        elif distro_obj.arch in (Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL):
+            xorriso_func = self._xorriso_ppc64le
+            buildiso_dirs = self.create_buildiso_dirs_ppc64le(buildisodir)
+            grub_bin = (
+                pathlib.Path(self.api.settings().bootloaders_dir)
+                / "grub"
+                / "grub.ppc64le"
+            )
+            bootinfo_txt = self._render_bootinfo_txt(distro_name)
+            # fill temporary directory with arch-specific binaries
+            filesystem_helpers.copyfile(
+                str(grub_bin), str(buildiso_dirs.grub / "grub.elf")
+            )
+
+            self._write_bootinfo(bootinfo_txt, buildiso_dirs.ppc)
+            self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
+        else:
+            raise ValueError(
+                "cobbler buildiso does not work for arch={distro_obj.arch}"
+            )
+
+        if not filesource:
+            filesource = self._find_distro_source(
+                distro_obj.kernel, str(distro_mirrordir)
+            )
+        # copy kernels, initrds, and distro files (e.g. installer)
+        self._copy_distro_files(filesource, str(buildiso_dirs.root))
         for copyset in loader_config_parts.bootfiles_copysets:
             self._copy_boot_files(
                 copyset.src_kernel,
@@ -298,18 +356,6 @@ class StandaloneBuildiso(buildiso.BuildIso):
                 str(buildiso_dirs.root),
                 copyset.new_filename,
             )
-        if not filesource:
-            filesource = self._find_distro_source(
-                distro_obj.kernel, str(distro_mirrordir)
-            )
-        self._copy_distro_files(filesource, str(buildiso_dirs.root))
-
-        # create EFI system partition (ESP) if needed, uses the ESP from the
-        # distro if it was copied
-        esp_location = self._find_esp(buildiso_dirs.root)
-        if esp_location is None:
-            esp_location = self._create_esp_image_file(buildisodir)
-            self._copy_grub_into_esp(esp_location, distro_obj.arch)
 
         # sync repos
         if airgapped:
@@ -317,7 +363,6 @@ class StandaloneBuildiso(buildiso.BuildIso):
             self._copy_repos(
                 autoinstall_data.values(), repo_mirrordir, buildiso_dirs.repo
             )
-        self._write_isolinux_cfg(loader_config_parts.isolinux, buildiso_dirs.isolinux)
-        self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
+
         self._write_autoinstall_cfg(autoinstall_data, buildiso_dirs.autoinstall)
-        self._generate_iso(xorrisofs_opts, iso, buildisodir, esp_location)
+        xorriso_func(xorrisofs_opts, iso, buildisodir, esp_location)
