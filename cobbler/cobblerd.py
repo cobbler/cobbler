@@ -11,6 +11,7 @@ import logging
 import logging.config
 import os
 import pwd
+import systemd.daemon
 import time
 
 from cobbler import remote, utils
@@ -81,6 +82,7 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int) -> None:
         # This is not critical, but debug only - just install python3-psutil
         pass
 
+    systemd.daemon.notify('READY=1')
     while True:
         try:
             logger.info("Cobbler startup completed %s", start_time)

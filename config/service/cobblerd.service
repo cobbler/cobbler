@@ -7,6 +7,7 @@ Wants=@@httpd_service@@
 ExecStart=/usr/bin/cobblerd -F
 PrivateTmp=yes
 KillMode=process
+Type=notify
 
 [Install]
 WantedBy=multi-user.target
