@@ -45,6 +45,7 @@ RUN zypper install -y          \
     python3-pycodestyle        \
     python3-schema             \
     python3-setuptools         \
+    python3-systemd            \
     python3-pip                \
     python3-PyYAML             \
     python3-wheel              \

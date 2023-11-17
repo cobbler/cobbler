@@ -47,6 +47,7 @@ RUN zypper install --no-recommends -y \
     python311-distro           \
     python311-schema           \
     python311-setuptools       \
+    python311-systemd          \
     python311-pip              \
     python311-wheel            \
     python311-Cheetah3         \
