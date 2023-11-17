@@ -53,6 +53,7 @@ RUN yum install -y          \
     openldap-servers        \
     openldap-clients        \
     supervisor              \
+    systemd                 \
     mtools                  \
     dosfstools
 
