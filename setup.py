@@ -583,6 +583,7 @@ if __name__ == "__main__":
             "dnspython",
             "file-magic",
             "schema",
+            "systemd-python",
             "gunicorn",
         ],
         extras_require={

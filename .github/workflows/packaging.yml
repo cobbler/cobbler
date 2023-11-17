@@ -122,6 +122,7 @@ jobs:
           libsasl2-dev
           libldap2-dev
           libssl-dev
+          libsystemd-dev
           tree
       - name: Install dependencies
         run: pip3 install .

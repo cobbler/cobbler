@@ -40,6 +40,7 @@ RUN yum install -y          \
     python3-pymongo         \
     python3-gunicorn        \
     python3-schema          \
+    python3-systemd         \
     createrepo_c            \
     dnf-plugins-core        \
     xorriso                 \
@@ -52,6 +53,7 @@ RUN yum install -y          \
     openldap-servers        \
     openldap-clients        \
     supervisor              \
+    systemd                 \
     mtools                  \
     dosfstools
 

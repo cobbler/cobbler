@@ -53,6 +53,7 @@ RUN touch /var/lib/rpm/* &&   \
     python3-ldap              \
     python3-librepo           \
     python3-pymongo           \
+    python3-systemd           \
     createrepo_c              \
     dnf-plugins-core          \
     xorriso                   \
@@ -63,6 +64,7 @@ RUN touch /var/lib/rpm/* &&   \
     tftp-server               \
     fence-agents              \
     supervisor                \
+    systemd                   \
     mtools                    \
     dosfstools
 

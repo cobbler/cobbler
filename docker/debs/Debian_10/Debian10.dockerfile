@@ -43,6 +43,7 @@ RUN apt-get update -qq && \
     python3-tz \
     python3-yaml \
     python3-schema \
+    python3-systemd \
     liblocale-gettext-perl \
     lsb-release \
     xz-utils \

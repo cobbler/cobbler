@@ -143,6 +143,7 @@ BuildRequires:  python%{python3_pkgversion}-distro
 BuildRequires:  python%{python3_pkgversion}-setuptools
 BuildRequires:  python%{python3_pkgversion}-netaddr
 BuildRequires:  python%{python3_pkgversion}-schema
+BuildRequires:  python%{python3_pkgversion}-systemd
 BuildRequires:  %{py3_module_cheetah}
 BuildRequires:  %{py3_module_sphinx}
 %if 0%{?suse_version}
@@ -184,6 +185,7 @@ Requires:       %{py3_module_pyyaml}
 Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-distro
 Requires:       python%{python3_pkgversion}-schema
+Requires:       python%{python3_pkgversion}-systemd
 Requires:       python%{python3_pkgversion}-gunicorn
 Requires:       %{py3_module_file}
 %if 0%{?suse_version}

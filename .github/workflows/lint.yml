@@ -39,7 +39,7 @@ jobs:
           cache: 'pip' # caching pip dependencies
           cache-dependency-path: '**/setup.py'
       - name: Install system dependencies
-        run: sudo apt-get install -y libldap2-dev libsasl2-dev
+        run: sudo apt-get install -y libldap2-dev libsasl2-dev libsystemd-dev
       - name: Install Python dependencies
         run: pip install .[test,extra,docs,lint]
       - name: Get changed files

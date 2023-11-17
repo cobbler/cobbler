@@ -64,6 +64,7 @@ jobs:
           python3-gunicorn
           systemd
           libsasl2-dev
+          libsystemd-dev
       - name: Install Deps for installing project
         run: pip install Sphinx coverage wheel
       - name: Fetch date for version bump
