@@ -53,7 +53,7 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
 
     # FIXME: use the logger
 
-    with open("/var/log/cobbler/install.log", "a+", encoding="UTF-8") as install_log_fd:
+    with open("/var/log/cobbler/install.log", "a", encoding="UTF-8") as install_log_fd:
         install_log_fd.write(f"{objtype}\t{name}\t{ip_address}\tstart\t{time.time()}\n")
 
     return 0

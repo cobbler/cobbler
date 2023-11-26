@@ -80,7 +80,7 @@ class FileSerializer(StorageBase):
             indent = None
 
         _dict = item.serialize()
-        with open(filename, "w+", encoding="UTF-8") as file_descriptor:
+        with open(filename, "w", encoding="UTF-8") as file_descriptor:
             data = json.dumps(_dict, sort_keys=sort_keys, indent=indent)
             file_descriptor.write(data)
 

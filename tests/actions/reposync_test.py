@@ -538,7 +538,7 @@ def test_create_local_file(mocker, reposync_object, repo):
     # Assert
     # TODO: Extend checks
     assert mock_open.call_count == 1
-    assert mock_open.mock_calls[0] == mocker.call("config.repo", "w+", encoding="UTF-8")
+    assert mock_open.mock_calls[0] == mocker.call("config.repo", "w", encoding="UTF-8")
     mock_open_handle = mock_open()
     assert mock_open_handle.write.mock_calls[0] == mocker.call("[testrepo0]\n")
     assert mock_open_handle.write.mock_calls[1] == mocker.call("name=testrepo0\n")

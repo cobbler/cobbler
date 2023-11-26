@@ -900,7 +900,7 @@ class _ImportSignatureManager(ManagerModule):
             # the @@http_server@@ left as templating magic.
             # repo_url2 is actually no longer used. (?)
 
-            with open(fname, "w+", encoding="UTF-8") as config_file:
+            with open(fname, "w", encoding="UTF-8") as config_file:
                 config_file.write(f"[core-{counter}]\n")
                 config_file.write(f"name=core-{counter}\n")
                 config_file.write(

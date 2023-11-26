@@ -145,7 +145,7 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
         """
         # dnsmasq knows how to read this database of MACs -> IPs, so we'll keep it up to date every time we add a
         # system.
-        with open("/etc/ethers", "w+", encoding="UTF-8") as ethers_fh:
+        with open("/etc/ethers", "w", encoding="UTF-8") as ethers_fh:
             for system in self.systems:
                 if not system.is_management_supported(cidr_ok=False):
                     continue
@@ -164,7 +164,7 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
         """
         # dnsmasq knows how to read this database for host info (other things may also make use of this later)
         with open(
-            "/var/lib/cobbler/cobbler_hosts", "w+", encoding="UTF-8"
+            "/var/lib/cobbler/cobbler_hosts", "w", encoding="UTF-8"
         ) as regen_hosts_fd:
             for system in self.systems:
                 if not system.is_management_supported(cidr_ok=False):

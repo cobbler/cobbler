@@ -1,0 +1,1 @@
+Do not open files for reading if we are only writing to them
