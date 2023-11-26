@@ -501,23 +501,22 @@ class _ImportSignatureManager(ManagerModule):
                     "skipping import, as distro name already exists: %s", name
                 )
                 continue
-            new_distro = self.api.new_distro()
 
             if name.find("-autoboot") != -1:
                 # this is an artifact of some EL-3 imports
                 continue
 
-            new_distro.name = name
-            new_distro.kernel = kernel
-            new_distro.initrd = initrd
-            new_distro.arch = pxe_arch
-            new_distro.breed = self.breed  # type: ignore
-            new_distro.os_version = self.os_version  # type: ignore
-            new_distro.kernel_options = self.signature.get("kernel_options", "")
-            new_distro.kernel_options_post = self.signature.get(
-                "kernel_options_post", ""
+            new_distro = self.api.new_distro(
+                name=name,
+                kernel=kernel,
+                initrd=initrd,
+                arch=pxe_arch,
+                breed=self.breed,  # type: ignore
+                os_version=self.os_version,  # type: ignore
+                kernel_options=self.signature.get("kernel_options", {}),
+                kernel_options_post=self.signature.get("kernel_options_post", {}),
+                template_files=self.signature.get("template_files", {}),
             )
-            new_distro.template_files = self.signature.get("template_files", "")
 
             boot_files: Dict[str, str] = {}
             for boot_file in self.signature["boot_files"]:
@@ -535,16 +534,16 @@ class _ImportSignatureManager(ManagerModule):
             existing_profile = self.profiles.find(name=name)
 
             if existing_profile is None:
-                new_profile = self.api.new_profile()
+                new_profile = self.api.new_profile(
+                    name=name,
+                    distro=name,
+                    autoinstall=self.autoinstall_file,  # type: ignore
+                )
             else:
                 self.logger.info(
                     "skipping existing profile, name already exists: %s", name
                 )
                 continue
-
-            new_profile.name = name
-            new_profile.distro = name
-            new_profile.autoinstall = self.autoinstall_file  # type: ignore
 
             # depending on the name of the profile we can
             # define a good virt-type for usage with koan
