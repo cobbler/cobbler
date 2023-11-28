@@ -102,7 +102,8 @@ PXE Menus
 Cobbler will automatically generate PXE menus for all profiles that have the ``enable_menu`` property set. You can
 enable this with:
 
-.. code-block:: shell
+.. code-block:: shell-session
+
    cobbler profile edit --name=PROFILE --enable-menu=yes
 
 Running ``cobbler sync`` is required to generate and update these menus.

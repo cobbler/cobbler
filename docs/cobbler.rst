@@ -478,7 +478,7 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 |                     |                                                                                                |
 |                     | Example:                                                                                       |
 |                     |                                                                                                |
-|                     | .. code-block::                                                                                |
+|                     | .. code-block:: shell-session                                                                  |
 |                     |                                                                                                |
 |                     |     cobbler system edit --name=foo \                                                           |
 |                     |                         --interface=eth0 \                                                     |
@@ -507,7 +507,7 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 |                     |                                                                                                |
 |                     | Example:                                                                                       |
 |                     |                                                                                                |
-|                     | .. code-block::                                                                                |
+|                     | .. code-block:: shell-session                                                                  |
 |                     |                                                                                                |
 |                     |     cobbler system report --name=foo                                                           |
 |                     |                                                                                                |

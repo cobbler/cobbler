@@ -31,7 +31,7 @@ Example Call:
 
 Example Output:
 
-.. code-block::
+.. code-block:: text
 
     #{
         "allow_duplicate_hostnames": false,
@@ -61,10 +61,10 @@ Example Call:
 
 Example Output:
 
-.. code-block::
+.. code-block:: yaml
 
-    # this file intentionally left blank
-    # admins:  edit it as you like, or leave it blank for non-interactive install
+   # this file intentionally left blank
+   # admins:  edit it as you like, or leave it blank for non-interactive install
 
 System
 ------
@@ -73,14 +73,14 @@ Example Call:
 
 .. code-block:: console
 
-    curl http://localhost/cblr/svc/op/autoinstall/system/example_system
+   curl http://localhost/cblr/svc/op/autoinstall/system/example_system
 
 Example Output:
 
-.. code-block::
+.. code-block:: yaml
 
-    # this file intentionally left blank
-    # admins:  edit it as you like, or leave it blank for non-interactive install
+   # this file intentionally left blank
+   # admins:  edit it as you like, or leave it blank for non-interactive install
 
 ks
 ==
@@ -95,14 +95,14 @@ Example Call:
 
 .. code-block:: console
 
-    curl http://localhost/cblr/svc/op/ks/profile/example_profile
+   curl http://localhost/cblr/svc/op/ks/profile/example_profile
 
 Example Output:
 
-.. code-block::
+.. code-block:: yaml
 
-    # this file intentionally left blank
-    # admins:  edit it as you like, or leave it blank for non-interactive install
+   # this file intentionally left blank
+   # admins:  edit it as you like, or leave it blank for non-interactive install
 
 System
 ------
@@ -115,10 +115,10 @@ Example Call:
 
 Example Output:
 
-.. code-block::
+.. code-block:: yaml
 
-    # this file intentionally left blank
-    # admins:  edit it as you like, or leave it blank for non-interactive install
+   # this file intentionally left blank
+   # admins:  edit it as you like, or leave it blank for non-interactive install
 
 iPXE
 ====
@@ -136,7 +136,7 @@ Example Call:
 
 Example Output:
 
-.. code-block::
+.. code-block:: text
 
     :example_profile
     kernel /images/example_distro/vmlinuz   initrd=initrd.magic
@@ -170,7 +170,7 @@ Example Call:
 
 Example Output:
 
-.. code-block::
+.. code-block:: text
 
     #!ipxe
     iseq ${smbios/manufacturer} HP && exit ||
@@ -195,7 +195,7 @@ Example Call:
 
 Example Output:
 
-.. code-block::
+.. code-block:: text
 
     bootstate=0
     title=Loading ESXi installer
@@ -217,7 +217,7 @@ Example Call:
 
 Example Output:
 
-.. code-block::
+.. code-block:: text
 
     bootstate=0
     title=Loading ESXi installer
@@ -272,9 +272,9 @@ Example Call:
 
 Example Output:
 
-.. code-block::
+.. code-block:: yaml
 
-    []
+   []
 
 .. warning:: If the specified user doesn't exist there is currently no output.
 
@@ -353,9 +353,9 @@ Example Call:
 
 Example Output:
 
-.. code-block::
+.. code-block:: yaml
 
-    False
+   False
 
 Profile
 -------
@@ -368,9 +368,9 @@ Example Call:
 
 Example Output:
 
-.. code-block::
+.. code-block:: yaml
 
-    False
+   False
 
 System
 ------
@@ -383,9 +383,9 @@ Example Call:
 
 Example Output:
 
-.. code-block::
+.. code-block:: yaml
 
-    False
+   False
 
 noPXE
 =====
@@ -400,9 +400,9 @@ Example Call:
 
 Example Output:
 
-.. code-block::
+.. code-block:: yaml
 
-    True
+   True
 
 list
 ====
@@ -421,7 +421,7 @@ Example Call:
 
 Example Output:
 
-.. code-block::
+.. code-block:: text
 
     example_profile
     example_profile2

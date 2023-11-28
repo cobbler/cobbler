@@ -47,7 +47,7 @@ Unpack the ZIP-file and move the binary-file into ``/usr/local/bin``.
 Make sure you’re using at least **Terraform v0.14 or higher**.
 Check with ``terraform version``:
 
-.. code::
+.. code-block:: text
 
   $ terraform version
   Terraform v0.14.5
@@ -62,7 +62,7 @@ After setting up a Cobbler Terraform repository for the first time, run
 ``terraform init`` in the **basedir**, so the Cobbler provider
 gets installed automatically in ``tf_cobbler/.terraform/providers``.
 
-.. code::
+.. code-block:: text
 
     $ terraform init
 
@@ -117,7 +117,7 @@ of software testing and deployment in the `DTAP <https://en.wikipedia.org/wiki/D
 
 The directory-tree would look something like this:
 
-.. code::
+.. code-block:: text
 
    ├── .gitignore
    ├── .terraform
@@ -161,7 +161,7 @@ one **symlinked** directory ``.terraform`` and files **symlinked**
 from the root: ``versions.tf``, ``variables.tf``. ``.terraform.lock.hcl``
 and ``terraform.tfvars``:
 
-.. code::
+.. code-block:: text
 
    tf_cobbler/production/webserver
    .
@@ -182,7 +182,7 @@ File ``versions.tf``
 
 The block in this file specifies the required provider version and required Terraform version for the configuration.
 
-.. code::
+.. code-block:: terraform
 
   terraform {
     required_version = ">= 0.14"
@@ -204,7 +204,7 @@ in the basedir of your repo.
 File ``terraform.tfvars``
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code::
+.. code-block:: terraform
 
    cobbler_username = "cobbler"
    cobbler_password = "<the Cobbler-password>"
@@ -227,7 +227,7 @@ File ``variables.tf``
 
    Excerpt from: James Turnbull, "The Terraform Book."
 
-.. code::
+.. code-block:: terraform
 
    variable "cobbler_username" {
      description = "Cobbler admin user"
@@ -262,7 +262,7 @@ It has been cleaned up with the
 .. important::
    Make sure there is only **ONE** gateway defined on **ONE** interface!
 
-.. code::
+.. code-block:: terraform
 
    resource "cobbler_system" "webserver" {
      count            = "1"
@@ -309,7 +309,7 @@ Example configuration - snippet
 
 This is the ``main.tf`` for a snippet:
 
-.. code::
+.. code-block:: terraform
 
   resource "cobbler_snippet" "partitioning-VMware" {
     name = "partitioning-VMware"
@@ -322,7 +322,7 @@ snippet.
 Example configuration - repo
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code::
+.. code-block:: terraform
 
   resource "cobbler_repo" "debian10-x86_64" {
     name           = "debian10-x86_64"
@@ -336,7 +336,7 @@ Example configuration - repo
 Example configuration - distro
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code::
+.. code-block:: terraform
 
   resource "cobbler_distro" "debian10-x86_64" {
     name            = "debian10-x86_64"
@@ -350,7 +350,7 @@ Example configuration - distro
 Example configuration - profile
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code::
+.. code-block:: terraform
 
   resource "cobbler_profile" "debian10-x86_64" {
     name                = "debian10-x86_64"
@@ -369,7 +369,7 @@ Example configuration - combined
 It is also possible to combine multiple resources into one file.
 For example, this will combine an Ubuntu Bionic distro, a profile and a system:
 
-.. code::
+.. code-block:: terraform
 
   resource "cobbler_distro" "foo" {
       name = "foo"
@@ -413,7 +413,7 @@ File ``set_links.sh``
 The file ``set_links.sh`` is used to symlink to the default variables.
 We need these in every subdirectory.
 
-.. code:: shell
+.. code-block:: shell
 
   #!/bin/sh
 
@@ -426,7 +426,7 @@ We need these in every subdirectory.
 Adding a new system
 ~~~~~~~~~~~~~~~~~~~
 
-.. code::
+.. code-block:: text
 
    git pull --rebase <-- Refresh the repository
 

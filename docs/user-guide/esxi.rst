@@ -74,7 +74,7 @@ Now add a system with the previously created profile
 
 Entries in the ``/etc/dhcp/dhcpd.conf`` file should have been generated for system ``some-esxi-host``.
 
- .. code-block::
+ .. code-block:: text
 
     # group for Cobbler DHCP tag: default
     group {
@@ -267,7 +267,7 @@ iPXE boot can be enabled on a profile or system basis.
 
 After enabling iPXE, you shoud see a different DHCP configuration for the host.
 
-.. code-block::
+.. code-block:: text
 
     ...
     # group for Cobbler DHCP tag: default
