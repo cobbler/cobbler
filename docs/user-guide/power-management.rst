@@ -34,27 +34,27 @@ Example of Set Up
 
 You have a WTI powerbar. Define that system foo is a part of that powerbar on plug 7
 
-.. code-block::
+.. code-block:: shell
 
-    cobbler system edit --name foo --power-type=wti --power-address=foo-mgmt.example.org --power-user Administrator --power-pass PASSWORD --power-id 7
+   cobbler system edit --name foo --power-type=wti --power-address=foo-mgmt.example.org --power-user Administrator --power-pass PASSWORD --power-id 7
 
 You have a DRAC based blade:
 
-.. code-block::
+.. code-block:: shell
 
-    cobbler system edit --name blade7 --power-type=drac --power-address=blade-mgmt.example.org --power-user Administrator --power-pass=PASSWORD --power-id blade7
+   cobbler system edit --name blade7 --power-type=drac --power-address=blade-mgmt.example.org --power-user Administrator --power-pass=PASSWORD --power-id blade7
 
 You have an IPMI based system:
 
-.. code-block::
+.. code-block:: shell
 
-    cobbler system edit --name foo --power-type=ipmi --power-address=foo-mgmt.example.org --power-user Administrator --power-pass=PASSWORD
+   cobbler system edit --name foo --power-type=ipmi --power-address=foo-mgmt.example.org --power-user Administrator --power-pass=PASSWORD
 
 You have a IBM HMC managed system:
 
-.. code-block::
+.. code-block:: shell
 
-    cobbler system edit --name 9115-505 --power-type=lpar --power-address=ibm-hmc.example.org --power-user hscroot --power-pass=PASSWORD --power-id system:partition
+   cobbler system edit --name 9115-505 --power-type=lpar --power-address=ibm-hmc.example.org --power-user hscroot --power-pass=PASSWORD --power-id system:partition
 
 .. note:: The *--power-id* option is used to indicate **both** the managed system name and a logical partition name.
           Since an IBM HMC is responsible for managing more than one system, you must supply the managed system name
@@ -62,9 +62,9 @@ You have a IBM HMC managed system:
 
 You have an IBM Bladecenter:
 
-.. code-block::
+.. code-block:: shell
 
-    cobbler system edit --name blade-06 --power-type=bladecenter --power-address=blademm.example.org --power-user USERID --power-pass=PASSW0RD --power-id 6
+   cobbler system edit --name blade-06 --power-type=bladecenter --power-address=blademm.example.org --power-user USERID --power-pass=PASSW0RD --power-id 6
 
 .. note:: The ``*--power-id*`` option is used to specify what slot your blade is connected.
 
@@ -88,28 +88,28 @@ Using the Power Management Features
 
 Assigning A System To Be Installed To A New Profile
 
-.. code-block::
+.. code-block:: shell
 
-    cobbler system edit --name=foo --netboot-enabled=1 --profile=install-this-profile-name-instead
+   obbler system edit --name=foo --netboot-enabled=1 --profile=install-this-profile-name-instead
 
 Powering Off A System
 
-.. code-block::
+.. code-block:: shell
 
-    cobbler system poweroff --name=foo
+   cobbler system poweroff --name=foo
 
 Powering On A System
 
-.. code-block::
+.. code-block:: shell
 
-    cobbler system poweron --name=foo
+   cobbler system poweron --name=foo
 
 Rebooting A System (if netboot-enabled is turned on, it will now
 reinstall to the new profile -- assuming PXE is working)
 
-.. code-block::
+.. code-block:: shell
 
-    cobbler system reboot --name=foo
+   cobbler system reboot --name=foo
 
 Since not all power management systems support reboot, this is a "power off, sleep for 1 second, and power on"
 operation.
@@ -140,9 +140,9 @@ This may also be too insecure for some, so in this case, don't set these, and su
 ``--power-pass`` when running commands like ``cobbler system poweron`` and ``cobbler system poweroff``. The values used
 on the command line are always used, regardless of the value stored in Cobbler or the environment, if so provided.
 
-.. code-block::
+.. code-block:: shell
 
-    cobbler system poweron --name=foo --power-user=X --power-pass=Y
+   cobbler system poweron --name=foo --power-user=X --power-pass=Y
 
 Be advised of current limitations in storing passwords, make your choices accordingly and in relation to the
 ease-of-use that you need, and secure your networks appropriately.

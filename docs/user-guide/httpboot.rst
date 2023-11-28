@@ -11,7 +11,7 @@ HTTP configuration
 On the Cobbler server create the following files in ``/etc/apache2/conf.d/http-tftpboot.conf`` with the following
 content:
 
-.. code-block::
+.. code-block:: text
 
     # allow http access to /srv/tftpboot/grub
     Alias "/httpboot" "/srv/tftpboot"
@@ -30,9 +30,9 @@ content:
 
 After the changes have been made issue the following command:
 
-.. code-block::
+.. code-block:: shell
 
-    systemctl restart apache2.service
+   systemctl restart apache2.service
 
 
 DHCP configuration
@@ -40,31 +40,29 @@ DHCP configuration
 
 To use HTTP-boot the following 2 entries need to be added:
 
-.. code-block::
+.. code-block:: text
 
-      option vendor-class-identifier "HTTPClient";
-      filename "http://<ip address SUSE Manager Server>/httpboot/grub/shim.efi";
+   option vendor-class-identifier "HTTPClient";
+   filename "http://<ip address SUSE Manager Server>/httpboot/grub/shim.efi";
 
 The following example can be used if both traditional and HTTP boot are needed. It is recommended to use ``class``-ses
 for this.
 
 Example Configuration:
 
-.. code-block::
+.. code-block:: text
 
-    class "pxeclients" {
-      match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
-      next-server <ip address SUSE Manager Server>;
-      filename "pxelinux.0";
-    }
+   class "pxeclients" {
+     match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
+     next-server <ip address SUSE Manager Server>;
+     filename "pxelinux.0";
+   }
 
-    class "httpclients" {
-      match if substring (option vendor-class-identifier, 0, 10) = "HTTPClient";
-      option vendor-class-identifier "HTTPClient";
-      filename "http://<ip address SUSE Manager Server>/httpboot/grub/shim.efi";
-    }
-
-
+   class "httpclients" {
+     match if substring (option vendor-class-identifier, 0, 10) = "HTTPClient";
+     option vendor-class-identifier "HTTPClient";
+     filename "http://<ip address SUSE Manager Server>/httpboot/grub/shim.efi";
+   }
 
 Author
 ======

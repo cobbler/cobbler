@@ -22,10 +22,10 @@ Arbitrary NIC naming
 
 You can give your network interface (almost) any name you like.
 
-.. code-block::
+.. code-block:: shell
 
-    cobbler system edit --name=foo1.bar.local --interface=mgmt --mac=AA:BB:CC:DD:EE:F0]
-    cobbler system edit --name=foo1.bar.local --interface=dmz --mac=AA:BB:CC:DD:EE:F1
+   cobbler system edit --name=foo1.bar.local --interface=mgmt --mac=AA:BB:CC:DD:EE:F0]
+   cobbler system edit --name=foo1.bar.local --interface=dmz --mac=AA:BB:CC:DD:EE:F1
 
 The default interface is named ``default``, but you don't have to call it that.
 
@@ -38,9 +38,9 @@ Name Servers
 For static systems, the ``--name-servers`` parameter can be used to
 specify a list of name servers to assign to the systems.
 
-.. code-block::
+.. code-block:: shell
 
-    cobbler system edit --name=foo --interface=eth0 --mac=AA:BB:CC::DD:EE:FF --static=1 --name-servers="<ip1> <ip2>"
+   cobbler system edit --name=foo --interface=eth0 --mac=AA:BB:CC::DD:EE:FF --static=1 --name-servers="<ip1> <ip2>"
 
 DNS and DHCP Management
 -----------------------
@@ -56,11 +56,11 @@ physical interfaces to one logical interface, for redundancy and/or performance.
 You can set up a bond, to join interfaces eth0 and ``eth1`` to a failover (active-backup) interface ``bond0`` as
 follows:
 
-.. code-block::
+.. code-block:: shell
 
-    cobbler system edit --name=foo2.bar.local --interface=eth0 --mac=AA:BB:CC:DD:EE:F0 --bonding=slave --bonding-master=bond0
-    cobbler system edit --name=foo2.bar.local --interface=eth1 --mac=AA:BB:CC:DD:EE:F1 --bonding=slave --bonding-master=bond0
-    cobbler system edit --name=foo2.bar.local --interface=bond0 --bonding=master --bonding-opts="miimon=100 mode=1"
+   cobbler system edit --name=foo2.bar.local --interface=eth0 --mac=AA:BB:CC:DD:EE:F0 --bonding=slave --bonding-master=bond0
+   cobbler system edit --name=foo2.bar.local --interface=eth1 --mac=AA:BB:CC:DD:EE:F1 --bonding=slave --bonding-master=bond0
+   cobbler system edit --name=foo2.bar.local --interface=bond0 --bonding=master --bonding-opts="miimon=100 mode=1"
 
 Static routes
 =============
@@ -71,9 +71,9 @@ The format of a static route is: ``network/CIDR:gateway``
 
 So, for example to route the ``192.168.1.0/24`` network through ``192.168.1.254``:
 
-.. code-block::
+.. code-block:: shell
 
-    $ cobbler system edit --name=foo --interface=eth0 --static-routes="192.168.1.0/24:192.168.1.254"
+   cobbler system edit --name=foo --interface=eth0 --static-routes="192.168.1.0/24:192.168.1.254"
 
 As with all lists in cobbler, the ``--static-routes`` list is space-separated so you can specify multiple static routes
 if needed.
@@ -84,11 +84,11 @@ VLANs
 You can now add VLAN tags to interfaces from Cobbler. In this case we have two VLANs on ``eth0``: 10 and 20. The default
 VLAN (untagged traffic) is not used:
 
-.. code-block::
+.. code-block:: shell
 
-    cobbler system edit --name=foo3.bar.local --interface=eth0 --mac=AA:BB:CC:DD:EE:F0 --static=1
-    cobbler system edit --name=foo3.bar.local --interface=eth0.10 --static=1 --ip=10.0.10.5 --subnet=255.255.255.0
-    cobbler system edit --name=foo3.bar.local --interface=eth0.20 --static=1 --ip=10.0.20.5 --subnet=255.255.255.0
+   cobbler system edit --name=foo3.bar.local --interface=eth0 --mac=AA:BB:CC:DD:EE:F0 --static=1
+   cobbler system edit --name=foo3.bar.local --interface=eth0.10 --static=1 --ip=10.0.10.5 --subnet=255.255.255.0
+   cobbler system edit --name=foo3.bar.local --interface=eth0.20 --static=1 --ip=10.0.20.5 --subnet=255.255.255.0
 
 You have to install the vconfig package for this to work.
 

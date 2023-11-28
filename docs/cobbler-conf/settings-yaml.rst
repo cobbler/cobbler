@@ -214,14 +214,14 @@ Email out a report when Cobbler finishes installing a system.
 
 defaults:
 
-.. code:: YAML
+.. code-block:: yaml
 
-    build_reporting_enabled: false
-    build_reporting_sender: ""
-    build_reporting_email: [ 'root@localhost' ]
-    build_reporting_smtp_server: "localhost"
-    build_reporting_subject: ""
-    build_reporting_ignorelist: [ "" ]
+   build_reporting_enabled: false
+   build_reporting_sender: ""
+   build_reporting_email: [ 'root@localhost' ]
+   build_reporting_smtp_server: "localhost"
+   build_reporting_subject: ""
+   build_reporting_ignorelist: [ "" ]
 
 buildisodir
 ###########
@@ -291,10 +291,10 @@ configurations you probably do **not** want to supply this.
 
 defaults:
 
-.. code:: YAML
+.. code-block:: yaml
 
-    default_name_servers: []
-    default_name_servers_search: []
+   default_name_servers: []
+   default_name_servers_search: []
 
 default_ownership
 #################
@@ -432,22 +432,22 @@ using LDAP for WebUI/XML-RPC authentication.
 
 defaults:
 
-.. code::
+.. code-block:: yaml
 
-    ldap_server: "ldap.example.com"
-    ldap_base_dn: "DC=example,DC=com"
-    ldap_port: 389
-    ldap_tls: true
-    ldap_anonymous_bind: true
-    ldap_search_bind_dn: ''
-    ldap_search_passwd: ''
-    ldap_search_prefix: 'uid='
-    ldap_tls_cacertdir: ''
-    ldap_tls_cacertfile: ''
-    ldap_tls_certfile: ''
-    ldap_tls_keyfile: ''
-    ldap_tls_reqcert: 'hard'
-    ldap_tls_cipher_suite: ''
+   ldap_server: "ldap.example.com"
+   ldap_base_dn: "DC=example,DC=com"
+   ldap_port: 389
+   ldap_tls: true
+   ldap_anonymous_bind: true
+   ldap_search_bind_dn: ''
+   ldap_search_passwd: ''
+   ldap_search_prefix: 'uid='
+   ldap_tls_cacertdir: ''
+   ldap_tls_cacertfile: ''
+   ldap_tls_certfile: ''
+   ldap_tls_keyfile: ''
+   ldap_tls_reqcert: 'hard'
+   ldap_tls_cipher_suite: ''
 
 bind_manage_ipmi
 ################
@@ -496,10 +496,10 @@ lists which zones are managed. See :ref:`dns-management` for more information.
 
 defaults:
 
-.. code::
+.. code-block:: yaml
 
-    manage_forward_zones: []
-    manage_reverse_zones: []
+   manage_forward_zones: []
+   manage_reverse_zones: []
 
 manage_genders
 ##############
@@ -533,9 +533,9 @@ parameters work in conjunction with ``--mgmt-classes`` and are described in furt
 
 .. code-block:: YAML
 
-    mgmt_classes: []
-    mgmt_parameters:
-        from_cobbler: true
+   mgmt_classes: []
+   mgmt_parameters:
+       from_cobbler: true
 
 next_server_v4
 ##############
@@ -633,7 +633,7 @@ External proxy which is used by the following commands: ``reposync``, ``signatur
 
 defaults:
 
-.. code::
+.. code-block:: text
 
   http: http://192.168.1.1:8080
   https: https://192.168.1.1:8443
@@ -792,10 +792,10 @@ need to change this.
 
 defaults:
 
-.. code:: YAML
+.. code-block:: YAML
 
-    restart_dns: true
-    restart_dhcp: true
+   restart_dns: true
+   restart_dhcp: true
 
 run_install_triggers
 ####################
@@ -816,12 +816,12 @@ purposes. Git and Mercurial are currently supported, but Git is the recommend SC
 
 default:
 
-.. code:: YAML
+.. code-block:: YAML
 
-    scm_track_enabled: false
-    scm_track_mode: "git"
-    scm_track_author: "cobbler <cobbler@localhost>"
-    scm_push_script: "/bin/true"
+   scm_track_enabled: false
+   scm_track_mode: "git"
+   scm_track_author: "cobbler <cobbler@localhost>"
+   scm_push_script: "/bin/true"
 
 serializer_pretty_json
 ######################
@@ -894,23 +894,23 @@ Directories that will not get wiped and recreated on a ``cobbler sync``.
 
 default:
 
-.. code::
+.. code-block:: yaml
 
-    webdir_whitelist:
-      - misc
-      - web
-      - webui
-      - localmirror
-      - repo_mirror
-      - distro_mirror
-      - images
-      - links
-      - pub
-      - repo_profile
-      - repo_system
-      - svc
-      - rendered
-      - .link_cache
+   webdir_whitelist:
+     - misc
+     - web
+     - webui
+     - localmirror
+     - repo_mirror
+     - distro_mirror
+     - images
+     - links
+     - pub
+     - repo_profile
+     - repo_system
+     - svc
+     - rendered
+     - .link_cache
 
 windows_enabled
 ###############

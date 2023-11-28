@@ -34,7 +34,7 @@ A logically automatic network installation of Windows 7 and newer can be represe
 
 PXE + Legacy BIOS Boot
 
-.. code::
+.. code-block:: text
 
     Original files: pxeboot.n12 → bootmgr.exe → BCD → winpe.wim → startnet.cmd → autounattended.xml
     Cobbler profile 1: pxeboot.001 → boot001.exe → 001 → wi001.wim → startnet.cmd → autounatten001.xml → post_install.cmd profile_name
@@ -42,7 +42,7 @@ PXE + Legacy BIOS Boot
 
 iPXE + UEFI Boot
 
-.. code::
+.. code-block:: text
 
     Original files: ipxe-x86_64.efi → wimboot → bootmgr.exe → BCD → winpe.wim → startnet.cmd → autounattended.xml
     Cobbler profile 1: ipxe-x86_64.efi → wimboot → bootmgr.exe → 001 → wi001.wim → startnet.cmd → autounatten001.xml → post_install.cmd profile_name
@@ -50,7 +50,7 @@ iPXE + UEFI Boot
 
 For older versions (Windows XP, 2003) + RIS:
 
-.. code::
+.. code-block:: text
 
     Original files: pxeboot.n12 → setupldr.exe → winnt.sif → post_install.cmd profile_name
     Cobbler profile <xxx>: pxeboot.<xxx> → setup<xxx>.exe → wi<xxx>.sif → post_install.cmd profile_name
@@ -142,16 +142,16 @@ Preparing for an unattended network installation of Windows
 * ``dnf install python3-pefile python3-hivex wimlib-utils``
 * enable Windows support in settings ``/etc/cobbler/settings.yaml``:
 
-    .. code::
+    .. code-block:: yaml
 
-        windows_enabled: true
+       windows_enabled: true
 
 * If you have ``file 5.37`` or newer installed (openSUSE Tumbleweed, Debian 11, RHEL/Rocky Linux 9, Fedora 37)
   you can easily import the Wibdows distro:
 
-    .. code::
+    .. code-block:: shell
 
-        cobbler import --name=Win10_EN-x64 --path=/mnt
+       cobbler import --name="Win10_EN-x64" --path="/mnt"
 
     This command will determine the version and architecture of the Windows distribution, will extract the necessary boot
     files from the distribution and create a distro and profile named ``Win10_EN-x64``.
@@ -163,7 +163,7 @@ Preparing for an unattended network installation of Windows
 
   * ADK for Windows 10 / 8.1
 
-.. code::
+.. code-block:: text
 
     Start -> Apps -> Windows Kits -> Deployment and Imaging Tools Environment
 
@@ -171,13 +171,13 @@ or
 
   * WAIK for Windows 7
 
-.. code::
+.. code-block:: text
 
     Start -> All Programs -> Microsoft Windows AIK -> Deployment Tools Command Prompt
 
-.. code::
+.. code-block:: text
 
-    copype.cmd <amd64|x86|arm> c:\winpe
+   copype.cmd <amd64|x86|arm> c:\winpe
 
 After executing the command, the WinPE image will be located in ``.\winpe.wim`` for WAIK and in
 ``media\sources\boot.wim`` for ADK. You can use either it or replace it with the one that has been obtained as a result
@@ -218,7 +218,7 @@ Example:
 
 Replace the line in the ``/etc/systemd/system/tftp.service``
 
-.. code::
+.. code-block:: text
 
     ExecStart=/usr/sbin/in.tftpd -s /var/lib/tftpboot
         to:

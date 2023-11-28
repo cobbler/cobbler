@@ -42,16 +42,16 @@ Default encrypted password
 
 This setting controls the root password that is set for new systems during the handsoff installation.
 
-.. code::
+.. code-block:: yaml
 
-    default_password_crypted: "$1$bfI7WLZz$PxXetL97LkScqJFxnW7KS1"
+   default_password_crypted: "$1$bfI7WLZz$PxXetL97LkScqJFxnW7KS1"
 
 You should modify this by running the following command and inserting the output into the above string (be sure to save
 the quote marks):
 
-.. code-block:: shell
+.. code-block:: shell-session
 
-    $ openssl passwd -1
+   openssl passwd -1
 
 
 Server and next_server
@@ -61,16 +61,16 @@ The ``server`` option sets the IP that will be used for the address of the Cobbl
 is not the listening address. This should be set to the IP you want hosts that are being built to contact the Cobbler
 server on for such protocols as HTTP and TFTP.
 
-.. code::
+.. code-block:: yaml
 
-    server: 127.0.0.1
+   server: 127.0.0.1
 
 The ``next_server`` option is used for DHCP/PXE as the IP of the TFTP server from which network boot files are
 downloaded. Usually, this will be the same IP as the server setting.
 
-.. code::
+.. code-block:: yaml
 
-    next_server: 127.0.0.1
+   next_server: 127.0.0.1
 
 
 DHCP management and DHCP server template
@@ -79,9 +79,9 @@ DHCP management and DHCP server template
 In order to PXE boot, you need a DHCP server to hand out addresses and direct the booting system to the TFTP server
 where it can download the network boot files. Cobbler can manage this for you, via the ``manage_dhcp`` setting:
 
-.. code::
+.. code-block:: yaml
 
-    manage_dhcp: 0
+   manage_dhcp: 0
 
 Change that setting to 1 so Cobbler will generate the ``dhcpd.conf`` file based on the ``dhcp.template`` that is
 included with Cobbler. This template will most likely need to be modified as well, based on your network settings:
@@ -92,7 +92,7 @@ included with Cobbler. This template will most likely need to be modified as wel
 
 For most uses, you'll only need to modify this block:
 
-.. code::
+.. code-block:: text
 
     subnet 192.168.1.0 netmask 255.255.255.0 {
         option routers             192.168.1.1;
@@ -108,7 +108,7 @@ No matter what, make sure you do not modify the ``next-server $next_server_v4;``
 setting is pulled into the configuration. This file is a cheetah template, so be sure not to modify anything starting
 after this line:
 
-.. code::
+.. code-block:: cheetah
 
     #for dhcp_tag in $dhcp_tags.keys():
 
