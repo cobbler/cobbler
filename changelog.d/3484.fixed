@@ -1,0 +1,1 @@
+Fix isc manager to correctly test and restart both daemons (ipv6 and ipv4)
