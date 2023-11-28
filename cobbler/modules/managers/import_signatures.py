@@ -501,23 +501,22 @@ class _ImportSignatureManager(ManagerModule):
                     "skipping import, as distro name already exists: %s", name
                 )
                 continue
-            new_distro = self.api.new_distro()
 
             if name.find("-autoboot") != -1:
                 # this is an artifact of some EL-3 imports
                 continue
 
-            new_distro.name = name
-            new_distro.kernel = kernel
-            new_distro.initrd = initrd
-            new_distro.arch = pxe_arch
-            new_distro.breed = self.breed  # type: ignore
-            new_distro.os_version = self.os_version  # type: ignore
-            new_distro.kernel_options = self.signature.get("kernel_options", "")
-            new_distro.kernel_options_post = self.signature.get(
-                "kernel_options_post", ""
+            new_distro = self.api.new_distro(
+                name=name,
+                kernel=kernel,
+                initrd=initrd,
+                arch=pxe_arch,
+                breed=self.breed,  # type: ignore
+                os_version=self.os_version,  # type: ignore
+                kernel_options=self.signature.get("kernel_options", {}),
+                kernel_options_post=self.signature.get("kernel_options_post", {}),
+                template_files=self.signature.get("template_files", {}),
             )
-            new_distro.template_files = self.signature.get("template_files", "")
 
             boot_files: Dict[str, str] = {}
             for boot_file in self.signature["boot_files"]:
@@ -526,28 +525,24 @@ class _ImportSignatureManager(ManagerModule):
 
             self.configure_tree_location(new_distro)
 
-            self.distros.add(new_distro, save=True)
+            self.api.add_distro(new_distro, save=True)
             distros_added.append(new_distro)
 
-            # see if the profile name is already used, if so, skip it and
-            # do not modify the existing profile
-
+            # see if the profile name is already used, if so, skip it and do not modify the existing profile
             existing_profile = self.profiles.find(name=name)
-
-            if existing_profile is None:
-                new_profile = self.api.new_profile()
-            else:
+            if existing_profile is not None:
                 self.logger.info(
                     "skipping existing profile, name already exists: %s", name
                 )
                 continue
 
-            new_profile.name = name
-            new_profile.distro = name
-            new_profile.autoinstall = self.autoinstall_file  # type: ignore
+            new_profile = self.api.new_profile(
+                name=name,
+                distro=name,
+                autoinstall=self.autoinstall_file,  # type: ignore
+            )
 
-            # depending on the name of the profile we can
-            # define a good virt-type for usage with koan
+            # depending on the name of the profile we can define a good virt-type for usage with koan
             if name.find("-xen") != -1:
                 new_profile.virt_type = enums.VirtType.XENPV
             elif name.find("vmware") != -1:
@@ -573,7 +568,7 @@ class _ImportSignatureManager(ManagerModule):
                         "answerfile": "autounattended.xml",
                     }
 
-            self.profiles.add(new_profile, save=True)
+            self.api.add_profile(new_profile, save=True)
 
         return distros_added
 
@@ -752,8 +747,8 @@ class _ImportSignatureManager(ManagerModule):
         :param distribution: The distribution object for which the install tree should be set.
         :param url: The url for the tree.
         """
-        # mypy cannot handle subclassed setters
-        distribution.autoinstall_meta = {"tree": url}  # type: ignore
+        self.logger.debug('Setting "tree" for distro "%s"', distribution.name)
+        distribution.autoinstall_meta = {"tree": url}
 
     # ==========================================================================
     # Repo Functions
@@ -785,7 +780,7 @@ class _ImportSignatureManager(ManagerModule):
             for current_distro_added in distros_added:
                 if current_distro_added.kernel.find("distro_mirror") != -1:
                     repo_adder(current_distro_added)
-                    self.distros.add(
+                    self.api.add_distro(
                         current_distro_added, save=True, with_triggers=False
                     )
                 else:
