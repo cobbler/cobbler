@@ -1,5 +1,1 @@
-os_version must be in lowercase
-path for winpe.wim in case of using wimboot
-BCD: Windows Boot Application (13200003) -> Windows Boot Loader \windows\system32\winload.exe
-BCD: Timeout: 30 -> 0
-Windows templates
+(Windows templates have been redesigned for a quick start, Windows installation documentation has been updated)
