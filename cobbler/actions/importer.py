@@ -106,7 +106,8 @@ class Importer:
         spacer = ""
         if not mirror_url.startswith("rsync://") and not mirror_url.startswith("/"):
             spacer = ' -e "ssh" '
-        rsync_cmd = ["rsync", "--archive"]
+        # --archive but without -p to avoid copying read-only ISO permissions and making sure we have write access
+        rsync_cmd = ["rsync", "-rltgoD", "--chmod=ug=rwX"]
         if spacer != "":
             rsync_cmd.append(spacer)
         rsync_cmd.append("--progress")
