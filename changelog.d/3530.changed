@@ -1,0 +1,1 @@
+Change --device flag to mac instead of interface name for pre_install_network_config

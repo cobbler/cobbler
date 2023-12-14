@@ -154,7 +154,7 @@ touch /tmp/pre_install_network_config
 if mac_exists $mac
 then
   get_ifname $mac
-  echo "network --device=\$IFNAME $netinfo" >> /tmp/pre_install_network_config
+  echo "network --device=$mac $netinfo" >> /tmp/pre_install_network_config
             #for $route in $static_routes
                 #if $routepattern.match($route)
                     #set $routebits = $route.split(":")
