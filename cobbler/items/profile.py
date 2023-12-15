@@ -561,6 +561,8 @@ class Profile(item.Item):
         """
         The filename which is fetched by the client from TFTP.
 
+        If the filename is set to ``<<inherit>>`` and there is no parent profile then it will be set to an empty string.
+
         :getter: Either the default/inherited one, or the one specific to this profile.
         :setter: The new filename which is fetched on boot. May raise a ``TypeError`` when the wrong type was given.
         """
