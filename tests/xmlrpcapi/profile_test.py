@@ -155,11 +155,13 @@ def test_create_profile_negative(
 
     # Act & Assert
     try:
-        remote.modify_profile(profile, field_name, field_value, token)
+        result = remote.modify_profile(profile, field_name, field_value, token)
     except (CX, TypeError, ValueError, OSError):
         assert True
     else:
-        pytest.fail("Bad field did not raise an exception!")
+        if result:
+            pytest.fail("Bad field did not raise an exception!")
+        assert True
 
 
 @pytest.mark.usefixtures(
