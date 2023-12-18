@@ -278,16 +278,15 @@ class CobblerAPI:
         """
         self.logger.debug("Creating necessary directories")
         required_directories = [
-            "/var/lib/cobbler",
-            "/etc/cobbler",
-            self.settings().webdir,
-            self.settings().tftpboot_location,
+            pathlib.Path("/var/lib/cobbler"),
+            pathlib.Path("/etc/cobbler"),
+            pathlib.Path(self.settings().webdir),
+            pathlib.Path(self.settings().tftpboot_location),
         ]
         for directory in required_directories:
-            if not pathlib.Path(directory).is_dir():
-                raise FileNotFoundError(
-                    f'Required directory "{directory}" for operation is missing! Aborting startup of Cobbler!'
-                )
+            if not directory.is_dir():
+                directory.mkdir()
+                self.logger.info('Created required directory: "%s"', str(directory))
         filesystem_helpers.create_tftpboot_dirs(self)
         filesystem_helpers.create_web_dirs(self)
         filesystem_helpers.create_trigger_dirs(self)
