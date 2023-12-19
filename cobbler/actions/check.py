@@ -9,11 +9,13 @@ Cobbler Trigger Module that checks against a list of hardcoded potential common 
 import glob
 import logging
 import os
+import pathlib
 import re
 from typing import TYPE_CHECKING, List
 from xmlrpc.client import ServerProxy
 
 from cobbler import utils
+from cobbler.enums import ItemTypes
 from cobbler.utils import process_management
 
 if TYPE_CHECKING:
@@ -86,8 +88,33 @@ class CobblerCheck:
         self.check_for_unreferenced_repos(status)
         self.check_for_unsynced_repos(status)
         self.check_for_cman(status)
+        self.check_for_item_json_validity(status)
 
         return status
+
+    def check_for_item_json_validity(self, status: List[str]):
+        """
+        Check if the JSON files in the Cobbler Collection directory are valid.
+
+        :param status: The status list with possible problems. The status list with possible problems.
+        """
+        found_invalid_items = False
+        # pylint: disable=protected-access
+        for item_type in ItemTypes:
+            for item in self.api.get_items(item_type.value):
+                while "" in item._children:  # type: ignore[reportPrivateUsage]
+                    found_invalid_items = True
+                    status.append(
+                        f"Item Validity Check: The item {item.name} had an empty string as a child."
+                    )
+                    item._children.remove("")  # type: ignore[reportPrivateUsage]
+        if found_invalid_items:
+            self.logger.info(
+                "[cobbler-check] Items will be reloaded to disk due to invalid children!"
+            )
+            # Serialize to persist the changes made to the internal data structure of the items.
+            self.api.serialize()
+            self.logger.info("[cobbler-check] Items successfully reloaded from disk!")
 
     def check_for_ksvalidator(self, status: List[str]) -> None:
         """
