@@ -389,47 +389,19 @@ class Item:
             settings_name = "default_ownership"
         attribute = "_" + property_name
 
-        if not hasattr(self, attribute):
-            raise AttributeError(
-                f'{type(self)} "{self.name}" does not have property "{property_name}"'
-            )
-
         return getattr(self, attribute), settings_name
 
     def __resolve_get_parent_or_settings(self, property_name: str, settings_name: str):
         settings = self.api.settings()
-        if self.parent is not None and hasattr(self.parent, property_name):
+        conceptual_parent = self.get_conceptual_parent()
+
+        if hasattr(self.parent, property_name):
             return getattr(self.parent, property_name)
-        if (
-            hasattr(self, "distro")
-            and getattr(self, "distro") is not None
-            and hasattr(getattr(self, "distro"), property_name)
-        ):
-            # This is only valid for profiles and is a workaround.
-            return getattr(getattr(self, "distro"), property_name)
-        if (
-            hasattr(self, "profile")
-            and getattr(self, "profile") != ""
-            and hasattr(
-                self.api.find_profile(name=getattr(self, "profile")), property_name
-            )
-        ):
-            # This is only valid for systems and is a workaround.
-            return getattr(
-                self.api.find_profile(name=getattr(self, "profile")), property_name
-            )
-        if (
-            hasattr(self, "image")
-            and getattr(self, "image") != ""
-            and hasattr(self.api.find_image(name=getattr(self, "image")), property_name)
-        ):
-            # This is only valid for systems and is a workaround.
-            return getattr(
-                self.api.find_image(name=getattr(self, "image")), property_name
-            )
-        if hasattr(settings, settings_name):
+        elif hasattr(conceptual_parent, property_name):
+            return getattr(conceptual_parent, property_name)
+        elif hasattr(settings, settings_name):
             return getattr(settings, settings_name)
-        if hasattr(settings, f"default_{settings_name}"):
+        elif hasattr(settings, f"default_{settings_name}"):
             return getattr(settings, f"default_{settings_name}")
         return None
 
@@ -466,22 +438,16 @@ class Item:
         See :meth:`~cobbler.items.item.Item._resolve`
         """
         attribute_value, settings_name = self.__common_resolve(property_name)
-        settings = self.api.settings()
-
-        if (
-            isinstance(attribute_value, enums.ConvertableEnum)
-            and attribute_value.value == enums.VALUE_INHERITED
-        ):
-            logical_parent = self.logical_parent
-            if logical_parent is not None and hasattr(logical_parent, property_name):
-                return getattr(logical_parent, property_name)
-            if hasattr(settings, settings_name):
-                return enum_type.to_enum(getattr(settings, settings_name))
-            if hasattr(settings, f"default_{settings_name}"):
-                return enum_type.to_enum(getattr(settings, f"default_{settings_name}"))
+        unwrapped_value = getattr(attribute_value, "value", "")
+        if unwrapped_value == enums.VALUE_INHERITED:
+            possible_return = self.__resolve_get_parent_or_settings(
+                unwrapped_value, settings_name
+            )
+            if possible_return is not None:
+                return enum_type(possible_return)
             raise AttributeError(
                 f'{type(self)} "{self.name}" inherits property "{property_name}", but neither its parent nor'
-                "settings have it"
+                f" settings have it"
             )
 
         return attribute_value
@@ -497,19 +463,14 @@ class Item:
         """
         attribute = "_" + property_name
 
-        if not hasattr(self, attribute):
-            raise AttributeError(
-                f'{type(self)} "{self.name}" does not have property "{property_name}"'
-            )
-
         attribute_value = getattr(self, attribute)
         settings = self.api.settings()
 
         merged_dict: Dict[str, Any] = {}
 
-        logical_parent = self.logical_parent
-        if logical_parent is not None and hasattr(logical_parent, property_name):
-            merged_dict.update(getattr(logical_parent, property_name))
+        conceptual_parent = self.get_conceptual_parent()
+        if hasattr(conceptual_parent, property_name):
+            merged_dict.update(getattr(conceptual_parent, property_name))
         elif hasattr(settings, property_name):
             merged_dict.update(getattr(settings, property_name))
 
@@ -530,39 +491,18 @@ class Item:
         :param value: The value that should be deduplicated.
         :returns: The deduplicated dictionary
         """
+        _, settings_name = self.__common_resolve(property_name)
         settings = self.api.settings()
+        conceptual_parent = self.get_conceptual_parent()
 
-        if self.parent is not None and hasattr(self.parent, property_name):
+        if hasattr(self.parent, property_name):
             parent_value = getattr(self.parent, property_name)
-        elif (
-            hasattr(self, "distro")
-            and getattr(self, "distro") is not None
-            and hasattr(getattr(self, "distro"), property_name)
-        ):
-            # This is only valid for profiles and is a workaround.
-            parent_value = getattr(getattr(self, "distro"), property_name)
-        elif (
-            hasattr(self, "profile")
-            and getattr(self, "profile") != ""
-            and hasattr(
-                self.api.find_profile(name=getattr(self, "profile")), property_name
-            )
-        ):
-            # This is only valid for systems and is a workaround.
-            parent_value = getattr(
-                self.api.find_profile(name=getattr(self, "profile")), property_name
-            )
-        elif (
-            hasattr(self, "image")
-            and getattr(self, "image") != ""
-            and hasattr(self.api.find_image(name=getattr(self, "image")), property_name)
-        ):
-            # This is only valid for systems and is a workaround.
-            parent_value = getattr(
-                self.api.find_image(name=getattr(self, "image")), property_name
-            )
-        elif hasattr(settings, property_name):
-            parent_value = getattr(settings, property_name)
+        elif hasattr(conceptual_parent, property_name):
+            parent_value = getattr(conceptual_parent, property_name)
+        elif hasattr(settings, settings_name):
+            parent_value = getattr(settings, settings_name)
+        elif hasattr(settings, f"default_{settings_name}"):
+            parent_value = getattr(settings, f"default_{settings_name}")
         else:
             parent_value = {}
 
