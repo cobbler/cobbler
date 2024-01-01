@@ -868,8 +868,16 @@ class TFTPGen:
 
             if distro.breed is None or distro.breed == "redhat":
 
-                append_line += " kssendmac"
-                append_line = "%s inst.ks=%s" % (append_line, autoinstall_path)
+                if distro.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
+                    append_line += f" kssendmac ks={autoinstall_path}"
+                    if blended["autoinstall_meta"].get("tree"):
+                        append_line += f" repo={blended['autoinstall_meta']['tree']}"
+                else:
+                    append_line += f" inst.ks.sendmac inst.ks={autoinstall_path}"
+                    if blended["autoinstall_meta"].get("tree"):
+                        append_line += (
+                            f" inst.repo={blended['autoinstall_meta']['tree']}"
+                        )
                 ipxe = blended["enable_ipxe"]
                 if ipxe:
                     append_line = append_line.replace('ksdevice=bootif', 'ksdevice=${net0/mac}')

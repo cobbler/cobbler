@@ -474,7 +474,7 @@ class _ImportSignatureManager(ManagerModule):
 
             self.configure_tree_location(new_distro)
 
-            self.distros.add(new_distro, save=True)
+            self.api.add_distro(new_distro, save=True)
             distros_added.append(new_distro)
 
             # see if the profile name is already used, if so, skip it and
@@ -520,7 +520,7 @@ class _ImportSignatureManager(ManagerModule):
                                                     "answerfile": "autounattended.xml",
                                                     "post_install_script": "post_install.cmd"}
 
-            self.profiles.add(new_profile, save=True)
+            self.api.add_profile(new_profile, save=True)
 
         return distros_added
 
@@ -668,7 +668,8 @@ class _ImportSignatureManager(ManagerModule):
         :param distribution: The distribution object for which the install tree should be set.
         :param url: The url for the tree.
         """
-        distribution.autoinstall_meta["tree"] = url
+        self.logger.debug('Setting "tree" for distro "%s"', distribution.name)
+        distribution.autoinstall_meta = {"tree": url}
 
     # ==========================================================================
     # Repo Functions
@@ -700,7 +701,9 @@ class _ImportSignatureManager(ManagerModule):
             for current_distro_added in distros_added:
                 if current_distro_added.kernel.find("distro_mirror") != -1:
                     repo_adder(current_distro_added)
-                    self.distros.add(current_distro_added, save=True, with_triggers=False)
+                    self.api.add_distro(
+                        current_distro_added, save=True, with_triggers=False
+                    )
                 else:
                     self.logger.info(
                         "skipping distro %s since it isn't mirrored locally",
