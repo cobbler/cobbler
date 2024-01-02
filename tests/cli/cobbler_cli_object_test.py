@@ -79,15 +79,6 @@ repos:
 images:
 ==========
 
-mgmtclasses:
-==========
-
-packages:
-==========
-
-files:
-==========
-
 menus:
 ==========
 """
@@ -106,9 +97,6 @@ menus:
             "system",
             "image",
             "repo",
-            "package",
-            "mgmtclass",
-            "file",
             "menu",
         ],
     )
@@ -129,9 +117,6 @@ menus:
             "system",
             "image",
             "repo",
-            "package",
-            "mgmtclass",
-            "file",
             "menu",
         ],
     )
@@ -185,31 +170,6 @@ menus:
                 {"name": "testrepoedit", "mirror": "http://localhost"},
                 ["comment", "Testcomment"],
                 "Comment",
-            ),
-            (
-                "package",
-                {"name": "testpackageedit"},
-                ["comment", "Testcomment"],
-                "Comment",
-            ),
-            (
-                "mgmtclass",
-                {"name": "testmgmtclassedit"},
-                ["comment", "Testcomment"],
-                "Comment",
-            ),
-            (
-                "file",
-                {
-                    "name": "testfileedit",
-                    "path": "/tmp",
-                    "owner": "root",
-                    "group": "root",
-                    "mode": "600",
-                    "is-dir": "True",
-                },
-                ["path", "/test_dir"],
-                "Path",
             ),
             ("menu", {"name": "testmenuedit"}, ["comment", "Testcomment"], "Comment"),
         ],
@@ -314,19 +274,6 @@ menus:
             ("system", {"name": "testsystemfind", "profile": ""}),
             ("image", {"name": "testimagefind"}),
             ("repo", {"name": "testrepofind", "mirror": "http://localhost"}),
-            ("package", {"name": "testpackagefind"}),
-            ("mgmtclass", {"name": "testmgmtclassfind"}),
-            (
-                "file",
-                {
-                    "name": "testfilefind",
-                    "path": "/tmp",
-                    "owner": "root",
-                    "group": "root",
-                    "mode": "600",
-                    "is-dir": "True",
-                },
-            ),
             ("menu", {"name": "testmenufind"}),
         ],
     )
@@ -420,19 +367,6 @@ menus:
             ),
             ("image", {"name": "testimagecopy"}),
             ("repo", {"name": "testrepocopy", "mirror": "http://localhost"}),
-            ("package", {"name": "testpackagecopy"}),
-            ("mgmtclass", {"name": "testmgmtclasscopy"}),
-            (
-                "file",
-                {
-                    "name": "testfilecopy",
-                    "path": "/tmp",
-                    "owner": "root",
-                    "group": "root",
-                    "mode": "600",
-                    "is-dir": "True",
-                },
-            ),
             ("menu", {"name": "testmenucopy"}),
         ],
     )
@@ -530,19 +464,6 @@ menus:
             ),
             ("image", {"name": "testimagerename"}),
             ("repo", {"name": "testreporename", "mirror": "http://localhost"}),
-            ("package", {"name": "testpackagerename"}),
-            ("mgmtclass", {"name": "testmgmtclassrename"}),
-            (
-                "file",
-                {
-                    "name": "testfilerename",
-                    "path": "/tmp",
-                    "owner": "root",
-                    "group": "root",
-                    "mode": "600",
-                    "is-dir": "True",
-                },
-            ),
             ("menu", {"name": "testmenurename"}),
         ],
     )
@@ -633,19 +554,6 @@ menus:
             ("system", {"name": "testsystemadd", "profile": "testprofileadd_system"}),
             ("image", {"name": "testimageadd"}),
             ("repo", {"name": "testrepoadd", "mirror": "http://localhost"}),
-            ("package", {"name": "testpackageadd"}),
-            ("mgmtclass", {"name": "testmgmtclassadd"}),
-            (
-                "file",
-                {
-                    "name": "testfileadd",
-                    "path": "/tmp",
-                    "owner": "root",
-                    "group": "root",
-                    "mode": "600",
-                    "is-dir": "True",
-                },
-            ),
             ("menu", {"name": "testmenuadd"}),
         ],
     )
@@ -738,19 +646,6 @@ menus:
             ),
             ("image", {"name": "testimageremove"}),
             ("repo", {"name": "testreporemove", "mirror": "http://localhost"}),
-            ("package", {"name": "testpackageremove"}),
-            ("mgmtclass", {"name": "testmgmtclassremove"}),
-            (
-                "file",
-                {
-                    "name": "testfileremove",
-                    "path": "/tmp",
-                    "owner": "root",
-                    "group": "root",
-                    "mode": "600",
-                    "is-dir": "True",
-                },
-            ),
             ("menu", {"name": "testmenuremove"}),
         ],
     )

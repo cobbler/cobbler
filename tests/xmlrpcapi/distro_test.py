@@ -49,7 +49,6 @@ def test_get_distros(remote: CobblerXMLRPCInterface, token: str):
         ("kernel_options", "a=1 b=2 c=3 c=4 c=5 d e"),
         ("kernel_options_post", "a=1 b=2 c=3 c=4 c=5 d e"),
         ("autoinstall_meta", "a=1 b=2 c=3 c=4 c=5 d e"),
-        ("mgmt_classes", "one two three"),
         ("os_version", "rhel4"),
         ("owners", "user1 user2 user3"),
         ("boot_loaders", "pxe ipxe grub"),

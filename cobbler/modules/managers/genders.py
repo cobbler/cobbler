@@ -116,19 +116,6 @@ def run(api: "CobblerAPI", args: Any) -> int:
         if distros_genders[dist.name] == "":
             distros_genders.pop(dist.name, None)
 
-    # mgmtclasses
-    for mgmtcls in api.mgmtclasses():
-        # create the key
-        mgmtcls_genders[mgmtcls.name] = ""
-        my_systems = api.find_system(mgmt_classes=mgmtcls.name, return_list=True)
-        if my_systems is None or not isinstance(my_systems, list):
-            raise ValueError("Search error!")
-        for system in my_systems:
-            mgmtcls_genders[mgmtcls.name] += system.name + ","
-        # remove a trailing comma
-        mgmtcls_genders[mgmtcls.name] = mgmtcls_genders[mgmtcls.name][:-1]
-        if mgmtcls_genders[mgmtcls.name] == "":
-            mgmtcls_genders.pop(mgmtcls.name, None)
     # The file doesn't exist and for some reason the template engine won't create it, so spit out an error and tell the
     # user what to do.
     if not os.path.isfile(SETTINGS_FILE):

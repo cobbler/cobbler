@@ -9,17 +9,14 @@ _cobbler_completions()
     prev="${COMP_WORDS[COMP_CWORD-1]}"
     cobbler_type=${COMP_WORDS[1]}
     COMPREPLY=()
-    TYPE="distro profile system repo image mgmtclass package file aclsetup buildiso import list replicate report reposync sync version signature hardlink"
+    TYPE="distro profile system repo image aclsetup buildiso import list replicate report reposync sync version signature hardlink"
     ACTION="add edit copy list remove rename report mkloaders"
     opts=(
-        [distro]="--ctime --depth --mtime --source-repos --tree-build-time --uid --arch --autoinstall-meta --boot-files --boot-loaders --breed --comment --fetchable-files --initrd --kernel --kernel-options --kernel-options-post --mgmt-classes --name --os-version --owners --redhat-management-key --template-files --in-place --help"
-        [profile]="--ctime --depth --mtime --uid --autoinstall --autoinstall-meta --boot-files --comment --dhcp-tag --distro --enable-ipxe --enable-menu --fetchable-files --kernel-options --kernel-options-post --mgmt-classes --mgmt-parameters --name --name-servers --name-servers-search --next-server --owners --parent --proxy --redhat-management-key --repos --server --template-files --virt-auto-boot --virt-bridge --virt-cpus --virt-disk-driver --virt-file-size --virt-path --virt-ram --virt-type --in-place --help"
-        [system]="--ctime --depth --ipv6-autoconfiguration --mtime --repos-enabled --uid --autoinstall --autoinstall-meta --boot-files --boot-loaders --comment --enable-ipxe --fetchable-files --gateway --hostname --image --ipv6-default-device --kernel-options --kernel-options-post --mgmt-classes --mgmt-parameters --name --name-servers --name-servers-search --netboot-enabled --next-server --owners --power-address --power-id --power-pass --power-type --power-user --power-options --power-identity-file --profile --proxy --redhat-management-key --server --status --template-files --virt-auto-boot --virt-cpus --virt-disk-driver --virt-file-size --virt-path --virt-pxe-boot --virt-ram --virt-type --serial-device --serial-baud-rate --bonding-opts --bridge-opts --cnames --interface, --connected-mode --interface) --dhcp-tag --dns-name --if-gateway --interface) --interface-master --interface-type --ip-address --ipv6-address --ipv6-default-gateway --ipv6-mtu --ipv6-prefix --ipv6-secondaries --interface) --ipv6-static-routes --mac-address --management --mtu --netmask --static --interface) --static-routes --virt-bridge --interface --delete-interface --rename-interface --in-place --help"
+        [distro]="--ctime --depth --mtime --source-repos --tree-build-time --uid --arch --autoinstall-meta --boot-files --boot-loaders --breed --comment --fetchable-files --initrd --kernel --kernel-options --kernel-options-post --name --os-version --owners --redhat-management-key --template-files --in-place --help"
+        [profile]="--ctime --depth --mtime --uid --autoinstall --autoinstall-meta --boot-files --comment --dhcp-tag --distro --enable-ipxe --enable-menu --fetchable-files --kernel-options --kernel-options-post --name --name-servers --name-servers-search --next-server --owners --parent --proxy --redhat-management-key --repos --server --template-files --virt-auto-boot --virt-bridge --virt-cpus --virt-disk-driver --virt-file-size --virt-path --virt-ram --virt-type --in-place --help"
+        [system]="--ctime --depth --ipv6-autoconfiguration --mtime --repos-enabled --uid --autoinstall --autoinstall-meta --boot-files --boot-loaders --comment --enable-ipxe --fetchable-files --gateway --hostname --image --ipv6-default-device --kernel-options --kernel-options-post --name --name-servers --name-servers-search --netboot-enabled --next-server --owners --power-address --power-id --power-pass --power-type --power-user --power-options --power-identity-file --profile --proxy --redhat-management-key --server --status --template-files --virt-auto-boot --virt-cpus --virt-disk-driver --virt-file-size --virt-path --virt-pxe-boot --virt-ram --virt-type --serial-device --serial-baud-rate --bonding-opts --bridge-opts --cnames --interface, --connected-mode --interface) --dhcp-tag --dns-name --if-gateway --interface) --interface-master --interface-type --ip-address --ipv6-address --ipv6-default-gateway --ipv6-mtu --ipv6-prefix --ipv6-secondaries --interface) --ipv6-static-routes --mac-address --management --mtu --netmask --static --interface) --static-routes --virt-bridge --interface --delete-interface --rename-interface --in-place --help"
         [repo]="--ctime --depth --mtime --parent --uid --apt-components --apt-dists --arch --breed --comment --createrepo-flags --environment --keep-updated --mirror --mirror-locally --name --owners --priority --proxy --rpm-list --yumopts --in-place --help"
         [image]="--ctime --depth --mtime --parent --uid --arch --autoinstall --breed --comment --file --image-type --name --network-count --os-version --owners --virt-auto-boot --virt-bridge --virt-cpus --virt-disk-driver --virt-file-size --virt-path --virt-ram --virt-type --in-place --help"
-        [mgmtclass]="--ctime --depth --is-definition --mtime --uid --class-name --comment --files --name --owners --packages --params --in-place --help"
-        [package]="--ctime --depth --mtime --uid --action --comment --installer --name --owners --version --in-place --help"
-        [file]="--ctime --depth --mtime --uid --action --comment --group --is-dir --mode --name --owner --owners --path --template --in-place --help"
         [import]="--arch --breed --os-version --path --name --available-as --autoinstall --rsync-flags --help"
         [buildiso]="--iso --profiles --systems --tempdir --distro --standalone --source --exclude-dns --mkisofs-opts --help"
     )
@@ -30,7 +27,7 @@ _cobbler_completions()
                 COMPREPLY=($(compgen -W "${TYPE}" -- ${cur}))
                 return 0
                 ;;
-            distro|repo|image|mgmtclass|package|file)
+            distro|repo|image)
                 COMPREPLY=($(compgen -W "${ACTION}" -- ${cur}))
                 return 0
                 ;;

@@ -102,8 +102,6 @@ schema = Schema(
         Optional("manage_genders"): bool,
         Optional("manage_rsync"): bool,
         Optional("manage_tftpd"): bool,
-        Optional("mgmt_classes"): [str],
-        Optional("mgmt_parameters"): dict,
         Optional("next_server_v4"): str,
         Optional("next_server_v6"): str,
         Optional("nsupdate_enabled"): bool,
@@ -215,6 +213,8 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
 
     # rename keys and update their value if needed
     include = settings.pop("include")
+    include = settings.pop("mgmt_classes")
+    include = settings.pop("mgmt_parameters")
 
     # Do mongodb.conf migration
     mongodb_config = "/etc/cobbler/mongodb.conf"

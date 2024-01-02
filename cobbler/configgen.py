@@ -1,8 +1,7 @@
 """
 configgen.py: Generate configuration data.
 
-module for generating configuration manifest using autoinstall_meta data, mgmtclasses, resources, and templates for a
-given system (hostname)
+module for generating configuration manifest using autoinstall_meta data and templates for a given system (hostname)
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -10,10 +9,9 @@ given system (hostname)
 
 import json
 import string
-from typing import TYPE_CHECKING, Any, Dict, List, Set, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 
-from cobbler import template_api, utils
-from cobbler.cexceptions import CX
+from cobbler import utils
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -26,7 +24,7 @@ if TYPE_CHECKING:
 
 class ConfigGen:
     """
-    Generate configuration data for Cobbler's management resources: repos, files and packages.
+    Generate configuration data for Cobbler's management resource "repos".
     Mainly used by Koan to configure systems.
     """
 
@@ -45,7 +43,6 @@ class ConfigGen:
         self.system = target_system
         # This below var needs a dict but the method may possibly return an empty str.
         self.host_vars = self.get_cobbler_resource("autoinstall_meta")
-        self.mgmtclasses = self.get_cobbler_resource("mgmt_classes")
 
     # ----------------------------------------------------------------------
 
@@ -83,74 +80,15 @@ class ConfigGen:
 
     def gen_config_data(self) -> Dict[Any, Any]:
         """
-        Generate configuration data for repos, files and packages.
+        Generate configuration data for repos.
 
         :return: A dict which has all config data in it.
-        :raises CX: In case the package or file resource is not defined.
         """
         config_data = {
             "repo_data": self.__api.get_repo_config_for_system(self.system),
             "repos_enabled": self.get_cobbler_resource("repos_enabled"),
         }
-        package_set: Set[str] = set()
-        file_set: Set[str] = set()
 
-        for mgmtclass in self.mgmtclasses:
-            _mgmtclass = self.__api.find_mgmtclass(name=mgmtclass)
-            if _mgmtclass is None or isinstance(_mgmtclass, list):
-                raise ValueError("Ambigous or no search result!")
-            for package in _mgmtclass.packages:
-                package_set.add(package)
-            for file in _mgmtclass.files:
-                file_set.add(file)
-
-        # Generate Package data
-        pkg_data: Dict[str, Dict[str, str]] = {}
-        for package in package_set:
-            _package = self.__api.find_package(name=package)
-            if _package is None or isinstance(_package, list):
-                raise CX(f"{package} package resource is not defined")
-            pkg_data[package] = {}
-            pkg_data[package]["action"] = self.resolve_resource_var(_package.action)
-            pkg_data[package]["installer"] = _package.installer
-            pkg_data[package]["version"] = self.resolve_resource_var(_package.version)
-            if pkg_data[package]["version"] != "":
-                pkg_data[package][
-                    "install_name"
-                ] = f"{package}-{pkg_data[package]['version']}"
-            else:
-                pkg_data[package]["install_name"] = package
-        config_data["packages"] = pkg_data
-
-        # Generate File data
-        file_data: Dict[str, Dict[str, Union[str, bool]]] = {}
-        for file in file_set:
-            _file = self.__api.find_file(name=file)
-
-            if _file is None or isinstance(_file, list):
-                raise CX(f"{file} file resource is not defined")
-
-            file_data[file] = {}
-            file_data[file]["is_dir"] = _file.is_dir
-            file_data[file]["action"] = self.resolve_resource_var(_file.action)
-            file_data[file]["group"] = self.resolve_resource_var(_file.group)
-            file_data[file]["mode"] = self.resolve_resource_var(_file.mode)
-            file_data[file]["owner"] = self.resolve_resource_var(_file.owner)
-            file_data[file]["path"] = self.resolve_resource_var(_file.path)
-
-            if not _file.is_dir:
-                file_data[file]["template"] = self.resolve_resource_var(_file.template)
-                try:
-                    template_api_instance = template_api.CobblerTemplate(
-                        file=file_data[file]["template"], searchList=[self.host_vars]
-                    )
-                    file_data[file]["content"] = template_api_instance.respond()  # type: ignore
-                except Exception as exception:
-                    raise ValueError(
-                        f"Missing template for this file resource {file_data[file]}"
-                    ) from exception
-
-        config_data["files"] = file_data
         return config_data
 
     # ----------------------------------------------------------------------

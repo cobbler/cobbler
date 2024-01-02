@@ -105,14 +105,6 @@ cobbler.grub module
    :undoc-members:
    :show-inheritance:
 
-cobbler.manager module
-----------------------
-
-.. automodule:: cobbler.manager
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 cobbler.module\_loader module
 -----------------------------
 

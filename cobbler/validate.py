@@ -612,9 +612,6 @@ def validate_obj_type(object_type: str) -> bool:
         "system",
         "repo",
         "image",
-        "mgmtclass",
-        "package",
-        "file",
         "menu",
     ]
 

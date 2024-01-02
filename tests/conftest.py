@@ -63,14 +63,8 @@ def reset_items(cobbler_api: CobblerAPI):
         cobbler_api.remove_profile(profile.name)
     for distro in cobbler_api.distros():
         cobbler_api.remove_distro(distro.name)
-    for package in cobbler_api.packages():
-        cobbler_api.remove_package(package.name)
     for repo in cobbler_api.repos():
         cobbler_api.remove_repo(repo.name)
-    for mgmtclass in cobbler_api.mgmtclasses():
-        cobbler_api.remove_mgmtclass(mgmtclass.name)
-    for file in cobbler_api.files():
-        cobbler_api.remove_file(file.name)
     for menu in cobbler_api.menus():
         cobbler_api.remove_menu(menu.name)
 
@@ -246,11 +240,8 @@ def cleanup_leftover_items():
     """
     cobbler_collections = [
         "distros",
-        "files",
         "images",
         "menus",
-        "mgmtclasses",
-        "packages",
         "profiles",
         "repos",
         "systems",

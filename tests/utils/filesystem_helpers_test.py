@@ -287,7 +287,7 @@ def test_create_trigger_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
     filesystem_helpers.create_trigger_dirs(cobbler_api)
 
     # Assert
-    assert mock_mkdir.call_count == 84
+    assert mock_mkdir.call_count == 57
 
 
 def test_create_json_database_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
@@ -301,4 +301,4 @@ def test_create_json_database_dirs(mocker: MockerFixture, cobbler_api: CobblerAP
     # Assert
     mock_mkdir.assert_any_call("/var/lib/cobbler/collections")
     # 1 collections parent directory + (1 child directory per item type * 9 item types atm)
-    assert mock_mkdir.call_count == 10
+    assert mock_mkdir.call_count == 7

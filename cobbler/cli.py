@@ -61,9 +61,6 @@ OBJECT_ACTIONS_MAP = {
         "report",
         "autoadd",
     ],
-    "mgmtclass": ["add", "copy", "edit", "find", "list", "remove", "rename", "report"],
-    "package": ["add", "copy", "edit", "find", "list", "remove", "rename", "report"],
-    "file": ["add", "copy", "edit", "find", "list", "remove", "rename", "report"],
     "menu": ["add", "copy", "edit", "find", "list", "remove", "rename", "report"],
     "setting": ["edit", "report"],
     "signature": ["reload", "report", "update"],
@@ -284,16 +281,6 @@ DISTRO_FIELDS = [
         0,
         "dict",
     ],
-    [
-        "mgmt_classes",
-        [],
-        0,
-        "Management Classes",
-        True,
-        "Management classes for external config management",
-        0,
-        "list",
-    ],
     ["name", "", 0, "Name", True, "Ex: Fedora-11-i386", 0, "str"],
     [
         "os_version",
@@ -335,61 +322,6 @@ DISTRO_FIELDS = [
         0,
         "dict",
     ],
-]
-
-FILE_FIELDS = [
-    # non-editable in UI (internal)
-    ["ctime", 0, 0, "", False, "", 0, "float"],
-    ["depth", 2, 0, "", False, "", 0, "float"],
-    ["mtime", 0, 0, "", False, "", 0, "float"],
-    ["uid", "", 0, "", False, "", 0, "str"],
-    # editable in UI
-    ["action", "create", 0, "Action", True, "Create or remove file resource", 0, "str"],
-    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    [
-        "group",
-        "",
-        0,
-        "Owner group in file system",
-        True,
-        "File owner group in file system",
-        0,
-        "str",
-    ],
-    [
-        "is_dir",
-        False,
-        0,
-        "Is Directory",
-        True,
-        "Treat file resource as a directory",
-        0,
-        "bool",
-    ],
-    ["mode", "", 0, "Mode", True, "The mode of the file", 0, "str"],
-    ["name", "", 0, "Name", True, "Name of file resource", 0, "str"],
-    [
-        "owner",
-        "",
-        0,
-        "Owner user in file system",
-        True,
-        "File owner user in file system",
-        0,
-        "str",
-    ],
-    [
-        "owners",
-        "SETTINGS:default_ownership",
-        0,
-        "Owners",
-        True,
-        "Owners list for authz_ownership (space delimited)",
-        [],
-        "list",
-    ],
-    ["path", "", 0, "Path", True, "The path for the file", 0, "str"],
-    ["template", "", 0, "Template", True, "The template for the file", 0, "str"],
 ]
 
 IMAGE_FIELDS = [
@@ -544,92 +476,6 @@ MENU_FIELDS = [
     ["parent", "", "", "Parent Menu", True, "", [], "str"],
 ]
 
-MGMTCLASS_FIELDS = [
-    # non-editable in UI (internal)
-    ["ctime", 0, 0, "", False, "", 0, "float"],
-    ["depth", 2, 0, "", False, "", 0, "float"],
-    [
-        "is_definition",
-        False,
-        0,
-        "Is Definition?",
-        True,
-        "Treat this class as a definition (puppet only)",
-        0,
-        "bool",
-    ],
-    ["mtime", 0, 0, "", False, "", 0, "int"],
-    ["uid", "", 0, "", False, "", 0, "str"],
-    # editable in UI
-    [
-        "class_name",
-        "",
-        0,
-        "Class Name",
-        True,
-        "Actual Class Name (leave blank to use the name field)",
-        0,
-        "str",
-    ],
-    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["files", [], 0, "Files", True, "File resources", 0, "list"],
-    ["name", "", 0, "Name", True, "Ex: F10-i386-webserver", 0, "str"],
-    [
-        "owners",
-        "SETTINGS:default_ownership",
-        "SETTINGS:default_ownership",
-        "Owners",
-        True,
-        "Owners list for authz_ownership (space delimited)",
-        0,
-        "list",
-    ],
-    ["packages", [], 0, "Packages", True, "Package resources", 0, "list"],
-    [
-        "params",
-        {},
-        0,
-        "Parameters/Variables",
-        True,
-        "List of parameters/variables",
-        0,
-        "dict",
-    ],
-]
-
-PACKAGE_FIELDS = [
-    # non-editable in UI (internal)
-    ["ctime", 0, 0, "", False, "", 0, "float"],
-    ["depth", 2, 0, "", False, "", 0, "float"],
-    ["mtime", 0, 0, "", False, "", 0, "float"],
-    ["uid", "", 0, "", False, "", 0, "str"],
-    # editable in UI
-    [
-        "action",
-        "create",
-        0,
-        "Action",
-        True,
-        "Install or remove package resource",
-        0,
-        "str",
-    ],
-    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["installer", "yum", 0, "Installer", True, "Package Manager", 0, "str"],
-    ["name", "", 0, "Name", True, "Name of file resource", 0, "str"],
-    [
-        "owners",
-        "SETTINGS:default_ownership",
-        0,
-        "Owners",
-        True,
-        "Owners list for authz_ownership (space delimited)",
-        [],
-        "list",
-    ],
-    ["version", "", 0, "Version", True, "Package Version", 0, "str"],
-]
-
 PROFILE_FIELDS = [
     # non-editable in UI (internal)
     ["ctime", 0, 0, "", False, "", 0, "float"],
@@ -747,26 +593,6 @@ PROFILE_FIELDS = [
         "Ex: clocksource=pit noapic",
         0,
         "dict",
-    ],
-    [
-        "mgmt_classes",
-        [],
-        "<<inherit>>",
-        "Management Classes",
-        True,
-        "For external configuration management",
-        0,
-        "list",
-    ],
-    [
-        "mgmt_parameters",
-        "<<inherit>>",
-        "<<inherit>>",
-        "Management Parameters",
-        True,
-        "Parameters which will be handed to your management application (Must be valid YAML dictionary)",
-        0,
-        "str",
     ],
     ["name", "", None, "Name", True, "Ex: F10-i386-webserver", 0, "str"],
     [
@@ -1229,26 +1055,6 @@ SYSTEM_FIELDS = [
         "Ex: clocksource=pit noapic",
         0,
         "dict",
-    ],
-    [
-        "mgmt_classes",
-        "<<inherit>>",
-        0,
-        "Management Classes",
-        True,
-        "For external config management",
-        0,
-        "list",
-    ],
-    [
-        "mgmt_parameters",
-        "<<inherit>>",
-        0,
-        "Management Parameters",
-        True,
-        "Parameters which will be handed to your management application (Must be valid YAML dictionary)",
-        0,
-        "str",
     ],
     ["name", "", 0, "Name", True, "Ex: vanhalen.example.org", 0, "str"],
     ["name_servers", [], 0, "Name Servers", True, "space delimited", 0, "list"],
@@ -1847,12 +1653,6 @@ def report_item(remote, otype: str, item=None, name=None):
         data = to_string_from_fields(item, REPO_FIELDS)
     elif otype == "image":
         data = to_string_from_fields(item, IMAGE_FIELDS)
-    elif otype == "mgmtclass":
-        data = to_string_from_fields(item, MGMTCLASS_FIELDS)
-    elif otype == "package":
-        data = to_string_from_fields(item, PACKAGE_FIELDS)
-    elif otype == "file":
-        data = to_string_from_fields(item, FILE_FIELDS)
     elif otype == "menu":
         data = to_string_from_fields(item, MENU_FIELDS)
     elif otype == "setting":
@@ -2206,12 +2006,6 @@ class CobblerCLI:
             return REPO_FIELDS
         if object_type == "image":
             return IMAGE_FIELDS
-        if object_type == "mgmtclass":
-            return MGMTCLASS_FIELDS
-        if object_type == "package":
-            return PACKAGE_FIELDS
-        if object_type == "file":
-            return FILE_FIELDS
         if object_type == "menu":
             return MENU_FIELDS
         if object_type == "setting":
@@ -2476,19 +2270,6 @@ class CobblerCLI:
                 "--image", dest="image_patterns", help="patterns of images to replicate"
             )
             self.parser.add_option(
-                "--mgmtclasses",
-                dest="mgmtclass_patterns",
-                help="patterns of mgmtclasses to replicate",
-            )
-            self.parser.add_option(
-                "--packages",
-                dest="package_patterns",
-                help="patterns of packages to replicate",
-            )
-            self.parser.add_option(
-                "--files", dest="file_patterns", help="patterns of files to replicate"
-            )
-            self.parser.add_option(
                 "--omit-data",
                 dest="omit_data",
                 action="store_true",
@@ -2655,12 +2436,6 @@ class CobblerCLI:
             report_items(self.remote, "repo")
             print("\nimages:\n==========")
             report_items(self.remote, "image")
-            print("\nmgmtclasses:\n==========")
-            report_items(self.remote, "mgmtclass")
-            print("\npackages:\n==========")
-            report_items(self.remote, "package")
-            print("\nfiles:\n==========")
-            report_items(self.remote, "file")
             print("\nmenus:\n==========")
             report_items(self.remote, "menu")
         elif action_name == "list":
@@ -2678,12 +2453,6 @@ class CobblerCLI:
             list_items(self.remote, "repo")
             print("\nimages:")
             list_items(self.remote, "image")
-            print("\nmgmtclasses:")
-            list_items(self.remote, "mgmtclass")
-            print("\npackages:")
-            list_items(self.remote, "package")
-            print("\nfiles:")
-            list_items(self.remote, "file")
             print("\nmenus:")
             list_items(self.remote, "menu")
         elif action_name == "mkloaders":
@@ -2763,9 +2532,7 @@ class CobblerCLI:
         Prints general-top level help, e.g. "cobbler --help" or "cobbler" or "cobbler command-does-not-exist"
         """
         print("usage\n=====")
-        print(
-            "cobbler <distro|profile|system|repo|image|mgmtclass|package|file|menu> ... "
-        )
+        print("cobbler <distro|profile|system|repo|image|menu> ... ")
         print(
             "        [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]"
         )

@@ -12,14 +12,6 @@ cobbler.items.distro module
    :undoc-members:
    :show-inheritance:
 
-cobbler.items.file module
--------------------------
-
-.. automodule:: cobbler.items.file
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 cobbler.items.image module
 --------------------------
 
@@ -44,22 +36,6 @@ cobbler.items.menu module
    :undoc-members:
    :show-inheritance:
 
-cobbler.items.mgmtclass module
-------------------------------
-
-.. automodule:: cobbler.items.mgmtclass
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-cobbler.items.package module
-----------------------------
-
-.. automodule:: cobbler.items.package
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 cobbler.items.profile module
 ----------------------------
 
@@ -72,14 +48,6 @@ cobbler.items.repo module
 -------------------------
 
 .. automodule:: cobbler.items.repo
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-cobbler.items.resource module
------------------------------
-
-.. automodule:: cobbler.items.resource
    :members:
    :undoc-members:
    :show-inheritance:

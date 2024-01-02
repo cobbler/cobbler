@@ -226,8 +226,6 @@ class Profile(item.Item):
         self._autoinstall_meta: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
         self._kernel_options: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
         self._kernel_options_post: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
-        self._mgmt_classes: Union[List[Any], str] = enums.VALUE_INHERITED
-        self._mgmt_parameters: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
 
         if self._is_subobject:
             self._filename = enums.VALUE_INHERITED

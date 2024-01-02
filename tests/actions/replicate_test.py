@@ -181,9 +181,6 @@ def test_generate_include_map(
         "system": [{"a": 1}],
         "repo": [{"a": 1}],
         "image": [{"a": 1}],
-        "mgmtclass": [{"a": 1}],
-        "package": [{"a": 1}],
-        "file": [{"a": 1}],
     }
     expected_must_include = {
         "distro": {"a": 1},
@@ -191,9 +188,6 @@ def test_generate_include_map(
         "system": {"a": 1},
         "repo": {"a": 1},
         "image": {"a": 1},
-        "mgmtclass": {"a": 1},
-        "package": {"a": 1},
-        "file": {"a": 1},
     }
 
     # Act

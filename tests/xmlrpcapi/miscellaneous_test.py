@@ -111,7 +111,7 @@ def test_find_items_paged(
     # 'tree_build_time': 0, 'uid': 'cbf288465c724c439cf2ede6c94de4e8', 'arch': 'x86_64', 'autoinstall_meta': {},
     # 'boot_files': {}, 'boot_loaders': '<<inherit>>', 'breed': 'suse', 'comment': '', 'fetchable_files': {},
     # 'initrd': '/var/log/cobbler/cobbler.log', 'kernel': '/var/log/cobbler/cobbler.log', 'remote_boot_initrd': '~',
-    # 'remote_boot_kernel': '~', 'kernel_options': {}, 'kernel_options_post': {}, 'mgmt_classes': [],
+    # 'remote_boot_kernel': '~', 'kernel_options': {}, 'kernel_options_post': {},
     # 'name': 'distro_items_paged_1', 'os_version': 'virtio26', 'owners': ['admin'], 'redhat_management_key': '',
     # 'template_files': {}}], 'pageinfo': {'page': 1, 'prev_page': '~', 'next_page': 2, 'pages': [1, 2],
     # 'num_pages': 2, 'num_items': 2, 'start_item': 0, 'end_item': 1, 'items_per_page': 1,

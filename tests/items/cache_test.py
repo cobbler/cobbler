@@ -1,11 +1,8 @@
 import pytest
 
 from cobbler.cexceptions import CX
-from cobbler.items.file import File
 from cobbler.items.item import Item
 from cobbler.items.menu import Menu
-from cobbler.items.mgmtclass import Mgmtclass
-from cobbler.items.package import Package
 from cobbler.items.repo import Repo
 
 from tests.conftest import does_not_raise
@@ -20,96 +17,7 @@ def test_collection_types(cobbler_api):
 
     # Assert
     print(result)
-    assert len(result) == 11
-
-
-@pytest.mark.parametrize(
-    "input_value,expected_exception,expected_output",
-    [
-        (True, does_not_raise(), True),
-        (False, does_not_raise(), False),
-    ],
-)
-def test_package_dict_cache_load(
-    cobbler_api, input_value, expected_exception, expected_output
-):
-    # Arrange
-    cobbler_api.settings().cache_enabled = input_value
-    test_package = Package(cobbler_api)
-    test_package.name = "test_package"
-    cobbler_api.add_package(test_package)
-
-    # Act
-    with expected_exception:
-        result1 = test_package.to_dict(resolved=True)
-        result2 = test_package.to_dict(resolved=False)
-        cached_result1 = test_package.cache.get_dict_cache(True)
-        cached_result2 = test_package.cache.get_dict_cache(False)
-
-    # Assert
-    assert (cached_result1 == result1) == expected_output
-    assert (cached_result2 == result2) == expected_output
-
-
-@pytest.mark.parametrize(
-    "input_value,expected_exception,expected_output",
-    [
-        (True, does_not_raise(), True),
-        (False, does_not_raise(), False),
-    ],
-)
-def test_file_dict_cache_load(
-    cobbler_api, input_value, expected_exception, expected_output
-):
-    # Arrange
-    cobbler_api.settings().cache_enabled = input_value
-    test_file = File(cobbler_api)
-    test_file.name = "test_file"
-    test_file.path = "test path"
-    test_file.owner = "test owner"
-    test_file.group = "test group"
-    test_file.mode = "test mode"
-    test_file.is_dir = True
-    cobbler_api.add_file(test_file)
-
-    # Act
-    with expected_exception:
-        result1 = test_file.to_dict(resolved=True)
-        result2 = test_file.to_dict(resolved=False)
-        cached_result1 = test_file.cache.get_dict_cache(True)
-        cached_result2 = test_file.cache.get_dict_cache(False)
-
-    # Assert
-    assert (cached_result1 == result1) == expected_output
-    assert (cached_result2 == result2) == expected_output
-
-
-@pytest.mark.parametrize(
-    "input_value,expected_exception,expected_output",
-    [
-        (True, does_not_raise(), True),
-        (False, does_not_raise(), False),
-    ],
-)
-def test_mgmtclass_dict_cache_load(
-    cobbler_api, input_value, expected_exception, expected_output
-):
-    # Arrange
-    cobbler_api.settings().cache_enabled = input_value
-    test_mgmtclass = Mgmtclass(cobbler_api)
-    test_mgmtclass.name = "test_mgmtclass"
-    cobbler_api.add_mgmtclass(test_mgmtclass)
-
-    # Act
-    with expected_exception:
-        result1 = test_mgmtclass.to_dict(resolved=True)
-        result2 = test_mgmtclass.to_dict(resolved=False)
-        cached_result1 = test_mgmtclass.cache.get_dict_cache(True)
-        cached_result2 = test_mgmtclass.cache.get_dict_cache(False)
-
-    # Assert
-    assert (cached_result1 == result1) == expected_output
-    assert (cached_result2 == result2) == expected_output
+    assert len(result) == 8
 
 
 @pytest.mark.parametrize(
@@ -288,107 +196,6 @@ def test_system_dict_cache_load(
     # Assert
     assert (cached_result1 == result1) == expected_output
     assert (cached_result2 == result2) == expected_output
-
-
-@pytest.mark.parametrize(
-    "input_value,expected_exception,expected_output",
-    [
-        (True, does_not_raise(), True),
-        (False, does_not_raise(), False),
-    ],
-)
-def test_package_dict_cache_use(
-    cobbler_api, input_value, expected_exception, expected_output
-):
-    # Arrange
-    cobbler_api.settings().cache_enabled = input_value
-    test_package = Package(cobbler_api)
-    test_package.name = "test_package"
-    cobbler_api.add_package(test_package)
-    test_package.to_dict(resolved=True)
-    test_package.to_dict(resolved=False)
-    test_cache1 = "test1"
-    test_cache2 = "test2"
-
-    # Act
-    with expected_exception:
-        test_package.cache.set_dict_cache(test_cache1, True)
-        test_package.cache.set_dict_cache(test_cache2, False)
-        result1 = test_package.cache.get_dict_cache(True)
-        result2 = test_package.cache.get_dict_cache(False)
-
-    # Assert
-    assert (result1 == test_cache1) == expected_output
-    assert (result2 == test_cache2) == expected_output
-
-
-@pytest.mark.parametrize(
-    "input_value,expected_exception,expected_output",
-    [
-        (True, does_not_raise(), True),
-        (False, does_not_raise(), False),
-    ],
-)
-def test_file_dict_cache_use(
-    cobbler_api, input_value, expected_exception, expected_output
-):
-    # Arrange
-    cobbler_api.settings().cache_enabled = input_value
-    test_file = File(cobbler_api)
-    test_file.name = "test_file"
-    test_file.path = "test path"
-    test_file.owner = "test owner"
-    test_file.group = "test group"
-    test_file.mode = "test mode"
-    test_file.is_dir = True
-    cobbler_api.add_file(test_file)
-    test_file.to_dict(resolved=True)
-    test_file.to_dict(resolved=False)
-    test_cache1 = "test1"
-    test_cache2 = "test2"
-
-    # Act
-    with expected_exception:
-        test_file.cache.set_dict_cache(test_cache1, True)
-        test_file.cache.set_dict_cache(test_cache2, False)
-        result1 = test_file.cache.get_dict_cache(True)
-        result2 = test_file.cache.get_dict_cache(False)
-
-    # Assert
-    assert (result1 == test_cache1) == expected_output
-    assert (result2 == test_cache2) == expected_output
-
-
-@pytest.mark.parametrize(
-    "input_value,expected_exception,expected_output",
-    [
-        (True, does_not_raise(), True),
-        (False, does_not_raise(), False),
-    ],
-)
-def test_mgmtclass_dict_cache_use(
-    cobbler_api, input_value, expected_exception, expected_output
-):
-    # Arrange
-    cobbler_api.settings().cache_enabled = input_value
-    test_mgmtclass = Mgmtclass(cobbler_api)
-    test_mgmtclass.name = "test_mgmtclass"
-    cobbler_api.add_mgmtclass(test_mgmtclass)
-    test_mgmtclass.to_dict(resolved=True)
-    test_mgmtclass.to_dict(resolved=False)
-    test_cache1 = "test1"
-    test_cache2 = "test2"
-
-    # Act
-    with expected_exception:
-        test_mgmtclass.cache.set_dict_cache(test_cache1, True)
-        test_mgmtclass.cache.set_dict_cache(test_cache2, False)
-        result1 = test_mgmtclass.cache.get_dict_cache(True)
-        result2 = test_mgmtclass.cache.get_dict_cache(False)
-
-    # Assert
-    assert (result1 == test_cache1) == expected_output
-    assert (result2 == test_cache2) == expected_output
 
 
 @pytest.mark.parametrize(
@@ -641,25 +448,7 @@ def test_dict_cache_invalidate(
 
     # Arrange
     cobbler_api.settings().cache_enabled = cache_enabled
-    test_package = Package(cobbler_api)
-    test_package.name = "test_package"
-    cobbler_api.add_package(test_package)
-    objs = [test_package]
-    test_file = File(cobbler_api)
-    test_file.name = "test_file"
-    test_file.path = "test path"
-    test_file.owner = "test owner"
-    test_file.group = "test group"
-    test_file.mode = "test mode"
-    test_file.is_dir = True
-    cobbler_api.add_file(test_file)
-    objs.append(test_file)
-    test_mgmtclass = Mgmtclass(cobbler_api)
-    test_mgmtclass.name = "test_mgmtclass"
-    test_mgmtclass.packages = [test_package.name]
-    test_mgmtclass.files = [test_file.name]
-    cobbler_api.add_mgmtclass(test_mgmtclass)
-    objs.append(test_mgmtclass)
+    objs = []
     test_repo = Repo(cobbler_api)
     test_repo.name = "test_repo"
     cobbler_api.add_repo(test_repo)
@@ -674,7 +463,6 @@ def test_dict_cache_invalidate(
     cobbler_api.add_menu(test_menu2)
     objs.append(test_menu2)
     test_distro = create_distro()
-    test_distro.mgmt_classes = test_mgmtclass.name
     test_distro.source_repos = [test_repo.name]
     objs.append(test_distro)
     test_profile1 = create_profile(distro_name=test_distro.name, name="test_profile1")
@@ -690,7 +478,6 @@ def test_dict_cache_invalidate(
         profile_name=test_profile1.name, name="test_profile3"
     )
     test_profile3.enable_menu = False
-    test_profile3.mgmt_classes = test_mgmtclass.name
     test_profile3.repos = [test_repo.name]
     objs.append(test_profile3)
     test_image = create_image()
@@ -702,9 +489,6 @@ def test_dict_cache_invalidate(
     objs.append(test_system2)
 
     # Act
-    package_dep = test_package.descendants
-    file_dep = test_file.descendants
-    mgmtclass_dep = test_mgmtclass.descendants
     repo_dep = test_repo.descendants
     menu1_dep = test_menu1.descendants
     menu2_dep = test_menu2.descendants
@@ -728,14 +512,6 @@ def test_dict_cache_invalidate(
     ]
 
     # Assert
-    assert (
-        validate_caches(cobbler_api, objs, test_package, package_dep) == expected_output
-    )
-    assert validate_caches(cobbler_api, objs, test_file, file_dep) == expected_output
-    assert (
-        validate_caches(cobbler_api, objs, test_mgmtclass, mgmtclass_dep)
-        == expected_output
-    )
     assert validate_caches(cobbler_api, objs, test_repo, repo_dep) == expected_output
     assert validate_caches(cobbler_api, objs, test_menu1, menu1_dep) == expected_output
     assert validate_caches(cobbler_api, objs, test_menu2, menu2_dep) == expected_output
