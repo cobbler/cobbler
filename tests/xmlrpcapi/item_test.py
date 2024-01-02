@@ -14,5 +14,8 @@ def test_get_item_resolved(remote, fk_initrd, fk_kernel):
     # Assert
     assert distro.get("name") == "testdistro0"
     assert distro.get("redhat_management_key") == ""
+    assert distro.get("redhat_management_org") == ""
+    assert distro.get("redhat_management_user") == ""
+    assert distro.get("redhat_management_password") == ""
     assert fk_initrd in distro.get("initrd")
     assert fk_kernel in distro.get("kernel")

@@ -1,0 +1,1 @@
+Allow registering RedHat systems with either `redhat_management_org`/`redhat_management_key` or `redhat_management_user`/`redhat_management_password`
