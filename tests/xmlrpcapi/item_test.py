@@ -23,6 +23,9 @@ def test_get_item_resolved(
     # Assert
     assert distro.get("name") == "testdistro0"  # type: ignore
     assert distro.get("redhat_management_key") == ""  # type: ignore
+    assert distro.get("redhat_management_org") == ""  # type: ignore
+    assert distro.get("redhat_management_user") == ""  # type: ignore
+    assert distro.get("redhat_management_password") == ""  # type: ignore
     assert fk_initrd in distro.get("initrd")  # type: ignore
     assert fk_kernel in distro.get("kernel")  # type: ignore
 

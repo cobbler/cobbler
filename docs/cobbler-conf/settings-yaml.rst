@@ -824,6 +824,31 @@ register.
 
 default: ``""``
 
+redhat_management_org
+#####################
+
+Specify the default Red Hat organization ID to use to register system.  Used in combination with
+redhat_management_key above.
+
+default: ``""``
+
+redhat_management_user
+######################
+
+Specify the default Red Hat user to use to register system. If left blank, no registration will be
+attempted. Similarly you can set the ``--redhat-management-user`` to blank on any system to keep it from trying to
+register.
+
+default: ``""``
+
+redhat_management_password
+##########################
+
+Specify the default Red Hat password to use to register system.  Used in combination with
+redhat_management_user above.
+
+default: ``""``
+
 register_new_installs
 #####################
 

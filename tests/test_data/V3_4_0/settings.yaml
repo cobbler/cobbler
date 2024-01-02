@@ -407,6 +407,20 @@ redhat_management_permissive: false
 # keep it from trying to register.
 redhat_management_key: ""
 
+# specify the default Red Hat organization ID to user to register
+# system.  Used in combination with redhat_management_key above.
+redhat_management_org: ""
+
+# specify the default user name to use for Red Hat system registration.
+# If left blank, no registration will be attempted.  Similarly
+# you can set the --redhat-management-user to blank on any system to
+# keep it from trying to register.
+redhat_management_user: ""
+
+# specify the default password to use for Red Hat system registration.
+# Used in combination with redhat_management_user above.
+redhat_management_password: ""
+
 # if set to true, allows /usr/bin/cobbler-register (part of the koan package)
 # to be used to remotely add new Cobbler system records to Cobbler.
 # this effectively allows for registration of new hardware from system

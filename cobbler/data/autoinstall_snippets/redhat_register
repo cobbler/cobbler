@@ -1,5 +1,11 @@
 # begin Red Hat management server registration
-#if $redhat_management_key != ""
+#if $redhat_management_user != "" and $redhat_management_password != ""
+# Subscribe (register) the system with username/password
+subscription-manager register --autosubscribe --username=$redhat_management_user --password=$redhat_management_password
+#else if $redhat_management_key != "" and $redhat_management_org != ""
+# Subscribe (register) the system with activationkey/org
+subscription-manager register --insecure --activationkey=$redhat_management_key --org=$redhat_management_org --proxy=$proxy_url_ext
+#else if $redhat_management_key != ""
 mkdir -p /usr/share/rhn/
 #set $endpoint = "https://%s/XMLRPC" % $redhat_management_server
 rhnreg_ks --serverUrl=$endpoint --sslCACert=$mycert --activationkey=$redhat_management_key

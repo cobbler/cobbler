@@ -100,6 +100,9 @@ def test_buildiso(mocker: "MockerFixture", cobbler_api: CobblerAPI):
             "",
         ),  # Attribute not existing
         ("", "redhat_management_key", does_not_raise(), ""),  # str attribute test
+        ("", "redhat_management_org", does_not_raise(), ""),  # str attribute test
+        ("", "redhat_management_user", does_not_raise(), ""),  # str attribute test
+        ("", "redhat_management_password", does_not_raise(), ""),  # str attribute test
         ("", "enable_ipxe", does_not_raise(), False),  # bool attribute
         ("", "virt_ram", does_not_raise(), 512),  # int attribute
         ("", "virt_file_size", does_not_raise(), 5.0),  # double attribute
@@ -160,6 +163,15 @@ def test_get_item_resolved_value(
             "",
         ),  # Attribute not existing
         ("", "redhat_management_key", "", does_not_raise(), ""),  # str attribute test
+        ("", "redhat_management_org", "", does_not_raise(), ""),  # str attribute test
+        ("", "redhat_management_user", "", does_not_raise(), ""),  # str attribute test
+        (
+            "",
+            "redhat_management_password",
+            "",
+            does_not_raise(),
+            "",
+        ),  # str attribute test
         ("", "enable_ipxe", "", does_not_raise(), False),  # bool attribute
         ("", "virt_ram", "", does_not_raise(), 0),  # int attribute
         (
