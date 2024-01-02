@@ -796,7 +796,12 @@ def test_built_in_redhat_register(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {"redhat_management_key": ""}
+    meta: Dict[str, Any] = {
+        "redhat_management_key": "",
+        "redhat_management_user": "",
+        "redhat_management_password": "",
+        "redhat_management_org": "",
+    }
 
     # Act
     result = cobbler_api.templar.render(target_template.content, meta, None)
