@@ -57,6 +57,9 @@ FIELDS = [
     ["parent", '', '', "Parent Profile", True, "", [], "str"],
     ["proxy", "SETTINGS:proxy_url_int", "<<inherit>>", "Proxy", True, "Proxy URL", 0, "str"],
     ["redhat_management_key", "<<inherit>>", "<<inherit>>", "Red Hat Management Key", True, "Registration key for RHN, Spacewalk, or Satellite", 0, "str"],
+    ["redhat_management_org", "<<inherit>>", "<<inherit>>", "Red Hat Management Organization", True, "Registration org for RHN", 0, "str"],
+    ["redhat_management_user", "<<inherit>>", "<<inherit>>", "Red Hat Management User", True, "Registration user for RHN", 0, "str"],
+    ["redhat_management_password", "<<inherit>>", "<<inherit>>", "Red Hat Management Password", True, "Registration password for RHN", 0, "str"],
     ["repos", [], '<<inherit>>', "Repos", True, "Repos to auto-assign to this profile", [], "list"],
     ["server", "<<inherit>>", '<<inherit>>', "Server Override", True, "See manpage or leave blank", 0, "str"],
     ["template_files", {}, '<<inherit>>', "Template Files", True, "File mappings for built-in config management", 0, "dict"],
@@ -377,6 +380,60 @@ class Profile(item.Item):
         :return: Returns the redhat_management_key of the profile.
         """
         return self.redhat_management_key
+
+    def set_redhat_management_org(self, management_org):
+        """
+        Setter of the redhat management org.
+
+        :param management_org: The value may be reset by setting it to None.
+        """
+        if not management_org:
+            self.redhat_management_org = "<<inherit>>"
+        self.redhat_management_org = management_org
+
+    def get_redhat_management_org(self):
+        """
+        Getter of the redhat management org of the profile or it's parent.
+
+        :return: Returns the redhat_management_org of the profile.
+        """
+        return self.redhat_management_org
+
+    def set_redhat_management_user(self, management_user):
+        """
+        Setter of the redhat management user.
+
+        :param management_user: The value may be reset by setting it to None.
+        """
+        if not management_user:
+            self.redhat_management_user = "<<inherit>>"
+        self.redhat_management_user = management_user
+
+    def get_redhat_management_user(self):
+        """
+        Getter of the redhat management user of the profile or it's parent.
+
+        :return: Returns the redhat_management_user of the profile.
+        """
+        return self.redhat_management_user
+
+    def set_redhat_management_password(self, management_password):
+        """
+        Setter of the redhat management password.
+
+        :param management_password: The value may be reset by setting it to None.
+        """
+        if not management_password:
+            self.redhat_management_password = "<<inherit>>"
+        self.redhat_management_password = management_password
+
+    def get_redhat_management_password(self):
+        """
+        Getter of the redhat management password of the profile or it's parent.
+
+        :return: Returns the redhat_management_password of the profile.
+        """
+        return self.redhat_management_password
 
     def get_arch(self):
         """

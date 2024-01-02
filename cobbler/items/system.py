@@ -70,6 +70,9 @@ FIELDS = [
     ["profile", None, 0, "Profile", True, "Parent profile", [], "str"],
     ["proxy", "<<inherit>>", 0, "Internal Proxy", True, "Internal proxy URL", 0, "str"],
     ["redhat_management_key", "<<inherit>>", 0, "Redhat Management Key", True, "Registration key for RHN, Spacewalk, or Satellite", 0, "str"],
+    ["redhat_management_org", "<<inherit>>", 0, "Redhat Management Organization", True, "Registration org for RHN", 0, "str"],
+    ["redhat_management_user", "<<inherit>>", 0, "Redhat Management User", True, "Registration user for RHN", 0, "str"],
+    ["redhat_management_password", "<<inherit>>", 0, "Redhat Management Password", True, "Registration password for RHN", 0, "str"],
     ["server", "<<inherit>>", 0, "Server Override", True, "See manpage or leave blank", 0, "str"],
     ["status", "production", 0, "Status", True, "System status", ["", "development", "testing", "acceptance", "production"], "str"],
     ["template_files", {}, 0, "Template Files", True, "File mappings for built-in configuration management", 0, "dict"],
@@ -260,6 +263,30 @@ class System(Item):
 
     def get_redhat_management_key(self):
         return self.redhat_management_key
+
+    def set_redhat_management_org(self, management_org):
+        if management_org is None or management_org == "":
+            self.redhat_management_org = "<<inherit>>"
+        self.redhat_management_org = management_org
+
+    def get_redhat_management_org(self):
+        return self.redhat_management_org
+
+    def set_redhat_management_user(self, management_user):
+        if management_user is None or management_user == "":
+            self.redhat_management_user = "<<inherit>>"
+        self.redhat_management_user = management_user
+
+    def get_redhat_management_user(self):
+        return self.redhat_management_user
+
+    def set_redhat_management_password(self, management_password):
+        if management_password is None or management_password == "":
+            self.redhat_management_password = "<<inherit>>"
+        self.redhat_management_password = management_password
+
+    def get_redhat_management_password(self):
+        return self.redhat_management_password
 
     def get_mac_address(self, interface):
         """
