@@ -1,0 +1,1 @@
+Fix "KeyError" on "cobbler sync" with enabled "manage_dns"
