@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Union
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.modules.managers import DnsManagerModule
+from cobbler.utils import process_management
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -629,13 +630,8 @@ zone "{arpa}." {{
         This syncs the bind server with it's new config files.
         Basically this restarts the service to apply the changes.
         """
-        # TODO: Reuse the utils method for service restarts
         named_service_name = utils.named_service_name()
-        dns_restart_command = ["service", named_service_name, "restart"]
-        ret: int = utils.subprocess_call(dns_restart_command, shell=False)
-        if ret != 0:
-            self.logger.error("%s service failed", named_service_name)
-        return ret
+        return process_management.service_restart(named_service_name)
 
 
 def get_manager(api: "CobblerAPI") -> "_BindManager":
