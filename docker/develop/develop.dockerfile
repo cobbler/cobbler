@@ -40,6 +40,7 @@ RUN zypper install --no-recommends -y \
     curl                       \
     wget2                      \
     openssl                    \
+    bind                       \
     python311                  \
     python311-Sphinx           \
     python311-coverage         \
@@ -60,6 +61,7 @@ RUN zypper install --no-recommends -y \
     python311-netaddr          \
     python311-pymongo          \
     python311-pytest-benchmark \
+    python311-black            \
     python3-librepo            \
     rpm-build                  \
     rsync                      \
