@@ -42,6 +42,7 @@ class MetadataZoneHelper:
         self.reverse_zones: List[Tuple[str, str]] = reverse_zones
         self.zone_include = zone_include
         self.bind_master = ""
+        self.bind_zonefiles = ""
 
 
 class _BindManager(DnsManagerModule):
@@ -276,6 +277,7 @@ class _BindManager(DnsManagerModule):
         # reverse_zones = self.settings.manage_reverse_zones
 
         metadata = MetadataZoneHelper(list(self.__forward_zones().keys()), [], "")
+        metadata.bind_zonefiles = self.settings.bind_zonefile_path
 
         for zone in metadata.forward_zones:
             txt = f"""
@@ -331,6 +333,7 @@ zone "{arpa}." {{
         # reverse_zones = self.settings.manage_reverse_zones
 
         metadata = MetadataZoneHelper(list(self.__forward_zones().keys()), [], "")
+        metadata.bind_zonefiles = self.settings.bind_zonefile_path
 
         for zone in metadata.forward_zones:
             txt = f"""
