@@ -3835,11 +3835,13 @@
         "boot_loaders":{
           "i386":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ],
           "x86_64":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ]
         },
         "supported_repo_breeds": [],
@@ -3866,11 +3868,13 @@
         "boot_loaders":{
           "i386":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ],
           "x86_64":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ]
         },
         "supported_repo_breeds": [],
@@ -3894,7 +3898,8 @@
         "boot_loaders":{
           "x86_64":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ]
         },
         "supported_repo_breeds": [],
@@ -3918,7 +3923,8 @@
         "boot_loaders":{
           "x86_64":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ]
         },
         "supported_repo_breeds": [],
@@ -3942,7 +3948,8 @@
         "boot_loaders":{
           "x86_64":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ]
         },
         "supported_repo_breeds": [],
@@ -3966,7 +3973,8 @@
         "boot_loaders":{
           "x86_64":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ]
         },
         "supported_repo_breeds": [],
@@ -3991,11 +3999,13 @@
         "boot_loaders":{
           "i386":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ],
           "x86_64":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ]
         },
         "supported_repo_breeds": [],
@@ -4022,11 +4032,13 @@
         "boot_loaders":{
           "i386":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ],
           "x86_64":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ]
         },
         "supported_repo_breeds": [],
@@ -4050,11 +4062,13 @@
         "boot_loaders":{
           "i386":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ],
           "x86_64":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ]
         },
         "supported_repo_breeds": [],
@@ -4078,11 +4092,13 @@
         "boot_loaders":{
           "i386":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ],
           "x86_64":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ]
         },
         "supported_repo_breeds": [],
@@ -4107,11 +4123,12 @@
           "aarch64":[],
           "x86_64":[
             "pxe",
-            "ipxe"
+            "ipxe",
+            "grub"
           ]
         },
         "supported_repo_breeds": [],
-        "kernel_file": "pxeboot\\.n12",
+        "kernel_file": "wimboot",
         "initrd_file": "boot\\.sdi",
         "default_autoinstall": "win.ks",
         "kernel_options": "",

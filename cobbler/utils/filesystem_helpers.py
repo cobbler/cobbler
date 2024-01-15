@@ -328,7 +328,7 @@ def mkdir(path: str, mode: int = 0o755) -> None:
                 already exists).
     """
     try:
-        pathlib.Path(path).mkdir(mode=mode)
+        pathlib.Path(path).mkdir(mode=mode, parents=True)
     except OSError as os_error:
         # already exists (no constant for 17?)
         if os_error.errno != 17:

@@ -358,7 +358,7 @@ def run(api: "CobblerAPI", args: Any):
         tmplstart_data = template_start.read()
 
     def gen_win_files(distro: "Distro", meta: Dict[str, Any]):
-        (kernel_path, kernel_name) = os.path.split(distro.kernel)
+        boot_path = os.path.join(settings.webdir, "links", distro.name, "boot")
         distro_path = distro.find_distro_path()
         distro_dir = wim_file_name = os.path.join(
             settings.tftpboot_location, "images", distro.name
@@ -367,22 +367,20 @@ def run(api: "CobblerAPI", args: Any):
         is_winpe = "winpe" in meta and meta["winpe"] != ""
         is_bcd = "bcd" in meta and meta["bcd"] != ""
 
+        kernel_name = distro.kernel
         if "kernel" in meta:
             kernel_name = meta["kernel"]
 
         kernel_name = os.path.basename(kernel_name)
         is_wimboot = "wimboot" in kernel_name
 
-        if is_wimboot:
-            if "kernel" in meta and "wimboot" not in distro.kernel:
-                tgen.copy_single_distro_file(
-                    os.path.join(settings.tftpboot_location, kernel_name),
-                    distro_dir,
-                    False,
-                )
-                tgen.copy_single_distro_file(
-                    os.path.join(distro_dir, kernel_name), web_dir, True
-                )
+        if is_wimboot and "kernel" in meta and "wimboot" not in distro.kernel:
+            tgen.copy_single_distro_file(
+                os.path.join(settings.tftpboot_location, kernel_name), distro_dir, False
+            )
+            tgen.copy_single_distro_file(
+                os.path.join(distro_dir, kernel_name), web_dir, True
+            )
 
         if "post_install_script" in meta:
             post_install_dir = distro_path
@@ -409,16 +407,18 @@ def run(api: "CobblerAPI", args: Any):
             logger.info("Build answer file: %s", answerfile_name)
             with open(answerfile_name, "w", encoding="UTF-8") as answerfile:
                 answerfile.write(data)
-            tgen.copy_single_distro_file(answerfile_name, distro_path, False)
-            tgen.copy_single_distro_file(answerfile_name, web_dir, True)
+            tgen.copy_single_distro_file(answerfile_name, web_dir, False)
 
         if "kernel" in meta and "bootmgr" in meta:
             wk_file_name = os.path.join(distro_dir, kernel_name)
+            bootmgr = "bootmgr.exe"
+            if ".efi" in meta["bootmgr"]:
+                bootmgr = "bootmgr.efi"
             wl_file_name = os.path.join(distro_dir, meta["bootmgr"])
-            tl_file_name = os.path.join(kernel_path, "bootmgr.exe")
+            tl_file_name = os.path.join(boot_path, bootmgr)
 
             if distro.os_version in ("xp", "2003") and not is_winpe:
-                tl_file_name = os.path.join(kernel_path, "setupldr.exe")
+                tl_file_name = os.path.join(boot_path, "setupldr.exe")
 
                 if len(meta["bootmgr"]) != 5:
                     logger.error("The loader name should be EXACTLY 5 character")
@@ -499,7 +499,7 @@ def run(api: "CobblerAPI", args: Any):
                     tgen.copy_single_distro_file(wk_file_name, web_dir, True)
 
         if is_bcd:
-            obcd_file_name = os.path.join(kernel_path, "bcd")
+            obcd_file_name = os.path.join(boot_path, "bcd")
             bcd_file_name = os.path.join(distro_dir, meta["bcd"])
             wim_file_name = "winpe.wim"
 
@@ -510,14 +510,11 @@ def run(api: "CobblerAPI", args: Any):
             if is_winpe:
                 wim_file_name = meta["winpe"]
 
+            tftp_image = os.path.join("/images", distro.name)
             if is_wimboot:
-                wim_file_name = "\\Boot\\" + "winpe.wim"
-                sdi_file_name = "\\Boot\\" + "boot.sdi"
-            else:
-                wim_file_name = os.path.join("/images", distro.name, wim_file_name)
-                sdi_file_name = os.path.join(
-                    "/images", distro.name, os.path.basename(distro.initrd)
-                )
+                tftp_image = "/Boot"
+            wim_file_name = os.path.join(tftp_image, wim_file_name)
+            sdi_file_name = os.path.join(tftp_image, os.path.basename(distro.initrd))
 
             logger.info(
                 "Build BCD: %s from %s for %s",
@@ -530,11 +527,10 @@ def run(api: "CobblerAPI", args: Any):
 
         if is_winpe:
             ps_file_name = os.path.join(distro_dir, meta["winpe"])
-            wim_pl_name = os.path.join(kernel_path, "winpe.wim")
+            wim_pl_name = os.path.join(boot_path, "winpe.wim")
 
             cmd = ["/usr/bin/cp", "--reflink=auto", wim_pl_name, ps_file_name]
             utils.subprocess_call(cmd, shell=False)
-            tgen.copy_single_distro_file(ps_file_name, web_dir, True)
 
             if os.path.exists(WIMUPDATE):
                 data = templ.render(tmplstart_data, meta, None)
@@ -557,6 +553,7 @@ def run(api: "CobblerAPI", args: Any):
                         f"--command=add {pi_file.name} {startnet_path}",
                     ]
                     utils.subprocess_call(cmd, shell=False)
+            tgen.copy_single_distro_file(ps_file_name, web_dir, True)
 
     for profile in profiles:
         distro: Optional["Distro"] = profile.get_conceptual_parent()  # type: ignore
@@ -564,7 +561,7 @@ def run(api: "CobblerAPI", args: Any):
         if distro is None:
             raise ValueError("Distro not found!")
 
-        if distro and distro.breed == "windows":
+        if distro.breed == "windows":
             logger.info("Profile: %s", profile.name)
             meta = utils.blender(api, False, profile)
             autoinstall_meta = meta.get("autoinstall_meta", {})
