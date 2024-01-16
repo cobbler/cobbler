@@ -107,7 +107,7 @@ system-test-env: ## Configures the environment for system tests
 
 build: ## Runs the Python Build.
 	@source distro_build_configs.sh; \
-	${PYTHON} setup.py build -f
+	${PYTHON} setup.py build -f --executable=${PYTHON}
 
 install: build ## Runs the build target and then installs via setup.py
 	# Debian/Ubuntu requires an additional parameter in setup.py
