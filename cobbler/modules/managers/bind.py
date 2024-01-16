@@ -32,6 +32,10 @@ def register() -> str:
 
 
 class MetadataZoneHelper:
+    """
+    Helper class to hold data for template rendering of named config files.
+    """
+
     def __init__(
         self,
         forward_zones: List[str],
