@@ -196,7 +196,7 @@ def test_rmtree():
 def test_mkdir():
     # TODO: Check how already existing folder is handled.
     # Arrange
-    testfolder = "/dev/shm/testfoldercreation"
+    testfolder = "/dev/shm/testfoldercreation/testmkdir"
     testmode = 0o600
 
     try:

@@ -15,7 +15,7 @@ import re
 import socket
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-from cobbler import enums, templar, utils
+from cobbler import enums, grub, templar, utils
 from cobbler.cexceptions import CX
 from cobbler.enums import Archs, ImageTypes
 from cobbler.utils import filesystem_helpers, input_converters
@@ -1111,6 +1111,9 @@ class TFTPGen:
             autoinstall_meta, kernel_path, initrd_path, boot_loader  # type: ignore
         )
 
+        if boot_loader == "grub" and utils.file_is_remote(kernel_path):  # type: ignore
+            metadata["kernel_path"] = grub.parse_grub_remote_file(kernel_path)  # type: ignore
+
     def build_kernel_options(
         self,
         system: Optional["System"],
@@ -1649,9 +1652,14 @@ class TFTPGen:
         initrd_line = custom_loader_name
 
         if bootloader_format == "ipxe":
-            initrd_line = (
-                "--name " + loader_name + " " + custom_loader_name + " " + loader_name
-            )
+            initrd_line = f"--name {loader_name} {custom_loader_name} {loader_name}"
+        elif bootloader_format == "pxe":
+            initrd_line = f"{custom_loader_name}@{loader_name}"
+        elif bootloader_format == "grub":
+            loader_path = custom_loader_name
+            if utils.file_is_remote(loader_path):
+                loader_path = grub.parse_grub_remote_file(custom_loader_name)  # type: ignore
+            initrd_line = f"newc:{loader_name}:{loader_path}"
 
         return initrd_line
 
@@ -1683,7 +1691,7 @@ class TFTPGen:
                 loaders_path = (
                     f"{protocol}://@@http_server@@/cobbler/images/@@distro_name@@/"
                 )
-                initrd_path = loaders_path + os.path.basename(initrd_path)
+                initrd_path = f"{loaders_path}{os.path.basename(initrd_path)}"
             else:
                 (loaders_path, _) = os.path.split(kernel_path)
                 loaders_path += "/"
@@ -1700,21 +1708,21 @@ class TFTPGen:
                 initrd.append(
                     self._build_windows_initrd(
                         "bootmgr.exe",
-                        bootmgr_path + autoinstall_meta["bootmgr"],
+                        f'{bootmgr_path}{autoinstall_meta["bootmgr"]}',
                         bootloader_format,
                     )
                 )
             if "bcd" in autoinstall_meta:
                 initrd.append(
                     self._build_windows_initrd(
-                        "bcd", bcd_path + autoinstall_meta["bcd"], bootloader_format
+                        "bcd", f'{bcd_path}{autoinstall_meta["bcd"]}', bootloader_format
                     )
                 )
             if "winpe" in autoinstall_meta:
                 initrd.append(
                     self._build_windows_initrd(
-                        "winpe.wim",
-                        wim_path + autoinstall_meta["winpe"],
+                        autoinstall_meta["winpe"],
+                        f'{wim_path}{autoinstall_meta["winpe"]}',
                         bootloader_format,
                     )
                 )

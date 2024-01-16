@@ -1,0 +1,1 @@
+(Windows BCD: fix for UEFI installation, Windows WinPE: fix for "could not apply unattended settings during [offlineServicing]")
