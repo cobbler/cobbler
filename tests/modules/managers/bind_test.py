@@ -170,15 +170,15 @@ def test_chrooted_named(cobbler_api: CobblerAPI):
 
 def test_manager_restart_service(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     """
-    Test if the manager is able to correctly handle restarting the dhcpd server on different distros.
+    Test if the manager is able to correctly handle restarting the named server on different distros.
     """
     # Arrange
     manager = bind.get_manager(cobbler_api)
-    mocked_restart = mocker.patch.object(
-        manager, "restart_service", autospec=True, return_value=0
-    )
     mocked_service_name = mocker.patch(
         "cobbler.utils.named_service_name", autospec=True, return_value="named"
+    )
+    mock_service_restart = mocker.patch(
+        "cobbler.utils.process_management.service_restart", return_value=0
     )
 
     # Act
@@ -186,5 +186,5 @@ def test_manager_restart_service(mocker: "MockerFixture", cobbler_api: CobblerAP
 
     # Assert
     assert mocked_service_name.call_count == 1
-    assert mocked_restart.call_count == 2
+    mock_service_restart.assert_called_with("named")
     assert result == 0
