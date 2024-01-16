@@ -105,7 +105,7 @@ import pprint
 import re
 import uuid
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, TypeVar, Union
 
 import yaml
 
@@ -126,6 +126,7 @@ if TYPE_CHECKING:
 
 
 RE_OBJECT_NAME = re.compile(r"[a-zA-Z0-9_\-.:]*$")
+T = TypeVar("T")
 
 
 class Item:
@@ -380,17 +381,7 @@ class Item:
             self.clean_cache(name)
         super().__setattr__(name, value)
 
-    def _resolve(self, property_name: str) -> Any:
-        """
-        Resolve the ``property_name`` value in the object tree. This function traverses the tree from the object to its
-        topmost parent and returns the first value that is not inherited. If the the tree does not contain a value the
-        settings are consulted.
-
-        :param property_name: The property name to resolve.
-        :raises AttributeError: In case one of the objects try to inherit from a parent that does not have
-                                ``property_name``.
-        :return: The resolved value.
-        """
+    def __common_resolve(self, property_name: str):
         settings_name = property_name
         if property_name.startswith("proxy_url_"):
             property_name = "proxy"
@@ -398,25 +389,44 @@ class Item:
             settings_name = "default_ownership"
         attribute = "_" + property_name
 
-        if not hasattr(self, attribute):
-            raise AttributeError(
-                f'{type(self)} "{self.name}" does not have property "{property_name}"'
-            )
+        return getattr(self, attribute), settings_name
 
-        attribute_value = getattr(self, attribute)
+    def __resolve_get_parent_or_settings(self, property_name: str, settings_name: str):
         settings = self.api.settings()
+        conceptual_parent = self.get_conceptual_parent()
+
+        if hasattr(self.parent, property_name):
+            return getattr(self.parent, property_name)
+        elif hasattr(conceptual_parent, property_name):
+            return getattr(conceptual_parent, property_name)
+        elif hasattr(settings, settings_name):
+            return getattr(settings, settings_name)
+        elif hasattr(settings, f"default_{settings_name}"):
+            return getattr(settings, f"default_{settings_name}")
+        return None
+
+    def _resolve(self, property_name: str) -> Any:
+        """
+        Resolve the ``property_name`` value in the object tree. This function traverses the tree from the object to its
+        topmost parent and returns the first value that is not inherited. If the tree does not contain a value the
+        settings are consulted.
+
+        :param property_name: The property name to resolve.
+        :raises AttributeError: In case one of the objects try to inherit from a parent that does not have
+                                ``property_name``.
+        :return: The resolved value.
+        """
+        attribute_value, settings_name = self.__common_resolve(property_name)
 
         if attribute_value == enums.VALUE_INHERITED:
-            logical_parent = self.logical_parent
-            if logical_parent is not None and hasattr(logical_parent, property_name):
-                return getattr(logical_parent, property_name)
-            if hasattr(settings, settings_name):
-                return getattr(settings, settings_name)
-            if hasattr(settings, f"default_{settings_name}"):
-                return getattr(settings, f"default_{settings_name}")
-            AttributeError(
+            possible_return = self.__resolve_get_parent_or_settings(
+                property_name, settings_name
+            )
+            if possible_return is not None:
+                return possible_return
+            raise AttributeError(
                 f'{type(self)} "{self.name}" inherits property "{property_name}", but neither its parent nor'
-                f"settings have it"
+                f" settings have it"
             )
 
         return attribute_value
@@ -427,31 +437,17 @@ class Item:
         """
         See :meth:`~cobbler.items.item.Item._resolve`
         """
-        settings_name = property_name
-        attribute = "_" + property_name
-
-        if not hasattr(self, attribute):
-            raise AttributeError(
-                f'{type(self)} "{self.name}" does not have property "{property_name}"'
+        attribute_value, settings_name = self.__common_resolve(property_name)
+        unwrapped_value = getattr(attribute_value, "value", "")
+        if unwrapped_value == enums.VALUE_INHERITED:
+            possible_return = self.__resolve_get_parent_or_settings(
+                unwrapped_value, settings_name
             )
-
-        attribute_value = getattr(self, attribute)
-        settings = self.api.settings()
-
-        if (
-            isinstance(attribute_value, enums.ConvertableEnum)
-            and attribute_value.value == enums.VALUE_INHERITED
-        ):
-            logical_parent = self.logical_parent
-            if logical_parent is not None and hasattr(logical_parent, property_name):
-                return getattr(logical_parent, property_name)
-            if hasattr(settings, settings_name):
-                return enum_type.to_enum(getattr(settings, settings_name))
-            if hasattr(settings, f"default_{settings_name}"):
-                return enum_type.to_enum(getattr(settings, f"default_{settings_name}"))
-            AttributeError(
+            if possible_return is not None:
+                return enum_type(possible_return)
+            raise AttributeError(
                 f'{type(self)} "{self.name}" inherits property "{property_name}", but neither its parent nor'
-                "settings have it"
+                f" settings have it"
             )
 
         return attribute_value
@@ -467,19 +463,14 @@ class Item:
         """
         attribute = "_" + property_name
 
-        if not hasattr(self, attribute):
-            raise AttributeError(
-                f'{type(self)} "{self.name}" does not have property "{property_name}"'
-            )
-
         attribute_value = getattr(self, attribute)
         settings = self.api.settings()
 
         merged_dict: Dict[str, Any] = {}
 
-        logical_parent = self.logical_parent
-        if logical_parent is not None and hasattr(logical_parent, property_name):
-            merged_dict.update(getattr(logical_parent, property_name))
+        conceptual_parent = self.get_conceptual_parent()
+        if hasattr(conceptual_parent, property_name):
+            merged_dict.update(getattr(conceptual_parent, property_name))
         elif hasattr(settings, property_name):
             merged_dict.update(getattr(settings, property_name))
 
@@ -488,6 +479,39 @@ class Item:
 
         utils.dict_annihilate(merged_dict)
         return merged_dict
+
+    def _deduplicate_dict(
+        self, property_name: str, value: Dict[str, T]
+    ) -> Dict[str, T]:
+        """
+        Filter out the key:value pair may come from parent and global settings.
+        Note: we do not know exactly which resolver does key:value belongs to, what we did is just deduplicate them.
+
+        :param property_name: The property name to deduplicated.
+        :param value: The value that should be deduplicated.
+        :returns: The deduplicated dictionary
+        """
+        _, settings_name = self.__common_resolve(property_name)
+        settings = self.api.settings()
+        conceptual_parent = self.get_conceptual_parent()
+
+        if hasattr(self.parent, property_name):
+            parent_value = getattr(self.parent, property_name)
+        elif hasattr(conceptual_parent, property_name):
+            parent_value = getattr(conceptual_parent, property_name)
+        elif hasattr(settings, settings_name):
+            parent_value = getattr(settings, settings_name)
+        elif hasattr(settings, f"default_{settings_name}"):
+            parent_value = getattr(settings, f"default_{settings_name}")
+        else:
+            parent_value = {}
+
+        # Because we use getattr pyright cannot correctly check this.
+        for key in parent_value:  # type: ignore
+            if key in value and parent_value[key] == value[key]:  # type: ignore
+                value.pop(key)  # type: ignore
+
+        return value
 
     @property
     def uid(self) -> str:
@@ -635,11 +659,14 @@ class Item:
         :raises ValueError: In case the values set could not be parsed successfully.
         """
         try:
-            self._kernel_options = input_converters.input_string_or_dict(
-                options, allow_multiples=True
-            )
+            value = input_converters.input_string_or_dict(options, allow_multiples=True)
+            if value == enums.VALUE_INHERITED:
+                self._kernel_options = enums.VALUE_INHERITED
+                return
+            # pyright doesn't understand that the only valid str return value is this constant.
+            self._kernel_options = self._deduplicate_dict("kernel_options", value)  # type: ignore
         except TypeError as error:
-            raise TypeError("invalid kernel options") from error
+            raise TypeError("invalid kernel value") from error
 
     @InheritableDictProperty
     def kernel_options_post(self) -> Dict[str, Any]:
@@ -690,7 +717,11 @@ class Item:
         :raises ValueError: If splitting the value does not succeed.
         """
         value = input_converters.input_string_or_dict(options, allow_multiples=True)
-        self._autoinstall_meta = value
+        if value == enums.VALUE_INHERITED:
+            self._autoinstall_meta = enums.VALUE_INHERITED
+            return
+        # pyright doesn't understand that the only valid str return value is this constant.
+        self._autoinstall_meta = self._deduplicate_dict("autoinstall_meta", value)  # type: ignore
 
     @InheritableProperty
     def mgmt_classes(self) -> List[Any]:
