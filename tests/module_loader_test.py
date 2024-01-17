@@ -174,7 +174,11 @@ def test_get_module_from_file(
         ("manage/import", ["cobbler.modules.managers.import_signatures"]),
         (
             "serializer",
-            ["cobbler.modules.serializers.file", "cobbler.modules.serializers.mongodb"],
+            [
+                "cobbler.modules.serializers.file",
+                "cobbler.modules.serializers.mongodb",
+                "cobbler.modules.serializers.sqlite",
+            ],
         ),
         (
             "authz",

@@ -2,7 +2,7 @@
 This module contains code to persist the in memory state of Cobbler on a target. The name of the target should be the
 name of the Python file. Cobbler is currently only tested against the file serializer.
 """
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -19,10 +19,10 @@ class StorageBase:
 
     def serialize_item(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         """
-        Save a collection item to database.
+        Save a collection item to disk
 
-        :param collection: collection
-        :param item: collection item
+        :param collection: The Cobbler collection to know the type of the item.
+        :param item: The collection item to serialize.
         """
         raise NotImplementedError(
             "The implementation for the configured serializer is missing!"
@@ -30,7 +30,7 @@ class StorageBase:
 
     def serialize_delete(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         """
-        Delete a collection item from database.
+        Delete a collection item from disk.
 
         :param collection: collection
         :param item: collection item
@@ -41,20 +41,22 @@ class StorageBase:
 
     def serialize(self, collection: "Collection[ITEM]") -> None:
         """
-        Save a collection to database
+        Save a collection to disk
 
-        :param collection: collection
+        :param collection: The collection to serialize.
         """
         raise NotImplementedError(
             "The implementation for the configured serializer is missing!"
         )
 
-    def deserialize_raw(self, collection_type: str) -> List[Dict[str, Any]]:
+    def deserialize_raw(
+        self, collection_type: str
+    ) -> Union[List[Optional[Dict[str, Any]]], Dict[str, Any]]:
         """
-        Get a collection from mongodb and parse it into an object.
+        Read the collection from the disk or read the settings file.
 
-        :param collection_type: The collection type to fetch.
-        :return: The first element of the collection requested.
+        :param collection_type: The collection type to read.
+        :return: The list of collection dicts or settings dict.
         """
         raise NotImplementedError(
             "The implementation for the configured serializer is missing!"
@@ -64,10 +66,12 @@ class StorageBase:
         self, collection: "Collection[ITEM]", topological: bool = True
     ) -> None:
         """
-        Load a collection from the database.
+        Load a collection from disk.
 
-        :param collection: The collection to deserialize.
-        :param topological: If the collection list should be sorted by the collection dict depth value or not.
+        :param collection: The Cobbler collection to know the type of the item.
+        :param topological: Sort collection based on each items' depth attribute in the list of collection items. This
+                            ensures properly ordered object loading from disk with objects having parent/child
+                            relationships, i.e. profiles/subprofiles.  See cobbler/items/item.py
         """
         raise NotImplementedError(
             "The implementation for the configured serializer is missing!"
@@ -75,12 +79,11 @@ class StorageBase:
 
     def deserialize_item(self, collection_type: str, name: str) -> Dict[str, Any]:
         """
-        Get a collection item from database and parse it into an object.
+        Get a collection item from disk and parse it into an object.
 
-        :param collection_type: The collection type to fetch.
-        :param item: collection item
-        :param topological: If the collection list should be sorted by the collection dict depth value or not.
-        :return: The first element of the collection requested.
+        :param collection_type: The collection type to deserialize.
+        :param item_name: The collection item name to deserialize.
+        :return: Dictionary of the collection item.
         """
         raise NotImplementedError(
             "The implementation for the configured serializer is missing!"
