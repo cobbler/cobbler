@@ -121,7 +121,7 @@ import threading
 from configparser import ConfigParser
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
 from schema import SchemaError  # type: ignore
 
@@ -2723,3 +2723,16 @@ class CobblerAPI:
         .. seealso:: :func:`~cobbler.utils.input_converters.input_int`
         """
         return input_converters.input_int(value)
+
+    def get_tftp_file(self, path: str, offset: int, size: int) -> Tuple[bytes, int]:
+        """
+        Generate and return a file for a TFTP client.
+
+        :param path: Path to file
+        :param offset: Offset of the requested chunk in the file
+        :param size: Size of the requested chunk in the file
+        :return: The requested chunk and the length of the whole file
+        """
+        normalized_path = Path(os.path.normpath(os.path.join("/", path)))
+
+        return self.tftpgen.generate_tftp_file(normalized_path, offset, size)
