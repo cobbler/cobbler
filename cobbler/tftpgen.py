@@ -13,7 +13,7 @@ import os.path
 import pathlib
 import re
 import socket
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 from cobbler import enums, grub, templar, utils
 from cobbler.cexceptions import CX
@@ -172,6 +172,50 @@ class TFTPGen:
         newfile = os.path.join(images_dir, img.name)
         filesystem_helpers.linkfile(self.api, filename, newfile)
 
+    def _format_s390x_kernel_options(
+        self,
+        distro: Optional["Distro"],
+        profile: Optional["Profile"],
+        image: Optional["Image"],
+        system: "System",
+    ) -> str:
+        blended = utils.blender(self.api, True, system)
+        # FIXME: profiles also need this data!
+        # gather default kernel_options and default kernel_options_s390x
+        kernel_options = self.build_kernel_options(
+            system,
+            profile,
+            distro,
+            image,
+            enums.Archs.S390X,
+            blended.get("autoinstall", ""),
+        )
+
+        # parm file format is fixed to 80 chars per line.
+        # All the lines are concatenated without spaces when being passed to the kernel.
+        #
+        # Recommendation: one parameter per line (ending with whitespace)
+        #
+        # NOTE: If a parameter is too long to fit into the 80 characters limit it can simply
+        # be continued in the first column of the next line.
+        #
+        # https://www.debian.org/releases/stable/s390x/ch05s01.en.html
+        # https://documentation.suse.com/sles/15-SP1/html/SLES-all/cha-zseries.html#sec-appdendix-parm-examples
+        # https://wiki.ubuntu.com/S390X/InstallationGuide
+        _parmfile_fixed_line_len = 79
+        kopts_aligned = ""
+        kopts = kernel_options.strip()
+        # Only in case we have kernel options
+        if kopts:
+            for option in [
+                kopts[i : i + _parmfile_fixed_line_len]
+                for i in range(0, len(kopts), _parmfile_fixed_line_len)
+            ]:
+                # If chunk contains multiple parameters (separated by whitespaces)
+                # then we put them in separated lines followed by whitespace
+                kopts_aligned += option.replace(" ", " \n") + "\n"
+        return kopts_aligned
+
     def _write_all_system_files_s390(
         self, distro: "Distro", profile: "Profile", image: "Image", system: "System"
     ) -> None:
@@ -211,41 +255,6 @@ class TFTPGen:
         parm_f = f"{pxe_f}_parm"
 
         self.logger.info("Files: (conf,param) - (%s,%s)", conf_f, parm_f)
-        blended = utils.blender(self.api, True, system)
-        # FIXME: profiles also need this data!
-        # gather default kernel_options and default kernel_options_s390x
-        kernel_options = self.build_kernel_options(
-            system,
-            profile,
-            distro,
-            image,
-            enums.Archs.S390X,
-            blended.get("autoinstall", ""),
-        )
-
-        # parm file format is fixed to 80 chars per line.
-        # All the lines are concatenated without spaces when being passed to the kernel.
-        #
-        # Recommendation: one parameter per line (ending with whitespace)
-        #
-        # NOTE: If a parameter is too long to fit into the 80 characters limit it can simply
-        # be continued in the first column of the next line.
-        #
-        # https://www.debian.org/releases/stable/s390x/ch05s01.en.html
-        # https://documentation.suse.com/sles/15-SP1/html/SLES-all/cha-zseries.html#sec-appdendix-parm-examples
-        # https://wiki.ubuntu.com/S390X/InstallationGuide
-        _parmfile_fixed_line_len = 79
-        kopts_aligned = ""
-        kopts = kernel_options.strip()
-        # Only in case we have kernel options
-        if kopts:
-            for option in [
-                kopts[i : i + _parmfile_fixed_line_len]
-                for i in range(0, len(kopts), _parmfile_fixed_line_len)
-            ]:
-                # If chunk contains multiple parameters (separated by whitespaces)
-                # then we put them in separated lines followed by whitespace
-                kopts_aligned += option.replace(" ", " \n") + "\n"
 
         # Write system specific zPXE file
         if system.is_management_supported():
@@ -257,10 +266,13 @@ class TFTPGen:
                 initrd_path = os.path.join(
                     "/images", distro.name, os.path.basename(distro.initrd)
                 )
+                kopts = self._format_s390x_kernel_options(
+                    distro, profile, image, system
+                )
                 with open(pxe_f, "w", encoding="UTF-8") as out:
                     out.write(kernel_path + "\n" + initrd_path + "\n")
                 with open(parm_f, "w", encoding="UTF-8") as out:
-                    out.write(kopts_aligned)
+                    out.write(kopts)
                 # Write conf file with one newline in it if netboot is enabled
                 with open(conf_f, "w", encoding="UTF-8") as out:
                     out.write("\n")
@@ -418,6 +430,106 @@ class TFTPGen:
                 if grub_path:
                     filesystem_helpers.rmfile(grub_path)
 
+    def _generate_system_file_s390x(
+        self,
+        distro: "Distro",
+        profile: Optional["Profile"],
+        image: Optional["Image"],
+        system: "System",
+        path: pathlib.Path,
+    ) -> Optional[str]:
+        short_name = system.name.split(".")[0]
+        s390_name = "linux" + short_name[7:10]
+        if path == pathlib.Path(f"/s390x/s_{s390_name}_conf"):
+            return "\n" if system.netboot_enabled else ""
+        if system.netboot_enabled:
+            if path == pathlib.Path(f"/s390x/s_{s390_name}"):
+                kernel_path = os.path.join(
+                    "/images", distro.name, os.path.basename(distro.kernel)
+                )
+                initrd_path = os.path.join(
+                    "/images", distro.name, os.path.basename(distro.initrd)
+                )
+                return kernel_path + "\n" + initrd_path + "\n"
+            if path == pathlib.Path(f"/s390x/s_{s390_name}_parm"):
+                return self._format_s390x_kernel_options(distro, profile, image, system)
+        return None
+
+    def generate_system_file(
+        self,
+        system: "System",
+        path: pathlib.Path,
+        metadata: Dict[str, Union[str, Dict[str, str]]],
+    ) -> Optional[str]:
+        """
+        Generate a single file for a system if the file is related to the system.
+
+        :param system: The system to generate the file for.
+        :param path: The path to the file.
+        :param metadata: Menu items and other metadata for the generator.
+        :returns: The contents of the file or None if the system does not provide this file.
+        """
+        system_parent: Optional[
+            Union["Profile", "Image"]
+        ] = system.get_conceptual_parent()  # type: ignore
+        if system_parent is None:
+            raise CX(
+                f"system {system.name} references a missing profile {system.profile}"
+            )
+
+        distro: Optional["Distro"] = system_parent.get_conceptual_parent()  # type: ignore
+        # TODO: Check if we can do this with isinstance and without a circular import.
+        if distro is None:
+            if system_parent.COLLECTION_TYPE == "profile":
+                raise CX(f"profile {system.profile} references a missing distro!")
+            image: Optional["Image"] = system_parent  # type: ignore
+            profile = None
+        else:
+            profile: Optional["Profile"] = system_parent  # type: ignore
+            image = None
+
+        if distro is not None and distro.arch in (Archs.S390, Archs.S390X):
+            return self._generate_system_file_s390x(
+                distro, profile, image, system, path
+            )
+
+        if profile is None and image is not None:
+            working_arch = image.arch
+        elif distro is not None:
+            working_arch = distro.arch
+        else:
+            raise ValueError("Arch could not be fetched!")
+
+        for (name, _) in system.interfaces.items():
+            pxe_name = system.get_config_filename(interface=name, loader="pxe")
+            if pxe_name and (
+                path == pathlib.Path("/pxelinux.cfg", pxe_name)
+                or path == pathlib.Path("/esxi/pxelinux.cfg", pxe_name)
+            ):
+                return self.write_pxe_file(
+                    None,
+                    system,
+                    profile,
+                    distro,
+                    working_arch,
+                    metadata=metadata,
+                )
+            grub_name = system.get_config_filename(interface=name, loader="grub")
+            if grub_name and path == pathlib.Path("/grub/system", grub_name):
+                return self.write_pxe_file(
+                    None,
+                    system,
+                    profile,
+                    distro,
+                    working_arch,
+                    bootloader_format="grub",
+                )
+            if path == pathlib.Path("/esxi/system", system.name, "boot.cfg"):
+                # FIXME: generate_bootcfg shouldn't waste time searching for the system again
+                return self.generate_bootcfg("system", system.name)
+
+        return None
+
     def make_pxe_menu(self) -> Dict[str, Union[str, Dict[str, str]]]:
         """
         Generates pxe, ipxe and grub boot menus.
@@ -514,6 +626,76 @@ class TFTPGen:
                 pathlib.Path(self.bootloc) / "grub" / f"{arch.value}_menu_items.cfg"
             )
             outfile.write_text(arch_menu_items.get("grub", ""), encoding="UTF-8")  # type: ignore
+
+    def generate_pxe_menu(
+        self, path: pathlib.Path, metadata: Dict[str, Union[str, Dict[str, str]]]
+    ) -> Optional[str]:
+        """
+        Generate the requested menu file.
+
+        :param path: Path to the menu file.
+        :param metadata: Menu items and other metadata for the generator.
+        """
+        # only do this if there is NOT a system named default.
+        default = self.systems.find(name="default")
+
+        timeout_action = "local"
+        if default is not None and not isinstance(default, list):
+            timeout_action = default.profile
+
+        metadata["pxe_timeout_profile"] = timeout_action
+
+        if path == pathlib.Path("/pxelinux.cfg/default") or path == pathlib.Path(
+            "/esxi/pxelinux.cfg/default"
+        ):
+            return self._generate_pxe_menu_pxe(metadata)
+        if self.settings.enable_ipxe and path == pathlib.Path("/ipxe/default.ipxe"):
+            return self._generate_pxe_menu_ipxe(metadata)
+        for arch in enums.Archs:
+            arch_menu_path = pathlib.Path("/grub", f"{arch.value}_menu_items.cfg")
+            if path == arch_menu_path:
+                return self.get_menu_items(arch)["menu_items"].get("grub", "")  # type: ignore
+        return None
+
+    def _generate_pxe_menu_pxe(
+        self,
+        metadata: Dict[str, Union[str, Dict[str, str]]],
+    ) -> str:
+        """
+        Generate the PXE menu
+
+        :param metadata: The metadata dictionary that contains the metdata for the template.
+        """
+        metadata["menu_items"] = metadata["menu_items"].get("pxe", "")  # type: ignore
+        metadata["menu_labels"] = metadata["menu_labels"].get("pxe", "")  # type: ignore
+        with open(
+            os.path.join(
+                self.settings.boot_loader_conf_template_dir, "pxe_menu.template"
+            ),
+            encoding="UTF-8",
+        ) as template_src:
+            template_data = template_src.read()
+            return self.templar.render(template_data, metadata, None)
+
+    def _generate_pxe_menu_ipxe(
+        self,
+        metadata: Dict[str, Union[str, Dict[str, str]]],
+    ) -> str:
+        """
+        Generate the IPXE menu
+
+        :param metadata: The metadata dictionary that contains the metdata for the template.
+        """
+        metadata["menu_items"] = metadata["menu_items"].get("ipxe", "")  # type: ignore
+        metadata["menu_labels"] = metadata["menu_labels"].get("ipxe", "")  # type: ignore
+        with open(
+            os.path.join(
+                self.settings.boot_loader_conf_template_dir, "ipxe_menu.template"
+            ),
+            encoding="UTF-8",
+        ) as template_src:
+            template_data = template_src.read()
+            return self.templar.render(template_data, metadata, None)
 
     def get_menu_items(
         self, arch: Optional[enums.Archs] = None
@@ -1791,3 +1973,110 @@ class TFTPGen:
                 raise OSError(f"Error creating symlink {link_file}") from os_error
 
         return buffer
+
+    def _read_chunk(
+        self, path: Union[str, pathlib.Path], offset: int, size: int
+    ) -> Tuple[bytes, int]:
+        with open(path, "rb") as fd:
+            fd.seek(offset)
+            data = fd.read(size)
+            file_size = fd.seek(0, os.SEEK_END)
+            return data, file_size
+
+    def _get_static_tftp_file(
+        self, path: pathlib.Path, offset: int, size: int
+    ) -> Optional[Tuple[bytes, int]]:
+        relative_path = str(path).strip("/")
+        try:
+            return self._read_chunk(
+                pathlib.Path(self.settings.bootloaders_dir, relative_path), offset, size
+            )
+        except FileNotFoundError:
+            try:
+                return self._read_chunk(
+                    pathlib.Path(self.settings.grubconfig_dir, relative_path),
+                    offset,
+                    size,
+                )
+            except FileNotFoundError:
+                return None
+
+    def _get_distro_tftp_file(
+        self, path: pathlib.Path, offset: int, size: int
+    ) -> Optional[Tuple[bytes, int]]:
+        if path.parts[1] != "images":
+            distro_name = path.parts[3]
+        else:
+            distro_name = path.parts[2]
+        distro = self.api.find_distro(distro_name, return_list=False)
+        if isinstance(distro, list):
+            raise ValueError("Expected a single distro, found a list")
+        if distro is not None:
+            kernel_path = pathlib.Path(distro.kernel)
+            if path.name == kernel_path.name:
+                return self._read_chunk(kernel_path, offset, size)
+            initrd_path = pathlib.Path(distro.initrd)
+            if path.name == initrd_path.name:
+                return self._read_chunk(initrd_path, offset, size)
+        return None
+
+    def _generate_tftp_config_file(
+        self, path: pathlib.Path, offset: int, size: int
+    ) -> Optional[Tuple[bytes, int]]:
+        metadata = self.get_menu_items()
+        # TODO: This iterates through all systems for each request. Can this be optimized?
+        contents = None
+        for system in self.api.systems():
+            if not system.is_management_supported():
+                continue
+            contents = self.generate_system_file(system, path, metadata)
+            if contents is not None:
+                break
+        if contents is None:
+            contents = self.generate_pxe_menu(path, metadata)
+        if contents is not None:
+            enc = contents.encode("UTF-8")
+            return enc[offset : offset + size], len(enc)
+        return None
+
+    def generate_tftp_file(
+        self, path: pathlib.Path, offset: int, size: int
+    ) -> Tuple[bytes, int]:
+        """
+        Generate and return a file for a TFTP client.
+
+        :param path: Normalized absolute path to the file
+        :param offset: Offset of the requested chunk in the file
+        :param size: Size of the requested chunk in the file
+        :return: The requested chunk and the length of the whole file
+        """
+        static_file = self._get_static_tftp_file(path, offset, size)
+        if static_file is not None:
+            return static_file
+
+        if (
+            path.match("/images/*/*")
+            or path.match("/grub/images/*/*")
+            or path.match("/esxi/images/*/*")
+        ):
+            distro_file = self._get_distro_tftp_file(path, offset, size)
+            if distro_file is not None:
+                return distro_file
+        elif path.match("/images2/*"):
+            image = self.api.find_image(path.parts[2], return_list=False)
+            if isinstance(image, list):
+                raise ValueError("Expected a single image, found a list")
+            if image is not None:
+                return self._read_chunk(image.file, offset, size)
+        elif path.match("/esxi/system/*/mboot.efi"):
+            return self._read_chunk(
+                pathlib.Path(self.settings.bootloaders_dir, "esxi/mboot.efi"),
+                offset,
+                size,
+            )
+        else:
+            config_file = self._generate_tftp_config_file(path, offset, size)
+            if config_file is not None:
+                return config_file
+
+        raise FileNotFoundError(path)

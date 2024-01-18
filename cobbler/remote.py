@@ -4350,6 +4350,22 @@ class CobblerXMLRPCInterface:
         """
         return self.api.input_int(value)
 
+    def get_tftp_file(
+        self, path: str, offset: int, size: int, token: str
+    ) -> Tuple[bytes, int]:
+        """
+        Generate and return a file for a TFTP client.
+
+        :param path: Path to file
+        :param token: The API-token obtained via the login() method
+        :param offset: Offset of the requested chunk in the file
+        :param size: Size of the requested chunk in the file
+        :return: The requested chunk and the length of the whole file
+        """
+        self._log("get_tftp_file", token=token)
+        self.check_access(token, "get_tftp_file")
+        return self.api.get_tftp_file(path, offset, size)
+
 
 # *********************************************************************************
 
