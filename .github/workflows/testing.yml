@@ -25,9 +25,10 @@ jobs:
           docker exec -u 0 -it cobbler bash -c "pytest --cov=./cobbler --benchmark-skip && git config --global --add safe.directory /code && coverage xml && codecov --token=1064928c-6477-41be-9ac2-7ce5e6d1fd8b --commit=${GITHUB_SHA}"
       - name: Stop and remove the container
         run: docker stop cobbler && docker rm cobbler
-      # https://github.com/codacy/codacy-coverage-reporter-action
-      - name: Run codacy-coverage-reporter
-        uses: codacy/codacy-coverage-reporter-action@v1
+      # https://github.com/actions/upload-artifact
+      - name: Upload coverage report to GH artifacts
+        uses: actions/upload-artifact@v4
         with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: coverage.xml
+          name: coverage-report
+          path: coverage.xml
+          if-no-files-found: error

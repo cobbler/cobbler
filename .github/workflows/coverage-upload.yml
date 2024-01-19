@@ -1,0 +1,26 @@
+name: Testing Cobbler
+
+on:
+  workflow_run:
+    workflows: [Testing Cobbler]
+    types:
+      - completed
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/dawidd6/action-download-artifact
+      - name: Download artifact
+        id: download-artifact
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          name: coverage-report
+          allow_forks: true
+          workflow_conclusion: success
+      # https://github.com/codacy/codacy-coverage-reporter-action
+      - name: Run codacy-coverage-reporter
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.xml
