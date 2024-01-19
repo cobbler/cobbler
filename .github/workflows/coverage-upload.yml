@@ -1,4 +1,4 @@
-name: Testing Cobbler
+name: Coverage Upload
 
 on:
   workflow_run:
