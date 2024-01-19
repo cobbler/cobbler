@@ -3,7 +3,7 @@ name: Testing Cobbler
 on:
   push:
     branches: [ main, release* ]
-  pull_request_target:
+  pull_request:
     branches: [ main, release* ]
 
 jobs:
