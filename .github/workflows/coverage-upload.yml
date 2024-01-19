@@ -16,6 +16,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v3
         with:
           name: coverage-report
+          workflow: testing.yml
           allow_forks: true
           workflow_conclusion: success
       # https://github.com/codacy/codacy-coverage-reporter-action
