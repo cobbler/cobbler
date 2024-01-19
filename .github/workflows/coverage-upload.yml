@@ -28,7 +28,7 @@ jobs:
       - name: Publish Code Coverage Results
         run: |
           auth="--project-token ${{ secrets.CODACY_PROJECT_TOKEN }}"
+          commit_uuid="--commit-uuid ${{ github.event.workflow_run.head_sha }}"
 
-          bash <(curl -Ls https://coverage.codacy.com/get.sh) report $auth \
-          --commit-uuid ${{ github.event.workflow_run.head_sha }} -r coverage.xml --partial &&\
-          bash <(curl -Ls https://coverage.codacy.com/get.sh) final $auth
+          bash <(curl -Ls https://coverage.codacy.com/get.sh) report $auth $commit_uuid -r coverage.xml --partial &&\
+          bash <(curl -Ls https://coverage.codacy.com/get.sh) final $auth $commit_uuid
