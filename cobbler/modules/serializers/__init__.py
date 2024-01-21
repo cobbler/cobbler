@@ -2,7 +2,7 @@
 This module contains code to persist the in memory state of Cobbler on a target. The name of the target should be the
 name of the Python file. Cobbler is currently only tested against the file serializer.
 """
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -49,7 +49,9 @@ class StorageBase:
             "The implementation for the configured serializer is missing!"
         )
 
-    def deserialize_raw(self, collection_type: str) -> List[Dict[str, Any]]:
+    def deserialize_raw(
+        self, collection_type: str
+    ) -> Union[List[Optional[Dict[str, Any]]], Dict[str, Any]]:
         """
         Get a collection from mongodb and parse it into an object.
 

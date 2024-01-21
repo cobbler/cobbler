@@ -3,6 +3,7 @@ from typing import ContextManager
 
 import pytest
 
+from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.modules.serializers import mongodb
 
@@ -10,7 +11,7 @@ from tests.conftest import does_not_raise
 
 
 @pytest.fixture
-def mongodb_obj(cobbler_api):
+def mongodb_obj(cobbler_api: CobblerAPI):
     return mongodb.storage_factory(cobbler_api)
 
 
@@ -27,7 +28,7 @@ def test_what():
     assert mongodb.what() == "serializer/mongodb"
 
 
-def test_storage_factory(cobbler_api):
+def test_storage_factory(cobbler_api: CobblerAPI):
     # Arrange & Act
     result = mongodb.storage_factory(cobbler_api)
 
@@ -38,7 +39,7 @@ def test_storage_factory(cobbler_api):
 def test_serialize_item(mocker, mongodb_obj):
     # Arrange
     mock_collection = mocker.MagicMock()
-    mock_collection.collection_type.return_value = "distro"
+    mock_collection.collection_types.return_value = "distros"
     mock_item = mocker.MagicMock()
     mock_item.name = "testitem"
     mock_item.arch = "x86_64"
@@ -48,13 +49,13 @@ def test_serialize_item(mocker, mongodb_obj):
     mongodb_obj.serialize_item(mock_collection, mock_item)
 
     # Assert
-    assert len(list(mongodb_obj.mongodb["cobbler"]["distro"].find())) == 1
+    assert len(list(mongodb_obj.mongodb["cobbler"]["distros"].find())) == 1
 
 
 def test_serialize_delete(mocker, mongodb_obj):
     # Arrange
     mock_collection = mocker.MagicMock()
-    mock_collection.collection_type.return_value = "distro"
+    mock_collection.collection_types.return_value = "distros"
     mock_item = mocker.MagicMock()
     mock_item.name = "testitem"
 
@@ -62,13 +63,13 @@ def test_serialize_delete(mocker, mongodb_obj):
     mongodb_obj.serialize_delete(mock_collection, mock_item)
 
     # Assert
-    assert len(list(mongodb_obj.mongodb["cobbler"]["distro"].find())) == 0
+    assert len(list(mongodb_obj.mongodb["cobbler"]["distros"].find())) == 0
 
 
 def test_serialize(mocker, mongodb_obj):
     # Arrange
     mock_collection = mocker.MagicMock()
-    mock_collection.collection_type.return_value = "distro"
+    mock_collection.collection_types.return_value = "distros"
     mock_serialize_item = mocker.patch.object(mongodb_obj, "serialize_item")
     mock_collection.__iter__ = mocker.Mock(return_value=iter(["item1"]))
 
@@ -81,7 +82,7 @@ def test_serialize(mocker, mongodb_obj):
 
 def test_deserialize_raw(mongodb_obj):
     # Arrange
-    collection_type = "distro"
+    collection_type = "distros"
     mongodb_obj.mongodb["cobbler"][collection_type].insert_one(
         {"name": "testitem", "arch": "x86_64"}
     )
@@ -100,7 +101,7 @@ def test_deserialize_raw(mongodb_obj):
 def test_deserialize(mocker, mongodb_obj):
     # Arrange
     mock_collection = mocker.MagicMock()
-    mock_collection.collection_type.return_value = "distro"
+    mock_collection.collection_types.return_value = "distros"
     input_topological = True
     return_deserialize_raw = []
     mock_deserialize_raw = mocker.patch.object(
@@ -133,7 +134,7 @@ def test_deserialize_item(
     mongodb_obj: mongodb.MongoDBSerializer, item_name: str, expected_exception
 ):
     # Arrange
-    collection_type = "distro"
+    collection_type = "distros"
     input_value = {"name": item_name, "arch": "x86_64"}
     test_item = copy.deepcopy(input_value)
     if item_name is not None:
