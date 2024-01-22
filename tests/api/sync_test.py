@@ -1,3 +1,4 @@
+# type: ignore
 from unittest.mock import MagicMock, Mock, PropertyMock, create_autospec
 
 import pytest
@@ -29,12 +30,14 @@ def test_sync(cobbler_api, input_verbose, input_what, expected_exception, mocker
     mocker.patch.object(cobbler_api, "get_sync", return_value=stub)
     mocker.patch.object(cobbler_api, "sync_dhcp", new=stub_dhcp)
     mocker.patch.object(cobbler_api, "sync_dns", new=stub_dns)
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
 
     # Act
     with expected_exception:
         cobbler_api.sync(input_verbose, input_what)
 
     # Assert
+    assert filelock_mock.called_once_with("/var/lib/cobbler/sync_lock")
     if not input_what:
         stub.run.assert_called_once()
     if input_what and "dhcp" in input_what:
@@ -51,6 +54,7 @@ def test_sync_dns(cobbler_api, input_manage_dns, mocker):
     type(mock).manage_dns = m_property
     mock.modules = {"dns": {"module": "managers.bind"}}
     mocker.patch.object(cobbler_api, "settings", return_value=mock)
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
 
     # mock get_manager() and ensure mock object has the same api as the object it is replacing.
     # see https://docs.python.org/3/library/unittest.mock.html#unittest.mock.create_autospec
@@ -61,6 +65,7 @@ def test_sync_dns(cobbler_api, input_manage_dns, mocker):
     cobbler_api.sync_dns()
 
     # Assert
+    assert filelock_mock.called_once_with("/var/lib/cobbler/sync_lock")
     m_property.assert_called_once()
     assert stub.sync.called == input_manage_dns
 
@@ -73,6 +78,7 @@ def test_sync_dhcp(cobbler_api, input_manager_dhcp, mocker):
     type(mock).manage_dhcp = m_property
     mock.modules = {"dhcp": {"module": "managers.isc"}}
     mocker.patch.object(cobbler_api, "settings", return_value=mock)
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
 
     stub = create_autospec(spec=cobbler.modules.managers.isc._IscManager)
     mocker.patch("cobbler.modules.managers.isc.get_manager", return_value=stub)
@@ -81,6 +87,7 @@ def test_sync_dhcp(cobbler_api, input_manager_dhcp, mocker):
     cobbler_api.sync_dhcp()
 
     # Assert
+    assert filelock_mock.called_once_with("/var/lib/cobbler/sync_lock")
     m_property.assert_called_once()
     assert stub.sync.called == input_manager_dhcp
 
@@ -117,8 +124,10 @@ def test_sync_systems(
     # Arrange
     stub = create_autospec(spec=cobbler.actions.sync.CobblerSync)
     mocker.patch.object(cobbler_api, "get_sync", return_value=stub)
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
 
     # Act
+    assert filelock_mock.called_once_with("/var/lib/cobbler/sync_lock")
     with expected_exception:
         cobbler_api.sync_systems(input_systems, input_verbose)
 
