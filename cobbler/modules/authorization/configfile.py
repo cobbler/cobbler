@@ -10,7 +10,7 @@ not authz_allowall, which will most likely NOT do what you want.
 
 
 import os
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 from typing import TYPE_CHECKING, Any, Dict
 
 if TYPE_CHECKING:
@@ -37,7 +37,7 @@ def __parse_config() -> Dict[str, Dict[Any, Any]]:
     """
     if not os.path.exists(CONFIG_FILE):
         return {}
-    config = SafeConfigParser()
+    config = ConfigParser()
     config.read(CONFIG_FILE)
     alldata: Dict[str, Dict[str, Any]] = {}
     groups = config.sections()
