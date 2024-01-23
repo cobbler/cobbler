@@ -1,8 +1,6 @@
-# type: ignore
 import fcntl
 import os
 import re
-import shutil
 from pathlib import Path
 
 import pytest
@@ -10,7 +8,6 @@ from netaddr.ip import IPAddress
 from pytest_mock import MockerFixture
 
 from cobbler import enums, utils
-from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 
 from tests.conftest import does_not_raise
@@ -40,21 +37,21 @@ def test_get_host_ip():
 @pytest.mark.parametrize(
     "testvalue,expected_result", [("10.0.0.1", True), ("Test", False)]
 )
-def test_is_ip(testvalue, expected_result):
+def test_is_ip(testvalue, expected_result):  # type: ignore
     # Arrange
 
     # Act
-    result = utils.is_ip(testvalue)
+    result = utils.is_ip(testvalue)  # type: ignore
 
     # Assert
     assert expected_result == result
 
 
-def test_get_random_mac(cobbler_api):
+def test_get_random_mac(cobbler_api):  # type: ignore
     # Arrange
 
     # Act
-    result = utils.get_random_mac(cobbler_api)
+    result = utils.get_random_mac(cobbler_api)  # type: ignore
 
     # Assert
     # TODO: Check for MAC validity
@@ -179,11 +176,11 @@ def test_read_file_contents():
         ("https://cobbler.github.io/signatures/not_existing", False),
     ],
 )
-def test_remote_file_exists(remote_url, expected_result):
+def test_remote_file_exists(remote_url, expected_result):  # type: ignore
     # Arrange
 
     # Act
-    result = utils.remote_file_exists(remote_url)
+    result = utils.remote_file_exists(remote_url)  # type: ignore
 
     # Assert
     assert expected_result == result
@@ -193,25 +190,25 @@ def test_remote_file_exists(remote_url, expected_result):
     "remote_url,expected_result",
     [("http://bla", True), ("https://bla", True), ("ftp://bla", True), ("xyz", False)],
 )
-def test_file_is_remote(remote_url, expected_result):
+def test_file_is_remote(remote_url, expected_result):  # type: ignore
     # Arrange
 
     # Act
-    result = utils.file_is_remote(remote_url)
+    result = utils.file_is_remote(remote_url)  # type: ignore
 
     # Assert
     assert expected_result == result
 
 
-def test_blender(cobbler_api):
+def test_blender(cobbler_api):  # type: ignore
     # Arrange
-    root_item = Distro(cobbler_api)
+    root_item = Distro(cobbler_api)  # type: ignore
 
     # Act
-    result = utils.blender(cobbler_api, False, root_item)
+    result = utils.blender(cobbler_api, False, root_item)  # type: ignore
 
     # Assert
-    assert len(result) == 161
+    assert len(result) == 166
     # Must be present because the settings have it
     assert "server" in result
     # Must be present because it is a field of distro
@@ -229,13 +226,13 @@ def test_blender(cobbler_api):
         ({}, {}, does_not_raise()),
     ],
 )
-def test_flatten(testinput, expected_result, expected_exception):
+def test_flatten(testinput, expected_result, expected_exception):  # type: ignore
     # Arrange
     # TODO: Add more examples
 
     # Act
     with expected_exception:
-        result = utils.flatten(testinput)
+        result = utils.flatten(testinput)  # type: ignore
 
         # Assert
         assert expected_result == result
@@ -244,11 +241,11 @@ def test_flatten(testinput, expected_result, expected_exception):
 @pytest.mark.parametrize(
     "testinput,expected_result", [(["A", "a", 1, 5, 1], ["A", "a", 1, 5])]
 )
-def test_uniquify(testinput, expected_result):
+def test_uniquify(testinput, expected_result):  # type: ignore
     # Arrange
 
     # Act
-    result = utils.uniquify(testinput)
+    result = utils.uniquify(testinput)  # type: ignore
 
     # Assert
     assert expected_result == result
@@ -265,24 +262,24 @@ def test_uniquify(testinput, expected_result):
         ),
     ],
 )
-def test_dict_removals(testdict, subkey, expected_result):
+def test_dict_removals(testdict, subkey, expected_result):  # type: ignore
     # Arrange
     # TODO: Generate more parameter combinations
 
     # Act
-    utils.dict_removals(testdict, subkey)
+    utils.dict_removals(testdict, subkey)  # type: ignore
 
     # Assert
     assert expected_result == testdict
 
 
 @pytest.mark.parametrize("testinput,expected_result", [({}, "")])
-def test_dict_to_string(testinput, expected_result):
+def test_dict_to_string(testinput, expected_result):  # type: ignore
     # Arrange
     # TODO: Generate more parameter combinations
 
     # Act
-    result = utils.dict_to_string(testinput)
+    result = utils.dict_to_string(testinput)  # type: ignore
 
     # Assert
     assert expected_result == result
@@ -308,12 +305,12 @@ def test_rsync_files():
 @pytest.mark.skip(
     "This method does magic. Since we havn't had the time to break it down, this test is skipped."
 )
-def test_run_triggers(cobbler_api):
+def test_run_triggers(cobbler_api):  # type: ignore
     # Arrange
     globber = ""
 
     # Act
-    utils.run_triggers(cobbler_api, None, globber)
+    utils.run_triggers(cobbler_api, None, globber)  # type: ignore
 
     # Assert
     # TODO: How the heck do we check that this actually did what it is supposed to do?
@@ -339,7 +336,7 @@ def test_os_release():
     result = utils.os_release()
 
     # Assert
-    assert ("suse", 15.2) or ("suse", 15.3) == result
+    assert ("suse", 15.2) or ("suse", 15.3) == result  # type: ignore
 
 
 def test_is_selinux_enabled():
@@ -351,9 +348,9 @@ def test_is_selinux_enabled():
 @pytest.mark.parametrize(
     "input_cmd,expected_result", [("foobaz", False), ("echo", True)]
 )
-def test_command_existing(input_cmd, expected_result):
+def test_command_existing(input_cmd, expected_result):  # type: ignore
     # Arrange & Act
-    result = utils.command_existing(input_cmd)
+    result = utils.command_existing(input_cmd)  # type: ignore
 
     # Assert
     assert result == expected_result
@@ -371,14 +368,22 @@ def test_subprocess_sp():
     assert result_rc == 0
 
 
-def test_subprocess_call():
+@pytest.mark.parametrize(
+    "input_command,expected_exception,expected_result",
+    [
+        ("echo Test", pytest.raises(ValueError), None),
+        ("true", does_not_raise(), 0),
+    ],
+)
+def test_subprocess_call(input_command, expected_exception, expected_result):  # type: ignore
     # Arrange
 
     # Act
-    result = utils.subprocess_call("echo Test")
+    with expected_exception:
+        result = utils.subprocess_call(input_command)  # type: ignore
 
-    # Assert
-    assert result == 0
+        # Assert
+        assert result == expected_result
 
 
 def test_subprocess_get():
@@ -440,11 +445,11 @@ def test_local_get_cobbler_xmlrpc_url():
     "input_data,expected_output",
     [(None, "~"), ([], []), ({}, {}), (0, 0), ("Test", "Test")],
 )
-def test_strip_none(input_data, expected_output):
+def test_strip_none(input_data, expected_output):  # type: ignore
     # Arrange
 
     # Act
-    result = utils.strip_none(input_data)
+    result = utils.strip_none(input_data)  # type: ignore
 
     # Assert
     assert expected_output == result
@@ -460,11 +465,11 @@ def test_strip_none(input_data, expected_output):
         ({}, {}),
     ],
 )
-def test_revert_strip_none(input_data, expected_output):
+def test_revert_strip_none(input_data, expected_output):  # type: ignore
     # Arrange
 
     # Act
-    result = utils.revert_strip_none(input_data)
+    result = utils.revert_strip_none(input_data)  # type: ignore
 
     # Assert
     assert expected_output == result
@@ -551,12 +556,12 @@ def test_named_service_name():
     [("0.9", "0.1", True, does_not_raise()), ("0.1", "0.9", False, does_not_raise())],
 )
 def test_compare_version_gt(
-    test_input_v1, test_input_v2, expected_output, error_expectation
+    test_input_v1, test_input_v2, expected_output, error_expectation  # type: ignore
 ):
     # Arrange
 
     # Act
-    result = utils.compare_versions_gt(test_input_v1, test_input_v2)
+    result = utils.compare_versions_gt(test_input_v1, test_input_v2)  # type: ignore
 
     # Assert
     with error_expectation:
@@ -581,15 +586,15 @@ def test_kopts_overwrite():
     "flock_side_effect,os_open_mock_calls,os_close_mock_calls,expected_exception",
     [
         (None, 1, 0, does_not_raise()),
-        (Exception, 2, 1, pytest.raises(CX)),
+        (OSError, 2, 1, pytest.raises(OSError)),
     ],
 )
 def test_filelock(
     mocker: MockerFixture,
-    flock_side_effect,
-    os_open_mock_calls,
-    os_close_mock_calls,
-    expected_exception,
+    flock_side_effect,  # type: ignore
+    os_open_mock_calls,  # type: ignore
+    os_close_mock_calls,  # type: ignore
+    expected_exception,  # type: ignore
 ):
     # Arrange
     os_open_mock = mocker.patch("os.open", return_value=1234)
@@ -599,7 +604,6 @@ def test_filelock(
     # Act
     with expected_exception:
         with utils.filelock("foobar"):
-
             # Assert
             assert flock_mock.called_once_with(1234, fcntl.LOCK_EX)
             assert os_open_mock.call_count == os_open_mock_calls
