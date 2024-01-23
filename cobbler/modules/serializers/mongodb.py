@@ -8,7 +8,7 @@ Cobbler's Mongo database based object serializer.
 # SPDX-FileCopyrightText: James Cammarata <jimi@sngx.net>
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Union
 
 from cobbler import settings
 from cobbler.cexceptions import CX
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from cobbler.cobbler_collections.collection import ITEM, Collection
 
 try:
-    from pymongo.errors import ConfigurationError, ConnectionFailure
+    from pymongo.errors import ConfigurationError, ConnectionFailure, OperationFailure
     from pymongo.mongo_client import MongoClient
 
     PYMONGO_LOADED = True
@@ -86,10 +86,28 @@ class MongoDBSerializer(StorageBase):
             )
         self.mongodb_database = self.mongodb["cobbler"]  # type: ignore
 
+    def _rename_collection(self, old_collection: str, new_collection: str) -> None:
+        """
+        Rename a collection in database.
+
+        :param old_collection: Previous collection name.
+        :param old_collection: New collection name.
+        """
+        if (
+            old_collection != "setting"
+            and old_collection in self.mongodb_database.list_collection_names()  # type: ignore
+        ):
+            try:
+                self.mongodb_database[old_collection].rename(new_collection)  # type: ignore
+            except OperationFailure as error:
+                raise CX(
+                    f'Cannot rename MongoDB collection from "{old_collection}" to "{new_collection}": {error}.'
+                ) from error
+
     def serialize_item(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         if self.mongodb_database is None:
             raise ValueError("Database not available!")
-        mongodb_collection = self.mongodb_database[collection.collection_type()]
+        mongodb_collection = self.mongodb_database[collection.collection_types()]
         data = mongodb_collection.find_one({"name": item.name})
         if data:
             mongodb_collection.replace_one({"name": item.name}, item.serialize())  # type: ignore
@@ -99,17 +117,19 @@ class MongoDBSerializer(StorageBase):
     def serialize_delete(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         if self.mongodb_database is None:
             raise ValueError("Database not available!")
-        mongodb_collection = self.mongodb_database[collection.collection_type()]
+        mongodb_collection = self.mongodb_database[collection.collection_types()]
         mongodb_collection.delete_one({"name": item.name})  # type: ignore
 
     def serialize(self, collection: "Collection[ITEM]") -> None:
         # TODO: error detection
-        ctype = collection.collection_type()
+        ctype = collection.collection_types()
         if ctype != "settings":
             for item in collection:
                 self.serialize_item(collection, item)
 
-    def deserialize_raw(self, collection_type: str) -> List[Dict[str, Any]]:
+    def deserialize_raw(
+        self, collection_type: str
+    ) -> Union[List[Optional[Dict[str, Any]]], Dict[str, Any]]:
         if collection_type == "settings":
             return settings.read_settings_file()  # type: ignore
 
@@ -131,15 +151,20 @@ class MongoDBSerializer(StorageBase):
             results.append(result)  # type: ignore
         return results  # type: ignore
 
-    def deserialize(self, collection: "Collection[ITEM]", topological: bool = True):
-        datastruct = self.deserialize_raw(collection.collection_type())
+    def deserialize(
+        self, collection: "Collection[ITEM]", topological: bool = True
+    ) -> None:
+        self._rename_collection(
+            collection.collection_type(), collection.collection_types()
+        )
+        datastruct = self.deserialize_raw(collection.collection_types())
         if topological and isinstance(datastruct, list):  # type: ignore
-            datastruct.sort(key=lambda x: x.get("depth", 1))
+            datastruct.sort(key=lambda x: x.get("depth", 1))  # type: ignore
         if isinstance(datastruct, dict):
             # This is currently the corner case for the settings type.
             collection.from_dict(datastruct)  # type: ignore
         elif isinstance(datastruct, list):  # type: ignore
-            collection.from_list(datastruct)
+            collection.from_list(datastruct)  # type: ignore
 
     def deserialize_item(self, collection_type: str, name: str) -> Dict[str, Any]:
         """
