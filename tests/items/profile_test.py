@@ -16,6 +16,17 @@ from cobbler.items.profile import Profile
 from tests.conftest import does_not_raise
 
 
+@pytest.fixture()
+def test_settings(mocker, cobbler_api: CobblerAPI):
+    settings = mocker.MagicMock(
+        name="profile_setting_mock", spec=cobbler_api.settings()
+    )
+    orig = cobbler_api.settings()
+    for key in orig.to_dict():
+        setattr(settings, key, getattr(orig, key))
+    return settings
+
+
 def test_object_creation(cobbler_api: CobblerAPI):
     """
     Assert that the Profile object can be successfully created.
@@ -720,3 +731,63 @@ def test_find_match_single_key(
 
     # Assert
     assert expect_match == result
+
+
+def test_distro_inherit(mocker, test_settings, create_distro: Callable[[], Distro]):
+    """
+    Checking that inherited properties are correctly inherited from settings and
+    that the <<inherit>> value can be set for them.
+    """
+    # Arrange
+    distro = create_distro()
+    api = distro.api
+    mocker.patch.object(api, "settings", return_value=test_settings)
+    distro.arch = enums.Archs.X86_64
+    profile = Profile(api)
+    profile.distro = distro.name
+
+    # Act
+    for key, key_value in profile.__dict__.items():
+        if key_value == enums.VALUE_INHERITED:
+            new_key = key[1:].lower()
+            new_value = getattr(profile, new_key)
+            settings_name = new_key
+            parent_obj = None
+            if hasattr(distro, settings_name):
+                parent_obj = distro
+            else:
+                if new_key == "owners":
+                    settings_name = "default_ownership"
+                elif new_key == "proxy":
+                    settings_name = "proxy_url_int"
+
+                if hasattr(test_settings, f"default_{settings_name}"):
+                    settings_name = f"default_{settings_name}"
+                if hasattr(test_settings, settings_name):
+                    parent_obj = test_settings
+
+            if parent_obj is not None:
+                setting = getattr(parent_obj, settings_name)
+                if isinstance(setting, str):
+                    new_value = "test_inheritance"
+                elif isinstance(setting, bool):
+                    new_value = True
+                elif isinstance(setting, int):
+                    new_value = 1
+                elif isinstance(setting, float):
+                    new_value = 1.0
+                elif isinstance(setting, dict):
+                    new_value.update({"test_inheritance": "test_inheritance"})
+                elif isinstance(setting, list):
+                    if new_key == "boot_loaders":
+                        new_value = ["grub"]
+                    else:
+                        new_value = ["test_inheritance"]
+                setattr(parent_obj, settings_name, new_value)
+
+            prev_value = getattr(profile, new_key)
+            setattr(profile, new_key, enums.VALUE_INHERITED)
+
+            # Assert
+            assert prev_value == new_value
+            assert prev_value == getattr(profile, new_key)

@@ -170,7 +170,7 @@ class Image(item.Item):
         self._display_name = ""
         self._virt_auto_boot: Union[str, bool] = enums.VALUE_INHERITED
         self._virt_bridge = enums.VALUE_INHERITED
-        self._virt_cpus = 0
+        self._virt_cpus = 1
         self._virt_disk_driver: enums.VirtDiskDrivers = enums.VirtDiskDrivers.INHERITED
         self._virt_file_size: Union[str, float] = enums.VALUE_INHERITED
         self._virt_path = ""
@@ -460,7 +460,7 @@ class Image(item.Item):
         return self._resolve("virt_auto_boot")
 
     @virt_auto_boot.setter
-    def virt_auto_boot(self, num: bool):
+    def virt_auto_boot(self, num: Union[str, bool]):
         """
         Setter for the virtual automatic boot option.
 
