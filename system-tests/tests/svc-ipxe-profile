@@ -14,7 +14,7 @@ cobbler system add --name testbed --profile fake --image fakeimage
 # Prepare expected result
 cat >${tmp}/a <<-EOF
 :fake
-kernel /images/fake/vmlinuz   initrd=initrd.magic
+kernel /images/fake/vmlinuz  
 initrd /images/fake/initramfs
 boot
 

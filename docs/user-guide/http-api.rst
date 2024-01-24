@@ -139,7 +139,7 @@ Example Output:
 .. code-block:: text
 
     :example_profile
-    kernel /images/example_distro/vmlinuz   initrd=initrd.magic
+    kernel /images/example_distro/vmlinuz
     initrd /images/example_distro/initramfs
     boot
 
