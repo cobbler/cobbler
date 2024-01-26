@@ -317,21 +317,6 @@ def test_kernel(cobbler_api: CobblerAPI, value: Any, expected_exception: Any):
         assert distro.kernel == value
 
 
-@pytest.mark.parametrize("value", [[""], ["Test"]])
-def test_mgmt_classes(cobbler_api: CobblerAPI, value: Any):
-    """
-    Test that verifies if management classes can be set as expected.
-    """
-    # Arrange
-    distro = Distro(cobbler_api)
-
-    # Act
-    distro.mgmt_classes = value
-
-    # Assert
-    assert distro.mgmt_classes == value
-
-
 @pytest.mark.parametrize(
     "value,expected_exception",
     [([""], pytest.raises(TypeError)), (False, pytest.raises(TypeError))],

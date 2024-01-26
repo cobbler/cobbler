@@ -260,14 +260,6 @@ ldap_tls_cacertdir: ''
 ldap_tls_cipher_suite: ''
 ldap_tls_reqcert: ''
 
-# Cobbler has a feature that allows for integration with config management
-# systems such as Puppet.  The following parameters work in conjunction with
-# --mgmt-classes  and are described in further detail at:
-# https://github.com/cobbler/cobbler/wiki/Using-cobbler-with-a-configuration-management-system
-mgmt_classes: []
-mgmt_parameters:
- from_cobbler: true
-
 # if enabled, this setting ensures that puppet is installed during
 # machine provision, a client certificate is generated and a
 # certificate signing request is made with the puppet master server

@@ -66,7 +66,7 @@ def test_object_creation(create_testbed):
 def test_resolve_resource_var(create_testbed):
     # Arrange
     test_api = create_testbed()
-    # FIXME: Arrange distro, profile and system, package and file
+    # FIXME: Arrange distro, profile and system
     config_gen = ConfigGen(test_api, "testhost.test.de")
 
     # Act
@@ -80,7 +80,7 @@ def test_resolve_resource_var(create_testbed):
 def test_get_cobbler_resource(create_testbed):
     # Arrange
     test_api = create_testbed()
-    # FIXME: Arrange distro, profile and system, package and file
+    # FIXME: Arrange distro, profile and system
     config_gen = ConfigGen(test_api, "testhost.test.de")
 
     # Act
@@ -93,7 +93,7 @@ def test_get_cobbler_resource(create_testbed):
 def test_get_config_data(create_testbed):
     # Arrange
     test_api = create_testbed()
-    # FIXME: Arrange distro, profile and system, package and file
+    # FIXME: Arrange distro, profile and system
     config_gen = ConfigGen(test_api, "testhost.test.de")
 
     # Act
@@ -106,7 +106,7 @@ def test_get_config_data(create_testbed):
 def test_get_config_data_for_koan(create_testbed):
     # Arrange
     test_api = create_testbed()
-    # FIXME: Arrange distro, profile and system, package and file
+    # FIXME: Arrange distro, profile and system
     config_gen = ConfigGen(test_api, "testhost.test.de")
 
     # Act

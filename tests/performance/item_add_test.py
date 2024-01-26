@@ -23,102 +23,6 @@ from tests.performance import CobblerTree
         (True,),
     ],
 )
-def test_packages_create(
-    benchmark: BenchmarkFixture, cobbler_api: CobblerAPI, cache_enabled: bool
-):
-    """
-    Test that asserts if creating a package is running without a performance decrease.
-    """
-
-    def setup_func() -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
-        CobblerTree.remove_all_objs(cobbler_api)
-        return (cobbler_api,), {}
-
-    # Arrange
-    cobbler_api.settings().cache_enabled = cache_enabled
-
-    # Act
-    result = benchmark.pedantic(
-        CobblerTree.create_packages, setup=setup_func, rounds=CobblerTree.test_rounds
-    )
-
-    # Cleanup
-    CobblerTree.remove_all_objs(cobbler_api)
-
-    # Assert
-
-
-@pytest.mark.parametrize(
-    "cache_enabled",
-    [
-        (False,),
-        (True,),
-    ],
-)
-def test_files_create(
-    benchmark: BenchmarkFixture, cobbler_api: CobblerAPI, cache_enabled: bool
-):
-    """
-    Test that asserts if creating a package is running without a performance decrease.
-    """
-
-    def setup_func() -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
-        CobblerTree.remove_all_objs(cobbler_api)
-        return (cobbler_api,), {}
-
-    # Arrange
-    cobbler_api.settings().cache_enabled = cache_enabled
-
-    # Act
-    result = benchmark.pedantic(
-        CobblerTree.create_files, setup=setup_func, rounds=CobblerTree.test_rounds
-    )
-
-    # Cleanup
-    CobblerTree.remove_all_objs(cobbler_api)
-
-    # Assert
-
-
-@pytest.mark.parametrize(
-    "cache_enabled",
-    [
-        (False,),
-        (True,),
-    ],
-)
-def test_mgmtclasses_create(
-    benchmark: BenchmarkFixture, cobbler_api: CobblerAPI, cache_enabled: bool
-):
-    """
-    Test that asserts if creating a package is running without a performance decrease.
-    """
-
-    def setup_func() -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
-        CobblerTree.remove_all_objs(cobbler_api)
-        return (cobbler_api,), {}
-
-    # Arrange
-    cobbler_api.settings().cache_enabled = cache_enabled
-
-    # Act
-    result = benchmark.pedantic(
-        CobblerTree.create_mgmtclasses, setup=setup_func, rounds=CobblerTree.test_rounds
-    )
-
-    # Cleanup
-    CobblerTree.remove_all_objs(cobbler_api)
-
-    # Assert
-
-
-@pytest.mark.parametrize(
-    "cache_enabled",
-    [
-        (False,),
-        (True,),
-    ],
-)
 def test_repos_create(
     benchmark: BenchmarkFixture, cobbler_api: CobblerAPI, cache_enabled: bool
 ):
@@ -163,9 +67,6 @@ def test_distros_create(
 
     def setup_func() -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
         CobblerTree.remove_all_objs(cobbler_api)
-        CobblerTree.create_packages(cobbler_api)
-        CobblerTree.create_files(cobbler_api)
-        CobblerTree.create_mgmtclasses(cobbler_api)
         CobblerTree.create_repos(cobbler_api)
         return (cobbler_api, create_distro), {}
 
@@ -250,9 +151,6 @@ def test_profiles_create(
 
     def setup_func() -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
         CobblerTree.remove_all_objs(cobbler_api)
-        CobblerTree.create_packages(cobbler_api)
-        CobblerTree.create_files(cobbler_api)
-        CobblerTree.create_mgmtclasses(cobbler_api)
         CobblerTree.create_repos(cobbler_api)
         CobblerTree.create_distros(cobbler_api, create_distro)
         CobblerTree.create_menus(cobbler_api)
@@ -346,9 +244,6 @@ def test_systems_create(
 
     def setup_func() -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
         CobblerTree.remove_all_objs(cobbler_api)
-        CobblerTree.create_packages(cobbler_api)
-        CobblerTree.create_files(cobbler_api)
-        CobblerTree.create_mgmtclasses(cobbler_api)
         CobblerTree.create_repos(cobbler_api)
         CobblerTree.create_distros(cobbler_api, create_distro)
         CobblerTree.create_menus(cobbler_api)

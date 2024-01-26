@@ -97,18 +97,6 @@ class ItemTypes(ConvertableEnum):
     """
     See :func:`~cobbler.items.image.Image`
     """
-    MGMTCLASS = "mgmtclass"
-    """
-    See :func:`~cobbler.items.mgmtclass.Mgmtclass`
-    """
-    PACKAGE = "package"
-    """
-    See :func:`~cobbler.items.package.Package`
-    """
-    FILE = "file"
-    """
-    See :func:`~cobbler.items.file.File`
-    """
     MENU = "menu"
     """
     See :func:`~cobbler.items.menu.Menu`

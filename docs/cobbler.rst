@@ -34,7 +34,7 @@ If you want to remove a specific object, use the remove command with the name th
 
 .. code-block:: shell
 
-    cobbler distro|profile|system|repo|image|mgmtclass|package|file|menu remove --name=string
+    cobbler distro|profile|system|repo|image|menu remove --name=string
 
 Editing
 =======
@@ -45,7 +45,7 @@ object, preserving settings not mentioned.
 
 .. code-block:: shell
 
-    cobbler distro|profile|system|repo|image|mgmtclass|package|file|menu edit --name=string [parameterlist]
+    cobbler distro|profile|system|repo|image|menu edit --name=string [parameterlist]
 
 Copying
 =======
@@ -54,7 +54,7 @@ Objects can also be copied:
 
 .. code-block:: shell
 
-    cobbler distro|profile|system|repo|image|mgmtclass|package|file|menu copy --name=oldname --newname=newname
+    cobbler distro|profile|system|repo|image|menu copy --name=oldname --newname=newname
 
 Renaming
 ========
@@ -63,7 +63,7 @@ Objects can also be renamed, as long as other objects don't reference them.
 
 .. code-block:: shell
 
-    cobbler distro|profile|system|repo|image|mgmtclass|package|file|menu rename --name=oldname --newname=newname
+    cobbler distro|profile|system|repo|image|menu rename --name=oldname --newname=newname
 
 CLI-Commands
 ############
@@ -74,7 +74,7 @@ Long Usage:
 
 .. code-block:: shell
 
-    cobbler <distro|profile|system|repo|image|mgmtclass|package|file|menu> ... [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]
+    cobbler <distro|profile|system|repo|image|menu> ... [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]
     cobbler <aclsetup|buildiso|import|list|mkloaders|replicate|report|reposync|sync|validate-autoinstalls|version|signature|hardlink> [options|--help]
 
 Cobbler distro
@@ -866,108 +866,6 @@ The system will boot to memtest until you put it back to its original profile.
 
 If you do want to reinstall it after running memtest, use ``--netboot-enabled=true``.
 
-Cobbler mgmtclass
-=================
-
-Management classes allows Cobbler to function as an configuration management system. Cobbler currently supports the
-following resource types:
-
-1. Packages
-2. Files
-
-Resources are executed in the order listed above.
-
-.. code-block:: shell
-
-    $ cobbler mgmtclass add --name=string --comment=string [--packages=list] [--files=list]
-
-+------------+-----------------------------------------------------------------------------------------------------------+
-| Name       | Description                                                                                               |
-+============+===========================================================================================================+
-| class-name | Class Name (Actual Class Name (leave blank to use the name field)).                                       |
-+------------+-----------------------------------------------------------------------------------------------------------+
-| comment    | A comment that describes the functions of the management class.                                           |
-+------------+-----------------------------------------------------------------------------------------------------------+
-| files      | Specifies a list of file resources required by the management class.                                      |
-+------------+-----------------------------------------------------------------------------------------------------------+
-| **name**   | The name of the mgmtclass. Use this name when adding a management class to a system, profile, or distro.  |
-|            | To add a mgmtclass to an existing system use something like                                               |
-|            | (``cobbler system edit --name="madhatter" --mgmt-classes="http mysql"``).                                 |
-+------------+-----------------------------------------------------------------------------------------------------------+
-| packages   | Specifies a list of package resources required by the management class.                                   |
-+------------+-----------------------------------------------------------------------------------------------------------+
-
-
-Cobbler package
-===============
-
-Package resources are managed using ``cobbler package add``
-
-Actions:
-
-+-----------+--------------------------------+
-| Name      | Description                    |
-+===========+================================+
-| install   | Install the package. [Default] |
-+-----------+--------------------------------+
-| uninstall | Uninstall the package.         |
-+-----------+--------------------------------+
-
-Attributes:
-
-+-----------+--------------------------------------------------------+
-| Name      | Description                                            |
-+===========+========================================================+
-| installer | Which package manager to use, valid options [rpm|yum]. |
-+-----------+--------------------------------------------------------+
-| **name**  | Cobbler object name.                                   |
-+-----------+--------------------------------------------------------+
-| version   | Which version of the package to install.               |
-+-----------+--------------------------------------------------------+
-
-Example:
-
-.. code-block:: shell
-
-    $ cobbler package add --name=string --comment=string [--action=install|uninstall] --installer=string [--version=string]
-
-Cobbler file
-============
-
-Actions:
-
-+--------+----------------------------+
-| Name   | Description                |
-+========+============================+
-| create | Create the file. [Default] |
-+--------+----------------------------+
-| remove | Remove the file.           |
-+--------+----------------------------+
-
-Attributes:
-
-+----------+---------------------------------+
-| Name     | Description                     |
-+==========+=================================+
-| group    | The group owner of the file.    |
-+----------+---------------------------------+
-| mode     | Permission mode (as in chmod).  |
-+----------+---------------------------------+
-| **name** | Name of the cobbler file object |
-+----------+---------------------------------+
-| **path** | The path for the file.          |
-+----------+---------------------------------+
-| template | The template for the file.      |
-+----------+---------------------------------+
-| user     | The user for the file.          |
-+----------+---------------------------------+
-
-Example:
-
-.. code-block:: shell
-
-    $ cobbler file add --name=string --comment=string [--action=string] --mode=string --group=string --owner=string --path=string [--template=string]
-
 Cobbler menu
 ============
 
@@ -1059,7 +957,7 @@ Cobbler list
 ============
 
 This list all the names grouped by type. Identically to ``cobbler report`` there are subcommands for most of the other
-Cobbler commands. (Currently: distro, profile, system, repo, image, mgmtclass, package, file)
+Cobbler commands. (Currently: distro, profile, system, repo, image)
 
 .. code-block:: shell
 
@@ -1101,7 +999,7 @@ Cobbler report
 =================
 
 This lists all configuration which Cobbler can obtain from the saved data. There are also ``report`` subcommands for
-most of the other Cobbler commands (currently: distro, profile, system, repo, image, mgmtclass, package, file, menu).
+most of the other Cobbler commands (currently: distro, profile, system, repo, image, menu).
 
 .. code-block:: shell
 

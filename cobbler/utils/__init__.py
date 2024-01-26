@@ -494,10 +494,6 @@ def blender(
     else:
         results["http_server"] = f"{results['server']}:{http_port}"
 
-    mgmt_parameters = results.get("mgmt_parameters", {})
-    mgmt_parameters.update(results.get("autoinstall_meta", {}))
-    results["mgmt_parameters"] = mgmt_parameters
-
     if "children" in results:
         child_names = results["children"]
         results["children"] = {}

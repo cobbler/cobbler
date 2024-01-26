@@ -437,9 +437,6 @@ class Report:
                 "repo",
                 "network",
                 "image",
-                "mgmtclass",
-                "package",
-                "file",
             ]:
                 if report_what in (
                     "all",
@@ -465,9 +462,6 @@ class Report:
                 "repo",
                 "network",
                 "image",
-                "mgmtclass",
-                "package",
-                "file",
             ]:
                 if report_what in (
                     "all",
@@ -490,9 +484,6 @@ class Report:
                 "repo",
                 "network",
                 "image",
-                "mgmtclass",
-                "package",
-                "file",
             ]:
                 if report_what in (
                     "all",

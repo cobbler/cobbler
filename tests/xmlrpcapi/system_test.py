@@ -41,8 +41,6 @@ def test_get_systems(remote: CobblerXMLRPCInterface, token: str):
         ("autoinstall", "test.xml"),
         ("autoinstall", "test.seed"),
         ("autoinstall_meta", "a=1 b=2 c=3 c=4 c=5 d e"),
-        ("mgmt_classes", "one two three"),
-        ("mgmt_parameters", "<<inherit>>"),
         ("name", "testsystem0"),
         ("netboot_enabled", True),
         ("netboot_enabled", False),
@@ -124,7 +122,6 @@ def test_create_system_positive(
     "field_name,field_value",
     [
         ("autoinstall", "/path/to/bad/autoinstall"),
-        ("mgmt_parameters", "badyaml"),
         ("profile", "badprofile"),
         ("boot_loaders", "badloader"),
         ("virt_cpus", "a"),

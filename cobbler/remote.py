@@ -364,9 +364,6 @@ class CobblerXMLRPCInterface:
                 self.options.get("system_patterns", ""),
                 self.options.get("repo_patterns", ""),
                 self.options.get("image_patterns", ""),
-                self.options.get("mgmtclass_patterns", ""),
-                self.options.get("package_patterns", ""),
-                self.options.get("file_patterns", ""),
                 self.options.get("prune", False),
                 self.options.get("omit_data", False),
                 self.options.get("sync_all", False),
@@ -1024,69 +1021,6 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item("image", name, flatten=flatten, resolved=resolved)
 
-    def get_mgmtclass(
-        self,
-        name: str,
-        flatten: bool = False,
-        resolved: bool = False,
-        token: Optional[str] = None,
-        **rest: Any,
-    ):
-        """
-        Get a management class.
-
-        :param name: The name of the management class to get.
-        :param flatten: If the item should be flattened.
-        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
-                         objects raw value.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
-        :param rest: Not used with this method currently.
-        :return: The item or None.
-        """
-        return self.get_item("mgmtclass", name, flatten=flatten, resolved=resolved)
-
-    def get_package(
-        self,
-        name: str,
-        flatten: bool = False,
-        resolved: bool = False,
-        token: Optional[str] = None,
-        **rest: Any,
-    ):
-        """
-        Get a package.
-
-        :param name: The name of the package to get.
-        :param flatten: If the item should be flattened.
-        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
-                         objects raw value.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
-        :param rest: Not used with this method currently.
-        :return: The item or None.
-        """
-        return self.get_item("package", name, flatten=flatten, resolved=resolved)
-
-    def get_file(
-        self,
-        name: str,
-        flatten: bool = False,
-        resolved: bool = False,
-        token: Optional[str] = None,
-        **rest: Any,
-    ):
-        """
-        Get a file.
-
-        :param name: The name of the file to get.
-        :param flatten: If the item should be flattened.
-        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
-                         objects raw value.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
-        :param rest: Not used with this method currently.
-        :return: The item or None.
-        """
-        return self.get_item("file", name, flatten=flatten, resolved=resolved)
-
     def get_menu(
         self,
         name: str,
@@ -1216,60 +1150,6 @@ class CobblerXMLRPCInterface:
         :return: The list of all images.
         """
         return self.get_items("image")
-
-    def get_mgmtclasses(
-        self,
-        page: Any = None,
-        results_per_page: Any = None,
-        token: Optional[str] = None,
-        **rest: Any,
-    ) -> List[Dict[str, Any]]:
-        """
-        This returns all managementclasses.
-
-        :param page: This parameter is not used currently.
-        :param results_per_page: This parameter is not used currently.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
-        :param rest: This parameter is not used currently.
-        :return: The list of all managementclasses.
-        """
-        return self.get_items("mgmtclass")
-
-    def get_packages(
-        self,
-        page: Any = None,
-        results_per_page: Any = None,
-        token: Optional[str] = None,
-        **rest: Any,
-    ) -> List[Dict[str, Any]]:
-        """
-        This returns all packages.
-
-        :param page: This parameter is not used currently.
-        :param results_per_page: This parameter is not used currently.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
-        :param rest: This parameter is not used currently.
-        :return: The list of all packages tracked in Cobbler.
-        """
-        return self.get_items("package")
-
-    def get_files(
-        self,
-        page: Any = None,
-        results_per_page: Any = None,
-        token: Optional[str] = None,
-        **rest: Any,
-    ) -> List[Dict[str, Any]]:
-        """
-        This returns all files.
-
-        :param page: This parameter is not used currently.
-        :param results_per_page: This parameter is not used currently.
-        :param token: The API-token obtained via the login() method.
-        :param rest: This parameter is not used currently.
-        :return: The list of all files.
-        """
-        return self.get_items("file")
 
     def get_menus(
         self,
@@ -1435,69 +1315,6 @@ class CobblerXMLRPCInterface:
         """
         return self.find_items("image", criteria, expand=expand, resolved=resolved)
 
-    def find_mgmtclass(
-        self,
-        criteria: Optional[Dict[str, Any]] = None,
-        expand: bool = False,
-        resolved: bool = False,
-        token: Optional[str] = None,
-        **rest: Any,
-    ) -> List[Any]:
-        """
-        Find a management class matching certain criteria.
-
-        :param criteria: The criteria a distribution needs to match.
-        :param expand: Not only get the names but also the complete object in form of a dict.
-        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
-                         object instead of the raw data.
-        :param token: The API-token obtained via the login() method.
-        :param rest: This parameter is not used currently.
-        :return: All management classes which have matched the criteria.
-        """
-        return self.find_items("mgmtclass", criteria, expand=expand, resolved=resolved)
-
-    def find_package(
-        self,
-        criteria: Optional[Dict[str, Any]] = None,
-        expand: bool = False,
-        resolved: bool = False,
-        token: Optional[str] = None,
-        **rest: Any,
-    ) -> List[Any]:
-        """
-        Find a package matching certain criteria.
-
-        :param criteria: The criteria a distribution needs to match.
-        :param expand: Not only get the names but also the complete object in form of a dict.
-        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
-                         object instead of the raw data.
-        :param token: The API-token obtained via the login() method.
-        :param rest: This parameter is not used currently.
-        :return: All packages which have matched the criteria.
-        """
-        return self.find_items("package", criteria, expand=expand, resolved=resolved)
-
-    def find_file(
-        self,
-        criteria: Optional[Dict[str, Any]] = None,
-        expand: bool = False,
-        resolved: bool = False,
-        token: Optional[str] = None,
-        **rest: Any,
-    ) -> List[Any]:
-        """
-        Find a file matching certain criteria.
-
-        :param criteria: The criteria a distribution needs to match.
-        :param expand: Not only get the names but also the complete object in form of a dict.
-        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
-                         object instead of the raw data.
-        :param token: The API-token obtained via the login() method.
-        :param rest: This parameter is not used currently.
-        :return: All files which have matched the criteria.
-        """
-        return self.find_items("file", criteria, expand=expand, resolved=resolved)
-
     def find_menu(
         self,
         criteria: Optional[Dict[str, Any]] = None,
@@ -1631,34 +1448,6 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item_handle("image", name)
 
-    def get_mgmtclass_handle(self, name: str):
-        """
-        Get a handle for a management class which allows you to use the functions ``modify_*`` or ``save_*`` to
-        manipulate it.
-
-        :param name: The name of the item.
-        :return: The handle of the desired object.
-        """
-        return self.get_item_handle("mgmtclass", name)
-
-    def get_package_handle(self, name: str):
-        """
-        Get a handle for a package which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
-
-        :param name: The name of the item.
-        :return: The handle of the desired object.
-        """
-        return self.get_item_handle("package", name)
-
-    def get_file_handle(self, name: str):
-        """
-        Get a handle for a file which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
-
-        :param name: The name of the item.
-        :return: The handle of the desired object.
-        """
-        return self.get_item_handle("file", name)
-
     def get_menu_handle(self, name: str):
         """
         Get a handle for a menu which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
@@ -1748,39 +1537,6 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("image", name, token, recursive)
 
-    def remove_mgmtclass(self, name: str, token: str, recursive: bool = True):
-        """
-        Deletes a managementclass from Cobbler.
-
-        :param name: The name of the item to remove.
-        :param token: The API-token obtained via the login() method.
-        :param recursive: If items which are depending on this one should be erased too.
-        :return: True if the action was successful.
-        """
-        return self.remove_item("mgmtclass", name, token, recursive)
-
-    def remove_package(self, name: str, token: str, recursive: bool = True):
-        """
-        Deletes a package from Cobbler.
-
-        :param name: The name of the item to remove.
-        :param token: The API-token obtained via the login() method.
-        :param recursive: If items which are depending on this one should be erased too.
-        :return: True if the action was successful.
-        """
-        return self.remove_item("package", name, token, recursive)
-
-    def remove_file(self, name: str, token: str, recursive: bool = True):
-        """
-        Deletes a file from Cobbler.
-
-        :param name: The name of the item to remove.
-        :param token: The API-token obtained via the login() method.
-        :param recursive: If items which are depending on this one should be erased too.
-        :return: True if the action was successful.
-        """
-        return self.remove_item("file", name, token, recursive)
-
     def remove_menu(self, name: str, token: str, recursive: bool = True):
         """
         Deletes a menu from Cobbler.
@@ -1866,39 +1622,6 @@ class CobblerXMLRPCInterface:
         :return: True if the action succeeded.
         """
         return self.copy_item("image", object_id, newname, token)
-
-    def copy_mgmtclass(self, object_id: str, newname: str, token: Optional[str] = None):
-        """
-        Copies a management class and rename it afterwards.
-
-        :param object_id: The object id of the item in question.
-        :param newname: The new name for the copied object.
-        :param token: The API-token obtained via the login() method.
-        :return: True if the action succeeded.
-        """
-        return self.copy_item("mgmtclass", object_id, newname, token)
-
-    def copy_package(self, object_id: str, newname: str, token: Optional[str] = None):
-        """
-        Copies a package and rename it afterwards.
-
-        :param object_id: The object id of the item in question.
-        :param newname: The new name for the copied object.
-        :param token: The API-token obtained via the login() method.
-        :return: True if the action succeeded.
-        """
-        return self.copy_item("package", object_id, newname, token)
-
-    def copy_file(self, object_id: str, newname: str, token: Optional[str] = None):
-        """
-        Copies a file and rename it afterwards.
-
-        :param object_id: The object id of the item in question.
-        :param newname: The new name for the copied object.
-        :param token: The API-token obtained via the login() method.
-        :return: True if the action succeeded.
-        """
-        return self.copy_item("file", object_id, newname, token)
 
     def copy_menu(self, object_id: str, newname: str, token: Optional[str] = None):
         """
@@ -1998,45 +1721,6 @@ class CobblerXMLRPCInterface:
         """
         return self.rename_item("image", object_id, newname, token)
 
-    def rename_mgmtclass(
-        self, object_id: str, newname: str, token: Optional[str] = None
-    ) -> bool:
-        """
-        Renames a managementclass specified by object_id to a new name.
-
-        :param object_id: The id which refers to the object.
-        :param newname: The new name for the object.
-        :param token: The API-token obtained via the login() method.
-        :return: True if the action succeeded.
-        """
-        return self.rename_item("mgmtclass", object_id, newname, token)
-
-    def rename_package(
-        self, object_id: str, newname: str, token: Optional[str] = None
-    ) -> bool:
-        """
-        Renames a package specified by object_id to a new name.
-
-        :param object_id: The id which refers to the object.
-        :param newname: The new name for the object.
-        :param token: The API-token obtained via the login() method.
-        :return: True if the action succeeded.
-        """
-        return self.rename_item("package", object_id, newname, token)
-
-    def rename_file(
-        self, object_id: str, newname: str, token: Optional[str] = None
-    ) -> bool:
-        """
-        Renames a file specified by object_id to a new name.
-
-        :param object_id: The id which refers to the object.
-        :param newname: The new name for the object.
-        :param token: The API-token obtained via the login() method.
-        :return: True if the action succeeded.
-        """
-        return self.rename_item("file", object_id, newname, token)
-
     def rename_menu(
         self, object_id: str, newname: str, token: Optional[str] = None
     ) -> bool:
@@ -2058,8 +1742,7 @@ class CobblerXMLRPCInterface:
         Creates a new (unconfigured) object, returning an object handle that can be used with ``modify_*`` methods and
         then finally ``save_*`` methods. The handle only exists in memory until saved.
 
-        :param what: specifies the type of object: ``distro``, ``profile``, ``system``, ``repo``, ``image``
-                                                   ``mgmtclass``, ``package``, ``file`` or ``menu``
+        :param what: specifies the type of object: ``distro``, ``profile``, ``system``, ``repo``, ``image`` or ``menu``.
         :param token: The API-token obtained via the login() method.
         :param is_subobject: If the object is a subobject of an already existing object or not.
         :return: The object id for the newly created object.
@@ -2123,33 +1806,6 @@ class CobblerXMLRPCInterface:
         :return: The object id for the newly created object.
         """
         return self.new_item("image", token)
-
-    def new_mgmtclass(self, token: str):
-        """
-        See ``new_item()``.
-
-        :param token: The API-token obtained via the login() method.
-        :return: The object id for the newly created object.
-        """
-        return self.new_item("mgmtclass", token)
-
-    def new_package(self, token: str):
-        """
-        See ``new_item()``.
-
-        :param token: The API-token obtained via the login() method.
-        :return: The object id for the newly created object.
-        """
-        return self.new_item("package", token)
-
-    def new_file(self, token: str):
-        """
-        See ``new_item()``.
-
-        :param token: The API-token obtained via the login() method.
-        :return: The object id for the newly created object.
-        """
-        return self.new_item("file", token)
 
     def new_menu(self, token: str):
         """
@@ -2266,42 +1922,6 @@ class CobblerXMLRPCInterface:
         :return: True if the action was successful. Otherwise False.
         """
         return self.modify_item("repo", object_id, attribute, arg, token)
-
-    def modify_mgmtclass(self, object_id: str, attribute: str, arg: Any, token: str):
-        """
-        Modify a single attribute of a managementclass.
-
-        :param object_id: The id of the object which shall be modified.
-        :param attribute: The attribute name which shall be edited.
-        :param arg: The new value for the argument.
-        :param token: The API-token obtained via the login() method.
-        :return: True if the action was successful. Otherwise False.
-        """
-        return self.modify_item("mgmtclass", object_id, attribute, arg, token)
-
-    def modify_package(self, object_id: str, attribute: str, arg: Any, token: str):
-        """
-        Modify a single attribute of a package.
-
-        :param object_id: The id of the object which shall be modified.
-        :param attribute: The attribute name which shall be edited.
-        :param arg: The new value for the argument.
-        :param token: The API-token obtained via the login() method.
-        :return: True if the action was successful. Otherwise False.
-        """
-        return self.modify_item("package", object_id, attribute, arg, token)
-
-    def modify_file(self, object_id: str, attribute: str, arg: Any, token: str):
-        """
-        Modify a single attribute of a file.
-
-        :param object_id: The id of the object which shall be modified.
-        :param attribute: The attribute name which shall be edited.
-        :param arg: The new value for the argument.
-        :param token: The API-token obtained via the login() method.
-        :return: True if the action was successful. Otherwise False.
-        """
-        return self.modify_item("file", object_id, attribute, arg, token)
 
     def modify_menu(self, object_id: str, attribute: str, arg: Any, token: str):
         """
@@ -2683,42 +2303,6 @@ class CobblerXMLRPCInterface:
         :return: True if the action succeeded.
         """
         return self.save_item("repo", object_id, token, editmode=editmode)
-
-    def save_mgmtclass(self, object_id: str, token: str, editmode: str = "bypass"):
-        """
-        Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
-
-        :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
-        :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
-                         supported.
-        :return: True if the action succeeded.
-        """
-        return self.save_item("mgmtclass", object_id, token, editmode=editmode)
-
-    def save_package(self, object_id: str, token: str, editmode: str = "bypass"):
-        """
-        Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
-
-        :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
-        :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
-                         supported.
-        :return: True if the action succeeded.
-        """
-        return self.save_item("package", object_id, token, editmode=editmode)
-
-    def save_file(self, object_id: str, token: str, editmode: str = "bypass"):
-        """
-        Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
-
-        :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
-        :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
-                         supported.
-        :return: True if the action succeeded.
-        """
-        return self.save_item("file", object_id, token, editmode=editmode)
 
     def save_menu(self, object_id: str, token: str, editmode: str = "bypass"):
         """
@@ -3558,42 +3142,6 @@ class CobblerXMLRPCInterface:
         data = self.api.get_images_since(mtime, collapse=True)
         return self.xmlrpc_hacks(data)
 
-    def get_mgmtclasses_since(
-        self, mtime: float
-    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
-        """
-        See documentation for get_distros_since
-
-        :param mtime: The time after which all items should be included. Everything before this will be excluded.
-        :return: The list of items which were modified after ``mtime``.
-        """
-        data = self.api.get_mgmtclasses_since(mtime, collapse=True)
-        return self.xmlrpc_hacks(data)
-
-    def get_packages_since(
-        self, mtime: float
-    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
-        """
-        See documentation for get_distros_since
-
-        :param mtime: The time after which all items should be included. Everything before this will be excluded.
-        :return: The list of items which were modified after ``mtime``.
-        """
-        data = self.api.get_packages_since(mtime, collapse=True)
-        return self.xmlrpc_hacks(data)
-
-    def get_files_since(
-        self, mtime: float
-    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
-        """
-        See documentation for get_distros_since
-
-        :param mtime: The time after which all items should be included. Everything before this will be excluded.
-        :return: The list of items which were modified after ``mtime``.
-        """
-        data = self.api.get_files_since(mtime, collapse=True)
-        return self.xmlrpc_hacks(data)
-
     def get_menus_since(
         self, mtime: float
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
@@ -3729,17 +3277,6 @@ class CobblerXMLRPCInterface:
                 raise ValueError("Profile not found!")
             distro: Optional["Distro"] = profile.get_conceptual_parent()  # type: ignore
 
-            # The management classes stored in the system are just a list of names, so we need to turn it into a full
-            # list of dictionaries (right now we just use the params field).
-            management_classes = _dict["mgmt_classes"]
-            _dict["mgmt_classes"] = {}
-            for management_class in management_classes:
-                class_obj = self.api.find_mgmtclass(
-                    name=management_class, return_list=False
-                )
-                if class_obj and not isinstance(class_obj, list):
-                    _dict["mgmt_classes"][management_class] = class_obj.to_dict()
-
             arch = None
             if distro is None and profile.COLLECTION_TYPE == "image":
                 image_based = True
@@ -3792,60 +3329,6 @@ class CobblerXMLRPCInterface:
 
         self._log("get_image_as_rendered", name=name, token=token)
         obj = self.api.find_image(name=name)
-        if obj is not None and not isinstance(obj, list):
-            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
-        return self.xmlrpc_hacks({})
-
-    def get_mgmtclass_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
-    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
-        """
-        Get management class after passing through Cobbler's inheritance engine
-
-        :param name: management class name
-        :param token: authentication token
-        :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a management class.
-        """
-
-        self._log("get_mgmtclass_as_rendered", name=name, token=token)
-        obj = self.api.find_mgmtclass(name=name)
-        if obj is not None and not isinstance(obj, list):
-            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
-        return self.xmlrpc_hacks({})
-
-    def get_package_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
-    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
-        """
-        Get package after passing through Cobbler's inheritance engine
-
-        :param name: package name
-        :param token: authentication token
-        :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a package.
-        """
-
-        self._log("get_package_as_rendered", name=name, token=token)
-        obj = self.api.find_package(name=name)
-        if obj is not None and not isinstance(obj, list):
-            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
-        return self.xmlrpc_hacks({})
-
-    def get_file_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
-    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
-        """
-        Get file after passing through Cobbler's inheritance engine
-
-        :param name: file name
-        :param token: authentication token
-        :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a file.
-        """
-
-        self._log("get_file_as_rendered", name=name, token=token)
-        obj = self.api.find_file(name=name)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
@@ -4010,12 +3493,6 @@ class CobblerXMLRPCInterface:
             result = self.api.find_system(name, return_list=False)  # type: ignore
         if resource.find("repo") != -1:
             result = self.api.find_repo(name, return_list=False)  # type: ignore
-        if resource.find("mgmtclass") != -1:
-            result = self.api.find_mgmtclass(name, return_list=False)  # type: ignore
-        if resource.find("package") != -1:
-            result = self.api.find_package(name, return_list=False)  # type: ignore
-        if resource.find("file") != -1:
-            result = self.api.find_file(name, return_list=False)  # type: ignore
         if resource.find("menu") != -1:
             result = self.api.find_menu(name, return_list=False)  # type: ignore
         if isinstance(result, list):
@@ -4042,9 +3519,6 @@ class CobblerXMLRPCInterface:
             "system",
             "repo",
             "image",
-            "mgmtclass",
-            "package",
-            "file",
             "menu",
         ]:
             if arg1 is not None and resource.find(item_type) != -1:

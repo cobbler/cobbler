@@ -14,6 +14,9 @@ V3.4.0 (unreleased):
         * ``logical_parent`` was added.
         * ``get_parent()`` was added which returns the internal reference that is used to return the object of the
           ``parent`` property.
+    * Removed:
+        * mgmt_classes
+        * mgmt_parameters
 V3.3.4 (unreleased):
     * No changes
 V3.3.3:
@@ -142,18 +145,6 @@ class Item:
     # Used to determine descendants and cache invalidation.
     # Format: {"Item Type": [("Dependent Item Type", "Dependent Type attribute"), ..], [..]}
     TYPE_DEPENDENCIES: Dict[str, List[Tuple[str, str]]] = {
-        "package": [
-            ("mgmtclass", "packages"),
-        ],
-        "file": [
-            ("mgmtclass", "files"),
-            ("image", "file"),
-        ],
-        "mgmtclass": [
-            ("distro", "mgmt_classes"),
-            ("profile", "mgmt_classes"),
-            ("system", "mgmt_classes"),
-        ],
         "repo": [
             ("profile", "repos"),
         ],
@@ -332,8 +323,6 @@ class Item:
         self._last_cached_mtime = 0
         self._owners: Union[List[Any], str] = enums.VALUE_INHERITED
         self._cache: ItemCache = ItemCache(api)
-        self._mgmt_classes: Union[List[Any], str] = enums.VALUE_INHERITED
-        self._mgmt_parameters: Union[Dict[Any, Any], str] = {}
         self._is_subobject = is_subobject
         self._inmemory = True
 
@@ -722,66 +711,6 @@ class Item:
             return
         # pyright doesn't understand that the only valid str return value is this constant.
         self._autoinstall_meta = self._deduplicate_dict("autoinstall_meta", value)  # type: ignore
-
-    @InheritableProperty
-    def mgmt_classes(self) -> List[Any]:
-        """
-        Assigns a list of configuration management classes that can be assigned to any object, such as those used by
-        Puppet's external_nodes feature.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: An empty list or the list of mgmt_classes.
-        :setter: Will split this according to :meth:`~cobbler.utils.input_string_or_list`.
-        """
-        return self._resolve("mgmt_classes")
-
-    @mgmt_classes.setter  # type: ignore[no-redef]
-    def mgmt_classes(self, mgmt_classes: Union[List[Any], str]):
-        """
-        Setter for the ``mgmt_classes`` property.
-
-        :param mgmt_classes: The new options for the management classes of an item.
-        """
-        if not isinstance(mgmt_classes, (str, list)):  # type: ignore
-            raise TypeError("mgmt_classes has to be either str or list")
-        self._mgmt_classes = input_converters.input_string_or_list(mgmt_classes)
-
-    @InheritableDictProperty
-    def mgmt_parameters(self) -> Dict[Any, Any]:
-        """
-        Parameters which will be handed to your management application (Must be a valid YAML dictionary)
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: The mgmt_parameters or an empty dict.
-        :setter: A YAML string which can be assigned to any object, this is used by Puppet's external_nodes feature.
-        """
-        return self._resolve_dict("mgmt_parameters")
-
-    @mgmt_parameters.setter  # type: ignore[no-redef]
-    def mgmt_parameters(self, mgmt_parameters: Union[str, Dict[Any, Any]]):
-        """
-        A YAML string which can be assigned to any object, this is used by Puppet's external_nodes feature.
-
-        :param mgmt_parameters: The management parameters for an item.
-        :raises TypeError: In case the parsed YAML isn't of type dict afterwards.
-        """
-        if not isinstance(mgmt_parameters, (str, dict)):  # type: ignore
-            raise TypeError("mgmt_parameters must be of type str or dict")
-        if isinstance(mgmt_parameters, str):
-            if mgmt_parameters == enums.VALUE_INHERITED:
-                self._mgmt_parameters = enums.VALUE_INHERITED
-                return
-            if mgmt_parameters == "":
-                self._mgmt_parameters = {}
-                return
-            mgmt_parameters = yaml.safe_load(mgmt_parameters)
-            if not isinstance(mgmt_parameters, dict):
-                raise TypeError(
-                    "Input YAML in Puppet Parameter field must evaluate to a dictionary."
-                )
-        self._mgmt_parameters = mgmt_parameters
 
     @LazyProperty
     def template_files(self) -> Dict[Any, Any]:

@@ -26,9 +26,6 @@ from tests.performance import CobblerTree
 @pytest.mark.parametrize(
     "what",
     [
-        "package",
-        "file",
-        "mgmtclass",
         "repo",
         "distro",
         "menu",

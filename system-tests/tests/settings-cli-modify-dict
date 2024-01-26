@@ -9,7 +9,7 @@ set -x -e -o pipefail
 TEST_CONFIG="${tmp}/settings-dict.yaml"
 EXPECTED_CONFIG="${tmp}/settings-expected.yaml"
 cat <<-END >$TEST_CONFIG
-mgmt_parameters:
+kernel_options:
  from_cobbler: true
 END
 
@@ -17,10 +17,10 @@ cat <<-END >$EXPECTED_CONFIG
 # Cobbler settings file
 # Docs for this file can be found at: https://cobbler.readthedocs.io/en/latest/cobbler-conf.html
 
-mgmt_parameters: {}
+kernel_options: {}
 END
 
-TEST_KEY="mgmt_parameters"
+TEST_KEY="kernel_options"
 TEST_VALUE=""
 
 # Act

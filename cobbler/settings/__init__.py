@@ -206,8 +206,6 @@ class Settings:
         self.manage_genders = False
         self.manage_rsync = False
         self.manage_tftpd = True
-        self.mgmt_classes: List[str] = []
-        self.mgmt_parameters = {"from_cobbler": 1}
         self.modules = {
             "authentication": {
                 "module": "authentication.configfile",

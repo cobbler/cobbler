@@ -25,9 +25,9 @@ from typing import (
 
 from cobbler import enums, utils
 from cobbler.cexceptions import CX
-from cobbler.items import distro, file, image
+from cobbler.items import distro, image
 from cobbler.items import item as item_base
-from cobbler.items import menu, mgmtclass, package, profile, repo, system
+from cobbler.items import menu, profile, repo, system
 
 if TYPE_CHECKING:
     from cobbler.actions.sync import CobblerSync
@@ -40,14 +40,11 @@ FIND_KWARGS = Union[  # pylint: disable=invalid-name
     str, int, bool, Dict[Any, Any], List[Any]
 ]
 ITEM_UNION = Union[  # pylint: disable=invalid-name
-    "package.Package",
     "system.System",
     "image.Image",
     "profile.Profile",
     "repo.Repo",
-    "mgmtclass.Mgmtclass",
     "distro.Distro",
-    "file.File",
     "menu.Menu",
 ]
 
@@ -482,12 +479,6 @@ class Collection(Generic[ITEM]):
                 elif isinstance(ref, image.Image):
                     self.lite_sync.add_single_image(ref)
                 elif isinstance(ref, repo.Repo):
-                    pass
-                elif isinstance(ref, mgmtclass.Mgmtclass):
-                    pass
-                elif isinstance(ref, package.Package):
-                    pass
-                elif isinstance(ref, file.File):
                     pass
                 elif isinstance(ref, menu.Menu):
                     pass

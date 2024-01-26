@@ -361,8 +361,7 @@ class CobblerSvc:
         """
         Return a list of objects of a desired category. Defaults to "systems".
 
-        :param what: May be "systems", "profiles", "distros", "images", "repos", "mgmtclasses", "packages",
-                            "files" or "menus"
+        :param what: May be "systems", "profiles", "distros", "images", "repos" or "menus"
         :param rest: This parameter is unused.
         :return: The list of object names.
         """
@@ -378,12 +377,6 @@ class CobblerSvc:
             listing = self.remote.get_images()  # type: ignore
         elif what == "repos":
             listing = self.remote.get_repos()  # type: ignore
-        elif what == "mgmtclasses":
-            listing = self.remote.get_mgmtclasses()  # type: ignore
-        elif what == "packages":
-            listing = self.remote.get_packages()  # type: ignore
-        elif what == "files":
-            listing = self.remote.get_files()  # type: ignore
         elif what == "menus":
             listing = self.remote.get_menus()  # type: ignore
         else:
@@ -497,65 +490,6 @@ class CobblerSvc:
             return self.dlmgr.urlread(url).content.decode("UTF-8")
         except Exception:
             return f"# kickstart retrieval failed ({url})"
-
-    def puppet(self, hostname: Optional[str] = None, **rest: Union[str, int]) -> str:
-        """
-        Dump the puppet data which is available for Cobbler.
-
-        :param hostname: The hostname for the system which should the puppet data be dumped for.
-        :param rest: This parameter is unused.
-        :return: The yaml for the host.
-        """
-        if hostname is None:
-            return "hostname is required"
-
-        settings = self.remote.get_settings()
-        if not isinstance(settings, dict):
-            raise ValueError("Server returned an unexpected data type!")
-        results = self.remote.find_system_by_dns_name(hostname)
-        if not isinstance(results, dict):
-            raise ValueError("Server returned an unexpected data type!")
-
-        classes = results.get("mgmt_classes", {})
-        params = results.get("mgmt_parameters", {})
-        environ = results.get("status", "")
-
-        data = {
-            "classes": classes,
-            "parameters": params,
-            "environment": environ,
-        }
-
-        if environ == "":
-            data.pop("environment", None)
-
-        if settings.get("puppet_parameterized_classes", False):
-            for ckey in list(classes.keys()):
-                tmp = {}
-                class_name = classes[ckey].get("class_name", "")
-                if class_name in (None, ""):
-                    class_name = ckey
-                if classes[ckey].get("is_definition", False):
-                    def_tmp = {}
-                    def_name = classes[ckey]["params"].get("name", "")
-                    del classes[ckey]["params"]["name"]
-                    if def_name != "":
-                        for pkey in list(classes[ckey]["params"].keys()):
-                            def_tmp[pkey] = classes[ckey]["params"][pkey]
-                        tmp["instances"] = {def_name: def_tmp}
-                    else:
-                        # FIXME: log an error here?
-                        # skip silently...
-                        continue
-                else:
-                    for pkey in list(classes[ckey]["params"].keys()):
-                        tmp[pkey] = classes[ckey]["params"][pkey]
-                del classes[ckey]
-                classes[class_name] = tmp
-        else:
-            classes = list(classes.keys())
-
-        return yaml.dump(data, default_flow_style=False)
 
 
 def __fillup_form_dict(form: Dict[Any, Any], my_uri: str) -> str:

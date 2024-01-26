@@ -178,7 +178,6 @@ class _IscManager(DhcpManagerModule):
                 interface["owner"] = blended_system["name"]
                 interface["enable_ipxe"] = blended_system["enable_ipxe"]
                 interface["name_servers"] = blended_system["name_servers"]
-                interface["mgmt_parameters"] = blended_system["mgmt_parameters"]
 
                 # For esxi/UEFI export filename_esxi as path to efi bootloader
                 if distro and distro.os_version.startswith("esxi"):
@@ -360,7 +359,6 @@ class _IscManager(DhcpManagerModule):
                 interface["hostname"] = blended_system["hostname"]
                 interface["owner"] = blended_system["name"]
                 interface["name_servers"] = blended_system["name_servers"]
-                interface["mgmt_parameters"] = blended_system["mgmt_parameters"]
 
                 # Explicitly declare filename for other (non x86) archs as in DHCP discover package mostly the
                 # architecture cannot be differed due to missing bits...

@@ -7,11 +7,8 @@ from typing import Callable
 
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
-from cobbler.items.file import File
 from cobbler.items.image import Image
 from cobbler.items.menu import Menu
-from cobbler.items.mgmtclass import Mgmtclass
-from cobbler.items.package import Package
 from cobbler.items.profile import Profile
 from cobbler.items.repo import Repo
 from cobbler.items.system import System
@@ -25,43 +22,6 @@ class CobblerTree:
     objs_count = 2
     test_rounds = 1
     tree_levels = 3
-
-    @staticmethod
-    def create_packages(api: CobblerAPI):
-        """
-        Create a number of packages for benchmark testing.
-        """
-        for i in range(CobblerTree.objs_count):
-            test_item = Package(api)
-            test_item.name = f"test_package_{i}"
-            api.add_package(test_item)
-
-    @staticmethod
-    def create_files(api: CobblerAPI):
-        """
-        Create a number of files for benchmark testing.
-        """
-        for i in range(CobblerTree.objs_count):
-            test_item = File(api)
-            test_item.name = f"test_file_{i}"
-            test_item.path = "test path"
-            test_item.owner = "test owner"
-            test_item.group = "test group"
-            test_item.mode = "test mode"
-            test_item.is_dir = True
-            api.add_file(test_item)
-
-    @staticmethod
-    def create_mgmtclasses(api: CobblerAPI):
-        """
-        Create a number of managemment classes for benchmark testing.
-        """
-        for i in range(CobblerTree.objs_count):
-            test_item = Mgmtclass(api)
-            test_item.name = f"test_mgmtclass_{i}"
-            test_item.package = f"test_package_{i}"
-            test_item.file = f"test_file_{i}"
-            api.add_mgmtclass(test_item)
 
     @staticmethod
     def create_repos(api: CobblerAPI):
@@ -81,7 +41,6 @@ class CobblerTree:
         for i in range(CobblerTree.objs_count):
             test_item = create_distro(name=f"test_distro_{i}")
             test_item.source_repos = [f"test_repo_{i}"]
-            test_item.mgmt_classes = [f"test_mgmtclass_{i}"]
 
     @staticmethod
     def create_menus(api: CobblerAPI):
@@ -162,39 +121,12 @@ class CobblerTree:
         """
         Method that collectively creates all items at the same time.
         """
-        CobblerTree.create_packages(api)
-        CobblerTree.create_files(api)
-        CobblerTree.create_mgmtclasses(api)
         CobblerTree.create_repos(api)
         CobblerTree.create_distros(api, create_distro)
         CobblerTree.create_menus(api)
         CobblerTree.create_profiles(api, create_profile)
         CobblerTree.create_images(api, create_image)
         CobblerTree.create_systems(api, create_system)
-
-    @staticmethod
-    def remove_packages(api: CobblerAPI):
-        """
-        Method that removes all packages.
-        """
-        for test_item in api.packages():
-            api.remove_package(test_item.name)
-
-    @staticmethod
-    def remove_files(api: CobblerAPI):
-        """
-        Method that removes all files.
-        """
-        for test_item in api.files():
-            api.remove_file(test_item.name)
-
-    @staticmethod
-    def remove_mgmtclasses(api: CobblerAPI):
-        """
-        Method that removes all management classes.
-        """
-        for test_item in api.mgmtclasses():
-            api.remove_mgmtclass(test_item.name)
 
     @staticmethod
     def remove_repos(api: CobblerAPI):
@@ -255,6 +187,3 @@ class CobblerTree:
         CobblerTree.remove_menus(api)
         CobblerTree.remove_distros(api)
         CobblerTree.remove_repos(api)
-        CobblerTree.remove_mgmtclasses(api)
-        CobblerTree.remove_files(api)
-        CobblerTree.remove_packages(api)

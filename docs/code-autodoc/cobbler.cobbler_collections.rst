@@ -20,14 +20,6 @@ cobbler.cobbler\_collections.distros module
    :undoc-members:
    :show-inheritance:
 
-cobbler.cobbler\_collections.files module
------------------------------------------
-
-.. automodule:: cobbler.cobbler_collections.files
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 cobbler.cobbler\_collections.images module
 ------------------------------------------
 
@@ -48,22 +40,6 @@ cobbler.cobbler\_collections.menus module
 -----------------------------------------
 
 .. automodule:: cobbler.cobbler_collections.menus
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-cobbler.cobbler\_collections.mgmtclasses module
------------------------------------------------
-
-.. automodule:: cobbler.cobbler_collections.mgmtclasses
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-cobbler.cobbler\_collections.packages module
---------------------------------------------
-
-.. automodule:: cobbler.cobbler_collections.packages
    :members:
    :undoc-members:
    :show-inheritance:

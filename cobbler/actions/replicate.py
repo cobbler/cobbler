@@ -26,9 +26,6 @@ OBJ_TYPES = [
     "system",
     "repo",
     "image",
-    "mgmtclass",
-    "package",
-    "file",
 ]
 
 
@@ -60,9 +57,6 @@ class Replicate:
             "system": {},
             "image": {},
             "repo": {},
-            "mgmtclass": {},
-            "package": {},
-            "file": {},
         }
         self.port = ""
         self.distro_patterns: List[str] = []
@@ -70,9 +64,6 @@ class Replicate:
         self.system_patterns: List[str] = []
         self.repo_patterns: List[str] = []
         self.image_patterns: List[str] = []
-        self.mgmtclass_patterns: List[str] = []
-        self.package_patterns: List[str] = []
-        self.file_patterns: List[str] = []
         self.omit_data = False
         self.prune = False
         self.sync_all = False
@@ -400,9 +391,6 @@ class Replicate:
         system_patterns: Optional[str] = None,
         repo_patterns: Optional[str] = None,
         image_patterns: Optional[str] = None,
-        mgmtclass_patterns: Optional[str] = None,
-        package_patterns: Optional[str] = None,
-        file_patterns: Optional[str] = None,
         prune: bool = False,
         omit_data: bool = False,
         sync_all: bool = False,
@@ -418,9 +406,6 @@ class Replicate:
         :param system_patterns: The pattern of systems to sync.
         :param repo_patterns: The pattern of repositories to sync.
         :param image_patterns: The pattern of images to sync.
-        :param mgmtclass_patterns: The pattern of management classes to sync.
-        :param package_patterns: The pattern of packages to sync.
-        :param file_patterns: The pattern of files to sync.
         :param prune: If the local server should be pruned before coping stuff.
         :param omit_data: If the data behind images etc should be omitted or not.
         :param sync_all: If everything should be synced (then the patterns are useless) or not.
@@ -438,12 +423,6 @@ class Replicate:
             self.repo_patterns = repo_patterns.split()
         if isinstance(image_patterns, str):
             self.image_patterns = image_patterns.split()
-        if isinstance(mgmtclass_patterns, str):
-            self.mgmtclass_patterns = mgmtclass_patterns.split()
-        if isinstance(package_patterns, str):
-            self.package_patterns = package_patterns.split()
-        if isinstance(file_patterns, str):
-            self.file_patterns = file_patterns.split()
         self.omit_data = omit_data
         self.prune = prune
         self.sync_all = sync_all
@@ -470,9 +449,6 @@ class Replicate:
         self.logger.info("system_patterns     = %s", self.system_patterns)
         self.logger.info("repo_patterns       = %s", self.repo_patterns)
         self.logger.info("image_patterns      = %s", self.image_patterns)
-        self.logger.info("mgmtclass_patterns  = %s", self.mgmtclass_patterns)
-        self.logger.info("package_patterns    = %s", self.package_patterns)
-        self.logger.info("file_patterns       = %s", self.file_patterns)
         self.logger.info("omit_data           = %s", self.omit_data)
         self.logger.info("sync_all            = %s", self.sync_all)
         self.logger.info("use_ssl             = %s", self.use_ssl)

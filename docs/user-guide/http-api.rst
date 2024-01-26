@@ -409,7 +409,7 @@ list
 
 Lists all instances of a specified type.
 Currently the valid options are:
-``systems, profiles, distros, images, repos, mgmtclasses, packages, files, menus``
+``systems, profiles, distros, images, repos, menus``
 If no option is selected the endpoint will default to ``systems``.
 If the selected option is not valid the endpoint will return ``?``.
 

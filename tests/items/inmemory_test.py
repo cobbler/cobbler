@@ -11,11 +11,8 @@ import pytest
 from cobbler.api import CobblerAPI
 from cobbler.cobbler_collections import manager
 from cobbler.items.distro import Distro
-from cobbler.items.file import File
 from cobbler.items.image import Image
 from cobbler.items.menu import Menu
-from cobbler.items.mgmtclass import Mgmtclass
-from cobbler.items.package import Package
 from cobbler.items.profile import Profile
 from cobbler.items.repo import Repo
 from cobbler.items.system import System
@@ -46,33 +43,6 @@ def test_inmemory(
     TODO
     """
     # Arrange
-    test_package = Package(
-        inmemory_api, **{"name": "test_package", "comment": "test comment"}
-    )
-    inmemory_api.add_package(test_package)
-    test_file = File(
-        inmemory_api,
-        **{
-            "name": "test_file",
-            "path": "test path",
-            "owner": "test owner",
-            "group": "test group",
-            "mode": "test mode",
-            "is_dir": True,
-            "comment": "test comment",
-        },
-    )
-    inmemory_api.add_file(test_file)
-    test_mgmtclass = Mgmtclass(
-        inmemory_api,
-        **{
-            "name": "test_mgmtclass",
-            "packages": [test_package.name],
-            "files": [test_file.name],
-            "comment": "test comment",
-        },
-    )
-    inmemory_api.add_mgmtclass(test_mgmtclass)
     test_repo = Repo(inmemory_api, **{"name": "test_repo", "comment": "test comment"})
     inmemory_api.add_repo(test_repo)
     test_menu1 = Menu(inmemory_api, **{"name": "test_menu1", "comment": "test comment"})
@@ -95,7 +65,6 @@ def test_inmemory(
             "name": "test_distro",
             "kernel": str(os.path.join(directory, fk_kernel)),
             "initrd": str(os.path.join(directory, fk_initrd)),
-            "mgmt_classes": test_mgmtclass.name,
             "comment": "test comment",
         },
     )
@@ -130,7 +99,6 @@ def test_inmemory(
             "name": "test_profile3",
             "parent": test_profile1.name,
             "enable_menu": False,
-            "mgmt_classes": test_mgmtclass.name,
             "repos": [test_repo.name],
             "menu": test_menu1.name,
             "comment": "test comment",
@@ -167,15 +135,9 @@ def test_inmemory(
     inmemory_api.menus().listing.pop(test_menu2.name)
     inmemory_api.menus().listing.pop(test_menu1.name)
     inmemory_api.repos().listing.pop(test_repo.name)
-    inmemory_api.mgmtclasses().listing.pop(test_mgmtclass.name)
-    inmemory_api.files().listing.pop(test_file.name)
-    inmemory_api.packages().listing.pop(test_package.name)
 
     inmemory_api.deserialize()
 
-    test_package = inmemory_api.find_package("test_package")
-    test_file = inmemory_api.find_file("test_file")
-    test_mgmtclass = inmemory_api.find_mgmtclass("test_mgmtclass")
     test_repo = inmemory_api.find_repo("test_repo")
     test_menu1 = inmemory_api.find_menu("test_menu1")
     test_menu2 = inmemory_api.find_menu("test_menu2")
@@ -190,9 +152,6 @@ def test_inmemory(
     # Act
     result = True
     for collection in [
-        "package",
-        "file",
-        "mgmtclass",
         "repo",
         "distro",
         "menu",
@@ -205,9 +164,6 @@ def test_inmemory(
             result = obj.__dict__["_comment"] == "" if result else result
 
     comment = test_system1.comment if result else result
-    result = test_package.inmemory if result else result
-    result = test_file.inmemory if result else result
-    result = test_mgmtclass.inmemory if result else result
     result = test_repo.inmemory if result else result
     result = test_menu1.inmemory if result else result
     result = not test_menu2.inmemory if result else result
@@ -219,9 +175,6 @@ def test_inmemory(
     result = test_system1.inmemory if result else result
     result = not test_system2.inmemory if result else result
 
-    result = test_package.__dict__["_comment"] == "test comment" if result else result
-    result = test_file.__dict__["_comment"] == "test comment" if result else result
-    result = test_mgmtclass.__dict__["_comment"] == "test comment" if result else result
     result = test_repo.__dict__["_comment"] == "test comment" if result else result
     result = test_menu1.__dict__["_comment"] == "test comment" if result else result
     result = test_menu2.__dict__["_comment"] == "" if result else result
@@ -244,9 +197,6 @@ def test_inmemory(
     inmemory_api.remove_menu(test_menu2)
     inmemory_api.remove_menu(test_menu1)
     inmemory_api.remove_repo(test_repo)
-    inmemory_api.remove_mgmtclass(test_mgmtclass)
-    inmemory_api.remove_package(test_package)
-    inmemory_api.remove_file(test_file)
 
     # Assert
     assert result

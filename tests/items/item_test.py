@@ -9,12 +9,9 @@ import pytest
 from cobbler import enums
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
-from cobbler.items.file import File
 from cobbler.items.image import Image
 from cobbler.items.item import Item
 from cobbler.items.menu import Menu
-from cobbler.items.mgmtclass import Mgmtclass
-from cobbler.items.package import Package
 from cobbler.items.profile import Profile
 from cobbler.items.repo import Repo
 from cobbler.items.system import System
@@ -148,22 +145,6 @@ def test_descendants(
     Assert that the decendants property is also working with an enabled Cache.
     """
     # Arrange
-    test_package = Package(cobbler_api)
-    test_package.name = "test_package"
-    cobbler_api.add_package(test_package)
-    test_file = File(cobbler_api)
-    test_file.name = "test_file"
-    test_file.path = "test path"
-    test_file.owner = "test owner"
-    test_file.group = "test group"
-    test_file.mode = "test mode"
-    test_file.is_dir = True
-    cobbler_api.add_file(test_file)
-    test_mgmtclass = Mgmtclass(cobbler_api)
-    test_mgmtclass.name = "test_mgmtclass"
-    test_mgmtclass.packages = [test_package.name]
-    test_mgmtclass.files = [test_file.name]
-    cobbler_api.add_mgmtclass(test_mgmtclass)
     test_repo = Repo(cobbler_api)
     test_repo.name = "test_repo"
     cobbler_api.add_repo(test_repo)
@@ -175,7 +156,6 @@ def test_descendants(
     test_menu2.parent = test_menu1.name
     cobbler_api.add_menu(test_menu2)
     test_distro = create_distro()
-    test_distro.mgmt_classes = test_mgmtclass.name
     test_profile1: Profile = create_profile(distro_name=test_distro.name, name="test_profile1")  # type: ignore
     test_profile1.enable_menu = False
     test_profile1.repos = [test_repo.name]
@@ -188,7 +168,6 @@ def test_descendants(
         profile_name=test_profile1.name, name="test_profile3"  # type: ignore
     )
     test_profile3.enable_menu = False
-    test_profile3.mgmt_classes = test_mgmtclass.name
     test_profile3.repos = [test_repo.name]
     test_image = create_image()
     test_image.menu = test_menu1.name
@@ -197,9 +176,6 @@ def test_descendants(
 
     # Act
     cache_tests = [
-        test_package.descendants,
-        test_file.descendants,
-        test_mgmtclass.descendants,
         test_repo.descendants,
         test_distro.descendants,
         test_image.descendants,
@@ -212,23 +188,6 @@ def test_descendants(
         test_system2.descendants,
     ]
     results = [
-        [
-            test_mgmtclass,
-            test_distro,
-            test_profile1,
-            test_profile2,
-            test_profile3,
-            test_system1,
-        ],
-        [
-            test_mgmtclass,
-            test_distro,
-            test_profile1,
-            test_profile2,
-            test_profile3,
-            test_system1,
-        ],
-        [test_distro, test_profile1, test_profile2, test_profile3, test_system1],
         [test_profile1, test_profile2, test_profile3, test_system1],
         [test_profile1, test_profile2, test_profile3, test_system1],
         [test_system2],
@@ -411,67 +370,6 @@ def test_autoinstall_meta(
         assert titem.autoinstall_meta == expected_result
 
 
-@pytest.mark.parametrize(
-    "input_mgmt_classes,expected_exception,expected_result",
-    [
-        ("", does_not_raise(), []),
-        ("<<inherit>>", does_not_raise(), []),
-        ("Test1 Test2", does_not_raise(), ["Test1", "Test2"]),
-        (True, pytest.raises(TypeError), None),
-        (False, pytest.raises(TypeError), None),
-    ],
-)
-def test_mgmt_classes(
-    create_distro: Callable[[], Distro],
-    input_mgmt_classes: Any,
-    expected_exception: Any,
-    expected_result: Optional[List[Any]],
-):
-    """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the mgmt_classes property correctly.
-    """
-    # Arrange
-    tmp_distro = create_distro()
-    tmp_distro.mgmt_classes = ["Test0"]
-
-    # Act
-    with expected_exception:
-        tmp_distro.mgmt_classes = input_mgmt_classes
-
-        # Assert
-        assert tmp_distro.mgmt_classes == expected_result
-
-
-@pytest.mark.parametrize(
-    "input_mgmt_parameters,expected_exception,expected_result",
-    [
-        ("", does_not_raise(), {"from_cobbler": 1}),
-        ("a: 5", does_not_raise(), {"from_cobbler": 1, "a": 5}),
-        ("<<inherit>>", does_not_raise(), {"from_cobbler": 1}),
-        ({}, does_not_raise(), {"from_cobbler": 1}),
-        ({"a": 5}, does_not_raise(), {"from_cobbler": 1, "a": 5}),
-    ],
-)
-def test_mgmt_parameters(
-    cobbler_api: CobblerAPI,
-    input_mgmt_parameters: Any,
-    expected_exception: Any,
-    expected_result: Dict[str, Any],
-):
-    """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the mgmt_parameters property correctly.
-    """
-    # Arrange
-    titem = Item(cobbler_api)
-
-    # Act
-    with expected_exception:
-        titem.mgmt_parameters = input_mgmt_parameters
-
-        # Assert
-        assert titem.mgmt_parameters == expected_result
-
-
 def test_template_files(cobbler_api: CobblerAPI):
     """
     Assert that an abstract Cobbler Item can use the Getter and Setter of the template_files property correctly.
@@ -605,7 +503,7 @@ def test_dump_vars(cobbler_api: CobblerAPI):
     print(result)
     assert "default_ownership" in result
     assert "owners" in result
-    assert len(result) == 154
+    assert len(result) == 152
 
 
 @pytest.mark.parametrize(

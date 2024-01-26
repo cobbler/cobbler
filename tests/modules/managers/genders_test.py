@@ -5,7 +5,6 @@ import pytest
 
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
-from cobbler.items.mgmtclass import Mgmtclass
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
 from cobbler.modules.managers import genders
@@ -52,9 +51,6 @@ def api_genders_mock():
     test_system._parent = test_profile.name
     api_mock.find_system.return_value = [test_system]
     api_mock.systems.return_value = [test_system]
-    test_mgmtclass = Mgmtclass(api_mock)
-    test_mgmtclass.name = "test_mgmtclass"
-    api_mock.mgmtclasses.return_value = [test_mgmtclass]
     return api_mock
 
 
@@ -114,6 +110,6 @@ def test_run(mocker, api_genders_mock):
         api_genders_mock,
         {"test_profile": "test_system"},
         {"test_distro": "test_system"},
-        {"test_mgmtclass": "test_system"},
+        {},
     )
     assert result == 0
