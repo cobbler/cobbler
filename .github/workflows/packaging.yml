@@ -55,3 +55,11 @@ jobs:
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile
+  build-debian12-debs:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build a Debian 12 Package
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          ./docker/debs/build-and-install-debs.sh deb12 docker/debs/Debian_12/Debian12.dockerfile
