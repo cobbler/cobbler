@@ -1109,6 +1109,7 @@ Choices:
 
 * serializers.file
 * serializers.mongodb
+* serializers.sqlite
 
 default: ``serializers.file``
 

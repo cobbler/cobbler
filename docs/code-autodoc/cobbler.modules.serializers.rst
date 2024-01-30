@@ -20,6 +20,14 @@ cobbler.modules.serializers.mongodb module
    :undoc-members:
    :show-inheritance:
 
+cobbler.modules.serializers.sqlite module
+------------------------------------------
+
+.. automodule:: cobbler.modules.serializers.sqlite
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
