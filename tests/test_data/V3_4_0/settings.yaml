@@ -133,6 +133,8 @@ syslinux_pxelinux_folder: '/usr/share/syslinux'
 grub2_mod_dir: '/usr/share/grub2'
 bootloaders_shim_folder: '/usr/share/efi/*/'
 bootloaders_shim_file: 'shim\.efi'
+secure_boot_grub_folder: '/usr/share/efi/*/'
+secure_boot_grub_file: 'grub\.efi'
 bootloaders_ipxe_folder: '/usr/share/ipxe/'
 
 # Email out a report when Cobbler finishes installing a system.

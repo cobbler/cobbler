@@ -1,6 +1,7 @@
 """
 Cobbler app-wide settings
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2006-2008, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
@@ -73,6 +74,8 @@ class Settings:
         self.bootloaders_dir = "/var/lib/cobbler/loaders"
         self.bootloaders_shim_folder = "/usr/share/efi/*/"
         self.bootloaders_shim_file = r"shim\.efi$"
+        self.secure_boot_grub_folder = "/usr/share/efi/*/"
+        self.secure_boot_grub_file = r"grub\.efi$"
         self.bootloaders_ipxe_folder = "/usr/share/ipxe/"
         self.bootloaders_formats = {
             "aarch64": {"binary_name": "grubaa64.efi"},

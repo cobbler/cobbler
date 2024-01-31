@@ -1,4 +1,5 @@
 import pathlib
+import re
 import subprocess
 
 import pytest
@@ -79,6 +80,24 @@ def test_symlink(tmp_path: pathlib.Path):
     assert link.exists()
     assert link.is_symlink()
     assert link.resolve() == target
+
+
+def test_find_file(tmp_path: pathlib.Path):
+    # Arrange
+    target = tmp_path / "target"
+    target.mkdir()
+    target_file = target / "file.txt"
+    target_file.touch()
+    file_regex = re.compile(r"file\.txt")
+    invalid_file_regex = re.compile(r"file1\.txt")
+
+    # Act
+    valid_file = mkloaders.find_file(target, file_regex)
+    invalid_file = mkloaders.find_file(target, invalid_file_regex)
+
+    # Assert
+    assert valid_file != None
+    assert invalid_file == None
 
 
 def test_symlink_link_exists(tmp_path):

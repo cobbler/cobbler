@@ -37,6 +37,8 @@ The command can be manipulated by changing the settings of Cobbler. The followin
 * syslinux_pxelinux_folder
 * bootloaders_shim_folder
 * bootloaders_shim_file
+* secure_boot_grub_folder
+* secure_boot_grub_file
 * bootloaders_ipxe_folder
 
 Current workflow
@@ -158,3 +160,15 @@ E.g. using the ``grub.cfg`` command: hello, will end up in downloading ``hello.m
 - For example the "tr" GRUB module was not part of SLES 12 and therefore the reforming of the ``${mac}`` address to the
   previous ``pxelinux.0`` style, e.g.: ``52:54:00:42:56:58`` -> ``01-52-54-00-42-56-58`` does not work. But this is
   overhead anyway, so we now use the plain mac address as filenames for system specific grub configuration.
+
+Use the ``use_secure_boot_grub`` property to use a pre-built secure boot grub bootloader for a bootloader format, for example:
+
+.. code-block:: yaml
+
+   bootloaders_formats:
+    x86_64-efi:
+      use_secure_boot_grub: true
+      binary_name: grubx64.efi
+      extra_modules:
+        - chain
+        - efinet

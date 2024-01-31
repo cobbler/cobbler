@@ -43,6 +43,8 @@ tftproot = os.environ.get("TFTPROOT", "/srv/tftpboot")
 bind_zonefiles = os.environ.get("ZONEFILES", "/var/lib/named/")
 shim_folder = os.environ.get("SHIM_FOLDER", "/usr/share/efi/*/")
 shim_file = os.environ.get("SHIM_FILE", r"shim\.efi")
+secure_boot_folder = os.environ.get("SECURE_BOOT_FOLDER", "/usr/share/efi/*/")
+secure_boot_file = os.environ.get("SECURE_BOOT_FILE", r"grub\.efi")
 ipxe_folder = os.environ.get("IPXE_FOLDER", "/usr/share/ipxe/")
 memdisk_folder = os.environ.get("MEMDISK_FOLDER", "/usr/share/syslinux")
 pxelinux_folder = os.environ.get("PXELINUX_FOLDER", "/usr/share/syslinux")
@@ -631,6 +633,8 @@ if __name__ == "__main__":
             "bind_zonefiles": bind_zonefiles,
             "shim_folder": shim_folder,
             "shim_file": shim_file,
+            "secure_grub_folder": secure_boot_folder,
+            "secure_grub_file": secure_boot_file,
             "ipxe_folder": ipxe_folder,
             "memdisk_folder": memdisk_folder,
             "pxelinux_folder": pxelinux_folder,
