@@ -1,11 +1,12 @@
-import fcntl
+import datetime
 import os
 import re
+import time
 from pathlib import Path
+from threading import Thread
 
 import pytest
 from netaddr.ip import IPAddress
-from pytest_mock import MockerFixture
 
 from cobbler import enums, utils
 from cobbler.items.distro import Distro
@@ -582,32 +583,28 @@ def test_kopts_overwrite():
     assert "info" in kopts
 
 
-@pytest.mark.parametrize(
-    "flock_side_effect,os_open_mock_calls,os_close_mock_calls,expected_exception",
-    [
-        (None, 1, 0, does_not_raise()),
-        (OSError, 2, 1, pytest.raises(OSError)),
-    ],
-)
-def test_filelock(
-    mocker: MockerFixture,
-    flock_side_effect,  # type: ignore
-    os_open_mock_calls,  # type: ignore
-    os_close_mock_calls,  # type: ignore
-    expected_exception,  # type: ignore
-):
+def test_filelock():
     # Arrange
-    os_open_mock = mocker.patch("os.open", return_value=1234)
-    os_close_mock = mocker.patch("os.close")
-    flock_mock = mocker.patch("fcntl.flock", side_effect=flock_side_effect)
+    filelock_path = "/tmp/filelock_test"
+    thread_times = []
+
+    def thread_fun():
+        thread_times.append(datetime.datetime.now())  # type: ignore
+        with utils.filelock(filelock_path):
+            thread_times.append(datetime.datetime.now())  # type: ignore
+
+    t = Thread(target=thread_fun)
 
     # Act
-    with expected_exception:
-        with utils.filelock("foobar"):
-            # Assert
-            assert flock_mock.called_once_with(1234, fcntl.LOCK_EX)
-            assert os_open_mock.call_count == os_open_mock_calls
-            assert os_close_mock.call_count == os_close_mock_calls
+    with utils.filelock(filelock_path):
+        t.start()
+        time.sleep(1)
 
-        assert flock_mock.called_once_with(1234, fcntl.LOCK_UN)
-        assert os_close_mock.called_once_with(1234)
+    t.join()
+
+    # Assert
+    assert os.path.isfile(filelock_path)
+
+    # Running time for Thread must be higher than 1 second, as
+    # the lock was locked when thread started.
+    assert thread_times[1] - thread_times[0] >= datetime.timedelta(seconds=1)
