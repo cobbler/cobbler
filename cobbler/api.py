@@ -158,11 +158,11 @@ from cobbler.cobbler_collections import manager
 from cobbler.decorator import InheritableDictProperty
 from cobbler.items import distro
 from cobbler.items import image as image_module
-from cobbler.items import item as item_base
 from cobbler.items import menu
 from cobbler.items import profile as profile_module
 from cobbler.items import repo
 from cobbler.items import system as system_module
+from cobbler.items.abstract import base_item
 from cobbler.utils import filesystem_helpers, input_converters, signatures
 
 if TYPE_CHECKING:
@@ -174,7 +174,6 @@ if TYPE_CHECKING:
     )
     from cobbler.cobbler_collections.distros import Distros
     from cobbler.cobbler_collections.images import Images
-    from cobbler.cobbler_collections.manager import COLLECTION_UNION
     from cobbler.cobbler_collections.menus import Menus
     from cobbler.cobbler_collections.profiles import Profiles
     from cobbler.cobbler_collections.repos import Repos
@@ -495,7 +494,7 @@ class CobblerAPI:
         result = self._collection_mgr.get_items(what).get(name)
         return result  # type: ignore
 
-    def get_items(self, what: str) -> "COLLECTION_UNION":
+    def get_items(self, what: str) -> "manager.COLLECTION_UNION":
         """
         Get all items of a collection.
 
@@ -552,7 +551,7 @@ class CobblerAPI:
 
     def __item_resolved_helper(
         self, item_uuid: str, attribute: str
-    ) -> "item_base.Item":
+    ) -> "base_item.BaseItem":
         """
         This helper validates the common data for ``*_item_resolved_value``.
 
@@ -1593,7 +1592,7 @@ class CobblerAPI:
 
     def dump_vars(
         self,
-        obj: "item_base.Item",
+        obj: "base_item.BaseItem",
         formatted_output: bool = False,
         remove_dicts: bool = False,
     ) -> Union[Dict[str, Any], str]:
@@ -1661,7 +1660,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def get_repo_config_for_profile(self, obj: "item_base.Item") -> str:
+    def get_repo_config_for_profile(self, obj: "base_item.BaseItem") -> str:
         """
         Get the repository configuration for the specified profile
 
@@ -1670,7 +1669,7 @@ class CobblerAPI:
         """
         return self.yumgen.get_yum_config(obj, True)
 
-    def get_repo_config_for_system(self, obj: "item_base.Item") -> str:
+    def get_repo_config_for_system(self, obj: "base_item.BaseItem") -> str:
         """
         Get the repository configuration for the specified system.
 
@@ -2014,7 +2013,7 @@ class CobblerAPI:
         """
         return self._collection_mgr.deserialize()
 
-    def deserialize_item(self, obj: "item_base.Item") -> Dict[str, Any]:
+    def deserialize_item(self, obj: "base_item.BaseItem") -> Dict[str, Any]:
         """
         Load cobbler item from disk.
         Cobbler internal use only.

@@ -395,29 +395,6 @@ def test_source_repos(cobbler_api: CobblerAPI, value: Any):
     "value,expected_exception",
     [
         ([""], pytest.raises(TypeError)),
-        # ("test=test test1 test2=0", does_not_raise()), --> Fix this. It works but we can't compare
-        ({"test": "test", "test2": 0}, does_not_raise()),
-    ],
-)
-def test_fetchable_files(cobbler_api: CobblerAPI, value: Any, expected_exception: Any):
-    """
-    Test that verifies if fetchable files can be set as expected.
-    """
-    # Arrange
-    distro = Distro(cobbler_api)
-
-    # Act
-    with expected_exception:
-        distro.fetchable_files = value
-
-        # Assert
-        assert distro.fetchable_files == value
-
-
-@pytest.mark.parametrize(
-    "value,expected_exception",
-    [
-        ([""], pytest.raises(TypeError)),
         ("", does_not_raise()),
     ],
 )

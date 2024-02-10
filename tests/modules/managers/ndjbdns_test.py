@@ -1,9 +1,23 @@
-from cobbler.items.system import NetworkInterface, System
+"""
+Test to verify the functionallity of the ndjbdns module.
+"""
+
+from typing import TYPE_CHECKING, Any
+
+from cobbler.api import CobblerAPI
+from cobbler.items.network_interface import NetworkInterface
+from cobbler.items.system import System
 from cobbler.modules.managers import ndjbdns
 from cobbler.templar import Templar
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
 
 def test_register():
+    """
+    Test if the manager registers with the correct ID.
+    """
     # Arrange
     # Act
     result = ndjbdns.register()
@@ -12,17 +26,25 @@ def test_register():
     assert result == "manage"
 
 
-def test_get_manager(cobbler_api):
+def test_get_manager(cobbler_api: CobblerAPI):
+    """
+    Test if the singleton is correctly initialized.
+    """
     # Arrange & Act
+    # pylint: disable=protected-access
     result = ndjbdns.get_manager(cobbler_api)
 
     # Assert
-    isinstance(result, ndjbdns._NDjbDnsManager)
+    isinstance(result, ndjbdns._NDjbDnsManager)  # type: ignore
 
 
 def test_manager_what():
+    """
+    Test if the manager identifies itself correctly.
+    """
     # Arrange & Act & Assert
-    assert ndjbdns._NDjbDnsManager.what() == "ndjbdns"
+    # pylint: disable=protected-access
+    assert ndjbdns._NDjbDnsManager.what() == "ndjbdns"  # type: ignore
 
 
 class MockedPopen:
@@ -30,17 +52,17 @@ class MockedPopen:
     See https://stackoverflow.com/a/53793739
     """
 
-    def __init__(self, args, **kwargs):
+    def __init__(self, args: Any, **kwargs: Any):
         self.args = args
         self.returncode = 0
 
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, value, traceback):
+    def __exit__(self, exc_type: Any, value: Any, traceback: Any):
         pass
 
-    def communicate(self, input=None, timeout=None):
+    def communicate(self, input: Any = None, timeout: Any = None):
         stdout = "output"
         stderr = "error"
         self.returncode = 0
@@ -48,7 +70,10 @@ class MockedPopen:
         return stdout, stderr
 
 
-def test_manager_write_configs(mocker, cobbler_api):
+def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test if the manager is able to correctly write the configuration files.
+    """
     # Arrange
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
     mocker.patch("subprocess.Popen", MockedPopen)
@@ -62,7 +87,8 @@ def test_manager_write_configs(mocker, cobbler_api):
     ndjbdns.MANAGER = None
     test_manager = ndjbdns.get_manager(cobbler_api)
     test_manager.templar = mocker.MagicMock(spec=Templar, autospec=True)
-    test_manager.systems = [mock_system]
+    # Type can be ignored because in this case we just loop over the systems.
+    test_manager.systems = [mock_system]  # type: ignore
 
     # Act
     test_manager.write_configs()

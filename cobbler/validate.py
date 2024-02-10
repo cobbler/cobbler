@@ -15,7 +15,7 @@ from uuid import UUID
 import netaddr
 
 from cobbler import enums, utils
-from cobbler.items import item
+from cobbler.items.abstract import base_item
 from cobbler.utils import input_converters, signatures
 
 if TYPE_CHECKING:
@@ -304,7 +304,7 @@ def validate_repos(
         return enums.VALUE_INHERITED
 
     # store as an array regardless of input type
-    if repos is None:
+    if repos is None:  # pyright: ignore [reportUnnecessaryComparison]
         repos = []
     else:
         # TODO: Don't store the names. Store the internal references.
@@ -625,4 +625,4 @@ def validate_obj_name(object_name: str) -> bool:
     """
     if not isinstance(object_name, str):  # type: ignore
         return False
-    return bool(re.fullmatch(item.RE_OBJECT_NAME, object_name))
+    return bool(re.fullmatch(base_item.RE_OBJECT_NAME, object_name))

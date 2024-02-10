@@ -31,13 +31,13 @@ import copy
 from typing import TYPE_CHECKING, Any
 
 from cobbler.decorator import LazyProperty
-from cobbler.items import item
+from cobbler.items.abstract import item_inheritable
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Menu(item.Item):
+class Menu(item_inheritable.InheritableItem):
     """
     A Cobbler menu object.
     """

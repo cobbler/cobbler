@@ -13,6 +13,8 @@ V3.4.0 (unreleased):
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``children``: The property was moved to the base class.
         * ``from_dict()``: The method was moved to the base class.
+    * Removed:
+        * ``fetchable_files``
 V3.3.4 (unreleased):
     * No changes
 V3.3.3:
@@ -129,14 +131,14 @@ from typing import TYPE_CHECKING, Any, Dict, List, Union
 from cobbler import enums, grub, utils, validate
 from cobbler.cexceptions import CX
 from cobbler.decorator import InheritableProperty, LazyProperty
-from cobbler.items import item
+from cobbler.items.abstract import item_bootable
 from cobbler.utils import input_converters, signatures
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Distro(item.Item):
+class Distro(item_bootable.BootableItem):
     """
     A Cobbler distribution object
     """
@@ -165,7 +167,6 @@ class Distro(item.Item):
         self._os_version = ""
         self._redhat_management_key = enums.VALUE_INHERITED
         self._source_repos = []
-        self._fetchable_files = {}
         self._remote_boot_kernel = ""
         self._remote_grub_kernel = ""
         self._remote_boot_initrd = ""

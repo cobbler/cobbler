@@ -25,9 +25,8 @@ from typing import (
 
 from cobbler import enums, utils
 from cobbler.cexceptions import CX
-from cobbler.items import distro, image
-from cobbler.items import item as item_base
-from cobbler.items import menu, profile, repo, system
+from cobbler.items import distro, image, menu, profile, repo, system
+from cobbler.items.abstract import base_item, item_inheritable
 
 if TYPE_CHECKING:
     from cobbler.actions.sync import CobblerSync
@@ -35,7 +34,7 @@ if TYPE_CHECKING:
     from cobbler.cobbler_collections.manager import CollectionManager
 
 
-ITEM = TypeVar("ITEM", bound=item_base.Item)
+ITEM = TypeVar("ITEM", bound=base_item.BaseItem)
 FIND_KWARGS = Union[  # pylint: disable=invalid-name
     str, int, bool, Dict[Any, Any], List[Any]
 ]
@@ -120,7 +119,7 @@ class Collection(Generic[ITEM]):
         :returns: NotImplementedError
         """
 
-    def get(self, name: str) -> Optional[item_base.Item]:
+    def get(self, name: str) -> Optional[ITEM]:
         """
         Return object with name in the collection
 
@@ -318,7 +317,9 @@ class Collection(Generic[ITEM]):
             self.collection_mgr.serialize_one_item(ref)
             self.listing[newname] = ref
 
-        for dep_type in item_base.Item.TYPE_DEPENDENCIES[ref.COLLECTION_TYPE]:
+        for dep_type in item_inheritable.InheritableItem.TYPE_DEPENDENCIES[
+            ref.COLLECTION_TYPE
+        ]:
             items = self.api.find_items(
                 dep_type[0], {dep_type[1]: oldname}, return_list=True
             )
@@ -328,7 +329,7 @@ class Collection(Generic[ITEM]):
                 raise ValueError("Unexepcted return value from find_items!")
             for item in items:
                 attr = getattr(item, "_" + dep_type[1])
-                if isinstance(attr, (str, item_base.Item)):
+                if isinstance(attr, (str, item_inheritable.InheritableItem)):
                     setattr(item, dep_type[1], newname)
                 elif isinstance(attr, list):
                     for i, attr_val in enumerate(attr):  # type: ignore

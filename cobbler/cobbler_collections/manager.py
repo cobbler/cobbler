@@ -17,12 +17,12 @@ from cobbler.cobbler_collections.menus import Menus
 from cobbler.cobbler_collections.profiles import Profiles
 from cobbler.cobbler_collections.repos import Repos
 from cobbler.cobbler_collections.systems import Systems
-from cobbler.items.item import Item
 from cobbler.settings import Settings
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.cobbler_collections.collection import ITEM, Collection
+    from cobbler.items.abstract.base_item import BaseItem
 
     COLLECTION_UNION = Union[Menus, Distros, Repos, Profiles, Images, Systems]
 
@@ -177,7 +177,7 @@ class CollectionManager:
                     f"Check your settings!"
                 ) from error
 
-    def deserialize_one_item(self, obj: Item) -> Dict[str, Any]:
+    def deserialize_one_item(self, obj: "BaseItem") -> Dict[str, Any]:
         """
         Load a collection item from disk
 

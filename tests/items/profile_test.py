@@ -69,7 +69,7 @@ def test_to_dict(
     result = profile.to_dict()
 
     # Assert
-    assert len(result) == 43
+    assert len(result) == 42
     assert result["distro"] == distro.name
     assert result.get("boot_loaders") == enums.VALUE_INHERITED
 

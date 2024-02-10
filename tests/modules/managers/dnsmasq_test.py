@@ -1,14 +1,27 @@
+"""
+Test to verify the functionallity of the dnsmasq module.
+"""
+
 import time
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
+from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
+from cobbler.items.network_interface import NetworkInterface
 from cobbler.items.profile import Profile
-from cobbler.items.system import NetworkInterface, System
+from cobbler.items.system import System
 from cobbler.modules.managers import dnsmasq
 from cobbler.templar import Templar
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
 
 def test_register():
+    """
+    Test if the manager registers with the correct ID.
+    """
     # Arrange & Act
     result = dnsmasq.register()
 
@@ -17,19 +30,30 @@ def test_register():
 
 
 def test_manager_what():
+    """
+    Test if the manager identifies itself correctly.
+    """
     # Arrange & Act & Assert
-    assert dnsmasq._DnsmasqManager.what() == "dnsmasq"
+    # pylint: disable=protected-access
+    assert dnsmasq._DnsmasqManager.what() == "dnsmasq"  # type: ignore
 
 
-def test_get_manager(cobbler_api):
+def test_get_manager(cobbler_api: CobblerAPI):
+    """
+    Test if the singleton is correctly initialized.
+    """
     # Arrange & Act
+    # pylint: disable=protected-access
     result = dnsmasq.get_manager(cobbler_api)
 
     # Assert
-    isinstance(result, dnsmasq._DnsmasqManager)
+    isinstance(result, dnsmasq._DnsmasqManager)  # type: ignore
 
 
-def test_manager_write_configs(mocker, cobbler_api):
+def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test if the manager is able to correctly write the configuration files.
+    """
     # Arrange
     mocker.patch(
         "time.gmtime",
@@ -50,7 +74,8 @@ def test_manager_write_configs(mocker, cobbler_api):
     mocker.patch.object(mock_profile, "get_conceptual_parent", return_value=mock_distro)
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
-    test_manager.systems = [mock_system]
+    # Type can be ignored because in this case we just loop over the systems.
+    test_manager.systems = [mock_system]  # type: ignore
     test_manager.templar = MagicMock(spec=Templar, autospec=True)
 
     # Act
@@ -70,7 +95,10 @@ def test_manager_write_configs(mocker, cobbler_api):
     )
 
 
-def test_manager_regen_ethers(mocker, cobbler_api):
+def test_manager_regen_ethers(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test that the ethers file is correctly regenerated.
+    """
     # Arrange
     mock_builtins_open = mocker.patch("builtins.open", mocker.mock_open())
     mock_system = System(cobbler_api)
@@ -82,7 +110,8 @@ def test_manager_regen_ethers(mocker, cobbler_api):
     mock_system.interfaces["default"].ipv6_address = "::1"
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
-    test_manager.systems = [mock_system]
+    # Type can be ignored because in this case we just loop over the systems.
+    test_manager.systems = [mock_system]  # type: ignore
 
     # Act
     test_manager.regen_ethers()
@@ -93,7 +122,10 @@ def test_manager_regen_ethers(mocker, cobbler_api):
     write_handle.write.assert_called_once_with("AA:BB:CC:DD:EE:FF\t192.168.1.2\n")
 
 
-def test_manager_regen_hosts(mocker, cobbler_api):
+def test_manager_regen_hosts(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test that the hosts file is correctly overwritten.
+    """
     # Arrange
     mock_builtins_open = mocker.patch("builtins.open", mocker.mock_open())
     mock_system = System(cobbler_api)
@@ -105,7 +137,8 @@ def test_manager_regen_hosts(mocker, cobbler_api):
     mock_system.interfaces["default"].ipv6_address = "::1"
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
-    test_manager.systems = [mock_system]
+    # Type can be ignored because in this case we just loop over the systems.
+    test_manager.systems = [mock_system]  # type: ignore
 
     # Act
     test_manager.regen_hosts()
@@ -118,7 +151,10 @@ def test_manager_regen_hosts(mocker, cobbler_api):
     write_handle.write.assert_called_once_with("::1\thost.example.org\n")
 
 
-def test_manager_restart_service(mocker, cobbler_api):
+def test_manager_restart_service(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test if the manager is able to correctly handle restarting the dnsmasq server on different distros.
+    """
     # Arrange
     mock_service_restart = mocker.patch(
         "cobbler.utils.process_management.service_restart", return_value=0

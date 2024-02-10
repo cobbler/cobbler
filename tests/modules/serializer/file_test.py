@@ -10,14 +10,14 @@ from pytest_mock import MockerFixture
 from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections.collection import Collection
-from cobbler.items.item import Item
+from cobbler.items.abstract.base_item import BaseItem
 from cobbler.modules.serializers import file
 from cobbler.settings import Settings
 
 from tests.conftest import does_not_raise
 
 
-class MockItem(Item):
+class MockItem(BaseItem):
     """
     Test Item for the serializer tests.
     """

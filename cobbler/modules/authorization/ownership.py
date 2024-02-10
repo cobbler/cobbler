@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.items.item import Item
+    from cobbler.items.abstract.base_item import BaseItem
     from cobbler.items.profile import Profile
     from cobbler.items.system import System
 
@@ -116,7 +116,7 @@ def __authorize_snippet(
 
 
 def __is_user_allowed(
-    obj: "Item", groups: List[str], user: str, resource: Any, arg1: Any, arg2: Any
+    obj: "BaseItem", groups: List[str], user: str, resource: Any, arg1: Any, arg2: Any
 ) -> int:
     """
     Check if a user is allowed to access the resource in question.
@@ -171,7 +171,7 @@ def authorize(
         return 1
 
     # Everybody can get read-only access to everything if they pass authorization, they don't have to be in users.conf
-    if resource is not None:
+    if resource is not None:  # pyright: ignore [reportUnnecessaryComparison]
         # FIXME: /cobbler/web should not be subject to user check in any case
         for user_resource in ["get", "read", "/cobbler/web"]:
             if resource.startswith(user_resource):
@@ -259,7 +259,9 @@ def authorize(
         raise ValueError("Object not found or found multiple times!")
 
     # if the object has no ownership data, allow access regardless
-    if obj is None or obj.owners is None or obj.owners == []:
+    if (
+        obj is None or obj.owners is None or obj.owners == []
+    ):  # pyright: ignore [reportUnnecessaryComparison]
         return 1
 
     return __is_user_allowed(obj, found_groups, user, resource, arg1, arg2)

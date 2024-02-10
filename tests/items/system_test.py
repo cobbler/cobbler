@@ -2,7 +2,7 @@
 Test module that asserts that Cobbler System functionallity is working as expected.
 """
 
-from typing import Any, Callable, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 import pytest
 
@@ -11,14 +11,22 @@ from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image
+from cobbler.items.network_interface import NetworkInterface
 from cobbler.items.profile import Profile
-from cobbler.items.system import NetworkInterface, System
+from cobbler.items.system import System
+from cobbler.settings import Settings
 
 from tests.conftest import does_not_raise
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
 
 @pytest.fixture()
-def test_settings(mocker, cobbler_api: CobblerAPI):
+def test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> Settings:
+    """
+    Fixture to mock the real settings with the desired values.
+    """
     settings = mocker.MagicMock(
         name="profile_setting_mock", spec=cobbler_api.settings()
     )
@@ -1023,7 +1031,11 @@ def test_display_name(cobbler_api: CobblerAPI):
     assert system.display_name == ""
 
 
-def test_profile_inherit(mocker, test_settings, create_distro: Callable[[], Distro]):
+def test_profile_inherit(
+    mocker: "MockerFixture",
+    test_settings: Settings,
+    create_distro: Callable[[], Distro],
+):
     """
     Checking that inherited properties are correctly inherited from settings and
     that the <<inherit>> value can be set for them.
@@ -1094,7 +1106,9 @@ def test_profile_inherit(mocker, test_settings, create_distro: Callable[[], Dist
             assert prev_value == getattr(system, new_key)
 
 
-def test_image_inherit(mocker, test_settings, create_image: Callable[[], Image]):
+def test_image_inherit(
+    mocker: "MockerFixture", test_settings: Settings, create_image: Callable[[], Image]
+):
     """
     Checking that inherited properties are correctly inherited from settings and
     that the <<inherit>> value can be set for them.

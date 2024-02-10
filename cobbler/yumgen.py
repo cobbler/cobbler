@@ -14,7 +14,7 @@ from cobbler import templar, utils
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.items.item import Item
+    from cobbler.items.abstract.base_item import BaseItem
 
 
 class YumGen:
@@ -32,7 +32,7 @@ class YumGen:
         self.settings = api.settings()
         self.templar = templar.Templar(self.api)
 
-    def get_yum_config(self, obj: "Item", is_profile: bool) -> str:
+    def get_yum_config(self, obj: "BaseItem", is_profile: bool) -> str:
         """
         Return one large yum repo config blob suitable for use by any target system that requests it.
 

@@ -146,7 +146,9 @@ from xmlrpc.server import SimpleXMLRPCRequestHandler
 
 from cobbler import autoinstall_manager, configgen, enums, tftpgen, utils
 from cobbler.cexceptions import CX
-from cobbler.items import item, system
+from cobbler.items import system
+from cobbler.items.abstract import base_item
+from cobbler.items.network_interface import NetworkInterface
 from cobbler.utils import signatures
 from cobbler.utils.event import CobblerEvent
 from cobbler.utils.thread import CobblerThread
@@ -845,7 +847,12 @@ class CobblerXMLRPCInterface:
             return return_value.value
         if isinstance(
             return_value,
-            (enums.DHCP, enums.NetworkInterfaceType, enums.BaudRates, item.Item),
+            (
+                enums.DHCP,
+                enums.NetworkInterfaceType,
+                enums.BaudRates,
+                base_item.BaseItem,
+            ),
         ):
             return return_value.name
         if isinstance(return_value, dict):
@@ -853,7 +860,7 @@ class CobblerXMLRPCInterface:
                 attribute == "interfaces"
                 and len(return_value) > 0
                 and all(
-                    isinstance(value, system.NetworkInterface)
+                    isinstance(value, NetworkInterface)
                     for value in return_value.values()
                 )
             ):
@@ -2008,7 +2015,7 @@ class CobblerXMLRPCInterface:
             return True
 
         fields: List[str] = []
-        for key, value in system.NetworkInterface.__dict__.items():
+        for key, value in NetworkInterface.__dict__.items():
             if isinstance(value, property):
                 fields.append(key)
 
@@ -2115,7 +2122,6 @@ class CobblerXMLRPCInterface:
                         "kernel_options_post",
                         "template_files",
                         "boot_files",
-                        "fetchable_files",
                         "params",
                     ] and attributes.get("in_place"):
                         details = self.get_item(object_type, object_name)
@@ -2206,7 +2212,7 @@ class CobblerXMLRPCInterface:
         interface = system_to_edit.interfaces.get(interface_name)
         if interface is None:
             # If the interface is not existing, create a new one.
-            interface = system.NetworkInterface(self.api)
+            interface = NetworkInterface(self.api)
         for attribute_key in attributes:
             if self.__is_interface_field(attribute_key):
                 if hasattr(interface, attribute_key):
@@ -2921,7 +2927,7 @@ class CobblerXMLRPCInterface:
             )
             return False
         # Validate sys_name with item regex
-        if not re.fullmatch(item.RE_OBJECT_NAME, sys_name):
+        if not re.fullmatch(base_item.RE_OBJECT_NAME, sys_name):
             self.logger.warning(
                 "upload_log_data - The provided sys_name contained invalid characters!"
             )

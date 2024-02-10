@@ -98,14 +98,14 @@ from typing import TYPE_CHECKING, Any, Dict, List, Union
 from cobbler import enums
 from cobbler.cexceptions import CX
 from cobbler.decorator import InheritableProperty, LazyProperty
-from cobbler.items import item
+from cobbler.items.abstract import item_inheritable
 from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Repo(item.Item):
+class Repo(item_inheritable.InheritableItem):
     """
     A Cobbler repo object.
     """
@@ -168,7 +168,7 @@ class Repo(item.Item):
         super().check_if_valid()
         if not self.inmemory:
             return
-        if self.mirror is None:
+        if self.mirror is None:  # pyright: ignore [reportUnnecessaryComparison]
             raise CX(f"Error with repo {self.name} - mirror is required")
 
     #
