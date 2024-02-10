@@ -24,7 +24,7 @@ export SYSLINUX_DIR="/usr/share/syslinux"
 export GRUB_MOD_FOLDER="/usr/share/grub2"
 
 # First parameter is DISTRO if provided
-[ $# -ge 2 ] && DISTRO="$1"
+[ $# -ge 1 ] && DISTRO="$1"
 
 if [ "$DISTRO" = "" ] && [ -r /etc/os-release ];then
     source /etc/os-release

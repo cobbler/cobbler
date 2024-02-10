@@ -241,7 +241,11 @@ Dockerfiles and scripts to setup testing containers
 %setup
 
 %build
+%if 0%{?fedora} || 0%{?rhel}
+. distro_build_configs.sh FEDORA
+%else
 . distro_build_configs.sh
+%endif
 
 # Check distro specific variables for consistency
 [ "${DOCPATH}" != %{_mandir} ] && echo "ERROR: DOCPATH: ${DOCPATH} does not match %{_mandir}"
@@ -260,7 +264,11 @@ Dockerfiles and scripts to setup testing containers
 make man
 
 %install
+%if 0%{?fedora} || 0%{?rhel}
+. distro_build_configs.sh FEDORA
+%else
 . distro_build_configs.sh
+%endif
 %py3_install
 
 # cobbler
