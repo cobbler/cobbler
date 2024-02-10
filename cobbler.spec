@@ -299,7 +299,11 @@ sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i config/cobbler/settings.yaml
 %endif
 
 %build
+%if 0%{?fedora} || 0%{?rhel}
+. distro_build_configs.sh FEDORA
+%else
 . distro_build_configs.sh
+%endif
 
 # Check distro specific variables for consistency
 [ "${DOCPATH}" != %{_mandir} ] && echo "ERROR: DOCPATH: ${DOCPATH} does not match %{_mandir}"
@@ -318,7 +322,11 @@ sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i config/cobbler/settings.yaml
 make man
 
 %install
+%if 0%{?fedora} || 0%{?rhel}
+. distro_build_configs.sh FEDORA
+%else
 . distro_build_configs.sh
+%endif
 %py3_install
 
 # cobbler
