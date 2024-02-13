@@ -7,8 +7,13 @@ on:
     branches: [ main, release* ]
 
 jobs:
-  basic:
+  tests:
     runs-on: ubuntu-latest
+    name: "${{ matrix.test }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        test: [basic, import-debian, import-freebsd, import-redhat, import-suse, import-ubuntu, import-vmware, import-xen, settings-cli, svc]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -20,66 +25,9 @@ jobs:
         shell: 'script -q -e -c "bash {0}"'
         run: |
           docker exec -u 0 -it cobbler bash -c "./docker/develop/scripts/setup-supervisor.sh"
-      - name: Run the Tests inside the Docker Container
+      - name: Run the import tests inside the Docker container
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          docker exec -u 0 -it cobbler bash -c "make SYSTESTS='basic-*' system-test"
-      - name: Stop and remove the container
-        run: docker stop cobbler && docker rm cobbler
-  import:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Pull Docker Test Container
-        run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
-      - name: Run previously built Docker Container
-        run: docker run --privileged -t -d -v $PWD:/code --name cobbler registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
-      - name: Setup Cobbler in the Container
-        shell: 'script -q -e -c "bash {0}"'
-        run: |
-          docker exec -u 0 -it cobbler bash -c "./docker/develop/scripts/setup-supervisor.sh"
-      - name: Run the Tests inside the Docker Container
-        shell: 'script -q -e -c "bash {0}"'
-        run: |
-          docker exec -u 0 -it cobbler bash -c "make SYSTESTS='import-*' system-test"
-      - name: Stop and remove the container
-        run: docker stop cobbler && docker rm cobbler
-  settings-cli:
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Pull Docker Test Container
-        run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
-      - name: Run previously built Docker Container
-        run: docker run --privileged -t -d -v $PWD:/code --name cobbler registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
-      - name: Setup Cobbler in the Container
-        shell: 'script -q -e -c "bash {0}"'
-        run: |
-          docker exec -u 0 -it cobbler bash -c "./docker/develop/scripts/setup-supervisor.sh"
-      - name: Run the Tests inside the Docker Container
-        shell: 'script -q -e -c "bash {0}"'
-        run: |
-          docker exec -u 0 -it cobbler bash -c "make SYSTESTS='settings-cli-*' system-test"
-      - name: Stop and remove the container
-        run: docker stop cobbler && docker rm cobbler
-  svc:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Pull Docker Test Container
-        run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
-      - name: Run previously built Docker Container
-        run: docker run --privileged -t -d -v $PWD:/code --name cobbler registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
-      - name: Setup Cobbler in the Container
-        shell: 'script -q -e -c "bash {0}"'
-        run: |
-          docker exec -u 0 -it cobbler bash -c "./docker/develop/scripts/setup-supervisor.sh"
-      - name: Run the Tests inside the Docker Container
-        shell: 'script -q -e -c "bash {0}"'
-        run: |
-          docker exec -u 0 -it cobbler bash -c "make SYSTESTS='svc-*' system-test"
+          docker exec -u 0 -it cobbler bash -c "make SYSTESTS='${{ matrix.test }}-*' system-test"
       - name: Stop and remove the container
         run: docker stop cobbler && docker rm cobbler
