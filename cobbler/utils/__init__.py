@@ -6,6 +6,8 @@ Misc heavy lifting functions for Cobbler
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
+import contextlib
+import fcntl
 import glob
 import logging
 import os
@@ -388,7 +390,6 @@ def read_file_contents(
 
     # Local files:
     if file_location.startswith("/"):
-
         if not os.path.exists(file_location):
             logger.warning("File does not exist: %s", file_location)
             raise FileNotFoundError(f"File not found: {file_location}")
@@ -471,10 +472,10 @@ def blender(
     # EXAMPLE: $ip == $ip0, $ip1, $ip2 and so on.
 
     if root_obj.COLLECTION_TYPE == "system":
-        for (name, interface) in list(root_obj.interfaces.items()):  # type: ignore
-            intf_dict = interface.to_dict()
-            for key in intf_dict:
-                results[f"{key}_{name}"] = intf_dict[key]
+        for name, interface in root_obj.interfaces.items():  # type: ignore
+            intf_dict = interface.to_dict()  # type: ignore
+            for key in intf_dict:  # type: ignore
+                results[f"{key}_{name}"] = intf_dict[key]  # type: ignore
 
     # If the root object is a profile or system, add in all repo data for repos that belong to the object chain
     if root_obj.COLLECTION_TYPE in ("profile", "system"):
@@ -1333,3 +1334,23 @@ def is_str_float(value: str) -> bool:
     except ValueError:
         pass
     return False
+
+
+@contextlib.contextmanager
+def filelock(lock_file: str):
+    """
+    Context manager to acquire a file lock and release it afterwards
+
+    :param lock_file: Path to the file lock to acquire
+    :raises OSError: Raised in case of unexpect error acquiring file lock.
+    """
+    fd = None
+    try:
+        fd = os.open(lock_file, os.O_RDWR | os.O_CREAT | os.O_TRUNC, 0o660)
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        if fd:
+            with contextlib.suppress(OSError):
+                fcntl.flock(fd, fcntl.LOCK_UN)
+            os.close(fd)
