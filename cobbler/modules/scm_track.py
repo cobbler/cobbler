@@ -67,7 +67,7 @@ def run(api, args):
         utils.subprocess_call(["git", "add", "--all", "collections"], shell=False)
         utils.subprocess_call(["git", "add", "--all", "templates"], shell=False)
         utils.subprocess_call(["git", "add", "--all", "snippets"], shell=False)
-        utils.subprocess_call(["git", "commit", "-m", "API", "update", "--author", author], shell=False)
+        utils.subprocess_call(["git", "commit", "-m", "API update", "--author", author], shell=False)
 
         if push_script:
             utils.subprocess_call([push_script], shell=False)
