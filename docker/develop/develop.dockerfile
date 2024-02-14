@@ -7,7 +7,7 @@
 # hadolint global ignore=DL3037
 
 # WARNING! This is not in any way production ready. It is just for testing!
-FROM opensuse/leap:15.3
+FROM opensuse/leap:15.4
 
 # Define labels according to https://en.opensuse.org/Building_derived_containers
 # labelprefix=org.opensuse.example
@@ -24,7 +24,7 @@ ENV container docker
 ENV DISTRO SUSE
 
 # Custom repository
-RUN zypper ar https://download.opensuse.org/repositories/home:/cobbler-project:/release33/15.3/ "Cobbler 3.3.x release project (15.3)" \
+RUN zypper ar https://download.opensuse.org/repositories/home:/cobbler-project:/release33/15.4/ "Cobbler 3.3.x release project (15.4)" \
     && zypper --gpg-auto-import-keys refresh
 
 # Runtime & dev dependencies
@@ -41,6 +41,7 @@ RUN zypper install --no-recommends -y \
     gzip                       \
     ipmitool                   \
     make                       \
+    bind                       \    
     python3                    \
     python3-Sphinx             \
     python3-coverage           \
