@@ -40,6 +40,8 @@ schema = Schema(
         Optional("bootloaders_modules"): list,
         Optional("bootloaders_shim_folder"): str,
         Optional("bootloaders_shim_file"): str,
+        Optional("secure_boot_grub_folder"): str,
+        Optional("secure_boot_grub_file"): str,
         Optional("bootloaders_ipxe_folder"): str,
         Optional("syslinux_dir"): str,
         Optional("syslinux_memdisk_folder"): str,

@@ -153,7 +153,7 @@ bootloaders_shim_folder
 #######################
 
 This `Python Glob <https://docs.python.org/3/library/glob.html>`_ will be responsible for finding the installed shim
-folder. If you haven't have shim installed this bootloader link will be skipped. If the Glob is not precise enough a
+folder. If you don't have shim installed this bootloader link will be skipped. If the Glob is not precise enough a
 message will be logged and the link will also be skipped.
 
 default: Depending on your distro. See values below.
@@ -165,7 +165,7 @@ default: Depending on your distro. See values below.
 bootloaders_shim_file
 #####################
 
-This is a `Python Regex <https://docs.python.org/3/library/re.html>`_ which is responsible to find exactly a single
+This is a `Python Regex <https://docs.python.org/3/library/re.html>`_ responsible for finding a single
 match in all files found by the Python Glob in ``bootloaders_shim_folder``. If more or fewer files are found a message
 will be logged.
 
@@ -174,6 +174,34 @@ default: Depending on your distro. See values below.
 * (open)SUSE: ``"shim\.efi"``
 * Debian/Ubuntu: ``"shim*.efi.signed"``
 * CentOS/Fedora: ``"shim*.efi"``
+
+secure_boot_grub_folder
+=======================
+
+This `Python Glob <https://docs.python.org/3/library/glob.html>`_ is responsible for finding the installed secure
+boot bootloader folders. If the Glob is not precise enough a message will be logged and the link will also be skipped.
+
+This glob is only used for grub formats that use the ``use_secure_boot_grub`` property.
+
+default: Depending on your distro. See values below.
+
+* (open)SUSE: ``"/usr/share/efi/*/"``
+* Debian/Ubuntu: ``"/usr/lib/shim/"``
+* CentOS/Fedora: ``"/boot/efi/EFI/*/"``
+
+secure_boot_grub_file
+=====================
+
+This is a `Python Regex <https://docs.python.org/3/library/re.html>`_ responsible to finding a single
+match for the secure boot grub bootloader in all files found by the ``secure_boot_grub_folder`` glob.
+
+This regex is only used for grub formats that use the ``use_secure_boot_grub`` property.
+
+default: Depending on your distro. See values below.
+
+* (open)SUSE: ``"grub\.efi"``
+* Debian/Ubuntu: ``"grub[a-zA-Z0-9]*\.efi"``
+* CentOS/Fedora: ``"grub\.efi"``
 
 grub2_mod_dir
 #############

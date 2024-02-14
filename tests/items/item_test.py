@@ -503,7 +503,7 @@ def test_dump_vars(cobbler_api: CobblerAPI):
     print(result)
     assert "default_ownership" in result
     assert "owners" in result
-    assert len(result) == 152
+    assert len(result) == 154
 
 
 @pytest.mark.parametrize(

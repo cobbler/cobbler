@@ -3,6 +3,7 @@
 This action calls grub2-mkimage for all bootloader formats configured in
 Cobbler's settings. See man(1) grub2-mkimage for available formats.
 """
+
 import logging
 import pathlib
 import re
@@ -36,6 +37,11 @@ class MkLoaders:
             typing.Any, typing.Any
         ] = api.settings().bootloaders_formats
         self.modules: typing.List[str] = api.settings().bootloaders_modules
+        # UEFI GRUB
+        self.secure_boot_grub_path_glob = pathlib.Path(
+            api.settings().secure_boot_grub_folder
+        )
+        self.secure_boot_grub_regex = re.compile(api.settings().secure_boot_grub_file)
         # Syslinux
         self.syslinux_folder = pathlib.Path(api.settings().syslinux_dir)
         self.syslinux_memdisk_folder = pathlib.Path(
@@ -66,29 +72,7 @@ class MkLoaders:
         """
         Create symlink of the shim bootloader in case it is available on the system.
         """
-        # Check well-known locations
-        # Absolute paths are not supported BUT we can get around that: https://stackoverflow.com/a/51108375/4730773
-        parts = self.shim_glob.parts
-        start_at = 1 if self.shim_glob.is_absolute() else 0
-        bootloader_path_parts = pathlib.Path(*parts[start_at:])
-        results = sorted(
-            pathlib.Path(self.shim_glob.root).glob(str(bootloader_path_parts))
-        )
-        # If no match, then report and bail out.
-        if len(results) <= 0:
-            self.logger.info(
-                'Unable to find the folder which should be scanned for "shim.efi"! Bailing out of linking '
-                "the shim!"
-            )
-            return
-        # Now scan the folders with the regex
-        target_shim = None
-        for possible_folder in results:
-            for child in possible_folder.iterdir():
-                if self.shim_regex.search(str(child)):
-                    target_shim = child.resolve()
-                    break
-        # If no match is found report and return
+        target_shim = find_file(self.shim_glob, self.shim_regex)
         if target_shim is None:
             self.logger.info(
                 'Unable to find "shim.efi" file. Please adjust "bootloaders_shim_file" regex. Bailing out '
@@ -195,6 +179,31 @@ class MkLoaders:
             return
 
         for image_format, options in self.boot_loaders_formats.items():
+            secure_boot = options.get("use_secure_boot_grub", None)
+            if secure_boot:
+                binary_name = options["binary_name"]
+                target_grub = find_file(
+                    self.secure_boot_grub_path_glob, self.secure_boot_grub_regex
+                )
+                if not target_grub:
+                    self.logger.info(
+                        (
+                            "Could not find secure bootloader in the provided location.",
+                            'Skipping linking secure bootloader for "%s".',
+                        ),
+                        image_format,
+                    )
+                    continue
+                symlink(
+                    target_grub,
+                    self.bootloaders_dir.joinpath("grub", binary_name),
+                    skip_existing=True,
+                )
+                self.logger.info(
+                    'Successfully copied secure bootloader for arch "%s"!', image_format
+                )
+                continue
+
             bl_mod_dir = options.get("mod_dir", image_format)
             mod_dir = self.grub2_mod_dir.joinpath(bl_mod_dir)
             if not mod_dir.exists():
@@ -316,3 +325,34 @@ def get_syslinux_version() -> int:
     )
     output = completed_process.stdout.split()
     return int(float(output[1]))
+
+
+def find_file(
+    glob_path: pathlib.Path, file_regex: typing.Pattern[str]
+) -> typing.Optional[pathlib.Path]:
+    """
+    Given a path glob and a file regex, return a full path of the file.
+
+    :param: glob_path: Glob of a path, e.g. Path('/var/*/rhn')
+    :param: file_regex: A regex for a filename in the path
+    :return: The full file path or None if no file was found
+    """
+    # Absolute paths are not supported BUT we can get around that: https://stackoverflow.com/a/51108375/4730773
+    parts = glob_path.parts
+    start_at = 1 if glob_path.is_absolute() else 0
+    bootloader_path_parts = pathlib.Path(*parts[start_at:])
+    results = sorted(pathlib.Path(glob_path.root).glob(str(bootloader_path_parts)))
+    # If no match, then report and bail out.
+    if len(results) <= 0:
+        logging.getLogger().info('Unable to find the "%s" folder.', glob_path)
+        return None
+
+    # Now scan the folders with the regex
+    target_shim = None
+    for possible_folder in results:
+        for child in possible_folder.iterdir():
+            if file_regex.search(str(child)):
+                target_shim = child.resolve()
+                break
+    # If no match is found report and return
+    return target_shim
