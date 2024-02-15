@@ -270,7 +270,8 @@ class _BindManager(ManagerModule):
 
         metadata = {'forward_zones': self.__forward_zones().keys(),
                     'reverse_zones': [],
-                    'zone_include': ''}
+                    'zone_include': '',
+                    'bind_zonefiles': self.settings.bind_zonefile_path}
 
         for zone in metadata['forward_zones']:
             txt = """
@@ -327,7 +328,8 @@ zone "%(arpa)s." {
 
         metadata = {'forward_zones': self.__forward_zones().keys(),
                     'reverse_zones': [],
-                    'zone_include': ''}
+                    'zone_include': '',
+                    'bind_zonefiles': self.settings.bind_zonefile_path}
 
         for zone in metadata['forward_zones']:
             txt = """
