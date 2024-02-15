@@ -1,7 +1,7 @@
 workflow:
   steps:
     - trigger_services:
-        project: home:cobbler-project:github-ci:release33
+        project: systemsmanagement:cobbler:github-ci:release33
         package: cobbler-docker-testing
   filters:
     event: push
