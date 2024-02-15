@@ -305,9 +305,9 @@ class AutoInstallationManager:
         self.logger.info("----------------------------")
         self.logger.debug("osversion: %s", os_version)
         if is_profile:
-            self.generate_autoinstall(profile=obj)
+            self.generate_autoinstall(profile=obj.name)
         else:
-            self.generate_autoinstall(system=obj)
+            self.generate_autoinstall(system=obj.name)
         last_errors = self.autoinstallgen.get_last_errors()
         if len(last_errors) > 0:
             return [False, TEMPLATING_ERROR, last_errors]
