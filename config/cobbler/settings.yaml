@@ -288,11 +288,11 @@ puppetca_path: "/usr/bin/puppet"
 remove_old_puppet_certs_automatically: false
 
 # choose a --server argument when running puppetd/puppet agent during autoinstall
-#puppet_server: 'puppet'
+puppet_server: ""
 
 # let Cobbler know that you're using a newer version of puppet
 # choose version 3 to use: 'puppet agent'; version 2 uses status quo: 'puppetd'
-#puppet_version: 2
+puppet_version: 2
 
 # choose whether to enable puppet parameterized classes or not.
 # puppet versions prior to 2.6.5 do not support parameters
@@ -561,10 +561,6 @@ cobbler_master: ""
 default_virt_disk_driver: "raw"
 grubconfig_dir: "/var/lib/cobbler/grub_config"
 iso_template_dir: "/etc/cobbler/iso"
-
-# Puppet
-puppet_server: ""
-puppet_version: 2
 
 # Signatures
 signature_path: "/var/lib/cobbler/distro_signatures.json"
