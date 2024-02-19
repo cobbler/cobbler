@@ -9,7 +9,7 @@ not authz_allowall, which will most likely NOT do what you want.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 
 import os
 from typing import Dict
@@ -34,7 +34,7 @@ def __parse_config() -> Dict[str, dict]:
     """
     if not os.path.exists(CONFIG_FILE):
         return {}
-    config = SafeConfigParser()
+    config = ConfigParser()
     config.read(CONFIG_FILE)
     alldata = {}
     groups = config.sections()
