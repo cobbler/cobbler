@@ -218,6 +218,9 @@ default_virt_ram: 512
 # (NOTE: this does not change what virt_type is chosen by import)
 default_virt_type: xenpv
 
+# The virtualization disk format
+default_virt_disk_driver: "raw"
+
 # enable iPXE booting? Enabling this option will cause Cobbler
 # to copy the undionly.kpxe file to the tftp root directory,
 # and if a profile/system is configured to boot via iPXE it will
@@ -360,6 +363,9 @@ manage_tftpd: true
 # start.
 # Default: @@tftproot@@
 tftpboot_location: "@@tftproot@@"
+
+# The location where Cobbler searches for GRUB configuration files
+grubconfig_dir: "/var/lib/cobbler/grub_config"
 
 # set to true to enable Cobbler's RSYNC management features.
 manage_rsync: false
@@ -527,6 +533,9 @@ yumdownloader_flags: "--resolve"
 # sort and indent JSON output to make it more human-readable
 serializer_pretty_json: false
 
+# Used for replicating the Cobbler instance
+cobbler_master: ""
+
 # replication rsync options for distros, autoinstalls, snippets set to override default value of "-avzH"
 replicate_rsync_options: "-avzH"
 
@@ -555,11 +564,10 @@ jinja2_includedir: "/var/lib/cobbler/jinja2"
 # This behavior was now made conditional, with default being "off".
 convert_server_to_ip: false
 
-# Leftover settings
+# Used for caching the intermediate files for ISO-Building
 buildisodir: "/var/cache/cobbler/buildiso"
-cobbler_master: ""
-default_virt_disk_driver: "raw"
-grubconfig_dir: "/var/lib/cobbler/grub_config"
+
+# Folder to search for the ISO templates. These will build the boot-menu of the built ISO.
 iso_template_dir: "/etc/cobbler/iso"
 
 # Signatures
