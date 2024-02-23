@@ -17,7 +17,7 @@ All managed files will be updated each time ``cobbler sync`` is run, and not unt
 to use ``cobbler sync`` when using this feature.
 
 `bind` DNS
-########
+##########
 
 If using BIND, you must define the zones to be managed with. This is done with two options
 
@@ -41,7 +41,7 @@ Templates used during generation:
 * ``/etc/cobbler/zone_templates/<name-of-zone>``
 
 `dnsmasq` DNS
-###########
+#############
 
 If using dnsmasq, the template is ``/etc/cobbler/dnsmasq.template``. Read this file and understand how dnsmasq works
 before proceeding.
@@ -56,7 +56,7 @@ Templates used during generation:
 * ``/etc/cobbler/dnsmasq.template``
 
 `ndjbdns` DNS
-###########
+#############
 
 If using ndjbdns, the template is ``/etc/cobbler/ndjbdns.template``. Read the file and understand how ndjbdns works
 before proceeding.
