@@ -64,7 +64,7 @@ def run(api: "CobblerAPI", args: Any):
         )
 
         if push_script:
-            utils.subprocess_call([push_script], shell=False)
+            utils.subprocess_call(push_script.split(" "), shell=False)
 
         os.chdir(old_dir)
         return 0
@@ -84,11 +84,11 @@ def run(api: "CobblerAPI", args: Any):
         utils.subprocess_call(["hg", "add templates"], shell=False)
         utils.subprocess_call(["hg", "add snippets"], shell=False)
         utils.subprocess_call(
-            ["hg", "commit", "-m", "API", "update", "--user", author], shell=False
+            ["hg", "commit", "-m", "API update", "--user", author], shell=False
         )
 
         if push_script:
-            utils.subprocess_call([push_script], shell=False)
+            utils.subprocess_call(push_script.split(" "), shell=False)
 
         os.chdir(old_dir)
         return 0

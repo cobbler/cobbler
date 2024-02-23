@@ -1,3 +1,8 @@
+"""
+TODO
+"""
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
@@ -7,8 +12,14 @@ from cobbler.cexceptions import CX
 from cobbler.modules import scm_track
 from cobbler.settings import Settings
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
 
 def test_register():
+    """
+    Test if the trigger registers with the correct ID.
+    """
     # Arrange & Act
     result = scm_track.register()
 
@@ -17,6 +28,9 @@ def test_register():
 
 
 def test_run_unsupported():
+    """
+    Test that asserts that unsupported ``scm_track_mode`` options raise the correct exception.
+    """
     # Arrange
     settings_mock = MagicMock(name="scm_track_unsupported_setting_mock", spec=Settings)
     settings_mock.scm_track_enabled = True
@@ -29,10 +43,13 @@ def test_run_unsupported():
 
     # Act & Assert
     with pytest.raises(CX):
-        result = scm_track.run(api, args)
+        scm_track.run(api, args)
 
 
 def test_run_git():
+    """
+    Test that asserts that the Git integrations works as expected.
+    """
     # Arrange
     settings_mock = MagicMock(name="scm_track_git_setting_mock", spec=Settings)
     settings_mock.scm_track_enabled = True
@@ -51,7 +68,10 @@ def test_run_git():
     assert result == 0
 
 
-def test_run_hg(mocker):
+def test_run_hg(mocker: "MockerFixture"):
+    """
+    Test that asserts that the Mercurial integration works as expected.
+    """
     # Arrange
     settings_mock = MagicMock(name="scm_track_hg_setting_mock", spec=Settings)
     settings_mock.scm_track_enabled = True
@@ -67,25 +87,22 @@ def test_run_hg(mocker):
     result = scm_track.run(api, args)
 
     # Assert
-    subprocess_call.assert_has_calls(
-        [
-            mocker.call(["hg", "init"], shell=False),
-            mocker.call(["hg", "add collections"], shell=False),
-            mocker.call(["hg", "add templates"], shell=False),
-            mocker.call(["hg", "add snippets"], shell=False),
-            mocker.call(
-                [
-                    "hg",
-                    "commit",
-                    "-m",
-                    "API",
-                    "update",
-                    "--user",
-                    settings_mock.scm_track_author,
-                ],
-                shell=False,
-            ),
-            mocker.call(["/bin/true"], shell=False),
-        ]
-    )
+    assert subprocess_call.mock_calls == [
+        mocker.call(["hg", "init"], shell=False),
+        mocker.call(["hg", "add collections"], shell=False),
+        mocker.call(["hg", "add templates"], shell=False),
+        mocker.call(["hg", "add snippets"], shell=False),
+        mocker.call(
+            [
+                "hg",
+                "commit",
+                "-m",
+                "API update",
+                "--user",
+                settings_mock.scm_track_author,
+            ],
+            shell=False,
+        ),
+        mocker.call(["/bin/true"], shell=False),
+    ]
     assert result == 0
