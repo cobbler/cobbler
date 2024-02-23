@@ -72,7 +72,7 @@ def test_run_hg(mocker):
          mocker.call(["hg", "add collections"], shell=False),
          mocker.call(["hg", "add templates"], shell=False),
          mocker.call(["hg", "add snippets"], shell=False),
-         mocker.call(["hg", "commit", "-m", "API", "update", "--user", settings_mock.scm_track_author], shell=False),
+         mocker.call(["hg", "commit", "-m", "API update", "--user", settings_mock.scm_track_author], shell=False),
          mocker.call(["/bin/true"], shell=False)]
     )
     assert result == 0
