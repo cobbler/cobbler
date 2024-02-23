@@ -5,6 +5,8 @@ User Guide
 .. toctree::
    :maxdepth: 2
 
+   DHCP Management <user-guide/dhcp-management>
+   DNS Management <user-guide/dns-management>
    Configuration Management Integrations <user-guide/configuration-management-integrations>
    Automatic Installation <user-guide/automatic-installation>
    Windows installation with Cobbler <user-guide/wingen>
