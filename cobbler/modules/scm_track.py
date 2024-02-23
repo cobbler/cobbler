@@ -70,7 +70,7 @@ def run(api, args):
         utils.subprocess_call(["git", "commit", "-m", "API update", "--author", author], shell=False)
 
         if push_script:
-            utils.subprocess_call([push_script], shell=False)
+            utils.subprocess_call(push_script.split(" "), shell=False)
 
         os.chdir(old_dir)
         return 0
@@ -89,10 +89,10 @@ def run(api, args):
         utils.subprocess_call(["hg", "add collections"], shell=False)
         utils.subprocess_call(["hg", "add templates"], shell=False)
         utils.subprocess_call(["hg", "add snippets"], shell=False)
-        utils.subprocess_call(["hg", "commit", "-m", "API", "update", "--user", author], shell=False)
+        utils.subprocess_call(["hg", "commit", "-m", "API update", "--user", author], shell=False)
 
         if push_script:
-            utils.subprocess_call([push_script], shell=False)
+            utils.subprocess_call(push_script.split(" "), shell=False)
 
         os.chdir(old_dir)
         return 0

@@ -494,7 +494,10 @@ if __name__ == "__main__":
         ],
         extras_require={
             "lint": ["pyflakes", "pycodestyle"],
-            "test": ["pytest", "pytest-cov", "codecov", "pytest-mock"]
+            "test": ["pytest", "pytest-cov", "codecov", "pytest-mock"],
+            # We require the current version to properly detect duplicate issues
+            # See: https://github.com/twisted/towncrier/releases/tag/22.8.0
+            "changelog": ["towncrier>=22.8.0"],
         },
         packages=find_packages(exclude=["*tests*"]),
         scripts=[
