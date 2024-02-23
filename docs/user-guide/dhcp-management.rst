@@ -4,24 +4,60 @@
 DHCP Management
 ***************
 
-Cobbler can optionally help you manage DHCP server. This feature is off by default.
+Cobbler can optionally help you manage a DHCP server. This feature is disabled by default.
 
-Choose either ``management = isc_and_bind`` in ``/etc/cobbler/dhcp.template`` or ``management = "dnsmasq"`` in
-``/etc/cobbler/modules.conf``.  Then set ``manage_dhcp=1`` in ``/etc/cobbler/settings.yaml``.
+The following options are available for ``modules.dhcp.module``:
 
-This allows DHCP to be managed via "cobbler system add" commands, when you specify the mac address and IP address for
+* ``"managers.isc"``
+* ``"managers.dnsmasq"``
+
+Set ``manage_dhcp: true`` and ``manage_dhcp_v4`` or ``manage_dhcp_v6`` to ``true`` for this setting to take effect.
+
+This allows DHCP to be managed via "cobbler system add" commands, when you specify the MAC address and IP address for
 systems you add into Cobbler.
 
-Depending on your choice, Cobbler will use ``/etc/cobbler/dhcpd.template`` or ``/etc/cobbler/dnsmasq.template`` as a
-starting point. This file must be user edited for the user's particular networking environment. Read the file and
-understand how the particular app (ISC dhcpd or dnsmasq) work before proceeding.
+You must configure the templates for your networking environment. Read the file and understand how
+the particular app works before proceeding.
 
-If you already have DHCP configuration data that you would like to preserve (say DHCP was manually configured earlier),
+If you already have DHCP configuration data that you would like to preserve (such as DHCP that was manually configured earlier),
 insert the relevant portions of it into the template file, as running ``cobbler sync`` will overwrite your previous
 configuration.
 
-By default, the DHCP configuration file will be updated each time ``cobbler sync`` is run, and not until then, so it is
-important to remember to use ``cobbler sync`` when using this feature.
+By default, Cobbler updates the DHCP configuration file each time you run ``cobbler sync``.
+Remember to use ``cobbler sync`` when you use this feature.
 
-If omapi_enabled is set to 1 in ``/etc/cobbler/settings.yaml``, the need to sync when adding new system records can be
-eliminated. However, the OMAPI feature is experimental and is not recommended for most users.
+``isc`` DHCP
+########
+
+Helpful links:
+
+* Website: https://www.isc.org/dhcp/
+* Documentation: https://kb.isc.org/docs/aa-00333
+
+Templates used during generation:
+
+* ``/etc/cobbler/dhcp.template``
+* ``/etc/cobbler/dhcp6.template``
+
+``dnsmasq`` DHCP
+############
+
+Helpful links:
+
+* Website: https://thekelleys.org.uk/dnsmasq/doc.html
+* Documentation: https://thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html
+
+Templates used during generation:
+
+* ``/etc/cobbler/dnsmasq.template``
+
+``Kea`` DHCP
+########
+
+Support for Kea is a not yet implemented feature request: https://github.com/cobbler/cobbler/issues/3609
+
+Helpful links:
+
+* Website https://www.isc.org/kea/
+* Migration tool from isc: https://www.isc.org/dhcp_migration/
+* Documentation: https://kea.readthedocs.io/en/latest/index.html
