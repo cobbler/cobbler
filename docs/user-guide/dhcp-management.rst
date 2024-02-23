@@ -27,7 +27,7 @@ By default, Cobbler updates the DHCP configuration file each time you run ``cobb
 Remember to use ``cobbler sync`` when you use this feature.
 
 ``isc`` DHCP
-########
+############
 
 Helpful links:
 
@@ -40,7 +40,7 @@ Templates used during generation:
 * ``/etc/cobbler/dhcp6.template``
 
 ``dnsmasq`` DHCP
-############
+################
 
 Helpful links:
 
@@ -52,7 +52,7 @@ Templates used during generation:
 * ``/etc/cobbler/dnsmasq.template``
 
 ``Kea`` DHCP
-########
+############
 
 Support for Kea is a not yet implemented feature request: https://github.com/cobbler/cobbler/issues/3609
 
