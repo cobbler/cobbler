@@ -30,9 +30,8 @@ allow_dynamic_settings: false
 # ok with this limitation.
 anamon_enabled: false
 
-# If using "authn_pam" in the "modules.conf", this can be configured to change the PAM service authentication will be
-# tested against.
-# The default value is "login".
+# If the key "modules.authentication.module" in this file is set to the value "authentication.pam", this setting chooses
+# the PAM authentication stack used.
 authn_pam_service: "login"
 
 # How long the authentication token is valid for, in seconds.
@@ -302,14 +301,13 @@ puppet_version: 2
 puppet_parameterized_classes: true
 
 # set to true to enable Cobbler's DHCP management features.
-# the choice of DHCP management engine is in /etc/cobbler/modules.conf
+# Use the "modules.dhcp.module" key to configure DHCP management engine
 # See the docs (https://cobbler.readthedocs.io/en/latest/user-guide.html#dhcp-management) for more info
 manage_dhcp: false
 
 # set to true to enable DHCP IPv6 address configuration generation.
 # This currently only works with manager.isc DHCP module (isc dhcpd6 daemon)
-# See /etc/cobbler/modules.conf whether this isc module is chosen for dhcp
-# generation.
+# See "modules.dhcp.module" whether this isc module is chosen for dhcp generation.
 manage_dhcp_v6: false
 
 # set to true to enable DHCP IPv4 address configuration generation.
@@ -326,9 +324,9 @@ next_server_v4: 127.0.0.1
 # Set the cobbler IPv6 address here so that PXE booting guests can find it
 next_server_v6: "::1"
 
-# set to true to enable Cobbler's DNS management features.
-# the choice of DNS management engine is in /etc/cobbler/modules.conf
-# needs manage_forward_zones and manage_reverse_zones to be set, too.
+# Set this key to true to enable Cobbler's DNS management features.
+# Use the key "modules.dns.module" in this file to control which DNS management engine is utilized. Needs
+# "manage_forward_zones" and "manage_reverse_zones" to be set as well.
 manage_dns: false
 
 # set to path of bind chroot to create bind-chroot compatible bind
@@ -346,9 +344,8 @@ bind_zonefile_path: "@@bind_zonefiles@@"
 # bind configuration files
 bind_master: 127.0.0.1
 
-# if using BIND (named) for DNS management in /etc/cobbler/modules.conf
-# and manage_dns is enabled (above), this lists which zones are managed
-# See the docs (https://cobbler.readthedocs.io/en/latest/user-guide.html#dns-configuration-management) for more info
+# If you use BIND (named) for DNS management and manage_dns is enabled (above), this lists managed zones.
+# See https://cobbler.rtfd.io/en/latest/user-guide/dns-management.html for more info.
 manage_forward_zones: []
 manage_reverse_zones: []
 
@@ -356,7 +353,7 @@ manage_reverse_zones: []
 manage_genders: false
 
 # set to true to enable Cobbler's TFTP management features.
-# the choice of TFTP management engine is in /etc/cobbler/modules.conf
+# Use the key "modules.tftpd.module" in this file to choose of TFTP management engine which is utilized.
 manage_tftpd: true
 
 # This variable contains the location of the tftpboot directory. If this directory is not present Cobbler does not
@@ -371,7 +368,7 @@ grubconfig_dir: "/var/lib/cobbler/grub_config"
 manage_rsync: false
 
 # settings for power management features.  optional.
-# see https://github.com/cobbler/cobbler/wiki/Power-management to learn more
+# see https://cobbler.rtfd.io/en/latest/user-guide/power-management.html to learn more
 # choices (refer to codes.py):
 #    apc_snmp bladecenter bullpap drac ether_wake ilo integrity
 #    ipmilan ipmilanplus lpar rsa virsh wti
@@ -394,17 +391,14 @@ nopxe_with_triggers: true
 # authentication within Cobbler Web and Cobbler XMLRPC.
 redhat_management_server: "xmlrpc.rhn.redhat.com"
 
-# if using authn_spacewalk in modules.conf to let Cobbler authenticate
-# against Satellite/Spacewalk's auth system, by default it will not allow per user
-# access into Cobbler Web and Cobbler XMLRPC.
-# in order to permit this, the following setting must be enabled HOWEVER
-# doing so will permit all Spacewalk/Satellite users of certain types to edit all
-# of Cobbler's configuration.
-# these roles are:  config_admin and org_admin
-# users should turn this on only if they want this behavior and
-# do not have a cross-multi-org seperation concern.  If you have
-# a single org in your satellite, it's probably safe to turn this
-# on and then you can use CobblerWeb alongside a Satellite install.
+# If the key "modules.authentication.module" in this file is set to the value "authentication.spacewalk"
+# Satellite/Spacewalk's auth system is used. Cobbler does not allow user-based access into Cobbler Web and
+# Cobbler XMLRPC by default.
+# Enable the following setting to permit user-based access to Cobbler's API. Note that doing so permits all
+# Spacewalk/Satellite users with the "config_admin" and "org_admin" roles to edit Cobbler's configuration.
+# Users should turn this on only if they want this behavior and do not have a cross-multi-org seperation concern. If
+# you have a single org in your satellite, it's probably safe to turn this on and then you can use CobblerWeb alongside
+# a Satellite install.
 redhat_management_permissive: false
 
 # specify the default Red Hat authorization key to use to register
