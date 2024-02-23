@@ -233,7 +233,10 @@ default: ``"/etc/cobbler/boot_loader_conf"``
 bootloaders_dir
 ===============
 
-TODO
+A directory that "cobbler mkloaders" copies the built bootloaders into. "cobbler sync" searches for
+bootloaders in this directory.
+
+default: ``/var/lib/cobbler/loaders``
 
 bootloaders_shim_folder
 =======================
@@ -264,20 +267,51 @@ default: Depending on your distro. See values below.
 grub2_mod_dir
 =============
 
-TODO
+The directory where Cobbler looks for GRUB modules that are required for "cobbler mkloaders".
+
+default: Depends on your distribution. See values below.
+
+* (open)SUSE: ``"/usr/share/grub2"``
+* Debian/Ubuntu: ``"/usr/lib/grub"``
+* CentOS/Fedora: ``"/usr/lib/grub"``
 
 syslinux_dir
 ============
 
-TODO
+The directory where Cobbler looks for syslinux modules that are required for "cobbler mkloaders".
+
+default: Depends on your distribution. See values below.
+
+* (open)SUSE: ``"/usr/share/syslinux"``
+* Debian/Ubuntu: ``"/usr/lib/syslinux/modules/bios/"``
+* CentOS/Fedora: ``"/usr/share/syslinux"``
 
 bootloaders_modules
 ===================
 
-TODO
+A list of all modules "cobbler mkloaders" includes when building grub loaders.
+Typically, a grub loader uses the modules for PXE or HTTP Boot.
+
+default: Omited for readablity, please refer to the `settings.yaml` file in our GitHub repository.
 
 bootloaders_formats
 ===================
+
+This is a mapping that has the following structure:
+
+.. code:: yaml
+
+   <loader name>:
+      binary_name: filename
+      extra_modules:
+        - extra-module
+      mod_dir: <different folder name then loader name>
+      use_secure_boot_grub: True
+
+The keys ``extra_modules``, ``mod_dir`` and ``use_secure_boot_grub`` are optional. Under normal circumstances this
+setting does not need adjustments.
+
+default: Omited for readablity, please refer to the `settings.yaml` file in our GitHub repository.
 
 grubconfig_dir
 ==============
@@ -293,7 +327,7 @@ Email out a report when Cobbler finishes installing a system.
 
 - enabled: Set to ``true`` to turn this feature on
 - email: Which addresses to email
-- ignorelist: TODO
+- ignorelist: A list of prefixes that defines mail topics that should not be sent.
 - sender: Optional
 - smtp_server: Used to specify another server for an MTA.
 - subject: Use the default subject unless overridden.
