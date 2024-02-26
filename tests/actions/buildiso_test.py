@@ -47,7 +47,7 @@ class TestBuildiso:
     @pytest.mark.parametrize(
         "input_arch,result_binary_name,expected_exception",
         [
-            (enums.Archs.X86_64, "grubx86.efi", does_not_raise()),
+            (enums.Archs.X86_64, "grubx64.efi", does_not_raise()),
             (enums.Archs.PPC, "grub.ppc64le", does_not_raise()),
             (enums.Archs.PPC64, "grub.ppc64le", does_not_raise()),
             (enums.Archs.PPC64EL, "grub.ppc64le", does_not_raise()),
