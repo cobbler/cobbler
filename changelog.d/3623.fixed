@@ -1,1 +1,1 @@
-This PR changes the default name of the grub2-efi bootloader to grubx64.efi to match the default that we have in our DHCPv4 template.
+mkloaders: The default name for grub2-efi changed to grubx64.efi to match the expected name in the DHCPv4 template.

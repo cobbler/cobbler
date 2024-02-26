@@ -1,0 +1,1 @@
+CLI: Fixed an error that mangled the types of certain flags for Cobbler items

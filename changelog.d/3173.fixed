@@ -1,0 +1,1 @@
+XML-RPC API: Fix an issue where "get_item_resolved_value()" would return unserializable types
