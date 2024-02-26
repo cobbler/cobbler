@@ -1,1 +1,0 @@
-SPEC: Add guard for Fedora to ensure that an incorrect /etc/os-release doesn't fail the build

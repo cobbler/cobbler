@@ -1,1 +1,0 @@
-sync: Fix KeyError with enabled DNS management due to missing context in the template lookup mapping data structure

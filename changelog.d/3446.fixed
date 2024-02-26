@@ -1,1 +1,0 @@
-SELinux: Fix daemon startup error caused by incorrect ownership of /var/lib/cobbler/web.ss

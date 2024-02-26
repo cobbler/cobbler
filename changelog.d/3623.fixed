@@ -1,1 +1,0 @@
-mkloaders: The default name for grub2-efi changed to grubx64.efi to match the expected name in the DHCPv4 template.
