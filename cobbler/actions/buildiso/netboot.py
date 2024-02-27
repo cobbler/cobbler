@@ -515,37 +515,37 @@ class NetbootBuildiso(buildiso.BuildIso):
         return str(self.distctr)
 
     def _generate_boot_loader_configs(
-        self, profile_names: List[str], system_names: List[str], exclude_dns: bool
+        self, profiles: List[Profile], systems: List[System], exclude_dns: bool
     ) -> LoaderCfgsParts:
         """Generate boot loader configuration.
 
         The configuration is placed as parts into a list. The elements expect to
         be joined by newlines for writing.
 
-        :param profile_names: Profile filter, can be an empty list for "all profiles".
-        :param system_names: System filter, can be an empty list for "all systems".
+        :param profiles: List of profiles to prepare.
+        :param systems: List of systems to prepare.
         :param exclude_dns: Used for system kernel cmdline.
         """
         loader_config_parts = LoaderCfgsParts([self.iso_template], [], [])
         loader_config_parts.isolinux.append("MENU SEPARATOR")
-        self._generate_profiles_loader_configs(profile_names, loader_config_parts)
-        self._generate_systems_loader_configs(
-            system_names, exclude_dns, loader_config_parts
-        )
+
+        self._generate_profiles_loader_configs(profiles, loader_config_parts)
+        self._generate_systems_loader_configs(systems, exclude_dns, loader_config_parts)
+
         return loader_config_parts
 
     def _generate_profiles_loader_configs(
-        self, profiles: List[str], loader_cfg_parts: LoaderCfgsParts
+        self, profiles: List[Profile], loader_cfg_parts: LoaderCfgsParts
     ) -> None:
         """Generate isolinux configuration for profiles.
 
         The passed in isolinux_cfg_parts list is changed in-place.
 
-        :param profiles: Profile filter, can be empty for "all profiles".
+        :param profiles: List of profiles to prepare.
         :param isolinux_cfg_parts: Output parameter for isolinux configuration.
         :param bootfiles_copyset: Output parameter for bootfiles copyset.
         """
-        for profile in self.filter_profiles(profiles):
+        for profile in profiles:
             isolinux, grub, to_copy = self._generate_profile_config(profile)
             loader_cfg_parts.isolinux.append(isolinux)
             loader_cfg_parts.grub.append(grub)
@@ -598,7 +598,7 @@ class NetbootBuildiso(buildiso.BuildIso):
 
     def _generate_systems_loader_configs(
         self,
-        system_names: List[str],
+        systems: List[System],
         exclude_dns: bool,
         loader_cfg_parts: LoaderCfgsParts,
     ) -> None:
@@ -606,11 +606,11 @@ class NetbootBuildiso(buildiso.BuildIso):
 
         The passed in isolinux_cfg_parts list is changed in-place.
 
-        :param systems: System filter, can be empty for "all profiles".
+        :param systems: List of systems to prepare
         :param isolinux_cfg_parts: Output parameter for isolinux configuration.
         :param bootfiles_copyset: Output parameter for bootfiles copyset.
         """
-        for system in self.filter_systems(system_names):
+        for system in systems:
             isolinux, grub, to_copy = self._generate_system_config(
                 system, exclude_dns=exclude_dns
             )
@@ -679,6 +679,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         systems: Optional[List[str]] = None,
         exclude_dns: bool = False,
         esp: Optional[str] = None,
+        exclude_systems: bool = False,
         **kwargs: Any,
     ):
         """
@@ -692,13 +693,33 @@ class NetbootBuildiso(buildiso.BuildIso):
         :param buildisodir: This overwrites the directory from the settings in which the iso is built in.
         :param profiles: The filter to generate the ISO only for selected profiles.
         :param xorrisofs_opts: ``xorrisofs`` options to include additionally.
-        :param distro_name: For detecting the architecture of the ISO.
+        :param distro_name: For detecting the architecture of the ISO. If not set, taken from first profile or system item
         :param systems: Don't use that when building standalone ISOs. The filter to generate the ISO only for selected
                         systems.
         :param exclude_dns: Whether the repositories have to be locally available or the internet is reachable.
+        :param exclude_systems: Whether system entries should not be exported.
         """
         del kwargs  # just accepted for polymorphism
-        distro_obj = self.parse_distro(distro_name)
+
+        system_names = input_converters.input_string_or_list_no_inherit(systems)
+        profile_names = input_converters.input_string_or_list_no_inherit(profiles)
+
+        profile_list = list(self.filter_profiles(profile_names))
+        system_list = list()
+        if not exclude_systems:
+            system_list = list(self.filter_systems(system_names))
+
+        distro_obj = None
+        if distro_name:
+            distro_obj = self.parse_distro(distro_name)
+        elif len(profile_list) > 0:
+            distro_obj = profile_list[0].get_conceptual_parent()
+        elif len(system_list) > 0:
+            distro_obj = system_list[0].get_conceptual_parent()
+
+        if distro_obj is None:
+            raise ValueError("Unable to find suitable distro and none set by caller")
+
         if distro_obj.arch not in (
             Archs.X86_64,
             Archs.PPC,
@@ -710,10 +731,8 @@ class NetbootBuildiso(buildiso.BuildIso):
                 "cobbler buildiso does not work for arch={distro_obj.arch}"
             )
 
-        system_names = input_converters.input_string_or_list_no_inherit(systems)
-        profile_names = input_converters.input_string_or_list_no_inherit(profiles)
         loader_config_parts = self._generate_boot_loader_configs(
-            profile_names, system_names, exclude_dns
+            profile_list, system_list, exclude_dns
         )
         buildisodir = self._prepare_buildisodir(buildisodir)
         buildiso_dirs = None

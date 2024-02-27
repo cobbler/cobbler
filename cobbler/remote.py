@@ -237,6 +237,7 @@ class CobblerXMLRPCInterface:
                 self.options.get("airgapped", False),
                 self.options.get("source", ""),
                 self.options.get("exclude_dns", False),
+                self.options.get("exclude_systems", False),
                 self.options.get("xorrisofs_opts", ""),
                 self.options.get("esp", None),
             )
