@@ -2135,6 +2135,7 @@ class CobblerAPI:
         airgapped: bool = False,
         source: str = "",
         exclude_dns: bool = False,
+        exclude_systems: bool = False,
         xorrisofs_opts: str = "",
     ) -> None:
         r"""
@@ -2150,6 +2151,7 @@ class CobblerAPI:
         :param airgapped: This option implies ``standalone=True``.
         :param source: If the iso should be offline available this is the path to the sources of the image.
         :param exclude_dns: Whether the repositories have to be locally available or the internet is reachable.
+        :param exclude_systems: Whether system entries should be skipped or generated.
         :param xorrisofs_opts: ``xorrisofs`` options to include additionally.
         """
         if not isinstance(standalone, bool):  # type: ignore
@@ -2169,6 +2171,7 @@ class CobblerAPI:
             source=source,
             systems=systems,
             exclude_dns=exclude_dns,
+            exclude_systems=exclude_systems,
         )
 
     # ==========================================================================
