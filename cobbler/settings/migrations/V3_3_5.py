@@ -2,9 +2,10 @@
 Migration from V3.3.4 to V3.3.5
 """
 # SPDX-License-Identifier: GPL-2.0-or-later
-# SPDX-FileCopyrightText: 2022 Dominik Gedon <dgedon@suse.de>
+# SPDX-FileCopyrightText: 2024 Enno Gotthold <egotthold@suse.com
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
+from schema import Optional, Schema, SchemaError # type: ignore
 
 from schema import Optional, Schema, SchemaError
 
@@ -243,7 +244,7 @@ def validate(settings: dict) -> bool:
     :return: True if valid settings dict otherwise False.
     """
     try:
-        schema.validate(settings)
+        schema.validate(settings)  # type: ignore
     except SchemaError:
         return False
     return True
@@ -256,19 +257,19 @@ def normalize(settings: dict) -> dict:
     :param settings: The settings dict to validate.
     :return: The validated dict.
     """
-    return schema.validate(settings)
+    return schema.validate(settings)  # type: ignore
 
 
 def migrate(settings: dict) -> dict:
     """
-    Migration of the settings ``settings`` to version V3.3.1 settings
+    Migration of the settings ``settings`` to version V3.3.4 settings
 
     :param settings: The settings dict to migrate
     :return: The migrated dict
     """
 
     if not V3_3_4.validate(settings):
-        raise SchemaError("V3.3.4: Schema error while validating")
+        raise SchemaError("V3.3.3: Schema error while validating")
 
     # rename keys and update their value
     # add missing keys
