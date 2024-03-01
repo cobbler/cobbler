@@ -24,7 +24,7 @@ from cobbler import enums
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.items import item
-from cobbler.decorator import InheritableProperty
+from cobbler.decorator import InheritableProperty, LazyProperty
 
 
 class Repo(item.Item):
@@ -62,6 +62,7 @@ class Repo(item.Item):
         self._proxy = enums.VALUE_INHERITED
         self._rpm_list = []
         self._os_version = ""
+
         if not self._has_initialized:
             self._has_initialized = True
 
@@ -81,15 +82,6 @@ class Repo(item.Item):
         cloned.uid = uuid.uuid4().hex
         return cloned
 
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
-
     def check_if_valid(self):
         """
         Checks if the object is valid. Currently checks for name and mirror to be present.
@@ -97,6 +89,8 @@ class Repo(item.Item):
         :raises CX: In case the name or mirror is missing.
         """
         super().check_if_valid()
+        if not self.inmemory:
+            return
         if self.mirror is None:
             raise CX("Error with repo %s - mirror is required" % self.name)
 
@@ -118,7 +112,7 @@ class Repo(item.Item):
             else:
                 self.breed = enums.RepoBreeds.RSYNC
 
-    @property
+    @LazyProperty
     def mirror(self) -> str:
         r"""
         A repo is (initially, as in right now) is something that can be rsynced. reposync/repotrack integration over
@@ -147,7 +141,7 @@ class Repo(item.Item):
                 self.arch = enums.RepoArchs.I386
         self._guess_breed()
 
-    @property
+    @LazyProperty
     def mirror_type(self) -> enums.MirrorType:
         r"""
         Override the mirror_type used for reposync
@@ -178,7 +172,7 @@ class Repo(item.Item):
             raise TypeError("mirror_type needs to be of type enums.MirrorType")
         self._mirror_type = mirror_type
 
-    @property
+    @LazyProperty
     def keep_updated(self) -> bool:
         r"""
         This allows the user to disable updates to a particular repo for whatever reason.
@@ -201,7 +195,7 @@ class Repo(item.Item):
             raise TypeError("Field keep_updated of object repo needs to be of type bool!")
         self._keep_updated = keep_updated
 
-    @property
+    @LazyProperty
     def yumopts(self) -> dict:
         r"""
         Options for the yum tool. Should be presented in the same way as the ``kernel_options``.
@@ -224,7 +218,7 @@ class Repo(item.Item):
         except TypeError as e:
             raise TypeError("invalid yum options") from e
 
-    @property
+    @LazyProperty
     def rsyncopts(self) -> dict:
         r"""
         Options for ``rsync`` when being used for repo management.
@@ -247,7 +241,7 @@ class Repo(item.Item):
         except TypeError as e:
             raise TypeError("invalid rsync options") from e
 
-    @property
+    @LazyProperty
     def environment(self) -> dict:
         """
         Yum can take options from the environment. This puts them there before each reposync.
@@ -272,7 +266,7 @@ class Repo(item.Item):
         except TypeError as e:
             raise TypeError("invalid environment") from e
 
-    @property
+    @LazyProperty
     def priority(self) -> int:
         """
         Set the priority of the repository. Only works if host is using priorities plugin for yum.
@@ -297,7 +291,7 @@ class Repo(item.Item):
             raise ValueError("Repository priority must be between 0 and 99 (inclusive)!")
         self._priority = priority
 
-    @property
+    @LazyProperty
     def rpm_list(self) -> list:
         """
         Rather than mirroring the entire contents of a repository (Fedora Extras, for instance, contains games, and we
@@ -343,7 +337,7 @@ class Repo(item.Item):
             raise TypeError("Field createrepo_flags of object repo needs to be of type str!")
         self._createrepo_flags = createrepo_flags
 
-    @property
+    @LazyProperty
     def breed(self) -> enums.RepoBreeds:
         """
         The repository system breed. This decides some defaults for most actions with a repo in Cobbler.
@@ -364,7 +358,7 @@ class Repo(item.Item):
         """
         self._breed = enums.RepoBreeds.to_enum(breed)
 
-    @property
+    @LazyProperty
     def os_version(self) -> str:
         r"""
         The operating system version which is compatible with this repository.
@@ -394,7 +388,7 @@ class Repo(item.Item):
         self._os_version = os_version
         return
 
-    @property
+    @LazyProperty
     def arch(self) -> enums.RepoArchs:
         r"""
         Override the arch used for reposync
@@ -421,7 +415,7 @@ class Repo(item.Item):
                 raise ValueError("arch choices include: %s" % list(map(str, enums.RepoArchs))) from error
         self._arch = enums.RepoArchs.to_enum(arch)
 
-    @property
+    @LazyProperty
     def mirror_locally(self) -> bool:
         r"""
         If this property is set to ``True`` then all content of the source is mirrored locally. This may take up a lot
@@ -445,7 +439,7 @@ class Repo(item.Item):
             raise TypeError("mirror_locally needs to be of type bool")
         self._mirror_locally = value
 
-    @property
+    @LazyProperty
     def apt_components(self) -> list:
         """
         Specify the section of Debian to mirror. Defaults to "main,contrib,non-free,main/debian-installer".
@@ -464,7 +458,7 @@ class Repo(item.Item):
         """
         self._apt_components = utils.input_string_or_list(value)
 
-    @property
+    @LazyProperty
     def apt_dists(self) -> list:
         r"""
         This decides which installer images are downloaded. For more information please see:

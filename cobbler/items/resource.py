@@ -16,6 +16,7 @@ import uuid
 from typing import Union
 
 from cobbler import enums
+from cobbler.decorator import LazyProperty
 
 from cobbler.items import item
 
@@ -41,6 +42,7 @@ class Resource(item.Item):
         self._group = ""
         self._path = ""
         self._template = ""
+
         if not self._has_initialized:
             self._has_initialized = True
 
@@ -60,20 +62,11 @@ class Resource(item.Item):
         cloned.uid = uuid.uuid4().hex
         return cloned
 
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
-
     #
     # specific methods for item.File
     #
 
-    @property
+    @LazyProperty
     def action(self) -> enums.ResourceAction:
         """
         Action property.
@@ -96,7 +89,7 @@ class Resource(item.Item):
         """
         self._action = enums.ResourceAction.to_enum(action)
 
-    @property
+    @LazyProperty
     def group(self) -> str:
         """
         Group property.
@@ -118,7 +111,7 @@ class Resource(item.Item):
             raise TypeError("Field group of object resource needs to be of type str!")
         self._group = group
 
-    @property
+    @LazyProperty
     def mode(self) -> str:
         """
         Mode property.
@@ -140,7 +133,7 @@ class Resource(item.Item):
             raise TypeError("Field mode in object resource needs to be of type str!")
         self._mode = mode
 
-    @property
+    @LazyProperty
     def owner(self) -> str:
         """
         Owner property.
@@ -162,7 +155,7 @@ class Resource(item.Item):
             raise TypeError("Field owner in object resource needs to be of type str!")
         self._owner = owner
 
-    @property
+    @LazyProperty
     def path(self) -> str:
         """
         Path property.
@@ -184,7 +177,7 @@ class Resource(item.Item):
             raise TypeError("Field path in object resource needs to be of type str!")
         self._path = path
 
-    @property
+    @LazyProperty
     def template(self) -> str:
         """
         Template property.

@@ -41,7 +41,7 @@ class Profiles(collection.Collection):
         """
         Return a Distro forged from item_dict
         """
-        new_profile = profile.Profile(api)
+        new_profile = profile.Profile(api, **item_dict)
         new_profile.from_dict(item_dict)
         return new_profile
 

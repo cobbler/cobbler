@@ -252,4 +252,4 @@ def test_migrate_v3_3_5():
     new_settings = V3_3_5.migrate(old_settings_dict)
 
     # Assert
-    assert V3_3_4.validate(new_settings)
+    assert V3_3_5.validate(new_settings)

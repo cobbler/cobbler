@@ -21,6 +21,7 @@ import uuid
 from typing import List, Optional
 
 from cobbler.cexceptions import CX
+from cobbler.decorator import LazyProperty
 from cobbler.items import item
 
 
@@ -41,6 +42,7 @@ class Menu(item.Item):
         self._has_initialized = False
 
         self._display_name = ""
+
         if not self._has_initialized:
             self._has_initialized = True
 
@@ -60,20 +62,11 @@ class Menu(item.Item):
         cloned.uid = uuid.uuid4().hex
         return cloned
 
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
-
     #
     # specific methods for item.Menu
     #
 
-    @property
+    @LazyProperty
     def display_name(self) -> str:
         """
         Returns the display name.

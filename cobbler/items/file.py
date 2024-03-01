@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import uuid
 
 from cobbler import utils
+from cobbler.decorator import LazyProperty
 from cobbler.items import resource
 
 from cobbler.cexceptions import CX
@@ -46,6 +47,7 @@ class File(resource.Resource):
         self._has_initialized = False
 
         self._is_dir = False
+
         if not self._has_initialized:
             self._has_initialized = True
 
@@ -65,15 +67,6 @@ class File(resource.Resource):
         cloned.uid = uuid.uuid4().hex
         return cloned
 
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
-
     def check_if_valid(self):
         """
         Checks if the object is valid. This is the case if name, path, owner, group, and mode are set.
@@ -82,6 +75,8 @@ class File(resource.Resource):
         :raises CX: Raised in case a required argument is missing
         """
         super().check_if_valid()
+        if not self.inmemory:
+            return
         if not self.path:
             raise CX("path is required")
         if not self.owner:
@@ -97,7 +92,7 @@ class File(resource.Resource):
     # specific methods for item.File
     #
 
-    @property
+    @LazyProperty
     def is_dir(self):
         """
         Is this a directory or not.

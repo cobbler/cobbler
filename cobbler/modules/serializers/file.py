@@ -25,6 +25,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import glob
 import json
+from typing import Any, Dict
+
+import yaml
 
 import cobbler.api as capi
 from cobbler import settings
@@ -128,18 +131,28 @@ def deserialize_raw(collection_types: str):
     """
     if collection_types == "settings":
         return settings.read_settings_file()
-    else:
-        results = []
 
-        path = os.path.join(libpath, collection_types)
-        all_files = glob.glob("%s/*.json" % path)
+    results = []
 
-        for f in all_files:
-            with open(f) as file_descriptor:
+    path = os.path.join(libpath, collection_types)
+    all_files = glob.glob("%s/*.json" % path)
+    with open("/etc/cobbler/settings.yaml", encoding="UTF-8") as settings_file:
+        lazy_start = yaml.safe_load(settings_file).get("lazy_start", False)
+
+    for file in all_files:
+        (name, _) = os.path.splitext(os.path.basename(file))
+        if lazy_start:
+            _dict = {"name": name, "inmemory": False}
+        else:
+            with open(file, encoding="UTF-8") as file_descriptor:
                 json_data = file_descriptor.read()
                 _dict = json.loads(json_data)
-                results.append(_dict)
-        return results
+                if _dict["name"] != name:
+                    raise CX(
+                        f"The file name {name}.json does not match the {_dict['name']} {collection_types}!"
+                    )
+        results.append(_dict)
+    return results
 
 
 def deserialize(collection, topological: bool = True):
@@ -158,3 +171,22 @@ def deserialize(collection, topological: bool = True):
         collection.from_dict(datastruct)
     elif isinstance(datastruct, list):
         collection.from_list(datastruct)
+
+
+def deserialize_item(collection_type: str, name: str) -> Dict[str, Any]:
+    """
+    Get a collection item from disk and parse it into an object.
+    :param collection_type: The collection type to fetch.
+    :param name: collection Item name
+    :return: Dictionary of the collection item.
+    """
+    path = os.path.join(libpath, collection_type, f"{name}.json")
+    with open(path, encoding="UTF-8") as file_descriptor:
+        json_data = file_descriptor.read()
+        _dict = json.loads(json_data)
+        if _dict["name"] != name:
+            raise CX(
+                f"The file name {name}.json does not match the {_dict['name']} {collection_type}!"
+            )
+    _dict["inmemory"] = True
+    return _dict

@@ -5,7 +5,7 @@ Migration from V3.3.4 to V3.3.5
 # SPDX-FileCopyrightText: 2024 Enno Gotthold <egotthold@suse.com
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
-from schema import Optional, Schema, SchemaError # type: ignore
+from schema import Optional, Schema, SchemaError  # type: ignore
 
 from schema import Optional, Schema, SchemaError
 
@@ -231,6 +231,7 @@ schema = Schema(
         Optional("windows_template_dir", default="/etc/cobbler/windows"): str,
         Optional("samba_distro_share", default="DISTRO"): str,
         Optional("cache_enabled"): bool,
+        Optional("lazy_start", default=False): bool,
     },
     ignore_extra_keys=False,
 )
