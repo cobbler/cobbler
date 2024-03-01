@@ -26,7 +26,7 @@ import tempfile
 import threading
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from schema import SchemaError
 
@@ -1805,6 +1805,13 @@ class CobblerAPI:
         Cobbler internal use only.
         """
         return self._collection_mgr.deserialize()
+
+    def deserialize_item(self, obj) -> Dict[str, Any]:
+        """
+        Load cobbler item from disk.
+        Cobbler internal use only.
+        """
+        return self._collection_mgr.deserialize_one_item(obj)
 
     # ==========================================================================
 

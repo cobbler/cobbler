@@ -228,6 +228,7 @@ schema = Schema(
         Optional("windows_enabled", default=False): bool,
         Optional("windows_template_dir", default="/etc/cobbler/windows"): str,
         Optional("samba_distro_share", default="DISTRO"): str,
+        Optional("lazy_start", default=False): bool,
     },
     ignore_extra_keys=False,
 )

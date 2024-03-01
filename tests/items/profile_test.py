@@ -47,7 +47,7 @@ def test_to_dict(cobbler_api, cleanup_to_dict):
     result = profile.to_dict()
 
     # Assert
-    assert len(result) == 44
+    assert len(result) == 45
     assert result["distro"] == "test_to_dict_distro"
 
 

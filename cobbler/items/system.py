@@ -15,7 +15,7 @@ from ipaddress import AddressValueError
 from cobbler import autoinstall_manager, enums, power_manager, utils, validate
 from cobbler.cexceptions import CX
 from cobbler.items.item import Item
-from cobbler.decorator import InheritableProperty
+from cobbler.decorator import InheritableProperty, LazyProperty
 
 
 class NetworkInterface:
@@ -115,7 +115,7 @@ class NetworkInterface:
         """
         self.from_dict(interface_dict)
 
-    @property
+    @LazyProperty
     def dhcp_tag(self) -> str:
         """
         dhcp_tag property.
@@ -136,7 +136,7 @@ class NetworkInterface:
             raise TypeError("Field dhcp_tag of object NetworkInterface needs to be of type str!")
         self._dhcp_tag = dhcp_tag
 
-    @property
+    @LazyProperty
     def cnames(self) -> list:
         """
         cnames property.
@@ -155,7 +155,7 @@ class NetworkInterface:
         """
         self._cnames = utils.input_string_or_list_no_inherit(cnames)
 
-    @property
+    @LazyProperty
     def static_routes(self) -> list:
         """
         static_routes property.
@@ -174,7 +174,7 @@ class NetworkInterface:
         """
         self._static_routes = utils.input_string_or_list_no_inherit(routes)
 
-    @property
+    @LazyProperty
     def static(self) -> bool:
         """
         static property.
@@ -197,7 +197,7 @@ class NetworkInterface:
             raise TypeError("Field static of NetworkInterface needs to be of Type bool!") from e
         self._static = truthiness
 
-    @property
+    @LazyProperty
     def management(self) -> bool:
         """
         management property.
@@ -222,7 +222,7 @@ class NetworkInterface:
             ) from e
         self._management = truthiness
 
-    @property
+    @LazyProperty
     def dns_name(self) -> str:
         """
         dns_name property.
@@ -251,7 +251,7 @@ class NetworkInterface:
                 )
         self._dns_name = dns_name
 
-    @property
+    @LazyProperty
     def ip_address(self) -> str:
         """
         ip_address property.
@@ -281,7 +281,7 @@ class NetworkInterface:
                     )
         self._ip_address = address
 
-    @property
+    @LazyProperty
     def mac_address(self) -> str:
         """
         mac_address property.
@@ -314,7 +314,7 @@ class NetworkInterface:
                     )
         self._mac_address = address
 
-    @property
+    @LazyProperty
     def netmask(self) -> str:
         """
         netmask property.
@@ -333,7 +333,7 @@ class NetworkInterface:
         """
         self._netmask = validate.ipv4_netmask(netmask)
 
-    @property
+    @LazyProperty
     def if_gateway(self) -> str:
         """
         if_gateway property.
@@ -353,7 +353,7 @@ class NetworkInterface:
         """
         self._if_gateway = validate.ipv4_address(gateway)
 
-    @property
+    @LazyProperty
     def virt_bridge(self) -> str:
         """
         virt_bridge property. If set to ``<<inherit>>`` this will read the value from the setting "default_virt_bridge".
@@ -379,7 +379,7 @@ class NetworkInterface:
             return
         self._virt_bridge = bridge
 
-    @property
+    @LazyProperty
     def interface_type(self) -> enums.NetworkInterfaceType:
         """
         interface_type property.
@@ -416,7 +416,7 @@ class NetworkInterface:
                              ",".join(list(map(str, enums.NetworkInterfaceType))))
         self._interface_type = intf_type
 
-    @property
+    @LazyProperty
     def interface_master(self) -> str:
         """
         interface_master property.
@@ -437,7 +437,7 @@ class NetworkInterface:
             raise TypeError("Field interface_master of object NetworkInterface needs to be of type str!")
         self._interface_master = interface_master
 
-    @property
+    @LazyProperty
     def bonding_opts(self) -> str:
         """
         bonding_opts property.
@@ -458,7 +458,7 @@ class NetworkInterface:
             raise TypeError("Field bonding_opts of object NetworkInterface needs to be of type str!")
         self._bonding_opts = bonding_opts
 
-    @property
+    @LazyProperty
     def bridge_opts(self) -> str:
         """
         bridge_opts property.
@@ -479,7 +479,7 @@ class NetworkInterface:
             raise TypeError("Field bridge_opts of object NetworkInterface needs to be of type str!")
         self._bridge_opts = bridge_opts
 
-    @property
+    @LazyProperty
     def ipv6_address(self) -> str:
         """
         ipv6_address property.
@@ -510,7 +510,7 @@ class NetworkInterface:
                     )
         self._ipv6_address = address
 
-    @property
+    @LazyProperty
     def ipv6_prefix(self) -> str:
         """
         ipv6_prefix property.
@@ -531,7 +531,7 @@ class NetworkInterface:
             raise TypeError("Field ipv6_prefix of object NetworkInterface needs to be of type str!")
         self._ipv6_prefix = prefix.strip()
 
-    @property
+    @LazyProperty
     def ipv6_secondaries(self) -> list:
         """
         ipv6_secondaries property.
@@ -557,7 +557,7 @@ class NetworkInterface:
                 raise AddressValueError("invalid format for IPv6 IP address (%s)" % address)
         self._ipv6_secondaries = secondaries
 
-    @property
+    @LazyProperty
     def ipv6_default_gateway(self) -> str:
         """
         ipv6_default_gateway property.
@@ -581,7 +581,7 @@ class NetworkInterface:
             return
         raise AddressValueError("invalid format of IPv6 IP address (%s)" % address)
 
-    @property
+    @LazyProperty
     def ipv6_static_routes(self) -> list:
         """
         ipv6_static_routes property.
@@ -600,7 +600,7 @@ class NetworkInterface:
         """
         self._ipv6_static_routes = utils.input_string_or_list(routes)
 
-    @property
+    @LazyProperty
     def ipv6_mtu(self) -> str:
         """
         ipv6_mtu property.
@@ -621,7 +621,7 @@ class NetworkInterface:
             raise TypeError("Field ipv6_mtu of object NetworkInterface needs to be of type str!")
         self._ipv6_mtu = mtu
 
-    @property
+    @LazyProperty
     def mtu(self) -> str:
         """
         mtu property.
@@ -642,7 +642,7 @@ class NetworkInterface:
             raise TypeError("Field mtu of object NetworkInterface needs to be type str!")
         self._mtu = mtu
 
-    @property
+    @LazyProperty
     def connected_mode(self) -> bool:
         """
         connected_mode property.
@@ -741,6 +741,8 @@ class System(Item):
         :param api: The Cobbler API
         """
         super().__init__(api, *args, **kwargs)
+        self._has_initialized = False
+
         self._interfaces: Dict[str, NetworkInterface] = {}
         self._ipv6_autoconfiguration = False
         self._repos_enabled = False
@@ -790,6 +792,9 @@ class System(Item):
         self._mgmt_parameters = enums.VALUE_INHERITED
         self._mgmt_classes = enums.VALUE_INHERITED
 
+        if not self._has_initialized:
+            self._has_initialized = True
+
     def __getattr__(self, name):
         if name == "kickstart":
             return self.autoinstall
@@ -814,6 +819,8 @@ class System(Item):
 
         :param dictionary: The dictionary with values.
         """
+        old_has_initialized = self._has_initialized
+        self._has_initialized = False
         if "name" in dictionary:
             self.name = dictionary["name"]
         if "parent" in dictionary:
@@ -823,9 +830,10 @@ class System(Item):
         if "image" in dictionary:
             self.image = dictionary["image"]
         self._remove_depreacted_dict_keys(dictionary)
+        self._has_initialized = old_has_initialized
         super().from_dict(dictionary)
 
-    @property
+    @LazyProperty
     def parent(self) -> Optional[Item]:
         """
         Return object next highest up the tree. This may be a profile or an image.
@@ -881,6 +889,8 @@ class System(Item):
         :raises CX: In case name is missing. Additionally either image or profile is required.
         """
         super().check_if_valid()
+        if not self.inmemory:
+            return
 
         # System specific validation
         if self.profile is None or self.profile == "":
@@ -891,7 +901,7 @@ class System(Item):
     # specific methods for item.System
     #
 
-    @property
+    @LazyProperty
     def interfaces(self) -> Dict[str, NetworkInterface]:
         r"""
         Represents all interfaces owned by the system.
@@ -970,7 +980,7 @@ class System(Item):
         self.interfaces[new_name] = self.interfaces[old_name]
         del self.interfaces[old_name]
 
-    @property
+    @LazyProperty
     def hostname(self) -> str:
         """
         hostname property.
@@ -993,7 +1003,7 @@ class System(Item):
             raise TypeError("Field hostname of object system needs to be of type str!")
         self._hostname = value
 
-    @property
+    @LazyProperty
     def status(self) -> str:
         """
         status property.
@@ -1295,7 +1305,7 @@ class System(Item):
             self.__create_interface(interface_name)
         return self._interfaces[interface_name]
 
-    @property
+    @LazyProperty
     def gateway(self):
         """
         gateway property.
@@ -1316,7 +1326,7 @@ class System(Item):
         """
         self._gateway = validate.ipv4_address(gateway)
 
-    @property
+    @LazyProperty
     def name_servers(self) -> list:
         """
         name_servers property.
@@ -1339,7 +1349,7 @@ class System(Item):
         """
         self._name_servers = validate.name_servers(data)
 
-    @property
+    @LazyProperty
     def name_servers_search(self) -> list:
         """
         name_servers_search property.
@@ -1360,7 +1370,7 @@ class System(Item):
         """
         self._name_servers_search = validate.name_servers_search(data)
 
-    @property
+    @LazyProperty
     def ipv6_autoconfiguration(self) -> bool:
         """
         ipv6_autoconfiguration property.
@@ -1384,7 +1394,7 @@ class System(Item):
             raise TypeError("ipv6_autoconfiguration needs to be of type bool")
         self._ipv6_autoconfiguration = value
 
-    @property
+    @LazyProperty
     def ipv6_default_device(self) -> str:
         """
         ipv6_default_device property.
@@ -1435,7 +1445,7 @@ class System(Item):
             raise TypeError("enable_ipxe needs to be of type bool")
         self._enable_ipxe = enable_ipxe
 
-    @property
+    @LazyProperty
     def profile(self) -> str:
         """
         profile property.
@@ -1493,7 +1503,7 @@ class System(Item):
         if isinstance(new_parent, Item) and self.name not in new_parent.children:
             new_parent.children.append(self.name)
 
-    @property
+    @LazyProperty
     def image(self) -> str:
         """
         image property.
@@ -1637,7 +1647,7 @@ class System(Item):
             return
         self._virt_auto_boot = validate.validate_virt_auto_boot(value)
 
-    @property
+    @LazyProperty
     def virt_pxe_boot(self) -> bool:
         """
         virt_pxe_boot property.
@@ -1720,7 +1730,7 @@ class System(Item):
         """
         self._virt_path = validate.validate_virt_path(path, for_system=True)
 
-    @property
+    @LazyProperty
     def netboot_enabled(self) -> bool:
         """
         netboot_enabled property.
@@ -1773,7 +1783,7 @@ class System(Item):
         autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api)
         self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
 
-    @property
+    @LazyProperty
     def power_type(self) -> str:
         """
         power_type property.
@@ -1801,7 +1811,7 @@ class System(Item):
         power_manager.validate_power_type(power_type)
         self._power_type = power_type
 
-    @property
+    @LazyProperty
     def power_identity_file(self) -> str:
         """
         power_identity_file property.
@@ -1826,7 +1836,7 @@ class System(Item):
         utils.safe_filter(power_identity_file)
         self._power_identity_file = power_identity_file
 
-    @property
+    @LazyProperty
     def power_options(self) -> str:
         """
         power_options property.
@@ -1851,7 +1861,7 @@ class System(Item):
         utils.safe_filter(power_options)
         self._power_options = power_options
 
-    @property
+    @LazyProperty
     def power_user(self) -> str:
         """
         power_user property.
@@ -1876,7 +1886,7 @@ class System(Item):
         utils.safe_filter(power_user)
         self._power_user = power_user
 
-    @property
+    @LazyProperty
     def power_pass(self) -> str:
         """
         power_pass property.
@@ -1901,7 +1911,7 @@ class System(Item):
         utils.safe_filter(power_pass)
         self._power_pass = power_pass
 
-    @property
+    @LazyProperty
     def power_address(self) -> str:
         """
         power_address property.
@@ -1926,7 +1936,7 @@ class System(Item):
         utils.safe_filter(power_address)
         self._power_address = power_address
 
-    @property
+    @LazyProperty
     def power_id(self) -> str:
         """
         power_id property.
@@ -1951,7 +1961,7 @@ class System(Item):
         utils.safe_filter(power_id)
         self._power_id = power_id
 
-    @property
+    @LazyProperty
     def repos_enabled(self) -> bool:
         """
         repos_enabled property.
@@ -1976,7 +1986,7 @@ class System(Item):
             raise TypeError("Field repos_enabled of object system needs to be of type bool!")
         self._repos_enabled = repos_enabled
 
-    @property
+    @LazyProperty
     def serial_device(self) -> int:
         """
         serial_device property. "-1" disables the serial device functionality completely.
@@ -1995,7 +2005,7 @@ class System(Item):
         """
         self._serial_device = validate.validate_serial_device(device_number)
 
-    @property
+    @LazyProperty
     def serial_baud_rate(self) -> enums.BaudRates:
         """
         serial_baud_rate property. The value "disabled" will disable the functionality completely.
@@ -2015,7 +2025,7 @@ class System(Item):
         """
         self._serial_baud_rate = validate.validate_serial_baud_rate(baud_rate)
 
-    @property
+    @LazyProperty
     def children(self) -> List[str]:
         """
         children property.

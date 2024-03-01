@@ -22,7 +22,7 @@ from typing import Optional, Union
 
 from cobbler import autoinstall_manager, enums, utils, validate
 from cobbler.cexceptions import CX
-from cobbler.decorator import InheritableProperty
+from cobbler.decorator import InheritableProperty, LazyProperty
 from cobbler.items import item
 from cobbler.items.distro import Distro
 
@@ -43,6 +43,8 @@ class Profile(item.Item):
         :param kwargs:
         """
         super().__init__(api, *args, **kwargs)
+        self._has_initialized = False
+
         self._template_files = {}
         self._autoinstall = enums.VALUE_INHERITED
         self._boot_loaders: Union[list, str] = enums.VALUE_INHERITED
@@ -82,6 +84,9 @@ class Profile(item.Item):
         self.virt_disk_driver = api.settings().default_virt_disk_driver
         self.virt_type = api.settings().default_virt_type
 
+        if not self._has_initialized:
+            self._has_initialized = True
+
     def __getattr__(self, name):
         if name == "kickstart":
             return self.autoinstall
@@ -115,6 +120,8 @@ class Profile(item.Item):
         """
         # name validation
         super().check_if_valid()
+        if not self.inmemory:
+            return
 
         # distro validation
         distro = self.get_conceptual_parent()
@@ -127,6 +134,8 @@ class Profile(item.Item):
 
         :param dictionary: The dictionary with values.
         """
+        old_has_initialized = self._has_initialized
+        self._has_initialized = False
         if "name" in dictionary:
             self.name = dictionary["name"]
         if "parent" in dictionary:
@@ -134,13 +143,14 @@ class Profile(item.Item):
         if "distro" in dictionary:
             self.distro = dictionary["distro"]
         self._remove_depreacted_dict_keys(dictionary)
+        self._has_initialized = old_has_initialized
         super().from_dict(dictionary)
 
     #
     # specific methods for item.Profile
     #
 
-    @property
+    @LazyProperty
     def parent(self) -> Optional[item.Item]:
         r"""
         Instead of a ``--distro``, set the parent of this object to another profile and use the values from the parent
@@ -193,7 +203,7 @@ class Profile(item.Item):
         if isinstance(new_parent, item.Item) and self.name not in new_parent.children:
             new_parent.children.append(self.name)
 
-    @property
+    @LazyProperty
     def arch(self):
         """
         This represents the architecture of a profile. It is read only.
@@ -206,7 +216,7 @@ class Profile(item.Item):
             return parent.arch
         return None
 
-    @property
+    @LazyProperty
     def distro(self):
         """
         The parent distro of a profile. This is not representing the Distro but the id of it.
@@ -351,7 +361,7 @@ class Profile(item.Item):
             raise TypeError("enable_menu needs to be of type bool")
         self._enable_menu = enable_menu
 
-    @property
+    @LazyProperty
     def dhcp_tag(self) -> str:
         """
         Represents the VLAN tag the DHCP Server is in/answering to.
@@ -397,7 +407,7 @@ class Profile(item.Item):
             raise TypeError("Field server of object profile needs to be of type str!")
         self._server = server
 
-    @property
+    @LazyProperty
     def next_server_v4(self) -> str:
         """
         Represents the next server for IPv4.
@@ -422,7 +432,7 @@ class Profile(item.Item):
         else:
             self._next_server_v4 = validate.ipv4_address(server)
 
-    @property
+    @LazyProperty
     def next_server_v6(self) -> str:
         r"""
         Represents the next server for IPv6.
@@ -481,7 +491,7 @@ class Profile(item.Item):
                 filename = ""
         self._filename = filename
 
-    @property
+    @LazyProperty
     def autoinstall(self) -> str:
         """
         Represents the automatic OS installation template file path, this must be a local file.
@@ -540,7 +550,7 @@ class Profile(item.Item):
             return
         self._virt_auto_boot = validate.validate_virt_auto_boot(num)
 
-    @property
+    @LazyProperty
     def virt_cpus(self) -> int:
         """
         The amount of vCPU cores used in case the image is being deployed on top of a VM host.
@@ -667,7 +677,7 @@ class Profile(item.Item):
         """
         self._virt_bridge = validate.validate_virt_bridge(vbridge)
 
-    @property
+    @LazyProperty
     def virt_path(self) -> str:
         """
         The path to the place where the image will be stored.
@@ -686,7 +696,7 @@ class Profile(item.Item):
         """
         self._virt_path = validate.validate_virt_path(path)
 
-    @property
+    @LazyProperty
     def repos(self) -> list:
         """
         The repositories to add once the system is provisioned.
@@ -776,7 +786,7 @@ class Profile(item.Item):
         else:
             self._boot_loaders = []
 
-    @property
+    @LazyProperty
     def menu(self) -> str:
         r"""
         Property to represent the menu which this image should be put into.
@@ -802,7 +812,7 @@ class Profile(item.Item):
                 raise CX("menu %s not found" % menu)
         self._menu = menu
 
-    @property
+    @LazyProperty
     def children(self) -> list:
         """
         This property represents all children of a distribution. It should not be set manually.

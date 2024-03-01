@@ -45,7 +45,7 @@ class Menus(collection.Collection):
         :param item_dict: The seed data.
         :return: A new menu instance.
         """
-        new_menu = menu.Menu(api)
+        new_menu = menu.Menu(api, **item_dict)
         new_menu.from_dict(item_dict)
         return new_menu
 

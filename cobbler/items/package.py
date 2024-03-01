@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 import uuid
+from cobbler.decorator import LazyProperty
 
 from cobbler.items import resource
 
@@ -39,8 +40,13 @@ class Package(resource.Resource):
         :param kwargs: The keyword arguments which should be passed additionally to a Resource.
         """
         super().__init__(api, *args, **kwargs)
+        self._has_initialized = False
+
         self._installer = ""
         self._version = ""
+
+        if not self._has_initialized:
+            self._has_initialized = True
 
     #
     # override some base class methods first (item.Item)
@@ -58,20 +64,11 @@ class Package(resource.Resource):
         cloned.uid = uuid.uuid4().hex
         return cloned
 
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
-
     #
     # specific methods for item.Package
     #
 
-    @property
+    @LazyProperty
     def installer(self) -> str:
         """
         Installer property.
@@ -93,7 +90,7 @@ class Package(resource.Resource):
             raise TypeError("Field installer of package object needs to be of type str!")
         self._installer = installer.lower()
 
-    @property
+    @LazyProperty
     def version(self) -> str:
         """
         Version property.

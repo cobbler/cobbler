@@ -21,6 +21,7 @@ import uuid
 from typing import List, Optional
 
 from cobbler.cexceptions import CX
+from cobbler.decorator import LazyProperty
 from cobbler.items import item
 
 
@@ -36,7 +37,12 @@ class Menu(item.Item):
         Constructor
         """
         super().__init__(api, *args, **kwargs)
+        self._has_initialized = False
+
         self._display_name = ""
+
+        if not self._has_initialized:
+            self._has_initialized = True
 
     #
     # override some base class methods first (item.Item)
@@ -54,16 +60,7 @@ class Menu(item.Item):
         cloned.uid = uuid.uuid4().hex
         return cloned
 
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
-
-    @property
+    @LazyProperty
     def parent(self) -> Optional["Menu"]:
         """
         Parent menu of a menu instance.
@@ -103,7 +100,7 @@ class Menu(item.Item):
         if isinstance(new_parent, item.Item) and self.name not in new_parent.children:
             new_parent.children.append(self.name)
 
-    @property
+    @LazyProperty
     def children(self) -> list:
         """
         Child menu of a menu instance.
@@ -144,7 +141,7 @@ class Menu(item.Item):
     # specific methods for item.Menu
     #
 
-    @property
+    @LazyProperty
     def display_name(self) -> str:
         """
         Returns the display name.

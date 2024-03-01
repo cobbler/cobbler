@@ -566,6 +566,15 @@ iso_template_dir: "/etc/cobbler/iso"
 signature_path: "/var/lib/cobbler/distro_signatures.json"
 signature_url: "https://cobbler.github.io/signatures/3.0.x/latest.json"
 
+# Set to true to speed up the start of the Cobbler. When storing collections as files, the directory with the names
+# of the collection elements will be scanned without reading and parsing the files themselves. In the case of storing
+# collections in the database, a projection query is made that includes only the names of the collection elements.
+# The first time an attribute of an element other than a name is accessed, a full read of all other attributes will be
+# performed, and a recursive full read of all elements on which this element depends. At startup, a background task is
+# also launched, which, when idle, fills in all the properties of the elements of the collections.
+# Suitable for configurations with a large number of elements placed on a slow device (HDD, network).
+lazy_start: false
+
 # Include other configuration snippets. Overwriting a key from this file in a childfile will overwrite the value from
 # this file.
 include: [ "/code/tests/test_data/V3_3_3/settings.d/*.settings" ]

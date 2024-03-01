@@ -178,4 +178,4 @@ def test_normalize_v3_3_5():
     new_settings = V3_3_5.normalize(old_settings_dict)
 
     # Assert
-    assert len(new_settings) == 130
+    assert len(new_settings) == 131
