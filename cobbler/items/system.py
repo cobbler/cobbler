@@ -115,7 +115,7 @@ class NetworkInterface:
         """
         self.from_dict(interface_dict)
 
-    @LazyProperty
+    @property
     def dhcp_tag(self) -> str:
         """
         dhcp_tag property.
@@ -136,7 +136,7 @@ class NetworkInterface:
             raise TypeError("Field dhcp_tag of object NetworkInterface needs to be of type str!")
         self._dhcp_tag = dhcp_tag
 
-    @LazyProperty
+    @property
     def cnames(self) -> list:
         """
         cnames property.
@@ -155,7 +155,7 @@ class NetworkInterface:
         """
         self._cnames = utils.input_string_or_list_no_inherit(cnames)
 
-    @LazyProperty
+    @property
     def static_routes(self) -> list:
         """
         static_routes property.
@@ -174,7 +174,7 @@ class NetworkInterface:
         """
         self._static_routes = utils.input_string_or_list_no_inherit(routes)
 
-    @LazyProperty
+    @property
     def static(self) -> bool:
         """
         static property.
@@ -197,7 +197,7 @@ class NetworkInterface:
             raise TypeError("Field static of NetworkInterface needs to be of Type bool!") from e
         self._static = truthiness
 
-    @LazyProperty
+    @property
     def management(self) -> bool:
         """
         management property.
@@ -222,7 +222,7 @@ class NetworkInterface:
             ) from e
         self._management = truthiness
 
-    @LazyProperty
+    @property
     def dns_name(self) -> str:
         """
         dns_name property.
@@ -251,7 +251,7 @@ class NetworkInterface:
                 )
         self._dns_name = dns_name
 
-    @LazyProperty
+    @property
     def ip_address(self) -> str:
         """
         ip_address property.
@@ -281,7 +281,7 @@ class NetworkInterface:
                     )
         self._ip_address = address
 
-    @LazyProperty
+    @property
     def mac_address(self) -> str:
         """
         mac_address property.
@@ -314,7 +314,7 @@ class NetworkInterface:
                     )
         self._mac_address = address
 
-    @LazyProperty
+    @property
     def netmask(self) -> str:
         """
         netmask property.
@@ -333,7 +333,7 @@ class NetworkInterface:
         """
         self._netmask = validate.ipv4_netmask(netmask)
 
-    @LazyProperty
+    @property
     def if_gateway(self) -> str:
         """
         if_gateway property.
@@ -353,7 +353,7 @@ class NetworkInterface:
         """
         self._if_gateway = validate.ipv4_address(gateway)
 
-    @LazyProperty
+    @InheritableProperty
     def virt_bridge(self) -> str:
         """
         virt_bridge property. If set to ``<<inherit>>`` this will read the value from the setting "default_virt_bridge".
@@ -379,7 +379,7 @@ class NetworkInterface:
             return
         self._virt_bridge = bridge
 
-    @LazyProperty
+    @property
     def interface_type(self) -> enums.NetworkInterfaceType:
         """
         interface_type property.
@@ -416,7 +416,7 @@ class NetworkInterface:
                              ",".join(list(map(str, enums.NetworkInterfaceType))))
         self._interface_type = intf_type
 
-    @LazyProperty
+    @property
     def interface_master(self) -> str:
         """
         interface_master property.
@@ -437,7 +437,7 @@ class NetworkInterface:
             raise TypeError("Field interface_master of object NetworkInterface needs to be of type str!")
         self._interface_master = interface_master
 
-    @LazyProperty
+    @property
     def bonding_opts(self) -> str:
         """
         bonding_opts property.
@@ -458,7 +458,7 @@ class NetworkInterface:
             raise TypeError("Field bonding_opts of object NetworkInterface needs to be of type str!")
         self._bonding_opts = bonding_opts
 
-    @LazyProperty
+    @property
     def bridge_opts(self) -> str:
         """
         bridge_opts property.
@@ -479,7 +479,7 @@ class NetworkInterface:
             raise TypeError("Field bridge_opts of object NetworkInterface needs to be of type str!")
         self._bridge_opts = bridge_opts
 
-    @LazyProperty
+    @property
     def ipv6_address(self) -> str:
         """
         ipv6_address property.
@@ -510,7 +510,7 @@ class NetworkInterface:
                     )
         self._ipv6_address = address
 
-    @LazyProperty
+    @property
     def ipv6_prefix(self) -> str:
         """
         ipv6_prefix property.
@@ -531,7 +531,7 @@ class NetworkInterface:
             raise TypeError("Field ipv6_prefix of object NetworkInterface needs to be of type str!")
         self._ipv6_prefix = prefix.strip()
 
-    @LazyProperty
+    @property
     def ipv6_secondaries(self) -> list:
         """
         ipv6_secondaries property.
@@ -557,7 +557,7 @@ class NetworkInterface:
                 raise AddressValueError("invalid format for IPv6 IP address (%s)" % address)
         self._ipv6_secondaries = secondaries
 
-    @LazyProperty
+    @property
     def ipv6_default_gateway(self) -> str:
         """
         ipv6_default_gateway property.
@@ -581,7 +581,7 @@ class NetworkInterface:
             return
         raise AddressValueError("invalid format of IPv6 IP address (%s)" % address)
 
-    @LazyProperty
+    @property
     def ipv6_static_routes(self) -> list:
         """
         ipv6_static_routes property.
@@ -600,7 +600,7 @@ class NetworkInterface:
         """
         self._ipv6_static_routes = utils.input_string_or_list(routes)
 
-    @LazyProperty
+    @property
     def ipv6_mtu(self) -> str:
         """
         ipv6_mtu property.
@@ -621,7 +621,7 @@ class NetworkInterface:
             raise TypeError("Field ipv6_mtu of object NetworkInterface needs to be of type str!")
         self._ipv6_mtu = mtu
 
-    @LazyProperty
+    @property
     def mtu(self) -> str:
         """
         mtu property.
@@ -642,7 +642,7 @@ class NetworkInterface:
             raise TypeError("Field mtu of object NetworkInterface needs to be type str!")
         self._mtu = mtu
 
-    @LazyProperty
+    @property
     def connected_mode(self) -> bool:
         """
         connected_mode property.
