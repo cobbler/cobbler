@@ -35,7 +35,7 @@ class Images(collection.Collection):
         """
         Return a Distro forged from item_dict
         """
-        new_image = image.Image(api)
+        new_image = image.Image(api, **item_dict)
         new_image.from_dict(item_dict)
         return new_image
 

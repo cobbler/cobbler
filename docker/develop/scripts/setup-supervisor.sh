@@ -7,7 +7,11 @@ cp /code/docker/develop/supervisord/supervisord.conf /etc/
 echo "Setup openLDAP"
 /code/docker/develop/scripts/setup-openldap.sh
 
+echo "Setup MongoDB"
+/code/docker/develop/scripts/setup-mongodb.sh
+
 echo "Install Cobbler"
+git config --global --add safe.directory /code
 cd /code || exit
 make install
 

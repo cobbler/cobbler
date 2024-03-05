@@ -214,6 +214,14 @@ class CollectionManager:
                 raise CX("serializer: error loading collection %s: %s. Check /etc/cobbler/modules.conf"
                          % (collection.collection_type(), e)) from e
 
+    def deserialize_one_item(self, obj) -> dict:
+        """
+        Load a collection item from disk
+        :param obj: collection item
+        """
+        collection_type = self.get_items(obj.COLLECTION_TYPE).collection_types()
+        return serializer.deserialize_item(collection_type, obj.name)
+
     def get_items(self, collection_type: str) -> Union[Distros, Profiles, Systems, Repos, Images, Mgmtclasses, Packages,
                                                        Files, Menus]:
         """

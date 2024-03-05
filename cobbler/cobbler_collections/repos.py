@@ -44,7 +44,7 @@ class Repos(collection.Collection):
         """
         Return a Distro forged from item_dict
         """
-        new_repo = repo.Repo(api)
+        new_repo = repo.Repo(api, **item_dict)
         new_repo.from_dict(item_dict)
         return new_repo
 

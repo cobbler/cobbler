@@ -26,6 +26,7 @@ import os
 import sys
 import time
 import traceback
+from typing import Any, Dict
 
 from cobbler import module_loader
 
@@ -129,7 +130,20 @@ def deserialize(collection, topological: bool = True):
     __release_lock()
 
 
-def __get_storage_module(collection_type):
+def deserialize_item(collection_type: str, item_name: str) -> Dict[str, Any]:
+    """
+    Load a collection item from disk.
+    :param collection_type: The collection type to deserialize.
+    :param item_name: The collection item name to deserialize.
+    """
+    __grab_lock()
+    storage_module = __get_storage_module(collection_type)
+    result = storage_module.deserialize_item(collection_type, item_name)
+    __release_lock()
+    return result
+
+
+def __get_storage_module(collection_type: str):
     """
     Look up serializer in /etc/cobbler/modules.conf
 

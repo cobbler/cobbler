@@ -76,24 +76,25 @@ Starting with 3.2.1
 Migration matrix
 ################
 
-=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
-To/From  <2.8.5   2.8.5   3.0.0   3.0.1   3.1.0   3.1.1   3.1.2   3.2.0   3.2.1   3.3.0   3.3.1   3.3.2   3.3.3   3.3.4
-=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
-2.8.5      x        o       --      --      --      --      --      --      --      --      --      --      --      --
-3.0.0      x        x       o       --      --      --      --      --      --      --      --      --      --      --
-3.0.1      x        x       x       o       --      --      --      --      --      --      --      --      --      --
-3.1.0      x        x       x       x       o       --      --      --      --      --      --      --      --      --
-3.1.1      x        x       x       x       x       o       --      --      --      --      --      --      --      --
-3.1.2      x        x       x       x       x       x       o       --      --      --      --      --      --      --
-3.2.0      x        x       x       x       x       x       x       o       --      --      --      --      --      --
-3.2.1      x        x       x       x       x       x       x       x       o       --      --      --      --      --
-3.3.0      x        x       x       x       x       x       x       x       x       o       --      --      --      --
-3.3.1      x        x       x       x       x       x       x       x       x       x       o       --      --      --
-3.3.2      x        x       x       x       x       x       x       x       x       x       x       o       --      --
-3.3.3      x        x       x       x       x       x       x       x       x       x       x       x       o       --
-3.3.4      x        x       x       x       x       x       x       x       x       x       x       x       x       --
-main       --       --      --      --      --      --      --      --      --      --      --      --      --      o
-=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
+To/From  <2.8.5   2.8.5   3.0.0   3.0.1   3.1.0   3.1.1   3.1.2   3.2.0   3.2.1   3.3.0   3.3.1   3.3.2   3.3.3   3.3.4   3.3.5
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
+2.8.5      x        o       --      --      --      --      --      --      --      --      --      --      --      --      --
+3.0.0      x        x       o       --      --      --      --      --      --      --      --      --      --      --      --
+3.0.1      x        x       x       o       --      --      --      --      --      --      --      --      --      --      --
+3.1.0      x        x       x       x       o       --      --      --      --      --      --      --      --      --      --
+3.1.1      x        x       x       x       x       o       --      --      --      --      --      --      --      --      --
+3.1.2      x        x       x       x       x       x       o       --      --      --      --      --      --      --      --
+3.2.0      x        x       x       x       x       x       x       o       --      --      --      --      --      --      --
+3.2.1      x        x       x       x       x       x       x       x       o       --      --      --      --      --      --
+3.3.0      x        x       x       x       x       x       x       x       x       o       --      --      --      --      --
+3.3.1      x        x       x       x       x       x       x       x       x       x       o       --      --      --      --
+3.3.2      x        x       x       x       x       x       x       x       x       x       x       o       --      --      --
+3.3.3      x        x       x       x       x       x       x       x       x       x       x       x       o       --      --
+3.3.4      x        x       x       x       x       x       x       x       x       x       x       x       x       o       --
+3.3.5      x        x       x       x       x       x       x       x       x       x       x       x       x       x       o
+main       --       --      --      --      --      --      --      --      --      --      --      --      --      --      --
+=======  ======   ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======
 
 **Legend**: x: supported, o: same version, -: not supported
 
@@ -1104,6 +1105,20 @@ yumdownloader_flags
 Flags to use for yumdownloader. Not all versions may support ``--resolve``.
 
 default: ``"--resolve"``
+
+lazy_start
+##########
+
+Set to ``True`` to speed up the start of the Cobbler. When storing collections as files, the directory with the names
+of the collection elements will be scanned without reading and parsing the files themselves. In the case of storing
+collections in the database, a projection query is made that includes only the names of the collection elements.
+The first time an attribute of an element other than a name is accessed, a full read of all other attributes will be
+performed, and a recursive full read of all elements on which this element depends. At startup, a background task is
+also launched, which, when idle, fills in all the properties of the elements of the collections.
+Suitable for configurations with a large number of elements placed on a slow device (HDD, network).
+
+default: ``False``
+
 
 ``modules.conf``
 ################

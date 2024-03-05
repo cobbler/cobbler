@@ -41,7 +41,7 @@ class Files(collection.Collection):
         """
         Return a File forged from item_dict
         """
-        new_file = file.File(api)
+        new_file = file.File(api, **item_dict)
         new_file.from_dict(item_dict)
         return new_file
 

@@ -45,7 +45,7 @@ class Mgmtclasses(collection.Collection):
         :param item_dict: TODO
         :returns: TODO
         """
-        new_mgmtclass = mgmtclass.Mgmtclass(api)
+        new_mgmtclass = mgmtclass.Mgmtclass(api, **item_dict)
         new_mgmtclass.from_dict(item_dict)
         return new_mgmtclass
 

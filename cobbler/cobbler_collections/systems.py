@@ -46,7 +46,7 @@ class Systems(collection.Collection):
         :param item_dict: TODO
         :returns: TODO
         """
-        new_system = system.System(api)
+        new_system = system.System(api, **item_dict)
         new_system.from_dict(item_dict)
         return new_system
 

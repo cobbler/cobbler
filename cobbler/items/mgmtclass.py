@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 import uuid
 from typing import Union
+from cobbler.decorator import LazyProperty
 
 from cobbler.items import item
 from cobbler import utils
@@ -41,11 +42,16 @@ class Mgmtclass(item.Item):
         :param kwargs: The keyword arguments which should be passed additionally to the base Item class constructor.
         """
         super().__init__(api, *args, **kwargs)
+        self._has_initialized = False
+
         self._is_definition = False
         self._params = {}
         self._class_name = ""
         self._files = []
         self._packages = []
+
+        if not self._has_initialized:
+            self._has_initialized = True
 
     #
     # override some base class methods first (item.Item)
@@ -64,20 +70,11 @@ class Mgmtclass(item.Item):
         cloned.uid = uuid.uuid4().hex
         return cloned
 
-    def from_dict(self, dictionary: dict):
-        """
-        Initializes the object with attributes from the dictionary.
-
-        :param dictionary: The dictionary with values.
-        """
-        self._remove_depreacted_dict_keys(dictionary)
-        super().from_dict(dictionary)
-
     #
     # specific methods for item.Mgmtclass
     #
 
-    @property
+    @LazyProperty
     def packages(self) -> list:
         """
         Packages property.
@@ -96,7 +93,7 @@ class Mgmtclass(item.Item):
         """
         self._packages = utils.input_string_or_list(packages)
 
-    @property
+    @LazyProperty
     def files(self) -> list:
         """
         Files property.
@@ -115,7 +112,7 @@ class Mgmtclass(item.Item):
         """
         self._files = utils.input_string_or_list(files)
 
-    @property
+    @LazyProperty
     def params(self) -> dict:
         """
         Params property.
@@ -138,7 +135,7 @@ class Mgmtclass(item.Item):
         except TypeError as e:
             raise TypeError("invalid value for params") from e
 
-    @property
+    @LazyProperty
     def is_definition(self) -> bool:
         """
         Is_definition property.
@@ -161,7 +158,7 @@ class Mgmtclass(item.Item):
             raise TypeError("Field is_defintion from mgmtclass must be of type bool.")
         self._is_definition = isdef
 
-    @property
+    @LazyProperty
     def class_name(self) -> str:
         """
         The name of the management class.

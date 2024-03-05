@@ -24,6 +24,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import configparser
 import pathlib
 from configparser import ConfigParser
+from typing import Any, Dict
+
+import yaml
 
 from cobbler import settings
 from cobbler.cexceptions import CX
@@ -38,6 +41,7 @@ except ModuleNotFoundError:
     pymongo_loaded = False
 
 mongodb = None
+DATABASE_NAME = "cobbler"
 
 
 def __connect(configfile: str = "/etc/cobbler/mongodb.conf"):
@@ -61,10 +65,11 @@ def __connect(configfile: str = "/etc/cobbler/mongodb.conf"):
     port = cp.getint("connection", "port", fallback=27017)
     # pylint: disable=global-statement
     global mongodb
-    mongodb = MongoClient(host, port)["cobbler"]
+    mongo_client = MongoClient(host, port)
+    mongodb = mongo_client[DATABASE_NAME]
     try:
         # The ismaster command is cheap and doesn't require auth.
-        mongodb.admin.command("ismaster")
+        mongo_client.admin.command("ping")
     except ConnectionFailure as e:
         # FIXME: log error
         raise CX('Unable to connect to Mongo database or get database "cobbler"') from e
@@ -144,10 +149,23 @@ def deserialize_raw(collection_type: str):
     """
     if collection_type == "settings":
         return settings.read_settings_file()
-    else:
-        __connect()
-        collection = mongodb[collection_type]
-        return collection.find()
+
+    __connect()
+    results = []
+    projection = None
+    collection = mongodb[collection_type]
+    with open("/etc/cobbler/settings.yaml", encoding="UTF-8") as settings_file:
+        lazy_start = yaml.safe_load(settings_file).get("lazy_start", False)
+    if lazy_start:
+        projection = ["name"]
+
+    # pymongo.cursor.Cursor
+    cursor = collection.find(projection=projection)
+    for result in cursor:
+        _remove_id(result)
+        result["inmemory"] = not lazy_start
+        results.append(result)
+    return results
 
 
 def deserialize(collection, topological: bool = True):
@@ -160,8 +178,31 @@ def deserialize(collection, topological: bool = True):
 
     datastruct = deserialize_raw(collection.collection_type())
     if topological and type(datastruct) == list:
-        datastruct.sort(key=lambda x: x["depth"])
+        datastruct.sort(key=lambda x: x.get("depth", 1))
     if type(datastruct) == dict:
         collection.from_dict(datastruct)
     elif type(datastruct) == list:
         collection.from_list(datastruct)
+
+def deserialize_item(collection_type: str, name: str) -> Dict[str, Any]:
+    """
+    Get a collection item from database.
+    :param collection_type: The collection type to fetch.
+    :param name: collection Item name
+    :return: Dictionary of the collection item.
+    """
+    mongodb_collection = mongodb[collection_type]
+    result = mongodb_collection.find_one({"name": name})
+    if result is None:
+        raise CX(
+            f"Item {name} of collection {collection_type} was not found in MongoDB database {DATABASE_NAME}!"
+        )
+
+    _remove_id(result)
+
+    result["inmemory"] = True
+    return result
+
+def _remove_id(_dict: Dict[str, Any]):
+    if "_id" in _dict:
+        _dict.pop("_id")

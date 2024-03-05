@@ -93,6 +93,13 @@ class Collection:
         """
         return self.listing.get(name.lower(), None)
 
+    def get_names(self) -> List[str]:
+        """
+        Return list of names in the collection.
+        :return: list of names in the collection.
+        """
+        return list(self.listing)
+    
     def find(self, name: str = "", return_list: bool = False, no_errors=False,
              **kargs: dict) -> Union[List[item_base.Item], item_base.Item, None]:
         """
@@ -128,8 +135,8 @@ class Collection:
 
         self.lock.acquire()
         try:
-            for (name, obj) in list(self.listing.items()):
-                if obj.find_match(kargs, no_errors=no_errors):
+            for obj in self:
+                if obj.inmemory and obj.find_match(kargs, no_errors=no_errors):
                     matches.append(obj)
         finally:
             self.lock.release()
@@ -208,19 +215,26 @@ class Collection:
         :param ref: The reference to the object which should be copied.
         :param newname: The new name for the copied object.
         """
-        ref = ref.make_clone()
-        ref.uid = uuid.uuid4().hex
-        ref.ctime = time.time()
-        ref.name = newname
-        if ref.COLLECTION_TYPE == "system":
+        copied_item = ref.make_clone()
+        copied_item.uid = uuid.uuid4().hex
+        copied_item.ctime = time.time()
+        copied_item.name = newname
+        if copied_item.COLLECTION_TYPE == "system":
             # this should only happen for systems
-            for interface in ref.interfaces:
+            for interface in copied_item.interfaces:
                 # clear all these out to avoid DHCP/DNS conflicts
-                ref.interfaces[interface].dns_name = ""
-                ref.interfaces[interface].mac_address = ""
-                ref.interfaces[interface].ip_address = ""
+                copied_item.interfaces[interface].dns_name = ""
+                copied_item.interfaces[interface].mac_address = ""
+                copied_item.interfaces[interface].ip_address = ""
 
-        self.add(ref, save=True, with_copy=True, with_triggers=True, with_sync=True, check_for_duplicate_names=True)
+        self.add(
+            copied_item,
+            save=True,
+            with_copy=True,
+            with_triggers=True,
+            with_sync=True,
+            check_for_duplicate_names=True
+        )
 
     def rename(self, ref: item_base.Item, newname, with_sync: bool = True, with_triggers: bool = True):
         """
@@ -387,11 +401,6 @@ class Collection:
             self.listing[ref.name.lower()] = ref
         finally:
             self.lock.release()
-
-        # update children cache in parent object in case it is not in there already
-        if ref.parent and ref.name not in ref.parent.children:
-            ref.parent.children.append(ref.name)
-            self.logger.debug("Added child \"%s\" to parent \"%s\"", ref.name, ref.parent.name)
 
         # perform filesystem operations
         if save:
