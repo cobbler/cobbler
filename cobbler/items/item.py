@@ -970,7 +970,7 @@ class Item:
                     serialized_interfaces = {}
                     interfaces = key_value
                     for interface_key in interfaces:
-                        serialized_interfaces[interface_key] = interfaces[interface_key].to_dict()
+                        serialized_interfaces[interface_key] = interfaces[interface_key].to_dict(resolved=resolved)
                     value[new_key] = serialized_interfaces
                 elif isinstance(key_value, list):
                     value[new_key] = copy.deepcopy(key_value)
