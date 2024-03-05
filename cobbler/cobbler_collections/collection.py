@@ -133,17 +133,10 @@ class Collection:
             except:
                 return self.listing.get(kargs["name"], None)
 
-        if self.api.settings().lazy_start:
-            # Forced deserialization of the entire collection to prevent deadlock in the search loop
-            for obj_name in self.get_names():
-                obj = self.get(obj_name)
-                if obj is not None and not obj.inmemory:
-                    obj.deserialize()
-
         self.lock.acquire()
         try:
             for obj in self:
-                if obj.find_match(kargs, no_errors=no_errors):
+                if obj.inmemory and obj.find_match(kargs, no_errors=no_errors):
                     matches.append(obj)
         finally:
             self.lock.release()
