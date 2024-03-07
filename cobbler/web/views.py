@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
 
+import ipaddress
 import simplejson
 import time
 import xmlrpc.client
@@ -974,6 +975,41 @@ def events(request):
 
     html = render(request, 'events.tmpl', {
         'results': events2,
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username
+    })
+    return HttpResponse(html)
+
+# ======================================================================
+
+
+def iplist(request):
+    """
+    This page presents a list of all the IP addresses
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/iplist", expired=True)
+    systems = remote.get_systems()
+    iplist = []
+    for system in systems:
+        for iname in system["interfaces"]:
+            if system["interfaces"][iname]["ip_address"] != "" and \
+               system["interfaces"][iname]["interface_type"] != "bond_slave" and \
+               system["interfaces"][iname]["interface_type"] != "bridge_slave":
+                if system["interfaces"][iname]["dns_name"] != "":
+                    iplist.append([system["interfaces"][iname]["ip_address"], system["interfaces"][iname]["dns_name"],
+                                  system["name"], iname, system["interfaces"][iname]["mac_address"]])
+                else:
+                    iplist.append([system["interfaces"][iname]["ip_address"], system["hostname"], system["name"], iname,
+                                   system["interfaces"][iname]["mac_address"]])
+
+    def to_ip_addr(a):
+        return ipaddress.ip_address(str(a[0]))
+
+    iplist = sorted(iplist, key=to_ip_addr)
+
+    html = render(request, 'iplist.tmpl', {
+        'results': iplist,
         'version': remote.extended_version(request.session['token'])['version'],
         'username': username
     })

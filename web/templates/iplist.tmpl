@@ -1,0 +1,42 @@
+{% extends "master.tmpl" %}
+
+{% block content %}
+
+<script type="text/javascript">
+function action_sort(value) {
+    document.forms["action"].action = '/cobbler_web/iplist/modifylist/sort/' + value;
+    document.forms["action"].submit();
+}
+</script>
+<h1>IP Addresses</h1>
+<hr />
+{% if results %}
+<table id="listitems" cellspacing="0">
+  <thead>
+    <tr>
+      <th></th>
+      <th width="20%"><a href="javascript:action_sort('ip_address');">IP Address</a></th>
+      <th width="30%"><a href="javascript:action_sort('dns_name');">DNS Name</a></th>
+      <th width="20%"><a href="javascript:action_sort('name');">System</a></th>
+      <th width="10%"><a href="javascript:action_sort('interface');">Interface</a></th>
+      <th width="20%"><a href="javascript:action_sort('mac_address');">MAC Address</a></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for line in results %}
+    <tr class="{% cycle 'rowodd' 'roweven' %}">
+      <td></td>
+      <td>{{ line.0|safe }}</td>
+      <td>{{ line.1|safe }}</td>
+      <td>{{ line.2|safe }}</td>
+      <td>{{ line.3|safe }}</td>
+      <td>{{ line.4|safe }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<h2>No IP addresses</h2>
+{% endif %}
+
+{% endblock %}
