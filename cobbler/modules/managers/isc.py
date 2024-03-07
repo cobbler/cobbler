@@ -150,9 +150,6 @@ class IscManager:
                     dhcp_tag = interface["dhcp_tag"]
                     host = interface["dns_name"]
 
-                if distro is not None:
-                    interface["distro"] = distro.to_dict()
-
                 if mac is None or mac == "":
                     # can't write a DHCP entry for this system
                     continue
@@ -184,6 +181,12 @@ class IscManager:
                 interface["enable_gpxe"] = blended_system["enable_gpxe"]
                 interface["name_servers"] = blended_system["name_servers"]
                 interface["mgmt_parameters"] = blended_system["mgmt_parameters"]
+
+                if profile is not None:
+                    interface["profile"] = profile.to_dict()
+
+                if distro is not None:
+                    interface["distro"] = distro.to_dict()
 
                 # Explicitly declare filename for other (non x86) archs as in DHCP discover package mostly the
                 # architecture cannot be differed due to missing bits...
