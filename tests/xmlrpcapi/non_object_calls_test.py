@@ -184,7 +184,7 @@ def test_get_random_mac(remote, token):
     Test: get a random mac for a virtual network interface
     """
 
-    mac = remote.get_random_mac("xen", token)
+    mac = remote.get_random_mac("kvm", token)
     hexa = "[0-9A-Fa-f]{2}"
     match_obj = re.match(
         "%s:%s:%s:%s:%s:%s" % (hexa, hexa, hexa, hexa, hexa, hexa), mac
@@ -226,7 +226,7 @@ def test_get_random_mac(remote, token):
                     "netmask": "",
                     "static": False,
                     "static_routes": [],
-                    "virt_bridge": "xenbr0",
+                    "virt_bridge": "virbr0",
                 }
             },
             does_not_raise(),

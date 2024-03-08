@@ -205,7 +205,7 @@ def is_ip(strdata: str) -> bool:
     return True
 
 
-def get_random_mac(api_handle: "CobblerAPI", virt_type: str = "xenpv") -> str:
+def get_random_mac(api_handle: "CobblerAPI", virt_type: str = "kvm") -> str:
     """
     Generate a random MAC address.
 

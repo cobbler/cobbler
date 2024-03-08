@@ -16,6 +16,8 @@ V3.4.0 (unreleased)
         * ``input_string_or_dict_no_inherit``
         * ``input_boolean``
         * ``input_int``
+    * Changed:
+        * ```get_random_mac``: Change default `virt_type`` to ``kvm``
 
 V3.3.4 (unreleased)
     * No changes
@@ -3352,7 +3354,7 @@ class CobblerXMLRPCInterface:
         return self.xmlrpc_hacks({})
 
     def get_random_mac(
-        self, virt_type: str = "xenpv", token: Optional[str] = None, **rest: Any
+        self, virt_type: str = "kvm", token: Optional[str] = None, **rest: Any
     ) -> str:
         """
         Wrapper for ``utils.get_random_mac()``. Used in the webui.

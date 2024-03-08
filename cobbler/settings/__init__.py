@@ -171,11 +171,11 @@ class Settings:
         self.default_ownership = ["admin"]
         self.default_password_crypted = r"\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac."
         self.default_template_type = "cheetah"
-        self.default_virt_bridge = "xenbr0"
+        self.default_virt_bridge = "virbr0"
         self.default_virt_disk_driver = "raw"
         self.default_virt_file_size = 5.0
         self.default_virt_ram = 512
-        self.default_virt_type = "xenpv"
+        self.default_virt_type = "kvm"
         self.enable_ipxe = False
         self.enable_menu = True
         self.extra_settings_list: List[str] = []

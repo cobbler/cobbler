@@ -314,7 +314,7 @@ listed below:
 +---------------------+------------------------------------------------------------------------------------------------+
 | virt-bridge         | (Virt-only) This specifies the default bridge to use for all systems defined under this        |
 |                     | profile. If not specified, it will assume the default value in the Cobbler settings file, which|
-|                     | as shipped in the RPM is ``xenbr0``. If using KVM, this is most likely not correct. You may    |
+|                     | as shipped in the RPM is ``virbr0``. If not using NAT, this is most likely not correct. You may|
 |                     | want to override this setting in the system object. Bridge settings are important as they      |
 |                     | define how outside networking will reach the guest. For more information on bridge setup, see  |
 |                     | the Cobbler Wiki, where there is a section describing Koan usage.                              |
@@ -342,11 +342,11 @@ listed below:
 |                     | as an integer without units.                                                                   |
 +---------------------+------------------------------------------------------------------------------------------------+
 | virt-type           | (Virt-only) Koan can install images using either Xen paravirt (``xenpv``) or QEMU/KVM          |
-|                     | (``qemu``). Choose one or the other strings to specify, or values will default to attempting to|
-|                     | find a compatible installation type on the client system("auto"). See the "Koan" manpage for   |
-|                     | more documentation. The default ``--virt-type`` can be configured in the Cobbler settings file |
-|                     | such that this parameter does not have to be provided. Other virtualization types are          |
-|                     | supported, for information on those options (such as VMware), see the Cobbler Wiki.            |
+|                     | (``qemu``/``kvm``). Choose one or the other strings to specify, or values will default to      |
+|                     | attempting to find a compatible installation type on the client system("auto"). See the "Koan" |
+|                     | manpage for more documentation. The default ``--virt-type`` can be configured in the Cobbler   |
+|                     | settings file such that this parameter does not have to be provided. Other virtualization types|
+|                     | are supported, for information on those options (such as VMware), see the Cobbler Wiki.        |
 +---------------------+------------------------------------------------------------------------------------------------+
 
 Cobbler system
@@ -643,7 +643,7 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 +---------------------+------------------------------------------------------------------------------------------------+
 | virt-bridge         | (Virt-only) This specifies the default bridge to use for all systems defined under this        |
 |                     | profile. If not specified, it will assume the default value in the Cobbler settings file, which|
-|                     | as shipped in the RPM is ``xenbr0``. If using KVM, this is most likely not correct. You may    |
+|                     | as shipped in the RPM is ``virbr0``. If no using NAT, this is most likely not correct. You may |
 |                     | want to override this setting in the system object. Bridge settings are important as they      |
 |                     | define how outside networking will reach the guest. For more information on bridge setup, see  |
 |                     | the Cobbler Wiki, where there is a section describing Koan usage.                              |
@@ -671,11 +671,11 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 |                     | as an integer without units.                                                                   |
 +---------------------+------------------------------------------------------------------------------------------------+
 | virt-type           | (Virt-only) Koan can install images using either Xen paravirt (``xenpv``) or QEMU/KVM          |
-|                     | (``qemu``). Choose one or the other strings to specify, or values will default to attempting to|
-|                     | find a compatible installation type on the client system("auto"). See the "Koan" manpage for   |
-|                     | more documentation. The default ``--virt-type`` can be configured in the Cobbler settings file |
-|                     | such that this parameter does not have to be provided. Other virtualization types are          |
-|                     | supported, for information on those options (such as VMware), see the Cobbler Wiki.            |
+|                     | (``qemu``/``kvm``). Choose one or the other strings to specify, or values will default to      |
+|                     | attempting to find a compatible installation type on the client system("auto"). See the "Koan" |
+|                     | manpage for more documentation. The default ``--virt-type`` can be configured in the Cobbler   |
+|                     | settings file such that this parameter does not have to be provided. Other virtualization types|
+|                     | are supported, for information on those options (such as VMware), see the Cobbler Wiki.        |
 +---------------------+------------------------------------------------------------------------------------------------+
 
 Cobbler repo
