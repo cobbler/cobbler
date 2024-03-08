@@ -337,7 +337,7 @@ rm %{buildroot}%{_sysconfdir}/cobbler/cobbler_web.conf
 
 # ghosted files
 touch %{buildroot}%{_sharedstatedir}/cobbler/web.ss
-chmod 0600 %{buildroot}%{_sharedstatedir}/cobbler/web.ss
+chmod 0640 %{buildroot}%{_sharedstatedir}/cobbler/web.ss
 
 
 %pre
@@ -532,7 +532,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %{apache_dir}/cobbler_webui_content/
 %else
 %attr(-,%{apache_user},%{apache_group}) %{_datadir}/cobbler/web
-%ghost %attr(0660,%{apache_user},root) %{_sharedstatedir}/cobbler/web.ss
+%ghost %attr(0640,root,%{apache_group}) %{_sharedstatedir}/cobbler/web.ss
 %dir %attr(700,%{apache_user},root) %{_sharedstatedir}/cobbler/webui_sessions
 %attr(-,%{apache_user},%{apache_group}) %{apache_dir}/cobbler_webui_content/
 %endif
