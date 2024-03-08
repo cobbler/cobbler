@@ -16,7 +16,7 @@ jobs:
   build-rockylinux8-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build a Rocky Linux 8 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
@@ -24,7 +24,7 @@ jobs:
   build-fedora33-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build a Fedora 33 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
@@ -32,7 +32,7 @@ jobs:
   build-debian-debs:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build a Debian 10 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |

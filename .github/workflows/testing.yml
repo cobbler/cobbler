@@ -16,7 +16,7 @@ jobs:
   run_tests:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build Docker Test Container
         run: docker build -t cobbler -f docker/openSUSE_Leap.dockerfile .
       - name: Run previously built Docker Container
