@@ -169,14 +169,21 @@ class _DnsmasqManager(ManagerModule):
             for (_, interface) in system.interfaces.items():
                 mac = interface.mac_address
                 host = interface.dns_name
+                cnames = " ".join(interface.cnames)
                 ip = interface.ip_address
                 ipv6 = interface.ipv6_address
                 if not mac:
                     continue
                 if host is not None and host != "" and ipv6 is not None and ipv6 != "":
-                    fh.write(ipv6 + "\t" + host + "\n")
+                    if cnames:
+                        fh.write(ipv6 + "\t" + host + ' ' + cnames + "\n")
+                    else:
+                        fh.write(ipv6 + "\t" + host + "\n")
                 elif host is not None and host != "" and ip is not None and ip != "":
-                    fh.write(ip + "\t" + host + "\n")
+                    if cnames:
+                        fh.write(ip + "\t" + host + ' ' + cnames + "\n")
+                    else:
+                        fh.write(ip + "\t" + host + "\n")
         fh.close()
 
     def restart_service(self):
