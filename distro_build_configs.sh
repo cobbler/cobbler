@@ -29,7 +29,7 @@ export GRUB_MOD_FOLDER="/usr/share/grub2"
 [ $# -ge 1 ] && DISTRO="$1"
 
 if [ "$DISTRO" = "" ] && [ -r /etc/os-release ];then
-    source /etc/os-release
+    . /etc/os-release
     case $ID in
 	sle*|*suse*)
 	    DISTRO="SUSE"
