@@ -172,14 +172,25 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
                 for (_, interface) in system.interfaces.items():
                     mac = interface.mac_address
                     host = interface.dns_name
+                    cnames = " ".join(interface.cnames)
                     ipv4 = interface.ip_address
                     ipv6 = interface.ipv6_address
                     if not mac:
                         continue
                     if host != "" and ipv6 != "":
-                        regen_hosts_fd.write(ipv6 + "\t" + host + "\n")
+                        if cnames:
+                            regen_hosts_fd.write(
+                                ipv6 + "\t" + host + " " + cnames + "\n"
+                            )
+                        else:
+                            regen_hosts_fd.write(ipv6 + "\t" + host + "\n")
                     elif host != "" and ipv4 != "":
-                        regen_hosts_fd.write(ipv4 + "\t" + host + "\n")
+                        if cnames:
+                            regen_hosts_fd.write(
+                                ipv4 + "\t" + host + " " + cnames + "\n"
+                            )
+                        else:
+                            regen_hosts_fd.write(ipv4 + "\t" + host + "\n")
 
     def restart_service(self) -> int:
         """
