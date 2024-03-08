@@ -146,9 +146,6 @@ class _IscManager(DhcpManagerModule):
                     dhcp_tag = interface["dhcp_tag"]
                     host = interface["dns_name"]
 
-                if distro is not None:
-                    interface["distro"] = distro.to_dict()
-
                 if mac == "":
                     # can't write a DHCP entry for this system
                     continue
@@ -178,6 +175,12 @@ class _IscManager(DhcpManagerModule):
                 interface["owner"] = blended_system["name"]
                 interface["enable_ipxe"] = blended_system["enable_ipxe"]
                 interface["name_servers"] = blended_system["name_servers"]
+
+                if profile is not None:
+                    interface["profile"] = profile.to_dict()
+
+                if distro is not None:
+                    interface["distro"] = distro.to_dict()
 
                 # For esxi/UEFI export filename_esxi as path to efi bootloader
                 if distro and distro.os_version.startswith("esxi"):
@@ -329,8 +332,6 @@ class _IscManager(DhcpManagerModule):
                     dhcp_tag = interface["dhcp_tag"]
                     host = interface["dns_name"]
 
-                interface["distro"] = distro.to_dict()
-
                 if not mac or not ip_v6:
                     # can't write a DHCP entry for this system
                     self.logger.warning("%s has no IPv6 or MAC address", system.name)
@@ -359,6 +360,12 @@ class _IscManager(DhcpManagerModule):
                 interface["hostname"] = blended_system["hostname"]
                 interface["owner"] = blended_system["name"]
                 interface["name_servers"] = blended_system["name_servers"]
+
+                if profile is not None:
+                    interface["profile"] = profile.to_dict()
+
+                if distro is not None:
+                    interface["distro"] = distro.to_dict()
 
                 # Explicitly declare filename for other (non x86) archs as in DHCP discover package mostly the
                 # architecture cannot be differed due to missing bits...
