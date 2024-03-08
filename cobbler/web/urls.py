@@ -38,6 +38,7 @@ urlpatterns = [
     re_path(r'^utils/random_mac/virttype/(?P<virttype>.+)$', views.random_mac, name="utils_random_mac_virttype"),
     path('events', views.events, name="events"),
     re_path(r'^eventlog/(?P<event>.+)$', views.eventlog, name="events_log"),
+    path('iplist', views.iplist, name="iplist"),
     path('task_created', views.task_created, name="task_created"),
     path('sync', views.sync, name="sync"),
     path('reposync', views.reposync, name="reposync"),
