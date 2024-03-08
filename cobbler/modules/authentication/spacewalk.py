@@ -112,10 +112,13 @@ def authenticate(api_handle: "CobblerAPI", username: str, password: str) -> bool
     # pylint: enable=line-too-long
     if api_handle is None:
         raise CX("api_handle required. Please don't call this without it.")
-    server = api_handle.settings().redhat_management_server
+    server = "https://" + api_handle.settings().redhat_management_server
+    if api_handle.settings().uyuni_authentication_endpoint:
+        server = api_handle.settings().uyuni_authentication_endpoint
+
     user_enabled = api_handle.settings().redhat_management_permissive
 
-    spacewalk_url = f"https://{server}/rpc/api"
+    spacewalk_url = f"{server}/rpc/api"
     with ServerProxy(spacewalk_url, verbose=True) as client:
         if username == "taskomatic_user" or __looks_like_a_token(password):
             # The tokens are lowercase hex, but a password can also be lowercase hex, so we have to try it as both a

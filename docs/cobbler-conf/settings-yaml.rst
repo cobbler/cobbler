@@ -790,6 +790,16 @@ Cobbler XML-RPC.
 
 default: ``"xmlrpc.rhn.redhat.com"``
 
+uyuni_authentication_endpoint
+#################################
+
+This setting is only used by the code that supports using uyuni/SUSE Manager authentication within Cobbler Web and Cobbler XMLRPC.
+This is the endpoint for uyuni/SUSE Manager authentication: if empty redhat_management_server will be used.
+
+e.g.: ``uyuni_authentication_endpoint: http://localhost``
+
+default: ``""``
+
 redhat_management_key
 #####################
 
