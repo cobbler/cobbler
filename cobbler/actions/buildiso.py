@@ -224,9 +224,9 @@ class BuildIso:
                 if "proxy" in data and data["proxy"] != "":
                     append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
                 if dist.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
-                    append_line += " ks=%s" % self.data["autoinstall"]
+                    append_line += " ks=%s" % data["autoinstall"]
                 else:
-                    append_line += " inst.ks=%s" % self.data["autoinstall"]
+                    append_line += " inst.ks=%s" % data["autoinstall"]
 
             if dist.breed in ["ubuntu", "debian"]:
                 append_line += " auto-install/enable=true url=%s" % data["autoinstall"]
@@ -276,10 +276,10 @@ class BuildIso:
             if dist.breed == "redhat":
                 if "proxy" in data and data["proxy"] != "":
                     append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
-                if os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
-                    append_line += " ks=%s" % self.data["autoinstall"]
+                if dist.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
+                    append_line += " ks=%s" % data["autoinstall"]
                 else:
-                    append_line += " inst.ks=%s" % self.data["autoinstall"]
+                    append_line += " inst.ks=%s" % data["autoinstall"]
 
             if dist.breed in ["ubuntu", "debian"]:
                 append_line += " auto-install/enable=true url=%s netcfg/disable_autoconfig=true" % data["autoinstall"]
@@ -729,7 +729,7 @@ class BuildIso:
                         file_copy_success[file_to_copy] = True
 
         if False in file_copy_success.values():
-            for k, v in file_copy_success:
+            for k, v in file_copy_success.items():
                 if not v:
                     self.logger.error("File not found: %s" % k)
             utils.die(self.logger, "Required file(s) not found. Please check your syslinux installation")
