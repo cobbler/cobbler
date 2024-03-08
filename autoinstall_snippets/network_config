@@ -61,7 +61,7 @@
                             #set $network_str = $network_str + " --nameserver=" + $name_servers[0]
                         #end if
                     #else
-                        #set $network_str = "--bootproto=none"
+                        #set $network_str = "--no-activate"
                     #end if
                 #else
                     #set $network_str = "--bootproto=dhcp"
