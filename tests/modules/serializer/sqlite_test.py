@@ -17,6 +17,15 @@ from cobbler.settings import Settings
 from tests.conftest import does_not_raise
 
 
+@pytest.fixture()
+def test_settings(mocker: MockerFixture, cobbler_api: CobblerAPI):
+    settings = mocker.MagicMock(name="sqlite_setting_mock", spec=Settings)
+    settings.lazy_start = False
+    settings.cache_enabled = False
+    settings.serializer_pretty_json = False
+    return settings
+
+
 class MockItem(Item):
     """
     Test Item for the serializer tests.
@@ -55,10 +64,13 @@ class MockCollection(Collection[MockItem]):
 
 
 @pytest.fixture()
-def serializer_obj(cobbler_api: CobblerAPI, tmpdir: pathlib.Path):
+def serializer_obj(
+    mocker: MockerFixture, cobbler_api: CobblerAPI, tmpdir: pathlib.Path, test_settings
+):
     """
     Generates an empty serializer object that is ready to be used.
     """
+    mocker.patch.object(cobbler_api, "settings", return_value=test_settings)
     sqlite_obj = sqlite.storage_factory(cobbler_api)
     sqlite_obj.database_file = os.path.join(tmpdir, "tests.db")
 
@@ -242,10 +254,12 @@ def test_serialize(
 
 
 @pytest.mark.parametrize(
-    "input_collection_type,expected_result,settings_read",
+    "input_collection_type,expected_result,settings_read,lazy_start,expected_inmemory",
     [
-        ("settings", {}, True),
-        ("distros", [], False),
+        ("settings", {}, True, False, True),
+        ("tests", "test_deserialize_raw", False, False, True),
+        ("settings", {}, True, True, False),
+        ("tests", "test_deserialize_raw", False, True, False),
     ],
 )
 def test_deserialize_raw(
@@ -253,13 +267,24 @@ def test_deserialize_raw(
     input_collection_type: str,
     expected_result: Union[List[Any], Dict[Any, Any]],
     settings_read: bool,
+    lazy_start: bool,
+    expected_inmemory: bool,
     serializer_obj: sqlite.SQLiteSerializer,
+    cobbler_api: CobblerAPI,
+    test_settings,
 ):
     """
     Test that will assert if a given item can be deserilized in raw.
     """
     # Arrange
     mocker.patch("cobbler.settings.read_settings_file", return_value=expected_result)
+    mitem = MockItem(cobbler_api)
+    mitem.name = "test_deserialize_raw"
+    mitem.item = "{'name': 'test_deserialize_raw'}"
+    mcollection = MockCollection(cobbler_api._collection_mgr)  # type: ignore
+    mcollection.listing[mitem.name] = mitem
+    serializer_obj.serialize(mcollection)  # type: ignore
+    test_settings.lazy_start = lazy_start
 
     # Act
     result = serializer_obj.deserialize_raw(input_collection_type)
@@ -270,7 +295,11 @@ def test_deserialize_raw(
     serializer_obj.connection.close()  # type: ignore
 
     # Assert
-    assert result == expected_result
+    if input_collection_type == "settings":
+        assert result == expected_result
+    else:
+        assert result[0]["name"] == expected_result
+        assert result[0]["inmemory"] == expected_inmemory
 
 
 @pytest.mark.parametrize(
