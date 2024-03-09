@@ -64,7 +64,9 @@ class Collection(Generic[ITEM]):
         self.listing: Dict[str, ITEM] = {}
         self.api = self.collection_mgr.api
         self.__lite_sync: Optional["CobblerSync"] = None
-        self.lock = Lock()
+        self.lock: Lock = Lock()
+        self._inmemory: bool = not self.api.settings().lazy_start
+        self._deserialize_running: bool = False
         self.logger = logging.getLogger()
 
     def __iter__(self) -> Iterator[ITEM]:
@@ -90,6 +92,44 @@ class Collection(Generic[ITEM]):
         if self.__lite_sync is None:
             self.__lite_sync = self.api.get_sync()
         return self.__lite_sync
+
+    @property
+    def inmemory(self) -> bool:
+        r"""
+        If set to ``true``, then all items of the collection are loaded into memory.
+
+        :getter: The inmemory for the collection.
+        :setter: The new inmemory value for the collection.
+        """
+        return self._inmemory
+
+    @inmemory.setter
+    def inmemory(self, inmemory: bool):
+        """
+        Setter for the inmemory of the collection.
+
+        :param inmemory: The new inmemory value.
+        """
+        self._inmemory = inmemory
+
+    @property
+    def deserialize_running(self) -> bool:
+        r"""
+        If set to ``true``, then the collection items are currently being loaded from disk.
+
+        :getter: The deserialize_running for the collection.
+        :setter: The new deserialize_running value for the collection.
+        """
+        return self._deserialize_running
+
+    @deserialize_running.setter
+    def deserialize_running(self, deserialize_running: bool):
+        """
+        Setter for the deserialize_running of the collection.
+
+        :param deserialize_running: The new deserialize_running value.
+        """
+        self._deserialize_running = deserialize_running
 
     @abstractmethod
     def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]) -> ITEM:
@@ -177,14 +217,11 @@ class Collection(Generic[ITEM]):
 
         if self.api.settings().lazy_start:
             # Forced deserialization of the entire collection to prevent deadlock in the search loop
-            for obj_name in self.get_names():
-                obj = self.get(obj_name)
-                if obj is not None and not obj.inmemory:
-                    obj.deserialize()
+            self._deserialize()
 
         with self.lock:
             for obj in self:
-                if obj.find_match(kargs, no_errors=no_errors):
+                if obj.inmemory and obj.find_match(kargs, no_errors=no_errors):
                     matches.append(obj)
 
         if not return_list:
@@ -501,6 +538,23 @@ class Collection(Generic[ITEM]):
                     f"/var/lib/cobbler/triggers/add/{self.collection_type()}/post/*",
                     [],
                 )
+
+    def _deserialize(self) -> None:
+        """
+        Loading all collection items from disk in case of lazy start.
+        """
+        if self.inmemory or self.deserialize_running:
+            # Preventing infinite recursion if a collection search is required when loading item properties.
+            # Also prevents unnecessary looping through the collection if all items are already in memory.
+            return
+
+        self.deserialize_running = True
+        for obj_name in self.get_names():
+            obj = self.get(obj_name)
+            if obj is not None and not obj.inmemory:
+                obj.deserialize()
+        self.inmemory = True
+        self.deserialize_running = False
 
     def to_string(self) -> str:
         """

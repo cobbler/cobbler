@@ -1830,7 +1830,7 @@ class CobblerXMLRPCInterface:
         Adjusts the value of a given field, specified by 'what' on a given object id. Allows modification of certain
         attributes on newly created or existing distro object handle.
 
-        :param what: The type of object to modify.1
+        :param what: The type of object to modify.
         :param object_id: The id of the object which shall be modified.
         :param attribute: The attribute name which shall be edited.
         :param arg: The new value for the argument.
