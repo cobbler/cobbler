@@ -1751,6 +1751,7 @@ class CobblerXMLRPCInterface:
         """
         self._log(f"new_item({what})", token=token)
         self.check_access(token, f"new_{what}")
+        self.__check_items_ready(what)
         new_item = self.api.new_item(what, is_subobject, **kwargs)
         self.unsaved_items[new_item.uid] = (time.time(), new_item)
         return new_item.uid
@@ -1830,7 +1831,7 @@ class CobblerXMLRPCInterface:
         Adjusts the value of a given field, specified by 'what' on a given object id. Allows modification of certain
         attributes on newly created or existing distro object handle.
 
-        :param what: The type of object to modify.1
+        :param what: The type of object to modify.
         :param object_id: The id of the object which shall be modified.
         :param attribute: The attribute name which shall be edited.
         :param arg: The new value for the argument.
@@ -1845,6 +1846,7 @@ class CobblerXMLRPCInterface:
         )
         obj = self.__get_object(object_id)
         self.check_access(token, f"modify_{what}", obj.name, attribute)
+        self.__check_items_ready(what)
 
         if what == "system":
             if attribute == "modify_interface":
@@ -3841,6 +3843,20 @@ class CobblerXMLRPCInterface:
         self._log("get_tftp_file", token=token)
         self.check_access(token, "get_tftp_file")
         return self.api.get_tftp_file(path, offset, size)
+
+    def __check_items_ready(self, what: str) -> None:
+        """
+        Checking whether the collection items have already been loaded into memory
+        or are not in the process of being loaded.
+
+        :param what: The type of objects.
+        """
+        collection = self.api.get_items(what)
+
+        if not collection.inmemory and collection.deserialize_running:
+            raise CX(
+                f"The {what} collection is not ready yet, please run the command later"
+            )
 
 
 # *********************************************************************************
