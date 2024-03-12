@@ -28,6 +28,9 @@ from cobbler.cexceptions import CX
 RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
 RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
 RE_SCRIPT_NAME = re.compile(r"[a-zA-Z0-9_\-.]+")
+RE_INFINIBAND_MAC = re.compile(
+    "^" + ":".join(["([0-9A-F]{1,2})"] * 20) + "$", re.IGNORECASE
+)
 
 REPO_BREEDS = ["rsync", "rhn", "yum", "apt", "wget"]
 
@@ -107,7 +110,7 @@ def mac_address(mac: str, for_item=True) -> str:
         if mac == "":
             return mac
 
-    if not netaddr.valid_mac(mac):
+    if not netaddr.valid_mac(mac) and RE_INFINIBAND_MAC.match(mac) is None:
         raise CX("Invalid mac address format (%s)" % mac)
 
     return mac
