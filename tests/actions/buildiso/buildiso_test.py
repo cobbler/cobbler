@@ -169,21 +169,20 @@ def test_netboot_generate_boot_loader_configs(
     assert len(matching_grub_system_kopts) == 1
     assert len(matching_isolinux_system_kopts) == 1
 
+
 def test_netboot_generate_boot_loader_config_for_profile_only(
     cobbler_api, create_distro, create_profile, create_system
 ):
     test_distro = create_distro()
-    test_distro.kernel_options = 'test_distro_option=distro'
+    test_distro.kernel_options = "test_distro_option=distro"
     test_profile = create_profile(test_distro.name)
-    test_profile.kernel_options = 'test_profile_option=profile'
+    test_profile.kernel_options = "test_profile_option=profile"
     test_system = create_system(test_profile.name)
-    test_system.kernel_options = 'test_system_option=system'
+    test_system.kernel_options = "test_system_option=system"
     build_iso = NetbootBuildiso(cobbler_api)
 
     # Act
-    result = build_iso._generate_boot_loader_configs(
-        [test_profile], [], True
-    )
+    result = build_iso._generate_boot_loader_configs([test_profile], [], True)
     matching_isolinux_kernel = [
         part for part in result.isolinux if "KERNEL /1.krn" in part
     ]
@@ -222,7 +221,7 @@ def test_netboot_generate_boot_loader_config_for_profile_only(
         matching_grub_distro_kopts,
         matching_grub_profile_kopts,
         matching_isolinux_distro_kopts,
-        matching_isolinux_profile_kopts
+        matching_isolinux_profile_kopts,
     ]:
         print(iterable_to_check)
         # one entry for the profile, and none for the system
@@ -231,6 +230,7 @@ def test_netboot_generate_boot_loader_config_for_profile_only(
     # there are no system entries
     assert len(matching_grub_system_kopts) == 0
     assert len(matching_isolinux_system_kopts) == 0
+
 
 def test_filter_system(
     cobbler_api: CobblerAPI,
