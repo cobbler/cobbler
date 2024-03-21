@@ -515,7 +515,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         return str(self.distctr)
 
     def _generate_boot_loader_configs(
-        self, profiles: List[Profile], systems: List[System], exclude_dns: bool
+        self, profiles: List["Profile"], systems: List["System"], exclude_dns: bool
     ) -> LoaderCfgsParts:
         """Generate boot loader configuration.
 
@@ -535,7 +535,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         return loader_config_parts
 
     def _generate_profiles_loader_configs(
-        self, profiles: List[Profile], loader_cfg_parts: LoaderCfgsParts
+        self, profiles: List["Profile"], loader_cfg_parts: LoaderCfgsParts
     ) -> None:
         """Generate isolinux configuration for profiles.
 
@@ -598,7 +598,7 @@ class NetbootBuildiso(buildiso.BuildIso):
 
     def _generate_systems_loader_configs(
         self,
-        systems: List[System],
+        systems: List["System"],
         exclude_dns: bool,
         loader_cfg_parts: LoaderCfgsParts,
     ) -> None:
@@ -675,7 +675,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         buildisodir: str = "",
         profiles: Optional[List[str]] = None,
         xorrisofs_opts: str = "",
-        distro_name: str = "",
+        distro_name: Optional[str] = None,
         systems: Optional[List[str]] = None,
         exclude_dns: bool = False,
         esp: Optional[str] = None,
@@ -713,9 +713,9 @@ class NetbootBuildiso(buildiso.BuildIso):
         if distro_name:
             distro_obj = self.parse_distro(distro_name)
         elif len(profile_list) > 0:
-            distro_obj = profile_list[0].get_conceptual_parent()
+            distro_obj = profile_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
         elif len(system_list) > 0:
-            distro_obj = system_list[0].get_conceptual_parent()
+            distro_obj = system_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
 
         if distro_obj is None:
             raise ValueError("Unable to find suitable distro and none set by caller")

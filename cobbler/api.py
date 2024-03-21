@@ -2155,7 +2155,7 @@ class CobblerAPI:
         profiles: Optional[List[str]] = None,
         systems: Optional[List[str]] = None,
         buildisodir: str = "",
-        distro_name: str = "",
+        distro_name: Optional[str] = None,
         standalone: bool = False,
         airgapped: bool = False,
         source: str = "",
