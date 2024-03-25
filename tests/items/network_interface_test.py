@@ -234,6 +234,11 @@ def test_dns_name(
         ("AA:BB", "", pytest.raises(ValueError)),
         (0, "", pytest.raises(TypeError)),
         ("random", "AA:BB:CC:DD:EE:FF", does_not_raise()),
+        (
+            "80:00:0a:43:fe:80:00:00:00:00:00:00:0e:fa:aa:bb:cc:dd:ee:ff",
+            "80:00:0a:43:fe:80:00:00:00:00:00:00:0e:fa:aa:bb:cc:dd:ee:ff",
+            does_not_raise(),
+        ),
         ("AA:AA:AA:AA:AA:AA", "", pytest.raises(ValueError)),
     ],
 )

@@ -31,6 +31,9 @@ RE_URL = re.compile(
     r"^[a-zA-Z\d-]{,63}(\.[a-zA-Z\d-]{,63})*$"
 )  # https://stackoverflow.com/a/2894918
 RE_SCRIPT_NAME = re.compile(r"[a-zA-Z0-9_\-.]+")
+RE_INFINIBAND_MAC = re.compile(
+    "^" + ":".join(["([0-9A-F]{1,2})"] * 20) + "$", re.IGNORECASE
+)
 
 # blacklist invalid values to the repo statement in autoinsts
 AUTOINSTALL_REPO_BLACKLIST = ["enabled", "gpgcheck", "gpgkey"]
@@ -85,7 +88,7 @@ def mac_address(mac: str, for_item: bool = True) -> str:
         if mac == "":
             return mac
 
-    if not netaddr.valid_mac(mac):  # type: ignore
+    if not netaddr.valid_mac(mac) and RE_INFINIBAND_MAC.match(mac) is None:  # type: ignore
         raise ValueError(f"Invalid mac address format ({mac})")
 
     return mac
