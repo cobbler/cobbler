@@ -52,7 +52,7 @@ def regen_ss_file():
     with open("/dev/urandom", 'rb') as fd:
         data = fd.read(512)
 
-    with open(ssfile, 'wb', 0o660) as fd:
+    with open(ssfile, 'wb', 0o640) as fd:
         fd.write(binascii.hexlify(data))
 
     http_user = "apache"
@@ -61,7 +61,7 @@ def regen_ss_file():
         http_user = "www-data"
     elif family == "suse":
         http_user = "wwwrun"
-    os.lchown("/var/lib/cobbler/web.ss", pwd.getpwnam(http_user)[2], -1)
+    os.lchown(ssfile, 0, pwd.getpwnam(http_user)[3])
 
 
 def do_xmlrpc_rw(cobbler_api: CobblerAPI, settings, port):
