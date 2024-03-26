@@ -22,7 +22,7 @@
 #if $system_name != ''
     ## PXE JUST ONCE
     #if $pxe_just_once
-        #if $breed == 'redhat'
+        #if $breed == 'redhat' or $breed == 'suse'
             #set nopxe = "\ncurl \"http://%s/cblr/svc/op/nopxe/system/%s\" -o /dev/null" % (srv, system_name)
         #else if $breed == 'vmware' and $os_version == 'esx4'
             #set nopxe = "\ncurl \"http://%s/cblr/svc/op/nopxe/system/%s\" -o /dev/null" % (srv, system_name)
@@ -48,7 +48,7 @@
     #end if
     ## RUN POST TRIGGER
     #if $run_install_triggers
-        #if $breed == 'redhat'
+        #if $breed == 'redhat' or $breed == 'suse'
             #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, object_type, object_name)
         #else if $breed == 'vmware' and $os_version == 'esx4'
             #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, object_type, object_name)
