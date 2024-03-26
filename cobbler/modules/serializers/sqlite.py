@@ -243,7 +243,10 @@ class SQLiteSerializer(StorageBase):
             ) from error
         cursor.arraysize = self.arraysize
         for result in cursor.fetchall():
-            _dict = json.loads(result[0])
+            if lazy_start:
+                _dict = {"name": result[0]}
+            else:
+                _dict = json.loads(result[0])
             _dict["inmemory"] = not lazy_start
             results.append(_dict)
         return results

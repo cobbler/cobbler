@@ -161,16 +161,16 @@ class CollectionManager:
         :raises CX: if there is an error in deserialization
         """
         collection: "COLLECTION_UNION"
-        for collection in (
-            self._menus,
-            self._distros,
-            self._repos,
-            self._profiles,
-            self._images,
-            self._systems,
+        for args in (
+            (self._menus, True),
+            (self._distros, False),
+            (self._repos, False),
+            (self._profiles, True),
+            (self._images, False),
+            (self._systems, False),
         ):
             try:
-                self.__serializer.deserialize(collection)  # type: ignore
+                self.__serializer.deserialize(collection=args[0], topological=args[1])  # type: ignore
             except Exception as error:
                 raise CX(
                     f"serializer: error loading collection {collection.collection_type()}: {error}."

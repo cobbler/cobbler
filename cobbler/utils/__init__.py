@@ -243,7 +243,7 @@ def get_random_mac(api_handle: "CobblerAPI", virt_type: str = "kvm") -> str:
 
     result = ":".join([f"{x:02x}" for x in mac])
     systems = api_handle.systems()
-    while systems.find(mac_address=mac):
+    while systems.find(mac_address=result):
         result = get_random_mac(api_handle)
 
     return result
