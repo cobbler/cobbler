@@ -13,6 +13,7 @@ Build-Depends:
  python3-cheetah,
  python3-dns,
  python3-sphinx,
+ python3-yaml,
  dh-python,
  debhelper (>=12)
 Standards-Version: 4.5.1
