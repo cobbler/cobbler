@@ -1016,6 +1016,9 @@ class Item:
                 if ancestor is not None and not ancestor.inmemory:
                     ancestor.deserialize()
 
+        if not self._has_initialized:
+            return
+
         item_dict = self.api.deserialize_item(self)
         if item_dict["inmemory"]:
             for ancestor_item_type, ancestor_deps in Item.TYPE_DEPENDENCIES.items():
