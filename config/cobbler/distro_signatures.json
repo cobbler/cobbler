@@ -127,7 +127,8 @@
       },
       "rhel8": {
         "signatures": [
-          "BaseOS"
+          "BaseOS",
+          "Minimal"
         ],
         "version_file": "(redhat|sl|slf|almalinux|anolis|centos|centos-linux|centos-stream|oraclelinux|rocky|vzlinux)-release-(?!notes)([\\w]*-)*8[\\.-]+(.*)\\.rpm",
         "version_file_regex": null,
@@ -154,7 +155,8 @@
       },
       "rhel9": {
         "signatures": [
-          "BaseOS"
+          "BaseOS",
+          "Minimal"
         ],
         "version_file": "(redhat|sl|slf|almalinux|anolis|centos|centos-linux|centos-stream|oraclelinux|rocky|vzlinux)-release-(?!notes)([\\w]*-)*9[\\.-]+(.*)\\.rpm",
         "version_file_regex": null,
