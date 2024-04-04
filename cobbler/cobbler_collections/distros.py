@@ -93,6 +93,7 @@ class Distros(collection.Collection[distro.Distro]):
                 lite_sync = self.api.get_sync()
                 lite_sync.remove_single_distro(obj)
         with self.lock:
+            self.remove_from_indexes(obj)
             del self.listing[name]
 
         self.collection_mgr.serialize_delete(self, obj)

@@ -46,10 +46,12 @@ def test_get(
 
     # Act
     item = distro_collection.get(name)
+    fake_item = distro_collection.get("fake_name")
 
     # Assert
     assert isinstance(item, distro.Distro)
     assert item.name == name
+    assert fake_item is None
 
 
 def test_find(
@@ -105,6 +107,7 @@ def test_from_list(
 
     # Assert
     assert len(distro_collection.listing) == 1
+    assert len(distro_collection.indexes["uid"]) == 1
 
 
 def test_copy(
@@ -124,13 +127,17 @@ def test_copy(
     distro_collection.add(item1)
 
     # Act
-    new_item_name = "test_copy_successful"
+    new_item_name = "test_copy_new"
     distro_collection.copy(item1, new_item_name)
+    item2 = distro_collection.find(new_item_name, False)
 
     # Assert
     assert len(distro_collection.listing) == 2
     assert name in distro_collection.listing
     assert new_item_name in distro_collection.listing
+    assert len(distro_collection.indexes["uid"]) == 2
+    assert (distro_collection.indexes["uid"])[item1.uid] == name
+    assert (distro_collection.indexes["uid"])[item2.uid] == new_item_name
 
 
 @pytest.mark.parametrize(
@@ -156,6 +163,7 @@ def test_rename(
     # Assert
     assert input_new_name in distro_collection.listing
     assert distro_collection.listing[input_new_name].name == input_new_name
+    assert (distro_collection.indexes["uid"])[item1.uid] == input_new_name
 
 
 def test_collection_add(
@@ -172,6 +180,7 @@ def test_collection_add(
 
     # Assert
     assert name in distro_collection.listing
+    assert item1.uid in distro_collection.indexes["uid"]
 
 
 def test_duplicate_add(
@@ -200,12 +209,91 @@ def test_remove(
     item1 = create_distro(name)
     distro_collection.add(item1)
     assert name in distro_collection.listing
+    assert len(distro_collection.indexes["uid"]) == 1
+    assert (distro_collection.indexes["uid"])[item1.uid] == item1.name
 
     # Act
     distro_collection.remove(name)
 
     # Assert
     assert name not in distro_collection.listing
+    assert len(distro_collection.indexes["uid"]) == 0
+
+
+def test_indexes(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
+    # Arrange
+
+    # Assert
+    assert len(distro_collection.indexes) == 1
+    assert len(distro_collection.indexes["uid"]) == 0
+
+
+def test_add_to_indexes(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
+    # Arrange
+    name = "to_be_removed"
+    item1 = create_distro(name)
+    distro_collection.add(item1)
+
+    # Act
+    del (distro_collection.indexes["uid"])[item1.uid]
+    distro_collection.add_to_indexes(item1)
+
+    # Assert
+    assert item1.uid in distro_collection.indexes["uid"]
+
+
+def test_remove_from_indexes(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
+    # Arrange
+    name = "to_be_removed"
+    item1 = create_distro(name)
+    distro_collection.add(item1)
+
+    # Act
+    distro_collection.remove_from_indexes(item1)
+
+    # Assert
+    assert item1.uid not in distro_collection.indexes["uid"]
+
+
+def test_find_by_indexes(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
+    # Arrange
+    name = "to_be_removed"
+    item1 = create_distro(name)
+    distro_collection.add(item1)
+    kargs1 = {"uid": item1.uid}
+    kargs2 = {"uid": "fake_uid"}
+    kargs3 = {"fake_index": item1.uid}
+
+    # Act
+    result1 = distro_collection.find_by_indexes(kargs1)
+    result2 = distro_collection.find_by_indexes(kargs2)
+    result3 = distro_collection.find_by_indexes(kargs3)
+
+    # Assert
+    assert isinstance(result1, list)
+    assert len(result1) == 1
+    assert result1[0] == item1
+    assert len(kargs1) == 0
+    assert result2 is None
+    assert len(kargs2) == 0
+    assert result3 is None
+    assert len(kargs3) == 1
 
 
 @pytest.mark.skip("Method which is under test is broken!")

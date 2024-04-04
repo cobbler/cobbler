@@ -918,7 +918,7 @@ def test_from_dict_with_network_interface(cobbler_api: CobblerAPI):
     """
     # Arrange
     system = System(cobbler_api)
-    system.interfaces = {"default": NetworkInterface(cobbler_api)}
+    system.interfaces = {"default": NetworkInterface(cobbler_api, system.name)}
     sys_dict = system.to_dict()
 
     # Act
@@ -965,7 +965,7 @@ def test_network_interface_type(
     Test that verifies that the ``NetworkInterface.interface_type`` works as expected.
     """
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -997,7 +997,7 @@ def test_is_management_supported(
     """
     # Arrange
     system = System(cobbler_api)
-    system.interfaces = {"default": NetworkInterface(cobbler_api)}
+    system.interfaces = {"default": NetworkInterface(cobbler_api, system.name)}
     system.interfaces["default"].mac_address = input_mac
     system.interfaces["default"].ip_address = input_ipv4
     system.interfaces["default"].ipv6_address = input_ipv6

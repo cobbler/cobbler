@@ -89,6 +89,7 @@ class Menus(collection.Collection[menu.Menu]):
                     self.api, obj, "/var/lib/cobbler/triggers/delete/menu/pre/*", []
                 )
         with self.lock:
+            self.remove_from_indexes(obj)
             del self.listing[name]
         self.collection_mgr.serialize_delete(self, obj)
         if with_delete:

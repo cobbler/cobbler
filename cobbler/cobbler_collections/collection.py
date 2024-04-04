@@ -67,6 +67,10 @@ class Collection(Generic[ITEM]):
         self.lock: Lock = Lock()
         self._inmemory: bool = not self.api.settings().lazy_start
         self._deserialize_running: bool = False
+        # Secondary indexes for the collection.
+        # Only unique indexes on string values are supported.
+        # Empty strings are not indexed.
+        self.indexes: Dict[str, Dict[str, str]] = {"uid": {}}
         self.logger = logging.getLogger()
 
     def __iter__(self) -> Iterator[ITEM]:
@@ -220,9 +224,13 @@ class Collection(Generic[ITEM]):
             self._deserialize()
 
         with self.lock:
-            for obj in self:
-                if obj.inmemory and obj.find_match(kargs, no_errors=no_errors):
-                    matches.append(obj)
+            result = self.find_by_indexes(kargs)
+            if result is not None:
+                matches = result
+            if len(kargs) > 0:
+                for obj in self:
+                    if obj.inmemory and obj.find_match(kargs, no_errors=no_errors):
+                        matches.append(obj)
 
         if not return_list:
             if len(matches) == 0:
@@ -307,14 +315,6 @@ class Collection(Generic[ITEM]):
         copied_item: ITEM = ref.make_clone()
         copied_item.ctime = time.time()
         copied_item.name = newname
-        if copied_item.COLLECTION_TYPE == "system":  # type: ignore
-            # this should only happen for systems
-            for interface in copied_item.interfaces:  # type: ignore
-                # clear all these out to avoid DHCP/DNS conflicts
-                copied_item.interfaces[interface].dns_name = ""  # type: ignore
-                copied_item.interfaces[interface].mac_address = ""  # type: ignore
-                copied_item.interfaces[interface].ip_address = ""  # type: ignore
-
         self.add(
             copied_item,
             save=True,
@@ -348,12 +348,14 @@ class Collection(Generic[ITEM]):
         with self.lock:
             # Delete the old item
             self.collection_mgr.serialize_delete_one_item(ref)
+            self.remove_from_indexes(ref)
             self.listing.pop(oldname)
             # Change the name of the object
             ref.name = newname
             # Save just this item
             self.collection_mgr.serialize_one_item(ref)
             self.listing[newname] = ref
+            self.add_to_indexes(ref)
 
         for dep_type in item_base.Item.TYPE_DEPENDENCIES[ref.COLLECTION_TYPE]:
             items = self.api.find_items(
@@ -485,6 +487,7 @@ class Collection(Generic[ITEM]):
 
         with self.lock:
             self.listing[ref.name] = ref
+            self.add_to_indexes(ref)
 
         # perform filesystem operations
         if save:
@@ -555,6 +558,61 @@ class Collection(Generic[ITEM]):
                 obj.deserialize()
         self.inmemory = True
         self.deserialize_running = False
+
+    def add_to_indexes(self, ref: ITEM) -> None:
+        """
+        Add indexes for the object.
+
+        :param ref: The reference to the object whose indexes are updated.
+        """
+        indx_dict = self.indexes["uid"]
+        indx_dict[ref.uid] = ref.name
+
+    def remove_from_indexes(self, ref: ITEM) -> None:
+        """
+        Remove index keys for the object.
+
+        :param ref: The reference to the object whose index keys are removed.
+        """
+        indx_dict = self.indexes["uid"]
+        indx_dict.pop(ref.uid, None)
+
+    def find_by_indexes(self, kargs: Dict[str, Any]) -> Optional[List[ITEM]]:
+        """
+        Searching for items in the collection by indexes.
+
+        :param kwargs: The dict to match for the items.
+        """
+        result: Optional[List[ITEM]] = None
+        found_keys: List[str] = []
+
+        for key, value in kargs.items():
+            # fnmatch and "~" are not supported
+            if (
+                key not in self.indexes
+                or value[:1] == "~"
+                or "?" in value
+                or "*" in value
+                or "[" in value
+            ):
+                continue
+
+            indx_dict = self.indexes[key]
+            if value in indx_dict:
+                if result is None:
+                    result = []
+                obj = self.listing.get(indx_dict[value])
+                if obj is not None:
+                    result.append(obj)
+                else:
+                    self.logger.error(
+                        'Internal error. The "%s" index is corrupted.', key
+                    )
+            found_keys.append(key)
+
+        for key in found_keys:
+            kargs.pop(key)
+        return result
 
     def to_string(self) -> str:
         """

@@ -201,7 +201,9 @@ def create_system(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
             test_system.profile = profile_name
         if image_name != "":
             test_system.image = image_name
-        test_system.interfaces = {"default": NetworkInterface(cobbler_api)}
+        test_system.interfaces = {
+            "default": NetworkInterface(cobbler_api, test_system.name)
+        }
         cobbler_api.add_system(test_system)
         return test_system
 

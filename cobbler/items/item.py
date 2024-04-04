@@ -521,15 +521,14 @@ class Item:
         :param uid: The new uid.
         """
         if self._uid != uid and self.COLLECTION_TYPE != Item.COLLECTION_TYPE:
-            name = self.name.lower()
             collection = self.api.get_items(self.COLLECTION_TYPE)
             with collection.lock:
-                if collection.get(name) is not None:
-                    # Changing the hash of an object requires special handling.
-                    collection.listing.pop(name)
-                    self._uid = uid
-                    collection.listing[name] = self  # type: ignore
-                    return
+                item = collection.get(self.name)
+                if item is not None and item.uid == self._uid:
+                    # Update uid index
+                    indx_dict = collection.indexes["uid"]
+                    del indx_dict[self._uid]
+                    indx_dict[uid] = self.name
         self._uid = uid
 
     @property
