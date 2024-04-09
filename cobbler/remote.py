@@ -2405,7 +2405,7 @@ class CobblerXMLRPCInterface:
                                    token: Optional[str] = None) -> bool:
         # Validate all types
         if not (isinstance(sys_name, str) and isinstance(logfile_name, str) and isinstance(size, int)
-                and isinstance(offset, int) and isinstance(data.data, bytes)):
+                and isinstance(offset, int) and isinstance(data, bytes)):
             self.logger.warning("upload_log_data - One of the parameters handed over had an invalid type!")
             return False
         if token is not None and not isinstance(token, str):
