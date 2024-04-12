@@ -87,6 +87,8 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int) -> None:
     while True:
         try:
             logger.info("Cobbler startup completed %s", start_time)
+            # Start background load_items task
+            xinterface.proxied.background_load_items()
             server.serve_forever()
         except IOError:
             # interrupted? try to serve again
