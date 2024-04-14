@@ -31,12 +31,13 @@ import stat
 
 import magic
 
-HAS_HIVEX = True
 try:
-    import hivex
-    from hivex.hive_types import REG_SZ
-except Exception:
-    HAS_HIVEX = False
+    import hivex  # type: ignore
+    from hivex.hive_types import REG_EXPAND_SZ, REG_SZ  # type: ignore
+
+    HAS_HIVEX = True
+except ImportError:
+    HAS_HIVEX = False  # type: ignore
 
 from cobbler import clogger
 from cobbler import templar
@@ -144,12 +145,16 @@ class ImportSignatureManager:
                     return f.readlines()
             except:
                 pass
-        elif ftype.mime_type == "application/x-ms-wim":
+        elif (
+            ftype.mime_type == "application/x-ms-wim"
+            or filename.lower().endswith('.wim')
+            and (self.file_version[0] < 5 or self.file_version[0] == 5 and self.file_version[1] < 37)
+        ):
             cmd = "/usr/bin/wiminfo"
             if os.path.exists(cmd):
                     cmd = "%s %s" % (cmd, filename)
-                    return utils.subprocess_get(self.logger, cmd).splitlines()
-            
+                    return utils.subprocess_get(None, cmd).splitlines()
+
             self.logger.info("no %s found, please install wimlib-utils", cmd)
         elif ftype.mime_type == "text/plain":
             with open(filename, 'r') as f:
@@ -158,6 +163,30 @@ class ImportSignatureManager:
             self.logger.info('Could not detect the filetype and read the content of file "%s". Returning nothing.' %
                              filename)
         return []
+
+    def get_file_version(self):
+        """
+        This calls file and asks for the version number.
+
+        :return: The major file version number.
+        """
+        cmd = "/usr/bin/file"
+        if os.path.exists(cmd):
+            cmd = f"{cmd} -v"
+            version_str = utils.subprocess_get(None, cmd).splitlines()[0]
+            if len(version_str) < 1:
+                return [0, 0]
+            version_str = (version_str.split("-"))[1]
+            if len(version_str) != 2 or version_str[0] != "file":
+                return [0, 0]
+            version_str = version_str.split(".")
+            if len(version_str) < 2:
+                return [0, 0]
+            version = []
+            for v in version_str:
+                version.append(int(v))
+            return version
+        return [0, 0]
 
     def run(self, path: str, name: str, network_root=None, autoinstall_file=None, arch: Optional[str] = None,
             breed=None, os_version=None):
@@ -178,6 +207,7 @@ class ImportSignatureManager:
         self.arch = arch
         self.breed = breed
         self.os_version = os_version
+        self.file_version = self.get_file_version()
 
         self.path = path
         self.rootdir = path
@@ -210,71 +240,11 @@ class ImportSignatureManager:
 
         # now walk the filesystem looking for distributions that match certain patterns
         self.logger.info("Adding distros from path %s:" % self.path)
+        if self.breed == "windows":
+            self.import_winpe()
+
         distros_added = []
         import_walker(self.path, self.distro_adder, distros_added)
-
-        if len(distros_added) == 0:
-            if self.breed == "windows":
-                cmd_path = "/usr/bin/wimexport"
-                bootwim_path = os.path.join(self.path, "sources", "boot.wim")
-                dest_path = os.path.join(self.path, "boot")
-                if os.path.exists(cmd_path) and os.path.exists(bootwim_path):
-                    winpe_path = os.path.join(dest_path, "winpe.wim")
-                    if not os.path.exists(dest_path):
-                        utils.mkdir(dest_path)
-                    rc = utils.subprocess_call(self.logger, [cmd_path, bootwim_path, "1",
-                                               winpe_path, "--boot"], shell=False)
-                    if rc == 0:
-                        cmd = ["/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/Boot/PXE$'" % winpe_path]
-                        pxe_path = utils.subprocess_get(self.logger, cmd, shell=True)[0:-1]
-                        cmd = ["/usr/bin/wimdir %s 1 | /usr/bin/grep -i '^/Windows/System32/config/SOFTWARE$'"
-                               % winpe_path]
-                        config_path = utils.subprocess_get(self.logger, cmd, shell=True)[0:-1]
-                        cmd_path = "/usr/bin/wimextract"
-                        rc = utils.subprocess_call(self.logger, [cmd_path, bootwim_path, "1",
-                                                    "%s/pxeboot.n12" % pxe_path,
-                                                    "%s/bootmgr.exe" % pxe_path,
-                                                    config_path,
-                                                    "--dest-dir=%s" % dest_path,
-                                                    "--no-acls", "--no-attributes"], shell=False)
-                        if rc == 0:
-                            if HAS_HIVEX:
-                                software = os.path.join(dest_path, os.path.basename(config_path))
-                                h = hivex.Hivex(software, write=True)
-                                root = h.root()
-                                node = h.node_get_child(root, "Microsoft")
-                                node = h.node_get_child(node, "Windows NT")
-                                node = h.node_get_child(node, "CurrentVersion")
-                                h.node_set_value(node, {"key": "SystemRoot", "t": REG_SZ,
-                                                        "value": "x:\\Windows\0".encode(encoding="utf-16le")})
-                                node = h.node_get_child(node, "WinPE")
-                                
-                                # remove the key InstRoot from the registry
-                                values = h.node_values(node)
-                                new_values = []
-
-                                for value in values:
-                                    keyname = h.value_key(value)
-                                    
-                                    if keyname == "InstRoot":
-                                        continue
-                                    val = h.node_get_value(node, keyname)
-                                    valtype = h.value_type(val)[0]
-                                    value2 = h.value_value(val)[1]
-                                    valobject = {"key": keyname, "t": int(valtype), "value": value2}
-                                    new_values.append(valobject)
-
-                                h.node_set_values(node, new_values)
-                                h.commit(software)
-
-                                cmd_path = "/usr/bin/wimupdate"
-                                rc = utils.subprocess_call(self.logger, [cmd_path, winpe_path, "--command=add %s %s"
-                                                           % (software, config_path)], shell=False)
-                                os.remove(software)
-                            else:
-                                self.logger.info("python3-hivex not found. If you need Automatic Windows "
-                                                 "Installation support, please install.")
-                            import_walker(self.path, self.distro_adder, distros_added)
 
         if len(distros_added) == 0:
             self.logger.warning("No distros imported, bailing out")
@@ -395,6 +365,8 @@ class ImportSignatureManager:
                     kernel = os.path.join(dirname, x)
                 else:
                     pae_kernel = os.path.join(dirname, x)
+            elif self.breed == "windows" and "wimboot" in self.signature["kernel_file"]:
+                kernel = os.path.join(self.settings.tftpboot_location, "wimboot")
 
             # if we've collected a matching kernel and initrd pair, turn them in and add them to the list
             if initrd is not None and kernel is not None:
@@ -503,15 +475,28 @@ class ImportSignatureManager:
 
             if self.breed == "windows":
                 dest_path = os.path.join(self.path, "boot")
-                bootmgr_path = os.path.join(dest_path, "bootmgr.exe")
+                kernel_path = f"http://@@http_server@@/images/{name}/wimboot"
+                if new_distro.os_version in ("xp", "2003"):
+                    kernel_path = "pxeboot.0"
+                bootmgr = "bootmgr.exe"
+                if "wimboot" in kernel:
+                    bootmgr = "bootmgr.efi"
+                bootmgr_path = os.path.join(dest_path, bootmgr)
                 bcd_path = os.path.join(dest_path, "bcd")
                 winpe_path = os.path.join(dest_path, "winpe.wim")
-                if os.path.exists(bootmgr_path) and os.path.exists(bcd_path) and os.path.exists(winpe_path):
-                    new_profile.autoinstall_meta = {"kernel": os.path.basename(kernel),
-                                                    "bootmgr": "bootmgr.exe",
-                                                    "bcd": "bcd",
-                                                    "winpe": "winpe.wim",
-                                                    "answerfile": "autounattended.xml"}
+                if (
+                    os.path.exists(bootmgr_path)
+                    and os.path.exists(bcd_path)
+                    and os.path.exists(winpe_path)
+                ):
+                    new_profile.autoinstall_meta = {
+                        "kernel": kernel_path,
+                        "bootmgr": bootmgr,
+                        "bcd": "bcd",
+                        "winpe": "winpe.wim",
+                        "answerfile": "autounattended.xml",
+                        "post_install_script": "post_install.cmd",
+                    }
 
             self.profiles.add(new_profile, save=True)
 
@@ -894,6 +879,204 @@ class ImportSignatureManager:
         :param distribution: Not used currently.
         """
         return
+
+    # ==========================================================================
+    # windows-specific
+
+    def import_winpe(self) -> None:
+        """
+        Preparing a Windows distro for network boot.
+        """
+        winpe_path = self.extract_winpe(self.path)
+
+        # For Windows, file paths are case-insensitive within a WinPE image, but for wimlib-utils
+        # they are not. And wimlib-utils does not provide options for case-insensitive search
+        # and extraction of files from this image other than setting the WIMLIB_IMAGEX_IGNORE_CASE
+        # environment variable.
+        wimdir_result = utils.subprocess_get(
+            None,
+            ["/usr/bin/wimdir", winpe_path, "1"], shell=False
+        )
+        wim_file_list = wimdir_result.split("\n")
+        file_dict = {
+            "/windows/boot/pxe/pxeboot.n12": "",
+            "/windows/boot/pxe/bootmgr.exe": "",
+            "/windows/boot/efi/bootmgr.efi": "",
+            "/windows/system32/config/software": "",
+        }
+        for wim_file in wim_file_list:
+            if wim_file.lower() in file_dict:
+                file_dict[wim_file.lower()] = wim_file
+
+        file_list = [
+            file_dict["/windows/boot/efi/bootmgr.efi"],
+            file_dict["/windows/system32/config/software"],
+        ]
+        if "wimboot" not in self.signature["kernel_file"]:
+            file_list.extend(
+                [
+                    file_dict["/windows/boot/pxe/pxeboot.n12"],
+                    file_dict["/windows/boot/pxe/bootmgr.exe"],
+                ]
+            )
+
+        self.extract_files_from_wim(winpe_path, file_list)
+        self.update_winpe(winpe_path, file_dict["/windows/system32/config/software"])
+
+    def extract_winpe(self, distro_path: str) -> str:
+        """
+        Extracting winpe.wim from boot.win.
+
+        :param distro_path: The directory where the Windows distro is located.
+        :return: The path to the extracted WinPE image.
+        :raises CX
+        """
+        bootwim_path = os.path.join(distro_path, "sources", "boot.wim")
+        dest_path = os.path.join(distro_path, "boot")
+
+        if not os.path.exists(bootwim_path):
+            error_msg = f"{bootwim_path} not found!"
+            self.logger.error(error_msg)
+            raise CX(error_msg)
+
+        winpe_path = os.path.join(dest_path, "winpe.wim")
+        if not os.path.exists(dest_path):
+            utils.mkdir(dest_path)
+        if os.path.exists(winpe_path):
+            utils.rmfile(winpe_path)
+        if (
+            utils.subprocess_call(
+                None,
+                ["/usr/bin/wimexport", bootwim_path, "1", winpe_path, "--boot"],
+                shell=False,
+            )
+            != 0
+        ):
+            error_msg = f"Cannot extract {winpe_path} from {bootwim_path}!"
+            self.logger.error(error_msg)
+            raise CX(error_msg)
+
+        return winpe_path
+
+    def update_winpe(self, winpe_path: str, win_registry: str) -> None:
+        """
+        Update WinPE image for network boot.
+
+        :param winpe_path: The path to WinPE image.
+        :param win_registry: The path to the Windows registry in the WinPE image.
+        :raises CX
+        """
+        if not HAS_HIVEX:
+            error_msg = (
+                "python3-hivex not found. If you need Automatic Windows "
+                "Installation support, please install."
+            )
+            self.logger.error(error_msg)
+            raise CX(error_msg)
+
+        software = os.path.join(
+            os.path.dirname(winpe_path), os.path.basename(win_registry).lower()
+        )
+        hivex_obj = hivex.Hivex(software, write=True)  # type: ignore
+        nodes: List[Any] = [hivex_obj.root()]  # type: ignore
+
+        while len(nodes) > 0:
+            node = nodes.pop()
+            nodes.extend(hivex_obj.node_children(node))  # type: ignore
+            self.reg_node_update(hivex_obj, node)
+
+        hivex_obj.commit(software)  # type: ignore
+
+        utils.subprocess_call(
+            None,
+            [
+                "/usr/bin/wimupdate",
+                winpe_path,
+                f"--command=add {software} {win_registry}",
+            ],
+            shell=False,
+        )
+        os.remove(software)
+
+    def reg_node_update(self, hivex_obj: Any, node: Any) -> None:
+        """
+        Replacement of the substring X:\\$windows.~bt with X: in the Windows registry node.
+
+        :param hivex_obj: Hivex object.
+        :param node: The registry node.
+        """
+        new_values: List[Optional[Dict[str, Any]]] = []
+        update_flag = False
+        key_vals: List[Any] = hivex_obj.node_values(node)  # type: ignore
+        pat = "X:\\$windows.~bt"
+
+        for key_val in key_vals:
+            key: str = hivex_obj.value_key(key_val)  # type: ignore
+            val = hivex_obj.node_get_value(node, key)  # type: ignore
+            val_type: int
+            val_value: bytes
+            val_type, val_value = hivex_obj.value_value(val)  # type: ignore
+            if pat in key:
+                key = key.replace(pat, "X:")
+                update_flag = True
+            if val_type in (REG_SZ, REG_EXPAND_SZ):
+                val_string: str = hivex_obj.value_string(val)  # type: ignore
+                if pat in val_string:
+                    val_string = val_string.replace(pat, "X:")
+                    val_value = (val_string + "\0").encode(encoding="utf-16le")
+                    update_flag = True
+            new_values.append(
+                {
+                    "key": key,
+                    "t": val_type,
+                    "value": val_value,
+                }
+            )
+
+        if update_flag:
+            hivex_obj.node_set_values(node, new_values)  # type: ignore
+
+    def extract_files_from_wim(self, winpe_path: str, wim_files: List[str]) -> None:
+        """
+        Extracting files from winpe.win.
+
+        :param winpe_path: The path to the WinPE image.
+        :param wim_files: The list of files to extract.
+        :raises CX
+        """
+        dest_path = os.path.dirname(winpe_path)
+        cmd_args = [
+            "/usr/bin/wimextract",
+            winpe_path,
+            "1",
+        ]
+        cmd_args.extend(wim_files)
+        cmd_args.extend(
+            [
+                f"--dest-dir={dest_path}",
+                "--no-acls",
+                "--no-attributes",
+            ]
+        )
+        if (
+            utils.subprocess_call(
+                None,
+                cmd_args,
+                shell=False,
+            )
+            != 0
+        ):
+            error_msg = f'Cannot extract "{wim_files}" files from {winpe_path}!'
+            self.logger.error(error_msg)
+            raise CX(error_msg)
+
+        for wim_file_path in wim_files:
+            wim_file = os.path.basename(wim_file_path)
+            if wim_file != wim_file.lower():
+                os.rename(
+                    os.path.join(dest_path, wim_file),
+                    os.path.join(dest_path, wim_file.lower()),
+                )
 
 
 # ==========================================================================

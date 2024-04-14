@@ -451,6 +451,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_freebsd.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_linux.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_local.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_profile_windows.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_windows.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grublocal.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grubprofile.template
@@ -489,9 +490,14 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/settings.d/bind_manage_ipmi.settings
 %attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/settings.d/manage_genders.settings
 %attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/settings.d/nsupdate.settings
+%attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/settings.d/windows.settings
 %attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/users.conf
 %attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/users.digest
 %config(noreplace) %{_sysconfdir}/cobbler/version
+%dir %{_sysconfdir}/cobbler/windows
+%config(noreplace) %{_sysconfdir}/cobbler/windows/answerfile.template
+%config(noreplace) %{_sysconfdir}/cobbler/windows/post_inst_cmd.template
+%config(noreplace) %{_sysconfdir}/cobbler/windows/startnet.template
 %config(noreplace) %{_sysconfdir}/cobbler/zone.template
 %dir %{_sysconfdir}/cobbler/zone_templates
 %config(noreplace) %{_sysconfdir}/cobbler/zone_templates/foo.example.com

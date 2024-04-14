@@ -577,6 +577,7 @@ if __name__ == "__main__":
                               "build/config/service/cobblerd.service",
                               "build/config/cobbler/settings.yaml"]),
             ("%s/settings.d" % etcpath, glob("config/cobbler/settings.d/*")),
+            ("%s/windows" % etcpath, glob("templates/windows/*")),
             ("%s" % etcpath, ["config/cobbler/auth.conf",
                               "config/cobbler/modules.conf",
                               "config/cobbler/mongodb.conf",
