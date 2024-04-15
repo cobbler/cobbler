@@ -14,7 +14,7 @@
 iseq \${smbios/manufacturer} HP && exit ||
 sanboot --no-describe --drive 0x80
 #else
-kernel $kernel_path $kernel_options initrd=initrd.magic
+kernel $kernel_path $kernel_options
 #for $init in $initrd
 initrd $init
 #end for
