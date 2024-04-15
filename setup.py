@@ -699,6 +699,8 @@ if __name__ == "__main__":
             ("share/cobbler/web/", ["cobbler/web/settings.py"]),
             # zone-specific templates directory
             ("%s/zone_templates" % etcpath, glob("templates/zone_templates/*")),
+            # windows-specific templates directory
+            ("%s/windows" % etcpath, glob("templates/windows/*")),
             ("%s" % etcpath, ["config/cobbler/logging_config.conf"]),
             # man pages
             ("%s/man1" % docpath, glob("build/sphinx/man/*.1")),

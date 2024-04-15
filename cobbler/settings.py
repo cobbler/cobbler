@@ -147,6 +147,9 @@ DEFAULTS = {
     "yum_distro_priority": [1, "int"],
     "yum_post_install_mirror": [True, "bool"],
     "yumdownloader_flags": ["--resolve", "str"],
+    "windows_enabled": [False, "bool"],
+    "windows_template_dir": ["/etc/cobbler/windows", "str"],
+    "samba_distro_share": ["DISTRO", "str"],
 }
 
 FIELDS = [
@@ -434,6 +437,9 @@ def validate_settings(settings_content: dict) -> dict:
         "yum_distro_priority": int,
         "yum_post_install_mirror": bool,
         "yumdownloader_flags": str,
+        Optional("windows_enabled"): bool,
+        Optional("windows_template_dir"): str,
+        Optional("samba_distro_share"): str,
     }, ignore_extra_keys=False)
     return schema.validate(settings_content)
 

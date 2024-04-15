@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import glob
 import os
 
 from cobbler.items import item
@@ -323,3 +324,19 @@ class Distro(item.Item):
         :rtype: str
         """
         return self.redhat_management_key
+
+    def find_distro_path(self):
+        r"""
+        This returns the absolute path to the distro under the ``distro_mirror`` directory. If that directory doesn't
+        contain the kernel, the directory of the kernel in the distro is returned.
+
+        :return: The path to the distribution files.
+        """
+        possible_dirs = glob.glob(self.settings.webdir + "/distro_mirror/*")
+        for directory in possible_dirs:
+            if os.path.dirname(self.kernel).find(directory) != -1:
+                return os.path.join(
+                    self.settings.webdir, "distro_mirror", directory
+                )
+        # non-standard directory, assume it's the same as the directory in which the given distro's kernel is
+        return os.path.dirname(self.kernel)
