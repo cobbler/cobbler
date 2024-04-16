@@ -13,7 +13,7 @@ cobbler profile add --name fake --distro fake
 cobbler system add --name testbed --profile fake --image fakeimage
 # Prepare expected result
 cat >${tmp}/a <<-EOF
-:fake
+#!ipxe
 kernel /images/fake/vmlinuz   initrd=initrd.magic
 initrd /images/fake/initramfs
 boot
