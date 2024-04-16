@@ -1,6 +1,18 @@
 menuentry '$profile_name' --class gnu-linux --class gnu --class os {
   echo 'Loading kernel ...'
+#if $breed != "windows"
   clinux $kernel_path \$k_console $kernel_options
   echo 'Loading initial ramdisk ...'
   cinitrd $initrd_path
+#else
+  clinux $kernel_path $kernel_options
+#if "wimboot" in $kernel_path
+#set $initrd_path = ""
+#for $init in $initrd
+#set $initrd_path += " " + $init
+#end for
+  echo 'Loading initial ramdisk ...'
+  cinitrd $initrd_path
+#end if
+#end if
 }

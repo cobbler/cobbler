@@ -1,0 +1,375 @@
+#if $arch == 'x86_64'
+	#set $win_arch = 'amd64'
+#else if $arch == 'i386'
+	#set $win_arch = 'i386'
+#end if
+#if $os_version not in ('xp', '2003')
+#set $procarch = 'processorArchitecture="' + $win_arch + '"'
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+    <settings pass="windowsPE">
+        <component name="Microsoft-Windows-International-Core-WinPE" $procarch publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <SetupUILanguage>
+#set $locale = $getVar('locale', 'en-US')
+                <UILanguage>$locale</UILanguage>
+            </SetupUILanguage>
+            <InputLocale>$locale</InputLocale>
+            <SystemLocale>$locale</SystemLocale>
+            <UILanguage>$locale</UILanguage>
+            <UILanguageFallback>$locale</UILanguageFallback>
+            <UserLocale>$locale</UserLocale>
+        </component>
+        <component name="Microsoft-Windows-Setup" $procarch publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <DiskConfiguration>
+                <WillShowUI>OnError</WillShowUI>
+                <Disk wcm:action="add">
+                    <DiskID>0</DiskID>
+                    <WillWipeDisk>true</WillWipeDisk>
+#set $uefi = 'True'
+#if $os_version in ('7', '2008')
+#set $uefi = 'False'
+#end if
+#set $uefi = $getVar('uefi', $uefi)
+#set $part_num = 0
+                    <CreatePartitions>
+#if $uefi == 'True'
+                        <CreatePartition wcm:action="add">
+#set $part_num += 1
+                            <Order>$part_num</Order>
+                            <Type>Primary</Type>
+                            <Size>300</Size>
+                        </CreatePartition>
+                        <CreatePartition wcm:action="add">
+#set $part_num += 1
+                            <Order>$part_num</Order>
+                            <Type>EFI</Type>
+                            <Size>100</Size>
+                        </CreatePartition>
+                        <CreatePartition wcm:action="add">
+#set $part_num += 1
+                            <Order>$part_num</Order>
+                            <Type>MSR</Type>
+                            <Size>128</Size>
+                        </CreatePartition>
+#end if
+                        <CreatePartition wcm:action="add">
+#set $part_num += 1
+                            <Order>$part_num</Order>
+                            <Extend>true</Extend>
+                            <Type>Primary</Type>
+                        </CreatePartition>
+                    </CreatePartitions>
+                </Disk>
+            </DiskConfiguration>
+            <ImageInstall>
+                <OSImage>
+                    <InstallFrom>
+                        <Credentials>
+                            <Domain></Domain>
+                        </Credentials>
+                        <MetaData wcm:action="add">
+                            <Key>/IMAGE/NAME</Key>
+#if $os_version == '7'
+                            <Value>Windows 7 PROFESSIONAL</Value>
+#else if $os_version == '8'
+                            <Value>Windows 8.1 Pro</Value>
+#else if $os_version == '10'
+                            <Value>Windows 10 Pro</Value>
+#else if $os_version == '11'
+                            <Value>Windows 11 Pro</Value>
+#else if $os_version == '2008'
+                            <Value>Windows Server 2008 R2 SERVERENTERPRISE</Value>
+#else if $os_version == '2012'
+                            <Value>Windows Server 2012 R2 SERVERSTANDARD</Value>
+#else if $os_version == '2016'
+                            <Value>Windows Server 2016 SERVERSTANDARD</Value>
+#else if $os_version == '2019'
+                            <Value>Windows Server 2019 SERVERSTANDARD</Value>
+#else if $os_version == '2022'
+                            <Value>Windows Server 2022 SERVERSTANDARD</Value>
+#end if
+                        </MetaData>
+                    </InstallFrom>
+                    <InstallTo>
+                        <DiskID>0</DiskID>
+                        <PartitionID>$part_num</PartitionID>
+                    </InstallTo>
+                </OSImage>
+            </ImageInstall>
+            <UserData>
+                <ProductKey>
+#if $os_version == '7'
+                    <Key>FJ82H-XT6CR-J8D7P-XQJJ2-GPDD4</Key>
+#else if $os_version == '8'
+                    <Key>GCRJD-8NW9H-F2CDX-CCM8D-9D6T9</Key>
+#else if $os_version == '10'
+                    <Key>W269N-WFGWX-YVC9B-4J6C9-T83GX</Key>
+#else if $os_version == '11'
+                    <Key>W269N-WFGWX-YVC9B-4J6C9-T83GX</Key>
+#else if $os_version == '2008'
+                    <Key>489J6-VHDMP-X63PK-3K798-CPX3Y</Key>
+#else if $os_version == '2012'
+                    <Key>D2N9P-3P6X9-2R39C-7RTCD-MDVJX</Key>
+#else if $os_version == '2016'
+                    <Key>WC2BQ-8NRM3-FDDYY-2BFGV-KHKQY</Key>
+#else if $os_version == '2019'
+                    <Key>N69G4-B89J2-4G8F4-WWYCC-J464C</Key>
+#else if $os_version == '2022'
+                    <Key>VDYBN-27WPP-V4HQT-9VMD4-VMK7H</Key>
+#end if
+                    <WillShowUI>Never</WillShowUI>
+                </ProductKey>
+                <AcceptEula>true</AcceptEula>
+                <FullName>User</FullName>
+                <Organization>Some Organization</Organization>
+            </UserData>
+            <EnableFirewall>true</EnableFirewall>
+        </component>
+        <component name="Microsoft-Windows-PnpCustomizationsWinPE" $procarch publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <DriverPaths>
+                <PathAndCredentials wcm:action="add" wcm:keyValue="6">
+#set $drivers_dir = '\\\\' + $http_server + '\\' + $samba_distro_share + '\\links\\' + $distro_name + '\\Drivers'
+                    <Path>$drivers_dir</Path>
+                </PathAndCredentials>
+            </DriverPaths>
+        </component>
+    </settings>
+    <settings pass="offlineServicing">
+        <component name="Microsoft-Windows-LUA-Settings" $procarch publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <EnableLUA>false</EnableLUA>
+        </component>
+    </settings>
+    <settings pass="specialize">
+        <component name="Microsoft-Windows-Shell-Setup" $procarch publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <ComputerName>*</ComputerName>
+            <RegisteredOrganization>Some Organization</RegisteredOrganization>
+            <RegisteredOwner>User</RegisteredOwner>
+            <TimeZone>UTC</TimeZone>
+        </component>
+        <component name="Microsoft-Windows-UnattendedJoin" $procarch publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <Identification>
+                <JoinWorkgroup>WORKGROUP</JoinWorkgroup>
+            </Identification>
+        </component>
+        <component name="Microsoft-Windows-TerminalServices-LocalSessionManager" $procarch publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <fDenyTSConnections>false</fDenyTSConnections>
+        </component>
+        <component name="Networking-MPSSVC-Svc" $procarch publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <FirewallGroups>
+                <FirewallGroup wcm:action="add" wcm:keyValue="EnableRemoteDesktop">
+                    <Active>true</Active>
+                    <Group>Remote Desktop</Group>
+                    <Profile>all</Profile>
+                </FirewallGroup>
+            </FirewallGroups>
+        </component>
+        <component name="Microsoft-Windows-TerminalServices-RDP-WinStationExtensions" $procarch publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <UserAuthentication>0</UserAuthentication>
+        </component>
+    </settings>
+    <settings pass="oobeSystem">
+        <component name="Microsoft-Windows-International-Core" $procarch publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+#if "locale" in $autoinstall_meta
+            <InputLocale>@@locale@@</InputLocale>
+            <SystemLocale>@@locale@@</SystemLocale>
+            <UILanguage>@@locale@@</UILanguage>
+            <UILanguageFallback>@@locale@@</UILanguageFallback>
+            <UserLocale>@@locale@@</UserLocale>
+#else
+            <InputLocale>en-US</InputLocale>
+            <SystemLocale>en-US</SystemLocale>
+            <UILanguage>en-US</UILanguage>
+            <UILanguageFallback>en-US</UILanguageFallback>
+            <UserLocale>en-US</UserLocale>
+#end if
+        </component>
+        <component name="Microsoft-Windows-Shell-Setup" $procarch publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <OOBE>
+                <NetworkLocation>Work</NetworkLocation>
+                <ProtectYourPC>3</ProtectYourPC>
+#if $os_version not in ('2008', '2012', '7', '8')
+                <VMModeOptimizations>
+                    <SkipAdministratorProfileRemoval>false</SkipAdministratorProfileRemoval>
+                </VMModeOptimizations>
+                <UnattendEnableRetailDemo>false</UnattendEnableRetailDemo>
+#end if
+#if $os_version not in ('2008', '7')
+                <HideLocalAccountScreen>true</HideLocalAccountScreen>
+                <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+                <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+#end if
+                <HideEULAPage>true</HideEULAPage>
+                <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+                <SkipMachineOOBE>true</SkipMachineOOBE>
+                <SkipUserOOBE>true</SkipUserOOBE>
+            </OOBE>
+            <UserAccounts>
+                <AdministratorPassword>
+                    <Value>User</Value>
+                    <PlainText>true</PlainText>
+                </AdministratorPassword>
+                <LocalAccounts>
+                    <LocalAccount wcm:action="add">
+                        <Password>
+                            <Value>User</Value>
+                            <PlainText>true</PlainText>
+                        </Password>
+                        <Name>User</Name>
+                        <Group>Administrators</Group>
+                    </LocalAccount>
+                </LocalAccounts>
+            </UserAccounts>
+            <TimeZone>UTC</TimeZone>
+            <RegisteredOrganization>Some Organization</RegisteredOrganization>
+            <RegisteredOwner>User</RegisteredOwner>
+            <FirstLogonCommands>
+                <SynchronousCommand wcm:action="add">
+                    <RequiresUserInput>false</RequiresUserInput>
+                    <Order>1</Order>
+                    <CommandLine>cmd /C wmic useraccount where "name='User'" set PasswordExpires=FALSE</CommandLine>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <RequiresUserInput>false</RequiresUserInput>
+                    <Order>2</Order>
+                    <CommandLine>c:\post_install.cmd @@profile_name@@</CommandLine>
+                </SynchronousCommand>
+            </FirstLogonCommands>
+            <AutoLogon>
+                <Password>
+                    <Value>User</Value>
+                    <PlainText>true</PlainText>
+                </Password>
+                <Enabled>true</Enabled>
+                <Username>User</Username>
+                <LogonCount>10000</LogonCount>
+            </AutoLogon>
+        </component>
+    </settings>
+</unattend>
+#else
+#set $OriSrc = '\\\\' + $http_server + '\\' + $samba_distro_share + '\\' + $initrd.split('/')[-3] + '\\' + $win_arch
+#set $DevSrc = '\\Device\\LanmanRedirector\\' + $http_server + '\\' + $samba_distro_share + '\\' + $initrd.split('/')[-3]
+[Data]
+floppyless = "1"
+msdosinitiated = "1"
+; Needed for second stage
+OriSrc="$OriSrc"
+OriTyp="4"
+LocalSourceOnCD=1
+DisableAdminAccountOnDomainJoin=0
+AutomaticUpdates="No"
+Autopartition="0"
+UnattendedInstall="Yes"
+
+[SetupData]
+OsLoadOptions = "/noguiboot /fastdetect"
+; Needed for first stage
+SetupSourceDevice = "$DevSrc"
+
+[Unattended]
+CrashDumpSetting=0
+FactoryMode=No
+UnattendMode=FullUnattended
+UnattendSwitch="Yes"
+OemPreinstall="Yes"
+OemSkipEula="Yes"
+Repartition=No
+FileSystem=*
+WaitForReboot="No"
+NoWaitAfterTextMode=1
+NoWaitAfterGUIMode=1
+DriverSigningPolicy=Ignore
+NonDriverSigningPolicy=Ignore
+UpdateInstalledDrivers=Yes
+TargetPath=\WINDOWS
+OemPnPDriversPath=DRIVERS\@@os_version@@
+
+#if $os_version == '2003'
+[LicenseFilePrintData]
+;AutoMode = PerSeat
+
+#end if
+[Display]
+BitsPerPel=32
+XResolution=1440
+YResolution=900
+Vrefresh=60
+
+[WindowsFirewall]
+;Profiles = WindowsFirewall.TurnOffFirewall
+
+[WindowsFirewall.TurnOffFirewall]
+;Mode = 0
+
+[PCHealth]
+;RA_AllowToGetHelp=0
+
+[GuiRunOnce]
+"%Systemdrive%\post_install.cmd @@profile_name@@"
+
+[GuiUnattended]
+;DetachedProgram = "%SystemDrive%\D\M.exe"
+;Arguments = -y
+AdminPassword=*
+;TimeZone=145
+OEMSkipRegional=1
+OemSkipWelcome=1
+#if $os_version != '2003'
+AutoLogon = Yes
+AutoLogonCount=1
+#end if
+
+[RemoteInstall]
+#if "clean_disk" in $autoinstall_meta
+Repartition=Yes
+UseWholeDisk=Yes
+#end if
+
+[Components]
+;msmsgs=Off
+;msnexplr=Off
+;zonegames=Off
+;Paint=Off
+#if $os_version == '2003'
+; Iis_common=On
+; Iis_inetmgr=On
+ComPlusNetwork=On
+; Iis_www=On
+; Iis_asp=On
+;IEHardenAdmin=Off
+;IEHardenUser=Off
+#end if
+
+[TerminalServices]
+AllowConnections=1
+
+[UserData]
+#if $os_version == '2003'
+ProductKey="VD2BM-TP2KK-CBXDQ-7B7FQ-4M9V3"
+#else
+ProductKey="CB9YB-Q73J8-RKPMH-M2WFT-P4WQJ"
+#end if
+ComputerName=*
+FullName="Admin"
+OrgName="Microsoft"
+
+[RegionalSettings]
+LanguageGroup=1,2,3,4,5
+SystemLocale=00000409
+UserLocale=00000409
+InputLocale=0409:00000409
+
+[Shell]
+CustomDefaultThemeFile="%WinDir%\Resources\Themes\Windows Classic.Theme"
+
+[Networking]
+InstallDefaultComponents="Yes"
+
+[Identification]
+JoinWorkgroup = WORKGROUP
+;JoinDomain = WORKGROUP
+;DoOldStyleDomainJoin = Yes
+
+[params.MS_TCPIP]
+DNSDomain=example.com
+#end if

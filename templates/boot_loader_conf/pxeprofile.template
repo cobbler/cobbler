@@ -1,5 +1,18 @@
 LABEL $profile_name
-        kernel $kernel_path
         $menu_label
+#if $breed != "windows"
+        kernel $kernel_path
         $append_line
         ipappend 2
+#else
+#if "wimboot" in $kernel_path
+        kernel linux.c32
+#set $append_line = "append " + $kernel_path
+#for $init in $initrd
+#set $append_line += " initrdfile=" + $init
+#end for
+        $append_line
+#else
+        kernel $kernel_path
+#end if
+#end if

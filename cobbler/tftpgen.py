@@ -26,8 +26,9 @@ import os.path
 import re
 import socket
 from time import sleep
-from typing import Optional
+from typing import Optional, Dict, Any, List
 
+from cobbler import grub
 from cobbler import templar
 from cobbler import utils
 from cobbler.cexceptions import CX
@@ -371,7 +372,6 @@ class TFTPGen:
                 pxe_menu_items += contents + "\n"
 
         for distro in submenus:
-            grub_menu_items += "submenu '{0}' --class gnu-linux --class gnu --class os {{\n".format(distro.name)
             for profile in submenus[distro]:
                 grub_contents = self.write_pxe_file(
                     filename=None,
@@ -379,7 +379,6 @@ class TFTPGen:
                     format="grub")
                 if grub_contents is not None:
                     grub_menu_items += grub_contents + "\n"
-            grub_menu_items += "}\n"
 
         # image names towards the bottom
         for image in image_list:
@@ -428,6 +427,23 @@ class TFTPGen:
         if rval:
             for key in list(settings.keys()):
                 metadata[key] = settings[key]
+
+        if system:
+            blended = utils.blender(self.api, True, system)
+            meta_blended = utils.blender(self.api, False, system)
+        elif profile:
+            blended = utils.blender(self.api, True, profile)
+            meta_blended = utils.blender(self.api, False, profile)
+        elif image:
+            blended = utils.blender(self.api, True, image)
+            meta_blended = utils.blender(self.api, False, image)
+        else:
+            blended = {}
+            meta_blended = {}
+
+        autoinstall_meta = meta_blended.get("autoinstall_meta", {})
+        metadata.update(blended)
+
         # ---
         # just some random variables
         template = None
@@ -460,14 +476,7 @@ class TFTPGen:
                 initrd_path = os.path.join("/images", distro.name, os.path.basename(distro.initrd))
 
             # Find the automatic installation file if we inherit from another profile
-            if system:
-                blended = utils.blender(self.api, True, system)
-            else:
-                blended = utils.blender(self.api, True, profile)
             autoinstall_path = blended.get("autoinstall", "")
-
-            # update metadata with all known information this allows for more powerful templating
-            metadata.update(blended)
 
         else:
             # this is an image we are making available, not kernel+initrd
@@ -487,6 +496,20 @@ class TFTPGen:
             metadata["kernel_path"] = kernel_path
         if initrd_path is not None and "initrd_path" not in metadata:
             metadata["initrd_path"] = initrd_path
+
+        if "kernel" in autoinstall_meta:
+            kernel_path = autoinstall_meta["kernel"]
+
+            if not utils.file_is_remote(kernel_path):
+                kernel_path = os.path.join(img_path, os.path.basename(kernel_path))
+            metadata["kernel_path"] = kernel_path
+
+        metadata["initrd"] = self._generate_initrd(
+            autoinstall_meta, kernel_path, initrd_path, format
+        )
+
+        if format == "grub" and utils.file_is_remote(kernel_path):
+            metadata["kernel_path"] = grub.parse_grub_remote_file(kernel_path)
 
         # ---
         # choose a template
@@ -549,11 +572,6 @@ class TFTPGen:
                 template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile_esxi.template")
             else:
                 template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile.template")
-
-        if kernel_path is not None:
-            metadata["kernel_path"] = kernel_path
-        if initrd_path is not None:
-            metadata["initrd_path"] = initrd_path
 
         # generate the kernel options and append line:
         kernel_options = self.build_kernel_options(system, profile, distro,
@@ -1154,3 +1172,97 @@ class TFTPGen:
             template_data = template_fh.read()
 
         return self.templar.render(template_data, blended, None)
+
+    def _build_windows_initrd(
+        self, loader_name: str, custom_loader_name: str, bootloader_format: str
+    ) -> str:
+        """
+        Generate a initrd metadata for Windows.
+
+        :param loader_name: The loader name.
+        :param custom_loader_name: The loader name in profile or system.
+        :param bootloader_format: Can be any of those returned by get_supported_system_boot_loaders.
+        :return: The fully generated initrd string for the bootloader.
+        """
+        initrd_line = custom_loader_name
+
+        if bootloader_format == "ipxe":
+            initrd_line = f"--name {loader_name} {custom_loader_name} {loader_name}"
+        elif bootloader_format == "pxe":
+            initrd_line = f"{custom_loader_name}@{loader_name}"
+        elif bootloader_format == "grub":
+            loader_path = custom_loader_name
+            if utils.file_is_remote(loader_path):
+                loader_path = grub.parse_grub_remote_file(custom_loader_name)  # type: ignore
+            initrd_line = f"newc:{loader_name}:{loader_path}"
+
+        return initrd_line
+
+    def _generate_initrd(
+        self,
+        autoinstall_meta: Dict[Any, Any],
+        kernel_path: str,
+        initrd_path: str,
+        bootloader_format: str,
+    ) -> List[str]:
+        """
+        Generate a initrd metadata.
+
+        :param autoinstall_meta: The kernel options.
+        :param kernel_path: Path to the kernel.
+        :param initrd_path: Path to the initrd.
+        :param bootloader_format: Can be any of those returned by get_supported_system_boot_loaders.
+        :return: The array of additional boot load files.
+        """
+        initrd: List[str] = []
+        if "initrd" in autoinstall_meta:
+            initrd = autoinstall_meta["initrd"]
+
+        if kernel_path and "wimboot" in kernel_path:
+            remote_boot_files = utils.file_is_remote(kernel_path)
+
+            if remote_boot_files:
+                protocol = "http"
+                loaders_path = (
+                    f"{protocol}://@@http_server@@/cobbler/images/@@distro_name@@/"
+                )
+                initrd_path = f"{loaders_path}{os.path.basename(initrd_path)}"
+            else:
+                (loaders_path, _) = os.path.split(kernel_path)
+                loaders_path += "/"
+
+            bootmgr_path = bcd_path = wim_path = loaders_path
+
+            if initrd_path:
+                initrd.append(
+                    self._build_windows_initrd(
+                        "boot.sdi", initrd_path, bootloader_format
+                    )
+                )
+            if "bootmgr" in autoinstall_meta:
+                initrd.append(
+                    self._build_windows_initrd(
+                        "bootmgr.exe",
+                        f'{bootmgr_path}{autoinstall_meta["bootmgr"]}',
+                        bootloader_format,
+                    )
+                )
+            if "bcd" in autoinstall_meta:
+                initrd.append(
+                    self._build_windows_initrd(
+                        "bcd", f'{bcd_path}{autoinstall_meta["bcd"]}', bootloader_format
+                    )
+                )
+            if "winpe" in autoinstall_meta:
+                initrd.append(
+                    self._build_windows_initrd(
+                        autoinstall_meta["winpe"],
+                        f'{wim_path}{autoinstall_meta["winpe"]}',
+                        bootloader_format,
+                    )
+                )
+        else:
+            if initrd_path:
+                initrd.append(initrd_path)
+
+        return initrd
