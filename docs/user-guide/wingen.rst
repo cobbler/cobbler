@@ -16,7 +16,7 @@ Installation Quickstart guide
 #############################
 
 * ``dnf install python3-pefile python3-hivex wimlib-utils``
-* enable Windows support in settings ``/etc/cobbler/settings.d/windows.settings``:
+* enable Windows support in settings ``/etc/cobbler/settings.yaml``:
 
 .. code::
 

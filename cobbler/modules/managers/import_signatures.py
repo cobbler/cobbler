@@ -15,7 +15,17 @@ import os.path
 import re
 import shutil
 import stat
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import magic  # type: ignore
 
@@ -119,7 +129,11 @@ class _ImportSignatureManager(ManagerModule):
                     return file_fd.readlines()
             except Exception:
                 pass
-        if ftype.mime_type == "application/x-ms-wim":  # type: ignore
+        if (
+            ftype.mime_type == "application/x-ms-wim"  # type: ignore
+            or self.file_version < (5, 37)
+            and filename.lower().endswith(".wim")
+        ):
             cmd = "/usr/bin/wiminfo"
             if os.path.exists(cmd):
                 cmd = f"{cmd} {filename}"
@@ -136,6 +150,30 @@ class _ImportSignatureManager(ManagerModule):
                 filename,
             )
         return []
+
+    def get_file_version(self) -> Tuple[int, int]:
+        """
+        This calls file and asks for the version number.
+
+        :return: The major file version number.
+        """
+        cmd = "/usr/bin/file"
+        if os.path.exists(cmd):
+            cmd = f"{cmd} -v"
+            version_list = utils.subprocess_get(cmd).splitlines()
+            if len(version_list) < 1:
+                return (0, 0)
+            version_list = version_list[0].split("-")
+            if len(version_list) != 2 or version_list[0] != "file":
+                return (0, 0)
+            version_list = version_list[1].split(".")
+            if len(version_list) < 2:
+                return (0, 0)
+            version: List[int] = []
+            for v in version_list:
+                version.append(int(v))
+            return (version[0], version[1])
+        return (0, 0)
 
     def run(
         self,
@@ -165,6 +203,7 @@ class _ImportSignatureManager(ManagerModule):
         self.arch = arch
         self.breed = breed
         self.os_version = os_version
+        self.file_version: Tuple[int, int] = self.get_file_version()
 
         self.path = path
         self.rootdir = path

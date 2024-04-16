@@ -1692,7 +1692,11 @@ class TFTPGen:
         result = self.write_pxe_file(
             None, system, profile, distro, arch, image, bootloader_format="ipxe"
         )
-        return "" if not result else result
+        if not result:
+            return ""
+        result_split = result.splitlines(True)
+        result_split[0] = "#!ipxe\n"
+        return "".join(result_split)
 
     def generate_bootcfg(self, what: str, name: str) -> str:
         """
