@@ -130,6 +130,29 @@ class Systems(collection.Collection[system.System]):
                     if secondary_key is not None and secondary_key != "":
                         indx_val[secondary_key] = ref.name
 
+    def update_interface_index_value(
+        self,
+        interface: system.NetworkInterface,
+        attribute_name: str,
+        old_value: str,
+        new_value: str,
+    ) -> None:
+        if (
+            interface.system_name in self.listing
+            and not self.disabled_indexes[attribute_name]
+            and interface in self.listing[interface.system_name].interfaces.values()
+        ):
+            indx_dict = self.indexes[attribute_name]
+            with self.lock:
+                if (
+                    old_value != ""
+                    and old_value in indx_dict
+                    and indx_dict[old_value] == interface.system_name
+                ):
+                    del indx_dict[old_value]
+                if new_value != "":
+                    indx_dict[new_value] = interface.system_name
+
     def update_interfaces_indexes(
         self, ref: system.System, new_ifaces: Dict[str, system.NetworkInterface]
     ) -> None:

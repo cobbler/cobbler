@@ -406,25 +406,6 @@ class NetworkInterface:
         """
         self.from_dict(interface_dict)
 
-    def __update_index(self, attribute_name: str, new_value: str):
-        collection = self.__api.systems()
-        if (
-            self.system_name in collection.listing
-            and not collection.disabled_indexes[attribute_name]
-            and self in collection.listing[self.system_name].interfaces.values()
-        ):
-            indx_dict = collection.indexes[attribute_name]
-            with collection.lock:
-                attribute_value = getattr(self, f"_{attribute_name}")
-                if (
-                    attribute_value != ""
-                    and attribute_value in indx_dict
-                    and indx_dict[attribute_value] == self.system_name
-                ):
-                    del indx_dict[attribute_value]
-                if new_value != "":
-                    indx_dict[new_value] = self.system_name
-
     @property
     def dhcp_tag(self) -> str:
         """
@@ -569,7 +550,9 @@ class NetworkInterface:
                 raise ValueError(
                     f'DNS name duplicate found "{dns_name}". Object with the conflict has the name "{match.name}"'
                 )
-        self.__update_index("dns_name", dns_name)
+        self.__api.systems().update_interface_index_value(
+            self, "dns_name", self._dns_name, dns_name
+        )
         self._dns_name = dns_name
 
     @property
@@ -607,7 +590,9 @@ class NetworkInterface:
                 raise ValueError(
                     f'IP address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
                 )
-        self.__update_index("ip_address", address)
+        self.__api.systems().update_interface_index_value(
+            self, "ip_address", self._ip_address, address
+        )
         self._ip_address = address
 
     @property
@@ -648,7 +633,9 @@ class NetworkInterface:
                 raise ValueError(
                     f'MAC address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
                 )
-        self.__update_index("mac_address", address)
+        self.__api.systems().update_interface_index_value(
+            self, "mac_address", self._mac_address, address
+        )
         self._mac_address = address
 
     @property
@@ -866,7 +853,9 @@ class NetworkInterface:
                     f'IPv6 address duplicate found "{address}". Object with the conflict has the name'
                     f'"{match.name}"'
                 )
-        self.__update_index("ipv6_address", address)
+        self.__api.systems().update_interface_index_value(
+            self, "ipv6_address", self._ipv6_address, address
+        )
         self._ipv6_address = address
 
     @property
