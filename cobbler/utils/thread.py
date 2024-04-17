@@ -5,7 +5,7 @@ This module is responsible for managing the custom common threading logic Cobble
 import logging
 import pathlib
 from threading import Thread
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 
 from cobbler import enums, utils
 
@@ -23,7 +23,7 @@ class CobblerThread(Thread):
         self,
         event_id: str,
         remote: "CobblerXMLRPCInterface",
-        options: Optional[Union[List[str], Dict[str, Any]]],
+        options: Dict[str, Any],
         task_name: str,
         api: "CobblerAPI",
         run: Callable[["CobblerThread"], None],
@@ -48,8 +48,6 @@ class CobblerThread(Thread):
         self.__setup_logger()
         self._run = run
         self.on_done = on_done
-        if options is None:
-            options = []
         self.options = options
         self.task_name = task_name
         self.api = api
@@ -92,6 +90,10 @@ class CobblerThread(Thread):
         :return: The return code of the action. This may a boolean or a Linux return code.
         """
         self.logger.info("start_task(%s); event_id(%s)", self.task_name, self.event_id)
+        lock = "load_items_lock" in self.options and self.task_name != "load_items"
+        if lock:
+            # Shared lock to suspend execution of _background_load_items
+            self.options["load_items_lock"].acquire(blocking=False)
         try:
             if utils.run_triggers(
                 api=self.api,
@@ -118,5 +120,7 @@ class CobblerThread(Thread):
             self._set_task_state(enums.EventStatus.FAILED)
             return
         finally:
+            if lock:
+                self.options["load_items_lock"].release()
             if self.__task_log_handler is not None:
                 self.logger.removeHandler(self.__task_log_handler)

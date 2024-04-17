@@ -68,3 +68,12 @@ class TestBackground:
 
         # Assert
         assert result
+
+    def test_background_load_items(self, remote):
+        # Arrange
+
+        # Act
+        result = remote.background_load_items()
+
+        # Assert
+        assert result

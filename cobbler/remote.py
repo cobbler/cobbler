@@ -128,6 +128,7 @@ import os
 import random
 import re
 import stat
+import threading
 import time
 import xmlrpc.server
 from socketserver import ThreadingMixIn
@@ -195,6 +196,9 @@ class CobblerXMLRPCInterface:
         random.seed(time.time())
         self.tftpgen = tftpgen.TFTPGen(api)
         self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api)
+        # Semaphore that suspends the execution of the background_load_items when the execution
+        # of any command or any other task begins until it finishes.
+        self.load_items_lock = threading.Semaphore()
 
     def check(self, token: str) -> List[str]:
         """
@@ -219,8 +223,6 @@ class CobblerXMLRPCInterface:
         webdir = self.api.settings().webdir
 
         def runner(self: CobblerThread):
-            if not isinstance(self.options, dict):
-                raise ValueError("Options need to be dict for background_buildiso!")
             self.remote.api.build_iso(
                 self.options.get("iso", webdir + "/pub/generated.iso"),
                 self.options.get("profiles", None),
@@ -235,8 +237,6 @@ class CobblerXMLRPCInterface:
             )
 
         def on_done(self: CobblerThread):
-            if not isinstance(self.options, dict):
-                raise ValueError("Options need to be dict for background_buildiso!")
             if self.options.get("iso", "") == webdir + "/pub/generated.iso":
                 msg = 'ISO now available for <A HREF="/cobbler/pub/generated.iso">download</A>'
                 self.remote._new_event(msg)
@@ -255,10 +255,6 @@ class CobblerXMLRPCInterface:
         """
 
         def runner(self: CobblerThread):
-            if not isinstance(self.options, dict):
-                raise ValueError(
-                    "self.options needs to be dict for background_aclsetup!"
-                )
             self.remote.api.acl_config(
                 self.options.get("adduser", None),
                 self.options.get("addgroup", None),
@@ -519,6 +515,47 @@ class CobblerXMLRPCInterface:
             runner, token, "mkloaders", "Create bootable bootloader images", options
         )
 
+    def background_load_items(self) -> str:
+        """
+        Loading items
+        """
+
+        def runner(self: "CobblerThread"):
+            item_types = [
+                "repo",
+                "distro",
+                "menu",
+                "image",
+                "profile",
+                "system",
+            ]
+            lock = self.options.get("load_items_lock", None)
+            if lock is None or not isinstance(lock, threading.Semaphore):
+                return
+
+            for item_type in item_types:
+                count = 0
+                begin_time = time.time()
+                collection = self.api.get_items(item_type)
+                names_copy = collection.get_names()
+                for name in names_copy:
+                    count += 1
+                    with lock:
+                        item_obj = collection.get(name)
+                        if item_obj is not None and not item_obj.inmemory:
+                            item_obj.deserialize()
+                if count > 0:
+                    collection.inmemory = True
+                    collections_types = collection.collection_types()
+                    self.logger.info(
+                        f"{count} {collections_types} loaded in {str(time.time() - begin_time)} seconds"
+                    )
+
+        if self.api.settings().lazy_start:
+            token = self.login("", self.shared_secret)
+            return self.__start_task(runner, token, "load_items", "Loading items", {})
+        return ""
+
     def get_events(self, for_user: str = "") -> Dict[str, List[Union[str, float]]]:
         """
         Returns a dict(key=event id) = [ statetime, name, state, [read_by_who] ]
@@ -599,6 +636,7 @@ class CobblerXMLRPCInterface:
 
         self._log(f"create_task({name}); event_id({new_event.event_id})")
 
+        args["load_items_lock"] = self.load_items_lock
         thr_obj = CobblerThread(
             new_event.event_id, self, args, role_name, self.api, thr_obj_fn, on_done
         )
@@ -2106,7 +2144,7 @@ class CobblerXMLRPCInterface:
                         object_type, handle, attr_name, attributes.pop(attr_name), token
                     )
             have_interface_keys = False
-            for (key, value) in attributes.items():
+            for key, value in attributes.items():
                 if self.__is_interface_field(key):
                     have_interface_keys = True
                 if object_type != "system" or not self.__is_interface_field(key):
@@ -2124,7 +2162,7 @@ class CobblerXMLRPCInterface:
                         new_value = details[key]  # type: ignore
                         parsed_input = self.api.input_string_or_dict(value)  # type: ignore
                         if isinstance(parsed_input, dict):
-                            for (input_key, input_value) in parsed_input.items():
+                            for input_key, input_value in parsed_input.items():
                                 if input_key.startswith("~") and len(input_key) > 1:
                                     del new_value[input_key[1:]]  # type: ignore
                                 else:
@@ -3917,7 +3955,7 @@ class ProxiedXMLRPCInterface:
         :return: The result of the method.
         """
         # ToDo: Drop rest param
-        if method.startswith("_"):
+        if method.startswith("_") or method == "background_load_items":
             raise CX("forbidden method")
 
         if not hasattr(self.proxied, method):
@@ -3927,7 +3965,11 @@ class ProxiedXMLRPCInterface:
 
         # FIXME: see if this works without extra boilerplate
         try:
+            # Shared lock to suspend execution of background_load_items
+            self.proxied.load_items_lock.acquire(blocking=False)
             return method_handle(*params)
         except Exception as exception:
             utils.log_exc()
             raise exception
+        finally:
+            self.proxied.load_items_lock.release()
