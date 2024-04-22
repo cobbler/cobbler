@@ -134,7 +134,7 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
                 next-server $iface.next_server;
             #end if
             #if $iface.filename:
-                filename $filename
+                filename "$iface.filename";
             #end if
             #if $iface.name_servers:
                 #set $mynameservers = ','.join($iface.name_servers)
