@@ -568,7 +568,7 @@ puppet_version: 2
 
 # Signatures
 signature_path: "/var/lib/cobbler/distro_signatures.json"
-signature_url: "https://cobbler.github.io/signatures/3.0.x/latest.json"
+signature_url: "https://cobbler.github.io/libcobblersignatures/data/v2/distro_signatures.json"
 
 # Set to "true" to enable Cobbler's dynamic DNS updates.
 nsupdate_enabled: false

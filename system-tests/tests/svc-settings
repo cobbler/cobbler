@@ -143,7 +143,7 @@ cat >${tmp}/a <<-EOF
     "server": "192.168.1.1",
     "sign_puppet_certs_automatically": false,
     "signature_path": "/var/lib/cobbler/distro_signatures.json",
-    "signature_url": "https://cobbler.github.io/signatures/3.0.x/latest.json",
+    "signature_url": "https://cobbler.github.io/libcobblersignatures/data/v2/distro_signatures.json",
     "syslinux_dir": "/usr/share/syslinux",
     "syslinux_memdisk_folder": "/usr/share/syslinux",
     "syslinux_pxelinux_folder": "/usr/share/syslinux",
