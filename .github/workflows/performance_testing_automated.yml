@@ -8,6 +8,7 @@ on:
 
 jobs:
   run_performance_tests:
+    name: Run Performance Tests
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
@@ -15,6 +16,10 @@ jobs:
         run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
       - name: Run previously built Docker Container
         run: docker run --privileged -t -d -v $PWD:/code --name cobbler registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
+      - name: Trust the git repository inside the container
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          docker exec -u 0 -it cobbler bash -c "git config --global --add safe.directory /code"
       - name: Setup Cobbler in the Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
@@ -22,6 +27,6 @@ jobs:
       - name: Run the Performance Tests inside the Docker Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          docker exec -u 0 -it cobbler bash -c "pytest --cov=./cobbler --benchmark-only --benchmark-autosave tests/performance"
+          docker exec -u 0 -it cobbler bash -c "pytest --benchmark-only --benchmark-autosave tests/performance"
       - name: Stop and remove the container
         run: docker stop cobbler && docker rm cobbler
