@@ -35,5 +35,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-report
-          path: .benchmark/*.json
+          path: .benchmarks/
           if-no-files-found: error
