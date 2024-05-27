@@ -8,8 +8,12 @@ on:
 
 jobs:
   run_performance_tests:
-    name: Run Performance Tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    name: "Performance-Tests - ${{ matrix.test }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        test: [deserialize, get_autoinstall, item_add, item_copy, item_edit, item_remove, item_rename, make_pxe_menu, start, sync]
     steps:
       - uses: actions/checkout@v4
       - name: Pull Docker Test Container
@@ -27,6 +31,6 @@ jobs:
       - name: Run the Performance Tests inside the Docker Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          docker exec -u 0 -it cobbler bash -c "pytest --benchmark-only --benchmark-autosave tests/performance"
+          docker exec -u 0 -it cobbler bash -c "pytest --benchmark-only --benchmark-autosave tests/performance/${{ matrix.test }}_test.py"
       - name: Stop and remove the container
         run: docker stop cobbler && docker rm cobbler
