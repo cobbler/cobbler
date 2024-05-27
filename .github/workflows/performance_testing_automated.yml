@@ -18,6 +18,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Pull Docker Test Container
         run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
+      - name: Replace number of rounds in the test setup class
+        # The number has to be equal to the number of rounds in the checked in benchmark "master" file.
+        run: sed -i '/[[:space:]]\{4\}test_rounds = 1/s/.$/25/g' tests/performance/__init__.py
       - name: Run previously built Docker Container
         run: docker run --privileged -t -d -v $PWD:/code --name cobbler registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
       - name: Trust the git repository inside the container
@@ -31,6 +34,13 @@ jobs:
       - name: Run the Performance Tests inside the Docker Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          docker exec -u 0 -it cobbler bash -c "pytest --benchmark-only --benchmark-autosave tests/performance/${{ matrix.test }}_test.py"
+          docker exec -u 0 -it cobbler bash -c "pytest --benchmark-only --benchmark-autosave --benchmark-compare="0001" --benchmark-group-by=name --benchmark-compare-fail="mean:10%" tests/performance/${{ matrix.test }}_test.py"
       - name: Stop and remove the container
         run: docker stop cobbler && docker rm cobbler
+      # https://github.com/actions/upload-artifact
+      - name: Upload benchmark report to GH artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-report-pr-${{ matrix.test }}
+          path: .benchmarks/
+          if-no-files-found: error
