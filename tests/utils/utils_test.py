@@ -173,7 +173,10 @@ def test_read_file_contents():
 @pytest.mark.parametrize(
     "remote_url,expected_result",
     [
-        ("https://cobbler.github.io/signatures/latest.json", True),
+        (
+            "https://cobbler.github.io/libcobblersignatures/data/v2/distro_signatures.json",
+            True,
+        ),
         ("https://cobbler.github.io/signatures/not_existing", False),
     ],
 )

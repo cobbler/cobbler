@@ -939,7 +939,7 @@ signature_url
 Updates to the signatures may happen more often then we have releases. To enable you to import new version we provide
 the most up to date signatures we offer on this like. You may host this file for yourself and adjust it for your needs.
 
-default: ``https://cobbler.github.io/signatures/3.0.x/latest.json``
+default: ``https://cobbler.github.io/libcobblersignatures/data/v2/distro_signatures.json``
 
 tftpboot_location
 #################
