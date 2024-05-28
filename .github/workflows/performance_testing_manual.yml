@@ -12,6 +12,7 @@ jobs:
   run_performance_tests:
     name: Run Performance Tests
     runs-on: ubuntu-20.04
+    timeout-minutes: 720
     steps:
       - uses: actions/checkout@v4
       - name: Replace number of rounds in the test setup class
