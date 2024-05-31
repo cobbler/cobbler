@@ -29,7 +29,14 @@ class DownloadManager:
         with open("/etc/cobbler/settings.yaml", encoding="UTF-8") as main_settingsfile:
             ydata = yaml.safe_load(main_settingsfile)
         # requests wants a dict like:  protocol: proxy_uri
-        self.proxies = ydata.get("proxy_url_ext", {})
+        proxy_url_ext = ydata.get("proxy_url_ext", "")
+        if proxy_url_ext:
+            self.proxies = {
+                "http": proxy_url_ext,
+                "https": proxy_url_ext,
+            }
+        else:
+            self.proxies = {}
 
     def urlread(
         self,
