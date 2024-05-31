@@ -222,6 +222,15 @@ default_virt_type: kvm
 # The virtualization disk format
 default_virt_disk_driver: "raw"
 
+# The path to the ethers file used by the dnsmasq manager module.
+# Note that if you change this path, you might have to reconfigure
+# external systems that also use the file. See `man 5 ethers`
+# for more information about the file and its uses.
+dnsmasq_ethers_file: "/etc/ethers"
+
+# The path to the hosts file used by the dnsmasq manager module.
+dnsmasq_hosts_file: "/var/lib/cobbler/cobbler_hosts"
+
 # enable iPXE booting? Enabling this option will cause Cobbler
 # to copy the undionly.kpxe file to the tftp root directory,
 # and if a profile/system is configured to boot via iPXE it will

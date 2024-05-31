@@ -463,9 +463,9 @@ class CobblerSync:
         """
         # rebuild system_list file in webdir
         if self.settings.manage_dhcp:
-            self.dhcp.regen_ethers()
+            self.dhcp.sync_single_system(system_obj)
         if self.settings.manage_dns:
-            self.dns.regen_hosts()
+            self.dns.add_single_hosts_entry(system_obj)
         # write the PXE files for the system
         self.tftpd.sync_single_system(system_obj)
 
@@ -498,6 +498,11 @@ class CobblerSync:
             )
             if pxe_filename is not None:
                 filesystem_helpers.rmtree(os.path.join(bootloc, "esxi", pxe_filename))
+
+        if self.settings.manage_dhcp:
+            self.dhcp.remove_single_system(system_obj)
+        if self.settings.manage_dns:
+            self.dns.remove_single_hosts_entry(system_obj)
 
     def remove_single_menu(self, rebuild_menu: bool = True) -> None:
         """
