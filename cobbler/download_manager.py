@@ -36,7 +36,10 @@ class DownloadManager:
         self.cert = ()
         if self.settings.proxy_url_ext:
             # requests wants a dict like:  protocol: proxy_uri
-            self.proxies = self.settings.proxy_url_ext
+            self.proxies = {
+                "http": self.settings.proxy_url_ext,
+                "https": self.settings.proxy_url_ext,
+            }
         else:
             self.proxies = {}
 
