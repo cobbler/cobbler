@@ -85,6 +85,7 @@ class Images(collection.Collection[image.Image]):
                 lite_sync.remove_single_image(obj)
 
         with self.lock:
+            self.remove_from_indexes(obj)
             del self.listing[name]
         self.collection_mgr.serialize_delete(self, obj)
 

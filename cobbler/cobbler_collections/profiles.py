@@ -82,6 +82,7 @@ class Profiles(collection.Collection[profile.Profile]):
                 )
 
         with self.lock:
+            self.remove_from_indexes(obj)
             del self.listing[name]
         self.collection_mgr.serialize_delete(self, obj)
         if with_delete:

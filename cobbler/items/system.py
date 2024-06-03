@@ -268,6 +268,7 @@ V2.8.5:
         * ``monit_enabled``: bool
 
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2006-2008, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
@@ -293,7 +294,9 @@ class NetworkInterface:
     A subobject of a Cobbler System which represents the network interfaces
     """
 
-    def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, api: "CobblerAPI", system_name: str, *args: Any, **kwargs: Any
+    ) -> None:
         """
         Constructor.
 
@@ -324,9 +327,22 @@ class NetworkInterface:
         self._static = False
         self._static_routes: List[str] = []
         self._virt_bridge = enums.VALUE_INHERITED
+        self.__system_name = system_name
 
         if len(kwargs) > 0:
             self.from_dict(kwargs)
+
+    def __hash__(self):
+        """
+        Hash table for NetworkInterfaces.
+        Requires special handling if the uid value changes and the Item
+        is present in set, frozenset, and dict types.
+
+        :return: hash(uid).
+        """
+        return hash(
+            (self._mac_address, self._ip_address, self._dns_name, self._ipv6_address)
+        )
 
     def from_dict(self, dictionary: Dict[str, Any]):
         """
@@ -519,9 +535,11 @@ class NetworkInterface:
         :param dns_name: DNS Name of the system
         :raises ValueError: In case the DNS name is already existing inside Cobbler
         """
+        if self._dns_name == dns_name:
+            return
         dns_name = validate.hostname(dns_name)
         if dns_name != "" and not self.__api.settings().allow_duplicate_hostnames:
-            matched = self.__api.find_system(dns_name=dns_name)
+            matched = self.__api.find_system(return_list=True, dns_name=dns_name)
             if matched is None:
                 matched = []
             if not isinstance(matched, list):  # type: ignore
@@ -532,6 +550,9 @@ class NetworkInterface:
                 raise ValueError(
                     f'DNS name duplicate found "{dns_name}". Object with the conflict has the name "{match.name}"'
                 )
+        self.__api.systems().update_interface_index_value(
+            self, "dns_name", self._dns_name, dns_name
+        )
         self._dns_name = dns_name
 
     @property
@@ -552,6 +573,8 @@ class NetworkInterface:
         :param address: IP address
         :raises ValueError: In case the IP address is already existing inside Cobbler.
         """
+        if self._ip_address == address:
+            return
         address = validate.ipv4_address(address)
         if address != "" and not self.__api.settings().allow_duplicate_ips:
             matched = self.__api.find_system(return_list=True, ip_address=address)
@@ -567,6 +590,9 @@ class NetworkInterface:
                 raise ValueError(
                     f'IP address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
                 )
+        self.__api.systems().update_interface_index_value(
+            self, "ip_address", self._ip_address, address
+        )
         self._ip_address = address
 
     @property
@@ -587,12 +613,14 @@ class NetworkInterface:
         :param address: MAC address
         :raises CX: In case there a random mac can't be computed
         """
+        if self._mac_address == address:
+            return
         address = validate.mac_address(address)
         if address == "random":
             # FIXME: Pass virt_type of system
             address = utils.get_random_mac(self.__api)
         if address != "" and not self.__api.settings().allow_duplicate_macs:
-            matched = self.__api.find_system(mac_address=address)
+            matched = self.__api.find_system(return_list=True, mac_address=address)
             if matched is None:
                 matched = []
             if not isinstance(matched, list):
@@ -605,6 +633,9 @@ class NetworkInterface:
                 raise ValueError(
                     f'MAC address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
                 )
+        self.__api.systems().update_interface_index_value(
+            self, "mac_address", self._mac_address, address
+        )
         self._mac_address = address
 
     @property
@@ -804,9 +835,11 @@ class NetworkInterface:
         :param address: IP address
         :raises ValueError: IN case the IP is duplicated
         """
+        if self._ipv6_address == address:
+            return
         address = validate.ipv6_address(address)
         if address != "" and not self.__api.settings().allow_duplicate_ips:
-            matched = self.__api.find_system(ipv6_address=address)
+            matched = self.__api.find_system(return_list=True, ipv6_address=address)
             if matched is None:
                 matched = []
             if not isinstance(matched, list):
@@ -820,6 +853,9 @@ class NetworkInterface:
                     f'IPv6 address duplicate found "{address}". Object with the conflict has the name'
                     f'"{match.name}"'
                 )
+        self.__api.systems().update_interface_index_value(
+            self, "ipv6_address", self._ipv6_address, address
+        )
         self._ipv6_address = address
 
     @property
@@ -991,6 +1027,25 @@ class NetworkInterface:
             ) from error
         self._connected_mode = truthiness
 
+    @property
+    def system_name(self) -> str:
+        """
+        system_name property.
+
+        :getter: Returns the value for ``system_name``.
+        :setter: Sets the value for the property ``system_name``.
+        """
+        return self.__system_name
+
+    @system_name.setter
+    def system_name(self, system_name: str):
+        """
+        Setter for the system_name of the NetworkInterface class.
+
+        :param system_name: The new system_name.
+        """
+        self.__system_name = system_name
+
     def modify_interface(self, _dict: Dict[str, Any]):
         """
         Modify the interface
@@ -1135,6 +1190,17 @@ class System(Item):
     def make_clone(self):
         _dict = copy.deepcopy(self.to_dict())
         _dict.pop("uid", None)
+        collection = self.api.systems()
+        # clear all these out to avoid DHCP/DNS conflicts
+        for interface in _dict["interfaces"].values():
+            if not collection.disabled_indexes["mac_address"]:
+                interface.pop("mac_address", None)
+            if not collection.disabled_indexes["ip_address"]:
+                interface.pop("ip_address", None)
+            if not collection.disabled_indexes["ipv6_address"]:
+                interface.pop("ipv6_address", None)
+            if not collection.disabled_indexes["dns_name"]:
+                interface.pop("dns_name", None)
         return System(self.api, **_dict)
 
     def check_if_valid(self):
@@ -1153,6 +1219,17 @@ class System(Item):
                 raise CX(
                     f"Error with system {self.name} - profile or image is required"
                 )
+
+    @Item.name.setter
+    def name(self, name: str) -> None:
+        """
+        The systems name.
+
+        :param name: system name string
+        """
+        Item.name.fset(self, name)
+        for interface in self.interfaces.values():
+            interface.system_name = name
 
     #
     # specific methods for item.System
@@ -1179,13 +1256,18 @@ class System(Item):
         if not isinstance(value, dict):  # type: ignore
             raise TypeError("interfaces must be of type dict")
         dict_values = list(value.values())
+        collection = self.api.systems()
         if all(isinstance(x, NetworkInterface) for x in dict_values):
+            for network_iface in value.values():
+                network_iface.system_name = self.name
+            collection.update_interfaces_indexes(self, value)
             self._interfaces = value
             return
         if all(isinstance(x, dict) for x in dict_values):
             for key in value:
-                network_iface = NetworkInterface(self.api)
+                network_iface = NetworkInterface(self.api, self.name)
                 network_iface.from_dict(value[key])
+                collection.update_interface_indexes(self, key, network_iface)
                 self._interfaces[key] = network_iface
             return
         raise ValueError(
@@ -1209,14 +1291,17 @@ class System(Item):
 
         :raises TypeError: If the name of the interface is not of type str or dict.
         """
+        collection = self.api.systems()
         if isinstance(name, str):
             if not name:
                 return
             if name in self.interfaces:
+                collection.remove_interface_from_indexes(self, name)
                 self.interfaces.pop(name)
                 return
         if isinstance(name, dict):
             interface_name = name.get("interface", "")
+            collection.remove_interface_from_indexes(self, interface_name)
             self.interfaces.pop(interface_name)
             return
         raise TypeError("The name of the interface must be of type str or dict")
@@ -1543,7 +1628,7 @@ class System(Item):
 
         :param interface: The name of the interface
         """
-        self.interfaces[interface] = NetworkInterface(self.api)
+        self.interfaces[interface] = NetworkInterface(self.api, self.name)
 
     def __get_interface(
         self, interface_name: Optional[str] = "default"

@@ -75,6 +75,7 @@ class Repos(collection.Collection[repo.Repo]):
                 )
 
         with self.lock:
+            self.remove_from_indexes(obj)
             del self.listing[name]
         self.collection_mgr.serialize_delete(self, obj)
 
