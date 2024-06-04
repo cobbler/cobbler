@@ -24,7 +24,7 @@ ENV container docker
 ENV DISTRO SUSE
 
 # Custom repository
-RUN zypper ar https://download.opensuse.org/repositories/home:/cobbler-project:/release33/15.4/ "Cobbler 3.3.x release project (15.4)" \
+RUN zypper ar https://download.opensuse.org/repositories/systemsmanagement:/cobbler:/release33/15.4/systemsmanagement:cobbler:release33.repo \
     && zypper --gpg-auto-import-keys refresh
 
 # Runtime & dev dependencies
