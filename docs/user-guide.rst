@@ -31,17 +31,6 @@ API
 Cobbler also makes itself available as an XML-RPC API for use by higher level management software. Learn more at
 https://cobbler.github.io
 
-Triggers
-########
-
-Triggers provide a way to integrate Cobbler with arbitrary 3rd party software without modifying Cobbler's code. When
-adding a distro, profile, system, or repo, all scripts in ``/var/lib/cobbler/triggers/add`` are executed for the
-particular object type. Each particular file must be executable and it is executed with the name of the item being added
-as a parameter. Deletions work similarly -- delete triggers live in ``/var/lib/cobbler/triggers/delete``. Order of
-execution is arbitrary, and Cobbler does not ship with any triggers by default. There are also other kinds of triggers
--- these are described on the Cobbler Wiki. For larger configurations, triggers should be written in Python -- in which
-case they are installed differently. This is also documented on the Wiki.
-
 Images
 ######
 
