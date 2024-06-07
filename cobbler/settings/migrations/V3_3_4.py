@@ -12,6 +12,7 @@ from cobbler.settings.migrations import V3_3_3
 # schema identical to V3_3_3
 schema = V3_3_3.schema
 
+
 def validate(settings: dict) -> bool:
     """
     Checks that a given settings dict is valid according to the reference V3.3.1 schema ``schema``.

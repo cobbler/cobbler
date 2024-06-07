@@ -30,6 +30,7 @@ def api_mock():
     settings_mock.default_name_servers = []
     settings_mock.default_name_servers_search = []
     settings_mock.default_virt_disk_driver = "raw"
+    settings_mock.cache_enabled = False
     api_mock.settings.return_value = settings_mock
     test_distro = Distro(api_mock)
     test_distro.name = "test"

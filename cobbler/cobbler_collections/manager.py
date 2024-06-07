@@ -26,6 +26,7 @@ from typing import Union, Dict, Any
 from cobbler.cexceptions import CX
 from cobbler import serializer
 from cobbler import validate
+from cobbler.settings import Settings
 from cobbler.cobbler_collections.distros import Distros
 from cobbler.cobbler_collections.files import Files
 from cobbler.cobbler_collections.images import Images
@@ -197,6 +198,8 @@ class CollectionManager:
 
         :raises CX: if there is an error in deserialization
         """
+        old_cache_enabled = self.api.settings().cache_enabled
+        self.api.settings().cache_enabled = False
         for collection in (
             self._menus,
             self._distros,
@@ -210,12 +213,27 @@ class CollectionManager:
         ):
             try:
                 serializer.deserialize(collection)
-            except Exception as e:
-                raise CX("serializer: error loading collection %s: %s. Check /etc/cobbler/modules.conf"
-                         % (collection.collection_type(), e)) from e
+            except Exception as error:
+                raise CX(
+                    f"serializer: error loading collection {collection.collection_type()}: {error}."
+                    f"Check your settings!"
+                ) from error
+        self.api.settings().cache_enabled = old_cache_enabled
 
-    def get_items(self, collection_type: str) -> Union[Distros, Profiles, Systems, Repos, Images, Mgmtclasses, Packages,
-                                                       Files, Menus]:
+    def get_items(
+        self, collection_type: str
+    ) -> Union[
+        Distros,
+        Profiles,
+        Systems,
+        Repos,
+        Images,
+        Mgmtclasses,
+        Packages,
+        Files,
+        Menus,
+        Settings,
+    ]:
         """
         Get a full collection of a single type.
 
@@ -236,6 +254,7 @@ class CollectionManager:
             Packages,
             Files,
             Menus,
+            Settings,
         ]
         if validate.validate_obj_type(collection_type) and hasattr(
             self, f"_{collection_type}s"

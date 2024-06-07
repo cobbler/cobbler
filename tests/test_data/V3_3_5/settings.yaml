@@ -30,8 +30,9 @@ allow_dynamic_settings: false
 # ok with this limitation.
 anamon_enabled: false
 
-# If the key "module" in the file "/etc/cobbler/modules.conf" in the section "authentication" is set to the value
-# "authentication.pam", this setting chooses the PAM authentication stack used.
+# If using "authn_pam" in the "modules.conf", this can be configured to change the PAM service authentication will be
+# tested against.
+# The default value is "login".
 authn_pam_service: "login"
 
 # How long the authentication token is valid for, in seconds.
@@ -126,13 +127,13 @@ bootloaders_modules:
   - gcry_rijndael
   - gcry_sha1
   - gcry_sha256
-syslinux_dir: '@@syslinux_dir@@'
-syslinux_memdisk_folder: '@@memdisk_folder@@'
-syslinux_pxelinux_folder: '@@pxelinux_folder@@'
-grub2_mod_dir: '@@grub_mod_folder@@'
-bootloaders_shim_folder: '@@shim_folder@@'
-bootloaders_shim_file: '@@shim_file@@'
-bootloaders_ipxe_folder: '@@ipxe_folder@@'
+syslinux_dir: '/usr/share/syslinux'
+syslinux_memdisk_folder: '/usr/share/syslinux'
+syslinux_pxelinux_folder: '/usr/share/syslinux'
+grub2_mod_dir: '/usr/share/grub2'
+bootloaders_shim_folder: '/usr/share/efi/*/'
+bootloaders_shim_file: 'shim\.efi'
+bootloaders_ipxe_folder: '/usr/share/ipxe/'
 
 # Email out a report when Cobbler finishes installing a system.
 # enabled: set to true to turn this feature on
@@ -217,9 +218,6 @@ default_virt_ram: 512
 # (NOTE: this does not change what virt_type is chosen by import)
 default_virt_type: xenpv
 
-# The virtualization disk format
-default_virt_disk_driver: "raw"
-
 # enable iPXE booting? Enabling this option will cause Cobbler
 # to copy the undionly.kpxe file to the tftp root directory,
 # and if a profile/system is configured to boot via iPXE it will
@@ -297,7 +295,7 @@ puppetca_path: "/usr/bin/puppet"
 remove_old_puppet_certs_automatically: false
 
 # choose a --server argument when running puppetd/puppet agent during autoinstall
-puppet_server: ""
+puppet_server: 'puppet'
 
 # let Cobbler know that you're using a newer version of puppet
 # choose version 3 to use: 'puppet agent'; version 2 uses status quo: 'puppetd'
@@ -308,13 +306,13 @@ puppet_version: 2
 puppet_parameterized_classes: true
 
 # set to true to enable Cobbler's DHCP management features.
-# Use the "module" key in "/etc/cobbler/modules.conf" in the "dhcp" section to configure DHCP management engine
+# the choice of DHCP management engine is in /etc/cobbler/modules.conf
 # See the docs (https://cobbler.readthedocs.io/en/latest/user-guide.html#dhcp-management) for more info
 manage_dhcp: false
 
 # set to true to enable DHCP IPv6 address configuration generation.
 # This currently only works with manager.isc DHCP module (isc dhcpd6 daemon)
-# See "module" key in "/etc/cobbler/modules.conf" in the "dhcp" section whether this isc module is chosen for dhcp
+# See /etc/cobbler/modules.conf whether this isc module is chosen for dhcp
 # generation.
 manage_dhcp_v6: false
 
@@ -332,9 +330,9 @@ next_server_v4: 127.0.0.1
 # Set the cobbler IPv6 address here so that PXE booting guests can find it
 next_server_v6: "::1"
 
-# Set this key to true to enable Cobbler's DNS management features.
-# Use the key "module" in the file "/etc/cobbler/modules.conf" under the section "dns" to control which DNS management
-# engine is utilized. Needs "manage_forward_zones" and "manage_reverse_zones" to be set as well.
+# set to true to enable Cobbler's DNS management features.
+# the choice of DNS management engine is in /etc/cobbler/modules.conf
+# needs manage_forward_zones and manage_reverse_zones to be set, too.
 manage_dns: false
 
 # set to path of bind chroot to create bind-chroot compatible bind
@@ -342,35 +340,32 @@ manage_dns: false
 bind_chroot_path: ""
 
 # set to path where zonefiles of bind/named server are located.
-bind_zonefile_path: "@@bind_zonefiles@@"
+bind_zonefile_path: "/var/lib/named"
 
 # set to the ip address of the master bind DNS server for creating secondary
 # bind configuration files
 bind_master: 127.0.0.1
 
-# If you use BIND (named) for DNS management and manage_dns is enabled (above), this lists managed zones.
-# See https://cobbler.rtfd.io/en/latest/user-guide/dns-management.html for more info.
+# if using BIND (named) for DNS management in /etc/cobbler/modules.conf
+# and manage_dns is enabled (above), this lists which zones are managed
+# See the docs (https://cobbler.readthedocs.io/en/latest/user-guide.html#dns-configuration-management) for more info
 manage_forward_zones: []
 manage_reverse_zones: []
 
 # set to true to enable Cobbler's TFTP management features.
-# Use the key "module" in the file "/etc/cobbler/modules.conf" under the section "tftpd" to choose of TFTP management
-# engine which is utilized.
+# the choice of TFTP management engine is in /etc/cobbler/modules.conf
 manage_tftpd: true
 
 # This variable contains the location of the tftpboot directory. If this directory is not present Cobbler does not
 # start.
-# Default: @@tftproot@@
-tftpboot_location: "@@tftproot@@"
-
-# The location where Cobbler searches for GRUB configuration files
-grubconfig_dir: "/var/lib/cobbler/grub_config"
+# Default: "/var/lib/tftpboot"
+tftpboot_location: "/var/lib/tftpboot"
 
 # set to true to enable Cobbler's RSYNC management features.
 manage_rsync: false
 
 # settings for power management features.  optional.
-# see https://cobbler.rtfd.io/en/latest/user-guide/power-management.html to learn more
+# see https://github.com/cobbler/cobbler/wiki/Power-management to learn more
 # choices (refer to codes.py):
 #    apc_snmp bladecenter bullpap drac ether_wake ilo integrity
 #    ipmilan ipmilanplus lpar rsa virsh wti
@@ -393,14 +388,17 @@ nopxe_with_triggers: true
 # authentication within Cobbler Web and Cobbler XMLRPC.
 redhat_management_server: "xmlrpc.rhn.redhat.com"
 
-# If the key "module" in the file "/etc/cobbler/modules.conf" under the section "authentication" is set to the value
-# "authentication.spacewalk" Satellite/Spacewalk's auth system is used. Cobbler does not allow user-based access into
-# Cobbler Web and Cobbler XMLRPC by default.
-# Enable the following setting to permit user-based access to Cobbler's API. Note that doing so permits all
-# Spacewalk/Satellite users with the "config_admin" and "org_admin" roles to edit Cobbler's configuration.
-# Users should turn this on only if they want this behavior and do not have a cross-multi-org seperation concern. If
-# you have a single org in your satellite, it's probably safe to turn this on and then you can use CobblerWeb alongside
-# a Satellite install.
+# if using authn_spacewalk in modules.conf to let Cobbler authenticate
+# against Satellite/Spacewalk's auth system, by default it will not allow per user
+# access into Cobbler Web and Cobbler XMLRPC.
+# in order to permit this, the following setting must be enabled HOWEVER
+# doing so will permit all Spacewalk/Satellite users of certain types to edit all
+# of Cobbler's configuration.
+# these roles are:  config_admin and org_admin
+# users should turn this on only if they want this behavior and
+# do not have a cross-multi-org seperation concern.  If you have
+# a single org in your satellite, it's probably safe to turn this
+# on and then you can use CobblerWeb alongside a Satellite install.
 redhat_management_permissive: false
 
 # specify the default Red Hat authorization key to use to register
@@ -480,7 +478,7 @@ virt_auto_boot: true
 
 # Cobbler's web directory. Don't change this setting -- see the Wiki on "Relocating your Cobbler install" if your "/var"
 # partition is not large enough.
-webdir: "@@webroot@@/cobbler"
+webdir: "/var/www/cobbler"
 
 # Directories that will not get wiped and recreated on a "cobbler sync".
 webdir_whitelist:
@@ -529,9 +527,6 @@ yumdownloader_flags: "--resolve"
 # sort and indent JSON output to make it more human-readable
 serializer_pretty_json: false
 
-# Used for replicating the Cobbler instance
-cobbler_master: ""
-
 # replication rsync options for distros, autoinstalls, snippets set to override default value of "-avzH"
 replicate_rsync_options: "-avzH"
 
@@ -560,10 +555,11 @@ jinja2_includedir: "/var/lib/cobbler/jinja2"
 # This behavior was now made conditional, with default being "off".
 convert_server_to_ip: false
 
-# Used for caching the intermediate files for ISO-Building
+# Leftover settings
 buildisodir: "/var/cache/cobbler/buildiso"
-
-# Folder to search for the ISO templates. These will build the boot-menu of the built ISO.
+cobbler_master: ""
+default_virt_disk_driver: "raw"
+grubconfig_dir: "/var/lib/cobbler/grub_config"
 iso_template_dir: "/etc/cobbler/iso"
 
 # Signatures
@@ -572,8 +568,8 @@ signature_url: "https://cobbler.github.io/signatures/3.0.x/latest.json"
 
 # Set to true to cache of some internal operations can speed up their execution, but can slow down
 # editing objects.
-cache_enabled: true
+cache_enabled: false
 
 # Include other configuration snippets. Overwriting a key from this file in a childfile will overwrite the value from
 # this file.
-include: [ "/etc/cobbler/settings.d/*.settings" ]
+include: [ "/code/tests/test_data/V3_3_3/settings.d/*.settings" ]

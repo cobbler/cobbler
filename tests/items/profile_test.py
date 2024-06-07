@@ -47,7 +47,7 @@ def test_to_dict(cobbler_api, cleanup_to_dict):
     result = profile.to_dict()
 
     # Assert
-    assert len(result) == 44
+    assert len(result) == 43
     assert result["distro"] == "test_to_dict_distro"
 
 
@@ -239,15 +239,45 @@ def test_next_server_v6(cobbler_api):
     assert profile.next_server_v6 == ""
 
 
-def test_filename(cobbler_api):
+@pytest.mark.parametrize(
+    "input_filename,expected_result,is_subitem,expected_exception",
+    [
+        ("", "", False, does_not_raise()),
+        ("", "", True, does_not_raise()),
+        ("<<inherit>>", "", False, does_not_raise()),
+        ("<<inherit>>", "", True, does_not_raise()),
+        ("test", "test", False, does_not_raise()),
+        ("test", "test", True, does_not_raise()),
+        (0, "", True, pytest.raises(TypeError)),
+    ],
+)
+def test_filename(
+    cobbler_api,
+    create_distro,
+    create_profile,
+    input_filename,
+    expected_result,
+    is_subitem,
+    expected_exception,
+):
+    """
+    Assert that a Cobbler Profile can use the Getter and Setter of the filename property correctly.
+    """
     # Arrange
+    test_dist = create_distro()  # type: ignore
     profile = Profile(cobbler_api)
+    profile.name = "filename_test_profile"
+    if is_subitem:
+        test_profile = create_profile(test_dist.name)  # type: ignore
+        profile.parent = test_profile.name  # type: ignore
+    profile.distro = test_dist.name  # type: ignore
 
     # Act
-    profile.filename = "<<inherit>>"
+    with expected_exception:
+        profile.filename = input_filename
 
-    # Assert
-    assert profile.filename == "<<inherit>>"
+        # Assert
+        assert profile.filename == expected_result
 
 
 @pytest.mark.parametrize(

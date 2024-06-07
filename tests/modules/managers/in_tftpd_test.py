@@ -38,6 +38,7 @@ def api_mock_tftp():
     settings_mock.default_virt_disk_driver = "raw"
     settings_mock.tftpboot_location = "/var/lib/tftpboot"
     settings_mock.webdir = "/srv/www/cobbler"
+    settings_mock.cache_enabled = False
     api_mock_tftp.settings.return_value = settings_mock
     test_distro = Distro(api_mock_tftp)
     test_distro.name = "test"
