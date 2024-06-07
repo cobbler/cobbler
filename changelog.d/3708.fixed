@@ -1,0 +1,1 @@
+"get_event_log" endpoint didn't output any data even thought the event id is valid.

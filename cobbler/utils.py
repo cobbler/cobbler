@@ -26,20 +26,24 @@ import glob
 import json
 import logging
 import os
+import pathlib
 import random
 import re
 import shlex
 import shutil
 import subprocess
 import sys
+import time
 import traceback
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 import xmlrpc.client
 from functools import reduce
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Pattern, Union
+from threading import Thread
+from typing import Any, Dict, List, Optional, Pattern, Union, Callable
 from xmlrpc.client import ServerProxy
 
 import distro
@@ -964,7 +968,7 @@ def run_this(cmd: str, args: Union[str, tuple]):
         die("Command failed")
 
 
-def run_triggers(api, ref, globber, additional: list = None):
+def run_triggers(api, ref=None, globber: str = "", additional: list = None):
     """Runs all the trigger scripts in a given directory.
     Example: ``/var/lib/cobbler/triggers/blah/*``
 
@@ -2091,3 +2095,174 @@ def is_str_float(value: str) -> bool:
     except ValueError:
         pass
     return False
+
+
+class CobblerEvent:
+    """
+    This is a small helper class that represents an event in Cobbler.
+    """
+
+    def __init__(self, name="", statetime=0.0):
+        """
+        Default Constructor that initializes the event id.
+        :param name: The human-readable name of the event
+        :statetime: The time the event was created.
+        """
+        self.__event_id = ""
+        self.statetime = statetime
+        self.__name = name
+        self.state = enums.EventStatus.INFO
+        self.read_by_who = []
+        # Initialize the even_id
+        self.__generate_event_id()
+
+    def __len__(self):
+        return len(self.__members())
+
+    def __getitem__(self, idx):
+        return self.__members()[idx]
+
+    def __members(self) -> list:
+        """
+        Lists the members with their current values.
+        :returns: This converts all members to scalar types that can be passed via XML-RPC.
+        """
+        return [self.statetime, self.name, self.state.value, self.read_by_who]
+
+    @property
+    def event_id(self):
+        """
+        Read only property to retrieve the internal ID of the event.
+        """
+        return self.__event_id
+
+    @property
+    def name(self):
+        """
+        Read only property to retrieve the human-readable name of the event.
+        """
+        return self.__name
+
+    def __generate_event_id(self):
+        """
+        Generate an event id based on the current timestamp
+        :return: An id in the format: "<4 digit year>-<2 digit month>-<two digit day>_<2 digit hour><2 digit minute>
+                 <2 digit second>_<optional string>"
+        """
+        (
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second,
+            _,
+            _,
+            _,
+        ) = time.localtime()
+        task_uuid = uuid.uuid4().hex
+        self.__event_id = f"{year:04d}-{month:02d}-{day:02d}_{hour:02d}{minute:02d}{second:02d}_{self.name}_{task_uuid}"
+
+
+class CobblerThread(Thread):
+    """
+    This is a custom thread that has a custom logger as well as logic to execute Cobbler triggers.
+    """
+
+    def __init__(
+        self,
+        event_id: str,
+        remote,
+        options: dict,
+        task_name: str,
+        api,
+        run: Callable,
+        on_done: Callable = None,
+    ):
+        """
+        This constructor creates a Cobbler thread which then may be run by calling ``run()``.
+        :param event_id: The event-id which is associated with this thread. Also used as thread name
+        :param remote: The Cobbler remote object to execute actions with.
+        :param options: Additional options which can be passed into the Thread.
+        :param task_name: The high level task name which is used to trigger pre- and post-task triggers
+        :param api: The Cobbler api object to resolve information with.
+        :param run: The callable that is going to be executed with this thread.
+        :param on_done: An optional callable that is going to be executed after ``run`` but before the triggers.
+        """
+        super().__init__(name=event_id)
+        self.event_id = event_id
+        self.remote = remote
+        self.logger = logging.getLogger()
+        self.__task_log_handler = None
+        self.__setup_logger()
+        self._run = run
+        self.on_done = on_done
+        if options is None:
+            options = {}
+        self.options = options
+        self.task_name = task_name
+        self.api = api
+
+    def __setup_logger(self):
+        """
+        Utility function that will set up the Python logger for the tasks in a special directory.
+        """
+        filename = pathlib.Path("/var/log/cobbler/tasks") / f"{self.event_id}.log"
+        self.__task_log_handler = logging.FileHandler(str(filename), encoding="utf-8")
+        task_log_formatter = logging.Formatter(
+            "[%(threadName)s] %(asctime)s - %(levelname)s | %(message)s"
+        )
+        self.__task_log_handler.setFormatter(task_log_formatter)
+        self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(self.__task_log_handler)
+
+    def _set_task_state(self, new_state: enums.EventStatus):
+        """
+        Set the state of the task. (For internal use only)
+        :param new_state: The new state of the task.
+        """
+        if not isinstance(new_state, enums.EventStatus):
+            raise TypeError('"new_state" needs to be of type enums.EventStatus!')
+        if self.event_id not in self.remote.events:
+            raise ValueError('"event_id" not existing!')
+        self.remote.events[self.event_id].state = new_state
+        # clear the list of who has read it
+        self.remote.events[self.event_id].read_by_who = []
+        if new_state == enums.EventStatus.COMPLETE:
+            self.logger.info("### TASK COMPLETE ###")
+        elif new_state == enums.EventStatus.FAILED:
+            self.logger.error("### TASK FAILED ###")
+
+    def run(self):
+        """
+        Run the thread.
+        :return: The return code of the action. This may a boolean or a Linux return code.
+        """
+        self.logger.info("start_task(%s); event_id(%s)", self.task_name, self.event_id)
+        try:
+            if run_triggers(
+                api=self.api,
+                globber=f"/var/lib/cobbler/triggers/task/{self.task_name}/pre/*",
+                additional=self.options,
+            ):
+                self._set_task_state(enums.EventStatus.FAILED)
+                return False
+            rc = self._run(self)
+            if rc is not None and not rc:
+                self._set_task_state(enums.EventStatus.FAILED)
+            else:
+                self._set_task_state(enums.EventStatus.COMPLETE)
+                if self.on_done is not None:
+                    self.on_done()
+                run_triggers(
+                    api=self.api,
+                    globber=f"/var/lib/cobbler/triggers/task/{self.task_name}/post/*",
+                    additional=self.options,
+                )
+            return rc
+        except Exception:
+            log_exc()
+            self._set_task_state(enums.EventStatus.FAILED)
+            return False
+        finally:
+            self.logger.removeHandler(self.__task_log_handler)
