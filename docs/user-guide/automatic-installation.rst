@@ -92,3 +92,24 @@ To check for potential errors in auto-installation files, prior to installation,
 This function will check all profile and system auto-installation files for detectable errors. Since ``pykickstart`` and
 related tools are not future-version aware in most cases, there may be some false positives. It should be noted that
 ``cobbler validate-autoinstalls`` runs on the rendered autoinstall output, not autoinstall templates themselves.
+
+Automatic installation tracking
+###############################
+
+Cobbler knows how to keep track of the status of automatic installation of machines.
+
+.. code-block:: shell
+
+    cobbler status
+
+Using the status command will show when Cobbler thinks a machine started automatic installation and when it finished,
+provided the proper snippets are found in the automatic installation template. This is a good way to track machines that
+may have gone interactive (or stalled/crashed) during automatic installation.
+
+Debugging of unattended installations
+#####################################
+
+For further debugging it might be helpful to use other tools like a serial console to record the screen during the boot process.
+Since some information will not be shown on screen long enough to read it it is recommended to record the screen output.
+
+

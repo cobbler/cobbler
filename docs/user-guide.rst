@@ -164,25 +164,11 @@ install. To re-enable PXE for a specific system, run the following command:
 
     cobbler system edit --name=name --netboot-enabled=1
 
-Automatic installation tracking
-===============================
-
-Cobbler knows how to keep track of the status of automatic installation of machines.
-
-.. code-block:: shell
-
-    cobbler status
-
-Using the status command will show when Cobbler thinks a machine started automatic installation and when it finished,
-provided the proper snippets are found in the automatic installation template. This is a good way to track machines that
-may have gone interactive (or stalled/crashed) during automatic installation.
-
 Containerization
 ################
 
 We have a test-image which you can find in the Cobbler repository and an old image made by the community:
 https://github.com/osism/docker-cobbler
-
 
 Web-Interface
 #############
