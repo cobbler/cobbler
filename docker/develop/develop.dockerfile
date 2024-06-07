@@ -145,7 +145,8 @@ RUN zypper install --no-recommends -y \
     python3-pytest                    \
     python3-pytest-cov                \
     python3-pytest-mock               \
-    python3-pytest-pythonpath \
+    python3-pytest-pythonpath         \
+    python3-pytest-benchmark          \
     && zypper clean
 
 # Enable the Apache Modules
