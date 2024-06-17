@@ -10,15 +10,15 @@ from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import systems
 from cobbler.cobbler_collections.manager import CollectionManager
-from cobbler.items import distro, profile, system
+from cobbler.items import distro, image, profile, system
 
 
 @pytest.fixture(name="system_collection")
-def fixture_system_collection(collection_mgr: CollectionManager):
+def fixture_system_collection(cobbler_api: CobblerAPI):
     """
     Fixture to provide a concrete implementation (Systems) of a generic collection.
     """
-    return systems.Systems(collection_mgr)
+    return cobbler_api.systems()
 
 
 def test_obj_create(collection_mgr: CollectionManager):
@@ -48,6 +48,7 @@ def test_get(
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
 ):
     """
     TODO
@@ -57,7 +58,6 @@ def test_get(
     distro1 = create_distro()
     profile1 = create_profile(name)
     system1 = create_system(name)
-    system_collection = cobbler_api.systems()
 
     # Act
     item = system_collection.get(name)
@@ -73,6 +73,7 @@ def test_find(
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
 ):
     """
     TODO
@@ -82,7 +83,6 @@ def test_find(
     distro1 = create_distro()
     profile1 = create_profile(name)
     system1 = create_system(name)
-    system_collection = cobbler_api.systems()
 
     # Act
     result = system_collection.find(name, True, True)
@@ -98,6 +98,7 @@ def test_to_list(
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
 ):
     """
     TODO
@@ -107,7 +108,6 @@ def test_to_list(
     distro1 = create_distro()
     profile1 = create_profile(name)
     system1 = create_system(name)
-    system_collection = cobbler_api.systems()
 
     # Act
     result = system_collection.to_list()
@@ -121,6 +121,7 @@ def test_from_list(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
+    system_collection: systems.Systems,
 ):
     """
     TODO
@@ -129,7 +130,6 @@ def test_from_list(
     name = "test_from_list"
     distro1 = create_distro()
     profile1 = create_profile(name)
-    system_collection = cobbler_api.systems()
     item_list = [
         {
             "name": "test_from_list",
@@ -159,6 +159,7 @@ def test_copy(
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
 ):
     """
     TODO
@@ -176,7 +177,6 @@ def test_copy(
             "mac_address": "52:54:00:7d:81:f4",
         }
     }
-    system_collection = cobbler_api.systems()
 
     # Act
     test1 = {
@@ -191,10 +191,16 @@ def test_copy(
     assert name in system_collection.listing
     assert new_item_name in system_collection.listing
     for key, value in system_collection.indexes.items():
-        if key == "uid":
-            assert len(value) == 2
-            assert value[getattr(system1, key)] == name
-            assert value[getattr(system2, key)] == new_item_name
+        indx_prop = cobbler_api.settings().memory_indexes["system"][key]
+        if hasattr(system1, key):
+            if indx_prop["nonunique"]:
+                assert len(value) == 1
+                assert value[getattr(system1, key)] == {name, new_item_name}
+                assert value[getattr(system2, key)] == {name, new_item_name}
+            else:
+                assert len(value) == 2
+                assert value[getattr(system1, key)] == name
+                assert value[getattr(system2, key)] == new_item_name
         else:
             assert len(value) == 1
             assert value[getattr(system1.interfaces["default"], key)] == name
@@ -212,6 +218,7 @@ def test_rename(
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
     input_new_name: str,
 ):
     """
@@ -230,7 +237,6 @@ def test_rename(
             "mac_address": "52:54:00:7d:81:f4",
         }
     }
-    system_collection = cobbler_api.systems()
 
     # Act
     system_collection.rename(system1, input_new_name)
@@ -241,8 +247,12 @@ def test_rename(
     for interface in system1.interfaces.values():
         assert interface.system_name == input_new_name
     for key, value in system_collection.indexes.items():
-        if key == "uid":
-            assert value[getattr(system1, key)] == input_new_name
+        indx_prop = cobbler_api.settings().memory_indexes["system"][key]
+        if hasattr(system1, key):
+            if indx_prop["nonunique"]:
+                assert value[getattr(system1, key)] == {input_new_name}
+            else:
+                assert value[getattr(system1, key)] == input_new_name
         else:
             assert value[getattr(system1.interfaces["default"], key)] == input_new_name
 
@@ -252,6 +262,7 @@ def test_collection_add(
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
 ):
     """
     TODO
@@ -271,7 +282,6 @@ def test_collection_add(
             "mac_address": "52:54:00:7d:81:f4",
         }
     }
-    system_collection = cobbler_api.systems()
 
     # Act
     system_collection.add(system1)
@@ -282,8 +292,12 @@ def test_collection_add(
     for interface in system1.interfaces.values():
         assert interface.system_name == name
     for key, value in system_collection.indexes.items():
-        if key == "uid":
-            assert value[getattr(system1, key)] == name
+        indx_prop = cobbler_api.settings().memory_indexes["system"][key]
+        if hasattr(system1, key):
+            if indx_prop["nonunique"]:
+                assert value[getattr(system1, key)] == {name}
+            else:
+                assert value[getattr(system1, key)] == name
         else:
             assert value[getattr(system1.interfaces["default"], key)] == name
 
@@ -293,6 +307,7 @@ def test_duplicate_add(
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
 ):
     """
     TODO
@@ -310,7 +325,6 @@ def test_duplicate_add(
             "mac_address": "52:54:00:7d:81:f4",
         }
     }
-    system_collection = cobbler_api.systems()
     system2 = system.System(cobbler_api)
     system2.name = name
     system2.profile = name
@@ -328,6 +342,7 @@ def test_remove(
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
 ):
     """
     TODO
@@ -345,7 +360,6 @@ def test_remove(
             "mac_address": "52:54:00:7d:81:f4",
         }
     }
-    system_collection = cobbler_api.systems()
     assert name in system_collection.listing
 
     # Pre-Assert to validate if the index is in its correct state
@@ -372,18 +386,14 @@ def test_indexes(
     # Arrange
 
     # Assert
-    assert len(system_collection.indexes) == 5
+    assert len(system_collection.indexes) == 7
     assert len(system_collection.indexes["uid"]) == 0
+    assert len(system_collection.indexes["image"]) == 0
+    assert len(system_collection.indexes["profile"]) == 0
     assert len(system_collection.indexes["mac_address"]) == 0
     assert len(system_collection.indexes["ip_address"]) == 0
     assert len(system_collection.indexes["ipv6_address"]) == 0
     assert len(system_collection.indexes["dns_name"]) == 0
-
-    assert len(system_collection.disabled_indexes) == 4
-    assert not system_collection.disabled_indexes["mac_address"]
-    assert not system_collection.disabled_indexes["ip_address"]
-    assert not system_collection.disabled_indexes["ipv6_address"]
-    assert not system_collection.disabled_indexes["dns_name"]
 
 
 def test_add_to_indexes(
@@ -391,6 +401,7 @@ def test_add_to_indexes(
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
 ):
     """
     TODO
@@ -408,9 +419,8 @@ def test_add_to_indexes(
             "mac_address": "52:54:00:7d:81:f4",
         }
     }
-    system_collection = cobbler_api.systems()
     for key, value in system_collection.indexes.items():
-        if key == "uid":
+        if hasattr(system1, key):
             del value[getattr(system1, key)]
         else:
             del value[getattr(system1.interfaces["default"], key)]
@@ -420,8 +430,12 @@ def test_add_to_indexes(
 
     # Assert
     for key, value in system_collection.indexes.items():
-        if key == "uid":
-            assert {getattr(system1, key): system1.name} == value
+        indx_prop = cobbler_api.settings().memory_indexes["system"][key]
+        if hasattr(system1, key):
+            if indx_prop["nonunique"]:
+                assert {getattr(system1, key): {system1.name}} == value
+            else:
+                assert {getattr(system1, key): system1.name} == value
         else:
             assert {getattr(system1.interfaces["default"], key): system1.name} == value
 
@@ -431,6 +445,7 @@ def test_update_interfaces_indexes(
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
 ):
     """
     TODO
@@ -454,7 +469,6 @@ def test_update_interfaces_indexes(
             "mac_address": "52:54:00:7d:81:f5",
         },
     }
-    system_collection = cobbler_api.systems()
     interface1 = system.NetworkInterface(cobbler_api, system1.name)
     interface1.from_dict(
         {
@@ -511,6 +525,7 @@ def test_update_interface_indexes(
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
 ):
     """
     TODO
@@ -534,7 +549,6 @@ def test_update_interface_indexes(
             "mac_address": "52:54:00:7d:81:f5",
         },
     }
-    system_collection = cobbler_api.systems()
     interface1 = system.NetworkInterface(cobbler_api, system1.name)
     interface1.from_dict(
         {
@@ -569,15 +583,18 @@ def test_update_interface_indexes(
 
 def test_update_system_indexes(
     cobbler_api: CobblerAPI,
+    create_image: Callable[[str], image.Image],
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
 ):
     """
     TODO
     """
     # Arrange
     name = "test_update_system_indexes"
+    image1 = create_image()
     distro1 = create_distro()
     profile1 = create_profile(name)
     system1 = create_system(name)
@@ -589,7 +606,6 @@ def test_update_system_indexes(
             "mac_address": "52:54:00:7d:81:f4",
         },
     }
-    system_collection = cobbler_api.systems()
     interface1 = system.NetworkInterface(cobbler_api, system1.name)
     interface1.from_dict(
         {
@@ -602,7 +618,10 @@ def test_update_system_indexes(
 
     # Act
     original_uid = system1.uid
+    original_image = system1.image
     system1.uid = "test_uid"
+    system1.profile = ""
+    system1.image = image1.name
     system1.interfaces["test1"].ip_address = "192.168.1.2"
     system1.interfaces["test1"].ipv6_address = "::2"
     system1.interfaces["test1"].dns_name = "test2.example.org"
@@ -615,17 +634,19 @@ def test_update_system_indexes(
 
     # Assert
     assert original_uid not in system_collection.indexes["uid"]
-    assert (system_collection.indexes["uid"])["test_uid"] == system1.name
+    assert system_collection.indexes["uid"]["test_uid"] == system1.name
+    assert profile1.name not in system_collection.indexes["profile"]
+    assert system_collection.indexes["profile"][system1.profile] == {system1.name}
+    assert original_image not in system_collection.indexes["image"]
+    assert system_collection.indexes["image"][system1.image] == {system1.name}
     assert "192.168.1.1" not in system_collection.indexes["ip_address"]
-    assert (system_collection.indexes["ip_address"])["192.168.1.2"] == system1.name
+    assert system_collection.indexes["ip_address"]["192.168.1.2"] == system1.name
     assert "::1" not in system_collection.indexes["ipv6_address"]
-    assert (system_collection.indexes["ipv6_address"])["::2"] == system1.name
+    assert system_collection.indexes["ipv6_address"]["::2"] == system1.name
     assert "test1.example.org" not in system_collection.indexes["dns_name"]
-    assert (system_collection.indexes["dns_name"])["test2.example.org"] == system1.name
+    assert system_collection.indexes["dns_name"]["test2.example.org"] == system1.name
     assert "52:54:00:7d:81:f4" not in system_collection.indexes["mac_address"]
-    assert (system_collection.indexes["mac_address"])[
-        "52:54:00:7d:81:f5"
-    ] == system1.name
+    assert system_collection.indexes["mac_address"]["52:54:00:7d:81:f5"] == system1.name
 
     assert interface1.ip_address not in system_collection.indexes["ip_address"]
     assert interface1.ipv6_address not in system_collection.indexes["ipv6_address"]
@@ -638,6 +659,7 @@ def test_remove_from_indexes(
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
 ):
     """
     TODO
@@ -655,7 +677,6 @@ def test_remove_from_indexes(
             "mac_address": "52:54:00:7d:81:f4",
         }
     }
-    system_collection = cobbler_api.systems()
     original_uid = system1.uid
 
     # Act
@@ -689,6 +710,7 @@ def test_find_by_indexes(
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
 ):
     """
     TODO
@@ -706,7 +728,6 @@ def test_find_by_indexes(
             "mac_address": "52:54:00:7d:81:f4",
         }
     }
-    system_collection = cobbler_api.systems()
 
     kargs = {
         "uid": [
