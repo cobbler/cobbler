@@ -293,6 +293,63 @@ class Settings:
         self.samba_distro_share = "DISTRO"
         self.cache_enabled = False
         self.lazy_start = False
+        self.memory_indexes = {
+            "distro": {
+                "uid": {"nonunique": False, "disabled": False},
+                "arch": {"nonunique": True, "disabled": False},
+            },
+            "image": {
+                "uid": {"nonunique": False, "disabled": False},
+                "arch": {"nonunique": True, "disabled": False},
+                "menu": {"nonunique": True, "disabled": False},
+            },
+            "menu": {
+                "uid": {"nonunique": False, "disabled": False},
+                "parent": {
+                    "nonunique": True,
+                    "disabled": False,
+                },
+            },
+            "profile": {
+                "uid": {"nonunique": False, "disabled": False},
+                "parent": {
+                    "nonunique": True,
+                    "disabled": False,
+                },
+                "distro": {"nonunique": True, "disabled": False},
+                "arch": {"nonunique": True, "disabled": False},
+                "menu": {"nonunique": True, "disabled": False},
+                "repos": {"nonunique": True, "disabled": False},
+            },
+            "repo": {
+                "uid": {"nonunique": False, "disabled": False},
+            },
+            "system": {
+                "uid": {"nonunique": False, "disabled": False},
+                "image": {"nonunique": True, "disabled": False},
+                "profile": {"nonunique": True, "disabled": False},
+                "mac_address": {
+                    "property": "get_mac_addresses",
+                    "nonunique": self.allow_duplicate_macs,
+                    "disabled": self.allow_duplicate_macs,
+                },
+                "ip_address": {
+                    "property": "get_ipv4_addresses",
+                    "nonunique": self.allow_duplicate_ips,
+                    "disabled": self.allow_duplicate_ips,
+                },
+                "ipv6_address": {
+                    "property": "get_ipv6_addresses",
+                    "nonunique": self.allow_duplicate_ips,
+                    "disabled": self.allow_duplicate_ips,
+                },
+                "dns_name": {
+                    "property": "get_dns_names",
+                    "nonunique": self.allow_duplicate_hostnames,
+                    "disabled": self.allow_duplicate_hostnames,
+                },
+            },
+        }
 
     def to_dict(self, resolved: bool = False) -> Dict[str, Any]:
         """

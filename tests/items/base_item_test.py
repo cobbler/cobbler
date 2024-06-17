@@ -52,6 +52,26 @@ class MockItem(BaseItem):
 
         return attribute_value
 
+    @property
+    def uid(self) -> str:
+        """
+        The uid is the internal unique representation of a Cobbler object. It should never be used twice, even after an
+        object was deleted.
+
+        :getter: The uid for the item. Should be unique across a running Cobbler instance.
+        :setter: The new uid for the object. Should only be used by the Cobbler Item Factory.
+        """
+        return self._uid
+
+    @uid.setter
+    def uid(self, uid: str) -> None:
+        """
+        Setter for the uid of the item.
+
+        :param uid: The new uid.
+        """
+        self._uid = uid
+
 
 def test_uid(cobbler_api: CobblerAPI):
     """

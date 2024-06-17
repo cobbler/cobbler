@@ -73,7 +73,7 @@ class Images(collection.Collection[image.Image]):
             if not isinstance(kids, list):
                 raise ValueError("Expected list or None from find_items!")
             for k in kids:
-                self.api.remove_system(k, recursive=True)
+                self.api.remove_system(k, recursive=True, with_sync=with_sync)
 
         if with_delete:
             if with_triggers:
