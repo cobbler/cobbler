@@ -200,25 +200,33 @@ class CollectionManager:
         """
         old_cache_enabled = self.api.settings().cache_enabled
         self.api.settings().cache_enabled = False
-        for collection in (
-            self._menus,
-            self._distros,
-            self._repos,
-            self._profiles,
-            self._images,
-            self._systems,
-            self._mgmtclasses,
-            self._packages,
-            self._files,
+        for args in (
+            (self._menus, True),
+            (self._distros, False),
+            (self._repos, False),
+            (self._profiles, True),
+            (self._images, False),
+            (self._systems, False),
+            (self._mgmtclasses, False),
+            (self._packages, False),
+            (self._files, False),
         ):
             try:
-                serializer.deserialize(collection)
+                serializer.deserialize(collection=args[0], topological=args[1])
             except Exception as error:
                 raise CX(
-                    f"serializer: error loading collection {collection.collection_type()}: {error}."
+                    f"serializer: error loading collection {args[0].collection_type()}: {error}."
                     f"Check your settings!"
                 ) from error
         self.api.settings().cache_enabled = old_cache_enabled
+
+    def deserialize_one_item(self, obj) -> dict:
+        """
+        Load a collection item from disk
+        :param obj: collection item
+        """
+        collection_type = self.get_items(obj.COLLECTION_TYPE).collection_types()
+        return serializer.deserialize_item(collection_type, obj.name)
 
     def get_items(
         self, collection_type: str

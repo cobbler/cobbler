@@ -26,6 +26,7 @@ import logging
 import os
 import random
 import stat
+import threading
 import time
 import re
 import xmlrpc.server
@@ -80,6 +81,9 @@ class CobblerXMLRPCInterface:
         random.seed(time.time())
         self.tftpgen = tftpgen.TFTPGen(api)
         self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api)
+        # Semaphore that suspends the execution of the background_load_items when the execution
+        # of any command or any other task begins until it finishes.
+        self.load_items_lock = threading.Semaphore()
 
     def check(self, token: str) -> Union[None, list]:
         """
@@ -347,6 +351,47 @@ class CobblerXMLRPCInterface:
             runner, token, "mkloaders", "Create bootable bootloader images", options
         )
 
+    def background_load_items(self) -> str:
+        """
+        Loading items
+        """
+
+        def runner(self: "utils.CobblerThread"):
+            item_types = [
+                "repo",
+                "distro",
+                "menu",
+                "image",
+                "profile",
+                "system",
+            ]
+            lock = self.options.get("load_items_lock", None)
+            if lock is None or not isinstance(lock, threading.Semaphore):
+                return
+
+            for item_type in item_types:
+                count = 0
+                begin_time = time.time()
+                collection = self.api.get_items(item_type)
+                names_copy = collection.get_names()
+                for name in names_copy:
+                    count += 1
+                    with lock:
+                        item_obj = collection.get(name)
+                        if item_obj is not None and not item_obj.inmemory:
+                            item_obj.deserialize()
+                if count > 0:
+                    collection.inmemory = True
+                    collections_types = collection.collection_types()
+                    self.logger.info(
+                        f"{count} {collections_types} loaded in {str(time.time() - begin_time)} seconds"
+                    )
+
+        if self.api.settings().lazy_start:
+            token = self.login("", self.shared_secret)
+            return self.__start_task(runner, token, "load_items", "Loading items", {})
+        return ""
+
     def get_events(self, for_user: str = "") -> dict:
         """
         Returns a dict(key=event id) = [ statetime, name, state, [read_by_who] ]
@@ -420,6 +465,7 @@ class CobblerXMLRPCInterface:
 
         self._log("create_task(%s); event_id(%s)" % (name, new_event.event_id))
 
+        args["load_items_lock"] = self.load_items_lock
         thr_obj = utils.CobblerThread(
             new_event.event_id, self, args, role_name, self.api, thr_obj_fn, on_done
         )
@@ -3668,7 +3714,7 @@ class ProxiedXMLRPCInterface:
         :return: The result of the method.
         """
         # ToDo: Drop rest param
-        if method.startswith('_'):
+        if method.startswith('_') or method == "background_load_items":
             raise CX("forbidden method")
 
         if not hasattr(self.proxied, method):
@@ -3678,7 +3724,11 @@ class ProxiedXMLRPCInterface:
 
         # FIXME: see if this works without extra boilerplate
         try:
+            # Shared lock to suspend execution of background_load_items
+            self.proxied.load_items_lock.acquire(blocking=False)
             return method_handle(*params)
         except Exception as e:
             utils.log_exc()
             raise e
+        finally:
+            self.proxied.load_items_lock.release()

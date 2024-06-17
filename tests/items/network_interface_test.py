@@ -220,6 +220,9 @@ def test_mac_address(
     system = create_system(profile.name)
     system.interfaces["default"].mac_address = "AA:AA:AA:AA:AA:AA"
     cobbler_api.add_system(system)
+    system2 = create_system(profile_name=profile.name, name="test_system2")
+    system2.interfaces["default"].mac_address = "random"
+    cobbler_api.add_system(system2)
     mocker.patch("cobbler.utils.get_random_mac", return_value="AA:BB:CC:DD:EE:FF")
     interface = NetworkInterface(cobbler_api)
 

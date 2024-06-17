@@ -26,7 +26,7 @@ from cobbler.items import item
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler import grub
-from cobbler.decorator import InheritableProperty
+from cobbler.decorator import InheritableProperty, LazyProperty
 
 
 class Distro(item.Item):
@@ -66,6 +66,7 @@ class Distro(item.Item):
         self._remote_boot_initrd = ""
         self._remote_grub_initrd = ""
         self._supported_boot_loaders = []
+
         if not self._has_initialized:
             self._has_initialized = True
 
@@ -122,6 +123,8 @@ class Distro(item.Item):
         Check if a distro object is valid. If invalid an exception is raised.
         """
         super().check_if_valid()
+        if not self.inmemory:
+            return
         if self.kernel is None:
             raise CX("Error with distro %s - kernel is required" % self.name)
 
@@ -129,7 +132,7 @@ class Distro(item.Item):
     # specific methods for item.Distro
     #
 
-    @property
+    @LazyProperty
     def parent(self):
         """
         Distros don't have parent objects.
@@ -145,7 +148,7 @@ class Distro(item.Item):
         """
         self.logger.warning("Setting the parent of a distribution is not supported. Ignoring action!")
 
-    @property
+    @LazyProperty
     def kernel(self) -> str:
         """
         Specifies a kernel. The kernel parameter is a full path, a filename in the configured kernel directory or a
@@ -175,7 +178,7 @@ class Distro(item.Item):
             )
         self._kernel = kernel
 
-    @property
+    @LazyProperty
     def remote_boot_kernel(self) -> str:
         """
         URL to a remote kernel. If the bootloader supports this feature, it directly tries to retrieve the kernel and
@@ -210,7 +213,7 @@ class Distro(item.Item):
         self._remote_grub_kernel = parsed_url
         self._remote_boot_kernel = remote_boot_kernel
 
-    @property
+    @LazyProperty
     def tree_build_time(self) -> float:
         """
         Represents the import time of the distro. If not imported, this field is not meaningful.
@@ -235,7 +238,7 @@ class Distro(item.Item):
             raise TypeError("datestamp needs to be of type float")
         self._tree_build_time = datestamp
 
-    @property
+    @LazyProperty
     def breed(self) -> str:
         """
         The repository system breed. This decides some defaults for most actions with a repo in Cobbler.
@@ -254,7 +257,7 @@ class Distro(item.Item):
         """
         self._breed = validate.validate_breed(breed)
 
-    @property
+    @LazyProperty
     def os_version(self) -> str:
         r"""
         The operating system version which the image contains.
@@ -273,7 +276,7 @@ class Distro(item.Item):
         """
         self._os_version = validate.validate_os_version(os_version, self.breed)
 
-    @property
+    @LazyProperty
     def initrd(self) -> str:
         """
         Specifies an initrd image. Path search works as in set_kernel. File must be named appropriately.
@@ -301,7 +304,7 @@ class Distro(item.Item):
             return
         raise ValueError("initrd not found")
 
-    @property
+    @LazyProperty
     def remote_grub_kernel(self) -> str:
         """
         This is tied to the ``remote_boot_kernel`` property. It contains the URL of that field in a format which grub
@@ -311,7 +314,7 @@ class Distro(item.Item):
         """
         return self._remote_grub_kernel
 
-    @property
+    @LazyProperty
     def remote_grub_initrd(self) -> str:
         r"""
         This is tied to the ``remote_boot_initrd`` property. It contains the URL of that field in a format which grub
@@ -321,7 +324,7 @@ class Distro(item.Item):
         """
         return self._remote_grub_initrd
 
-    @property
+    @LazyProperty
     def remote_boot_initrd(self) -> str:
         r"""
         URL to a remote initrd. If the bootloader supports this feature, it directly tries to retrieve the initrd and
@@ -355,7 +358,7 @@ class Distro(item.Item):
         self._remote_grub_initrd = parsed_url
         self._remote_boot_initrd = remote_boot_initrd
 
-    @property
+    @LazyProperty
     def source_repos(self) -> list:
         """
         A list of http:// URLs on the Cobbler server that point to yum configuration files that can be used to
@@ -378,7 +381,7 @@ class Distro(item.Item):
             raise TypeError("Field source_repos in object distro needs to be of type list.")
         self._source_repos = repos
 
-    @property
+    @LazyProperty
     def arch(self):
         """
         The field is mainly relevant to PXE provisioning.
@@ -403,7 +406,7 @@ class Distro(item.Item):
         """
         self._arch = enums.Archs.to_enum(arch)
 
-    @property
+    @LazyProperty
     def supported_boot_loaders(self):
         """
         Some distributions, particularly on powerpc, can only be netbooted using specific bootloaders.

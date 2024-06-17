@@ -41,7 +41,7 @@ class Packages(collection.Collection):
         """
         Return a Package forged from item_dict
         """
-        new_package = package.Package(api)
+        new_package = package.Package(api, **item_dict)
         new_package.from_dict(item_dict)
         return new_package
 

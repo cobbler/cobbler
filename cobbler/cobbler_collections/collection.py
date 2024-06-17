@@ -45,7 +45,9 @@ class Collection:
         self.listing = {}
         self.api = self.collection_mgr.api
         self.lite_sync = None
-        self.lock = Lock()
+        self.lock: Lock = Lock()
+        self._inmemory: bool = not self.api.settings().lazy_start
+        self._deserialize_running: bool = False
         self.logger = logging.getLogger()
 
     def __iter__(self):
@@ -60,6 +62,40 @@ class Collection:
         Returns size of the collection.
         """
         return len(list(self.listing.values()))
+
+    @property
+    def inmemory(self) -> bool:
+        r"""
+        If set to ``true``, then all items of the collection are loaded into memory.
+        :getter: The inmemory for the collection.
+        :setter: The new inmemory value for the collection.
+        """
+        return self._inmemory
+
+    @inmemory.setter
+    def inmemory(self, inmemory: bool):
+        """
+        Setter for the inmemory of the collection.
+        :param inmemory: The new inmemory value.
+        """
+        self._inmemory = inmemory
+
+    @property
+    def deserialize_running(self) -> bool:
+        r"""
+        If set to ``true``, then the collection items are currently being loaded from disk.
+        :getter: The deserialize_running for the collection.
+        :setter: The new deserialize_running value for the collection.
+        """
+        return self._deserialize_running
+
+    @deserialize_running.setter
+    def deserialize_running(self, deserialize_running: bool):
+        """
+        Setter for the deserialize_running of the collection.
+        :param deserialize_running: The new deserialize_running value.
+        """
+        self._deserialize_running = deserialize_running
 
     def factory_produce(self, api, seed_data):
         """
@@ -92,6 +128,13 @@ class Collection:
         :return: The object if it exists. Otherwise None.
         """
         return self.listing.get(name.lower(), None)
+
+    def get_names(self) -> List[str]:
+        """
+        Return list of names in the collection.
+        :return: list of names in the collection.
+        """
+        return list(self.listing)
 
     def find(self, name: str = "", return_list: bool = False, no_errors=False,
              **kargs: dict) -> Union[List[item_base.Item], item_base.Item, None]:
@@ -126,10 +169,14 @@ class Collection:
             except:
                 return self.listing.get(kargs["name"], None)
 
+        if self.api.settings().lazy_start:
+            # Forced deserialization of the entire collection to prevent deadlock in the search loop
+            self._deserialize()
+
         self.lock.acquire()
         try:
-            for (name, obj) in list(self.listing.items()):
-                if obj.find_match(kargs, no_errors=no_errors):
+            for obj in self:
+                if obj.inmemory and obj.find_match(kargs, no_errors=no_errors):
                     matches.append(obj)
         finally:
             self.lock.release()
@@ -208,19 +255,26 @@ class Collection:
         :param ref: The reference to the object which should be copied.
         :param newname: The new name for the copied object.
         """
-        ref = ref.make_clone()
-        ref.uid = uuid.uuid4().hex
-        ref.ctime = time.time()
-        ref.name = newname
-        if ref.COLLECTION_TYPE == "system":
+        copied_item = ref.make_clone()
+        copied_item.uid = uuid.uuid4().hex
+        copied_item.ctime = time.time()
+        copied_item.name = newname
+        if copied_item.COLLECTION_TYPE == "system":
             # this should only happen for systems
-            for interface in ref.interfaces:
+            for interface in copied_item.interfaces:
                 # clear all these out to avoid DHCP/DNS conflicts
-                ref.interfaces[interface].dns_name = ""
-                ref.interfaces[interface].mac_address = ""
-                ref.interfaces[interface].ip_address = ""
+                copied_item.interfaces[interface].dns_name = ""
+                copied_item.interfaces[interface].mac_address = ""
+                copied_item.interfaces[interface].ip_address = ""
 
-        self.add(ref, save=True, with_copy=True, with_triggers=True, with_sync=True, check_for_duplicate_names=True)
+        self.add(
+            copied_item,
+            save=True,
+            with_copy=True,
+            with_triggers=True,
+            with_sync=True,
+            check_for_duplicate_names=True
+        )
 
     def rename(self, ref: item_base.Item, newname, with_sync: bool = True, with_triggers: bool = True):
         """
@@ -416,6 +470,23 @@ class Collection:
                 utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/change/*", [])
                 utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type(),
                                    [])
+
+    def _deserialize(self) -> None:
+        """
+        Loading all collection items from disk in case of lazy start.
+        """
+        if self.inmemory or self.deserialize_running:
+            # Preventing infinite recursion if a collection search is required when loading item properties.
+            # Also prevents unnecessary looping through the collection if all items are already in memory.
+            return
+
+        self.deserialize_running = True
+        for obj_name in self.get_names():
+            obj = self.get(obj_name)
+            if obj is not None and not obj.inmemory:
+                obj.deserialize()
+        self.inmemory = True
+        self.deserialize_running = False
 
     def to_string(self) -> str:
         """

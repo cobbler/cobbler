@@ -23,7 +23,7 @@ from typing import Union
 from cobbler import autoinstall_manager, enums, utils, validate
 from cobbler.cexceptions import CX
 from cobbler.items import item
-from cobbler.decorator import InheritableProperty
+from cobbler.decorator import InheritableProperty, LazyProperty
 
 
 class Image(item.Item):
@@ -64,6 +64,7 @@ class Image(item.Item):
         self._virt_ram: Union[str, int] = enums.VALUE_INHERITED
         self._virt_type: Union[str, enums.VirtType] = enums.VirtType.INHERITED
         self._supported_boot_loaders = []
+
         if not self._has_initialized:
             self._has_initialized = True
 
@@ -94,18 +95,21 @@ class Image(item.Item):
 
         :param dictionary: The dictionary with values.
         """
+        old_has_initialized = self._has_initialized
+        self._has_initialized = False
         if "name" in dictionary:
             self.name = dictionary["name"]
         if "parent" in dictionary:
             self.parent = dictionary["parent"]
         self._remove_depreacted_dict_keys(dictionary)
+        self._has_initialized = old_has_initialized
         super().from_dict(dictionary)
 
     #
     # specific methods for item.Image
     #
 
-    @property
+    @LazyProperty
     def arch(self) -> enums.Archs:
         """
         Represents the architecture the image has. If deployed to a physical host this should be enforced, a virtual
@@ -127,7 +131,7 @@ class Image(item.Item):
         """
         self._arch = enums.Archs.to_enum(arch)
 
-    @property
+    @InheritableProperty
     def autoinstall(self) -> str:
         """
         Property for the automatic installation file path, this must be a local file.
@@ -153,7 +157,7 @@ class Image(item.Item):
         autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api)
         self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
 
-    @property
+    @LazyProperty
     def file(self) -> str:
         """
         Stores the image location. This should be accessible on all nodes that need to access it.
@@ -214,7 +218,7 @@ class Image(item.Item):
 
         self._file = uri
 
-    @property
+    @LazyProperty
     def os_version(self) -> str:
         r"""
         The operating system version which the image contains.
@@ -233,7 +237,7 @@ class Image(item.Item):
         """
         self._os_version = validate.validate_os_version(os_version, self.breed)
 
-    @property
+    @LazyProperty
     def breed(self) -> str:
         r"""
         The operating system breed.
@@ -252,7 +256,7 @@ class Image(item.Item):
         """
         self._breed = validate.validate_breed(breed)
 
-    @property
+    @LazyProperty
     def image_type(self) -> enums.ImageTypes:
         """
         Indicates what type of image this is.
@@ -293,7 +297,7 @@ class Image(item.Item):
                              % ", ".join(list(map(str, enums.ImageTypes))))
         self._image_type = image_type
 
-    @property
+    @LazyProperty
     def virt_cpus(self) -> int:
         """
         The amount of vCPU cores used in case the image is being deployed on top of a VM host.
@@ -312,7 +316,7 @@ class Image(item.Item):
         """
         self._virt_cpus = validate.validate_virt_cpus(num)
 
-    @property
+    @LazyProperty
     def network_count(self) -> int:
         """
         Represents the number of virtual NICs this image has.
@@ -339,7 +343,7 @@ class Image(item.Item):
             raise TypeError("Field network_count of object image needs to be of type int.")
         self._network_count = network_count
 
-    @property
+    @InheritableProperty
     def virt_auto_boot(self) -> bool:
         r"""
         Whether the VM should be booted when booting the host or not.
@@ -358,7 +362,7 @@ class Image(item.Item):
         """
         self._virt_auto_boot = validate.validate_virt_auto_boot(num)
 
-    @property
+    @LazyProperty
     def virt_file_size(self) -> float:
         r"""
         The size of the image and thus the usable size for the guest.
@@ -381,7 +385,7 @@ class Image(item.Item):
         """
         self._virt_file_size = validate.validate_virt_file_size(num)
 
-    @property
+    @LazyProperty
     def virt_disk_driver(self) -> enums.VirtDiskDrivers:
         """
         The type of disk driver used for storing the image.
@@ -400,7 +404,7 @@ class Image(item.Item):
         """
         self._virt_disk_driver = enums.VirtDiskDrivers.to_enum(driver)
 
-    @property
+    @LazyProperty
     def virt_ram(self) -> int:
         """
         The amount of RAM given to the guest in MB.
@@ -419,7 +423,7 @@ class Image(item.Item):
         """
         self._virt_ram = validate.validate_virt_ram(num)
 
-    @property
+    @LazyProperty
     def virt_type(self) -> enums.VirtType:
         """
         The type of image used.
@@ -438,7 +442,7 @@ class Image(item.Item):
         """
         self._virt_type = enums.VirtType.to_enum(vtype)
 
-    @property
+    @LazyProperty
     def virt_bridge(self) -> str:
         r"""
         The name of the virtual bridge used for networking.
@@ -459,7 +463,7 @@ class Image(item.Item):
         """
         self._virt_bridge = validate.validate_virt_bridge(vbridge)
 
-    @property
+    @LazyProperty
     def virt_path(self) -> str:
         """
         Represents the location where the image for the VM is stored.
@@ -478,7 +482,7 @@ class Image(item.Item):
         """
         self._virt_path = validate.validate_virt_path(path)
 
-    @property
+    @LazyProperty
     def menu(self) -> str:
         """
         Property to represent the menu which this image should be put into.
@@ -502,7 +506,7 @@ class Image(item.Item):
                 raise CX("menu %s not found" % menu)
         self._menu = menu
 
-    @property
+    @LazyProperty
     def supported_boot_loaders(self):
         """
         Read only property which represents the subset of settable bootloaders.

@@ -323,12 +323,12 @@ def get_random_mac(api_handle, virt_type="xenpv") -> str:
     else:
         raise CX("virt mac assignment not yet supported")
 
-    mac = ':'.join(["%02x" % x for x in mac])
+    result = ':'.join(["%02x" % x for x in mac])
     systems = api_handle.systems()
-    while systems.find(mac_address=mac):
-        mac = get_random_mac(api_handle)
+    while systems.find(mac_address=result):
+        result = get_random_mac(api_handle)
 
-    return mac
+    return result
 
 
 def find_matching_files(directory: str, regex: Pattern[str]) -> list:
@@ -2239,6 +2239,10 @@ class CobblerThread(Thread):
         :return: The return code of the action. This may a boolean or a Linux return code.
         """
         self.logger.info("start_task(%s); event_id(%s)", self.task_name, self.event_id)
+        lock = "load_items_lock" in self.options and self.task_name != "load_items"
+        if lock:
+            # Shared lock to suspend execution of _background_load_items
+            self.options["load_items_lock"].acquire(blocking=False)
         try:
             if run_triggers(
                 api=self.api,
@@ -2266,3 +2270,7 @@ class CobblerThread(Thread):
             return False
         finally:
             self.logger.removeHandler(self.__task_log_handler)
+            lock = "load_items_lock" in self.options and self.task_name != "load_items"
+            if lock:
+                # Shared lock to suspend execution of _background_load_items
+                self.options["load_items_lock"].acquire(blocking=False)

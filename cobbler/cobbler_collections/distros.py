@@ -44,7 +44,7 @@ class Distros(collection.Collection):
         """
         Return a Distro forged from item_dict
         """
-        new_distro = distro.Distro(api)
+        new_distro = distro.Distro(api, **item_dict)
         new_distro.from_dict(item_dict)
         return new_distro
 
