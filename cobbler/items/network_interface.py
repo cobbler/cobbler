@@ -350,10 +350,11 @@ class NetworkInterface:
                 raise ValueError(
                     f'DNS name duplicate found "{dns_name}". Object with the conflict has the name "{match.name}"'
                 )
-        self.__api.systems().update_interface_index_value(
-            self, "dns_name", self._dns_name, dns_name
-        )
+        old_dns_name = self._dns_name
         self._dns_name = dns_name
+        self.__api.systems().update_interface_index_value(
+            self, "dns_name", old_dns_name, dns_name
+        )
 
     @property
     def ip_address(self) -> str:
@@ -390,10 +391,11 @@ class NetworkInterface:
                 raise ValueError(
                     f'IP address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
                 )
-        self.__api.systems().update_interface_index_value(
-            self, "ip_address", self._ip_address, address
-        )
+        old_ip_address = self._ip_address
         self._ip_address = address
+        self.__api.systems().update_interface_index_value(
+            self, "ip_address", old_ip_address, address
+        )
 
     @property
     def mac_address(self) -> str:
@@ -433,10 +435,11 @@ class NetworkInterface:
                 raise ValueError(
                     f'MAC address duplicate found "{address}". Object with the conflict has the name "{match.name}"'
                 )
-        self.__api.systems().update_interface_index_value(
-            self, "mac_address", self._mac_address, address
-        )
+        old_mac_address = self._mac_address
         self._mac_address = address
+        self.__api.systems().update_interface_index_value(
+            self, "mac_address", old_mac_address, address
+        )
 
     @property
     def netmask(self) -> str:
@@ -653,10 +656,11 @@ class NetworkInterface:
                     f'IPv6 address duplicate found "{address}". Object with the conflict has the name'
                     f'"{match.name}"'
                 )
-        self.__api.systems().update_interface_index_value(
-            self, "ipv6_address", self._ipv6_address, address
-        )
+        old_ipv6_address = self._ipv6_address
         self._ipv6_address = address
+        self.__api.systems().update_interface_index_value(
+            self, "ipv6_address", old_ipv6_address, address
+        )
 
     @property
     def ipv6_prefix(self) -> str:

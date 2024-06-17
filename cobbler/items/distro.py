@@ -512,7 +512,19 @@ class Distro(item.Item):
 
         :param arch: The architecture of the operating system distro.
         """
+        old_arch = self._arch
         self._arch = enums.Archs.to_enum(arch)
+        self.api.distros().update_index_value(self, "arch", old_arch, self._arch)
+        profiles = self.api.find_profile(return_list=True, **{"distro": self._name})
+        if profiles is None:
+            return
+        profile_collection = self.api.profiles()
+        for profile in profiles:
+            profile_collection.update_index_value(profile, "arch", old_arch, self._arch)
+            for child in profile.tree_walk():
+                profile_collection.update_index_value(
+                    child, "arch", old_arch, self._arch
+                )
 
     @property
     def supported_boot_loaders(self) -> List[str]:

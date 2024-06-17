@@ -205,7 +205,7 @@ V2.8.5:
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import copy
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
 from cobbler import autoinstall_manager, enums, power_manager, utils, validate
 from cobbler.cexceptions import CX
@@ -307,13 +307,13 @@ class System(Item):
         collection = self.api.systems()
         # clear all these out to avoid DHCP/DNS conflicts
         for interface in _dict["interfaces"].values():
-            if not collection.disabled_indexes["mac_address"]:
+            if not self.api.settings().allow_duplicate_macs:
                 interface.pop("mac_address", None)
-            if not collection.disabled_indexes["ip_address"]:
+            if not self.api.settings().allow_duplicate_ips:
                 interface.pop("ip_address", None)
-            if not collection.disabled_indexes["ipv6_address"]:
+            if not self.api.settings().allow_duplicate_ips:
                 interface.pop("ipv6_address", None)
-            if not collection.disabled_indexes["dns_name"]:
+            if not self.api.settings().allow_duplicate_hostnames:
                 interface.pop("dns_name", None)
         return System(self.api, **_dict)
 
@@ -709,6 +709,19 @@ class System(Item):
             return intf.mac_address.strip()
         return None
 
+    @property
+    def get_mac_addresses(self) -> Set[str]:
+        """
+        Get the set of system mac addresses.
+        """
+        macs = set()
+        for intf in self.interfaces.values():
+            mac = intf.mac_address
+            if mac:
+                mac = mac.strip()
+            macs.add(mac)
+        return macs
+
     def get_ip_address(self, interface: str) -> str:
         """
         Get the IP address for the given interface.
@@ -719,6 +732,45 @@ class System(Item):
         if intf.ip_address:
             return intf.ip_address.strip()
         return ""
+
+    @property
+    def get_ipv4_addresses(self) -> Set[str]:
+        """
+        Get the set of system ipv4 addresses.
+        """
+        ips = set()
+        for intf in self.interfaces.values():
+            ipv4 = intf.ip_address
+            if ipv4:
+                ipv4 = ipv4.strip()
+            ips.add(ipv4)
+        return ips
+
+    @property
+    def get_ipv6_addresses(self) -> Set[str]:
+        """
+        Get the set of system ipv6 addresses.
+        """
+        ips = set()
+        for intf in self.interfaces.values():
+            ipv6 = intf.ipv6_address
+            if ipv6:
+                ipv6 = ipv6.strip()
+            ips.add(ipv6)
+        return ips
+
+    @property
+    def get_dns_names(self) -> Set[str]:
+        """
+        Get the set of system ipv6 addresses.
+        """
+        dns_names = set()
+        for intf in self.interfaces.values():
+            dns_name = intf.dns_name
+            if dns_name:
+                dns_name = dns_name.strip()
+            dns_names.add(dns_name)
+        return dns_names
 
     def is_management_supported(self, cidr_ok: bool = True) -> bool:
         """
@@ -924,8 +976,11 @@ class System(Item):
         if not isinstance(profile_name, str):  # type: ignore
             raise TypeError("The name of a profile needs to be of type str.")
 
+        items = self.api.systems()
+        old_profile = self._profile
         if profile_name in ["delete", "None", "~", ""]:
             self._profile = ""
+            items.update_index_value(self, "profile", old_profile, "")
             return
 
         profile = self.api.profiles().find(name=profile_name, return_list=False)
@@ -937,6 +992,7 @@ class System(Item):
         self.image = ""  # mutual exclusion rule
         self._profile = profile_name
         self.depth = profile.depth + 1  # subprofiles have varying depths.
+        items.update_index_value(self, "profile", old_profile, profile_name)
 
     @LazyProperty
     def image(self) -> str:
@@ -961,8 +1017,11 @@ class System(Item):
         if not isinstance(image_name, str):  # type: ignore
             raise TypeError("The name of an image must be of type str.")
 
+        items = self.api.systems()
+        old_image = self._image
         if image_name in ["delete", "None", "~", ""]:
             self._image = ""
+            items.update_index_value(self, "image", old_image, "")
             return
 
         img = self.api.images().find(name=image_name)
@@ -974,6 +1033,7 @@ class System(Item):
         self.profile = ""  # mutual exclusion rule
         self._image = image_name
         self.depth = img.depth + 1
+        items.update_index_value(self, "image", old_image, image_name)
 
     @InheritableProperty
     def virt_cpus(self) -> int:
