@@ -10,7 +10,6 @@ from setuptools import Command
 from setuptools.command.install import install as _install
 from setuptools import Distribution as _Distribution
 from setuptools.command.build_py import build_py as _build_py
-from setuptools import dep_util
 from distutils.command.build import build as _build
 from configparser import ConfigParser
 from setuptools import find_packages
@@ -21,6 +20,12 @@ import pwd
 import shutil
 import subprocess
 
+try:
+    # Setuptools compatibility 70+
+    # https://github.com/cobbler/cobbler/issues/3692
+    from setuptools import modified
+except ImportError:
+    from setuptools import dep_util as modified
 
 VERSION = "3.3.5"
 OUTPUT_DIR = "config"
@@ -241,7 +246,7 @@ class build_cfg(Command):
             # We copy the files to build/
             outfile = os.path.join(self.build_dir, infile)
             # check if the file is out of date
-            if self.force or dep_util.newer_group([infile, 'setup.py'], outfile, mode):
+            if self.force or modified.newer_group([infile, 'setup.py'], outfile, mode):
                 # It is. Configure it
                 self.configure_one_file(infile, outfile)
 
