@@ -113,6 +113,7 @@ def test_find_items_paged(
     # 'initrd': '/var/log/cobbler/cobbler.log', 'kernel': '/var/log/cobbler/cobbler.log', 'remote_boot_initrd': '~',
     # 'remote_boot_kernel': '~', 'kernel_options': {}, 'kernel_options_post': {},
     # 'name': 'distro_items_paged_1', 'os_version': 'virtio26', 'owners': ['admin'], 'redhat_management_key': '',
+    # `redhat_management_org': '', 'redhat_management_user': '', 'redhat_management_password': '',
     # 'template_files': {}}], 'pageinfo': {'page': 1, 'prev_page': '~', 'next_page': 2, 'pages': [1, 2],
     # 'num_pages': 2, 'num_items': 2, 'start_item': 0, 'end_item': 1, 'items_per_page': 1,
     # 'items_per_page_list': [10, 20, 50, 100, 200, 500]}}
