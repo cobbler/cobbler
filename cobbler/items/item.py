@@ -714,7 +714,8 @@ class Item:
     @LazyProperty
     def template_files(self) -> Dict[Any, Any]:
         """
-        File mappings for built-in configuration management
+        File mappings for built-in configuration management. The keys are the template source files and the value is the
+        destination. The destination must be inside the bootloc (most of the time TFTP server directory).
 
         :getter: The dictionary with name-path key-value pairs.
         :setter: A dict. If not a dict must be a str which is split by
@@ -740,7 +741,8 @@ class Item:
     @LazyProperty
     def boot_files(self) -> Dict[Any, Any]:
         """
-        Files copied into tftpboot beyond the kernel/initrd
+        Files copied into tftpboot beyond the kernel/initrd. These get rendered via Cheetah/Jinja and must be text
+        based.
 
         :getter: The dictionary with name-path key-value pairs.
         :setter: A dict. If not a dict must be a str which is split by
