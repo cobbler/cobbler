@@ -18,9 +18,16 @@ from typing import Any, Dict, List
 
 from setuptools import Command
 from setuptools import Distribution as _Distribution
-from setuptools import dep_util, find_packages, setup
+from setuptools import find_packages, setup
 from setuptools.command.build_py import build_py as _build_py
 from setuptools.command.install import install as _install
+
+try:
+    # Setuptools compatibility 70+
+    # https://github.com/cobbler/cobbler/issues/3692
+    from setuptools import modified
+except ImportError:
+    from setuptools import dep_util as modified
 
 VERSION = "3.4.0"
 OUTPUT_DIR = "config"
@@ -290,7 +297,7 @@ class BuildCfg(Command):
             # We copy the files to build/
             outfile = os.path.join(self.build_dir, infile)  # type: ignore
             # check if the file is out of date
-            if self.force or dep_util.newer_group([infile, "setup.py"], outfile, mode):  # type: ignore
+            if self.force or modified.newer_group([infile, "setup.py"], outfile, mode):  # type: ignore
                 # It is. Configure it
                 self.configure_one_file(infile, outfile)  # type: ignore
 
