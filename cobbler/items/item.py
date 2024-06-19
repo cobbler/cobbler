@@ -451,6 +451,15 @@ class Item:
 
         :param uid: The new uid.
         """
+        if self._uid != uid and self.COLLECTION_TYPE != Item.COLLECTION_TYPE:
+            collection = self.api.get_items(self.COLLECTION_TYPE)
+            with collection.lock:
+                item = collection.get(self.name)
+                if item is not None and item.uid == self._uid:
+                    # Update uid index
+                    indx_dict = collection.indexes["uid"]
+                    del indx_dict[self._uid]
+                    indx_dict[uid] = self.name
         self._uid = uid
 
     @property

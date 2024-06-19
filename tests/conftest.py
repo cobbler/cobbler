@@ -35,6 +35,7 @@ def reset_settings_yaml(tmp_path):
 
 @pytest.fixture(scope="function", autouse=True)
 def reset_items(cobbler_api):
+    print(list(cobbler_api.systems().listing.keys()))
     for system in cobbler_api.systems():
         cobbler_api.remove_system(system.name)
     for image in cobbler_api.images():
@@ -167,7 +168,9 @@ def create_system(request, cobbler_api):
             test_system.profile = profile_name
         if image_name != "":
             test_system.image = image_name
-        test_system.interfaces = {"default": NetworkInterface(cobbler_api)}
+        test_system.interfaces = {
+            "default": NetworkInterface(cobbler_api, test_system.name)
+        }
         cobbler_api.add_system(test_system)
         return test_system
 

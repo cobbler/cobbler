@@ -52,10 +52,9 @@ class Profiles(collection.Collection):
 
         :raises CX: In case the name of the object was not given or any other descendant would be orphaned.
         """
-        name = name.lower()
         if not recursive:
             for v in self.api.systems():
-                if v.profile is not None and v.profile.lower() == name:
+                if v.profile is not None and v.profile == name:
                     raise CX("removal would orphan system: %s" % v.name)
 
         obj = self.find(name=name)
@@ -81,6 +80,7 @@ class Profiles(collection.Collection):
 
         self.lock.acquire()
         try:
+            self.remove_from_indexes(obj)
             del self.listing[name]
         finally:
             self.lock.release()

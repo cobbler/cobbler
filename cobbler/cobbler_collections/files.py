@@ -52,7 +52,6 @@ class Files(collection.Collection):
 
         :raises CX: In case a non existent object should be deleted.
         """
-        name = name.lower()
         obj = self.find(name=name)
 
         if obj is None:
@@ -64,6 +63,7 @@ class Files(collection.Collection):
 
         self.lock.acquire()
         try:
+            self.remove_from_indexes(obj)
             del self.listing[name]
         finally:
             self.lock.release()

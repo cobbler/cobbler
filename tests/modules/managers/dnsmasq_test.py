@@ -41,7 +41,9 @@ def test_manager_write_configs(mocker, cobbler_api):
     mock_profile = Profile(cobbler_api)
     mock_system = System(cobbler_api)
     mock_system.name = "test_manager_regen_hosts_system"
-    mock_system.interfaces = {"default": NetworkInterface(cobbler_api)}
+    mock_system.interfaces = {
+        "default": NetworkInterface(cobbler_api, mock_system.name)
+    }
     mock_system.interfaces["default"].dns_name = "host.example.org"
     mock_system.interfaces["default"].mac_address = "aa:bb:cc:dd:ee:ff"
     mock_system.interfaces["default"].ip_address = "192.168.1.2"
@@ -75,7 +77,9 @@ def test_manager_regen_ethers(mocker, cobbler_api):
     mock_builtins_open = mocker.patch("builtins.open", mocker.mock_open())
     mock_system = System(cobbler_api)
     mock_system.name = "test_manager_regen_ethers_system"
-    mock_system.interfaces = {"default": NetworkInterface(cobbler_api)}
+    mock_system.interfaces = {
+        "default": NetworkInterface(cobbler_api, mock_system.name)
+    }
     mock_system.interfaces["default"].dns_name = "host.example.org"
     mock_system.interfaces["default"].mac_address = "aa:bb:cc:dd:ee:ff"
     mock_system.interfaces["default"].ip_address = "192.168.1.2"
@@ -98,7 +102,9 @@ def test_manager_regen_hosts(mocker, cobbler_api):
     mock_builtins_open = mocker.patch("builtins.open", mocker.mock_open())
     mock_system = System(cobbler_api)
     mock_system.name = "test_manager_regen_hosts_system"
-    mock_system.interfaces = {"default": NetworkInterface(cobbler_api)}
+    mock_system.interfaces = {
+        "default": NetworkInterface(cobbler_api, mock_system.name)
+    }
     mock_system.interfaces["default"].dns_name = "host.example.org"
     mock_system.interfaces["default"].mac_address = "AA:BB:CC:DD:EE:FF"
     mock_system.interfaces["default"].ip_address = "192.168.1.2"

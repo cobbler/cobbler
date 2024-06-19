@@ -12,7 +12,7 @@ def test_network_interface_object_creation(cobbler_api):
     # Arrange
 
     # Act
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Assert
     assert isinstance(interface, NetworkInterface)
@@ -20,7 +20,7 @@ def test_network_interface_object_creation(cobbler_api):
 
 def test_network_interface_to_dict(cobbler_api):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     result = interface.to_dict()
@@ -49,7 +49,7 @@ def test_network_interface_from_dict(
 ):
     # Arrange
     caplog.set_level(logging.INFO)
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     interface.from_dict(input_dict)
@@ -80,7 +80,7 @@ def test_deserialize():
 )
 def test_dhcp_tag(cobbler_api, input_dhcp_tag, expected_result, expected_exception):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -93,7 +93,7 @@ def test_dhcp_tag(cobbler_api, input_dhcp_tag, expected_result, expected_excepti
 
 def test_cnames(cobbler_api):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     interface.cnames = []
@@ -105,7 +105,7 @@ def test_cnames(cobbler_api):
 
 def test_static_routes(cobbler_api):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     interface.static_routes = []
@@ -126,7 +126,7 @@ def test_static_routes(cobbler_api):
 )
 def test_static(cobbler_api, input_static, expected_result, expected_exception):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -148,7 +148,7 @@ def test_static(cobbler_api, input_static, expected_result, expected_exception):
 )
 def test_management(cobbler_api, input_management, expected_result, expected_exception):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -182,7 +182,7 @@ def test_dns_name(
     system = create_system(profile.name)
     system.interfaces["default"].dns_name = "duplicate.example.org"
     cobbler_api.add_system(system)
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, system.name)
 
     # Act
     with expected_exception:
@@ -224,7 +224,7 @@ def test_mac_address(
     system2.interfaces["default"].mac_address = "random"
     cobbler_api.add_system(system2)
     mocker.patch("cobbler.utils.get_random_mac", return_value="AA:BB:CC:DD:EE:FF")
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, system.name)
 
     # Act
     with expected_exception:
@@ -238,7 +238,7 @@ def test_mac_address(
 
 def test_netmask(cobbler_api):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     interface.netmask = ""
@@ -250,7 +250,7 @@ def test_netmask(cobbler_api):
 
 def test_if_gateway(cobbler_api):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     interface.if_gateway = ""
@@ -273,7 +273,7 @@ def test_virt_bridge(
     cobbler_api, input_virt_bridge, expected_result, expected_exception
 ):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -300,7 +300,7 @@ def test_interface_type(
     cobbler_api, input_interface_type, expected_result, expected_exception
 ):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -322,7 +322,7 @@ def test_interface_master(
     cobbler_api, input_interface_master, expected_result, expected_exception
 ):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -344,7 +344,7 @@ def test_bonding_opts(
     cobbler_api, input_bonding_opts, expected_result, expected_exception
 ):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -366,7 +366,7 @@ def test_bridge_opts(
     cobbler_api, input_bridge_opts, expected_result, expected_exception
 ):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -400,7 +400,7 @@ def test_ip_address(
     system = create_system(profile.name)
     system.interfaces["default"].ip_address = "172.30.0.2"
     cobbler_api.add_system(system)
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, system.name)
 
     # Act
     with expected_exception:
@@ -435,7 +435,7 @@ def test_ipv6_address(
     system = create_system(profile.name)
     system.interfaces["default"].ipv6_address = "2001:db8:3c4d::2"
     cobbler_api.add_system(system)
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, system.name)
 
     # Act
     with expected_exception:
@@ -458,7 +458,7 @@ def test_ipv6_prefix(
     cobbler_api, input_ipv6_prefix, expected_result, expected_exception
 ):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -481,7 +481,7 @@ def test_ipv6_secondaries(
     cobbler_api, input_secondaries, expected_result, expected_exception
 ):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -505,7 +505,7 @@ def test_ipv6_default_gateway(
     cobbler_api, input_address, expected_result, expected_exception
 ):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -518,7 +518,7 @@ def test_ipv6_default_gateway(
 
 def test_ipv6_static_routes(cobbler_api):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     interface.ipv6_static_routes = []
@@ -537,7 +537,7 @@ def test_ipv6_static_routes(cobbler_api):
 )
 def test_ipv6_mtu(cobbler_api, input_ipv6_mtu, expected_result, expected_exception):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -557,7 +557,7 @@ def test_ipv6_mtu(cobbler_api, input_ipv6_mtu, expected_result, expected_excepti
 )
 def test_mtu(cobbler_api, input_mtu, expected_result, expected_exception):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -581,7 +581,7 @@ def test_connected_mode(
     cobbler_api, input_connected_mode, expected_result, expected_exception
 ):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
@@ -607,7 +607,7 @@ def test_modify_interface(
     expected_exception,
 ):
     # Arrange
-    interface = NetworkInterface(cobbler_api)
+    interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:

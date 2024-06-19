@@ -57,7 +57,6 @@ class Repos(collection.Collection):
         """
         # NOTE: with_delete isn't currently meaningful for repos
         # but is left in for consistancy in the API.  Unused.
-        name = name.lower()
         obj = self.find(name=name)
         if obj is None:
             raise CX("cannot delete an object that does not exist: %s" % name)
@@ -68,6 +67,7 @@ class Repos(collection.Collection):
 
         self.lock.acquire()
         try:
+            self.remove_from_indexes(obj)
             del self.listing[name]
         finally:
             self.lock.release()
