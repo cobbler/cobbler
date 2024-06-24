@@ -31,17 +31,6 @@ API
 Cobbler also makes itself available as an XML-RPC API for use by higher level management software. Learn more at
 https://cobbler.github.io
 
-Triggers
-########
-
-Triggers provide a way to integrate Cobbler with arbitrary 3rd party software without modifying Cobbler's code. When
-adding a distro, profile, system, or repo, all scripts in ``/var/lib/cobbler/triggers/add`` are executed for the
-particular object type. Each particular file must be executable and it is executed with the name of the item being added
-as a parameter. Deletions work similarly -- delete triggers live in ``/var/lib/cobbler/triggers/delete``. Order of
-execution is arbitrary, and Cobbler does not ship with any triggers by default. There are also other kinds of triggers
--- these are described on the Cobbler Wiki. For larger configurations, triggers should be written in Python -- in which
-case they are installed differently. This is also documented on the Wiki.
-
 Images
 ######
 
@@ -164,25 +153,11 @@ install. To re-enable PXE for a specific system, run the following command:
 
     cobbler system edit --name=name --netboot-enabled=1
 
-Automatic installation tracking
-===============================
-
-Cobbler knows how to keep track of the status of automatic installation of machines.
-
-.. code-block:: shell
-
-    cobbler status
-
-Using the status command will show when Cobbler thinks a machine started automatic installation and when it finished,
-provided the proper snippets are found in the automatic installation template. This is a good way to track machines that
-may have gone interactive (or stalled/crashed) during automatic installation.
-
 Containerization
 ################
 
 We have a test-image which you can find in the Cobbler repository and an old image made by the community:
 https://github.com/osism/docker-cobbler
-
 
 Web-Interface
 #############
