@@ -66,9 +66,9 @@ class Mgmtclass(item.Item):
         """
 
         _dict = self.to_dict()
+        _dict.pop("uid", None)
         cloned = Mgmtclass(self.api)
         cloned.from_dict(_dict)
-        cloned.uid = uuid.uuid4().hex
         return cloned
 
     #

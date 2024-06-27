@@ -87,13 +87,13 @@ class Distro(item.Item):
         """
         # FIXME: Change unique base attributes
         _dict = self.to_dict()
+        _dict.pop("uid", None)
         # Drop attributes which are computed from other attributes
         computed_properties = ["remote_grub_initrd", "remote_grub_kernel"]
         for property_name in computed_properties:
             _dict.pop(property_name, None)
         cloned = Distro(self.api)
         cloned.from_dict(_dict)
-        cloned.uid = uuid.uuid4().hex
         return cloned
 
     @classmethod

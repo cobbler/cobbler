@@ -57,9 +57,9 @@ class Menu(item.Item):
         :return: The cloned instance of this object.
         """
         _dict = self.to_dict()
+        _dict.pop("uid", None)
         cloned = Menu(self.api)
         cloned.from_dict(_dict)
-        cloned.uid = uuid.uuid4().hex
         return cloned
 
     #

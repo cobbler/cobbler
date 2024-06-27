@@ -1978,7 +1978,7 @@ class CobblerXMLRPCInterface:
         if field_name in ("delete_interface", "rename_interface"):
             return True
 
-        interface = system.NetworkInterface(self.api)
+        interface = system.NetworkInterface(self.api, "")
         fields = []
         for attribute in interface.__dict__.keys():
             if attribute.startswith("_") and ("api" not in attribute or "logger" in attribute):
@@ -2129,7 +2129,7 @@ class CobblerXMLRPCInterface:
             interface = system_to_edit.interfaces.get(interface_name)
             if interface is None:
                 # If the interface is not existing, create a new one.
-                interface = system.NetworkInterface(self.api)
+                interface = system.NetworkInterface(self.api, system_to_edit.name)
             for attribute_key in attributes:
                 if self.__is_interface_field(attribute_key):
                     if hasattr(interface, attribute_key):

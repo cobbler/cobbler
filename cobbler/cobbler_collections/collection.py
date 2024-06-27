@@ -22,7 +22,7 @@ import time
 import os
 import uuid
 from threading import Lock
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Dict, Any
 
 from cobbler import utils
 from cobbler.items import package, system, item as item_base, image, profile, repo, mgmtclass, distro, file, menu
@@ -48,6 +48,10 @@ class Collection:
         self.lock: Lock = Lock()
         self._inmemory: bool = not self.api.settings().lazy_start
         self._deserialize_running: bool = False
+        # Secondary indexes for the collection.
+        # Only unique indexes on string values are supported.
+        # Empty strings are not indexed.
+        self.indexes: Dict[str, Dict[str, str]] = {"uid": {}}
         self.logger = logging.getLogger()
 
     def __iter__(self):
@@ -127,7 +131,7 @@ class Collection:
         :param name: The name of the object to retrieve from the collection.
         :return: The object if it exists. Otherwise None.
         """
-        return self.listing.get(name.lower(), None)
+        return self.listing.get(name, None)
 
     def get_names(self) -> List[str]:
         """
@@ -164,10 +168,7 @@ class Collection:
 
         # performance: if the only key is name we can skip the whole loop
         if len(kargs) == 1 and "name" in kargs and not return_list:
-            try:
-                return self.listing.get(kargs["name"].lower(), None)
-            except:
-                return self.listing.get(kargs["name"], None)
+            return self.listing.get(kargs["name"], None)
 
         if self.api.settings().lazy_start:
             # Forced deserialization of the entire collection to prevent deadlock in the search loop
@@ -175,9 +176,13 @@ class Collection:
 
         self.lock.acquire()
         try:
-            for obj in self:
-                if obj.inmemory and obj.find_match(kargs, no_errors=no_errors):
-                    matches.append(obj)
+            result = self.find_by_indexes(kargs)
+            if result is not None:
+                matches = result
+            if len(kargs) > 0:
+                for obj in self:
+                    if obj.inmemory and obj.find_match(kargs, no_errors=no_errors):
+                        matches.append(obj)
         finally:
             self.lock.release()
 
@@ -259,13 +264,6 @@ class Collection:
         copied_item.uid = uuid.uuid4().hex
         copied_item.ctime = time.time()
         copied_item.name = newname
-        if copied_item.COLLECTION_TYPE == "system":
-            # this should only happen for systems
-            for interface in copied_item.interfaces:
-                # clear all these out to avoid DHCP/DNS conflicts
-                copied_item.interfaces[interface].dns_name = ""
-                copied_item.interfaces[interface].mac_address = ""
-                copied_item.interfaces[interface].ip_address = ""
 
         self.add(
             copied_item,
@@ -295,12 +293,14 @@ class Collection:
         self.listing[newname] = None
         # Delete the old item
         self.collection_mgr.serialize_delete_one_item(ref)
+        self.remove_from_indexes(ref)
         self.listing.pop(oldname)
         # Change the name of the object
         ref.name = newname
         # Save just this item
         self.collection_mgr.serialize_one_item(ref)
         self.listing[newname] = ref
+        self.add_to_indexes(ref)
 
         for dep_type in item_base.Item.TYPE_DEPENDENCIES[ref.COLLECTION_TYPE]:
             items = self.api.find_items(dep_type[0], {dep_type[1]: oldname}, return_list = True)
@@ -352,7 +352,6 @@ class Collection:
                         d.kernel = d.kernel.replace(path, newpath)
                         d.initrd = d.initrd.replace(path, newpath)
                         self.collection_mgr.serialize_one_item(d)
-
 
     def add(self, ref, save: bool = False, with_copy: bool = False, with_triggers: bool = True, with_sync: bool = True,
             quick_pxe_update: bool = False, check_for_duplicate_names: bool = False):
@@ -414,7 +413,8 @@ class Collection:
 
         self.lock.acquire()
         try:
-            self.listing[ref.name.lower()] = ref
+            self.listing[ref.name] = ref
+            self.add_to_indexes(ref)
         finally:
             self.lock.release()
 
@@ -430,7 +430,6 @@ class Collection:
                     # we don't need openvz containers to be network bootable
                     if ref.virt_type == "openvz":
                         ref.netboot_enabled = False
-                    self.lite_sync.add_single_system(ref.name)
                     self.api.sync_systems(systems=[ref.name])
                 elif isinstance(ref, profile.Profile):
                     # we don't need openvz containers to be network bootable
@@ -487,6 +486,58 @@ class Collection:
                 obj.deserialize()
         self.inmemory = True
         self.deserialize_running = False
+
+    def add_to_indexes(self, ref: "ITEM") -> None:
+        """
+        Add indexes for the object.
+        :param ref: The reference to the object whose indexes are updated.
+        """
+        indx_dict = self.indexes["uid"]
+        indx_dict[ref.uid] = ref.name
+
+    def remove_from_indexes(self, ref: "ITEM") -> None:
+        """
+        Remove index keys for the object.
+        :param ref: The reference to the object whose index keys are removed.
+        """
+        indx_dict = self.indexes["uid"]
+        indx_dict.pop(ref.uid, None)
+
+    def find_by_indexes(self, kargs: Dict[str, Any]) -> Optional[List["ITEM"]]:
+        """
+        Searching for items in the collection by indexes.
+        :param kwargs: The dict to match for the items.
+        """
+        result: Optional[List["ITEM"]] = None
+        found_keys: List[str] = []
+
+        for key, value in kargs.items():
+            # fnmatch and "~" are not supported
+            if (
+                    key not in self.indexes
+                    or value[:1] == "~"
+                    or "?" in value
+                    or "*" in value
+                    or "[" in value
+            ):
+                continue
+
+            indx_dict = self.indexes[key]
+            if value in indx_dict:
+                if result is None:
+                    result = []
+                obj = self.listing.get(indx_dict[value])
+                if obj is not None:
+                    result.append(obj)
+                else:
+                    self.logger.error(
+                        'Internal error. The "%s" index is corrupted.', key
+                    )
+            found_keys.append(key)
+
+        for key in found_keys:
+            kargs.pop(key)
+        return result
 
     def to_string(self) -> str:
         """

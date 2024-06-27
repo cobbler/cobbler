@@ -1,7 +1,9 @@
 import os.path
+from typing import Callable
 
 import pytest
 
+from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import distros
 from cobbler.items import distro
@@ -37,10 +39,12 @@ def test_get(cobbler_api, distro_collection):
 
     # Act
     item = distro_collection.get(name)
+    fake_item = distro_collection.get("fake_name")
 
     # Assert
     assert isinstance(item, distro.Distro)
     assert item.name == name
+    assert fake_item is None
 
 
 def test_find(cobbler_api, distro_collection):
@@ -83,6 +87,7 @@ def test_from_list(distro_collection):
 
     # Assert
     assert len(distro_collection.listing) == 1
+    assert len(distro_collection.indexes["uid"]) == 1
 
 
 def test_copy(cobbler_api, distro_collection, create_kernel_initrd, fk_initrd, fk_kernel):
@@ -96,42 +101,59 @@ def test_copy(cobbler_api, distro_collection, create_kernel_initrd, fk_initrd, f
     distro_collection.add(item1)
 
     # Act
-    new_item_name = "test_copy_successful"
+    new_item_name = "test_copy_new"
     distro_collection.copy(item1, new_item_name)
+    item2 = distro_collection.find(new_item_name, False)
 
     # Assert
     assert len(distro_collection.listing) == 2
     assert name in distro_collection.listing
     assert new_item_name in distro_collection.listing
+    assert len(distro_collection.indexes["uid"]) == 2
+    assert (distro_collection.indexes["uid"])[item1.uid] == name
+    assert (distro_collection.indexes["uid"])[item2.uid] == new_item_name
 
 
-def test_rename(cobbler_api, distro_collection):
+@pytest.mark.parametrize(
+    "input_new_name",
+    [
+        ("to_be_renamed"),
+        ("UpperCase"),
+    ],
+)
+def test_rename(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+    input_new_name: str,
+):
     # Arrange
-    name = "to_be_renamed"
-    item1 = distro.Distro(cobbler_api)
-    item1.name = name
+    item1 = create_distro("old_name")
     distro_collection.add(item1)
 
     # Act
-    new_name = "new_name"
-    distro_collection.rename(item1, new_name)
+    distro_collection.rename(item1, input_new_name)
 
     # Assert
-    assert new_name in distro_collection.listing
-    assert distro_collection.listing.get(new_name).name == new_name
+    assert input_new_name in distro_collection.listing
+    assert distro_collection.listing[input_new_name].name == input_new_name
+    assert (distro_collection.indexes["uid"])[item1.uid] == input_new_name
 
 
-def test_collection_add(cobbler_api, distro_collection):
+def test_collection_add(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
     # Arrange
     name = "collection_add"
-    item1 = distro.Distro(cobbler_api)
-    item1.name = name
-
+    item1 = create_distro(name)
     # Act
     distro_collection.add(item1)
 
     # Assert
     assert name in distro_collection.listing
+    assert item1.uid in distro_collection.indexes["uid"]
 
 
 def test_duplicate_add(cobbler_api, distro_collection):
@@ -155,13 +177,91 @@ def test_remove(cobbler_api, distro_collection):
     item1.name = name
     distro_collection.add(item1)
     assert name in distro_collection.listing
+    assert len(distro_collection.indexes["uid"]) == 1
+    assert (distro_collection.indexes["uid"])[item1.uid] == item1.name
 
     # Act
     distro_collection.remove(name)
 
     # Assert
     assert name not in distro_collection.listing
+    assert len(distro_collection.indexes["uid"]) == 0
 
+
+def test_indexes(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
+    # Arrange
+
+    # Assert
+    assert len(distro_collection.indexes) == 1
+    assert len(distro_collection.indexes["uid"]) == 0
+
+
+def test_add_to_indexes(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
+    # Arrange
+    name = "to_be_removed"
+    item1 = create_distro(name)
+    distro_collection.add(item1)
+
+    # Act
+    del (distro_collection.indexes["uid"])[item1.uid]
+    distro_collection.add_to_indexes(item1)
+
+    # Assert
+    assert item1.uid in distro_collection.indexes["uid"]
+
+
+def test_remove_from_indexes(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
+    # Arrange
+    name = "to_be_removed"
+    item1 = create_distro(name)
+    distro_collection.add(item1)
+
+    # Act
+    distro_collection.remove_from_indexes(item1)
+
+    # Assert
+    assert item1.uid not in distro_collection.indexes["uid"]
+
+
+def test_find_by_indexes(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
+    # Arrange
+    name = "to_be_removed"
+    item1 = create_distro(name)
+    distro_collection.add(item1)
+    kargs1 = {"uid": item1.uid}
+    kargs2 = {"uid": "fake_uid"}
+    kargs3 = {"fake_index": item1.uid}
+
+    # Act
+    result1 = distro_collection.find_by_indexes(kargs1)
+    result2 = distro_collection.find_by_indexes(kargs2)
+    result3 = distro_collection.find_by_indexes(kargs3)
+
+    # Assert
+    assert isinstance(result1, list)
+    assert len(result1) == 1
+    assert result1[0] == item1
+    assert len(kargs1) == 0
+    assert result2 is None
+    assert len(kargs2) == 0
+    assert result3 is None
+    assert len(kargs3) == 1
 
 @pytest.mark.skip("Method which is under test is broken!")
 def test_to_string(cobbler_api, distro_collection):
