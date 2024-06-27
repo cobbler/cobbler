@@ -1230,6 +1230,8 @@ class System(Item):
         :getter: Returns the value for ``proxy``.
         :setter: Sets the value for the property ``proxy``.
         """
+        if self.profile != "":
+            return self._resolve("proxy")
         return self._resolve("proxy_url_int")
 
     @proxy.setter
@@ -1468,13 +1470,17 @@ class System(Item):
         return self._resolve("enable_ipxe")
 
     @enable_ipxe.setter
-    def enable_ipxe(self, enable_ipxe: bool):
+    def enable_ipxe(self, enable_ipxe: Union[str, bool]):
         """
         Sets whether the system will use iPXE for booting.
 
         :param enable_ipxe: If ipxe should be enabled or not.
         :raises TypeError: In case enable_ipxe is not a boolean.
         """
+        if enable_ipxe == enums.VALUE_INHERITED:
+            self._enable_ipxe = enums.VALUE_INHERITED
+            return
+
         enable_ipxe = utils.input_boolean(enable_ipxe)
         if not isinstance(enable_ipxe, bool):
             raise TypeError("enable_ipxe needs to be of type bool")
@@ -1567,12 +1573,16 @@ class System(Item):
         return self._resolve("virt_cpus")
 
     @virt_cpus.setter
-    def virt_cpus(self, num: int):
+    def virt_cpus(self, num: Union[int, str]):
         """
         Setter for the virt_cpus of the System class.
 
         :param num: The new value for the number of CPU cores.
         """
+        if num == enums.VALUE_INHERITED:
+            self._virt_cpus = enums.VALUE_INHERITED
+            return
+
         self._virt_cpus = validate.validate_virt_cpus(num)
 
     @InheritableProperty

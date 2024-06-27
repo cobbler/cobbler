@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 import uuid
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any, List
 
 from cobbler import autoinstall_manager, enums, utils, validate
 from cobbler.cexceptions import CX
@@ -51,8 +51,8 @@ class Profile(item.Item):
         self._boot_loaders: Union[list, str] = enums.VALUE_INHERITED
         self._dhcp_tag = ""
         self._distro = ""
-        self._enable_ipxe = api.settings().enable_ipxe
-        self._enable_menu = api.settings().enable_menu
+        self._enable_ipxe: Union[str, bool] = enums.VALUE_INHERITED
+        self._enable_menu: Union[str, bool] = enums.VALUE_INHERITED
         self._name_servers = api.settings().default_name_servers
         self._name_servers_search = api.settings().default_name_servers_search
         self._next_server_v4 = enums.VALUE_INHERITED
@@ -63,23 +63,23 @@ class Profile(item.Item):
         self._repos = []
         self._server = enums.VALUE_INHERITED
         self._menu = ""
-        self._virt_auto_boot = api.settings().virt_auto_boot
+        self._virt_auto_boot: Union[str, bool] = enums.VALUE_INHERITED
         self._virt_bridge = enums.VALUE_INHERITED
-        self._virt_cpus: Union[int, str] = 1
+        self._virt_cpus: int = 1
         self._virt_disk_driver = enums.VirtDiskDrivers.INHERITED
-        self._virt_file_size = enums.VALUE_INHERITED
+        self._virt_file_size: Union[str, float] = enums.VALUE_INHERITED
         self._virt_path = ""
-        self._virt_ram = enums.VALUE_INHERITED
-        self._virt_type = enums.VirtType.AUTO
+        self._virt_ram: Union[str, int] = enums.VALUE_INHERITED
+        self._virt_type: Union[str, enums.VirtType] = enums.VirtType.INHERITED
 
         # Overwrite defaults from item.py
-        self._boot_files = enums.VALUE_INHERITED
-        self._fetchable_files = enums.VALUE_INHERITED
-        self._autoinstall_meta = enums.VALUE_INHERITED
-        self._kernel_options = enums.VALUE_INHERITED
-        self._kernel_options_post = enums.VALUE_INHERITED
-        self._mgmt_classes = enums.VALUE_INHERITED
-        self._mgmt_parameters = enums.VALUE_INHERITED
+        self._boot_files: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
+        self._fetchable_files: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
+        self._autoinstall_meta: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
+        self._kernel_options: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
+        self._kernel_options_post: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
+        self._mgmt_classes: Union[List[Any], str] = enums.VALUE_INHERITED
+        self._mgmt_parameters: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
 
         # Use setters to validate settings
         self.virt_disk_driver = api.settings().default_virt_disk_driver
@@ -266,13 +266,17 @@ class Profile(item.Item):
         return self._resolve("enable_ipxe")
 
     @enable_ipxe.setter
-    def enable_ipxe(self, enable_ipxe: bool):
+    def enable_ipxe(self, enable_ipxe: Union[str, bool]):
         r"""
         Setter for the ``enable_ipxe`` property.
 
         :param enable_ipxe: New boolean value for enabling iPXE.
         :raises TypeError: In case after the conversion, the new value is not of type ``bool``.
         """
+        if enable_ipxe == enums.VALUE_INHERITED:
+            self._enable_ipxe = enums.VALUE_INHERITED
+            return
+
         enable_ipxe = utils.input_boolean(enable_ipxe)
         if not isinstance(enable_ipxe, bool):
             raise TypeError("enable_ipxe needs to be of type bool")
@@ -290,13 +294,17 @@ class Profile(item.Item):
         return self._resolve("enable_menu")
 
     @enable_menu.setter
-    def enable_menu(self, enable_menu: bool):
+    def enable_menu(self, enable_menu: Union[str, bool]):
         """
         Setter for the ``enable_menu`` property.
 
         :param enable_menu: New boolean value for enabling the menu.
         :raises TypeError: In case the boolean could not be converted successfully.
         """
+        if enable_menu == enums.VALUE_INHERITED:
+            self._enable_menu = enums.VALUE_INHERITED
+            return
+
         enable_menu = utils.input_boolean(enable_menu)
         if not isinstance(enable_menu, bool):
             raise TypeError("enable_menu needs to be of type bool")
@@ -356,7 +364,7 @@ class Profile(item.Item):
         :getter: The IP for the next server.
         :setter: May raise a ``TypeError`` if the new value is not of type ``str``.
         """
-        return self._next_server_v4
+        return self._resolve("next_server_v4")
 
     @next_server_v4.setter
     def next_server_v4(self, server: str = ""):
@@ -381,7 +389,7 @@ class Profile(item.Item):
         :getter: The IP for the next server.
         :setter: May raise a ``TypeError`` if the new value is not of type ``str``.
         """
-        return self._next_server_v6
+        return self._resolve("next_server_v6")
 
     @next_server_v6.setter
     def next_server_v6(self, server: str = ""):
@@ -436,20 +444,7 @@ class Profile(item.Item):
         :getter: Either the inherited name or the one specific to this profile.
         :setter: The name of the new autoinstall template is validated. The path should come in the format of a ``str``.
         """
-        if self._autoinstall == enums.VALUE_INHERITED:
-            parent = self.parent
-            if parent is not None and isinstance(parent, Profile):
-                return self.parent.autoinstall
-            elif parent is not None and isinstance(parent, Distro):
-                return self.api.settings().autoinstall
-            else:
-                self.logger.info(
-                    'Profile "%s" did not have a valid parent of type Profile but autoinstall is set to '
-                    '"<<inherit>>".',
-                    self.name,
-                )
-                return ""
-        return self._autoinstall
+        return self._resolve("autoinstall")
 
     @autoinstall.setter
     def autoinstall(self, autoinstall: str):
