@@ -57,7 +57,7 @@ class Image(item.Item):
         self._menu = ""
         self._virt_auto_boot = False
         self._virt_bridge = ""
-        self._virt_cpus = 0
+        self._virt_cpus = 1
         self._virt_disk_driver = enums.VirtDiskDrivers.RAW
         self._virt_file_size = enums.VALUE_INHERITED
         self._virt_path = ""
@@ -146,7 +146,7 @@ class Image(item.Item):
         :getter: The path relative to the template directory.
         :setter: The location of the template relative to the template base directory.
         """
-        return self._autoinstall
+        return self._resolve("autoinstall")
 
     @autoinstall.setter
     def autoinstall(self, autoinstall: str):
@@ -355,7 +355,7 @@ class Image(item.Item):
         return self._virt_auto_boot
 
     @virt_auto_boot.setter
-    def virt_auto_boot(self, num: bool):
+    def virt_auto_boot(self, num: Union[str, bool]):
         """
         Setter for the virtual automatic boot option.
 
@@ -413,7 +413,7 @@ class Image(item.Item):
         :getter: The amount of RAM currently assigned to the image.
         :setter: The new amount of ram. Must be an integer.
         """
-        return self._virt_ram
+        return self._resolve("virt_ram")
 
     @virt_ram.setter
     def virt_ram(self, num: int):
@@ -514,13 +514,11 @@ class Image(item.Item):
 
         :getter: The bootloaders which are available for being set.
         """
-        try:
-            # If we have already loaded the supported boot loaders from the signature, use that data
-            return self._supported_boot_loaders
-        except:
-            # otherwise, refresh from the signatures / defaults
-            self._supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
-            return self._supported_boot_loaders
+        if len(self._supported_boot_loaders) == 0:
+            self._supported_boot_loaders = utils.get_supported_distro_boot_loaders(
+                self
+            )
+        return self._supported_boot_loaders
 
     @InheritableProperty
     def boot_loaders(self) -> list:

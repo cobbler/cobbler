@@ -1,13 +1,27 @@
+from typing import Callable
+
 import pytest
 
 from cobbler import enums
+from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
 from tests.conftest import does_not_raise
 
 
-def test_object_creation(cobbler_api):
+@pytest.fixture()
+def test_settings(mocker, cobbler_api: CobblerAPI):
+    settings = mocker.MagicMock(
+        name="profile_setting_mock", spec=cobbler_api.settings()
+    )
+    orig = cobbler_api.settings()
+    for key in orig.to_dict():
+        setattr(settings, key, getattr(orig, key))
+    return settings
+
+
+def test_object_creation(cobbler_api: CobblerAPI):
     # Arrange
 
     # Act
@@ -17,7 +31,7 @@ def test_object_creation(cobbler_api):
     assert isinstance(profile, Profile)
 
 
-def test_make_clone(cobbler_api):
+def test_make_clone(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -29,12 +43,12 @@ def test_make_clone(cobbler_api):
 
 
 @pytest.fixture(autouse=True)
-def cleanup_to_dict(cobbler_api):
+def cleanup_to_dict(cobbler_api: CobblerAPI):
     yield
     cobbler_api.remove_distro("test_to_dict_distro")
 
 
-def test_to_dict(cobbler_api, cleanup_to_dict):
+def test_to_dict(cobbler_api: CobblerAPI, cleanup_to_dict):
     # Arrange
     distro = Distro(cobbler_api)
     distro.name = "test_to_dict_distro"
@@ -54,7 +68,7 @@ def test_to_dict(cobbler_api, cleanup_to_dict):
 # Properties Tests
 
 
-def test_parent_empty(cobbler_api):
+def test_parent_empty(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -65,7 +79,7 @@ def test_parent_empty(cobbler_api):
     assert profile.parent is None
 
 
-def test_parent_profile(cobbler_api, create_distro, create_profile):
+def test_parent_profile(cobbler_api: CobblerAPI, create_distro, create_profile):
     # Arrange
     test_dist = create_distro()
     test_profile = create_profile(test_dist.name)
@@ -78,7 +92,7 @@ def test_parent_profile(cobbler_api, create_distro, create_profile):
     assert profile.parent is test_profile
 
 
-def test_parent_other_object_type(cobbler_api, create_image):
+def test_parent_other_object_type(cobbler_api: CobblerAPI, create_image):
     # Arrange
     test_image = create_image()
     profile = Profile(cobbler_api)
@@ -88,7 +102,7 @@ def test_parent_other_object_type(cobbler_api, create_image):
         profile.parent = test_image.name
 
 
-def test_parent_invalid_type(cobbler_api):
+def test_parent_invalid_type(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -97,7 +111,7 @@ def test_parent_invalid_type(cobbler_api):
         profile.parent = 0
 
 
-def test_parent_self(cobbler_api):
+def test_parent_self(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
     profile.name = "testname"
@@ -107,7 +121,7 @@ def test_parent_self(cobbler_api):
         profile.parent = profile.name
 
 
-def test_distro(cobbler_api):
+def test_distro(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -118,7 +132,7 @@ def test_distro(cobbler_api):
     assert profile.distro is None
 
 
-def test_name_servers(cobbler_api):
+def test_name_servers(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -129,7 +143,7 @@ def test_name_servers(cobbler_api):
     assert profile.name_servers == []
 
 
-def test_name_servers_search(cobbler_api):
+def test_name_servers_search(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -140,7 +154,7 @@ def test_name_servers_search(cobbler_api):
     assert profile.name_servers_search == ""
 
 
-def test_proxy(cobbler_api):
+def test_proxy(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -152,7 +166,7 @@ def test_proxy(cobbler_api):
 
 
 @pytest.mark.parametrize("value,expected_exception", [(False, does_not_raise())])
-def test_enable_ipxe(cobbler_api, value, expected_exception):
+def test_enable_ipxe(cobbler_api: CobblerAPI, value, expected_exception):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -173,7 +187,7 @@ def test_enable_ipxe(cobbler_api, value, expected_exception):
         (0, does_not_raise()),
     ],
 )
-def test_enable_menu(cobbler_api, value, expected_exception):
+def test_enable_menu(cobbler_api: CobblerAPI, value, expected_exception):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -186,7 +200,7 @@ def test_enable_menu(cobbler_api, value, expected_exception):
         assert profile.enable_menu or not profile.enable_menu
 
 
-def test_dhcp_tag(cobbler_api):
+def test_dhcp_tag(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -205,7 +219,7 @@ def test_dhcp_tag(cobbler_api):
         (False, pytest.raises(TypeError), ""),
     ],
 )
-def test_server(cobbler_api, input_server, expected_exception, expected_result):
+def test_server(cobbler_api: CobblerAPI, input_server, expected_exception, expected_result):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -217,7 +231,7 @@ def test_server(cobbler_api, input_server, expected_exception, expected_result):
         assert profile.server == expected_result
 
 
-def test_next_server_v4(cobbler_api):
+def test_next_server_v4(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -228,7 +242,7 @@ def test_next_server_v4(cobbler_api):
     assert profile.next_server_v4 == ""
 
 
-def test_next_server_v6(cobbler_api):
+def test_next_server_v6(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -252,7 +266,7 @@ def test_next_server_v6(cobbler_api):
     ],
 )
 def test_filename(
-    cobbler_api,
+    cobbler_api: CobblerAPI,
     create_distro,
     create_profile,
     input_filename,
@@ -293,7 +307,7 @@ def test_filename(
     ],
 )
 def test_filename(
-    cobbler_api,
+    cobbler_api: CobblerAPI,
     create_distro,
     create_profile,
     input_filename,
@@ -318,7 +332,7 @@ def test_filename(
         assert profile.filename == expected_result
 
 
-def test_autoinstall(cobbler_api):
+def test_autoinstall(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -338,7 +352,7 @@ def test_autoinstall(cobbler_api):
         (True, does_not_raise(), True),
     ],
 )
-def test_virt_auto_boot(cobbler_api, value, expected_exception, expected_result):
+def test_virt_auto_boot(cobbler_api: CobblerAPI, value, expected_exception, expected_result):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -361,7 +375,7 @@ def test_virt_auto_boot(cobbler_api, value, expected_exception, expected_result)
         (5, does_not_raise(), 5),
     ],
 )
-def test_virt_cpus(cobbler_api, value, expected_exception, expected_result):
+def test_virt_cpus(cobbler_api: CobblerAPI, value, expected_exception, expected_result):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -384,7 +398,7 @@ def test_virt_cpus(cobbler_api, value, expected_exception, expected_result):
         (5, does_not_raise(), 5.0),
     ],
 )
-def test_virt_file_size(cobbler_api, value, expected_exception, expected_result):
+def test_virt_file_size(cobbler_api: CobblerAPI, value, expected_exception, expected_result):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -406,7 +420,7 @@ def test_virt_file_size(cobbler_api, value, expected_exception, expected_result)
         ("", pytest.raises(ValueError), None),
     ],
 )
-def test_virt_disk_driver(cobbler_api, value, expected_exception, expected_result):
+def test_virt_disk_driver(cobbler_api: CobblerAPI, value, expected_exception, expected_result):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -427,7 +441,7 @@ def test_virt_disk_driver(cobbler_api, value, expected_exception, expected_resul
         (0.0, pytest.raises(TypeError), 0),
     ],
 )
-def test_virt_ram(cobbler_api, value, expected_exception, expected_result):
+def test_virt_ram(cobbler_api: CobblerAPI, value, expected_exception, expected_result):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -449,7 +463,7 @@ def test_virt_ram(cobbler_api, value, expected_exception, expected_result):
         (False, pytest.raises(TypeError), None),
     ],
 )
-def test_virt_type(cobbler_api, value, expected_exception, expected_result):
+def test_virt_type(cobbler_api: CobblerAPI, value, expected_exception, expected_result):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -470,7 +484,7 @@ def test_virt_type(cobbler_api, value, expected_exception, expected_result):
         (False, pytest.raises(TypeError), None),
     ],
 )
-def test_virt_bridge(cobbler_api, value, expected_exception, expected_result):
+def test_virt_bridge(cobbler_api: CobblerAPI, value, expected_exception, expected_result):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -482,7 +496,7 @@ def test_virt_bridge(cobbler_api, value, expected_exception, expected_result):
     assert profile.virt_bridge == "xenbr0"
 
 
-def test_virt_path(cobbler_api):
+def test_virt_path(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -493,7 +507,7 @@ def test_virt_path(cobbler_api):
     assert profile.virt_path == ""
 
 
-def test_repos(cobbler_api):
+def test_repos(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -504,7 +518,7 @@ def test_repos(cobbler_api):
     assert profile.repos == []
 
 
-def test_redhat_management_key(cobbler_api):
+def test_redhat_management_key(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -515,7 +529,7 @@ def test_redhat_management_key(cobbler_api):
     assert profile.redhat_management_key == ""
 
 
-def test_boot_loaders(cobbler_api):
+def test_boot_loaders(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -526,7 +540,7 @@ def test_boot_loaders(cobbler_api):
     assert profile.boot_loaders == []
 
 
-def test_menu(cobbler_api):
+def test_menu(cobbler_api: CobblerAPI):
     # Arrange
     profile = Profile(cobbler_api)
 
@@ -535,3 +549,63 @@ def test_menu(cobbler_api):
 
     # Assert
     assert profile.menu == ""
+
+
+def test_distro_inherit(mocker, test_settings, create_distro: Callable[[], Distro]):
+    """
+    Checking that inherited properties are correctly inherited from settings and
+    that the <<inherit>> value can be set for them.
+    """
+    # Arrange
+    distro = create_distro()
+    api = distro.api
+    mocker.patch.object(api, "settings", return_value=test_settings)
+    distro.arch = enums.Archs.X86_64
+    profile = Profile(api)
+    profile.distro = distro.name
+
+    # Act
+    for key, key_value in profile.__dict__.items():
+        if key_value == enums.VALUE_INHERITED:
+            new_key = key[1:].lower()
+            new_value = getattr(profile, new_key)
+            settings_name = new_key
+            parent_obj = None
+            if hasattr(distro, settings_name):
+                parent_obj = distro
+            else:
+                if new_key == "owners":
+                    settings_name = "default_ownership"
+                elif new_key == "proxy":
+                    settings_name = "proxy_url_int"
+
+                if hasattr(test_settings, f"default_{settings_name}"):
+                    settings_name = f"default_{settings_name}"
+                if hasattr(test_settings, settings_name):
+                    parent_obj = test_settings
+
+            if parent_obj is not None:
+                setting = getattr(parent_obj, settings_name)
+                if isinstance(setting, str):
+                    new_value = "test_inheritance"
+                elif isinstance(setting, bool):
+                    new_value = True
+                elif isinstance(setting, int):
+                    new_value = 1
+                elif isinstance(setting, float):
+                    new_value = 1.0
+                elif isinstance(setting, dict):
+                    new_value.update({"test_inheritance": "test_inheritance"})
+                elif isinstance(setting, list):
+                    if new_key == "boot_loaders":
+                        new_value = ["grub"]
+                    else:
+                        new_value = ["test_inheritance"]
+                setattr(parent_obj, settings_name, new_value)
+
+            prev_value = getattr(profile, new_key)
+            setattr(profile, new_key, enums.VALUE_INHERITED)
+
+            # Assert
+            assert prev_value == new_value
+            assert prev_value == getattr(profile, new_key)

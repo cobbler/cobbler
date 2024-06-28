@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from cobbler.cexceptions import CX
@@ -121,13 +123,21 @@ class TestProfile:
         ("virt_type", "bad"),
         ("boot_loaders", "badloader"),
     ])
-    def test_create_profile_negative(self, remote, token, field_name, field_value):
+    def test_create_profile_negative(self, remote, token, create_kernel_initrd, create_distro, field_name, field_value):
         """
         Test: create/edit a profile object
         """
         # Arrange
+        distro_name = "test_create_profile_negative_distro"
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
+        distro = create_distro(distro_name, "x86_64", "suse", path_kernel, path_initrd)
         profile = remote.new_profile(token)
         remote.modify_profile(profile, "name", "testprofile0", token)
+        remote.modify_profile(profile, "distro", distro_name, token)
 
         # Act & Assert
         try:

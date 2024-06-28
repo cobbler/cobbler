@@ -343,13 +343,15 @@ def validate_virt_file_size(num: Union[str, int, float]) -> Union[str, float]:
     return num
 
 
-def validate_virt_auto_boot(value: bool) -> bool:
+def validate_virt_auto_boot(value: Union[str, bool, int]) -> Union[bool, str]:
     """
     For Virt only.
     Specifies whether the VM should automatically boot upon host reboot 0 tells Koan not to auto_boot virtuals.
 
     :param value: May be True or False.
     """
+    if value == enums.VALUE_INHERITED:
+        return enums.VALUE_INHERITED
     value = utils.input_boolean(value)
     if not isinstance(value, bool):
         raise TypeError("virt_auto_boot needs to be of type bool.")
