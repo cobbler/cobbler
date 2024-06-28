@@ -408,6 +408,21 @@ The on-disk format for the virtualization disk.
 
 default: ``raw``
 
+dnsmasq_ethers_file
+###################
+
+The path to the ethers file used by the dnsmasq manager module. Note that if you change this path, you might have to reconfigure
+external systems that also use the file. See ``man 5 ethers`` for more information about the file and its uses.
+
+default: ``/etc/ethers``
+
+dnsmasq_hosts_file
+##################
+
+The path to the hosts file used by the dnsmasq manager module.
+
+default: ``/var/lib/cobbler/cobbler_hosts``
+
 default_virt_file_size
 ######################
 

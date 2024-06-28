@@ -1,5 +1,5 @@
 """
-Migration from V3.3.1 to V3.3.2
+Migration from V3.3.3 to V3.4.0
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -72,6 +72,8 @@ schema = Schema(
         Optional("default_virt_file_size"): float,
         Optional("default_virt_ram"): int,
         Optional("default_virt_type"): str,
+        Optional("dnsmasq_ethers_file"): str,
+        Optional("dnsmasq_hosts_file"): str,
         Optional("enable_ipxe"): bool,
         Optional("enable_menu"): bool,
         Optional("extra_settings_list"): [str],

@@ -1,7 +1,6 @@
 """
 Test to verify the functionallity of the isc DHCP module.
 """
-
 import time
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
@@ -11,7 +10,7 @@ import pytest
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
-from cobbler.items.system import System
+from cobbler.items.system import NetworkInterface, System
 from cobbler.modules.managers import isc
 from cobbler.settings import Settings
 
@@ -47,6 +46,11 @@ def api_isc_mock():
     settings_mock.jinja2_includedir = ""
     settings_mock.default_virt_disk_driver = "raw"
     settings_mock.cache_enabled = False
+    settings_mock.allow_duplicate_hostnames = True
+    settings_mock.allow_duplicate_macs = True
+    settings_mock.allow_duplicate_ips = True
+    settings_mock.autoinstall_snippets_dir = ""
+    settings_mock.autoinstall_templates_dir = ""
     api_mock = MagicMock(autospec=True, spec=CobblerAPI)
     api_mock.settings.return_value = settings_mock  # type: ignore
     test_distro = Distro(api_mock)
@@ -113,27 +117,24 @@ def test_manager_write_v4_config(mocker: "MockerFixture", api_isc_mock: CobblerA
     """
     # Arrange
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
-    mocker.patch(
-        "time.gmtime",
-        return_value=time.struct_time((2000, 1, 1, 0, 0, 0, 0, 1, 1)),
-    )
     isc.MANAGER = None
     manager = isc.get_manager(api_isc_mock)
     mocked_templar = mocker.patch.object(manager, "templar", autospec=True)
+    mock_server_config = {  # type: ignore
+        "cobbler_server": "127.0.0.1:80",
+        "date": "Mon Jan  1 00:00:00 2000",
+        "dhcp_tags": {"default": {}},
+        "next_server_v4": "127.0.0.1",
+    }
 
     # Act
-    manager.write_v4_config()
+    manager.write_v4_config(mock_server_config)  # type: ignore
 
     # Assert
     assert mocked_templar.render.call_count == 1  # type: ignore
     mocked_templar.render.assert_called_with(  # type: ignore
         "test",
-        {
-            "cobbler_server": "127.0.0.1:80",
-            "date": "Mon Jan  1 00:00:00 2000",
-            "dhcp_tags": {"default": {}},
-            "next_server_v4": "127.0.0.1",
-        },
+        mock_server_config,
         "/etc/dhcpd.conf",
     )
 
@@ -144,26 +145,23 @@ def test_manager_write_v6_config(mocker: "MockerFixture", api_isc_mock: CobblerA
     """
     # Arrange
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
-    mocker.patch(
-        "time.gmtime",
-        return_value=time.struct_time((2000, 1, 1, 0, 0, 0, 0, 1, 1)),
-    )
     isc.MANAGER = None
     manager = isc.get_manager(api_isc_mock)
     mocked_templar = mocker.patch.object(manager, "templar", autospec=True)
+    mock_server_config = {  # type: ignore
+        "dhcp_tags": {"default": {}},
+        "next_server_v4": "127.0.0.1",
+        "next_server_v6": "::1",
+    }
 
     # Act
-    manager.write_v6_config()
+    manager.write_v6_config(mock_server_config)  # type: ignore
 
     # Assert
     assert mocked_templar.render.call_count == 1  # type: ignore
     mocked_templar.render.assert_called_with(  # type: ignore
         "test",
-        {
-            "date": "Mon Jan  1 00:00:00 2000",
-            "next_server_v6": "::1",
-            "dhcp_tags": {"default": {}},
-        },
+        mock_server_config,
         "/etc/dhcpd6.conf",
     )
 
@@ -206,6 +204,7 @@ def test_manager_write_configs(mocker: "MockerFixture", api_isc_mock: CobblerAPI
     manager = isc.get_manager(api_isc_mock)
     mocked_v4 = mocker.patch.object(manager, "write_v4_config", autospec=True)
     mocked_v6 = mocker.patch.object(manager, "write_v6_config", autospec=True)
+    mocker.patch.object(manager, "gen_full_config")
 
     # Act
     manager.write_configs()
@@ -236,3 +235,160 @@ def test_manager_restart_service(mocker: "MockerFixture", api_isc_mock: CobblerA
     assert mocked_service_name.call_count == 1
     assert mocked_restart.call_count == 2
     assert result == 0
+
+
+def test_manager_gen_full_config(mocker: "MockerFixture", api_isc_mock: CobblerAPI):
+    # Arrange
+    isc.MANAGER = None
+    manager = isc.get_manager(api_isc_mock)
+    mock_distro = Distro(api_isc_mock)
+    mock_distro.redhat_management_key = ""
+    mock_distro.arch = "x86_64"
+    mock_profile = Profile(api_isc_mock)
+    mock_profile.autoinstall = ""
+    mock_profile.proxy = ""
+    mock_profile.virt_file_size = ""
+    mock_system = System(api_isc_mock)
+    mock_system.name = "test_manager_regen_hosts_system"
+    mock_interface = NetworkInterface(api_isc_mock, mock_system.name)
+    mock_interface._dns_name = "host.example.org"  # type: ignore
+    mock_interface._mac_address = "aa:bb:cc:dd:ee:ff"  # type: ignore
+    mock_interface._ip_address = "192.168.1.2"  # type: ignore
+    mock_interface._ipv6_address = "::1"  # type: ignore
+    mock_system._interfaces = {"default": mock_interface}  # type: ignore
+    mocker.patch.object(mock_system, "get_conceptual_parent", return_value=mock_profile)
+    mocker.patch.object(mock_profile, "get_conceptual_parent", return_value=mock_distro)
+    manager.systems = [mock_system]  # type: ignore
+
+    # Act
+    result = manager.gen_full_config()
+
+    # Assert
+    assert mock_interface.mac_address in result["dhcp_tags"]["default"]
+    result_dhcp_tags = result["dhcp_tags"]["default"][mock_interface.mac_address]
+    assert result_dhcp_tags["dns_name"] == mock_interface.dns_name
+    assert result_dhcp_tags["mac_address"] == mock_interface.mac_address
+    assert result_dhcp_tags["ip_address"] == mock_interface.ip_address
+    assert result_dhcp_tags["ipv6_address"] == mock_interface.ipv6_address
+
+
+def _get_mock_config():  # type: ignore
+    config = {  # type: ignore
+        "cobbler_server": "127.0.0.1:80",
+        "date": "Tue Jun 11 16:19:49 2024",
+        "dhcp_tags": {
+            "default": {
+                "aa:bb:cc:dd:ee:ff": {
+                    "dhcp_tag": "",
+                    "distro": {
+                        "arch": "x86_64",
+                    },
+                    "dns_name": "host.example.org",
+                    "interface_type": "na",
+                    "ip_address": "192.168.1.2",
+                    "ipv6_address": "::1",
+                    "mac_address": "aa:bb:cc:dd:ee:ff",
+                    "name": "host.example.org-default",
+                    "next_server_v4": "127.0.0.1",
+                    "next_server_v6": "::1",
+                    "owner": "test_manager_regen_hosts_system",
+                    "profile": {},
+                    "static": False,
+                    "static_routes": [],
+                    "virt_bridge": "<<inherit>>",
+                },
+            },
+        },
+        "next_server_v4": "127.0.0.1",
+        "next_server_v6": "::1",
+    }
+
+    return config  # type: ignore
+
+
+def test_manager_remove_single_system(
+    mocker: "MockerFixture", api_isc_mock: CobblerAPI
+):
+    # Arrange
+    mocker.patch(
+        "time.gmtime",
+        return_value=time.struct_time((2000, 1, 1, 0, 0, 0, 0, 1, 1)),
+    )
+    isc.MANAGER = None
+    manager = isc.get_manager(api_isc_mock)
+    mock_distro = Distro(api_isc_mock)
+    mock_distro.redhat_management_key = ""
+    mock_distro.arch = "x86_64"
+    mock_profile = Profile(api_isc_mock)
+    mock_profile.autoinstall = ""
+    mock_profile.proxy = ""
+    mock_profile.virt_file_size = ""
+    mock_system = System(api_isc_mock)
+    mock_system.name = "test_manager_regen_hosts_system"
+    mock_interface = NetworkInterface(api_isc_mock, mock_system.name)
+    mock_interface._dns_name = "host.example.org"  # type: ignore
+    mock_interface._mac_address = "aa:bb:cc:dd:ee:ff"  # type: ignore
+    mock_interface._ip_address = "192.168.1.2"  # type: ignore
+    mock_interface._ipv6_address = "::1"  # type: ignore
+    mock_system._interfaces = {"default": mock_interface}  # type: ignore
+    mocker.patch.object(mock_system, "get_conceptual_parent", return_value=mock_profile)
+    mocker.patch.object(mock_profile, "get_conceptual_parent", return_value=mock_distro)
+    manager.config = _get_mock_config()
+    manager.restart_service = MagicMock()
+    mock_write_configs = MagicMock()
+    manager._write_configs = mock_write_configs  # type: ignore
+
+    # Act
+    manager.remove_single_system(mock_system)
+
+    # Assert
+    mock_write_configs.assert_called_with(
+        {
+            "cobbler_server": "127.0.0.1:80",
+            "date": "Mon Jan  1 00:00:00 2000",
+            "dhcp_tags": {
+                "default": {},
+            },
+            "next_server_v4": "127.0.0.1",
+            "next_server_v6": "::1",
+        }
+    )
+
+
+def test_manager_sync_single_system(mocker: "MockerFixture", api_isc_mock: CobblerAPI):
+    # Arrange
+    mocker.patch(
+        "time.gmtime",
+        return_value=time.struct_time((2000, 1, 1, 0, 0, 0, 0, 1, 1)),
+    )
+    isc.MANAGER = None
+    manager = isc.get_manager(api_isc_mock)
+    mock_distro = Distro(api_isc_mock)
+    mock_distro.redhat_management_key = ""
+    mock_distro.arch = "x86_64"
+    mock_profile = Profile(api_isc_mock)
+    mock_profile.autoinstall = ""
+    mock_profile.proxy = ""
+    mock_profile.virt_file_size = ""
+    mock_system = System(api_isc_mock)
+    mock_system.name = "test_manager_regen_hosts_system"
+    mock_interface = NetworkInterface(api_isc_mock, mock_system.name)
+    mock_interface._dns_name = "host.example.org"  # type: ignore
+    mock_interface._mac_address = "bb:bb:cc:dd:ee:ff"  # type: ignore
+    mock_interface._ip_address = "192.168.1.2"  # type: ignore
+    mock_interface._ipv6_address = "::1"  # type: ignore
+    mock_system._interfaces = {"default": mock_interface}  # type: ignore
+    mocker.patch.object(mock_system, "get_conceptual_parent", return_value=mock_profile)
+    mocker.patch.object(mock_profile, "get_conceptual_parent", return_value=mock_distro)
+    manager.config = _get_mock_config()
+    manager.restart_service = MagicMock()
+    mock_write_configs = MagicMock()
+    manager._write_configs = mock_write_configs  # type: ignore
+
+    # Act
+    manager.sync_single_system(mock_system)
+    systems_config = manager.config["dhcp_tags"]["default"]  # type: ignore
+
+    # Assert
+    assert len(systems_config) == 2  # type: ignore
+    assert mock_interface._mac_address in systems_config  # type: ignore

@@ -176,6 +176,8 @@ class Settings:
         self.default_virt_file_size = 5.0
         self.default_virt_ram = 512
         self.default_virt_type = "kvm"
+        self.dnsmasq_ethers_file = "/etc/ethers"
+        self.dnsmasq_hosts_file = "/var/lib/cobbler/cobbler_hosts"
         self.enable_ipxe = False
         self.enable_menu = True
         self.extra_settings_list: List[str] = []

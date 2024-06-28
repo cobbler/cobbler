@@ -1354,3 +1354,73 @@ def filelock(lock_file: str):
             with contextlib.suppress(OSError):
                 fcntl.flock(fd, fcntl.LOCK_UN)
             os.close(fd)
+
+
+def merge_dicts_recursive(
+    base_dict: Dict[str, Any], updating_dict: Dict[str, Any], str_append: bool = False
+) -> Dict[str, Any]:
+    """Merge updating_dict into base_config recursively.
+
+    :param base_dict: Base dictionary.
+    :param updating_dict: Updating dict, overrides base_dict.
+    :param str_append: Append the updating_dict String values to the base_dict
+                       with the same key instead of overwriting the original value.
+    :returns dict: Merged dict"""
+    ret = base_dict.copy()
+    for k, v in updating_dict.items():
+        if (
+            k in base_dict
+            and isinstance(v, dict)
+            and isinstance(base_dict.get(k), dict)
+        ):
+            ret[k] = merge_dicts_recursive(base_dict[k], v, str_append)  # type: ignore
+        elif str_append and k in ret and isinstance(v, str):
+            ret[k] += v
+        else:
+            ret[k] = v
+    return ret
+
+
+def create_files_if_not_existing(files: List[str]) -> None:
+    """
+    Create empty files if they don't already exist. If they exist, do nothing.
+
+    :param files: A list of the files to create. If the base directory doesn't
+                  exist, create it too.
+    raises OSError: In case the file cannot be created.
+    """
+    for file in files:
+        if not file:
+            logger.warning("Attempted to create an empty file in %s, skipping", files)
+            continue
+        if not os.path.exists(file):
+            # It's possible the file dir doesn't exist yet, create it
+            basedir = os.path.dirname(file)
+            if not os.path.exists(basedir):
+                os.makedirs(basedir)
+            # Create empty file
+            open(  # pylint: disable=consider-using-with
+                file, "a", encoding="UTF-8"
+            ).close()
+
+
+def remove_lines_in_file(filepath: str, remove_keywords: List[str]) -> None:
+    """
+    Remove any line from file at a given filepath if it is a substring of any
+    element of the `remove_keywords` list.
+
+    :param filepath: A path of the file that you want to modify.
+    :param remove_keywords: A list of keywords. Any line in filepath that contains
+                         any of the keywords will be removed.
+
+    raises OSError: In case the file cannot be read or modified.
+    """
+    tmp_filepath = filepath + ".tmp"
+    with open(filepath, "r", encoding="UTF-8") as fh, open(
+        tmp_filepath, "w", encoding="UTF-8"
+    ) as tmp_fh:
+        for line in fh:
+            if any(keyword in line for keyword in remove_keywords):
+                continue
+            tmp_fh.write(line)
+    os.replace(tmp_filepath, filepath)

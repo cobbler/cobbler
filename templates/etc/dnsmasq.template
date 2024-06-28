@@ -6,7 +6,7 @@
 #no-poll
 #enable-dbus
 read-ethers
-addn-hosts = /var/lib/cobbler/cobbler_hosts
+addn-hosts = $addn_host_file
 
 dhcp-range=192.168.1.5,192.168.1.200
 dhcp-option=66,$next_server_v4
