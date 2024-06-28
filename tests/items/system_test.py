@@ -280,15 +280,18 @@ def test_next_server_v6(
         assert system.next_server_v6 == expected_result
 
 
-def test_filename(cobbler_api):
+def test_filename(cobbler_api: CobblerAPI, create_distro, create_profile):
     # Arrange
+    distro = create_distro()
+    profile = create_profile(distro_name=distro.name)
     system = System(cobbler_api)
+    system.profile = profile.name
 
     # Act
     system.filename = "<<inherit>>"
 
     # Assert
-    assert system.filename == "<<inherit>>"
+    assert system.filename == ""
 
 
 def test_power_address(cobbler_api):

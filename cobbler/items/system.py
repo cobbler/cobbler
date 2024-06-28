@@ -1203,6 +1203,9 @@ class System(Item):
         :getter: Returns the value for ``filename``.
         :setter: Sets the value for the property ``filename``.
         """
+        if self.image != "":
+            # If a system inherits from an image this property doesn't make sense to contain data.
+            return ""
         return self._resolve("filename")
 
     @filename.setter

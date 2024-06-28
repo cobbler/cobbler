@@ -357,7 +357,7 @@ class Item:
             elif hasattr(settings, "default_%s" % settings_name):
                 return getattr(settings, "default_%s" % settings_name)
             else:
-                AttributeError(
+                raise AttributeError(
                     '%s "%s" inherits property "%s", but neither its parent nor settings have it'
                     % (type(self), self.name, property_name)
                 )
@@ -396,8 +396,8 @@ class Item:
                     getattr(settings, "default_%s" % settings_name)
                 )
             else:
-                AttributeError("%s \"%s\" inherits property \"%s\", but neither its parent nor settings have it"
-                               % (type(self), self.name, property_name))
+                raise AttributeError("%s \"%s\" inherits property \"%s\", but neither its parent nor settings have it"
+                                     % (type(self), self.name, property_name))
 
         return attribute_value
 
