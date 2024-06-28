@@ -584,7 +584,7 @@ class TFTPGen:
         return metadata
 
     def write_pxe_file(self, filename, system, profile, distro, arch: Archs, image=None, metadata=None,
-                       format: str = "pxe") -> str:
+                       mac=None, format: str = "pxe") -> str:
         """
         Write a configuration file for the boot loader(s).
 
@@ -641,7 +641,7 @@ class TFTPGen:
 
         # generate the kernel options and append line:
         kernel_options = self.build_kernel_options(system, profile, distro,
-                                                   image, arch, metadata["autoinstall"])
+                                                   image, arch, metadata["autoinstall"], mac)
         metadata["kernel_options"] = kernel_options
 
         if distro and distro.os_version.startswith("esxi") and filename is not None:
@@ -777,7 +777,7 @@ class TFTPGen:
         if boot_loader == "grub" and utils.file_is_remote(kernel_path):
             metadata["kernel_path"] = grub.parse_grub_remote_file(kernel_path)
 
-    def build_kernel_options(self, system, profile, distro, image, arch: enums.Archs, autoinstall_path) -> str:
+    def build_kernel_options(self, system, profile, distro, image, arch: enums.Archs, autoinstall_path, mac=None) -> str:
         """
         Builds the full kernel options line.
 
@@ -886,8 +886,10 @@ class TFTPGen:
                 if management_mac and distro.arch not in (enums.Archs.S390, enums.Archs.S390X):
                     append_line += " netdevice=%s" % management_mac
             elif distro.breed == "debian" or distro.breed == "ubuntu":
-                append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" \
+                append_line = "%s auto-install/enable=true priority=critical url=%s" \
                               % (append_line, autoinstall_path)
+                if mac:
+                    append_line += " interface=%s" % mac
                 if management_interface:
                     append_line += " netcfg/choose_interface=%s" % management_interface
             elif distro.breed == "freebsd":
@@ -1092,7 +1094,7 @@ class TFTPGen:
 
         return results
 
-    def generate_ipxe(self, what: str, name: str) -> str:
+    def generate_ipxe(self, what: str, name: str, mac=None) -> str:
         """
         Generate the ipxe files.
 
@@ -1130,7 +1132,7 @@ class TFTPGen:
         else:
             return ""
 
-        result = self.write_pxe_file(None, system, profile, distro, arch, image, format='ipxe')
+        result = self.write_pxe_file(None, system, profile, distro, arch, image, mac=mac, format='ipxe')
         return "" if not result else result
 
     def generate_bootcfg(self, what: str, name: str) -> str:

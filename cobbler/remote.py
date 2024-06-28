@@ -2396,7 +2396,7 @@ class CobblerXMLRPCInterface:
         """
         return self.generate_autoinstall(system=system)
 
-    def generate_ipxe(self, profile=None, image=None, system=None, **rest) -> str:
+    def generate_ipxe(self, profile=None, image=None, system=None, mac=None, **rest) -> str:
         """
         Generate the ipxe configuration.
 
@@ -2407,7 +2407,7 @@ class CobblerXMLRPCInterface:
         :return: The configuration as a str representation.
         """
         self._log("generate_ipxe")
-        return self.api.generate_ipxe(profile, image, system)
+        return self.api.generate_ipxe(profile, image, system, mac)
 
     def generate_bootcfg(self, profile: str = None, system: str = None, **rest) -> str:
         """

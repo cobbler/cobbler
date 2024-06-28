@@ -1441,7 +1441,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def generate_ipxe(self, profile: str, image: str, system: str) -> str:
+    def generate_ipxe(self, profile: str, image: str, system: str, mac=None) -> str:
         """
         Generate the ipxe configuration files. The system wins over the profile. Profile and System win over Image.
 
@@ -1457,7 +1457,7 @@ class CobblerAPI:
             if 'ipxe' in boot_menu:
                 data = boot_menu['ipxe']
         elif system:
-            data = self.tftpgen.generate_ipxe("system", system)
+            data = self.tftpgen.generate_ipxe("system", system, mac)
         elif profile:
             data = self.tftpgen.generate_ipxe("profile", profile)
         elif image:

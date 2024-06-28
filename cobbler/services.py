@@ -130,8 +130,7 @@ class CobblerSvc:
             found = self.remote.find_system(query)
             if found:
                 system = found[0]
-
-        data = self.remote.generate_ipxe(profile, image, system)
+        data = self.remote.generate_ipxe(profile, image, system, mac)
         return "%s" % data
 
     def bootcfg(self, profile=None, system=None, **rest):
