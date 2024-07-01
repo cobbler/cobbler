@@ -16,7 +16,7 @@ from typing import Any, Dict
 
 from schema import Optional, Schema, SchemaError  # type: ignore
 
-from cobbler.settings.migrations import V3_3_3, helper
+from cobbler.settings.migrations import V3_3_5, helper
 
 schema = Schema(
     {
@@ -211,8 +211,8 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     :return: The migrated dict
     """
 
-    if not V3_3_3.validate(settings):
-        raise SchemaError("V3.3.3: Schema error while validating")
+    if not V3_3_5.validate(settings):
+        raise SchemaError("V3.3.5: Schema error while validating")
 
     # rename keys and update their value if needed
     include = settings.pop("include")
