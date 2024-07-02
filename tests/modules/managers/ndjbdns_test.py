@@ -1,4 +1,5 @@
-from cobbler.items.system import NetworkInterface, System
+from cobbler.items.network_interface import NetworkInterface
+from cobbler.items.system import System
 from cobbler.modules.managers import ndjbdns
 from cobbler.templar import Templar
 

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Dict, Set
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import collection
-from cobbler.items import system
+from cobbler.items import network_interface, system
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -132,7 +132,7 @@ class Systems(collection.Collection[system.System]):
 
     def update_interface_index_value(
         self,
-        interface: system.NetworkInterface,
+        interface: network_interface.NetworkInterface,
         attribute_name: str,
         old_value: str,
         new_value: str,
@@ -154,7 +154,9 @@ class Systems(collection.Collection[system.System]):
                     indx_dict[new_value] = interface.system_name
 
     def update_interfaces_indexes(
-        self, ref: system.System, new_ifaces: Dict[str, system.NetworkInterface]
+        self,
+        ref: system.System,
+        new_ifaces: Dict[str, network_interface.NetworkInterface],
     ) -> None:
         """
         Update interfaces indexes for the system.
@@ -188,7 +190,10 @@ class Systems(collection.Collection[system.System]):
                     indx_val[value] = ref.name
 
     def update_interface_indexes(
-        self, ref: system.System, iface_name: str, new_iface: system.NetworkInterface
+        self,
+        ref: system.System,
+        iface_name: str,
+        new_iface: network_interface.NetworkInterface,
     ) -> None:
         """
         Update interface indexes for the system.
