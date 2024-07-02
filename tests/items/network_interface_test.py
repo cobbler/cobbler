@@ -5,7 +5,7 @@ import pytest
 
 from cobbler import enums
 from cobbler.api import CobblerAPI
-from cobbler.items.system import NetworkInterface
+from cobbler.items.network_interface import NetworkInterface
 
 from tests.conftest import does_not_raise
 

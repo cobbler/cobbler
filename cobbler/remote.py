@@ -149,7 +149,7 @@ from xmlrpc.server import SimpleXMLRPCRequestHandler
 
 from cobbler import autoinstall_manager, configgen, enums, tftpgen, utils
 from cobbler.cexceptions import CX
-from cobbler.items import item, system
+from cobbler.items import item, network_interface, system
 from cobbler.utils import signatures
 from cobbler.utils.event import CobblerEvent
 from cobbler.utils.thread import CobblerThread
@@ -893,7 +893,7 @@ class CobblerXMLRPCInterface:
                 attribute == "interfaces"
                 and len(return_value) > 0
                 and all(
-                    isinstance(value, system.NetworkInterface)
+                    isinstance(value, network_interface.NetworkInterface)
                     for value in return_value.values()
                 )
             ):
@@ -2048,7 +2048,7 @@ class CobblerXMLRPCInterface:
             return True
 
         fields: List[str] = []
-        for key, value in system.NetworkInterface.__dict__.items():
+        for key, value in network_interface.NetworkInterface.__dict__.items():
             if isinstance(value, property):
                 fields.append(key)
 
@@ -2246,7 +2246,9 @@ class CobblerXMLRPCInterface:
         interface = system_to_edit.interfaces.get(interface_name)
         if interface is None:
             # If the interface is not existing, create a new one.
-            interface = system.NetworkInterface(self.api, system_to_edit.name)
+            interface = network_interface.NetworkInterface(
+                self.api, system_to_edit.name
+            )
         for attribute_key in attributes:
             if self.__is_interface_field(attribute_key):
                 if hasattr(interface, attribute_key):
