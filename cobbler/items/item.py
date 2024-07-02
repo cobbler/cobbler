@@ -366,7 +366,12 @@ class Item:
         :name: The attribute name.
         :value: The attribute value.
         """
-        if Item.__is_dict_key(name) and self._has_initialized:
+        if (
+            Item.__is_dict_key(name)
+            and self._has_initialized
+            and hasattr(self, name)
+            and value != getattr(self, name)
+        ):
             self.clean_cache(name)
         super().__setattr__(name, value)
 
@@ -520,16 +525,11 @@ class Item:
 
         :param uid: The new uid.
         """
-        if self._uid != uid and self.COLLECTION_TYPE != Item.COLLECTION_TYPE:
-            collection = self.api.get_items(self.COLLECTION_TYPE)
-            with collection.lock:
-                item = collection.get(self.name)
-                if item is not None and item.uid == self._uid:
-                    # Update uid index
-                    indx_dict = collection.indexes["uid"]
-                    del indx_dict[self._uid]
-                    indx_dict[uid] = self.name
+        old_uid = self._uid
         self._uid = uid
+        self.api.get_items(self.COLLECTION_TYPE).update_index_value(
+            self, "uid", old_uid, uid
+        )
 
     @property
     def ctime(self) -> float:
@@ -858,17 +858,25 @@ class Item:
         """
         if not isinstance(parent, str):  # type: ignore
             raise TypeError('Property "parent" must be of type str!')
+        old_parent = self._parent
         if not parent:
             self._parent = ""
+            self.api.get_items(self.COLLECTION_TYPE).update_index_value(
+                self, "parent", old_parent, ""
+            )
             return
         if parent == self.name:
             # check must be done in two places as setting parent could be called before/after setting name...
             raise CX("self parentage is weird")
-        found = self.api.get_items(self.COLLECTION_TYPE).get(parent)
+        items = self.api.get_items(self.COLLECTION_TYPE)
+        found = items.get(parent)
         if found is None:
-            raise CX(f'profile "{parent}" not found, inheritance not possible')
+            raise CX(
+                f'{self.COLLECTION_TYPE} "{parent}" not found, inheritance not possible'
+            )
         self._parent = parent
         self.depth = found.depth + 1
+        items.update_index_value(self, "parent", old_parent, parent)
 
     @LazyProperty
     def get_parent(self) -> str:
@@ -928,22 +936,29 @@ class Item:
         :getter: An empty list in case of items which don't have logical children.
         :setter: Replace the list of children completely with the new provided one.
         """
-        results: List[Any] = []
-        list_items = self.api.get_items(self.COLLECTION_TYPE)
-        for obj in list_items:
-            if obj.get_parent == self._name:
-                results.append(obj)
+        if self.COLLECTION_TYPE not in ["profile", "menu"]:
+            return []
+
+        results = self.api.find_items(
+            self.COLLECTION_TYPE, {"parent": self._name}, return_list=True
+        )
+        if results is None:
+            return []
         return results
 
-    def tree_walk(self) -> List["ITEM_UNION"]:
+    def tree_walk(self, attribute_name: str = None) -> List["ITEM_UNION"]:
         """
         Get all children related by parent/child relationship.
         :return: The list of children objects.
         """
         results: List[Any] = []
         for child in self.children:
-            results.append(child)
-            results.extend(child.tree_walk())
+            if (
+                attribute_name is None
+                or getattr(child, attribute_name) == enums.VALUE_INHERITED
+            ):
+                results.append(child)
+                results.extend(child.tree_walk(attribute_name))
 
         return results
 
@@ -1317,11 +1332,10 @@ class Item:
             attr = getattr(type(self), name[1:])
             if (
                 isinstance(attr, (InheritableProperty, InheritableDictProperty))
-                and self.COLLECTION_TYPE != Item.COLLECTION_TYPE
                 and self.api.get_items(self.COLLECTION_TYPE).get(self.name) is not None
             ):
                 # Invalidating "resolved" caches
-                for dep_item in self.descendants:
+                for dep_item in self.tree_walk(name):
                     dep_item.cache.set_dict_cache(None, True)
 
         # Invalidating the cache of the object itself.

@@ -84,7 +84,7 @@ def test_uid(cobbler_api: CobblerAPI):
     Assert that an abstract Cobbler Item can use the Getter and Setter of the uid property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     titem.uid = "uid"
@@ -204,6 +204,15 @@ def test_descendants(
     for x in range(len(cache_tests)):
         assert set(cache_tests[x]) == set(results[x])
 
+    # Cleanup
+    cobbler_api.remove_system(test_system1.name)
+    cobbler_api.remove_system(test_system2.name)
+    cobbler_api.remove_profile(test_profile3.name)
+    cobbler_api.remove_profile(test_profile2.name)
+    cobbler_api.remove_profile(test_profile1.name)
+    cobbler_api.remove_menu(test_menu2.name)
+    cobbler_api.remove_menu(test_menu1.name)
+
 
 def test_get_conceptual_parent(
     request: "pytest.FixtureRequest",
@@ -279,7 +288,7 @@ def test_owners(
     Assert that an abstract Cobbler Item can use the Getter and Setter of the owners property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -306,7 +315,7 @@ def test_kernel_options(
     Assert that an abstract Cobbler Item can use the Getter and Setter of the kernel_options property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -333,7 +342,7 @@ def test_kernel_options_post(
     Assert that an abstract Cobbler Item can use the Getter and Setter of the kernel_options_post property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -360,7 +369,7 @@ def test_autoinstall_meta(
     Assert that an abstract Cobbler Item can use the Getter and Setter of the autoinstall_meta property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -403,7 +412,7 @@ def test_fetchable_files(cobbler_api: CobblerAPI):
     Assert that an abstract Cobbler Item can use the Getter and Setter of the fetchable_files property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     titem.fetchable_files = {}
@@ -450,7 +459,7 @@ def test_find_match(
     Assert that given a desired amount of key-value pairs is matching the item or not.
     """
     # Arrange
-    titem = Item(cobbler_api, **in_keys)
+    titem = Distro(cobbler_api, **in_keys)
 
     # Act
     result = titem.find_match(check_keys)
@@ -503,7 +512,7 @@ def test_dump_vars(cobbler_api: CobblerAPI):
     print(result)
     assert "default_ownership" in result
     assert "owners" in result
-    assert len(result) == 155
+    assert len(result) == 156
 
 
 @pytest.mark.parametrize(
@@ -585,7 +594,7 @@ def test_parent(cobbler_api: CobblerAPI):
     Assert that an abstract Cobbler Item can use the Getter and Setter of the parent property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     titem.parent = ""
@@ -684,7 +693,7 @@ def test_inheritance(mocker, cobbler_api: CobblerAPI, test_settings):
     """
     # Arrange
     mocker.patch.object(cobbler_api, "settings", return_value=test_settings)
-    item = Item(cobbler_api)
+    item = Distro(cobbler_api)
 
     # Act
     for key, key_value in item.__dict__.items():
