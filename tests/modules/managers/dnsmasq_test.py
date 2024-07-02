@@ -2,8 +2,9 @@ import time
 from unittest.mock import MagicMock
 
 from cobbler.items.distro import Distro
+from cobbler.items.network_interface import NetworkInterface
 from cobbler.items.profile import Profile
-from cobbler.items.system import NetworkInterface, System
+from cobbler.items.system import System
 from cobbler.modules.managers import dnsmasq
 from cobbler.templar import Templar
 

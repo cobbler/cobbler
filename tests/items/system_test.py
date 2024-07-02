@@ -11,8 +11,9 @@ from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image
+from cobbler.items.network_interface import NetworkInterface
 from cobbler.items.profile import Profile
-from cobbler.items.system import NetworkInterface, System
+from cobbler.items.system import System
 
 from tests.conftest import does_not_raise
 
