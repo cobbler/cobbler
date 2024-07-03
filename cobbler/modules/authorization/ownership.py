@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.items.item import Item
+    from cobbler.items.abstract.base_item import ITEM
     from cobbler.items.profile import Profile
     from cobbler.items.system import System
 
@@ -116,7 +116,7 @@ def __authorize_snippet(
 
 
 def __is_user_allowed(
-    obj: "Item", groups: List[str], user: str, resource: Any, arg1: Any, arg2: Any
+    obj: "ITEM", groups: List[str], user: str, resource: Any, arg1: Any, arg2: Any
 ) -> int:
     """
     Check if a user is allowed to access the resource in question.
