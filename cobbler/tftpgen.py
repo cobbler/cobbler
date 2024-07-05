@@ -889,7 +889,7 @@ class TFTPGen:
                 append_line = "%s auto-install/enable=true priority=critical url=%s" \
                               % (append_line, autoinstall_path)
                 if mac:
-                    append_line += " interface=%s" % mac
+                    append_line += " interface=%s  netcfg/choose_interface=%s" % (mac, mac)
                 if management_interface:
                     append_line += " netcfg/choose_interface=%s" % management_interface
             elif distro.breed == "freebsd":
