@@ -41,7 +41,7 @@ RUN zypper install --no-recommends -y \
     gzip                       \
     ipmitool                   \
     make                       \
-    bind                       \    
+    bind                       \
     python3                    \
     python3-Sphinx             \
     python3-coverage           \
@@ -71,6 +71,7 @@ RUN zypper install --no-recommends -y \
     wget                       \
     which                      \
     xorriso                    \
+    dosfstools                 \
     && zypper clean
 
 # Add virtualization repository
