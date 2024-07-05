@@ -29,7 +29,7 @@ Updates to the yaml-settings-file
 Starting with 3.3.5
 ===================
 
-- ``cache_enabled`` is a new optional setting.
+- ``cache_enabled`` and ``lazy_start`` are new optional settings.
 
 Starting with 3.3.4
 ===================
