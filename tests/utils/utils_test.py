@@ -212,7 +212,7 @@ def test_blender(cobbler_api):  # type: ignore
     result = utils.blender(cobbler_api, False, root_item)  # type: ignore
 
     # Assert
-    assert len(result) == 169
+    assert len(result) == 171
     # Must be present because the settings have it
     assert "server" in result
     # Must be present because it is a field of distro
@@ -611,3 +611,82 @@ def test_filelock():
     # Running time for Thread must be higher than 1 second, as
     # the lock was locked when thread started.
     assert thread_times[1] - thread_times[0] >= datetime.timedelta(seconds=1)
+
+
+def test_merge_dicts_recursive():
+    # Arrange
+    base = {  # type: ignore
+        "toplevel_1": 1,
+        "toplevel_2": 2,
+        "nested_dict": {"default": {"deep_key_1": []}},
+    }
+    update = {
+        "toplevel_1": "One",
+        "nested_dict": {"default": {"deep_key_1": True, "deep_key_2": None}},
+    }
+
+    expected = {
+        "toplevel_1": "One",
+        "toplevel_2": 2,
+        "nested_dict": {"default": {"deep_key_1": True, "deep_key_2": None}},
+    }
+
+    # Act
+    result = utils.merge_dicts_recursive(base, update)  # type: ignore
+
+    # Assert
+    assert expected == result
+
+
+def test_merge_dicts_recursive_extend():
+    # Arrange
+    base = {
+        "str-key": "Hello, ",
+    }
+    update = {
+        "str-key": "World!",
+    }
+
+    expected = {
+        "str-key": "Hello, World!",
+    }
+
+    # Act
+    result = utils.merge_dicts_recursive(base, update, True)
+
+    # Assert
+    assert expected == result
+
+
+def test_merge_dicts_recursive_extend_deep():
+    # Arrange
+    base = {
+        "default": {"str-key": "Hello, "},
+    }
+    update = {
+        "default": {"str-key": "World!"},
+    }
+
+    expected = {
+        "default": {"str-key": "Hello, World!"},
+    }
+
+    # Act
+    result = utils.merge_dicts_recursive(base, update, True)
+
+    # Assert
+    assert expected == result
+
+
+def test_create_files_if_not_existing(tmp_path: Path):
+    # Arrange
+    file1 = str(tmp_path / "a")
+    file2 = str(tmp_path / "b" / "c")
+    files = [file1, file2]
+
+    # Act
+    utils.create_files_if_not_existing(files)
+
+    # Assert
+    assert os.path.exists(file1)
+    assert os.path.exists(file2)
