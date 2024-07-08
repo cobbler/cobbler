@@ -27,7 +27,7 @@ try:
 except ImportError:
     from setuptools import dep_util as modified
 
-VERSION = "3.3.5"
+VERSION = "3.3.6"
 OUTPUT_DIR = "config"
 
 # # Configurable installation roots for various data files.
