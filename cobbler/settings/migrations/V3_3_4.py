@@ -5,6 +5,8 @@ Migration from V3.3.3 to V3.3.4
 # SPDX-FileCopyrightText: 2024 Enno Gotthold <egotthold@suse.com
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
+from typing import Any, Dict
+
 from schema import SchemaError  # type: ignore
 
 from cobbler.settings.migrations import V3_3_3
@@ -13,7 +15,7 @@ from cobbler.settings.migrations import V3_3_3
 schema = V3_3_3.schema
 
 
-def validate(settings: dict) -> bool:
+def validate(settings: Dict[str, Any]) -> bool:
     """
     Checks that a given settings dict is valid according to the reference V3.3.1 schema ``schema``.
 
@@ -27,7 +29,7 @@ def validate(settings: dict) -> bool:
     return True
 
 
-def normalize(settings: dict) -> dict:
+def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
     If data in ``settings`` is valid the validated data is returned.
 
@@ -37,7 +39,7 @@ def normalize(settings: dict) -> dict:
     return schema.validate(settings)  # type: ignore
 
 
-def migrate(settings: dict) -> dict:
+def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
     Migration of the settings ``settings`` to version V3.3.4 settings
 
