@@ -10,7 +10,7 @@ from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import systems
 from cobbler.cobbler_collections.manager import CollectionManager
-from cobbler.items import distro, profile, system
+from cobbler.items import distro, network_interface, profile, system
 
 
 @pytest.fixture(name="system_collection")
@@ -455,7 +455,7 @@ def test_update_interfaces_indexes(
         },
     }
     system_collection = cobbler_api.systems()
-    interface1 = system.NetworkInterface(cobbler_api, system1.name)
+    interface1 = network_interface.NetworkInterface(cobbler_api, system1.name)
     interface1.from_dict(
         {
             "ip_address": "192.168.1.3",
@@ -464,7 +464,7 @@ def test_update_interfaces_indexes(
             "mac_address": "52:54:00:7d:81:f6",
         }
     )
-    interface2 = system.NetworkInterface(cobbler_api, system1.name)
+    interface2 = network_interface.NetworkInterface(cobbler_api, system1.name)
     interface2.from_dict(
         {
             "ip_address": "192.168.1.4",
@@ -535,7 +535,7 @@ def test_update_interface_indexes(
         },
     }
     system_collection = cobbler_api.systems()
-    interface1 = system.NetworkInterface(cobbler_api, system1.name)
+    interface1 = network_interface.NetworkInterface(cobbler_api, system1.name)
     interface1.from_dict(
         {
             "ip_address": "192.168.1.3",
@@ -590,7 +590,7 @@ def test_update_system_indexes(
         },
     }
     system_collection = cobbler_api.systems()
-    interface1 = system.NetworkInterface(cobbler_api, system1.name)
+    interface1 = network_interface.NetworkInterface(cobbler_api, system1.name)
     interface1.from_dict(
         {
             "ip_address": "192.168.1.3",

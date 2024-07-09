@@ -7,8 +7,9 @@ from pytest_mock.plugin import MockerFixture
 from cobbler import utils
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
+from cobbler.items.network_interface import NetworkInterface
 from cobbler.items.profile import Profile
-from cobbler.items.system import NetworkInterface, System
+from cobbler.items.system import System
 from cobbler.modules.managers import dnsmasq
 from cobbler.settings import Settings
 from cobbler.templar import Templar
