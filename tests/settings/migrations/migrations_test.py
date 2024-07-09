@@ -25,6 +25,8 @@ from cobbler.settings.migrations import (
     V3_3_1,
     V3_3_2,
     V3_3_3,
+    V3_3_4,
+    V3_3_5,
     V3_4_0,
 )
 
@@ -250,13 +252,47 @@ def test_migrate_v3_3_3():
     assert isinstance(new_settings.get("default_virt_file_size", None), float)
 
 
+def test_migrate_v3_3_4():
+    """
+    Test to validate that a migrations of the settings from Cobbler 3.3.3 to 3.3.4 is working as expected.
+    """
+    # Arrange
+    with open(
+        "/code/tests/test_data/V3_3_3/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+
+    # Act
+    new_settings = V3_3_4.migrate(old_settings_dict)
+
+    # Assert
+    assert V3_3_4.validate(new_settings)
+
+
+def test_migrate_v3_3_5():
+    """
+    Test to validate that a migrations of the settings from Cobbler 3.3.4 to 3.3.5 is working as expected.
+    """
+    # Arrange
+    with open(
+        "/code/tests/test_data/V3_3_4/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+
+    # Act
+    new_settings = V3_3_5.migrate(old_settings_dict)
+
+    # Assert
+    assert V3_3_5.validate(new_settings)
+
+
 def test_migrate_v3_4_0():
     # Arrange
-    with open("/code/tests/test_data/V3_3_3/settings.yaml") as old_settings:
+    with open("/code/tests/test_data/V3_3_5/settings.yaml") as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
-    shutil.copy("/code/tests/test_data/V3_3_3/modules.conf", modules_conf_location)
+    shutil.copy("/code/tests/test_data/V3_3_5/modules.conf", modules_conf_location)
     shutil.copy(
-        "/code/tests/test_data/V3_3_3/mongodb.conf", "/etc/cobbler/mongodb.conf"
+        "/code/tests/test_data/V3_3_5/mongodb.conf", "/etc/cobbler/mongodb.conf"
     )
 
     # Act
