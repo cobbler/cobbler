@@ -167,10 +167,13 @@ def deserialize(collection, topological: bool = True):
     datastruct = deserialize_raw(collection.collection_types())
     if topological and isinstance(datastruct, list):
         datastruct.sort(key=lambda x: x.get("depth", 1))
-    if isinstance(datastruct, dict):
-        collection.from_dict(datastruct)
-    elif isinstance(datastruct, list):
-        collection.from_list(datastruct)
+    try:
+        if isinstance(datastruct, dict):
+            collection.from_dict(datastruct)
+        elif isinstance(datastruct, list):
+            collection.from_list(datastruct)
+    except Exception as exc:
+        logger.error(f"Error while loading a collection: {exc}. Skipping this collection!")
 
 
 def deserialize_item(collection_type: str, name: str) -> Dict[str, Any]:
