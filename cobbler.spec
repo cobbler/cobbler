@@ -1,6 +1,7 @@
 #
 # spec file for package cobbler
 #
+# Copyright (c) 2023 SUSE LLC
 # Copyright (c) 2006 Michael DeHaan <mdehaan@redhat.com>
 #
 # All modifications and additions to the file contributed by third parties
