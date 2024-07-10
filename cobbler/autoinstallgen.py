@@ -294,9 +294,9 @@ class AutoInstallationGen:
             return "# automatic installation file value missing or invalid at %s %s" % (obj_type, obj.name)
 
         # get parent distro
-        distro = profile.get_conceptual_parent()
         if system is not None:
-            distro = system.get_conceptual_parent().get_conceptual_parent()
+            profile = system.get_conceptual_parent()
+        distro = profile.get_conceptual_parent()
 
         # make autoinstall_meta metavariable available at top level
         autoinstall_meta = meta["autoinstall_meta"]

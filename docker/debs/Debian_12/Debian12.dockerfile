@@ -62,7 +62,8 @@ RUN apt-get update -qq && \
     iproute2 \
     systemd \
     systemd-sysv \
-    supervisor && \
+    supervisor \
+    dosfstools && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Make /bin/sh point to bash, not dash
