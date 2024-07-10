@@ -420,7 +420,7 @@ class AppendLineBuilder:
                     self.data["proxy"],
                     self.data["proxy"],
                 )
-            if os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
+            if self.dist.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
                 self.append_line += f" ks={self.data['autoinstall']}"
                 if self.data["autoinstall_meta"].get("tree"):
                     self.append_line += f" repo={self.data['autoinstall_meta']['tree']}"
