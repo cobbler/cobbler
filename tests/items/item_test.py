@@ -1,8 +1,8 @@
 """
-Test module that asserts that generic Cobbler Item functionallity is working as expected.
+Test module that asserts that generic Cobbler Item functionality is working as expected.
 """
 import os
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Optional
 
 import pytest
 
@@ -35,22 +35,10 @@ def test_item_create(cobbler_api: CobblerAPI):
     # Arrange
 
     # Act
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Assert
     assert isinstance(titem, Item)
-
-
-def test_make_clone(cobbler_api: CobblerAPI):
-    """
-    Assert that an abstract Cobbler Item cannot be cloned and raises the expected NotImplementedError.
-    """
-    # Arrange
-    titem = Item(cobbler_api)
-
-    # Act & Assert
-    with pytest.raises(NotImplementedError):
-        titem.make_clone()
 
 
 def test_from_dict(
@@ -77,20 +65,6 @@ def test_from_dict(
     assert titem.name == name
     assert titem.kernel == kernel_path
     assert titem.initrd == initrd_path
-
-
-def test_uid(cobbler_api: CobblerAPI):
-    """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the uid property correctly.
-    """
-    # Arrange
-    titem = Item(cobbler_api)
-
-    # Act
-    titem.uid = "uid"
-
-    # Assert
-    assert titem.uid == "uid"
 
 
 def test_children(cobbler_api: CobblerAPI):
@@ -231,64 +205,6 @@ def test_get_conceptual_parent(
     assert result.name == tmp_distro.name
 
 
-def test_name(cobbler_api: CobblerAPI):
-    """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the name property correctly.
-    """
-    # Arrange
-    titem = Item(cobbler_api)
-
-    # Act
-    titem.name = "testname"
-
-    # Assert
-    assert titem.name == "testname"
-
-
-def test_comment(cobbler_api: CobblerAPI):
-    """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the comment property correctly.
-    """
-    # Arrange
-    titem = Item(cobbler_api)
-
-    # Act
-    titem.comment = "my comment"
-
-    # Assert
-    assert titem.comment == "my comment"
-
-
-@pytest.mark.parametrize(
-    "input_owners,expected_exception,expected_result",
-    [
-        ("", does_not_raise(), []),
-        (enums.VALUE_INHERITED, does_not_raise(), ["admin"]),
-        ("Test1 Test2", does_not_raise(), ["Test1", "Test2"]),
-        (["Test1", "Test2"], does_not_raise(), ["Test1", "Test2"]),
-        (False, pytest.raises(TypeError), None),
-    ],
-)
-def test_owners(
-    cobbler_api: CobblerAPI,
-    input_owners: Any,
-    expected_exception: Any,
-    expected_result: Optional[List[str]],
-):
-    """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the owners property correctly.
-    """
-    # Arrange
-    titem = Item(cobbler_api)
-
-    # Act
-    with expected_exception:
-        titem.owners = input_owners
-
-        # Assert
-        assert titem.owners == expected_result
-
-
 @pytest.mark.parametrize(
     "input_kernel_options,expected_exception,expected_result",
     [
@@ -306,7 +222,7 @@ def test_kernel_options(
     Assert that an abstract Cobbler Item can use the Getter and Setter of the kernel_options property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -333,7 +249,7 @@ def test_kernel_options_post(
     Assert that an abstract Cobbler Item can use the Getter and Setter of the kernel_options_post property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -360,7 +276,7 @@ def test_autoinstall_meta(
     Assert that an abstract Cobbler Item can use the Getter and Setter of the autoinstall_meta property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -375,7 +291,7 @@ def test_template_files(cobbler_api: CobblerAPI):
     Assert that an abstract Cobbler Item can use the Getter and Setter of the template_files property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     titem.template_files = {}
@@ -389,7 +305,7 @@ def test_boot_files(cobbler_api: CobblerAPI):
     Assert that an abstract Cobbler Item can use the Getter and Setter of the boot_files property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     titem.boot_files = {}
@@ -403,7 +319,7 @@ def test_fetchable_files(cobbler_api: CobblerAPI):
     Assert that an abstract Cobbler Item can use the Getter and Setter of the fetchable_files property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     titem.fetchable_files = {}
@@ -417,7 +333,7 @@ def test_sort_key(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     Assert that the exported dict contains only the fields given in the argument.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
     titem.name = (
         request.node.originalname if request.node.originalname else request.node.name  # type: ignore
     )
@@ -450,7 +366,7 @@ def test_find_match(
     Assert that given a desired amount of key-value pairs is matching the item or not.
     """
     # Arrange
-    titem = Item(cobbler_api, **in_keys)
+    titem = Distro(cobbler_api, **in_keys)
 
     # Act
     result = titem.find_match(check_keys)
@@ -480,7 +396,7 @@ def test_find_match_single_key(
     Assert that a single given key and value match the object or not.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     result = titem.find_match_single_key(data_keys, check_key, check_value)
@@ -494,7 +410,7 @@ def test_dump_vars(cobbler_api: CobblerAPI):
     Assert that you can dump all variables of an item.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     result = titem.dump_vars(formatted_output=False)
@@ -503,7 +419,7 @@ def test_dump_vars(cobbler_api: CobblerAPI):
     print(result)
     assert "default_ownership" in result
     assert "owners" in result
-    assert len(result) == 157
+    assert len(result) == 171
 
 
 @pytest.mark.parametrize(
@@ -523,7 +439,7 @@ def test_depth(
     Assert that an abstract Cobbler Item can use the Getter and Setter of the depth property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     with expected_exception:
@@ -533,59 +449,12 @@ def test_depth(
         assert titem.depth == expected_result
 
 
-@pytest.mark.parametrize(
-    "input_ctime,expected_exception,expected_result",
-    [("", pytest.raises(TypeError), None), (0.0, does_not_raise(), 0.0)],
-)
-def test_ctime(
-    cobbler_api: CobblerAPI,
-    input_ctime: Any,
-    expected_exception: Any,
-    expected_result: float,
-):
-    """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the ctime property correctly.
-    """
-    # Arrange
-    titem = Item(cobbler_api)
-
-    # Act
-    with expected_exception:
-        titem.ctime = input_ctime
-
-        # Assert
-        assert titem.ctime == expected_result
-
-
-@pytest.mark.parametrize(
-    "value,expected_exception",
-    [
-        (0.0, does_not_raise()),
-        (0, pytest.raises(TypeError)),
-        ("", pytest.raises(TypeError)),
-    ],
-)
-def test_mtime(cobbler_api: CobblerAPI, value: Any, expected_exception: Any):
-    """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the mtime property correctly.
-    """
-    # Arrange
-    titem = Item(cobbler_api)
-
-    # Act
-    with expected_exception:
-        titem.mtime = value
-
-        # Assert
-        assert titem.mtime == value
-
-
 def test_parent(cobbler_api: CobblerAPI):
     """
     Assert that an abstract Cobbler Item can use the Getter and Setter of the parent property correctly.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     titem.parent = ""
@@ -594,29 +463,12 @@ def test_parent(cobbler_api: CobblerAPI):
     assert titem.parent is None
 
 
-def test_check_if_valid(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
-    """
-    Asserts that the check for a valid item is performed successfuly.
-    """
-    # Arrange
-    titem = Item(cobbler_api)
-    titem.name = (
-        request.node.originalname if request.node.originalname else request.node.name  # type: ignore
-    )
-
-    # Act
-    titem.check_if_valid()
-
-    # Assert
-    assert True  # This test passes if there is no exception raised
-
-
 def test_to_dict(cobbler_api: CobblerAPI):
     """
     Assert that a Cobbler Item can be converted to a dictionary.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     result = titem.to_dict()
@@ -631,7 +483,7 @@ def test_to_dict_resolved(cobbler_api: CobblerAPI):
     Assert that a Cobbler Item can be converted to a dictionary with resolved values.
     """
     # Arrange
-    titem = Item(cobbler_api)
+    titem = Distro(cobbler_api)
 
     # Act
     result = titem.to_dict(resolved=True)
@@ -684,7 +536,7 @@ def test_inheritance(mocker, cobbler_api: CobblerAPI, test_settings):
     """
     # Arrange
     mocker.patch.object(cobbler_api, "settings", return_value=test_settings)
-    item = Item(cobbler_api)
+    item = Distro(cobbler_api)
 
     # Act
     for key, key_value in item.__dict__.items():

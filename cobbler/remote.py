@@ -150,6 +150,7 @@ from xmlrpc.server import SimpleXMLRPCRequestHandler
 from cobbler import autoinstall_manager, configgen, enums, tftpgen, utils
 from cobbler.cexceptions import CX
 from cobbler.items import item, network_interface, system
+from cobbler.items.abstract import base_item
 from cobbler.utils import signatures
 from cobbler.utils.event import CobblerEvent
 from cobbler.utils.thread import CobblerThread
@@ -2963,7 +2964,7 @@ class CobblerXMLRPCInterface:
             )
             return False
         # Validate sys_name with item regex
-        if not re.fullmatch(item.RE_OBJECT_NAME, sys_name):
+        if not re.fullmatch(base_item.RE_OBJECT_NAME, sys_name):
             self.logger.warning(
                 "upload_log_data - The provided sys_name contained invalid characters!"
             )

@@ -5,7 +5,7 @@ This module provides decorators that are required for Cobbler to work as expecte
 
 from typing import Any, Optional
 
-from cobbler.items import item
+from cobbler.items.abstract import base_item
 
 
 class LazyProperty(property):
@@ -17,7 +17,7 @@ class LazyProperty(property):
         if obj is None:
             return self
         if (
-            isinstance(obj, item.Item)
+            isinstance(obj, base_item.BaseItem)
             and not obj.inmemory
             and obj._has_initialized  # pyright: ignore [reportPrivateUsage]
         ):

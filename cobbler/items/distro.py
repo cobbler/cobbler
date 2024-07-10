@@ -203,7 +203,7 @@ class Distro(item.Item):
     @classmethod
     def _remove_depreacted_dict_keys(cls, dictionary: Dict[Any, Any]):
         r"""
-        See :meth:`~cobbler.items.item.Item._remove_depreacted_dict_keys`.
+        See :meth:`~cobbler.items.item.Item._remove_deprecated_dict_keys`.
 
         :param dictionary: The dict to update
         """

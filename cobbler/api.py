@@ -550,9 +550,7 @@ class CobblerAPI:
 
     # =======================================================================
 
-    def __item_resolved_helper(
-        self, item_uuid: str, attribute: str
-    ) -> "item_base.Item":
+    def __item_resolved_helper(self, item_uuid: str, attribute: str) -> "ITEM":
         """
         This helper validates the common data for ``*_item_resolved_value``.
 
@@ -1661,7 +1659,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def get_repo_config_for_profile(self, obj: "item_base.Item") -> str:
+    def get_repo_config_for_profile(self, obj: "ITEM") -> str:
         """
         Get the repository configuration for the specified profile
 
@@ -1670,7 +1668,7 @@ class CobblerAPI:
         """
         return self.yumgen.get_yum_config(obj, True)
 
-    def get_repo_config_for_system(self, obj: "item_base.Item") -> str:
+    def get_repo_config_for_system(self, obj: "ITEM") -> str:
         """
         Get the repository configuration for the specified system.
 
@@ -2030,7 +2028,7 @@ class CobblerAPI:
         """
         return self._collection_mgr.deserialize()
 
-    def deserialize_item(self, obj: "item_base.Item") -> Dict[str, Any]:
+    def deserialize_item(self, obj: "ITEM") -> Dict[str, Any]:
         """
         Load cobbler item from disk.
         Cobbler internal use only.

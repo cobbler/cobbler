@@ -44,7 +44,6 @@ from cobbler.utils import process_management
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.cobbler_collections.collection import ITEM, ITEM_UNION
-    from cobbler.items.item import Item
     from cobbler.settings import Settings
 
 CHEETAH_ERROR_DISCLAIMER = """
@@ -775,7 +774,7 @@ def rsync_files(src: str, dst: str, args: str, quiet: bool = True) -> bool:
 
 def run_triggers(
     api: "CobblerAPI",
-    ref: Optional["Item"] = None,
+    ref: Optional["ITEM"] = None,
     globber: str = "",
     additional: Optional[List[Any]] = None,
 ) -> None:
