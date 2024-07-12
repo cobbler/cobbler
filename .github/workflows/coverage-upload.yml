@@ -5,19 +5,28 @@ on:
     workflows: [Testing Cobbler]
     types:
       - completed
-    # This needs to be adjusted to match all branches that use this double-boxed approached.
-    branches: [main]
 
 jobs:
   run_tests:
     runs-on: ubuntu-latest
     steps:
-      # https://github.com/actions/download-artifact
-      - name: Download artifact
-        id: download-artifact
-        uses: actions/download-artifact@v4
+      # https://github.com/actions/github-script
+      # Based on: https://github.com/orgs/community/discussions/34652
+      - name: 'Download artifact'
+        uses: actions/github-script@v7
         with:
-          run-id: ${{ github.event.workflow_run.id }}
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: context.payload.workflow_run.id,
+            });
+      # https://github.com/actions/download-artifact
+      # - name: Download artifact
+      #   id: download-artifact
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     run-id: ${{ github.event.workflow_run.id }}
       # https://github.com/codacy/codacy-coverage-reporter-action
       # - name: Run codacy-coverage-reporter
       #   uses: codacy/codacy-coverage-reporter-action@v1
