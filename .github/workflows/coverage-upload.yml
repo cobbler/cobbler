@@ -12,15 +12,13 @@ jobs:
   run_tests:
     runs-on: ubuntu-latest
     steps:
-      # https://github.com/dawidd6/action-download-artifact
+      # https://github.com/actions/download-artifact
       - name: Download artifact
         id: download-artifact
-        uses: dawidd6/action-download-artifact@v6
+        uses: actions/download-artifact@v4
         with:
           name: coverage-report
-          workflow: testing.yml
-          allow_forks: true
-          workflow_conclusion: success
+          run-id: ${{ github.event.workflow_run.id }}
       # https://github.com/codacy/codacy-coverage-reporter-action
       # - name: Run codacy-coverage-reporter
       #   uses: codacy/codacy-coverage-reporter-action@v1
