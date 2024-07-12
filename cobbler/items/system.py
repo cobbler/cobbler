@@ -436,6 +436,8 @@ class NetworkInterface:
                 raise ValueError("intf_type with number \"%s\" was not a valid interface type!" % intf_type) \
                     from value_error
         elif isinstance(intf_type, str):
+            if not intf_type:
+                intf_type = "na"
             try:
                 intf_type = enums.NetworkInterfaceType[intf_type.upper()]
             except KeyError as key_error:
