@@ -83,7 +83,7 @@ def test_normalize_v3_1_2():
     new_settings = V3_1_2.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_1_2.normalize(new_settings)) == 110
+    assert len(V3_1_2.normalize(new_settings)) == 111
 
 
 def test_normalize_v3_2_0():
@@ -95,7 +95,7 @@ def test_normalize_v3_2_0():
     new_settings = V3_2_0.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_2_0.normalize(new_settings)) == 112
+    assert len(V3_2_0.normalize(new_settings)) == 113
 
 
 def test_normalize_v3_2_1():
@@ -107,7 +107,7 @@ def test_normalize_v3_2_1():
     new_settings = V3_2_1.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_2_1.normalize(new_settings)) == 111
+    assert len(V3_2_1.normalize(new_settings)) == 112
 
 
 def test_normalize_v3_3_0():
@@ -119,7 +119,7 @@ def test_normalize_v3_3_0():
     new_settings = V3_3_0.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_3_0.normalize(new_settings)) == 121
+    assert len(V3_3_0.normalize(new_settings)) == 122
 
 
 def test_normalize_v3_3_1():
@@ -131,7 +131,7 @@ def test_normalize_v3_3_1():
     new_settings = V3_3_1.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_3_1.normalize(new_settings)) == 129
+    assert len(V3_3_1.normalize(new_settings)) == 130
 
 
 def test_normalize_v3_3_2():
@@ -143,7 +143,7 @@ def test_normalize_v3_3_2():
     new_settings = V3_3_2.normalize(old_settings_dict)
 
     # Assert
-    assert len(V3_3_2.normalize(new_settings)) == 129
+    assert len(V3_3_2.normalize(new_settings)) == 130
 
 
 def test_normalize_v3_3_3():
@@ -155,7 +155,7 @@ def test_normalize_v3_3_3():
     new_settings = V3_3_3.normalize(old_settings_dict)
 
     # Assert
-    assert len(new_settings) == 130
+    assert len(new_settings) == 131
     # Migration of default_virt_file_size to float is working
     assert isinstance(new_settings.get("default_virt_file_size", None), float)
 
@@ -169,7 +169,7 @@ def test_normalize_v3_3_4():
     new_settings = V3_3_4.normalize(old_settings_dict)
 
     # Assert
-    assert len(new_settings) == 130
+    assert len(new_settings) == 131
 
 
 def test_normalize_v3_3_5():
@@ -181,7 +181,7 @@ def test_normalize_v3_3_5():
     new_settings = V3_3_5.normalize(old_settings_dict)
 
     # Assert
-    assert len(new_settings) == 132
+    assert len(new_settings) == 133
 
 
 def test_normalize_v3_3_6():
@@ -193,4 +193,4 @@ def test_normalize_v3_3_6():
     new_settings = V3_3_6.normalize(old_settings_dict)
 
     # Assert
-    assert len(new_settings) == 132
+    assert len(new_settings) == 133

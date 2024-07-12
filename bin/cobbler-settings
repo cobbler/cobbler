@@ -5,6 +5,7 @@ Tool to manage the settings of Cobbler without the daemon running.
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
+# SPDX-FileCopyrightText: 2022 Pablo Suárez Hernández <psuarezhernandez@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
 
@@ -29,14 +30,14 @@ def __generate_version_choices() -> List[str]:
     return result
 
 
-def __check_settings(filepath: str) -> dict:
+def __check_settings(filepath: str, settings_to_preserve: List[str]) -> dict:
     try:
         result = settings.read_yaml_file(filepath)
     except (FileNotFoundError, yaml.YAMLError) as error:
         print(str(error))
         return {}
 
-    settings_version = migrations.get_settings_file_version(result)
+    settings_version = migrations.get_settings_file_version(result, settings_to_preserve)
     if settings_version == EMPTY_VERSION:
         print("Error detecting settings file version!")
         return {}
@@ -44,8 +45,8 @@ def __check_settings(filepath: str) -> dict:
     return result
 
 
-def __update_settings(yaml_dict: dict, filepath) -> int:
-    if not settings.update_settings_file(yaml_dict, filepath):
+def __update_settings(yaml_dict: dict, filepath, settings_to_preserve: List[str]) -> int:
+    if not settings.update_settings_file(yaml_dict, filepath, settings_to_preserve):
         print("Modification would make settings invalid!")
         return 1
     print("Updated settings file successfully!")
@@ -58,6 +59,9 @@ def validate(args: argparse.Namespace) -> int:
     except (FileNotFoundError, yaml.YAMLError) as error:
         print(str(error))
         return 1
+
+    # Exclude settings to preserve from the list of settings to migrate
+    result, data_to_exclude_from_validation = migrations.filter_settings_to_validate(result, args.preserve_settings)
 
     version_split = args.version.split(".")
     version = migrations.CobblerVersion(*version_split)
@@ -73,12 +77,12 @@ def validate(args: argparse.Namespace) -> int:
 
 
 def migrate(args: argparse.Namespace) -> int:
-    settings_dict = __check_settings(args.config)
+    settings_dict = __check_settings(args.config, args.preserve_settings)
     if not settings_dict:
         print("Settings file invalid!")
         return 1
 
-    old = migrations.get_settings_file_version(settings_dict)
+    old = migrations.get_settings_file_version(settings_dict, args.preserve_settings)
     if old == migrations.EMPTY_VERSION:
         print("Settings file version could not be discovered!")
         return 1
@@ -86,11 +90,11 @@ def migrate(args: argparse.Namespace) -> int:
     new_list = args.new.split(".")
     new = migrations.CobblerVersion(*new_list)
 
-    result_settings = migrations.migrate(settings_dict, args.config, old, new)
+    result_settings = migrations.migrate(settings_dict, args.config, old, new, args.preserve_settings)
 
     # only if --target supplied
     if args.target is not None:
-        return __update_settings(result_settings, args.target)
+        return __update_settings(result_settings, args.target, args.preserve_settings)
 
     # if --target not supplied
     print(yaml.dump(result_settings))
@@ -98,18 +102,18 @@ def migrate(args: argparse.Namespace) -> int:
 
 
 def automigrate(args: argparse.Namespace) -> int:
-    settings_dict = __check_settings(args.config)
+    settings_dict = __check_settings(args.config, args.preserve_settings)
     if not settings_dict:
         print("Settings file invalid!")
         return 1
     setting_obj = helper.Setting("auto_migrate_settings", args.enable_automigration)
     helper.key_set_value(setting_obj, settings_dict)
 
-    return __update_settings(settings_dict, args.config)
+    return __update_settings(settings_dict, args.config, args.preserve_settings)
 
 
 def modify(args: argparse.Namespace) -> int:
-    settings_dict = __check_settings(args.config)
+    settings_dict = __check_settings(args.config, args.preserve_settings)
     if not settings_dict:
         print("Settings file invalid!")
         return 1
@@ -159,7 +163,7 @@ def modify(args: argparse.Namespace) -> int:
         return 1
     helper.key_set_value(setting_obj, settings_dict)
 
-    return __update_settings(settings_dict, args.config)
+    return __update_settings(settings_dict, args.config, args.preserve_settings)
 
 
 parser = argparse.ArgumentParser(
@@ -170,6 +174,13 @@ parser.add_argument(
     "--config",
     help="The location of the Cobbler configuration file.",
     default="/etc/cobbler/settings.yaml",
+)
+parser.add_argument(
+    "--preserve-settings",
+    help="Comma separated list of custom settings to preserve during migration",
+    dest="preserve_settings",
+    type=lambda arg: arg.split(','),
+    default=[]
 )
 subparsers = parser.add_subparsers(
     title="Subcommands", help="One of these commands is required."

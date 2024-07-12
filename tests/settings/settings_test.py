@@ -77,6 +77,52 @@ def test_read_settings_file():
     assert result.get("include")
 
 
+def test_read_settings_file_with_ignore_keys(tmpdir: pathlib.Path):
+    # Arrange
+    src = "/etc/cobbler/settings.yaml"
+    settings_path = os.path.join(tmpdir, "settings.yaml")
+    shutil.copyfile(src, settings_path)
+    with open(settings_path) as settings_file:
+        new_settings = yaml.safe_load(settings_file)
+        new_settings.update({"foobar": 1234})
+    with open(settings_path, "w") as new_settings_file:
+        new_settings_file.write(yaml.dump(new_settings))
+
+    # Act
+    result = settings.read_settings_file(settings_path, ignore_keys=["foobar"])
+
+    with open(settings_path, "w") as new_settings_file:
+        new_settings.pop("foobar")
+        new_settings_file.write(yaml.dump(new_settings))
+
+    # Assert
+    assert isinstance(result, dict)
+    assert result.get("server")
+    assert result.get("foobar")
+
+
+def test_read_settings_file_with_ignore_keys_failing(tmpdir: pathlib.Path):
+    # Arrange
+    src = "/etc/cobbler/settings.yaml"
+    settings_path = os.path.join(tmpdir, "settings.yaml")
+    shutil.copyfile(src, settings_path)
+    with open(settings_path) as settings_file:
+        new_settings = yaml.safe_load(settings_file)
+        new_settings.update({"foobar": 1234})
+    with open(settings_path, "w") as new_settings_file:
+        new_settings_file.write(yaml.dump(new_settings))
+
+    # Act
+    result = settings.read_settings_file(settings_path)
+
+    with open(settings_path, "w") as new_settings_file:
+        new_settings.pop("foobar")
+        new_settings_file.write(yaml.dump(new_settings))
+
+    # Assert
+    assert not result
+
+
 def test_update_settings_file(tmpdir: pathlib.Path):
     # Arrange
     src = "/etc/cobbler/settings.yaml"
@@ -107,3 +153,69 @@ def test_update_settings_file_emtpy_dict(tmpdir: pathlib.Path):
 
     # Assert
     assert not result
+
+
+def test_update_settings_file_ignore_keys_failing(tmpdir: pathlib.Path):
+    # Arrange
+    src = "/etc/cobbler/settings.yaml"
+    settings_path = os.path.join(tmpdir, "settings.yaml")
+    shutil.copyfile(src, settings_path)
+    with open(settings_path) as settings_file:
+        settings_read_pre = yaml.safe_load(settings_file)
+        settings_read_pre.update({"grub2_mod_dir": "/usr/share/grub2"})
+        settings_read_pre["foobar"] = 1234
+
+    # Act
+    result = settings.update_settings_file(settings_read_pre, filepath=settings_path)
+
+    # Assert
+    assert not result
+
+
+def test_update_settings_file_ignore_keys_success(tmpdir: pathlib.Path):
+    # Arrange
+    src = "/etc/cobbler/settings.yaml"
+    settings_path = os.path.join(tmpdir, "settings.yaml")
+    shutil.copyfile(src, settings_path)
+    with open(settings_path) as settings_file:
+        settings_read_pre = yaml.safe_load(settings_file)
+        settings_read_pre.update({"grub2_mod_dir": "/usr/share/grub2"})
+        settings_read_pre["foobar"] = 1234
+
+    # Act
+    result = settings.update_settings_file(
+        settings_read_pre, filepath=settings_path, ignore_keys=["foobar"]
+    )
+
+    # Assert
+    assert result
+    with open(settings_path) as settings_file:
+        settings_read_post = yaml.safe_load(settings_file)
+        assert "grub2_mod_dir" in settings_read_post
+        assert settings_read_post["grub2_mod_dir"] == "/usr/share/grub2"
+        assert "foobar" in settings_read_post
+        assert settings_read_post["foobar"] == 1234
+
+
+def test_update_settings_file_extra_settings_list(tmpdir: pathlib.Path):
+    # Arrange
+    src = "/etc/cobbler/settings.yaml"
+    settings_path = os.path.join(tmpdir, "settings.yaml")
+    shutil.copyfile(src, settings_path)
+    with open(settings_path) as settings_file:
+        settings_read_pre = yaml.safe_load(settings_file)
+        settings_read_pre.update({"grub2_mod_dir": "/usr/share/grub2"})
+        settings_read_pre["extra_settings_list"] = ["foobar"]
+        settings_read_pre["foobar"] = 1234
+
+    # Act
+    result = settings.update_settings_file(settings_read_pre, filepath=settings_path)
+
+    # Assert
+    assert result
+    with open(settings_path) as settings_file:
+        settings_read_post = yaml.safe_load(settings_file)
+        assert "grub2_mod_dir" in settings_read_post
+        assert settings_read_post["grub2_mod_dir"] == "/usr/share/grub2"
+        assert "foobar" in settings_read_post
+        assert settings_read_post["foobar"] == 1234

@@ -53,6 +53,7 @@ schema = Schema({
     "default_virt_type": str,
     "enable_gpxe": int,
     "enable_menu": int,
+    Optional("extra_settings_list", default=[]): [str],
     Optional("grubconfig_dir", default="/var/lib/cobbler/grub_config"): str,
     "http_port": int,
     "include": list,
