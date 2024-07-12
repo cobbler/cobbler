@@ -5,6 +5,8 @@ on:
     workflows: [Testing Cobbler]
     types:
       - completed
+    # This needs to be adjusted to match all branches that use this double-boxed approached.
+    branches: [main]
 
 jobs:
   run_tests:
@@ -13,7 +15,7 @@ jobs:
       # https://github.com/dawidd6/action-download-artifact
       - name: Download artifact
         id: download-artifact
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v6
         with:
           name: coverage-report
           workflow: testing.yml
