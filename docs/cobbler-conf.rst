@@ -31,6 +31,9 @@ Starting with 3.3.6
 
 No changes to the settings.
 
+.. note:: We backported a PR that introduced a change that allows starting with the 3.2.1 schema the key
+          ``extra_settings_list`` which allows to define additional keys that are ignored during schema validation.
+
 Starting with 3.3.5
 ===================
 
@@ -531,6 +534,14 @@ setting enabled unless they are concerned with accidental reinstall from users w
 menu. Adding a password to the boot menus templates may also be a good solution to prevent unwanted reinstallations.
 
 default: ``True``
+
+extra_settings_list
+===================
+
+Allows the definition of additional keys that are not contained in the schema validation. During validation these keys
+are ignored. This is useful if you develop a plugin for Cobbler that adds additional settings.
+
+default: ``[]``
 
 http_port
 =========

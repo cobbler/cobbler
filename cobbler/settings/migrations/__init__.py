@@ -22,7 +22,7 @@ from importlib import import_module
 from inspect import signature
 from pathlib import Path
 from types import ModuleType
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Optional, Tuple
 
 from schema import Schema
 
@@ -113,7 +113,6 @@ def __validate_module(name: ModuleType) -> bool:
         * those methods must have a certain signature
 
     :param name: The name of the module to validate.
-    :param version: The migration version as List.
     :return: True if every criteria is met otherwise False.
     """
     module_methods = {"validate": "(settings:dict)->bool",
@@ -143,15 +142,46 @@ def __load_migration_modules(name: str, version: List[str]):
         logger.warning('Exception raised when loading migrations module "%s"', name)
 
 
-def get_settings_file_version(yaml_dict: dict) -> CobblerVersion:
+def filter_settings_to_validate(settings: dict, ignore_keys: Optional[List[str]] = None) -> Tuple[dict, dict]:
     """
-    Return the correspondig version of the given settings dict.
+    Separate settings to validate from the ones to exclude from validation
+    according to "ignore_keys" parameter and "extra_settings_list" setting value.
+    :param settings: The settings dict to validate.
+    :param ignore_keys: The list of ignore keys to exclude from validation.
+    :return data: The filtered settings to validate
+    :return data_to_exclude: The settings that were excluded from the validation
+    """
+    if not ignore_keys:
+        ignore_keys = []
+
+    extra_settings = settings.get("extra_settings_list", [])
+    data_to_exclude = {
+        k: settings[k] for k in settings if k in ignore_keys or k in extra_settings
+    }
+    data = {
+        x: settings[x]
+        for x in settings
+        if x not in ignore_keys and x not in extra_settings
+    }
+    return data, data_to_exclude
+
+
+def get_settings_file_version(yaml_dict: dict, ignore_keys: Optional[List[str]] = None) -> CobblerVersion:
+    """
+    Return the corresponding version of the given settings dict.
 
     :param yaml_dict: The settings dict to get the version from.
+    :param ignore_keys: The list of ignore keys to exclude from validation.
     :return: The discovered Cobbler Version or ``EMPTY_VERSION``
     """
+    if not ignore_keys:
+        ignore_keys = []
+
+        # Extra settings and ignored keys are excluded from validation
+    data, _ = filter_settings_to_validate(yaml_dict, ignore_keys=ignore_keys)
+
     for (version, module_name) in VERSION_LIST.items():
-        if module_name.validate(yaml_dict):
+        if module_name.validate(data):
             return version
     return EMPTY_VERSION
 
@@ -211,17 +241,21 @@ def discover_migrations(path: str = migrations_path):
         __load_migration_modules(migration_name, version)
 
 
-def auto_migrate(yaml_dict: dict, settings_path: Path) -> dict:
+def auto_migrate(yaml_dict: dict, settings_path: Path, ignore_keys: Optional[List[str]] = None) -> dict:
     """
     Auto migration to the most recent version.
 
     :param yaml_dict: The settings dict to migrate.
     :param settings_path: The path of the settings dict.
+    :param ignore_keys: The list of ignore keys to exclude from auto migration.
     :return: The migrated dict.
     """
+    if not ignore_keys:
+        ignore_keys = []
+
     if not yaml_dict.get("auto_migrate_settings", True):
         raise RuntimeError("Settings automigration disabled but required for starting the daemon!")
-    settings_version = get_settings_file_version(yaml_dict)
+    settings_version = get_settings_file_version(yaml_dict, ignore_keys=ignore_keys)
     if settings_version == EMPTY_VERSION:
         raise RuntimeError("Automigration not possible due to undiscoverable settings!")
 
@@ -231,12 +265,23 @@ def auto_migrate(yaml_dict: dict, settings_path: Path) -> dict:
     for index in range(0, len(migrations) - 1):
         if index == len(migrations) - 1:
             break
-        yaml_dict = migrate(yaml_dict, settings_path, migrations[index], migrations[index + 1])
+        yaml_dict = migrate(
+            yaml_dict,
+            settings_path,
+            migrations[index],
+            migrations[index + 1],
+            ignore_keys,
+        )
     return yaml_dict
 
 
-def migrate(yaml_dict: dict, settings_path: Path,
-            old: CobblerVersion = EMPTY_VERSION, new: CobblerVersion = EMPTY_VERSION) -> dict:
+def migrate(
+    yaml_dict: dict,
+    settings_path: Path,
+    old: CobblerVersion = EMPTY_VERSION,
+    new: CobblerVersion = EMPTY_VERSION,
+    ignore_keys: Optional[List[str]] = None,
+) -> dict:
     """
     Migration to a specific version. If no old and new version is supplied it will call ``auto_migrate()``.
 
@@ -244,18 +289,30 @@ def migrate(yaml_dict: dict, settings_path: Path,
     :param settings_path: The path of the settings dict.
     :param old: The version to migrate from, defaults to EMPTY_VERSION.
     :param new: The version to migrate to, defaults to EMPTY_VERSION.
-    :raises ValueError: Raised if attempting to downgraade.
+    :param ignore_keys: The list of settings ot be excluded from migration.
+    :raises ValueError: Raised if attempting to downgrade.
     :return: The migrated dict.
     """
+    if not ignore_keys:
+        ignore_keys = []
+
     # If no version supplied do auto migrations
     if old == EMPTY_VERSION and new == EMPTY_VERSION:
-        return auto_migrate(yaml_dict, settings_path)
+        return auto_migrate(yaml_dict, settings_path, ignore_keys=ignore_keys)
 
     if old == EMPTY_VERSION or new == EMPTY_VERSION:
         raise ValueError("Either both or no versions must be specified for a migration!")
 
+    # Extra settings and ignored keys are excluded from validation
+    data, data_to_exclude_from_validation = filter_settings_to_validate(
+        yaml_dict, ignore_keys
+    )
+
     if old == new:
-        return VERSION_LIST[old].normalize(yaml_dict)
+        data = VERSION_LIST[old].normalize(data)
+        # Put back settings excluded form validation
+        data.update(data_to_exclude_from_validation)
+        return data
 
     # If both versions are present, check if old < new and then migrate the appropriate versions.
     if old > new:
@@ -263,32 +320,61 @@ def migrate(yaml_dict: dict, settings_path: Path,
 
     sorted_version_list = sorted(list(VERSION_LIST.keys()))
     migration_list = sorted_version_list[sorted_version_list.index(old) + 1:sorted_version_list.index(new) + 1]
+
     for key in migration_list:
         yaml_dict = VERSION_LIST[key].migrate(yaml_dict)
     return yaml_dict
 
 
-def validate(settings: dict, settings_path: Path = "") -> bool:
+def validate(settings: dict, settings_path: Path = "", ignore_keys: Optional[List[str]] = None) -> bool:
     """
     Wrapper function for the validate() methods of the individual migration modules.
 
     :param settings: The settings dict to validate.
     :param settings_path: TODO: not used at the moment
+    :param ignore_keys: The list of settings ot be excluded from validation.
     :return: True if settings are valid, otherwise False.
     """
+    if not ignore_keys:
+        ignore_keys = []
+
     version = get_installed_version()
-    return VERSION_LIST[version].validate(settings)
+
+    # Extra settings and ignored keys are excluded from validation
+    data, data_to_exclude_from_validation = filter_settings_to_validate(
+        settings, ignore_keys=ignore_keys
+    )
+
+    result = VERSION_LIST[version].validate(data)
+
+    # Put back settings excluded form validation
+    result.update(data_to_exclude_from_validation)
+    return result
 
 
-def normalize(settings: dict) -> dict:
+def normalize(settings: dict, ignore_keys: Optional[List[str]] = None) -> dict:
     """
     If data in ``settings`` is valid the validated data is returned.
 
     :param settings: The settings dict to validate.
+    :param ignore_keys: The list of settings ot be excluded from normalization.
     :return: The validated dict.
     """
+    if not ignore_keys:
+        ignore_keys = []
+
     version = get_installed_version()
-    return VERSION_LIST[version].normalize(settings)
+
+    # Extra settings and ignored keys are excluded from validation
+    data, data_to_exclude_from_validation = filter_settings_to_validate(
+        settings, ignore_keys
+    )
+
+    result = VERSION_LIST[version].normalize(data)
+
+    # Put back settings excluded form validation
+    result.update(data_to_exclude_from_validation)
+    return result
 
 
 discover_migrations()
