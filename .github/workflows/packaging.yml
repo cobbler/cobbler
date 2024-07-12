@@ -10,7 +10,7 @@ jobs:
   build-centos8-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build a Rocky Linux 8 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
@@ -18,7 +18,7 @@ jobs:
   build-fedora34-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build a Fedora 34 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
@@ -26,7 +26,7 @@ jobs:
   build-opensuse-leap-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build a openSUSE Leap 15.3 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
@@ -34,7 +34,7 @@ jobs:
   build-opensuse-tumbleweed-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build a openSUSE Tumbleweed Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
@@ -42,7 +42,7 @@ jobs:
   build-debian10-debs:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build a Debian 10 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
@@ -50,7 +50,7 @@ jobs:
   build-debian11-debs:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build a Debian 11 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
@@ -58,7 +58,7 @@ jobs:
   build-debian12-debs:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build a Debian 12 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
