@@ -29,6 +29,7 @@ env:
 
 jobs:
   build-n-publish:
+    if: github.repository == 'cobbler/cobbler'
     name: Build and publish Python distributions to PyPI and TestPyPI
     runs-on: ubuntu-latest
     steps:
