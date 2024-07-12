@@ -17,7 +17,6 @@ jobs:
         id: download-artifact
         uses: actions/download-artifact@v4
         with:
-          name: coverage-report
           run-id: ${{ github.event.workflow_run.id }}
       # https://github.com/codacy/codacy-coverage-reporter-action
       # - name: Run codacy-coverage-reporter
