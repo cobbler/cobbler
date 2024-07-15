@@ -45,9 +45,7 @@ class Mgmtclasses(collection.Collection):
         :param item_dict: TODO
         :returns: TODO
         """
-        new_mgmtclass = mgmtclass.Mgmtclass(api, **item_dict)
-        new_mgmtclass.from_dict(item_dict)
-        return new_mgmtclass
+        return mgmtclass.Mgmtclass(api, **item_dict)
 
     def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
                recursive: bool = False):

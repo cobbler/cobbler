@@ -45,9 +45,7 @@ class Menus(collection.Collection):
         :param item_dict: The seed data.
         :return: A new menu instance.
         """
-        new_menu = menu.Menu(api, **item_dict)
-        new_menu.from_dict(item_dict)
-        return new_menu
+        return menu.Menu(api, **item_dict)
 
     def remove(self, name: str, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
                recursive: bool = False):

@@ -42,7 +42,7 @@ class Profile(item.Item):
         :param args:
         :param kwargs:
         """
-        super().__init__(api, *args, **kwargs)
+        super().__init__(api)
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
@@ -85,6 +85,8 @@ class Profile(item.Item):
         self.virt_disk_driver = api.settings().default_virt_disk_driver
         self.virt_type = api.settings().default_virt_type
 
+        if len(kwargs) > 0:
+            self.from_dict(kwargs)
         if not self._has_initialized:
             self._has_initialized = True
 

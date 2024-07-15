@@ -35,9 +35,7 @@ class Images(collection.Collection):
         """
         Return a Distro forged from item_dict
         """
-        new_image = image.Image(api, **item_dict)
-        new_image.from_dict(item_dict)
-        return new_image
+        return image.Image(api, **item_dict)
 
     def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
                recursive: bool = True):

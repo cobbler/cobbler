@@ -71,9 +71,7 @@ class Systems(collection.Collection):
         :param item_dict: TODO
         :returns: TODO
         """
-        new_system = system.System(api, **item_dict)
-        new_system.from_dict(item_dict)
-        return new_system
+        return system.System(api, **item_dict)
 
     def remove(self, name: str, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
                recursive: bool = False):

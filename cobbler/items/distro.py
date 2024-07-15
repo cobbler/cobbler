@@ -46,7 +46,7 @@ class Distro(item.Item):
         :param args: Place for extra parameters in this distro object.
         :param kwargs: Place for extra parameters in this distro object.
         """
-        super().__init__(api, *args, **kwargs)
+        super().__init__(api)
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
@@ -67,6 +67,8 @@ class Distro(item.Item):
         self._remote_grub_initrd = ""
         self._supported_boot_loaders = []
 
+        if len(kwargs) > 0:
+            self.from_dict(kwargs)
         if not self._has_initialized:
             self._has_initialized = True
 
