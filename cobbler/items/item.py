@@ -288,8 +288,12 @@ class Item:
 
         self.logger = logging.getLogger()
         self.api = api
-        if not self._has_initialized:
-            self._has_initialized = True
+
+        if len(kwargs) > 0:
+            kwargs.update({"is_subobject": is_subobject})
+            Item.from_dict(self, kwargs)
+        if self._uid == "":
+            self._uid = uuid.uuid4().hex
 
         if not self._has_initialized:
             self._has_initialized = True
@@ -1135,6 +1139,7 @@ class Item:
                     raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from error
                 result.pop(key)
         self._has_initialized = old_has_initialized
+        self.clean_cache()
         if len(result) > 0:
             raise KeyError("The following keys supplied could not be set: %s" % result.keys())
 

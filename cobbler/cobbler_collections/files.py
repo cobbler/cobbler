@@ -41,9 +41,7 @@ class Files(collection.Collection):
         """
         Return a File forged from item_dict
         """
-        new_file = file.File(api, **item_dict)
-        new_file.from_dict(item_dict)
-        return new_file
+        return file.File(api, **item_dict)
 
     def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
                recursive: bool = False):

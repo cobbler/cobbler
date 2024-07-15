@@ -42,7 +42,7 @@ class Repo(item.Item):
         :param args: The arguments which should be passed additionally to the base Item class constructor.
         :param kwargs: The keyword arguments which should be passed additionally to the base Item class constructor.
         """
-        super().__init__(api, *args, **kwargs)
+        super().__init__(api)
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
@@ -63,6 +63,8 @@ class Repo(item.Item):
         self._rpm_list = []
         self._os_version = ""
 
+        if len(kwargs) > 0:
+            self.from_dict(kwargs)
         if not self._has_initialized:
             self._has_initialized = True
 
