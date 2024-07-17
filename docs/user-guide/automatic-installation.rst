@@ -109,7 +109,31 @@ may have gone interactive (or stalled/crashed) during automatic installation.
 Debugging of unattended installations
 #####################################
 
-For further debugging it might be helpful to use other tools like a serial console to record the screen during the boot process.
-Since some information will not be shown on screen long enough to read it it is recommended to record the screen output.
+There are different tools for debugging automatic installations. In general it is recommended to use something to record the
+output of the screen, since some important information may only be visible for a short amount of time. Examples are
+BMC (with IPMI SOL or HTML5 KVM), a dedicated serial console or a networked KVM.
 
+Here is a short list of some important stages during automatic installations and the most frequently occuring errors there:
 
+* Firmware/EFI:
+  * Wrong boot device
+* DHCP request:
+  * Wrong VLAN/Network
+  * Cable issues
+  * Firewall issues
+* TFTP request:
+  * Typo in cobbler settings
+  * inheritance issues
+  * VM restarted with daemon started but not enabled
+  * tftp timeout
+* Kernel & Initrd:
+  * Missing hardware drivers
+* HTTP requests towards Cobbler:
+  * Firewall/Proxy issues
+  * Cobbler timeout
+  * Cheetah templating errors
+* Installation:
+  * Incorrect escaping (syntax errors)
+  * remote ressources unavailable
+* Reboot:
+  * Loop due to enabled netboot
