@@ -13,6 +13,14 @@ enabled by usage of 'Koan' on the remote system. Update server features include 
 mirrors with automated installation files. Cobbler has a command line interface, WebUI, and extensive Python and
 XML-RPC APIs for integration with external scripts and applications.
 
+Content of this Documentation
+#############################
+
+This site contains the user manual for Cobbler.
+
+If you are looking for guides for developers, please visit our developer wiki on GitHub:
+https://github.com/cobbler/cobbler/wiki
+
 If you want to explore tools or scripts which are using Cobbler please use the GitHub Topic:
 https://github.com/topics/cobbler
 

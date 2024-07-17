@@ -92,3 +92,48 @@ To check for potential errors in auto-installation files, prior to installation,
 This function will check all profile and system auto-installation files for detectable errors. Since ``pykickstart`` and
 related tools are not future-version aware in most cases, there may be some false positives. It should be noted that
 ``cobbler validate-autoinstalls`` runs on the rendered autoinstall output, not autoinstall templates themselves.
+
+Automatic installation tracking
+###############################
+
+Cobbler knows how to keep track of the status of automatic installation of machines.
+
+.. code-block:: shell
+
+    cobbler status
+
+Using the status command will show when Cobbler thinks a machine started automatic installation and when it finished,
+provided the proper snippets are found in the automatic installation template. This is a good way to track machines that
+may have gone interactive (or stalled/crashed) during automatic installation.
+
+Debugging of unattended installations
+#####################################
+
+There are different tools for debugging automatic installations. In general it is recommended to use something to record the
+output of the screen, since some important information may only be visible for a short amount of time. Examples are
+BMC (with IPMI SOL or HTML5 KVM), a dedicated serial console or a networked KVM.
+
+Here is a short list of some important stages during automatic installations and the most frequently occuring errors there:
+
+* Firmware/EFI:
+  * Wrong boot device
+* DHCP request:
+  * Wrong VLAN/Network
+  * Cable issues
+  * Firewall issues
+* TFTP request:
+  * Typo in cobbler settings
+  * inheritance issues
+  * VM restarted with daemon started but not enabled
+  * tftp timeout
+* Kernel & Initrd:
+  * Missing hardware drivers
+* HTTP requests towards Cobbler:
+  * Firewall/Proxy issues
+  * Cobbler timeout
+  * Cheetah templating errors
+* Installation:
+  * Incorrect escaping (syntax errors)
+  * remote ressources unavailable
+* Reboot:
+  * Loop due to enabled netboot
