@@ -50,7 +50,6 @@ class BaseItem(ABC):
             and "__" not in name
             and name
             not in {
-                "_last_cached_mtime",
                 "_cache",
                 "_supported_boot_loaders",
                 "_has_initialized",
@@ -142,7 +141,7 @@ class BaseItem(ABC):
 
         # Bootstrap rest of the properties
         if len(kwargs) > 0:
-            BaseItem.from_dict(self, kwargs)
+            self.from_dict(kwargs)
         if self._uid == "":
             self._uid = uuid.uuid4().hex
 
