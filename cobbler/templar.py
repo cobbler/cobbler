@@ -189,6 +189,8 @@ class Templar:
         # Tell Cheetah not to blow up if it can't find a symbol for something.
         raw_data = "#errorCatcher ListErrors\n" + raw_data
 
+        # chang all INT value to str to avoid "TypeError: can only concatenate str (not "int") to str" error
+        search_table = {k: str(v) if isinstance(v, int) else v for k, v in search_table.items()}
         table_copy = search_table.copy()
 
         # For various reasons we may want to call a module inside a template and pass it all of the template variables.
