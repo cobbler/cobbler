@@ -4,6 +4,7 @@ Authorization module that allow users listed in
 For instance, when using authz_ldap, you want to use authn_configfile,
 not authz_allowall, which will most likely NOT do what you want.
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2007-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>

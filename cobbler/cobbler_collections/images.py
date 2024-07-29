@@ -67,7 +67,7 @@ class Images(collection.Collection[image.Image]):
                     raise CX(f"removal would orphan system: {system.name}")
 
         if recursive:
-            kids = self.api.find_system(return_list=True, **{"image": obj.name})
+            kids = self.api.find_system(return_list=True, image=obj.name)
             if kids is None:
                 kids = []
             if not isinstance(kids, list):

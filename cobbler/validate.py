@@ -307,7 +307,7 @@ def validate_repos(
         return enums.VALUE_INHERITED
 
     # store as an array regardless of input type
-    if repos is None:
+    if repos is None:  # type: ignore
         repos = []
     else:
         # TODO: Don't store the names. Store the internal references.

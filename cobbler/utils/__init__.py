@@ -43,7 +43,8 @@ from cobbler.utils import process_management
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.cobbler_collections.collection import ITEM, ITEM_UNION
+    from cobbler.cobbler_collections.collection import ITEM
+    from cobbler.items.item import Item
     from cobbler.settings import Settings
 
 CHEETAH_ERROR_DISCLAIMER = """
@@ -450,7 +451,7 @@ def file_is_remote(file_location: str) -> bool:
 
 
 def blender(
-    api_handle: "CobblerAPI", remove_dicts: bool, root_obj: "ITEM_UNION"  # type: ignore
+    api_handle: "CobblerAPI", remove_dicts: bool, root_obj: "Item"
 ) -> Dict[str, Any]:
     """
     Combine all of the data in an object tree from the perspective of that point on the tree, and produce a merged
@@ -470,14 +471,14 @@ def blender(
     # Make interfaces accessible without Cheetah-voodoo in the templates
     # EXAMPLE: $ip == $ip0, $ip1, $ip2 and so on.
 
-    if root_obj.COLLECTION_TYPE == "system":
+    if root_obj.COLLECTION_TYPE == "system":  # type: ignore
         for name, interface in root_obj.interfaces.items():  # type: ignore
             intf_dict = interface.to_dict()  # type: ignore
             for key in intf_dict:  # type: ignore
                 results[f"{key}_{name}"] = intf_dict[key]  # type: ignore
 
     # If the root object is a profile or system, add in all repo data for repos that belong to the object chain
-    if root_obj.COLLECTION_TYPE in ("profile", "system"):
+    if root_obj.COLLECTION_TYPE in ("profile", "system"):  # type: ignore
         repo_data: List[Dict[Any, Any]] = []
         for repo in results.get("repos", []):
             repo = api_handle.find_repo(name=repo)

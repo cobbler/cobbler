@@ -324,7 +324,7 @@ class Report:
         collection = [x for x in collection]  # type: ignore
         collection.sort(key=lambda x: x.name)  # type: ignore
         data: List[Dict[str, str]] = []
-        out_order = []
+        out_order: List[str] = []
         count = 0
         for item_obj in collection:
             item: Dict[str, str] = {}
@@ -333,11 +333,11 @@ class Report:
             else:
                 structure = item_obj.to_list()  # type: ignore
 
-            for (key, value) in list(structure.items()):  # type: ignore
+            for key, value in list(structure.items()):  # type: ignore
                 # exception for systems which could have > 1 interface
                 if key == "interfaces":
-                    for (device, info) in list(value.items()):
-                        for (info_header, info_value) in list(info.items()):
+                    for device, info in list(value.items()):
+                        for info_header, info_value in list(info.items()):
                             item[info_header] = str(device) + ": " + str(info_value)
                             # needs to create order list for print_formatted_fields
                             if count == 0:

@@ -1,6 +1,7 @@
 """
 Hard links Cobbler content together to save space.
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
@@ -28,10 +29,6 @@ class HardLinker:
 
         :param api: The API to resolve information with.
         """
-        if api is None:
-            raise ValueError(
-                "cobbler hardlink requires the Cobbler-API for resolving the root folders."
-            )
         self.api = api
         self.hardlink = ""
         self.logger = logging.getLogger()

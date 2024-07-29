@@ -71,7 +71,7 @@ class Distros(collection.Collection[distro.Distro]):
                     raise CX(f"removal would orphan profile: {profile.name}")
 
         if recursive:
-            kids = self.api.find_profile(return_list=True, **{"distro": obj.name})
+            kids = self.api.find_profile(return_list=True, distro=obj.name)
             if kids is None:
                 kids = []
             if not isinstance(kids, list):

@@ -168,7 +168,7 @@ class Repo(item.Item):
         super().check_if_valid()
         if not self.inmemory:
             return
-        if self.mirror is None:
+        if self.mirror is None:  # type: ignore[reportUnnecessaryComparison]
             raise CX(f"Error with repo {self.name} - mirror is required")
 
     #

@@ -71,6 +71,7 @@ V2.8.5:
         * ``ipv6_default_gateway``: str
         * ``cnames``: List[str]
 """
+
 import enum
 import logging
 from ipaddress import AddressValueError

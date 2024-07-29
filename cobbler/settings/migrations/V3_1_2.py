@@ -96,7 +96,7 @@ schema = Schema(
             ],
         ): list,
         "power_management_default_type": str,
-        Optional("proxy_url_ext", default=""): Or(None, str),
+        Optional("proxy_url_ext", default=""): Or(None, str),  # type: ignore
         "proxy_url_int": str,
         "puppet_auto_setup": int,
         "puppetca_path": str,

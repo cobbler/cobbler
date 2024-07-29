@@ -180,7 +180,6 @@ class RepoSync:
     # ==================================================================================
 
     def sync(self, repo: "Repo") -> None:
-
         """
         Conditionally sync a repo, based on type.
 
@@ -205,7 +204,6 @@ class RepoSync:
     # ====================================================================================
 
     def librepo_getinfo(self, dirname: str) -> Dict[Any, Any]:
-
         """
         Used to get records from a repomd.xml file of downloaded rpmmd repository.
 
@@ -290,7 +288,6 @@ class RepoSync:
     # ====================================================================================
 
     def wget_sync(self, repo: "Repo") -> None:
-
         """
         Handle mirroring of directories using wget
 
@@ -334,7 +331,6 @@ class RepoSync:
     # ====================================================================================
 
     def rsync_sync(self, repo: "Repo") -> None:
-
         """
         Handle copying of rsync:// and rsync-over-ssh repos.
 
@@ -406,7 +402,6 @@ class RepoSync:
 
     @staticmethod
     def reposync_cmd() -> List[str]:
-
         """
         Determine reposync command
 
@@ -429,7 +424,6 @@ class RepoSync:
     # ====================================================================================
 
     def rhn_sync(self, repo: "Repo") -> None:
-
         """
         Handle mirroring of RHN repos.
 
@@ -531,7 +525,6 @@ class RepoSync:
     # ====================================================================================
 
     def yum_sync(self, repo: "Repo") -> None:
-
         """
         Handle copying of http:// and ftp:// yum repos.
 

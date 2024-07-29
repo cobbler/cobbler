@@ -1,6 +1,7 @@
 """
 Migration from V2.8.5 to V3.0.0
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
@@ -100,7 +101,7 @@ schema = Schema(
         ): list,
         "power_management_default_type": str,
         "power_template_dir": str,
-        Optional("proxy_url_ext", default=""): Or(None, str),
+        Optional("proxy_url_ext", default=""): Or(None, str),  # type: ignore
         "proxy_url_int": str,
         "puppet_auto_setup": int,
         "puppetca_path": str,
@@ -212,7 +213,7 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
         "tftpboot_location": "/srv/tftpboot",
         "webdir_whitelist": [],
     }
-    for (key, value) in missing_keys.items():
+    for key, value in missing_keys.items():
         new_setting = helper.Setting(key, value)
         helper.key_add(new_setting, settings)
 
@@ -333,7 +334,7 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
 
         for old_item in old_collection:
             print(f"    Processing {old_item['name']}")
-            new_item = {}
+            new_item: Dict[str, Any] = {}
             for key in old_item:
                 if key in remove:
                     continue

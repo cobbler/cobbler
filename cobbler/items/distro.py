@@ -465,7 +465,7 @@ class Distro(item.Item):
         self._remote_boot_initrd = remote_boot_initrd
 
     @LazyProperty
-    def source_repos(self) -> List[Any]:
+    def source_repos(self) -> List[str]:
         """
         A list of http:// URLs on the Cobbler server that point to yum configuration files that can be used to
         install core packages. Use by ``cobbler import`` only.
@@ -476,7 +476,7 @@ class Distro(item.Item):
         return self._source_repos
 
     @source_repos.setter
-    def source_repos(self, repos: List[Any]):
+    def source_repos(self, repos: List[str]):
         r"""
         Setter for the ``source_repos`` property.
 

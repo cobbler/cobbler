@@ -7,7 +7,7 @@ This is some of the code behind 'cobbler sync'.
 import glob
 import os.path
 import shutil
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from cobbler import templar, tftpgen, utils
 from cobbler.cexceptions import CX
@@ -60,7 +60,7 @@ class _InTftpdManager(TftpManagerModule):
 
         # Create metadata for the templar function.
         # Right now, just using local_img_path, but adding more Cobbler variables here would probably be good.
-        metadata = {}
+        metadata: Dict[str, Any] = {}
         metadata["local_img_path"] = os.path.join(self.bootloc, "images", distro.name)
         metadata["web_img_path"] = os.path.join(
             self.webdir, "distro_mirror", distro.name
@@ -117,7 +117,7 @@ class _InTftpdManager(TftpManagerModule):
         self,
         system: "System",
         menu_items: Optional[Dict[str, Union[str, Dict[str, str]]]] = None,
-    ) -> None:
+    ) -> int:
         """
         Write out new ``pxelinux.cfg`` files to the TFTP server folder (or grub/system/<mac> in grub case)
 
@@ -129,6 +129,7 @@ class _InTftpdManager(TftpManagerModule):
         self.tftpgen.write_all_system_files(system, menu_items)
         # generate any templates listed in the distro
         self.tftpgen.write_templates(system)
+        return 0
 
     def add_single_distro(self, distro: "Distro") -> None:
         """

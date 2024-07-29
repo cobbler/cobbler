@@ -168,11 +168,11 @@ from cobbler import autoinstall_manager, enums, validate
 from cobbler.cexceptions import CX
 from cobbler.decorator import InheritableProperty, LazyProperty
 from cobbler.items import item
+from cobbler.items.distro import Distro
 from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.items.distro import Distro
 
 
 class Profile(item.Item):
@@ -311,7 +311,7 @@ class Profile(item.Item):
         """
         # FIXME: This looks so wrong. It cries: Please open a bug for me!
         parent = self.logical_parent
-        if parent is not None:
+        if parent is not None and isinstance(parent, (Profile, Distro)):
             return parent.arch
         return None
 

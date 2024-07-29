@@ -69,7 +69,7 @@ def input_string_or_dict_no_inherit(
     """
     See :meth:`~cobbler.utils.input_converters.input_string_or_dict`
     """
-    if options is None or options == "delete":
+    if options is None or options == "delete":  # type: ignore[reportUnnecessaryComparison]
         return {}
     if isinstance(options, list):
         raise TypeError(f"No idea what to do with list: {options}")
@@ -114,7 +114,7 @@ def input_boolean(value: Union[str, bool, int]) -> bool:
     :param value: The value to convert to boolean.
     :return: True if the value is in the following list, otherwise false: "true", "1", "on", "yes", "y" .
     """
-    if not isinstance(value, (str, bool, int)):
+    if not isinstance(value, (str, bool, int)):  # type: ignore[reportUnnecessaryIsInstance]
         raise TypeError(
             "The value handed to the input_boolean function was not convertable due to a wrong type "
             f"(found: {type(value)})!"

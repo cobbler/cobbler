@@ -1,6 +1,7 @@
 """
 Migration from V3.3.4 to V3.3.5
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: 2024 Enno Gotthold <egotthold@suse.com
 # SPDX-FileCopyrightText: Copyright SUSE LLC

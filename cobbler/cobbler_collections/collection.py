@@ -40,14 +40,6 @@ ITEM = TypeVar("ITEM", bound=BaseItem)
 FIND_KWARGS = Union[  # pylint: disable=invalid-name
     str, int, bool, Dict[Any, Any], List[Any]
 ]
-ITEM_UNION = Union[  # pylint: disable=invalid-name
-    "system.System",
-    "image.Image",
-    "profile.Profile",
-    "repo.Repo",
-    "distro.Distro",
-    "menu.Menu",
-]
 
 
 class Collection(Generic[ITEM]):
@@ -622,10 +614,10 @@ class Collection(Generic[ITEM]):
         :return: The object as a string representation.
         """
         # FIXME: No to_string() method in any of the items present!
-        values = list(self.listing.values())[:]  # copy the values
+        values = list(self.listing.values())
         values.sort(key=lambda x: x.name if x else "")  # sort the copy (2.3 fix)
-        results = []
-        for _, value in enumerate(values):
+        results: List[str] = []
+        for value in values:
             results.append(value.to_string())  # type: ignore
         if len(values) > 0:
             return "\n\n".join(results)

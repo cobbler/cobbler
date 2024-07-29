@@ -491,7 +491,10 @@ class NetbootBuildiso(buildiso.BuildIso):
         for system in found_systems:
             # All systems not underneath a profile should be skipped
             parent_obj = system.get_conceptual_parent()
-            if parent_obj is not None and parent_obj.TYPE_NAME == "profile":
+            if (
+                parent_obj is not None
+                and parent_obj.TYPE_NAME == "profile"  # type: ignore[reportUnnecessaryComparison]
+            ):
                 return_systems.append(system)
         # Now finally return
         return return_systems
@@ -628,7 +631,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         distro: Optional["Distro"] = profile.get_conceptual_parent()  # type: ignore
         if distro is None:
             raise ValueError("Distro of Profile may never be None!")
-        distroname = self.make_shorter(distro.name)
+        distroname = self.make_shorter(distro.name)  # type: ignore
 
         data = utils.blender(self.api, False, system)
         autoinstall_scheme = self.api.settings().autoinstall_scheme
@@ -640,7 +643,9 @@ class NetbootBuildiso(buildiso.BuildIso):
 
         append_line = AppendLineBuilder(
             distro_name=distroname, data=data
-        ).generate_system(distro, system, exclude_dns)
+        ).generate_system(
+            distro, system, exclude_dns  # type: ignore
+        )
         kernel_path = f"/{distroname}.krn"
         initrd_path = f"/{distroname}.img"
 
@@ -649,7 +654,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         )
         grub_cfg = self._render_grub_entry(
             append_line,
-            menu_name=distro.name,
+            menu_name=distro.name,  # type: ignore
             kernel_path=kernel_path,
             initrd_path=initrd_path,
         )
@@ -657,7 +662,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         return (
             isolinux_cfg,
             grub_cfg,
-            BootFilesCopyset(distro.kernel, distro.initrd, distroname),
+            BootFilesCopyset(distro.kernel, distro.initrd, distroname),  # type: ignore
         )
 
     def _copy_esp(self, esp_source: str, buildisodir: str):

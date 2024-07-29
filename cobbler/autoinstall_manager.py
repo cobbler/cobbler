@@ -12,7 +12,7 @@ from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.items.abstract.base_item import ITEM
+    from cobbler.items.abstract.base_item import BaseItem
 
 
 TEMPLATING_ERROR = 1
@@ -268,10 +268,10 @@ class AutoInstallationManager:
         :return: Whether the system is in install mode or not.
         """
         for profile in self.api.profiles():
-            if profile.autoinstall is not None and profile.autoinstall == name:
+            if profile.autoinstall == name:
                 return True
         for profile in self.api.systems():
-            if profile.autoinstall is not None and profile.autoinstall == name:
+            if profile.autoinstall == name:
                 return True
         return False
 
@@ -314,7 +314,7 @@ class AutoInstallationManager:
         elif errors_type == KICKSTART_ERROR:
             self.logger.warning("Kickstart validation errors: %s", errors[0])
 
-    def validate_autoinstall_file(self, obj: "ITEM", is_profile: bool) -> List[Any]:
+    def validate_autoinstall_file(self, obj: "BaseItem", is_profile: bool) -> List[Any]:
         """
         Validate automatic installation file used by a system/profile.
 

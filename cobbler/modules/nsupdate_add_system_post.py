@@ -74,18 +74,18 @@ def run(api: "CobblerAPI", args: List[Any]):
         return 0
 
     # read our settings
-    if str(settings.nsupdate_log) is not None:
+    if str(settings.nsupdate_log) is not None:  # type: ignore[reportUnnecessaryComparison]
         LOGF = open(str(settings.nsupdate_log), "a", encoding="UTF-8")  # type: ignore
         nslog(f">> starting {__name__} {args}\n")
 
-    if str(settings.nsupdate_tsig_key) is not None:
+    if str(settings.nsupdate_tsig_key) is not None:  # type: ignore[reportUnnecessaryComparison]
         keyring = dns.tsigkeyring.from_text(
             {str(settings.nsupdate_tsig_key[0]): str(settings.nsupdate_tsig_key[1])}
         )
     else:
         keyring = None
 
-    if str(settings.nsupdate_tsig_algorithm) is not None:
+    if str(settings.nsupdate_tsig_algorithm) is not None:  # type: ignore[reportUnnecessaryComparison]
         keyring_algo = str(settings.nsupdate_tsig_algorithm)
     else:
         keyring_algo = "HMAC-MD5.SIG-ALG.REG.INT"
@@ -96,10 +96,10 @@ def run(api: "CobblerAPI", args: List[Any]):
     system = api.find_system(args[0])
 
     if system is None or isinstance(system, list):
-        raise ValueError("Search result was ambigous!")
+        raise ValueError("Search result was ambiguous!")
 
     # process all interfaces and perform dynamic update for those with --dns-name
-    for (name, interface) in system.interfaces.items():
+    for name, interface in system.interfaces.items():
         host = interface.dns_name
         host_ip = interface.ip_address
 

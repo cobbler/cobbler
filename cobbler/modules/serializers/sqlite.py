@@ -9,15 +9,15 @@ import json
 import logging
 import os
 import sqlite3
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from cobbler import settings
 from cobbler.cexceptions import CX
 from cobbler.modules.serializers import StorageBase
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.cobbler_collections.collection import ITEM, Collection
+    from cobbler.items.abstract.base_item import BaseItem
 
 
 def register() -> str:
@@ -144,7 +144,7 @@ class SQLiteSerializer(StorageBase):
         except sqlite3.DatabaseError as error:
             raise CX(f'Unable to upsert into table "{table_name}": {error}') from error
 
-    def __build_bind_vars(self, item: "ITEM") -> Dict[str, str]:
+    def __build_bind_vars(self, item: "BaseItem") -> Dict[str, str]:
         """
         Build the bind variables for Insert/Update.
 
@@ -185,11 +185,10 @@ class SQLiteSerializer(StorageBase):
         """
         self.__connect()
         ctype = collection.collection_types()
-        if ctype != "settings":
-            bind_vars: List[Optional[Dict[str, str]]] = []
-            for item in collection:
-                bind_vars.append(self.__build_bind_vars(item))
-            self.__upsert_items(ctype, bind_vars)
+        bind_vars: List[Optional[Dict[str, str]]] = []
+        for item in collection:
+            bind_vars.append(self.__build_bind_vars(item))
+        self.__upsert_items(ctype, bind_vars)
 
     def serialize_delete(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         """
@@ -211,20 +210,15 @@ class SQLiteSerializer(StorageBase):
                 f'Unable to delete from table "{table_name}": {error}'  # nosec
             ) from error
 
-    def deserialize_raw(
-        self, collection_type: str
-    ) -> Union[List[Optional[Dict[str, Any]]], Dict[str, Any]]:
+    def deserialize_raw(self, collection_type: str) -> List[Dict[str, Any]]:
         """
-        Read the collection from the table or read the settings file.
+        Read the collection from the table.
 
         :param collection_type: The collection type to read.
-        :return: The list of collection dicts or settings dict.
+        :return: The list of collection dicts.
         """
-        if collection_type == "settings":
-            return settings.read_settings_file()
-
         self.__connect()
-        results: List[Optional[Dict[str, Any]]] = []
+        results: List[Dict[str, Any]] = []
         if not self.__is_table_exists(collection_type):
             return results
 
@@ -266,11 +260,7 @@ class SQLiteSerializer(StorageBase):
         datastruct = self.deserialize_raw(collection.collection_types())
         if topological and isinstance(datastruct, list):  # type: ignore
             datastruct.sort(key=lambda x: x.get("depth", 1))  # type: ignore
-        if isinstance(datastruct, dict):
-            # This is currently the corner case for the settings type.
-            collection.from_dict(datastruct)  # type: ignore
-        elif isinstance(datastruct, list):  # type: ignore
-            collection.from_list(datastruct)  # type: ignore
+        collection.from_list(datastruct)  # type: ignore
 
     def deserialize_item(self, collection_type: str, name: str) -> Dict[str, Any]:
         """

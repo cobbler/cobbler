@@ -125,7 +125,7 @@ class _BindManager(DnsManagerModule):
             zones[zone] = {}
 
         for system in self.systems:
-            for (_, interface) in system.interfaces.items():
+            for _, interface in system.interfaces.items():
                 host: str = interface.dns_name
                 ipv4: str = interface.ip_address
                 ipv6: str = interface.ipv6_address
@@ -217,7 +217,7 @@ class _BindManager(DnsManagerModule):
             zones[zone] = {}
 
         for system in self.systems:
-            for (_, interface) in system.interfaces.items():
+            for _, interface in system.interfaces.items():
                 host = interface.dns_name
                 ip_address = interface.ip_address
                 ipv6 = interface.ipv6_address
@@ -435,7 +435,7 @@ zone "{arpa}." {{
         # particular system
 
         for system in self.systems:
-            for (name, interface) in system.interfaces.items():
+            for name, interface in system.interfaces.items():
                 if interface.dns_name == "":
                     self.logger.info(
                         "Warning: dns_name unspecified in the system: %s, while writing host records",
@@ -489,7 +489,7 @@ zone "{arpa}." {{
         # Which results in empty records without any warning to the users
 
         for system in self.systems:
-            for (_, interface) in system.interfaces.items():
+            for _, interface in system.interfaces.items():
                 cnames = interface.cnames
 
                 try:
@@ -548,7 +548,7 @@ zone "{arpa}." {{
 
         zonefileprefix = self.settings.bind_chroot_path + self.zonefile_base
 
-        for (zone, hosts) in forward.items():
+        for zone, hosts in forward.items():
             metadata = {
                 "cobbler_server": cobbler_server,
                 "serial": serial,
@@ -595,7 +595,7 @@ zone "{arpa}." {{
             self.logger.info("generating (forward) %s", zonefilename)
             self.templar.render(template_data, metadata, zonefilename)
 
-        for (zone, hosts) in reverse.items():
+        for zone, hosts in reverse.items():
             metadata = {
                 "cobbler_server": cobbler_server,
                 "serial": serial,

@@ -165,7 +165,8 @@ if TYPE_CHECKING:
     import xmlrpc.client
 
     from cobbler.api import CobblerAPI
-    from cobbler.cobbler_collections.collection import ITEM, ITEM_UNION
+    from cobbler.cobbler_collections.collection import ITEM
+    from cobbler.items.abstract.base_item import BaseItem
     from cobbler.items.distro import Distro
     from cobbler.items.image import Image
     from cobbler.items.profile import Profile
@@ -191,7 +192,7 @@ class CobblerXMLRPCInterface:
         self.api = api
         self.logger = logging.getLogger()
         self.token_cache: Dict[str, Tuple[Any, ...]] = {}
-        self.unsaved_items: Dict[str, Tuple[float, "ITEM_UNION"]] = {}
+        self.unsaved_items: Dict[str, Tuple[float, "BaseItem"]] = {}
         self.timestamp = self.api.last_modified_time()
         self.events: Dict[str, CobblerEvent] = {}
         self.shared_secret = utils.get_shared_secret()
@@ -554,6 +555,8 @@ class CobblerXMLRPCInterface:
                     )
 
         if self.api.settings().lazy_start:
+            if isinstance(self.shared_secret, int):
+                raise ValueError("Shared Secret could not successfully be retrieved!")
             token = self.login("", self.shared_secret)
             return self.__start_task(runner, token, "load_items", "Loading items", {})
         return ""
@@ -850,7 +853,7 @@ class CobblerXMLRPCInterface:
             },
         )
 
-    def __get_object(self, object_id: str) -> "ITEM_UNION":
+    def __get_object(self, object_id: str) -> "BaseItem":
         """
         Helper function. Given an object id, return the actual object.
 
@@ -2717,7 +2720,7 @@ class CobblerXMLRPCInterface:
             return [f"# object not found: {system_name}"]
         parent = obj.get_conceptual_parent()
 
-        if parent and parent.COLLECTION_TYPE == "profile":
+        if parent and parent.COLLECTION_TYPE == "profile":  # type: ignore[reportUnnecessaryComparison]
             return parent.boot_loaders  # type: ignore
         return self.api.get_valid_obj_boot_loaders(parent)  # type: ignore
 

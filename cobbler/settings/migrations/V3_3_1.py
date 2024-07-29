@@ -286,7 +286,7 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
         "syslinux_memdisk_folder": "/usr/share/syslinux",
         "syslinux_pxelinux_folder": "/usr/share/syslinux",
     }
-    for (key, value) in missing_keys.items():
+    for key, value in missing_keys.items():
         new_setting = helper.Setting(key, value)
         helper.key_add(new_setting, settings)
 
