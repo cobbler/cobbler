@@ -1,3 +1,9 @@
+"""
+Tests that validate the functionality of the module that is responsible for GRUB functionality.
+"""
+
+from typing import Any, Optional
+
 import pytest
 
 from cobbler import grub
@@ -23,7 +29,7 @@ from tests.conftest import does_not_raise
     ],
 )
 def test_parse_grub_remote_file(
-    input_file_location, expected_output, expected_exception
+    input_file_location: str, expected_output: Optional[str], expected_exception: Any
 ):
     # Arrange & Act
     with expected_exception:

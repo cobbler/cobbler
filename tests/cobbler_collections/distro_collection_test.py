@@ -1,3 +1,7 @@
+"""
+Tests that validate the functionality of the module that is responsible for managing the list of distros.
+"""
+
 import os.path
 from typing import Callable
 
@@ -129,7 +133,7 @@ def test_copy(
     # Act
     new_item_name = "test_copy_new"
     distro_collection.copy(item1, new_item_name)
-    item2 = distro_collection.find(new_item_name, False)
+    item2: distro.Distro = distro_collection.find(new_item_name, False)  # type: ignore
 
     # Assert
     assert len(distro_collection.listing) == 2

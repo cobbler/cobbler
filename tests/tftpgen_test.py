@@ -1,12 +1,12 @@
 """
-Tests that validate the functionallity of the module that is reponsible for generating the TFTP boot tree.
+Tests that validate the functionality of the module that is responsible for generating the TFTP boot tree.
 """
 
 import glob
 import os
 import pathlib
 import shutil
-from typing import TYPE_CHECKING, Any, Callable, List, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Union
 
 import pytest
 
@@ -33,12 +33,12 @@ def test_copy_bootloaders(tmpdir: pathlib.Path, cobbler_api: CobblerAPI):
     # Arrange
     # Create temporary bootloader files using tmpdir fixture
     file_contents = "I am a bootloader"
-    sub_path = tmpdir.mkdir("loaders")
-    sub_path.join("bootloader1").write(file_contents)
-    sub_path.join("bootloader2").write(file_contents)
+    sub_path = tmpdir.mkdir("loaders")  # type: ignore
+    sub_path.join("bootloader1").write(file_contents)  # type: ignore
+    sub_path.join("bootloader2").write(file_contents)  # type: ignore
 
     # Copy temporary bootloader files from tmpdir to expected source directory
-    for file in glob.glob(str(sub_path + "/*")):
+    for file in glob.glob(str(sub_path + "/*")):  # type: ignore
         bootloader_src = "/var/lib/cobbler/loaders/"
         shutil.copy(file, bootloader_src + file.split("/")[-1])
 
@@ -121,14 +121,14 @@ def setup_test_write_all_system_files(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], Distro],
     create_profile: Callable[[str], Profile],
-    create_system: Callable[[str, str, str], System],
-):
+    create_system: Any,
+) -> Tuple[System, tftpgen.TFTPGen]:
     """
     Setup fixture for "test_write_all_system_files".
     """
     test_distro = create_distro()
     test_profile = create_profile(test_distro.name)
-    test_system: System = create_system(profile_name=test_profile.name)  # type: ignore
+    test_system: System = create_system(profile_name=test_profile.name)
     test_gen = tftpgen.TFTPGen(cobbler_api)
     return test_system, test_gen
 
@@ -168,7 +168,7 @@ def test_write_all_system_files(
     """
     # Arrange
     test_system, test_gen = setup_test_write_all_system_files
-    result = {}
+    result: Dict[str, Union[str, Dict[str, str]]] = {}
     mocker.patch.object(
         test_system,
         "is_management_supported",
@@ -201,7 +201,7 @@ def test_write_all_system_files_s390(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], Distro],
     create_profile: Callable[[str], Profile],
-    create_system: Callable[[str, str, str], System],
+    create_system: Any,
     create_image: Callable[[], Image],
 ):
     """
@@ -215,7 +215,7 @@ def test_write_all_system_files_s390(
         "foobar2": "woohooo",
     }
     test_profile = create_profile(test_distro.name)
-    test_system: System = create_system(profile_name=test_profile.name)  # type: ignore
+    test_system: System = create_system(profile_name=test_profile.name)
     test_system.netboot_enabled = True
     test_image = create_image()
     test_gen = tftpgen.TFTPGen(cobbler_api)
@@ -226,7 +226,8 @@ def test_write_all_system_files_s390(
     mocker.patch("builtins.open", open_mock)
 
     # Act
-    test_gen._write_all_system_files_s390(
+    # pylint: disable-next=protected-access
+    test_gen._write_all_system_files_s390(  # type: ignore[reportPrivateUsage]
         test_distro, test_profile, test_image, test_system
     )
 
@@ -329,7 +330,7 @@ def test_get_menu_level(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     result = test_gen.get_menu_level()
 
     # Assert
-    assert False
+    assert isinstance(result, dict)
 
 
 @pytest.mark.skip("Test broken atm.")
@@ -347,7 +348,7 @@ def test_write_pxe_file(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     )
 
     # Assert
-    assert False
+    assert isinstance(result, str)
 
 
 @pytest.mark.skip("Test broken atm.")
@@ -357,7 +358,7 @@ def test_build_kernel(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     mocker.patch("cobbler.utils.blender", return_value={})
 
     # Act
-    test_gen.build_kernel({}, None, None, None, None, "pxe")
+    test_gen.build_kernel({}, None, None, None, None, "pxe")  # type: ignore
 
     # Assert
     assert False
@@ -399,7 +400,7 @@ def test_write_templates(
     result = test_gen.write_templates(test_distro, False, "TODO")
 
     # Assert
-    assert False
+    assert isinstance(result, dict)
 
 
 @pytest.mark.skip("Test broken atm.")
@@ -452,7 +453,7 @@ def test_generate_bootcfg(
     result = test_gen.generate_bootcfg("profile", test_profile.name)
 
     # Assert
-    assert False
+    assert isinstance(result, str)
 
 
 def test_generate_script(
@@ -485,7 +486,8 @@ def test_generate_windows_initrd(cobbler_api: CobblerAPI):
     test_gen = tftpgen.TFTPGen(cobbler_api)
 
     # Act
-    result = test_gen._build_windows_initrd("custom_loader", "my_custom_loader", "ipxe")
+    # pylint: disable-next=protected-access
+    result = test_gen._build_windows_initrd("custom_loader", "my_custom_loader", "ipxe")  # type: ignore[reportPrivateUsage]
 
     # Assert
     assert result == "--name custom_loader my_custom_loader custom_loader"
@@ -495,7 +497,7 @@ def test_generate_initrd(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
     mocker.patch.object(test_gen, "_build_windows_initrd", return_value="Test")
-    input_metadata = {
+    input_metadata: Dict[str, Union[List[str], str]] = {
         "initrd": [],
         "bootmgr": "True",
         "bcd": "True",
@@ -504,7 +506,8 @@ def test_generate_initrd(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     expected_result = []
 
     # Act
-    result = test_gen._generate_initrd(input_metadata, "", "", "ipxe")
+    # pylint: disable-next=protected-access
+    result = test_gen._generate_initrd(input_metadata, "", "", "ipxe")  # type: ignore[reportPrivateUsage]
 
     # Assert
     assert result == expected_result
@@ -530,7 +533,8 @@ def test_write_bootcfg_file(
     mocker.patch.object(test_gen, "generate_bootcfg", return_value=expected_result)
 
     # Act
-    result = test_gen._write_bootcfg_file("profile", "test", "example.txt")
+    # pylint: disable-next=protected-access
+    result = test_gen._write_bootcfg_file("profile", "test", "example.txt")  # type: ignore[reportPrivateUsage]
 
     # Assert
     assert result == expected_result

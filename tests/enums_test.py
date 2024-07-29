@@ -1,3 +1,10 @@
+"""
+Tests that validate the functionality of the module that is responsible for defining constants and parsing them from
+given data.
+"""
+
+from typing import Any, Union
+
 import pytest
 
 from cobbler import enums
@@ -14,12 +21,14 @@ from tests.conftest import does_not_raise
         (0, pytest.raises(TypeError)),
     ],
 )
-def test_validate_arch(test_architecture, test_raise):
+def test_validate_arch(
+    test_architecture: Union[enums.Archs, str, int], test_raise: Any
+):
     # Arrange
 
     # Act
     with test_raise:
-        result = enums.Archs.to_enum(test_architecture)
+        result = enums.Archs.to_enum(test_architecture)  # type: ignore
 
         # Assert
         if isinstance(test_architecture, str):
@@ -40,12 +49,12 @@ def test_validate_arch(test_architecture, test_raise):
         (0, pytest.raises(TypeError)),
     ],
 )
-def test_set_virt_type(value, expected_exception):
+def test_set_virt_type(value: Union[enums.VirtType, str, int], expected_exception: Any):
     # Arrange
 
     # Act
     with expected_exception:
-        result = enums.VirtType.to_enum(value)
+        result = enums.VirtType.to_enum(value)  # type: ignore
 
         # Assert
         if isinstance(value, str):
@@ -65,12 +74,14 @@ def test_set_virt_type(value, expected_exception):
         (0, pytest.raises(TypeError)),
     ],
 )
-def test_validate_ldap_tls_reqcert(value, expected_exception):
+def test_validate_ldap_tls_reqcert(
+    value: Union[enums.TlsRequireCert, str, int], expected_exception: Any
+):
     # Arrange
 
     # Act
     with expected_exception:
-        result = enums.TlsRequireCert.to_enum(value)
+        result = enums.TlsRequireCert.to_enum(value)  # type: ignore
 
         # Assert
         if isinstance(value, str):
@@ -93,12 +104,14 @@ def test_validate_ldap_tls_reqcert(value, expected_exception):
         (0, pytest.raises(TypeError)),
     ],
 )
-def test_set_virt_disk_driver(test_driver, test_raise):
+def test_set_virt_disk_driver(
+    test_driver: Union[enums.VirtDiskDrivers, str, int], test_raise: Any
+):
     # Arrange
 
     # Act
     with test_raise:
-        result = enums.VirtDiskDrivers.to_enum(test_driver)
+        result = enums.VirtDiskDrivers.to_enum(test_driver)  # type: ignore
 
         # Assert
         if isinstance(test_driver, str):

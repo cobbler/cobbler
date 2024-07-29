@@ -5,7 +5,9 @@ Test module to assert the performance of adding different kinds of items.
 from typing import Any, Callable, Dict, Tuple
 
 import pytest
-from pytest_benchmark.fixture import BenchmarkFixture
+from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
+    BenchmarkFixture,
+)
 
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
@@ -38,7 +40,7 @@ def test_repos_create(
     cobbler_api.settings().cache_enabled = cache_enabled
 
     # Act
-    result = benchmark.pedantic(
+    result = benchmark.pedantic(  # type: ignore
         CobblerTree.create_repos, setup=setup_func, rounds=CobblerTree.test_rounds
     )
 
@@ -74,7 +76,7 @@ def test_distros_create(
     cobbler_api.settings().cache_enabled = cache_enabled
 
     # Act
-    result = benchmark.pedantic(
+    result = benchmark.pedantic(  # type: ignore
         CobblerTree.create_distros, setup=setup_func, rounds=CobblerTree.test_rounds
     )
 
@@ -106,7 +108,7 @@ def test_menus_create(
     cobbler_api.settings().cache_enabled = cache_enabled
 
     # Act
-    result = benchmark.pedantic(
+    result = benchmark.pedantic(  # type: ignore
         CobblerTree.create_menus, setup=setup_func, rounds=CobblerTree.test_rounds
     )
 
@@ -161,7 +163,7 @@ def test_profiles_create(
     cobbler_api.settings().enable_menu = enable_menu
 
     # Act
-    result = benchmark.pedantic(
+    result = benchmark.pedantic(  # type: ignore
         CobblerTree.create_profiles, setup=setup_func, rounds=CobblerTree.test_rounds
     )
 
@@ -197,7 +199,7 @@ def test_images_create(
     cobbler_api.settings().cache_enabled = cache_enabled
 
     # Act
-    result = benchmark.pedantic(
+    result = benchmark.pedantic(  # type: ignore
         CobblerTree.create_images, setup=setup_func, rounds=CobblerTree.test_rounds
     )
 
@@ -256,7 +258,7 @@ def test_systems_create(
     cobbler_api.settings().enable_menu = enable_menu
 
     # Act
-    result = benchmark.pedantic(
+    result = benchmark.pedantic(  # type: ignore
         CobblerTree.create_systems, setup=setup_func, rounds=CobblerTree.test_rounds
     )
 
@@ -316,7 +318,7 @@ def test_all_items_create(
     cobbler_api.settings().enable_menu = enable_menu
 
     # Act
-    result = benchmark.pedantic(
+    result = benchmark.pedantic(  # type: ignore
         CobblerTree.create_all_objs, setup=setup_func, rounds=CobblerTree.test_rounds
     )
 

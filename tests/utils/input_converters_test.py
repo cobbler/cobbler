@@ -1,3 +1,9 @@
+"""
+Tests that validate the functionality of the module that is responsible for input conversion.
+"""
+
+from typing import Any
+
 import pytest
 
 from cobbler.utils import input_converters
@@ -16,7 +22,9 @@ from tests.conftest import does_not_raise
         (5, None, pytest.raises(TypeError)),
     ],
 )
-def test_input_string_or_list(test_input, expected_result, expected_exception):
+def test_input_string_or_list(
+    test_input: Any, expected_result: Any, expected_exception: Any
+):
     # Arrange & Act
     with expected_exception:
         result = input_converters.input_string_or_list(test_input)
@@ -35,7 +43,9 @@ def test_input_string_or_list(test_input, expected_result, expected_exception):
         (0, None, pytest.raises(TypeError)),
     ],
 )
-def test_input_string_or_dict(testinput, expected_result, possible_exception):
+def test_input_string_or_dict(
+    testinput: Any, expected_result: Any, possible_exception: Any
+):
     # Arrange
 
     # Act
@@ -59,7 +69,7 @@ def test_input_string_or_dict(testinput, expected_result, possible_exception):
         (0.5, pytest.raises(TypeError), False),
     ],
 )
-def test_input_boolean(testinput, expected_exception, expected_result):
+def test_input_boolean(testinput: Any, expected_exception: Any, expected_result: bool):
     # Arrange
 
     # Act
@@ -85,7 +95,7 @@ def test_input_boolean(testinput, expected_exception, expected_result):
         (0.5, does_not_raise(), 0),
     ],
 )
-def test_input_int(testinput, expected_exception, expected_result):
+def test_input_int(testinput: Any, expected_exception: Any, expected_result: int):
     # Arrange --> Not needed
 
     # Act

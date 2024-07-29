@@ -1,21 +1,31 @@
+"""
+Tests that validate the functionality of the module that is responsible for generating reports.
+"""
+
 import contextlib
+from typing import TYPE_CHECKING, Any, Dict, List
 
 import pytest
 
 from cobbler.actions import report
+from cobbler.api import CobblerAPI
+from cobbler.items.abstract.base_item import BaseItem
 
 from tests.conftest import does_not_raise
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
-@pytest.fixture(scope="function")
-def reporter(cobbler_api):
+
+@pytest.fixture(name="reporter", scope="function")
+def fixture_reporter(cobbler_api: CobblerAPI) -> report.Report:
     return report.Report(cobbler_api)
 
 
-def test_fielder(reporter):
+def test_fielder(reporter: report.Report):
     # Arrange
-    input_structure = {}
-    input_fields_list = []
+    input_structure: Dict[str, Any] = {}
+    input_fields_list: List[str] = []
 
     # Act
     result = reporter.fielder(input_structure, input_fields_list)
@@ -24,7 +34,7 @@ def test_fielder(reporter):
     assert result is not None
 
 
-def test_reporting_csv(reporter):
+def test_reporting_csv(reporter: report.Report):
     # Arrange
     input_info = [
         {"name": "test", "uid": "adsökjnvskpdjnbfpsn"},
@@ -41,7 +51,7 @@ def test_reporting_csv(reporter):
     assert result == expected_result
 
 
-def test_reporting_trac(reporter):
+def test_reporting_trac(reporter: report.Report):
     # Arrange
     input_info = [
         {"name": "test", "uid": "adsökjnvskpdjnbfpsn"},
@@ -60,7 +70,7 @@ def test_reporting_trac(reporter):
     assert result == expected_result
 
 
-def test_reporting_doku(reporter):
+def test_reporting_doku(reporter: report.Report):
     # Arrange
     input_info = [
         {"name": "test", "uid": "adsökjnvskpdjnbfpsn"},
@@ -77,7 +87,7 @@ def test_reporting_doku(reporter):
     assert result == expected_result
 
 
-def test_reporting_mediawiki(reporter):
+def test_reporting_mediawiki(reporter: report.Report):
     # Arrange
     input_info = [
         {"name": "test", "uid": "adsökjnvskpdjnbfpsn"},
@@ -104,7 +114,12 @@ def test_reporting_mediawiki(reporter):
         ("garbage", pytest.raises(ValueError)),
     ],
 )
-def test_print_formatted_data(mocker, reporter, input_report_type, expected_exception):
+def test_print_formatted_data(
+    mocker: "MockerFixture",
+    reporter: report.Report,
+    input_report_type: str,
+    expected_exception: Any,
+):
     # Arrange
     with contextlib.suppress(AttributeError):
         mock_reporting = mocker.patch.object(reporter, f"reporting_{input_report_type}")
@@ -117,47 +132,47 @@ def test_print_formatted_data(mocker, reporter, input_report_type, expected_exce
         if input_report_type == "garbarge":
             pytest.fail("Test did not match any of the expected assertions!")
         else:
-            mock_reporting.assert_called_with([], [], True)
+            mock_reporting.assert_called_with([], [], True)  # type: ignore[reportPossiblyUnboundVariable]
 
 
 class MockTestItem:
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
 
     def to_string(self):
         return "mytest"
 
 
-def test_reporting_print_sorted(mocker, reporter):
+def test_reporting_print_sorted(mocker: "MockerFixture", reporter: report.Report):
     # Arrange
-    input_collection = [MockTestItem("test1")]
+    input_collection: List[MockTestItem] = [MockTestItem("test1")]
     mock_print = mocker.patch("builtins.print")
 
     # Act
-    reporter.reporting_print_sorted(input_collection)
+    reporter.reporting_print_sorted(input_collection)  # type: ignore[reportArgumentType]
 
     # Assert
     assert mock_print.call_count == 1
     assert mock_print.called_with("mytest")
 
 
-def test_reporting_names2(mocker, reporter):
+def test_reporting_names2(mocker: "MockerFixture", reporter: report.Report):
     # Arrange
-    input_collection = {"test1": MockTestItem("test1")}
+    input_collection: Dict[str, Any] = {"test1": MockTestItem("test1")}
     input_name = "test1"
     mock_print = mocker.patch("builtins.print")
 
     # Act
-    reporter.reporting_list_names2(input_collection, input_name)
+    reporter.reporting_list_names2(input_collection, input_name)  # type: ignore[reportArgumentType]
 
     # Assert
     assert mock_print.call_count == 1
     assert mock_print.called_with("mytest")
 
 
-def test_reporting_print_all_fields(mocker, reporter):
+def test_reporting_print_all_fields(mocker: "MockerFixture", reporter: report.Report):
     # Arrange
-    input_collection = []
+    input_collection: List[BaseItem] = []
     input_report_name = ""
     input_report_type = ""
     input_report_noheaders = True
@@ -165,7 +180,7 @@ def test_reporting_print_all_fields(mocker, reporter):
 
     # Act
     reporter.reporting_print_all_fields(
-        input_collection,
+        input_collection,  # type: ignore[reportArgumentType]
         input_report_name,
         input_report_type,
         input_report_noheaders,
@@ -179,9 +194,9 @@ def test_reporting_print_all_fields(mocker, reporter):
     )
 
 
-def test_reporting_print_x_fields(mocker, reporter):
+def test_reporting_print_x_fields(mocker: "MockerFixture", reporter: report.Report):
     # Arrange
-    input_collection = []
+    input_collection: List[BaseItem] = []
     input_report_name = ""
     input_report_type = ""
     input_report_fields = ""
@@ -193,7 +208,7 @@ def test_reporting_print_x_fields(mocker, reporter):
 
     # Act
     reporter.reporting_print_x_fields(
-        input_collection,
+        input_collection,  # type: ignore[reportArgumentType]
         input_report_name,
         input_report_type,
         input_report_fields,
@@ -217,16 +232,16 @@ def test_reporting_print_x_fields(mocker, reporter):
     ],
 )
 def test_run(
-    mocker,
-    reporter,
-    input_report_what,  # symbols the collection to report
-    input_report_name,  # symbols the name of the collection items to report
-    input_report_type,  # valid values: all, csv, mediawiki, trac, doku
-    input_report_fields,  # valid values: all or a comma delimited str where spaces get removed
-    expected_print_all_fields_count,
-    expected_print_x_fields_count,
-    expected_print_sorted_count,
-    expected_list_names2_count,
+    mocker: "MockerFixture",
+    reporter: report.Report,
+    input_report_what: str,  # symbols the collection to report
+    input_report_name: str,  # symbols the name of the collection items to report
+    input_report_type: str,  # valid values: all, csv, mediawiki, trac, doku
+    input_report_fields: str,  # valid values: all or a comma delimited str where spaces get removed
+    expected_print_all_fields_count: int,
+    expected_print_x_fields_count: int,
+    expected_print_sorted_count: int,
+    expected_list_names2_count: int,
 ):
     # Arrange
     input_report_noheaders = True

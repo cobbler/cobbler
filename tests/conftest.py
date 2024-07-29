@@ -117,7 +117,7 @@ def create_distro(
         test_distro.name = (
             request.node.originalname  # type: ignore
             if request.node.originalname  # type: ignore
-            else request.node.name
+            else request.node.name  # type: ignore
         )
         if name != "":
             test_distro.name = name
@@ -143,7 +143,7 @@ def create_profile(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
         test_profile.name = (
             request.node.originalname  # type: ignore
             if request.node.originalname  # type: ignore
-            else request.node.name
+            else request.node.name  # type: ignore
         )
         if name != "":
             test_profile.name = name
@@ -169,7 +169,7 @@ def create_image(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
         test_image.name = (
             request.node.originalname  # type: ignore
             if request.node.originalname  # type: ignore
-            else request.node.name
+            else request.node.name  # type: ignore
         )
         if name != "":
             test_image.name = name
@@ -194,7 +194,7 @@ def create_system(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
             test_system.name = (
                 request.node.originalname  # type: ignore
                 if request.node.originalname  # type: ignore
-                else request.node.name
+                else request.node.name  # type: ignore
             )
         else:
             test_system.name = name
@@ -203,7 +203,7 @@ def create_system(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
         if image_name != "":
             test_system.image = image_name
         test_system.interfaces = {
-            "default": NetworkInterface(cobbler_api, test_system.name)
+            "default": NetworkInterface(cobbler_api, test_system.name)  # type: ignore
         }
         cobbler_api.add_system(test_system)
         return test_system
@@ -225,7 +225,7 @@ def create_menu(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
             test_menu.name = (
                 request.node.originalname  # type: ignore
                 if request.node.originalname  # type: ignore
-                else request.node.name
+                else request.node.name  # type: ignore
             )
 
         test_menu.display_name = display_name

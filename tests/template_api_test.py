@@ -1,3 +1,7 @@
+"""
+Tests that validate the functionality of the module that is responsible for extending Cheetah to work with Cobbler.
+"""
+
 import pytest
 
 from cobbler.template_api import CobblerTemplate
@@ -11,7 +15,7 @@ class TestCobblerTemplate:
         compiled_template = CobblerTemplate(
             searchList=[{"autoinstall_snippets_dir": "/var/lib/cobbler/snippets"}]
         ).compile(source="$test")
-        result = str(compiled_template(namespaces={"test": 5}))
+        result = str(compiled_template(namespaces={"test": 5}))  # type: ignore
 
         # Assert
         assert result == "5"

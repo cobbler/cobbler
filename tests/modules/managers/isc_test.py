@@ -1,6 +1,7 @@
 """
-Test to verify the functionallity of the isc DHCP module.
+Test to verify the functionality of the isc DHCP module.
 """
+
 import time
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock

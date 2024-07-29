@@ -1,12 +1,17 @@
+"""
+Tests that validate the functionality of the module that is responsible for providing XML-RPC calls related to
+generic items.
+"""
+
 import pytest
 
-from cobbler.api import CobblerAPI
-from cobbler.items.menu import Menu
 from cobbler.remote import CobblerXMLRPCInterface
 
 
 @pytest.mark.usefixtures("create_testdistro", "remove_testdistro")
-def test_get_item_resolved(remote, fk_initrd, fk_kernel):
+def test_get_item_resolved(
+    remote: CobblerXMLRPCInterface, fk_initrd: str, fk_kernel: str
+):
     """
     Test: get an item object (in this case distro) which is resolved
     """
@@ -16,10 +21,10 @@ def test_get_item_resolved(remote, fk_initrd, fk_kernel):
     distro = remote.get_item("distro", "testdistro0", resolved=True)
 
     # Assert
-    assert distro.get("name") == "testdistro0"
-    assert distro.get("redhat_management_key") == ""
-    assert fk_initrd in distro.get("initrd")
-    assert fk_kernel in distro.get("kernel")
+    assert distro.get("name") == "testdistro0"  # type: ignore
+    assert distro.get("redhat_management_key") == ""  # type: ignore
+    assert fk_initrd in distro.get("initrd")  # type: ignore
+    assert fk_kernel in distro.get("kernel")  # type: ignore
 
 
 def test_remove_item(remote: CobblerXMLRPCInterface, token: str):

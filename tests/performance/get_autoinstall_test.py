@@ -1,11 +1,13 @@
 """
-Test module to assert the performance of retrieving an autoinstallation file.
+Test module to assert the performance of retrieving an auto-installation file.
 """
 
 from typing import Any, Callable, Dict, Tuple
 
 import pytest
-from pytest_benchmark.fixture import BenchmarkFixture
+from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
+    BenchmarkFixture,
+)
 
 from cobbler import autoinstall_manager
 from cobbler.api import CobblerAPI
@@ -65,7 +67,7 @@ def test_get_autoinstall(
     cobbler_api.settings().enable_menu = False
 
     # Act
-    result = benchmark.pedantic(
+    result = benchmark.pedantic(  # type: ignore
         item_get_autoinstall, setup=setup_func, rounds=CobblerTree.test_rounds
     )
 

@@ -1,21 +1,24 @@
-from unittest.mock import Mock
+"""
+Tests that validate the functionality of the module that is responsible for synchronizing the different daemons
+with each other.
+"""
 
 import pytest
 
 from cobbler.actions import sync
+from cobbler.api import CobblerAPI
 
 
 @pytest.mark.skip("TODO")
-def test_run_sync_systems():
+def test_run_sync_systems(cobbler_api: CobblerAPI):
     # Arrange
-    mcollection = Mock()
     # mock os.path.exists()
     # mock file access (run_triggers)
     # mock collections (distro, profile, etc.)
     # mock tftpd module
     # mock dns module
     # mock dhcp module
-    test_sync = sync.CobblerSync()
+    test_sync = sync.CobblerSync(cobbler_api)
 
     # Act
     test_sync.run_sync_systems(["t1.systems.de"])

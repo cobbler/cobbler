@@ -1,11 +1,15 @@
-import pytest
-import yaml
+"""
+Tests that validate the functionality of the module that is responsible for configuration file authentication.
+"""
 
+import pytest
+
+from cobbler.api import CobblerAPI
 from cobbler.modules.authentication import configfile
 
 
 @pytest.fixture(scope="function", autouse=True)
-def reset_hashfunction(cobbler_api):
+def reset_hashfunction(cobbler_api: CobblerAPI):
     yield
     cobbler_api.settings().modules.update(
         {
@@ -27,7 +31,9 @@ def reset_hashfunction(cobbler_api):
         )
     ],
 )
-def test_hashfun_positive(cobbler_api, hashfunction, test_input, exepcted_output):
+def test_hashfun_positive(
+    cobbler_api: CobblerAPI, hashfunction: str, test_input: str, exepcted_output: str
+):
     # Arrange
     cobbler_api.settings().modules.update(
         {"authentication": {"hash_algorithm": hashfunction}}
@@ -43,7 +49,9 @@ def test_hashfun_positive(cobbler_api, hashfunction, test_input, exepcted_output
 @pytest.mark.parametrize(
     "hashfunction,test_input,exepcted_output", [("md5", "testtext", "")]
 )
-def test_hashfun_negative(cobbler_api, hashfunction, test_input, exepcted_output):
+def test_hashfun_negative(
+    cobbler_api: CobblerAPI, hashfunction: str, test_input: str, exepcted_output: str
+):
     # Arrange
     cobbler_api.settings().modules.update(
         {"authentication": {"hash_algorithm": hashfunction}}
@@ -61,7 +69,9 @@ def test_register():
 @pytest.mark.parametrize(
     "hashfunction, username, password", [("md5", "cobbler", "cobbler")]
 )
-def test_authenticate_negative(cobbler_api, hashfunction, username, password):
+def test_authenticate_negative(
+    cobbler_api: CobblerAPI, hashfunction: str, username: str, password: str
+):
     # Arrange
     cobbler_api.settings().modules.update(
         {"authentication": {"hash_algorithm": hashfunction}}
@@ -75,7 +85,9 @@ def test_authenticate_negative(cobbler_api, hashfunction, username, password):
 @pytest.mark.parametrize(
     "hashfunction, username, password", [("sha3_512", "cobbler", "cobbler")]
 )
-def test_authenticate_positive(cobbler_api, hashfunction, username, password):
+def test_authenticate_positive(
+    cobbler_api: CobblerAPI, hashfunction: str, username: str, password: str
+):
     # Arrange
     cobbler_api.settings().modules.update(
         {"authentication": {"hash_algorithm": hashfunction}}

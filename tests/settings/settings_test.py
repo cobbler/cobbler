@@ -1,10 +1,15 @@
+"""
+Tests that validate the functionality of the module that is responsible for managing the settings.
+"""
+
 import os
 import pathlib
 import shutil
+from typing import Any, Dict, List
 
 import pytest
 import yaml
-from schema import SchemaError
+from schema import SchemaError  # type: ignore[reportMissingTypeStubs]
 
 from cobbler import settings
 from cobbler.settings import Settings
@@ -55,7 +60,7 @@ def test_is_valid():
         ({"invalid": True}, pytest.raises(ValueError), "127.0.0.1"),
     ],
 )
-def test_from_dict(parameter, expected_exception, expected_result):
+def test_from_dict(parameter: Any, expected_exception: Any, expected_result: str):
     # Arrange
     test_settings = Settings()
 
@@ -140,7 +145,12 @@ def test_from_dict(parameter, expected_exception, expected_result):
         ),
     ],
 )
-def test_validate_settings(parameter, expected_exception, expected_result, ignore_keys):
+def test_validate_settings(
+    parameter: Dict[str, Any],
+    expected_exception: Any,
+    expected_result: Dict[str, Any],
+    ignore_keys: List[str],
+):
     # Arrange
 
     # Act
@@ -297,7 +307,7 @@ def test_update_settings_file_extra_settings_list(tmpdir: pathlib.Path):
 
 def test_update_settings_file_emtpy_dict(tmpdir: pathlib.Path):
     # Arrange
-    settings_data = {}
+    settings_data: Dict[str, Any] = {}
     settings_path = os.path.join(tmpdir, "settings.yaml")
 
     # Act

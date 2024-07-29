@@ -1,4 +1,9 @@
-from typing import TYPE_CHECKING
+"""
+Tests that validate the functionality of the module that is responsible for restarting services after config file
+regeneration.
+"""
+
+from typing import TYPE_CHECKING, List
 
 from cobbler.api import CobblerAPI
 from cobbler.modules import sync_post_restart_services
@@ -22,7 +27,7 @@ def test_run(mocker: "MockerFixture"):
     )
     api = mocker.MagicMock(spec=CobblerAPI)
     api.get_module_name_from_file.side_effect = ["managers.isc", "managers.bind"]  # type: ignore
-    args = []
+    args: List[str] = []
 
     # Act
     result = sync_post_restart_services.run(api, args)

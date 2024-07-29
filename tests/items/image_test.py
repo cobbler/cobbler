@@ -1,17 +1,25 @@
-from typing import Callable
+"""
+Tests that validate the functionality of the module that is responsible for providing image related functionality.
+"""
+
+from typing import TYPE_CHECKING, Any, Callable
 
 import pytest
 
 from cobbler import enums
 from cobbler.api import CobblerAPI
 from cobbler.items.image import Image
+from cobbler.settings import Settings
 from cobbler.utils import signatures
 
 from tests.conftest import does_not_raise
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
-@pytest.fixture()
-def test_settings(mocker, cobbler_api: CobblerAPI):
+
+@pytest.fixture(name="test_settings")
+def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> Settings:
     settings = mocker.MagicMock(name="image_setting_mock", spec=cobbler_api.settings())
     orig = cobbler_api.settings()
     for key in orig.to_dict():
@@ -151,7 +159,10 @@ def test_virt_auto_boot(cobbler_api: CobblerAPI):
     ],
 )
 def test_virt_file_size(
-    cobbler_api: CobblerAPI, input_virt_file_size, expected_exception, expected_result
+    cobbler_api: CobblerAPI,
+    input_virt_file_size: Any,
+    expected_exception: Any,
+    expected_result: float,
 ):
     # Arrange
     image = Image(cobbler_api)
@@ -285,7 +296,9 @@ def test_to_dict_resolved(create_image: Callable[[], Image]):
     assert enums.VALUE_INHERITED not in str(result)
 
 
-def test_inheritance(mocker, cobbler_api: CobblerAPI, test_settings):
+def test_inheritance(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI, test_settings: Settings
+):
     """
     Checking that inherited properties are correctly inherited from settings and
     that the <<inherit>> value can be set for them.

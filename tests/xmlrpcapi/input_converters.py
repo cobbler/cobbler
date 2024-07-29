@@ -1,4 +1,13 @@
+"""
+Tests that validate the functionality of the module that is responsible for providing XML-RPC calls related to
+input conversion.
+"""
+
+from typing import Any, Dict, List
+
 import pytest
+
+from cobbler.remote import CobblerXMLRPCInterface
 
 from tests.conftest import does_not_raise
 
@@ -7,7 +16,10 @@ from tests.conftest import does_not_raise
     "input_options,expected_result,expected_exception", [([], [], does_not_raise())]
 )
 def test_input_string_or_list_no_inherit(
-    remote, input_options, expected_result, expected_exception
+    remote: CobblerXMLRPCInterface,
+    input_options: List[str],
+    expected_result: List[str],
+    expected_exception: Any,
 ):
     """
     Test: check Cobbler status
@@ -31,7 +43,12 @@ def test_input_string_or_list_no_inherit(
         (5, None, pytest.raises(TypeError)),
     ],
 )
-def test_input_string_or_list(remote, test_input, expected_result, expected_excpetion):
+def test_input_string_or_list(
+    remote: CobblerXMLRPCInterface,
+    test_input: Any,
+    expected_result: Any,
+    expected_excpetion: Any,
+):
     """
     Test: check Cobbler status
     """
@@ -53,7 +70,12 @@ def test_input_string_or_list(remote, test_input, expected_result, expected_excp
         (0, None, pytest.raises(TypeError)),
     ],
 )
-def test_input_string_or_dict(remote, testinput, expected_result, possible_exception):
+def test_input_string_or_dict(
+    remote: CobblerXMLRPCInterface,
+    testinput: Any,
+    expected_result: Any,
+    possible_exception: Any,
+):
     """
     Test: check Cobbler status
     """
@@ -70,7 +92,11 @@ def test_input_string_or_dict(remote, testinput, expected_result, possible_excep
     [({}, True, {}, does_not_raise())],
 )
 def test_input_string_or_dict_no_inherit(
-    remote, input_options, input_allow_multiples, expected_result, expected_exception
+    remote: CobblerXMLRPCInterface,
+    input_options: Dict[str, str],
+    input_allow_multiples: bool,
+    expected_result: Dict[str, str],
+    expected_exception: Any,
 ):
     """
     Test: check Cobbler status
@@ -98,7 +124,12 @@ def test_input_string_or_dict_no_inherit(
         (0.5, pytest.raises(TypeError), False),
     ],
 )
-def test_input_boolean(remote, testinput, expected_exception, expected_result):
+def test_input_boolean(
+    remote: CobblerXMLRPCInterface,
+    testinput: Any,
+    expected_exception: Any,
+    expected_result: bool,
+):
     """
     Test: check Cobbler status
     """
@@ -124,7 +155,12 @@ def test_input_boolean(remote, testinput, expected_exception, expected_result):
         (0.5, does_not_raise(), 0),
     ],
 )
-def test_input_int(remote, testinput, expected_exception, expected_result):
+def test_input_int(
+    remote: CobblerXMLRPCInterface,
+    testinput: Any,
+    expected_exception: Any,
+    expected_result: int,
+):
     """
     Test: check Cobbler status
     """

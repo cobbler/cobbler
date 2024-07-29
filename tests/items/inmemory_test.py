@@ -1,5 +1,5 @@
 """
-TODO
+Tests that validate the functionality of the module that is responsible for lazy loading items.
 """
 
 import os
@@ -21,15 +21,15 @@ from cobbler.items.system import System
 @pytest.fixture(scope="function")
 def inmemory_api() -> CobblerAPI:
     """
-    TODO
+    Fixture to provide an CobblerAPI object that is suitable for testing lazy loading items.
     """
-    CobblerAPI.__shared_state = {}
-    CobblerAPI.__has_loaded = False
+    CobblerAPI.__shared_state = {}  # type: ignore[reportPrivateUsage]
+    CobblerAPI.__has_loaded = False  # type: ignore[reportPrivateUsage]
     api = CobblerAPI()
     api.settings().lazy_start = True
     manager.CollectionManager.has_loaded = False
-    manager.CollectionManager.__shared_state = {}
-    api._collection_mgr = manager.CollectionManager(api)
+    manager.CollectionManager.__shared_state = {}  # type: ignore[reportPrivateUsage]
+    api._collection_mgr = manager.CollectionManager(api)  # type: ignore[reportPrivateUsage]
     return api
 
 
@@ -40,7 +40,7 @@ def test_inmemory(
     fk_kernel: str,
 ):
     """
-    TODO
+    Test that verifies that lazy loading of items works.
     """
     # Arrange
     test_repo = Repo(inmemory_api, **{"name": "test_repo", "comment": "test comment"})
@@ -138,16 +138,16 @@ def test_inmemory(
 
     inmemory_api.deserialize()
 
-    test_repo = inmemory_api.find_repo("test_repo")
-    test_menu1 = inmemory_api.find_menu("test_menu1")
-    test_menu2 = inmemory_api.find_menu("test_menu2")
-    test_distro = inmemory_api.find_distro("test_distro")
-    test_profile1 = inmemory_api.find_profile("test_profile1")
-    test_profile2 = inmemory_api.find_profile("test_profile2")
-    test_profile3 = inmemory_api.find_profile("test_profile3")
-    test_image = inmemory_api.find_image("test_image")
-    test_system1 = inmemory_api.find_system("test_system1")
-    test_system2 = inmemory_api.find_system("test_system2")
+    test_repo: Repo = inmemory_api.find_repo("test_repo")  # type: ignore[reportAssignmentType]
+    test_menu1: Menu = inmemory_api.find_menu("test_menu1")  # type: ignore[reportAssignmentType]
+    test_menu2: Menu = inmemory_api.find_menu("test_menu2")  # type: ignore[reportAssignmentType]
+    test_distro: Distro = inmemory_api.find_distro("test_distro")  # type: ignore[reportAssignmentType]
+    test_profile1: Profile = inmemory_api.find_profile("test_profile1")  # type: ignore[reportAssignmentType]
+    test_profile2: Profile = inmemory_api.find_profile("test_profile2")  # type: ignore[reportAssignmentType]
+    test_profile3: Profile = inmemory_api.find_profile("test_profile3")  # type: ignore[reportAssignmentType]
+    test_image: Image = inmemory_api.find_image("test_image")  # type: ignore[reportAssignmentType]
+    test_system1: System = inmemory_api.find_system("test_system1")  # type: ignore[reportAssignmentType]
+    test_system2: System = inmemory_api.find_system("test_system2")  # type: ignore[reportAssignmentType]
 
     # Act
     result = True
@@ -163,7 +163,7 @@ def test_inmemory(
             result = obj.inmemory is False if result else result
             result = obj.__dict__["_comment"] == "" if result else result
 
-    comment = test_system1.comment if result else result
+    comment = test_system1.comment if result else result  # type: ignore[reportUnusedVariable]
     result = test_repo.inmemory if result else result
     result = test_menu1.inmemory if result else result
     result = not test_menu2.inmemory if result else result

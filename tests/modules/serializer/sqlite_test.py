@@ -1,3 +1,7 @@
+"""
+Tests that validate the functionality of the module that is responsible for (de)serializing items to SQLite.
+"""
+
 import json
 import os
 import pathlib
@@ -18,7 +22,7 @@ from tests.conftest import does_not_raise
 
 
 @pytest.fixture()
-def test_settings(mocker: MockerFixture, cobbler_api: CobblerAPI):
+def test_settings(mocker: MockerFixture, cobbler_api: CobblerAPI) -> Settings:
     settings = mocker.MagicMock(name="sqlite_setting_mock", spec=Settings)
     settings.lazy_start = False
     settings.cache_enabled = False
@@ -65,7 +69,10 @@ class MockCollection(Collection[MockItem]):
 
 @pytest.fixture()
 def serializer_obj(
-    mocker: MockerFixture, cobbler_api: CobblerAPI, tmpdir: pathlib.Path, test_settings
+    mocker: MockerFixture,
+    cobbler_api: CobblerAPI,
+    tmpdir: pathlib.Path,
+    test_settings: Settings,
 ):
     """
     Generates an empty serializer object that is ready to be used.
@@ -207,7 +214,7 @@ def test_serialize_delete(
 
 @pytest.mark.parametrize(
     "input_collection_type,input_collection",
-    [("settings", {}), ("tests", MagicMock())],
+    [("tests", MagicMock())],
 )
 def test_serialize(
     #    mocker: MockerFixture,
@@ -217,48 +224,39 @@ def test_serialize(
     cobbler_api: CobblerAPI,
 ):
     # Arrange
-    if input_collection_type == "settings":
-        mcollection = Settings()
-    else:
-        mitem = MockItem(cobbler_api)
-        mitem.name = "test_serialize"
-        mcollection = MockCollection(cobbler_api._collection_mgr)  # type: ignore
-        mcollection.listing[mitem.name] = mitem
+    mitem = MockItem(cobbler_api)
+    mitem.name = "test_serialize"
+    mcollection = MockCollection(cobbler_api._collection_mgr)  # type: ignore
+    mcollection.listing[mitem.name] = mitem
 
     # Act
     serializer_obj.serialize(mcollection)  # type: ignore
-    if input_collection_type != "settings":
-        cursor = serializer_obj.connection.execute(  # type: ignore
-            "SELECT name FROM sqlite_master WHERE name=:name",
-            {"name": input_collection_type},
-        )
-        table_exists = cursor.fetchone() is not None
-        cursor = serializer_obj.connection.execute(  # type: ignore
-            f"SELECT name FROM {input_collection_type} WHERE name=:name",
-            {"name": mitem.name},  # type: ignore
-        )
-        row_exists = cursor.fetchone() is not None
+    cursor = serializer_obj.connection.execute(  # type: ignore
+        "SELECT name FROM sqlite_master WHERE name=:name",
+        {"name": input_collection_type},
+    )
+    table_exists = cursor.fetchone() is not None
+    cursor = serializer_obj.connection.execute(  # type: ignore
+        f"SELECT name FROM {input_collection_type} WHERE name=:name",
+        {"name": mitem.name},  # type: ignore
+    )
+    row_exists = cursor.fetchone() is not None
 
-        # Cleanup
-        serializer_obj.connection.execute("DROP table if exists tests")  # type: ignore
-        serializer_obj.connection.commit()  # type: ignore
-        serializer_obj.connection.close()  # type: ignore
+    # Cleanup
+    serializer_obj.connection.execute("DROP table if exists tests")  # type: ignore
+    serializer_obj.connection.commit()  # type: ignore
+    serializer_obj.connection.close()  # type: ignore
 
     # Assert
-    if input_collection_type == "settings":
-        assert mcollection.collection_types() == "settings"
-    else:
-        assert os.path.exists(serializer_obj.database_file)
-        assert table_exists  # type: ignore[reportUnboundVariable]
-        assert row_exists  # type: ignore[reportUnboundVariable]
+    assert os.path.exists(serializer_obj.database_file)
+    assert table_exists  # type: ignore[reportUnboundVariable]
+    assert row_exists  # type: ignore[reportUnboundVariable]
 
 
 @pytest.mark.parametrize(
     "input_collection_type,expected_result,settings_read,lazy_start,expected_inmemory",
     [
-        ("settings", {}, True, False, True),
         ("tests", "test_deserialize_raw", False, False, True),
-        ("settings", {}, True, True, False),
         ("tests", "test_deserialize_raw", False, True, False),
     ],
 )
@@ -271,7 +269,7 @@ def test_deserialize_raw(
     expected_inmemory: bool,
     serializer_obj: sqlite.SQLiteSerializer,
     cobbler_api: CobblerAPI,
-    test_settings,
+    test_settings: Settings,
 ):
     """
     Test that will assert if a given item can be deserilized in raw.
@@ -295,18 +293,13 @@ def test_deserialize_raw(
     serializer_obj.connection.close()  # type: ignore
 
     # Assert
-    if input_collection_type == "settings":
-        assert result == expected_result
-    else:
-        assert result[0]["name"] == expected_result
-        assert result[0]["inmemory"] == expected_inmemory
+    assert result[0]["name"] == expected_result  # type: ignore
+    assert result[0]["inmemory"] == expected_inmemory  # type: ignore
 
 
 @pytest.mark.parametrize(
     "input_collection_type,input_collection,input_topological,expected_result",
     [
-        ("settings", {}, True, {}),
-        ("settings", {}, False, {}),
         (
             "distros",
             [{"depth": 2, "name": False}, {"depth": 1, "name": True}],
@@ -350,17 +343,10 @@ def test_deserialize(
         "deserialize_raw",
         return_value=input_collection,
     )
-    if input_collection_type == "settings":
-        stub_from = mocker.stub(name="from_dict_stub")
-        mock = Settings()
-        mocker.patch.object(mock, "from_dict", new=stub_from)
-    else:
-        stub_from = mocker.stub(name="from_list_stub")
-        mock = MockCollection(mocker.MagicMock())
-        mocker.patch.object(mock, "from_list", new=stub_from)
-        mocker.patch.object(
-            mock, "collection_types", return_value=input_collection_type
-        )
+    stub_from = mocker.stub(name="from_list_stub")
+    mock = MockCollection(mocker.MagicMock())
+    mocker.patch.object(mock, "from_list", new=stub_from)
+    mocker.patch.object(mock, "collection_types", return_value=input_collection_type)
 
     # Act
     serializer_obj.deserialize(mock, input_topological)  # type: ignore

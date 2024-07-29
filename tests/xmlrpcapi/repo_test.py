@@ -1,8 +1,15 @@
+"""
+Tests that validate the functionality of the module that is responsible for providing XML-RPC calls related to
+repositories.
+"""
+
 import pytest
+
+from cobbler.remote import CobblerXMLRPCInterface
 
 
 @pytest.fixture
-def create_repo(remote, token):
+def create_repo(remote: CobblerXMLRPCInterface, token: str):
     """
     Creates a Repository "testrepo0" with a mirror "http://www.sample.com/path/to/some/repo" and the attribute
     "mirror_locally=0".
@@ -18,7 +25,7 @@ def create_repo(remote, token):
 
 
 @pytest.fixture
-def remove_repo(remote, token):
+def remove_repo(remote: CobblerXMLRPCInterface, token: str):
     """
     Removes the Repository "testrepo0" which can be created with create_repo.
 
@@ -30,8 +37,12 @@ def remove_repo(remote, token):
 
 
 class TestRepo:
+    """
+    TODO
+    """
+
     @pytest.mark.usefixtures("remove_repo")
-    def test_create_repo(self, remote, token):
+    def test_create_repo(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: create/edit a repo object
         """
@@ -47,7 +58,7 @@ class TestRepo:
         assert remote.modify_repo(repo, "mirror_locally", False, token)
         assert remote.save_repo(repo, token)
 
-    def test_get_repos(self, remote):
+    def test_get_repos(self, remote: CobblerXMLRPCInterface):
         """
         Test: Get repos
         """
@@ -61,7 +72,7 @@ class TestRepo:
         assert result == []
 
     @pytest.mark.usefixtures("create_repo", "remove_repo")
-    def test_get_repo(self, remote, token):
+    def test_get_repo(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: Get a repo object
         """
@@ -72,10 +83,10 @@ class TestRepo:
         repo = remote.get_repo("testrepo0")
 
         # Assert
-        assert repo.get("name") == "testrepo0"
+        assert repo.get("name") == "testrepo0"  # type: ignore
 
     @pytest.mark.usefixtures("create_repo", "remove_repo")
-    def test_find_repo(self, remote, token):
+    def test_find_repo(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: find a repo object
         """
@@ -83,13 +94,13 @@ class TestRepo:
         # Arrange --> Done in fixture
 
         # Act
-        result = remote.find_repo({"name": "testrepo0"}, token)
+        result = remote.find_repo({"name": "testrepo0"}, False, False, token)
 
         # Assert
         assert result
 
     @pytest.mark.usefixtures("create_repo", "remove_repo")
-    def test_copy_repo(self, remote, token):
+    def test_copy_repo(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: copy a repo object
         """
@@ -106,7 +117,7 @@ class TestRepo:
         remote.remove_repo("testrepocopy", token)
 
     @pytest.mark.usefixtures("create_repo")
-    def test_rename_repo(self, remote, token):
+    def test_rename_repo(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: rename a repo object
         """
@@ -124,7 +135,7 @@ class TestRepo:
         remote.remove_repo("testrepo1", token)
 
     @pytest.mark.usefixtures("create_repo")
-    def test_remove_repo(self, remote, token):
+    def test_remove_repo(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: remove a repo object
         """

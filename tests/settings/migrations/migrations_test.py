@@ -1,6 +1,7 @@
 """
 Tests for the Cobbler settings migrations
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
@@ -69,7 +70,7 @@ def test_discover_migrations():
     # Act
     migrations.discover_migrations()
     # Assert
-    assert migrations.VERSION_LIST is not None
+    assert migrations.VERSION_LIST is not None  # type: ignore
 
 
 def test_get_installed_version():

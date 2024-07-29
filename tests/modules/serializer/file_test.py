@@ -199,7 +199,7 @@ def test_serialize_delete(
 
 @pytest.mark.parametrize(
     "input_collection_type,input_collection",
-    [("settings", {}), ("distros", MagicMock())],
+    [("distros", MagicMock())],
 )
 def test_serialize(
     mocker: MockerFixture,
@@ -234,7 +234,6 @@ def test_serialize(
 @pytest.mark.parametrize(
     "input_collection_type,expected_result,settings_read",
     [
-        ("settings", {}, True),
         ("distros", [], False),
     ],
 )
@@ -261,8 +260,6 @@ def test_deserialize_raw(
 @pytest.mark.parametrize(
     "input_collection_type,input_collection,input_topological,expected_result",
     [
-        ("settings", {}, True, {}),
-        ("settings", {}, False, {}),
         (
             "distros",
             [{"depth": 2, "name": False}, {"depth": 1, "name": True}],

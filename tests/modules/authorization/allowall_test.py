@@ -1,3 +1,8 @@
+"""
+Tests that validate the functionality of the module that is responsible for authorization.
+"""
+
+from cobbler.api import CobblerAPI
 from cobbler.modules.authorization import allowall
 
 
@@ -6,6 +11,6 @@ def test_register():
     assert allowall.register() == "authz"
 
 
-def test_authorize():
+def test_authorize(cobbler_api: CobblerAPI):
     # Arrange & Act & Assert
-    assert allowall.authorize(None, None, None)
+    assert allowall.authorize(cobbler_api, "", "")

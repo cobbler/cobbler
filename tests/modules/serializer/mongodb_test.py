@@ -1,5 +1,9 @@
+"""
+Tests that validate the functionality of the module that is responsible for (de)serializing items to MongoDB.
+"""
+
 import copy
-from typing import ContextManager
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -9,15 +13,18 @@ from cobbler.modules.serializers import mongodb
 
 from tests.conftest import does_not_raise
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
 
 @pytest.fixture
-def mongodb_obj(cobbler_api: CobblerAPI):
+def mongodb_obj(cobbler_api: CobblerAPI) -> mongodb.MongoDBSerializer:
     return mongodb.storage_factory(cobbler_api)
 
 
 @pytest.fixture(scope="function", autouse=True)
-def reset_database(mongodb_obj):
-    mongodb_obj.mongodb.drop_database("cobbler")
+def reset_database(mongodb_obj: mongodb.MongoDBSerializer):
+    mongodb_obj.mongodb.drop_database("cobbler")  # type: ignore
 
 
 def test_register():
@@ -36,7 +43,9 @@ def test_storage_factory(cobbler_api: CobblerAPI):
     assert isinstance(result, mongodb.MongoDBSerializer)
 
 
-def test_serialize_item(mocker, mongodb_obj):
+def test_serialize_item(
+    mocker: "MockerFixture", mongodb_obj: mongodb.MongoDBSerializer
+):
     # Arrange
     mock_collection = mocker.MagicMock()
     mock_collection.collection_types.return_value = "distros"
@@ -49,10 +58,12 @@ def test_serialize_item(mocker, mongodb_obj):
     mongodb_obj.serialize_item(mock_collection, mock_item)
 
     # Assert
-    assert len(list(mongodb_obj.mongodb["cobbler"]["distros"].find())) == 1
+    assert len(list(mongodb_obj.mongodb["cobbler"]["distros"].find())) == 1  # type: ignore
 
 
-def test_serialize_delete(mocker, mongodb_obj):
+def test_serialize_delete(
+    mocker: "MockerFixture", mongodb_obj: mongodb.MongoDBSerializer
+):
     # Arrange
     mock_collection = mocker.MagicMock()
     mock_collection.collection_types.return_value = "distros"
@@ -63,10 +74,10 @@ def test_serialize_delete(mocker, mongodb_obj):
     mongodb_obj.serialize_delete(mock_collection, mock_item)
 
     # Assert
-    assert len(list(mongodb_obj.mongodb["cobbler"]["distros"].find())) == 0
+    assert len(list(mongodb_obj.mongodb["cobbler"]["distros"].find())) == 0  # type: ignore
 
 
-def test_serialize(mocker, mongodb_obj):
+def test_serialize(mocker: "MockerFixture", mongodb_obj: mongodb.MongoDBSerializer):
     # Arrange
     mock_collection = mocker.MagicMock()
     mock_collection.collection_types.return_value = "distros"
@@ -80,13 +91,13 @@ def test_serialize(mocker, mongodb_obj):
     assert mock_serialize_item.call_count == 1
 
 
-def test_deserialize_raw(mongodb_obj):
+def test_deserialize_raw(mongodb_obj: mongodb.MongoDBSerializer):
     # Arrange
     collection_type = "distros"
-    mongodb_obj.mongodb["cobbler"][collection_type].insert_one(
+    mongodb_obj.mongodb["cobbler"][collection_type].insert_one(  # type: ignore
         {"name": "testitem", "arch": "x86_64"}
     )
-    mongodb_obj.mongodb["cobbler"][collection_type].insert_one(
+    mongodb_obj.mongodb["cobbler"][collection_type].insert_one(  # type: ignore
         {"name": "testitem2", "arch": "x86_64"}
     )
 
@@ -98,7 +109,7 @@ def test_deserialize_raw(mongodb_obj):
     assert len(result) == 2
 
 
-def test_deserialize(mocker, mongodb_obj):
+def test_deserialize(mocker: "MockerFixture", mongodb_obj: mongodb.MongoDBSerializer):
     # Arrange
     mock_collection = mocker.MagicMock()
     mock_collection.collection_types.return_value = "distros"
@@ -131,17 +142,17 @@ def test_deserialize(mocker, mongodb_obj):
     ],
 )
 def test_deserialize_item(
-    mongodb_obj: mongodb.MongoDBSerializer, item_name: str, expected_exception
+    mongodb_obj: mongodb.MongoDBSerializer, item_name: str, expected_exception: Any
 ):
     # Arrange
     collection_type = "distros"
     input_value = {"name": item_name, "arch": "x86_64"}
     test_item = copy.deepcopy(input_value)
-    if item_name is not None:
-        mongodb_obj.mongodb["cobbler"][collection_type].insert_one(test_item)
+    if item_name is not None:  # type: ignore
+        mongodb_obj.mongodb["cobbler"][collection_type].insert_one(test_item)  # type: ignore
 
     expected_value = input_value.copy()
-    expected_value["inmemory"] = True
+    expected_value["inmemory"] = True  # type: ignore
 
     # Act
     with expected_exception:

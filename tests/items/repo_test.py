@@ -1,14 +1,24 @@
+"""
+Tests that validate the functionality of the module that is responsible for providing repository related functionality.
+"""
+
+from typing import TYPE_CHECKING, Any
+
 import pytest
 
 from cobbler import enums
 from cobbler.api import CobblerAPI
 from cobbler.items.repo import Repo
+from cobbler.settings import Settings
 
 from tests.conftest import does_not_raise
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
-@pytest.fixture()
-def test_settings(mocker, cobbler_api: CobblerAPI):
+
+@pytest.fixture(name="test_settings")
+def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> Settings:
     settings = mocker.MagicMock(name="repo_setting_mock", spec=cobbler_api.settings())
     orig = cobbler_api.settings()
     for key in orig.to_dict():
@@ -166,7 +176,10 @@ def test_rpm_list(cobbler_api: CobblerAPI):
     ],
 )
 def test_createrepo_flags(
-    cobbler_api: CobblerAPI, input_flags, expected_exception, expected_result
+    cobbler_api: CobblerAPI,
+    input_flags: Any,
+    expected_exception: Any,
+    expected_result: str,
 ):
     # Arrange
     testrepo = Repo(cobbler_api)
@@ -213,7 +226,7 @@ def test_os_version(cobbler_api: CobblerAPI):
         ("", pytest.raises(ValueError)),
     ],
 )
-def test_arch(cobbler_api: CobblerAPI, value, expected_exception):
+def test_arch(cobbler_api: CobblerAPI, value: Any, expected_exception: Any):
     # Arrange
     testrepo = Repo(cobbler_api)
 
@@ -270,7 +283,10 @@ def test_apt_dists(cobbler_api: CobblerAPI):
     ],
 )
 def test_proxy(
-    cobbler_api: CobblerAPI, input_proxy, expected_exception, expected_result
+    cobbler_api: CobblerAPI,
+    input_proxy: Any,
+    expected_exception: Any,
+    expected_result: str,
 ):
     # Arrange
     testrepo = Repo(cobbler_api)
@@ -283,7 +299,9 @@ def test_proxy(
         assert testrepo.proxy == expected_result
 
 
-def test_inheritance(mocker, cobbler_api: CobblerAPI, test_settings):
+def test_inheritance(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI, test_settings: Settings
+):
     """
     Checking that inherited properties are correctly inherited from settings and
     that the <<inherit>> value can be set for them.

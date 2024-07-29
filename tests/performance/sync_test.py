@@ -5,7 +5,9 @@ Test module to assert the performance of "cobbler sync".
 from typing import Any, Callable, Dict, Tuple
 
 import pytest
-from pytest_benchmark.fixture import BenchmarkFixture
+from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
+    BenchmarkFixture,
+)
 
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
@@ -68,7 +70,7 @@ def test_sync(
     cobbler_api.settings().enable_menu = enable_menu
 
     # Act
-    result = benchmark.pedantic(sync, setup=setup_func, rounds=CobblerTree.test_rounds)
+    result = benchmark.pedantic(sync, setup=setup_func, rounds=CobblerTree.test_rounds)  # type: ignore
 
     # Cleanup
     CobblerTree.remove_all_objs(cobbler_api)

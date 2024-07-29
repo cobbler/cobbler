@@ -1,4 +1,9 @@
+"""
+Tests that validate the functionality of the module that is responsible for building bootable ISOs.
+"""
+
 import os
+from typing import Any, Callable, Dict
 
 import pytest
 
@@ -7,6 +12,11 @@ from cobbler.actions import buildiso
 from cobbler.actions.buildiso import LoaderCfgsParts
 from cobbler.actions.buildiso.netboot import NetbootBuildiso
 from cobbler.actions.buildiso.standalone import StandaloneBuildiso
+from cobbler.api import CobblerAPI
+from cobbler.items.distro import Distro
+from cobbler.items.image import Image
+from cobbler.items.profile import Profile
+from cobbler.items.system import System
 
 from tests.conftest import does_not_raise
 
@@ -26,10 +36,10 @@ from tests.conftest import does_not_raise
     ],
 )
 def test_calculate_grub_name(
-    input_arch,
-    result_binary_name,
-    expected_exception,
-    cobbler_api,
+    input_arch: enums.Archs,
+    result_binary_name: str,
+    expected_exception: Any,
+    cobbler_api: CobblerAPI,
 ):
     # Arrange
     test_builder = buildiso.BuildIso(cobbler_api)
@@ -55,7 +65,7 @@ def test_calculate_grub_name(
         ({"test": ['"test"', "test"]}, ' test="test" test=test'),
     ],
 )
-def test_add_remaining_kopts(input_kopts_dict, exepcted_output):
+def test_add_remaining_kopts(input_kopts_dict: Dict[str, Any], exepcted_output: str):
     # Arrange (missing)
     # Act
     output = buildiso.add_remaining_kopts(input_kopts_dict)
@@ -64,7 +74,7 @@ def test_add_remaining_kopts(input_kopts_dict, exepcted_output):
     assert output == exepcted_output
 
 
-def test_make_shorter(cobbler_api):
+def test_make_shorter(cobbler_api: CobblerAPI):
     # Arrange
     build_iso = NetbootBuildiso(cobbler_api)
     distroname = "Testdistro"
@@ -78,32 +88,37 @@ def test_make_shorter(cobbler_api):
     assert result == "1"
 
 
-def test_copy_boot_files(cobbler_api, create_distro, tmpdir):
+def test_copy_boot_files(
+    cobbler_api: CobblerAPI, create_distro: Callable[[], Distro], tmpdir: Any
+):
     # Arrange
-    target_folder = tmpdir.mkdir("target")
+    target_folder: str = tmpdir.mkdir("target")
     build_iso = buildiso.BuildIso(cobbler_api)
     testdistro = create_distro()
 
     # Act
-    build_iso._copy_boot_files(testdistro.kernel, testdistro.initrd, target_folder)
+    build_iso._copy_boot_files(testdistro.kernel, testdistro.initrd, target_folder)  # type: ignore[reportPrivateUsage]
 
     # Assert
     assert len(os.listdir(target_folder)) == 2
 
 
 def test_netboot_generate_boot_loader_configs(
-    cobbler_api, create_distro, create_profile, create_system
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Callable[[str], System],
 ):
     test_distro = create_distro()
-    test_distro.kernel_options = "test_distro_option=distro"
+    test_distro.kernel_options = "test_distro_option=distro"  # type: ignore
     test_profile = create_profile(test_distro.name)
-    test_profile.kernel_options = "test_profile_option=profile"
+    test_profile.kernel_options = "test_profile_option=profile"  # type: ignore
     test_system = create_system(test_profile.name)
-    test_system.kernel_options = "test_system_option=system"
+    test_system.kernel_options = "test_system_option=system"  # type: ignore
     build_iso = NetbootBuildiso(cobbler_api)
 
     # Act
-    result = build_iso._generate_boot_loader_configs(
+    result = build_iso._generate_boot_loader_configs(  # type: ignore[reportPrivateUsage]
         [test_profile.name], [test_system.name], True
     )
     matching_isolinux_kernel = [
@@ -156,13 +171,17 @@ def test_netboot_generate_boot_loader_configs(
 
 
 def test_filter_system(
-    cobbler_api, create_distro, create_profile, create_system, create_image
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+    create_image: Callable[[], Image],
 ):
     test_distro = create_distro()
     test_profile = create_profile(test_distro.name)
     test_system_profile = create_system(profile_name=test_profile.name)
     test_image = create_image()
-    test_system_image = create_system(
+    test_system_image: System = create_system(
         image_name=test_image.name, name="test_filter_system_image_image"
     )
     itemlist = [test_system_profile.name, test_system_image.name]
@@ -176,7 +195,11 @@ def test_filter_system(
     assert expected_result == result
 
 
-def test_filter_profile(cobbler_api, create_distro, create_profile):
+def test_filter_profile(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
     # Arrange
     test_distro = create_distro()
     test_profile = create_profile(test_distro.name)
@@ -192,9 +215,9 @@ def test_filter_profile(cobbler_api, create_distro, create_profile):
 
 
 def test_netboot_run(
-    cobbler_api,
-    create_distro,
-    tmpdir,
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    tmpdir: Any,
 ):
     # Arrange
     test_distro = create_distro()
@@ -209,14 +232,14 @@ def test_netboot_run(
 
 
 def test_standalone_run(
-    cobbler_api,
-    create_distro,
-    tmpdir_factory,
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    tmpdir_factory: pytest.TempPathFactory,
 ):
     # Arrange
     iso_directory = tmpdir_factory.mktemp("isodir")
     iso_source = tmpdir_factory.mktemp("isosource")
-    iso_location = iso_directory.join("autoinst.iso")
+    iso_location: Any = iso_directory.join("autoinst.iso")  # type: ignore
     test_distro = create_distro()
     build_iso = StandaloneBuildiso(cobbler_api)
 

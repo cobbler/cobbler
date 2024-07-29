@@ -4,20 +4,24 @@ Test module to confirm that the Cobbler Item Distro is working as expected.
 
 import os
 import pathlib
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 import pytest
 
 from cobbler import enums
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
+from cobbler.settings import Settings
 from cobbler.utils import signatures
 
 from tests.conftest import does_not_raise
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
-@pytest.fixture()
-def test_settings(mocker, cobbler_api: CobblerAPI):
+
+@pytest.fixture(name="test_settings")
+def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> Settings:
     settings = mocker.MagicMock(name="distro_setting_mock", spec=cobbler_api.settings())
     orig = cobbler_api.settings()
     for key in orig.to_dict():
@@ -558,7 +562,9 @@ def test_find_distro_path(
     assert result == tmp_path.as_posix()
 
 
-def test_inheritance(mocker, cobbler_api: CobblerAPI, test_settings):
+def test_inheritance(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI, test_settings: Settings
+):
     """
     Checking that inherited properties are correctly inherited from settings and
     that the <<inherit>> value can be set for them.

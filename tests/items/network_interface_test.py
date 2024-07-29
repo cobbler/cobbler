@@ -1,17 +1,30 @@
+"""
+Tests that validate the functionality of the module that is responsible for providing network interface related
+functionality.
+"""
+
 import logging
 from ipaddress import AddressValueError
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Union
 
 import pytest
 
 from cobbler import enums
 from cobbler.api import CobblerAPI
+from cobbler.items.distro import Distro
 from cobbler.items.network_interface import NetworkInterface
+from cobbler.items.profile import Profile
+from cobbler.items.system import System
+from cobbler.settings import Settings
 
 from tests.conftest import does_not_raise
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
-@pytest.fixture()
-def test_settings(mocker, cobbler_api: CobblerAPI):
+
+@pytest.fixture(name="test_settings")
+def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> Settings:
     settings = mocker.MagicMock(
         name="interface_setting_mock", spec=cobbler_api.settings()
     )
@@ -67,12 +80,12 @@ def test_network_interface_to_dict_resolved(cobbler_api: CobblerAPI):
     ],
 )
 def test_network_interface_from_dict(
-    caplog,
+    caplog: pytest.LogCaptureFixture,
     cobbler_api: CobblerAPI,
-    input_dict,
-    modified_field,
-    expected_result,
-    expect_logger_warning,
+    input_dict: Dict[str, str],
+    modified_field: str,
+    expected_result: str,
+    expect_logger_warning: bool,
 ):
     # Arrange
     caplog.set_level(logging.INFO)
@@ -106,7 +119,10 @@ def test_deserialize():
     ],
 )
 def test_dhcp_tag(
-    cobbler_api: CobblerAPI, input_dhcp_tag, expected_result, expected_exception
+    cobbler_api: CobblerAPI,
+    input_dhcp_tag: Any,
+    expected_result: str,
+    expected_exception: Any,
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
@@ -154,14 +170,17 @@ def test_static_routes(cobbler_api: CobblerAPI):
     ],
 )
 def test_static(
-    cobbler_api: CobblerAPI, input_static, expected_result, expected_exception
+    cobbler_api: CobblerAPI,
+    input_static: Union[int, List[int], str],
+    expected_result: Union[bool, str],
+    expected_exception: Any,
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
-        interface.static = input_static
+        interface.static = input_static  # type: ignore
 
         # Assert
         assert isinstance(interface.static, bool)
@@ -178,7 +197,10 @@ def test_static(
     ],
 )
 def test_management(
-    cobbler_api: CobblerAPI, input_management, expected_result, expected_exception
+    cobbler_api: CobblerAPI,
+    input_management: Any,
+    expected_result: Union[bool, str],
+    expected_exception: Any,
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
@@ -202,12 +224,12 @@ def test_management(
 )
 def test_dns_name(
     cobbler_api: CobblerAPI,
-    create_distro,
-    create_profile,
-    create_system,
-    input_dns_name,
-    expected_result,
-    expected_exception,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Callable[[str], System],
+    input_dns_name: str,
+    expected_result: str,
+    expected_exception: Any,
 ):
     # Arrange
     distro = create_distro()
@@ -243,22 +265,22 @@ def test_dns_name(
     ],
 )
 def test_mac_address(
-    mocker,
+    mocker: "MockerFixture",
     cobbler_api: CobblerAPI,
-    create_distro,
-    create_profile,
-    create_system,
-    input_mac,
-    expected_result,
-    expected_exception,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+    input_mac: str,
+    expected_result: str,
+    expected_exception: Any,
 ):
     # Arrange
     distro = create_distro()
     profile = create_profile(distro.name)
-    system = create_system(profile.name)
+    system: System = create_system(profile.name)
     system.interfaces["default"].mac_address = "AA:AA:AA:AA:AA:AA"
     cobbler_api.add_system(system)
-    system2 = create_system(profile_name=profile.name, name="test_system2")
+    system2: System = create_system(profile_name=profile.name, name="test_system2")
     system2.interfaces["default"].mac_address = "random"
     cobbler_api.add_system(system2)
     mocker.patch("cobbler.utils.get_random_mac", return_value="AA:BB:CC:DD:EE:FF")
@@ -308,14 +330,17 @@ def test_if_gateway(cobbler_api: CobblerAPI):
     ],
 )
 def test_virt_bridge(
-    cobbler_api: CobblerAPI, input_virt_bridge, expected_result, expected_exception
+    cobbler_api: CobblerAPI,
+    input_virt_bridge: Union[str, int],
+    expected_result: str,
+    expected_exception: Any,
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
-        interface.virt_bridge = input_virt_bridge
+        interface.virt_bridge = input_virt_bridge  # type: ignore
 
         # Assert
         assert isinstance(interface.virt_bridge, str)
@@ -335,7 +360,10 @@ def test_virt_bridge(
     ],
 )
 def test_interface_type(
-    cobbler_api: CobblerAPI, input_interface_type, expected_result, expected_exception
+    cobbler_api: CobblerAPI,
+    input_interface_type: Any,
+    expected_result: enums.NetworkInterfaceType,
+    expected_exception: Any,
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
@@ -357,7 +385,10 @@ def test_interface_type(
     ],
 )
 def test_interface_master(
-    cobbler_api: CobblerAPI, input_interface_master, expected_result, expected_exception
+    cobbler_api: CobblerAPI,
+    input_interface_master: Any,
+    expected_result: str,
+    expected_exception: Any,
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
@@ -379,7 +410,10 @@ def test_interface_master(
     ],
 )
 def test_bonding_opts(
-    cobbler_api: CobblerAPI, input_bonding_opts, expected_result, expected_exception
+    cobbler_api: CobblerAPI,
+    input_bonding_opts: Any,
+    expected_result: str,
+    expected_exception: Any,
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
@@ -401,7 +435,10 @@ def test_bonding_opts(
     ],
 )
 def test_bridge_opts(
-    cobbler_api: CobblerAPI, input_bridge_opts, expected_result, expected_exception
+    cobbler_api: CobblerAPI,
+    input_bridge_opts: Any,
+    expected_result: str,
+    expected_exception: Any,
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
@@ -425,12 +462,12 @@ def test_bridge_opts(
 )
 def test_ip_address(
     cobbler_api: CobblerAPI,
-    create_distro,
-    create_profile,
-    create_system,
-    input_ip_address,
-    expected_result,
-    expected_exception,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Callable[[str], System],
+    input_ip_address: str,
+    expected_result: str,
+    expected_exception: Any,
 ):
     # Arrange
     distro = create_distro()
@@ -460,12 +497,12 @@ def test_ip_address(
 )
 def test_ipv6_address(
     cobbler_api: CobblerAPI,
-    create_distro,
-    create_profile,
-    create_system,
-    input_address,
-    expected_result,
-    expected_exception,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Callable[[str], System],
+    input_address: str,
+    expected_result: str,
+    expected_exception: Any,
 ):
     # Arrange
     distro = create_distro()
@@ -493,7 +530,10 @@ def test_ipv6_address(
     ],
 )
 def test_ipv6_prefix(
-    cobbler_api: CobblerAPI, input_ipv6_prefix, expected_result, expected_exception
+    cobbler_api: CobblerAPI,
+    input_ipv6_prefix: Any,
+    expected_result: str,
+    expected_exception: Any,
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
@@ -516,7 +556,10 @@ def test_ipv6_prefix(
     ],
 )
 def test_ipv6_secondaries(
-    cobbler_api: CobblerAPI, input_secondaries, expected_result, expected_exception
+    cobbler_api: CobblerAPI,
+    input_secondaries: Any,
+    expected_result: List[str],
+    expected_exception: Any,
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
@@ -527,7 +570,7 @@ def test_ipv6_secondaries(
 
         # Assert
         assert isinstance(interface.ipv6_secondaries, list)
-        assert interface.ipv6_secondaries == expected_result
+        assert interface.ipv6_secondaries == expected_result  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -540,7 +583,10 @@ def test_ipv6_secondaries(
     ],
 )
 def test_ipv6_default_gateway(
-    cobbler_api: CobblerAPI, input_address, expected_result, expected_exception
+    cobbler_api: CobblerAPI,
+    input_address: Any,
+    expected_result: str,
+    expected_exception: Any,
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
@@ -574,7 +620,10 @@ def test_ipv6_static_routes(cobbler_api: CobblerAPI):
     ],
 )
 def test_ipv6_mtu(
-    cobbler_api: CobblerAPI, input_ipv6_mtu, expected_result, expected_exception
+    cobbler_api: CobblerAPI,
+    input_ipv6_mtu: Any,
+    expected_result: str,
+    expected_exception: Any,
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
@@ -595,7 +644,12 @@ def test_ipv6_mtu(
         (0, "", pytest.raises(TypeError)),
     ],
 )
-def test_mtu(cobbler_api: CobblerAPI, input_mtu, expected_result, expected_exception):
+def test_mtu(
+    cobbler_api: CobblerAPI,
+    input_mtu: Any,
+    expected_result: str,
+    expected_exception: Any,
+):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -618,7 +672,10 @@ def test_mtu(cobbler_api: CobblerAPI, input_mtu, expected_result, expected_excep
     ],
 )
 def test_connected_mode(
-    cobbler_api: CobblerAPI, input_connected_mode, expected_result, expected_exception
+    cobbler_api: CobblerAPI,
+    input_connected_mode: Any,
+    expected_result: Any,
+    expected_exception: Any,
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
@@ -641,10 +698,10 @@ def test_connected_mode(
 )
 def test_modify_interface(
     cobbler_api: CobblerAPI,
-    input_modify_interface,
-    expected_modified_field,
-    expected_value,
-    expected_exception,
+    input_modify_interface: Dict[str, str],
+    expected_modified_field: str,
+    expected_value: str,
+    expected_exception: Any,
 ):
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
@@ -657,7 +714,9 @@ def test_modify_interface(
         assert getattr(interface, expected_modified_field) == expected_value
 
 
-def test_inheritance(mocker, cobbler_api: CobblerAPI, test_settings):
+def test_inheritance(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI, test_settings: Settings
+):
     """
     Checking that inherited properties are correctly inherited from settings and
     that the <<inherit>> value can be set for them.

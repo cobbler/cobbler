@@ -1,17 +1,30 @@
+"""
+Tests that validate the functionality of the module that is responsible for (de)serializing items to MongoDB.
+"""
+
+from typing import TYPE_CHECKING, Any, List, Optional
+
 import pytest
 
 from cobbler.actions import acl
+from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 
 from tests.conftest import does_not_raise
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
-@pytest.fixture(scope="function")
-def acl_object(cobbler_api):
+
+@pytest.fixture(name="acl_object", scope="function")
+def fixture_acl_object(cobbler_api: CobblerAPI) -> acl.AclConfig:
+    """
+    Fixture to provide a fresh AclConfig object for every test.
+    """
     return acl.AclConfig(cobbler_api)
 
 
-def test_object_creation(cobbler_api):
+def test_object_creation(cobbler_api: CobblerAPI):
     # Arrange & Act
     result = acl.AclConfig(cobbler_api)
 
@@ -31,16 +44,16 @@ def test_object_creation(cobbler_api):
     ],
 )
 def test_run(
-    mocker,
-    acl_object,
-    input_adduser,
-    input_addgroup,
-    input_removeuser,
-    input_removegroup,
-    expected_isadd,
-    expected_isuser,
-    expected_who,
-    expected_exception,
+    mocker: "MockerFixture",
+    acl_object: acl.AclConfig,
+    input_adduser: Optional[str],
+    input_addgroup: Optional[str],
+    input_removeuser: Optional[str],
+    input_removegroup: Optional[str],
+    expected_isadd: bool,
+    expected_isuser: bool,
+    expected_who: str,
+    expected_exception: Any,
 ):
     # Arrange
     mock_modacl = mocker.patch.object(acl_object, "modacl")
@@ -93,14 +106,14 @@ def test_run(
     ],
 )
 def test_modacl(
-    mocker,
-    acl_object,
-    input_isadd,
-    input_isuser,
-    input_user,
-    input_subprocess_call_effect,
-    expected_mock_die_count,
-    expected_first_setfacl,
+    mocker: "MockerFixture",
+    acl_object: acl.AclConfig,
+    input_isadd: bool,
+    input_isuser: bool,
+    input_user: str,
+    input_subprocess_call_effect: List[int],
+    expected_mock_die_count: int,
+    expected_first_setfacl: List[str],
 ):
     # Arrange
     # Each subprocess.call is used two times per directory of which we have (seven in a default config)

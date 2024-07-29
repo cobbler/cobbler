@@ -5,7 +5,9 @@ Test module to assert the performance of renaming items.
 from typing import Any, Callable, Dict, Tuple
 
 import pytest
-from pytest_benchmark.fixture import BenchmarkFixture
+from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
+    BenchmarkFixture,
+)
 
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
@@ -79,7 +81,7 @@ def test_item_rename(
     cobbler_api.settings().enable_menu = enable_menu
 
     # Act
-    result = benchmark.pedantic(
+    result = benchmark.pedantic(  # type: ignore
         item_rename, setup=setup_func, rounds=CobblerTree.test_rounds
     )
 
