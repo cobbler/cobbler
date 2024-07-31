@@ -586,5 +586,7 @@ def run(api: "CobblerAPI", args: Any):
         if distro and distro.breed == "windows":  # type: ignore[reportUnknownMemberType]
             logger.info("System: %s", system.name)
             meta = utils.blender(api, False, system)
-            gen_win_files(distro, autoinstall_meta)  # type: ignore[reportUnknownArgumentType]
+            autoinstall_meta = meta.get("autoinstall_meta", {})
+            meta.update(autoinstall_meta)
+            gen_win_files(distro, meta)  # type: ignore[reportUnknownArgumentType]
     return 0
