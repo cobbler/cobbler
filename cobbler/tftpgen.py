@@ -1012,7 +1012,7 @@ class TFTPGen:
         blended = utils.blender(self.api, False, obj)
 
         if obj.COLLECTION_TYPE == "distro":
-            if re.search("esxi[567]", obj.os_version) is not None:
+            if re.search("esxi[5678]", obj.os_version) is not None:
                 realbootcfg = open(os.path.join(os.path.dirname(obj.kernel), 'boot.cfg')).read()
                 bootmodules = re.findall(r'modules=(.*)', realbootcfg)
                 for modules in bootmodules:
