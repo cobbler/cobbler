@@ -20,6 +20,8 @@ V3.4.0 (unreleased)
         * ``input_int``
     * Changed:
         * ``new_*``: Accepts kwargs as a last argument now (so a dict) that makes it possible to seed an object
+    * Removed:
+        * Unused reporter module
 
 V3.3.4 (unreleased)
     * No changes
@@ -146,7 +148,6 @@ from cobbler.actions import (
     log,
     mkloaders,
     replicate,
-    report,
     reposync,
     status,
 )
@@ -2223,34 +2224,6 @@ class CobblerAPI:
             omit_data=omit_data,
             sync_all=sync_all,
             use_ssl=use_ssl,
-        )
-
-    # ==========================================================================
-
-    def report(
-        self,
-        report_what: str = "",
-        report_name: str = "",
-        report_type: str = "",
-        report_fields: str = "",
-        report_noheaders: bool = False,
-    ) -> None:
-        """
-        Report functionality for Cobbler.
-
-        :param report_what: The object type that should be reported.
-        :param report_name: The name of the object which should be possibly reported.
-        :param report_type: May be either "text", "csv", "mediawiki", "trac" or "doku".
-        :param report_fields: Specify "all" or the fields you want to be reported.
-        :param report_noheaders: If the column headers should be included in the output or not.
-        """
-        reporter = report.Report(self)
-        reporter.run(
-            report_what=report_what,
-            report_name=report_name,
-            report_type=report_type,
-            report_fields=report_fields,
-            report_noheaders=report_noheaders,
         )
 
     # ==========================================================================
