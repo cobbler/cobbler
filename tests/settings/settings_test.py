@@ -17,19 +17,6 @@ from cobbler.settings import Settings
 from tests.conftest import does_not_raise
 
 
-def test_to_string():
-    # Arrange
-    test_settings = Settings()
-
-    # Act
-    result = test_settings.to_string()
-
-    # Assert
-    result_list = result.split("\n")
-    assert len(result_list) == 3
-    assert result_list[1] == "kernel options  : {}"
-
-
 def test_to_dict():
     # Arrange
     test_settings = Settings()

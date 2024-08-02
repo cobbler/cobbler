@@ -298,19 +298,3 @@ def test_find_by_indexes(
     assert len(kargs2) == 0
     assert result3 is None
     assert len(kargs3) == 1
-
-
-@pytest.mark.skip("Method which is under test is broken!")
-def test_to_string(cobbler_api: CobblerAPI, distro_collection: distros.Distros):
-    # Arrange
-    name = "to_string"
-    item1 = distro.Distro(cobbler_api)
-    item1.name = name
-    distro_collection.add(item1)
-
-    # Act
-    result = distro_collection.to_string()
-
-    # Assert
-    print(result)
-    assert False

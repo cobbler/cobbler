@@ -294,16 +294,6 @@ class Settings:
         self.cache_enabled = False
         self.lazy_start = False
 
-    def to_string(self) -> str:
-        """
-        Returns the kernel options as a string.
-
-        :return: The multiline string with the kernel options.
-        """
-        buf = "defaults\n"
-        buf += f"kernel options  : {self.__dict__['kernel_options']}\n"
-        return buf
-
     def to_dict(self, resolved: bool = False) -> Dict[str, Any]:
         """
         Return an easily serializable representation of the config.

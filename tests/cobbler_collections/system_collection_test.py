@@ -754,22 +754,3 @@ def test_find_by_indexes(
         assert len((kargs[indx])[1]) == 0
         assert result[2] is None
         assert len((kargs[indx])[2]) == 1
-
-
-@pytest.mark.skip("Method which is under test is broken!")
-def test_to_string(cobbler_api: CobblerAPI, system_collection: systems.Systems):
-    """
-    Validate that a collection can be converted to string.
-    """
-    # Arrange
-    name = "to_string"
-    item1 = system.System(cobbler_api)
-    item1.name = name
-    system_collection.add(item1)
-
-    # Act
-    result = system_collection.to_string()
-
-    # Assert
-    print(result)
-    assert False
