@@ -866,7 +866,7 @@ default: ``"--newest-only --delete --refresh --remote-time"``
 
 reposync_rsync_flags
 ####################
-Flags to use for rysync's reposync. If archive mode (-a,--archive) is used then createrepo is not ran after the rsync as
+Flags to use for rysync's reposync. If archive mode (-a,--archive) is used then createrepo is not run after the rsync as
 it pulls down the repodata as well. This allows older OS's to mirror modular repos using rsync.
 
 default: ``"-rltDv --copy-unsafe-links"``
