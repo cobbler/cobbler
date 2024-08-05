@@ -157,6 +157,7 @@ from cobbler.utils.thread import CobblerThread
 from cobbler.validate import (
     validate_autoinstall_script_name,
     validate_obj_name,
+    validate_obj_type,
     validate_uuid,
 )
 
@@ -950,12 +951,15 @@ class CobblerXMLRPCInterface:
         :return: The item or None.
         """
         self._log(f"get_item({what},{name})")
-        requested_item = self.api.get_item(what, name)
-        if requested_item is not None:
-            requested_item = requested_item.to_dict(resolved=resolved)
-            if flatten:
-                requested_item = utils.flatten(requested_item)
-        return self.xmlrpc_hacks(requested_item)
+        item_handle = self.get_item_handle(what, name)
+        try:
+            requested_item = self.__get_object(item_handle)
+        except ValueError:
+            return self.xmlrpc_hacks(None)
+        requested_item = requested_item.to_dict(resolved=resolved)
+        if flatten:
+            requested_item = utils.flatten(requested_item)
+        return requested_item
 
     def get_distro(
         self,
@@ -1424,8 +1428,9 @@ class CobblerXMLRPCInterface:
         :return: True if item was found, otherwise False.
         """
         self._log(f"has_item({what})", token=token, name=name)
-        found = self.api.get_item(what, name)
-        if found is None:
+        try:
+            self.__get_object(self.get_item_handle(what, name))
+        except ValueError:
             return False
         return True
 
@@ -1438,10 +1443,21 @@ class CobblerXMLRPCInterface:
         :param name: The name of the item.
         :return: The handle of the desired object.
         """
-        found = self.api.get_item(what, name)
-        if found is None:
-            raise CX(f"internal error, unknown {what} name {name}")
-        return found.uid
+        if not validate_obj_type(what):
+            raise CX("invalid object type")
+        if not validate_obj_name(name):
+            raise CX("invalid object name")
+
+        found_saved = self.api.find_items(what, name=name, return_list=True)
+        if len(found_saved) > 1:  # type: ignore
+            raise CX(f"ambigous match for given collection and name")
+        elif len(found_saved) == 1:  # type: ignore
+            return found_saved[0].uid  # type: ignore
+        # Check if in cache
+        for item in self.unsaved_items.values():
+            if item[1].name == name and item[1].TYPE_NAME == what:
+                return item[1].uid
+        return self.xmlrpc_hacks(None)  # type: ignore
 
     def get_distro_handle(self, name: str):
         """
@@ -1514,10 +1530,15 @@ class CobblerXMLRPCInterface:
         self._log(
             f"remove_item ({what}, recursive={recursive})", name=name, token=token
         )
-        obj = self.api.get_item(what, name)
-        if obj is None:
+        obj_handle = self.get_item_handle(what, name)
+        try:
+            obj = self.__get_object(obj_handle)
+        except ValueError:
             return False
         self.check_access(token, f"remove_{what}", obj.name)
+        if obj_handle in self.unsaved_items:
+            self.unsaved_items.pop(obj_handle)
+            return True
         self.api.remove_item(
             what, name, delete=True, with_triggers=True, recursive=recursive
         )
