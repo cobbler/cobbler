@@ -178,6 +178,15 @@ def test_descendants(
     for x in range(len(cache_tests)):
         assert set(cache_tests[x]) == set(results[x])
 
+    # Cleanup
+    cobbler_api.remove_system(test_system1.name)
+    cobbler_api.remove_system(test_system2.name)
+    cobbler_api.remove_profile(test_profile3.name)
+    cobbler_api.remove_profile(test_profile2.name)
+    cobbler_api.remove_profile(test_profile1.name)
+    cobbler_api.remove_menu(test_menu2.name)
+    cobbler_api.remove_menu(test_menu1.name)
+
 
 def test_get_conceptual_parent(
     request: "pytest.FixtureRequest",
@@ -419,7 +428,7 @@ def test_dump_vars(cobbler_api: CobblerAPI):
     print(result)
     assert "default_ownership" in result
     assert "owners" in result
-    assert len(result) == 171
+    assert len(result) == 172
 
 
 @pytest.mark.parametrize(
