@@ -959,7 +959,7 @@ class CobblerXMLRPCInterface:
         requested_item = requested_item.to_dict(resolved=resolved)
         if flatten:
             requested_item = utils.flatten(requested_item)
-        return requested_item
+        return self.xmlrpc_hacks(requested_item)
 
     def get_distro(
         self,
@@ -1450,7 +1450,7 @@ class CobblerXMLRPCInterface:
 
         found_saved = self.api.find_items(what, name=name, return_list=True)
         if len(found_saved) > 1:  # type: ignore
-            raise CX(f"ambigous match for given collection and name")
+            raise CX(f"ambiguous match for given collection and name")
         elif len(found_saved) == 1:  # type: ignore
             return found_saved[0].uid  # type: ignore
         # Check if in cache
@@ -2115,7 +2115,7 @@ class CobblerXMLRPCInterface:
                 handle = self.get_item_handle(object_type, tmp_name)
             except CX:
                 pass
-            if handle:
+            if handle and handle != "~":
                 raise CX(
                     "It seems unwise to overwrite the object %s, try 'edit'", tmp_name
                 )
