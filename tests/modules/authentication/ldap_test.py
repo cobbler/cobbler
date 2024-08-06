@@ -1,11 +1,23 @@
+"""
+Tests that validate the functionality of the module that is responsible for LDAP authentication.
+"""
+
+from typing import TYPE_CHECKING
+
 import pytest
 
 import cobbler.settings
+from cobbler.api import CobblerAPI
 from cobbler.modules.authentication import ldap
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
-@pytest.fixture()
-def test_settings(mocker, cobbler_api):
+
+@pytest.fixture(name="test_settings")
+def fixture_test_settings(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI
+) -> cobbler.settings.Settings:
     settings = mocker.MagicMock(
         name="ldap_setting_mock", spec=cobbler.settings.Settings
     )
@@ -28,7 +40,13 @@ class TestLdap:
         "anonymous_bind, username, password", [(True, "test", "test")]
     )
     def test_anon_bind_positive(
-        self, mocker, cobbler_api, test_settings, anonymous_bind, username, password
+        self,
+        mocker: "MockerFixture",
+        cobbler_api: CobblerAPI,
+        test_settings: cobbler.settings.Settings,
+        anonymous_bind: bool,
+        username: str,
+        password: str,
     ):
         # Arrange
         mocker.patch.object(cobbler_api, "settings", return_value=test_settings)
@@ -45,7 +63,13 @@ class TestLdap:
         "anonymous_bind, username, password", [(True, "test", "bad")]
     )
     def test_anon_bind_negative(
-        self, mocker, cobbler_api, test_settings, anonymous_bind, username, password
+        self,
+        mocker: "MockerFixture",
+        cobbler_api: CobblerAPI,
+        test_settings: cobbler.settings.Settings,
+        anonymous_bind: bool,
+        username: str,
+        password: str,
     ):
         # Arrange
         mocker.patch.object(cobbler_api, "settings", return_value=test_settings)
@@ -64,14 +88,14 @@ class TestLdap:
     )
     def test_user_bind_positive(
         self,
-        mocker,
-        cobbler_api,
-        test_settings,
-        anonymous_bind,
-        bind_user,
-        bind_password,
-        username,
-        password,
+        mocker: "MockerFixture",
+        cobbler_api: CobblerAPI,
+        test_settings: cobbler.settings.Settings,
+        anonymous_bind: bool,
+        bind_user: str,
+        bind_password: str,
+        username: str,
+        password: str,
     ):
         # Arrange
         mocker.patch.object(cobbler_api, "settings", return_value=test_settings)
@@ -92,14 +116,14 @@ class TestLdap:
     )
     def test_user_bind_negative(
         self,
-        mocker,
-        cobbler_api,
-        test_settings,
-        anonymous_bind,
-        bind_user,
-        bind_password,
-        username,
-        password,
+        mocker: "MockerFixture",
+        cobbler_api: CobblerAPI,
+        test_settings: cobbler.settings.Settings,
+        anonymous_bind: bool,
+        bind_user: str,
+        bind_password: str,
+        username: str,
+        password: str,
     ):
         # Arrange
         mocker.patch.object(cobbler_api, "settings", return_value=test_settings)
@@ -119,13 +143,19 @@ class TestLdap:
         [("/etc/ssl/certs", "/etc/ssl/ldap.crt", "/etc/ssl/ldap.key")],
     )
     def test_cadir_positive(
-        self, mocker, cobbler_api, test_settings, tls_cadir, tls_cert, tls_key
+        self,
+        mocker: "MockerFixture",
+        cobbler_api: CobblerAPI,
+        test_settings: cobbler.settings.Settings,
+        tls_cadir: str,
+        tls_cert: str,
+        tls_key: str,
     ):
         # Arrange
         mocker.patch.object(cobbler_api, "settings", return_value=test_settings)
         test_settings.ldap_tls = True
         test_settings.ldap_tls_cacertdir = tls_cadir
-        test_settings.ldap_tls_cacertfile = None
+        test_settings.ldap_tls_cacertfile = None  # type: ignore[reportAttributeAccessIssue]
         test_settings.ldap_tls_certfile = tls_cert
         test_settings.ldap_tls_keyfile = tls_key
 
@@ -140,13 +170,19 @@ class TestLdap:
         [("/etc/ssl/certs", "/etc/ssl/bad.crt", "/etc/ssl/bad.key")],
     )
     def test_cadir_negative(
-        self, mocker, cobbler_api, test_settings, tls_cadir, tls_cert, tls_key
+        self,
+        mocker: "MockerFixture",
+        cobbler_api: CobblerAPI,
+        test_settings: cobbler.settings.Settings,
+        tls_cadir: str,
+        tls_cert: str,
+        tls_key: str,
     ):
         # Arrange
         mocker.patch.object(cobbler_api, "settings", return_value=test_settings)
         test_settings.ldap_tls = True
         test_settings.ldap_tls_cacertdir = tls_cadir
-        test_settings.ldap_tls_cacertfile = None
+        test_settings.ldap_tls_cacertfile = None  # type: ignore[reportAttributeAccessIssue]
         test_settings.ldap_tls_certfile = tls_cert
         test_settings.ldap_tls_keyfile = tls_key
 
@@ -161,12 +197,18 @@ class TestLdap:
         [("/etc/ssl/ca-slapd.crt", "/etc/ssl/ldap.crt", "/etc/ssl/ldap.key")],
     )
     def test_cafile_positive(
-        self, mocker, cobbler_api, test_settings, tls_cafile, tls_cert, tls_key
+        self,
+        mocker: "MockerFixture",
+        cobbler_api: CobblerAPI,
+        test_settings: cobbler.settings.Settings,
+        tls_cafile: str,
+        tls_cert: str,
+        tls_key: str,
     ):
         # Arrange
         mocker.patch.object(cobbler_api, "settings", return_value=test_settings)
         test_settings.ldap_tls = True
-        test_settings.ldap_tls_cacertdir = None
+        test_settings.ldap_tls_cacertdir = None  # type: ignore[reportAttributeAccessIssue]
         test_settings.ldap_tls_cacertfile = tls_cafile
         test_settings.ldap_tls_certfile = tls_cert
         test_settings.ldap_tls_keyfile = tls_key
@@ -182,12 +224,18 @@ class TestLdap:
         [("/etc/ssl/ca-slapd.crt", "/etc/ssl/bad.crt", "/etc/ssl/bad.key")],
     )
     def test_cafile_negative(
-        self, mocker, cobbler_api, test_settings, tls_cafile, tls_cert, tls_key
+        self,
+        mocker: "MockerFixture",
+        cobbler_api: CobblerAPI,
+        test_settings: cobbler.settings.Settings,
+        tls_cafile: str,
+        tls_cert: str,
+        tls_key: str,
     ):
         # Arrange
         mocker.patch.object(cobbler_api, "settings", return_value=test_settings)
         test_settings.ldap_tls = True
-        test_settings.ldap_tls_cacertdir = None
+        test_settings.ldap_tls_cacertdir = None  # type: ignore[reportAttributeAccessIssue]
         test_settings.ldap_tls_cacertfile = tls_cafile
         test_settings.ldap_tls_certfile = tls_cert
         test_settings.ldap_tls_keyfile = tls_key
@@ -203,13 +251,19 @@ class TestLdap:
         [("/etc/ssl/ca-slapd.crt", "/etc/ssl/ldap.crt", "/etc/ssl/ldap.key")],
     )
     def test_ldaps_positive(
-        self, mocker, cobbler_api, test_settings, tls_cafile, tls_cert, tls_key
+        self,
+        mocker: "MockerFixture",
+        cobbler_api: CobblerAPI,
+        test_settings: cobbler.settings.Settings,
+        tls_cafile: str,
+        tls_cert: str,
+        tls_key: str,
     ):
         # Arrange
         mocker.patch.object(cobbler_api, "settings", return_value=test_settings)
         test_settings.ldap_tls = False
         test_settings.ldap_port = 636
-        test_settings.ldap_tls_cacertdir = None
+        test_settings.ldap_tls_cacertdir = None  # type: ignore[reportAttributeAccessIssue]
         test_settings.ldap_tls_cacertfile = tls_cafile
         test_settings.ldap_tls_certfile = tls_cert
         test_settings.ldap_tls_keyfile = tls_key
@@ -225,17 +279,23 @@ class TestLdap:
         [("/etc/ssl/ca-slapd.crt", "/etc/ssl/bad.crt", "/etc/ssl/bad.key")],
     )
     def test_ldaps_negative(
-        self, mocker, cobbler_api, test_settings, tls_cafile, tls_cert, tls_key
+        self,
+        mocker: "MockerFixture",
+        cobbler_api: CobblerAPI,
+        test_settings: cobbler.settings.Settings,
+        tls_cafile: str,
+        tls_cert: str,
+        tls_key: str,
     ):
         # Arrange
         mocker.patch.object(cobbler_api, "settings", return_value=test_settings)
         test_settings.ldap_tls = False
         test_settings.ldap_port = 636
-        test_settings.ldap_tls_cacertdir = None
+        test_settings.ldap_tls_cacertdir = None  # type: ignore[reportAttributeAccessIssue]
         test_settings.ldap_tls_cacertfile = tls_cafile
         test_settings.ldap_tls_certfile = tls_cert
         test_settings.ldap_tls_keyfile = tls_key
 
         # Act & Assert
         with pytest.raises(ValueError):
-            result = ldap.authenticate(cobbler_api, "test", "test")
+            ldap.authenticate(cobbler_api, "test", "test")

@@ -8,7 +8,7 @@ This is some of the code behind 'cobbler sync'.
 # SPDX-FileCopyrightText: John Eckersberg <jeckersb@redhat.com>
 
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, cast
 
 from cobbler import utils
 from cobbler.modules.managers import DhcpManagerModule, DnsManagerModule
@@ -179,7 +179,8 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
             # where we need something other than ``pxelinux.0``. So we always write a dhcp-host entry with as much
             # info as possible to allow maximum control and flexibility within the dnsmasq config.
 
-            systxt = "dhcp-host=net:" + distro.arch.value.lower() + "," + mac
+            systxt = "dhcp-host=net:" + distro.arch.value.lower() + "," + mac  # type: ignore
+            systxt = cast(str, systxt)
 
             if host != "":
                 systxt += "," + host

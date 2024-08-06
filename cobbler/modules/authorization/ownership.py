@@ -4,6 +4,7 @@ Authorization module that allow users listed in
 the further restriction that Cobbler objects can be edited to only
 allow certain users/groups to access those specific objects.
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2007-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
@@ -15,7 +16,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.items.abstract.base_item import ITEM
+    from cobbler.items.abstract.base_item import BaseItem
     from cobbler.items.profile import Profile
     from cobbler.items.system import System
 
@@ -108,6 +109,7 @@ def __authorize_snippet(
     :param autoinst: Unused parameter.
     :return: ``1`` if the group is allowed, otherwise ``0``.
     """
+    del api_handle, user, autoinst  # unused
 
     for group in groups:
         if group not in ["admins", "admin"]:
@@ -116,7 +118,7 @@ def __authorize_snippet(
 
 
 def __is_user_allowed(
-    obj: "ITEM", groups: List[str], user: str, resource: Any, arg1: Any, arg2: Any
+    obj: "BaseItem", groups: List[str], user: str, resource: Any, arg1: Any, arg2: Any
 ) -> int:
     """
     Check if a user is allowed to access the resource in question.
@@ -129,6 +131,7 @@ def __is_user_allowed(
     :param arg2: Unused parameter.
     :return: ``1`` if user is allowed, otherwise ``0``.
     """
+    del resource, arg1, arg2  # unused
 
     if user == "<DIRECT>":
         # system user, logged in via web.ss
@@ -171,7 +174,7 @@ def authorize(
         return 1
 
     # Everybody can get read-only access to everything if they pass authorization, they don't have to be in users.conf
-    if resource is not None:
+    if resource is not None:  # type: ignore[reportUnnecessaryComparison]
         # FIXME: /cobbler/web should not be subject to user check in any case
         for user_resource in ["get", "read", "/cobbler/web"]:
             if resource.startswith(user_resource):
@@ -259,7 +262,7 @@ def authorize(
         raise ValueError("Object not found or found multiple times!")
 
     # if the object has no ownership data, allow access regardless
-    if obj is None or obj.owners is None or obj.owners == []:
+    if obj is None or obj.owners is None or obj.owners == []:  # type: ignore[reportUnnecessaryComparison]
         return 1
 
     return __is_user_allowed(obj, found_groups, user, resource, arg1, arg2)

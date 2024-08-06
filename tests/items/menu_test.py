@@ -1,12 +1,22 @@
+"""
+Tests that validate the functionality of the module that is responsible for providing menu related functionality.
+"""
+
+from typing import TYPE_CHECKING
+
 import pytest
 
 from cobbler import enums
 from cobbler.api import CobblerAPI
 from cobbler.items.menu import Menu
+from cobbler.settings import Settings
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
-@pytest.fixture()
-def test_settings(mocker, cobbler_api: CobblerAPI):
+@pytest.fixture(name="test_settings")
+def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> Settings:
     settings = mocker.MagicMock(name="menu_setting_mock", spec=cobbler_api.settings())
     orig = cobbler_api.settings()
     for key in orig.to_dict():
@@ -69,7 +79,9 @@ def test_to_dict_resolved(cobbler_api: CobblerAPI):
     assert enums.VALUE_INHERITED not in str(result)
 
 
-def test_inheritance(mocker, cobbler_api: CobblerAPI, test_settings):
+def test_inheritance(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI, test_settings: Settings
+):
     """
     Checking that inherited properties are correctly inherited from settings and
     that the <<inherit>> value can be set for them.

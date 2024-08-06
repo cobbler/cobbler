@@ -1,6 +1,7 @@
 """
 Migration from V3.3.2 to V3.3.3
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: 2022 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC

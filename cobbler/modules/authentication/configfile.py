@@ -2,6 +2,7 @@
 Authentication module that uses /etc/cobbler/auth.conf
 Choice of authentication module is in /etc/cobbler/modules.conf
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2007-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
@@ -93,7 +94,7 @@ def authenticate(api_handle: "CobblerAPI", username: str, password: str) -> bool
     """
 
     userlist = __parse_storage()
-    for (user, realm, passwordhash) in userlist:
+    for user, realm, passwordhash in userlist:
         if user == username and realm == "Cobbler":
             calculated_passwordhash = hashfun(api_handle, password)
             if calculated_passwordhash == passwordhash:

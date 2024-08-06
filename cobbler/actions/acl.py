@@ -87,7 +87,7 @@ class AclConfig:
         if not snipdir.startswith("/var/lib/cobbler/"):
             process_dirs[snipdir] = "r"
 
-        for (directory, how) in process_dirs.items():
+        for directory, how in process_dirs.items():
             cmd = [
                 "setfacl",
                 "-d",

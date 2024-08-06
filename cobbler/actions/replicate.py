@@ -106,7 +106,7 @@ class Replicate:
         local_objects = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remote_objects = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        for (luid, ldata) in local_objects.items():
+        for luid, ldata in local_objects.items():
             if luid not in remote_objects:
                 try:
                     self.logger.info("removing %s %s", obj_type, ldata["name"])
@@ -154,7 +154,7 @@ class Replicate:
         local_objects = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remote_objects = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        for (ruid, rdata) in remote_objects.items():
+        for ruid, rdata in remote_objects.items():
             # do not add the system if it is not on the transfer list
             if rdata["name"] not in self.must_include[obj_type]:
                 continue

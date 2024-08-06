@@ -1,6 +1,7 @@
 """
 Helper module which contains shared logic for adjusting the settings.
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>

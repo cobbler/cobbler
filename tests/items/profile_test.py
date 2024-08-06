@@ -1,8 +1,8 @@
 """
-Test module to validate the functionallity of the Cobbler Profile item.
+Test module to validate the functionality of the Cobbler Profile item.
 """
 
-from typing import Any, Callable, Dict, List
+from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
 import pytest
 
@@ -12,12 +12,16 @@ from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image
 from cobbler.items.profile import Profile
+from cobbler.settings import Settings
 
 from tests.conftest import does_not_raise
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
-@pytest.fixture()
-def test_settings(mocker, cobbler_api: CobblerAPI):
+
+@pytest.fixture(name="test_settings")
+def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> Settings:
     settings = mocker.MagicMock(
         name="profile_setting_mock", spec=cobbler_api.settings()
     )
@@ -55,15 +59,15 @@ def test_make_clone(cobbler_api: CobblerAPI):
 
 
 def test_to_dict(
-    create_distro: Callable[[str], Distro],
-    create_profile: Callable[[str, str, str], Profile],
+    create_distro: Callable[[], Distro],
+    create_profile: Any,
 ):
     """
     Assert that the Profile can be successfully converted to a dictionary.
     """
     # Arrange
-    distro: Distro = create_distro()  # type: ignore
-    profile: Profile = create_profile(distro_name=distro.name)  # type: ignore
+    distro = create_distro()
+    profile: Profile = create_profile(distro_name=distro.name)
 
     # Act
     result = profile.to_dict()
@@ -648,7 +652,7 @@ def test_redhat_management_key(cobbler_api: CobblerAPI):
 )
 def test_boot_loaders(
     cobbler_api: CobblerAPI,
-    create_distro: Callable[[str], Distro],
+    create_distro: Callable[[], Distro],
     input_boot_loaders: Any,
     expected_result: List[str],
     expected_exception: Any,
@@ -657,7 +661,7 @@ def test_boot_loaders(
     Assert that a Cobbler Profile can resolve the boot loaders it has available successfully.
     """
     # Arrange
-    distro: Distro = create_distro()  # type: ignore[reportGeneralTypeIssues]
+    distro: Distro = create_distro()
     profile = Profile(cobbler_api)
     profile.distro = distro.name
 
@@ -733,7 +737,11 @@ def test_find_match_single_key(
     assert expect_match == result
 
 
-def test_distro_inherit(mocker, test_settings, create_distro: Callable[[], Distro]):
+def test_distro_inherit(
+    mocker: "MockerFixture",
+    test_settings: Settings,
+    create_distro: Callable[[], Distro],
+):
     """
     Checking that inherited properties are correctly inherited from settings and
     that the <<inherit>> value can be set for them.

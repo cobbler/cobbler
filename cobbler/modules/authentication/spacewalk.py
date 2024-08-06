@@ -110,7 +110,7 @@ def authenticate(api_handle: "CobblerAPI", username: str, password: str) -> bool
     :raises CX: Raised in case ``api_handle`` is missing.
     """
     # pylint: enable=line-too-long
-    if api_handle is None:
+    if api_handle is None:  # type: ignore[reportUnnecessaryComparison]
         raise CX("api_handle required. Please don't call this without it.")
     server = "https://" + api_handle.settings().redhat_management_server
     if api_handle.settings().uyuni_authentication_endpoint:

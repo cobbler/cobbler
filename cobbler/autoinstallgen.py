@@ -7,16 +7,16 @@ Builds out filesystem trees/data based on the object tree. This is the code behi
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import xml.dom.minidom
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union, cast
 from urllib import parse
 
 from cobbler import templar, utils, validate
 from cobbler.cexceptions import CX
+from cobbler.items.distro import Distro
+from cobbler.items.profile import Profile
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.items.distro import Distro
-    from cobbler.items.profile import Profile
     from cobbler.items.system import System
 
 
@@ -224,14 +224,17 @@ class AutoInstallationGen:
                     included[repo_obj.mirror] = 1
 
         if is_profile:
-            distro: Optional["Distro"] = obj.get_conceptual_parent()  # type: ignore
+            distro = obj.get_conceptual_parent()
         else:
             profile = obj.get_conceptual_parent()
             if profile is None:
                 raise ValueError("Error finding distro!")
-            distro = profile.get_conceptual_parent()  # type: ignore
+            profile = cast(Profile, profile)
+            distro = profile.get_conceptual_parent()
+
         if distro is None:
             raise ValueError("Error finding distro!")
+        distro = cast(Distro, distro)
 
         source_repos = distro.source_repos
         count = 0

@@ -23,9 +23,9 @@ from cobbler.validate import validate_autoinstall_script_name
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.cobbler_collections.collection import ITEM_UNION
     from cobbler.items.distro import Distro
     from cobbler.items.image import Image
+    from cobbler.items.item import Item
     from cobbler.items.menu import Menu
     from cobbler.items.profile import Profile
     from cobbler.items.system import System
@@ -768,7 +768,7 @@ class TFTPGen:
         if menu:
             childs = menu.children
         else:
-            childs = self.api.find_menu(return_list=True, **{"parent": ""})
+            childs = self.api.find_menu(return_list=True, parent="")
         if childs is None:
             childs = []
         if not isinstance(childs, list):
@@ -863,7 +863,7 @@ class TFTPGen:
         profile_filter = {"menu": menu_name}
         if arch:
             profile_filter["arch"] = arch.value
-        profile_list = self.api.find_profile(return_list=True, **profile_filter)
+        profile_list = self.api.find_profile(return_list=True, **profile_filter)  # type: ignore[reportArgumentType]
         if profile_list is None:
             profile_list = []
         if not isinstance(profile_list, list):
@@ -888,7 +888,7 @@ class TFTPGen:
                 if boot_loader not in profile.boot_loaders:
                     continue
                 self._get_item_menu(
-                    arch,
+                    arch,  # type: ignore
                     boot_loader,
                     current_menu_items,
                     menu_labels,
@@ -919,7 +919,7 @@ class TFTPGen:
         image_filter = {"menu": menu_name}
         if arch:
             image_filter["arch"] = arch.value
-        image_list = self.api.find_image(return_list=True, **image_filter)
+        image_list = self.api.find_image(return_list=True, **image_filter)  # type: ignore[reportArgumentType]
         if image_list is None:
             image_list = []
         if not isinstance(image_list, list):
@@ -1541,7 +1541,7 @@ class TFTPGen:
 
     def write_templates(
         self,
-        obj: "ITEM_UNION",
+        obj: "Item",
         write_file: bool = False,
         path: Optional[str] = None,
     ) -> Dict[str, str]:
@@ -1566,7 +1566,7 @@ class TFTPGen:
 
         blended = utils.blender(self.api, False, obj)
 
-        if obj.COLLECTION_TYPE == "distro":
+        if obj.COLLECTION_TYPE == "distro":  # type: ignore
             if re.search("esxi[567]", obj.os_version) is not None:  # type: ignore
                 with open(
                     os.path.join(os.path.dirname(obj.kernel), "boot.cfg"),  # type: ignore

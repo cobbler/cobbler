@@ -7,10 +7,11 @@ Repository of the Cobbler object model
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import weakref
-from typing import TYPE_CHECKING, Any, Dict, Union
+from typing import TYPE_CHECKING, Any, Dict, cast
 
 from cobbler import serializer, validate
 from cobbler.cexceptions import CX
+from cobbler.cobbler_collections.collection import Collection
 from cobbler.cobbler_collections.distros import Distros
 from cobbler.cobbler_collections.images import Images
 from cobbler.cobbler_collections.menus import Menus
@@ -21,10 +22,8 @@ from cobbler.settings import Settings
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.cobbler_collections.collection import ITEM, Collection
+    from cobbler.cobbler_collections.collection import ITEM
     from cobbler.items.abstract.base_item import BaseItem
-
-    COLLECTION_UNION = Union[Menus, Distros, Repos, Profiles, Images, Systems]
 
 
 class CollectionManager:
@@ -115,13 +114,13 @@ class CollectionManager:
         self.__serializer.serialize(self._systems)
         self.__serializer.serialize(self._menus)
 
-    def serialize_one_item(self, item: "ITEM") -> None:  # type: ignore
+    def serialize_one_item(self, item: "BaseItem") -> None:
         """
         Save a collection item to disk
 
         :param item: collection item
         """
-        collection: "Collection[ITEM]" = self.get_items(item.COLLECTION_TYPE)  # type: ignore
+        collection = self.get_items(item.COLLECTION_TYPE)
         self.__serializer.serialize_item(collection, item)
 
     def serialize_item(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
@@ -136,14 +135,14 @@ class CollectionManager:
         """
         self.__serializer.serialize_item(collection, item)
 
-    def serialize_delete_one_item(self, item: "ITEM") -> None:  # type: ignore
+    def serialize_delete_one_item(self, item: "BaseItem") -> None:
         """
         Save a collection item to disk
 
         :param item: collection item
         """
-        collection: "COLLECTION_UNION" = self.get_items(item.COLLECTION_TYPE)  # type: ignore
-        self.__serializer.serialize_delete(collection, item)  # type: ignore
+        collection = self.get_items(item.COLLECTION_TYPE)
+        self.__serializer.serialize_delete(collection, item)
 
     def serialize_delete(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         """
@@ -160,7 +159,6 @@ class CollectionManager:
 
         :raises CX: if there is an error in deserialization
         """
-        collection: "COLLECTION_UNION"
         for args in (
             (self._menus, True),
             (self._distros, False),
@@ -170,10 +168,13 @@ class CollectionManager:
             (self._systems, False),
         ):
             try:
-                self.__serializer.deserialize(collection=args[0], topological=args[1])  # type: ignore
+                cast_collection = cast(Collection["BaseItem"], args[0])
+                self.__serializer.deserialize(
+                    collection=cast_collection, topological=args[1]
+                )
             except Exception as error:
                 raise CX(
-                    f"serializer: error loading collection {collection.collection_type()}: {error}."
+                    f"serializer: error loading collection {args[0].collection_type()}: {error}."
                     f"Check your settings!"
                 ) from error
 
@@ -186,9 +187,7 @@ class CollectionManager:
         collection_type = self.get_items(obj.COLLECTION_TYPE).collection_types()
         return self.__serializer.deserialize_item(collection_type, obj.name)
 
-    def get_items(
-        self, collection_type: str
-    ) -> Union[Distros, Profiles, Systems, Repos, Images, Menus, "Settings"]:
+    def get_items(self, collection_type: str) -> "Collection[BaseItem]":
         """
         Get a full collection of a single type.
 
@@ -198,15 +197,6 @@ class CollectionManager:
         :return: The collection if ``collection_type`` is valid.
         :raises CX: If the ``collection_type`` is invalid.
         """
-        result: Union[
-            Distros,
-            Profiles,
-            Systems,
-            Repos,
-            Images,
-            Menus,
-            "Settings",
-        ]
         if validate.validate_obj_type(collection_type) and hasattr(
             self, f"_{collection_type}s"
         ):

@@ -690,7 +690,7 @@ def test_upload_log_data(remote: CobblerXMLRPCInterface):
     # Arrange
 
     # Act
-    result = remote.upload_log_data("testsystem0", "testinstall.log", 0, 0, b"asdas")
+    result = remote.upload_log_data("testsystem0", "testinstall.log", 0, 0, b"asdas")  # type: ignore
 
     # Assert
     assert isinstance(result, bool)

@@ -5,7 +5,9 @@ Test module to assert the performance of the startup of the daemon.
 from typing import Any, Callable, Dict, Tuple
 
 import pytest
-from pytest_benchmark.fixture import BenchmarkFixture
+from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
+    BenchmarkFixture,
+)
 
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
@@ -61,16 +63,17 @@ def test_start(
         return (), {}
 
     def start_cobbler():
-        CobblerAPI.__shared_state = {}
-        CobblerAPI.__has_loaded = False
-        api = CobblerAPI()
+        # pylint: disable=protected-access,unused-variable
+        CobblerAPI.__shared_state = {}  # type: ignore[reportPrivateUsage]
+        CobblerAPI.__has_loaded = False  # type: ignore[reportPrivateUsage]
+        api = CobblerAPI()  # type: ignore[reportUnusedVariable]
 
     # Arrange
     cobbler_api.settings().cache_enabled = cache_enabled
     cobbler_api.settings().enable_menu = enable_menu
 
     # Act
-    result = benchmark.pedantic(
+    result = benchmark.pedantic(  # type: ignore
         start_cobbler, setup=setup_func, rounds=CobblerTree.test_rounds
     )
 

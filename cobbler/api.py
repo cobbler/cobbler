@@ -20,6 +20,8 @@ V3.4.0 (unreleased)
         * ``input_int``
     * Changed:
         * ``new_*``: Accepts kwargs as a last argument now (so a dict) that makes it possible to seed an object
+    * Removed:
+        * Unused reporter module
 
 V3.3.4 (unreleased)
     * No changes
@@ -146,7 +148,6 @@ from cobbler.actions import (
     log,
     mkloaders,
     replicate,
-    report,
     reposync,
     status,
 )
@@ -166,19 +167,15 @@ from cobbler.items import system as system_module
 from cobbler.utils import filesystem_helpers, input_converters, signatures
 
 if TYPE_CHECKING:
-    from cobbler.cobbler_collections.collection import (
-        FIND_KWARGS,
-        ITEM,
-        ITEM_UNION,
-        Collection,
-    )
+    from cobbler.cobbler_collections.collection import FIND_KWARGS, ITEM, Collection
     from cobbler.cobbler_collections.distros import Distros
     from cobbler.cobbler_collections.images import Images
-    from cobbler.cobbler_collections.manager import COLLECTION_UNION
     from cobbler.cobbler_collections.menus import Menus
     from cobbler.cobbler_collections.profiles import Profiles
     from cobbler.cobbler_collections.repos import Repos
     from cobbler.cobbler_collections.systems import Systems
+    from cobbler.items.abstract.base_item import BaseItem
+    from cobbler.items.item import Item
 
 
 # notes on locking:
@@ -483,7 +480,7 @@ class CobblerAPI:
 
     # ==========================================================
 
-    def get_item(self, what: str, name: str) -> Optional["ITEM_UNION"]:
+    def get_item(self, what: str, name: str) -> Optional["Item"]:
         """
         Get a general item.
 
@@ -495,7 +492,7 @@ class CobblerAPI:
         result = self._collection_mgr.get_items(what).get(name)
         return result  # type: ignore
 
-    def get_items(self, what: str) -> "COLLECTION_UNION":
+    def get_items(self, what: str) -> "Collection[BaseItem]":
         """
         Get all items of a collection.
 
@@ -504,7 +501,7 @@ class CobblerAPI:
         """
         # self.log("get_items", [what], debug=True)
         items = self._collection_mgr.get_items(what)
-        return items  # type: ignore
+        return items
 
     def distros(self) -> "Distros":
         """
@@ -550,7 +547,7 @@ class CobblerAPI:
 
     # =======================================================================
 
-    def __item_resolved_helper(self, item_uuid: str, attribute: str) -> "ITEM":
+    def __item_resolved_helper(self, item_uuid: str, attribute: str) -> "BaseItem":
         """
         This helper validates the common data for ``*_item_resolved_value``.
 
@@ -637,9 +634,10 @@ class CobblerAPI:
             return
         # Deduplicate - only for dict
         if isinstance(property_object_of_attribute, InheritableDictProperty):
-            parent_item = desired_item.logical_parent
-            if hasattr(parent_item, attribute):
-                parent_value = getattr(parent_item, attribute)
+            # TODO: Cast this to the right Item type to be able to remove the type ignores
+            parent_item = desired_item.logical_parent  # type: ignore
+            if hasattr(parent_item, attribute):  # type: ignore
+                parent_value = getattr(parent_item, attribute)  # type: ignore
                 dict_value = input_converters.input_string_or_dict(value)
                 if isinstance(dict_value, str):
                     # This can only be the inherited case
@@ -659,7 +657,7 @@ class CobblerAPI:
 
     # =======================================================================
 
-    def copy_item(self, what: str, ref: "ITEM_UNION", newname: str) -> None:
+    def copy_item(self, what: str, ref: "BaseItem", newname: str) -> None:
         """
         General copy method which is called by the specific methods.
 
@@ -729,7 +727,7 @@ class CobblerAPI:
     def remove_item(
         self,
         what: str,
-        ref: Union["ITEM_UNION", str],
+        ref: Union["BaseItem", str],
         recursive: bool = False,
         delete: bool = True,
         with_triggers: bool = True,
@@ -744,7 +742,7 @@ class CobblerAPI:
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
         """
-        to_delete: Optional["ITEM_UNION"] = None
+        to_delete: Optional["BaseItem"] = None
         if isinstance(ref, str):
             to_delete = self.get_item(what, ref)
             if to_delete is None:
@@ -891,7 +889,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def rename_item(self, what: str, ref: "ITEM_UNION", newname: str) -> None:
+    def rename_item(self, what: str, ref: "BaseItem", newname: str) -> None:
         """
         Remove a general item. This method should not be used by an external api. Please use the specific
         rename_<itemtype> methods.
@@ -961,7 +959,7 @@ class CobblerAPI:
 
     def new_item(
         self, what: str = "", is_subobject: bool = False, **kwargs: Any
-    ) -> "ITEM_UNION":
+    ) -> "Item":
         """
         Creates a new (unconfigured) object. The object is not persisted.
 
@@ -1053,7 +1051,7 @@ class CobblerAPI:
     def add_item(
         self,
         what: str,
-        ref: "ITEM_UNION",
+        ref: "BaseItem",
         check_for_duplicate_names: bool = False,
         save: bool = True,
         with_triggers: bool = True,
@@ -1223,7 +1221,7 @@ class CobblerAPI:
         name: str = "",
         return_list: bool = True,
         no_errors: bool = False,
-    ) -> Optional[Union["ITEM_UNION", List["ITEM_UNION"]]]:
+    ) -> Optional[Union["Item", List["Item"]]]:
         """
         This is the abstract base method for finding object int the api. It should not be used by external resources.
         Please reefer to the specific implementations of this method called ``find_<object type>``.
@@ -1272,7 +1270,7 @@ class CobblerAPI:
 
     def __find_without_collection(
         self, name: str, return_list: bool, no_errors: bool, criteria: Dict[Any, Any]
-    ) -> Optional[Union["ITEM_UNION", List["ITEM_UNION"]]]:
+    ) -> Optional[Union["Item", List["Item"]]]:
         collections = [
             "distro",
             "profile",
@@ -1293,7 +1291,7 @@ class CobblerAPI:
                 return match
         return None
 
-    def __find_by_name(self, name: str) -> Optional["ITEM_UNION"]:
+    def __find_by_name(self, name: str) -> Optional["Item"]:
         """
         This is a magic method which just searches all collections for the specified name directly,
         :param name: The name of the item(s).
@@ -1659,7 +1657,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def get_repo_config_for_profile(self, obj: "ITEM") -> str:
+    def get_repo_config_for_profile(self, obj: "BaseItem") -> str:
         """
         Get the repository configuration for the specified profile
 
@@ -1668,7 +1666,7 @@ class CobblerAPI:
         """
         return self.yumgen.get_yum_config(obj, True)
 
-    def get_repo_config_for_system(self, obj: "ITEM") -> str:
+    def get_repo_config_for_system(self, obj: "BaseItem") -> str:
         """
         Get the repository configuration for the specified system.
 
@@ -1679,7 +1677,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def get_template_file_for_profile(self, obj: "ITEM_UNION", path: str) -> str:
+    def get_template_file_for_profile(self, obj: "Item", path: str) -> str:
         """
         Get the template for the specified profile.
 
@@ -1692,7 +1690,7 @@ class CobblerAPI:
             return template_results[path]
         return "# template path not found for specified profile"
 
-    def get_template_file_for_system(self, obj: "ITEM_UNION", path: str) -> str:
+    def get_template_file_for_system(self, obj: "Item", path: str) -> str:
         """
         Get the template for the specified system.
 
@@ -2028,7 +2026,7 @@ class CobblerAPI:
         """
         return self._collection_mgr.deserialize()
 
-    def deserialize_item(self, obj: "ITEM") -> Dict[str, Any]:
+    def deserialize_item(self, obj: "BaseItem") -> Dict[str, Any]:
         """
         Load cobbler item from disk.
         Cobbler internal use only.
@@ -2226,34 +2224,6 @@ class CobblerAPI:
             omit_data=omit_data,
             sync_all=sync_all,
             use_ssl=use_ssl,
-        )
-
-    # ==========================================================================
-
-    def report(
-        self,
-        report_what: str = "",
-        report_name: str = "",
-        report_type: str = "",
-        report_fields: str = "",
-        report_noheaders: bool = False,
-    ) -> None:
-        """
-        Report functionality for Cobbler.
-
-        :param report_what: The object type that should be reported.
-        :param report_name: The name of the object which should be possibly reported.
-        :param report_type: May be either "text", "csv", "mediawiki", "trac" or "doku".
-        :param report_fields: Specify "all" or the fields you want to be reported.
-        :param report_noheaders: If the column headers should be included in the output or not.
-        """
-        reporter = report.Report(self)
-        reporter.run(
-            report_what=report_what,
-            report_name=report_name,
-            report_type=report_type,
-            report_fields=report_fields,
-            report_noheaders=report_noheaders,
         )
 
     # ==========================================================================

@@ -1,3 +1,7 @@
+"""
+Tests that validate the functionality of the module that is responsible for generating auto-installation control files.
+"""
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -82,7 +86,7 @@ def api_mock():
 # [2022-02-28_093028_validate_autoinstall_files] 2022-02-28T09:30:29 - ERROR | ### TASK FAILED ###
 
 
-def test_create_autoinstallation_manager(api_mock):
+def test_create_autoinstallation_manager(api_mock: CobblerAPI):
     # Arrange
     # TODO
 
@@ -90,4 +94,4 @@ def test_create_autoinstallation_manager(api_mock):
     result = autoinstall_manager.AutoInstallationManager(api_mock)
 
     # Assert
-    isinstance(result, autoinstall_manager.AutoInstallationManager)
+    assert isinstance(result, autoinstall_manager.AutoInstallationManager)

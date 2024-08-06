@@ -1,4 +1,13 @@
+"""
+Tests that validate the functionality of the module that is responsible for process management in Cobbler.
+"""
+
+from typing import TYPE_CHECKING
+
 from cobbler.utils import process_management
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 def test_is_systemd():
@@ -11,7 +20,7 @@ def test_is_systemd():
     assert result
 
 
-def test_service_restart_no_manager(mocker):
+def test_service_restart_no_manager(mocker: "MockerFixture"):
     # Arrange
     mocker.patch(
         "cobbler.utils.process_management.is_supervisord",
@@ -32,7 +41,7 @@ def test_service_restart_no_manager(mocker):
     assert result == 1
 
 
-def test_service_restart_supervisord(mocker):
+def test_service_restart_supervisord(mocker: "MockerFixture"):
     mocker.patch(
         "cobbler.utils.process_management.is_supervisord",
         autospec=True,
@@ -47,7 +56,7 @@ def test_service_restart_supervisord(mocker):
     assert result == 0
 
 
-def test_service_restart_systemctl(mocker):
+def test_service_restart_systemctl(mocker: "MockerFixture"):
     mocker.patch(
         "cobbler.utils.process_management.is_supervisord",
         autospec=True,
@@ -73,7 +82,7 @@ def test_service_restart_systemctl(mocker):
     )
 
 
-def test_service_restart_service(mocker):
+def test_service_restart_service(mocker: "MockerFixture"):
     # Arrange
     mocker.patch(
         "cobbler.utils.process_management.is_supervisord",

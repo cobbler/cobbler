@@ -1,8 +1,14 @@
+"""
+Tests that validate the functionality of the module that is responsible for providing XML-RPC calls related to menus.
+"""
+
 import pytest
+
+from cobbler.remote import CobblerXMLRPCInterface
 
 
 @pytest.fixture
-def create_menu(remote, token):
+def create_menu(remote: CobblerXMLRPCInterface, token: str):
     """
     Creates a Menu "testmenu0" with a display_name "Test Menu0"
 
@@ -16,7 +22,7 @@ def create_menu(remote, token):
 
 
 @pytest.fixture
-def remove_menu(remote, token):
+def remove_menu(remote: CobblerXMLRPCInterface, token: str):
     """
     Removes the Menu "testmenu0" which can be created with create_menu.
 
@@ -28,8 +34,12 @@ def remove_menu(remote, token):
 
 
 class TestMenu:
+    """
+    TODO
+    """
+
     @pytest.mark.usefixtures("create_testmenu", "remove_testmenu")
-    def test_create_submenu(self, remote, token):
+    def test_create_submenu(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: create/edit a submenu object
         """
@@ -50,7 +60,7 @@ class TestMenu:
         remote.remove_menu("testsubmenu0", token, False)
 
     @pytest.mark.usefixtures("remove_menu")
-    def test_create_menu(self, remote, token):
+    def test_create_menu(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: create/edit a menu object
         """
@@ -62,7 +72,7 @@ class TestMenu:
         assert remote.modify_menu(menu, "display_name", "Test Menu0", token)
         assert remote.save_menu(menu, token)
 
-    def test_get_menus(self, remote):
+    def test_get_menus(self, remote: CobblerXMLRPCInterface):
         """
         Test: Get menus
         """
@@ -75,7 +85,7 @@ class TestMenu:
         assert result == []
 
     @pytest.mark.usefixtures("create_menu", "remove_menu")
-    def test_get_menu(self, remote, token):
+    def test_get_menu(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: Get a menu object
         """
@@ -86,10 +96,10 @@ class TestMenu:
         menu = remote.get_menu("testmenu0")
 
         # Assert
-        assert menu.get("name") == "testmenu0"
+        assert menu.get("name") == "testmenu0"  # type: ignore[reportUnknownMemberType]
 
     @pytest.mark.usefixtures("create_menu", "remove_menu")
-    def test_find_menu(self, remote, token):
+    def test_find_menu(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: find a menu object
         """
@@ -97,13 +107,13 @@ class TestMenu:
         # Arrange --> Done in fixture
 
         # Act
-        result = remote.find_menu({"name": "testmenu0"}, token)
+        result = remote.find_menu({"name": "testmenu0"}, False, False, token)
 
         # Assert
         assert result
 
     @pytest.mark.usefixtures("create_menu", "remove_menu")
-    def test_copy_menu(self, remote, token):
+    def test_copy_menu(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: copy a menu object
         """
@@ -120,7 +130,7 @@ class TestMenu:
         remote.remove_menu("testmenucopy", token)
 
     @pytest.mark.usefixtures("create_menu")
-    def test_rename_menu(self, remote, token):
+    def test_rename_menu(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: rename a menu object
         """
@@ -138,7 +148,7 @@ class TestMenu:
         remote.remove_menu("testmenu1", token)
 
     @pytest.mark.usefixtures("create_menu")
-    def test_remove_menu(self, remote, token):
+    def test_remove_menu(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: remove a menu object
         """

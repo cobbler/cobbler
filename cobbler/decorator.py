@@ -1,6 +1,7 @@
 """
 This module provides decorators that are required for Cobbler to work as expected.
 """
+
 # The idea for the subclassed property decorators is from: https://stackoverflow.com/a/59313599/4730773
 
 from typing import Any, Optional
@@ -22,6 +23,9 @@ class LazyProperty(property):
             and obj._has_initialized  # pyright: ignore [reportPrivateUsage]
         ):
             obj.deserialize()
+        if self.fget is None:
+            # This may occur if the functional way of using a property is used.
+            raise ValueError("Property had no getter!")
         return self.fget(obj)
 
 

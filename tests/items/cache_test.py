@@ -1,16 +1,28 @@
+"""
+Tests that validate the functionality of the module that is responsible for caching the results of the to_dict method.
+"""
+
+from typing import Any, Callable, List, Sequence
+
 import pytest
 
+from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
+from cobbler.items.abstract.base_item import BaseItem
+from cobbler.items.distro import Distro
+from cobbler.items.image import Image
 from cobbler.items.item import Item
 from cobbler.items.menu import Menu
+from cobbler.items.profile import Profile
 from cobbler.items.repo import Repo
+from cobbler.items.system import System
 
 from tests.conftest import does_not_raise
 
 
-def test_collection_types(cobbler_api):
+def test_collection_types(cobbler_api: CobblerAPI):
     # Arrange
-    mgr = cobbler_api._collection_mgr
+    mgr = cobbler_api._collection_mgr  # type: ignore[reportPrivateUsage]
 
     # Act
     result = mgr.__dict__.items()
@@ -28,7 +40,10 @@ def test_collection_types(cobbler_api):
     ],
 )
 def test_repo_dict_cache_load(
-    cobbler_api, input_value, expected_exception, expected_output
+    cobbler_api: CobblerAPI,
+    input_value: bool,
+    expected_exception: Any,
+    expected_output: bool,
 ):
     # Arrange
     cobbler_api.settings().cache_enabled = input_value
@@ -56,7 +71,11 @@ def test_repo_dict_cache_load(
     ],
 )
 def test_distro_dict_cache_load(
-    cobbler_api, create_distro, input_value, expected_exception, expected_output
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    input_value: bool,
+    expected_exception: Any,
+    expected_output: str,
 ):
     # Arrange
     cobbler_api.settings().cache_enabled = input_value
@@ -82,7 +101,11 @@ def test_distro_dict_cache_load(
     ],
 )
 def test_image_dict_cache_load(
-    cobbler_api, create_image, input_value, expected_exception, expected_output
+    cobbler_api: CobblerAPI,
+    create_image: Callable[[], Image],
+    input_value: bool,
+    expected_exception: Any,
+    expected_output: bool,
 ):
     # Arrange
     cobbler_api.settings().cache_enabled = input_value
@@ -108,7 +131,10 @@ def test_image_dict_cache_load(
     ],
 )
 def test_menu_dict_cache_load(
-    cobbler_api, input_value, expected_exception, expected_output
+    cobbler_api: CobblerAPI,
+    input_value: bool,
+    expected_exception: Any,
+    expected_output: bool,
 ):
     # Arrange
     cobbler_api.settings().cache_enabled = input_value
@@ -136,12 +162,12 @@ def test_menu_dict_cache_load(
     ],
 )
 def test_profile_dict_cache_load(
-    cobbler_api,
-    create_distro,
-    create_profile,
-    input_value,
-    expected_exception,
-    expected_output,
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    input_value: bool,
+    expected_exception: Any,
+    expected_output: bool,
 ):
     # Arrange
     cobbler_api.settings().cache_enabled = input_value
@@ -170,13 +196,13 @@ def test_profile_dict_cache_load(
     ],
 )
 def test_system_dict_cache_load(
-    cobbler_api,
-    create_distro,
-    create_profile,
-    create_system,
-    input_value,
-    expected_exception,
-    expected_output,
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+    input_value: bool,
+    expected_exception: Any,
+    expected_output: bool,
 ):
     # Arrange
     cobbler_api.settings().cache_enabled = input_value
@@ -184,7 +210,7 @@ def test_system_dict_cache_load(
     test_distro.kernel_options = {"test": True}
     test_profile = create_profile(test_distro.name)
     test_profile.kernel_options = {"my_value": 5}
-    test_system = create_system(profile_name=test_profile.name)
+    test_system: System = create_system(profile_name=test_profile.name)
 
     # Act
     with expected_exception:
@@ -206,7 +232,10 @@ def test_system_dict_cache_load(
     ],
 )
 def test_repo_dict_cache_use(
-    cobbler_api, input_value, expected_exception, expected_output
+    cobbler_api: CobblerAPI,
+    input_value: bool,
+    expected_exception: Any,
+    expected_output: bool,
 ):
     # Arrange
     cobbler_api.settings().cache_enabled = input_value
@@ -220,8 +249,8 @@ def test_repo_dict_cache_use(
 
     # Act
     with expected_exception:
-        test_repo.cache.set_dict_cache(test_cache1, True)
-        test_repo.cache.set_dict_cache(test_cache2, False)
+        test_repo.cache.set_dict_cache(test_cache1, True)  # type: ignore
+        test_repo.cache.set_dict_cache(test_cache2, False)  # type: ignore
         result1 = test_repo.cache.get_dict_cache(True)
         result2 = test_repo.cache.get_dict_cache(False)
 
@@ -238,7 +267,11 @@ def test_repo_dict_cache_use(
     ],
 )
 def test_distro_dict_cache_use(
-    cobbler_api, create_distro, input_value, expected_exception, expected_output
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    input_value: bool,
+    expected_exception: Any,
+    expected_output: bool,
 ):
     # Arrange
     cobbler_api.settings().cache_enabled = input_value
@@ -250,8 +283,8 @@ def test_distro_dict_cache_use(
 
     # Act
     with expected_exception:
-        test_distro.cache.set_dict_cache(test_cache1, True)
-        test_distro.cache.set_dict_cache(test_cache2, False)
+        test_distro.cache.set_dict_cache(test_cache1, True)  # type: ignore
+        test_distro.cache.set_dict_cache(test_cache2, False)  # type: ignore
         result1 = test_distro.cache.get_dict_cache(True)
         result2 = test_distro.cache.get_dict_cache(False)
 
@@ -268,7 +301,11 @@ def test_distro_dict_cache_use(
     ],
 )
 def test_image_dict_cache_use(
-    cobbler_api, create_image, input_value, expected_exception, expected_output
+    cobbler_api: CobblerAPI,
+    create_image: Callable[[], Image],
+    input_value: bool,
+    expected_exception: Any,
+    expected_output: bool,
 ):
     # Arrange
     cobbler_api.settings().cache_enabled = input_value
@@ -280,8 +317,8 @@ def test_image_dict_cache_use(
 
     # Act
     with expected_exception:
-        test_image.cache.set_dict_cache(test_cache1, True)
-        test_image.cache.set_dict_cache(test_cache2, False)
+        test_image.cache.set_dict_cache(test_cache1, True)  # type: ignore
+        test_image.cache.set_dict_cache(test_cache2, False)  # type: ignore
         result1 = test_image.cache.get_dict_cache(True)
         result2 = test_image.cache.get_dict_cache(False)
 
@@ -298,7 +335,10 @@ def test_image_dict_cache_use(
     ],
 )
 def test_menu_dict_cache_use(
-    cobbler_api, input_value, expected_exception, expected_output
+    cobbler_api: CobblerAPI,
+    input_value: bool,
+    expected_exception: Any,
+    expected_output: bool,
 ):
     # Arrange
     cobbler_api.settings().cache_enabled = input_value
@@ -312,8 +352,8 @@ def test_menu_dict_cache_use(
 
     # Act
     with expected_exception:
-        test_menu.cache.set_dict_cache(test_cache1, True)
-        test_menu.cache.set_dict_cache(test_cache2, False)
+        test_menu.cache.set_dict_cache(test_cache1, True)  # type: ignore
+        test_menu.cache.set_dict_cache(test_cache2, False)  # type: ignore
         result1 = test_menu.cache.get_dict_cache(True)
         result2 = test_menu.cache.get_dict_cache(False)
 
@@ -330,12 +370,12 @@ def test_menu_dict_cache_use(
     ],
 )
 def test_profile_dict_cache_use(
-    cobbler_api,
-    create_distro,
-    create_profile,
-    input_value,
-    expected_exception,
-    expected_output,
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    input_value: bool,
+    expected_exception: Any,
+    expected_output: bool,
 ):
     # Arrange
     cobbler_api.settings().cache_enabled = input_value
@@ -368,21 +408,21 @@ def test_profile_dict_cache_use(
     ],
 )
 def test_system_dict_cache_use(
-    cobbler_api,
-    create_distro,
-    create_profile,
-    create_system,
-    input_value,
-    expected_exception,
-    expected_output,
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Any,
+    create_system: Any,
+    input_value: bool,
+    expected_exception: Any,
+    expected_output: bool,
 ):
     # Arrange
     cobbler_api.settings().cache_enabled = input_value
     test_distro = create_distro()
     test_distro.kernel_options = {"test": True}
-    test_profile = create_profile(test_distro.name)
+    test_profile: Profile = create_profile(test_distro.name)
     test_profile.kernel_options = {"my_value": 5}
-    test_system = create_system(profile_name=test_profile.name)
+    test_system: System = create_system(profile_name=test_profile.name)
     test_system.to_dict(resolved=True)
     test_system.to_dict(resolved=False)
     test_cache1 = {"test": True}
@@ -408,16 +448,21 @@ def test_system_dict_cache_use(
     ],
 )
 def test_dict_cache_invalidate(
-    cobbler_api,
-    create_distro,
-    create_image,
-    create_profile,
-    create_system,
-    cache_enabled,
-    expected_exception,
-    expected_output,
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_image: Callable[[], Image],
+    create_profile: Any,
+    create_system: Any,
+    cache_enabled: bool,
+    expected_exception: Any,
+    expected_output: bool,
 ):
-    def validate_caches(test_api, objs, obj_test, dep):
+    def validate_caches(
+        test_api: CobblerAPI,
+        objs: List[BaseItem],
+        obj_test: BaseItem,
+        dep: Sequence[BaseItem],
+    ):
         for obj in objs:
             obj.to_dict(resolved=False)
             obj.to_dict(resolved=True)
@@ -431,7 +476,7 @@ def test_dict_cache_invalidate(
             ):
                 return False
         elif obj_test == test_api.settings():
-            test_api.clean_items_cache(obj_test)
+            test_api.clean_items_cache(obj_test)  # type: ignore
         elif obj_test == test_api.get_signatures():
             test_api.signature_update()
         for obj in dep:
@@ -448,7 +493,7 @@ def test_dict_cache_invalidate(
 
     # Arrange
     cobbler_api.settings().cache_enabled = cache_enabled
-    objs = []
+    objs: List[BaseItem] = []
     test_repo = Repo(cobbler_api)
     test_repo.name = "test_repo"
     cobbler_api.add_repo(test_repo)
@@ -465,16 +510,18 @@ def test_dict_cache_invalidate(
     test_distro = create_distro()
     test_distro.source_repos = [test_repo.name]
     objs.append(test_distro)
-    test_profile1 = create_profile(distro_name=test_distro.name, name="test_profile1")
+    test_profile1: Profile = create_profile(
+        distro_name=test_distro.name, name="test_profile1"
+    )
     test_profile1.enable_menu = False
     objs.append(test_profile1)
-    test_profile2 = create_profile(
+    test_profile2: Profile = create_profile(
         profile_name=test_profile1.name, name="test_profile2"
     )
     test_profile2.enable_menu = False
     test_profile2.menu = test_menu2.name
     objs.append(test_profile2)
-    test_profile3 = create_profile(
+    test_profile3: Profile = create_profile(
         profile_name=test_profile1.name, name="test_profile3"
     )
     test_profile3.enable_menu = False
@@ -539,12 +586,12 @@ def test_dict_cache_invalidate(
     )
 
     assert (
-        validate_caches(cobbler_api, objs, cobbler_api.settings(), settings_dep)
+        validate_caches(cobbler_api, objs, cobbler_api.settings(), settings_dep)  # type: ignore
         == expected_output
     )
     assert (
-        validate_caches(cobbler_api, objs, cobbler_api.get_signatures(), signatures_dep)
+        validate_caches(cobbler_api, objs, cobbler_api.get_signatures(), signatures_dep)  # type: ignore
         == expected_output
     )
     with expected_exception:
-        cobbler_api.clean_items_cache(True)
+        cobbler_api.clean_items_cache(True)  # type: ignore

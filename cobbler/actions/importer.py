@@ -2,6 +2,7 @@
 This module contains the logic that kicks of the ``cobbler import`` process. This is extracted logic from ``api.py``
 that is essentially calling ``modules/mangers/import_signatures.py`` with some preparatory code.
 """
+
 import logging
 import os
 from typing import TYPE_CHECKING, Optional
@@ -59,7 +60,7 @@ class Importer:
         )
 
         # Both --path and --name are required arguments.
-        if mirror_url is None or not mirror_url:
+        if mirror_url is None or not mirror_url:  # type: ignore[reportUnnecessaryComparison]
             self.logger.info("import failed.  no --path specified")
             return False
         if not mirror_name:

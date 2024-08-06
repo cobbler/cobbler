@@ -1,3 +1,7 @@
+"""
+Tests that validate the functionality of the module that is responsible for providing basic item functionality.
+"""
+
 import copy
 from typing import Any, List, Optional
 
@@ -5,7 +9,6 @@ import pytest
 
 from cobbler import enums
 from cobbler.api import CobblerAPI
-from cobbler.cobbler_collections.collection import ITEM
 from cobbler.items.abstract.base_item import BaseItem
 
 from tests.conftest import does_not_raise
@@ -21,7 +24,7 @@ class MockItem(BaseItem):
         if not self._has_initialized:
             self._has_initialized = True
 
-    def make_clone(self) -> ITEM:
+    def make_clone(self) -> BaseItem:
         _dict = copy.deepcopy(self.to_dict())
         # Drop attributes which are computed from other attributes
         computed_properties = ["uid"]

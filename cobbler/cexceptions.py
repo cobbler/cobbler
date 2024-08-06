@@ -1,6 +1,7 @@
 """
 Custom exceptions for Cobbler
 """
+
 from typing import Any, Iterable
 
 # SPDX-License-Identifier: GPL-2.0-or-later

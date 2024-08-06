@@ -4,6 +4,7 @@ One migration should update from version x to x + 1, where X is any Cobbler vers
 any next version (e.g. 3.2.1 to 3.3.0).
 The validation of the current version is in the file with the name of the version.
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
@@ -130,7 +131,7 @@ def __validate_module(name: ModuleType) -> bool:
         "normalize": "(settings:Dict[str,Any])->Dict[str,Any]",
         "migrate": "(settings:Dict[str,Any])->Dict[str,Any]",
     }
-    for (key, value) in module_methods.items():
+    for key, value in module_methods.items():
         if not hasattr(name, key):
             return False
         sig = str(signature(getattr(name, key))).replace(" ", "")
@@ -197,7 +198,7 @@ def get_settings_file_version(
 
     # Extra settings and ignored keys are excluded from validation
     data, _ = filter_settings_to_validate(yaml_dict, ignore_keys)
-    for (version, module_name) in VERSION_LIST.items():
+    for version, module_name in VERSION_LIST.items():
         if module_name.validate(data):
             return version
     return EMPTY_VERSION

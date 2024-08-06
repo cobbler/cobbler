@@ -1,8 +1,17 @@
+"""
+Tests that validate the functionality of the module that is responsible for replacing or adding DNS records after a
+Cobbler system was deleted.
+"""
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 from cobbler.api import CobblerAPI
 from cobbler.modules import nsupdate_add_system_post
 from cobbler.settings import Settings
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 def test_register():
@@ -13,7 +22,7 @@ def test_register():
     assert result == "/var/lib/cobbler/triggers/add/system/post/*"
 
 
-def test_run(mocker):
+def test_run(mocker: "MockerFixture"):
     # Arrange
     settings_mock = MagicMock(
         name="nsupdate_add_system_post_setting_mock", spec=Settings

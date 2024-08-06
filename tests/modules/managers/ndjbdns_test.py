@@ -1,7 +1,17 @@
+"""
+Tests that validate the functionality of the module that is responsible for managing the djbdns config files.
+"""
+
+from typing import TYPE_CHECKING, Any
+
+from cobbler.api import CobblerAPI
 from cobbler.items.network_interface import NetworkInterface
 from cobbler.items.system import System
 from cobbler.modules.managers import ndjbdns
 from cobbler.templar import Templar
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 def test_register():
@@ -13,17 +23,19 @@ def test_register():
     assert result == "manage"
 
 
-def test_get_manager(cobbler_api):
+def test_get_manager(cobbler_api: CobblerAPI):
     # Arrange & Act
     result = ndjbdns.get_manager(cobbler_api)
 
     # Assert
-    isinstance(result, ndjbdns._NDjbDnsManager)
+    # pylint: disable-next=protected-access
+    isinstance(result, ndjbdns._NDjbDnsManager)  # type: ignore[reportPrivateUsage]
 
 
 def test_manager_what():
     # Arrange & Act & Assert
-    assert ndjbdns._NDjbDnsManager.what() == "ndjbdns"
+    # pylint: disable-next=protected-access
+    assert ndjbdns._NDjbDnsManager.what() == "ndjbdns"  # type: ignore[reportPrivateUsage]
 
 
 class MockedPopen:
@@ -31,17 +43,19 @@ class MockedPopen:
     See https://stackoverflow.com/a/53793739
     """
 
-    def __init__(self, args, **kwargs):
+    # pylint: disable=unused-argument,redefined-builtin
+
+    def __init__(self, args: Any, **kwargs: Any):
         self.args = args
         self.returncode = 0
 
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, value, traceback):
+    def __exit__(self, exc_type: Any, value: Any, traceback: Any):
         pass
 
-    def communicate(self, input=None, timeout=None):
+    def communicate(self, input: Any = None, timeout: Any = None):
         stdout = "output"
         stderr = "error"
         self.returncode = 0
@@ -49,7 +63,7 @@ class MockedPopen:
         return stdout, stderr
 
 
-def test_manager_write_configs(mocker, cobbler_api):
+def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     # Arrange
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
     mocker.patch("subprocess.Popen", MockedPopen)
@@ -65,7 +79,7 @@ def test_manager_write_configs(mocker, cobbler_api):
     ndjbdns.MANAGER = None
     test_manager = ndjbdns.get_manager(cobbler_api)
     test_manager.templar = mocker.MagicMock(spec=Templar, autospec=True)
-    test_manager.systems = [mock_system]
+    test_manager.systems = [mock_system]  # type: ignore[reportAttributeAccessIssue]
 
     # Act
     test_manager.write_configs()

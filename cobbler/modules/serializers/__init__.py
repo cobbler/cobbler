@@ -2,7 +2,8 @@
 This module contains code to persist the in memory state of Cobbler on a target. The name of the target should be the
 name of the Python file. Cobbler is currently only tested against the file serializer.
 """
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+
+from typing import TYPE_CHECKING, Any, Dict, List
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -49,14 +50,12 @@ class StorageBase:
             "The implementation for the configured serializer is missing!"
         )
 
-    def deserialize_raw(
-        self, collection_type: str
-    ) -> Union[List[Optional[Dict[str, Any]]], Dict[str, Any]]:
+    def deserialize_raw(self, collection_type: str) -> List[Dict[str, Any]]:
         """
-        Read the collection from the disk or read the settings file.
+        Read the collection from the disk.
 
         :param collection_type: The collection type to read.
-        :return: The list of collection dicts or settings dict.
+        :return: The list of collection dicts.
         """
         raise NotImplementedError(
             "The implementation for the configured serializer is missing!"

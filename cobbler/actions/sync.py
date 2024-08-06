@@ -283,7 +283,7 @@ class CobblerSync:
         distros: List[Dict[str, str]] = []
 
         for link in glob.glob(os.path.join(self.settings.webdir, "links", "*")):
-            distro = {}
+            distro: Dict[str, str] = {}
             distro["path"] = os.path.realpath(link)
             distro["name"] = os.path.basename(link)
             distros.append(distro)
@@ -342,7 +342,7 @@ class CobblerSync:
         # generate any templates listed in the distro
         self.tftpgen.write_templates(distro_obj, write_file=True)
         # cascade sync
-        kids = self.api.find_profile(return_list=True, **{"distro": distro_obj.name})
+        kids = self.api.find_profile(return_list=True, distro=distro_obj.name)
         if not isinstance(kids, list):
             raise ValueError("Expected to get list of profiles from search!")
         for k in kids:
@@ -356,7 +356,7 @@ class CobblerSync:
         :param name: The name of the image.
         """
         self.tftpgen.copy_single_image_files(image_obj)
-        kids = self.api.find_system(return_list=True, **{"image": image_obj.name})
+        kids = self.api.find_system(return_list=True, image=image_obj.name)
         if not isinstance(kids, list):
             raise ValueError("Expected to get list of profiles from search!")
         for k in kids:
@@ -415,7 +415,7 @@ class CobblerSync:
         kids = profile.children
         for k in kids:
             self.add_single_profile(k, rebuild_menu=False)  # type: ignore
-        kids = self.api.find_system(return_list=True, **{"profile": profile.name})
+        kids = self.api.find_system(return_list=True, profile=profile.name)
         if not isinstance(kids, list):
             raise ValueError("Expected to get list of profiles from search!")
         for k in kids:
@@ -477,7 +477,7 @@ class CobblerSync:
         """
         bootloc = self.settings.tftpboot_location
         # delete contents of autoinsts_sys/$name in webdir
-        for (interface_name, _) in list(system_obj.interfaces.items()):
+        for interface_name, _ in list(system_obj.interfaces.items()):
             pxe_filename = system_obj.get_config_filename(
                 interface=interface_name, loader="pxe"
             )

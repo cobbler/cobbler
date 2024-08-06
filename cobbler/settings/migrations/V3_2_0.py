@@ -97,7 +97,7 @@ schema = Schema(
             ],
         ): list,
         "power_management_default_type": str,
-        Optional("proxy_url_ext", default=""): Or(None, str),
+        Optional("proxy_url_ext", default=""): Or(None, str),  # type: ignore
         "proxy_url_int": str,
         "puppet_auto_setup": int,
         "puppetca_path": str,
@@ -186,7 +186,7 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
         "cache_enabled": 1,
         "reposync_rsync_flags": "-rltDv --copy-unsafe-links",
     }
-    for (key, value) in missing_keys.items():
+    for key, value in missing_keys.items():
         new_setting = helper.Setting(key, value)
         helper.key_add(new_setting, settings)
 

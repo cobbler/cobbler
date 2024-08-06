@@ -1,6 +1,7 @@
 """
 Authorization module that allows everything, which is the default for new Cobbler installs.
 """
+
 from typing import TYPE_CHECKING, Any
 
 # SPDX-License-Identifier: GPL-2.0-or-later

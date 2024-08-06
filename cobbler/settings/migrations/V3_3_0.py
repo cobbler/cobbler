@@ -375,7 +375,7 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
         "next_server_v6": "::1",
         "syslinux_dir": "/usr/share/syslinux",
     }
-    for (key, value) in missing_keys.items():
+    for key, value in missing_keys.items():
         new_setting = helper.Setting(key, value)
         helper.key_add(new_setting, settings)
 

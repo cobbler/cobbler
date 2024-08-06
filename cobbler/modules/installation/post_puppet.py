@@ -6,6 +6,7 @@ server.
 Based on:
 https://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
 """
+
 import logging
 import re
 from typing import TYPE_CHECKING, List

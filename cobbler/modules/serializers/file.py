@@ -15,7 +15,6 @@ import os
 from typing import TYPE_CHECKING, Any, Dict, List
 
 import cobbler.api as capi
-from cobbler import settings
 from cobbler.cexceptions import CX
 from cobbler.modules.serializers import StorageBase
 
@@ -99,9 +98,6 @@ class FileSerializer(StorageBase):
                 self.serialize_item(collection, item)
 
     def deserialize_raw(self, collection_type: str) -> List[Dict[str, Any]]:
-        if collection_type == "settings":
-            return settings.read_settings_file()  # type: ignore
-
         results: List[Dict[str, Any]] = []
 
         path = os.path.join(self.libpath, collection_type)
@@ -121,20 +117,20 @@ class FileSerializer(StorageBase):
                             f"The file name {name}.json does not match the {_dict['name']} {collection_type}!"
                         )
             results.append(_dict)
-        return results
+        return results  # type: ignore
 
     def deserialize(
         self, collection: "Collection[ITEM]", topological: bool = True
     ) -> None:
         datastruct = self.deserialize_raw(collection.collection_types())
-        if topological and isinstance(datastruct, list):  # type: ignore
+        if topological:
             datastruct.sort(key=lambda x: x.get("depth", 1))
         try:
             if isinstance(datastruct, dict):
                 # This is currently the corner case for the settings type.
                 collection.from_dict(datastruct)  # type: ignore
             elif isinstance(datastruct, list):  # type: ignore
-                collection.from_list(datastruct)
+                collection.from_list(datastruct)  # type: ignore
         except Exception as exc:
             logger.error(
                 "Error while loading a collection: %s. Skipping collection %s!",

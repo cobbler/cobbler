@@ -152,7 +152,7 @@ class PowerManager:
 
         self._check_power_conf(system, user, password)
         power_input = ""
-        if power_operation is None or power_operation not in ["on", "off", "status"]:
+        if not power_operation or power_operation not in ["on", "off", "status"]:
             raise CX("invalid power operation")
         power_input += "action=" + power_operation + "\n"
         if system.power_address:

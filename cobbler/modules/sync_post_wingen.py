@@ -51,6 +51,7 @@ from cobbler import templar, tftpgen, utils
 from cobbler.utils import filesystem_helpers
 
 try:
+    # pylint: disable=import-error
     import hivex  # type: ignore
     from hivex.hive_types import REG_BINARY  # type: ignore
     from hivex.hive_types import REG_DWORD  # type: ignore
@@ -60,9 +61,14 @@ try:
     HAS_HIVEX = True
 except Exception:
     # This is only defined once in each case.
-    HAS_HIVEX = False  # type: ignore
+    REG_BINARY = None  # type: ignore[reportConstantRedefinition]
+    REG_DWORD = None  # type: ignore[reportConstantRedefinition]
+    REG_MULTI_SZ = None  # type: ignore[reportConstantRedefinition]
+    REG_SZ = None  # type: ignore[reportConstantRedefinition]
+    HAS_HIVEX = False  # type: ignore[reportConstantRedefinition]
 
 try:
+    # pylint: disable=import-error
     import pefile  # type: ignore
 
     HAS_PEFILE = True
@@ -577,8 +583,10 @@ def run(api: "CobblerAPI", args: Any):
 
         distro = profile.get_conceptual_parent()  # type: ignore
 
-        if distro and distro.breed == "windows":
+        if distro and distro.breed == "windows":  # type: ignore[reportUnknownMemberType]
             logger.info("System: %s", system.name)
             meta = utils.blender(api, False, system)
-            gen_win_files(distro, autoinstall_meta)
+            autoinstall_meta = meta.get("autoinstall_meta", {})
+            meta.update(autoinstall_meta)
+            gen_win_files(distro, meta)  # type: ignore[reportUnknownArgumentType]
     return 0

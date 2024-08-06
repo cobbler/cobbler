@@ -27,7 +27,7 @@ try:
     # https://github.com/cobbler/cobbler/issues/3692
     from setuptools import modified
 except ImportError:
-    from setuptools import dep_util as modified
+    from setuptools import dep_util as modified  # type: ignore
 
 VERSION = "3.4.0"
 OUTPUT_DIR = "config"
@@ -547,7 +547,7 @@ if __name__ == "__main__":
     setup(
         distclass=Distribution,
         cmdclass={
-            "build": Build,
+            "build": Build,  # type: ignore
             "build_py": BuildPy,
             "test": TestCommand,
             "install": Install,

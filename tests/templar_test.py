@@ -1,5 +1,11 @@
+"""
+Tests that validate the functionality of the module that is responsible for abstracting access to the different
+template rendering engines that Cobbler supports.
+"""
+
 import pytest
 
+from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.templar import Templar
 
@@ -27,7 +33,7 @@ def setup_cheetah_macros_file():
         )
 
 
-def test_check_for_invalid_imports(cobbler_api):
+def test_check_for_invalid_imports(cobbler_api: CobblerAPI):
     # Arrange
     test_templar = Templar(cobbler_api)
     testdata = "#import json"
@@ -37,7 +43,7 @@ def test_check_for_invalid_imports(cobbler_api):
         test_templar.check_for_invalid_imports(testdata)
 
 
-def test_render(cobbler_api):
+def test_render(cobbler_api: CobblerAPI):
     # Arrange
     test_templar = Templar(cobbler_api)
 
@@ -48,7 +54,7 @@ def test_render(cobbler_api):
     assert result == ""
 
 
-def test_render_cheetah(cobbler_api):
+def test_render_cheetah(cobbler_api: CobblerAPI):
     # Arrange
     test_templar = Templar(cobbler_api)
 
@@ -61,7 +67,7 @@ def test_render_cheetah(cobbler_api):
 
 @pytest.mark.usefixtures("setup_cheetah_macros_file")
 @pytest.mark.skip("Macros only work if we restart cobblerd")
-def test_cheetah_macros(cobbler_api):
+def test_cheetah_macros(cobbler_api: CobblerAPI):
     # Arrange
     templar = Templar(cobbler_api)
 
@@ -72,7 +78,7 @@ def test_cheetah_macros(cobbler_api):
     assert result == "Text in method: 5\n"
 
 
-def test_render_jinja2(cobbler_api):
+def test_render_jinja2(cobbler_api: CobblerAPI):
     # Arrange
     test_templar = Templar(cobbler_api)
 

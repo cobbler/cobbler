@@ -27,7 +27,8 @@ try:
 
     JINJA2_AVAILABLE = True
 except ModuleNotFoundError:
-    # FIXME: log a message here
+    # pylint: disable-next=invalid-name
+    jinja2 = None  # type: ignore
     JINJA2_AVAILABLE = False  # type: ignore
 
 
@@ -91,7 +92,7 @@ class Templar:
             raw_data = data_input
         lines = raw_data.split("\n")
 
-        if template_type is None:
+        if template_type is None:  # type: ignore
             raise ValueError('"template_type" can\'t be "None"!')
 
         if not isinstance(template_type, str):  # type: ignore
@@ -116,10 +117,7 @@ class Templar:
         if template_type == "cheetah":
             data_out = self.render_cheetah(raw_data, search_table)
         elif template_type == "jinja2":
-            if JINJA2_AVAILABLE:
-                data_out = self.render_jinja2(raw_data, search_table)
-            else:
-                return "# ERROR: JINJA2 NOT AVAILABLE. Maybe you need to install python-jinja2?\n"
+            data_out = self.render_jinja2(raw_data, search_table)
         else:
             return f"# ERROR: UNSUPPORTED TEMPLATE TYPE ({str(template_type)})"
 
@@ -211,7 +209,7 @@ class Templar:
             generated_template_class = template(searchList=[search_table])  # type: ignore
             data_out = str(generated_template_class)  # type: ignore
             self.last_errors = generated_template_class.errorCatcher().listErrors()  # type: ignore
-            if self.last_errors:
+            if self.last_errors:  # type: ignore
                 self.logger.warning("errors were encountered rendering the template")
                 self.logger.warning("\n%s", pprint.pformat(self.last_errors))  # type: ignore
         except Exception as error:
@@ -230,7 +228,8 @@ class Templar:
         :param search_table: is a dict of metadata keys and values
         :return: The rendered Jinja2 Template.
         """
-
+        if not JINJA2_AVAILABLE or jinja2 is None:
+            return "# ERROR: JINJA2 NOT AVAILABLE. Maybe you need to install python-jinja2?\n"
         try:
             if self.settings and self.settings.jinja2_includedir:
                 template = jinja2.Environment(

@@ -8,9 +8,8 @@ Cobbler's Mongo database based object serializer.
 # SPDX-FileCopyrightText: James Cammarata <jimi@sngx.net>
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional
 
-from cobbler import settings
 from cobbler.cexceptions import CX
 from cobbler.modules.serializers import StorageBase
 
@@ -21,12 +20,16 @@ if TYPE_CHECKING:
     from cobbler.cobbler_collections.collection import ITEM, Collection
 
 try:
+    # pylint: disable-next=ungrouped-imports
     from pymongo.errors import ConfigurationError, ConnectionFailure, OperationFailure
     from pymongo.mongo_client import MongoClient
 
     PYMONGO_LOADED = True
 except ModuleNotFoundError:
-    # FIXME: log message
+    # pylint: disable=invalid-name
+    ConfigurationError = None
+    ConnectionFailure = None
+    OperationFailure = None
     # This is a constant! pyright just doesn't understand it.
     PYMONGO_LOADED = False  # type: ignore
 
@@ -56,7 +59,7 @@ class MongoDBSerializer(StorageBase):
     def __init__(self, api: "CobblerAPI"):
         super().__init__(api)
         self.logger = logging.getLogger()
-        self.mongodb: Optional[MongoClient[Mapping[str, Any]]] = None
+        self.mongodb: Optional["MongoClient[Mapping[str, Any]]"] = None
         self.mongodb_database: Optional["Database[Mapping[str, Any]]"] = None
         self.database_name = "cobbler"
         self.__connect()
@@ -65,6 +68,8 @@ class MongoDBSerializer(StorageBase):
         """
         Reads the config file for mongodb and then connects to the mongodb.
         """
+        if ConnectionFailure is None or ConfigurationError is None:
+            raise ImportError("MongoDB is not correctly imported!")
         host = self.api.settings().mongodb.get("host", "localhost")
         port = self.api.settings().mongodb.get("port", 27017)
         # TODO: Make database name configurable in settings
@@ -93,6 +98,8 @@ class MongoDBSerializer(StorageBase):
         :param old_collection: Previous collection name.
         :param old_collection: New collection name.
         """
+        if OperationFailure is None:
+            raise ImportError("MongoDB not correctly imported!")
         if (
             old_collection != "setting"
             and old_collection in self.mongodb_database.list_collection_names()  # type: ignore
@@ -127,12 +134,7 @@ class MongoDBSerializer(StorageBase):
             for item in collection:
                 self.serialize_item(collection, item)
 
-    def deserialize_raw(
-        self, collection_type: str
-    ) -> Union[List[Optional[Dict[str, Any]]], Dict[str, Any]]:
-        if collection_type == "settings":
-            return settings.read_settings_file()  # type: ignore
-
+    def deserialize_raw(self, collection_type: str) -> List[Dict[str, Any]]:
         if self.mongodb_database is None:
             raise ValueError("Database not available!")
 

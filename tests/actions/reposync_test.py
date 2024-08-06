@@ -1,16 +1,28 @@
+"""
+Tests that validate the functionality of the module that is responsible for repository synchronization.
+"""
+
 import os
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 
 import pytest
 
 from cobbler import cexceptions, enums
 from cobbler.actions import reposync
+from cobbler.api import CobblerAPI
 from cobbler.items.repo import Repo
 
 from tests.conftest import does_not_raise
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
-@pytest.fixture(scope="function")
-def reposync_object(mocker, cobbler_api):
+
+@pytest.fixture(name="reposync_object", scope="function")
+def fixture_reposync_object(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI
+) -> reposync.RepoSync:
     settings_mock = mocker.MagicMock()
     settings_mock.webdir = "/srv/www/cobbler"
     settings_mock.server = "localhost"
@@ -24,8 +36,8 @@ def reposync_object(mocker, cobbler_api):
     return test_reposync
 
 
-@pytest.fixture
-def repo(cobbler_api):
+@pytest.fixture(name="repo")
+def fixture_repo(cobbler_api: CobblerAPI) -> Repo:
     """
     Creates a Repository "testrepo0" with a keep_updated=True and mirror_locally=True".
     """
@@ -37,13 +49,13 @@ def repo(cobbler_api):
 
 
 @pytest.fixture
-def remove_repo(cobbler_api):
+def remove_repo(cobbler_api: CobblerAPI):
     """
     Removes the Repository "testrepo0" which can be created with repo.
     """
     yield
     test_repo = cobbler_api.find_repo("testrepo0")
-    if test_repo is not None:
+    if test_repo is not None and not isinstance(test_repo, list):
         cobbler_api.remove_repo(test_repo.name)
 
 
@@ -54,9 +66,9 @@ def reset_librepo():
     reposync.HAS_LIBREPO = has_librepo
 
 
-def test_repo_walker(mocker, tmp_path):
+def test_repo_walker(mocker: "MockerFixture", tmp_path: Path):
     # Arrange
-    def test_fun(arg, top, names):
+    def test_fun(arg: Any, top: Any, names: Any):
         pass
 
     subdir1 = tmp_path / "sub1"
@@ -66,7 +78,7 @@ def test_repo_walker(mocker, tmp_path):
     spy = mocker.Mock(wraps=test_fun)
 
     # Act
-    reposync.repo_walker(tmp_path, spy, None)
+    reposync.repo_walker(tmp_path, spy, None)  # type: ignore
 
     # Assert
     assert spy.mock_calls == [
@@ -87,12 +99,12 @@ def test_repo_walker(mocker, tmp_path):
     ],
 )
 def test_reposync_cmd(
-    mocker,
-    reposync_object,
-    input_has_librepo,
-    input_path_exists_side_effect,
-    expected_exception,
-    expected_result,
+    mocker: "MockerFixture",
+    reposync_object: reposync.RepoSync,
+    input_has_librepo: bool,
+    input_path_exists_side_effect: List[bool],
+    expected_exception: Any,
+    expected_result: Union[List[str], str],
 ):
     # Arrange
     mocker.patch("os.path.exists", side_effect=input_path_exists_side_effect)
@@ -106,9 +118,9 @@ def test_reposync_cmd(
         assert result == expected_result
 
 
-def test_run(mocker, reposync_object, repo):
+def test_run(mocker: "MockerFixture", reposync_object: reposync.RepoSync, repo: Repo):
     # Arrange
-    env_vars = {}
+    env_vars: Dict[str, Any] = {}
     mocker.patch("os.makedirs")
     mocker.patch("os.path.isdir", return_value=True)
     mocker.patch(
@@ -122,7 +134,7 @@ def test_run(mocker, reposync_object, repo):
     mocker.patch.object(reposync_object, "repos", return_value=[repo])
     mocker.patch.object(reposync_object, "sync")
     mocker.patch.object(reposync_object, "update_permissions")
-    reposync_object.repos = [repo]
+    reposync_object.repos = [repo]  # type: ignore
 
     # Act
     reposync_object.run()
@@ -132,9 +144,9 @@ def test_run(mocker, reposync_object, repo):
     assert len(env_vars) == 0
 
 
-def test_gen_urlgrab_ssl_opts(reposync_object):
+def test_gen_urlgrab_ssl_opts(reposync_object: reposync.RepoSync):
     # Arrange
-    input_dict = {}
+    input_dict: Dict[str, Any] = {}
 
     # Act
     result = reposync_object.gen_urlgrab_ssl_opts(input_dict)
@@ -168,13 +180,13 @@ def test_gen_urlgrab_ssl_opts(reposync_object):
     ],
 )
 def test_reposync_yum(
-    mocker,
-    input_mirror_type,
-    input_mirror,
-    expected_exception,
-    cobbler_api,
-    repo,
-    reposync_object,
+    mocker: "MockerFixture",
+    input_mirror_type: enums.MirrorType,
+    input_mirror: str,
+    expected_exception: Any,
+    cobbler_api: CobblerAPI,
+    repo: Repo,
+    reposync_object: reposync.RepoSync,
 ):
     # Arrange
     test_repo = repo
@@ -271,15 +283,15 @@ def test_reposync_yum(
     ],
 )
 def test_reposync_apt(
-    mocker,
-    input_mirror_type,
-    input_mirror,
-    input_arch,
-    input_rpm_list,
-    expected_exception,
-    cobbler_api,
-    repo,
-    reposync_object,
+    mocker: "MockerFixture",
+    input_mirror_type: enums.MirrorType,
+    input_mirror: str,
+    input_arch: enums.RepoArchs,
+    input_rpm_list: str,
+    expected_exception: Any,
+    cobbler_api: CobblerAPI,
+    repo: Repo,
+    reposync_object: reposync.RepoSync,
 ):
     # Arrange
     test_repo = repo
@@ -341,13 +353,13 @@ def test_reposync_apt(
     ],
 )
 def test_reposync_wget(
-    mocker,
-    input_mirror_type,
-    input_mirror,
-    expected_exception,
-    cobbler_api,
-    repo,
-    reposync_object,
+    mocker: "MockerFixture",
+    input_mirror_type: enums.MirrorType,
+    input_mirror: str,
+    expected_exception: Any,
+    cobbler_api: CobblerAPI,
+    repo: Repo,
+    reposync_object: reposync.RepoSync,
 ):
     # Arrange
     test_repo = repo
@@ -385,7 +397,9 @@ def test_reposync_wget(
         )
 
 
-def test_reposync_rhn(mocker, reposync_object, repo):
+def test_reposync_rhn(
+    mocker: "MockerFixture", reposync_object: reposync.RepoSync, repo: Repo
+):
     # Arrange
     repo.mirror = "rhn://%s" % repo.name
     mocked_subprocess = mocker.patch(
@@ -415,7 +429,9 @@ def test_reposync_rhn(mocker, reposync_object, repo):
     )
 
 
-def test_reposync_rsync(mocker, reposync_object, repo):
+def test_reposync_rsync(
+    mocker: "MockerFixture", reposync_object: reposync.RepoSync, repo: Repo
+):
     # Arrange
     mocked_subprocess = mocker.patch("cobbler.utils.subprocess_call", return_value=0)
     mocker.patch("cobbler.actions.reposync.repo_walker")
@@ -441,7 +457,9 @@ def test_reposync_rsync(mocker, reposync_object, repo):
     )
 
 
-def test_createrepo_walker(mocker, reposync_object, repo):
+def test_createrepo_walker(
+    mocker: "MockerFixture", reposync_object: reposync.RepoSync, repo: Repo
+):
     # Arrange
     input_repo = repo
     input_repo.breed = enums.RepoBreeds.RSYNC
@@ -482,7 +500,13 @@ def test_createrepo_walker(mocker, reposync_object, repo):
         (enums.RepoBreeds.NONE, pytest.raises(cexceptions.CX)),
     ],
 )
-def test_sync(mocker, cobbler_api, reposync_object, input_repotype, expected_exception):
+def test_sync(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    reposync_object: reposync.RepoSync,
+    input_repotype: enums.RepoBreeds,
+    expected_exception: Any,
+):
     # Arrange
     test_repo = Repo(cobbler_api)
     test_repo.breed = input_repotype
@@ -509,7 +533,9 @@ def test_sync(mocker, cobbler_api, reposync_object, input_repotype, expected_exc
         assert call_count == 1
 
 
-def test_librepo_getinfo(mocker, reposync_object, tmp_path):
+def test_librepo_getinfo(
+    mocker: "MockerFixture", reposync_object: reposync.RepoSync, tmp_path: Path
+):
     # Arrange
     handle_mock = mocker.MagicMock()
     result_mock = mocker.MagicMock()
@@ -524,7 +550,9 @@ def test_librepo_getinfo(mocker, reposync_object, tmp_path):
     result_mock.getinfo.assert_called()
 
 
-def test_create_local_file(mocker, reposync_object, repo):
+def test_create_local_file(
+    mocker: "MockerFixture", reposync_object: reposync.RepoSync, repo: Repo
+):
     # Arrange
     mocker.patch("cobbler.utils.filesystem_helpers.mkdir", autospec=True)
     mock_open = mocker.patch("builtins.open", mocker.mock_open())
@@ -544,7 +572,9 @@ def test_create_local_file(mocker, reposync_object, repo):
     assert mock_open_handle.write.mock_calls[1] == mocker.call("name=testrepo0\n")
 
 
-def test_update_permissions(mocker, reposync_object):
+def test_update_permissions(
+    mocker: "MockerFixture", reposync_object: reposync.RepoSync
+):
     # Arrange
     mocked_subprocess = mocker.patch(
         "cobbler.utils.subprocess_call", autospec=True, return_value=0

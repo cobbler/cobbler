@@ -1,9 +1,9 @@
 """
 Module that contains a helper class which supports the performance testsuite. This is not a pytest style fixture but
-rather related pytest-benchmark. Thus the different style in usage.
+rather related pytest-benchmark. Thus, the different style in usage.
 """
 
-from typing import Callable
+from typing import Any, Callable
 
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
@@ -34,12 +34,12 @@ class CobblerTree:
             api.add_repo(test_item)
 
     @staticmethod
-    def create_distros(api: CobblerAPI, create_distro: Callable[[str], Distro]):
+    def create_distros(api: CobblerAPI, create_distro: Any):
         """
         Create a number of distros for benchmark testing. This pairs the distros with the repositories and mgmt classes.
         """
         for i in range(CobblerTree.objs_count):
-            test_item = create_distro(name=f"test_distro_{i}")
+            test_item: Distro = create_distro(name=f"test_distro_{i}")
             test_item.source_repos = [f"test_repo_{i}"]
 
     @staticmethod
@@ -59,9 +59,7 @@ class CobblerTree:
                 api.add_menu(test_item)
 
     @staticmethod
-    def create_profiles(
-        api: CobblerAPI, create_profile: Callable[[str, str, str], Profile]
-    ):
+    def create_profiles(api: CobblerAPI, create_profile: Any):
         """
         Create a number of profiles for benchmark testing. Depending on the menu depth this method also pairs the
         profile with a menu.
@@ -69,12 +67,12 @@ class CobblerTree:
         for l in range(CobblerTree.tree_levels):
             for i in range(CobblerTree.objs_count):
                 if l > 0:
-                    test_item = create_profile(
+                    test_item: Profile = create_profile(
                         profile_name=f"level_{l - 1}_test_profile_{i}",
                         name=f"level_{l}_test_profile_{i}",
                     )
                 else:
-                    test_item = create_profile(
+                    test_item: Profile = create_profile(
                         distro_name=f"test_distro_{i}",
                         name=f"level_{l}_test_profile_{i}",
                     )
@@ -82,33 +80,29 @@ class CobblerTree:
                 test_item.autoinstall = "sample.ks"
 
     @staticmethod
-    def create_images(api: CobblerAPI, create_image: Callable[[str], Image]):
+    def create_images(api: CobblerAPI, create_image: Any):
         """
         Create a number of images for benchmark testing.
         """
         for i in range(CobblerTree.objs_count):
-            test_item = create_image(name=f"test_image_{i}")
+            test_item: Image = create_image(name=f"test_image_{i}")
             test_item.menu = f"level_{CobblerTree.tree_levels - 1}_test_menu_{i}"
             test_item.autoinstall = "sample.ks"
 
     @staticmethod
-    def create_systems(
-        api: CobblerAPI, create_system: Callable[[str, str, str], System]
-    ):
+    def create_systems(api: CobblerAPI, create_system: Any):
         """
         Create a number of systems for benchmark testing. Depending on the strategy the system is paired with a profile
         or image.
         """
         for i in range(CobblerTree.objs_count):
             if i % 2 == 0:
-                test_item = create_system(
+                create_system(
                     name=f"test_system_{i}",
                     profile_name=f"level_{CobblerTree.tree_levels - 1}_test_profile_{i}",
                 )
             else:
-                test_item = create_system(
-                    name=f"test_system_{i}", image_name=f"test_image_{i}"
-                )
+                create_system(name=f"test_system_{i}", image_name=f"test_image_{i}")
 
     @staticmethod
     def create_all_objs(

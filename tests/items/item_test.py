@@ -1,8 +1,9 @@
 """
 Test module that asserts that generic Cobbler Item functionality is working as expected.
 """
+
 import os
-from typing import Any, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 
 import pytest
 
@@ -15,12 +16,16 @@ from cobbler.items.menu import Menu
 from cobbler.items.profile import Profile
 from cobbler.items.repo import Repo
 from cobbler.items.system import System
+from cobbler.settings import Settings
 
 from tests.conftest import does_not_raise
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
 
 @pytest.fixture()
-def test_settings(mocker, cobbler_api: CobblerAPI):
+def test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     settings = mocker.MagicMock(name="item_setting_mock", spec=cobbler_api.settings())
     orig = cobbler_api.settings()
     for key in orig.to_dict():
@@ -112,8 +117,8 @@ def test_descendants(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], Distro],
     create_image: Callable[[], Image],
-    create_profile: Callable[[str, str], Profile],
-    create_system: Callable[[str, str], System],
+    create_profile: Any,
+    create_system: Any,
 ):
     """
     Assert that the decendants property is also working with an enabled Cache.
@@ -130,23 +135,29 @@ def test_descendants(
     test_menu2.parent = test_menu1.name
     cobbler_api.add_menu(test_menu2)
     test_distro = create_distro()
-    test_profile1: Profile = create_profile(distro_name=test_distro.name, name="test_profile1")  # type: ignore
+    test_profile1: Profile = create_profile(
+        distro_name=test_distro.name, name="test_profile1"
+    )
     test_profile1.enable_menu = False
     test_profile1.repos = [test_repo.name]
     test_profile2: Profile = create_profile(
-        profile_name=test_profile1.name, name="test_profile2"  # type: ignore
+        profile_name=test_profile1.name, name="test_profile2"
     )
     test_profile2.enable_menu = False
     test_profile2.menu = test_menu2.name
     test_profile3: Profile = create_profile(
-        profile_name=test_profile1.name, name="test_profile3"  # type: ignore
+        profile_name=test_profile1.name, name="test_profile3"
     )
     test_profile3.enable_menu = False
     test_profile3.repos = [test_repo.name]
     test_image = create_image()
     test_image.menu = test_menu1.name
-    test_system1: System = create_system(profile_name=test_profile1.name, name="test_system1")  # type: ignore
-    test_system2: System = create_system(image_name=test_image.name, name="test_system2")  # type: ignore
+    test_system1: System = create_system(
+        profile_name=test_profile1.name, name="test_system1"
+    )
+    test_system2: System = create_system(
+        image_name=test_image.name, name="test_system2"
+    )
 
     # Act
     cache_tests = [
@@ -529,7 +540,9 @@ def test_grab_tree(cobbler_api: CobblerAPI):
     assert result[-1].server == "192.168.1.1"  # type: ignore
 
 
-def test_inheritance(mocker, cobbler_api: CobblerAPI, test_settings):
+def test_inheritance(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI, test_settings: Settings
+):
     """
     Checking that inherited properties are correctly inherited from settings and
     that the <<inherit>> value can be set for them.

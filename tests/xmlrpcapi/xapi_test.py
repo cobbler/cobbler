@@ -1,5 +1,5 @@
 """
-All tests that are realted to ensuring the xapi_object_edit functionallity.
+All tests that are related to ensuring the xapi_object_edit functionality.
 """
 
 import os
@@ -82,7 +82,7 @@ def test_xapi_system_edit(
     # Assert
     assert result
     # There won't be any interface until the user adds implicitly or explicitly the first interface
-    assert len(remote.get_system("testsystem_xapi_edit").get("interfaces", {})) == 0
+    assert len(remote.get_system("testsystem_xapi_edit").get("interfaces", {})) == 0  # type: ignore
 
 
 def test_xapi_system_edit_interface_name(
@@ -122,8 +122,8 @@ def test_xapi_system_edit_interface_name(
 
     # Assert
     assert result
-    assert len(remote.get_system("testsystem_xapi_edit").get("interfaces", {})) == 1
-    assert "eth1" in remote.get_system("testsystem_xapi_edit").get("interfaces", {})
+    assert len(remote.get_system("testsystem_xapi_edit").get("interfaces", {})) == 1  # type: ignore
+    assert "eth1" in remote.get_system("testsystem_xapi_edit").get("interfaces", {})  # type: ignore
 
 
 def test_xapi_system_edit_two_interfaces_no_default(
@@ -174,9 +174,9 @@ def test_xapi_system_edit_two_interfaces_no_default(
     # Assert
     assert result_add
     assert result_edit
-    assert len(remote.get_system("testsystem_xapi_edit").get("interfaces", {})) == 2
-    assert "eth1" in remote.get_system("testsystem_xapi_edit").get("interfaces", {})
-    assert "eth2" in remote.get_system("testsystem_xapi_edit").get("interfaces", {})
+    assert len(remote.get_system("testsystem_xapi_edit").get("interfaces", {})) == 2  # type: ignore
+    assert "eth1" in remote.get_system("testsystem_xapi_edit").get("interfaces", {})  # type: ignore
+    assert "eth2" in remote.get_system("testsystem_xapi_edit").get("interfaces", {})  # type: ignore
 
 
 def test_xapi_system_edit_two_interfaces_default(
@@ -237,8 +237,8 @@ def test_xapi_system_edit_two_interfaces_default(
     # Assert
     assert result
     assert (
-        remote.get_system(name_system)
-        .get("interfaces", {})
+        remote.get_system(name_system)  # type: ignore
+        .get("interfaces", {})  # type: ignore
         .get("eth2", {})
         .get("mac_address")
         == "aa:bb:cc:dd:ee:ff"

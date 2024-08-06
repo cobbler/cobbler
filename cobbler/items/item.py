@@ -100,7 +100,6 @@ V2.8.5:
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-import fnmatch
 import pprint
 import uuid
 from abc import ABC
@@ -114,8 +113,6 @@ from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.cobbler_collections.collection import ITEM_UNION
-    from cobbler.items.abstract.base_item import ITEM
     from cobbler.items.distro import Distro
     from cobbler.items.menu import Menu
     from cobbler.items.profile import Profile
@@ -188,63 +185,6 @@ class Item(BaseItem, ABC):
         ),
         "system": ([("image", "image"), ("profile", "profile")], []),
     }
-
-    @classmethod
-    def __find_compare(
-        cls,
-        from_search: Union[str, List[Any], Dict[Any, Any], bool],
-        from_obj: Union[str, List[Any], Dict[Any, Any], bool],
-    ) -> bool:
-        """
-        Only one of the two parameters shall be given in this method. If you give both ``from_obj`` will be preferred.
-
-        :param from_search: Tries to parse this str in the format as a search result string.
-        :param from_obj: Tries to parse this str in the format of an obj str.
-        :return: True if the comparison succeeded, False otherwise.
-        :raises TypeError: In case the type of one of the two variables is wrong or could not be converted
-                           intelligently.
-        """
-        if isinstance(from_obj, str):
-            # FIXME: fnmatch is only used for string to string comparisons which should cover most major usage, if
-            #        not, this deserves fixing
-            from_obj_lower = from_obj.lower()
-            from_search_lower = from_search.lower()  # type: ignore
-            # It's much faster to not use fnmatch if it's not needed
-            if (
-                "?" not in from_search_lower
-                and "*" not in from_search_lower
-                and "[" not in from_search_lower
-            ):
-                match = from_obj_lower == from_search_lower  # type: ignore
-            else:
-                match = fnmatch.fnmatch(from_obj_lower, from_search_lower)  # type: ignore
-            return match  # type: ignore
-
-        if isinstance(from_search, str):
-            if isinstance(from_obj, list):
-                from_search = input_converters.input_string_or_list(from_search)
-                for list_element in from_search:
-                    if list_element not in from_obj:
-                        return False
-                return True
-            if isinstance(from_obj, dict):
-                from_search = input_converters.input_string_or_dict(
-                    from_search, allow_multiples=True
-                )
-                for dict_key in list(from_search.keys()):  # type: ignore
-                    dict_value = from_search[dict_key]
-                    if dict_key not in from_obj:
-                        return False
-                    if not (dict_value == from_obj[dict_key]):
-                        return False
-                return True
-            if isinstance(from_obj, bool):  # type: ignore
-                inp = from_search.lower() in ["true", "1", "y", "yes"]
-                if inp == from_obj:
-                    return True
-                return False
-
-        raise TypeError(f"find cannot compare type: {type(from_obj)}")
 
     def __init__(
         self, api: "CobblerAPI", *args: Any, is_subobject: bool = False, **kwargs: Any
@@ -667,7 +607,7 @@ class Item(BaseItem, ABC):
         if found is None:
             raise CX(f'profile "{parent}" not found, inheritance not possible')
         self._parent = parent
-        self.depth = found.depth + 1
+        self.depth = found.depth + 1  # type: ignore
 
     @LazyProperty
     def get_parent(self) -> str:
@@ -677,7 +617,7 @@ class Item(BaseItem, ABC):
         """
         return self._parent
 
-    def get_conceptual_parent(self) -> Optional["ITEM_UNION"]:
+    def get_conceptual_parent(self) -> Optional["BaseItem"]:
         """
         The parent may just be a superclass for something like a subprofile. Get the first parent of a different type.
 
@@ -721,20 +661,21 @@ class Item(BaseItem, ABC):
         return parent
 
     @property
-    def children(self) -> List["ITEM_UNION"]:
+    def children(self) -> List["Item"]:
         """
         The list of logical children of any depth.
         :getter: An empty list in case of items which don't have logical children.
         :setter: Replace the list of children completely with the new provided one.
         """
-        results: List[Any] = []
+        results: List["Item"] = []
         list_items = self.api.get_items(self.COLLECTION_TYPE)
         for obj in list_items:
-            if obj.get_parent == self._name:
-                results.append(obj)
+            # TODO: Refactor once InheritableItem is available
+            if obj.get_parent == self._name:  # type: ignore
+                results.append(obj)  # type: ignore
         return results
 
-    def tree_walk(self) -> List["ITEM_UNION"]:
+    def tree_walk(self) -> List["Item"]:
         """
         Get all children related by parent/child relationship.
         :return: The list of children objects.
@@ -747,7 +688,7 @@ class Item(BaseItem, ABC):
         return results
 
     @property
-    def descendants(self) -> List["ITEM_UNION"]:
+    def descendants(self) -> List["Item"]:
         """
         Get objects that depend on this object, i.e. those that would be affected by a cascading delete, etc.
 
@@ -793,100 +734,6 @@ class Item(BaseItem, ABC):
                 "Field is_subobject of object item needs to be of type bool!"
             )
         self._is_subobject = value
-
-    def sort_key(self, sort_fields: List[Any]):
-        """
-        Convert the item to a dict and sort the data after specific given fields.
-
-        :param sort_fields: The fields to sort the data after.
-        :return: The sorted data.
-        """
-        data = self.to_dict()
-        return [data.get(x, "") for x in sort_fields]
-
-    def find_match(self, kwargs: Dict[str, Any], no_errors: bool = False) -> bool:
-        """
-        Find from a given dict if the item matches the kv-pairs.
-
-        :param kwargs: The dict to match for in this item.
-        :param no_errors: How strict this matching is.
-        :return: True if matches or False if the item does not match.
-        """
-        # used by find() method in collection.py
-        data = self.to_dict()
-        for (key, value) in list(kwargs.items()):
-            # Allow ~ to negate the compare
-            if value is not None and value.startswith("~"):
-                res = not self.find_match_single_key(data, key, value[1:], no_errors)
-            else:
-                res = self.find_match_single_key(data, key, value, no_errors)
-            if not res:
-                return False
-
-        return True
-
-    def find_match_single_key(
-        self, data: Dict[str, Any], key: str, value: Any, no_errors: bool = False
-    ) -> bool:
-        """
-        Look if the data matches or not. This is an alternative for ``find_match()``.
-
-        :param data: The data to search through.
-        :param key: The key to look for int the item.
-        :param value: The value for the key.
-        :param no_errors: How strict this matching is.
-        :return: Whether the data matches or not.
-        """
-        # special case for systems
-        key_found_already = False
-        if "interfaces" in data:
-            if key in [
-                "cnames",
-                "connected_mode",
-                "if_gateway",
-                "ipv6_default_gateway",
-                "ipv6_mtu",
-                "ipv6_prefix",
-                "ipv6_secondaries",
-                "ipv6_static_routes",
-                "management",
-                "mtu",
-                "static",
-                "mac_address",
-                "ip_address",
-                "ipv6_address",
-                "netmask",
-                "virt_bridge",
-                "dhcp_tag",
-                "dns_name",
-                "static_routes",
-                "interface_type",
-                "interface_master",
-                "bonding_opts",
-                "bridge_opts",
-                "interface",
-            ]:
-                key_found_already = True
-                for (name, interface) in list(data["interfaces"].items()):
-                    if value == name:
-                        return True
-                    if value is not None and key in interface:
-                        if self.__find_compare(interface[key], value):
-                            return True
-
-        if key not in data:
-            if not key_found_already:
-                if not no_errors:
-                    # FIXME: removed for 2.0 code, shouldn't cause any problems to not have an exception here?
-                    # raise CX("searching for field that does not exist: %s" % key)
-                    return False
-            else:
-                if value is not None:  # FIXME: new?
-                    return False
-
-        if value is None:
-            return True
-        return self.__find_compare(value, data[key])
 
     def dump_vars(
         self, formatted_output: bool = True, remove_dicts: bool = False
@@ -934,14 +781,14 @@ class Item(BaseItem, ABC):
                                 deserialize_ancestor(ancestor_item_type, ancestor_name)
         self.from_dict(item_dict)
 
-    def grab_tree(self) -> List[Union["ITEM", "Settings"]]:
+    def grab_tree(self) -> List[Union["BaseItem", "Settings"]]:
         """
         Climb the tree and get every node.
 
         :return: The list of items with all parents from that object upwards the tree. Contains at least the item
                  itself and the settings of Cobbler.
         """
-        results: List[Union["ITEM", "Settings"]] = [self]
+        results: List[Union["BaseItem", "Settings"]] = [self]
         parent = self.logical_parent
         while parent is not None:
             results.append(parent)

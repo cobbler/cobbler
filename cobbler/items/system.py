@@ -341,7 +341,8 @@ class System(Item):
 
         :param name: system name string
         """
-        Item.name.fset(self, name)
+        # We have defined the Getter in BaseItem. As such this linter error is incorrect.
+        Item.name.fset(self, name)  # type: ignore[reportOptionalCall]
         for interface in self.interfaces.values():
             interface.system_name = name
 
