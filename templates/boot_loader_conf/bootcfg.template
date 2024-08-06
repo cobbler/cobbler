@@ -14,4 +14,5 @@ kernel=b.b00
 kernelopt=runweasel ks=http://$server:$http_port/cblr/svc/op/ks/$what/$name
 modules=$esx_modules
 build=
+norts=1
 updated=0

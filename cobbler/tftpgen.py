@@ -129,6 +129,18 @@ class TFTPGen:
         utils.mkdir(distro_dir)
         self.copy_single_distro_file(d.kernel, distro_dir, symlink_ok)
         self.copy_single_distro_file(d.initrd, distro_dir, symlink_ok)
+        # ref: https://docs.vmware.com/tw/VMware-vSphere/8.0/vsphere-esxi-installation/GUID-147D7509-EFB1-4391-973F-48B015B85C83.html
+        # ref: https://github.com/cobbler/cobbler/blob/35586319bfc6684ccf826a0bf60eab99038b6101/docs/user-guide/esxi.rst#L2
+        # link efi/boot/bootx64.efi to mboot.efi for UEFI mode
+        if re.search("esxi[78]", d.os_version) is not None:
+            self.logger.error("==== jj cp distro debug 2====")
+            efi_file = "efi/boot/bootx64.efi"
+            efi_path = d.kernel.strip(d.kernel.split('/')[-1]) + efi_file
+            self.logger.error(efi_path)
+            self.copy_single_distro_file(efi_path, distro_dir, symlink_ok)
+            old_efi_name = distro_dir + '/bootx64.efi'
+            new_efi_name = distro_dir + '/mboot.efi'
+            os.rename(old_efi_name, new_efi_name)
 
     def copy_single_image_files(self, img):
         """
@@ -637,7 +649,7 @@ class TFTPGen:
         buffer = ""
 
         template = os.path.join(self.settings.boot_loader_conf_template_dir, format + ".template")
-        self.build_kernel(metadata, system, profile, distro, image, format)
+        self.build_kernel(metadata, system, profile, distro, image, format, mac)
 
         # generate the kernel options and append line:
         kernel_options = self.build_kernel_options(system, profile, distro,
@@ -694,7 +706,7 @@ class TFTPGen:
                 fd.write(buffer)
         return buffer
 
-    def build_kernel(self, metadata, system, profile, distro, image=None, boot_loader: str = "pxe"):
+    def build_kernel(self, metadata, system, profile, distro, image=None, boot_loader: str = "pxe", mac=None):
         """
         Generates kernel and initrd metadata.
 
@@ -757,6 +769,10 @@ class TFTPGen:
                 # CD-ROM ISO or virt-clone image? We can't PXE boot it.
                 kernel_path = None
                 initrd_path = None
+        # If mac parameter is passed in, it means the deployment process is triggered by podm chain load cobbler ipxe/mac/ api, 
+        # which means to deploy OS in UEFI mode , so change mboot.c32 to mboot.efi for UEFI mode
+        if mac and re.search("esxi[78]", distro.os_version) is not None:
+            kernel_path = kernel_path.replace('mboot.c32', 'mboot.efi')
 
         if "img_path" not in metadata:
             metadata["img_path"] = img_path
