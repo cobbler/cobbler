@@ -352,7 +352,7 @@ class Profile(item.Item):
         )  # reset depth if previously a subprofile and now top-level
 
     @InheritableProperty
-    def name_servers(self) -> List[Any]:
+    def name_servers(self) -> List[str]:
         """
         Represents the list of nameservers to set for the profile.
 
@@ -362,7 +362,7 @@ class Profile(item.Item):
         return self._resolve("name_servers")
 
     @name_servers.setter  # type: ignore[no-redef]
-    def name_servers(self, data: List[Any]):
+    def name_servers(self, data: List[str]):
         """
         Set the DNS servers.
 
@@ -371,7 +371,7 @@ class Profile(item.Item):
         self._name_servers = validate.name_servers(data)
 
     @InheritableProperty
-    def name_servers_search(self) -> List[Any]:
+    def name_servers_search(self) -> List[str]:
         """
         Represents the list of DNS search paths.
 
@@ -381,7 +381,7 @@ class Profile(item.Item):
         return self._resolve("name_servers_search")
 
     @name_servers_search.setter  # type: ignore[no-redef]
-    def name_servers_search(self, data: List[Any]):
+    def name_servers_search(self, data: List[str]):
         """
         Set the DNS search paths.
 
