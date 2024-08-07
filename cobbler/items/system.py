@@ -786,7 +786,7 @@ class System(Item):
         """
         self._gateway = validate.ipv4_address(gateway)
 
-    @LazyProperty
+    @InheritableProperty
     def name_servers(self) -> List[str]:
         """
         name_servers property.

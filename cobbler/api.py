@@ -156,7 +156,7 @@ from cobbler.actions.buildiso.netboot import NetbootBuildiso
 from cobbler.actions.buildiso.standalone import StandaloneBuildiso
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import manager
-from cobbler.decorator import InheritableDictProperty
+from cobbler.decorator import InheritableDictProperty, InheritableProperty
 from cobbler.items import distro
 from cobbler.items import image as image_module
 from cobbler.items import item as item_base
@@ -164,6 +164,7 @@ from cobbler.items import menu
 from cobbler.items import profile as profile_module
 from cobbler.items import repo
 from cobbler.items import system as system_module
+from cobbler.items.abstract.inheritable_item import InheritableItem
 from cobbler.utils import filesystem_helpers, input_converters, signatures
 
 if TYPE_CHECKING:
@@ -632,26 +633,54 @@ class CobblerAPI:
                 )
             setattr(desired_item, attribute, value)
             return
-        # Deduplicate - only for dict
         if isinstance(property_object_of_attribute, InheritableDictProperty):
-            # TODO: Cast this to the right Item type to be able to remove the type ignores
-            parent_item = desired_item.logical_parent  # type: ignore
-            if hasattr(parent_item, attribute):  # type: ignore
-                parent_value = getattr(parent_item, attribute)  # type: ignore
-                dict_value = input_converters.input_string_or_dict(value)
-                if isinstance(dict_value, str):
-                    # This can only be the inherited case
-                    dict_value = enums.VALUE_INHERITED
-                else:
-                    for key in parent_value:
-                        if (
-                            key in dict_value
-                            and key in parent_value
-                            and dict_value[key] == parent_value[key]
-                        ):
-                            dict_value.pop(key)
-                setattr(desired_item, attribute, dict_value)
-                return
+            # Deduplicate dictionaries
+            if isinstance(desired_item, InheritableItem):
+                parent_item = desired_item.logical_parent
+                if hasattr(parent_item, attribute):
+                    parent_value = getattr(parent_item, attribute)
+                    dict_value = input_converters.input_string_or_dict(value)
+                    if isinstance(dict_value, str):
+                        # This can only be the inherited case
+                        dict_value = enums.VALUE_INHERITED
+                    else:
+                        for key in parent_value:
+                            if (
+                                key in dict_value
+                                and key in parent_value
+                                and dict_value[key] == parent_value[key]
+                            ):
+                                dict_value.pop(key)
+                    setattr(desired_item, attribute, dict_value)
+                    return
+            else:
+                # Value can only be coming from settings?
+                raise ValueError(
+                    "Deduplication of dictionaries not supported for Items not inheriting from InheritableItem!"
+                )
+        if isinstance(property_object_of_attribute, InheritableProperty) and isinstance(
+            getattr(desired_item, attribute), list
+        ):
+            # Deduplicate lists
+            if isinstance(desired_item, InheritableItem):
+                parent_item = desired_item.logical_parent
+                if hasattr(parent_item, attribute):
+                    parent_value = getattr(parent_item, attribute)
+                    list_value = input_converters.input_string_or_list(value)
+                    if isinstance(list_value, str):
+                        # This can only be the inherited case
+                        list_value = enums.VALUE_INHERITED
+                    else:
+                        for item in parent_value:
+                            if item in list_value:
+                                list_value.remove(item)
+                    setattr(desired_item, attribute, list_value)
+                    return
+            else:
+                # Value can only be coming from settings?
+                raise ValueError(
+                    "Deduplication of dictionaries not supported for Items not inheriting from InheritableItem!"
+                )
         # Use property setter
         setattr(desired_item, attribute, value)
 

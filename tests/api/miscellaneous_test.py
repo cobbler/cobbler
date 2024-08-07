@@ -188,6 +188,20 @@ def test_get_item_resolved_value(
             does_not_raise(),
             enums.VALUE_INHERITED,
         ),  # list attribute inherit
+        (
+            "",
+            "name_servers",
+            "10.0.0.1",
+            does_not_raise(),
+            [],
+        ),  # list attribute deduplicate
+        (
+            "",
+            "name_servers",
+            "10.0.0.1 10.0.0.2",
+            does_not_raise(),
+            ["10.0.0.2"],
+        ),  # list attribute deduplicate
     ],
 )
 def test_set_item_resolved_value(
@@ -201,10 +215,14 @@ def test_set_item_resolved_value(
     expected_exception: Any,
     expected_result: Any,
 ):
+    """
+    Verify that setting resolved values works as expected.
+    """
     # Arrange
     test_distro = create_distro()
     test_profile = create_profile(test_distro.name)
     test_profile.kernel_options = "a=5"  # type: ignore
+    test_profile.name_servers = ["10.0.0.1"]
     cobbler_api.add_profile(test_profile)
     test_system = create_system(test_profile.name)
 
