@@ -280,7 +280,6 @@ class System(Item):
         # Overwrite defaults from item.py
         self._owners = enums.VALUE_INHERITED
         self._boot_files = enums.VALUE_INHERITED
-        self._fetchable_files = enums.VALUE_INHERITED
         self._autoinstall_meta = enums.VALUE_INHERITED
         self._kernel_options = enums.VALUE_INHERITED
         self._kernel_options_post = enums.VALUE_INHERITED

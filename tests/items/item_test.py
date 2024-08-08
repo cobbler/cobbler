@@ -272,20 +272,6 @@ def test_boot_files(cobbler_api: CobblerAPI):
     assert titem.boot_files == {}
 
 
-def test_fetchable_files(cobbler_api: CobblerAPI):
-    """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the fetchable_files property correctly.
-    """
-    # Arrange
-    titem = Distro(cobbler_api)
-
-    # Act
-    titem.fetchable_files = {}
-
-    # Assert
-    assert titem.fetchable_files == {}
-
-
 def test_sort_key(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     """
     Assert that the exported dict contains only the fields given in the argument.
@@ -377,7 +363,7 @@ def test_dump_vars(cobbler_api: CobblerAPI):
     print(result)
     assert "default_ownership" in result
     assert "owners" in result
-    assert len(result) == 171
+    assert len(result) == 170
 
 
 def test_to_dict(cobbler_api: CobblerAPI):

@@ -328,5 +328,9 @@ def migrate_cobbler_collections(collections_dir: str) -> None:
                 if data["interfaces"][iface]["interface_type"] == "":
                     data["interfaces"][iface]["interface_type"] = "NA"
 
+        # Remove fetchable_files from the items
+        if "fetchable_files" in data:
+            data.pop("fetchable_files", None)
+
         with open(collection_file, "w", encoding="utf-8") as _f:
             _f.write(json.dumps(data))

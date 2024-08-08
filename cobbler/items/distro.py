@@ -165,7 +165,6 @@ class Distro(item.Item):
         self._os_version = ""
         self._redhat_management_key = enums.VALUE_INHERITED
         self._source_repos = []
-        self._fetchable_files = {}
         self._remote_boot_kernel = ""
         self._remote_grub_kernel = ""
         self._remote_boot_initrd = ""

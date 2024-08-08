@@ -18,6 +18,7 @@ V3.4.0 (unreleased):
         * mgmt_classes
         * mgmt_parameters
         * last_cached_mtime
+        * fetchable_files
 V3.3.4 (unreleased):
     * No changes
 V3.3.3:
@@ -140,7 +141,6 @@ class Item(InheritableItem, ABC):
         self._kernel_options: Union[Dict[Any, Any], str] = {}
         self._kernel_options_post: Union[Dict[Any, Any], str] = {}
         self._autoinstall_meta: Union[Dict[Any, Any], str] = {}
-        self._fetchable_files: Union[Dict[Any, Any], str] = {}
         self._boot_files: Union[Dict[Any, Any], str] = {}
         self._template_files: Dict[str, Any] = {}
         self._inmemory = True
@@ -434,33 +434,6 @@ class Item(InheritableItem, ABC):
             )
         except TypeError as error:
             raise TypeError("invalid boot files specified") from error
-
-    @InheritableDictProperty
-    def fetchable_files(self) -> Dict[Any, Any]:
-        """
-        A comma seperated list of ``virt_name=path_to_template`` that should be fetchable via tftp or a webserver
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: The dictionary with name-path key-value pairs.
-        :setter: A dict. If not a dict must be a str which is split by
-                 :meth:`~cobbler.utils.input_converters.input_string_or_dict`. Raises ``TypeError`` otherwise.
-        """
-        return self._resolve_dict("fetchable_files")
-
-    @fetchable_files.setter  # type: ignore[no-redef]
-    def fetchable_files(self, fetchable_files: Union[str, Dict[Any, Any]]):
-        """
-        Setter for the fetchable files.
-
-        :param fetchable_files: Files which will be made available to external users.
-        """
-        try:
-            self._fetchable_files = input_converters.input_string_or_dict(
-                fetchable_files, allow_multiples=False
-            )
-        except TypeError as error:
-            raise TypeError("invalid fetchable files specified") from error
 
     def dump_vars(
         self, formatted_output: bool = True, remove_dicts: bool = False

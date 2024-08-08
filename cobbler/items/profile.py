@@ -222,7 +222,6 @@ class Profile(item.Item):
 
         # Overwrite defaults from item.py
         self._boot_files: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
-        self._fetchable_files: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
         self._autoinstall_meta: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
         self._kernel_options: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
         self._kernel_options_post: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
