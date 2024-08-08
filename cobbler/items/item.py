@@ -6,7 +6,7 @@ Changelog:
 V3.4.0 (unreleased):
     * (Re-)Added Cache implementation with the following new methods and properties:
         * ``cache``
-        * ``inmemery``
+        * ``inmemory``
         * ``clean_cache()``
     * Overhauled the parent/child system:
         * ``children`` is now inside ``item.py``.
