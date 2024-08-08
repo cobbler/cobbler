@@ -21,7 +21,7 @@ cobbler.modules.serializers.mongodb module
    :show-inheritance:
 
 cobbler.modules.serializers.sqlite module
-------------------------------------------
+-----------------------------------------
 
 .. automodule:: cobbler.modules.serializers.sqlite
    :members:
