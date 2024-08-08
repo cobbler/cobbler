@@ -461,10 +461,13 @@ class _ImportSignatureManager(ManagerModule):
                 template_files=self.signature.get("template_files", {}),
             )
 
+            # This logic is temporary until https://github.com/cobbler/libcobblersignatures/issues/77 is implemented
             boot_files: Dict[str, str] = {}
             for boot_file in self.signature["boot_files"]:
                 boot_files[f"$local_img_path/{boot_file}"] = f"{self.path}/{boot_file}"
-            new_distro.boot_files = boot_files
+            # template_files must be a dict because during creation of the distro we explicitly set it as such.
+            # Also the property template_files is NOT inheritable.
+            new_distro.template_files.update(boot_files)
 
             self.configure_tree_location(new_distro)
 

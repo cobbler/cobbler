@@ -562,8 +562,6 @@ def flatten(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         data["autoinstall_meta"] = dict_to_string(data["autoinstall_meta"])
     if "template_files" in data:
         data["template_files"] = dict_to_string(data["template_files"])
-    if "boot_files" in data:
-        data["boot_files"] = dict_to_string(data["boot_files"])
     if "repos" in data and isinstance(data["repos"], list):
         data["repos"] = " ".join(data["repos"])  # type: ignore
     if "rpm_list" in data and isinstance(data["rpm_list"], list):
@@ -656,7 +654,6 @@ def __consolidate(node: Union["ITEM", "Settings"], results: Dict[Any, Any]) -> D
     dict_removals(results, "kernel_options_post")
     dict_removals(results, "autoinstall_meta")
     dict_removals(results, "template_files")
-    dict_removals(results, "boot_files")
     return results
 
 

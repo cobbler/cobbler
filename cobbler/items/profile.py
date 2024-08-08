@@ -193,7 +193,6 @@ class Profile(item.Item):
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
-        self._template_files = {}
         self._autoinstall = enums.VALUE_INHERITED
         self._boot_loaders: Union[List[str], str] = enums.VALUE_INHERITED
         self._dhcp_tag = ""
@@ -221,7 +220,6 @@ class Profile(item.Item):
         self._virt_type: Union[str, enums.VirtType] = enums.VirtType.INHERITED
 
         # Overwrite defaults from item.py
-        self._boot_files: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
         self._autoinstall_meta: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
         self._kernel_options: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
         self._kernel_options_post: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED

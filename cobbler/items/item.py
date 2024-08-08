@@ -19,6 +19,7 @@ V3.4.0 (unreleased):
         * mgmt_parameters
         * last_cached_mtime
         * fetchable_files
+        * boot_files
 V3.3.4 (unreleased):
     * No changes
 V3.3.3:
@@ -141,8 +142,7 @@ class Item(InheritableItem, ABC):
         self._kernel_options: Union[Dict[Any, Any], str] = {}
         self._kernel_options_post: Union[Dict[Any, Any], str] = {}
         self._autoinstall_meta: Union[Dict[Any, Any], str] = {}
-        self._boot_files: Union[Dict[Any, Any], str] = {}
-        self._template_files: Dict[str, Any] = {}
+        self._template_files: Dict[str, str] = {}
         self._inmemory = True
 
         if len(kwargs) > 0:
@@ -381,10 +381,13 @@ class Item(InheritableItem, ABC):
         self._autoinstall_meta = self._deduplicate_dict("autoinstall_meta", value)  # type: ignore
 
     @LazyProperty
-    def template_files(self) -> Dict[Any, Any]:
+    def template_files(self) -> Dict[str, str]:
         """
         File mappings for built-in configuration management. The keys are the template source files and the value is the
         destination. The destination must be inside the bootloc (most of the time TFTP server directory).
+
+        This property took over the duties of boot_files additionaly. During signature import the values of "boot_files"
+        will be added to "template_files".
 
         :getter: The dictionary with name-path key-value pairs.
         :setter: A dict. If not a dict must be a str which is split by
@@ -393,7 +396,7 @@ class Item(InheritableItem, ABC):
         return self._template_files
 
     @template_files.setter
-    def template_files(self, template_files: Union[str, Dict[Any, Any]]) -> None:
+    def template_files(self, template_files: Union[str, Dict[str, str]]) -> None:
         """
         A comma seperated list of source=destination templates that should be generated during a sync.
 
@@ -406,34 +409,6 @@ class Item(InheritableItem, ABC):
             )
         except TypeError as error:
             raise TypeError("invalid template files specified") from error
-
-    @LazyProperty
-    def boot_files(self) -> Dict[Any, Any]:
-        """
-        Files copied into tftpboot beyond the kernel/initrd. These get rendered via Cheetah/Jinja and must be text
-        based.
-
-        :getter: The dictionary with name-path key-value pairs.
-        :setter: A dict. If not a dict must be a str which is split by
-                 :meth:`~cobbler.utils.input_converters.input_string_or_dict`. Raises ``TypeError`` otherwise.
-        """
-        return self._resolve_dict("boot_files")
-
-    @boot_files.setter
-    def boot_files(self, boot_files: Dict[Any, Any]) -> None:
-        """
-        A comma separated list of req_name=source_file_path that should be fetchable via tftp.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :param boot_files: The new value for the boot files used by the item.
-        """
-        try:
-            self._boot_files = input_converters.input_string_or_dict(
-                boot_files, allow_multiples=False
-            )
-        except TypeError as error:
-            raise TypeError("invalid boot files specified") from error
 
     def dump_vars(
         self, formatted_output: bool = True, remove_dicts: bool = False

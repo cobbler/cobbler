@@ -332,5 +332,9 @@ def migrate_cobbler_collections(collections_dir: str) -> None:
         if "fetchable_files" in data:
             data.pop("fetchable_files", None)
 
+        # Migrate boot_files to template_files
+        if "boot_files" in data and "template_files" in data:
+            data["template_files"] = {**data["template_files"], **data["boot_files"]}
+
         with open(collection_file, "w", encoding="utf-8") as _f:
             _f.write(json.dumps(data))

@@ -2179,7 +2179,6 @@ class CobblerXMLRPCInterface:
                         "kernel_options",
                         "kernel_options_post",
                         "template_files",
-                        "boot_files",
                         "params",
                     ] and attributes.get("in_place"):
                         details = self.get_item(object_type, object_name)
