@@ -70,7 +70,7 @@ class _InTftpdManager(TftpManagerModule):
 
         # Loop through the dict of boot files, executing a cp for each one
         self.logger.info("processing template_files for distro: %s", distro.name)
-        for boot_file in list(target["template_files"].keys()):
+        for boot_file in target["template_files"].keys():
             rendered_target_file = templater.render(boot_file, metadata, None)
             rendered_source_file = templater.render(
                 target["template_files"][boot_file], metadata, None

@@ -1610,13 +1610,18 @@ class TFTPGen:
             if path is not None and path != dest:
                 continue
 
-            # If we are writing output to a file, we allow files tobe written into the tftpboot directory, otherwise
+            # If we are writing output to a file, we allow files to be written into the tftpboot directory, otherwise
             # force all templated configs into the rendered directory to ensure that a user granted cobbler privileges
             # via sudo can't overwrite arbitrary system files (This also makes cleanup easier).
-            if os.path.isabs(dest_dir) and write_file:
-                if dest_dir.find(self.bootloc) != 0:
+            if write_file and os.path.isabs(dest_dir):
+                if not (
+                    dest_dir.startswith(self.bootloc)
+                    or dest.startswith(self.settings.webdir)
+                ):
+                    # Allow both the TFTP and web directory since template_files and boot_files were merged
                     raise CX(
-                        f" warning: template destination ({dest_dir}) is outside {self.bootloc}, skipping."
+                        f"warning: template destination ({dest_dir}) is outside {self.bootloc} or"
+                        f" {self.settings.webdir}, skipping."
                     )
             elif write_file:
                 dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)
@@ -1626,17 +1631,22 @@ class TFTPGen:
 
             # Check for problems
             if not os.path.exists(template):
-                raise CX(f"template source {template} does not exist")
+                self.logger.warning("template source %s does not exist", template)
+                continue
             if write_file and not os.path.isdir(dest_dir):
-                raise CX(f"template destination ({dest_dir}) is invalid")
+                self.logger.warning("template destination (%s) is invalid", dest_dir)
+                continue
             if write_file and os.path.exists(dest):
-                raise CX(f"template destination ({dest}) already exists")
+                self.logger.warning("template destination (%s) already exists", dest)
+                continue
             if write_file and os.path.isdir(dest):
-                raise CX(f"template destination ({dest}) is a directory")
+                self.logger.warning("template destination (%s) is a directory", dest)
+                continue
             if template == "" or dest == "":
-                raise CX(
+                self.logger.warning(
                     "either the template source or destination was blank (unknown variable used?)"
                 )
+                continue
 
             with open(template, encoding="UTF-8") as template_fh:
                 template_data = template_fh.read()
