@@ -4,6 +4,7 @@ Cobbler module that contains the code for a generic Cobbler item.
 Changelog:
 
 V3.4.0 (unreleased):
+    * Renamed to BootableItem
     * (Re-)Added Cache implementation with the following new methods and properties:
         * ``cache``
         * ``inmemory``
@@ -119,14 +120,14 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
-class Item(InheritableItem, ABC):
+class BootableItem(InheritableItem, ABC):
     """
-    An Item is a serializable thing that can appear in a Collection
+    A BootableItem is a serializable thing that can appear in a Collection
     """
 
     # Constants
-    TYPE_NAME = "generic"
-    COLLECTION_TYPE = "generic"
+    TYPE_NAME = "bootable_abstract"
+    COLLECTION_TYPE = "bootable_abstract"
 
     def __init__(
         self, api: "CobblerAPI", *args: Any, is_subobject: bool = False, **kwargs: Any
@@ -159,7 +160,7 @@ class Item(InheritableItem, ABC):
         :name: The attribute name.
         :value: The attribute value.
         """
-        if Item._is_dict_key(name) and self._has_initialized:
+        if BootableItem._is_dict_key(name) and self._has_initialized:
             self.clean_cache(name)
         super().__setattr__(name, value)
 
@@ -217,7 +218,7 @@ class Item(InheritableItem, ABC):
         self, property_name: str, enum_type: Type[enums.ConvertableEnum]
     ) -> Any:
         """
-        See :meth:`~cobbler.items.item.Item._resolve`
+        See :meth:`~cobbler.items.abstract.bootable_item.BootableItem._resolve`
         """
         attribute_value, settings_name = self.__common_resolve(property_name)
         unwrapped_value = getattr(attribute_value, "value", "")
@@ -441,7 +442,10 @@ class Item(InheritableItem, ABC):
 
         item_dict = self.api.deserialize_item(self)
         if item_dict["inmemory"]:
-            for ancestor_item_type, ancestor_deps in Item.TYPE_DEPENDENCIES.items():
+            for (
+                ancestor_item_type,
+                ancestor_deps,
+            ) in InheritableItem.TYPE_DEPENDENCIES.items():
                 for ancestor_dep in ancestor_deps:
                     if self.TYPE_NAME == ancestor_dep.dependant_item_type:
                         attr_name = ancestor_dep.dependant_type_attribute
@@ -469,7 +473,7 @@ class Item(InheritableItem, ABC):
             attr = getattr(type(self), name[1:])
             if (
                 isinstance(attr, (InheritableProperty, InheritableDictProperty))
-                and self.COLLECTION_TYPE != Item.COLLECTION_TYPE
+                and self.COLLECTION_TYPE != InheritableItem.COLLECTION_TYPE  # type: ignore
                 and self.api.get_items(self.COLLECTION_TYPE).get(self.name) is not None
             ):
                 # Invalidating "resolved" caches

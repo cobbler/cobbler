@@ -149,8 +149,9 @@ from xmlrpc.server import SimpleXMLRPCRequestHandler
 
 from cobbler import autoinstall_manager, configgen, enums, tftpgen, utils
 from cobbler.cexceptions import CX
-from cobbler.items import item, network_interface, system
+from cobbler.items import network_interface, system
 from cobbler.items.abstract import base_item
+from cobbler.items.abstract import bootable_item as item
 from cobbler.utils import signatures
 from cobbler.utils.event import CobblerEvent
 from cobbler.utils.thread import CobblerThread
@@ -890,7 +891,12 @@ class CobblerXMLRPCInterface:
             return return_value.value
         if isinstance(
             return_value,
-            (enums.DHCP, enums.NetworkInterfaceType, enums.BaudRates, item.Item),
+            (
+                enums.DHCP,
+                enums.NetworkInterfaceType,
+                enums.BaudRates,
+                item.BootableItem,
+            ),
         ):
             return return_value.name
         if isinstance(return_value, dict):

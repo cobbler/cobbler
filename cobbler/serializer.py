@@ -117,7 +117,7 @@ class Serializer:
         :param collection: The Cobbler collection to know the type of the item.
         :param topological: Sort collection based on each items' depth attribute in the list of collection items. This
                             ensures properly ordered object loading from disk with objects having parent/child
-                            relationships, i.e. profiles/subprofiles.  See cobbler/items/item.py
+                            relationships, i.e. profiles/subprofiles.  See cobbler/items/abstract/inheritable_item.py
         """
         self.__grab_lock()
         self.storage_object.deserialize(collection, topological)

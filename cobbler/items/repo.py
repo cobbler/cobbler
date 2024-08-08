@@ -98,14 +98,14 @@ from typing import TYPE_CHECKING, Any, Dict, List, Union
 from cobbler import enums
 from cobbler.cexceptions import CX
 from cobbler.decorator import InheritableProperty, LazyProperty
-from cobbler.items import item
+from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Repo(item.Item):
+class Repo(BootableItem):
     """
     A Cobbler repo object.
     """
@@ -146,7 +146,7 @@ class Repo(item.Item):
             self._has_initialized = True
 
     #
-    # override some base class methods first (item.Item)
+    # override some base class methods first (BootableItem)
     #
 
     def make_clone(self) -> "Repo":

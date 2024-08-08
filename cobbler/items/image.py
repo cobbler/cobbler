@@ -132,14 +132,14 @@ from typing import TYPE_CHECKING, Any, List, Union
 from cobbler import autoinstall_manager, enums, validate
 from cobbler.cexceptions import CX
 from cobbler.decorator import InheritableProperty, LazyProperty
-from cobbler.items import item
+from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.utils import input_converters, signatures
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Image(item.Item):
+class Image(BootableItem):
     """
     A Cobbler Image. Tracks a virtual or physical image, as opposed to a answer file (autoinst) led installation.
     """
@@ -188,7 +188,7 @@ class Image(item.Item):
         raise AttributeError(f'Attribute "{name}" did not exist on object type Image.')
 
     #
-    # override some base class methods first (item.Item)
+    # override some base class methods first (BootableItem)
     #
 
     def make_clone(self):

@@ -14,7 +14,7 @@ from pytest_mock import MockerFixture
 from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections.collection import Collection
-from cobbler.items.item import Item
+from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.modules.serializers import sqlite
 from cobbler.settings import Settings
 
@@ -30,16 +30,16 @@ def test_settings(mocker: MockerFixture, cobbler_api: CobblerAPI) -> Settings:
     return settings
 
 
-class MockItem(Item):
+class MockBootableItem(BootableItem):
     """
     Test Item for the serializer tests.
     """
 
-    def make_clone(self) -> "MockItem":
-        return MockItem(self.api)
+    def make_clone(self) -> "MockBootableItem":
+        return MockBootableItem(self.api)
 
 
-class MockCollection(Collection[MockItem]):
+class MockCollection(Collection[MockBootableItem]):
     """
     Test Collection that is used for the serializer tests.
     """
@@ -52,8 +52,10 @@ class MockCollection(Collection[MockItem]):
     def collection_types() -> str:
         return "tests"
 
-    def factory_produce(self, api: "CobblerAPI", seed_data: Dict[Any, Any]) -> MockItem:
-        new_test = MockItem(api)
+    def factory_produce(
+        self, api: "CobblerAPI", seed_data: Dict[Any, Any]
+    ) -> MockBootableItem:
+        new_test = MockBootableItem(api)
         return new_test
 
     def remove(
@@ -157,7 +159,7 @@ def test_serialize_item(
     Test that will assert if a given item can be written to table successfully.
     """
     # Arrange
-    mitem = MockItem(cobbler_api)
+    mitem = MockBootableItem(cobbler_api)
     mitem.name = "test_serializer_item"
     mcollection = MockCollection(cobbler_api._collection_mgr)  # type: ignore
 
@@ -191,7 +193,7 @@ def test_serialize_delete(
     Test that will assert if a given item can be deleted.
     """
     # Arrange
-    mitem = MockItem(cobbler_api)
+    mitem = MockBootableItem(cobbler_api)
     mitem.name = "test_serializer_del"
     mcollection = MockCollection(cobbler_api._collection_mgr)  # type: ignore
     serializer_obj.serialize_item(mcollection, mitem)
@@ -224,7 +226,7 @@ def test_serialize(
     cobbler_api: CobblerAPI,
 ):
     # Arrange
-    mitem = MockItem(cobbler_api)
+    mitem = MockBootableItem(cobbler_api)
     mitem.name = "test_serialize"
     mcollection = MockCollection(cobbler_api._collection_mgr)  # type: ignore
     mcollection.listing[mitem.name] = mitem
@@ -276,7 +278,7 @@ def test_deserialize_raw(
     """
     # Arrange
     mocker.patch("cobbler.settings.read_settings_file", return_value=expected_result)
-    mitem = MockItem(cobbler_api)
+    mitem = MockBootableItem(cobbler_api)
     mitem.name = "test_deserialize_raw"
     mitem.item = "{'name': 'test_deserialize_raw'}"
     mcollection = MockCollection(cobbler_api._collection_mgr)  # type: ignore

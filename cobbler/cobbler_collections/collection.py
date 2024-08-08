@@ -25,10 +25,9 @@ from typing import (
 
 from cobbler import enums, utils
 from cobbler.cexceptions import CX
-from cobbler.items import distro, image
-from cobbler.items import item as item_base
-from cobbler.items import menu, profile, repo, system
+from cobbler.items import distro, image, menu, profile, repo, system
 from cobbler.items.abstract.base_item import BaseItem
+from cobbler.items.abstract.inheritable_item import InheritableItem
 
 if TYPE_CHECKING:
     from cobbler.actions.sync import CobblerSync
@@ -350,7 +349,7 @@ class Collection(Generic[ITEM]):
             self.listing[newname] = ref
             self.add_to_indexes(ref)
 
-        for dep_type in item_base.Item.TYPE_DEPENDENCIES[ref.COLLECTION_TYPE]:
+        for dep_type in InheritableItem.TYPE_DEPENDENCIES[ref.COLLECTION_TYPE]:
             items = self.api.find_items(
                 dep_type[0], {dep_type[1]: oldname}, return_list=True
             )

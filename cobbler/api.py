@@ -159,11 +159,11 @@ from cobbler.cobbler_collections import manager
 from cobbler.decorator import InheritableDictProperty, InheritableProperty
 from cobbler.items import distro
 from cobbler.items import image as image_module
-from cobbler.items import item as item_base
 from cobbler.items import menu
 from cobbler.items import profile as profile_module
 from cobbler.items import repo
 from cobbler.items import system as system_module
+from cobbler.items.abstract import bootable_item as item_base
 from cobbler.items.abstract.inheritable_item import InheritableItem
 from cobbler.utils import filesystem_helpers, input_converters, signatures
 
@@ -176,7 +176,7 @@ if TYPE_CHECKING:
     from cobbler.cobbler_collections.repos import Repos
     from cobbler.cobbler_collections.systems import Systems
     from cobbler.items.abstract.base_item import BaseItem
-    from cobbler.items.item import Item
+    from cobbler.items.abstract.bootable_item import BootableItem
 
 
 # notes on locking:
@@ -481,7 +481,7 @@ class CobblerAPI:
 
     # ==========================================================
 
-    def get_item(self, what: str, name: str) -> Optional["Item"]:
+    def get_item(self, what: str, name: str) -> Optional["BootableItem"]:
         """
         Get a general item.
 
@@ -988,7 +988,7 @@ class CobblerAPI:
 
     def new_item(
         self, what: str = "", is_subobject: bool = False, **kwargs: Any
-    ) -> "Item":
+    ) -> "BootableItem":
         """
         Creates a new (unconfigured) object. The object is not persisted.
 
@@ -1250,7 +1250,7 @@ class CobblerAPI:
         name: str = "",
         return_list: bool = True,
         no_errors: bool = False,
-    ) -> Optional[Union["Item", List["Item"]]]:
+    ) -> Optional[Union["BootableItem", List["BootableItem"]]]:
         """
         This is the abstract base method for finding object int the api. It should not be used by external resources.
         Please reefer to the specific implementations of this method called ``find_<object type>``.
@@ -1299,7 +1299,7 @@ class CobblerAPI:
 
     def __find_without_collection(
         self, name: str, return_list: bool, no_errors: bool, criteria: Dict[Any, Any]
-    ) -> Optional[Union["Item", List["Item"]]]:
+    ) -> Optional[Union["BootableItem", List["BootableItem"]]]:
         collections = [
             "distro",
             "profile",
@@ -1320,7 +1320,7 @@ class CobblerAPI:
                 return match
         return None
 
-    def __find_by_name(self, name: str) -> Optional["Item"]:
+    def __find_by_name(self, name: str) -> Optional["BootableItem"]:
         """
         This is a magic method which just searches all collections for the specified name directly,
         :param name: The name of the item(s).
@@ -1618,7 +1618,7 @@ class CobblerAPI:
 
     def dump_vars(
         self,
-        obj: "item_base.Item",
+        obj: "item_base.BootableItem",
         formatted_output: bool = False,
         remove_dicts: bool = False,
     ) -> Union[Dict[str, Any], str]:
@@ -1706,7 +1706,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def get_template_file_for_profile(self, obj: "Item", path: str) -> str:
+    def get_template_file_for_profile(self, obj: "BootableItem", path: str) -> str:
         """
         Get the template for the specified profile.
 
@@ -1719,7 +1719,7 @@ class CobblerAPI:
             return template_results[path]
         return "# template path not found for specified profile"
 
-    def get_template_file_for_system(self, obj: "Item", path: str) -> str:
+    def get_template_file_for_system(self, obj: "BootableItem", path: str) -> str:
         """
         Get the template for the specified system.
 

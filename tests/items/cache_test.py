@@ -9,9 +9,9 @@ import pytest
 from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.items.abstract.base_item import BaseItem
+from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image
-from cobbler.items.item import Item
 from cobbler.items.menu import Menu
 from cobbler.items.profile import Profile
 from cobbler.items.repo import Repo
@@ -467,7 +467,7 @@ def test_dict_cache_invalidate(
             obj.to_dict(resolved=False)
             obj.to_dict(resolved=True)
         remain_objs = set(objs) - set(dep)
-        if isinstance(obj_test, Item):
+        if isinstance(obj_test, BootableItem):
             remain_objs.remove(obj_test)
             obj_test.owners = "test"
             if (

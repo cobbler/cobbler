@@ -10,23 +10,23 @@ from pytest_mock import MockerFixture
 from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections.collection import Collection
-from cobbler.items.item import Item
+from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.modules.serializers import file
 from cobbler.settings import Settings
 
 from tests.conftest import does_not_raise
 
 
-class MockItem(Item):
+class MockBootableItem(BootableItem):
     """
     Test Item for the serializer tests.
     """
 
-    def make_clone(self) -> "MockItem":
-        return MockItem(self.api)
+    def make_clone(self) -> "MockBootableItem":
+        return MockBootableItem(self.api)
 
 
-class MockCollection(Collection[MockItem]):
+class MockCollection(Collection[MockBootableItem]):
     """
     Test Collection that is used for the serializer tests.
     """
@@ -39,8 +39,10 @@ class MockCollection(Collection[MockItem]):
     def collection_types() -> str:
         return "tests"
 
-    def factory_produce(self, api: "CobblerAPI", seed_data: Dict[Any, Any]) -> MockItem:
-        new_test = MockItem(api)
+    def factory_produce(
+        self, api: "CobblerAPI", seed_data: Dict[Any, Any]
+    ) -> MockBootableItem:
+        new_test = MockBootableItem(api)
         return new_test
 
     def remove(
@@ -156,7 +158,7 @@ def test_serialize_item(
     """
     # Arrange
     serializer_obj.libpath = str(tmpdir)
-    mitem = MockItem(cobbler_api)
+    mitem = MockBootableItem(cobbler_api)
     mitem.name = "test_serializer"
     mcollection = MockCollection(cobbler_api._collection_mgr)  # type: ignore
     os.mkdir(os.path.join(tmpdir, mcollection.collection_types()))
@@ -180,7 +182,7 @@ def test_serialize_delete(
     Test that will assert if a given item can be deleted.
     """
     # Arrange
-    mitem = MockItem(cobbler_api)
+    mitem = MockBootableItem(cobbler_api)
     mitem.name = "test_serializer_del"
     mcollection = MockCollection(cobbler_api._collection_mgr)  # type: ignore
     serializer_obj.libpath = str(tmpdir)

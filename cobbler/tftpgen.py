@@ -23,9 +23,9 @@ from cobbler.validate import validate_autoinstall_script_name
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.items.abstract.bootable_item import BootableItem
     from cobbler.items.distro import Distro
     from cobbler.items.image import Image
-    from cobbler.items.item import Item
     from cobbler.items.menu import Menu
     from cobbler.items.profile import Profile
     from cobbler.items.system import System
@@ -1541,7 +1541,7 @@ class TFTPGen:
 
     def write_templates(
         self,
-        obj: "Item",
+        obj: "BootableItem",
         write_file: bool = False,
         path: Optional[str] = None,
     ) -> Dict[str, str]:

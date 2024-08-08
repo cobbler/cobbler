@@ -44,7 +44,7 @@ from cobbler.utils import process_management
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.cobbler_collections.collection import ITEM
-    from cobbler.items.item import Item
+    from cobbler.items.abstract.bootable_item import BootableItem
     from cobbler.settings import Settings
 
 CHEETAH_ERROR_DISCLAIMER = """
@@ -451,7 +451,7 @@ def file_is_remote(file_location: str) -> bool:
 
 
 def blender(
-    api_handle: "CobblerAPI", remove_dicts: bool, root_obj: "Item"
+    api_handle: "CobblerAPI", remove_dicts: bool, root_obj: "BootableItem"
 ) -> Dict[str, Any]:
     """
     Combine all of the data in an object tree from the perspective of that point on the tree, and produce a merged
