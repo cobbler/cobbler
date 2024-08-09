@@ -210,7 +210,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from cobbler import autoinstall_manager, enums, power_manager, utils, validate
 from cobbler.cexceptions import CX
 from cobbler.decorator import InheritableProperty, LazyProperty
-from cobbler.items.item import Item
+from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.items.network_interface import NetworkInterface
 from cobbler.utils import filesystem_helpers, input_converters
 
@@ -218,7 +218,7 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class System(Item):
+class System(BootableItem):
     """
     A Cobbler system object.
     """
@@ -277,10 +277,8 @@ class System(Item):
         self._serial_baud_rate = enums.BaudRates.DISABLED
         self._display_name = ""
 
-        # Overwrite defaults from item.py
+        # Overwrite defaults from bootable_item.py
         self._owners = enums.VALUE_INHERITED
-        self._boot_files = enums.VALUE_INHERITED
-        self._fetchable_files = enums.VALUE_INHERITED
         self._autoinstall_meta = enums.VALUE_INHERITED
         self._kernel_options = enums.VALUE_INHERITED
         self._kernel_options_post = enums.VALUE_INHERITED
@@ -298,7 +296,7 @@ class System(Item):
         raise AttributeError(f'Attribute "{name}" did not exist on object type System.')
 
     #
-    # override some base class methods first (item.Item)
+    # override some base class methods first (BootableItem)
     #
 
     def make_clone(self):
@@ -334,7 +332,7 @@ class System(Item):
                     f"Error with system {self.name} - profile or image is required"
                 )
 
-    @Item.name.setter
+    @BootableItem.name.setter
     def name(self, name: str) -> None:
         """
         The systems name.
@@ -342,7 +340,7 @@ class System(Item):
         :param name: system name string
         """
         # We have defined the Getter in BaseItem. As such this linter error is incorrect.
-        Item.name.fset(self, name)  # type: ignore[reportOptionalCall]
+        BootableItem.name.fset(self, name)  # type: ignore[reportOptionalCall]
         for interface in self.interfaces.values():
             interface.system_name = name
 

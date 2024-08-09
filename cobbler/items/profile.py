@@ -167,7 +167,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from cobbler import autoinstall_manager, enums, validate
 from cobbler.cexceptions import CX
 from cobbler.decorator import InheritableProperty, LazyProperty
-from cobbler.items import item
+from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.items.distro import Distro
 from cobbler.utils import input_converters
 
@@ -175,7 +175,7 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Profile(item.Item):
+class Profile(BootableItem):
     """
     A Cobbler profile object.
     """
@@ -193,7 +193,6 @@ class Profile(item.Item):
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
-        self._template_files = {}
         self._autoinstall = enums.VALUE_INHERITED
         self._boot_loaders: Union[List[str], str] = enums.VALUE_INHERITED
         self._dhcp_tag = ""
@@ -220,9 +219,7 @@ class Profile(item.Item):
         self._virt_ram: Union[str, int] = enums.VALUE_INHERITED
         self._virt_type: Union[str, enums.VirtType] = enums.VirtType.INHERITED
 
-        # Overwrite defaults from item.py
-        self._boot_files: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
-        self._fetchable_files: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
+        # Overwrite defaults from bootable_item.py
         self._autoinstall_meta: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
         self._kernel_options: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
         self._kernel_options_post: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
@@ -249,7 +246,7 @@ class Profile(item.Item):
         )
 
     #
-    # override some base class methods first (item.Item)
+    # override some base class methods first (BootableItem)
     #
 
     def make_clone(self):

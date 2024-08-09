@@ -274,11 +274,11 @@ class InheritableItem(BaseItem, ABC):
         :getter: An empty list in case of items which don't have logical children.
         :setter: Replace the list of children completely with the new provided one.
         """
-        results: List[Any] = []
+        results: List[InheritableItem] = []
         list_items = self.api.get_items(self.COLLECTION_TYPE)
         for obj in list_items:
             if obj.get_parent == self._name:  # type: ignore
-                results.append(obj)
+                results.append(obj)  # type: ignore
         return results
 
     def tree_walk(self) -> List["InheritableItem"]:
@@ -286,7 +286,7 @@ class InheritableItem(BaseItem, ABC):
         Get all children related by parent/child relationship.
         :return: The list of children objects.
         """
-        results: List[Any] = []
+        results: List["InheritableItem"] = []
         for child in self.children:
             results.append(child)
             results.extend(child.tree_walk())

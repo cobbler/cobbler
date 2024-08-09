@@ -69,11 +69,11 @@ class _InTftpdManager(TftpManagerModule):
         templater = templar.Templar(self.api)
 
         # Loop through the dict of boot files, executing a cp for each one
-        self.logger.info("processing boot_files for distro: %s", distro.name)
-        for boot_file in list(target["boot_files"].keys()):
+        self.logger.info("processing template_files for distro: %s", distro.name)
+        for boot_file in target["template_files"].keys():
             rendered_target_file = templater.render(boot_file, metadata, None)
             rendered_source_file = templater.render(
-                target["boot_files"][boot_file], metadata, None
+                target["template_files"][boot_file], metadata, None
             )
             file = ""  # to prevent unboundlocalerror
             filedst = ""  # to prevent unboundlocalerror
@@ -104,7 +104,7 @@ class _InTftpdManager(TftpManagerModule):
 
     def write_boot_files(self) -> int:
         """
-        Copy files in ``profile["boot_files"]`` into the TFTP server folder. Used for vmware currently.
+        Copy files in ``profile["template_files"]`` into the TFTP server folder. Used for vmware currently.
 
         :return: ``0`` on success.
         """

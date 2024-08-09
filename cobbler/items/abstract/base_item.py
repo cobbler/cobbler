@@ -378,7 +378,7 @@ class BaseItem(ABC):
     def _remove_depreacted_dict_keys(cls, dictionary: Dict[Any, Any]) -> None:
         """
         This method does remove keys which should not be deserialized and are only there for API compatibility in
-        :meth:`~cobbler.items.item.Item.to_dict`.
+        :meth:`~cobbler.items.abstract.base_item.BaseItem.to_dict`.
 
         :param dictionary: The dict to update
         """
@@ -485,8 +485,8 @@ class BaseItem(ABC):
 
     def serialize(self) -> Dict[str, Any]:
         """
-        This method is a proxy for :meth:`~cobbler.items.item.Item.to_dict` and contains additional logic for
-        serialization to a persistent location.
+        This method is a proxy for :meth:`~cobbler.items.abstract.base_item.BaseItem.to_dict` and contains additional
+        logic for serialization to a persistent location.
 
         :return: The dictionary with the information for serialization.
         """

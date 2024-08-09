@@ -4,9 +4,10 @@ Cobbler module that contains the code for a generic Cobbler item.
 Changelog:
 
 V3.4.0 (unreleased):
+    * Renamed to BootableItem
     * (Re-)Added Cache implementation with the following new methods and properties:
         * ``cache``
-        * ``inmemery``
+        * ``inmemory``
         * ``clean_cache()``
     * Overhauled the parent/child system:
         * ``children`` is now inside ``item.py``.
@@ -18,6 +19,8 @@ V3.4.0 (unreleased):
         * mgmt_classes
         * mgmt_parameters
         * last_cached_mtime
+        * fetchable_files
+        * boot_files
 V3.3.4 (unreleased):
     * No changes
 V3.3.3:
@@ -117,14 +120,14 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
-class Item(InheritableItem, ABC):
+class BootableItem(InheritableItem, ABC):
     """
-    An Item is a serializable thing that can appear in a Collection
+    A BootableItem is a serializable thing that can appear in a Collection
     """
 
     # Constants
-    TYPE_NAME = "generic"
-    COLLECTION_TYPE = "generic"
+    TYPE_NAME = "bootable_abstract"
+    COLLECTION_TYPE = "bootable_abstract"
 
     def __init__(
         self, api: "CobblerAPI", *args: Any, is_subobject: bool = False, **kwargs: Any
@@ -140,9 +143,7 @@ class Item(InheritableItem, ABC):
         self._kernel_options: Union[Dict[Any, Any], str] = {}
         self._kernel_options_post: Union[Dict[Any, Any], str] = {}
         self._autoinstall_meta: Union[Dict[Any, Any], str] = {}
-        self._fetchable_files: Union[Dict[Any, Any], str] = {}
-        self._boot_files: Union[Dict[Any, Any], str] = {}
-        self._template_files: Dict[str, Any] = {}
+        self._template_files: Dict[str, str] = {}
         self._inmemory = True
 
         if len(kwargs) > 0:
@@ -159,7 +160,7 @@ class Item(InheritableItem, ABC):
         :name: The attribute name.
         :value: The attribute value.
         """
-        if Item._is_dict_key(name) and self._has_initialized:
+        if BootableItem._is_dict_key(name) and self._has_initialized:
             self.clean_cache(name)
         super().__setattr__(name, value)
 
@@ -217,7 +218,7 @@ class Item(InheritableItem, ABC):
         self, property_name: str, enum_type: Type[enums.ConvertableEnum]
     ) -> Any:
         """
-        See :meth:`~cobbler.items.item.Item._resolve`
+        See :meth:`~cobbler.items.abstract.bootable_item.BootableItem._resolve`
         """
         attribute_value, settings_name = self.__common_resolve(property_name)
         unwrapped_value = getattr(attribute_value, "value", "")
@@ -381,10 +382,13 @@ class Item(InheritableItem, ABC):
         self._autoinstall_meta = self._deduplicate_dict("autoinstall_meta", value)  # type: ignore
 
     @LazyProperty
-    def template_files(self) -> Dict[Any, Any]:
+    def template_files(self) -> Dict[str, str]:
         """
         File mappings for built-in configuration management. The keys are the template source files and the value is the
         destination. The destination must be inside the bootloc (most of the time TFTP server directory).
+
+        This property took over the duties of boot_files additionaly. During signature import the values of "boot_files"
+        will be added to "template_files".
 
         :getter: The dictionary with name-path key-value pairs.
         :setter: A dict. If not a dict must be a str which is split by
@@ -393,7 +397,7 @@ class Item(InheritableItem, ABC):
         return self._template_files
 
     @template_files.setter
-    def template_files(self, template_files: Union[str, Dict[Any, Any]]) -> None:
+    def template_files(self, template_files: Union[str, Dict[str, str]]) -> None:
         """
         A comma seperated list of source=destination templates that should be generated during a sync.
 
@@ -406,61 +410,6 @@ class Item(InheritableItem, ABC):
             )
         except TypeError as error:
             raise TypeError("invalid template files specified") from error
-
-    @LazyProperty
-    def boot_files(self) -> Dict[Any, Any]:
-        """
-        Files copied into tftpboot beyond the kernel/initrd. These get rendered via Cheetah/Jinja and must be text
-        based.
-
-        :getter: The dictionary with name-path key-value pairs.
-        :setter: A dict. If not a dict must be a str which is split by
-                 :meth:`~cobbler.utils.input_converters.input_string_or_dict`. Raises ``TypeError`` otherwise.
-        """
-        return self._resolve_dict("boot_files")
-
-    @boot_files.setter
-    def boot_files(self, boot_files: Dict[Any, Any]) -> None:
-        """
-        A comma separated list of req_name=source_file_path that should be fetchable via tftp.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :param boot_files: The new value for the boot files used by the item.
-        """
-        try:
-            self._boot_files = input_converters.input_string_or_dict(
-                boot_files, allow_multiples=False
-            )
-        except TypeError as error:
-            raise TypeError("invalid boot files specified") from error
-
-    @InheritableDictProperty
-    def fetchable_files(self) -> Dict[Any, Any]:
-        """
-        A comma seperated list of ``virt_name=path_to_template`` that should be fetchable via tftp or a webserver
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: The dictionary with name-path key-value pairs.
-        :setter: A dict. If not a dict must be a str which is split by
-                 :meth:`~cobbler.utils.input_converters.input_string_or_dict`. Raises ``TypeError`` otherwise.
-        """
-        return self._resolve_dict("fetchable_files")
-
-    @fetchable_files.setter  # type: ignore[no-redef]
-    def fetchable_files(self, fetchable_files: Union[str, Dict[Any, Any]]):
-        """
-        Setter for the fetchable files.
-
-        :param fetchable_files: Files which will be made available to external users.
-        """
-        try:
-            self._fetchable_files = input_converters.input_string_or_dict(
-                fetchable_files, allow_multiples=False
-            )
-        except TypeError as error:
-            raise TypeError("invalid fetchable files specified") from error
 
     def dump_vars(
         self, formatted_output: bool = True, remove_dicts: bool = False
@@ -493,7 +442,10 @@ class Item(InheritableItem, ABC):
 
         item_dict = self.api.deserialize_item(self)
         if item_dict["inmemory"]:
-            for ancestor_item_type, ancestor_deps in Item.TYPE_DEPENDENCIES.items():
+            for (
+                ancestor_item_type,
+                ancestor_deps,
+            ) in InheritableItem.TYPE_DEPENDENCIES.items():
                 for ancestor_dep in ancestor_deps:
                     if self.TYPE_NAME == ancestor_dep.dependant_item_type:
                         attr_name = ancestor_dep.dependant_type_attribute
@@ -521,7 +473,7 @@ class Item(InheritableItem, ABC):
             attr = getattr(type(self), name[1:])
             if (
                 isinstance(attr, (InheritableProperty, InheritableDictProperty))
-                and self.COLLECTION_TYPE != Item.COLLECTION_TYPE
+                and self.COLLECTION_TYPE != InheritableItem.COLLECTION_TYPE  # type: ignore
                 and self.api.get_items(self.COLLECTION_TYPE).get(self.name) is not None
             ):
                 # Invalidating "resolved" caches

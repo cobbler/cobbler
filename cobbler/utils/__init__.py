@@ -44,7 +44,7 @@ from cobbler.utils import process_management
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.cobbler_collections.collection import ITEM
-    from cobbler.items.item import Item
+    from cobbler.items.abstract.bootable_item import BootableItem
     from cobbler.settings import Settings
 
 CHEETAH_ERROR_DISCLAIMER = """
@@ -451,7 +451,7 @@ def file_is_remote(file_location: str) -> bool:
 
 
 def blender(
-    api_handle: "CobblerAPI", remove_dicts: bool, root_obj: "Item"
+    api_handle: "CobblerAPI", remove_dicts: bool, root_obj: "BootableItem"
 ) -> Dict[str, Any]:
     """
     Combine all of the data in an object tree from the perspective of that point on the tree, and produce a merged
@@ -562,10 +562,6 @@ def flatten(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         data["autoinstall_meta"] = dict_to_string(data["autoinstall_meta"])
     if "template_files" in data:
         data["template_files"] = dict_to_string(data["template_files"])
-    if "boot_files" in data:
-        data["boot_files"] = dict_to_string(data["boot_files"])
-    if "fetchable_files" in data:
-        data["fetchable_files"] = dict_to_string(data["fetchable_files"])
     if "repos" in data and isinstance(data["repos"], list):
         data["repos"] = " ".join(data["repos"])  # type: ignore
     if "rpm_list" in data and isinstance(data["rpm_list"], list):
@@ -658,8 +654,6 @@ def __consolidate(node: Union["ITEM", "Settings"], results: Dict[Any, Any]) -> D
     dict_removals(results, "kernel_options_post")
     dict_removals(results, "autoinstall_meta")
     dict_removals(results, "template_files")
-    dict_removals(results, "boot_files")
-    dict_removals(results, "fetchable_files")
     return results
 
 

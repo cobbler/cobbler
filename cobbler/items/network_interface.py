@@ -192,8 +192,8 @@ class NetworkInterface:
     # These two methods are currently not used, but we do want to use them in the future, so let's define them.
     def serialize(self) -> Dict[str, Any]:
         """
-        This method is a proxy for :meth:`~cobbler.items.item.Item.to_dict` and contains additional logic for
-        serialization to a persistent location.
+        This method is a proxy for :meth:`~cobbler.items.abstract.base_item.BaseItem.to_dict` and contains additional
+        logic for serialization to a persistent location.
 
         :return: The dictionary with the information for serialization.
         """
@@ -201,7 +201,7 @@ class NetworkInterface:
 
     def deserialize(self, interface_dict: Dict[str, Any]):
         """
-        This is currently a proxy for :py:meth:`~cobbler.items.item.Item.from_dict` .
+        This is currently a proxy for :py:meth:`~cobbler.items.abstract.base_item.BaseItem.from_dict` .
 
         :param interface_dict: The dictionary with the data to deserialize.
         """

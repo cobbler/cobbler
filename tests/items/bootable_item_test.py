@@ -1,5 +1,5 @@
 """
-Test module that asserts that generic Cobbler Item functionality is working as expected.
+Test module that asserts that generic Cobbler BootableItem functionality is working as expected.
 """
 
 import os
@@ -9,13 +9,8 @@ import pytest
 
 from cobbler import enums
 from cobbler.api import CobblerAPI
+from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.items.distro import Distro
-from cobbler.items.image import Image
-from cobbler.items.item import Item
-from cobbler.items.menu import Menu
-from cobbler.items.profile import Profile
-from cobbler.items.repo import Repo
-from cobbler.items.system import System
 from cobbler.settings import Settings
 
 from tests.conftest import does_not_raise
@@ -24,8 +19,11 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
-@pytest.fixture()
-def test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+@pytest.fixture(name="test_settings")
+def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test fixture that mocks the settings for the bootable items.
+    """
     settings = mocker.MagicMock(name="item_setting_mock", spec=cobbler_api.settings())
     orig = cobbler_api.settings()
     for key in orig.to_dict():
@@ -35,7 +33,7 @@ def test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI):
 
 def test_item_create(cobbler_api: CobblerAPI):
     """
-    Assert that an abstract Cobbler Item can be successfully created.
+    Assert that an abstract Cobbler BootableItem can be successfully created.
     """
     # Arrange
 
@@ -43,7 +41,7 @@ def test_item_create(cobbler_api: CobblerAPI):
     titem = Distro(cobbler_api)
 
     # Assert
-    assert isinstance(titem, Item)
+    assert isinstance(titem, BootableItem)
 
 
 def test_from_dict(
@@ -53,7 +51,7 @@ def test_from_dict(
     fk_initrd: str,
 ):
     """
-    Assert that an abstract Cobbler Item can be loaded from dict.
+    Assert that an abstract Cobbler BootableItem can be loaded from dict.
     """
     # Arrange
     folder = create_kernel_initrd(fk_kernel, fk_initrd)
@@ -72,97 +70,6 @@ def test_from_dict(
     assert titem.initrd == initrd_path
 
 
-def test_item_descendants(cobbler_api: CobblerAPI):
-    """
-    Assert that all decendants of a Cobbler Item are correctly captured by called the property.
-    """
-    # Arrange
-    titem = Distro(cobbler_api)
-
-    # Act
-    result = titem.descendants
-
-    # Assert
-    assert result == []
-
-
-def test_descendants(
-    cobbler_api: CobblerAPI,
-    create_distro: Callable[[], Distro],
-    create_image: Callable[[], Image],
-    create_profile: Any,
-    create_system: Any,
-):
-    """
-    Assert that the decendants property is also working with an enabled Cache.
-    """
-    # Arrange
-    test_repo = Repo(cobbler_api)
-    test_repo.name = "test_repo"
-    cobbler_api.add_repo(test_repo)
-    test_menu1 = Menu(cobbler_api)
-    test_menu1.name = "test_menu1"
-    cobbler_api.add_menu(test_menu1)
-    test_menu2 = Menu(cobbler_api)
-    test_menu2.name = "test_menu2"
-    test_menu2.parent = test_menu1.name
-    cobbler_api.add_menu(test_menu2)
-    test_distro = create_distro()
-    test_profile1: Profile = create_profile(
-        distro_name=test_distro.name, name="test_profile1"
-    )
-    test_profile1.enable_menu = False
-    test_profile1.repos = [test_repo.name]
-    test_profile2: Profile = create_profile(
-        profile_name=test_profile1.name, name="test_profile2"
-    )
-    test_profile2.enable_menu = False
-    test_profile2.menu = test_menu2.name
-    test_profile3: Profile = create_profile(
-        profile_name=test_profile1.name, name="test_profile3"
-    )
-    test_profile3.enable_menu = False
-    test_profile3.repos = [test_repo.name]
-    test_image = create_image()
-    test_image.menu = test_menu1.name
-    test_system1: System = create_system(
-        profile_name=test_profile1.name, name="test_system1"
-    )
-    test_system2: System = create_system(
-        image_name=test_image.name, name="test_system2"
-    )
-
-    # Act
-    cache_tests = [
-        test_repo.descendants,
-        test_distro.descendants,
-        test_image.descendants,
-        test_profile1.descendants,
-        test_profile2.descendants,
-        test_profile3.descendants,
-        test_menu1.descendants,
-        test_menu2.descendants,
-        test_system1.descendants,
-        test_system2.descendants,
-    ]
-    results = [
-        [test_profile1, test_profile2, test_profile3, test_system1],
-        [test_profile1, test_profile2, test_profile3, test_system1],
-        [test_system2],
-        [test_profile2, test_profile3, test_system1],
-        [],
-        [],
-        [test_image, test_menu2, test_profile2, test_system2],
-        [test_profile2],
-        [],
-        [],
-    ]
-
-    # Assert
-    for x in range(len(cache_tests)):
-        assert set(cache_tests[x]) == set(results[x])
-
-
 @pytest.mark.parametrize(
     "input_kernel_options,expected_exception,expected_result",
     [
@@ -177,7 +84,7 @@ def test_kernel_options(
     expected_result: Optional[Dict[Any, Any]],
 ):
     """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the kernel_options property correctly.
+    Assert that an abstract Cobbler BootableItem can use the Getter and Setter of the kernel_options property correctly.
     """
     # Arrange
     titem = Distro(cobbler_api)
@@ -204,7 +111,8 @@ def test_kernel_options_post(
     expected_result: Optional[Dict[Any, Any]],
 ):
     """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the kernel_options_post property correctly.
+    Assert that an abstract Cobbler BootableItem can use the Getter and Setter of the kernel_options_post property
+    correctly.
     """
     # Arrange
     titem = Distro(cobbler_api)
@@ -231,7 +139,8 @@ def test_autoinstall_meta(
     expected_result: Optional[Dict[Any, Any]],
 ):
     """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the autoinstall_meta property correctly.
+    Assert that an abstract Cobbler BootableItem can use the Getter and Setter of the autoinstall_meta property
+    correctly.
     """
     # Arrange
     titem = Distro(cobbler_api)
@@ -246,7 +155,7 @@ def test_autoinstall_meta(
 
 def test_template_files(cobbler_api: CobblerAPI):
     """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the template_files property correctly.
+    Assert that an abstract Cobbler BootableItem can use the Getter and Setter of the template_files property correctly.
     """
     # Arrange
     titem = Distro(cobbler_api)
@@ -256,34 +165,6 @@ def test_template_files(cobbler_api: CobblerAPI):
 
     # Assert
     assert titem.template_files == {}
-
-
-def test_boot_files(cobbler_api: CobblerAPI):
-    """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the boot_files property correctly.
-    """
-    # Arrange
-    titem = Distro(cobbler_api)
-
-    # Act
-    titem.boot_files = {}
-
-    # Assert
-    assert titem.boot_files == {}
-
-
-def test_fetchable_files(cobbler_api: CobblerAPI):
-    """
-    Assert that an abstract Cobbler Item can use the Getter and Setter of the fetchable_files property correctly.
-    """
-    # Arrange
-    titem = Distro(cobbler_api)
-
-    # Act
-    titem.fetchable_files = {}
-
-    # Assert
-    assert titem.fetchable_files == {}
 
 
 def test_sort_key(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
@@ -377,12 +258,12 @@ def test_dump_vars(cobbler_api: CobblerAPI):
     print(result)
     assert "default_ownership" in result
     assert "owners" in result
-    assert len(result) == 171
+    assert len(result) == 169
 
 
 def test_to_dict(cobbler_api: CobblerAPI):
     """
-    Assert that a Cobbler Item can be converted to a dictionary.
+    Assert that a Cobbler BootableItem can be converted to a dictionary.
     """
     # Arrange
     titem = Distro(cobbler_api)
@@ -397,7 +278,7 @@ def test_to_dict(cobbler_api: CobblerAPI):
 
 def test_to_dict_resolved(cobbler_api: CobblerAPI):
     """
-    Assert that a Cobbler Item can be converted to a dictionary with resolved values.
+    Assert that a Cobbler BootableItem can be converted to a dictionary with resolved values.
     """
     # Arrange
     titem = Distro(cobbler_api)
@@ -413,7 +294,7 @@ def test_to_dict_resolved(cobbler_api: CobblerAPI):
 
 def test_serialize(cobbler_api: CobblerAPI):
     """
-    Assert that a given Cobbler Item can be serialized.
+    Assert that a given Cobbler BootableItem can be serialized.
     """
     # Arrange
     kernel_url = "http://10.0.0.1/custom-kernels-are-awesome"

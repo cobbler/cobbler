@@ -31,13 +31,13 @@ import copy
 from typing import TYPE_CHECKING, Any
 
 from cobbler.decorator import LazyProperty
-from cobbler.items import item
+from cobbler.items.abstract.bootable_item import BootableItem
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Menu(item.Item):
+class Menu(BootableItem):
     """
     A Cobbler menu object.
     """
@@ -63,7 +63,7 @@ class Menu(item.Item):
             self._has_initialized = True
 
     #
-    # override some base class methods first (item.Item)
+    # override some base class methods first (BootableItem)
     #
 
     def make_clone(self) -> "Menu":

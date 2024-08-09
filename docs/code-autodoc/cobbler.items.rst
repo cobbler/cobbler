@@ -1,6 +1,14 @@
 cobbler.items package
 =====================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   cobbler.items.abstract
+
 Submodules
 ----------
 
@@ -20,18 +28,18 @@ cobbler.items.image module
    :undoc-members:
    :show-inheritance:
 
-cobbler.items.item module
--------------------------
-
-.. automodule:: cobbler.items.item
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 cobbler.items.menu module
 -------------------------
 
 .. automodule:: cobbler.items.menu
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+cobbler.items.network\_interface module
+---------------------------------------
+
+.. automodule:: cobbler.items.network_interface
    :members:
    :undoc-members:
    :show-inheritance:

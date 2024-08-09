@@ -129,14 +129,14 @@ from typing import TYPE_CHECKING, Any, Dict, List, Union
 from cobbler import enums, grub, utils, validate
 from cobbler.cexceptions import CX
 from cobbler.decorator import InheritableProperty, LazyProperty
-from cobbler.items import item
+from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.utils import input_converters, signatures
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-class Distro(item.Item):
+class Distro(BootableItem):
     """
     A Cobbler distribution object
     """
@@ -165,7 +165,6 @@ class Distro(item.Item):
         self._os_version = ""
         self._redhat_management_key = enums.VALUE_INHERITED
         self._source_repos = []
-        self._fetchable_files = {}
         self._remote_boot_kernel = ""
         self._remote_grub_kernel = ""
         self._remote_boot_initrd = ""
@@ -183,7 +182,7 @@ class Distro(item.Item):
         raise AttributeError(f'Attribute "{name}" did not exist on object type Distro.')
 
     #
-    # override some base class methods first (item.Item)
+    # override some base class methods first (BootableItem)
     #
 
     def make_clone(self):
@@ -203,7 +202,7 @@ class Distro(item.Item):
     @classmethod
     def _remove_depreacted_dict_keys(cls, dictionary: Dict[Any, Any]):
         r"""
-        See :meth:`~cobbler.items.item.Item._remove_deprecated_dict_keys`.
+        See :meth:`~cobbler.items.item.BootableItem._remove_deprecated_dict_keys`.
 
         :param dictionary: The dict to update
         """

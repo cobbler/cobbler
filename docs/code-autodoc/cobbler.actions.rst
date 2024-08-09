@@ -68,14 +68,6 @@ cobbler.actions.replicate module
    :undoc-members:
    :show-inheritance:
 
-cobbler.actions.report module
------------------------------
-
-.. automodule:: cobbler.actions.report
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 cobbler.actions.reposync module
 -------------------------------
 
