@@ -133,10 +133,9 @@ class TFTPGen:
         # ref: https://github.com/cobbler/cobbler/blob/35586319bfc6684ccf826a0bf60eab99038b6101/docs/user-guide/esxi.rst#L2
         # link efi/boot/bootx64.efi to mboot.efi for UEFI mode
         if re.search("esxi[78]", d.os_version) is not None:
-            self.logger.error("==== jj cp distro debug 2====")
+            self.logger.info("link efi/boot/bootx64.efi to mboot.efi for UEFI mode deployment")
             efi_file = "efi/boot/bootx64.efi"
             efi_path = d.kernel.strip(d.kernel.split('/')[-1]) + efi_file
-            self.logger.error(efi_path)
             self.copy_single_distro_file(efi_path, distro_dir, symlink_ok)
             old_efi_name = distro_dir + '/bootx64.efi'
             new_efi_name = distro_dir + '/mboot.efi'
@@ -769,7 +768,7 @@ class TFTPGen:
                 # CD-ROM ISO or virt-clone image? We can't PXE boot it.
                 kernel_path = None
                 initrd_path = None
-        # If mac parameter is passed in, it means the deployment process is triggered by podm chain load cobbler ipxe/mac/ api, 
+        # If mac parameter is passed in, it means the deployment process is triggered by podm chain load cobbler ipxe/mac/ api,
         # which means to deploy OS in UEFI mode , so change mboot.c32 to mboot.efi for UEFI mode
         if mac and re.search("esxi[78]", distro.os_version) is not None:
             kernel_path = kernel_path.replace('mboot.c32', 'mboot.efi')
