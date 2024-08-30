@@ -51,12 +51,16 @@ class Repos(collection.Collection[repo.Repo]):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = False,
+        rebuild_menu: bool = True,
     ):
         """
         Remove element named 'name' from the collection
 
         :raises CX: In case the object does not exist.
         """
+        # rebuild_menu is not used
+        _ = rebuild_menu
+
         # NOTE: with_delete isn't currently meaningful for repos
         # but is left in for consistancy in the API.  Unused.
         obj = self.find(name=name)

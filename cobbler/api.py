@@ -1105,6 +1105,56 @@ class CobblerAPI:
         return menu.Menu(self, is_subobject, **kwargs)
 
     # ==========================================================================
+    def add_remove_items(
+        self, items: List[Tuple[str, "InheritableItem", bool, float, str]]
+    ) -> None:
+        """
+        Add or remove multiple items.
+        1. Checks for external modifications using mtime
+        2. Processes deletions first (deepest dependencies first)
+        3. Processes additions and modifications
+        4. Rebuilds the PXE configuration
+
+        :param items: The list of items.
+        """
+        for what, ref, _, mtime, base_id in items:
+            if base_id:
+                orig_ref = self.find_items(
+                    what, criteria={"uid": base_id}, return_list=False
+                )
+                if (
+                    not orig_ref
+                    or isinstance(orig_ref, list)
+                    or mtime != orig_ref.mtime
+                ):
+                    raise ValueError("The item has been modified")
+
+        to_remove = [i for i in items if i[2]]
+        to_add = [i for i in items if not i[2]]
+
+        to_remove.sort(key=lambda x: -x[1].depth)
+        to_add.sort(key=lambda x: x[1].depth)
+
+        for what, ref, _, _, _ in to_add:
+            self.log(f"add_item({what})", [ref.name])
+            self.get_items(what).add(
+                ref,  # type: ignore
+                check_for_duplicate_names=False,
+                save=True,
+                with_triggers=True,
+                rebuild_menu=False,
+            )
+
+        for what, ref, _, _, _ in to_remove:
+            self.log(f"remove_item({what})", [ref.name])
+            self.get_items(what).remove(
+                ref.name,
+                recursive=False,
+                with_delete=True,
+                with_triggers=True,
+                rebuild_menu=False,
+            )
+        self.tftpgen.make_pxe_menu()
 
     def add_item(
         self,

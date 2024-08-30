@@ -43,6 +43,7 @@ class Profiles(collection.Collection[profile.Profile]):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = False,
+        rebuild_menu: bool = True,
     ):
         """
         Remove element named 'name' from the collection
@@ -97,4 +98,4 @@ class Profiles(collection.Collection[profile.Profile]):
                 )
             if with_sync:
                 lite_sync = self.api.get_sync()
-                lite_sync.remove_single_profile(obj)
+                lite_sync.remove_single_profile(obj, rebuild_menu=rebuild_menu)

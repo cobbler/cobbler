@@ -66,6 +66,7 @@ class MockCollection(Collection[MockBootableItem]):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = False,
+        rebuild_menu: bool = True,
     ) -> None:
         del self.listing[name]
 

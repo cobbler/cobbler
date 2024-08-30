@@ -306,7 +306,9 @@ class CobblerSync:
 
         self.templar.render(template_data, metadata, "/etc/rsyncd.conf")
 
-    def add_single_distro(self, distro_obj: "Distro") -> None:
+    def add_single_distro(
+        self, distro_obj: "Distro", rebuild_menu: bool = True
+    ) -> None:
         """
         Sync adding a single distro.
 
@@ -347,9 +349,10 @@ class CobblerSync:
             raise ValueError("Expected to get list of profiles from search!")
         for k in kids:
             self.add_single_profile(k, rebuild_menu=False)
-        self.tftpgen.make_pxe_menu()
+        if rebuild_menu:
+            self.tftpgen.make_pxe_menu()
 
-    def add_single_image(self, image_obj: "Image") -> None:
+    def add_single_image(self, image_obj: "Image", rebuild_menu: bool = True) -> None:
         """
         Sync adding a single image.
 
@@ -361,7 +364,8 @@ class CobblerSync:
             raise ValueError("Expected to get list of profiles from search!")
         for k in kids:
             self.add_single_system(k)
-        self.tftpgen.make_pxe_menu()
+        if rebuild_menu:
+            self.tftpgen.make_pxe_menu()
 
     def remove_single_distro(self, distro_obj: "Distro") -> None:
         """
