@@ -48,6 +48,7 @@ class Images(collection.Collection[image.Image]):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = True,
+        rebuild_menu: bool = True,
     ) -> None:
         """
         Remove element named 'name' from the collection

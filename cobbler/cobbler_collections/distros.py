@@ -52,6 +52,7 @@ class Distros(collection.Collection[distro.Distro]):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = False,
+        rebuild_menu: bool = True,
     ) -> None:
         """
         Remove element named 'name' from the collection

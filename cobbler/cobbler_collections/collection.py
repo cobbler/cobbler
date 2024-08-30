@@ -144,6 +144,7 @@ class Collection(Generic[ITEM]):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = False,
+        rebuild_menu: bool = True,
     ) -> None:
         """
         Remove an item from collection. This method must be overridden in any subclass.
@@ -153,6 +154,7 @@ class Collection(Generic[ITEM]):
         :param with_sync: sync to server file system
         :param with_triggers: run "on delete" triggers
         :param recursive: recursively delete children
+        :param rebuild_menu: rebuild menu after removing the item
         :returns: NotImplementedError
         """
 
@@ -420,6 +422,7 @@ class Collection(Generic[ITEM]):
         with_sync: bool = True,
         quick_pxe_update: bool = False,
         check_for_duplicate_names: bool = False,
+        rebuild_menu: bool = True,
     ) -> None:
         """
         Add an object to the collection
@@ -496,7 +499,7 @@ class Collection(Generic[ITEM]):
                     # we don't need openvz containers to be network bootable
                     if ref.virt_type == "openvz":  # type: ignore
                         ref.enable_menu = False
-                    self.lite_sync.add_single_profile(ref)
+                    self.lite_sync.add_single_profile(ref, rebuild_menu=rebuild_menu)
                     self.api.sync_systems(
                         systems=self.find(
                             "system",
@@ -506,9 +509,9 @@ class Collection(Generic[ITEM]):
                         )  # type: ignore
                     )
                 elif isinstance(ref, distro.Distro):
-                    self.lite_sync.add_single_distro(ref)
+                    self.lite_sync.add_single_distro(ref, rebuild_menu=rebuild_menu)
                 elif isinstance(ref, image.Image):
-                    self.lite_sync.add_single_image(ref)
+                    self.lite_sync.add_single_image(ref, rebuild_menu=rebuild_menu)
                 elif isinstance(ref, repo.Repo):
                     pass
                 elif isinstance(ref, menu.Menu):

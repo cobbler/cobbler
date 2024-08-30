@@ -152,6 +152,7 @@ from cobbler.cexceptions import CX
 from cobbler.items import network_interface, system
 from cobbler.items.abstract import base_item
 from cobbler.items.abstract import bootable_item as item
+from cobbler.items.abstract.inheritable_item import InheritableItem
 from cobbler.utils import signatures
 from cobbler.utils.event import CobblerEvent
 from cobbler.utils.thread import CobblerThread
@@ -194,6 +195,7 @@ class CobblerXMLRPCInterface:
         self.logger = logging.getLogger()
         self.token_cache: Dict[str, Tuple[Any, ...]] = {}
         self.unsaved_items: Dict[str, Tuple[float, "BaseItem"]] = {}
+        self.transactions: Dict[str, Tuple[str, "InheritableItem", bool, float, str]] = {}
         self.timestamp = self.api.last_modified_time()
         self.events: Dict[str, CobblerEvent] = {}
         self.shared_secret = utils.get_shared_secret()
@@ -854,13 +856,18 @@ class CobblerXMLRPCInterface:
             },
         )
 
-    def __get_object(self, object_id: str) -> "BaseItem":
+    def __get_object(self, object_id: str, token: Optional[str] = None) -> "BaseItem":
         """
         Helper function. Given an object id, return the actual object.
 
         :param object_id: The id for the object to retrieve.
         :return: The item to the corresponding id.
         """
+        if token and token in self.transactions and object_id in self.transactions[token]:
+            what, obj, removed, mtime, base_id = self.transactions[token][object_id]
+            if removed:
+                raise ValueError("Object has been deleted in current transaction!")
+            return obj
         if object_id in self.unsaved_items:
             return self.unsaved_items[object_id][1]
         obj = self.api.find_items("", criteria={"uid": object_id}, return_list=False)
@@ -947,7 +954,7 @@ class CobblerXMLRPCInterface:
         return self.api.set_item_resolved_value(item_uuid, attribute, value)
 
     def get_item(
-        self, what: str, name: str, flatten: bool = False, resolved: bool = False
+        self, what: str, name: str, flatten: bool = False, resolved: bool = False, token: Optional[str] = None
     ):
         """
         Returns a dict describing a given object.
@@ -960,9 +967,9 @@ class CobblerXMLRPCInterface:
         :return: The item or None.
         """
         self._log(f"get_item({what},{name})")
-        item_handle = self.get_item_handle(what, name)
+        item_handle = self.get_item_handle(what, name, token=token)
         try:
-            requested_item = self.__get_object(item_handle)
+            requested_item = self.__get_object(item_handle, token=token)
         except ValueError:
             return self.xmlrpc_hacks(None)
         requested_item = requested_item.to_dict(resolved=resolved)
@@ -989,7 +996,7 @@ class CobblerXMLRPCInterface:
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("distro", name, flatten=flatten, resolved=resolved)
+        return self.get_item("distro", name, flatten=flatten, resolved=resolved, token=token)
 
     def get_profile(
         self,
@@ -1010,7 +1017,7 @@ class CobblerXMLRPCInterface:
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("profile", name, flatten=flatten, resolved=resolved)
+        return self.get_item("profile", name, flatten=flatten, resolved=resolved, token=token)
 
     def get_system(
         self,
@@ -1031,7 +1038,7 @@ class CobblerXMLRPCInterface:
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("system", name, flatten=flatten, resolved=resolved)
+        return self.get_item("system", name, flatten=flatten, resolved=resolved, token=token)
 
     def get_repo(
         self,
@@ -1052,7 +1059,7 @@ class CobblerXMLRPCInterface:
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("repo", name, flatten=flatten, resolved=resolved)
+        return self.get_item("repo", name, flatten=flatten, resolved=resolved, token=token)
 
     def get_image(
         self,
@@ -1073,7 +1080,7 @@ class CobblerXMLRPCInterface:
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("image", name, flatten=flatten, resolved=resolved)
+        return self.get_item("image", name, flatten=flatten, resolved=resolved, token=token)
 
     def get_menu(
         self,
@@ -1094,7 +1101,7 @@ class CobblerXMLRPCInterface:
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
-        return self.get_item("menu", name, flatten=flatten, resolved=resolved)
+        return self.get_item("menu", name, flatten=flatten, resolved=resolved, token=token)
 
     def get_items(self, what: str) -> List[Dict[str, Any]]:
         """
@@ -1443,7 +1450,7 @@ class CobblerXMLRPCInterface:
             return False
         return True
 
-    def get_item_handle(self, what: str, name: str) -> str:
+    def get_item_handle(self, what: str, name: str, token: Optional[str] = None) -> str:
         """
         Given the name of an object (or other search parameters), return a reference (object id) that can be used with
         ``modify_*`` functions or ``save_*`` functions to manipulate that object.
@@ -1456,6 +1463,14 @@ class CobblerXMLRPCInterface:
             raise CX("invalid object type")
         if not validate_obj_name(name):
             raise CX("invalid object name")
+
+        if token in self.transactions:
+            for handle, (iwhat, item, deleted, mtime, base_id) in self.transactions[token].items():
+                if iwhat == what and item.name == name:
+                    if deleted:
+                        return self.xmlrpc_hacks(None)
+                    else:
+                        return handle
 
         found_saved = self.api.find_items(what, name=name, return_list=True)
         if len(found_saved) > 1:  # type: ignore
@@ -1523,6 +1538,69 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item_handle("menu", name)
 
+    def _transaction_get_modified(self, token: str, obj: "Item"):
+        """
+        If there is a modified version of the obj in current transaction, return it
+        """
+        if token in self.transactions:
+            handle = obj.uid
+            if handle in self.transactions[token]:
+                what, item, deleted, mtime, base_id = self.transactions[token][handle]
+                if deleted:
+                    return None
+                return item
+        return obj
+
+    def _transaction_children(self, token: str, item: "Item") -> List[Any]:
+        """
+        The list of children of the same type, according to the current transaction
+
+        """
+        results = []
+        list_items = self.api.get_items(item.COLLECTION_TYPE)
+        for obj in list_items:
+            obj = self._transaction_get_modified(token, obj)
+
+            if obj is None:
+                continue
+            if obj.get_parent == item._name:
+                results.append(obj)
+        return results
+
+    def _transaction_tree_walk(self, token: str, item: "Item") -> List[Any]:
+        """
+        Get all children related by parent/child relationship, according to the current transaction
+
+        :return: The list of children objects.
+        """
+        results = []
+        for child in self._transaction_children(token, item):
+            results.append(child)
+            results.extend(self._transaction_tree_walk(token, child))
+
+        return results
+
+    def _transaction_descendants(self, token: str, item: "Item") -> list:
+        """
+        Get objects that depend on this object, i.e. those that would be affected by a cascading delete, etc.
+        according to the current transaction
+        """
+        childs = self._transaction_tree_walk(token, item)
+        results = set(childs)
+        childs.append(item)
+        for child in childs:
+            for item_type in InheritableItem.TYPE_DEPENDENCIES[child.COLLECTION_TYPE]:
+                dep_type_items = self.api.find_items(
+                    item_type[0], {item_type[1]: child.name}
+                )
+                for dep_item in dep_type_items:
+                    dep_item = self._transaction_get_modified(token, dep_item)
+                    if not dep_item or not getattr(dep_item, item_type[1]) or getattr(dep_item, item_type[1]).name != child.name:
+                        continue
+                    results.add(dep_item)
+                    results.update(self._transaction_descendants(token, dep_item))
+        return list(results)
+
     def remove_item(
         self, what: str, name: str, token: str, recursive: bool = True
     ) -> bool:
@@ -1539,12 +1617,19 @@ class CobblerXMLRPCInterface:
         self._log(
             f"remove_item ({what}, recursive={recursive})", name=name, token=token
         )
-        obj_handle = self.get_item_handle(what, name)
+        obj_handle = self.get_item_handle(what, name, token)
         try:
-            obj = self.__get_object(obj_handle)
+            obj = self.__get_object(obj_handle, token)
         except ValueError:
             return False
         self.check_access(token, f"remove_{what}", obj.name)
+        if token in self.transactions:
+            self.transactions[token][obj_handle] = (what, obj, True, obj.mtime, obj.uid)
+            if recursive:
+                for k in self._transaction_descendants(token, obj):
+                     self.transactions[token][k.uid] = (k.COLLECTION_TYPE, k, True, k.mtime, k.uid)
+
+            return True
         if obj_handle in self.unsaved_items:
             self.unsaved_items.pop(obj_handle)
             return True
@@ -1633,6 +1718,13 @@ class CobblerXMLRPCInterface:
         """
         self._log(f"copy_item({what})", object_id=object_id, token=token)
         self.check_access(token, f"copy_{what}")
+        if token in self.transactions:
+            obj = self.__get_object(object_id, token)
+            obj_copy = obj.make_clone()
+            obj_copy.name = newname
+            self.transactions[token][obj_copy.uid] = (what, obj_copy, False, 0.0, "")
+            return True
+
         obj = self.api.find_items(what, criteria={"uid": object_id}, return_list=False)
         if obj is None or isinstance(obj, list):
             raise ValueError(f'Item with id "{object_id}" not found.')
@@ -1721,6 +1813,19 @@ class CobblerXMLRPCInterface:
         if token is None:
             raise ValueError('"token" must be provided to rename an item!')
         self.check_access(token, f"modify_{what}")
+        if token in self.transactions:
+            obj = self.__get_object(object_id, token)
+            obj_copy = obj.make_clone()
+            obj_copy.name = newname
+            self.transactions[token][obj_copy.uid] = (what, obj_copy, False, 0.0, "")
+
+            saved_obj = self.api.find_items(what, criteria={"uid": object_id}, return_list=False)
+            if saved_obj is not None:
+                self.transactions[token][object_id] = (what, saved_obj, True, saved_obj.mtime, saved_obj.uid)
+            else:
+                del self.transactions[token][object_id]
+            return True
+
         obj = self.api.find_items(what, criteria={"uid": object_id}, return_list=False)
         if obj is None or isinstance(obj, list):
             raise ValueError(f'Item with id "{object_id}" not found!')
@@ -1821,6 +1926,9 @@ class CobblerXMLRPCInterface:
         self._log(f"new_item({what})", token=token)
         self.check_access(token, f"new_{what}")
         new_item = self.api.new_item(what, is_subobject, **kwargs)
+        if token in self.transactions:
+            self.transactions[token][new_item.uid] = (what, new_item, False, 0.0, "")
+            return new_item.uid
         self.unsaved_items[new_item.uid] = (time.time(), new_item)
         return new_item.uid
 
@@ -1912,8 +2020,13 @@ class CobblerXMLRPCInterface:
             attribute=attribute,
             token=token,
         )
-        obj = self.__get_object(object_id)
+        obj = self.__get_object(object_id, token)
         self.check_access(token, f"modify_{what}", obj.name, attribute)
+
+        if token in self.transactions and object_id not in self.transactions[token]:
+            new_obj = obj.make_clone()
+            self.transactions[token][object_id] = (what, new_obj, False, obj.mtime, obj.uid)
+            obj = new_obj
 
         if what == "system":
             if attribute == "modify_interface":
@@ -1928,6 +2041,20 @@ class CobblerXMLRPCInterface:
                     new_name=arg.get("rename_interface", ""),  # type: ignore
                 )
                 return True
+
+        if attribute in ["parent", "profile", "distro"] and token in self.transactions:
+            for (what, parent, to_delete, mtime, base_id) in self.transactions[token].values():
+                if what in InheritableItem.TYPE_DEPENDENCIES and parent.name == arg:
+                    for dependant_item_type, dependant_type_attribute in InheritableItem.TYPE_DEPENDENCIES[what]:
+                        if dependant_item_type == obj.COLLECTION_TYPE and dependant_type_attribute == attribute:
+                           if to_delete:
+                               raise ValueError("Parent object has been deleted in current transaction.")
+
+                           # replace the string argument with the corresponding unsaved object from transactions
+                           arg = parent
+                           break
+                    if arg == parent:
+                        break
 
         if hasattr(obj, attribute):
             setattr(obj, attribute, arg)
@@ -2305,8 +2432,12 @@ class CobblerXMLRPCInterface:
         :return: True if the action succeeded.
         """
         self._log(f"save_item({what})", object_id=object_id, token=token)
-        obj = self.__get_object(object_id)
+        obj = self.__get_object(object_id, token)
         self.check_access(token, f"save_{what}", obj.name)
+        if token in self.transactions and object_id in self.transactions[token]:
+            # obj.check_if_valid()
+            # the object will be saved in commit_transaction()
+            return True
         if editmode == "new":
             self.api.add_item(what, obj, check_for_duplicate_names=True)
         else:
@@ -3911,6 +4042,20 @@ class CobblerXMLRPCInterface:
         self.check_access(token, "get_tftp_file")
         return self.api.get_tftp_file(path, offset, size)
 
+    def transaction_begin(self, token: str) -> bool:
+        self.transactions[token] = {}
+        return True
+
+    def transaction_commit(self, token: str) -> bool:
+        try:
+            self.api.add_remove_items(list(self.transactions[token].values()))
+        finally:
+            del self.transactions[token]
+        return True
+
+    def transaction_abort(self, token: str) -> bool:
+        del self.transactions[token]
+        return True
 
 # *********************************************************************************
 
