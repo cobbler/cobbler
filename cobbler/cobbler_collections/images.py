@@ -48,12 +48,15 @@ class Images(collection.Collection[image.Image]):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = True,
+        rebuild_menu: bool = True,
     ) -> None:
         """
         Remove element named 'name' from the collection
 
         :raises CX: In case object does not exist or it would orhan a system.
         """
+        # rebuild_menu is not used
+        _ = rebuild_menu
         # NOTE: with_delete isn't currently meaningful for repos but is left in for consistency in the API. Unused.
         obj = self.listing.get(name, None)
 
