@@ -277,12 +277,20 @@ class Collection:
                     exc,
                 )
 
-    def copy(self, ref: item_base.Item, newname: str):
+    def copy(
+        self,
+        ref: item_base.Item,
+        newname: str,
+        with_sync: bool = True,
+        with_triggers: bool = True,
+    ):
         """
         Copy an object with a new name into the same collection.
 
         :param ref: The reference to the object which should be copied.
         :param newname: The new name for the copied object.
+        :param with_sync: If a sync should be triggered when the object is copying.
+        :param with_triggers: If triggers should be run when the object is copying.
         """
         copied_item = ref.make_clone()
         copied_item.uid = uuid.uuid4().hex
@@ -293,8 +301,8 @@ class Collection:
             copied_item,
             save=True,
             with_copy=True,
-            with_triggers=True,
-            with_sync=True,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
             check_for_duplicate_names=True
         )
 
