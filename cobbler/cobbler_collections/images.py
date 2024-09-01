@@ -58,7 +58,7 @@ class Images(collection.Collection):
         if recursive:
             kids = self.api.find_items("system", {"image": obj.name})
             for k in kids:
-                self.api.remove_system(k, recursive=True)
+                self.api.remove_system(k, recursive=True, with_sync=with_sync)
 
         if with_delete:
             if with_triggers:

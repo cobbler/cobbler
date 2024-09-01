@@ -69,6 +69,7 @@ class Profiles(collection.Collection):
                     recursive=False,
                     delete=with_delete,
                     with_triggers=with_triggers,
+                    with_sync=with_sync,
                 )
 
         if with_delete:
