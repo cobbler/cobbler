@@ -1,18 +1,18 @@
 """
-Test module to assert the performance of retrieving an autoinstallation file.
+Test module to assert the performance of retrieving an auto-installation file.
 """
 
 from typing import Any, Callable, Dict, Tuple
-import pytest
 
-from pytest_benchmark.fixture import BenchmarkFixture
+import pytest
+from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
+    BenchmarkFixture,
+)
 
 from cobbler import autoinstall_manager
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
-from cobbler.items.image import Image
-from cobbler.items.profile import Profile
-from cobbler.items.system import System
+
 from tests.performance import CobblerTree
 
 
@@ -34,9 +34,6 @@ def test_get_autoinstall(
     benchmark: BenchmarkFixture,
     cobbler_api: CobblerAPI,
     create_distro: Callable[[str], Distro],
-    create_profile: Callable[[str, str, str], Profile],
-    create_image: Callable[[str], Image],
-    create_system: Callable[[str, str, str], System],
     cache_enabled: bool,
     what: str,
 ):
@@ -45,10 +42,6 @@ def test_get_autoinstall(
     """
 
     def setup_func() -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
-        CobblerTree.remove_all_objs(cobbler_api)
-        CobblerTree.create_all_objs(
-            cobbler_api, create_distro, create_profile, create_image, create_system
-        )
         return (cobbler_api, what), {}
 
     def item_get_autoinstall(api: CobblerAPI, what: str):
@@ -62,13 +55,13 @@ def test_get_autoinstall(
     # Arrange
     cobbler_api.settings().cache_enabled = cache_enabled
     cobbler_api.settings().enable_menu = False
-
-    # Act
-    result = benchmark.pedantic(
-        item_get_autoinstall, setup=setup_func, rounds=CobblerTree.test_rounds
+    CobblerTree.create_all_objs(
+        cobbler_api, create_distro, save=False, with_triggers=False, with_sync=False
     )
 
-    # Cleanup
-    CobblerTree.remove_all_objs(cobbler_api)
+    # Act
+    result = benchmark.pedantic(  # type: ignore
+        item_get_autoinstall, setup=setup_func, rounds=CobblerTree.test_rounds
+    )
 
     # Assert
