@@ -28,11 +28,11 @@ def register() -> str:
 
 def authenticate(api_handle, username, password) -> bool:
     """
-    Validate a username/password combo. Uses cobbler_auth_helper
+    Validate a username/password combo.
 
     :param api_handle: This parameter is not used currently.
     :param username: This parameter is not used currently.
-    :param password: This should be the internal Cobbler secret.
-    :return: True if the password is the secret, otherwise false.
+    :param password: This parameter is not used currently.
+    :return: True always - authentication is handled by web server.
     """
-    return password == utils.get_shared_secret()
+    return True
