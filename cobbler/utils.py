@@ -2247,13 +2247,12 @@ def get_shared_secret() -> Union[str, int]:
 
     :return: The Cobbler secret which enables full access to Cobbler.
     """
-
     try:
-        with open("/var/lib/cobbler/web.ss", 'rb', encoding='utf-8') as fd:
-            data = fd.read()
-    except:
+        with open("/var/lib/cobbler/web.ss", "r", encoding="UTF-8") as web_secret_fd:
+            data = web_secret_fd.read()
+    except Exception:
         return -1
-    return str(data).strip()
+    return data
 
 
 def local_get_cobbler_api_url() -> str:
