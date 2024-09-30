@@ -57,8 +57,8 @@ def regen_ss_file():
     with open("/dev/urandom", 'rb') as fd:
         data = fd.read(512)
 
-    with open(ssfile, 'wb', 0o660) as fd:
-        fd.write(binascii.hexlify(data))
+    with open(ssfile, 'w', 0o660, encoding="UTF-8") as fd:
+        fd.write(str(binascii.hexlify(data)))
 
 
 def do_xmlrpc_rw(cobbler_api: CobblerAPI, port):
