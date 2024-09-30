@@ -3661,6 +3661,8 @@ class CobblerXMLRPCInterface:
         """
         # if shared secret access is requested, don't bother hitting the auth plugin
         if login_user == "":
+            if self.shared_secret == -1:
+                raise ValueError("login failed(<DIRECT>)")
             if login_password == self.shared_secret:
                 return self.__make_token("<DIRECT>")
             raise ValueError("login failed due to missing username!")

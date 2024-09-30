@@ -6,12 +6,13 @@ import json
 import os
 import pathlib
 import time
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Union, TYPE_CHECKING
 
 import pytest
 
 from cobbler.remote import CobblerXMLRPCInterface
 from cobbler.utils import get_shared_secret
+from tests.conftest import does_not_raise
 
 
 def test_clear_system_logs(
@@ -440,6 +441,41 @@ def test_is_autoinstall_in_use(
 
     # Assert
     assert not result
+
+
+@pytest.mark.parametrize(
+    "input_username,input_password,expected_result,expected_exception,web_ss_exists",
+    [
+        ("cobbler", "cobbler", True, does_not_raise(), True),
+        ("cobbler", "incorrect-password", True, pytest.raises(ValueError), True),
+        ("", "doesnt-matter", True, pytest.raises(ValueError), True),
+        ("", "my-random-web-ss", True, does_not_raise(), True),
+        ("", "my-random-web-ss", True, pytest.raises(ValueError), False),
+    ],
+)
+def test_login(
+    remote: CobblerXMLRPCInterface,
+    input_username: str,
+    input_password: str,
+    expected_result: Any,
+    expected_exception: Any,
+    web_ss_exists: bool
+):
+    """
+    Assert that the login is working successfully with correct and incorrect credentials.
+    """
+    # Arrange
+    if web_ss_exists:
+        remote.shared_secret = "my-random-web-ss"
+    else:
+        remote.shared_secret = -1
+
+    # Act
+    with expected_exception:
+        token = remote.login(input_username, input_password)
+
+        # Assert
+        assert remote.token_check(token) == expected_result
 
 
 def test_logout(remote: CobblerXMLRPCInterface):
