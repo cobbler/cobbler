@@ -160,7 +160,12 @@ class BootableItem(InheritableItem, ABC):
         :name: The attribute name.
         :value: The attribute value.
         """
-        if BootableItem._is_dict_key(name) and self._has_initialized:
+        if (
+            BootableItem._is_dict_key(name)
+            and self._has_initialized
+            and hasattr(self, name)
+            and value != getattr(self, name)
+        ):
             self.clean_cache(name)
         super().__setattr__(name, value)
 
@@ -473,11 +478,10 @@ class BootableItem(InheritableItem, ABC):
             attr = getattr(type(self), name[1:])
             if (
                 isinstance(attr, (InheritableProperty, InheritableDictProperty))
-                and self.COLLECTION_TYPE != InheritableItem.COLLECTION_TYPE  # type: ignore
                 and self.api.get_items(self.COLLECTION_TYPE).get(self.name) is not None
             ):
                 # Invalidating "resolved" caches
-                for dep_item in self.descendants:
+                for dep_item in self.tree_walk(name):
                     dep_item.cache.set_dict_cache(None, True)
 
         # Invalidating the cache of the object itself.

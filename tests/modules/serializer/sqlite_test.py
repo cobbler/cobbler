@@ -27,6 +27,7 @@ def test_settings(mocker: MockerFixture, cobbler_api: CobblerAPI) -> Settings:
     settings.lazy_start = False
     settings.cache_enabled = False
     settings.serializer_pretty_json = False
+    settings.memory_indexes = {}
     return settings
 
 
