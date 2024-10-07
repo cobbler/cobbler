@@ -8,6 +8,7 @@ ExecStart=/usr/bin/cobblerd -F
 PrivateTmp=yes
 KillMode=process
 Type=notify
+TimeoutStartSec=180
 
 [Install]
 WantedBy=multi-user.target
