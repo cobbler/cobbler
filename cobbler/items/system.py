@@ -212,6 +212,7 @@ from cobbler.cexceptions import CX
 from cobbler.decorator import InheritableProperty, LazyProperty
 from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.items.network_interface import NetworkInterface
+from cobbler.items.profile import Profile
 from cobbler.utils import filesystem_helpers, input_converters
 
 if TYPE_CHECKING:
@@ -911,7 +912,7 @@ class System(BootableItem):
         return self._profile
 
     @profile.setter
-    def profile(self, profile_name: str):
+    def profile(self, profile_name: Union["Profile", str]):
         """
         Set the system to use a certain named profile. The profile must have already been loaded into the profiles
         collection.
@@ -920,14 +921,19 @@ class System(BootableItem):
         :raises TypeError: In case profile_name is no string.
         :raises ValueError: In case profile_name does not exist.
         """
-        if not isinstance(profile_name, str):  # type: ignore
+        profile = None
+        if isinstance(profile_name, Profile):
+            profile = profile_name
+            profile_name = profile.name
+        elif not isinstance(profile_name, str):  # type: ignore
             raise TypeError("The name of a profile needs to be of type str.")
 
         if profile_name in ["delete", "None", "~", ""]:
             self._profile = ""
             return
 
-        profile = self.api.profiles().find(name=profile_name, return_list=False)
+        if profile is None:
+            profile = self.api.profiles().find(name=profile_name, return_list=False)
         if isinstance(profile, list):
             raise ValueError("Search returned ambigous match!")
         if profile is None:

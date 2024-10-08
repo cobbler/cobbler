@@ -329,18 +329,23 @@ class Profile(BootableItem):
         return parent_distro
 
     @distro.setter
-    def distro(self, distro_name: str):
+    def distro(self, distro_name: Union["Distro", str]):
         """
         Sets the distro. This must be the name of an existing Distro object in the Distros collection.
 
         :param distro_name: The name of the distro.
         """
-        if not isinstance(distro_name, str):  # type: ignore
+        distro = None
+        if isinstance(distro_name, Distro):
+            distro = distro_name
+            distro_name = distro.name
+        elif not isinstance(distro_name, str):  # type: ignore
             raise TypeError("distro_name needs to be of type str")
         if not distro_name:
             self._distro = ""
             return
-        distro = self.api.distros().find(name=distro_name)
+        if distro is None:
+            distro = self.api.distros().find(name=distro_name)
         if distro is None or isinstance(distro, list):
             raise ValueError(f'distribution "{distro_name}" not found')
         self._distro = distro_name

@@ -35,6 +35,19 @@ def token(cobbler_xmlrpc_base: Tuple[CobblerXMLRPCInterface, str]) -> str:
     """
     return cobbler_xmlrpc_base[1]
 
+@pytest.fixture(scope="function")
+def token2(remote: CobblerXMLRPCInterface) -> str:
+    """
+
+    :param cobbler_xmlrpc_base:
+    :return:
+    """
+    shared_secret = get_shared_secret()
+    token = remote.login("", shared_secret)  # type: ignore
+    if not token:
+        sys.exit(1)
+    return token
+
 
 @pytest.fixture(scope="function")
 def cobbler_xmlrpc_base(cobbler_api: CobblerAPI) -> Tuple[CobblerXMLRPCInterface, str]:
