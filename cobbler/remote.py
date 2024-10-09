@@ -1802,6 +1802,9 @@ class CobblerXMLRPCInterface:
                 )
                 return True
 
+        if attribute == "kernel_options":
+            self.logger.info("remote: modify_item - kernel options: '%s'", arg)
+
         if hasattr(obj, attribute):
             setattr(obj, attribute, arg)
             return True
