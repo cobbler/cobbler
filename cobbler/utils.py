@@ -825,7 +825,8 @@ def __consolidate(node, results: dict) -> dict:
             fielddata = results[field]
             if isinstance(fielddata, dict):
                 # interweave dict results
-                logger.info("__consolidate: Field '%s'", field)
+                if field == "kernel_options":
+                    logger.info("__consolidate: %s", data_item)
                 results[field].update(data_item.copy())
             elif isinstance(fielddata, list) or isinstance(fielddata, tuple):
                 # add to lists (Cobbler doesn't have many lists)
