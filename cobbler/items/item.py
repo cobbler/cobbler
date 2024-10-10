@@ -1156,6 +1156,8 @@ class Item:
             self.deserialize()
         cached_result = self.cache.get_dict_cache(resolved)
         if cached_result is not None:
+            self.logger.info("Cached Result Returned")
+            self.logger.info("Cached Result kernel_options: '%s'", cached_result.get("kernel_options"))
             return cached_result
 
         value = {}
@@ -1163,6 +1165,9 @@ class Item:
             if self.__is_dict_key(key):
                 new_key = key[1:].lower()
                 key_value = self.__dict__[key]
+                if new_key == "kernel_options":
+                    self.logger.info("to_dict kernel_options type: '%s'", type(key_value))
+                    self.logger.info("to_dict kernel_options value: '%s'", key_value)
                 if isinstance(key_value, enum.Enum):
                     value[new_key] = key_value.value
                 elif new_key == "interfaces":
