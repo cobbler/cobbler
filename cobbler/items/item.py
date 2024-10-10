@@ -72,8 +72,8 @@ class ItemCache:
         :param resolved: "resolved" parameter for Item.to_dict().
         """
         if value is not None and value.get("name", "") == "foo" and value.get("kernel") is not None:
-            self.logger.info("to_dict cache set (resolved '%s') from: '%s'", resolved, self._cached_dict[resolved])
-            self.logger.info("to_dict cache set (resolved '%s') to: '%s'", resolved, value)
+            self.api.logger.info("to_dict cache set (resolved '%s') from: '%s'", resolved, self._cached_dict[resolved])
+            self.api.logger.info("to_dict cache set (resolved '%s') to: '%s'", resolved, value)
         if self.settings.cache_enabled:
             self._cached_dict[resolved] = value
 
