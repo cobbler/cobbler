@@ -71,6 +71,7 @@ class ItemCache:
         :param value: Sets the value for the dict cache.
         :param resolved: "resolved" parameter for Item.to_dict().
         """
+        self.api.logger.info("Setting Item Cache")
         if self.settings.cache_enabled:
             self._cached_dict[resolved] = value
 
@@ -1166,7 +1167,7 @@ class Item:
                 self.logger.info("to_dict kernel_options (raw) value: '%s'", self._kernel_options)
                 self.logger.info("to_dict Cached Result Returned - '%s'", self.name)
                 self.logger.info("to_dict Cached Result kernel_options: '%s'", cached_result.get("kernel_options"))
-            # return cached_result
+            return cached_result
 
         value = {}
         for key, key_value in self.__dict__.items():
