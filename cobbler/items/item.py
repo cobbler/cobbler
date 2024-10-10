@@ -585,6 +585,7 @@ class Item:
             self._kernel_options = utils.input_string_or_dict(
                 options, allow_multiples=True
             )
+            self.logger.info("Item: Kernel Options Post Setter - '%s'", self._kernel_options)
         except TypeError as e:
             raise TypeError("invalid kernel options") from e
 
