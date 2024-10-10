@@ -1156,7 +1156,7 @@ class Item:
             self.deserialize()
         cached_result = self.cache.get_dict_cache(resolved)
         if cached_result is not None:
-            self.logger.info("Cached Result Returned")
+            self.logger.info("Cached Result Returned - '%s'", self.name)
             self.logger.info("Cached Result kernel_options: '%s'", cached_result.get("kernel_options"))
             return cached_result
 
