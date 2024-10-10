@@ -1159,6 +1159,7 @@ class Item:
         cached_result = self.cache.get_dict_cache(resolved)
         if cached_result is not None:
             if self.name == "foo" and self.TYPE_NAME == "distro":
+                self.logger.info("to_dict id: %s", id(self))
                 self.logger.info("to_dict kernel_options (getter) type: '%s'", type(self.kernel_options))
                 self.logger.info("to_dict kernel_options (getter) value: '%s'", self.kernel_options)
                 self.logger.info("to_dict kernel_options (raw) type: '%s'", type(self._kernel_options))
