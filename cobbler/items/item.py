@@ -1152,6 +1152,8 @@ class Item:
                      objects raw value.
         :return: A dictionary with all values present in this object.
         """
+        if self.name == "foo" and self.TYPE_NAME == "distro":
+            self.logger.info("to_dict inmemory '%s'", self.inmemory)
         if not self.inmemory:
             self.deserialize()
         cached_result = self.cache.get_dict_cache(resolved)
