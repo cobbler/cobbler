@@ -794,6 +794,8 @@ def __consolidate(node, results: dict) -> dict:
     :return: A dictionary with the consolidated data.
     """
     logger.info("__consolidate: start")
+    logger.info("__consolidate: node name - '%s'", node.name)
+    logger.info("__consolidate: node type - '%s'", type(node))
     node_data = node.to_dict()
 
     # If the node has any data items labelled <<inherit>> we need to expunge them. So that they do not override the
@@ -830,7 +832,6 @@ def __consolidate(node, results: dict) -> dict:
             if isinstance(fielddata, dict):
                 # interweave dict results
                 if field == "kernel_options":
-                    logger.info("__consolidate: node name - '%s'", node.name)
                     logger.info("__consolidate (data_item): %s", data_item)
                     logger.info("__consolidate (fielddata): %s", fielddata)
                 results[field].update(data_item.copy())
