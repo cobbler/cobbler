@@ -1158,8 +1158,13 @@ class Item:
             self.deserialize()
         cached_result = self.cache.get_dict_cache(resolved)
         if cached_result is not None:
-            self.logger.info("Cached Result Returned - '%s'", self.name)
-            self.logger.info("Cached Result kernel_options: '%s'", cached_result.get("kernel_options"))
+            if self.name == "foo" and self.TYPE_NAME == "distro":
+                self.logger.info("to_dict kernel_options (getter) type: '%s'", type(self.kernel_options))
+                self.logger.info("to_dict kernel_options (getter) value: '%s'", self.kernel_options)
+                self.logger.info("to_dict kernel_options (raw) type: '%s'", type(self._kernel_options))
+                self.logger.info("to_dict kernel_options (raw) value: '%s'", self._kernel_options)
+                self.logger.info("to_dict Cached Result Returned - '%s'", self.name)
+                self.logger.info("to_dict Cached Result kernel_options: '%s'", cached_result.get("kernel_options"))
             return cached_result
 
         value = {}
