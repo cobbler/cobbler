@@ -794,7 +794,8 @@ def __consolidate(node, results: dict) -> dict:
     :return: A dictionary with the consolidated data.
     """
     logger.info("__consolidate: start")
-    logger.info("__consolidate: node name - '%s'", node.name)
+    if hasattr(node, "name"):
+        logger.info("__consolidate: node name - '%s'", node.name)
     logger.info("__consolidate: node type - '%s'", type(node))
     node_data = node.to_dict()
 
