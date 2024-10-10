@@ -793,6 +793,7 @@ def __consolidate(node, results: dict) -> dict:
     :param node: The object to merge data into. The data from the node always wins.
     :return: A dictionary with the consolidated data.
     """
+    logger.info("__consolidate: start")
     node_data = node.to_dict()
 
     # If the node has any data items labelled <<inherit>> we need to expunge them. So that they do not override the
@@ -856,6 +857,7 @@ def __consolidate(node, results: dict) -> dict:
     dict_removals(results, "template_files")
     dict_removals(results, "boot_files")
     dict_removals(results, "fetchable_files")
+    logger.info("__consolidate: end")
     return results
 
 
