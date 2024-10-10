@@ -807,6 +807,7 @@ def __consolidate(node, results: dict) -> dict:
         if key == "kernel_options":
             logger.info("__consolidate: kernel options type '%s'", type(value))
             logger.info("__consolidate: kernel options value '%s'", value)
+            logger.info("__consolidate: kernel options property '%s'", node.kernel_options)
         if value == enums.VALUE_INHERITED:
             if key not in results:
                 # We need to add at least one value per key, use the property getter to resolve to the
