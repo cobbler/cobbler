@@ -71,7 +71,9 @@ class ItemCache:
         :param value: Sets the value for the dict cache.
         :param resolved: "resolved" parameter for Item.to_dict().
         """
-        self.api.logger.info("Setting Item Cache")
+        if value.get("name", "") == "foo" and value.get("kernel") is not None:
+            self.logger.info("to_dict cache set (resolved '%s') from: '%s'", resolved, self._cached_dict[resolved])
+            self.logger.info("to_dict cache set (resolved '%s') to: '%s'", resolved, value)
         if self.settings.cache_enabled:
             self._cached_dict[resolved] = value
 
@@ -1205,8 +1207,6 @@ class Item:
             value.update({"kickstart": value["autoinstall"]})
         if "autoinstall_meta" in value:
             value.update({"ks_meta": value["autoinstall_meta"]})
-        if self.name == "foo" and self.TYPE_NAME == "distro":
-            self.logger.info("to_dict cache set (resolved '%s'): '%s'", resolved, value)
         self.cache.set_dict_cache(value, resolved)
         return value
 
