@@ -1196,6 +1196,8 @@ class Item:
             value.update({"kickstart": value["autoinstall"]})
         if "autoinstall_meta" in value:
             value.update({"ks_meta": value["autoinstall_meta"]})
+        if self.name == "foo" and self.TYPE_NAME == "distro":
+            self.logger.info("to_dict cache set (resolved '%s'): '%s'", resolved, value)
         self.cache.set_dict_cache(value, resolved)
         return value
 
