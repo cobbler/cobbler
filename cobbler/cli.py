@@ -2175,6 +2175,12 @@ class CobblerCLI:
                 help="(OPTIONAL) prevents addition of name server addresses to the kernel boot options",
             )
             self.parser.add_option(
+                "--exclude-systems",
+                dest="exclude_systems",
+                action="store_true",
+                help="(OPTIONAL) prevents writing system records",
+            )
+            self.parser.add_option(
                 "--mkisofs-opts",
                 dest="mkisofs_opts",
                 help="(OPTIONAL) extra options for xorrisofs",
