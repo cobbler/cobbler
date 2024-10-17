@@ -119,7 +119,7 @@ def test_netboot_generate_boot_loader_configs(
 
     # Act
     result = build_iso._generate_boot_loader_configs(  # type: ignore[reportPrivateUsage]
-        [test_profile.name], [test_system.name], True
+        [test_profile], [test_system], True
     )
     matching_isolinux_kernel = [
         part for part in result.isolinux if "KERNEL /1.krn" in part
@@ -171,18 +171,21 @@ def test_netboot_generate_boot_loader_configs(
 
 
 def test_netboot_generate_boot_loader_config_for_profile_only(
-    cobbler_api, create_distro, create_profile, create_system
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Callable[[str], System],
 ):
     test_distro = create_distro()
-    test_distro.kernel_options = "test_distro_option=distro"
+    test_distro.kernel_options = "test_distro_option=distro"  # type: ignore
     test_profile = create_profile(test_distro.name)
-    test_profile.kernel_options = "test_profile_option=profile"
+    test_profile.kernel_options = "test_profile_option=profile"  # type: ignore
     test_system = create_system(test_profile.name)
-    test_system.kernel_options = "test_system_option=system"
+    test_system.kernel_options = "test_system_option=system"  # type: ignore
     build_iso = NetbootBuildiso(cobbler_api)
 
     # Act
-    result = build_iso._generate_boot_loader_configs([test_profile], [], True)
+    result = build_iso._generate_boot_loader_configs([test_profile], [], True)  # type: ignore[reportPrivateUsage]
     matching_isolinux_kernel = [
         part for part in result.isolinux if "KERNEL /1.krn" in part
     ]
@@ -279,10 +282,12 @@ def test_filter_profile(
 def test_netboot_run(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
     tmpdir: Any,
 ):
     # Arrange
     test_distro = create_distro()
+    create_profile(test_distro.name)
     build_iso = NetbootBuildiso(cobbler_api)
     iso_location = tmpdir.join("autoinst.iso")
 
@@ -293,16 +298,15 @@ def test_netboot_run(
     assert iso_location.exists()
 
 
-def test_netboot_run_nodistro(
-    cobbler_api,
-    create_distro,
-    create_profile,
-    create_loaders,
-    tmpdir,
+def test_netboot_run_autodetect_distro(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    tmpdir: Any,
 ):
     # Arrange
     test_distro = create_distro()
-    test_profile = create_profile(test_distro.name)
+    create_profile(test_distro.name)
     build_iso = NetbootBuildiso(cobbler_api)
     iso_location = tmpdir.join("autoinst.iso")
 
@@ -329,6 +333,27 @@ def test_standalone_run(
     build_iso.run(
         iso=str(iso_location), distro_name=test_distro.name, source=str(iso_source)
     )
+
+    # Assert
+    assert iso_location.exists()
+
+
+def test_standalone_run_autodetect_distro(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    tmpdir_factory: pytest.TempPathFactory,
+):
+    # Arrange
+    iso_directory = tmpdir_factory.mktemp("isodir")
+    iso_source = tmpdir_factory.mktemp("isosource")
+    iso_location: Any = iso_directory.join("autoinst.iso")  # type: ignore
+    test_distro = create_distro()
+    create_profile(test_distro.name)
+    build_iso = StandaloneBuildiso(cobbler_api)
+
+    # Act
+    build_iso.run(iso=str(iso_location), source=str(iso_source))
 
     # Assert
     assert iso_location.exists()

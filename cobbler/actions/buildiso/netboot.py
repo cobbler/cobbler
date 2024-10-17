@@ -12,7 +12,7 @@ from cobbler import utils
 from cobbler.actions import buildiso
 from cobbler.actions.buildiso import BootFilesCopyset, LoaderCfgsParts
 from cobbler.enums import Archs
-from cobbler.utils import filesystem_helpers, input_converters
+from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:
     from cobbler.items.distro import Distro
@@ -475,30 +475,6 @@ class NetbootBuildiso(buildiso.BuildIso):
     This class contains all functionality related to building network installation images.
     """
 
-    def filter_systems(self, selected_items: Optional[List[str]] = None) -> List[Any]:
-        """
-        Return a list of valid system objects selected from all systems by name, or everything if ``selected_items`` is
-        empty.
-
-        :param selected_items: A list of names to include in the returned list.
-        :return: A list of valid systems. If an error occurred this is logged and an empty list is returned.
-        """
-        if selected_items is None:
-            selected_items = []
-        found_systems = self.filter_items(self.api.systems(), selected_items)
-        # Now filter all systems out that are image based as we don't know about their kernel and initrds
-        return_systems: List["System"] = []
-        for system in found_systems:
-            # All systems not underneath a profile should be skipped
-            parent_obj = system.get_conceptual_parent()
-            if (
-                parent_obj is not None
-                and parent_obj.TYPE_NAME == "profile"  # type: ignore[reportUnnecessaryComparison]
-            ):
-                return_systems.append(system)
-        # Now finally return
-        return return_systems
-
     def make_shorter(self, distname: str) -> str:
         """
         Return a short distro identifier which is basically an internal counter which is mapped via the real distro
@@ -693,43 +669,17 @@ class NetbootBuildiso(buildiso.BuildIso):
         :param buildisodir: This overwrites the directory from the settings in which the iso is built in.
         :param profiles: The filter to generate the ISO only for selected profiles.
         :param xorrisofs_opts: ``xorrisofs`` options to include additionally.
-        :param distro_name: For detecting the architecture of the ISO. If not set, taken from first profile or system item
-        :param systems: Don't use that when building standalone ISOs. The filter to generate the ISO only for selected
-                        systems.
+        :param distro_name: For detecting the architecture of the ISO.
+                            If not provided, taken from first profile or system item
+        :param systems: The filter to generate the ISO only for selected systems.
         :param exclude_dns: Whether the repositories have to be locally available or the internet is reachable.
         :param exclude_systems: Whether system entries should not be exported.
         """
         del kwargs  # just accepted for polymorphism
 
-        system_names = input_converters.input_string_or_list_no_inherit(systems)
-        profile_names = input_converters.input_string_or_list_no_inherit(profiles)
-
-        profile_list = list(self.filter_profiles(profile_names))
-        system_list = list()
-        if not exclude_systems:
-            system_list = list(self.filter_systems(system_names))
-
-        distro_obj = None
-        if distro_name:
-            distro_obj = self.parse_distro(distro_name)
-        elif len(profile_list) > 0:
-            distro_obj = profile_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
-        elif len(system_list) > 0:
-            distro_obj = system_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
-
-        if distro_obj is None:
-            raise ValueError("Unable to find suitable distro and none set by caller")
-
-        if distro_obj.arch not in (
-            Archs.X86_64,
-            Archs.PPC,
-            Archs.PPC64,
-            Archs.PPC64LE,
-            Archs.PPC64EL,
-        ):
-            raise ValueError(
-                "cobbler buildiso does not work for arch={distro_obj.arch}"
-            )
+        distro_obj, profile_list, system_list = self.prepare_sources(
+            distro_name, profiles, systems, exclude_systems
+        )
 
         loader_config_parts = self._generate_boot_loader_configs(
             profile_list, system_list, exclude_dns
@@ -779,7 +729,7 @@ class NetbootBuildiso(buildiso.BuildIso):
                 / "grub"
                 / "grub.ppc64le"
             )
-            bootinfo_txt = self._render_bootinfo_txt(distro_name)
+            bootinfo_txt = self._render_bootinfo_txt(distro_obj.name)
             # fill temporary directory with arch-specific binaries
             filesystem_helpers.copyfile(
                 str(grub_bin), str(buildiso_dirs.grub / "grub.elf")
