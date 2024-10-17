@@ -12,7 +12,7 @@ import os
 import pathlib
 import re
 import shutil
-from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Tuple, Union
 
 from cobbler import templar, utils
 from cobbler.enums import Archs
@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from cobbler.cobbler_collections.collection import ITEM, Collection
     from cobbler.items.distro import Distro
     from cobbler.items.profile import Profile
+    from cobbler.items.system import System
 
 
 def add_remaining_kopts(kopts: Dict[str, Union[str, List[str]]]) -> str:
@@ -177,6 +178,32 @@ class BuildIso:
 
         filesystem_helpers.copyfile(str(kernel_source), kernel_dest)
         filesystem_helpers.copyfile(str(initrd_source), initrd_dest)
+
+    def filter_systems(
+        self, selected_items: Optional[List[str]] = None
+    ) -> List["System"]:
+        """
+        Return a list of valid system objects selected from all systems by name, or everything if ``selected_items`` is
+        empty.
+
+        :param selected_items: A list of names to include in the returned list.
+        :return: A list of valid systems. If an error occurred this is logged and an empty list is returned.
+        """
+        if selected_items is None:
+            selected_items = []
+        found_systems = self.filter_items(self.api.systems(), selected_items)
+        # Now filter all systems out that are image based as we don't know about their kernel and initrds
+        return_systems: List["System"] = []
+        for system in found_systems:
+            # All systems not underneath a profile should be skipped
+            parent_obj = system.get_conceptual_parent()
+            if (
+                parent_obj is not None
+                and parent_obj.TYPE_NAME == "profile"  # type: ignore[reportUnnecessaryComparison]
+            ):
+                return_systems.append(system)
+        # Now finally return
+        return return_systems
 
     def filter_profiles(
         self, selected_items: Optional[List[str]] = None
@@ -662,3 +689,56 @@ class BuildIso:
         self.logger.info("ISO build complete")
         self.logger.info("You may wish to delete: %s", buildisodir)
         self.logger.info("The output file is: %s", iso)
+
+    def prepare_sources(
+        self,
+        distro_name: Optional[str],
+        profiles: Optional[List[str]],
+        systems: Optional[List[str]],
+        exclude_systems: bool,
+    ) -> Tuple["Distro", List["Profile"], List["System"]]:
+        """
+        Preprocess input data to suitable format.
+
+        If distro is not provided, it is taken from first profile or system item.
+        Profiles and systems are returned either as empty list or list of Profile, resp. System
+
+        :param distro_name: Name of the distribution to use or None
+        :param profiles: List of profile names or None to include all
+        :param systems: List of system names or None to include all
+        :param exclude_systems: If set, do not include any system
+
+        :raises ValueError: In case of unsupported distro architecture
+        :return: Tuple with Distro, List of profiles and List of systems
+        """
+
+        system_names = input_converters.input_string_or_list_no_inherit(systems)
+        profile_names = input_converters.input_string_or_list_no_inherit(profiles)
+
+        profile_list = list(self.filter_profiles(profile_names))
+        system_list: List["System"] = list()
+        if not exclude_systems:
+            system_list = list(self.filter_systems(system_names))
+
+        distro_obj: Optional["Distro"] = None
+        if distro_name:
+            distro_obj = self.parse_distro(distro_name)
+        elif len(profile_list) > 0:
+            distro_obj = profile_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
+        elif len(system_list) > 0:
+            distro_obj = system_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
+
+        if distro_obj is None:
+            raise ValueError("Unable to find suitable distro and none set by caller")
+
+        if distro_obj.arch not in (  # type: ignore[reportUnknownMemberType]
+            Archs.X86_64,
+            Archs.PPC,
+            Archs.PPC64,
+            Archs.PPC64LE,
+            Archs.PPC64EL,
+        ):
+            raise ValueError(
+                "cobbler buildiso does not work for arch={distro_obj.arch}"
+            )
+        return (distro_obj, profile_list, system_list)
