@@ -1,0 +1,1 @@
+Fix build on RHEL9 based distributions (fence-agents-all split)

@@ -172,7 +172,11 @@ Requires(postun): systemd
 Requires:       %{apache_pkg}
 Requires:       %{tftpsrv_pkg}
 Requires:       %{createrepo_pkg}
+%if 0%{?rhel} && 0%{?rhel} >= 9
+Requires:       fence-agents-all
+%else
 Requires:       fence-agents
+%endif
 Requires:       rsync
 Requires:       xorriso
 Requires:       dosfstools
