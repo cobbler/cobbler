@@ -59,6 +59,8 @@ Common options for building ISOs
   you should really consider using a tmpfs for performance.
 * ``--profiles``: Modify the profiles Cobbler builds ISOs for. If this is omitted, ISOs for all profiles will be built.
 * ``--xorrisofs-opts``: The options which are passed to xorriso additionally to the above shown.
+* ``--esp``: Explicitly specify the EFI System Partition (ESP). The default is to attempt to search for ESP, and
+  generate one if an ESP cannot be found.
 
 Building standalone ISOs
 ########################
@@ -78,6 +80,23 @@ You have to provide the following parameters:
 * ``--systems``: Filter the systems you want to build the ISO for.
 * ``--exclude-dns``: Flag to add the nameservers (and other DNS information) to the append line or not. This only has
   an effect in case you supply ``--systems`` and the system contains the ``--name-servers`` configuration.
+
+Building ISOs for Secure Boot
+#############################
+
+When you build an ISO from a distribution that is stored in the Cobbler Web directory, e.g.
+ ``/srv/www/cobbler/distro_mirror/``, Cobbler looks for the EFI System Partition (ESP) of the provided distribution
+ automatically. This is the default behavior, for example, when you use the ``cobbler import`` command to
+ create a distribution.
+
+If you create a distribution that references files stored outside of the Cobbler Web directory, e.g.
+``/usr/share/tftpboot-installation/SLE-15-SP6-x86_64``, use the ``--esp`` parameter to specify the location of
+the ESP, for example:
+
+.. code-block:: shell
+
+   cobbler buildiso --esp="/usr/share/tftpboot-installation/SLE-15-SP6-x86_64/boot/x86_64/efi" \
+     --iso=/tmp/out.iso --distro=sles15-sp6
 
 Examples
 ########

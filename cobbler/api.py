@@ -2161,6 +2161,7 @@ class CobblerAPI:
         source: str = "",
         exclude_dns: bool = False,
         xorrisofs_opts: str = "",
+        esp: Optional[str] = None,
     ) -> None:
         r"""
         Build an iso image which may be network bootable or not.
@@ -2176,11 +2177,14 @@ class CobblerAPI:
         :param source: If the iso should be offline available this is the path to the sources of the image.
         :param exclude_dns: Whether the repositories have to be locally available or the internet is reachable.
         :param xorrisofs_opts: ``xorrisofs`` options to include additionally.
+        :param esp: location of the ESP partition, e.g. for secure boot.
         """
         if not isinstance(standalone, bool):  # type: ignore
             raise TypeError('Argument "standalone" needs to be of type bool!')
         if not isinstance(airgapped, bool):  # type: ignore
             raise TypeError('Argument "airgapped" needs to be of type bool!')
+        if esp and not Path(esp).exists():
+            raise TypeError(f"Specified ESP partition does not exist: {esp}")
         if airgapped:
             standalone = True
         Builder = StandaloneBuildiso if standalone else NetbootBuildiso
@@ -2194,6 +2198,7 @@ class CobblerAPI:
             source=source,
             systems=systems,
             exclude_dns=exclude_dns,
+            esp=esp,
         )
 
     # ==========================================================================
