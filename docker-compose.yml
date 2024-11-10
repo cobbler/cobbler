@@ -5,7 +5,7 @@ services:
     image: local/cobbler-test-opensuse-leap
     build:
       context: .
-      dockerfile: docker/rpms/opensuse_leap/openSUSE_Leap153.dockerfile
+      dockerfile: docker/rpms/opensuse_leap/openSUSE_Leap15.dockerfile
     container_name: cobbler-test-openSUSE-Leap
 
   opensuse-leap-build:
@@ -13,7 +13,7 @@ services:
     container_name: cobbler-opensuse-leap
     build:
       context: .
-      dockerfile: docker/rpms/opensuse_leap/openSUSE_Leap153.dockerfile
+      dockerfile: docker/rpms/opensuse_leap/openSUSE_Leap15.dockerfile
     volumes:
       - ./rpm-build/opensuse-leap:/usr/src/cobbler/rpm-build
 
