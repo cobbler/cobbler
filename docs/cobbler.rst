@@ -7,6 +7,9 @@ This page contains a description for commands which can be used from the CLI.
 .. note:: We are currently developing a new CLI which is independent from the server.
           This document redirects you to the new documentation once the new CLI is ready.
 
+.. note:: The new CLI is available over `here <https://github.com/cobbler/cli>`_. It cannot be installed on the Cobbler
+          server directly since the binaries are named identical.
+
 General Principles
 ##################
 
