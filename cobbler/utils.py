@@ -683,6 +683,8 @@ def flatten(data: dict) -> Optional[dict]:
         data["yumopts"] = dict_to_string(data["yumopts"])
     if "autoinstall_meta" in data:
         data["autoinstall_meta"] = dict_to_string(data["autoinstall_meta"])
+    if "ks_meta" in data:
+        data["ks_meta"] = dict_to_string(data["ks_meta"])
     if "template_files" in data:
         data["template_files"] = dict_to_string(data["template_files"])
     if "boot_files" in data:
