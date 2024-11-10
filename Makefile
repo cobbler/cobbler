@@ -103,8 +103,11 @@ release: clean qa authors sdist ## Creates the full release.
 test-image: ## Builds the test container image
 	$(EXECUTOR) build -f docker/develop/develop.dockerfile -t cobbler-test:$(CONTAINER_TAG)
 
-test-centos8: ## Executes the testscript for testing cobbler in a docker container on CentOS8.
-	./docker/rpms/build-and-install-rpms.sh el8 docker/rpms/CentOS_8/CentOS8.dockerfile
+test-rocky8: ## Executes the testscript for testing cobbler in a docker container on Rocky Linux 8.
+	./docker/rpms/build-and-install-rpms.sh rl8 docker/rpms/Rocky_Linux_8/Rocky_Linux_8.dockerfile
+
+test-rocky9: ## Executes the testscript for testing cobbler in a docker container on Rocky Linux 9.
+	./docker/rpms/build-and-install-rpms.sh rl8 docker/rpms/Rocky_Linux_9/Rocky_Linux_9.dockerfile
 
 test-fedora34: ## Executes the testscript for testing cobbler in a docker container on Fedora 33.
 	./docker/rpms/build-and-install-rpms.sh fc34 docker/rpms/Fedora_34/Fedora34.dockerfile

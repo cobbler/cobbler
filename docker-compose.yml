@@ -35,6 +35,15 @@ services:
     volumes:
       - ./rpm-build/rl8:/usr/src/cobbler/rpm-build
 
+  rockylinux9-build:
+    image: local/cobbler-rockylinux9
+    container_name: cobbler-rockylinux9
+    build:
+      context: .
+      dockerfile: docker/rpms/Rocky_Linux_9/Rocky_Linux_9.dockerfile
+    volumes:
+      - ./rpm-build/rl9:/usr/src/cobbler/rpm-build
+
   fedora34-build:
     image: local/cobbler-fedora34
     container_name: cobbler-fedora34

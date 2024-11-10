@@ -7,7 +7,7 @@ on:
     branches: [ main, release* ]
 
 jobs:
-  build-centos8-rpms:
+  build-rocky8-rpms:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
@@ -15,6 +15,14 @@ jobs:
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/rpms/build-and-install-rpms.sh rl8 docker/rpms/Rocky_Linux_8/Rocky_Linux_8.dockerfile
+  build-rocky9-rpms:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build a Rocky Linux 9 Package
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          ./docker/rpms/build-and-install-rpms.sh rl9 docker/rpms/Rocky_Linux_9/Rocky_Linux_9.dockerfile
   build-fedora34-rpms:
     runs-on: ubuntu-20.04
     steps:
