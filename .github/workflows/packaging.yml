@@ -23,6 +23,20 @@ jobs:
           name: rpms-rockylinux-8
           path: |
             rpm-build/*.rpm
+  build-rockylinux9-rpms:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build a Rocky Linux 9 Package
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          ./docker/rpms/build-and-install-rpms.sh rl9 docker/rpms/Rocky_Linux_9/Rocky_Linux_9.dockerfile
+      - name: Archive RPMs
+        uses: actions/upload-artifact@v3
+        with:
+          name: rpms-rockylinux-8
+          path: |
+            rpm-build/*.rpm
   build-fedora37-rpms:
     runs-on: ubuntu-20.04
     steps:
