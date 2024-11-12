@@ -246,6 +246,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
         distro_name: str = "",
         airgapped: bool = False,
         source: str = "",
+        esp: Optional[str] = None,
         **kwargs: Any,
     ):
         """
@@ -314,7 +315,11 @@ class StandaloneBuildiso(buildiso.BuildIso):
             self._copy_isolinux_files()
             # create EFI system partition (ESP) if needed, uses the ESP from the
             # distro if it was copied
-            esp_location = self._find_esp(buildiso_dirs.root)
+            if esp:
+                esp_location = esp
+            else:
+                esp_location = self._find_esp(buildiso_dirs.root)
+
             if esp_location is None:
                 esp_location = self._create_esp_image_file(buildisodir)
                 self._copy_grub_into_esp(esp_location, distro_obj.arch)
@@ -367,4 +372,4 @@ class StandaloneBuildiso(buildiso.BuildIso):
             )
 
         self._write_autoinstall_cfg(autoinstall_data, buildiso_dirs.autoinstall)
-        xorriso_func(xorrisofs_opts, iso, buildisodir, esp_location)
+        xorriso_func(xorrisofs_opts, iso, buildisodir, buildisodir + "/efi")

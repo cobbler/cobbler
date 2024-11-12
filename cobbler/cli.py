@@ -2180,6 +2180,12 @@ class CobblerCLI:
                 help="(OPTIONAL) extra options for xorrisofs",
             )
 
+            self.parser.add_option(
+                "--esp",
+                dest="esp",
+                help="(OPTIONAL) location of ESP partition, e.g. for secure boot",
+            )
+
             (options, _) = self.parser.parse_args(self.args)
             task_id = self.start_task("buildiso", options)
 

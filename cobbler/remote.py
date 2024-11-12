@@ -238,6 +238,7 @@ class CobblerXMLRPCInterface:
                 self.options.get("source", ""),
                 self.options.get("exclude_dns", False),
                 self.options.get("xorrisofs_opts", ""),
+                self.options.get("esp", None),
             )
 
         def on_done(self: CobblerThread):
