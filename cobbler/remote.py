@@ -232,11 +232,12 @@ class CobblerXMLRPCInterface:
                 self.options.get("profiles", None),
                 self.options.get("systems", None),
                 self.options.get("buildisodir", ""),
-                self.options.get("distro", ""),
+                self.options.get("distro", None),
                 self.options.get("standalone", False),
                 self.options.get("airgapped", False),
                 self.options.get("source", ""),
                 self.options.get("exclude_dns", False),
+                self.options.get("exclude_systems", False),
                 self.options.get("xorrisofs_opts", ""),
                 self.options.get("esp", None),
             )

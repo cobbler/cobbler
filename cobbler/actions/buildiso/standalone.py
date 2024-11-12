@@ -242,11 +242,13 @@ class StandaloneBuildiso(buildiso.BuildIso):
         iso: str = "autoinst.iso",
         buildisodir: str = "",
         profiles: Optional[List[str]] = None,
+        systems: Optional[List[str]] = None,
         xorrisofs_opts: str = "",
-        distro_name: str = "",
+        distro_name: Optional[str] = None,
         airgapped: bool = False,
         source: str = "",
         esp: Optional[str] = None,
+        exclude_systems: bool = False,
         **kwargs: Any,
     ):
         """
@@ -256,27 +258,21 @@ class StandaloneBuildiso(buildiso.BuildIso):
         parameters can be combined.
         :param iso: The name of the iso. Defaults to "autoinst.iso".
         :param buildisodir: This overwrites the directory from the settings in which the iso is built in.
-        :param profiles: The filter to generate the ISO only for selected profiles.
+        :param profiles: The filter to generate the ISO only for selected profiles. None means all.
+        :param systems: The filter to generate the ISO only for selected systems. None means all.
         :param xorrisofs_opts: ``xorrisofs`` options to include additionally.
         :param distro_name: For detecting the architecture of the ISO.
+                            If not provided, taken from first profile or system item
         :param airgapped: This option implies ``standalone=True``.
         :param source: If the iso should be offline available this is the path to the sources of the image.
+        :param exclude_systems: Whether system entries should not be exported.
         """
         del kwargs  # just accepted for polymorphism
 
-        distro_obj = self.parse_distro(distro_name)
-        if distro_obj.arch not in (
-            Archs.X86_64,
-            Archs.PPC,
-            Archs.PPC64,
-            Archs.PPC64LE,
-            Archs.PPC64EL,
-        ):
-            raise ValueError(
-                "cobbler buildiso does not work for arch={distro_obj.arch}"
-            )
+        distro_obj, profile_objs, system_objs = self.prepare_sources(
+            distro_name, profiles, systems, exclude_systems
+        )
 
-        profile_objs = self.parse_profiles(profiles, distro_obj)
         filesource = source
         loader_config_parts = LoaderCfgsParts([self.iso_template], [], [])
         autoinstall_data: Dict[str, Autoinstall] = {}
@@ -298,7 +294,12 @@ class StandaloneBuildiso(buildiso.BuildIso):
                 autoinstall_data=autoinstall_data,
             )
             for descendant in profile_obj.descendants:
-                # handle everything below this top-level profile
+                # handle everything below this top-level profile, but skip not selected systems
+                if (
+                    descendant.COLLECTION_TYPE == "system"  # type: ignore[reportUnnecessaryComparison]
+                    and descendant not in system_objs
+                ):
+                    continue
                 self._generate_item(
                     descendant_obj=descendant,  # type: ignore
                     distro_obj=distro_obj,
@@ -337,7 +338,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
                 / "grub"
                 / "grub.ppc64le"
             )
-            bootinfo_txt = self._render_bootinfo_txt(distro_name)
+            bootinfo_txt = self._render_bootinfo_txt(distro_obj.name)
             # fill temporary directory with arch-specific binaries
             filesystem_helpers.copyfile(
                 str(grub_bin), str(buildiso_dirs.grub / "grub.elf")
