@@ -358,5 +358,7 @@ def run(api, args):
         if distro and distro.breed == "windows":
             logger.info("System: %s", system.name)
             meta = utils.blender(api, False, system)
-            gen_win_files(distro, autoinstall_meta)
+            autoinstall_meta = meta.get("autoinstall_meta", {})
+            meta.update(autoinstall_meta)
+            gen_win_files(distro, meta)
     return 0
