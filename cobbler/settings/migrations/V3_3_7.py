@@ -1,5 +1,5 @@
 """
-Migration from V3.3.3 to V3.3.4
+Migration from V3.3.6 to V3.3.7
 """
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: 2024 Enno Gotthold <egotthold@suse.com
@@ -7,15 +7,15 @@ Migration from V3.3.3 to V3.3.4
 
 from schema import SchemaError  # type: ignore
 
-from cobbler.settings.migrations import V3_3_3
+from cobbler.settings.migrations import V3_3_6
 
-# schema identical to V3_3_3
-schema = V3_3_3.schema
+# schema identical to V3_3_5
+schema = V3_3_6.schema
 
 
 def validate(settings: dict) -> bool:
     """
-    Checks that a given settings dict is valid according to the reference V3.3.4 schema ``schema``.
+    Checks that a given settings dict is valid according to the reference V3.3.6 schema ``schema``.
 
     :param settings: The settings dict to validate.
     :return: True if valid settings dict otherwise False.
@@ -39,14 +39,14 @@ def normalize(settings: dict) -> dict:
 
 def migrate(settings: dict) -> dict:
     """
-    Migration of the settings ``settings`` to version V3.3.4 settings
+    Migration of the settings ``settings`` to version V3.3.7 settings
 
     :param settings: The settings dict to migrate
     :return: The migrated dict
     """
 
-    if not V3_3_3.validate(settings):
-        raise SchemaError("V3.3.3: Schema error while validating")
+    if not V3_3_6.validate(settings):
+        raise SchemaError("V3.3.5: Schema error while validating")
 
     # rename keys and update their value
     # add missing keys

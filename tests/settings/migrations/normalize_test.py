@@ -23,6 +23,7 @@ from cobbler.settings.migrations import (
     V3_3_4,
     V3_3_5,
     V3_3_6,
+    V3_3_7,
 )
 
 
@@ -191,6 +192,18 @@ def test_normalize_v3_3_6():
 
     # Act
     new_settings = V3_3_6.normalize(old_settings_dict)
+
+    # Assert
+    assert len(new_settings) == 133
+
+
+def test_normalize_v3_3_7():
+    # Arrange
+    with open("/code/tests/test_data/V3_3_7/settings.yaml") as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+
+    # Act
+    new_settings = V3_3_7.normalize(old_settings_dict)
 
     # Assert
     assert len(new_settings) == 133

@@ -237,7 +237,7 @@ schema = Schema(
 
 def validate(settings: dict) -> bool:
     """
-    Checks that a given settings dict is valid according to the reference V3.3.1 schema ``schema``.
+    Checks that a given settings dict is valid according to the reference V3.3.3 schema ``schema``.
 
     :param settings: The settings dict to validate.
     :return: True if valid settings dict otherwise False.
@@ -261,7 +261,7 @@ def normalize(settings: dict) -> dict:
 
 def migrate(settings: dict) -> dict:
     """
-    Migration of the settings ``settings`` to version V3.3.1 settings
+    Migration of the settings ``settings`` to version V3.3.3 settings
 
     :param settings: The settings dict to migrate
     :return: The migrated dict

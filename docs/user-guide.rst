@@ -239,5 +239,5 @@ https://github.com/osism/docker-cobbler
 Web-Interface
 #############
 
-Please be patient until we have time with the 4.0.0 release to create a new web UI. The old Django based was preventing
-needed change inside the internals in Cobbler.
+There is a Web Interface for the Cobbler 3.3.x release series available. It is developed separately and is in an alpha
+state. For more information please see: `<https://github.com/cobbler/cobbler-web>`_
