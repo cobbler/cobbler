@@ -21,7 +21,7 @@ jobs:
       - name: Mark directory as safe for Git
         run: git config --global --add safe.directory /__w/cobbler/cobbler
       - name: Install towncrier
-        run: pip install .[changelog]
+        run: pip install --break-system-packages .[changelog]
       - name: Build changelog
         run: towncrier --yes
       - name: Create Pull Request
