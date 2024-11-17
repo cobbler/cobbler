@@ -1,0 +1,33 @@
+name: Create changelog
+
+on: workflow_dispatch
+
+jobs:
+  create_changelog:
+    name: Build the changelog
+    runs-on: ubuntu-latest
+    container: registry.opensuse.org/opensuse/tumbleweed:latest
+    steps:
+      - name: Install system dependencies
+        run: >-
+          zypper in -y
+          tar
+          git
+          python3-pip
+          python3-wheel
+          python3-libvirt-python
+          python3-netifaces
+      - uses: actions/checkout@v4
+      - name: Mark directory as safe for Git
+        run: git config --global --add safe.directory /__w/cobbler/cobbler
+      - name: Install towncrier
+        run: pip install .[changelog]
+      - name: Build changelog
+        run: towncrier --yes
+      - name: Create Pull Request
+        # https://github.com/peter-evans/create-pull-request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: "[Bot] Add changelog for new version"
+          delete-branch: true
+          title: "[Bot] Add changelog for new version"
