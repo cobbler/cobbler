@@ -6,12 +6,13 @@ import json
 import os
 import pathlib
 import time
-from typing import Any, Callable, Dict, List, Union, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, Union
 
 import pytest
 
 from cobbler.remote import CobblerXMLRPCInterface
 from cobbler.utils import get_shared_secret
+
 from tests.conftest import does_not_raise
 
 
@@ -459,7 +460,7 @@ def test_login(
     input_password: str,
     expected_result: Any,
     expected_exception: Any,
-    web_ss_exists: bool
+    web_ss_exists: bool,
 ):
     """
     Assert that the login is working successfully with correct and incorrect credentials.
