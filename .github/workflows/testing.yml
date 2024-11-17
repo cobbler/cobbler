@@ -2,15 +2,9 @@ name: Testing Cobbler
 
 on:
   push:
-    branches:
-      - master
-      - release30
-      - release32
+    branches: [ main, release* ]
   pull_request:
-    branches:
-      - master
-      - release30
-      - release32
+    branches: [ main, release* ]
 
 jobs:
   run_tests:
@@ -28,4 +22,4 @@ jobs:
       - name: Run the Tests inside the Docker Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          docker exec -u 0 -it cobbler bash -c "pytest --cov=./cobbler && codecov --token=1064928c-6477-41be-9ac2-7ce5e6d1fd8b --commit=${GITHUB_SHA}"
+          docker exec -u 0 -it cobbler bash -c "pytest --cov=./cobbler"
