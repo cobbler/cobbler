@@ -82,6 +82,7 @@ class Distros(collection.Collection[distro.Distro]):
                     recursive=recursive,
                     delete=with_delete,
                     with_triggers=with_triggers,
+                    with_sync=with_sync,
                 )
 
         if with_delete:

@@ -12,6 +12,7 @@ Changelog:
 from abc import ABC
 from typing import TYPE_CHECKING, Any, Dict, List, NamedTuple, Optional, Union
 
+from cobbler import enums
 from cobbler.cexceptions import CX
 from cobbler.decorator import LazyProperty
 from cobbler.items.abstract.base_item import BaseItem
@@ -202,17 +203,23 @@ class InheritableItem(BaseItem, ABC):
         """
         if not isinstance(parent, str):  # type: ignore
             raise TypeError('Property "parent" must be of type str!')
+        old_parent = self._parent
         if not parent:
             self._parent = ""
+            self.api.get_items(self.COLLECTION_TYPE).update_index_value(
+                self, "parent", old_parent, ""
+            )
             return
         if parent == self.name:
             # check must be done in two places as setting parent could be called before/after setting name...
             raise CX("self parentage is forbidden")
-        found = self.api.get_items(self.COLLECTION_TYPE).get(parent)
+        items = self.api.get_items(self.COLLECTION_TYPE)
+        found = items.get(parent)
         if found is None:
             raise CX(f'parent item "{parent}" not found, inheritance not possible')
         self._parent = parent
         self.depth = found.depth + 1  # type: ignore
+        items.update_index_value(self, "parent", old_parent, parent)
 
     @LazyProperty
     def get_parent(self) -> str:
@@ -274,22 +281,31 @@ class InheritableItem(BaseItem, ABC):
         :getter: An empty list in case of items which don't have logical children.
         :setter: Replace the list of children completely with the new provided one.
         """
-        results: List[InheritableItem] = []
-        list_items = self.api.get_items(self.COLLECTION_TYPE)
-        for obj in list_items:
-            if obj.get_parent == self._name:  # type: ignore
-                results.append(obj)  # type: ignore
+        if self.COLLECTION_TYPE not in ["profile", "menu"]:
+            return []
+
+        results: Optional[List["InheritableItem"]] = self.api.find_items(  # type: ignore
+            self.COLLECTION_TYPE, {"parent": self._name}, return_list=True
+        )
+        if results is None:
+            return []
         return results
 
-    def tree_walk(self) -> List["InheritableItem"]:
+    def tree_walk(
+        self, attribute_name: Optional[str] = None
+    ) -> List["InheritableItem"]:
         """
         Get all children related by parent/child relationship.
         :return: The list of children objects.
         """
         results: List["InheritableItem"] = []
         for child in self.children:
-            results.append(child)
-            results.extend(child.tree_walk())
+            if (
+                attribute_name is None
+                or getattr(child, attribute_name) == enums.VALUE_INHERITED
+            ):
+                results.append(child)
+                results.extend(child.tree_walk(attribute_name))
 
         return results
 

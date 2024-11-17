@@ -136,6 +136,13 @@ def test_inmemory(
     inmemory_api.menus().listing.pop(test_menu1.name)
     inmemory_api.repos().listing.pop(test_repo.name)
 
+    inmemory_api.systems().indexes = {}
+    inmemory_api.images().indexes = {}
+    inmemory_api.profiles().indexes = {}
+    inmemory_api.distros().indexes = {}
+    inmemory_api.menus().indexes = {}
+    inmemory_api.repos().indexes = {}
+
     inmemory_api.deserialize()
 
     test_repo: Repo = inmemory_api.find_repo("test_repo")  # type: ignore[reportAssignmentType]

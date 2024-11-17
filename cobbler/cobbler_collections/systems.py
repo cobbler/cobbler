@@ -15,7 +15,6 @@ from cobbler.items import network_interface, system
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.cobbler_collections.manager import CollectionManager
 
 
 class Systems(collection.Collection[system.System]):
@@ -23,28 +22,6 @@ class Systems(collection.Collection[system.System]):
     Systems are hostnames/MACs/IP names and the associated profile
     they belong to.
     """
-
-    def __init__(self, collection_mgr: "CollectionManager"):
-        """
-        Constructor.
-
-        :param collection_mgr: The collection manager to resolve all information with.
-        """
-        super().__init__(collection_mgr)
-        self.indexes: Dict[str, Dict[str, str]] = {
-            "uid": {},
-            "mac_address": {},
-            "ip_address": {},
-            "ipv6_address": {},
-            "dns_name": {},
-        }
-        settings = self.api.settings()
-        self.disabled_indexes: Dict[str, bool] = {
-            "mac_address": settings.allow_duplicate_macs,
-            "ip_address": settings.allow_duplicate_ips,
-            "ipv6_address": settings.allow_duplicate_ips,
-            "dns_name": settings.allow_duplicate_hostnames,
-        }
 
     @staticmethod
     def collection_type() -> str:
@@ -110,26 +87,6 @@ class Systems(collection.Collection[system.System]):
                     self.api, obj, "/var/lib/cobbler/triggers/change/*", []
                 )
 
-    def add_to_indexes(self, ref: system.System) -> None:
-        """
-        Add indexes for the system.
-
-        :param ref: The reference to the system whose indexes are updated.
-        """
-        super().add_to_indexes(ref)
-        if not ref.inmemory:
-            return
-
-        for indx_key, indx_val in self.indexes.items():
-            if indx_key == "uid" or self.disabled_indexes[indx_key]:
-                continue
-
-            for interface in ref.interfaces.values():
-                if hasattr(interface, indx_key):
-                    secondary_key = getattr(interface, indx_key)
-                    if secondary_key is not None and secondary_key != "":
-                        indx_val[secondary_key] = ref.name
-
     def update_interface_index_value(
         self,
         interface: network_interface.NetworkInterface,
@@ -139,19 +96,15 @@ class Systems(collection.Collection[system.System]):
     ) -> None:
         if (
             interface.system_name in self.listing
-            and not self.disabled_indexes[attribute_name]
             and interface in self.listing[interface.system_name].interfaces.values()
+            and self.listing[interface.system_name].inmemory
         ):
-            indx_dict = self.indexes[attribute_name]
-            with self.lock:
-                if (
-                    old_value != ""
-                    and old_value in indx_dict
-                    and indx_dict[old_value] == interface.system_name
-                ):
-                    del indx_dict[old_value]
-                if new_value != "":
-                    indx_dict[new_value] = interface.system_name
+            self.update_index_value(
+                self.listing[interface.system_name],
+                attribute_name,
+                old_value,
+                new_value,
+            )
 
     def update_interfaces_indexes(
         self,
@@ -167,27 +120,37 @@ class Systems(collection.Collection[system.System]):
         if ref.name not in self.listing:
             return
 
-        for indx_key, indx_val in self.indexes.items():
-            if indx_key == "uid" or self.disabled_indexes[indx_key]:
+        for indx in self.indexes:
+            if indx == "uid":
                 continue
 
             old_ifaces = ref.interfaces
             old_values: Set[str] = {
-                getattr(x, indx_key)
+                getattr(x, indx)
                 for x in old_ifaces.values()
-                if hasattr(x, indx_key) and getattr(x, indx_key) != ""
+                if hasattr(x, indx) and getattr(x, indx) != ""
             }
             new_values: Set[str] = {
-                getattr(x, indx_key)
+                getattr(x, indx)
                 for x in new_ifaces.values()
-                if hasattr(x, indx_key) and getattr(x, indx_key) != ""
+                if hasattr(x, indx) and getattr(x, indx) != ""
             }
 
             with self.lock:
                 for value in old_values - new_values:
-                    del indx_val[value]
+                    self.index_helper(
+                        ref,
+                        indx,
+                        value,
+                        self.remove_single_index_value,
+                    )
                 for value in new_values - old_values:
-                    indx_val[value] = ref.name
+                    self.index_helper(
+                        ref,
+                        indx,
+                        value,
+                        self.add_single_index_value,
+                    )
 
     def update_interface_indexes(
         self,
@@ -206,24 +169,6 @@ class Systems(collection.Collection[system.System]):
             ref, {**ref.interfaces, **{iface_name: new_iface}}
         )
 
-    def remove_from_indexes(self, ref: system.System) -> None:
-        """
-        Remove index keys for the system.
-
-        :param ref: The reference to the system whose index keys are removed.
-        """
-        if not ref.inmemory:
-            return
-
-        super().remove_from_indexes(ref)
-        for indx_key, indx_val in self.indexes.items():
-            if indx_key == "uid" or self.disabled_indexes[indx_key]:
-                continue
-
-            for interface in ref.interfaces.values():
-                if hasattr(interface, indx_key):
-                    indx_val.pop(getattr(interface, indx_key), None)
-
     def remove_interface_from_indexes(self, ref: system.System, name: str) -> None:
         """
         Remove index keys for the system interface.
@@ -234,10 +179,6 @@ class Systems(collection.Collection[system.System]):
         if not ref.inmemory or name not in ref.interfaces:
             return
 
-        interface = ref.interfaces[name]
-        with self.lock:
-            for indx_key, indx_val in self.indexes.items():
-                if indx_key == "uid" or self.disabled_indexes[indx_key]:
-                    continue
-                if hasattr(interface, indx_key):
-                    indx_val.pop(getattr(interface, indx_key), None)
+        new_ifaces = ref.interfaces.copy()
+        del new_ifaces[name]
+        self.update_interfaces_indexes(ref, new_ifaces)

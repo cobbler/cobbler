@@ -63,6 +63,7 @@ class Profiles(collection.Collection[profile.Profile]):
             # Will never happen, but we want to make mypy happy.
             raise CX("Ambiguous match detected!")
 
+        print(f"Profiles remove: {name}, recursive={recursive}")
         if recursive:
             kids = obj.descendants
             kids.sort(key=lambda x: -x.depth)
@@ -73,6 +74,7 @@ class Profiles(collection.Collection[profile.Profile]):
                     recursive=False,
                     delete=with_delete,
                     with_triggers=with_triggers,
+                    with_sync=with_sync,
                 )
 
         if with_delete:

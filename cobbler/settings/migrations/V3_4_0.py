@@ -174,6 +174,125 @@ schema = Schema(
         Optional("cache_enabled"): bool,
         Optional("autoinstall_scheme"): str,
         Optional("lazy_start"): bool,
+        Optional("memory_indexes"): {
+            Optional("distro"): {
+                Optional("uid"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("arch"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+            },
+            Optional("image"): {
+                Optional("uid"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("arch"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("menu"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+            },
+            Optional("menu"): {
+                Optional("uid"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("parent"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+            },
+            Optional("profile"): {
+                Optional("uid"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("parent"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("distro"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("arch"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("menu"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("repos"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+            },
+            Optional("repo"): {
+                Optional("uid"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+            },
+            Optional("system"): {
+                Optional("uid"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("image"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("profile"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("mac_address"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("ip_address"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("ipv6_address"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("dns_name"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+            },
+        },
     },  # type: ignore
     ignore_extra_keys=False,
 )
