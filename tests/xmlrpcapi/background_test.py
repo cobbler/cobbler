@@ -3,8 +3,6 @@ Tests that validate the functionality of the module that is responsible for prov
 background tasks.
 """
 
-import pytest
-
 from cobbler.remote import CobblerXMLRPCInterface
 
 
@@ -82,8 +80,7 @@ class TestBackground:
         # Arrange
 
         # Act
-        with pytest.raises(ValueError):
-            result = remote.background_load_items()
+        result = remote.background_load_items()
 
-            # Assert
-            assert result
+        # Assert
+        assert result
