@@ -49,11 +49,10 @@ def regen_ss_file():
     cleared by Kerberos.
     """
     ssfile = "/var/lib/cobbler/web.ss"
-    with open("/dev/urandom", 'rb') as fd:
-        data = fd.read(512)
+    data = os.urandom(512)
 
-    with open(ssfile, 'wb', 0o640) as fd:
-        fd.write(binascii.hexlify(data))
+    with open(ssfile, 'w', 0o640, encoding="UTF-8") as fd:
+        fd.write(str(binascii.hexlify(data)))
 
     http_user = "apache"
     family = utils.get_family()

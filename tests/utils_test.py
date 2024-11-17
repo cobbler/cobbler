@@ -1,7 +1,9 @@
+import binascii
 import os
 import re
 import shutil
 from pathlib import Path
+from typing import Any, TYPE_CHECKING
 
 import pytest
 from netaddr.ip import IPAddress
@@ -15,6 +17,9 @@ from cobbler.items.repo import Repo
 from cobbler.items.system import System
 from cobbler.cobbler_collections.manager import CollectionManager
 from tests.conftest import does_not_raise
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 def test_pretty_hex():
@@ -1021,15 +1026,31 @@ def test_load_signatures():
     assert old_cache != utils.SIGNATURE_CACHE
 
 
-def test_get_shared_secret():
+@pytest.mark.parametrize("web_ss_exists", [True, False])
+def test_get_shared_secret(mocker: "MockerFixture", web_ss_exists: bool):
     # Arrange
-    # TODO: Test the case where the file is there.
+    open_mock = mocker.mock_open()
+    random_data = binascii.hexlify(os.urandom(512)).decode()
+    mock_web_ss = mocker.mock_open(read_data=random_data)
+
+    def mock_open(*args: Any, **kwargs: Any):
+        if not web_ss_exists:
+            open_mock.side_effect = FileNotFoundError
+            return open_mock(*args, **kwargs)
+        if args[0] == "/var/lib/cobbler/web.ss":
+            return mock_web_ss(*args, **kwargs)
+        return open_mock(*args, **kwargs)
+
+    mocker.patch("builtins.open", mock_open)
 
     # Act
     result = utils.get_shared_secret()
 
     # Assert
-    assert result == -1
+    if web_ss_exists:
+        assert result == random_data
+    else:
+        assert result == -1
 
 
 def test_local_get_cobbler_api_url():
