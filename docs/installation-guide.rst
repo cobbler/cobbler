@@ -40,12 +40,16 @@ met prior to installing Cobbler or any of its components.
 First and foremost, Cobbler requires Python. Since 3.0.0 you will need Python 3. Cobbler also requires the installation
 of the following packages:
 
+- wget and/or curl
 - createrepo_c
 - httpd / apache2
 - xorriso
 - mod_wsgi / libapache2-mod-wsgi
 - mod_ssl / libapache2-mod-ssl
 - python-cheetah
+- python-distro
+- python-dns
+- python-file-magic
 - python-netaddr
 - python-librepo
 - python-schema
@@ -54,10 +58,30 @@ of the following packages:
 - syslinux
 - tftp-server / atftpd
 - dnf-plugins-core
+- dosfstools
+
+If you decide to use the power management, please also install manually:
+
+- fence-agents / fence-agents-all
 
 If you decide to use the LDAP authentication, please also install manually in any case:
 
 - python3-ldap (or via PyPi: ldap)
+
+If you decide to use the MongoDB storage backend, please also install manually:
+
+- python-pymongo
+
+If you decide to write your templates in Jinja2 instead of Cheetah, please also install manually:
+
+- python-jinja2
+
+If you decide to require Windows auto-installation support, please also install manually:
+
+- python-hivex
+- python-pefile
+
+If you are on an apt-based system our operation may be better for mirror detection if the ``aptsources`` Python module is available.
 
 Koan can be installed apart from Cobbler. Please visit the `Koan documentation <https://koan.readthedocs.io/en/latest/>`_ for details.
 

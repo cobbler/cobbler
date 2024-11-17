@@ -35,10 +35,10 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
-      - name: Build a openSUSE Leap 15.3 Package
+      - name: Build a openSUSE Leap 15 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          ./docker/rpms/build-and-install-rpms.sh opensuse-leap docker/rpms/opensuse_leap/openSUSE_Leap153.dockerfile
+          ./docker/rpms/build-and-install-rpms.sh opensuse-leap docker/rpms/opensuse_leap/openSUSE_Leap15.dockerfile
   build-opensuse-tumbleweed-rpms:
     runs-on: ubuntu-20.04
     steps:
