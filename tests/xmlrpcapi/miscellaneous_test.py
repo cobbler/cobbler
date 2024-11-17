@@ -5,6 +5,8 @@ from typing import Any
 
 import pytest
 
+from cobbler.api import CobblerAPI
+from cobbler.cexceptions import CX
 from cobbler.remote import CobblerXMLRPCInterface
 from cobbler.utils import get_shared_secret
 
@@ -363,25 +365,26 @@ class TestMiscellaneous:
         "input_username,input_password,expected_result,expected_exception,web_ss_exists",
         [
             ("cobbler", "cobbler", True, does_not_raise(), True),
-            ("cobbler", "incorrect-password", True, pytest.raises(ValueError), True),
-            ("", "doesnt-matter", True, pytest.raises(ValueError), True),
+            ("cobbler", "incorrect-password", True, pytest.raises(CX), True),
+            ("", "doesnt-matter", True, pytest.raises(CX), True),
             ("", "my-random-web-ss", True, does_not_raise(), True),
             ("", "my-random-web-ss", True, pytest.raises(ValueError), False),
         ],
     )
     def test_login(
-            self,
-            remote: CobblerXMLRPCInterface,
-            input_username: str,
-            input_password: str,
-            expected_result: Any,
-            expected_exception: Any,
-            web_ss_exists: bool
+        self,
+        input_username: str,
+        input_password: str,
+        expected_result: Any,
+        expected_exception: Any,
+        web_ss_exists: bool
     ):
         """
         Assert that the login is working successfully with correct and incorrect credentials.
         """
         # Arrange
+        cobbler_api = CobblerAPI()
+        remote = CobblerXMLRPCInterface(cobbler_api)
         if web_ss_exists:
             remote.shared_secret = "my-random-web-ss"
         else:
