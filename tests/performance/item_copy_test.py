@@ -3,15 +3,14 @@ Test module to assert the performance of copying items.
 """
 
 from typing import Any, Callable, Dict, Tuple
-import pytest
 
-from pytest_benchmark.fixture import BenchmarkFixture
+import pytest
+from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
+    BenchmarkFixture,
+)
 
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
-from cobbler.items.image import Image
-from cobbler.items.profile import Profile
-from cobbler.items.system import System
 
 from tests.performance import CobblerTree
 
@@ -55,9 +54,6 @@ def test_item_copy(
     benchmark: BenchmarkFixture,
     cobbler_api: CobblerAPI,
     create_distro: Callable[[str], Distro],
-    create_profile: Callable[[str, str, str], Profile],
-    create_image: Callable[[str], Image],
-    create_system: Callable[[str, str, str], System],
     cache_enabled: bool,
     enable_menu: bool,
     what: str,
@@ -69,24 +65,22 @@ def test_item_copy(
     def setup_func() -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
         CobblerTree.remove_all_objs(cobbler_api)
         CobblerTree.create_all_objs(
-            cobbler_api, create_distro, create_profile, create_image, create_system
+            cobbler_api, create_distro, save=False, with_triggers=False, with_sync=False
         )
         return (cobbler_api, what), {}
 
     def item_copy(api: CobblerAPI, what: str):
-        for test_item in api.get_items(what):
-            api.copy_item(what, test_item, test_item.name + "_copy")
+        test_items = api.get_items(what)
+        for test_item in test_items:
+            test_items.copy(test_item, test_item.name + "_copy", with_sync=False)
 
     # Arrange
     cobbler_api.settings().cache_enabled = cache_enabled
     cobbler_api.settings().enable_menu = enable_menu
 
     # Act
-    result = benchmark.pedantic(
+    result = benchmark.pedantic(  # type: ignore
         item_copy, setup=setup_func, rounds=CobblerTree.test_rounds
     )
-
-    # Cleanup
-    CobblerTree.remove_all_objs(cobbler_api)
 
     # Assert

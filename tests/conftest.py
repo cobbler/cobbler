@@ -38,23 +38,31 @@ def reset_settings_yaml(tmp_path):
 def reset_items(cobbler_api):
     print(list(cobbler_api.systems().listing.keys()))
     for system in cobbler_api.systems():
-        cobbler_api.remove_system(system.name)
+        cobbler_api.remove_system(system.name, with_triggers=False, with_sync=False)
     for image in cobbler_api.images():
-        cobbler_api.remove_image(image.name)
-    for profile in cobbler_api.profiles():
-        cobbler_api.remove_profile(profile.name)
+        cobbler_api.remove_image(image.name, with_triggers=False, with_sync=False)
+    test_profiles = list(cobbler_api.profiles())
+    if len(test_profiles) > 0:
+        test_profiles.sort(key=lambda x: -x.depth)
+        for profile in test_profiles:
+            cobbler_api.remove_profile(
+                profile.name, with_triggers=False, with_sync=False
+            )
     for distro in cobbler_api.distros():
-        cobbler_api.remove_distro(distro.name)
+        cobbler_api.remove_distro(distro.name, with_triggers=False, with_sync=False)
     for package in cobbler_api.packages():
-        cobbler_api.remove_package(package.name)
+        cobbler_api.remove_package(package.name, with_triggers=False, with_sync=False)
     for repo in cobbler_api.repos():
-        cobbler_api.remove_repo(repo.name)
+        cobbler_api.remove_repo(repo.name, with_triggers=False, with_sync=False)
     for mgmtclass in cobbler_api.mgmtclasses():
-        cobbler_api.remove_mgmtclass(mgmtclass.name)
+        cobbler_api.remove_mgmtclass(mgmtclass.name, with_triggers=False, with_sync=False)
     for file in cobbler_api.files():
-        cobbler_api.remove_file(file.name)
-    for menu in cobbler_api.menus():
-        cobbler_api.remove_menu(menu.name)
+        cobbler_api.remove_file(file.name, with_triggers=False, with_sync=False)
+    test_menus = list(cobbler_api.menus())
+    if len(test_menus) > 0:
+        test_menus.sort(key=lambda x: -x.depth)
+        for menu in test_menus:
+            cobbler_api.remove_menu(menu.name, with_triggers=False, with_sync=False)
 
 
 @pytest.fixture(scope="function")
@@ -82,7 +90,7 @@ def create_distro(request, cobbler_api, create_kernel_initrd, fk_kernel, fk_init
     the CobblerAPI.
     """
 
-    def _create_distro(name="") -> Distro:
+    def _create_distro(name="", with_add: bool = True) -> Distro:
         test_folder = create_kernel_initrd(fk_kernel, fk_initrd)
         test_distro = cobbler_api.new_distro()
         test_distro.name = (
@@ -94,7 +102,8 @@ def create_distro(request, cobbler_api, create_kernel_initrd, fk_kernel, fk_init
             test_distro.name = name
         test_distro.kernel = os.path.join(test_folder, fk_kernel)
         test_distro.initrd = os.path.join(test_folder, fk_initrd)
-        cobbler_api.add_distro(test_distro)
+        if with_add:
+            cobbler_api.add_distro(test_distro)
         return test_distro
 
     return _create_distro
