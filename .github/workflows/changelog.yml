@@ -13,6 +13,7 @@ jobs:
           zypper in -y
           tar
           git
+          apache2-devel
           python3-pip
           python3-wheel
           python3-libvirt-python
