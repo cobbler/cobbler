@@ -10,7 +10,7 @@ Initial support for rsync, perhaps reposync coming later.
 import logging
 import os
 import os.path
-import pipes
+import shlex
 import shutil
 import stat
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
@@ -278,7 +278,7 @@ class RepoSync:
             blended = utils.blender(self.api, False, repo)
             flags = blended.get("createrepo_flags", "(ERROR: FLAGS)").split()
             try:
-                cmd = ["createrepo"] + mdoptions + flags + [pipes.quote(dirname)]
+                cmd = ["createrepo"] + mdoptions + flags + [shlex.quote(dirname)]
                 utils.subprocess_call(cmd, shell=False)
             except Exception:
                 utils.log_exc()
@@ -318,8 +318,8 @@ class RepoSync:
             "inf",
             "-nd",
             "-P",
-            pipes.quote(dest_path),
-            pipes.quote(repo.mirror),
+            shlex.quote(dest_path),
+            shlex.quote(repo.mirror),
         ]
         return_value = utils.subprocess_call(cmd, shell=False)
 
@@ -372,8 +372,8 @@ class RepoSync:
         cmd += spacer + [
             "--delete",
             "--exclude-from=/etc/cobbler/rsync.exclude",
-            pipes.quote(repo.mirror),
-            pipes.quote(dest_path),
+            shlex.quote(repo.mirror),
+            shlex.quote(dest_path),
         ]
         return_code = utils.subprocess_call(cmd, shell=False)
 
@@ -411,10 +411,11 @@ class RepoSync:
         if not HAS_LIBREPO:
             raise CX("no librepo found, please install python3-librepo")
 
-        if os.path.exists("/usr/bin/dnf"):
-            cmd = ["/usr/bin/dnf", "reposync"]
-        elif os.path.exists("/usr/bin/reposync"):
+        if os.path.exists("/usr/bin/reposync"):
             cmd = ["/usr/bin/reposync"]
+        # DNF5 does not have a reposync subcommand
+        elif os.path.exists("/usr/bin/dnf"):
+            cmd = ["/usr/bin/dnf", "reposync"]
         else:
             # Warn about not having yum-utils.  We don't want to require it in the package because Fedora 22+ has moved
             # to dnf.
@@ -470,8 +471,8 @@ class RepoSync:
 
         cmd = self.reposync_cmd()
         cmd += self.rflags + [
-            f"--repo={pipes.quote(rest)}",
-            f"--download-path={pipes.quote(repos_path)}",
+            f"--repo={shlex.quote(rest)}",
+            f"--download-path={shlex.quote(repos_path)}",
         ]
         if arch != "none":
             cmd.append(f'--arch="{arch}"')
@@ -566,8 +567,8 @@ class RepoSync:
             # If we have not requested only certain RPMs, use reposync
             cmd += self.rflags + [
                 f"--config={temp_file}",
-                f"--repoid={pipes.quote(repo.name)}",
-                f"--download-path={pipes.quote(repos_path)}",
+                f"--repoid={shlex.quote(repo.name)}",
+                f"--download-path={shlex.quote(repos_path)}",
             ]
             if arch != "none":
                 cmd.append(f"--arch={arch}")
@@ -587,9 +588,9 @@ class RepoSync:
                 cmd.append("--source")
             cmd += [
                 "--disablerepo=*",
-                f"--enablerepo={pipes.quote(repo.name)}",
+                f"--enablerepo={shlex.quote(repo.name)}",
                 f"-c={temp_file}",
-                f"--destdir={pipes.quote(dest_path)}",
+                f"--destdir={shlex.quote(dest_path)}",
             ]
             cmd += repo.rpm_list
 
@@ -701,11 +702,11 @@ class RepoSync:
             components = ",".join(repo.apt_components)
 
             mirror_data = [
-                f"--method={pipes.quote(method)}",
-                f"--host={pipes.quote(host)}",
-                f"--root={pipes.quote(mirror)}",
-                f"--dist={pipes.quote(dists)}",
-                f"--section={pipes.quote(components)}",
+                f"--method={shlex.quote(method)}",
+                f"--host={shlex.quote(host)}",
+                f"--root={shlex.quote(mirror)}",
+                f"--dist={shlex.quote(dists)}",
+                f"--section={shlex.quote(components)}",
             ]
 
             rflags = ["--nocleanup"]
@@ -714,7 +715,7 @@ class RepoSync:
                     rflags.append(f"{repo_yumoption}={repo.yumopts[repo_yumoption]}")
                 else:
                     rflags.append(repo_yumoption)
-            cmd = [mirror_program] + rflags + mirror_data + [pipes.quote(dest_path)]
+            cmd = [mirror_program] + rflags + mirror_data + [shlex.quote(dest_path)]
             if repo.arch == RepoArchs.SRC:
                 cmd.append("--source")
             else:

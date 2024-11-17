@@ -92,8 +92,8 @@ def test_repo_walker(mocker: "MockerFixture", tmp_path: Path):
 @pytest.mark.parametrize(
     "input_has_librepo,input_path_exists_side_effect,expected_exception,expected_result",
     [
-        (True, [True, False], does_not_raise(), ["/usr/bin/dnf", "reposync"]),
-        (True, [False, True], does_not_raise(), ["/usr/bin/reposync"]),
+        (True, [False, True], does_not_raise(), ["/usr/bin/dnf", "reposync"]),
+        (True, [True, False], does_not_raise(), ["/usr/bin/reposync"]),
         (True, [False, False], pytest.raises(cexceptions.CX), ""),
         (False, [False, True], pytest.raises(cexceptions.CX), ""),
     ],
