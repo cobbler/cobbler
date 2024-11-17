@@ -46,8 +46,8 @@ def regen_ss_file() -> None:
     ssfile = "/var/lib/cobbler/web.ss"
     data = os.urandom(512)
 
-    with open(ssfile, "wb", 0o660) as ss_file_fd:
-        ss_file_fd.write(binascii.hexlify(data))
+    with open(ssfile, "w", 0o660, encoding="UTF-8") as ss_file_fd:
+        ss_file_fd.write(str(binascii.hexlify(data)))
 
     http_user = "apache"
     family = utils.get_family()
