@@ -479,7 +479,7 @@ zone "%(arpa)s." {
                 cnames = interface.cnames
 
                 try:
-                    if interface.get("dns_name", "") != "":
+                    if interface.dns_name != "":
                         dnsname = interface.dns_name.split('.')[0]
                         for cname in cnames:
                             s += "%s  %s  %s;\n" % (cname.split('.')[0], rectype, dnsname)
@@ -503,21 +503,19 @@ zone "%(arpa)s." {
         # need a counter for new bind format
         serial = time.strftime("%Y%m%d00")
         try:
-            serialfd = open(serial_filename, "r")
-            old_serial = serialfd.readline()
-            # same date
-            if serial[0:8] == old_serial[0:8]:
-                if int(old_serial[8:10]) < 99:
-                    serial = "%s%.2i" % (serial[0:8], int(old_serial[8:10]) + 1)
-            else:
-                pass
-            serialfd.close()
+            with open(serial_filename, "r", encoding="UTF-8") as serialfd:
+                old_serial = serialfd.readline()
+                # same date
+                if serial[0:8] == old_serial[0:8]:
+                    if int(old_serial[8:10]) < 99:
+                        serial = "%s%.2i" % (serial[0:8], int(old_serial[8:10]) + 1)
+                else:
+                    pass
         except:
             pass
 
-        serialfd = open(serial_filename, "w")
-        serialfd.write(serial)
-        serialfd.close()
+        with open(serial_filename, "w", encoding="UTF-8") as serialfd:
+            serialfd.write(serial)
 
         forward = self.__forward_zones()
         reverse = self.__reverse_zones()
