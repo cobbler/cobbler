@@ -15,7 +15,6 @@ from configparser import ConfigParser
 from setuptools import find_packages
 
 import codecs
-from coverage import Coverage
 import pwd
 import shutil
 import subprocess
@@ -342,6 +341,7 @@ class test_command(Command):
 
     def run(self):
         import pytest
+        from coverage import Coverage
 
         cov = Coverage()
         cov.erase()
