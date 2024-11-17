@@ -1,6 +1,7 @@
 """
 Cobbler module that at runtime holds all menus in Cobbler.
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2021 Yuriy Chelpanov <yuriy.chelpanov@gmail.com>
 
@@ -81,6 +82,7 @@ class Menus(collection.Collection[menu.Menu]):
                     recursive=False,
                     delete=with_delete,
                     with_triggers=with_triggers,
+                    with_sync=with_sync,
                 )
 
         if with_delete:

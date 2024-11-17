@@ -2,7 +2,7 @@
 Tests that validate the functionality of the module that is responsible for caching the results of the to_dict method.
 """
 
-from typing import Any, Callable, List, Sequence
+from typing import Any, Callable, Iterable, List, Set
 
 import pytest
 
@@ -10,6 +10,7 @@ from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.items.abstract.base_item import BaseItem
 from cobbler.items.abstract.bootable_item import BootableItem
+from cobbler.items.abstract.inheritable_item import InheritableItem
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image
 from cobbler.items.menu import Menu
@@ -447,7 +448,7 @@ def test_system_dict_cache_use(
         (False, pytest.raises(CX), False),
     ],
 )
-def test_dict_cache_invalidate(
+def test_dict_cache_edit_invalidate(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], Distro],
     create_image: Callable[[], Image],
@@ -461,7 +462,7 @@ def test_dict_cache_invalidate(
         test_api: CobblerAPI,
         objs: List[BaseItem],
         obj_test: BaseItem,
-        dep: Sequence[BaseItem],
+        dep: Iterable[BaseItem],
     ):
         for obj in objs:
             obj.to_dict(resolved=False)
@@ -494,10 +495,14 @@ def test_dict_cache_invalidate(
     # Arrange
     cobbler_api.settings().cache_enabled = cache_enabled
     objs: List[BaseItem] = []
-    test_repo = Repo(cobbler_api)
-    test_repo.name = "test_repo"
-    cobbler_api.add_repo(test_repo)
-    objs.append(test_repo)
+    test_repo1 = Repo(cobbler_api)
+    test_repo1.name = "test_repo1"
+    cobbler_api.add_repo(test_repo1)
+    objs.append(test_repo1)
+    test_repo2 = Repo(cobbler_api)
+    test_repo2.name = "test_repo2"
+    cobbler_api.add_repo(test_repo2)
+    objs.append(test_repo2)
     test_menu1 = Menu(cobbler_api)
     test_menu1.name = "test_menu1"
     cobbler_api.add_menu(test_menu1)
@@ -508,7 +513,7 @@ def test_dict_cache_invalidate(
     cobbler_api.add_menu(test_menu2)
     objs.append(test_menu2)
     test_distro = create_distro()
-    test_distro.source_repos = [test_repo.name]
+    test_distro.source_repos = [test_repo1.name]
     objs.append(test_distro)
     test_profile1: Profile = create_profile(
         distro_name=test_distro.name, name="test_profile1"
@@ -525,7 +530,7 @@ def test_dict_cache_invalidate(
         profile_name=test_profile1.name, name="test_profile3"
     )
     test_profile3.enable_menu = False
-    test_profile3.repos = [test_repo.name]
+    test_profile3.repos = [test_repo1.name, test_repo2.name]
     objs.append(test_profile3)
     test_image = create_image()
     test_image.menu = test_menu1.name
@@ -536,16 +541,17 @@ def test_dict_cache_invalidate(
     objs.append(test_system2)
 
     # Act
-    repo_dep = test_repo.descendants
-    menu1_dep = test_menu1.descendants
-    menu2_dep = test_menu2.descendants
-    distro_dep = test_distro.descendants
-    profile1_dep = test_profile1.descendants
-    profile2_dep = test_profile2.descendants
-    profile3_dep = test_profile3.descendants
-    image_dep = test_image.descendants
-    system1_dep = test_system1.descendants
-    system2_dep = test_system2.descendants
+    repo1_dep = test_repo1.tree_walk("_owners")
+    repo2_dep = test_repo2.tree_walk("_owners")
+    menu1_dep = test_menu1.tree_walk("_owners")
+    menu2_dep = test_menu2.tree_walk("_owners")
+    distro_dep = test_distro.tree_walk("_owners")
+    profile1_dep = test_profile1.tree_walk("_owners")
+    profile2_dep = test_profile2.tree_walk("_owners")
+    profile3_dep = test_profile3.tree_walk("_owners")
+    image_dep = test_image.tree_walk("_owners")
+    system1_dep = test_system1.tree_walk("_owners")
+    system2_dep = test_system2.tree_walk("_owners")
 
     settings_dep = objs
     signatures_dep = [
@@ -559,7 +565,8 @@ def test_dict_cache_invalidate(
     ]
 
     # Assert
-    assert validate_caches(cobbler_api, objs, test_repo, repo_dep) == expected_output
+    assert validate_caches(cobbler_api, objs, test_repo1, repo1_dep) == expected_output
+    assert validate_caches(cobbler_api, objs, test_repo2, repo2_dep) == expected_output
     assert validate_caches(cobbler_api, objs, test_menu1, menu1_dep) == expected_output
     assert validate_caches(cobbler_api, objs, test_menu2, menu2_dep) == expected_output
     assert (
@@ -595,3 +602,171 @@ def test_dict_cache_invalidate(
     )
     with expected_exception:
         cobbler_api.clean_items_cache(True)  # type: ignore
+
+    # Cleanup
+    cobbler_api.remove_system(test_system1.name)
+    cobbler_api.remove_system(test_system2.name)
+    cobbler_api.remove_profile(test_profile3.name)
+    cobbler_api.remove_profile(test_profile2.name)
+    cobbler_api.remove_profile(test_profile1.name)
+    cobbler_api.remove_menu(test_menu2.name)
+    cobbler_api.remove_menu(test_menu1.name)
+
+
+@pytest.mark.parametrize(
+    "cache_enabled,expected_exception,expected_output",
+    [
+        (True, pytest.raises(CX), True),
+        (False, pytest.raises(CX), False),
+    ],
+)
+def test_dict_cache_rename_invalidate(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_image: Callable[[], Image],
+    create_profile: Any,
+    create_system: Any,
+    cache_enabled: bool,
+    expected_exception: Any,
+    expected_output: bool,
+):
+    def validate_caches(
+        test_api: CobblerAPI,
+        objs: List[BaseItem],
+        obj_test: BaseItem,
+        dep: Iterable[BaseItem],
+    ):
+        for obj in objs:
+            obj.to_dict(resolved=False)
+            obj.to_dict(resolved=True)
+        remain_objs = set(objs) - set(dep)
+        if isinstance(obj_test, BootableItem):
+            remain_objs.remove(obj_test)
+            cobbler_api.get_items(obj_test.COLLECTION_TYPE).rename(
+                obj_test, f"{obj_test.name}_newname"
+            )
+            obj_test.owners = "test"
+            if (
+                obj_test.cache.get_dict_cache(True) is not None
+                or obj_test.cache.get_dict_cache(False) is not None
+            ):
+                return False
+        for obj in dep:
+            if obj.cache.get_dict_cache(True) is not None:
+                return False
+            if obj.cache.get_dict_cache(False) is None:
+                return False
+        for obj in remain_objs:
+            if obj.cache.get_dict_cache(True) is None:
+                return False
+            if obj.cache.get_dict_cache(False) is None:
+                return False
+        return True
+
+    def calc_rename_dependency(obj: InheritableItem) -> Set[BootableItem]:
+        items: Set[BootableItem] = set()
+        for dep_type in InheritableItem.TYPE_DEPENDENCIES[obj.COLLECTION_TYPE]:
+            items.update(
+                cobbler_api.find_items(  # type: ignore[reportArgumentType]
+                    dep_type[0], {dep_type[1]: obj.name}, return_list=True
+                )
+            )
+        return items
+
+    # Arrange
+    cobbler_api.settings().cache_enabled = cache_enabled
+    objs: List[BaseItem] = []
+    test_repo1 = Repo(cobbler_api)
+    test_repo1.name = "test_repo1"
+    cobbler_api.add_repo(test_repo1)
+    objs.append(test_repo1)
+    test_repo2 = Repo(cobbler_api)
+    test_repo2.name = "test_repo2"
+    cobbler_api.add_repo(test_repo2)
+    objs.append(test_repo2)
+    test_menu1 = Menu(cobbler_api)
+    test_menu1.name = "test_menu1"
+    cobbler_api.add_menu(test_menu1)
+    objs.append(test_menu1)
+    test_menu2 = Menu(cobbler_api)
+    test_menu2.name = "test_menu2"
+    test_menu2.parent = test_menu1.name
+    cobbler_api.add_menu(test_menu2)
+    objs.append(test_menu2)
+    test_distro = create_distro()
+    test_distro.source_repos = [test_repo1.name]
+    objs.append(test_distro)
+    test_profile1 = create_profile(distro_name=test_distro.name, name="test_profile1")
+    test_profile1.enable_menu = False
+    objs.append(test_profile1)
+    test_profile2 = create_profile(
+        profile_name=test_profile1.name, name="test_profile2"
+    )
+    test_profile2.enable_menu = False
+    test_profile2.menu = test_menu2.name
+    objs.append(test_profile2)
+    test_profile3 = create_profile(
+        profile_name=test_profile1.name, name="test_profile3"
+    )
+    test_profile3.enable_menu = False
+    test_profile3.repos = [test_repo1.name, test_repo2.name]
+    objs.append(test_profile3)
+    test_image = create_image()
+    test_image.menu = test_menu1.name
+    objs.append(test_image)
+    test_system1 = create_system(profile_name=test_profile1.name, name="test_system1")
+    objs.append(test_system1)
+    test_system2 = create_system(image_name=test_image.name, name="test_system2")
+    objs.append(test_system2)
+
+    # Act
+    repo1_dep = calc_rename_dependency(test_repo1)
+    repo2_dep = calc_rename_dependency(test_repo2)
+    menu1_dep = calc_rename_dependency(test_menu1)
+    menu2_dep = calc_rename_dependency(test_menu2)
+    distro_dep = calc_rename_dependency(test_distro)
+    profile1_dep = calc_rename_dependency(test_profile1)
+    profile2_dep = calc_rename_dependency(test_profile2)
+    profile3_dep = calc_rename_dependency(test_profile3)
+    image_dep = calc_rename_dependency(test_image)
+    system1_dep = calc_rename_dependency(test_system1)
+    system2_dep = calc_rename_dependency(test_system2)
+
+    # Assert
+    assert validate_caches(cobbler_api, objs, test_repo1, repo1_dep) == expected_output
+    assert validate_caches(cobbler_api, objs, test_repo2, repo2_dep) == expected_output
+    assert validate_caches(cobbler_api, objs, test_menu1, menu1_dep) == expected_output
+    assert validate_caches(cobbler_api, objs, test_menu2, menu2_dep) == expected_output
+    assert (
+        validate_caches(cobbler_api, objs, test_distro, distro_dep) == expected_output
+    )
+    assert (
+        validate_caches(cobbler_api, objs, test_profile1, profile1_dep)
+        == expected_output
+    )
+    assert (
+        validate_caches(cobbler_api, objs, test_profile2, profile2_dep)
+        == expected_output
+    )
+    assert (
+        validate_caches(cobbler_api, objs, test_profile3, profile3_dep)
+        == expected_output
+    )
+    assert validate_caches(cobbler_api, objs, test_image, image_dep) == expected_output
+    assert (
+        validate_caches(cobbler_api, objs, test_system1, system1_dep) == expected_output
+    )
+    assert (
+        validate_caches(cobbler_api, objs, test_system2, system2_dep) == expected_output
+    )
+    with expected_exception:
+        cobbler_api.clean_items_cache(True)  # type: ignore[reportArgumentType]
+
+    # Cleanup
+    cobbler_api.remove_system(test_system1.name)
+    cobbler_api.remove_system(test_system2.name)
+    cobbler_api.remove_profile(test_profile3.name)
+    cobbler_api.remove_profile(test_profile2.name)
+    cobbler_api.remove_profile(test_profile1.name)
+    cobbler_api.remove_menu(test_menu2.name)
+    cobbler_api.remove_menu(test_menu1.name)

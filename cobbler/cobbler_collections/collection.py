@@ -14,11 +14,13 @@ from threading import Lock
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     Dict,
     Generic,
     Iterator,
     List,
     Optional,
+    Set,
     TypeVar,
     Union,
 )
@@ -60,9 +62,8 @@ class Collection(Generic[ITEM]):
         self._inmemory: bool = not self.api.settings().lazy_start
         self._deserialize_running: bool = False
         # Secondary indexes for the collection.
-        # Only unique indexes on string values are supported.
-        # Empty strings are not indexed.
-        self.indexes: Dict[str, Dict[str, str]] = {"uid": {}}
+        self.indexes: Dict[str, Dict[Union[str, int], Union[str, Set[str]]]] = {}
+        self.init_indexes()
         self.logger = logging.getLogger()
 
     def __iter__(self) -> Iterator[ITEM]:
@@ -216,13 +217,22 @@ class Collection(Generic[ITEM]):
             self._deserialize()
 
         with self.lock:
+            orig_kargs_len = len(kargs)
             result = self.find_by_indexes(kargs)
-            if result is not None:
-                matches = result
-            if len(kargs) > 0:
-                for obj in self:
+            new_kargs_len = len(kargs)
+            if new_kargs_len > 0:
+                obj_list: List[ITEM] = []
+                if result is not None:
+                    obj_list = result
+                else:
+                    if new_kargs_len == orig_kargs_len:
+                        obj_list = list(self)
+                for obj in obj_list:
                     if obj.inmemory and obj.find_match(kargs, no_errors=no_errors):
                         matches.append(obj)
+            else:
+                if result is not None:
+                    matches = result
 
         if not return_list:
             if len(matches) == 0:
@@ -297,12 +307,20 @@ class Collection(Generic[ITEM]):
                     self.collection_type(),
                 )
 
-    def copy(self, ref: ITEM, newname: str):
+    def copy(
+        self,
+        ref: ITEM,
+        newname: str,
+        with_sync: bool = True,
+        with_triggers: bool = True,
+    ):
         """
         Copy an object with a new name into the same collection.
 
         :param ref: The reference to the object which should be copied.
         :param newname: The new name for the copied object.
+        :param with_sync: If a sync should be triggered when the object is copying.
+        :param with_triggers: If triggers should be run when the object is copying.
         """
         copied_item: ITEM = ref.make_clone()
         copied_item.ctime = time.time()
@@ -311,8 +329,8 @@ class Collection(Generic[ITEM]):
             copied_item,
             save=True,
             with_copy=True,
-            with_triggers=True,
-            with_sync=True,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
             check_for_duplicate_names=True,
         )
 
@@ -336,7 +354,7 @@ class Collection(Generic[ITEM]):
             return
 
         # Save the old name
-        oldname = ref.name
+        oldname: str = ref.name
         with self.lock:
             # Delete the old item
             self.collection_mgr.serialize_delete_one_item(ref)
@@ -362,9 +380,11 @@ class Collection(Generic[ITEM]):
                 if isinstance(attr, (str, BaseItem)):
                     setattr(item, dep_type[1], newname)
                 elif isinstance(attr, list):
-                    for i, attr_val in enumerate(attr):  # type: ignore
-                        if attr_val == oldname:
-                            attr[i] = newname
+                    start_search = 0
+                    for _ in range(attr.count(oldname)):  # type: ignore
+                        offset = attr.index(oldname, start_search)  # type: ignore
+                        attr[offset] = newname
+                        start_search = offset + 1
                 else:
                     raise CX(
                         f'Internal error, unknown attribute type {type(attr)} for "{item.name}"!'
@@ -552,14 +572,133 @@ class Collection(Generic[ITEM]):
         self.inmemory = True
         self.deserialize_running = False
 
+    def init_indexes(self) -> None:
+        """
+        Initializing Indexes.
+        """
+        if self.collection_type() not in self.api.settings().memory_indexes:
+            return
+        for indx, indx_prop in (
+            self.api.settings().memory_indexes[self.collection_type()].items()  # type: ignore
+        ):
+            if not indx_prop["disabled"]:
+                self.indexes[indx] = {}
+
+    def index_helper(
+        self,
+        ref: ITEM,
+        index_name: str,
+        index_key: Any,
+        index_operation: Callable[
+            [Union[str, int], str, Dict[Union[str, int], Union[str, Set[str]]], bool],
+            None,
+        ],
+    ) -> None:
+        """
+        Add/Remove index entry.
+
+        :param ref: The reference to the object.
+        :param index_name: Index name.
+        :param index_key: The Item attribute value.
+        :param index_operation: Method for adding/removing an index entry.
+        """
+        key = index_key
+        if key is None:
+            key = ""
+        indx_uniq: bool = self.api.settings().memory_indexes[self.collection_type()][  # type: ignore
+            index_name
+        ][
+            "nonunique"
+        ]
+        indx_dict = self.indexes[index_name]
+        item_name = ref.name
+        if isinstance(key, (str, int)):
+            index_operation(key, item_name, indx_dict, indx_uniq)
+        elif isinstance(key, (list, set, dict)):
+            if len(key) == 0:  # type: ignore
+                index_operation("", item_name, indx_dict, indx_uniq)
+            else:
+                for k in key:  # type: ignore
+                    if isinstance(k, (str, int)):
+                        index_operation(k, item_name, indx_dict, indx_uniq)
+                    else:
+                        raise CX(
+                            f'Attribute type {key}({type(k)}) for "{item_name}"'  # type: ignore
+                            " cannot be used to create an index!"
+                        )
+        elif isinstance(key, enums.ConvertableEnum):
+            index_operation(key.value, item_name, indx_dict, indx_uniq)
+        else:
+            raise CX(
+                f'Attribute type {type(key)} for "{item_name}" cannot be used to create an index!'
+            )
+
+    def _get_index_property(self, ref: ITEM, index_name: str) -> str:
+        indx_prop = self.api.settings().memory_indexes[self.collection_type()][  # type: ignore
+            index_name
+        ]
+        property_name: str = f"_{index_name}"
+        if "property" in indx_prop:
+            property_name = indx_prop["property"]  # type: ignore
+        elif not hasattr(ref, property_name):
+            property_name = index_name
+        if hasattr(ref, property_name):
+            return getattr(ref, property_name)
+        raise CX(
+            f'Internal error, unknown attribute "{property_name}" for "{ref.name}"!'
+        )
+
+    def add_single_index_value(
+        self,
+        key: Union[str, int],
+        value: str,
+        indx_dict: Dict[Union[str, int], Union[str, Set[str]]],
+        is_indx_nonunique: bool,
+    ) -> None:
+        """
+        Add the single index value.
+        """
+        if is_indx_nonunique:
+            if key in indx_dict:
+                indx_dict[key].add(value)  # type: ignore
+            else:
+                indx_dict[key] = set([value])
+        else:
+            if key:
+                indx_dict[key] = value
+
     def add_to_indexes(self, ref: ITEM) -> None:
         """
         Add indexes for the object.
 
         :param ref: The reference to the object whose indexes are updated.
         """
-        indx_dict = self.indexes["uid"]
-        indx_dict[ref.uid] = ref.name
+        for indx in self.indexes:
+            if indx == "uid" or ref.inmemory:
+                self.index_helper(
+                    ref,
+                    indx,
+                    self._get_index_property(ref, indx),
+                    self.add_single_index_value,
+                )
+
+    def remove_single_index_value(
+        self,
+        key: Union[str, int],
+        value: str,
+        indx_dict: Dict[Union[str, int], Union[str, Set[str]]],
+        is_indx_nonunique: bool,
+    ) -> None:
+        """
+        Revove the single index value.
+        """
+        if is_indx_nonunique:
+            if key in indx_dict and value in indx_dict[key]:
+                indx_dict[key].remove(value)  # type: ignore
+                if len(indx_dict[key]) == 0:
+                    del indx_dict[key]
+        else:
+            indx_dict.pop(key, None)
 
     def remove_from_indexes(self, ref: ITEM) -> None:
         """
@@ -567,8 +706,41 @@ class Collection(Generic[ITEM]):
 
         :param ref: The reference to the object whose index keys are removed.
         """
-        indx_dict = self.indexes["uid"]
-        indx_dict.pop(ref.uid, None)
+        for indx in self.indexes:
+            if indx == "uid" or ref.inmemory:
+                self.index_helper(
+                    ref,
+                    indx,
+                    self._get_index_property(ref, indx),
+                    self.remove_single_index_value,
+                )
+
+    def update_index_value(
+        self,
+        ref: ITEM,
+        attribute_name: str,
+        old_value: Any,
+        new_value: Any,
+    ) -> None:
+        """
+        Update index keys for the object.
+
+        :param ref: The reference to the object whose index keys are updated.
+        """
+        if ref.name in self.listing and attribute_name in self.indexes:
+            with self.lock:
+                self.index_helper(
+                    ref,
+                    attribute_name,
+                    old_value,
+                    self.remove_single_index_value,
+                )
+                self.index_helper(
+                    ref,
+                    attribute_name,
+                    new_value,
+                    self.add_single_index_value,
+                )
 
     def find_by_indexes(self, kargs: Dict[str, Any]) -> Optional[List[ITEM]]:
         """
@@ -576,8 +748,18 @@ class Collection(Generic[ITEM]):
 
         :param kwargs: The dict to match for the items.
         """
+
+        def add_result(key: str, value: str, results: List[ITEM]) -> None:
+            if value in self.listing:
+                results.append(self.listing[value])
+            else:
+                self.logger.error(
+                    'Internal error. The "%s" index for "%s" is corrupted.', key, value
+                )
+
         result: Optional[List[ITEM]] = None
         found_keys: List[str] = []
+        found: bool = True
 
         for key, value in kargs.items():
             # fnmatch and "~" are not supported
@@ -591,20 +773,36 @@ class Collection(Generic[ITEM]):
                 continue
 
             indx_dict = self.indexes[key]
-            if value in indx_dict:
+            if value in indx_dict and found:
                 if result is None:
                     result = []
-                obj = self.listing.get(indx_dict[value])
-                if obj is not None:
-                    result.append(obj)
+                indx_val = indx_dict[value]
+                result_len = len(result)
+                if isinstance(indx_val, str):
+                    if result_len > 0:
+                        if self.listing[indx_val] not in result:
+                            found = False
+                    elif found:
+                        add_result(key, indx_val, result)
                 else:
-                    self.logger.error(
-                        'Internal error. The "%s" index is corrupted.', key
-                    )
+                    if result_len > 0:
+                        indx_set: Set[ITEM] = {self.listing[x] for x in indx_val}
+                        result_set = set(result) & indx_set
+                        if len(result_set) == 0:
+                            found = False
+                        else:
+                            result = list(result_set)
+                    elif found:
+                        for obj_name in indx_val:
+                            add_result(key, obj_name, result)
+            else:
+                found = False
             found_keys.append(key)
 
         for key in found_keys:
             kargs.pop(key)
+        if result is None or len(result) == 0 or not found:
+            return None
         return result
 
     @staticmethod

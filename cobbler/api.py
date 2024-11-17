@@ -760,6 +760,7 @@ class CobblerAPI:
         recursive: bool = False,
         delete: bool = True,
         with_triggers: bool = True,
+        with_sync: bool = True,
     ) -> None:
         """
         Remove a general item. This method should not be used by an external api. Please use the specific
@@ -770,6 +771,7 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         to_delete: Optional["BaseItem"] = None
         if isinstance(ref, str):
@@ -784,6 +786,7 @@ class CobblerAPI:
             recursive=recursive,
             with_delete=delete,
             with_triggers=with_triggers,
+            with_sync=with_sync,
         )
 
     def remove_distro(
@@ -792,6 +795,7 @@ class CobblerAPI:
         recursive: bool = False,
         delete: bool = True,
         with_triggers: bool = True,
+        with_sync: bool = True,
     ) -> None:
         """
         Remove a distribution from Cobbler.
@@ -800,6 +804,7 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.remove_item(
             "distro",
@@ -807,6 +812,7 @@ class CobblerAPI:
             recursive=recursive,
             delete=delete,
             with_triggers=with_triggers,
+            with_sync=with_sync,
         )
 
     def remove_profile(
@@ -815,6 +821,7 @@ class CobblerAPI:
         recursive: bool = False,
         delete: bool = True,
         with_triggers: bool = True,
+        with_sync: bool = True,
     ) -> None:
         """
         Remove a profile from Cobbler.
@@ -823,6 +830,7 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.remove_item(
             "profile",
@@ -830,6 +838,7 @@ class CobblerAPI:
             recursive=recursive,
             delete=delete,
             with_triggers=with_triggers,
+            with_sync=with_sync,
         )
 
     def remove_system(
@@ -838,6 +847,7 @@ class CobblerAPI:
         recursive: bool = False,
         delete: bool = True,
         with_triggers: bool = True,
+        with_sync: bool = True,
     ) -> None:
         """
         Remove a system from Cobbler.
@@ -846,6 +856,7 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.remove_item(
             "system",
@@ -853,6 +864,7 @@ class CobblerAPI:
             recursive=recursive,
             delete=delete,
             with_triggers=with_triggers,
+            with_sync=with_sync,
         )
 
     def remove_repo(
@@ -861,6 +873,7 @@ class CobblerAPI:
         recursive: bool = False,
         delete: bool = True,
         with_triggers: bool = True,
+        with_sync: bool = True,
     ) -> None:
         """
         Remove a repository from Cobbler.
@@ -869,9 +882,15 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.remove_item(
-            "repo", ref, recursive=recursive, delete=delete, with_triggers=with_triggers
+            "repo",
+            ref,
+            recursive=recursive,
+            delete=delete,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
         )
 
     def remove_image(
@@ -880,6 +899,7 @@ class CobblerAPI:
         recursive: bool = False,
         delete: bool = True,
         with_triggers: bool = True,
+        with_sync: bool = True,
     ) -> None:
         """
         Remove a image from Cobbler.
@@ -888,6 +908,7 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.remove_item(
             "image",
@@ -895,6 +916,7 @@ class CobblerAPI:
             recursive=recursive,
             delete=delete,
             with_triggers=with_triggers,
+            with_sync=with_sync,
         )
 
     def remove_menu(
@@ -903,6 +925,7 @@ class CobblerAPI:
         recursive: bool = False,
         delete: bool = True,
         with_triggers: bool = True,
+        with_sync: bool = True,
     ) -> None:
         """
         Remove a menu from Cobbler.
@@ -911,9 +934,15 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.remove_item(
-            "menu", ref, recursive=recursive, delete=delete, with_triggers=with_triggers
+            "menu",
+            ref,
+            recursive=recursive,
+            delete=delete,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
         )
 
     # ==========================================================================
@@ -1084,6 +1113,7 @@ class CobblerAPI:
         check_for_duplicate_names: bool = False,
         save: bool = True,
         with_triggers: bool = True,
+        with_sync: bool = True,
     ) -> None:
         """
         Add an abstract item to a collection of its specific items. This is not meant for external use. Please reefer
@@ -1094,6 +1124,7 @@ class CobblerAPI:
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
         :param with_triggers: If triggers should be run when the object is added.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.log(f"add_item({what})", [ref.name])
         self.get_items(what).add(
@@ -1101,6 +1132,7 @@ class CobblerAPI:
             check_for_duplicate_names=check_for_duplicate_names,
             save=save,
             with_triggers=with_triggers,
+            with_sync=with_sync,
         )
 
     def add_distro(
@@ -1109,6 +1141,7 @@ class CobblerAPI:
         check_for_duplicate_names: bool = False,
         save: bool = True,
         with_triggers: bool = True,
+        with_sync: bool = True,
     ) -> None:
         """
         Add a distribution to Cobbler.
@@ -1117,6 +1150,7 @@ class CobblerAPI:
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
         :param with_triggers: If triggers should be run when the object is added.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.add_item(
             "distro",
@@ -1124,6 +1158,7 @@ class CobblerAPI:
             check_for_duplicate_names=check_for_duplicate_names,
             save=save,
             with_triggers=with_triggers,
+            with_sync=with_sync,
         )
 
     def add_profile(
@@ -1132,6 +1167,7 @@ class CobblerAPI:
         check_for_duplicate_names: bool = False,
         save: bool = True,
         with_triggers: bool = True,
+        with_sync: bool = True,
     ) -> None:
         """
         Add a profile to Cobbler.
@@ -1140,6 +1176,7 @@ class CobblerAPI:
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
         :param with_triggers: If triggers should be run when the object is added.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.add_item(
             "profile",
@@ -1147,6 +1184,7 @@ class CobblerAPI:
             check_for_duplicate_names=check_for_duplicate_names,
             save=save,
             with_triggers=with_triggers,
+            with_sync=with_sync,
         )
 
     def add_system(
@@ -1155,6 +1193,7 @@ class CobblerAPI:
         check_for_duplicate_names: bool = False,
         save: bool = True,
         with_triggers: bool = True,
+        with_sync: bool = True,
     ) -> None:
         """
         Add a system to Cobbler.
@@ -1163,6 +1202,7 @@ class CobblerAPI:
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
         :param with_triggers: If triggers should be run when the object is added.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.add_item(
             "system",
@@ -1170,6 +1210,7 @@ class CobblerAPI:
             check_for_duplicate_names=check_for_duplicate_names,
             save=save,
             with_triggers=with_triggers,
+            with_sync=with_sync,
         )
 
     def add_repo(
@@ -1178,6 +1219,7 @@ class CobblerAPI:
         check_for_duplicate_names: bool = False,
         save: bool = True,
         with_triggers: bool = True,
+        with_sync: bool = True,
     ) -> None:
         """
         Add a repository to Cobbler.
@@ -1186,6 +1228,7 @@ class CobblerAPI:
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
         :param with_triggers: If triggers should be run when the object is added.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.add_item(
             "repo",
@@ -1193,6 +1236,7 @@ class CobblerAPI:
             check_for_duplicate_names=check_for_duplicate_names,
             save=save,
             with_triggers=with_triggers,
+            with_sync=with_sync,
         )
 
     def add_image(
@@ -1201,6 +1245,7 @@ class CobblerAPI:
         check_for_duplicate_names: bool = False,
         save: bool = True,
         with_triggers: bool = True,
+        with_sync: bool = True,
     ) -> None:
         """
         Add an image to Cobbler.
@@ -1209,6 +1254,7 @@ class CobblerAPI:
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
         :param with_triggers: If triggers should be run when the object is added.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.add_item(
             "image",
@@ -1216,6 +1262,7 @@ class CobblerAPI:
             check_for_duplicate_names=check_for_duplicate_names,
             save=save,
             with_triggers=with_triggers,
+            with_sync=with_sync,
         )
 
     def add_menu(
@@ -1224,6 +1271,7 @@ class CobblerAPI:
         check_for_duplicate_names: bool = False,
         save: bool = True,
         with_triggers: bool = True,
+        with_sync: bool = True,
     ) -> None:
         """
         Add a submenu to Cobbler.
@@ -1232,6 +1280,7 @@ class CobblerAPI:
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
         :param save: If the item should be persisted.
         :param with_triggers: If triggers should be run when the object is added.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.add_item(
             "menu",
@@ -1239,6 +1288,7 @@ class CobblerAPI:
             check_for_duplicate_names=check_for_duplicate_names,
             save=save,
             with_triggers=with_triggers,
+            with_sync=with_sync,
         )
 
     # ==========================================================================

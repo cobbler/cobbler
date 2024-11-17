@@ -337,8 +337,11 @@ class Profile(BootableItem):
         """
         if not isinstance(distro_name, str):  # type: ignore
             raise TypeError("distro_name needs to be of type str")
+        items = self.api.profiles()
+        old_distro = self._distro
         if not distro_name:
             self._distro = ""
+            items.update_index_value(self, "distro", old_distro, "")
             return
         distro = self.api.distros().find(name=distro_name)
         if distro is None or isinstance(distro, list):
@@ -347,6 +350,7 @@ class Profile(BootableItem):
         self.depth = (
             distro.depth + 1
         )  # reset depth if previously a subprofile and now top-level
+        items.update_index_value(self, "distro", old_distro, distro_name)
 
     @InheritableProperty
     def name_servers(self) -> List[str]:
@@ -800,7 +804,9 @@ class Profile(BootableItem):
 
         :param repos: The new repositories which will be set.
         """
+        old_repos = self._repos
         self._repos = validate.validate_repos(repos, self.api, bypass_check=False)
+        self.api.profiles().update_index_value(self, "repos", old_repos, self._repos)
 
     @InheritableProperty
     def redhat_management_key(self) -> str:
@@ -898,7 +904,9 @@ class Profile(BootableItem):
             menu_list = self.api.menus()
             if not menu_list.find(name=menu):
                 raise CX(f"menu {menu} not found")
+        old_menu = self._menu
         self._menu = menu
+        self.api.profiles().update_index_value(self, "menu", old_menu, menu)
 
     @LazyProperty
     def display_name(self) -> str:

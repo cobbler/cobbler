@@ -184,16 +184,11 @@ class BaseItem(ABC):
 
         :param uid: The new uid.
         """
-        if self._uid != uid and self.COLLECTION_TYPE != BaseItem.COLLECTION_TYPE:
-            collection = self.api.get_items(self.COLLECTION_TYPE)
-            with collection.lock:
-                item = collection.get(self.name)
-                if item is not None and item.uid == self._uid:
-                    # Update uid index
-                    indx_dict = collection.indexes["uid"]
-                    del indx_dict[self._uid]
-                    indx_dict[uid] = self.name
+        old_uid = self._uid
         self._uid = uid
+        self.api.get_items(self.COLLECTION_TYPE).update_index_value(
+            self, "uid", old_uid, uid
+        )
 
     @property
     def ctime(self) -> float:

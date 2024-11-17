@@ -124,7 +124,7 @@ V2.8.5:
 import copy
 import glob
 import os
-from typing import TYPE_CHECKING, Any, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from cobbler import enums, grub, utils, validate
 from cobbler.cexceptions import CX
@@ -134,6 +134,7 @@ from cobbler.utils import input_converters, signatures
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.items.profile import Profile
 
 
 class Distro(BootableItem):
@@ -511,7 +512,22 @@ class Distro(BootableItem):
 
         :param arch: The architecture of the operating system distro.
         """
+        old_arch = self._arch
         self._arch = enums.Archs.to_enum(arch)
+        self.api.distros().update_index_value(self, "arch", old_arch, self._arch)
+        profiles: Optional[List[Profile]] = self.api.find_profile(
+            return_list=True,
+            **{"distro": self._name},  # type: ignore[reportArgumentType]
+        )
+        if profiles is None:
+            return
+        profile_collection = self.api.profiles()
+        for profile in profiles:
+            profile_collection.update_index_value(profile, "arch", old_arch, self._arch)
+            for child in profile.tree_walk():
+                profile_collection.update_index_value(
+                    child, "arch", old_arch, self._arch  # type: ignore[reportArgumentType]
+                )
 
     @property
     def supported_boot_loaders(self) -> List[str]:

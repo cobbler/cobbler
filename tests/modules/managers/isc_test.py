@@ -244,7 +244,6 @@ def test_manager_gen_full_config(mocker: "MockerFixture", api_isc_mock: CobblerA
     manager = isc.get_manager(api_isc_mock)
     mock_distro = Distro(api_isc_mock)
     mock_distro.redhat_management_key = ""
-    mock_distro.arch = "x86_64"
     mock_profile = Profile(api_isc_mock)
     mock_profile.autoinstall = ""
     mock_profile.proxy = ""
@@ -319,7 +318,6 @@ def test_manager_remove_single_system(
     manager = isc.get_manager(api_isc_mock)
     mock_distro = Distro(api_isc_mock)
     mock_distro.redhat_management_key = ""
-    mock_distro.arch = "x86_64"
     mock_profile = Profile(api_isc_mock)
     mock_profile.autoinstall = ""
     mock_profile.proxy = ""
@@ -366,7 +364,6 @@ def test_manager_sync_single_system(mocker: "MockerFixture", api_isc_mock: Cobbl
     manager = isc.get_manager(api_isc_mock)
     mock_distro = Distro(api_isc_mock)
     mock_distro.redhat_management_key = ""
-    mock_distro.arch = "x86_64"
     mock_profile = Profile(api_isc_mock)
     mock_profile.autoinstall = ""
     mock_profile.proxy = ""

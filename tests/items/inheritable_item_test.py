@@ -188,6 +188,15 @@ def test_descendants(
     for x in range(len(cache_tests)):
         assert set(cache_tests[x]) == set(results[x])
 
+    # Cleanup
+    cobbler_api.remove_system(test_system1.name)
+    cobbler_api.remove_system(test_system2.name)
+    cobbler_api.remove_profile(test_profile3.name)
+    cobbler_api.remove_profile(test_profile2.name)
+    cobbler_api.remove_profile(test_profile1.name)
+    cobbler_api.remove_menu(test_menu2.name)
+    cobbler_api.remove_menu(test_menu1.name)
+
 
 def test_tree_walk(cobbler_api: CobblerAPI):
     """

@@ -2,7 +2,7 @@
 Test module to assert the performance of creating the PXE menu.
 """
 
-from typing import Any, Callable, Dict, Tuple
+from typing import Callable
 
 import pytest
 from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
@@ -11,9 +11,6 @@ from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
 
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
-from cobbler.items.image import Image
-from cobbler.items.profile import Profile
-from cobbler.items.system import System
 
 from tests.performance import CobblerTree
 
@@ -42,10 +39,7 @@ from tests.performance import CobblerTree
 def test_make_pxe_menu(
     benchmark: BenchmarkFixture,
     cobbler_api: CobblerAPI,
-    create_distro: Callable[[str], Distro],
-    create_profile: Callable[[str, str, str], Profile],
-    create_image: Callable[[str], Image],
-    create_system: Callable[[str, str, str], System],
+    create_distro: Callable[[str, bool], Distro],
     cache_enabled: bool,
     enable_menu: bool,
 ):
@@ -53,28 +47,15 @@ def test_make_pxe_menu(
     Test that asserts if creating the PXE menu is running wihtout a performance decrease.
     """
 
-    def setup_func() -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
-        api = cobbler_api
-        CobblerTree.remove_all_objs(api)
-        CobblerTree.create_all_objs(
-            api, create_distro, create_profile, create_image, create_system
-        )
-        del api
-        return (cobbler_api,), {}
-
-    def make_pxe_menu(api: CobblerAPI):
-        api.tftpgen.make_pxe_menu()
+    def make_pxe_menu():
+        cobbler_api.tftpgen.make_pxe_menu()
 
     # Arrange
     cobbler_api.settings().cache_enabled = cache_enabled
     cobbler_api.settings().enable_menu = enable_menu
+    CobblerTree.create_all_objs(cobbler_api, create_distro, False, False, False)
 
     # Act
-    result = benchmark.pedantic(  # type: ignore
-        make_pxe_menu, setup=setup_func, rounds=CobblerTree.test_rounds
-    )
-
-    # Cleanup
-    CobblerTree.remove_all_objs(cobbler_api)
+    result = benchmark.pedantic(make_pxe_menu, rounds=CobblerTree.test_rounds)  # type: ignore
 
     # Assert

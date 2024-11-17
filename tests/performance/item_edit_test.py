@@ -11,9 +11,6 @@ from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
 
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
-from cobbler.items.image import Image
-from cobbler.items.profile import Profile
-from cobbler.items.system import System
 
 from tests.performance import CobblerTree
 
@@ -60,10 +57,7 @@ from tests.performance import CobblerTree
 def test_item_edit(
     benchmark: BenchmarkFixture,
     cobbler_api: CobblerAPI,
-    create_distro: Callable[[str], Distro],
-    create_profile: Callable[[str, str, str], Profile],
-    create_image: Callable[[str], Image],
-    create_system: Callable[[str, str, str], System],
+    create_distro: Callable[[str, bool], Distro],
     cache_enabled: bool,
     enable_menu: bool,
     inherit_property: bool,
@@ -74,10 +68,6 @@ def test_item_edit(
     """
 
     def setup_func() -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
-        CobblerTree.remove_all_objs(cobbler_api)
-        CobblerTree.create_all_objs(
-            cobbler_api, create_distro, create_profile, create_image, create_system
-        )
         return (cobbler_api, what), {}
 
     def item_edit(api: CobblerAPI, what: str):
@@ -90,13 +80,11 @@ def test_item_edit(
     # Arrange
     cobbler_api.settings().cache_enabled = cache_enabled
     cobbler_api.settings().enable_menu = enable_menu
+    CobblerTree.create_all_objs(cobbler_api, create_distro, False, False, False)
 
     # Act
     result = benchmark.pedantic(  # type: ignore
         item_edit, setup=setup_func, rounds=CobblerTree.test_rounds
     )
-
-    # Cleanup
-    CobblerTree.remove_all_objs(cobbler_api)
 
     # Assert
