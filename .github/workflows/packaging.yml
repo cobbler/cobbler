@@ -3,31 +3,50 @@ name: Building Cobbler Packages
 on:
   push:
     branches: [ main, release* ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main, release* ]
 
 jobs:
   build-rockylinux8-rpms:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build a Rocky Linux 8 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./tests/build-and-install-rpms.sh rl8 docker/Rocky_Linux_8.dockerfile
+      - name: Archive RPMs
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpms-rockylinux-8
+          path: |
+            rpm-build/*.rpm
   build-fedora33-rpms:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build a Fedora 33 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./tests/build-and-install-rpms.sh fc33 docker/Fedora33.dockerfile
+      - name: Archive RPMs
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpms-fedora-33
+          path: |
+            rpm-build/*.rpm
   build-debian-debs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build a Debian 10 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./tests/build-and-install-debs.sh deb10 docker/Debian10.dockerfile
+      - name: Archive DEBs
+        uses: actions/upload-artifact@v4
+        with:
+          name: debs-debian10
+          path: |
+            deb-build/DEBS/all/*.deb
