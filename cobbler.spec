@@ -290,7 +290,7 @@ Unit test files from the Cobbler project
 
 
 %prep
-%setup
+%autosetup -p1
 
 %if 0%{?suse_version}
 # Set tftpboot location correctly for SUSE distributions
@@ -298,6 +298,9 @@ sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i cobbler/settings.py config/cob
 %endif
 
 %build
+if [ -d "%{_sourcedir}/%{name}-%{version}/.git" ]; then
+    cp -r %{_sourcedir}/%{name}-%{version}/.git %{_builddir}/%{name}-%{version}
+fi
 . distro_build_configs.sh
 
 # Check distro specific variables for consistency
