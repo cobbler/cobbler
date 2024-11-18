@@ -2,8 +2,15 @@ name: Publish Python distributions to PyPI
 
 on:
   push:
+    branches:
+      - main
+      - release*
     tags:
       - 'v*'
+  pull_request:
+    branches:
+      - main,
+      - release*
 
 env:
   DATAPATH: "/usr/share/cobbler"
