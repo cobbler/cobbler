@@ -9,6 +9,10 @@ V3.4.0 (unreleased):
         * ``children``: The property was moved to the base class.
         * ``parent``: The property was moved to the base class.
         * ``from_dict()``: The method was moved to the base class.
+    * Added:
+        * ``redhat_management_org``: enums.VALUE_INHERITED
+        * ``redhat_management_user``: enums.VALUE_INHERITED
+        * ``redhat_management_password``: enums.VALUE_INHERITED
 V3.3.4 (unreleased):
     * No changes
 V3.3.3:
@@ -206,6 +210,9 @@ class Profile(BootableItem):
         self._filename = ""
         self._proxy = enums.VALUE_INHERITED
         self._redhat_management_key = enums.VALUE_INHERITED
+        self._redhat_management_org = enums.VALUE_INHERITED
+        self._redhat_management_user = enums.VALUE_INHERITED
+        self._redhat_management_password = enums.VALUE_INHERITED
         self._repos: Union[List[str], str] = []
         self._server = enums.VALUE_INHERITED
         self._menu = ""
@@ -832,6 +839,83 @@ class Profile(BootableItem):
         if not management_key:
             self._redhat_management_key = enums.VALUE_INHERITED
         self._redhat_management_key = management_key
+
+    @InheritableProperty
+    def redhat_management_org(self) -> str:
+        """
+        Getter of the redhat management organization of the profile or it's parent.
+
+        .. note:: This property can be set to ``<<inherit>>``.
+
+        :getter: Returns the redhat_management_org of the profile.
+        :setter: May raise a ``TypeError`` in case of a validation error.
+        """
+        return self._resolve("redhat_management_org")
+
+    @redhat_management_org.setter  # type: ignore[no-redef]
+    def redhat_management_org(self, management_org: str):
+        """
+        Setter of the redhat management organization.
+
+        :param management_org: The value may be reset by setting it to None.
+        """
+        if not isinstance(management_org, str):  # type: ignore
+            raise TypeError("Field management_org of object profile is of type str!")
+        if not management_org:
+            self._redhat_management_org = enums.VALUE_INHERITED
+        self._redhat_management_org = management_org
+
+    @InheritableProperty
+    def redhat_management_user(self) -> str:
+        """
+        Getter of the redhat management user of the profile or it's parent.
+
+        .. note:: This property can be set to ``<<inherit>>``.
+
+        :getter: Returns the redhat_management_user of the profile.
+        :setter: May raise a ``TypeError`` in case of a validation error.
+        """
+        return self._resolve("redhat_management_user")
+
+    @redhat_management_user.setter  # type: ignore[no-redef]
+    def redhat_management_user(self, management_user: str):
+        """
+        Setter of the redhat management user.
+
+        :param management_user: The value may be reset by setting it to None.
+        """
+        if not isinstance(management_user, str):  # type: ignore
+            raise TypeError("Field management_user of object profile is of type str!")
+        if not management_user:
+            self._redhat_management_user = enums.VALUE_INHERITED
+        self._redhat_management_user = management_user
+
+    @InheritableProperty
+    def redhat_management_password(self) -> str:
+        """
+        Getter of the redhat management password of the profile or it's parent.
+
+        .. note:: This property can be set to ``<<inherit>>``.
+
+        :getter: Returns the redhat_management_password of the profile.
+        :setter: May raise a ``TypeError`` in case of a validation error.
+        """
+        return self._resolve("redhat_management_password")
+
+    @redhat_management_password.setter  # type: ignore[no-redef]
+    def redhat_management_password(self, management_password: str):
+        """
+        Setter of the redhat management password.
+
+        :param management_password: The value may be reset by setting it to None.
+        """
+        if not isinstance(management_password, str):  # type: ignore
+            raise TypeError(
+                "Field management_password of object profile is of type str!"
+            )
+        if not management_password:
+            self._redhat_management_password = enums.VALUE_INHERITED
+        self._redhat_management_password = management_password
 
     @InheritableProperty
     def boot_loaders(self) -> List[str]:
