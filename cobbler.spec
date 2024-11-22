@@ -137,7 +137,7 @@
 %endif
 
 Name:           cobbler
-Version:        3.2.2
+Version:        3.2.4
 Release:        1%{?dist}
 Summary:        Boot server configurator
 URL:            https://cobbler.github.io/
@@ -290,7 +290,7 @@ Unit test files from the Cobbler project
 
 
 %prep
-%setup
+%autosetup -p1
 
 %if 0%{?suse_version}
 # Set tftpboot location correctly for SUSE distributions
@@ -298,6 +298,9 @@ sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i cobbler/settings.py config/cob
 %endif
 
 %build
+if [ -d "%{_sourcedir}/%{name}-%{version}/.git" ]; then
+    cp -r %{_sourcedir}/%{name}-%{version}/.git %{_builddir}/%{name}-%{version}
+fi
 . distro_build_configs.sh
 
 # Check distro specific variables for consistency
@@ -314,6 +317,7 @@ sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i cobbler/settings.py config/cob
 [ "${TFTPROOT}" != %{tftpboot_dir} ] && echo "ERROR: TFTPROOT: ${TFTPROOT} does not match %{tftpboot_dir}"
 
 %py3_build
+make man
 
 %install
 . distro_build_configs.sh

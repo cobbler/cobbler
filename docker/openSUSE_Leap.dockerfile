@@ -12,7 +12,7 @@ RUN ["zypper", "-n", "update"]
 RUN ["zypper", "-n", "in", "python3", "python3-devel", "python3-pip", "python3-setuptools", "python3-wheel", \
     "python3-distro", "python3-coverage", "python3-schema", "apache2", "apache2-devel", "acl", "ipmitool", \
     "rsync", "fence-agents", "genders", "xorriso", "python3-ldap", "tftp", "python3-Sphinx", "hardlink", "supervisor", \
-    "apache2-mod_wsgi-python3"]
+    "apache2-mod_wsgi-python3", "python3-sphinx_rtd_theme"]
 RUN ["pip3", "install", "pykickstart"]
 
 # Packages for building & installing cobbler from sourceless
