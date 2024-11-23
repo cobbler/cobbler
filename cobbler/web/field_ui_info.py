@@ -93,7 +93,9 @@ USES_RADIO = [
 DISTRO_UI_FIELDS_MAPPING = [
     {"General": ["name", "owners", "kernel", "initrd", "kernel_options",
                  "kernel_options_post", "autoinstall_meta", "arch", "breed",
-                 "os_version", "boot_loader", "comment"]},
+                 "os_version", "boot_loader", "redhat_management_key",
+                 "redhat_management_org", "redhat_management_user",
+                 "redhat_management_password", "comment"]},
     {"Management": ["mgmt_classes", "boot_files", "fetchable_files",
                     "template_files"]},
 ]
@@ -125,7 +127,9 @@ PACKAGE_UI_FIELDS_MAPPING = [
 PROFILE_UI_FIELDS_MAPPING = [
     {"General": ["name", "owners", "distro", "parent", "enable_menu",
                  "autoinstall", "kernel_options", "kernel_options_post",
-                 "autoinstall_meta", "proxy", "repos", "comment"]},
+                 "autoinstall_meta", "proxy", "repos", "redhat_management_key",
+                 "redhat_management_org", "redhat_management_user",
+                 "redhat_management_password", "comment"]},
     {"Advanced": ["enable_gpxe", "dhcp_tag", "server", "next_server", "filename"]},
     {"Networking Global": ["name_servers", "name_servers_search"]},
     {"Management": ["mgmt_classes", "mgmt_parameters", "boot_files",
@@ -146,7 +150,9 @@ SYSTEM_UI_FIELDS_MAPPING = [
     {"General": ["name", "owners", "profile", "image", "status",
                  "kernel_options", "kernel_options_post",
                  "autoinstall_meta", "boot_loader", "proxy",
-                 "netboot_enabled", "autoinstall", "comment"]},
+                 "netboot_enabled", "autoinstall", "redhat_management_key",
+                 "redhat_management_org", "redhat_management_user",
+                 "redhat_management_password", "comment"]},
     {"Advanced": ["enable_gpxe", "server", "next_server", "filename"]},
     {"Networking (Global)": ["hostname", "gateway", "name_servers",
                              "name_servers_search", "ipv6_default_device",

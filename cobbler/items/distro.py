@@ -57,6 +57,9 @@ FIELDS = [
      utils.get_valid_os_versions(), "str"],
     ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
     ["redhat_management_key", "", "", "Redhat Management Key", True, "Registration key for RHN, Spacewalk, or Satellite", 0, "str"],
+    ["redhat_management_org", "", "", "Redhat Management Organization", True, "Registration org for RHN", 0, "str"],
+    ["redhat_management_user", "", "", "Redhat Management User", True, "Registration user for RHN", 0, "str"],
+    ["redhat_management_password", "", "", "Redhat Management Password", True, "Registration password for RHN", 0, "str"],
     ["template_files", {}, 0, "Template Files", True, "File mappings for built-in config management", 0, "dict"]
 ]
 
@@ -307,7 +310,7 @@ class Distro(item.Item):
     def set_redhat_management_key(self, management_key):
         """
         Set the redhat management key. This is probably only needed if you have spacewalk, uyuni or SUSE Manager
-        running.
+        running. Or if you are registering via Red Hat subscription-manager.
 
         :param management_key: The redhat management key.
         """
@@ -318,12 +321,70 @@ class Distro(item.Item):
     def get_redhat_management_key(self):
         """
         Get the redhat management key. This is probably only needed if you have spacewalk, uyuni or SUSE Manager
-        running.
+        running. Or if you are registering via Red Hat subscription-manager.
 
         :return: The key as a string.
         :rtype: str
         """
         return self.redhat_management_key
+
+    def set_redhat_management_org(self, management_org):
+        """
+        Set the redhat management org. This is only needed if you are registering via Red Hat subscription-manager.
+
+        :param management_org: The redhat management org.
+        """
+        if management_org is None:
+            self.redhat_management_org = ""
+        self.redhat_management_org = management_org
+
+    def get_redhat_management_org(self):
+        """
+        Get the redhat management org. This is only needed if you are registering via Red Hat subscription-manager.
+        running.
+
+        :return: The org as a string.
+        :rtype: str
+        """
+        return self.redhat_management_org
+
+    def set_redhat_management_user(self, management_user):
+        """
+        Set the redhat management user. This is only needed if you are registering via Red Hat subscription-manager.
+
+        :param management_user: The redhat management user.
+        """
+        if management_user is None:
+            self.redhat_management_user = ""
+        self.redhat_management_user = management_user
+
+    def get_redhat_management_user(self):
+        """
+        Get the redhat management user. This is only needed if you are registering via Red Hat subscription-manager.
+
+        :return: The user as a string.
+        :rtype: str
+        """
+        return self.redhat_management_user
+
+    def set_redhat_management_password(self, management_password):
+        """
+        Set the redhat management password. This is only needed if you are registering via Red Hat subscription-manager.
+
+        :param management_password: The redhat management password.
+        """
+        if management_password is None:
+            self.redhat_management_password = ""
+        self.redhat_management_password = management_password
+
+    def get_redhat_management_password(self):
+        """
+        Get the redhat management password. This is only needed if you are registering via Red Hat subscription-manager.
+
+        :return: The password as a string.
+        :rtype: str
+        """
+        return self.redhat_management_password
 
     def find_distro_path(self):
         r"""
