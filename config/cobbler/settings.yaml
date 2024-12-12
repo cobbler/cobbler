@@ -78,6 +78,10 @@ bootloaders_formats:
     extra_modules:
       - chain
       - efinet
+  # Necessary for secure boot to work by default with SUSE-based distros
+  default-suse-efi:
+    binary_name: grub.efi
+    use_secure_boot_grub: true
 bootloaders_modules:
   - btrfs
   - ext2
