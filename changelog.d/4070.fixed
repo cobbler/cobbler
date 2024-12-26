@@ -1,0 +1,1 @@
+Aligned CNAME records in generated BIND zone files into columns, matching the existing A/AAAA/PTR record formatting.
