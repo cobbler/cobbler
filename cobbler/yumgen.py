@@ -59,7 +59,7 @@ class YumGen:
 
         included = {}
         for r in blended["source_repos"]:
-            filename = pathlib.Path(self.settings.webdir).joinpath("/", "/".join(r[0].split("/")[4:]))
+            filename = pathlib.Path(self.settings.webdir).joinpath("/".join(r[0].split("/")[4:]))
             if filename not in included:
                 input_files.append(filename)
             included[filename] = 1
