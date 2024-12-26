@@ -29,8 +29,13 @@ def test_run(mocker: "MockerFixture"):
     )
     settings_mock.nsupdate_enabled = True
     settings_mock.nsupdate_log = "/tmp/nsupdate.log"
-    settings_mock.nsupdate_tsig_key = ["example-name", "example-key"]
-    settings_mock.nsupdate_tsig_algorithm = "hmac-sha512"
+    settings_mock.nsupdate_mgm_txt = True
+    settings_mock.nsupdate_tsig = {
+        "ns1.example.com.": {
+            "algorithm": "hmac-sha512",
+            "key": ["example-name", "example-key"],
+        }
+    }
     api = MagicMock(spec=CobblerAPI)
     api.settings.return_value = settings_mock
     args = ["testname"]
