@@ -339,9 +339,15 @@ class Profile(BootableItem):
             raise TypeError("distro_name needs to be of type str")
         items = self.api.profiles()
         old_distro = self._distro
+        old_arch = self.arch
         if not distro_name:
             self._distro = ""
             items.update_index_value(self, "distro", old_distro, "")
+            items.update_index_value(self, "arch", old_arch, self.arch)
+            for child in self.tree_walk():
+                items.update_index_value(
+                    child, "arch", old_arch, self.arch  # type: ignore[reportArgumentType]
+                )
             return
         distro = self.api.distros().find(name=distro_name)
         if distro is None or isinstance(distro, list):
@@ -351,6 +357,11 @@ class Profile(BootableItem):
             distro.depth + 1
         )  # reset depth if previously a subprofile and now top-level
         items.update_index_value(self, "distro", old_distro, distro_name)
+        items.update_index_value(self, "arch", old_arch, distro.arch)
+        for child in self.tree_walk():
+            items.update_index_value(
+                child, "arch", old_arch, self.arch  # type: ignore[reportArgumentType]
+            )
 
     @InheritableProperty
     def name_servers(self) -> List[str]:

@@ -204,22 +204,35 @@ class InheritableItem(BaseItem, ABC):
         if not isinstance(parent, str):  # type: ignore
             raise TypeError('Property "parent" must be of type str!')
         old_parent = self._parent
+        if self.TYPE_NAME == "profile":  # type: ignore[reportUnnecessaryComparison]
+            old_arch: Optional[enums.Archs] = getattr(self, "arch")
+            new_arch: Optional[enums.Archs] = None
+        items = self.api.get_items(self.COLLECTION_TYPE)
         if not parent:
             self._parent = ""
-            self.api.get_items(self.COLLECTION_TYPE).update_index_value(
-                self, "parent", old_parent, ""
-            )
+            items.update_index_value(self, "parent", old_parent, "")
+            if self.TYPE_NAME == "profile":  # type: ignore[reportUnnecessaryComparison]
+                new_arch = getattr(self, "arch")
+                if new_arch != old_arch:  # type: ignore[reportPossiblyUnboundVariable]
+                    items.update_index_value(self, "arch", old_arch, new_arch)  # type: ignore[reportArgumentType]
+                    for child in self.tree_walk():
+                        items.update_index_value(child, "arch", old_arch, new_arch)  # type: ignore[reportArgumentType]
             return
         if parent == self.name:
             # check must be done in two places as setting parent could be called before/after setting name...
             raise CX("self parentage is forbidden")
-        items = self.api.get_items(self.COLLECTION_TYPE)
         found = items.get(parent)
         if found is None:
             raise CX(f'parent item "{parent}" not found, inheritance not possible')
         self._parent = parent
         self.depth = found.depth + 1  # type: ignore
         items.update_index_value(self, "parent", old_parent, parent)
+        if self.TYPE_NAME == "profile":  # type: ignore[reportUnnecessaryComparison]
+            new_arch = getattr(self, "arch")
+            if new_arch != old_arch:  # type: ignore[reportPossiblyUnboundVariable]
+                items.update_index_value(self, "arch", old_arch, new_arch)  # type: ignore[reportArgumentType]
+                for child in self.tree_walk():
+                    items.update_index_value(child, "arch", old_arch, new_arch)  # type: ignore[reportArgumentType]
 
     @LazyProperty
     def get_parent(self) -> str:
