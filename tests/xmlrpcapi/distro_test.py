@@ -123,6 +123,9 @@ def test_get_distro(remote: CobblerXMLRPCInterface, fk_initrd: str, fk_kernel: s
     # Assert
     assert distro.get("name") == "testdistro0"  # type: ignore
     assert distro.get("redhat_management_key") == enums.VALUE_INHERITED  # type: ignore
+    assert distro.get("redhat_management_org") == enums.VALUE_INHERITED  # type: ignore
+    assert distro.get("redhat_management_user") == enums.VALUE_INHERITED  # type: ignore
+    assert distro.get("redhat_management_password") == enums.VALUE_INHERITED  # type: ignore
     assert fk_initrd in distro.get("initrd")  # type: ignore
     assert fk_kernel in distro.get("kernel")  # type: ignore
 

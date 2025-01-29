@@ -6,6 +6,9 @@ Changelog (System):
 V3.4.0 (unreleased):
     * Added:
         * ``display_name``: str
+        * ``redhat_management_org``: enums.VALUE_INHERITED
+        * ``redhat_management_user``: enums.VALUE_INHERITED
+        * ``redhat_management_password``: enums.VALUE_INHERITED
     * Changes:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``from_dict()``: The method was moved to the base class.
@@ -263,6 +266,9 @@ class System(BootableItem):
         self._profile = ""
         self._proxy = enums.VALUE_INHERITED
         self._redhat_management_key = enums.VALUE_INHERITED
+        self._redhat_management_org = enums.VALUE_INHERITED
+        self._redhat_management_user = enums.VALUE_INHERITED
+        self._redhat_management_password = enums.VALUE_INHERITED
         self._server = enums.VALUE_INHERITED
         self._status = ""
         self._virt_auto_boot: Union[bool, str] = enums.VALUE_INHERITED
@@ -692,6 +698,90 @@ class System(BootableItem):
         if management_key == "":
             self._redhat_management_key = enums.VALUE_INHERITED
         self._redhat_management_key = management_key
+
+    @InheritableProperty
+    def redhat_management_org(self) -> str:
+        """
+        redhat_management_org property.
+
+        .. note:: This property can be set to ``<<inherit>>``.
+
+        :getter: Returns the value for ``redhat_management_org``.
+        :setter: Sets the value for the property ``redhat_management_org``.
+        """
+        return self._resolve("redhat_management_org")
+
+    @redhat_management_org.setter  # type: ignore[no-redef]
+    def redhat_management_org(self, management_org: str):
+        """
+        Setter for the redhat_management_org of the System class.
+
+        :param management_org: The new value for the redhat management org
+        :raises TypeError: In case management_org is no string.
+        """
+        if not isinstance(management_org, str):  # type: ignore
+            raise TypeError(
+                "Field redhat_management_org of object system needs to be of type str!"
+            )
+        if management_org == "":
+            self._redhat_management_org = enums.VALUE_INHERITED
+        self._redhat_management_org = management_org
+
+    @InheritableProperty
+    def redhat_management_user(self) -> str:
+        """
+        redhat_management_user property.
+
+        .. note:: This property can be set to ``<<inherit>>``.
+
+        :getter: Returns the value for ``redhat_management_user``.
+        :setter: Sets the value for the property ``redhat_management_user``.
+        """
+        return self._resolve("redhat_management_user")
+
+    @redhat_management_user.setter  # type: ignore[no-redef]
+    def redhat_management_user(self, management_user: str):
+        """
+        Setter for the redhat_management_user of the System class.
+
+        :param management_user: The new value for the redhat management user
+        :raises TypeError: In case management_user is no string.
+        """
+        if not isinstance(management_user, str):  # type: ignore
+            raise TypeError(
+                "Field redhat_management_user of object system needs to be of type str!"
+            )
+        if management_user == "":
+            self._redhat_management_user = enums.VALUE_INHERITED
+        self._redhat_management_user = management_user
+
+    @InheritableProperty
+    def redhat_management_password(self) -> str:
+        """
+        redhat_management_password property.
+
+        .. note:: This property can be set to ``<<inherit>>``.
+
+        :getter: Returns the value for ``redhat_management_password``.
+        :setter: Sets the value for the property ``redhat_management_password``.
+        """
+        return self._resolve("redhat_management_password")
+
+    @redhat_management_password.setter  # type: ignore[no-redef]
+    def redhat_management_password(self, management_password: str):
+        """
+        Setter for the redhat_management_password of the System class.
+
+        :param management_password: The new value for the redhat management password
+        :raises TypeError: In case management_password is no string.
+        """
+        if not isinstance(management_password, str):  # type: ignore
+            raise TypeError(
+                "Field redhat_management_password of object system needs to be of type str!"
+            )
+        if management_password == "":
+            self._redhat_management_password = enums.VALUE_INHERITED
+        self._redhat_management_password = management_password
 
     def get_mac_address(self, interface: str):
         """
