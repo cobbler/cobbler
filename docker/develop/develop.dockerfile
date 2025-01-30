@@ -63,6 +63,7 @@ RUN zypper install --no-recommends -y \
     python311-pytest-benchmark \
     python311-black            \
     python3-librepo            \
+    go                         \
     rpm-build                  \
     rsync                      \
     supervisor                 \
