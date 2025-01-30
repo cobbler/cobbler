@@ -63,6 +63,7 @@ RUN zypper install --no-recommends -y \
     python311-pytest-benchmark \
     python311-black            \
     python3-librepo            \
+    go                         \
     rpm-build                  \
     rsync                      \
     supervisor                 \
@@ -112,7 +113,6 @@ RUN zypper install --no-recommends -y \
 
 # Install packages and dependencies via pip
 RUN zypper install --no-recommends -y \
-    python311-codecov            \
     python311-magic              \
     python311-pycodestyle        \
     python311-pyflakes           \
