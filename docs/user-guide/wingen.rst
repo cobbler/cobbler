@@ -167,7 +167,7 @@ The HTTP protocol is used by default in the profile created with the ``cobbler i
 
     cobbler profile report --name=win11-x86_64 | grep Metadata
         Automatic Installation Metadata :
-            {'kernel': 'http://@@http_server@@/images/win11-x86_64/wimboot',
+            {'kernel': 'http://@@http_server@@/cobbler/images/win11-x86_64/wimboot',
              'bootmgr': 'bootmgr.exe',
              'bcd': 'bcd',
              'winpe': 'winpe.wim',
@@ -178,7 +178,7 @@ The HTTP protocol is used by default in the profile created with the ``cobbler i
 
     cat /var/lib/tftpboot/ipxe/default.ipxe
     :win11-x86_64
-    kernel http://192.168.124.1/images/win11-x86_64/wimboot
+    kernel http://192.168.124.1/cobbler/images/win11-x86_64/wimboot
     initrd --name boot.sdi  http://192.168.124.1/cobbler/images/win11-x86_64/boot.sdi boot.sdi
     initrd --name bootmgr.exe  http://192.168.124.1/cobbler/images/win11-x86_64/bootmgr.exe bootmgr.exe
     initrd --name bcd  http://192.168.124.1/cobbler/images/win11-x86_64/bcd bcd
@@ -218,7 +218,7 @@ By default, an EFI partition is created for the profile ``win10-x86_64`` in the 
     cobbler profile copy \
         --name=win10-x86_64 \
         --newname=win10-bios-pxe-wimboot-http-x86_64 \
-        --autoinstall-meta="kernel=http://@@http_server@@/images/win10-x86_64/wimboot bootmgr=bootmg2.exe bcd=bc2 winpe=winp2.wim answerfile=autounattende2.xml uefi=False"
+        --autoinstall-meta="kernel=http://@@http_server@@/cobbler/images/win10-x86_64/wimboot bootmgr=bootmg2.exe bcd=bc2 winpe=winp2.wim answerfile=autounattende2.xml uefi=False"
     cobbler sync
 
 If you do not want to use the HTTP protocol, you can either change an existing profile or create a new one with ``kernel=wimboot`` in the metadata:
@@ -271,7 +271,7 @@ You just need to change ``dhcpd.conf`` to boot via ``pxelinux.0``.
     LABEL win10-bios-pxe-wimboot-http-x86_64
         MENU LABEL win10-bios-pxe-wimboot-http-x86_64
         kernel linux.c32
-        append http://192.168.124.1/images/win10-x86_64/wimboot initrdfile=http://192.168.124.1/cobbler/images/win10-x86_64/boot.sdi@boot.sdi initrdfile=http://192.168.124.1/cobbler/images/win10-x86_64/bootmg2.exe@bootmgr.exe initrdfile=http://192.168.124.1/cobbler/images/win10-x86_64/bc2@bcd initrdfile=http://192.168.124.1/cobbler/images/win10-x86_64/winp2.wim@winp2.wim
+        append http://192.168.124.1/cobbler/images/win10-x86_64/wimboot initrdfile=http://192.168.124.1/cobbler/images/win10-x86_64/boot.sdi@boot.sdi initrdfile=http://192.168.124.1/cobbler/images/win10-x86_64/bootmg2.exe@bootmgr.exe initrdfile=http://192.168.124.1/cobbler/images/win10-x86_64/bc2@bcd initrdfile=http://192.168.124.1/cobbler/images/win10-x86_64/winp2.wim@winp2.wim
 
 
 Booting from BIOS PXE (via grub2 grub.0 and wimboot tftp/http)
@@ -305,7 +305,7 @@ You just need to change ``dhcpd.conf`` to boot via ``grub/grub.0``.
     }
     menuentry 'win10-bios-pxe-wimboot-http-x86_64' --class gnu-linux --class gnu --class os {
       echo 'Loading kernel ...'
-      clinux (http,192.168.124.1)/images/win10-x86_64/wimboot
+      clinux (http,192.168.124.1)/cobbler/images/win10-x86_64/wimboot
       echo 'Loading initial ramdisk ...'
       cinitrd  newc:boot.sdi:(http,192.168.124.1)/cobbler/images/win10-x86_64/boot.sdi newc:bootmgr.exe:(http,192.168.124.1)/cobbler/images/win10-x86_64/bootmg2.exe newc:bcd:(http,192.168.124.1)/cobbler/images/win10-x86_64/bc2 newc:winp2.wim:(http,192.168.124.1)/cobbler/images/win10-x86_64/winp2.wim
       echo '...done'

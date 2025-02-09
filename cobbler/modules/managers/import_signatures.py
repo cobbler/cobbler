@@ -498,7 +498,10 @@ class _ImportSignatureManager(ManagerModule):
 
             if self.breed == "windows":  # type: ignore
                 dest_path = os.path.join(self.path, "boot")
-                kernel_path = f"http://@@http_server@@/images/{name}/wimboot"
+                protocol = self.settings.autoinstall_scheme
+                kernel_path = (
+                    f"{protocol}://@@http_server@@/cobbler/images/{name}/wimboot"
+                )
                 if new_distro.os_version in ("xp", "2003"):
                     kernel_path = "pxeboot.0"
                 bootmgr = "bootmgr.exe"
