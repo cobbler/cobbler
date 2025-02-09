@@ -18,7 +18,7 @@ jobs:
         run: |
           ./docker/rpms/build-and-install-rpms.sh rl8 docker/rpms/Rocky_Linux_8/Rocky_Linux_8.dockerfile
       - name: Archive RPMs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rpms-rockylinux-8
           path: |
@@ -32,7 +32,7 @@ jobs:
         run: |
           ./docker/rpms/build-and-install-rpms.sh rl9 docker/rpms/Rocky_Linux_9/Rocky_Linux_9.dockerfile
       - name: Archive RPMs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rpms-rockylinux-8
           path: |
@@ -46,7 +46,7 @@ jobs:
         run: |
           ./docker/rpms/build-and-install-rpms.sh fc37 docker/rpms/Fedora_37/Fedora37.dockerfile
       - name: Archive RPMs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rpms-fedora-37
           path: |
@@ -65,7 +65,7 @@ jobs:
         run: |
           file-rename -v -d -e 's/cobbler-(\d+\.\d+\.\d+)-1\.(\w+)\.rpm/cobbler-$1-1.leap.$2.rpm/' rpm-build/*.rpm
       - name: Archive RPMs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rpms-opensuse-leap
           path: |
@@ -84,7 +84,7 @@ jobs:
         run: |
           file-rename -v -d -e 's/cobbler-(\d+\.\d+\.\d+)-1\.(\w+)\.rpm/cobbler-$1-1.tw.$2.rpm/' rpm-build/*.rpm
       - name: Archive RPMs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rpms-opensuse-tumbleweed
           path: |
@@ -98,7 +98,7 @@ jobs:
         run: |
           ./docker/debs/build-and-install-debs.sh deb10 docker/debs/Debian_10/Debian10.dockerfile
       - name: Archive DEBs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: debs-debian10
           path: |
@@ -112,7 +112,7 @@ jobs:
         run: |
           ./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile
       - name: Archive DEBs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: debs-debian11
           path: |
@@ -126,7 +126,7 @@ jobs:
         run: |
           ./docker/debs/build-and-install-debs.sh deb12 docker/debs/Debian_12/Debian12.dockerfile
       - name: Archive DEBs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: debs-debian12
           path: |
@@ -159,7 +159,7 @@ jobs:
       - name: Show tree
         run: tree
       - name: Archive Wheel
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wheel
           path: |
