@@ -611,6 +611,90 @@ def test_redhat_management_key(
 
 
 @pytest.mark.parametrize(
+    "input_redhat_management_org,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), ""),
+        ("<<inherit>>", does_not_raise(), ""),
+        (False, pytest.raises(TypeError), ""),
+    ],
+)
+def test_redhat_management_org(
+    cobbler_api: CobblerAPI,
+    input_redhat_management_org: Any,
+    expected_exception: Any,
+    expected_result: str,
+):
+    """
+    Test that verfies the functionality of the property "redhat_management_org".
+    """
+    # Arrange
+    system = System(cobbler_api)
+
+    # Act
+    with expected_exception:
+        system.redhat_management_org = input_redhat_management_org
+
+        # Assert
+        assert system.redhat_management_org == expected_result
+
+
+@pytest.mark.parametrize(
+    "input_redhat_management_user,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), ""),
+        ("<<inherit>>", does_not_raise(), ""),
+        (False, pytest.raises(TypeError), ""),
+    ],
+)
+def test_redhat_management_user(
+    cobbler_api: CobblerAPI,
+    input_redhat_management_user: Any,
+    expected_exception: Any,
+    expected_result: str,
+):
+    """
+    Test that verfies the functionality of the property "redhat_management_user".
+    """
+    # Arrange
+    system = System(cobbler_api)
+
+    # Act
+    with expected_exception:
+        system.redhat_management_user = input_redhat_management_user
+
+        # Assert
+        assert system.redhat_management_user == expected_result
+
+
+@pytest.mark.parametrize(
+    "input_redhat_management_password,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), ""),
+        ("<<inherit>>", does_not_raise(), ""),
+        (False, pytest.raises(TypeError), ""),
+    ],
+)
+def test_redhat_management_password(
+    cobbler_api: CobblerAPI,
+    input_redhat_management_password: Any,
+    expected_exception: Any,
+    expected_result: str,
+):
+    """
+    Test that verfies the functionality of the property "redhat_management_password".
+    """
+    # Arrange
+    system = System(cobbler_api)
+
+    # Act
+    with expected_exception:
+        system.redhat_management_password = input_redhat_management_password
+
+        # Assert
+        assert system.redhat_management_password == expected_result
+
+
+@pytest.mark.parametrize(
     "input_server,expected_exception,expected_result",
     [
         ("", does_not_raise(), "192.168.1.1"),
