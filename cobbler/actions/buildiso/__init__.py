@@ -216,7 +216,11 @@ class BuildIso:
         """
         if selected_items is None:
             selected_items = []
-        return self.filter_items(self.api.profiles(), selected_items)
+        return [
+            profile
+            for profile in self.filter_items(self.api.profiles(), selected_items)
+            if profile.enable_menu
+        ]
 
     def filter_items(
         self, all_objs: "Collection[ITEM]", selected_items: List[str]
