@@ -198,7 +198,7 @@ def test_filter_profile_disabled(cobbler_api, create_distro, create_profile):
     test_profile.enable_menu = False
     itemlist = [test_profile.name]
     build_iso = buildiso.BuildIso(cobbler_api)
-    expected_result = [] # No enabled profiles
+    expected_result = []  # No enabled profiles
 
     # Act
     result = build_iso.filter_profiles(itemlist)
