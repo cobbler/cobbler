@@ -243,6 +243,9 @@ class Settings:
         self.redhat_management_permissive = False
         self.redhat_management_server = "xmlrpc.rhn.redhat.com"
         self.redhat_management_key = ""
+        self.redhat_management_org = ""
+        self.redhat_management_user = ""
+        self.redhat_management_password = ""
         self.uyuni_authentication_endpoint = ""
         self.register_new_installs = False
         self.remove_old_puppet_certs_automatically = False
