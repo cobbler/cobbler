@@ -279,6 +279,26 @@ def test_filter_profile(
     assert expected_result == result
 
 
+def test_filter_profile_disabled(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.name)
+    test_profile.enable_menu = False
+    itemlist = [test_profile.name]
+    build_iso = buildiso.BuildIso(cobbler_api)
+    expected_result = []  # No enabled profiles
+
+    # Act
+    result = build_iso.filter_profiles(itemlist)
+
+    # Assert
+    assert expected_result == result
+
+
 def test_netboot_run(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], Distro],
