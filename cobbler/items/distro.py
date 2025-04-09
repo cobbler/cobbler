@@ -9,6 +9,9 @@ V3.4.0 (unreleased):
     * Added:
         * ``find_distro_path()``
         * ``link_distro()``
+        * ``redhat_management_org``: enums.VALUE_INHERITED
+        * ``redhat_management_user``: enums.VALUE_INHERITED
+        * ``redhat_management_password``: enums.VALUE_INHERITED
     * Changed:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``children``: The property was moved to the base class.
@@ -165,6 +168,9 @@ class Distro(BootableItem):
         self._mgmt_classes = []
         self._os_version = ""
         self._redhat_management_key = enums.VALUE_INHERITED
+        self._redhat_management_org = enums.VALUE_INHERITED
+        self._redhat_management_user = enums.VALUE_INHERITED
+        self._redhat_management_password = enums.VALUE_INHERITED
         self._source_repos = []
         self._remote_boot_kernel = ""
         self._remote_grub_kernel = ""
@@ -588,8 +594,8 @@ class Distro(BootableItem):
     @InheritableProperty
     def redhat_management_key(self) -> str:
         r"""
-        Get the redhat management key. This is probably only needed if you have spacewalk, uyuni or SUSE Manager
-        running.
+        Get the redhat management key. This is probably only needed if you have spacewalk, uyuni, or SUSE Manager
+        running. Or if you are registering via Red Hat subscription-manager.
 
         .. note:: This property can be set to ``<<inherit>>``.
 
@@ -610,6 +616,82 @@ class Distro(BootableItem):
                 "Field redhat_management_key of object distro needs to be of type str!"
             )
         self._redhat_management_key = management_key
+
+    @InheritableProperty
+    def redhat_management_org(self) -> str:
+        r"""
+        Get the redhat management organization. This is only needed if you are registering via Red Hat
+        subscription-manager.
+
+        .. note:: This property can be set to ``<<inherit>>``.
+
+        :return: The organization as a string.
+        """
+        return self._resolve("redhat_management_org")
+
+    @redhat_management_org.setter  # type: ignore[no-redef]
+    def redhat_management_org(self, management_org: str):
+        """
+        Set the redhat management organization. This is only needed if you are registering via Red Hat
+        subscription-manager.
+
+        :param management_org: The redhat management org.
+        """
+        if not isinstance(management_org, str):  # type: ignore
+            raise TypeError(
+                "Field redhat_management_org of object distro needs to be of type str!"
+            )
+        self._redhat_management_org = management_org
+
+    @InheritableProperty
+    def redhat_management_user(self) -> str:
+        r"""
+        Get the redhat management user. This is only needed if you are registering via Red Hat
+        subscription-manager.
+
+        .. note:: This property can be set to ``<<inherit>>``.
+
+        :return: The user as a string.
+        """
+        return self._resolve("redhat_management_user")
+
+    @redhat_management_user.setter  # type: ignore[no-redef]
+    def redhat_management_user(self, management_user: str):
+        """
+        Set the redhat management user. This is only needed if you are registering via Red Hat subscription-manager.
+
+        :param management_user: The redhat management user.
+        """
+        if not isinstance(management_user, str):  # type: ignore
+            raise TypeError(
+                "Field redhat_management_user of object distro needs to be of type str!"
+            )
+        self._redhat_management_user = management_user
+
+    @InheritableProperty
+    def redhat_management_password(self) -> str:
+        r"""
+        Get the redhat management password. This is only needed if you are registering via Red Hat subscription-manager.
+
+        .. note:: This property can be set to ``<<inherit>>``.
+
+        :return: The password as a string.
+        """
+        return self._resolve("redhat_management_password")
+
+    @redhat_management_password.setter  # type: ignore[no-redef]
+    def redhat_management_password(self, management_password: str):
+        """
+        Set the redhat management password. This is only needed if you are registering via Red Hat subscription-manager.
+        running.
+
+        :param management_password: The redhat management password.
+        """
+        if not isinstance(management_password, str):  # type: ignore
+            raise TypeError(
+                "Field redhat_management_password of object distro needs to be of type str!"
+            )
+        self._redhat_management_password = management_password
 
     def find_distro_path(self):
         r"""
