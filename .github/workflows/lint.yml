@@ -10,9 +10,9 @@ jobs:
   docs:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 #v5.5.0
       with:
         python-version: 3.9
     - name: Install dependencies
@@ -24,7 +24,7 @@ jobs:
   shellscripts:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
       - name: Run ShellCheck
         uses: ludeeus/action-shellcheck@master
         with:
@@ -32,8 +32,8 @@ jobs:
   pyright:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 #v5.5.0
         with:
           python-version: '3.6'
           cache: 'pip' # caching pip dependencies
@@ -42,7 +42,7 @@ jobs:
         run: sudo apt-get install -y libldap2-dev libsasl2-dev libsystemd-dev
       - name: Install Python dependencies
         run: pip install .[test,extra,docs,lint]
-      - uses: jakebailey/pyright-action@v2
+      - uses: jakebailey/pyright-action@b5d50e5cde6547546a5c4ac92e416a8c2c1a1dfe #v2.3.2
         # https://github.com/jakebailey/pyright-action
         with:
           version: '1.1.350'
@@ -50,7 +50,7 @@ jobs:
     name: black formatter
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
       - uses: psf/black@stable
         with:
           options: "--check --diff --safe --verbose"
@@ -59,8 +59,8 @@ jobs:
     name: isort formatter
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-      - uses: isort/isort-action@v1.1.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 #v5.5.0
+      - uses: isort/isort-action@24d8a7a51d33ca7f36c3f23598dafa33f7071326 #v1.1.1
         with:
           configuration: --check-only --diff --profile=black

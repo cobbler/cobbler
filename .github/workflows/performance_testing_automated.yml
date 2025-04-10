@@ -15,7 +15,7 @@ jobs:
       matrix:
         test: [deserialize, get_autoinstall, item_add, item_copy, item_edit, item_remove, item_rename, make_pxe_menu, start, sync]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
       - name: Pull Docker Test Container
         run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
       - name: Replace number of rounds in the test setup class
@@ -39,7 +39,7 @@ jobs:
         run: docker stop cobbler && docker rm cobbler
       # https://github.com/actions/upload-artifact
       - name: Upload benchmark report to GH artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
         with:
           name: benchmark-report-pr-${{ matrix.test }}
           path: .benchmarks/

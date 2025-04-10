@@ -12,13 +12,13 @@ jobs:
   build-rockylinux8-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
       - name: Build a Rocky Linux 8 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/rpms/build-and-install-rpms.sh rl8 docker/rpms/Rocky_Linux_8/Rocky_Linux_8.dockerfile
       - name: Archive RPMs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
         with:
           name: rpms-rockylinux-8
           path: |
@@ -26,13 +26,13 @@ jobs:
   build-rockylinux9-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
       - name: Build a Rocky Linux 9 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/rpms/build-and-install-rpms.sh rl9 docker/rpms/Rocky_Linux_9/Rocky_Linux_9.dockerfile
       - name: Archive RPMs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
         with:
           name: rpms-rockylinux-8
           path: |
@@ -40,13 +40,13 @@ jobs:
   build-fedora37-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
       - name: Build a Fedora 37 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/rpms/build-and-install-rpms.sh fc37 docker/rpms/Fedora_37/Fedora37.dockerfile
       - name: Archive RPMs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
         with:
           name: rpms-fedora-37
           path: |
@@ -54,7 +54,7 @@ jobs:
   build-opensuse-leap-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
       - name: Install System dependencies
         run: sudo apt-get install -y rename
       - name: Build a openSUSE Leap 15.3 Package
@@ -65,7 +65,7 @@ jobs:
         run: |
           file-rename -v -d -e 's/cobbler-(\d+\.\d+\.\d+)-1\.(\w+)\.rpm/cobbler-$1-1.leap.$2.rpm/' rpm-build/*.rpm
       - name: Archive RPMs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
         with:
           name: rpms-opensuse-leap
           path: |
@@ -73,7 +73,7 @@ jobs:
   build-opensuse-tumbleweed-rpms:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
       - name: Install System dependencies
         run: sudo apt-get install -y rename
       - name: Build a openSUSE Tumbleweed Package
@@ -84,7 +84,7 @@ jobs:
         run: |
           file-rename -v -d -e 's/cobbler-(\d+\.\d+\.\d+)-1\.(\w+)\.rpm/cobbler-$1-1.tw.$2.rpm/' rpm-build/*.rpm
       - name: Archive RPMs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
         with:
           name: rpms-opensuse-tumbleweed
           path: |
@@ -92,13 +92,13 @@ jobs:
   build-debian10-debs:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
       - name: Build a Debian 10 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/debs/build-and-install-debs.sh deb10 docker/debs/Debian_10/Debian10.dockerfile
       - name: Archive DEBs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
         with:
           name: debs-debian10
           path: |
@@ -106,13 +106,13 @@ jobs:
   build-debian11-debs:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
       - name: Build a Debian 11 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile
       - name: Archive DEBs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
         with:
           name: debs-debian11
           path: |
@@ -120,13 +120,13 @@ jobs:
   build-debian12-debs:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
       - name: Build a Debian 12 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/debs/build-and-install-debs.sh deb12 docker/debs/Debian_12/Debian12.dockerfile
       - name: Archive DEBs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
         with:
           name: debs-debian12
           path: |
@@ -135,10 +135,10 @@ jobs:
     name: Build Python Wheel
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
       - name: Mark directory as safe for Git
         run: git config --global --add safe.directory /__w/cobbler/cobbler
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 #v5.5.0
         with:
           python-version: '3.7'
           cache: pip
@@ -159,7 +159,7 @@ jobs:
       - name: Show tree
         run: tree
       - name: Archive Wheel
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
         with:
           name: wheel
           path: |
@@ -179,8 +179,8 @@ jobs:
       build-wheel
     ]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+      - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e #v4.2.1
         name: Download all built artifacts
         with:
           path: artifacts
@@ -188,7 +188,7 @@ jobs:
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Release
         # https://github.com/softprops/action-gh-release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda #v2.2.1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           name: Cobbler ${{ env.RELEASE_VERSION }}
