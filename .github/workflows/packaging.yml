@@ -34,7 +34,7 @@ jobs:
       - name: Archive RPMs
         uses: actions/upload-artifact@v4
         with:
-          name: rpms-rockylinux-8
+          name: rpms-rockylinux-9
           path: |
             rpm-build/*.rpm
   build-fedora37-rpms:
@@ -170,6 +170,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [
       build-rockylinux8-rpms,
+      build-rockylinux9-rpms,
       build-fedora37-rpms,
       build-opensuse-leap-rpms,
       build-opensuse-tumbleweed-rpms,
@@ -201,6 +202,7 @@ jobs:
             artifacts/rpms-opensuse-leap/*.rpm
             artifacts/rpms-opensuse-tumbleweed/*.rpm
             artifacts/rpms-rockylinux-8/*.rpm
+            artifacts/rpms-rockylinux-9/*.rpm
             artifacts/wheel/*.tar.gz
             artifacts/wheel/*.whl
           body_path: changelog/${{ env.RELEASE_VERSION }}.md
