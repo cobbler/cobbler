@@ -37,6 +37,20 @@ def token(cobbler_xmlrpc_base: Tuple[CobblerXMLRPCInterface, str]) -> str:
 
 
 @pytest.fixture(scope="function")
+def token2(remote: CobblerXMLRPCInterface) -> str:
+    """
+
+    :param cobbler_xmlrpc_base:
+    :return:
+    """
+    shared_secret = get_shared_secret()
+    token = remote.login("", shared_secret)  # type: ignore
+    if not token:
+        sys.exit(1)
+    return token
+
+
+@pytest.fixture(scope="function")
 def cobbler_xmlrpc_base(cobbler_api: CobblerAPI) -> Tuple[CobblerXMLRPCInterface, str]:
     """
     Initialises the api object and makes it available to the test.
