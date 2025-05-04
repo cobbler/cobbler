@@ -1,0 +1,21 @@
+name: test-fireactions
+
+on:
+  workflow_dispatch:
+  pull_request:
+      branches:
+      - '*'
+  push:
+      branches:
+      - main
+
+jobs:
+  test:
+    name: test
+    runs-on: # The label(s) of the Fireactions pool
+    - self-hosted
+    - fireactions
+    steps:
+    - name: Example
+      run: |
+        echo "Hello, Fireactions!"
