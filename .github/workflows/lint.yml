@@ -8,7 +8,7 @@ on:
 
 jobs:
   docs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
@@ -22,7 +22,7 @@ jobs:
     - name: Run doc8
       run: doc8 --ignore D001 docs
   shellscripts:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Run ShellCheck
@@ -30,12 +30,11 @@ jobs:
         with:
           scandir: './scripts'
   pyright:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.6'
           cache: 'pip' # caching pip dependencies
           cache-dependency-path: '**/setup.py'
       - name: Install system dependencies

@@ -52,6 +52,7 @@ class Distros(collection.Collection[distro.Distro]):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = False,
+        rebuild_menu: bool = True,
     ) -> None:
         """
         Remove element named 'name' from the collection
@@ -59,6 +60,9 @@ class Distros(collection.Collection[distro.Distro]):
         :raises CX: In case any subitem (profiles or systems) would be orphaned. If the option ``recursive`` is set then
                     the orphaned items would be removed automatically.
         """
+        # rebuild_menu is not used
+        _ = rebuild_menu
+
         obj = self.listing.get(name, None)
 
         if obj is None:

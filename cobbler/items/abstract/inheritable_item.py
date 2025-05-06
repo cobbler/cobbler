@@ -195,14 +195,18 @@ class InheritableItem(BaseItem, ABC):
         return self.api.get_items(self.COLLECTION_TYPE).get(self._parent)  # type: ignore
 
     @parent.setter
-    def parent(self, parent: str) -> None:
+    def parent(self, parent: Union["InheritableItem", str]) -> None:
         """
         Set the parent object for this object.
 
         :param parent: The new parent object. This needs to be a descendant in the logical inheritance chain.
         """
-        if not isinstance(parent, str):  # type: ignore
-            raise TypeError('Property "parent" must be of type str!')
+        if not isinstance(parent, str) and not isinstance(parent, InheritableItem):  # type: ignore
+            raise TypeError('Property "parent" must be of type InheritableItem or str!')
+        found = None
+        if isinstance(parent, InheritableItem):
+            found = parent
+            parent = parent.name
         old_parent = self._parent
         if self.TYPE_NAME == "profile":  # type: ignore[reportUnnecessaryComparison]
             old_arch: Optional[enums.Archs] = getattr(self, "arch")
@@ -221,7 +225,8 @@ class InheritableItem(BaseItem, ABC):
         if parent == self.name:
             # check must be done in two places as setting parent could be called before/after setting name...
             raise CX("self parentage is forbidden")
-        found = items.get(parent)
+        if found is None:
+            found = items.get(parent)
         if found is None:
             raise CX(f'parent item "{parent}" not found, inheritance not possible')
         self._parent = parent
