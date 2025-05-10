@@ -32,6 +32,9 @@ insmod /lib/ext3.o
 
 function findkeys
 {
+ local disk
+ local name
+ local tmpdir
  for disk in $DISKS; do
     name=$(basename $disk)
     tmpdir=$(mktemp -d $name.XXXXXX)
@@ -92,6 +95,8 @@ function search_for_keys
 
 
  # Try LVM if that didn't work
+ local vgs
+ local vg
  if [ "$keys_found" = "no" ]; then
     lvm lvmdiskscan
     vgs=$(lvm vgs | tail -n +2 | awk '{ print $1 }')
@@ -118,6 +123,8 @@ function fix_ssh_key_groups
  # If it's not corrected - SSHD will not start.
  # We can't be sure that the existing Group is correct either - assume ssh_keys if group exists.
 
+ local gid_ssh_keys
+ local re_number
  if ls /mnt/sysimage/etc/ssh/ssh_host*key > /dev/null; then
     echo "We have ssh_host -keys to check"
     gid_ssh_keys=$(grep ssh_keys /mnt/sysimage/etc/group | cut -d ':'  -f 3)
