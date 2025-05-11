@@ -215,8 +215,6 @@ Recommends:     %{grub2_ia32_efi_pkg}
 Recommends:     logrotate
 Recommends:     python%{python3_pkgversion}-librepo
 %endif
-# https://github.com/cobbler/cobbler/issues/1685
-Requires:       /sbin/service
 # No point in having this split out...
 Obsoletes:      cobbler-nsupdate < 3.0.99
 Provides:       cobbler-nsupdate = %{version}-%{release}
