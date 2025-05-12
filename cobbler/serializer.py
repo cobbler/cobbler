@@ -49,7 +49,9 @@ class Serializer:
             if self.lock_enabled:
                 if not os.path.exists(self.lock_file_location):
                     pathlib.Path(self.lock_file_location).touch()
-                self.lock_handle = open(self.lock_file_location, "r", encoding="UTF-8")
+                # exclusive lock requires writtable mode (r+) on NFS
+                # https://man7.org/linux/man-pages/man2/flock.2.html
+                self.lock_handle = open(self.lock_file_location, "r+", encoding="UTF-8")
                 fcntl.flock(self.lock_handle.fileno(), fcntl.LOCK_EX)
         except Exception as exception:
             # this is pretty much FATAL, avoid corruption and quit now.
@@ -69,7 +71,9 @@ class Serializer:
             with open(self.api.mtime_location, "w", encoding="UTF-8") as mtime_fd:
                 mtime_fd.write(f"{time.time():f}")
         if self.lock_enabled:
-            self.lock_handle = open(self.lock_file_location, "r", encoding="UTF-8")
+            # exclusive lock requires writtable mode (r+) on NFS
+            # https://man7.org/linux/man-pages/man2/flock.2.html
+            self.lock_handle = open(self.lock_file_location, "r+", encoding="UTF-8")
             fcntl.flock(self.lock_handle.fileno(), fcntl.LOCK_UN)
             self.lock_handle.close()
 
