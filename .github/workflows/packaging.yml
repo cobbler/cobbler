@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-rockylinux8-rpms:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build a Rocky Linux 8 Package
@@ -24,7 +24,7 @@ jobs:
           path: |
             rpm-build/*.rpm
   build-rockylinux9-rpms:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build a Rocky Linux 9 Package
@@ -38,7 +38,7 @@ jobs:
           path: |
             rpm-build/*.rpm
   build-fedora37-rpms:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build a Fedora 37 Package
@@ -52,7 +52,7 @@ jobs:
           path: |
             rpm-build/*.rpm
   build-opensuse-leap-rpms:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install System dependencies
@@ -71,7 +71,7 @@ jobs:
           path: |
             rpm-build/*.rpm
   build-opensuse-tumbleweed-rpms:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install System dependencies
@@ -90,7 +90,7 @@ jobs:
           path: |
             rpm-build/*.rpm
   build-debian10-debs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build a Debian 10 Package
@@ -104,7 +104,7 @@ jobs:
           path: |
             deb-build/DEBS/all/*.deb
   build-debian11-debs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build a Debian 11 Package
@@ -118,7 +118,7 @@ jobs:
           path: |
             deb-build/DEBS/all/*.deb
   build-debian12-debs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Build a Debian 12 Package
@@ -140,8 +140,8 @@ jobs:
         run: git config --global --add safe.directory /__w/cobbler/cobbler
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.7'
           cache: pip
+          cache-dependency-path: '**/setup.py'
       - name: Install system dependencies
         run: >-
           sudo apt-get install -y

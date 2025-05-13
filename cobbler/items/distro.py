@@ -134,6 +134,7 @@ from cobbler.utils import input_converters, signatures
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.items.abstract.inheritable_item import InheritableItem
     from cobbler.items.profile import Profile
 
 
@@ -235,12 +236,13 @@ class Distro(BootableItem):
         return None
 
     @parent.setter
-    def parent(self, parent: str):
+    def parent(self, parent: Union["InheritableItem", str]) -> None:
         """
         Setter for the parent property.
 
         :param value: Is ignored.
         """
+        # pylint: disable=unused-argument
         self.logger.warning(
             "Setting the parent of a distribution is not supported. Ignoring action!"
         )

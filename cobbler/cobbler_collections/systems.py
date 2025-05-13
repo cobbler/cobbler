@@ -50,12 +50,16 @@ class Systems(collection.Collection[system.System]):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = False,
+        rebuild_menu: bool = True,
     ) -> None:
         """
         Remove element named 'name' from the collection
 
         :raises CX: In case the name of the object was not given.
         """
+        # rebuild_menu is not used
+        _ = rebuild_menu
+
         obj = self.listing.get(name, None)
 
         if obj is None:

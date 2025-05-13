@@ -48,6 +48,7 @@ class Menus(collection.Collection[menu.Menu]):
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = False,
+        rebuild_menu: bool = True,
     ) -> None:
         """
         Remove element named 'name' from the collection
@@ -57,8 +58,12 @@ class Menus(collection.Collection[menu.Menu]):
         :param with_sync: In case a Cobbler Sync should be executed after the action.
         :param with_triggers: In case the Cobbler Trigger mechanism should be executed.
         :param recursive: In case you want to delete all objects this menu references.
+        :param rebuild_menu: unused
         :raises CX: Raised in case you want to delete a none existing menu.
         """
+        # rebuild_menu is not used
+        _ = rebuild_menu
+
         obj = self.find(name=name)
         if obj is None or not isinstance(obj, menu.Menu):
             raise CX(f"cannot delete an object that does not exist: {name}")
