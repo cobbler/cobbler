@@ -51,6 +51,7 @@ class Serializer:
                     pathlib.Path(self.lock_file_location).touch()
                 # exclusive lock requires writtable mode (r+) on NFS
                 # https://man7.org/linux/man-pages/man2/flock.2.html
+                # pylint: disable-next=consider-using-with
                 self.lock_handle = open(self.lock_file_location, "r+", encoding="UTF-8")
                 fcntl.flock(self.lock_handle.fileno(), fcntl.LOCK_EX)
         except Exception as exception:
@@ -73,6 +74,7 @@ class Serializer:
         if self.lock_enabled:
             # exclusive lock requires writtable mode (r+) on NFS
             # https://man7.org/linux/man-pages/man2/flock.2.html
+            # pylint: disable-next=consider-using-with
             self.lock_handle = open(self.lock_file_location, "r+", encoding="UTF-8")
             fcntl.flock(self.lock_handle.fileno(), fcntl.LOCK_UN)
             self.lock_handle.close()
