@@ -98,7 +98,6 @@ RUN zypper install --no-recommends -y \
 
 # Required for ldap tests
 RUN zypper install --no-recommends -y \
-    openssl-1_1                       \
     openldap2                         \
     openldap2-client                  \
     hostname                          \
