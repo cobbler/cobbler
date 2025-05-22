@@ -43,4 +43,5 @@ jobs:
         with:
           name: benchmark-report-pr-${{ matrix.test }}
           path: .benchmarks/
+          include-hidden-files: true
           if-no-files-found: error
