@@ -377,13 +377,11 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
 %config(noreplace) %{_sysconfdir}/cobbler/windows/answerfile.template
 %config(noreplace) %{_sysconfdir}/cobbler/windows/post_inst_cmd.template
 %config(noreplace) %{_sysconfdir}/cobbler/windows/startnet.template
-%{_bindir}/cobbler
 %{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd
 %{_bindir}/cobbler-settings
 %dir %{_datadir}/cobbler
 %{_datadir}/cobbler/bin
-%{_mandir}/man1/cobbler.1*
 %{_mandir}/man5/cobbler.conf.5*
 %{_mandir}/man8/cobblerd.8*
 %{_datadir}/bash-completion/completions/cobbler
