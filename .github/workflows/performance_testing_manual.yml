@@ -11,7 +11,7 @@ on:
 jobs:
   run_performance_tests:
     name: Run Performance Tests
-    runs-on: ubuntu-latest
+    runs-on: fireactions
     timeout-minutes: 720
     steps:
       - uses: actions/checkout@v4
