@@ -3,6 +3,7 @@ Module that contains a helper class which supports the performance testsuite. Th
 rather related pytest-benchmark. Thus, the different style in usage.
 """
 
+import os
 from typing import Callable
 
 from cobbler.api import CobblerAPI
@@ -27,7 +28,8 @@ class CobblerTree:
     profiles_count = 300
     images_count = objs_default_count
     systems_count = 1000
-    test_rounds = 1
+    test_rounds = int(os.environ.get("COBBLER_PERFORMANCE_TEST_ROUNDS", 1))
+    test_iterations = int(os.environ.get("COBBLER_PERFORMANCE_TEST_ITERATIONS", -1))
     tree_levels = 3
 
     @staticmethod

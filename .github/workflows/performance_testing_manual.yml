@@ -5,7 +5,11 @@ on:
     inputs:
       rounds:
         description: "The number of rounds for the benchmark"
-        required: true
+        default: "25"
+        type: number
+      iterations:
+        description: "The number of iterations for the benchmark"
+        default: "100"
         type: number
 
 jobs:
@@ -15,12 +19,19 @@ jobs:
     timeout-minutes: 720
     steps:
       - uses: actions/checkout@v4
-      - name: Replace number of rounds in the test setup class
-        run: sed -i '/[[:space:]]\{4\}test_rounds = 1/s/.$/'${{ inputs.rounds }}'/g' tests/performance/__init__.py
       - name: Pull Docker Test Container
         run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
       - name: Run previously built Docker Container
-        run: docker run --privileged -t -d -v $PWD:/code --name cobbler registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
+        run: |
+          docker run --privileged \
+            --tty \
+            --detach \
+            --env COBBLER_PERFORMANCE_TEST_ROUNDS=${{ inputs.rounds }} \
+            --env COBBLER_PERFORMANCE_TEST_ITERATIONS=${{ inputs.iterations }} \
+            --env COBBLER_PERFORMANCE_TEST_GET_AUTOINSTALL_ITERATIONS=2 \
+            -v $PWD:/code \
+            --name cobbler \
+            registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
       - name: Trust the git repository inside the container
         shell: 'script -q -e -c "bash {0}"'
         run: |

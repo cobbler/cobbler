@@ -2,6 +2,7 @@
 Test module to assert the performance of deserializing the object tree.
 """
 
+import os
 from typing import Callable
 
 import pytest
@@ -55,6 +56,14 @@ def test_deserialize(
         api.deserialize()
 
     # Arrange
+    iterations = 1
+    if CobblerTree.test_iterations > -1:
+        iterations = CobblerTree.test_iterations
+    iterations_per_test = int(
+        os.getenv("COBBLER_PERFORMANCE_TEST_DESERIALIZE_ITERATIONS", -1)
+    )
+    if iterations_per_test > -1:
+        iterations = iterations_per_test
     cobbler_api.settings().cache_enabled = cache_enabled
     cobbler_api.settings().enable_menu = enable_menu
     CobblerTree.create_all_objs(
@@ -62,6 +71,6 @@ def test_deserialize(
     )
 
     # Act
-    result = benchmark.pedantic(deserialize, rounds=CobblerTree.test_rounds)  # type: ignore
+    result = benchmark.pedantic(deserialize, rounds=CobblerTree.test_rounds, iterations=iterations)  # type: ignore
 
     # Assert
