@@ -15,12 +15,17 @@ jobs:
     timeout-minutes: 720
     steps:
       - uses: actions/checkout@v4
-      - name: Replace number of rounds in the test setup class
-        run: sed -i '/[[:space:]]\{4\}test_rounds = 1/s/.$/'${{ inputs.rounds }}'/g' tests/performance/__init__.py
       - name: Pull Docker Test Container
         run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
       - name: Run previously built Docker Container
-        run: docker run --privileged -t -d -v $PWD:/code --name cobbler registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
+        run: |
+          docker run --privileged \
+            --tty \
+            --detach \
+            --env COBBLER_PERFORMANCE_TEST_ROUNDS=${{ inputs.rounds }} \
+            -v $PWD:/code \
+            --name cobbler \
+            registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
       - name: Trust the git repository inside the container
         shell: 'script -q -e -c "bash {0}"'
         run: |
