@@ -61,6 +61,6 @@ def test_start(
     )
 
     # Act
-    result = benchmark.pedantic(start_cobbler, rounds=CobblerTree.test_rounds)  # type: ignore
+    result = benchmark.pedantic(start_cobbler, rounds=CobblerTree.test_rounds, iterations=10)  # type: ignore
 
     # Assert

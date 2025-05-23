@@ -21,7 +21,7 @@ jobs:
           docker run --privileged \
             --tty \
             --detach \
-            --env COBBLER_PERFORMANCE_TEST_ROUNDS=50 \
+            --env COBBLER_PERFORMANCE_TEST_ROUNDS=10 \
             -v $PWD:/code \
             --name cobbler \
             registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
