@@ -67,9 +67,6 @@ def test_item_edit(
     Test that asserts if editing items is running without a performance decrease.
     """
 
-    def setup_func() -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
-        return (cobbler_api, what), {}
-
     def item_edit(api: CobblerAPI, what: str):
         for test_item in api.get_items(what):
             if inherit_property:
@@ -84,7 +81,10 @@ def test_item_edit(
 
     # Act
     result = benchmark.pedantic(  # type: ignore
-        item_edit, setup=setup_func, rounds=CobblerTree.test_rounds
+        item_edit,
+        rounds=CobblerTree.test_rounds,
+        iterations=10,
+        args=(cobbler_api, what),
     )
 
     # Assert
