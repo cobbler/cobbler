@@ -42,7 +42,7 @@ jobs:
       - name: Run the Performance Tests inside the Docker Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          docker exec -u 0 -it cobbler bash -c "pytest --benchmark-only --benchmark-autosave --benchmark-compare="0001" --benchmark-group-by=name --benchmark-compare-fail="mean:10%" tests/performance/${{ matrix.test }}_test.py"
+          docker exec -u 0 -it cobbler bash -c "pytest --benchmark-only --benchmark-autosave --benchmark-compare="0002" --benchmark-group-by=name --benchmark-compare-fail="mean:10%" tests/performance/${{ matrix.test }}_test.py"
       - name: Stop and remove the container
         run: docker stop cobbler && docker rm cobbler
       # https://github.com/actions/upload-artifact
