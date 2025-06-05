@@ -2,6 +2,7 @@
 Test module to assert the performance of editing items.
 """
 
+import os
 from typing import Any, Callable, Dict, Tuple
 
 import pytest
@@ -70,11 +71,23 @@ def test_item_edit(
     def item_edit(api: CobblerAPI, what: str):
         for test_item in api.get_items(what):
             if inherit_property:
+                old_owners = test_item.owners
                 test_item.owners = "test owners"
+                test_item.owners = old_owners
             else:
-                test_item.comment = "test commect"
+                old_comment = test_item.comment
+                test_item.comment = "test comment"
+                test_item.comment = old_comment
 
     # Arrange
+    iterations = 1
+    if CobblerTree.test_iterations > -1:
+        iterations = CobblerTree.test_iterations
+    iterations_per_test = int(
+        os.getenv("COBBLER_PERFORMANCE_TEST_ITEM_EDIT_ITERATIONS", -1)
+    )
+    if iterations_per_test > -1:
+        iterations = iterations_per_test
     cobbler_api.settings().cache_enabled = cache_enabled
     cobbler_api.settings().enable_menu = enable_menu
     CobblerTree.create_all_objs(cobbler_api, create_distro, False, False, False)
@@ -83,7 +96,7 @@ def test_item_edit(
     result = benchmark.pedantic(  # type: ignore
         item_edit,
         rounds=CobblerTree.test_rounds,
-        iterations=10,
+        iterations=iterations,
         args=(cobbler_api, what),
     )
 
