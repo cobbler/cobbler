@@ -29,6 +29,7 @@ class CobblerTree:
     images_count = objs_default_count
     systems_count = 1000
     test_rounds = int(os.environ.get("COBBLER_PERFORMANCE_TEST_ROUNDS", 1))
+    test_iterations = int(os.environ.get("COBBLER_PERFORMANCE_TEST_ITERATIONS", -1))
     tree_levels = 3
 
     @staticmethod
