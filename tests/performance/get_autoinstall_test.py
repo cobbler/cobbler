@@ -2,6 +2,7 @@
 Test module to assert the performance of retrieving an auto-installation file.
 """
 
+import os
 from typing import Any, Callable, Dict, Tuple
 
 import pytest
@@ -41,9 +42,6 @@ def test_get_autoinstall(
     Test that asserts if retrieving rendered autoinstallation templates is running without a performance decrease.
     """
 
-    def setup_func() -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
-        return (cobbler_api, what), {}
-
     def item_get_autoinstall(api: CobblerAPI, what: str):
         autoinstall_mgr = autoinstall_manager.AutoInstallationManager(cobbler_api)
         for test_item in api.get_items(what):
@@ -53,6 +51,14 @@ def test_get_autoinstall(
                 autoinstall_mgr.generate_autoinstall(system=test_item.name)
 
     # Arrange
+    iterations = 1
+    if CobblerTree.test_iterations > -1:
+        iterations = CobblerTree.test_iterations
+    iterations_per_test = int(
+        os.getenv("COBBLER_PERFORMANCE_TEST_GET_AUTOINSTALL_ITERATIONS", -1)
+    )
+    if iterations_per_test > -1:
+        iterations = iterations_per_test
     cobbler_api.settings().cache_enabled = cache_enabled
     cobbler_api.settings().enable_menu = False
     CobblerTree.create_all_objs(
@@ -61,7 +67,10 @@ def test_get_autoinstall(
 
     # Act
     result = benchmark.pedantic(  # type: ignore
-        item_get_autoinstall, setup=setup_func, rounds=CobblerTree.test_rounds
+        item_get_autoinstall,
+        rounds=CobblerTree.test_rounds,
+        iterations=iterations,
+        args=(cobbler_api, what),
     )
 
     # Assert
