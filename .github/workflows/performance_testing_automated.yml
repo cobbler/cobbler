@@ -22,6 +22,7 @@ jobs:
             --tty \
             --detach \
             --env COBBLER_PERFORMANCE_TEST_ROUNDS=10 \
+            --env COBBLER_PERFORMANCE_TEST_ITERATIONS=100 \
             -v $PWD:/code \
             --name cobbler \
             registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main

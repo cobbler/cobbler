@@ -5,7 +5,11 @@ on:
     inputs:
       rounds:
         description: "The number of rounds for the benchmark"
-        required: true
+        default: "25"
+        type: number
+      iterations:
+        description: "The number of iterations for the benchmark"
+        default: "100"
         type: number
 
 jobs:
@@ -23,6 +27,7 @@ jobs:
             --tty \
             --detach \
             --env COBBLER_PERFORMANCE_TEST_ROUNDS=${{ inputs.rounds }} \
+            --env COBBLER_PERFORMANCE_TEST_ITERATIONS=${{ inputs.iterations }} \
             -v $PWD:/code \
             --name cobbler \
             registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
