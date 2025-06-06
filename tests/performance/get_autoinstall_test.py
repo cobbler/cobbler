@@ -2,6 +2,7 @@
 Test module to assert the performance of retrieving an auto-installation file.
 """
 
+import gc
 import os
 from typing import Any, Callable, Dict, Tuple
 
@@ -46,6 +47,7 @@ def test_get_autoinstall(
         autoinstall_mgr = AutoInstallationManager(cobbler_api)
         for test_item in api.get_items(what):
             autoinstall_mgr.generate_autoinstall(test_item, None)  # type: ignore
+        gc.collect()
 
     # Arrange
     iterations = 1
