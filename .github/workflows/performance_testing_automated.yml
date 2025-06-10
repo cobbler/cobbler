@@ -10,6 +10,7 @@ jobs:
   run_performance_tests:
     runs-on: fireactions
     name: "Performance-Tests"
+    timeout-minutes: 720
     steps:
       - uses: actions/checkout@v4
       - name: Disable Docker IPTables RAW requirement
