@@ -5,7 +5,7 @@
 ##  Put it in %pre section of the kickstart template file
 ##  It uses preserve_files field which should contain a list of items to preserve
 ##  This field for now could contain any of the following:
-##  'ssh', 'cfengine', 'rhn' in any order
+##  'ssh', 'cfengine', 'rhn', 'puppet' in any order
 ##  'rhn' part of this snippet should NOT be used with systems subscribed
 ##  to Red Hat Satellite Server or Spacewalk as these
 ##  have a concept of "reactivation keys" to keep the systems
@@ -161,6 +161,9 @@ do
    search_for_keys '/var/cfengine/ppkeys' 'cfengine' 'localhost'
  elif [ $key = 'rhn' ]; then
    search_for_keys '/etc/sysconfig/rhn', 'rhn', '*'
+ elif [ $key = 'puppet' ]; then
+   search_for_keys '/etc/puppetlabs/puppet/ssl/certs' 'puppet-certs' '*.pem'
+   search_for_keys '/etc/puppetlabs/puppet/ssl/private_keys' 'puppet-keys' '*.pem'
  else
    echo "No keys to save!" > /dev/ttyS0
  fi
@@ -176,6 +179,9 @@ do
    restore_keys '/var/cfengine/ppkeys' 'cfengine' 'localhost'
  elif [ $key = 'rhn' ]; then
    restore_keys '/etc/sysconfig/rhn', 'rhn', '*'
+ elif [ $key = 'puppet' ]; then
+   restore_keys '/etc/puppetlabs/puppet/ssl/certs' 'puppet-certs' '*.pem'
+   restore_keys '/etc/puppetlabs/puppet/ssl/private_keys' 'puppet-keys' '*.pem'
  else
    echo "Nothing to restore!" > /dev/ttyS0
  fi
