@@ -49,14 +49,6 @@ cobbler.cexceptions module
    :undoc-members:
    :show-inheritance:
 
-cobbler.cli module
-------------------
-
-.. automodule:: cobbler.cli
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 cobbler.cobblerd module
 -----------------------
 
