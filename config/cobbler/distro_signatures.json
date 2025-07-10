@@ -1543,6 +1543,58 @@
         "kernel_file": "(linux|vmlinuz(.*))",
         "initrd_file": "initrd($|.gz$|.lz$)",
         "isolinux_ok": false,
+        "default_autoinstall": "cloud_config_autoinstall",
+        "kernel_options": "root=/dev/ram0, ramdisk_size=1500000, ip=dhcp, url=http://@@http_server@@/cblr/links/@@distro_name@@/media.iso, cloud-config-url=/dev/null",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "groovy": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: groovy|Ubuntu 20.10",
+        "kernel_arch": "linux-headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "hirsute": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: hirsute|Ubuntu 21.04",
+        "kernel_arch": "linux-headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
         "default_autoinstall": "",
         "kernel_options": "",
         "kernel_options_post": "",
@@ -1571,6 +1623,136 @@
         "isolinux_ok": false,
         "default_autoinstall": "",
         "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "jammy": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: jammy|Ubuntu 22.04",
+        "kernel_arch": "linux-headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
+        "default_autoinstall": "cloud_config_autoinstall",
+        "kernel_options": "root=/dev/ram0, ramdisk_size=1500000, ip=dhcp, url=http://@@http_server@@/cblr/links/@@distro_name@@/media.iso, cloud-config-url=/dev/null",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "kinetic": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: kinetic|Ubuntu 22.10",
+        "kernel_arch": "linux-headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "lunar": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: lunar|Ubuntu 23.04",
+        "kernel_arch": "linux-headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "mantic": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: mantic|Ubuntu 23.10",
+        "kernel_arch": "linux_headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "noble": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: noble|Ubuntu 24.04",
+        "kernel_arch": "linux-headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
+        "default_autoinstall": "cloud-init_autoinstall",
+        "kernel_options": "root=/dev/ram0, ramdisk_size=1500000, ip=dhcp, url=http://@@http_server@@/cblr/links/@@distro_name@@/media.iso, cloud-config-url=/dev/null",
         "kernel_options_post": "",
         "template_files": "",
         "boot_files": [],
