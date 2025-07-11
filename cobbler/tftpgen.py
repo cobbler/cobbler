@@ -954,11 +954,11 @@ class TFTPGen:
                     append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" \
                                   % (append_line, autoinstall_path)
                     if management_interface:
-                        append_line += " netcfg/choose_interface=%s" % management_interface`
+                        append_line += " netcfg/choose_interface=%s" % management_interface
                 else:
                     re_ccu_kopt = re.search("(\\s|\\^){1}(cloud-config-url=/dev/null){1}(\\s|$){1}", append_line)
                     append_line = append_line.replace(re_ccu_kopt.group(0), " ")
-                    append_line ="%s %s" \
+                    append_line = "%s %s" \
                                   % (append_line, ''.join(("autoinstall cloud-config-url=", autoinstall_path)))
             elif distro.breed == "freebsd":
                 append_line = "%s ks=%s" % (append_line, autoinstall_path)
