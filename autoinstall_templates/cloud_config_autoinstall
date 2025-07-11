@@ -45,5 +45,5 @@ $SNIPPET('cloud_config_network')
 #else
 #set $what = "profile"
 #end if
-    - wget -O /target/root/autoinstall-user-data.yaml http://$http_server/cblr/svc/op/autoinstall/$what/$name
+    - wget -O /target/root/cloud_config_autoinstall.yaml http://$http_server/cblr/svc/op/autoinstall/$what/$name
 ##    - rm /target/etc/apt/apt.conf.d/99needrestart # This prompt will prevent the apt command from completing

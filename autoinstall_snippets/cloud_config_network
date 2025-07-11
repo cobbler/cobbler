@@ -27,14 +27,12 @@
           macaddress: $mac
         #if $static == True:
             #if $ip != "":
+        dhcp4: false
+        addresses:
                 #if $netmask != "":
                     #set $mask = sum([bin(int(x)).count('1') for x in $netmask.split('.')])
-        dhcp4: false
-        addresses:
           - $ip/$mask
                 #else
-        dhcp4: false
-        addresses:
           - $ip/24
                 #end if
                 #if ($gateway and $gateway != "") or ($routes and $routes[0] != ""):
