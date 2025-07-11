@@ -1,0 +1,49 @@
+#cloud-config
+autoinstall:
+  version: 1
+  refresh-installer:
+    update: no
+  apt:
+    preserve_sources_list: true
+    primary:
+    - arches: [amd64, i386]
+      uri: http://$http_server/cblr/links/$distro
+    - arches: [default]
+      uri: http://ports.ubuntu.com/ubuntu-ports
+    disable_components: [restricted,multiverse]
+    disable_suites: [backports,security,updates]
+  identity:
+$SNIPPET('cloud_config_hostname')
+    password: $default_password_crypted
+    realname: user
+    username: user
+  kernel:
+    package: linux-generic
+  keyboard:
+    layout: us
+    toggle: null
+    variant: ''
+  locale: en_US.UTF-8
+  timezone: America/New_York
+$SNIPPET('cloud_config_network')
+##$SNIPPET('cloud_config_user_data')
+  ssh:
+    allow-pw: false
+    install-server: true
+##    authorized-keys:
+##      - ssh-rsa AAA...
+  storage:
+    layout:
+      name: lvm
+      sizing-policy: all
+  package_update: false
+  package_upgrade: false
+  late-commands:
+## Figure out if we're automating OS installation for a system or a profile
+#if $getVar('system_name','') != ''
+#set $what = "system"
+#else
+#set $what = "profile"
+#end if
+    - wget -O /target/root/cloud_config_autoinstall.yaml http://$http_server/cblr/svc/op/autoinstall/$what/$name
+##    - rm /target/etc/apt/apt.conf.d/99needrestart # This prompt will prevent the apt command from completing
