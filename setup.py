@@ -22,6 +22,8 @@ from setuptools import find_packages, setup
 from setuptools.command.build_py import build_py as _build_py
 from setuptools.command.install import install as _install
 
+from importlib.metadata import entry_points
+
 try:
     # Setuptools compatibility 70+
     # https://github.com/cobbler/cobbler/issues/3692
@@ -478,10 +480,14 @@ if __name__ == "__main__":
         packages=find_packages(exclude=["*tests*"]),
         scripts=[
             "bin/cobbler",
-            "bin/cobblerd",
             "bin/cobbler-ext-nodes",
             "bin/cobbler-settings",
         ],
+        entry_points={
+            "console_scripts": [
+                "cobblerd = cobbler.cobblerd:main",
+            ]
+        },
         configure_values={
             "webroot": os.path.normpath(webroot),
             "tftproot": os.path.normpath(tftproot),
