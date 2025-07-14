@@ -60,6 +60,7 @@
 
 # SUSE
 %if 0%{?suse_version}
+%{?single_pythons_311plus}
 %define apache_user wwwrun
 %define apache_group www
 
@@ -136,6 +137,7 @@ BuildArch:      noarch
 BuildRequires:  git-core
 BuildRequires:  %{system_release_pkg}
 BuildRequires:  python%{python3_pkgversion}-devel
+BuildRequires:  python%{python3_pkgversion}-pip
 %if 0%{?suse_version}
 BuildRequires:  python-rpm-macros
 %endif
@@ -247,52 +249,29 @@ Dockerfiles and scripts to setup testing containers
 if [ -d "%{_sourcedir}/%{name}-%{version}/.git" ]; then
     cp -r %{_sourcedir}/%{name}-%{version}/.git %{_builddir}/%{name}-%{version}
 fi
-%if 0%{?fedora} || 0%{?rhel}
-. distro_build_configs.sh FEDORA
-%else
-. distro_build_configs.sh
-%endif
 
-# Check distro specific variables for consistency
-[ "${DOCPATH}" != %{_mandir} ] && echo "ERROR: DOCPATH: ${DOCPATH} does not match %{_mandir}"
-
-# [ "${ETCPATH}" != "/etc/cobbler" ]
-# [ "${LIBPATH}" != "/var/lib/cobbler" ]
-[ "${LOGPATH}" != %{_localstatedir}/log ] && echo "ERROR: LOGPATH: ${LOGPATH} does not match %{_localstatedir}/log"
-[ "${COMPLETION_PATH}" != %{_datadir}/bash-completion/completions ] && \
-    echo "ERROR: COMPLETION: ${COMPLETION_PATH} does not match %{_datadir}/bash-completion/completions"
-
-[ "${WEBROOT}" != %{apache_dir} ] && echo "ERROR: WEBROOT: ${WEBROOT} does not match %{apache_dir}"
-[ "${WEBCONFIG}" != %{apache_webconfigdir} ] && echo "ERROR: WEBCONFIG: ${WEBCONFIG} does not match %{apache_webconfigdir}"
-[ "${TFTPROOT}" != %{tftpboot_dir} ] && echo "ERROR: TFTPROOT: ${TFTPROOT} does not match %{tftpboot_dir}"
-
-%py3_build
 make man
+%pyproject_wheel
 
 %install
+%pyproject_install
+export PYTHONPATH="%{buildroot}%{python_sitelib}/"
 %if 0%{?fedora} || 0%{?rhel}
-. distro_build_configs.sh FEDORA
+%{python3} %{buildroot}%{_bindir}/cobblerd setup --base-dir="%{buildroot}" --systemd-directory="%{_unitdir}"
 %else
-. distro_build_configs.sh
-%endif
-%py3_install
-
-# cobbler
-rm -r %{buildroot}%{_sysconfdir}/cobbler/apache
-rm -r %{buildroot}%{_sysconfdir}/cobbler/nginx
-
-mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
-mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd_rotate %{buildroot}%{_sysconfdir}/logrotate.d/cobblerd
-
-# systemd
-mkdir -p %{buildroot}%{_unitdir}
-mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd.service %{buildroot}%{_unitdir}
-mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd-gunicorn.service %{buildroot}%{_unitdir}
-%if 0%{?suse_version}
-mkdir -p %{buildroot}%{_sbindir}
-ln -sf service %{buildroot}%{_sbindir}/rccobblerd
+%python_exec %{buildroot}%{_bindir}/cobblerd setup --base-dir="%{buildroot}" --systemd-directory="%{_unitdir}"
 %endif
 
+# Tests
+mkdir -p %{buildroot}%{_datadir}/cobbler/tests
+cp -r %{_builddir}/%{name}-%{version}/tests/* %{buildroot}%{_datadir}/cobbler/tests/
+
+# Containers
+mkdir -p %{buildroot}%{_datadir}/cobbler/docker
+cp -r %{_builddir}/%{name}-%{version}/docker/* %{buildroot}%{_datadir}/cobbler/docker/
+
+# Nginx
+rm %{buildroot}%{_sysconfdir}/nginx/cobbler/cobbler.conf
 
 %pre
 if [ $1 -ge 2 ]; then
@@ -381,19 +360,15 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
 %{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd
 %{_bindir}/cobbler-settings
-%dir %{_datadir}/cobbler
-%{_datadir}/cobbler/bin
 %{_mandir}/man1/cobbler.1*
 %{_mandir}/man5/cobbler.conf.5*
 %{_mandir}/man8/cobblerd.8*
+%dir %{_datadir}/cobbler
 %{_datadir}/bash-completion/completions/cobbler
 %{python3_sitelib}/cobbler/
 %{python3_sitelib}/cobbler-*
 %{_unitdir}/cobblerd.service
 %{_unitdir}/cobblerd-gunicorn.service
-%if 0%{?suse_version}
-%{_sbindir}/rccobblerd
-%endif
 %{_sharedstatedir}/cobbler
 %{_localstatedir}/log/cobbler
 
