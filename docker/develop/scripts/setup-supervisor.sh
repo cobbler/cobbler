@@ -21,6 +21,7 @@ echo "Install Cobbler"
 mkdir /srv/www/cobbler # Create web directory so the Cobbler daemon starts
 cd /code || exit
 make install
+cobblerd setup
 
 echo "Load supervisord configuration file and wait 5s"
 supervisord -c /etc/supervisord.conf

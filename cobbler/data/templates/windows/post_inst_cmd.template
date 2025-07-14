@@ -1,0 +1,18 @@
+Echo on
+
+$SNIPPET('wait_network_online')
+#if $os_version not in ('xp', '2003')
+powershell -command "& {\$WebClient = New-Object System.Net.WebClient; \$WebClient.DownloadFile('http://@@http_server@@/cblr/svc/op/autoinstall/profile/%1','install.cmd')}"
+#else
+wget.exe http://@@http_server@@/cblr/svc/op/autoinstall/profile/%1 -O install.cmd
+todos.exe install.cmd
+DEL /F /Q libeay32.dll >nul 2>&1
+DEL /F /Q libiconv2.dll >nul 2>&1
+DEL /F /Q libintl3.dll >nul 2>&1
+DEL /F /Q libssl32.dll >nul 2>&1
+DEL /F /Q wget.exe >nul 2>&1
+#end if
+start /wait install.cmd
+DEL /F /Q install.cmd >nul 2>&1
+DEL /F /Q %0 >nul 2>&1
+

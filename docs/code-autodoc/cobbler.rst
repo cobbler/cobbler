@@ -9,6 +9,8 @@ Subpackages
 
    cobbler.actions
    cobbler.cobbler_collections
+   cobbler.cobblerd
+   cobbler.data
    cobbler.items
    cobbler.modules
    cobbler.settings
@@ -53,14 +55,6 @@ cobbler.cli module
 ------------------
 
 .. automodule:: cobbler.cli
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-cobbler.cobblerd module
------------------------
-
-.. automodule:: cobbler.cobblerd
    :members:
    :undoc-members:
    :show-inheritance:

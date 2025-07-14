@@ -58,7 +58,7 @@ $EXECUTOR run --cap-add=NET_ADMIN -t -d --name cobbler \
     "$IMAGE" /bin/bash
 
 echo "==> Install fresh RPMs ..."
-$EXECUTOR exec -t cobbler bash -c 'rpm -Uvh rpm-build/cobbler-*.noarch.rpm'
+$EXECUTOR exec -t cobbler bash -c 'rpm -Uvh rpm-build/RPMS/cobbler-*.noarch.rpm'
 if [[ ! ( "$TAG" == *"rl"* || "$TAG" == *"fc"* ) ]]; then
     $EXECUTOR exec -it cobbler bash -c 'a2enmod proxy && a2enmod proxy_http'
 fi
