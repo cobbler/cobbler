@@ -118,34 +118,6 @@ install: build ## Runs the build target and then installs via setup.py
 	git config --add safe.directory /code; \
 	${PYTHON} setup.py install --root $(DESTDIR) -f
 
-devinstall: ## This deletes the /usr/share/cobbler directory and then runs the targets savestate, install and restorestate.
-	-rm -rf $(DESTDIR)/usr/share/cobbler
-	make savestate
-	make install
-	make restorestate
-
-savestate: ## This runs the setup.py task savestate.
-	@source distro_build_configs.sh; \
-	${PYTHON} setup.py -v savestate --root $(DESTDIR); \
-
-
-restorestate: ## This restores a state which was previously saved via the target savestate. (Also run via setup.py)
-	# Check if we are on Red Hat, SUSE or Debian based distribution
-	@source distro_build_configs.sh; \
-	${PYTHON} setup.py -v restorestate --root $(DESTDIR); \
-	find $(DESTDIR)/var/lib/cobbler/triggers | xargs chmod +x
-	if [ -d $(DESTDIR)/var/www/cobbler ] ; then \
-		chmod -R +x $(DESTDIR)/var/www/cobbler/svc; \
-	fi
-	if [ -d $(DESTDIR)/srv/www/cobbler/svc ]; then \
-		chmod -R +x $(DESTDIR)/srv/www/cobbler/svc; \
-	fi
-	rm -rf $(statepath)
-
-webtest: devinstall ## Runs the task devinstall and then runs the targets clean and devinstall.
-	make clean
-	make devinstall
-
 rpms: release ## Runs the target release and then creates via rpmbuild the rpms in a directory called rpm-build.
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
