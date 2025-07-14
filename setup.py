@@ -654,8 +654,6 @@ if __name__ == "__main__":
             "config/nginx/cobbler.conf",
             "config/cobbler/settings.yaml",
             "config/service/cobblerd.service",
-            "templates/etc/named.template",
-            "templates/etc/secondary.template",
         ],
         man_pages=["docs/cobblerd.rst", "docs/cobbler-conf.rst", "docs/cobbler.rst"],
         data_files=[
