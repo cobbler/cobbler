@@ -1408,7 +1408,7 @@ def remove_lines_in_file(filepath: str, remove_keywords: List[str]) -> None:
 
     raises OSError: In case the file cannot be read or modified.
     """
-    new_content_lines = []
+    new_content_lines: List[str] = []
     with open(filepath, "r", encoding="UTF-8") as fh:
         for line in fh.readlines():
             if any(keyword in line for keyword in remove_keywords):

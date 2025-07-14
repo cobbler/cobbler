@@ -716,20 +716,20 @@ def test_create_files_if_not_existing(tmp_path: Path):
 
 def test_remove_lines_in_file(mocker: "MockerFixture"):
     # Arrange
-    file_content = '''
+    file_content = """
 line1
 line2
 foobar
 line4
 deadbeaf
 line6
-'''
-    expected = '''
+"""
+    expected = """
 line1
 line2
 line4
 line6
-'''
+"""
 
     mock_open = mocker.patch("builtins.open", mocker.mock_open(read_data=file_content))
     mock_os_replace = mocker.patch("os.replace", MagicMock())
