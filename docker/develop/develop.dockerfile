@@ -41,8 +41,12 @@ RUN zypper install --no-recommends -y \
     wget2                      \
     openssl                    \
     bind                       \
+    systemd-devel              \
+    cyrus-sasl-devel           \
     python311                  \
+    python311-pip              \
     python311-Sphinx           \
+    python311-sphinx_rtd_theme \
     python311-coverage         \
     python311-devel            \
     python311-distro           \

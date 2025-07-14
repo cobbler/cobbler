@@ -5,26 +5,30 @@ FROM fedora:37
 RUN dnf makecache
 
 # Dev dependencies
-RUN dnf install -y          \
-    git                     \
-    rsync                   \
-    make                    \
-    curl                    \
-    wget2                   \
-    openssl                 \
-    mod_ssl                 \
-    initscripts             \
-    python-sphinx           \
-    python3-coverage        \
-    python3-devel           \
-    python3-wheel           \
-    python3-distro          \
-    python3-pyflakes        \
-    python3-pycodestyle     \
-    python3-setuptools      \
-    python3-sphinx          \
-    python3-pip             \
-    rpm-build               \
+RUN dnf install -y           \
+    git                      \
+    rsync                    \
+    make                     \
+    curl                     \
+    wget2                    \
+    openssl                  \
+    mod_ssl                  \
+    systemd-devel            \
+    cyrus-sasl-devel         \
+    initscripts              \
+    python-sphinx            \
+    python3-pip              \
+    python3-coverage         \
+    python3-devel            \
+    python3-wheel            \
+    python3-distro           \
+    python3-pyflakes         \
+    python3-pycodestyle      \
+    python3-setuptools       \
+    python3-sphinx           \
+    python3-sphinx_rtd_theme \
+    python3-pip              \
+    rpm-build                \
     which
 
 # Runtime dependencies

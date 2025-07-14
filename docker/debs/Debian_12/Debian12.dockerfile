@@ -20,8 +20,11 @@ RUN apt-get update -qq && \
     gnupg \
     curl \
     wget \
+    libsystemd-dev \
+    libsasl2-dev \
     pycodestyle \
     pyflakes3 \
+    python3-pip  \
     python3-cheetah  \
     python3-gunicorn  \
     python3-coverage \
@@ -41,6 +44,7 @@ RUN apt-get update -qq && \
     python3-setuptools \
     python3-simplejson  \
     python3-sphinx \
+    python3-sphinx-rtd-theme \
     python3-tz \
     python3-yaml \
     python3-schema \
