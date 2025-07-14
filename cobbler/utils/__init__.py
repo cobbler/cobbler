@@ -1408,12 +1408,11 @@ def remove_lines_in_file(filepath: str, remove_keywords: List[str]) -> None:
 
     raises OSError: In case the file cannot be read or modified.
     """
-    tmp_filepath = filepath + ".tmp"
-    with open(filepath, "r", encoding="UTF-8") as fh, open(
-        tmp_filepath, "w", encoding="UTF-8"
-    ) as tmp_fh:
-        for line in fh:
+    new_content_lines: List[str] = []
+    with open(filepath, "r", encoding="UTF-8") as fh:
+        for line in fh.readlines():
             if any(keyword in line for keyword in remove_keywords):
                 continue
-            tmp_fh.write(line)
-    os.replace(tmp_filepath, filepath)
+            new_content_lines.append(line)
+    with open(filepath, "w", encoding="UTF-8") as fh:
+        fh.writelines(new_content_lines)

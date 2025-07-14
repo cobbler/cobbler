@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 from threading import Thread
 from typing import TYPE_CHECKING, Any
+from unittest.mock import MagicMock
 
 import pytest
 from netaddr.ip import IPAddress
@@ -711,3 +712,31 @@ def test_create_files_if_not_existing(tmp_path: Path):
     # Assert
     assert os.path.exists(file1)
     assert os.path.exists(file2)
+
+
+def test_remove_lines_in_file(mocker: "MockerFixture"):
+    # Arrange
+    file_content = """
+line1
+line2
+foobar
+line4
+deadbeaf
+line6
+"""
+    expected = """
+line1
+line2
+line4
+line6
+"""
+
+    mock_open = mocker.patch("builtins.open", mocker.mock_open(read_data=file_content))
+    mock_os_replace = mocker.patch("os.replace", MagicMock())
+
+    # Act
+    utils.remove_lines_in_file("randomfile", ["foobar", "deadbeaf"])
+
+    # Assert
+    mock_os_replace.assert_not_called()
+    assert "".join(mock_open.return_value.writelines.call_args[0][0]) == expected
