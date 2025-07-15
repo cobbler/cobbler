@@ -1,6 +1,6 @@
 # vim: ft=dockerfile
 
-FROM registry.opensuse.org/opensuse/leap:15.3
+FROM registry.opensuse.org/opensuse/leap:15.6
 
 # ENV Variables we are using.
 ENV container docker
