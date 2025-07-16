@@ -116,7 +116,6 @@ However we provide docker files for
 - openSUSE Leap 15.3
 - openSUSE Tumbleweed
 - Rocky Linux 8
-- Debian 10 Buster
 - Debian 11 Bullseye
 - Debian 12 Bookworm
 
@@ -129,7 +128,6 @@ To build the packages you to need to execute the following in the root folder of
 
 - Fedora 37: ``./docker/rpms/build-and-install-rpms.sh fc37 docker/rpms/Fedora_37/Fedora37.dockerfile``
 - CentOS 8: ``./docker/rpms/build-and-install-rpms.sh el8 docker/rpms/CentOS_8/CentOS8.dockerfile``
-- Debian 10: ``./docker/debs/build-and-install-debs.sh deb10 docker/debs/Debian_10/Debian10.dockerfile``
 - Debian 11: ``./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile``
 - Debian 12: ``./docker/debs/build-and-install-debs.sh deb12 docker/debs/Debian_12/Debian12.dockerfile``
 

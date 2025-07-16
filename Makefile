@@ -96,9 +96,6 @@ test-rocky9: ## Executes the testscript for testing cobbler in a docker containe
 test-fedora37: ## Executes the testscript for testing cobbler in a docker container on Fedora 37.
 	./docker/rpms/build-and-install-rpms.sh fc37 docker/rpms/Fedora_37/Fedora37.dockerfile
 
-test-debian10: ## Executes the testscript for testing cobbler in a docker container on Debian 10.
-	./docker/debs/build-and-install-debs.sh deb10 docker/debs/Debian_10/Debian10.dockerfile
-
 test-debian11: ## Executes the testscript for testing cobbler in a docker container on Debian 11.
 	./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile
 
