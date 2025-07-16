@@ -57,10 +57,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install System dependencies
         run: sudo apt-get install -y rename
-      - name: Build a openSUSE Leap 15.3 Package
+      - name: Build a openSUSE Leap 15 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          ./docker/rpms/build-and-install-rpms.sh opensuse-leap docker/rpms/opensuse_leap/openSUSE_Leap153.dockerfile
+          ./docker/rpms/build-and-install-rpms.sh opensuse-leap docker/rpms/opensuse_leap/openSUSE_Leap15.dockerfile
       - name: Rename RPM
         run: |
           file-rename -v -d -e 's/cobbler-(\d+\.\d+\.\d+)-1\.(\w+)\.rpm/cobbler-$1-1.leap.$2.rpm/' rpm-build/*.rpm

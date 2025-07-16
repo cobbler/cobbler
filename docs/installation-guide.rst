@@ -113,7 +113,7 @@ We leave packaging to downstream; this means you have to check the repositories 
 However we provide docker files for
 
 - Fedora 37
-- openSUSE Leap 15.3
+- openSUSE Leap 15.6
 - openSUSE Tumbleweed
 - Rocky Linux 8
 - Debian 11 Bullseye
@@ -126,6 +126,7 @@ which will give you packages which will work better then building from source yo
 
 To build the packages you to need to execute the following in the root folder of the cloned repository:
 
+- openSUSE Leap 15.6: ``./docker/rpms/build-and-install-rpms.sh opensuse-leap docker/rpms/opensuse_leap/openSUSE_Leap15.dockerfile``
 - Fedora 37: ``./docker/rpms/build-and-install-rpms.sh fc37 docker/rpms/Fedora_37/Fedora37.dockerfile``
 - Rocky Linux 8: ``./docker/rpms/build-and-install-rpms.sh rl8 docker/rpms/Rocky_Linux_8/Rocky_Linux_8.dockerfile``
 - Debian 11: ``./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile``
