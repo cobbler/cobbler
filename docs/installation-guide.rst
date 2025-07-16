@@ -127,7 +127,7 @@ which will give you packages which will work better then building from source yo
 To build the packages you to need to execute the following in the root folder of the cloned repository:
 
 - Fedora 37: ``./docker/rpms/build-and-install-rpms.sh fc37 docker/rpms/Fedora_37/Fedora37.dockerfile``
-- CentOS 8: ``./docker/rpms/build-and-install-rpms.sh el8 docker/rpms/CentOS_8/CentOS8.dockerfile``
+- Rocky Linux 8: ``./docker/rpms/build-and-install-rpms.sh rl8 docker/rpms/Rocky_Linux_8/Rocky_Linux_8.dockerfile``
 - Debian 11: ``./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile``
 - Debian 12: ``./docker/debs/build-and-install-debs.sh deb12 docker/debs/Debian_12/Debian12.dockerfile``
 
