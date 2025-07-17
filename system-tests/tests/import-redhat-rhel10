@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Check that Cobbler can import distros
+
+source ${SYSTESTS_PRELUDE} && prepare
+
+set -x -e -o pipefail
+
+breed=$(echo "$TEST_NAME" | cut -d- -f2)
+distro=$(echo "$TEST_NAME" | cut -d- -f3)
+
+for iso in ${SYSTESTS_ROOT}/listings/${breed}/${distro}/*; do
+	root=${tmp}/$(basename ${iso})
+	mkdir -p ${root}
+	cat ${iso}/index | xargs -I {} -P 64 install -D -m 0644 /dev/null ${root}/{}
+	cp -a ${iso}/. ${root}
+	cobbler import --name imported --path ${root}
+done
