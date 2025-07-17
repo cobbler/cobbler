@@ -32,6 +32,10 @@ ldapadd -Y EXTERNAL -H ldapi:/// -f /code/docker/develop/openldap/test.ldif
 echo "Create DHCPD leases file"
 touch /var/lib/dhcp/db/dhcpd.leases
 
+echo "Install CLI"
+go install github.com/cobbler/cli@latest
+ln -s /root/go/bin/cli /usr/local/bin/cobbler
+
 echo "Show Cobbler version"
 cobbler version
 

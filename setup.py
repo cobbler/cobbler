@@ -629,7 +629,6 @@ if __name__ == "__main__":
         },
         packages=find_packages(exclude=["*tests*"]),
         scripts=[
-            "bin/cobbler",
             "bin/cobblerd",
             "bin/cobbler-ext-nodes",
             "bin/cobbler-settings",
