@@ -87,11 +87,11 @@ release: clean qa authors sdist ## Creates the full release.
 	@cp distro_build_configs.sh release/
 	@cp cobbler.spec release/
 
-test-rocky8: ## Executes the testscript for testing cobbler in a docker container on Rocky Linux 8.
-	./docker/rpms/build-and-install-rpms.sh rl8 docker/rpms/Rocky_Linux_8/Rocky_Linux_8.dockerfile
-
 test-rocky9: ## Executes the testscript for testing cobbler in a docker container on Rocky Linux 9.
 	./docker/rpms/build-and-install-rpms.sh rl8 docker/rpms/Rocky_Linux_9/Rocky_Linux_9.dockerfile
+
+test-rocky10: ## Executes the testscript for testing cobbler in a docker container on Rocky Linux 10.
+	./docker/rpms/build-and-install-rpms.sh rl10 docker/rpms/Rocky_Linux_10/Rocky_Linux_10.dockerfile
 
 test-fedora37: ## Executes the testscript for testing cobbler in a docker container on Fedora 37.
 	./docker/rpms/build-and-install-rpms.sh fc37 docker/rpms/Fedora_37/Fedora37.dockerfile

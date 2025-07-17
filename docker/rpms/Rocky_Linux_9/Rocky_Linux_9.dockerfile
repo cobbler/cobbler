@@ -24,7 +24,10 @@ RUN touch /var/lib/rpm/* &&   \
     make                      \
     openssl                   \
     mod_ssl                   \
+    systemd-devel             \
+    cyrus-sasl-devel          \
     initscripts               \
+    python3-pip               \
     python3-sphinx            \
     python3-devel             \
     python3-wheel             \
@@ -33,6 +36,7 @@ RUN touch /var/lib/rpm/* &&   \
     python3-pycodestyle       \
     python3-setuptools        \
     python3-sphinx            \
+    python3-sphinx_rtd_theme  \
     python3-schema            \
     epel-rpm-macros           \
     rpm-build                 \

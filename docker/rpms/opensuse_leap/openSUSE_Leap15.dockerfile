@@ -26,9 +26,13 @@ RUN zypper install -y          \
     fence-agents               \
     rsync                      \
     createrepo_c               \
+    systemd-devel              \
+    cyrus-sasl-devel           \
     python-rpm-macros          \
     python3                    \
+    python3-pip                \
     python3-Sphinx             \
+    python3-sphinx_rtd_theme   \
     python3-gunicorn           \
     python3-Cheetah3           \
     python3-Sphinx             \
@@ -36,7 +40,7 @@ RUN zypper install -y          \
     python3-coverage           \
     python3-devel              \
     python3-distro             \
-    python3-file-magic         \
+    python3-magic              \
     python3-ldap               \
     python3-netaddr            \
     python3-pyflakes           \
@@ -47,6 +51,8 @@ RUN zypper install -y          \
     python3-pip                \
     python3-PyYAML             \
     python3-wheel              \
+    python3-dataclasses        \
+    python3-importlib_resources \
     rpm-build                  \
     which                      \
     mtools                     \

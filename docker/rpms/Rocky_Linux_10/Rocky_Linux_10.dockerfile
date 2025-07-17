@@ -1,10 +1,11 @@
 # vim: ft=dockerfile
 
-FROM rockylinux:8
+FROM rockylinux/rockylinux:10
 
 RUN dnf makecache && \
     dnf install -y epel-release dnf-utils && \
-    dnf config-manager --set-enabled powertools && \
+    dnf config-manager --set-enabled crb && \
+    dnf config-manager --set-enabled highavailability && \
     dnf makecache
 
 # overlay2 bug with yum/dnf
@@ -20,31 +21,33 @@ RUN touch /var/lib/rpm/* &&   \
     iproute                   \
     git                       \
     rsync                     \
-    curl                      \
-    wget                      \
     make                      \
     openssl                   \
     mod_ssl                   \
+    systemd-devel             \
+    cyrus-sasl-devel          \
     initscripts               \
+    python3-pip               \
     python3-sphinx            \
-    platform-python-coverage  \
     python3-devel             \
     python3-wheel             \
     python3-distro            \
-    python3-pyflakes          \
-    python3-pycodestyle       \
     python3-setuptools        \
     python3-sphinx            \
-    python3-schema            \
+    python3-sphinx_rtd_theme  \
     epel-rpm-macros           \
     rpm-build                 \
     which
+
+# python3-schema is not available as an RPM in RL 10.
+RUN pip install schema
 
 # Runtime dependencies
 RUN touch /var/lib/rpm/* &&   \
     dnf install -y            \
     httpd                     \
     python3-gunicorn          \
+    python3-mod_wsgi          \
     python3-pyyaml            \
     python3-netaddr           \
     python3-cheetah           \
@@ -53,27 +56,23 @@ RUN touch /var/lib/rpm/* &&   \
     python3-ldap              \
     python3-librepo           \
     python3-pymongo           \
-    python3-systemd           \
+    python3-coverage          \
     createrepo_c              \
     dnf-plugins-core          \
     xorriso                   \
-    grub2-efi-ia32-modules    \
     grub2-efi-x64-modules     \
     logrotate                 \
     syslinux                  \
     tftp-server               \
-    fence-agents              \
     supervisor                \
-    systemd                   \
-    mtools                    \
     dosfstools
 
 # Dependencies for system tests
+# isc-dhcpd is missing (Kea isn't compatible with Cobbler yet)
 RUN touch /var/lib/rpm/* &&   \
     dnf install -y            \
     shim                      \
     ipxe-bootimgs             \
-    dhcp-server               \
     qemu-kvm                  \
     time
 RUN dnf --enablerepo=plus -y install openldap-servers
