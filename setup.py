@@ -620,6 +620,7 @@ if __name__ == "__main__":
                 "coverage",
                 "pytest-mock>3.3.0",
                 "pytest-benchmark",
+                "legacycrypt; python_version > '3.12'",
             ],
             "docs": ["sphinx", "sphinx-rtd-theme", "sphinxcontrib-apidoc"],
             # We require the current version to properly detect duplicate issues
