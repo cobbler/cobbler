@@ -19,16 +19,14 @@ ENV DISTRO SUSE
 # Add Developer scripts to PATH
 ENV PATH="/code/docker/develop/scripts:${PATH}"
 
-# Tmp fix for debugedit
-RUN zypper install -y gdb
-
 # Runtime & dev dependencies
 RUN zypper install --no-recommends -y \
+    gdb                        \
     acl                        \
     apache2                    \
     apache2-devel              \
     apache2-mod_wsgi           \
-    python311-gunicorn         \
+    python3-gunicorn           \
     bash-completion            \
     createrepo_c               \
     fence-agents               \
@@ -43,29 +41,29 @@ RUN zypper install --no-recommends -y \
     bind                       \
     systemd-devel              \
     cyrus-sasl-devel           \
-    python311                  \
-    python311-pip              \
-    python311-Sphinx           \
-    python311-sphinx_rtd_theme \
-    python311-coverage         \
-    python311-devel            \
-    python311-distro           \
-    python311-schema           \
-    python311-setuptools       \
-    python311-systemd          \
-    python311-pip              \
-    python311-wheel            \
-    python311-Cheetah3         \
-    python311-distro           \
-    python311-dnspython        \
-    python311-Jinja2           \
-    python311-requests         \
-    python311-PyYAML           \
-    python311-pykickstart      \
-    python311-netaddr          \
-    python311-pymongo          \
-    python311-pytest-benchmark \
-    python311-black            \
+    python3                    \
+    python3-pip                \
+    python3-Sphinx             \
+    python3-sphinx_rtd_theme   \
+    python3-coverage           \
+    python3-devel              \
+    python3-distro             \
+    python3-schema             \
+    python3-setuptools         \
+    python3-systemd            \
+    python3-pip                \
+    python3-wheel              \
+    python3-Cheetah3           \
+    python3-distro             \
+    python3-dnspython          \
+    python3-Jinja2             \
+    python3-requests           \
+    python3-PyYAML             \
+    python3-pykickstart        \
+    python3-netaddr            \
+    python3-pymongo            \
+    python3-pytest-benchmark   \
+    python3-black              \
     python3-librepo            \
     go                         \
     rpm-build                  \
@@ -87,11 +85,11 @@ RUN zypper install -y \
 
 # Add bootloader packages
 RUN zypper install --no-recommends -y \
-    syslinux \
-    shim \
-    ipxe-bootimgs \
-    grub2 \
-    grub2-i386-efi \
+    syslinux            \
+    shim                \
+    ipxe-bootimgs       \
+    grub2               \
+    grub2-i386-efi      \
     grub2-x86_64-efi
 #    grub2-arm64-efi
 
@@ -105,7 +103,7 @@ RUN zypper install --no-recommends -y \
     openldap2                         \
     openldap2-client                  \
     hostname                          \
-    python311-ldap
+    python3-ldap
 
 # Dependencies for system-tests
 RUN zypper install --no-recommends -y \
@@ -116,12 +114,12 @@ RUN zypper install --no-recommends -y \
 
 # Install packages and dependencies via pip
 RUN zypper install --no-recommends -y \
-    python311-magic              \
-    python311-pycodestyle        \
-    python311-pyflakes           \
-    python311-pytest             \
-    python311-pytest-cov         \
-    python311-pytest-mock
+    python3-magic              \
+    python3-pycodestyle        \
+    python3-pyflakes           \
+    python3-pytest             \
+    python3-pytest-cov         \
+    python3-pytest-mock
 
 # Required for reposync tests
 RUN zypper install --no-recommends -y \
