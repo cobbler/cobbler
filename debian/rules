@@ -10,12 +10,15 @@ export PYBUILD_OPTION_INTERPRETER="-B"
 
 # Use Bash so we can set the required environment variables
 SHELL = /bin/bash
+BUILDROOT = $(CURDIR)/debian/python3-cobbler
+SYSTEMDDIR = /usr/lib/systemd/system
+PY_VERSION = $(shell pybuild --print version --interpreter=python3)
 
 %:
 	dh $@ --with python3 --buildsystem pybuild
 
 override_dh_auto_build:
-	@source ./distro_build_configs.sh; \
+	make man
 	dh_auto_build
 
 override_dh_auto_clean:
@@ -23,8 +26,11 @@ override_dh_auto_clean:
 	rm -rf docs/_build
 
 override_dh_auto_install:
-	@source ./distro_build_configs.sh; \
 	dh_auto_install
+	PYTHONPATH="$(BUILDROOT)/usr/lib/python${PY_VERSION}/dist-packages" $(BUILDROOT)/usr/bin/cobblerd setup --base-dir=$(BUILDROOT)/ --systemd-directory="$(SYSTEMDDIR)"
+	mkdir -p $(BUILDROOT)/usr/share/cobbler/tests/ $(BUILDROOT)/usr/share/cobbler/docker/
+	cp -r $(CURDIR)/tests/* $(CURDIR)/debian/python3-cobbler/usr/share/cobbler/tests/
+	cp -r $(CURDIR)/docker/* $(CURDIR)/debian/python3-cobbler/usr/share/cobbler/docker/
 
 override_dh_install:
 	dh_install --sourcedir="debian/python3-cobbler"

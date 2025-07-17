@@ -22,7 +22,7 @@ jobs:
         with:
           name: rpms-rockylinux-9
           path: |
-            rpm-build/*.rpm
+            rpm-build/RPMS/*.rpm
   build-fedora37-rpms:
     runs-on: ubuntu-latest
     steps:
@@ -36,7 +36,7 @@ jobs:
         with:
           name: rpms-fedora-37
           path: |
-            rpm-build/*.rpm
+            rpm-build/RPMS/*.rpm
   build-opensuse-leap-rpms:
     runs-on: ubuntu-latest
     steps:
@@ -49,13 +49,13 @@ jobs:
           ./docker/rpms/build-and-install-rpms.sh opensuse-leap docker/rpms/opensuse_leap/openSUSE_Leap15.dockerfile
       - name: Rename RPM
         run: |
-          file-rename -v -d -e 's/cobbler-(\d+\.\d+\.\d+)-1\.(\w+)\.rpm/cobbler-$1-1.leap.$2.rpm/' rpm-build/*.rpm
+          sudo file-rename -v -d -e 's/(^cobbler.*)-(\d+\.\d+\.\d+)-1\.(\w+)\.rpm/$1-$2-1.leap.$3.rpm/' rpm-build/RPMS/*.rpm
       - name: Archive RPMs
         uses: actions/upload-artifact@v4
         with:
           name: rpms-opensuse-leap
           path: |
-            rpm-build/*.rpm
+            rpm-build/RPMS/*.rpm
   build-opensuse-tumbleweed-rpms:
     runs-on: ubuntu-latest
     steps:
@@ -68,41 +68,51 @@ jobs:
           ./docker/rpms/build-and-install-rpms.sh opensuse-tumbleweed docker/rpms/opensuse_tumbleweed/openSUSE_TW.dockerfile
       - name: Rename RPM
         run: |
-          file-rename -v -d -e 's/cobbler-(\d+\.\d+\.\d+)-1\.(\w+)\.rpm/cobbler-$1-1.tw.$2.rpm/' rpm-build/*.rpm
+          sudo file-rename -v -d -e 's/(^cobbler.*)-(\d+\.\d+\.\d+)-1\.(\w+)\.rpm/$1-$2-1.tw.$3.rpm/' rpm-build/RPMS/*.rpm
       - name: Archive RPMs
         uses: actions/upload-artifact@v4
         with:
           name: rpms-opensuse-tumbleweed
           path: |
-            rpm-build/*.rpm
+            rpm-build/RPMS/*.rpm
   build-debian11-debs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install System dependencies
+        run: sudo apt-get install -y rename
       - name: Build a Debian 11 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile
+      - name: Rename DEB
+        run: |
+          sudo file-rename -v -d -e 's/(^cobbler.*)_(\d+\.\d+\.\d+)_all\.deb/$1_$2_all.deb11.deb/' deb-build/*.deb
       - name: Archive DEBs
         uses: actions/upload-artifact@v4
         with:
           name: debs-debian11
           path: |
-            deb-build/DEBS/all/*.deb
+            deb-build/*.deb
   build-debian12-debs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install System dependencies
+        run: sudo apt-get install -y rename
       - name: Build a Debian 12 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/debs/build-and-install-debs.sh deb12 docker/debs/Debian_12/Debian12.dockerfile
+      - name: Rename DEB
+        run: |
+          sudo file-rename -v -d -e 's/(^cobbler.*)_(\d+\.\d+\.\d+)_all\.deb/$1_$2_all.deb12.deb/' deb-build/*.deb
       - name: Archive DEBs
         uses: actions/upload-artifact@v4
         with:
           name: debs-debian12
           path: |
-            deb-build/DEBS/all/*.deb
+            deb-build/*.deb
   build-wheel:
     name: Build Python Wheel
     runs-on: ubuntu-latest
@@ -114,6 +124,7 @@ jobs:
         with:
           cache: pip
           cache-dependency-path: "**/setup.py"
+          python-version: ">=3.6"
       - name: Install system dependencies
         run: >-
           sudo apt-get install -y
@@ -125,9 +136,12 @@ jobs:
           libsystemd-dev
           tree
       - name: Install dependencies
-        run: pip3 install .
-      - name: Build a binary wheel and a source tarball
+        run: pip3 install .[docs]
+      # Creating the release tarball executes the clean target
+      - name: Build the source tarball
         run: make release
+      - name: Build the wheel
+        run: make build
       - name: Show tree
         run: tree
       - name: Archive Wheel
@@ -135,8 +149,8 @@ jobs:
         with:
           name: wheel
           path: |
-            dist/*.whl
-            dist/*.tar.gz
+            build/cobbler-*.whl
+            release/cobbler-*.tar.gz
   create-release:
     name: Build the release and create a GitHub release
     runs-on: ubuntu-latest
@@ -172,6 +186,6 @@ jobs:
             artifacts/rpms-opensuse-leap/*.rpm
             artifacts/rpms-opensuse-tumbleweed/*.rpm
             artifacts/rpms-rockylinux-9/*.rpm
-            artifacts/wheel/*.tar.gz
-            artifacts/wheel/*.whl
+            artifacts/wheel/release/*.tar.gz
+            artifacts/wheel/build/*.whl
           body_path: changelog/${{ env.RELEASE_VERSION }}.md
