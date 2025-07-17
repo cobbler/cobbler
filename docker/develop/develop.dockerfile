@@ -65,6 +65,7 @@ RUN zypper install --no-recommends -y \
     python3-pytest-benchmark   \
     python3-black              \
     python3-librepo            \
+    python3-legacycrypt        \
     go                         \
     rpm-build                  \
     rsync                      \

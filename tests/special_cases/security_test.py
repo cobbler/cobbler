@@ -4,7 +4,6 @@ This test module tries to automatically replicate all security incidents we had 
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 import base64
-import crypt
 import os
 import subprocess
 import xmlrpc.client
@@ -15,6 +14,11 @@ import pytest
 from cobbler.api import CobblerAPI
 from cobbler.modules.authentication import pam
 from cobbler.utils import get_shared_secret
+
+try:
+    import crypt
+except ModuleNotFoundError:
+    import legacycrypt as crypt
 
 # ==================== Start tnpconsultants ====================
 
