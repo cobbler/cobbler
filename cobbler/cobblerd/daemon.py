@@ -2,15 +2,11 @@
 Cobbler daemon for logging remote syslog traffic during automatic installation
 """
 
-# SPDX-License-Identifier: GPL-2.0-or-later
-# SPDX-FileCopyrightText: Copyright 2007-2009, Red Hat, Inc and Others
-# SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
-
 import binascii
 import logging
-import logging.config
 import os
 import pwd
+import sys
 import time
 
 import systemd.daemon  # type: ignore
@@ -18,9 +14,11 @@ import systemd.daemon  # type: ignore
 from cobbler import remote, utils
 from cobbler.api import CobblerAPI
 
-if os.geteuid() == 0 and os.path.exists("/etc/cobbler/logging_config.conf"):
-    logging.config.fileConfig("/etc/cobbler/logging_config.conf")
-
+try:
+    import psutil  # type: ignore
+except ModuleNotFoundError:
+    # pylint: disable-next=invalid-name
+    psutil = None  # type: ignore
 
 logger = logging.getLogger()
 
@@ -74,14 +72,9 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int) -> None:
     logger.debug("XMLRPC running on %s", port)
     server.register_instance(xinterface)
     start_time = ""
-    try:
-        import psutil
-
+    if psutil is not None:
         ps_util = psutil.Process(os.getpid())
         start_time = f" in {str(time.time() - ps_util.create_time())} seconds"
-    except ModuleNotFoundError:
-        # This is not critical, but debug only - just install python3-psutil
-        pass
 
     systemd.daemon.notify("READY=1")  # type: ignore
     while True:
@@ -95,5 +88,37 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int) -> None:
             time.sleep(0.5)
 
 
-if __name__ == "__main__":
-    core(CobblerAPI())
+def daemonize_self() -> None:
+    """
+    Deamonizes the current process.
+    """
+    # daemonizing code:  http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66012
+    logger.info("cobblerd started")
+    try:
+        pid = os.fork()
+        if pid > 0:
+            # exit first parent
+            sys.exit(0)
+    except OSError as e:
+        logger.error("fork #1 failed: %s (%s)", e.errno, e.strerror)
+        sys.exit(1)
+
+    # decouple from parent environment
+    os.chdir("/")
+    os.setsid()
+    os.umask(0o22)
+
+    # do second fork
+    try:
+        pid = os.fork()
+        if pid > 0:
+            logger.info("Daemon PID %d", pid)
+            sys.exit(0)
+    except OSError as e:
+        logger.error("fork #2 failed: %s (%s)", e.errno, e.strerror)
+        sys.exit(1)
+
+    with open("/dev/null", "r+", encoding="UTF-8") as dev_null:
+        os.dup2(dev_null.fileno(), sys.stdin.fileno())
+        os.dup2(dev_null.fileno(), sys.stdout.fileno())
+        os.dup2(dev_null.fileno(), sys.stderr.fileno())

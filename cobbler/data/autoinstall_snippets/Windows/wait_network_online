@@ -1,0 +1,15 @@
+:wno10
+set n=0
+
+:wno20
+ping @@http_server@@ -n 3
+set exit_code=%ERRORLEVEL%
+
+IF %exit_code% EQU 0 GOTO wno_exit
+set /a n=n+1
+IF %n% lss 30 goto wno20
+pause
+goto wno10
+
+:wno_exit
+

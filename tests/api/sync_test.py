@@ -37,7 +37,7 @@ def test_sync(cobbler_api, input_verbose, input_what, expected_exception, mocker
         cobbler_api.sync(input_verbose, input_what)
 
     # Assert
-    assert filelock_mock.called_once_with("/var/lib/cobbler/lock")
+    filelock_mock.assert_called_once_with("/var/lib/cobbler/lock")
     if not input_what:
         stub.run.assert_called_once()
     if input_what and "dhcp" in input_what:
@@ -65,7 +65,7 @@ def test_sync_dns(cobbler_api, input_manage_dns, mocker):
     cobbler_api.sync_dns()
 
     # Assert
-    assert filelock_mock.called_once_with("/var/lib/cobbler/lock")
+    filelock_mock.assert_called_once_with("/var/lib/cobbler/lock")
     m_property.assert_called_once()
     assert stub.sync.called == input_manage_dns
 
@@ -87,7 +87,7 @@ def test_sync_dhcp(cobbler_api, input_manager_dhcp, mocker):
     cobbler_api.sync_dhcp()
 
     # Assert
-    assert filelock_mock.called_once_with("/var/lib/cobbler/lock")
+    filelock_mock.assert_called_once_with("/var/lib/cobbler/lock")
     m_property.assert_called_once()
     assert stub.sync.called == input_manager_dhcp
 
@@ -127,7 +127,7 @@ def test_sync_systems(
     filelock_mock = mocker.patch("cobbler.utils.filelock")
 
     # Act
-    assert filelock_mock.called_once_with("/var/lib/cobbler/lock")
+    filelock_mock.assert_called_once_with("/var/lib/cobbler/lock")
     with expected_exception:
         cobbler_api.sync_systems(input_systems, input_verbose)
 

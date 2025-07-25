@@ -14,11 +14,12 @@ APACHE2 = $(shell which apache2)
 # Debian / Ubuntu have /bin/sh -> dash
 SHELL = /bin/bash
 
+NAME=$(shell basename $(CURDIR))
+VERSION=$(shell grep -Po '(?<=VERSION = ")[0-9]+\.[0-9]+\.[0-9]+(?=")' setup.py)
 TOP_DIR:=$(shell pwd)
 DESTDIR=/
 
 prefix=devinstall
-statepath=/tmp/cobbler_settings/$(prefix)
 
 # Taken from: https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
@@ -60,7 +61,7 @@ doc: ## Creates the documentation with sphinx in html form.
 	@cd docs; make html > /dev/null 2>&1
 
 man: ## Creates documentation and man pages using Sphinx
-	@${PYTHON} -m sphinx -b man -j auto ./docs ./build/sphinx/man
+	@cd docs; make man > /dev/null 2>&1
 
 qa: ## If black is found then it is run.
 ifeq ($(strip $(BLACK)),)
@@ -73,19 +74,14 @@ endif
 authors: ## Creates the AUTHORS file.
 	@echo "creating: AUTHORS"
 	@cp AUTHORS.in AUTHORS
+	@git config --global --add safe.directory /code
 	@git log --format='%aN <%aE>' | grep -v 'root' | sort -u >> AUTHORS
 
-sdist: authors ## Creates the sdist for release preparation.
-	@echo "creating: sdist"
-	@source distro_build_configs.sh; \
-	${PYTHON} setup.py sdist bdist_wheel
-
-release: clean qa authors sdist ## Creates the full release.
+release: clean qa authors ## Creates the full release.
 	@echo "creating: release artifacts"
+	@bash -c 'name=${NAME}; cd ..; tar --transform="s/${NAME}/${NAME}-${VERSION}/" --exclude ".idea" --exclude ".mypy_cache" --exclude="venv" --exclude "dist" --exclude "build" -czf "$$name.tar.gz" "$$name"'
 	@mkdir release
-	@cp dist/*.gz release/
-	@cp distro_build_configs.sh release/
-	@cp cobbler.spec release/
+	@mv ../${NAME}.tar.gz ./release/${NAME}-${VERSION}.tar.gz
 
 test-rocky9: ## Executes the testscript for testing cobbler in a docker container on Rocky Linux 9.
 	./docker/rpms/build-and-install-rpms.sh rl8 docker/rpms/Rocky_Linux_9/Rocky_Linux_9.dockerfile
@@ -108,60 +104,27 @@ system-test: ## Runs the system tests
 system-test-env: ## Configures the environment for system tests
 	$(MAKE) -C system-tests bootstrap
 
-build: ## Runs the Python Build.
-	@source distro_build_configs.sh; \
-	${PYTHON} setup.py build -f --executable=${PYTHON}
+build: authors ## Runs the Python Build.
+	@echo "building: manpages"
+	@cd docs; make man > /dev/null 2>&1
+	@echo "building: Python package"
+	@git config --global --add safe.directory /code; \
+	${PYTHON} -m pip wheel --verbose --wheel-dir ./build .
 
 install: build ## Runs the build target and then installs via setup.py
-	# Debian/Ubuntu requires an additional parameter in setup.py
-	@source distro_build_configs.sh; \
-	git config --add safe.directory /code; \
-	${PYTHON} setup.py install --root $(DESTDIR) -f
-
-devinstall: ## This deletes the /usr/share/cobbler directory and then runs the targets savestate, install and restorestate.
-	-rm -rf $(DESTDIR)/usr/share/cobbler
-	make savestate
-	make install
-	make restorestate
-
-savestate: ## This runs the setup.py task savestate.
-	@source distro_build_configs.sh; \
-	${PYTHON} setup.py -v savestate --root $(DESTDIR); \
-
-
-restorestate: ## This restores a state which was previously saved via the target savestate. (Also run via setup.py)
-	# Check if we are on Red Hat, SUSE or Debian based distribution
-	@source distro_build_configs.sh; \
-	${PYTHON} setup.py -v restorestate --root $(DESTDIR); \
-	find $(DESTDIR)/var/lib/cobbler/triggers | xargs chmod +x
-	if [ -d $(DESTDIR)/var/www/cobbler ] ; then \
-		chmod -R +x $(DESTDIR)/var/www/cobbler/svc; \
-	fi
-	if [ -d $(DESTDIR)/srv/www/cobbler/svc ]; then \
-		chmod -R +x $(DESTDIR)/srv/www/cobbler/svc; \
-	fi
-	rm -rf $(statepath)
-
-webtest: devinstall ## Runs the task devinstall and then runs the targets clean and devinstall.
-	make clean
-	make devinstall
+	@git config --global --add safe.directory /code; \
+	${PYTHON} -m pip install --verbose --no-compile --no-deps --no-index --root $(DESTDIR) ./build/cobbler*.whl
 
 rpms: release ## Runs the target release and then creates via rpmbuild the rpms in a directory called rpm-build.
-	mkdir -p rpm-build
-	cp dist/*.gz rpm-build/
+	mkdir -p rpm-build/SOURCES
+	cp release/*.gz rpm-build/SOURCES
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \
-	--define "_builddir %{_topdir}" \
-	--define "_rpmdir %{_topdir}" \
-	--define "_srcrpmdir %{_topdir}" \
-	--define "_specdir %{_topdir}" \
 	--define '_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm' \
-	--define "_sourcedir  %{_topdir}" \
 	-ba cobbler.spec
 
 # Only build a binary package
 debs: authors ## Creates native debs in a directory called deb-build. The release target is called during the build process.
-	@source distro_build_configs.sh; \
-    debuild -us -uc
+	@debuild -us -uc
 	@mkdir -p deb-build; \
     cp ../cobbler_* deb-build/; \
     cp ../cobbler-tests* deb-build/

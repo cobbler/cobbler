@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - 'v*'
+      - "v*"
 
 env:
   DATAPATH: "/usr/share/cobbler"
@@ -14,7 +14,6 @@ env:
   LIBPATH: "/var/lib/cobbler"
   LOGPATH: "/var/log"
   COMPLETION_PATH: "/usr/share/bash-completion/completions"
-  STATEPATH: "/tmp/cobbler_settings/devinstall"
   HTTPD_SERVICE: "apache2.service"
   WEBROOT: "/var/www"
   WEBCONFIG: "/etc/apache2/sites-available"
