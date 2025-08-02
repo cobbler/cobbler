@@ -189,7 +189,6 @@ if __name__ == "__main__":
         ],
         entry_points={
             "console_scripts": [
-                "cobbler = cobbler.cli:main",
                 "cobblerd = cobbler.cobblerd:main",
             ]
         },

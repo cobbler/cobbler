@@ -51,10 +51,10 @@ cobbler.cexceptions module
    :undoc-members:
    :show-inheritance:
 
-cobbler.cli module
-------------------
+cobbler.cobblerd module
+-----------------------
 
-.. automodule:: cobbler.cli
+.. automodule:: cobbler.cobblerd
    :members:
    :undoc-members:
    :show-inheritance:
