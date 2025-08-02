@@ -1,0 +1,10 @@
+##Configurations in this section are applied upon first boot, after the system installation completes and exits.
+  user-data:
+    ntp:
+      enabled: true
+      ntp_client: chrony
+      pools: [$http_server, us.pool.ntp.org]
+    rsyslog:
+      config_filename: rsyslog_remote.conf
+      configs:
+        - "*.* @@127.0.0.1"

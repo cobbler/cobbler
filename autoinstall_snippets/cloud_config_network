@@ -1,0 +1,74 @@
+#if $getVar("system_name","") != ""
+  network:
+    ethernets:
+    #set ikeys = $interfaces.keys()
+    #import re
+    #for $iname in $ikeys
+        #set $idata = $interfaces[$iname]
+        ## Ignore BMC interface
+        #if $idata["interface_type"].lower() == "bmc"
+            #continue
+        #end if
+    #end for
+    #for $iname in $ikeys
+        #set $idata    = $interfaces[$iname]
+        #set $mac      = $idata["mac_address"]
+        #set $static   = $idata["static"]
+        #set $ip       = $idata["ip_address"]
+        #set $netmask  = $idata["netmask"]
+        #set $type     = $idata["interface_type"]
+        #set $routes   = $idata["static_routes"]
+        ## Ignore BMC interface
+        #if $type == "bmc"
+            #continue
+        #end if
+      $iname:
+        match:
+          macaddress: $mac
+        #if $static == True:
+            #if $ip != "":
+        dhcp4: false
+        addresses:
+                #if $netmask != "":
+                    #set $mask = sum([bin(int(x)).count('1') for x in $netmask.split('.')])
+          - $ip/$mask
+                #else
+          - $ip/24
+                #end if
+                #if ($gateway and $gateway != "") or ($routes and $routes[0] != ""):
+        routes:
+                    #if $gateway and $gateway != "":
+          - to: 0.0.0.0/0
+            via: $gateway
+                    #end if
+                    #for $route in $routes
+                        #set $netroute = $route.split(":")
+                        #if $netroute[1] != "":
+          - to: $netroute[0]
+            via: $netroute[1]
+                        #end if
+                    #end for
+                #end if
+                #if $name_servers and $name_servers[0] != "":
+        nameservers:
+          addresses:
+                    #for $dns in $name_servers
+            - $dns
+                    #end for
+                #end if
+            #else
+        dhcp4: true
+            #end if
+        #else
+        dhcp4: true
+        #end if
+    #end for
+    version: 2
+#else
+## profile based install so use DHCP
+  network:
+    ethernets:
+      eth0:
+        dhcp4: true
+    version: 2
+#end if
