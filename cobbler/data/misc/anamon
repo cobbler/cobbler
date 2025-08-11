@@ -167,6 +167,7 @@ def anamon_loop():
     slog = WatchedFile("/tmp/syslog", "sys.log")
     xlog = WatchedFile("/tmp/X.log", "X.log")
     llog = WatchedFile("/tmp/lvmout", "lvmout.log")
+    packaging_log = WatchedFile("/tmp/packaging.log", "packaging.log")
     storage_log = WatchedFile("/tmp/storage.log", "storage.log")
     prgm_log = WatchedFile("/tmp/program.log", "program.log")
     vnc_log = WatchedFile("/tmp/vncserver.log", "vncserver.log")
@@ -219,6 +220,7 @@ def anamon_loop():
             mod,
             llog,
             kcfg,
+            packaging_log,
             storage_log,
             prgm_log,
             vnc_log,
