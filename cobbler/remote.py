@@ -2733,7 +2733,7 @@ class CobblerXMLRPCInterface:
         )
         if obj is None or isinstance(obj, list):
             raise ValueError(f'Item with uuid "{item_uuid}" does not exist!')
-        self.api.dump_vars(obj, formatted_output, remove_dicts)
+        return self.api.dump_vars(obj, formatted_output, remove_dicts)
 
     def get_blended_data(
         self, profile: Optional[str] = None, system: Optional[str] = None

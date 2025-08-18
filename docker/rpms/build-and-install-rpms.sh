@@ -104,8 +104,6 @@ if $RUN_SYSTEM_TESTS
 then
     echo "==> Wait 15 sec. because supervisord gets two unkown sighups"
     $EXECUTOR exec -t cobbler bash -c 'sleep 15'
-    echo "==> Preparing the container for system tests..."
-    $EXECUTOR exec --privileged -t cobbler make system-test-env
     echo "==> Running system tests ..."
     $EXECUTOR exec --privileged -t cobbler make system-test
 fi

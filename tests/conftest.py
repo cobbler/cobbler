@@ -5,13 +5,15 @@ Fixtures that are shared between all tests inside the testsuite.
 import os
 import pathlib
 import shutil
+import subprocess
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Generator
 
 import pytest
 
 from cobbler.api import CobblerAPI
+from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image
 from cobbler.items.menu import Menu
@@ -28,58 +30,63 @@ def does_not_raise():
     yield
 
 
-@pytest.fixture(scope="function")
-def cobbler_api() -> CobblerAPI:
+@pytest.fixture(name="os_setup", scope="session", autouse=True)
+def fixture_os_setup():
+    """
+    Fixture to setup the environment for integration tests.
+    """
+    server = "192.168.1.1"
+    bridge = "pxe"
+    etc_qemu = (
+        "/etc/qemu-kvm" if pathlib.Path("/etc/qemu-kvm").exists() else "/etc/qemu"
+    )
+    subprocess.run(
+        f"ip link add {bridge} type bridge && ip address add {server}/24 dev {bridge} && ip link set up dev {bridge}",
+        shell=True,
+        check=True,
+    )
+    pathlib.Path(etc_qemu).mkdir(exist_ok=True)
+    subprocess.run(
+        f"echo allow {bridge} >>{etc_qemu}/bridge.conf",
+        shell=True,
+        check=True,
+    )
+    yield
+    subprocess.run(f"ip link delete {bridge}", shell=True, check=True)
+
+
+@pytest.fixture(name="cobbler_api", scope="function")
+def fixture_cobbler_api() -> CobblerAPI:
     """
     Fixture that represents the Cobbler API for a single test.
     """
     # pylint: disable=protected-access
-    CobblerAPI.__shared_state = {}  # type: ignore
-    CobblerAPI.__has_loaded = False  # type: ignore
+    CollectionManager._CollectionManager__shared_state.clear()  # type: ignore
+    CollectionManager.has_loaded = False
+    CobblerAPI._CobblerAPI__shared_state.clear()  # type: ignore
+    CobblerAPI._CobblerAPI__has_loaded = False  # type: ignore
     return CobblerAPI()
 
 
-@pytest.fixture(scope="function", autouse=True)
-def reset_settings_yaml(tmp_path: pathlib.Path):
+@pytest.fixture(name="reset_settings_yaml", scope="function", autouse=True)
+def fixture_reset_settings_yaml() -> Generator[None, None, None]:
     """
     Fixture that automatically resets the settings YAML after every test.
     """
-    filename = "settings.yaml"
-    filepath = "/etc/cobbler/%s" % filename
-    shutil.copy(filepath, tmp_path.joinpath(filename))
+    settings = pathlib.Path("/etc/cobbler/settings.yaml")
+    backup_settings = pathlib.Path("/etc/cobbler/settings.yaml.bak")
+    integration_test_settings = pathlib.Path(
+        "/code/tests/integration/data/settings.yaml"
+    )
+    settings.rename("/etc/cobbler/settings.yaml.bak")
+    shutil.copy(integration_test_settings, "/etc/cobbler/settings.yaml")
     yield
-    shutil.copy(tmp_path.joinpath(filename), filepath)
+    pathlib.Path("/etc/cobbler/settings.yaml").unlink()
+    backup_settings.rename("/etc/cobbler/settings.yaml")
 
 
-@pytest.fixture(scope="function", autouse=True)
-def reset_items(cobbler_api: CobblerAPI):
-    """
-    Fixture that deletes all items automatically after every test.
-    """
-    for system in cobbler_api.systems():
-        cobbler_api.remove_system(system.name, with_triggers=False, with_sync=False)
-    for image in cobbler_api.images():
-        cobbler_api.remove_image(image.name, with_triggers=False, with_sync=False)
-    test_profiles = list(cobbler_api.profiles())
-    if len(test_profiles) > 0:
-        test_profiles.sort(key=lambda x: -x.depth)
-        for profile in test_profiles:
-            cobbler_api.remove_profile(
-                profile.name, with_triggers=False, with_sync=False
-            )
-    for distro in cobbler_api.distros():
-        cobbler_api.remove_distro(distro.name, with_triggers=False, with_sync=False)
-    for repo in cobbler_api.repos():
-        cobbler_api.remove_repo(repo.name, with_triggers=False, with_sync=False)
-    test_menus = list(cobbler_api.menus())
-    if len(test_menus) > 0:
-        test_menus.sort(key=lambda x: -x.depth)
-        for menu in test_menus:
-            cobbler_api.remove_menu(menu.name, with_triggers=False, with_sync=False)
-
-
-@pytest.fixture(scope="function")
-def create_testfile(tmp_path: pathlib.Path):
+@pytest.fixture(name="create_testfile", scope="function")
+def fixture_create_testfile(tmp_path: pathlib.Path):
     """
     Fixture that provides a method to create an arbitrary file inside the folder specifically for a single test.
     """
@@ -93,8 +100,8 @@ def create_testfile(tmp_path: pathlib.Path):
     return _create_testfile
 
 
-@pytest.fixture(scope="function")
-def create_kernel_initrd(create_testfile: Callable[[str], None]):
+@pytest.fixture(name="create_kernel_initrd", scope="function")
+def fixture_create_kernel_initrd(create_testfile: Callable[[str], None]):
     """
     Creates a kernel and initrd pair in the folder for the current test.
     """
@@ -128,8 +135,8 @@ def create_distro(
         )
         if name != "":
             test_distro.name = name
-        test_distro.kernel = os.path.join(test_folder, fk_kernel)
-        test_distro.initrd = os.path.join(test_folder, fk_initrd)
+        test_distro.kernel = os.path.join(test_folder, fk_kernel)  # type: ignore
+        test_distro.initrd = os.path.join(test_folder, fk_initrd)  # type: ignore
         if with_add:
             cobbler_api.add_distro(test_distro)
         return test_distro
@@ -156,9 +163,9 @@ def create_profile(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
         if name != "":
             test_profile.name = name
         if profile_name == "":
-            test_profile.distro = distro_name
+            test_profile.distro = distro_name  # type: ignore
         else:
-            test_profile.parent = profile_name
+            test_profile.parent = profile_name  # type: ignore
         cobbler_api.add_profile(test_profile)
         return test_profile
 
@@ -207,10 +214,10 @@ def create_system(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
         else:
             test_system.name = name
         if profile_name != "":
-            test_system.profile = profile_name
+            test_system.profile = profile_name  # type: ignore
         if image_name != "":
-            test_system.image = image_name
-        test_system.interfaces = {
+            test_system.image = image_name  # type: ignore
+        test_system.interfaces = {  # type: ignore
             "default": NetworkInterface(cobbler_api, test_system.name)  # type: ignore
         }
         cobbler_api.add_system(test_system)
@@ -236,7 +243,7 @@ def create_menu(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
                 else request.node.name  # type: ignore
             )
 
-        test_menu.display_name = display_name
+        test_menu.display_name = display_name  # type: ignore
 
         cobbler_api.add_menu(test_menu)
         return test_menu
@@ -249,6 +256,7 @@ def cleanup_leftover_items():
     """
     Will delete all JSON files which are left in Cobbler before a testrun!
     """
+    collection_path = pathlib.Path("/var/lib/cobbler/collections")
     cobbler_collections = [
         "distros",
         "images",
@@ -258,14 +266,14 @@ def cleanup_leftover_items():
         "systems",
     ]
     for collection in cobbler_collections:
-        path = os.path.join("/var/lib/cobbler/collections", collection)
-        for file in os.listdir(path):
-            json_file = os.path.join(path, file)
-            os.remove(json_file)
+        path = collection_path / collection
+        for file in path.iterdir():
+            file.unlink()
+            print(f"Deleted {str(file)}")
 
 
-@pytest.fixture(scope="function")
-def fk_initrd(request: "pytest.FixtureRequest") -> str:
+@pytest.fixture(name="fk_initrd", scope="function")
+def fixture_fk_initrd(request: "pytest.FixtureRequest") -> str:
     """
     The path to the first fake initrd.
 
@@ -276,8 +284,8 @@ def fk_initrd(request: "pytest.FixtureRequest") -> str:
     )
 
 
-@pytest.fixture(scope="function")
-def fk_kernel(request: "pytest.FixtureRequest") -> str:
+@pytest.fixture(name="fk_kernel", scope="function")
+def fixture_fk_kernel(request: "pytest.FixtureRequest") -> str:
     """
     The path to the first fake kernel.
 
