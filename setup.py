@@ -183,13 +183,11 @@ if __name__ == "__main__":
             exclude=["*tests*", "contrib*", "docs", "bin"]
         ),
         include_package_data=True,
-        scripts=[
-            "bin/cobbler-settings",
-        ],
         entry_points={
             "console_scripts": [
                 "cobbler = cobbler.cli:main",
                 "cobblerd = cobbler.cobblerd:main",
+                "cobbler-settings = cobbler.settings.cli:main",
             ]
         },
     )

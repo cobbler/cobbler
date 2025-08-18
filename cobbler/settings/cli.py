@@ -1,7 +1,7 @@
-#!/usr/bin/python3
 """
 Tool to manage the settings of Cobbler without the daemon running.
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
@@ -10,7 +10,6 @@ Tool to manage the settings of Cobbler without the daemon running.
 
 
 import argparse
-import sys
 from typing import List
 
 import yaml
@@ -39,7 +38,9 @@ def __check_settings(filepath: str, settings_to_preserve: list) -> dict:
         print(str(error))
         return {}
 
-    settings_version = migrations.get_settings_file_version(result, settings_to_preserve)
+    settings_version = migrations.get_settings_file_version(
+        result, settings_to_preserve
+    )
     if settings_version == EMPTY_VERSION:
         print("Error detecting settings file version!")
         return {}
@@ -63,7 +64,9 @@ def validate(args: argparse.Namespace) -> int:
         return 1
 
     # Exclude settings to preserve from the list of settings to migrate
-    result, data_to_exclude_from_validation = migrations.filter_settings_to_validate(result, args.preserve_settings)
+    result, data_to_exclude_from_validation = migrations.filter_settings_to_validate(
+        result, args.preserve_settings
+    )
 
     version_split = args.version.split(".")
     version = migrations.CobblerVersion(*version_split)
@@ -92,7 +95,9 @@ def migrate(args: argparse.Namespace) -> int:
     new_list = args.new.split(".")
     new = migrations.CobblerVersion(*new_list)
 
-    result_settings = migrations.migrate(settings_dict, args.config, old, new, args.preserve_settings)
+    result_settings = migrations.migrate(
+        settings_dict, args.config, old, new, args.preserve_settings
+    )
 
     # only if --target supplied
     if args.target is not None:
@@ -172,8 +177,8 @@ parser.add_argument(
     "--preserve-settings",
     help="Comma separeted list of custom settings to preserve during migration",
     dest="preserve_settings",
-    type=lambda arg: arg.split(','),
-    default=[]
+    type=lambda arg: arg.split(","),
+    default=[],
 )
 subparsers = parser.add_subparsers(
     title="Subcommands", help="One of these commands is required."
@@ -249,13 +254,12 @@ parser_modify.add_argument(
 )
 
 
-def main(args: List[str]) -> int:
-    parsed_args = parser.parse_args(args[1:])
+def main() -> int:
+    """
+    Main entrypoint for the the ``cobbler-settings`` script.
+    """
+    parsed_args = parser.parse_args()
     if hasattr(parsed_args, "func"):
         return parsed_args.func(parsed_args)
     parser.print_help()
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main(sys.argv))
