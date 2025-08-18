@@ -357,7 +357,6 @@ chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
 %config(noreplace) %{_sysconfdir}/cobbler/windows/post_inst_cmd.template
 %config(noreplace) %{_sysconfdir}/cobbler/windows/startnet.template
 %{_bindir}/cobbler
-%{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd
 %{_bindir}/cobbler-settings
 %{_mandir}/man1/cobbler.1*
