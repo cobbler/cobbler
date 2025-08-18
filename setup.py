@@ -184,7 +184,6 @@ if __name__ == "__main__":
         ),
         include_package_data=True,
         scripts=[
-            "bin/cobbler-ext-nodes",
             "bin/cobbler-settings",
         ],
         entry_points={
