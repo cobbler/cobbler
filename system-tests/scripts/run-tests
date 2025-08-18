@@ -38,7 +38,7 @@ for test in $(list_selected_tests); do
 	test_dir=${SYSTESTS_TMP}/${test}
 	printf '  %s... ' ${test}
 	mkdir -p ${test_dir}
-	env TEST_NAME=${test} ${topdir}/tests/${test} >${test_dir}/_output 2>&1
+	${topdir}/tests/${test} >${test_dir}/_output 2>&1
 	if [ ${?} -eq 0 ]; then
 		echo ok
 	else
@@ -56,7 +56,7 @@ if [ ${#failed_tests[@]} != 0 ]; then
 	done
 	echo
 	echo "The outputs of the failed tests below."
- 	echo "The last command is the one that failed."
+	echo "The last command is the one that failed."
 	echo
 	for test in ${failed_tests[@]}; do
 		echo "==> ${SYSTESTS_TMP}/${test}/output <=="

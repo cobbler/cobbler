@@ -5,6 +5,7 @@ source ${SYSTESTS_PRELUDE} && prepare
 
 set -x -e -o pipefail
 
+TEST_NAME=$(basename "$0")
 breed=$(echo "$TEST_NAME" | cut -d- -f2)
 distro=$(echo "$TEST_NAME" | cut -d- -f3)
 

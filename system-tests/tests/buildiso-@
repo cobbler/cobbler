@@ -4,6 +4,7 @@
 
 source ${SYSTESTS_PRELUDE} && prepare
 
+TEST_NAME=$(basename "$0")
 build_iso_test=${TEST_NAME#buildiso-}
 
 trap cleanup EXIT
