@@ -32,7 +32,7 @@ Here you should find a comprehensive overview about the usage of Cobbler.
 
    Quickstart Guide <quickstart-guide>
    Install Guide <installation-guide>
-   Cobbler CLI <cobbler>
+   Cobbler CLI <https://cobbler-cli.readthedocs.io/en/latest/>
    Cobbler Server <cobblerd>
    Cobbler Configuration <cobbler-conf>
    User Guide <user-guide>

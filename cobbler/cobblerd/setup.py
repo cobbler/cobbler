@@ -81,10 +81,6 @@ def setup_cobblerd_manpages(
     Use the embedded manpages and install them into the system.
     """
     man_directory = base_path
-    man1_files = resource_files.joinpath("man").joinpath("man1")
-    man1_directory = man_directory / "man1"
-    man1_directory.mkdir(parents=True, exist_ok=True)
-    copy_directory(man1_files, man1_directory)
     man5_files = resource_files.joinpath("man").joinpath("man5")
     man5_directory = man_directory / "man5"
     man5_directory.mkdir(parents=True, exist_ok=True)
@@ -143,25 +139,6 @@ def setup_cobblerd_nginx(
     nginx_config_directory = base_path / "etc" / "nginx" / "cobbler"
     nginx_config_directory.mkdir(parents=True, exist_ok=True)
     copy_directory(nginx_config_files, nginx_config_directory)
-
-
-def setup_cobblerd_bash_completion(
-    base_path: pathlib.Path, resource_files: "Traversable"
-) -> None:
-    """
-    Use the embedded Bash completion file and install it into the system.
-    """
-    bash_completion_file = (
-        resource_files.joinpath("config")
-        .joinpath("bash")
-        .joinpath("completion")
-        .joinpath("cobbler")
-    )
-    bash_completion_directory = (
-        base_path / "usr" / "share" / "bash-completion" / "completions"
-    )
-    bash_completion_directory.mkdir(parents=True, exist_ok=True)
-    copy_file(bash_completion_file, bash_completion_directory / "cobbler")
 
 
 def setup_cobblerd_log_directories(base_path: pathlib.Path, apache_user: str) -> None:
@@ -252,9 +229,6 @@ def setup_cobblerd(
         setup_cobblerd_apache(webconfigpath, resource_files)
     if "nginx" in scope or "full" in scope:
         setup_cobblerd_nginx(base_path, resource_files)
-    # Create Bash completion
-    if "bashcompletion" in scope or "full" in scope:
-        setup_cobblerd_bash_completion(base_path, resource_files)
     # Create Cheetah Macros
     cheetah_macros_file = (
         resource_files.joinpath("config").joinpath("cheetah").joinpath("cheetah_macros")

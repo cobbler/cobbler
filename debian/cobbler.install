@@ -4,4 +4,3 @@ usr/lib/
 var/log/
 var/lib/
 usr/share/man/
-usr/share/bash-completion
