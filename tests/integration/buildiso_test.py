@@ -64,8 +64,6 @@ def fixture_buildiso_cleanup(
         "net",
         "non-standard-directory",
         "ppc64le",
-        "redhat-cloudlinux8",
-        "redhat-cloudlinux9",
     ],
 )
 def test_buildiso_integration(

@@ -26,6 +26,8 @@ from tests.integration.conftest import WaitTaskEndType
         ("freebsd", "freebsd13.1"),
         ("freebsd", "freebsd13.2"),
         ("redhat", "cloudlinux7"),
+        ("redhat", "cloudlinux8"),
+        ("redhat", "cloudlinux9"),
         ("redhat", "fedora36"),
         ("redhat", "fedora37"),
         ("redhat", "fedora38"),
