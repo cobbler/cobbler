@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test: [basic_test, import_test, settings_cli_test, svc_test]
+        test: [basic_test, buildiso_test, import_test, settings_cli_test, svc_test]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
