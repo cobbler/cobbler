@@ -294,7 +294,7 @@ class AutoInstallationGen:
             # this is an image parented system, no automatic installation file available
             return "# image based systems do not have automatic installation files"
 
-        return self.generate_autoinstall(profile=profile_obj, system=system_obj)
+        return self.generate_autoinstall(profile=None, system=system_obj)
 
     def generate_autoinstall(
         self, profile: Optional["Profile"] = None, system: Optional["System"] = None
@@ -309,12 +309,12 @@ class AutoInstallationGen:
                        this wins.
         :return: The autoinstall script or configuration file as a string.
         """
-        obj = None
+        obj: Optional[Union["System", "Profile"]] = None
         obj_type = "none"
-        if profile:
+        if system and profile is None:
             obj = system
             obj_type = "system"
-        if system is None:
+        if profile and system is None:
             obj = profile
             obj_type = "profile"
 
@@ -395,7 +395,7 @@ class AutoInstallationGen:
         if distro is None:
             raise CX(f'Profile "{profile_obj.name}" references missing distro!')
 
-        return self.generate_autoinstall(profile=profile_obj)
+        return self.generate_autoinstall(profile=profile_obj, system=None)
 
     def get_last_errors(self) -> List[Any]:
         """
