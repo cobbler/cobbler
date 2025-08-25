@@ -1,0 +1,45 @@
+# Cobbler settings file
+# Docs for this file can be found at: https://cobbler.readthedocs.io/en/latest/cobbler-conf.html
+
+bind_zonefile_path: '@@bind_zonefiles@@'
+bootloaders_ipxe_folder: '@@ipxe_folder@@'
+bootloaders_shim_file: '@@shim_file@@'
+bootloaders_shim_folder: '@@shim_folder@@'
+build_reporting_email:
+- root@localhost
+cheetah_import_whitelist:
+- random
+- re
+- time
+- netaddr
+createrepo_flags: --cachedir=cache --update
+default_password_crypted: /UHC.
+default_virt_bridge: xenbr0
+default_virt_type: xenpv
+grub2_mod_dir: '@@grub_mod_folder@@'
+ldap_base_dn: DC=example,DC=com
+ldap_server: ldap.example.com
+ldap_tls_reqcert: ''
+puppet_server: ''
+reposync_flags: --newest-only --delete --refresh --remote-time
+reposync_rsync_flags: -rltDv --copy-unsafe-links
+syslinux_dir: '@@syslinux_dir@@'
+syslinux_memdisk_folder: '@@memdisk_folder@@'
+syslinux_pxelinux_folder: '@@pxelinux_folder@@'
+tftpboot_location: '@@tftproot@@'
+webdir: '@@webroot@@/cobbler'
+webdir_whitelist:
+- misc
+- web
+- webui
+- localmirror
+- repo_mirror
+- distro_mirror
+- images
+- links
+- pub
+- repo_profile
+- repo_system
+- svc
+- rendered
+- .link_cache

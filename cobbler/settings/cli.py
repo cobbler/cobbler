@@ -11,6 +11,7 @@ Tool to manage the settings of Cobbler without the daemon running.
 
 import argparse
 from typing import List
+from typing import Optional as TOptional
 
 import yaml
 from schema import Optional, SchemaError
@@ -254,11 +255,11 @@ parser_modify.add_argument(
 )
 
 
-def main() -> int:
+def main(args: TOptional[List[str]] = None) -> int:
     """
     Main entrypoint for the the ``cobbler-settings`` script.
     """
-    parsed_args = parser.parse_args()
+    parsed_args = parser.parse_args(args=args)
     if hasattr(parsed_args, "func"):
         return parsed_args.func(parsed_args)
     parser.print_help()

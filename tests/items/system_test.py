@@ -25,9 +25,12 @@ if TYPE_CHECKING:
 @pytest.fixture(name="test_settings")
 def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> Settings:
     settings = mocker.MagicMock(
-        name="profile_setting_mock", spec=cobbler_api.settings()
+        name="profile_setting_mock",
+        spec=Settings,
+        autospec=True,
     )
     orig = cobbler_api.settings()
+    settings.to_dict = orig.to_dict
     for key in orig.to_dict():
         setattr(settings, key, getattr(orig, key))
     return settings

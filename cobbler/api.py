@@ -212,7 +212,6 @@ class CobblerAPI:
 
         self.__dict__ = CobblerAPI.__shared_state
         self.mtime_location = "/var/lib/cobbler/.mtime"
-        self.perms_ok = False
         if not CobblerAPI.__has_loaded:
             # NOTE: we do not log all API actions, because a simple CLI invocation may call adds and such to load the
             # config, which would just fill up the logs, so we'll do that logging at CLI level (and remote.py web
@@ -262,7 +261,6 @@ class CobblerAPI:
             self.tftpgen = tftpgen.TFTPGen(self)
             self.__directory_startup_preparations()
             self.logger.debug("API handle initialized")
-            self.perms_ok = True
 
     def __directory_startup_preparations(self) -> None:
         """

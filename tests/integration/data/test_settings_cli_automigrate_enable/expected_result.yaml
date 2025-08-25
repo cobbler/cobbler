@@ -1,0 +1,4 @@
+# Cobbler settings file
+# Docs for this file can be found at: https://cobbler.readthedocs.io/en/latest/cobbler-conf.html
+
+auto_migrate_settings: true

@@ -1,9 +1,3 @@
-run:
-	scripts/run-tests $(SYSTESTS)
-
-bootstrap:
-	scripts/bootstrap
-
 listing:
 	scripts/list-iso $(ISO) $(BREED) $(DISTRO)
 
@@ -13,4 +7,4 @@ images/dummy/bios-disk:
 images/dummy/initramfs.gz:
 	scripts/create-dummy-bios-disk $@
 
-.PHONY: run bootstrap results listing
+.PHONY: results listing

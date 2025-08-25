@@ -82,8 +82,7 @@ def test_repo_walker(mocker: "MockerFixture", tmp_path: Path):
 
     # Assert
     assert spy.mock_calls == [
-        # settings.yaml is here because of our autouse fixture that we use to restore the settings
-        mocker.call(None, tmp_path, ["settings.yaml", "sub1", "sub2"]),
+        mocker.call(None, tmp_path, ["sub1", "sub2"]),
         mocker.call(None, str(subdir1), []),
         mocker.call(None, str(subdir2), []),
     ]

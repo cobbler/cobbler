@@ -1,0 +1,5 @@
+#!ipxe
+kernel /images/fake/vmlinuz  
+initrd /images/fake/initramfs
+boot
+

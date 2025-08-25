@@ -73,7 +73,7 @@ class AutoInstallationGen:
         scripts = document.getElementsByTagName("scripts")  # type: ignore
         if scripts.length == 0:  # type: ignore
             new_scripts = document.createElement("scripts")
-            document.documentElement.appendChild(new_scripts)
+            document.documentElement.appendChild(new_scripts)  # type: ignore
             scripts = document.getElementsByTagName("scripts")  # type: ignore
         added = 0
         for stype in scripts[0].childNodes:  # type: ignore
@@ -118,14 +118,14 @@ class AutoInstallationGen:
             blend_this = profile
         if system:
             what = "system"
-            blend_this = system
+            blend_this = system  # type: ignore
         if blend_this is None:
             raise ValueError("Profile or System required for generating autoyast!")
 
         blended = utils.blender(self.api, False, blend_this)
         srv = blended["http_server"]
 
-        document: xml.dom.minidom.Document = xml.dom.minidom.parseString(raw_data)  # type: ignore[unkownMemberType]
+        document: xml.dom.minidom.Document = xml.dom.minidom.parseString(raw_data)  # type: ignore
 
         # Do we already have the #raw comment in the XML? (add_comment = 0 means, don't add #raw comment)
         add_comment = 1
@@ -294,7 +294,7 @@ class AutoInstallationGen:
             # this is an image parented system, no automatic installation file available
             return "# image based systems do not have automatic installation files"
 
-        return self.generate_autoinstall(profile=profile_obj, system=system_obj)
+        return self.generate_autoinstall(profile=None, system=system_obj)
 
     def generate_autoinstall(
         self, profile: Optional["Profile"] = None, system: Optional["System"] = None
@@ -309,12 +309,12 @@ class AutoInstallationGen:
                        this wins.
         :return: The autoinstall script or configuration file as a string.
         """
-        obj = None
+        obj: Optional[Union["System", "Profile"]] = None
         obj_type = "none"
-        if profile:
+        if system and profile is None:
             obj = system
             obj_type = "system"
-        if system is None:
+        if profile and system is None:
             obj = profile
             obj_type = "profile"
 
@@ -329,8 +329,8 @@ class AutoInstallationGen:
 
         # get parent distro
         if system is not None:
-            profile = system.get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
-        distro: Optional["Distro"] = profile.get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
+            profile = system.get_conceptual_parent()  # type: ignore
+        distro: Optional["Distro"] = profile.get_conceptual_parent()  # type: ignore
 
         if distro is None:
             raise ValueError("Distro for object not found")
@@ -395,7 +395,7 @@ class AutoInstallationGen:
         if distro is None:
             raise CX(f'Profile "{profile_obj.name}" references missing distro!')
 
-        return self.generate_autoinstall(profile=profile_obj)
+        return self.generate_autoinstall(profile=profile_obj, system=None)
 
     def get_last_errors(self) -> List[Any]:
         """

@@ -18,6 +18,7 @@ NAME=$(shell basename $(CURDIR))
 VERSION=$(shell grep -Po '(?<=VERSION = ")[0-9]+\.[0-9]+\.[0-9]+(?=")' setup.py)
 TOP_DIR:=$(shell pwd)
 DESTDIR=/
+SYSTESTS="basic_test or import_test or settings_cli_test or svc_test"
 
 prefix=devinstall
 
@@ -99,10 +100,7 @@ test-debian12: ## Executes the testscript for testing cobbler in a docker contai
 	./docker/debs/build-and-install-debs.sh deb12 docker/debs/Debian_12/Debian12.dockerfile
 
 system-test: ## Runs the system tests
-	$(MAKE) -C system-tests
-
-system-test-env: ## Configures the environment for system tests
-	$(MAKE) -C system-tests bootstrap
+	${PYTHON} -m pytest -m integration -k ${SYSTESTS}
 
 build: authors ## Runs the Python Build.
 	@echo "building: manpages"
