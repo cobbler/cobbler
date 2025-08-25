@@ -73,7 +73,7 @@ class AutoInstallationGen:
         scripts = document.getElementsByTagName("scripts")  # type: ignore
         if scripts.length == 0:  # type: ignore
             new_scripts = document.createElement("scripts")
-            document.documentElement.appendChild(new_scripts)
+            document.documentElement.appendChild(new_scripts)  # type: ignore
             scripts = document.getElementsByTagName("scripts")  # type: ignore
         added = 0
         for stype in scripts[0].childNodes:  # type: ignore
@@ -118,14 +118,14 @@ class AutoInstallationGen:
             blend_this = profile
         if system:
             what = "system"
-            blend_this = system
+            blend_this = system  # type: ignore
         if blend_this is None:
             raise ValueError("Profile or System required for generating autoyast!")
 
         blended = utils.blender(self.api, False, blend_this)
         srv = blended["http_server"]
 
-        document: xml.dom.minidom.Document = xml.dom.minidom.parseString(raw_data)  # type: ignore[unkownMemberType]
+        document: xml.dom.minidom.Document = xml.dom.minidom.parseString(raw_data)  # type: ignore
 
         # Do we already have the #raw comment in the XML? (add_comment = 0 means, don't add #raw comment)
         add_comment = 1
@@ -329,8 +329,8 @@ class AutoInstallationGen:
 
         # get parent distro
         if system is not None:
-            profile = system.get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
-        distro: Optional["Distro"] = profile.get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
+            profile = system.get_conceptual_parent()  # type: ignore
+        distro: Optional["Distro"] = profile.get_conceptual_parent()  # type: ignore
 
         if distro is None:
             raise ValueError("Distro for object not found")
