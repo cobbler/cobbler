@@ -1,4 +1,8 @@
-# type: ignore
+"""
+Testmodule to verify that the API for "cobbler sync" related operations is working successfully.
+"""
+
+from typing import TYPE_CHECKING, Any, List, Optional
 from unittest.mock import MagicMock, Mock, PropertyMock, create_autospec
 
 import pytest
@@ -6,9 +10,13 @@ import pytest
 import cobbler.actions.sync
 import cobbler.modules.managers.bind
 import cobbler.modules.managers.isc
+from cobbler.api import CobblerAPI
 from cobbler.items.image import Image
 
 from tests.conftest import does_not_raise
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 @pytest.mark.parametrize(
@@ -22,7 +30,16 @@ from tests.conftest import does_not_raise
         (True, ["dns", "dhcp"], does_not_raise()),
     ],
 )
-def test_sync(cobbler_api, input_verbose, input_what, expected_exception, mocker):
+def test_sync(
+    cobbler_api: CobblerAPI,
+    input_verbose: bool,
+    input_what: Optional[List[str]],
+    expected_exception: Any,
+    mocker: "MockerFixture",
+):
+    """
+    Verify that the main entrypoint for syncing is functional.
+    """
     # Arrange
     stub = create_autospec(spec=cobbler.actions.sync.CobblerSync)
     stub_dhcp = mocker.stub()
@@ -37,7 +54,9 @@ def test_sync(cobbler_api, input_verbose, input_what, expected_exception, mocker
         cobbler_api.sync(input_verbose, input_what)
 
     # Assert
-    filelock_mock.assert_called_once_with("/var/lib/cobbler/lock")
+    if isinstance(input_what, list) and len(input_what) == 0:
+        # This is only called if we are running a full sync
+        filelock_mock.assert_called_once_with("/var/lib/cobbler/lock")
     if not input_what:
         stub.run.assert_called_once()
     if input_what and "dhcp" in input_what:
@@ -47,7 +66,12 @@ def test_sync(cobbler_api, input_verbose, input_what, expected_exception, mocker
 
 
 @pytest.mark.parametrize("input_manage_dns", [(True), (False)])
-def test_sync_dns(cobbler_api, input_manage_dns, mocker):
+def test_sync_dns(
+    cobbler_api: CobblerAPI, input_manage_dns: bool, mocker: "MockerFixture"
+):
+    """
+    Verify that the function dedicated for syncing the DNS entries is functional.
+    """
     # Arrange
     mock = MagicMock()
     m_property = PropertyMock(return_value=input_manage_dns)
@@ -58,20 +82,27 @@ def test_sync_dns(cobbler_api, input_manage_dns, mocker):
 
     # mock get_manager() and ensure mock object has the same api as the object it is replacing.
     # see https://docs.python.org/3/library/unittest.mock.html#unittest.mock.create_autospec
-    stub = create_autospec(spec=cobbler.modules.managers.bind._BindManager)
+    # pylint: disable-next=protected-access
+    stub = create_autospec(spec=cobbler.modules.managers.bind._BindManager)  # type: ignore[ignorePrivateAccess]
     mocker.patch("cobbler.modules.managers.bind.get_manager", return_value=stub)
 
     # Act
     cobbler_api.sync_dns()
 
     # Assert
-    filelock_mock.assert_called_once_with("/var/lib/cobbler/lock")
+    if input_manage_dns:
+        filelock_mock.assert_called_once_with("/var/lib/cobbler/lock")
     m_property.assert_called_once()
     assert stub.sync.called == input_manage_dns
 
 
 @pytest.mark.parametrize("input_manager_dhcp", [(True), (False)])
-def test_sync_dhcp(cobbler_api, input_manager_dhcp, mocker):
+def test_sync_dhcp(
+    cobbler_api: CobblerAPI, input_manager_dhcp: bool, mocker: "MockerFixture"
+):
+    """
+    Verify that the main function dedicated for syncing the DHCP entries is functional.
+    """
     # Arrange
     mock = MagicMock()
     m_property = PropertyMock(return_value=input_manager_dhcp)
@@ -80,19 +111,24 @@ def test_sync_dhcp(cobbler_api, input_manager_dhcp, mocker):
     mocker.patch.object(cobbler_api, "settings", return_value=mock)
     filelock_mock = mocker.patch("cobbler.utils.filelock")
 
-    stub = create_autospec(spec=cobbler.modules.managers.isc._IscManager)
+    # pylint: disable-next=protected-access
+    stub = create_autospec(spec=cobbler.modules.managers.isc._IscManager)  # type: ignore[ignorePrivateAccess]
     mocker.patch("cobbler.modules.managers.isc.get_manager", return_value=stub)
 
     # Act
     cobbler_api.sync_dhcp()
 
     # Assert
-    filelock_mock.assert_called_once_with("/var/lib/cobbler/lock")
+    if input_manager_dhcp:
+        filelock_mock.assert_called_once_with("/var/lib/cobbler/lock")
     m_property.assert_called_once()
     assert stub.sync.called == input_manager_dhcp
 
 
-def test_get_sync(mocker, cobbler_api):
+def test_get_sync(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Verify that retrieving the sync manager is successful.
+    """
     # Arrange
     stub = Mock()
     mocker.patch.object(cobbler_api, "get_module_from_file", new=stub)
@@ -119,19 +155,27 @@ def test_get_sync(mocker, cobbler_api):
     ],
 )
 def test_sync_systems(
-    cobbler_api, input_systems, input_verbose, expected_exception, mocker
+    cobbler_api: CobblerAPI,
+    input_verbose: bool,
+    input_systems: Any,
+    expected_exception: Any,
+    mocker: "MockerFixture",
 ):
+    """
+    Verify that the main function dedicated to syncing systems is functional.
+    """
     # Arrange
     stub = create_autospec(spec=cobbler.actions.sync.CobblerSync)
     mocker.patch.object(cobbler_api, "get_sync", return_value=stub)
     filelock_mock = mocker.patch("cobbler.utils.filelock")
 
     # Act
-    filelock_mock.assert_called_once_with("/var/lib/cobbler/lock")
     with expected_exception:
         cobbler_api.sync_systems(input_systems, input_verbose)
 
         # Assert
+        if len(input_systems) > 0:
+            filelock_mock.assert_called_once_with("/var/lib/cobbler/lock")
         if len(input_systems) > 0:
             stub.run_sync_systems.assert_called_once()
             stub.run_sync_systems.assert_called_with(input_systems)
@@ -139,7 +183,10 @@ def test_sync_systems(
             assert stub.run_sync_systems.call_count == 0
 
 
-def test_image_rename(cobbler_api):
+def test_image_rename(cobbler_api: CobblerAPI):
+    """
+    Verify that an image can be renamed.
+    """
     # Arrange
     testimage = Image(cobbler_api)
     testimage.name = "myimage"

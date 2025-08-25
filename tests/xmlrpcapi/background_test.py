@@ -78,6 +78,7 @@ class TestBackground:
 
     def test_background_load_items(self, remote: CobblerXMLRPCInterface):
         # Arrange
+        remote.api.settings().lazy_start = True
 
         # Act
         result = remote.background_load_items()
