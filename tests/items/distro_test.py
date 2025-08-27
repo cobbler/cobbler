@@ -380,6 +380,81 @@ def test_redhat_management_key(
         assert distro.redhat_management_key == expected_result
 
 
+@pytest.mark.parametrize(
+    "value,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), ""),
+        (["Test"], pytest.raises(TypeError), ""),
+        ("<<inherit>>", does_not_raise(), ""),
+    ],
+)
+def test_redhat_management_org(
+    cobbler_api: CobblerAPI, value: Any, expected_exception: Any, expected_result: str
+):
+    """
+    Test that verifies if the redhat management org can be set as expected.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+
+    # Act
+    with expected_exception:
+        distro.redhat_management_org = value
+
+        # Assert
+        assert distro.redhat_management_org == expected_result
+
+
+@pytest.mark.parametrize(
+    "value,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), ""),
+        (["Test"], pytest.raises(TypeError), ""),
+        ("<<inherit>>", does_not_raise(), ""),
+    ],
+)
+def test_redhat_management_user(
+    cobbler_api: CobblerAPI, value: Any, expected_exception: Any, expected_result: str
+):
+    """
+    Test that verifies if the redhat management user can be set as expected.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+
+    # Act
+    with expected_exception:
+        distro.redhat_management_user = value
+
+        # Assert
+        assert distro.redhat_management_user == expected_result
+
+
+@pytest.mark.parametrize(
+    "value,expected_exception,expected_result",
+    [
+        ("", does_not_raise(), ""),
+        (["Test"], pytest.raises(TypeError), ""),
+        ("<<inherit>>", does_not_raise(), ""),
+    ],
+)
+def test_redhat_management_password(
+    cobbler_api: CobblerAPI, value: Any, expected_exception: Any, expected_result: str
+):
+    """
+    Test that verifies if the redhat management password can be set as expected.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+
+    # Act
+    with expected_exception:
+        distro.redhat_management_password = value
+
+        # Assert
+        assert distro.redhat_management_password == expected_result
+
+
 @pytest.mark.parametrize("value", [[""], ["Test"]])
 def test_source_repos(cobbler_api: CobblerAPI, value: Any):
     """
