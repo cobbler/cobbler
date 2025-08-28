@@ -53,7 +53,7 @@ def what() -> str:
 
 class MongoDBSerializer(StorageBase):
     """
-    TODO
+    MongoDB based serializer for Cobbler items.
     """
 
     def __init__(self, api: "CobblerAPI"):
@@ -197,6 +197,7 @@ class MongoDBSerializer(StorageBase):
 
 def storage_factory(api: "CobblerAPI") -> MongoDBSerializer:
     """
-    TODO
+    Factory method to allow the serializer interface to instaniate the concrete serializer without knowing which
+    serializer is initalized.
     """
     return MongoDBSerializer(api)

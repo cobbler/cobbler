@@ -56,7 +56,7 @@ def _find_double_json_files(filename: str) -> None:
 
 class FileSerializer(StorageBase):
     """
-    TODO
+    JSON-file based serializer for Cobbler items.
     """
 
     def __init__(self, api: "CobblerAPI") -> None:
@@ -160,6 +160,7 @@ class FileSerializer(StorageBase):
 
 def storage_factory(api: "CobblerAPI") -> FileSerializer:
     """
-    TODO
+    Factory method to allow the serializer interface to instaniate the concrete serializer without knowing which
+    serializer is initalized.
     """
     return FileSerializer(api)

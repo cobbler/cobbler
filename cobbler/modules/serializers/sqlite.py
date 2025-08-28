@@ -36,14 +36,18 @@ def what() -> str:
 
 class SQLiteSerializer(StorageBase):
     """
-    Each collection is stored in a separate table named distros, profiles, etc.
-    Tables are created on demand, when the first object of this type is written.
+    SQLite based serializer for Cobbler items.
 
-    TABLE name // name from collection.collection_types()
-    (
-        name TEXT PRIMARY KEY,    // name from item.name
-        item TEXT                 // JSON representation of an object
-    )
+    Each collection is stored in a separate table named distros, profiles, etc. Tables are created on demand, when the
+    first object of this type is written.
+
+    .. code:: sql
+
+       TABLE name // name from collection.collection_types()
+       (
+           name TEXT PRIMARY KEY,    // name from item.name
+           item TEXT                 // JSON representation of an object
+       )
     """
 
     def __init__(self, api: "CobblerAPI"):
@@ -301,6 +305,7 @@ class SQLiteSerializer(StorageBase):
 
 def storage_factory(api: "CobblerAPI") -> SQLiteSerializer:
     """
-    TODO
+    Factory method to allow the serializer interface to instaniate the concrete serializer without knowing which
+    serializer is initalized.
     """
     return SQLiteSerializer(api)
