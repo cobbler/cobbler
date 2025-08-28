@@ -238,7 +238,6 @@ class System(BootableItem):
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
-        self._interfaces: Dict[str, NetworkInterface] = {}
         self._ipv6_autoconfiguration = False
         self._repos_enabled = False
         self._autoinstall = enums.VALUE_INHERITED
@@ -248,8 +247,8 @@ class System(BootableItem):
         self._hostname = ""
         self._image = ""
         self._ipv6_default_device = ""
-        self._name_servers = []
-        self._name_servers_search = []
+        self._name_servers: List[str] = []
+        self._name_servers_search: List[str] = []
         self._netboot_enabled = False
         self._next_server_v4 = enums.VALUE_INHERITED
         self._next_server_v6 = enums.VALUE_INHERITED
@@ -303,16 +302,6 @@ class System(BootableItem):
     def make_clone(self):
         _dict = copy.deepcopy(self.to_dict())
         _dict.pop("uid", None)
-        # clear all these out to avoid DHCP/DNS conflicts
-        for interface in _dict["interfaces"].values():
-            if not self.api.settings().allow_duplicate_macs:
-                interface.pop("mac_address", None)
-            if not self.api.settings().allow_duplicate_ips:
-                interface.pop("ip_address", None)
-            if not self.api.settings().allow_duplicate_ips:
-                interface.pop("ipv6_address", None)
-            if not self.api.settings().allow_duplicate_hostnames:
-                interface.pop("dns_name", None)
         return System(self.api, **_dict)
 
     def check_if_valid(self):
@@ -345,85 +334,17 @@ class System(BootableItem):
         :setter: Accepts not only the correct type but also a dict with dicts which will then be converted by the
                  setter.
         """
-        return self._interfaces
-
-    @interfaces.setter
-    def interfaces(self, value: Dict[str, Any]):
-        """
-        This methods needs to be able to take a dictionary from ``make_clone()``
-
-        :param value: The new interfaces.
-        """
-        if not isinstance(value, dict):  # type: ignore
-            raise TypeError("interfaces must be of type dict")
-        dict_values = list(value.values())
-        collection = self.api.systems()
-        if all(isinstance(x, NetworkInterface) for x in dict_values):
-            for network_iface in value.values():
-                network_iface.system_uid = self.uid
-            collection.update_interfaces_indexes(self, value)
-            self._interfaces = value
-            return
-        if all(isinstance(x, dict) for x in dict_values):
-            for key in value:
-                network_iface = NetworkInterface(self.api, self.uid)
-                network_iface.from_dict(value[key])
-                collection.update_interface_indexes(self, key, network_iface)
-                self._interfaces[key] = network_iface
-            return
-        raise ValueError(
-            "The values of the interfaces must be fully of type dict (one level with values) or "
-            "NetworkInterface objects"
+        search_result = self.api.find_network_interface(
+            return_list=True, system_name=self.name
         )
-
-    def modify_interface(self, interface_values: Dict[str, Any]):
-        """
-        Modifies a magic interface dictionary in the form of: {"macaddress-eth0" : "aa:bb:cc:dd:ee:ff"}
-        """
-        for key in interface_values.keys():
-            (_, interface) = key.split("-", 1)
-            if interface not in self.interfaces:
-                self.__create_interface(interface)
-            self.interfaces[interface].modify_interface({key: interface_values[key]})
-
-    def delete_interface(self, name: Union[str, Dict[Any, Any]]) -> None:
-        """
-        Used to remove an interface.
-
-        :raises TypeError: If the name of the interface is not of type str or dict.
-        """
-        collection = self.api.systems()
-        if isinstance(name, str):
-            if not name:
-                return
-            if name in self.interfaces:
-                collection.remove_interface_from_indexes(self, name)
-                self.interfaces.pop(name)
-                return
-        if isinstance(name, dict):
-            interface_name = name.get("interface", "")
-            collection.remove_interface_from_indexes(self, interface_name)
-            self.interfaces.pop(interface_name)
-            return
-        raise TypeError("The name of the interface must be of type str or dict")
-
-    def rename_interface(self, old_name: str, new_name: str):
-        r"""
-        Used to rename an interface.
-
-        :raises TypeError: In case on of the params was not a ``str``.
-        :raises ValueError: In case the name for the old interface does not exist or the new name does.
-        """
-        if not isinstance(old_name, str):  # type: ignore
-            raise TypeError("The old_name of the interface must be of type str")
-        if not isinstance(new_name, str):  # type: ignore
-            raise TypeError("The new_name of the interface must be of type str")
-        if old_name not in self.interfaces:
-            raise ValueError(f'Interface "{old_name}" does not exist')
-        if new_name in self.interfaces:
-            raise ValueError(f'Interface "{new_name}" already exists')
-        self.interfaces[new_name] = self.interfaces[old_name]
-        del self.interfaces[old_name]
+        result: Dict[str, NetworkInterface] = {}
+        if search_result is None:
+            return result
+        if not isinstance(search_result, list):
+            raise TypeError("Result must be of type list!")
+        for item in search_result:
+            result[item.name] = item
+        return result
 
     @LazyProperty
     def hostname(self) -> str:
@@ -682,18 +603,20 @@ class System(BootableItem):
             self._redhat_management_key = enums.VALUE_INHERITED
         self._redhat_management_key = management_key
 
-    def get_mac_address(self, interface: str):
+    def get_mac_address(self, interface: str = "default"):
         """
         Get the mac address, which may be implicit in the object name or explicit with --mac-address.
         Use the explicit location first.
 
         :param interface: The name of the interface to get the MAC of.
         """
+        target_intf: Optional["network_interface.NetworkInterface"] = None
+        for intf in self.interfaces:
+            if intf.name == interface:
+                target_intf = intf
 
-        intf = self.__get_interface(interface)
-
-        if intf.mac_address != "":
-            return intf.mac_address.strip()
+        if target_intf is not None and target_intf.mac_address != "":
+            return target_intf.mac_address.strip()
         return None
 
     @property
@@ -774,35 +697,6 @@ class System(BootableItem):
             if mac or ip_v4 or ip_v6:
                 return True
         return False
-
-    def __create_interface(self, interface: str):
-        """
-        Create or overwrites a network interface.
-
-        :param interface: The name of the interface
-        """
-        self.interfaces[interface] = NetworkInterface(self.api, self.uid)
-
-    def __get_interface(
-        self, interface_name: Optional[str] = "default"
-    ) -> NetworkInterface:
-        """
-        Tries to retrieve an interface and creates it in case the interface doesn't exist. If no name is given the
-        default interface is retrieved.
-
-        :param interface_name: The name of the interface. If ``None`` is given then ``default`` is used.
-        :raises TypeError: In case interface_name is no string.
-        :return: The requested interface.
-        """
-        if interface_name is None:
-            interface_name = "default"
-        if not isinstance(interface_name, str):  # type: ignore
-            raise TypeError("The name of an interface must always be of type str!")
-        if not interface_name:
-            interface_name = "default"
-        if interface_name not in self._interfaces:
-            self.__create_interface(interface_name)
-        return self._interfaces[interface_name]
 
     @LazyProperty
     def gateway(self):

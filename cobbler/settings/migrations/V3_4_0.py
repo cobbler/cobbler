@@ -479,3 +479,5 @@ def migrate_cobbler_json_files(collection_folder: pathlib.Path) -> None:
             if file.name.endswith(".json"):
                 uid = json.loads(file.read_text(encoding="UTF-8")).get("uid")
                 file.rename(f"{uid}.json")
+
+    # TODO: Implement Network Interface migration

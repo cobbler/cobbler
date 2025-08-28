@@ -220,10 +220,11 @@ def create_system(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
             test_system.profile = profile_uid  # type: ignore
         if image_uid != "":
             test_system.image = image_uid  # type: ignore
-        test_system.interfaces = {  # type: ignore
-            "default": NetworkInterface(cobbler_api, test_system.uid)  # type: ignore
-        }
         cobbler_api.add_system(test_system)
+        test_system_default_interface = cobbler_api.new_network_interface()
+        test_system_default_interface.name = "default"
+        test_system_default_interface.system_name = test_system.name  # type: ignore
+        cobbler_api.add_network_interface(test_system_default_interface)
         return test_system
 
     return _create_system
@@ -267,6 +268,7 @@ def cleanup_leftover_items():
         "profiles",
         "repos",
         "systems",
+        "network_interfaces",
     ]
     for collection in cobbler_collections:
         path = collection_path / collection
