@@ -14,8 +14,8 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
-@pytest.fixture(scope="function")
-def named_template() -> str:
+@pytest.fixture(name="named_template", scope="function")
+def fixture_named_template() -> str:
     """
     This provides a minmal test templated for named that is close to the real one.
     """

@@ -15,6 +15,7 @@ from cobbler.cobbler_collections.collection import Collection
 from cobbler.cobbler_collections.distros import Distros
 from cobbler.cobbler_collections.images import Images
 from cobbler.cobbler_collections.menus import Menus
+from cobbler.cobbler_collections.network_interfaces import NetworkInterfaces
 from cobbler.cobbler_collections.profiles import Profiles
 from cobbler.cobbler_collections.repos import Repos
 from cobbler.cobbler_collections.systems import Systems
@@ -59,6 +60,7 @@ class CollectionManager:
         self._systems = Systems(weakref.proxy(self))
         self._images = Images(weakref.proxy(self))
         self._menus = Menus(weakref.proxy(self))
+        self._network_interfaces = NetworkInterfaces(weakref.proxy(self))
 
     def distros(self) -> Distros:
         """
@@ -102,6 +104,12 @@ class CollectionManager:
         """
         return self._menus
 
+    def network_interfaces(self) -> NetworkInterfaces:
+        """
+        Return the definitive copy of the NetworkInterfaces collection
+        """
+        return self._network_interfaces
+
     def serialize(self) -> None:
         """
         Save all cobbler_collections to disk
@@ -113,6 +121,7 @@ class CollectionManager:
         self.__serializer.serialize(self._images)
         self.__serializer.serialize(self._systems)
         self.__serializer.serialize(self._menus)
+        self.__serializer.serialize(self._network_interfaces)
 
     def serialize_one_item(self, item: "BaseItem") -> None:
         """
@@ -166,6 +175,7 @@ class CollectionManager:
             (self._profiles, True),
             (self._images, False),
             (self._systems, False),
+            (self._network_interfaces, False),
         ):
             try:
                 cast_collection = cast(Collection["BaseItem"], args[0])

@@ -101,6 +101,10 @@ class ItemTypes(ConvertableEnum):
     """
     See :func:`~cobbler.items.menu.Menu`
     """
+    NETWORK_INTERFACE = "network_interface"
+    """
+    See :func:`~cobbler.items.network_interface.NetworkInterface`
+    """
 
 
 class DHCP(enum.Enum):
@@ -126,14 +130,14 @@ class NetworkInterfaceType(enum.Enum):
     This enum represents all interface types Cobbler is able to set up on a target host.
     """
 
-    NA = 0
-    BOND = 1
-    BOND_SLAVE = 2
-    BRIDGE = 3
-    BRIDGE_SLAVE = 4
-    BONDED_BRIDGE_SLAVE = 5
-    BMC = 6
-    INFINIBAND = 7
+    NA = "na"
+    BOND = "bond"
+    BOND_SLAVE = "bond_slave"
+    BRIDGE = "bridge"
+    BRIDGE_SLAVE = "bridge_slave"
+    BONDED_BRIDGE_SLAVE = "bonded_bridge_slave"
+    BMC = "bmc"
+    INFINIBAND = "infiniband"
 
 
 class RepoBreeds(ConvertableEnum):

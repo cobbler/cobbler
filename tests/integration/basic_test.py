@@ -421,7 +421,7 @@ def test_basic_system_add_remove(
 
 
 @pytest.mark.integration
-def test_basic_system_ipxe_dhpd_conf_update(
+def test_basic_system_ipxe_dhcpd_conf_update(
     create_distro: Callable[[Dict[str, Any]], str],
     create_profile: Callable[[Dict[str, Any]], str],
     create_system: Callable[[Dict[str, Any]], str],
@@ -452,9 +452,12 @@ def test_basic_system_ipxe_dhpd_conf_update(
         {
             "name": "testbed",
             "profile": pid,
-            "modify_interface": {"mac_address-default": "aa:bb:cc:dd:ee:ff"},
         }
     )
+    nid = remote.new_network_interface(sid, token)
+    remote.modify_network_interface(nid, "name", "default", token)
+    remote.modify_network_interface(nid, "mac_address", "aa:bb:cc:dd:ee:ff", token)
+    remote.save_network_interface(nid, token)
 
     # Act
     remote.modify_system(sid, "netboot_enabled", True, token)
@@ -489,10 +492,11 @@ def test_basic_system_parent_image(
     sid = remote.new_system(token)
     remote.modify_system(sid, "name", "testbed", token)
     remote.modify_system(sid, "image", iid, token)
-    remote.modify_system(
-        sid, "modify_interface", {"mac_address-default": "aa:bb:cc:dd:ee:ff"}, token
-    )
     remote.save_system(sid, token)
+    nid = remote.new_network_interface(sid, token)
+    remote.modify_network_interface(nid, "name", "default", token)
+    remote.modify_network_interface(nid, "mac_address", "aa:bb:cc:dd:ee:ff", token)
+    remote.save_network_interface(nid, token)
     restart_cobbler()
 
     # Assert - If cobblerd is successfully restarted we should get the image and system loaded successfully.
@@ -553,6 +557,7 @@ def test_basic_system_serial(
     create_distro: Callable[[Dict[str, Any]], str],
     create_profile: Callable[[Dict[str, Any]], str],
     create_system: Callable[[Dict[str, Any]], str],
+    create_network_interface: Callable[[str, Dict[str, Any]], str],
     wait_task_end: WaitTaskEndType,
     images_fake_path: pathlib.Path,
 ):
@@ -584,31 +589,49 @@ def test_basic_system_serial(
     # Cases #1 and #2 shall be equal w.r.t. the serial console configuration as
     # Cobbler defaults to 0 and 115200 for device and baud rate respectively.
     for loader in ["grub", "pxe"]:
-        create_system(
+        sid1 = create_system(
             {
                 "name": f"testbed-1-{loader}",
                 "profile": pid,
                 "boot_loader": loader,
-                "modify_interface": {"mac_address-default": "random"},
                 "serial_device": 0,
             }
         )
-        create_system(
+        sid2 = create_system(
             {
                 "name": f"testbed-2-{loader}",
                 "profile": pid,
                 "boot_loader": loader,
-                "modify_interface": {"mac_address-default": "random"},
                 "serial_baud_rate": 115200,
             }
         )
-        create_system(
+        sid3 = create_system(
             {
                 "name": f"testbed-3-{loader}",
                 "profile": pid,
                 "boot_loader": loader,
-                "modify_interface": {"mac_address-default": "random"},
             }
+        )
+        create_network_interface(
+            sid1,
+            {
+                "name": "default",
+                "mac_address": "random",
+            },
+        )
+        create_network_interface(
+            sid2,
+            {
+                "name": "default",
+                "mac_address": "random",
+            },
+        )
+        create_network_interface(
+            sid3,
+            {
+                "name": "default",
+                "mac_address": "random",
+            },
         )
 
     # Act

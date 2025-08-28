@@ -185,9 +185,11 @@ class CobblerTree:
                         "Could not find the test image that was just created."
                     )
                 test_item.image = image.uid  # type: ignore[method-assign]
-            test_item.interfaces = {"default": NetworkInterface(api, test_item.uid)}  # type: ignore[method-assign]
             api.systems().add(
                 test_item, save=save, with_triggers=with_triggers, with_sync=with_sync
+            )
+            api.network_interfaces().add(
+                NetworkInterface(api=api, system_uid=test_item.uid, name="default")
             )
 
     @staticmethod

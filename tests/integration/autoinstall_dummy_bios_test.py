@@ -52,9 +52,11 @@ def test_autoinstall_dummy_bios(
         {"console": "ttyS0", "pci": "noacpi", "noapic": "~", "script": script_url},
         token,
     )
-    remote.modify_system(system_id, "modify_interface", {}, token)
     remote.modify_system(system_id, "netboot_enabled", True, token)
     remote.save_system(system_id, token, "new")
+    network_interface_id = remote.new_network_interface(system_id, token)
+    remote.modify_network_interface(network_interface_id, "name", "default", token)
+    remote.save_network_interface(network_interface_id, token, "new")
     remote.sync(token)
 
     # Act

@@ -394,9 +394,6 @@ class CobblerSvc:
         :param rest: The keys "REMOTE_MACS", "REMOTE_ADDR" or "interfaces".
         :return: The name of the possible object or an error message.
         """
-        # mypy and xmlrpc don't play well together
-        systems: List[Dict[str, Any]] = self.remote.get_systems()  # type: ignore
-
         # If kssendmac was in the kernel options line, see if a system can be found matching the MAC address. This is
         # more specific than an IP match.
 
@@ -408,25 +405,26 @@ class CobblerSvc:
 
         ip_address = rest["REMOTE_ADDR"]
 
-        candidates: List[Dict[str, Any]] = []
+        candidates: List[str] = []
 
-        for system in systems:
-            for interface in system["interfaces"]:
-                if system["interfaces"][interface]["mac_address"].lower() in macinput:
-                    candidates.append(system)
+        for mac in macinput:
+            search_result_mac: List[str] = self.remote.find_network_interface({"mac_address": mac})  # type: ignore
+            if len(search_result_mac) > 0:
+                candidates.extend(search_result_mac)
 
-        if len(candidates) == 0:
-            for system in systems:
-                for interface in system["interfaces"]:
-                    if system["interfaces"][interface]["ip_address"] == ip_address:
-                        candidates.append(system)
+        search_result_ipv4: List[str] = self.remote.find_network_interface(  # type: ignore
+            {"ip_address": ip_address}
+        )
+        if len(search_result_ipv4) > 0:
+            candidates.extend(search_result_ipv4)
 
         if len(candidates) == 0:
             return f"FAILED: no match ({ip_address},{macinput})"
         if len(candidates) > 1:
             return "FAILED: multiple matches"
         if len(candidates) == 1:
-            return candidates[0]["name"]
+            # Now map the UID back to the item name
+            return self.remote.find_system({"uid": candidates[0]})  # type: ignore
         return "FAILED: Negative amount of matches!"
 
     def find_autoinstall(

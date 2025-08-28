@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 from cobbler import utils
 from cobbler.actions import buildiso
 from cobbler.actions.buildiso import BootFilesCopyset, LoaderCfgsParts
-from cobbler.enums import Archs
+from cobbler.enums import Archs, NetworkInterfaceType
 from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:
@@ -30,6 +30,7 @@ class AppendLineBuilder:
         self.data = data
         self.distro_name = distro_name
         self.dist: Optional["Distro"] = None
+        self.system: Optional["System"] = None
         self.system_interface: Optional[str] = None
         self.system_ip = None
         self.system_netmask = None
@@ -311,19 +312,23 @@ class AppendLineBuilder:
             mgmt_ints: List[str] = []
             mgmt_ints_multi: List[str] = []
             slave_ints: List[str] = []
-            for iname, idata in self.data["interfaces"].items():
-                if idata["management"] and idata["interface_type"] in [
-                    "bond",
-                    "bridge",
+            if self.system is None:
+                raise ValueError(
+                    "Please give system to AppendLineBuilder.generate_system()!"
+                )
+            for iname, idata in self.system.interfaces.items():
+                if idata.management and idata.interface_type in [
+                    NetworkInterfaceType.BOND,
+                    NetworkInterfaceType.BRIDGE,
                 ]:
                     # bonded/bridged management interface
                     mgmt_ints_multi.append(iname)
-                if idata["management"] and idata["interface_type"] not in [
-                    "bond",
-                    "bridge",
-                    "bond_slave",
-                    "bridge_slave",
-                    "bonded_bridge_slave",
+                if idata.management and idata.interface_type not in [
+                    NetworkInterfaceType.BOND,
+                    NetworkInterfaceType.BRIDGE,
+                    NetworkInterfaceType.BOND_SLAVE,
+                    NetworkInterfaceType.BRIDGE_SLAVE,
+                    NetworkInterfaceType.BONDED_BRIDGE_SLAVE,
                 ]:
                     # single management interface
                     mgmt_ints.append(iname)
@@ -333,9 +338,13 @@ class AppendLineBuilder:
                 # people expect)
                 for iname, idata in self.data["interfaces"].items():
                     if (
-                        idata["interface_type"]
-                        in ["bond_slave", "bridge_slave", "bonded_bridge_slave"]
-                        and idata["interface_master"] == mgmt_ints_multi[0]
+                        idata.interface_type
+                        in [
+                            NetworkInterfaceType.BOND_SLAVE,
+                            NetworkInterfaceType.BRIDGE_SLAVE,
+                            NetworkInterfaceType.BONDED_BRIDGE_SLAVE,
+                        ]
+                        and idata.interface_master == mgmt_ints_multi[0]
                     ):
                         slave_ints.append(iname)
 
@@ -387,6 +396,7 @@ class AppendLineBuilder:
         :param scheme: The scheme that is used to read the autoyast file from the server
         """
         self.dist = dist
+        self.system = system
 
         self.append_line = f"  APPEND initrd=/{self.distro_name}.img"
         if self.dist.breed == "suse":

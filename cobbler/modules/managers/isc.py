@@ -253,7 +253,7 @@ class _IscManager(DhcpManagerModule):
         else:
             return ""
 
-        for name, obj in interfaces:
+        for name, obj in interfaces.items():
             if name.startswith(prefix + ".") and hasattr(obj, attr_name):
                 return getattr(obj, attr_name)
         return ""

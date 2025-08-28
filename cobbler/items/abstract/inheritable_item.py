@@ -71,6 +71,7 @@ class InheritableItem(BaseItem, ABC):
             HierarchyItem("image", "menu"),
             HierarchyItem("profile", "menu"),
         ],
+        "network_interface": [],
         "profile": [
             HierarchyItem("profile", "parent"),
             HierarchyItem("system", "profile"),
@@ -78,7 +79,7 @@ class InheritableItem(BaseItem, ABC):
         "image": [
             HierarchyItem("system", "image"),
         ],
-        "system": [],
+        "system": [HierarchyItem("network_interface", "system_uid")],
     }
 
     # Defines a logical hierarchy of Item Types.
@@ -354,7 +355,8 @@ class InheritableItem(BaseItem, ABC):
                     raise ValueError("Expected list to be returned by find_items")
                 results.update(dep_type_items)
                 for dep_item in dep_type_items:
-                    results.update(dep_item.descendants)
+                    if isinstance(dep_item, InheritableItem):  # type: ignore
+                        results.update(dep_item.descendants)
         return list(results)
 
     @LazyProperty

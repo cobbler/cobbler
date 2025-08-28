@@ -18,7 +18,6 @@ from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image
 from cobbler.items.menu import Menu
-from cobbler.items.network_interface import NetworkInterface
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
 
@@ -131,13 +130,13 @@ def create_distro(
     def _create_distro(name: str = "", with_add: bool = True) -> Distro:
         test_folder = create_kernel_initrd(fk_kernel, fk_initrd)
         test_distro = cobbler_api.new_distro()
-        test_distro.name = (
+        test_distro.name = (  # type: ignore[method-assign]
             request.node.originalname  # type: ignore
             if request.node.originalname  # type: ignore
             else request.node.name  # type: ignore
         )
         if name != "":
-            test_distro.name = name
+            test_distro.name = name  # type: ignore[method-assign]
         test_distro.kernel = os.path.join(test_folder, fk_kernel)  # type: ignore
         test_distro.initrd = os.path.join(test_folder, fk_initrd)  # type: ignore
         if with_add:
@@ -158,13 +157,13 @@ def create_profile(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
         distro_uid: str = "", profile_uid: str = "", name: str = ""
     ) -> Profile:
         test_profile = cobbler_api.new_profile()
-        test_profile.name = (
+        test_profile.name = (  # type: ignore[method-assign]
             request.node.originalname  # type: ignore
             if request.node.originalname  # type: ignore
             else request.node.name  # type: ignore
         )
         if name != "":
-            test_profile.name = name
+            test_profile.name = name  # type: ignore[method-assign]
         if profile_uid == "":
             test_profile.distro = distro_uid  # type: ignore
         else:
@@ -184,13 +183,13 @@ def create_image(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
 
     def _create_image(name: str = "") -> Image:
         test_image = cobbler_api.new_image()
-        test_image.name = (
+        test_image.name = (  # type: ignore[method-assign]
             request.node.originalname  # type: ignore
             if request.node.originalname  # type: ignore
             else request.node.name  # type: ignore
         )
         if name != "":
-            test_image.name = name
+            test_image.name = name  # type: ignore[method-assign]
         cobbler_api.add_image(test_image)
         return test_image
 
@@ -209,21 +208,23 @@ def create_system(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     ) -> System:
         test_system = cobbler_api.new_system()
         if name == "":
-            test_system.name = (
+            test_system.name = (  # type: ignore[method-assign]
                 request.node.originalname  # type: ignore
                 if request.node.originalname  # type: ignore
                 else request.node.name  # type: ignore
             )
         else:
-            test_system.name = name
+            test_system.name = name  # type: ignore[method-assign]
         if profile_uid != "":
             test_system.profile = profile_uid  # type: ignore
         if image_uid != "":
             test_system.image = image_uid  # type: ignore
-        test_system.interfaces = {  # type: ignore
-            "default": NetworkInterface(cobbler_api, test_system.uid)  # type: ignore
-        }
         cobbler_api.add_system(test_system)
+        test_system_default_interface = cobbler_api.new_network_interface(
+            system_uid=test_system.uid, name="default"
+        )
+        test_system_default_interface.name = "default"  # type: ignore[method-assign]
+        cobbler_api.add_network_interface(test_system_default_interface)
         return test_system
 
     return _create_system
@@ -240,7 +241,7 @@ def create_menu(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
         test_menu = cobbler_api.new_menu()
 
         if name == "":
-            test_menu.name = (
+            test_menu.name = (  # type: ignore[method-assign]
                 request.node.originalname  # type: ignore
                 if request.node.originalname  # type: ignore
                 else request.node.name  # type: ignore
@@ -267,6 +268,7 @@ def cleanup_leftover_items():
         "profiles",
         "repos",
         "systems",
+        "network_interfaces",
     ]
     for collection in cobbler_collections:
         path = collection_path / collection

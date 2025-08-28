@@ -155,6 +155,24 @@ def fixture_create_system(
     return _create_system
 
 
+@pytest.fixture(name="create_network_interface")
+def fixture_create_network_interface(
+    remote: CobblerXMLRPCInterface, token: str
+) -> Callable[[str, Dict[str, Any]], str]:
+    """
+    Fixture to create a Cobbler Network Interface via XML-RPC
+    """
+
+    def _create_network_interface(sid: str, args: Dict[str, Any]) -> str:
+        nid = remote.new_network_interface(sid, token)
+        for key, value in args.items():
+            remote.modify_network_interface(nid, key, value, token)
+        remote.save_network_interface(nid, token, "new")
+        return nid
+
+    return _create_network_interface
+
+
 @pytest.fixture(scope="function")
 def wait_task_end() -> WaitTaskEndType:
     """

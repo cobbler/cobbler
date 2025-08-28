@@ -2,11 +2,13 @@
 Test module that asserts that generic Cobbler InheritableItem functionality is working as expected.
 """
 
-from typing import Any, Callable, Optional
+import logging
+from typing import Any, Callable, List, Optional
 
 import pytest
 
 from cobbler.api import CobblerAPI
+from cobbler.items.abstract.base_item import BaseItem
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image
 from cobbler.items.menu import Menu
@@ -15,6 +17,8 @@ from cobbler.items.repo import Repo
 from cobbler.items.system import System
 
 from tests.conftest import does_not_raise
+
+logger = logging.getLogger()
 
 
 @pytest.mark.parametrize(
@@ -71,7 +75,7 @@ def test_get_conceptual_parent(
     tmp_distro = create_distro()
     tmp_profile = create_profile(tmp_distro.uid)
     titem = Profile(cobbler_api)
-    titem.name = "subprofile_%s" % (
+    titem.name = "subprofile_%s" % (  # type: ignore[method-assign]
         request.node.originalname if request.node.originalname else request.node.name  # type: ignore
     )
     titem.parent = tmp_profile.uid  # type: ignore[method-assign]
@@ -124,13 +128,13 @@ def test_descendants(
     """
     # Arrange
     test_repo = Repo(cobbler_api)
-    test_repo.name = "test_repo"
+    test_repo.name = "test_repo"  # type: ignore[method-assign]
     cobbler_api.add_repo(test_repo)
     test_menu1 = Menu(cobbler_api)
-    test_menu1.name = "test_menu1"
+    test_menu1.name = "test_menu1"  # type: ignore[method-assign]
     cobbler_api.add_menu(test_menu1)
     test_menu2 = Menu(cobbler_api)
-    test_menu2.name = "test_menu2"
+    test_menu2.name = "test_menu2"  # type: ignore[method-assign]
     test_menu2.parent = test_menu1.uid  # type: ignore[method-assign]
     cobbler_api.add_menu(test_menu2)
     test_distro = create_distro()
@@ -154,7 +158,9 @@ def test_descendants(
     test_system1: System = create_system(
         profile_uid=test_profile1.uid, name="test_system1"
     )
+    test_system1_intf_default = test_system1.interfaces["default"]
     test_system2: System = create_system(image_uid=test_image.uid, name="test_system2")
+    test_system2_intf_default = test_system2.interfaces["default"]
 
     # Act
     cache_tests = [
@@ -169,31 +175,40 @@ def test_descendants(
         test_system1.descendants,
         test_system2.descendants,
     ]
-    results = [
-        [test_profile1, test_profile2, test_profile3, test_system1],
-        [test_profile1, test_profile2, test_profile3, test_system1],
-        [test_system2],
-        [test_profile2, test_profile3, test_system1],
+    results: List[List[BaseItem]] = [
+        [
+            test_profile1,
+            test_profile2,
+            test_profile3,
+            test_system1,
+            test_system1_intf_default,
+        ],
+        [
+            test_profile1,
+            test_profile2,
+            test_profile3,
+            test_system1,
+            test_system1_intf_default,
+        ],
+        [test_system2, test_system2_intf_default],
+        [test_profile2, test_profile3, test_system1, test_system1_intf_default],
         [],
         [],
-        [test_image, test_menu2, test_profile2, test_system2],
+        [
+            test_image,
+            test_menu2,
+            test_profile2,
+            test_system2,
+            test_system2_intf_default,
+        ],
         [test_profile2],
-        [],
-        [],
+        [test_system1_intf_default],
+        [test_system2_intf_default],
     ]
 
     # Assert
-    for x in range(len(cache_tests)):
-        assert set(cache_tests[x]) == set(results[x])
-
-    # Cleanup
-    cobbler_api.remove_system(test_system1.name)
-    cobbler_api.remove_system(test_system2.name)
-    cobbler_api.remove_profile(test_profile3.name)
-    cobbler_api.remove_profile(test_profile2.name)
-    cobbler_api.remove_profile(test_profile1.name)
-    cobbler_api.remove_menu(test_menu2.name, recursive=True)
-    cobbler_api.remove_menu(test_menu1.name, recursive=True)
+    for idx, _ in enumerate(cache_tests):
+        assert set(cache_tests[idx]) == set(results[idx])
 
 
 def test_tree_walk(cobbler_api: CobblerAPI):

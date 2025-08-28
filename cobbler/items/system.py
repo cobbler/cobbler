@@ -238,7 +238,6 @@ class System(BootableItem):
         # Prevent attempts to clear the to_dict cache before the object is initialized.
         self._has_initialized = False
 
-        self._interfaces: Dict[str, NetworkInterface] = {}
         self._ipv6_autoconfiguration = False
         self._repos_enabled = False
         self._autoinstall = enums.VALUE_INHERITED
@@ -248,8 +247,8 @@ class System(BootableItem):
         self._hostname = ""
         self._image = ""
         self._ipv6_default_device = ""
-        self._name_servers = []
-        self._name_servers_search = []
+        self._name_servers: Union[str, List[str]] = []
+        self._name_servers_search: Union[str, List[str]] = []
         self._netboot_enabled = False
         self._next_server_v4 = enums.VALUE_INHERITED
         self._next_server_v6 = enums.VALUE_INHERITED
@@ -303,16 +302,6 @@ class System(BootableItem):
     def make_clone(self):
         _dict = copy.deepcopy(self.to_dict())
         _dict.pop("uid", None)
-        # clear all these out to avoid DHCP/DNS conflicts
-        for interface in _dict["interfaces"].values():
-            if not self.api.settings().allow_duplicate_macs:
-                interface.pop("mac_address", None)
-            if not self.api.settings().allow_duplicate_ips:
-                interface.pop("ip_address", None)
-            if not self.api.settings().allow_duplicate_ips:
-                interface.pop("ipv6_address", None)
-            if not self.api.settings().allow_duplicate_hostnames:
-                interface.pop("dns_name", None)
         return System(self.api, **_dict)
 
     def check_if_valid(self):
@@ -336,7 +325,7 @@ class System(BootableItem):
     # specific methods for item.System
     #
 
-    @LazyProperty
+    @property
     def interfaces(self) -> Dict[str, NetworkInterface]:
         r"""
         Represents all interfaces owned by the system.
@@ -345,85 +334,18 @@ class System(BootableItem):
         :setter: Accepts not only the correct type but also a dict with dicts which will then be converted by the
                  setter.
         """
-        return self._interfaces
-
-    @interfaces.setter
-    def interfaces(self, value: Dict[str, Any]):
-        """
-        This methods needs to be able to take a dictionary from ``make_clone()``
-
-        :param value: The new interfaces.
-        """
-        if not isinstance(value, dict):  # type: ignore
-            raise TypeError("interfaces must be of type dict")
-        dict_values = list(value.values())
-        collection = self.api.systems()
-        if all(isinstance(x, NetworkInterface) for x in dict_values):
-            for network_iface in value.values():
-                network_iface.system_uid = self.uid
-            collection.update_interfaces_indexes(self, value)
-            self._interfaces = value
-            return
-        if all(isinstance(x, dict) for x in dict_values):
-            for key in value:
-                network_iface = NetworkInterface(self.api, self.uid)
-                network_iface.from_dict(value[key])
-                collection.update_interface_indexes(self, key, network_iface)
-                self._interfaces[key] = network_iface
-            return
-        raise ValueError(
-            "The values of the interfaces must be fully of type dict (one level with values) or "
-            "NetworkInterface objects"
+        search_result = self.api.find_network_interface(
+            return_list=True, system_uid=self.uid
         )
-
-    def modify_interface(self, interface_values: Dict[str, Any]):
-        """
-        Modifies a magic interface dictionary in the form of: {"macaddress-eth0" : "aa:bb:cc:dd:ee:ff"}
-        """
-        for key in interface_values.keys():
-            (_, interface) = key.split("-", 1)
-            if interface not in self.interfaces:
-                self.__create_interface(interface)
-            self.interfaces[interface].modify_interface({key: interface_values[key]})
-
-    def delete_interface(self, name: Union[str, Dict[Any, Any]]) -> None:
-        """
-        Used to remove an interface.
-
-        :raises TypeError: If the name of the interface is not of type str or dict.
-        """
-        collection = self.api.systems()
-        if isinstance(name, str):
-            if not name:
-                return
-            if name in self.interfaces:
-                collection.remove_interface_from_indexes(self, name)
-                self.interfaces.pop(name)
-                return
-        if isinstance(name, dict):
-            interface_name = name.get("interface", "")
-            collection.remove_interface_from_indexes(self, interface_name)
-            self.interfaces.pop(interface_name)
-            return
-        raise TypeError("The name of the interface must be of type str or dict")
-
-    def rename_interface(self, old_name: str, new_name: str):
-        r"""
-        Used to rename an interface.
-
-        :raises TypeError: In case on of the params was not a ``str``.
-        :raises ValueError: In case the name for the old interface does not exist or the new name does.
-        """
-        if not isinstance(old_name, str):  # type: ignore
-            raise TypeError("The old_name of the interface must be of type str")
-        if not isinstance(new_name, str):  # type: ignore
-            raise TypeError("The new_name of the interface must be of type str")
-        if old_name not in self.interfaces:
-            raise ValueError(f'Interface "{old_name}" does not exist')
-        if new_name in self.interfaces:
-            raise ValueError(f'Interface "{new_name}" already exists')
-        self.interfaces[new_name] = self.interfaces[old_name]
-        del self.interfaces[old_name]
+        result: Dict[str, NetworkInterface] = {}
+        if search_result is None:
+            return result
+        if not isinstance(search_result, list):
+            print(type(search_result), search_result)
+            raise TypeError("Result must be of type list!")
+        for item in search_result:
+            result[item.name] = item
+        return result
 
     @LazyProperty
     def hostname(self) -> str:
@@ -435,7 +357,7 @@ class System(BootableItem):
         """
         return self._hostname
 
-    @hostname.setter
+    @hostname.setter  # type: ignore[no-redef]
     def hostname(self, value: str):
         """
         Setter for the hostname of the System class.
@@ -456,7 +378,7 @@ class System(BootableItem):
         """
         return self._status
 
-    @status.setter
+    @status.setter  # type: ignore[no-redef]
     def status(self, status: str):
         """
         Setter for the status of the System class.
@@ -682,18 +604,20 @@ class System(BootableItem):
             self._redhat_management_key = enums.VALUE_INHERITED
         self._redhat_management_key = management_key
 
-    def get_mac_address(self, interface: str):
+    def get_mac_address(self, interface: str = "default"):
         """
         Get the mac address, which may be implicit in the object name or explicit with --mac-address.
         Use the explicit location first.
 
         :param interface: The name of the interface to get the MAC of.
         """
-
-        intf = self.__get_interface(interface)
-
-        if intf.mac_address != "":
-            return intf.mac_address.strip()
+        search_result = self.api.find_network_interface(
+            False, False, system_uid=self.uid, name=interface
+        )
+        if search_result is None or isinstance(search_result, list):
+            return None
+        if search_result.mac_address != "":
+            return search_result.mac_address.strip()
         return None
 
     @property
@@ -715,9 +639,13 @@ class System(BootableItem):
 
         :param interface: The name of the interface to get the IP address of.
         """
-        intf = self.__get_interface(interface)
-        if intf.ip_address:
-            return intf.ip_address.strip()
+        search_result = self.api.find_network_interface(
+            False, False, system_uid=self.uid, name=interface
+        )
+        if search_result is None or isinstance(search_result, list):
+            return ""
+        if search_result.ip_address:
+            return search_result.ip_address.strip()
         return ""
 
     @property
@@ -775,35 +703,6 @@ class System(BootableItem):
                 return True
         return False
 
-    def __create_interface(self, interface: str):
-        """
-        Create or overwrites a network interface.
-
-        :param interface: The name of the interface
-        """
-        self.interfaces[interface] = NetworkInterface(self.api, self.uid)
-
-    def __get_interface(
-        self, interface_name: Optional[str] = "default"
-    ) -> NetworkInterface:
-        """
-        Tries to retrieve an interface and creates it in case the interface doesn't exist. If no name is given the
-        default interface is retrieved.
-
-        :param interface_name: The name of the interface. If ``None`` is given then ``default`` is used.
-        :raises TypeError: In case interface_name is no string.
-        :return: The requested interface.
-        """
-        if interface_name is None:
-            interface_name = "default"
-        if not isinstance(interface_name, str):  # type: ignore
-            raise TypeError("The name of an interface must always be of type str!")
-        if not interface_name:
-            interface_name = "default"
-        if interface_name not in self._interfaces:
-            self.__create_interface(interface_name)
-        return self._interfaces[interface_name]
-
     @LazyProperty
     def gateway(self):
         """
@@ -814,7 +713,7 @@ class System(BootableItem):
         """
         return self._gateway
 
-    @gateway.setter
+    @gateway.setter  # type: ignore[no-redef]
     def gateway(self, gateway: str):
         """
         Set a gateway IPv4 address.
@@ -835,7 +734,7 @@ class System(BootableItem):
         """
         return self._resolve("name_servers")
 
-    @name_servers.setter
+    @name_servers.setter  # type: ignore[no-redef]
     def name_servers(self, data: Union[str, List[str]]):
         """
         Set the DNS servers.
@@ -856,7 +755,7 @@ class System(BootableItem):
         """
         return self._resolve("name_servers_search")
 
-    @name_servers_search.setter
+    @name_servers_search.setter  # type: ignore[no-redef]
     def name_servers_search(self, data: Union[str, List[Any]]):
         """
         Set the DNS search paths.
@@ -876,7 +775,7 @@ class System(BootableItem):
         """
         return self._ipv6_autoconfiguration
 
-    @ipv6_autoconfiguration.setter
+    @ipv6_autoconfiguration.setter  # type: ignore[no-redef]
     def ipv6_autoconfiguration(self, value: bool):
         """
         Setter for the ipv6_autoconfiguration of the System class.
@@ -898,7 +797,7 @@ class System(BootableItem):
         """
         return self._ipv6_default_device
 
-    @ipv6_default_device.setter
+    @ipv6_default_device.setter  # type: ignore[no-redef]
     def ipv6_default_device(self, interface_name: str):
         """
         Setter for the ipv6_default_device of the System class.
@@ -950,7 +849,7 @@ class System(BootableItem):
         """
         return self._profile
 
-    @profile.setter
+    @profile.setter  # type: ignore[no-redef]
     def profile(self, profile_uid: Union["Profile", str]):
         """
         Set the system to use a certain named profile. The profile must have already been loaded into the profiles
@@ -996,7 +895,7 @@ class System(BootableItem):
         """
         return self._image
 
-    @image.setter
+    @image.setter  # type: ignore[no-redef]
     def image(self, image_uid: str):
         """
         Set the system to use a certain named image. Works like ``set_profile()`` but cannot be used at the same time.
@@ -1129,7 +1028,7 @@ class System(BootableItem):
         """
         return self._virt_pxe_boot
 
-    @virt_pxe_boot.setter
+    @virt_pxe_boot.setter  # type: ignore[no-redef]
     def virt_pxe_boot(self, num: bool):
         """
         Setter for the virt_pxe_boot of the System class.
@@ -1212,7 +1111,7 @@ class System(BootableItem):
         """
         return self._netboot_enabled
 
-    @netboot_enabled.setter
+    @netboot_enabled.setter  # type: ignore[no-redef]
     def netboot_enabled(self, netboot_enabled: bool):
         """
         If true, allows per-system PXE files to be generated on sync (or add). If false, these files are not generated,
@@ -1266,7 +1165,7 @@ class System(BootableItem):
         """
         return self._power_type
 
-    @power_type.setter
+    @power_type.setter  # type: ignore[no-redef]
     def power_type(self, power_type: str):
         """
         Setter for the power_type of the System class.
@@ -1292,7 +1191,7 @@ class System(BootableItem):
         """
         return self._power_identity_file
 
-    @power_identity_file.setter
+    @power_identity_file.setter  # type: ignore[no-redef]
     def power_identity_file(self, power_identity_file: str):
         """
         Setter for the power_identity_file of the System class.
@@ -1317,7 +1216,7 @@ class System(BootableItem):
         """
         return self._power_options
 
-    @power_options.setter
+    @power_options.setter  # type: ignore[no-redef]
     def power_options(self, power_options: str):
         """
         Setter for the power_options of the System class.
@@ -1342,7 +1241,7 @@ class System(BootableItem):
         """
         return self._power_user
 
-    @power_user.setter
+    @power_user.setter  # type: ignore[no-redef]
     def power_user(self, power_user: str):
         """
         Setter for the power_user of the System class.
@@ -1367,7 +1266,7 @@ class System(BootableItem):
         """
         return self._power_pass
 
-    @power_pass.setter
+    @power_pass.setter  # type: ignore[no-redef]
     def power_pass(self, power_pass: str):
         """
         Setter for the power_pass of the System class.
@@ -1392,7 +1291,7 @@ class System(BootableItem):
         """
         return self._power_address
 
-    @power_address.setter
+    @power_address.setter  # type: ignore[no-redef]
     def power_address(self, power_address: str):
         """
         Setter for the power_address of the System class.
@@ -1417,7 +1316,7 @@ class System(BootableItem):
         """
         return self._power_id
 
-    @power_id.setter
+    @power_id.setter  # type: ignore[no-redef]
     def power_id(self, power_id: str):
         """
         Setter for the power_id of the System class.
@@ -1440,7 +1339,7 @@ class System(BootableItem):
         """
         return self._repos_enabled
 
-    @repos_enabled.setter
+    @repos_enabled.setter  # type: ignore[no-redef]
     def repos_enabled(self, repos_enabled: bool):
         """
         Setter for the repos_enabled of the System class.
@@ -1465,7 +1364,7 @@ class System(BootableItem):
         """
         return self._serial_device
 
-    @serial_device.setter
+    @serial_device.setter  # type: ignore[no-redef]
     def serial_device(self, device_number: int):
         """
         Setter for the serial_device of the System class.
@@ -1484,7 +1383,7 @@ class System(BootableItem):
         """
         return self._serial_baud_rate
 
-    @serial_baud_rate.setter
+    @serial_baud_rate.setter  # type: ignore[no-redef]
     def serial_baud_rate(self, baud_rate: int):
         """
         Setter for the serial_baud_rate of the System class.
@@ -1548,7 +1447,7 @@ class System(BootableItem):
         """
         return self._display_name
 
-    @display_name.setter
+    @display_name.setter  # type: ignore[no-redef]
     def display_name(self, display_name: str):
         """
         Setter for the display_name of the item.

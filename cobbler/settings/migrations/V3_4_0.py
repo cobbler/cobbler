@@ -216,6 +216,33 @@ schema = Schema(
                     Optional("disabled"): bool,
                 },
             },
+            Optional("network_interface"): {
+                Optional("name"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("mac_address"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("ip_address"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("ipv6_address"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("dns_name"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+            },
             Optional("profile"): {
                 Optional("name"): {
                     Optional("property"): str,
@@ -267,26 +294,6 @@ schema = Schema(
                     Optional("disabled"): bool,
                 },
                 Optional("profile"): {
-                    Optional("property"): str,
-                    Optional("nonunique"): bool,
-                    Optional("disabled"): bool,
-                },
-                Optional("mac_address"): {
-                    Optional("property"): str,
-                    Optional("nonunique"): bool,
-                    Optional("disabled"): bool,
-                },
-                Optional("ip_address"): {
-                    Optional("property"): str,
-                    Optional("nonunique"): bool,
-                    Optional("disabled"): bool,
-                },
-                Optional("ipv6_address"): {
-                    Optional("property"): str,
-                    Optional("nonunique"): bool,
-                    Optional("disabled"): bool,
-                },
-                Optional("dns_name"): {
                     Optional("property"): str,
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
@@ -479,3 +486,5 @@ def migrate_cobbler_json_files(collection_folder: pathlib.Path) -> None:
             if file.name.endswith(".json"):
                 uid = json.loads(file.read_text(encoding="UTF-8")).get("uid")
                 file.rename(f"{uid}.json")
+
+    # TODO: Implement Network Interface migration

@@ -15,6 +15,9 @@ if TYPE_CHECKING:
 
 
 def test_register():
+    """
+    Test that will assert if the return value of the register method is correct.
+    """
     # Arrange
     # Act
     result = ndjbdns.register()
@@ -24,6 +27,9 @@ def test_register():
 
 
 def test_get_manager(cobbler_api: CobblerAPI):
+    """
+    Test if the singleton is correctly initialized.
+    """
     # Arrange & Act
     result = ndjbdns.get_manager(cobbler_api)
 
@@ -33,6 +39,9 @@ def test_get_manager(cobbler_api: CobblerAPI):
 
 
 def test_manager_what():
+    """
+    Test if the manager identifies itself correctly.
+    """
     # Arrange & Act & Assert
     # pylint: disable-next=protected-access
     assert ndjbdns._NDjbDnsManager.what() == "ndjbdns"  # type: ignore[reportPrivateUsage]
@@ -56,6 +65,9 @@ class MockedPopen:
         pass
 
     def communicate(self, input: Any = None, timeout: Any = None):
+        """
+        Mock implementation for the communicate method.
+        """
         stdout = "output"
         stderr = "error"
         self.returncode = 0
@@ -64,25 +76,39 @@ class MockedPopen:
 
 
 def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test if the manager is able to correctly write the configuration files.
+    """
     # Arrange
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
     mocker.patch("subprocess.Popen", MockedPopen)
+    mocker.patch(
+        "cobbler.items.system.System.interfaces",
+        new_callable=mocker.PropertyMock(
+            return_value={
+                "default": NetworkInterface(
+                    api=cobbler_api,
+                    system_uid="not-empty",
+                    name="default",
+                    ip_address="192.168.1.2",
+                    ipv6_address="::1",
+                    dns_name="host.example.org",
+                    mac_address="aa:bb:cc:dd:ee:ff",
+                )
+            }
+        ),
+    )
     mock_system = System(cobbler_api)
-    mock_system.name = "test_manager_regen_hosts_system"
-    mock_system.interfaces = {"default": NetworkInterface(cobbler_api, mock_system.uid)}
-    mock_system.interfaces["default"].dns_name = "host.example.org"
-    mock_system.interfaces["default"].mac_address = "aa:bb:cc:dd:ee:ff"
-    mock_system.interfaces["default"].ip_address = "192.168.1.2"
-    mock_system.interfaces["default"].ipv6_address = "::1"
+    mock_system.name = "test_manager_regen_hosts_system"  # type: ignore[method-assign]
     ndjbdns.MANAGER = None
     test_manager = ndjbdns.get_manager(cobbler_api)
     test_manager.templar = mocker.MagicMock(spec=Templar, autospec=True)
-    test_manager.systems = [mock_system]  # type: ignore[reportAttributeAccessIssue]
+    test_manager.systems = [mock_system]  # type: ignore[reportAttributeAccessIssue,assignment]
 
     # Act
     test_manager.write_configs()
 
     # Assert
-    test_manager.templar.render.assert_called_once_with(
+    test_manager.templar.render.assert_called_once_with(  # type: ignore[attr-defined]
         "test", {"forward": [("host.example.org", "192.168.1.2")]}, "/etc/ndjbdns/data"
     )
