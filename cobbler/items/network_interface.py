@@ -92,7 +92,7 @@ class NetworkInterface:
     def __init__(
         self,
         api: "CobblerAPI",
-        system_name: str,
+        system_uid: str,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -100,6 +100,7 @@ class NetworkInterface:
         Constructor.
 
         :param api: The Cobbler API object which is used for resolving information.
+        :param system_uid: The UID of the system, to which the interface is attached to.
         """
         # Warning disabled due to polymorphism
         # pylint: disable=unused-argument
@@ -128,7 +129,7 @@ class NetworkInterface:
         self._static = False
         self._static_routes: List[str] = []
         self._virt_bridge = enums.VALUE_INHERITED
-        self.__system_name = system_name
+        self.__system_uid = system_uid
 
         if len(kwargs) > 0:
             self.from_dict(kwargs)
@@ -838,16 +839,29 @@ class NetworkInterface:
         :getter: Returns the value for ``system_name``.
         :setter: Sets the value for the property ``system_name``.
         """
-        return self.__system_name
+        target_system = self.__api.systems().listing.get(self.__system_uid)
+        if target_system is None:
+            raise ValueError(f"Looking for system with uid {self.__system_uid} failed.")
+        return target_system.name
 
-    @system_name.setter
-    def system_name(self, system_name: str):
+    @property
+    def system_uid(self) -> str:
+        """
+        system_uid property.
+
+        :getter: Returns the value for ``system_uid``.
+        :setter: Sets the value for the property ``system_uid``.
+        """
+        return self.__system_uid
+
+    @system_uid.setter
+    def system_uid(self, system_uid: str):
         """
         Setter for the system_name of the NetworkInterface class.
 
         :param system_name: The new system_name.
         """
-        self.__system_name = system_name
+        self.__system_uid = system_uid
 
     def modify_interface(self, _dict: Dict[str, Any]):
         """

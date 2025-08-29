@@ -6,7 +6,7 @@ import pathlib
 from typing import TYPE_CHECKING, List
 
 try:
-    from importlib.resources import files
+    from importlib.resources import files  # type: ignore
 except ImportError:
     from importlib_resources import files  # type: ignore
 

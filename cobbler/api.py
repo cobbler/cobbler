@@ -177,6 +177,7 @@ if TYPE_CHECKING:
     from cobbler.cobbler_collections.systems import Systems
     from cobbler.items.abstract.base_item import BaseItem
     from cobbler.items.abstract.bootable_item import BootableItem
+    from cobbler.remote import TransactionTuple
 
 
 # notes on locking:
@@ -221,7 +222,7 @@ class CobblerAPI:
             self.is_cobblerd = is_cobblerd
             if is_cobblerd:
                 main_thread = threading.main_thread()
-                main_thread.setName("Daemon")
+                main_thread.name = "Daemon"
 
             self.logger = logging.getLogger()
 
@@ -780,7 +781,7 @@ class CobblerAPI:
             to_delete = ref
         self.log(f"remove_item({what})", [to_delete.name])
         self.get_items(what).remove(
-            to_delete.name,
+            to_delete,
             recursive=recursive,
             with_delete=delete,
             with_triggers=with_triggers,
@@ -1076,7 +1077,7 @@ class CobblerAPI:
         :return: An empty repo object.
         """
         self.log("new_repo", kwargs)
-        return repo.Repo(self, is_subobject, kwargs)
+        return repo.Repo(self, is_subobject, **kwargs)
 
     def new_image(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1103,9 +1104,7 @@ class CobblerAPI:
         return menu.Menu(self, is_subobject, **kwargs)
 
     # ==========================================================================
-    def add_remove_items(
-        self, items: List[Tuple[str, "InheritableItem", bool, float, str]]
-    ) -> None:
+    def add_remove_items(self, items: List["TransactionTuple"]) -> None:
         """
         Add or remove multiple items.
         1. Checks for external modifications using mtime
@@ -1115,11 +1114,12 @@ class CobblerAPI:
 
         :param items: The list of items.
         """
-        for what, ref, _, mtime, base_id in items:
+        for what, ref, _, mtime, base_id, _ in items:
             if base_id:
                 orig_ref = self.find_items(
                     what, criteria={"uid": base_id}, return_list=False
                 )
+                ref.uid = base_id
                 if (
                     not orig_ref
                     or isinstance(orig_ref, list)
@@ -1133,25 +1133,40 @@ class CobblerAPI:
         to_remove.sort(key=lambda x: -x[1].depth)
         to_add.sort(key=lambda x: x[1].depth)
 
-        for what, ref, _, _, _ in to_add:
-            self.log(f"add_item({what})", [ref.name])
+        for what, ref, _, _, _, _ in to_add:
+            self.log(f"add_item({what})", [ref.uid])
             self.get_items(what).add(
                 ref,  # type: ignore
                 check_for_duplicate_names=False,
                 save=True,
+                with_sync=False,
                 with_triggers=True,
                 rebuild_menu=False,
             )
 
-        for what, ref, _, _, _ in to_remove:
-            self.log(f"remove_item({what})", [ref.name])
+        for what, ref, _, _, _, item_changelog in to_add:
+            ref.in_transaction = False
+            for item in item_changelog:
+                self.get_items(what).update_index_value(
+                    ref, item.attribute, item.old_value, item.new_value
+                )
+
+        for what, ref, _, _, _, _ in to_remove:
             self.get_items(what).remove(
-                ref.name,
+                ref,
                 recursive=False,
                 with_delete=True,
+                with_sync=False,
                 with_triggers=True,
                 rebuild_menu=False,
             )
+
+        # Now update all on-disk configuration because the caches are valid again
+        self.log("Executing Cobbler sync for transaction commit")
+        for what, ref, _, _, _, _ in to_add:
+            self.get_items(what).add_quick_pxe_sync(ref, rebuild_menu=False)
+        for what, ref, _, _, _, _ in to_remove:
+            self.get_items(what).remove_quick_pxe_sync(ref, rebuild_menu=False)
         self.tftpgen.make_pxe_menu()
 
     def add_item(
@@ -1345,27 +1360,22 @@ class CobblerAPI:
         self,
         what: str = "",
         criteria: Optional[Dict[Any, Any]] = None,
-        name: str = "",
         return_list: bool = True,
         no_errors: bool = False,
     ) -> Optional[Union["BootableItem", List["BootableItem"]]]:
         """
         This is the abstract base method for finding object int the api. It should not be used by external resources.
-        Please reefer to the specific implementations of this method called ``find_<object type>``.
+        Please refer to the specific implementations of this method called ``find_<object type>``.
 
         :param what: The object type of the item to search for.
         :param criteria: The dictionary with the key-value pairs to find objects with.
-        :param name: The name of the object.
         :param return_list: If only the first result or all results should be returned.
         :param no_errors: Silence some errors which would raise if this turned to False.
         :return: The list of items witch match the search criteria.
         """
         # self.log("find_items", [what])
-        if criteria is None:
-            criteria = {}
-
-        if not isinstance(name, str):  # type: ignore
-            raise TypeError('"name" must be of type str!')
+        if criteria is None or len(criteria) == 0:
+            raise ValueError("The critera search dictionary cannot be empty!")
 
         if not isinstance(what, str):  # type: ignore
             raise TypeError('"what" must be of type str!')
@@ -1373,30 +1383,27 @@ class CobblerAPI:
         if what != "" and not validate.validate_obj_type(what):
             raise ValueError("what needs to be a valid collection if it is non empty!")
 
-        if what == "" and ("name" in criteria or name != ""):
-            return self.__find_by_name(criteria.get("name", name))
+        if what == "" and "uid" in criteria:
+            return self.__find_by_uid(criteria["uid"])
 
         if what != "":
-            return self.__find_with_collection(
-                what, name, return_list, no_errors, criteria
-            )
-        return self.__find_without_collection(name, return_list, no_errors, criteria)
+            return self.__find_with_collection(what, return_list, no_errors, criteria)
+        return self.__find_without_collection(return_list, no_errors, criteria)
 
     def __find_with_collection(
         self,
         what: str,
-        name: str,
         return_list: bool,
         no_errors: bool,
         criteria: Dict[Any, Any],
     ) -> Optional[Union["ITEM", List["ITEM"]]]:
         items = self._collection_mgr.get_items(what)
         return items.find(
-            name=name, return_list=return_list, no_errors=no_errors, **criteria
+            return_list=return_list, no_errors=no_errors, **criteria
         )  # type: ignore
 
     def __find_without_collection(
-        self, name: str, return_list: bool, no_errors: bool, criteria: Dict[Any, Any]
+        self, return_list: bool, no_errors: bool, criteria: Dict[Any, Any]
     ) -> Optional[Union["BootableItem", List["BootableItem"]]]:
         collections = [
             "distro",
@@ -1410,7 +1417,6 @@ class CobblerAPI:
             match = self.find_items(
                 collection_name,
                 criteria,
-                name=name,
                 return_list=return_list,
                 no_errors=no_errors,
             )
@@ -1418,13 +1424,14 @@ class CobblerAPI:
                 return match
         return None
 
-    def __find_by_name(self, name: str) -> Optional["BootableItem"]:
+    def __find_by_uid(self, uid: str) -> Optional["BootableItem"]:
         """
         This is a magic method which just searches all collections for the specified name directly,
+
         :param name: The name of the item(s).
         :return: The found item or None.
         """
-        if not isinstance(name, str):  # type: ignore
+        if not isinstance(uid, str):  # type: ignore
             raise TypeError("name of an object must be of type str!")
         collections = [
             "distro",
@@ -1435,7 +1442,9 @@ class CobblerAPI:
             "menu",
         ]
         for collection_name in collections:
-            match = self.find_items(collection_name, name=name, return_list=False)
+            match = self.find_items(
+                collection_name, return_list=False, criteria={"uid": uid}
+            )
             if isinstance(match, list):
                 raise ValueError("Ambiguous match during search!")
             if match is not None:
@@ -1444,122 +1453,111 @@ class CobblerAPI:
 
     def find_distro(
         self,
-        name: str = "",
         return_list: bool = False,
         no_errors: bool = False,
-        **kargs: "FIND_KWARGS",
+        **kwargs: "FIND_KWARGS",
     ) -> Optional[Union[List["distro.Distro"], "distro.Distro"]]:
         """
-        Find a distribution via a name or keys specified in the ``**kargs``.
+        Find a distribution via a name or keys specified in the ``**kwargs``.
 
-        :param name: The name to search for.
         :param return_list: If only the first result or all results should be returned.
         :param no_errors: Silence some errors which would raise if this turned to False.
-        :param kargs: Additional key-value pairs which may help in finding the desired objects.
+        :param kwargs: Key-value pairs which help in finding the desired objects.
         :return: A single object or a list of all search results.
         """
         return self._collection_mgr.distros().find(
-            name=name, return_list=return_list, no_errors=no_errors, **kargs
+            return_list=return_list, no_errors=no_errors, **kwargs
         )
 
     def find_profile(
         self,
-        name: str = "",
         return_list: bool = False,
         no_errors: bool = False,
-        **kargs: "FIND_KWARGS",
+        **kwargs: "FIND_KWARGS",
     ) -> Optional[Union[List["profile_module.Profile"], "profile_module.Profile"]]:
         """
-        Find a profile via a name or keys specified in the ``**kargs``.
+        Find a profile via a name or keys specified in the ``**kwargs``.
 
-        :param name: The name to search for.
         :param return_list: If only the first result or all results should be returned.
         :param no_errors: Silence some errors which would raise if this turned to False.
-        :param kargs: Additional key-value pairs which may help in finding the desired objects.
+        :param kwargs: Key-value pairs which help in finding the desired objects.
         :return: A single object or a list of all search results.
         """
         return self._collection_mgr.profiles().find(
-            name=name, return_list=return_list, no_errors=no_errors, **kargs
+            return_list=return_list, no_errors=no_errors, **kwargs
         )
 
     def find_system(
         self,
-        name: str = "",
         return_list: bool = False,
         no_errors: bool = False,
-        **kargs: "FIND_KWARGS",
+        **kwargs: "FIND_KWARGS",
     ) -> Optional[Union[List["system_module.System"], "system_module.System"]]:
         """
-        Find a system via a name or keys specified in the ``**kargs``.
+        Find a system via a name or keys specified in the ``**kwargs``.
 
-        :param name: The name to search for.
         :param return_list: If only the first result or all results should be returned.
         :param no_errors: Silence some errors which would raise if this turned to False.
-        :param kargs: Additional key-value pairs which may help in finding the desired objects.
+        :param kwargs: Key-value pairs which help in finding the desired objects.
         :return: A single object or a list of all search results.
         """
         return self._collection_mgr.systems().find(
-            name=name, return_list=return_list, no_errors=no_errors, **kargs
+            return_list=return_list, no_errors=no_errors, **kwargs
         )
 
     def find_repo(
         self,
-        name: str = "",
         return_list: bool = False,
         no_errors: bool = False,
-        **kargs: "FIND_KWARGS",
+        **kwargs: "FIND_KWARGS",
     ) -> Optional[Union[List["repo.Repo"], "repo.Repo"]]:
         """
-        Find a repository via a name or keys specified in the ``**kargs``.
+        Find a repository via a name or keys specified in the ``**kwargs``.
 
-        :param name: The name to search for.
         :param return_list: If only the first result or all results should be returned.
         :param no_errors: Silence some errors which would raise if this turned to False.
-        :param kargs: Additional key-value pairs which may help in finding the desired objects.
+        :param kwargs: Key-value pairs which help in finding the desired objects.
         :return: A single object or a list of all search results.
         """
         return self._collection_mgr.repos().find(
-            name=name, return_list=return_list, no_errors=no_errors, **kargs
+            return_list=return_list, no_errors=no_errors, **kwargs
         )
 
     def find_image(
         self,
-        name: str = "",
         return_list: bool = False,
         no_errors: bool = False,
-        **kargs: "FIND_KWARGS",
+        **kwargs: "FIND_KWARGS",
     ) -> Optional[Union[List["image_module.Image"], "image_module.Image"]]:
         """
-        Find an image via a name or keys specified in the ``**kargs``.
+        Find an image via a name or keys specified in the ``**kwargs``.
 
         :param name: The name to search for.
         :param return_list: If only the first result or all results should be returned.
         :param no_errors: Silence some errors which would raise if this turned to False.
-        :param kargs: Additional key-value pairs which may help in finding the desired objects.
+        :param kwargs: Key-value pairs which help in finding the desired objects.
         :return: A single object or a list of all search results.
         """
         return self._collection_mgr.images().find(
-            name=name, return_list=return_list, no_errors=no_errors, **kargs
+            return_list=return_list, no_errors=no_errors, **kwargs
         )
 
     def find_menu(
         self,
-        name: str = "",
         return_list: bool = False,
         no_errors: bool = False,
-        **kargs: "FIND_KWARGS",
+        **kwargs: "FIND_KWARGS",
     ) -> Optional[Union[List["menu.Menu"], "menu.Menu"]]:
         """
-        Find a menu via a name or keys specified in the ``**kargs``.
+        Find a menu via a name or keys specified in the ``**kwargs``.
 
-        :param name: The name to search for.
         :param return_list: If only the first result or all results should be returned.
         :param no_errors: Silence some errors which would raise if this turned to False.
-        :param kargs: Additional key-value pairs which may help in finding the desired objects.
+        :param kwargs: Key-value pairs which help in finding the desired objects.
         :return: A single object or a list of all search results.
         """
         return self._collection_mgr.menus().find(
-            name=name, return_list=return_list, no_errors=no_errors, **kargs
+            return_list=return_list, no_errors=no_errors, **kwargs
         )
 
     # ==========================================================================
@@ -1586,7 +1584,7 @@ class CobblerAPI:
                 if not collapse:
                     results2.append(item)
                 else:
-                    results2.append(item.to_dict())
+                    results2.append(item.to_dict())  # type: ignore
         return results2
 
     def get_distros_since(
@@ -1754,9 +1752,9 @@ class CobblerAPI:
 
             if self.find_repo(auto_name) is None:  # type: ignore
                 cobbler_repo = self.new_repo()
-                cobbler_repo.name = auto_name
-                cobbler_repo.breed = enums.RepoBreeds.YUM
-                cobbler_repo.arch = basearch
+                cobbler_repo.name = auto_name  # type: ignore[method-assign]
+                cobbler_repo.breed = enums.RepoBreeds.YUM  # type: ignore[method-assign]
+                cobbler_repo.arch = basearch  # type: ignore[method-assign]
                 cobbler_repo.comment = repository.name  # type: ignore
                 baseurl = repository.baseurl  # type: ignore
                 metalink = repository.metalink  # type: ignore
@@ -1775,8 +1773,8 @@ class CobblerAPI:
                     mirror = ""
                     mirror_type = enums.MirrorType.NONE
 
-                cobbler_repo.mirror = mirror
-                cobbler_repo.mirror_type = mirror_type
+                cobbler_repo.mirror = mirror  # type: ignore[method-assign]
+                cobbler_repo.mirror_type = mirror_type  # type: ignore[method-assign]
                 self.log(f"auto repo adding: {auto_name}")
                 self.add_repo(cobbler_repo)
             else:

@@ -39,21 +39,6 @@ def what() -> str:
     return "serializer/file"
 
 
-def _find_double_json_files(filename: str) -> None:
-    """
-    Finds a file with duplicate .json ending and renames it.
-    :param filename: Filename to be checked
-    :raises FileExistsError: If both JSON files exist
-    """
-
-    if not os.path.isfile(filename):
-        if os.path.isfile(filename + ".json"):
-            os.rename(filename + ".json", filename)
-    else:
-        if os.path.isfile(filename + ".json"):
-            raise FileExistsError(f"Both JSON files ({filename}) exist!")
-
-
 class FileSerializer(StorageBase):
     """
     JSON-file based serializer for Cobbler items.
@@ -64,12 +49,8 @@ class FileSerializer(StorageBase):
         self.libpath = "/var/lib/cobbler/collections"
 
     def serialize_item(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
-        if not item.name:
-            raise CX("name unset for item!")
-
         collection_types = collection.collection_types()
-        filename = os.path.join(self.libpath, collection_types, item.name + ".json")
-        _find_double_json_files(filename)
+        filename = os.path.join(self.libpath, collection_types, item.uid + ".json")
 
         if capi.CobblerAPI().settings().serializer_pretty_json:
             sort_keys = True
@@ -85,8 +66,7 @@ class FileSerializer(StorageBase):
 
     def serialize_delete(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         collection_types = collection.collection_types()
-        filename = os.path.join(self.libpath, collection_types, item.name + ".json")
-        _find_double_json_files(filename)
+        filename = os.path.join(self.libpath, collection_types, item.uid + ".json")
 
         if os.path.exists(filename):
             os.remove(filename)
@@ -105,16 +85,16 @@ class FileSerializer(StorageBase):
         lazy_start = self.api.settings().lazy_start
 
         for file in all_files:
-            (name, _) = os.path.splitext(os.path.basename(file))
+            (uid, _) = os.path.splitext(os.path.basename(file))
             if lazy_start:
-                _dict = {"name": name, "inmemory": False}
+                _dict = {"uid": uid, "inmemory": False}
             else:
                 with open(file, encoding="UTF-8") as file_descriptor:
                     json_data = file_descriptor.read()
                     _dict = json.loads(json_data)
-                    if _dict["name"] != name:
+                    if _dict["uid"] != uid:
                         raise CX(
-                            f"The file name {name}.json does not match the {_dict['name']} {collection_type}!"
+                            f"The file name {uid}.json does not match the {_dict['uid']} {collection_type}!"
                         )
             results.append(_dict)
         return results  # type: ignore
@@ -138,21 +118,21 @@ class FileSerializer(StorageBase):
                 collection.collection_type(),
             )
 
-    def deserialize_item(self, collection_type: str, name: str) -> Dict[str, Any]:
+    def deserialize_item(self, collection_type: str, uid: str) -> Dict[str, Any]:
         """
         Get a collection item from disk and parse it into an object.
 
         :param collection_type: The collection type to fetch.
-        :param name: collection Item name
+        :param uid: collection Item uid
         :return: Dictionary of the collection item.
         """
-        path = os.path.join(self.libpath, collection_type, f"{name}.json")
+        path = os.path.join(self.libpath, collection_type, f"{uid}.json")
         with open(path, encoding="UTF-8") as file_descriptor:
             json_data = file_descriptor.read()
             _dict = json.loads(json_data)
-            if _dict["name"] != name:
+            if _dict["uid"] != uid:
                 raise CX(
-                    f"The file name {name}.json does not match the {_dict['name']} {collection_type}!"
+                    f"The file name {uid}.json does not match the {_dict['uid']} {collection_type}!"
                 )
         _dict["inmemory"] = True
         return _dict

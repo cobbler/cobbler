@@ -129,15 +129,15 @@ class Serializer:
         self.storage_object.deserialize(collection, topological)
         self.__release_lock()
 
-    def deserialize_item(self, collection_type: str, item_name: str) -> Dict[str, Any]:
+    def deserialize_item(self, collection_type: str, uid: str) -> Dict[str, Any]:
         """
         Load a collection item from disk.
 
         :param collection_type: The collection type to deserialize.
-        :param item_name: The collection item name to deserialize.
+        :param uid: The collection item name to deserialize.
         """
         self.__grab_lock()
-        result = self.storage_object.deserialize_item(collection_type, item_name)
+        result = self.storage_object.deserialize_item(collection_type, uid)
         self.__release_lock()
         return result
 

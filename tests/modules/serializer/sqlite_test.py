@@ -6,7 +6,6 @@ import json
 import os
 import pathlib
 from typing import Any, Dict, List, Union
-from unittest.mock import MagicMock
 
 import pytest
 from pytest_mock import MockerFixture
@@ -21,8 +20,11 @@ from cobbler.settings import Settings
 from tests.conftest import does_not_raise
 
 
-@pytest.fixture()
-def test_settings(mocker: MockerFixture, cobbler_api: CobblerAPI) -> Settings:
+@pytest.fixture(name="test_settings")
+def fixture_test_settings(mocker: MockerFixture) -> Settings:
+    """
+    Fixture to provide mocked settings that match the tests expectations.
+    """
     settings = mocker.MagicMock(name="sqlite_setting_mock", spec=Settings)
     settings.lazy_start = False
     settings.cache_enabled = False
@@ -61,18 +63,18 @@ class MockCollection(Collection[MockBootableItem]):
 
     def remove(
         self,
-        name: str,
+        ref: MockBootableItem,
         with_delete: bool = True,
         with_sync: bool = True,
         with_triggers: bool = True,
         recursive: bool = False,
         rebuild_menu: bool = True,
     ) -> None:
-        del self.listing[name]
+        del self.listing[ref.uid]
 
 
-@pytest.fixture()
-def serializer_obj(
+@pytest.fixture(name="serializer_obj")
+def fixture_serializer_obj(
     mocker: MockerFixture,
     cobbler_api: CobblerAPI,
     tmpdir: pathlib.Path,
@@ -91,10 +93,13 @@ def serializer_obj(
         pass
 
     sqlite_obj.connection.execute(  # type: ignore
-        f"CREATE table if not exists tests(name text primary key, item text)"
+        "CREATE table if not exists tests(uid text primary key, item text)"
     )
     sqlite_obj.connection.commit()  # type: ignore
-    return sqlite_obj
+    yield sqlite_obj
+    sqlite_obj.connection.execute("DROP table if exists tests")  # type: ignore
+    sqlite_obj.connection.commit()  # type: ignore
+    sqlite_obj.connection.close()  # type: ignore
 
 
 def test_register():
@@ -136,34 +141,21 @@ def test_storage_factory(cobbler_api: CobblerAPI):
     assert isinstance(result, sqlite.SQLiteSerializer)
 
 
-def test_serialize_item_raise(
-    mocker: MockerFixture, serializer_obj: sqlite.SQLiteSerializer
-):
-    # Arrange
-    mitem = mocker.Mock()
-    mcollection = mocker.Mock()
-    mitem.name = ""
-
-    # Act and assert
-    with pytest.raises(CX):
-        serializer_obj.serialize_item(mcollection, mitem)
-
-    # Cleanup
-    serializer_obj.connection.execute("DROP table if exists tests")  # type: ignore
-    serializer_obj.connection.commit()  # type: ignore
-    serializer_obj.connection.close()  # type: ignore
-
-
 def test_serialize_item(
-    serializer_obj: sqlite.SQLiteSerializer, cobbler_api: CobblerAPI
+    mocker: "MockerFixture",
+    serializer_obj: sqlite.SQLiteSerializer,
+    cobbler_api: CobblerAPI,
 ):
     """
     Test that will assert if a given item can be written to table successfully.
     """
+    # pylint: disable=protected-access
     # Arrange
-    mitem = MockBootableItem(cobbler_api)
-    mitem.name = "test_serializer_item"
     mcollection = MockCollection(cobbler_api._collection_mgr)  # type: ignore
+    mock_get_items = mocker.patch.object(cobbler_api, "get_items")
+    mock_get_items.return_value = mcollection
+    mitem = MockBootableItem(cobbler_api)
+    mitem.name = "test_serializer_item"  # type: ignore[method-assign]
 
     # Act
     serializer_obj.connection.execute("DROP table if exists tests")  # type: ignore
@@ -173,14 +165,13 @@ def test_serialize_item(
     )
     table_exists = cursor.fetchone() is not None
     cursor = serializer_obj.connection.execute(  # type: ignore
-        "SELECT name FROM tests WHERE name=:name", {"name": mitem.name}
+        "SELECT uid FROM tests WHERE uid=:uid", {"uid": mitem.uid}
     )
     row_exists = cursor.fetchone() is not None
 
     # Cleanup
     serializer_obj.connection.execute("DROP table if exists tests")  # type: ignore
     serializer_obj.connection.commit()  # type: ignore
-    serializer_obj.connection.close()  # type: ignore
 
     # Assert
     assert os.path.exists(serializer_obj.database_file)
@@ -189,49 +180,55 @@ def test_serialize_item(
 
 
 def test_serialize_delete(
-    serializer_obj: sqlite.SQLiteSerializer, cobbler_api: CobblerAPI
+    mocker: "MockerFixture",
+    serializer_obj: sqlite.SQLiteSerializer,
+    cobbler_api: CobblerAPI,
 ):
     """
     Test that will assert if a given item can be deleted.
     """
+    # pylint: disable=protected-access
     # Arrange
-    mitem = MockBootableItem(cobbler_api)
-    mitem.name = "test_serializer_del"
     mcollection = MockCollection(cobbler_api._collection_mgr)  # type: ignore
+    mock_get_items = mocker.patch.object(cobbler_api, "get_items")
+    mock_get_items.return_value = mcollection
+    mitem = MockBootableItem(cobbler_api)
+    mitem.name = "test_serializer_del"  # type: ignore[method-assign]
     serializer_obj.serialize_item(mcollection, mitem)
 
     # Act
     serializer_obj.serialize_delete(mcollection, mitem)
     cursor = serializer_obj.connection.execute(  # type: ignore
-        "SELECT name FROM tests WHERE name=:name", {"name": mitem.name}
+        "SELECT uid FROM tests WHERE uid=:uid", {"uid": mitem.uid}
     )
     row_exists = cursor.fetchone() is not None
-
-    # Cleanup
-    serializer_obj.connection.execute("DROP table if exists tests")  # type: ignore
-    serializer_obj.connection.commit()  # type: ignore
-    serializer_obj.connection.close()  # type: ignore
 
     # Assert
     assert not row_exists
 
 
 @pytest.mark.parametrize(
-    "input_collection_type,input_collection",
-    [("tests", MagicMock())],
+    "input_collection_type",
+    ["tests"],
 )
 def test_serialize(
-    #    mocker: MockerFixture,
+    mocker: "MockerFixture",
     input_collection_type: str,
-    input_collection: Union[Dict[Any, Any], MagicMock],
     serializer_obj: sqlite.SQLiteSerializer,
     cobbler_api: CobblerAPI,
 ):
+    """
+    Test to verify that serializing a whole collection is working as expected.
+    """
+    # pylint: disable=protected-access
     # Arrange
-    mitem = MockBootableItem(cobbler_api)
-    mitem.name = "test_serialize"
     mcollection = MockCollection(cobbler_api._collection_mgr)  # type: ignore
-    mcollection.listing[mitem.name] = mitem
+    mock_get_items = mocker.patch.object(cobbler_api, "get_items")
+    mock_get_items.return_value = mcollection
+    mitem = MockBootableItem(cobbler_api)
+    mitem.name = "test_serialize"  # type: ignore[method-assign]
+
+    mcollection.listing[mitem.uid] = mitem
 
     # Act
     serializer_obj.serialize(mcollection)  # type: ignore
@@ -241,15 +238,10 @@ def test_serialize(
     )
     table_exists = cursor.fetchone() is not None
     cursor = serializer_obj.connection.execute(  # type: ignore
-        f"SELECT name FROM {input_collection_type} WHERE name=:name",
-        {"name": mitem.name},  # type: ignore
+        f"SELECT uid FROM {input_collection_type} WHERE uid=:uid",
+        {"uid": mitem.uid},  # type: ignore
     )
     row_exists = cursor.fetchone() is not None
-
-    # Cleanup
-    serializer_obj.connection.execute("DROP table if exists tests")  # type: ignore
-    serializer_obj.connection.commit()  # type: ignore
-    serializer_obj.connection.close()  # type: ignore
 
     # Assert
     assert os.path.exists(serializer_obj.database_file)
@@ -258,17 +250,15 @@ def test_serialize(
 
 
 @pytest.mark.parametrize(
-    "input_collection_type,expected_result,settings_read,lazy_start,expected_inmemory",
+    "input_collection_type,lazy_start,expected_inmemory",
     [
-        ("tests", "test_deserialize_raw", False, False, True),
-        ("tests", "test_deserialize_raw", False, True, False),
+        ("tests", False, True),
+        ("tests", True, False),
     ],
 )
 def test_deserialize_raw(
     mocker: MockerFixture,
     input_collection_type: str,
-    expected_result: Union[List[Any], Dict[Any, Any]],
-    settings_read: bool,
     lazy_start: bool,
     expected_inmemory: bool,
     serializer_obj: sqlite.SQLiteSerializer,
@@ -278,12 +268,16 @@ def test_deserialize_raw(
     """
     Test that will assert if a given item can be deserilized in raw.
     """
+    # pylint: disable=protected-access,attribute-defined-outside-init
     # Arrange
-    mocker.patch("cobbler.settings.read_settings_file", return_value=expected_result)
-    mitem = MockBootableItem(cobbler_api)
-    mitem.name = "test_deserialize_raw"
-    mitem.item = "{'name': 'test_deserialize_raw'}"
+    read_settings_file_mock = mocker.patch("cobbler.settings.read_settings_file")
     mcollection = MockCollection(cobbler_api._collection_mgr)  # type: ignore
+    mock_get_items = mocker.patch.object(cobbler_api, "get_items")
+    mock_get_items.return_value = mcollection
+    mitem = MockBootableItem(cobbler_api)
+    mitem.name = "test_deserialize_raw"  # type: ignore[method-assign]
+    mitem.item = "{'name': 'test_deserialize_raw'}"
+
     mcollection.listing[mitem.name] = mitem
     serializer_obj.serialize(mcollection)  # type: ignore
     test_settings.lazy_start = lazy_start
@@ -291,13 +285,9 @@ def test_deserialize_raw(
     # Act
     result = serializer_obj.deserialize_raw(input_collection_type)
 
-    # Cleanup
-    serializer_obj.connection.execute("DROP table if exists tests")  # type: ignore
-    serializer_obj.connection.commit()  # type: ignore
-    serializer_obj.connection.close()  # type: ignore
-
     # Assert
-    assert result[0]["name"] == expected_result  # type: ignore
+    read_settings_file_mock.assert_not_called()
+    assert result[0]["uid"] == mitem.uid  # type: ignore
     assert result[0]["inmemory"] == expected_inmemory  # type: ignore
 
 
@@ -355,11 +345,6 @@ def test_deserialize(
     # Act
     serializer_obj.deserialize(mock, input_topological)  # type: ignore
 
-    # Cleanup
-    serializer_obj.connection.execute("DROP table if exists tests")  # type: ignore
-    serializer_obj.connection.commit()  # type: ignore
-    serializer_obj.connection.close()  # type: ignore
-
     # Assert
     assert stub_from.called
     stub_from.assert_called_with(expected_result)
@@ -370,20 +355,27 @@ def test_deserialize(
     [
         (
             "tests",
-            {"name": "test1"},
-            {"name": "test1", "inmemory": True},
+            {"uid": "8b1fe974e7a240bfb5639976ab64b4fb", "name": "test1"},
+            {
+                "uid": "8b1fe974e7a240bfb5639976ab64b4fb",
+                "name": "test1",
+                "inmemory": True,
+            },
             does_not_raise(),
         ),
         (
             "tests",
-            {"name": "test2"},
-            {"name": "fake", "inmemory": True},
+            {"uid": "8b1fe974e7a240bfb5639976ab64b4fb", "name": "test2"},
+            {
+                "uid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "name": "test2",
+                "inmemory": True,
+            },
             pytest.raises(CX),
         ),
     ],
 )
 def test_deserialize_item(
-    mocker: MockerFixture,
     input_collection_type: str,
     input_item: Dict[str, str],
     expected_result: Dict[str, Union[str, bool]],
@@ -391,25 +383,20 @@ def test_deserialize_item(
     serializer_obj: sqlite.SQLiteSerializer,
 ):
     """
-    TODO
+    Test to verify that deserializing a single item works.
     """
     # Arrange
     serializer_obj.connection.execute(  # type: ignore
-        f"INSERT INTO {input_collection_type}(name, item) VALUES(:name,:item)",
-        {"name": input_item["name"], "item": json.dumps(input_item)},
+        f"INSERT INTO {input_collection_type}(uid, item) VALUES(:uid,:item)",
+        {"uid": input_item["uid"], "item": json.dumps(input_item)},
     )
     serializer_obj.connection.commit()  # type: ignore
 
     # Act
     with expected_exception:
         result = serializer_obj.deserialize_item(
-            input_collection_type, expected_result["name"]  # type: ignore[reportGeneralTypeIssues]
+            input_collection_type, expected_result["uid"]  # type: ignore[reportGeneralTypeIssues,arg-type]
         )
 
         # Assert
         assert result == expected_result
-
-    # Cleanup
-    serializer_obj.connection.execute("DROP table if exists tests")  # type: ignore
-    serializer_obj.connection.commit()  # type: ignore
-    serializer_obj.connection.close()  # type: ignore

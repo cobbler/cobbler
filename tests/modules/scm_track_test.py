@@ -1,5 +1,5 @@
 """
-TODO
+Test module to verify the functionality of the built-in scm_track plugin for Cobbler.
 """
 
 from typing import TYPE_CHECKING

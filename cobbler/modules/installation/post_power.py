@@ -52,7 +52,7 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
     name = args[1]
 
     if objtype == "system":
-        target = api.find_system(name)
+        target = api.find_system(name=name)
     else:
         return 0
 

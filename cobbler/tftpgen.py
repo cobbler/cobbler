@@ -340,7 +340,7 @@ class TFTPGen:
             return
 
         # generate one record for each described NIC ..
-        for (name, _) in system.interfaces.items():
+        for name, _ in system.interfaces.items():
 
             # Passing "pxe" here is a hack, but we need to make sure that
             # get_config_filename() will return a filename in the pxelinux
@@ -382,7 +382,7 @@ class TFTPGen:
                 Archs.PPC64LE,
                 Archs.PPC64EL,
             ]:
-                # ToDo: This is old, move this logic into item_system.get_config_filename()
+                # TODO: This is old, move this logic into item_system.get_config_filename()
                 pass
             else:
                 continue
@@ -500,7 +500,7 @@ class TFTPGen:
         else:
             raise ValueError("Arch could not be fetched!")
 
-        for (name, _) in system.interfaces.items():
+        for name, _ in system.interfaces.items():
             pxe_name = system.get_config_filename(interface=name, loader="pxe")
             if pxe_name and (
                 path == pathlib.Path("/pxelinux.cfg", pxe_name)
@@ -768,7 +768,7 @@ class TFTPGen:
         if menu:
             childs = menu.children
         else:
-            childs = self.api.find_menu(return_list=True, parent="")
+            childs = self.api.find_menu(return_list=True, parent="")  # type: ignore
         if childs is None:
             childs = []
         if not isinstance(childs, list):
@@ -808,7 +808,7 @@ class TFTPGen:
         :param profile: The profile to generate the entries for.
         :param image: The image to generate the entries for.
         """
-        target_item = None
+        target_item: Optional[Union["Profile", "Image"]] = None
         if image is None:
             target_item = profile
         elif profile is None:
@@ -863,7 +863,10 @@ class TFTPGen:
         profile_filter = {"menu": menu_name}
         if arch:
             profile_filter["arch"] = arch.value
-        profile_list = self.api.find_profile(return_list=True, **profile_filter)  # type: ignore[reportArgumentType]
+        profile_list = self.api.find_profile(
+            return_list=True,
+            **profile_filter,  # type: ignore[reportArgumentType,arg-type]
+        )
         if profile_list is None:
             profile_list = []
         if not isinstance(profile_list, list):
@@ -919,7 +922,7 @@ class TFTPGen:
         image_filter = {"menu": menu_name}
         if arch:
             image_filter["arch"] = arch.value
-        image_list = self.api.find_image(return_list=True, **image_filter)  # type: ignore[reportArgumentType]
+        image_list = self.api.find_image(return_list=True, **image_filter)  # type: ignore[reportArgumentType,arg-type]
         if image_list is None:
             image_list = []
         if not isinstance(image_list, list):
@@ -1719,11 +1722,12 @@ class TFTPGen:
         if what.lower() not in ("profile", "system"):
             return "# bootcfg is only valid for profiles and systems"
 
+        obj: Optional[Union["Profile", "System"]]
         if what == "profile":
-            obj = self.api.find_profile(name=name)
+            obj = self.api.find_profile(name=name)  # type: ignore
             distro = obj.get_conceptual_parent()  # type: ignore
         else:
-            obj = self.api.find_system(name=name)
+            obj = self.api.find_system(name=name)  # type: ignore
             profile = obj.get_conceptual_parent()  # type: ignore
             distro = profile.get_conceptual_parent()  # type: ignore
 
@@ -1757,12 +1761,13 @@ class TFTPGen:
                 distro,  # type: ignore
                 None,
                 distro.arch,  # type: ignore
-                blended.get("autoinstall", None),
+                blended.get("autoinstall", None),  # type: ignore
             )
         elif what == "profile":
             kopts = self.build_kernel_options(
                 None, obj, distro, None, distro.arch, blended.get("autoinstall", None)  # type: ignore
             )
+        # pylint: disable-next=possibly-used-before-assignment
         blended["kopts"] = kopts  # type: ignore
         blended["kernel_file"] = os.path.basename(distro.kernel)  # type: ignore
 
@@ -1786,10 +1791,11 @@ class TFTPGen:
         :param script_name: The name of the template which should be rendered for the system or profile.
         :return: The fully rendered script as a string.
         """
+        obj: Optional[Union["Profile", "System"]]
         if what == "profile":
-            obj = self.api.find_profile(name=objname)
+            obj = self.api.find_profile(name=objname)  # type: ignore
         elif what == "system":
-            obj = self.api.find_system(name=objname)
+            obj = self.api.find_system(name=objname)  # type: ignore
         else:
             raise ValueError('"what" needs to be either "profile" or "system"!')
 
@@ -2022,7 +2028,7 @@ class TFTPGen:
             distro_name = path.parts[3]
         else:
             distro_name = path.parts[2]
-        distro = self.api.find_distro(distro_name, return_list=False)
+        distro = self.api.find_distro(return_list=False, name=distro_name)
         if isinstance(distro, list):
             raise ValueError("Expected a single distro, found a list")
         if distro is not None:
@@ -2077,7 +2083,7 @@ class TFTPGen:
             if distro_file is not None:
                 return distro_file
         elif path.match("/images2/*"):
-            image = self.api.find_image(path.parts[2], return_list=False)
+            image = self.api.find_image(return_list=False, name=path.parts[2])
             if isinstance(image, list):
                 raise ValueError("Expected a single image, found a list")
             if image is not None:

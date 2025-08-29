@@ -26,11 +26,9 @@ def fixture_create_distro_profile_system(
 
     :returns: The IDs of Distro, Profile and System (in that order.)
     """
-    distro_name = "fake"
-    profile_name = "fake"
     did = create_distro(
         {
-            "name": distro_name,
+            "name": "fake",
             "arch": "x86_64",
             "kernel": str(images_fake_path / "vmlinuz"),
             "initrd": str(images_fake_path / "initramfs"),
@@ -38,11 +36,11 @@ def fixture_create_distro_profile_system(
     )
     pid = create_profile(
         {
-            "name": profile_name,
-            "distro": distro_name,
+            "name": "fake",
+            "distro": did,
         }
     )
-    sid = create_system({"name": "testbed", "profile": profile_name})
+    sid = create_system({"name": "testbed", "profile": pid})
     return did, pid, sid
 
 
@@ -164,7 +162,8 @@ def test_svc_bootcfg_esxi(
         token,
     )
     wait_task_end(tid, remote)
-    create_system({"name": "testbed", "profile": "fake-x86_64"})
+    pid = remote.get_profile_handle("fake-x86_64")
+    create_system({"name": "testbed", "profile": pid})
     # Prepare expected result
     expected_result_profile = pathlib.Path(
         "/code/tests/integration/data/test_svc_bootcfg_esxi/expected_result_profile"
@@ -257,7 +256,7 @@ def test_svc_ipxe_image(
     iid = remote.new_image(token)
     remote.modify_image(iid, "name", "fakeimage", token)
     remote.save_image(iid, token, "new")
-    create_system({"name": "testbed", "image": "fakeimage"})
+    create_system({"name": "testbed", "image": iid})
     # Prepare expected result
     expected_result = ""
 
@@ -285,23 +284,21 @@ def test_svc_ipxe_profile(
     iid = remote.new_image(token)
     remote.modify_image(iid, "name", "fakeimage", token)
     remote.save_image(iid, token, "new")
-    distro_name = "fake"
-    profile_name = "fake"
-    create_distro(
+    did = create_distro(
         {
-            "name": distro_name,
+            "name": "fake",
             "arch": "x86_64",
             "kernel": str(images_fake_path / "vmlinuz"),
             "initrd": str(images_fake_path / "initramfs"),
         }
     )
-    create_profile(
+    pid = create_profile(
         {
-            "name": profile_name,
-            "distro": distro_name,
+            "name": "fake",
+            "distro": did,
         }
     )
-    create_system({"name": "testbed", "profile": profile_name, "image": "fakeimage"})
+    create_system({"name": "testbed", "profile": pid, "image": iid})
     # Prepare expected result
     expected_result = pathlib.Path(
         "/code/tests/integration/data/test_svc_ipxe_profile/expected_result"

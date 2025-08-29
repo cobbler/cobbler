@@ -54,6 +54,7 @@ class BaseItem(ABC):
                 "_supported_boot_loaders",
                 "_has_initialized",
                 "_inmemory",
+                "_in_transaction",
             }
         )
 
@@ -77,17 +78,15 @@ class BaseItem(ABC):
         if isinstance(from_obj, str):
             # FIXME: fnmatch is only used for string to string comparisons which should cover most major usage, if
             #        not, this deserves fixing
-            from_obj_lower = from_obj.lower()
-            from_search_lower = from_search.lower()  # type: ignore
             # It's much faster to not use fnmatch if it's not needed
             if (
-                "?" not in from_search_lower
-                and "*" not in from_search_lower
-                and "[" not in from_search_lower
+                "?" not in from_search  # type: ignore
+                and "*" not in from_search  # type: ignore
+                and "[" not in from_search  # type: ignore
             ):
-                match = from_obj_lower == from_search_lower  # type: ignore
+                match = from_obj == from_search  # type: ignore
             else:
-                match = fnmatch.fnmatch(from_obj_lower, from_search_lower)  # type: ignore
+                match = fnmatch.fnmatch(from_obj, from_search)  # type: ignore
             return match  # type: ignore
 
         if isinstance(from_search, str):
@@ -130,6 +129,7 @@ class BaseItem(ABC):
         self._inmemory = (
             False  # Set this to true after the last attribute has been initialized.
         )
+        self._in_transaction = False
 
         # Item Cache
         self._cache: ItemCache = ItemCache(api)
@@ -184,11 +184,7 @@ class BaseItem(ABC):
 
         :param uid: The new uid.
         """
-        old_uid = self._uid
         self._uid = uid
-        self.api.get_items(self.COLLECTION_TYPE).update_index_value(
-            self, "uid", old_uid, uid
-        )
 
     @property
     def ctime(self) -> float:
@@ -233,7 +229,7 @@ class BaseItem(ABC):
             raise TypeError("mtime needs to be of type float")
         self._mtime = mtime
 
-    @property
+    @LazyProperty
     def name(self) -> str:
         """
         Property which represents the objects name.
@@ -244,7 +240,7 @@ class BaseItem(ABC):
         """
         return self._name
 
-    @name.setter
+    @name.setter  # type: ignore[no-redef]
     def name(self, name: str) -> None:
         """
         The objects name.
@@ -257,7 +253,11 @@ class BaseItem(ABC):
             raise TypeError("name must of be type str")
         if not RE_OBJECT_NAME.match(name):
             raise ValueError(f"Invalid characters in name: '{name}'")
+        old_name = self._name
         self._name = name
+        self.api.get_items(self.COLLECTION_TYPE).update_index_value(
+            self, "name", old_name, self._name
+        )
 
     @LazyProperty
     def comment(self) -> str:
@@ -269,7 +269,7 @@ class BaseItem(ABC):
         """
         return self._comment
 
-    @comment.setter
+    @comment.setter  # type: ignore[no-redef]
     def comment(self, comment: str) -> None:
         """
         Setter for the comment of the item.
@@ -327,6 +327,20 @@ class BaseItem(ABC):
         self._inmemory = inmemory
 
     @property
+    def in_transaction(self) -> bool:
+        """
+        TODO
+        """
+        return self._in_transaction
+
+    @in_transaction.setter
+    def in_transaction(self, in_transaction: bool) -> None:
+        """
+        TODO
+        """
+        self._in_transaction = in_transaction
+
+    @property
     def cache(self) -> ItemCache:
         """
         Getting the ItemCache object.
@@ -343,6 +357,8 @@ class BaseItem(ABC):
 
         :raises CX: In case the name of the item is not set.
         """
+        if not self.inmemory:
+            return
         if not self.name:
             raise CX("Name is required")
 
@@ -404,7 +420,7 @@ class BaseItem(ABC):
         """
         # used by find() method in collection.py
         data = self.to_dict()
-        for (key, value) in list(kwargs.items()):
+        for key, value in list(kwargs.items()):
             # Allow ~ to negate the compare
             if value is not None and value.startswith("~"):
                 res = not self.find_match_single_key(data, key, value[1:], no_errors)
@@ -457,7 +473,7 @@ class BaseItem(ABC):
                 "interface",
             ]:
                 key_found_already = True
-                for (name, interface) in list(data["interfaces"].items()):
+                for name, interface in list(data["interfaces"].items()):
                     if value == name:
                         return True
                     if value is not None and key in interface:
@@ -502,7 +518,6 @@ class BaseItem(ABC):
         """
         if not self._has_initialized:
             return
-
         item_dict = self.api.deserialize_item(self)
         self.from_dict(item_dict)
 
@@ -539,7 +554,7 @@ class BaseItem(ABC):
                 f"The following keys supplied could not be set: {result.keys()}"
             )
 
-    def to_dict(self, resolved: bool = False) -> Dict[Any, Any]:
+    def to_dict(self, resolved: bool = False) -> Dict[str, Any]:
         """
         This converts everything in this object to a dictionary.
 
@@ -599,6 +614,8 @@ class BaseItem(ABC):
 
         :param name: The name of Item attribute or None.
         """
+        # pylint: disable=unused-argument
+        # Take argument to allow for usage in decendent classes
         if not self.api.settings().cache_enabled:
             return
 

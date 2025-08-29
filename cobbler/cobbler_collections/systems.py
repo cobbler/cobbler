@@ -45,7 +45,7 @@ class Systems(collection.Collection[system.System]):
 
     def remove(
         self,
-        name: str,
+        ref: system.System,
         with_delete: bool = True,
         with_sync: bool = True,
         with_triggers: bool = True,
@@ -53,43 +53,47 @@ class Systems(collection.Collection[system.System]):
         rebuild_menu: bool = True,
     ) -> None:
         """
-        Remove element named 'name' from the collection
+        Remove the given element from the collection
 
-        :raises CX: In case the name of the object was not given.
+        :param ref: The object to delete
+        :param with_delete: In case the deletion triggers are executed for this system.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        :param with_triggers: In case the Cobbler Trigger mechanism should be executed.
+        :param recursive: In case you want to delete all objects this system references.
+        :param rebuild_menu: unused
+        :raises CX: In case the reference to the object was not given.
         """
         # rebuild_menu is not used
         _ = rebuild_menu
 
-        obj = self.listing.get(name, None)
-
-        if obj is None:
-            raise CX(f"cannot delete an object that does not exist: {name}")
-
-        if isinstance(obj, list):
-            # Will never happen, but we want to make mypy happy.
-            raise CX("Ambiguous match detected!")
+        if ref is None:  # type: ignore
+            raise CX("cannot delete an object that does not exist")
 
         if with_delete:
             if with_triggers:
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/delete/system/pre/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/delete/system/pre/*", []
                 )
             if with_sync:
-                lite_sync = self.api.get_sync()
-                lite_sync.remove_single_system(obj)
+                self.remove_quick_pxe_sync(ref)
 
         with self.lock:
-            self.remove_from_indexes(obj)
-            del self.listing[name]
-        self.collection_mgr.serialize_delete(self, obj)
+            self.remove_from_indexes(ref)
+            del self.listing[ref.uid]
+        self.collection_mgr.serialize_delete(self, ref)
         if with_delete:
             if with_triggers:
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/delete/system/post/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/delete/system/post/*", []
                 )
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/change/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/change/*", []
                 )
+
+    def remove_quick_pxe_sync(
+        self, ref: system.System, rebuild_menu: bool = True
+    ) -> None:
+        self.api.get_sync().remove_single_system(ref)
 
     def update_interface_index_value(
         self,
@@ -99,12 +103,12 @@ class Systems(collection.Collection[system.System]):
         new_value: str,
     ) -> None:
         if (
-            interface.system_name in self.listing
-            and interface in self.listing[interface.system_name].interfaces.values()
-            and self.listing[interface.system_name].inmemory
+            interface.system_uid in self.listing
+            and interface in self.listing[interface.system_uid].interfaces.values()
+            and self.listing[interface.system_uid].inmemory
         ):
             self.update_index_value(
-                self.listing[interface.system_name],
+                self.listing[interface.system_uid],
                 attribute_name,
                 old_value,
                 new_value,
@@ -121,13 +125,10 @@ class Systems(collection.Collection[system.System]):
         :param ref: The reference to the system whose interfaces indexes are updated.
         :param new_ifaces: The new interfaces.
         """
-        if ref.name not in self.listing:
+        if ref.uid not in self.listing:
             return
 
         for indx in self.indexes:
-            if indx == "uid":
-                continue
-
             old_ifaces = ref.interfaces
             old_values: Set[str] = {
                 getattr(x, indx)

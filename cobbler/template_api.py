@@ -25,10 +25,11 @@ logger = logging.getLogger()
 
 def read_macro_file(location: str = "/etc/cobbler/cheetah_macros") -> str:
     """
-    TODO
+    Read the Cheetah macros file that Cobbler allows admins to define.
 
-    :param location: TODO
-    :return: TODO
+    :param location: The path of the global macros file in case it differs from the default.
+    :raises FileNotFoundError: In case the file doesn't exist.
+    :return: The content of the macros file.
     """
     if not os.path.exists(location):
         raise FileNotFoundError("Cobbler Cheetah Macros File must exist!")

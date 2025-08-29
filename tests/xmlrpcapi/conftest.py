@@ -14,9 +14,9 @@ from cobbler.remote import CobblerXMLRPCInterface
 from cobbler.utils import get_shared_secret
 
 
-@pytest.fixture(scope="function")
-def remote(
-    cobbler_xmlrpc_base: Tuple[CobblerXMLRPCInterface, str]
+@pytest.fixture(name="remote", scope="function")
+def fixture_remote(
+    cobbler_xmlrpc_base: Tuple[CobblerXMLRPCInterface, str],
 ) -> CobblerXMLRPCInterface:
     """
 
@@ -26,8 +26,8 @@ def remote(
     return cobbler_xmlrpc_base[0]
 
 
-@pytest.fixture(scope="function")
-def token(cobbler_xmlrpc_base: Tuple[CobblerXMLRPCInterface, str]) -> str:
+@pytest.fixture(name="token", scope="function")
+def fixture_token(cobbler_xmlrpc_base: Tuple[CobblerXMLRPCInterface, str]) -> str:
     """
 
     :param cobbler_xmlrpc_base:
@@ -36,8 +36,8 @@ def token(cobbler_xmlrpc_base: Tuple[CobblerXMLRPCInterface, str]) -> str:
     return cobbler_xmlrpc_base[1]
 
 
-@pytest.fixture(scope="function")
-def token2(remote: CobblerXMLRPCInterface) -> str:
+@pytest.fixture(name="token2", scope="function")
+def fixture_token2(remote: CobblerXMLRPCInterface) -> str:
     """
 
     :param cobbler_xmlrpc_base:
@@ -50,8 +50,10 @@ def token2(remote: CobblerXMLRPCInterface) -> str:
     return token
 
 
-@pytest.fixture(scope="function")
-def cobbler_xmlrpc_base(cobbler_api: CobblerAPI) -> Tuple[CobblerXMLRPCInterface, str]:
+@pytest.fixture(name="cobbler_xmlrpc_base", scope="function")
+def fixture_cobbler_xmlrpc_base(
+    cobbler_api: CobblerAPI,
+) -> Tuple[CobblerXMLRPCInterface, str]:
     """
     Initialises the api object and makes it available to the test.
     """
@@ -286,34 +288,14 @@ def create_testprofile(remote: CobblerXMLRPCInterface, token: str):
     :param remote: See the corresponding fixture.
     :param token: See the corresponding fixture.
     """
+    distro_uid = remote.get_distro_handle("testdistro0")
+    menu_uid = remote.get_menu_handle("testmenu0")
     profile = remote.new_profile(token)
     remote.modify_profile(profile, "name", "testprofile0", token)
-    remote.modify_profile(profile, "distro", "testdistro0", token)
+    remote.modify_profile(profile, "distro", distro_uid, token)
     remote.modify_profile(profile, "kernel_options", "a=1 b=2 c=3 c=4 c=5 d e", token)
-    remote.modify_profile(profile, "menu", "testmenu0", token)
+    remote.modify_profile(profile, "menu", menu_uid, token)
     remote.save_profile(profile, token)
-
-
-@pytest.fixture(scope="function")
-def remove_testprofile(remote: CobblerXMLRPCInterface, token: str):
-    """
-    Removes the profile with the name "testprofile0".
-    :param remote: See the corresponding fixture.
-    :param token: See the corresponding fixture.
-    """
-    yield
-    remote.remove_profile("testprofile0", token)
-
-
-@pytest.fixture(scope="function")
-def remove_testdistro(remote: CobblerXMLRPCInterface, token: str):
-    """
-    Removes the distro "testdistro0" from the running cobbler after the test.
-    :param remote: See the corresponding fixture.
-    :param token: See the corresponding fixture.
-    """
-    yield
-    remote.remove_distro("testdistro0", token, False)
 
 
 @pytest.fixture(scope="function")
@@ -349,21 +331,11 @@ def create_testsystem(remote: CobblerXMLRPCInterface, token: str):
     :param remote: See the corresponding fixture.
     :param token: See the corresponding fixture.
     """
+    profile_uid = remote.get_profile_handle("testprofile0")
     system = remote.new_system(token)
     remote.modify_system(system, "name", "testsystem0", token)
-    remote.modify_system(system, "profile", "testprofile0", token)
+    remote.modify_system(system, "profile", profile_uid, token)
     remote.save_system(system, token)
-
-
-@pytest.fixture()
-def remove_testsystem(remote: CobblerXMLRPCInterface, token: str):
-    """
-    Remove a system "testsystem0".
-    :param remote: See the corresponding fixture.
-    :param token: See the corresponding fixture.
-    """
-    yield
-    remote.remove_system("testsystem0", token, False)
 
 
 @pytest.fixture(scope="function")
@@ -381,17 +353,6 @@ def create_testrepo(remote: CobblerXMLRPCInterface, token: str):
 
 
 @pytest.fixture(scope="function")
-def remove_testrepo(remote: CobblerXMLRPCInterface, token: str):
-    """
-    Remove a repo "testrepo0".
-    :param remote: See the corresponding fixture.
-    :param token: See the corresponding fixture.
-    """
-    yield
-    remote.remove_repo("testrepo0", token, False)
-
-
-@pytest.fixture(scope="function")
 def create_testimage(remote: CobblerXMLRPCInterface, token: str):
     """
     Create a testrepository with the name "testimage0"
@@ -401,17 +362,6 @@ def create_testimage(remote: CobblerXMLRPCInterface, token: str):
     image = remote.new_image(token)
     remote.modify_image(image, "name", "testimage0", token)
     remote.save_image(image, token)
-
-
-@pytest.fixture(scope="function")
-def remove_testimage(remote: CobblerXMLRPCInterface, token: str):
-    """
-    Remove the image "testimage0".
-    :param remote: See the corresponding fixture.
-    :param token: See the corresponding fixture.
-    """
-    yield
-    remote.remove_image("testimage0", token, False)
 
 
 @pytest.fixture(scope="function")
@@ -425,17 +375,6 @@ def create_testmenu(remote: CobblerXMLRPCInterface, token: str):
     menu = remote.new_menu(token)
     remote.modify_menu(menu, "name", "testmenu0", token)
     remote.save_menu(menu, token)
-
-
-@pytest.fixture(scope="function")
-def remove_testmenu(remote: CobblerXMLRPCInterface, token: str):
-    """
-    Remove a menu "testmenu0".
-    :param remote: See the corresponding fixture.
-    :param token: See the corresponding fixture.
-    """
-    yield
-    remote.remove_menu("testmenu0", token, False)
 
 
 @pytest.fixture(scope="function")

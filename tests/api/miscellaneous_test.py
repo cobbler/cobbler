@@ -37,6 +37,9 @@ def test_settings_migration(
     result_migrate_count: int,
     result_validate_count: int,
 ):
+    """
+    Verify that executing the automigrations with a combination of values works as expected.
+    """
     # pylint: disable=protected-access
     # Arrange
     caplog.set_level(logging.DEBUG)
@@ -44,8 +47,8 @@ def test_settings_migration(
     spy_migrate = mocker.spy(settings, "migrate")
     spy_validate = mocker.spy(settings, "validate_settings")
     # Override private class variables to have a clean slate on all runs
-    CobblerAPI._CobblerAPI__shared_state = {}  # type: ignore[reportAttributeAccessIssue]
-    CobblerAPI._CobblerAPI__has_loaded = False  # type: ignore[reportAttributeAccessIssue]
+    CobblerAPI._CobblerAPI__shared_state = {}  # type: ignore[reportAttributeAccessIssue,attr-defined]
+    CobblerAPI._CobblerAPI__has_loaded = False  # type: ignore[reportAttributeAccessIssue,attr-defined]
 
     # Act
     CobblerAPI(execute_settings_automigration=input_automigration)
@@ -62,6 +65,9 @@ def test_settings_migration(
 
 
 def test_buildiso(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Verify that the API calls the buildiso classes with the correct arguments.
+    """
     # Arrange
     netboot_stub = create_autospec(spec=NetbootBuildiso)
     standalone_stub = create_autospec(spec=StandaloneBuildiso)
@@ -117,10 +123,13 @@ def test_get_item_resolved_value(
     expected_exception: Any,
     expected_result: Any,
 ):
+    """
+    Verify that getting resolved values works as expected.
+    """
     # Arrange
     test_distro = create_distro()
-    test_profile = create_profile(test_distro.name)
-    test_system = create_system(test_profile.name)
+    test_profile = create_profile(test_distro.uid)
+    test_system = create_system(test_profile.uid)
 
     if input_uuid == "":
         input_uuid = test_system.uid
@@ -220,11 +229,11 @@ def test_set_item_resolved_value(
     """
     # Arrange
     test_distro = create_distro()
-    test_profile = create_profile(test_distro.name)
+    test_profile = create_profile(test_distro.uid)
     test_profile.kernel_options = "a=5"  # type: ignore
-    test_profile.name_servers = ["10.0.0.1"]
+    test_profile.name_servers = ["10.0.0.1"]  # type: ignore[method-assign]
     cobbler_api.add_profile(test_profile)
-    test_system = create_system(test_profile.name)
+    test_system = create_system(test_profile.uid)
 
     if input_uuid == "":
         input_uuid = test_system.uid

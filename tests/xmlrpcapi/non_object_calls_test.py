@@ -213,7 +213,7 @@ def test_get_random_mac(remote: CobblerXMLRPCInterface, token: str):
         ("kernel_options", "system", {"a": "1", "b": "2", "d": "~"}, does_not_raise()),
         ("arch", "distro", "x86_64", does_not_raise()),
         ("distro", "profile", "testdistro_item_resolved_value", does_not_raise()),
-        ("profile", "system", "testprofile_item_resolved_value", does_not_raise()),
+        ("profile", "system", "<VALUE IGNORED>", does_not_raise()),
         (
             "interfaces",
             "system",
@@ -272,9 +272,9 @@ def test_get_item_resolved_value(
     path_kernel = os.path.join(basepath, fk_kernel)
     path_initrd = os.path.join(basepath, fk_initrd)
 
-    create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
-    test_system_handle = create_system(name_system, name_profile)
+    distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+    profile_uid = create_profile(name_profile, distro_uid, "a=1 b=2 c=3 c=4 c=5 d e")
+    test_system_handle = create_system(name_system, profile_uid)
     remote.modify_system(test_system_handle, "kernel_options", "!c !e", token=token)
     remote.modify_system(
         test_system_handle,
@@ -299,4 +299,7 @@ def test_get_item_resolved_value(
             result.pop("default")  # type: ignore
 
         # Assert
-        assert expected_result == result
+        if input_attribute == "profile":
+            assert profile_uid == result
+        else:
+            assert expected_result == result

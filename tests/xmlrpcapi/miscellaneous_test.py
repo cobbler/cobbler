@@ -24,6 +24,9 @@ def test_clear_system_logs(
     create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
     create_system: Callable[[str, str], str],
 ):
+    """
+    Test to verify that clearning anamon logs for Anaconda-based installers is working as expected.
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"
@@ -34,9 +37,9 @@ def test_clear_system_logs(
     path_kernel = os.path.join(basepath, fk_kernel)
     path_initrd = os.path.join(basepath, fk_initrd)
 
-    create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
-    system = create_system(name_system, name_profile)
+    distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+    profile_uid = create_profile(name_profile, distro_uid, "a=1 b=2 c=3 c=4 c=5 d e")
+    system = create_system(name_system, profile_uid)
 
     # Act
     result = remote.clear_system_logs(system, token)
@@ -53,6 +56,9 @@ def test_disable_netboot(
     create_system: Callable[[str, str], str],
     create_kernel_initrd: Callable[[str, str], str],
 ):
+    """
+    Test to verify that disabling the network boot for a given machine is working as expected.
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"
@@ -63,9 +69,9 @@ def test_disable_netboot(
     path_kernel = os.path.join(folder, fk_kernel)
     path_initrd = os.path.join(folder, fk_initrd)
 
-    create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, name_distro, "text")
-    create_system(name_system, name_profile)
+    distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+    profile_uid = create_profile(name_profile, distro_uid, "text")
+    create_system(name_system, profile_uid)
 
     # Act
     result = remote.disable_netboot(name_system, token)
@@ -75,6 +81,9 @@ def test_disable_netboot(
 
 
 def test_extended_version(remote: CobblerXMLRPCInterface):
+    """
+    Test to verify that displaying the extended version is working as expected.
+    """
     # Arrange
 
     # Act
@@ -93,6 +102,9 @@ def test_find_items_paged(
     create_distro: Callable[[str, str, str, str, str], str],
     create_kernel_initrd: Callable[[str, str], str],
 ):
+    """
+    Test to verify that paginated search is working as expected.
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"
@@ -137,6 +149,9 @@ def test_find_system_by_dns_name(
     create_system: Callable[[str, str], str],
     create_kernel_initrd: Callable[[str, str], str],
 ):
+    """
+    Test to verify that finding systems via DNS name is working as expected.
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"
@@ -166,6 +181,9 @@ def test_generate_script(
     create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
     create_kernel_initrd: Callable[[str, str], str],
 ):
+    """
+    Test to verify that generating scripts is working as expected.
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"
@@ -175,8 +193,8 @@ def test_generate_script(
     name_distro = "test_distro_template_for_system"
     name_profile = "test_profile_template_for_system"
     name_autoinstall_script = "test_generate_script"
-    create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, name_distro, "text")
+    distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+    create_profile(name_profile, distro_uid, "text")
     # TODO: Create Autoinstall Script
 
     # Act
@@ -192,6 +210,9 @@ def test_get_item_as_rendered(
     create_distro: Callable[[str, str, str, str, str], str],
     create_kernel_initrd: Callable[[str, str], str],
 ):
+    """
+    Test to verify that retrieving a full item in its resolved state works as expected.
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"
@@ -213,6 +234,9 @@ def test_get_s_since(
     create_distro: Callable[[str, str, str, str, str], str],
     create_kernel_initrd: Callable[[str, str], str],
 ):
+    """
+    Test to verify that retrieving all distros after a certain modification time works as expected.
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"
@@ -234,6 +258,9 @@ def test_get_s_since(
 
 
 def test_get_authn_module_name(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Test to verify that getting the name of the authentication module is working as expected.
+    """
     # Arrange
 
     # Act
@@ -250,6 +277,9 @@ def test_get_blended_data(
     create_system: Callable[[str, str], str],
     create_kernel_initrd: Callable[[str, str], str],
 ):
+    """
+    Test to verify that retrieving the blended data is working as expected.
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"
@@ -259,9 +289,9 @@ def test_get_blended_data(
     name_distro = "test_distro_blended"
     name_profile = "test_profile_blended"
     name_system = "test_system_blended"
-    create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, name_distro, "text")
-    create_system(name_system, name_profile)
+    distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+    profile_uid = create_profile(name_profile, distro_uid, "text")
+    create_system(name_system, profile_uid)
 
     # Act
     result = remote.get_blended_data(name_profile, name_system)
@@ -278,6 +308,9 @@ def test_get_config_data(
     create_system: Callable[[str, str], str],
     create_kernel_initrd: Callable[[str, str], str],
 ):
+    """
+    Test to verify that retrieving the configuration data for a given system works as expected.
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"
@@ -288,9 +321,9 @@ def test_get_config_data(
     name_profile = "test_profile_template_for_system"
     name_system = "test_system_template_for_system"
     system_hostname = "testhostname"
-    create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, name_distro, "text")
-    system = create_system(name_system, name_profile)
+    distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+    profile_uid = create_profile(name_profile, distro_uid, "text")
+    system = create_system(name_system, profile_uid)
     remote.modify_system(system, "hostname", system_hostname, token)
     remote.save_system(system, token)
 
@@ -309,6 +342,9 @@ def test_get_repos_compatible_with_profile(
     create_repo: Callable[[str, str, bool], str],
     create_kernel_initrd: Callable[[str, str], str],
 ):
+    """
+    Test to verify that all repositories that are compatible with a given profile can be retrieved as expected.
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"
@@ -319,8 +355,8 @@ def test_get_repos_compatible_with_profile(
     name_profile = "test_profile_get_repo_for_profile"
     name_repo_compatible = "test_repo_compatible_profile_1"
     name_repo_incompatible = "test_repo_compatible_profile_2"
-    create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, name_distro, "text")
+    distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+    create_profile(name_profile, distro_uid, "text")
     repo_compatible = create_repo(name_repo_compatible, "http://localhost", False)
     repo_incompatible = create_repo(name_repo_incompatible, "http://localhost", False)
     remote.modify_repo(repo_compatible, "arch", "x86_64", token)
@@ -336,6 +372,9 @@ def test_get_repos_compatible_with_profile(
 
 
 def test_get_status(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Test to verify that retrieving the status of the installations can be retrieved as expected.
+    """
     # Arrange
     logfile = pathlib.Path("/var/log/cobbler/install.log")
     if logfile.exists():
@@ -359,6 +398,9 @@ def test_get_template_file_for_profile(
     remove_autoinstall_template: Callable[[str], None],
     create_kernel_initrd: Callable[[str, str], str],
 ):
+    """
+    Test to verify that getting a given template file for a profile works as expected.
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"
@@ -369,8 +411,8 @@ def test_get_template_file_for_profile(
     name_profile = "test_profile_template_for_profile"
     name_template = "test_template_for_profile"
     content_template = "# Testtemplate"
-    create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, name_distro, "text")
+    distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+    create_profile(name_profile, distro_uid, "text")
     create_autoinstall_template(name_template, content_template)
 
     # Act
@@ -393,6 +435,9 @@ def test_get_template_file_for_system(
     remove_autoinstall_template: Callable[[str], None],
     create_kernel_initrd: Callable[[str, str], str],
 ):
+    """
+    Test to verify that getting a given template file for a system works as expected.
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"
@@ -404,9 +449,9 @@ def test_get_template_file_for_system(
     name_system = "test_system_template_for_system"
     name_template = "test_template_for_system"
     content_template = "# Testtemplate"
-    create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, name_distro, "text")
-    create_system(name_system, name_profile)
+    distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+    profile_uid = create_profile(name_profile, distro_uid, "text")
+    create_system(name_system, profile_uid)
     create_autoinstall_template(name_template, content_template)
 
     # Act
@@ -426,6 +471,9 @@ def test_is_autoinstall_in_use(
     create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
     create_kernel_initrd: Callable[[str, str], str],
 ):
+    """
+    Test to verify that it can be sucessfully check if a given autoinstall is currently in use.
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"
@@ -434,8 +482,8 @@ def test_is_autoinstall_in_use(
     path_initrd = os.path.join(basepath, fk_initrd)
     name_distro = "test_distro_is_autoinstall_in_use"
     name_profile = "test_profile_is_autoinstall_in_use"
-    create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, name_distro, "text")
+    distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+    create_profile(name_profile, distro_uid, "text")
 
     # Act
     result = remote.is_autoinstall_in_use(name_profile, token)
@@ -535,6 +583,9 @@ def test_read_autoinstall_template(
     create_autoinstall_template: Callable[[str, str], None],
     remove_autoinstall_template: Callable[[str], None],
 ):
+    """
+    Test to verify that a given autoinstallation template can be read as expected.
+    """
     # Arrange
     name = "test_template_name"
     create_autoinstall_template(name, "# Testtemplate")
@@ -554,6 +605,9 @@ def test_write_autoinstall_template(
     token: str,
     remove_autoinstall_template: Callable[[str], None],
 ):
+    """
+    Test to verify that a given autoinstallation template can be saved as expected.
+    """
     # Arrange
     name = "testtemplate"
 
@@ -572,6 +626,9 @@ def test_remove_autoinstall_template(
     token: str,
     create_autoinstall_template: Callable[[str, str], None],
 ):
+    """
+    Test to verify that a given autoinstallation template can be removed as expected.
+    """
     # Arrange
     name = "test_template_remove"
     create_autoinstall_template(name, "# Testtemplate")
@@ -590,6 +647,9 @@ def test_read_autoinstall_snippet(
     snippet_add: Callable[[str, str], None],
     snippet_remove: Callable[[str], None],
 ):
+    """
+    Test to verify that a given autoinstallation snippet can be read as expected.
+    """
     # Arrange
     snippet_name = "testsnippet_read"
     snippet_add(snippet_name, testsnippet)
@@ -610,6 +670,9 @@ def test_write_autoinstall_snippet(
     testsnippet: str,
     snippet_remove: Callable[[str], None],
 ):
+    """
+    Test to verify that a given autoinstallation snippet can be saved as expected.
+    """
     # Arrange
     # See fixture: testsnippet
     name = "testsnippet_write"
@@ -630,6 +693,9 @@ def test_remove_autoinstall_snippet(
     snippet_add: Callable[[str, str], None],
     testsnippet: str,
 ):
+    """
+    Test to verify that a given autoinstallation snippet can be removed as expected.
+    """
     # Arrange
     name = "testsnippet_remove"
     snippet_add(name, testsnippet)
@@ -649,6 +715,9 @@ def test_run_install_triggers(
     create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
     create_system: Callable[[str, str], str],
 ):
+    """
+    Test to verify that installation triggers can be run via XML-RPC as expected.
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"
@@ -659,9 +728,9 @@ def test_run_install_triggers(
     path_kernel = os.path.join(basepath, fk_kernel)
     path_initrd = os.path.join(basepath, fk_initrd)
 
-    create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
-    create_system(name_system, name_profile)
+    distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+    profile_uid = create_profile(name_profile, distro_uid, "a=1 b=2 c=3 c=4 c=5 d e")
+    create_system(name_system, profile_uid)
 
     # Act
     result_pre = remote.run_install_triggers(
@@ -677,6 +746,9 @@ def test_run_install_triggers(
 
 
 def test_version(remote: CobblerXMLRPCInterface):
+    """
+    Test to verify that a short version can be retrieved as expected.
+    """
     # Arrange
 
     # Act
@@ -691,9 +763,6 @@ def test_version(remote: CobblerXMLRPCInterface):
     "create_testdistro",
     "create_testmenu",
     "create_profile",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
 )
 def test_render_vars(remote: CobblerXMLRPCInterface, token: str):
     """
@@ -718,12 +787,11 @@ def test_render_vars(remote: CobblerXMLRPCInterface, token: str):
     "create_testmenu",
     "create_testprofile",
     "create_testsystem",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
-    "remove_testsystem",
 )
 def test_upload_log_data(remote: CobblerXMLRPCInterface):
+    """
+    Test to verify that log data can be successfully uploaded.
+    """
     # Arrange
 
     # Act

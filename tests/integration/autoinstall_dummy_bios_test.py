@@ -1,5 +1,5 @@
 """
-TODO
+Test module to verify that Cobbler can install a dummy OS with a Distro-Profile-System chain.
 """
 
 import pathlib
@@ -40,11 +40,11 @@ def test_autoinstall_dummy_bios(
     remote.save_distro(distro_id, token, editmode="new")
     profile_id = remote.new_profile(token)
     remote.modify_profile(profile_id, "name", profile_name, token)
-    remote.modify_profile(profile_id, "distro", distro_name, token)
+    remote.modify_profile(profile_id, "distro", distro_id, token)
     remote.save_profile(profile_id, token, "new")
     system_id = remote.new_system(token)
     remote.modify_system(system_id, "name", "testbed", token)
-    remote.modify_system(system_id, "profile", profile_name, token)
+    remote.modify_system(system_id, "profile", profile_id, token)
     remote.modify_system(system_id, "autoinstall", profile_name, token)
     remote.modify_system(
         system_id,

@@ -17,13 +17,13 @@ if TYPE_CHECKING:
 
 class DownloadManager:
     """
-    TODO
+    Class to provide an easy way to download files from the web inside Cobbler. Mainly present to provide support for
+    system-wide proxies.
     """
 
     def __init__(self) -> None:
         """
         Constructor
-
         """
         self.logger = logging.getLogger()
         with open("/etc/cobbler/settings.yaml", encoding="UTF-8") as main_settingsfile:

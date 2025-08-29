@@ -5,7 +5,7 @@ Test module to assert the performance of renaming items.
 from typing import Any, Callable, Dict, Tuple
 
 import pytest
-from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
+from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs,import-untyped]
     BenchmarkFixture,
 )
 
@@ -67,7 +67,7 @@ def test_item_rename(
     def item_rename(api: CobblerAPI, what: str):
         test_items = api.get_items(what)
         for test_item in test_items:
-            test_items.rename(test_item, test_item.name + "_renamed", with_sync=False)
+            test_items.rename(test_item, test_item.name + "_renamed")
 
     # Arrange
     cobbler_api.settings().cache_enabled = cache_enabled

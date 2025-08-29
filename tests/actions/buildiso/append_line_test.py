@@ -1,5 +1,5 @@
 """
-TODO
+Test module to ensure the functionality of the append line builder for the buildiso functionality.
 """
 
 from typing import Callable
@@ -16,7 +16,7 @@ from cobbler.items.system import System
 
 def test_init():
     """
-    TODO
+    Test to verify that creating the objects works as expected.
     """
     assert isinstance(AppendLineBuilder("", {}), AppendLineBuilder)
 
@@ -29,14 +29,14 @@ def test_generate_system(
     create_system: Callable[[str, str, str], System],
 ):
     """
-    TODO
+    Test to verify that generating the append line for a System works as expected.
     """
     # Arrange
     test_distro = create_distro()
-    test_distro.breed = "suse"
+    test_distro.breed = "suse"  # type: ignore[method-assign]
     cobbler_api.add_distro(test_distro)
-    test_profile = create_profile(test_distro.name)
-    test_system = create_system(profile_name=test_profile.name)  # type: ignore
+    test_profile = create_profile(test_distro.uid)
+    test_system = create_system(profile_uid=test_profile.uid)  # type: ignore
     blendered_data = utils.blender(cobbler_api, False, test_system)  # type: ignore
     test_builder = AppendLineBuilder(test_distro.name, blendered_data)
     originalname = request.node.originalname or request.node.name  # type: ignore
@@ -61,14 +61,14 @@ def test_generate_system_redhat(
     create_system: Callable[[str, str, str], System],
 ):
     """
-    TODO
+    Test to verify that generating the append line for a RedHat Distro works as expected.
     """
     # Arrange
     test_distro = create_distro()
-    test_distro.breed = "redhat"
+    test_distro.breed = "redhat"  # type: ignore[method-assign]
     cobbler_api.add_distro(test_distro)
-    test_profile = create_profile(test_distro.name)
-    test_system = create_system(profile_name=test_profile.name)  # type: ignore
+    test_profile = create_profile(test_distro.uid)
+    test_system = create_system(profile_uid=test_profile.uid)  # type: ignore
     blendered_data = utils.blender(cobbler_api, False, test_system)  # type: ignore
     test_builder = AppendLineBuilder(test_distro.name, blendered_data)
 
@@ -88,11 +88,11 @@ def test_generate_profile(
     create_profile: Callable[[str], Profile],
 ):
     """
-    TODO
+    Test to verify that generating the append line for a Profile works as expected.
     """
     # Arrange
     test_distro = create_distro()
-    test_profile = create_profile(test_distro.name)
+    test_profile = create_profile(test_distro.uid)
     blendered_data = utils.blender(cobbler_api, False, test_profile)
     test_builder = AppendLineBuilder(test_distro.name, blendered_data)
     originalname = request.node.originalname or request.node.name  # type: ignore
@@ -117,16 +117,16 @@ def test_generate_profile_install(
     create_profile: Callable[[str], Profile],
 ):
     """
-    TODO
+    Test to verify that generating the append line for a Profile with an install option works as expected.
     """
     # Arrange
     test_distro = create_distro()
     originalname = request.node.originalname or request.node.name  # type: ignore
 
-    test_distro.kernel_options = (
+    test_distro.kernel_options = (  # type: ignore[method-assign]
         "install=http://192.168.40.1:80/cblr/links/%s" % originalname  # type: ignore
     )
-    test_profile = create_profile(test_distro.name)
+    test_profile = create_profile(test_distro.uid)
     blendered_data = utils.blender(cobbler_api, False, test_profile)
     test_builder = AppendLineBuilder(test_distro.name, blendered_data)
 
@@ -149,13 +149,13 @@ def test_generate_profile_rhel7(
     create_profile: Callable[[str], Profile],
 ):
     """
-    TODO
+    Test to verify that generating the append line for a RedHat 7 Profile works as expected.
     """
     # Arrange
     test_distro = create_distro()
-    test_distro.breed = "redhat"
+    test_distro.breed = "redhat"  # type: ignore[method-assign]
     cobbler_api.add_distro(test_distro)
-    test_profile = create_profile(test_distro.name)
+    test_profile = create_profile(test_distro.uid)
     blendered_data = utils.blender(cobbler_api, False, test_profile)
     test_builder = AppendLineBuilder(test_distro.name, blendered_data)
 
@@ -174,13 +174,13 @@ def test_generate_profile_rhel6(
     create_profile: Callable[[str], Profile],
 ):
     """
-    TODO
+    Test to verify that generating the append line for a RedHat 6 Profile works as expected.
     """
     # Arrange
     test_distro = create_distro()
-    test_distro.breed = "redhat"
+    test_distro.breed = "redhat"  # type: ignore[method-assign]
     cobbler_api.add_distro(test_distro)
-    test_profile = create_profile(test_distro.name)
+    test_profile = create_profile(test_distro.uid)
     blendered_data = utils.blender(cobbler_api, False, test_profile)
     test_builder = AppendLineBuilder(test_distro.name, blendered_data)
 

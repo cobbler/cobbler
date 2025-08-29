@@ -610,7 +610,7 @@ class Image(BootableItem):
         """
         if menu and menu != "":
             menu_list = self.api.menus()
-            if not menu_list.find(name=menu):
+            if not menu_list.find(uid=menu):
                 raise CX(f"menu {menu} not found")
         old_menu = self._menu
         self._menu = menu

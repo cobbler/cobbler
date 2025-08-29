@@ -35,23 +35,24 @@ def remove_menu(remote: CobblerXMLRPCInterface, token: str):
 
 class TestMenu:
     """
-    TODO
+    Test class to group all XML-RPC menu tests.
     """
 
-    @pytest.mark.usefixtures("create_testmenu", "remove_testmenu")
+    @pytest.mark.usefixtures("create_testmenu")
     def test_create_submenu(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: create/edit a submenu object
         """
         # Arrange
         menus = remote.get_menus(token)
+        menu_uid = remote.get_menu_handle("testmenu0")
 
         # Act
         submenu = remote.new_menu(token)
 
         # Assert
         assert remote.modify_menu(submenu, "name", "testsubmenu0", token)
-        assert remote.modify_menu(submenu, "parent", "testmenu0", token)
+        assert remote.modify_menu(submenu, "parent", menu_uid, token)
 
         assert remote.save_menu(submenu, token)
 
@@ -59,7 +60,6 @@ class TestMenu:
         assert len(new_menus) == len(menus) + 1
         remote.remove_menu("testsubmenu0", token, False)
 
-    @pytest.mark.usefixtures("remove_menu")
     def test_create_menu(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: create/edit a menu object
@@ -84,7 +84,7 @@ class TestMenu:
         # Assert
         assert result == []
 
-    @pytest.mark.usefixtures("create_menu", "remove_menu")
+    @pytest.mark.usefixtures("create_menu")
     def test_get_menu(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: Get a menu object
@@ -98,7 +98,7 @@ class TestMenu:
         # Assert
         assert menu.get("name") == "testmenu0"  # type: ignore[reportUnknownMemberType]
 
-    @pytest.mark.usefixtures("create_menu", "remove_menu")
+    @pytest.mark.usefixtures("create_menu")
     def test_find_menu(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: find a menu object
@@ -112,7 +112,7 @@ class TestMenu:
         # Assert
         assert result
 
-    @pytest.mark.usefixtures("create_menu", "remove_menu")
+    @pytest.mark.usefixtures("create_menu")
     def test_copy_menu(self, remote: CobblerXMLRPCInterface, token: str):
         """
         Test: copy a menu object

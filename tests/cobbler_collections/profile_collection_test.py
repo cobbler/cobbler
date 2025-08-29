@@ -1,5 +1,5 @@
 """
-TODO
+Test module to validate the functionality of the module that is responsible for managing the collection of profiles.
 """
 
 from typing import Callable
@@ -11,7 +11,7 @@ from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import profiles
 from cobbler.cobbler_collections.manager import CollectionManager
-from cobbler.items import distro, menu, profile, repo
+from cobbler.items import distro, profile
 
 
 @pytest.fixture(name="profile_collection")
@@ -24,7 +24,7 @@ def fixture_profile_collection(cobbler_api: CobblerAPI):
 
 def test_obj_create(collection_mgr: CollectionManager):
     """
-    TODO
+    Test the creation of a Profiles collection object.
     """
     # Arrange & Act
     test_profile_collection = profiles.Profiles(collection_mgr)
@@ -37,7 +37,7 @@ def test_factory_produce(
     cobbler_api: CobblerAPI, profile_collection: profiles.Profiles
 ):
     """
-    TODO
+    Test the factory method to produce a Profile item.
     """
     # Arrange & Act
     result_profile = profile_collection.factory_produce(cobbler_api, {})
@@ -47,21 +47,20 @@ def test_factory_produce(
 
 
 def test_get(
-    cobbler_api: CobblerAPI,
     create_distro: Callable[[], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test retrieving a Profile by name from the collection.
     """
     # Arrange
     name = "test_get"
-    create_distro()
-    create_profile(name)
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
 
     # Act
-    item = profile_collection.get(name)
+    item = profile_collection.get(test_profile.name)
     fake_item = profile_collection.get("fake_name")
 
     # Assert
@@ -71,21 +70,20 @@ def test_get(
 
 
 def test_find(
-    cobbler_api: CobblerAPI,
     create_distro: Callable[[], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test to verify that a profile can be found inside the collection.
     """
     # Arrange
     name = "test_find"
-    create_distro()
-    create_profile(name)
+    test_distro = create_distro()
+    create_profile(test_distro.uid)
 
     # Act
-    result = profile_collection.find(name, True, True)
+    result = profile_collection.find(True, True, name=name)
 
     # Assert
     assert isinstance(result, list)
@@ -94,18 +92,17 @@ def test_find(
 
 
 def test_to_list(
-    cobbler_api: CobblerAPI,
     create_distro: Callable[[], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test converting the profile collection to a list of dictionaries.
     """
     # Arrange
     name = "test_to_list"
-    create_distro()
-    create_profile(name)
+    test_distro = create_distro()
+    create_profile(test_distro.uid)
 
     # Act
     result = profile_collection.to_list()
@@ -116,20 +113,20 @@ def test_to_list(
 
 
 def test_from_list(
-    cobbler_api: CobblerAPI,
     create_distro: Callable[[], distro.Distro],
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test populating the profile collection from a list of dictionaries.
     """
     # Arrange
     name = "test_from_list"
     distro1 = create_distro()
     item_list = [
         {
+            "uid": "c6292be68ce0416490414420a7467b21",
             "name": name,
-            "distro": distro1.name,
+            "distro": distro1.uid,
         },
     ]
 
@@ -149,26 +146,25 @@ def test_copy(
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test copying a profile within the collection.
     """
     # pylint: disable=protected-access
     # Arrange
-    name = "test_copy"
-    create_distro()
-    profile1 = create_profile(name)
+    test_distro = create_distro()
+    profile1 = create_profile(test_distro.uid)
 
     # Act
     new_item_name = "test_copy_successful"
     profile_collection.copy(profile1, new_item_name)
-    profile2 = profile_collection.find(new_item_name, False)
+    profile2 = profile_collection.find(False, name=new_item_name)
 
     # Assert
     assert isinstance(profile2, profile.Profile)
     assert len(profile_collection.listing) == 2
-    assert name in profile_collection.listing
-    assert new_item_name in profile_collection.listing
+    assert profile1.uid in profile_collection.listing
+    assert profile2.uid in profile_collection.listing
     for key, value in profile_collection.indexes.items():
-        indx_prop = cobbler_api.settings().memory_indexes["profile"][key]
+        indx_prop = cobbler_api.settings().memory_indexes["profile"][key]  # type: ignore
         attr_val1 = profile_collection._get_index_property(profile1, key)  # type: ignore[reportPrivateUsage]
         attr_val2 = profile_collection._get_index_property(profile2, key)  # type: ignore[reportPrivateUsage]
         if isinstance(attr_val1, list):
@@ -181,12 +177,12 @@ def test_copy(
             attr_val2 = attr_val2.value
         if indx_prop["nonunique"]:
             assert len(value) == 1
-            assert value[attr_val1] == {name, new_item_name}
-            assert value[attr_val2] == {name, new_item_name}
+            assert value[attr_val1] == {profile1.uid, profile2.uid}
+            assert value[attr_val2] == {profile1.uid, profile2.uid}
         else:
             assert len(value) == 2
-            assert value[attr_val1] == name
-            assert value[attr_val2] == new_item_name
+            assert value[attr_val1] == profile1.uid
+            assert value[attr_val2] == profile2.uid
 
 
 @pytest.mark.parametrize(
@@ -204,67 +200,65 @@ def test_rename(
     input_new_name: str,
 ):
     """
-    TODO
+    Test renaming a profile within the collection.
     """
     # pylint: disable=protected-access
     # Arrange
-    name = "test_rename"
-    create_distro()
-    profile1 = create_profile(name)
+    test_distro = create_distro()
+    profile1 = create_profile(test_distro.uid)
 
     # Act
     profile_collection.rename(profile1, input_new_name)
 
     # Assert
-    assert input_new_name in profile_collection.listing
-    assert profile_collection.listing[input_new_name].name == input_new_name
+    assert profile1.uid in profile_collection.listing
+    assert profile_collection.listing[profile1.uid].name == input_new_name
     for key, value in profile_collection.indexes.items():
-        indx_prop = cobbler_api.settings().memory_indexes["profile"][key]
+        indx_prop = cobbler_api.settings().memory_indexes["profile"][key]  # type: ignore
         attr_val = profile_collection._get_index_property(profile1, key)  # type: ignore[reportPrivateUsage]
         if isinstance(attr_val, list):
             attr_val = ""
         elif isinstance(attr_val, enums.ConvertableEnum):
             attr_val = attr_val.value
         if indx_prop["nonunique"]:
-            assert value[attr_val] == {input_new_name}
+            assert value[attr_val] == {profile1.uid}
         else:
-            assert value[attr_val] == input_new_name
+            assert value[attr_val] == profile1.uid
 
 
 def test_collection_add(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], distro.Distro],
-    create_profile: Callable[[str], profile.Profile],
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test adding a new profile to the collection.
     """
     # pylint: disable=protected-access
     # Arrange
     name = "test_collection_add"
     distro1 = create_distro()
-    profile1 = profile.Profile(cobbler_api)
-    profile1.name = name
-    profile1.distro = distro1.name
+    profile1 = cobbler_api.new_profile()
+    profile1.name = name  # type: ignore[method-assign]
+    profile1.distro = distro1.uid  # type: ignore[method-assign]
 
     # Act
     profile_collection.add(profile1)
 
     # Assert
-    assert name in profile_collection.listing
-    assert profile_collection.listing[name].name == name
+    assert profile1.uid in profile_collection.listing
+    assert profile_collection.listing[profile1.uid].name == name
     for key, value in profile_collection.indexes.items():
-        indx_prop = cobbler_api.settings().memory_indexes["profile"][key]
+        indx_prop = cobbler_api.settings().memory_indexes["profile"][key]  # type: ignore
         attr_val = profile_collection._get_index_property(profile1, key)  # type: ignore[reportPrivateUsage]
         if isinstance(attr_val, list):
             attr_val = ""
         elif isinstance(attr_val, enums.ConvertableEnum):
             attr_val = attr_val.value
         if indx_prop["nonunique"]:
-            assert value[attr_val] == {name}
+            assert value[attr_val] == {profile1.uid}
         else:
-            assert value[attr_val] == name
+            assert value[attr_val] == profile1.uid
 
 
 def test_duplicate_add(
@@ -274,18 +268,18 @@ def test_duplicate_add(
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test that adding a duplicate profile name raises an exception and does not modify the collection.
     """
     # Arrange
     name = "test_duplicate_add"
     distro1 = create_distro()
-    create_profile(name)
-    profile2 = profile.Profile(cobbler_api)
-    profile2.name = name
-    profile2.distro = distro1.name
+    create_profile(distro1.uid)
+    profile2 = cobbler_api.new_profile()
+    profile2.name = name  # type: ignore[method-assign]
+    profile2.distro = distro1.uid  # type: ignore[method-assign]
 
     # Act & Assert
-    assert len(profile_collection.indexes["uid"]) == 1
+    assert len(profile_collection.indexes["name"]) == 1
     with pytest.raises(CX):
         profile_collection.add(profile2, check_for_duplicate_names=True)
     for key, _ in profile_collection.indexes.items():
@@ -293,45 +287,42 @@ def test_duplicate_add(
 
 
 def test_remove(
-    cobbler_api: CobblerAPI,
     create_distro: Callable[[], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test removing a profile from the collection.
     """
     # Arrange
-    name = "test_remove"
-    create_distro()
-    create_profile(name)
-    assert name in profile_collection.listing
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    assert test_profile.uid in profile_collection.listing
 
     # Pre-Assert to validate if the index is in its correct state
     for key, _ in profile_collection.indexes.items():
         assert len(profile_collection.indexes[key]) == 1
 
     # Act
-    profile_collection.remove(name)
+    profile_collection.remove(test_profile)
 
     # Assert
-    assert name not in profile_collection.listing
+    assert test_profile.uid not in profile_collection.listing
     for key, _ in profile_collection.indexes.items():
         assert len(profile_collection.indexes[key]) == 0
 
 
 def test_indexes(
-    cobbler_api: CobblerAPI,
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test to validate that the profile collection has the expected indexes initialized.
     """
     # Arrange
 
     # Assert
     assert len(profile_collection.indexes) == 6
-    assert len(profile_collection.indexes["uid"]) == 0
+    assert len(profile_collection.indexes["name"]) == 0
     assert len(profile_collection.indexes["parent"]) == 0
     assert len(profile_collection.indexes["distro"]) == 0
     assert len(profile_collection.indexes["arch"]) == 0
@@ -346,13 +337,12 @@ def test_add_to_indexes(
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test adding a profile to the collection's indexes.
     """
     # pylint: disable=protected-access
     # Arrange
-    name = "test_add_to_indexes"
-    create_distro()
-    profile1 = create_profile(name)
+    test_distro = create_distro()
+    profile1 = create_profile(test_distro.uid)
     for key, value in profile_collection.indexes.items():
         attr_val = profile_collection._get_index_property(profile1, key)  # type: ignore[reportPrivateUsage]
         if isinstance(attr_val, list):
@@ -366,39 +356,38 @@ def test_add_to_indexes(
 
     # Assert
     for key, value in profile_collection.indexes.items():
-        indx_prop = cobbler_api.settings().memory_indexes["profile"][key]
+        indx_prop = cobbler_api.settings().memory_indexes["profile"][key]  # type: ignore
         attr_val = profile_collection._get_index_property(profile1, key)  # type: ignore[reportPrivateUsage]
         if isinstance(attr_val, list):
             attr_val = ""
         elif isinstance(attr_val, enums.ConvertableEnum):
             attr_val = attr_val.value
         if indx_prop["nonunique"]:
-            assert {attr_val: {profile1.name}} == value
+            assert {attr_val: {profile1.uid}} == value
         else:
-            assert {attr_val: profile1.name} == value
+            assert {attr_val: profile1.uid} == value
 
 
-def test_update_profile_uid_index(
-    cobbler_api: CobblerAPI,
+def test_update_profile_name_index(
     create_distro: Callable[[], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test renaming a profile within the collection.
     """
     # Arrange
-    name = "test_update_profile_uid_index"
-    create_distro()
-    profile1 = create_profile(name)
+    test_distro = create_distro()
+    profile1 = create_profile(test_distro.uid)
+    new_name = "test_name_renamed"
+    original_name = profile1.name
 
     # Act
-    original_uid = profile1.uid
-    profile1.uid = "test_uid"
+    profile1.name = new_name  # type: ignore[method-assign]
 
     # Assert
-    assert original_uid not in profile_collection.indexes["uid"]
-    assert profile_collection.indexes["uid"]["test_uid"] == profile1.name
+    assert original_name not in profile_collection.indexes["name"]
+    assert profile_collection.indexes["name"][new_name] == profile1.uid
 
 
 def test_update_profile_parent_index(
@@ -408,49 +397,46 @@ def test_update_profile_parent_index(
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test updating the parent index of a profile within the collection.
     """
     # Arrange
-    name = "test_update_profile_parent_index"
     distro1 = create_distro()
-    profile1 = create_profile(name)
-    profile2 = profile.Profile(cobbler_api)
-    profile2.name = "test_update_profile_parent_index2"
-    profile2.distro = distro1.name
+    profile1 = create_profile(distro1.uid)
+    profile2 = cobbler_api.new_profile()
+    profile2.name = "test_update_profile_parent_index2"  # type: ignore[method-assign]
+    profile2.distro = distro1.uid  # type: ignore[method-assign]
     profile_collection.add(profile2)
 
     # Act
-    profile1.parent = profile2.name
+    profile1.parent = profile2.uid  # type: ignore[method-assign]
 
     # Assert
     assert profile1.name not in profile_collection.indexes["parent"]
-    assert profile_collection.indexes["parent"][profile2.name] == {profile1.name}
+    assert profile_collection.indexes["parent"][profile2.uid] == {profile1.uid}
 
 
 def test_update_profile_distro_index(
-    cobbler_api: CobblerAPI,
     create_distro: Callable[[str], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test updating the distro index of a profile within the collection.
     """
     # Arrange
     name = "test_update_profile_distro_index"
     distro1 = create_distro(name)
     distro2 = create_distro("test_update_profile_distro_index_new")
-    profile1 = create_profile(name)
+    profile1 = create_profile(distro1.uid)
 
     # Act
-    original_distro = distro1.name
-    profile1.distro = distro2.name
+    original_distro = distro1.uid
+    profile1.distro = distro2.uid  # type: ignore[method-assign]
 
     # Assert
     assert original_distro not in profile_collection.indexes["distro"]
-    assert profile_collection.indexes["distro"][profile1.distro.name] == {  # type: ignore[reportOptionalMemberAccess]
-        profile1.name,
-    }
+    result = profile_collection.indexes["distro"][profile1.distro.uid]  # type: ignore
+    assert result == {profile1.uid}
 
 
 def test_update_profile_arch_index(
@@ -460,63 +446,70 @@ def test_update_profile_arch_index(
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test updating the arch index of profiles within the collection.
     """
-    # Arrange
+    # Arrange - All distros and profiles have x86_64 as arch
     name = "test_update_profile_arch_index"
     distro1 = create_distro(name)
     distro2: distro.Distro = create_distro("test_update_profile_arch_index_new")
-    profile1 = create_profile(name)
-    profile2 = profile.Profile(cobbler_api)
-    profile2.name = "test_update_profile_arch_index2"
-    profile2.distro = distro2.name
+    profile1 = create_profile(distro1.uid)
+    profile2 = cobbler_api.new_profile(
+        name="test_update_profile_arch_index2", distro=distro2.uid
+    )
     profile_collection.add(profile2)
-    profile3 = profile.Profile(cobbler_api)
-    profile3.name = "test_update_profile_arch_index3"
-    profile3.distro = distro1.name
+    profile3 = cobbler_api.new_profile(
+        name="test_update_profile_arch_index3", distro=distro1.uid
+    )
     profile_collection.add(profile3)
 
     # Act & Assert
-    assert profile_collection.indexes["arch"][distro1.arch.value] == {
-        profile1.name,
-        profile2.name,
-        profile3.name,
-    }
-
-    distro2.arch = enums.Archs.I386
-    assert profile_collection.indexes["arch"][distro1.arch.value] == {
-        profile1.name,
-        profile3.name,
-    }
-    assert profile_collection.indexes["arch"][distro2.arch.value] == {profile2.name}
-
-    profile1.distro = distro2.name
-    assert profile_collection.indexes["arch"][distro1.arch.value] == {profile3.name}
-    assert profile_collection.indexes["arch"][distro2.arch.value] == {
-        profile1.name,
-        profile2.name,
-    }
-
-    profile2.parent = profile3.name
-    assert profile_collection.indexes["arch"][distro1.arch.value] == {
-        profile2.name,
-        profile3.name,
-    }
-    assert profile_collection.indexes["arch"][distro2.arch.value] == {profile1.name}
-
-    profile3.parent = profile1.name
-    assert distro1.arch.value not in profile_collection.indexes["arch"]
-    assert profile_collection.indexes["arch"][distro2.arch.value] == {
-        profile1.name,
-        profile2.name,
-        profile3.name,
-    }
-
-    distro2.arch = enums.Archs.X86_64
     assert profile_collection.indexes["arch"][enums.Archs.X86_64.value] == {
-        profile1.name,
-        profile2.name,
-        profile3.name,
+        profile1.uid,
+        profile2.uid,
+        profile3.uid,
+    }
+
+    # Now distro2 and profile2 have i386 as arch
+    distro2.arch = enums.Archs.I386  # type: ignore[method-assign]
+    assert profile_collection.indexes["arch"][enums.Archs.X86_64.value] == {
+        profile1.uid,
+        profile3.uid,
+    }
+    assert profile_collection.indexes["arch"][enums.Archs.I386.value] == {profile2.uid}
+
+    # Now distro2, profile1 and profile2 have i386 as arch
+    profile1.distro = distro2.uid  # type: ignore[method-assign]
+    assert profile_collection.indexes["arch"][enums.Archs.X86_64.value] == {
+        profile3.uid
+    }
+    assert profile_collection.indexes["arch"][enums.Archs.I386.value] == {
+        profile1.uid,
+        profile2.uid,
+    }
+
+    # Now set profile3 as parent to profile2, thus giving profile2 the arch x86_64 again
+    profile2.parent = profile3.uid  # type: ignore[method-assign]
+    assert profile_collection.indexes["arch"][enums.Archs.X86_64.value] == {
+        profile2.uid,
+        profile3.uid,
+    }
+    assert profile_collection.indexes["arch"][enums.Archs.I386.value] == {profile1.uid}
+
+    # Now set the parent of profile3 to profile1, thus giving profile3 the arch i386
+    profile3.parent = profile1.uid  # type: ignore[method-assign]
+    assert enums.Archs.X86_64.value not in profile_collection.indexes["arch"]
+    assert profile_collection.indexes["arch"][enums.Archs.I386.value] == {
+        profile1.uid,
+        profile2.uid,
+        profile3.uid,
+    }
+
+    # Now set distro2 as x86_64 and have all items as x86_64
+    distro2.arch = enums.Archs.X86_64  # type: ignore[method-assign]
+    assert profile_collection.indexes["arch"][enums.Archs.X86_64.value] == {
+        profile1.uid,
+        profile2.uid,
+        profile3.uid,
     }
     assert enums.Archs.I386.value not in profile_collection.indexes["arch"]
 
@@ -528,23 +521,23 @@ def test_update_profile_menu_index(
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test updating the menu index of a profile within the collection.
     """
     # Arrange
     name = "test_update_profile_menu_index"
-    create_distro()
-    profile1 = create_profile(name)
-    menu1 = menu.Menu(cobbler_api)
-    menu1.name = name
+    test_distro = create_distro()
+    profile1 = create_profile(test_distro.uid)
+    menu1 = cobbler_api.new_menu()
+    menu1.name = name  # type: ignore[method-assign]
     cobbler_api.menus().add(menu1)
 
     # Act
     original_menu = profile1.menu
-    profile1.menu = menu1.name
+    profile1.menu = menu1.uid  # type: ignore[method-assign]
 
     # Assert
     assert original_menu not in profile_collection.indexes["menu"]
-    assert profile_collection.indexes["menu"][profile1.menu] == {profile1.name}
+    assert profile_collection.indexes["menu"][profile1.menu] == {profile1.uid}
 
 
 def test_update_profile_repos_index(
@@ -554,28 +547,28 @@ def test_update_profile_repos_index(
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test updating the repos index of profiles within the collection.
     """
     # Arrange
     name = "test_update_profile_repos_index"
     distro1 = create_distro()
-    profile1 = create_profile(name)
-    profile2 = profile.Profile(cobbler_api)
-    profile2.name = "test_update_profile2"
-    profile2.distro = distro1.name
+    profile1 = create_profile(distro1.uid)
+    profile2 = cobbler_api.new_profile()
+    profile2.name = "test_update_profile2"  # type: ignore[method-assign]
+    profile2.distro = distro1.uid  # type: ignore[method-assign]
     profile_collection.add(profile2)
-    repo1 = repo.Repo(cobbler_api)
-    repo1.name = name
+    repo1 = cobbler_api.new_repo()
+    repo1.name = name  # type: ignore[method-assign]
     cobbler_api.repos().add(repo1)
 
     # Act
-    profile1.repos = repo1.name
-    profile2.repos = [repo1.name]
+    profile1.repos = repo1.uid  # type: ignore[method-assign]
+    profile2.repos = [repo1.uid]  # type: ignore[method-assign]
 
     # Assert
-    assert profile_collection.indexes["repos"][repo1.name] == {
-        profile1.name,
-        profile2.name,
+    assert profile_collection.indexes["repos"][repo1.uid] == {
+        profile1.uid,
+        profile2.uid,
     }
 
 
@@ -586,34 +579,34 @@ def test_remove_from_indexes(
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test removing a profile from the collection's indexes.
     """
     # Arrange
     name = "test_remove_from_indexes"
     distro1 = create_distro()
-    profile1 = create_profile(name)
-    profile2 = profile.Profile(cobbler_api)
-    profile2.name = "test_remove_from_indexe2"
-    profile2.distro = distro1.name
+    profile1 = create_profile(distro1.uid)
+    profile2 = cobbler_api.new_profile()
+    profile2.name = "test_remove_from_indexe2"  # type: ignore[method-assign]
+    profile2.distro = distro1.uid  # type: ignore[method-assign]
     profile_collection.add(profile2)
-    profile1.parent = profile2.name
-    menu1 = menu.Menu(cobbler_api)
-    menu1.name = name
+    profile1.parent = profile2.uid  # type: ignore[method-assign]
+    menu1 = cobbler_api.new_menu()
+    menu1.name = name  # type: ignore[method-assign]
     cobbler_api.menus().add(menu1)
-    profile1.menu = menu1.name
-    repo1 = repo.Repo(cobbler_api)
-    repo1.name = name
+    profile1.menu = menu1.uid  # type: ignore[method-assign]
+    repo1 = cobbler_api.new_repo()
+    repo1.name = name  # type: ignore[method-assign]
     cobbler_api.repos().add(repo1)
-    profile1.repos = repo1.name
+    profile1.repos = repo1.uid  # type: ignore[method-assign]
 
     # Act
     profile_collection.remove_from_indexes(profile1)
 
     # Assert
-    assert profile1.uid not in profile_collection.indexes["uid"]
+    assert profile1.name not in profile_collection.indexes["name"]
     assert profile1.get_parent not in profile_collection.indexes["parent"]
-    assert profile_collection.indexes["distro"][profile1.distro.name] == {profile2.name}  # type: ignore[reportOptionalMemberAccess]
-    assert profile_collection.indexes["arch"][profile1.arch.value] == {profile2.name}  # type: ignore[reportOptionalMemberAccess]
+    assert profile_collection.indexes["distro"][profile2.distro.uid] == {profile2.uid}  # type: ignore
+    assert profile_collection.indexes["arch"][profile2.arch.value] == {profile2.uid}  # type: ignore
     assert profile1.menu not in profile_collection.indexes["menu"]
     assert profile1.repos[0] not in profile_collection.indexes["repos"]
 
@@ -622,20 +615,18 @@ def test_remove_from_indexes(
 
 
 def test_find_by_indexes(
-    cobbler_api: CobblerAPI,
     create_distro: Callable[[], distro.Distro],
     create_profile: Callable[[str], profile.Profile],
     profile_collection: profiles.Profiles,
 ):
     """
-    TODO
+    Test finding profiles by various indexes within the collection.
     """
     # Arrange
-    name = "test_find_by_indexes"
     distro1 = create_distro()
-    profile1 = create_profile(name)
-    kargs1 = {"uid": profile1.uid}
-    kargs2 = {"uid": "fake_uid"}
+    profile1 = create_profile(distro1.uid)
+    kargs1 = {"name": profile1.name}
+    kargs2 = {"name": "fake_uid"}
     kargs3 = {"fake_index": profile1.uid}
     kargs4 = {"parent": ""}
     kargs5 = {"parent": "fake_parent"}
@@ -643,9 +634,9 @@ def test_find_by_indexes(
     kargs7 = {"parent": "fake_menu"}
     kargs8 = {"repos": ""}
     kargs9 = {"repos": "fake_repos"}
-    kargs10 = {"distro": distro1.name}
+    kargs10 = {"distro": distro1.uid}
     kargs11 = {"repos": "fake_distro"}
-    kargs12 = {"arch": profile1.arch.value}  # type: ignore[reportOptionalMemberAccess]
+    kargs12 = {"arch": profile1.arch.value}  # type: ignore[reportOptionalMemberAccess,union-attr]
     kargs13 = {"repos": "fake_arch"}
 
     # Act

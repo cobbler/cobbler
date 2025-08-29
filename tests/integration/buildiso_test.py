@@ -21,7 +21,7 @@ def fixture_isos_folder(
     tmp_path_factory: pytest.TempPathFactory,
 ) -> Generator[pathlib.Path, None, None]:
     """
-    TODO
+    Fixture to provide a directory to download ISOs for a complete test-session.
     """
     isos_directory = tmp_path_factory.mktemp("isos")
     yield isos_directory
@@ -33,7 +33,7 @@ def fixture_iso_mount_point(
     isos_folder: pathlib.Path,
 ) -> Generator[pathlib.Path, None, None]:
     """
-    TODO
+    Fixture to create the mount point for the downloaded ISOs.
     """
     mount_point = isos_folder / "leap-mp"
     mount_point.mkdir()
@@ -46,7 +46,7 @@ def fixture_buildiso_cleanup(
     iso_mount_point: pathlib.Path,
 ) -> Generator[None, None, None]:
     """
-    TODO
+    Fixture to unmount the ISO after each test to allow re-using the mount point accross tests.
     """
     yield
     subprocess.call(
@@ -77,8 +77,10 @@ def test_buildiso_integration(
     isos_folder: pathlib.Path,
 ):
     """
-    TODO
+    Integration Test to verify that building ISOs is working for various combinations.
     """
+    # pylint: disable=unused-argument
+    # To enforce fixture ordering, we need to name the "buildiso_cleanup" fixture explicitly in the test args.
     # Arrange
     if flavor == "ppc64le":
         filename = "openSUSE-Leap-15.3-DVD-ppc64le-Current.iso"
@@ -128,9 +130,10 @@ def test_buildiso_integration(
     sid = remote.new_system(token)
     remote.modify_system(sid, "name", "testbed", token)
     if flavor == "ppc64le":
-        remote.modify_system(sid, "profile", "leap-ppc64le", token)
+        pid = remote.get_profile_handle("leap-ppc64le")
     else:
-        remote.modify_system(sid, "profile", "leap-x86_64", token)
+        pid = remote.get_profile_handle("leap-x86_64")
+    remote.modify_system(sid, "profile", pid, token)
     remote.save_system(sid, token, "new")
     print("Testsystem created")
 

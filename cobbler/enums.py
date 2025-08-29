@@ -105,7 +105,7 @@ class ItemTypes(ConvertableEnum):
 
 class DHCP(enum.Enum):
     """
-    TODO
+    This enum represents all DHCP versions that Cobbler supports.
     """
 
     V4 = 4

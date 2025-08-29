@@ -3,7 +3,7 @@ Tests that validate the functionality of the module that is responsible for prov
 """
 
 import copy
-from typing import Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 import pytest
 
@@ -13,8 +13,15 @@ from cobbler.items.abstract.base_item import BaseItem
 
 from tests.conftest import does_not_raise
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
 
 class MockItem(BaseItem):
+    """
+    Mock Cobbler Item to enable more isolated testing of the abstract base class "BaseItem".
+    """
+
     def __init__(self, api: "CobblerAPI", *args: Any, **kwargs: Any):
         super().__init__(api, *args, **kwargs)
         self._inmemory = True
@@ -134,17 +141,19 @@ def test_mtime(cobbler_api: CobblerAPI, value: Any, expected_exception: Any):
         assert titem.mtime == value
 
 
-def test_name(cobbler_api: CobblerAPI):
+def test_name(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     """
     Assert that an abstract Cobbler Item can use the Getter and Setter of the name property correctly.
     """
     # Arrange
     titem = MockItem(cobbler_api)
+    mocker.patch.object(titem, "api")
 
     # Act
-    titem.name = "testname"
+    titem.name = "testname"  # type: ignore[method-assign]
 
     # Assert
+    # Testing that the caching and lazy_start works is covered with different tests
     assert titem.name == "testname"
 
 
@@ -156,7 +165,7 @@ def test_comment(cobbler_api: CobblerAPI):
     titem = MockItem(cobbler_api)
 
     # Act
-    titem.comment = "my comment"
+    titem.comment = "my comment"  # type: ignore[method-assign]
 
     # Assert
     assert titem.comment == "my comment"
@@ -186,19 +195,22 @@ def test_owners(
 
     # Act
     with expected_exception:
-        titem.owners = input_owners
+        titem.owners = input_owners  # type: ignore[method-assign]
 
         # Assert
         assert titem.owners == expected_result
 
 
-def test_check_if_valid(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
+def test_check_if_valid(
+    mocker: "MockerFixture", request: "pytest.FixtureRequest", cobbler_api: CobblerAPI
+):
     """
     Asserts that the check for a valid item is performed successfuly.
     """
     # Arrange
     titem = MockItem(cobbler_api)
-    titem.name = (
+    mocker.patch.object(titem, "api")
+    titem.name = (  # type: ignore[method-assign]
         request.node.originalname if request.node.originalname else request.node.name  # type: ignore
     )
 

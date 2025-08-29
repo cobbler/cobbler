@@ -356,7 +356,7 @@ class RepoSync:
         if not repo.mirror.startswith("rsync://") and not repo.mirror.startswith("/"):
             spacer = ["-e ssh"]
         if not repo.mirror.endswith("/"):
-            repo.mirror = f"{repo.mirror}/"
+            repo.mirror = f"{repo.mirror}/"  # type: ignore[method-assign]
 
         flags: List[str] = []
         for repo_option in repo.rsyncopts:

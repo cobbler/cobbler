@@ -176,7 +176,7 @@ schema = Schema(
         Optional("lazy_start"): bool,
         Optional("memory_indexes"): {
             Optional("distro"): {
-                Optional("uid"): {
+                Optional("name"): {
                     Optional("property"): str,
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
@@ -188,7 +188,7 @@ schema = Schema(
                 },
             },
             Optional("image"): {
-                Optional("uid"): {
+                Optional("name"): {
                     Optional("property"): str,
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
@@ -205,7 +205,7 @@ schema = Schema(
                 },
             },
             Optional("menu"): {
-                Optional("uid"): {
+                Optional("name"): {
                     Optional("property"): str,
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
@@ -217,7 +217,7 @@ schema = Schema(
                 },
             },
             Optional("profile"): {
-                Optional("uid"): {
+                Optional("name"): {
                     Optional("property"): str,
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
@@ -249,14 +249,14 @@ schema = Schema(
                 },
             },
             Optional("repo"): {
-                Optional("uid"): {
+                Optional("name"): {
                     Optional("property"): str,
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
                 },
             },
             Optional("system"): {
-                Optional("uid"): {
+                Optional("name"): {
                     Optional("property"): str,
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
@@ -420,8 +420,15 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
         if include_directory.is_dir() and include_directory.exists():
             include_directory.rmdir()
 
+    collection_folder = pathlib.Path("/var/lib/cobbler/collections/")
     # migrate stored cobbler collections
-    migrate_cobbler_collections("/var/lib/cobbler/collections/")
+    migrate_cobbler_collections(str(collection_folder))
+    # Migrate JSON filenames
+    migrate_cobbler_json_files(collection_folder)
+    # Migrate SQLite DB
+    # TODO
+    # Migrate MongoDB
+    # TODO
 
     return normalize(settings)
 
@@ -433,6 +440,7 @@ def migrate_cobbler_collections(collections_dir: str) -> None:
 
     :param collections_dir: The directory of Cobbler where the collections files are.
     """
+    # Migrate changed properties
     helper.backup_dir(collections_dir)
     for collection_file in glob.glob(
         os.path.join(collections_dir, "**/*.json"), recursive=True
@@ -457,3 +465,17 @@ def migrate_cobbler_collections(collections_dir: str) -> None:
 
         with open(collection_file, "w", encoding="utf-8") as _f:
             _f.write(json.dumps(data))
+
+
+def migrate_cobbler_json_files(collection_folder: pathlib.Path) -> None:
+    """
+    Rename all JSON files from name-based files to uid-based files.
+
+    :param collection_folder: The directory of Cobbler where the collections files are.
+    """
+    helper.backup_dir(str(collection_folder))
+    for folder in pathlib.Path(collection_folder).iterdir():
+        for file in folder.iterdir():
+            if file.name.endswith(".json"):
+                uid = json.loads(file.read_text(encoding="UTF-8")).get("uid")
+                file.rename(f"{uid}.json")

@@ -138,7 +138,7 @@ def test_write_configs(
 @pytest.mark.skip("Advanced complicated test scenario for now.")
 def test_write_configs_zone_template(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verfiy that writing zone templates via "write_configs()" works as expected.
     """
     # Arrange
     # TODO Mock zone specific template /etc/cobbler/zone_templates/{zone}
@@ -155,7 +155,7 @@ def test_write_configs_zone_template(cobbler_api: CobblerAPI):
 @pytest.mark.skip("Advanced complicated test scenario for now.")
 def test_chrooted_named(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify that a chrooted named can be detected and dealt with.
     """
     # Arrange
     manager = bind.get_manager(cobbler_api)

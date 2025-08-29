@@ -19,6 +19,9 @@ if TYPE_CHECKING:
 
 @pytest.fixture(name="test_settings")
 def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> Settings:
+    """
+    Fixture to allow asserting actions taken on the settings for all repository unit tests.
+    """
     settings = mocker.MagicMock(name="repo_setting_mock", spec=cobbler_api.settings())
     orig = cobbler_api.settings()
     for key in orig.to_dict():
@@ -27,6 +30,9 @@ def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> S
 
 
 def test_object_creation(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the Repo object is created correctly.
+    """
     # Arrange
 
     # Act
@@ -37,6 +43,9 @@ def test_object_creation(cobbler_api: CobblerAPI):
 
 
 def test_make_clone(cobbler_api: CobblerAPI):
+    """
+    Test to verify that cloning the Repo object works as expected.
+    """
     # Arrange
     repo = Repo(cobbler_api)
 
@@ -48,6 +57,9 @@ def test_make_clone(cobbler_api: CobblerAPI):
 
 
 def test_to_dict(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the to_dict method works as expected.
+    """
     # Arrange
     titem = Repo(cobbler_api)
 
@@ -60,6 +72,9 @@ def test_to_dict(cobbler_api: CobblerAPI):
 
 
 def test_to_dict_resolved(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the to_dict method with resolved=True works as expected.
+    """
     # Arrange
     titem = Repo(cobbler_api)
 
@@ -76,88 +91,112 @@ def test_to_dict_resolved(cobbler_api: CobblerAPI):
 
 
 def test_mirror(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the mirror property works as expected.
+    """
     # Arrange
     repo = Repo(cobbler_api)
 
     # Act
-    repo.mirror = "https://mymirror.com"
+    repo.mirror = "https://mymirror.com"  # type: ignore[method-assign]
 
     # Assert
     assert repo.mirror == "https://mymirror.com"
 
 
 def test_mirror_type(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the mirror_type property works as expected.
+    """
     # Arrange
     repo = Repo(cobbler_api)
 
     # Act
-    repo.mirror_type = enums.MirrorType.BASEURL
+    repo.mirror_type = enums.MirrorType.BASEURL  # type: ignore[method-assign]
 
     # Assert
     assert repo.mirror_type == enums.MirrorType.BASEURL
 
 
 def test_keep_updated(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the keep_updated property works as expected.
+    """
     # Arrange
     repo = Repo(cobbler_api)
 
     # Act
-    repo.keep_updated = False
+    repo.keep_updated = False  # type: ignore[method-assign]
 
     # Assert
     assert not repo.keep_updated
 
 
 def test_yumopts(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the yumopts property works as expected.
+    """
     # Arrange
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.yumopts = {}
+    testrepo.yumopts = {}  # type: ignore[method-assign]
 
     # Assert
     assert testrepo.yumopts == {}
 
 
 def test_rsyncopts(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the rsyncopts property works as expected.
+    """
     # Arrange
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.rsyncopts = {}
+    testrepo.rsyncopts = {}  # type: ignore[method-assign]
 
     # Assert
     assert testrepo.rsyncopts == {}
 
 
 def test_environment(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the environment property works as expected.
+    """
     # Arrange
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.environment = {}
+    testrepo.environment = {}  # type: ignore[method-assign]
 
     # Assert
     assert testrepo.environment == {}
 
 
 def test_priority(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the priority property works as expected.
+    """
     # Arrange
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.priority = 5
+    testrepo.priority = 5  # type: ignore[method-assign]
 
     # Assert
     assert testrepo.priority == 5
 
 
 def test_rpm_list(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the rpm_list property works as expected.
+    """
     # Arrange
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.rpm_list = []
+    testrepo.rpm_list = []  # type: ignore[method-assign]
 
     # Assert
     assert testrepo.rpm_list == []
@@ -181,35 +220,44 @@ def test_createrepo_flags(
     expected_exception: Any,
     expected_result: str,
 ):
+    """
+    Test to verify that the createrepo_flags property works as expected.
+    """
     # Arrange
     testrepo = Repo(cobbler_api)
 
     # Act
     with expected_exception:
-        testrepo.createrepo_flags = input_flags
+        testrepo.createrepo_flags = input_flags  # type: ignore[method-assign]
 
         # Assert
         assert testrepo.createrepo_flags == expected_result
 
 
 def test_breed(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the breed property works as expected.
+    """
     # Arrange
     repo = Repo(cobbler_api)
 
     # Act
-    repo.breed = "yum"
+    repo.breed = "yum"  # type: ignore[method-assign]
 
     # Assert
     assert repo.breed == enums.RepoBreeds.YUM
 
 
 def test_os_version(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the os_version property works as expected.
+    """
     # Arrange
     testrepo = Repo(cobbler_api)
-    testrepo.breed = "yum"
+    testrepo.breed = "yum"  # type: ignore[method-assign]
 
     # Act
-    testrepo.os_version = "rhel4"
+    testrepo.os_version = "rhel4"  # type: ignore[method-assign]
 
     # Assert
     assert testrepo.breed == enums.RepoBreeds.YUM
@@ -227,12 +275,15 @@ def test_os_version(cobbler_api: CobblerAPI):
     ],
 )
 def test_arch(cobbler_api: CobblerAPI, value: Any, expected_exception: Any):
+    """
+    Test to verify that the arch property works as expected.
+    """
     # Arrange
     testrepo = Repo(cobbler_api)
 
     # Act
     with expected_exception:
-        testrepo.arch = value
+        testrepo.arch = value  # type: ignore[method-assign]
 
         # Assert
         if isinstance(value, str):
@@ -242,33 +293,42 @@ def test_arch(cobbler_api: CobblerAPI, value: Any, expected_exception: Any):
 
 
 def test_mirror_locally(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the mirror_locally property works as expected.
+    """
     # Arrange
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.mirror_locally = False
+    testrepo.mirror_locally = False  # type: ignore[method-assign]
 
     # Assert
     assert not testrepo.mirror_locally
 
 
 def test_apt_components(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the apt_components property works as expected.
+    """
     # Arrange
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.apt_components = []
+    testrepo.apt_components = []  # type: ignore[method-assign]
 
     # Assert
     assert testrepo.apt_components == []
 
 
 def test_apt_dists(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the apt_dists property works as expected.
+    """
     # Arrange
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.apt_dists = []
+    testrepo.apt_dists = []  # type: ignore[method-assign]
 
     # Assert
     assert testrepo.apt_dists == []
@@ -288,12 +348,15 @@ def test_proxy(
     expected_exception: Any,
     expected_result: str,
 ):
+    """
+    Test to verify that the proxy property works as expected.
+    """
     # Arrange
     testrepo = Repo(cobbler_api)
 
     # Act
     with expected_exception:
-        testrepo.proxy = input_proxy
+        testrepo.proxy = input_proxy  # type: ignore[method-assign]
 
         # Assert
         assert testrepo.proxy == expected_result

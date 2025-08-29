@@ -69,9 +69,7 @@ def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI)
     mocker.patch("subprocess.Popen", MockedPopen)
     mock_system = System(cobbler_api)
     mock_system.name = "test_manager_regen_hosts_system"
-    mock_system.interfaces = {
-        "default": NetworkInterface(cobbler_api, mock_system.name)
-    }
+    mock_system.interfaces = {"default": NetworkInterface(cobbler_api, mock_system.uid)}
     mock_system.interfaces["default"].dns_name = "host.example.org"
     mock_system.interfaces["default"].mac_address = "aa:bb:cc:dd:ee:ff"
     mock_system.interfaces["default"].ip_address = "192.168.1.2"

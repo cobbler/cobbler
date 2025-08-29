@@ -416,8 +416,7 @@ class CobblerSync:
         # Rebuild the yum configuration files for any attached repos generate any templates listed in the distro.
         self.tftpgen.write_templates(profile)
         # Cascade sync
-        kids = profile.children
-        for k in kids:
+        for k in profile.children:
             self.add_single_profile(k, rebuild_menu=False)  # type: ignore
         kids = self.api.find_system(return_list=True, profile=profile.name)
         if not isinstance(kids, list):
@@ -448,16 +447,13 @@ class CobblerSync:
         if rebuild_menu:
             self.tftpgen.make_pxe_menu()
 
-    def update_system_netboot_status(self, name: str) -> None:
+    def update_system_netboot_status(self, obj: "System") -> None:
         """
         Update the netboot status of a system.
 
         :param name: The name of the system.
         """
-        system = self.systems.find(name=name)
-        if system is None or isinstance(system, list):
-            return
-        self.tftpd.sync_single_system(system)
+        self.tftpd.sync_single_system(obj)
 
     def add_single_system(self, system_obj: "System") -> None:
         """

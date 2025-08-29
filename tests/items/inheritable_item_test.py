@@ -38,7 +38,7 @@ def test_depth(
 
     # Act
     with expected_exception:
-        titem.depth = input_depth
+        titem.depth = input_depth  # type: ignore[method-assign]
 
         # Assert
         assert titem.depth == expected_result
@@ -69,12 +69,12 @@ def test_get_conceptual_parent(
     """
     # Arrange
     tmp_distro = create_distro()
-    tmp_profile = create_profile(tmp_distro.name)
+    tmp_profile = create_profile(tmp_distro.uid)
     titem = Profile(cobbler_api)
     titem.name = "subprofile_%s" % (
         request.node.originalname if request.node.originalname else request.node.name  # type: ignore
     )
-    titem.parent = tmp_profile.name
+    titem.parent = tmp_profile.uid  # type: ignore[method-assign]
 
     # Act
     result = titem.get_conceptual_parent()
@@ -131,32 +131,30 @@ def test_descendants(
     cobbler_api.add_menu(test_menu1)
     test_menu2 = Menu(cobbler_api)
     test_menu2.name = "test_menu2"
-    test_menu2.parent = test_menu1.name
+    test_menu2.parent = test_menu1.uid  # type: ignore[method-assign]
     cobbler_api.add_menu(test_menu2)
     test_distro = create_distro()
     test_profile1: Profile = create_profile(
-        distro_name=test_distro.name, name="test_profile1"
+        distro_uid=test_distro.uid, name="test_profile1"
     )
-    test_profile1.enable_menu = False
-    test_profile1.repos = [test_repo.name]
+    test_profile1.enable_menu = False  # type: ignore[method-assign]
+    test_profile1.repos = [test_repo.uid]  # type: ignore[method-assign]
     test_profile2: Profile = create_profile(
-        profile_name=test_profile1.name, name="test_profile2"
+        profile_uid=test_profile1.uid, name="test_profile2"
     )
-    test_profile2.enable_menu = False
-    test_profile2.menu = test_menu2.name
+    test_profile2.enable_menu = False  # type: ignore[method-assign]
+    test_profile2.menu = test_menu2.uid  # type: ignore[method-assign]
     test_profile3: Profile = create_profile(
-        profile_name=test_profile1.name, name="test_profile3"
+        profile_uid=test_profile1.uid, name="test_profile3"
     )
-    test_profile3.enable_menu = False
-    test_profile3.repos = [test_repo.name]
+    test_profile3.enable_menu = False  # type: ignore[method-assign]
+    test_profile3.repos = [test_repo.uid]  # type: ignore[method-assign]
     test_image = create_image()
-    test_image.menu = test_menu1.name
+    test_image.menu = test_menu1.uid  # type: ignore[method-assign]
     test_system1: System = create_system(
-        profile_name=test_profile1.name, name="test_system1"
+        profile_uid=test_profile1.uid, name="test_system1"
     )
-    test_system2: System = create_system(
-        image_name=test_image.name, name="test_system2"
-    )
+    test_system2: System = create_system(image_uid=test_image.uid, name="test_system2")
 
     # Act
     cache_tests = [

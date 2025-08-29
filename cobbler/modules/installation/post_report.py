@@ -52,20 +52,17 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
     name = args[1]
     boot_ip = args[2]
 
-    if objtype == "system":
-        target = api.find_system(name)
-    elif objtype == "profile":
-        target = api.find_profile(name)
-    else:
+    if objtype not in ("system", "profile"):
         return 1
+    target = api.find_items(what=objtype, criteria={"name": name})
 
     if target is None or isinstance(target, list):
         raise ValueError("Error retrieving system/profile.")
 
     # collapse the object down to a rendered datastructure
-    target = utils.blender(api, False, target)
+    target_dict = utils.blender(api, False, target)
 
-    if target == {}:
+    if target_dict == {}:
         raise CX("failure looking up target")
 
     to_addr = settings.build_reporting_email
@@ -86,14 +83,14 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
     if subject == "":
         subject = "[Cobbler] install complete "
 
-    to_addr = ",".join(to_addr)
+    to_addr_str = ",".join(to_addr)
     metadata = {
         "from_addr": from_addr,
-        "to_addr": to_addr,
+        "to_addr": to_addr_str,
         "subject": subject,
         "boot_ip": boot_ip,
     }
-    metadata.update(target)
+    metadata.update(target_dict)
 
     with open(
         "/etc/cobbler/reporting/build_report_email.template", encoding="UTF-8"
@@ -111,7 +108,7 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
             # Send the mail
             # FIXME: on error, return non-zero
             server_handle = smtplib.SMTP(smtp_server)
-            server_handle.sendmail(from_addr, to_addr.split(","), message)
+            server_handle.sendmail(from_addr, to_addr, message)
             server_handle.quit()
 
     return 0

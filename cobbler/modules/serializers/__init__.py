@@ -77,12 +77,12 @@ class StorageBase:
             "The implementation for the configured serializer is missing!"
         )
 
-    def deserialize_item(self, collection_type: str, name: str) -> Dict[str, Any]:
+    def deserialize_item(self, collection_type: str, uid: str) -> Dict[str, Any]:
         """
         Get a collection item from disk and parse it into an object.
 
         :param collection_type: The collection type to deserialize.
-        :param item_name: The collection item name to deserialize.
+        :param uid: The collection item uid to deserialize.
         :return: Dictionary of the collection item.
         """
         raise NotImplementedError(

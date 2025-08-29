@@ -8,7 +8,7 @@ import pytest
 from cobbler.remote import CobblerXMLRPCInterface
 
 
-@pytest.mark.usefixtures("create_testdistro", "remove_testdistro")
+@pytest.mark.usefixtures("create_testdistro")
 def test_get_item_resolved(
     remote: CobblerXMLRPCInterface, fk_initrd: str, fk_kernel: str
 ):

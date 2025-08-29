@@ -5,12 +5,13 @@ Test module to assert the performance of "cobbler sync".
 from typing import Callable
 
 import pytest
-from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
+from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs,import-untyped]
     BenchmarkFixture,
 )
 
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
+from cobbler.modules.managers import in_tftpd
 
 from tests.performance import CobblerTree
 
@@ -51,6 +52,8 @@ def test_sync(
         cobbler_api.sync()
 
     # Arrange
+    # Reset the tftp singleton to prevent accessing stale manager collections
+    in_tftpd.MANAGER = None
     cobbler_api.settings().cache_enabled = cache_enabled
     cobbler_api.settings().enable_menu = enable_menu
     CobblerTree.create_all_objs(cobbler_api, create_distro, False, False, False)
