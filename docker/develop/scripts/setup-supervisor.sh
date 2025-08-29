@@ -34,7 +34,7 @@ echo "Create DHCPD leases file"
 touch /var/lib/dhcp/db/dhcpd.leases
 
 echo "Show Cobbler version"
-cobbler version
+curl -XPOST -d '<?xml version="1.0" encoding="UTF-8"?><methodCall><methodName>extended_version</methodName></methodCall>' http://localhost:25151/
 
 echo "Update pytest"
 pip install --break-system-packages -U pytest
