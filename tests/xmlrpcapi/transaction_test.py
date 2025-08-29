@@ -13,9 +13,6 @@ from cobbler.remote import CobblerXMLRPCInterface
 @pytest.mark.usefixtures(
     "create_testdistro",
     "create_testmenu",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
 )
 def test_create_profile(
     remote: CobblerXMLRPCInterface,
@@ -46,9 +43,6 @@ def test_create_profile(
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
 )
 def test_modify_profile(
     remote: CobblerXMLRPCInterface,
@@ -89,9 +83,6 @@ def test_modify_profile(
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
 )
 def test_copy_profile(remote: CobblerXMLRPCInterface, token: str):
     """
@@ -122,17 +113,11 @@ def test_copy_profile(remote: CobblerXMLRPCInterface, token: str):
     assert remote.get_item_handle("profile", "testprofilecopy1") != "~"
     assert remote.get_item_handle("profile", "testprofilecopy2") != "~"
 
-    # Cleanup
-    remote.remove_profile("testprofilecopy1", token)
-    remote.remove_profile("testprofilecopy2", token)
-
 
 @pytest.mark.usefixtures(
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testdistro",
-    "remove_testmenu",
 )
 def test_rename_profile(remote: CobblerXMLRPCInterface, token: str):
     """
@@ -166,16 +151,11 @@ def test_rename_profile(remote: CobblerXMLRPCInterface, token: str):
     assert remote.get_item_handle("profile", "testprofilerenamed1") == "~"
     assert remote.get_item_handle("profile", "testprofilerenamed2") != "~"
 
-    # Cleanup
-    remote.remove_profile("testprofilerenamed2", token)
-
 
 @pytest.mark.usefixtures(
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testdistro",
-    "remove_testmenu",
 )
 def test_remove_profile_recursive(remote: CobblerXMLRPCInterface, token: str):
     """
@@ -255,8 +235,6 @@ def test_create_profiles(
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testdistro",
-    "remove_testmenu",
 )
 def test_parent_profile_recursive(remote: CobblerXMLRPCInterface, token: str):
     """
@@ -302,8 +280,6 @@ def test_parent_profile_recursive(remote: CobblerXMLRPCInterface, token: str):
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testdistro",
-    "remove_testmenu",
 )
 def test_reparent_and_delete_profile(remote: CobblerXMLRPCInterface, token: str):
     """
@@ -362,9 +338,6 @@ def test_reparent_and_delete_profile(remote: CobblerXMLRPCInterface, token: str)
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
 )
 def test_conflict(remote: CobblerXMLRPCInterface, token: str, token2: str):
     """
@@ -397,9 +370,6 @@ def test_conflict(remote: CobblerXMLRPCInterface, token: str, token2: str):
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
 )
 def test_conflict2(remote: CobblerXMLRPCInterface, token: str, token2: str):
     """
@@ -433,9 +403,6 @@ def test_conflict2(remote: CobblerXMLRPCInterface, token: str, token2: str):
 
 @pytest.mark.usefixtures(
     "create_testmenu",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
 )
 def test_create_distro_profile(
     remote: CobblerXMLRPCInterface,
@@ -485,9 +452,6 @@ def test_create_distro_profile(
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
 )
 def test_modify_distro(
     remote: CobblerXMLRPCInterface,
@@ -521,7 +485,6 @@ def test_modify_distro(
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testmenu",
 )
 def test_remove_distro_recursive(remote: CobblerXMLRPCInterface, token: str):
     """
@@ -577,8 +540,6 @@ def test_remove_distro_recursive(remote: CobblerXMLRPCInterface, token: str):
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testmenu",
-    "remove_testprofile",
 )
 def test_reparent_and_remove_distro(
     remote: CobblerXMLRPCInterface,
@@ -665,10 +626,6 @@ def test_reparent_and_remove_distro(
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
-    "remove_testsystem",
 )
 def test_create_system_positive(remote: CobblerXMLRPCInterface, token: str):
     """

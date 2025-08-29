@@ -23,7 +23,7 @@ jobs:
       - name: Run the Tests inside the Docker Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          docker exec -u 0 -it cobbler bash -c "pytest -m 'not mongodb' --cov=./cobbler --benchmark-skip && git config --global --add safe.directory /code && coverage xml"
+          docker exec -u 0 -it cobbler bash -c "pytest -m 'not mongodb and not integration' --cov=./cobbler --benchmark-skip && git config --global --add safe.directory /code && coverage xml"
       - name: Stop and remove the container
         run: docker stop cobbler && docker rm cobbler
       # https://github.com/actions/upload-artifact
@@ -39,19 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test:
-          [
-            basic,
-            import-debian,
-            import-freebsd,
-            import-redhat,
-            import-suse,
-            import-ubuntu,
-            import-vmware,
-            import-xen,
-            settings-cli,
-            svc,
-          ]
+        test: [basic_test, buildiso_test, import_test, settings_cli_test, svc_test]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -70,6 +58,6 @@ jobs:
       - name: Run the import tests inside the Docker container
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          docker exec -u 0 -it cobbler bash -c "make SYSTESTS='${{ matrix.test }}-*' system-test"
+          docker exec -u 0 -it cobbler bash -c "make SYSTESTS='${{ matrix.test }}' system-test"
       - name: Stop and remove the container
         run: docker stop cobbler && docker rm cobbler

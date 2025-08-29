@@ -52,7 +52,7 @@ fi
 
 # Launch container and install cobbler
 echo "==> Start container ..."
-$EXECUTOR run --cap-add=NET_ADMIN -t -d --name cobbler -v "$PWD/deb-build:/usr/src/cobbler/deb-build" "$IMAGE" /bin/bash
+$EXECUTOR run --cap-add=NET_ADMIN -p 80:80 -p 443:443 -t -d --name cobbler -v "$PWD/deb-build:/usr/src/cobbler/deb-build" "$IMAGE" /bin/bash
 
 echo "==> Install fresh packages ..."
 $EXECUTOR exec -it cobbler bash -c 'dpkg -i deb-build/cobbler*.deb'
@@ -70,9 +70,6 @@ $EXECUTOR exec -it cobbler bash -c 'mkdir /var/www/cobbler'
 echo "==> Start Supervisor"
 $EXECUTOR exec -it cobbler bash -c 'supervisord -c /etc/supervisor/supervisord.conf'
 
-echo "==> Wait 10 sec. and show Cobbler version ..."
-$EXECUTOR exec -it cobbler bash -c 'sleep 10 && cobbler --version'
-
 if $RUN_TESTS
 then
     # Almost all of these requirement are already satisfied in the Dockerfiles!
@@ -87,8 +84,6 @@ if $RUN_SYSTEM_TESTS
 then
     echo "==> Wait 15 sec. because supervisord gets two unkown SIGHUPs"
     $EXECUTOR exec -t cobbler bash -c 'sleep 15'
-    echo "==> Preparing the container for system tests..."
-    $EXECUTOR exec --privileged -t cobbler make system-test-env
     echo "==> Running system tests ..."
     $EXECUTOR exec --privileged -t cobbler make system-test
 fi

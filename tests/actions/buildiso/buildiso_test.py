@@ -3,7 +3,7 @@ Tests that validate the functionality of the module that is responsible for buil
 """
 
 import os
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, List
 
 import pytest
 
@@ -97,6 +97,7 @@ def test_copy_boot_files(
     testdistro = create_distro()
 
     # Act
+    # pylint: disable-next=protected-access
     build_iso._copy_boot_files(testdistro.kernel, testdistro.initrd, target_folder)  # type: ignore[reportPrivateUsage]
 
     # Assert
@@ -118,6 +119,7 @@ def test_netboot_generate_boot_loader_configs(
     build_iso = NetbootBuildiso(cobbler_api)
 
     # Act
+    # pylint: disable-next=protected-access
     result = build_iso._generate_boot_loader_configs(  # type: ignore[reportPrivateUsage]
         [test_profile], [test_system], True
     )
@@ -163,7 +165,7 @@ def test_netboot_generate_boot_loader_configs(
     ]:
         print(iterable_to_check)
         # one entry for the profile, one for the system
-        assert len(iterable_to_check) == 2
+        assert len(iterable_to_check) == 2  # type: ignore
 
     # only system entries have system kernel opts
     assert len(matching_grub_system_kopts) == 1
@@ -185,6 +187,7 @@ def test_netboot_generate_boot_loader_config_for_profile_only(
     build_iso = NetbootBuildiso(cobbler_api)
 
     # Act
+    # pylint: disable-next=protected-access
     result = build_iso._generate_boot_loader_configs([test_profile], [], True)  # type: ignore[reportPrivateUsage]
     matching_isolinux_kernel = [
         part for part in result.isolinux if "KERNEL /1.krn" in part
@@ -228,7 +231,7 @@ def test_netboot_generate_boot_loader_config_for_profile_only(
     ]:
         print(iterable_to_check)
         # one entry for the profile, and none for the system
-        assert len(iterable_to_check) == 1
+        assert len(iterable_to_check) == 1  # type: ignore
 
     # there are no system entries
     assert len(matching_grub_system_kopts) == 0
@@ -287,10 +290,10 @@ def test_filter_profile_disabled(
     # Arrange
     test_distro = create_distro()
     test_profile = create_profile(test_distro.name)
-    test_profile.enable_menu = False
+    test_profile.enable_menu = False  # type: ignore
     itemlist = [test_profile.name]
     build_iso = buildiso.BuildIso(cobbler_api)
-    expected_result = []  # No enabled profiles
+    expected_result: List[Any] = []  # No enabled profiles
 
     # Act
     result = build_iso.filter_profiles(itemlist)
@@ -351,11 +354,11 @@ def test_standalone_run(
 
     # Act
     build_iso.run(
-        iso=str(iso_location), distro_name=test_distro.name, source=str(iso_source)
+        iso=str(iso_location), distro_name=test_distro.name, source=str(iso_source)  # type: ignore
     )
 
     # Assert
-    assert iso_location.exists()
+    assert iso_location.exists()  # type: ignore
 
 
 def test_standalone_run_autodetect_distro(
@@ -373,7 +376,7 @@ def test_standalone_run_autodetect_distro(
     build_iso = StandaloneBuildiso(cobbler_api)
 
     # Act
-    build_iso.run(iso=str(iso_location), source=str(iso_source))
+    build_iso.run(iso=str(iso_location), source=str(iso_source))  # type: ignore
 
     # Assert
-    assert iso_location.exists()
+    assert iso_location.exists()  # type: ignore

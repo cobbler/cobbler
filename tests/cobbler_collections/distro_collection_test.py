@@ -15,8 +15,8 @@ from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items import distro
 
 
-@pytest.fixture
-def distro_collection(cobbler_api: CobblerAPI):
+@pytest.fixture(name="distro_collection")
+def fixture_distro_collection(cobbler_api: CobblerAPI):
     """
     Fixture to provide a concrete implementation (Distros) of a generic collection.
     """
@@ -40,7 +40,6 @@ def test_factory_produce(cobbler_api: CobblerAPI, distro_collection: distros.Dis
 
 
 def test_get(
-    cobbler_api: CobblerAPI,
     create_distro: Callable[[str], distro.Distro],
     distro_collection: distros.Distros,
 ):
@@ -59,7 +58,6 @@ def test_get(
 
 
 def test_find(
-    cobbler_api: CobblerAPI,
     create_distro: Callable[[str], distro.Distro],
     distro_collection: distros.Distros,
 ):
@@ -77,7 +75,6 @@ def test_find(
 
 
 def test_to_list(
-    cobbler_api: CobblerAPI,
     create_distro: Callable[[str], distro.Distro],
     distro_collection: distros.Distros,
 ):
@@ -114,7 +111,6 @@ def test_from_list(
 
 
 def test_copy(
-    cobbler_api: CobblerAPI,
     create_distro: Callable[[str], distro.Distro],
     distro_collection: distros.Distros,
 ):
@@ -148,7 +144,6 @@ def test_copy(
     ],
 )
 def test_rename(
-    cobbler_api: CobblerAPI,
     create_distro: Callable[[], distro.Distro],
     distro_collection: distros.Distros,
     input_new_name: str,
@@ -180,8 +175,8 @@ def test_collection_add(
     folder = create_kernel_initrd(fk_kernel, fk_initrd)
     item1 = distro.Distro(cobbler_api)
     item1.name = name
-    item1.initrd = os.path.join(folder, fk_initrd)
-    item1.kernel = os.path.join(folder, fk_kernel)
+    item1.initrd = os.path.join(folder, fk_initrd)  # type: ignore
+    item1.kernel = os.path.join(folder, fk_kernel)  # type: ignore
     distro_collection.add(item1)
 
     # Act
@@ -207,8 +202,8 @@ def test_duplicate_add(
     folder = create_kernel_initrd(fk_kernel, fk_initrd)
     item2 = distro.Distro(cobbler_api)
     item2.name = name
-    item2.initrd = os.path.join(folder, fk_initrd)
-    item2.kernel = os.path.join(folder, fk_kernel)
+    item2.initrd = os.path.join(folder, fk_initrd)  # type: ignore
+    item2.kernel = os.path.join(folder, fk_kernel)  # type: ignore
 
     # Act & Assert
     with pytest.raises(CX):
@@ -216,7 +211,6 @@ def test_duplicate_add(
 
 
 def test_remove(
-    cobbler_api: CobblerAPI,
     create_distro: Callable[[str], distro.Distro],
     distro_collection: distros.Distros,
 ):
@@ -298,7 +292,7 @@ def test_update_indexes(
 
     # Act
     item1.uid = uid1_test
-    item1.arch = enums.Archs.I386
+    item1.arch = enums.Archs.I386  # type: ignore
 
     # Assert
     assert distro_collection.indexes["uid"][uid1_test] == name

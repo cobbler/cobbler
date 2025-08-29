@@ -53,6 +53,7 @@ fi
 # Launch container and install cobbler
 echo "==> Start container ..."
 $EXECUTOR run --cap-add=NET_ADMIN -t -d --name cobbler \
+    -p 80:80 -p 443:443 \
     -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" \
     -v "$PWD/system-tests:/usr/src/cobbler/system-tests" \
     "$IMAGE" /bin/bash
@@ -88,9 +89,6 @@ $EXECUTOR exec -t cobbler bash -c 'supervisord -c /etc/supervisord.conf'
 echo "==> Show Logs ..."
 $EXECUTOR exec -t cobbler bash -c 'cat /var/log/supervisor/supervisor.log'
 
-echo "==> Wait 5 sec. and show Cobbler version ..."
-$EXECUTOR exec -t cobbler bash -c 'sleep 5 && cobbler version'
-
 if $RUN_TESTS
 then
     echo "==> Running tests ..."
@@ -104,8 +102,6 @@ if $RUN_SYSTEM_TESTS
 then
     echo "==> Wait 15 sec. because supervisord gets two unkown sighups"
     $EXECUTOR exec -t cobbler bash -c 'sleep 15'
-    echo "==> Preparing the container for system tests..."
-    $EXECUTOR exec --privileged -t cobbler make system-test-env
     echo "==> Running system tests ..."
     $EXECUTOR exec --privileged -t cobbler make system-test
 fi

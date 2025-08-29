@@ -270,8 +270,8 @@ class AutoInstallationManager:
         for profile in self.api.profiles():
             if profile.autoinstall == name:
                 return True
-        for profile in self.api.systems():
-            if profile.autoinstall == name:
+        for system in self.api.systems():
+            if system.autoinstall == name:
                 return True
         return False
 

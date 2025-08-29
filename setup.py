@@ -77,15 +77,10 @@ class CobblerBuildPy(build_py):
         """
         print("copy_manpages called")
         man_target = pathlib.Path("cobbler/data/man/")
-        man1_source = glob.glob("docs/_build/man/*.1")
         man5_source = glob.glob("docs/_build/man/*.5")
         man8_source = glob.glob("docs/_build/man/*.8")
-        (man_target / "man1").mkdir(parents=True, exist_ok=True)
         (man_target / "man5").mkdir(parents=True, exist_ok=True)
         (man_target / "man8").mkdir(parents=True, exist_ok=True)
-        for file in man1_source:
-            self.announce(f"Copying manpage {file}", 3)
-            shutil.copy(file, str(man_target / "man1"))
         for file in man5_source:
             self.announce(f"Copying manpage {file}", 3)
             shutil.copy(file, str(man_target / "man5"))
@@ -185,7 +180,6 @@ if __name__ == "__main__":
         include_package_data=True,
         entry_points={
             "console_scripts": [
-                "cobbler = cobbler.cli:main",
                 "cobblerd = cobbler.cobblerd:main",
                 "cobbler-settings = cobbler.settings.cli:main",
             ]
