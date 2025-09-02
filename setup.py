@@ -159,6 +159,7 @@ if __name__ == "__main__":
                 "types-setuptools",
                 "types-dataclasses",
                 "types-mock",
+                "types-urllib3",
                 "isort",
             ],
             "test": [
