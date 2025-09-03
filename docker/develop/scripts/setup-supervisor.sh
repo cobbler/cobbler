@@ -10,9 +10,6 @@ echo "Setup openLDAP"
 echo "Setup reposync"
 /code/docker/develop/scripts/setup-reposync.sh
 
-echo "Setup MongoDB"
-/code/docker/develop/scripts/setup-mongodb.sh
-
 echo "Enable Apache2 modules"
 a2enmod proxy
 a2enmod proxy_http

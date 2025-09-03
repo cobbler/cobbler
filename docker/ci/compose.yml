@@ -1,0 +1,13 @@
+services:
+  cobbler:
+    image: registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
+    volumes:
+      - $PWD:/code
+    privileged: true
+    container_name: cobbler-dev
+    entrypoint: ["tail", "-f", "/dev/null"]
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: cobbler
