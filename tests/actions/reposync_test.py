@@ -42,9 +42,9 @@ def fixture_repo(cobbler_api: CobblerAPI) -> Repo:
     Creates a Repository "testrepo0" with a keep_updated=True and mirror_locally=True".
     """
     test_repo = Repo(cobbler_api)
-    test_repo.name = "testrepo0"
-    test_repo.mirror_locally = True
-    test_repo.keep_updated = True
+    test_repo.name = "testrepo0"  # type: ignore[method-assign]
+    test_repo.mirror_locally = True  # type: ignore[method-assign]
+    test_repo.keep_updated = True  # type: ignore[method-assign]
     return test_repo
 
 
@@ -54,7 +54,7 @@ def remove_repo(cobbler_api: CobblerAPI):
     Removes the Repository "testrepo0" which can be created with repo.
     """
     yield
-    test_repo = cobbler_api.find_repo("testrepo0")
+    test_repo = cobbler_api.find_repo(name="testrepo0")
     if test_repo is not None and not isinstance(test_repo, list):
         cobbler_api.remove_repo(test_repo.name)
 
@@ -157,7 +157,6 @@ def test_gen_urlgrab_ssl_opts(reposync_object: reposync.RepoSync):
     assert isinstance(result[1], bool)
 
 
-@pytest.mark.usefixtures("remove_repo")
 @pytest.mark.parametrize(
     "input_mirror_type,input_mirror,expected_exception",
     [
@@ -189,10 +188,10 @@ def test_reposync_yum(
 ):
     # Arrange
     test_repo = repo
-    test_repo.breed = enums.RepoBreeds.YUM
-    test_repo.mirror = input_mirror
-    test_repo.mirror_type = input_mirror_type
-    test_repo.rpm_list = "fedora-gpg-keys"
+    test_repo.breed = enums.RepoBreeds.YUM  # type: ignore[method-assign]
+    test_repo.mirror = input_mirror  # type: ignore[method-assign]
+    test_repo.mirror_type = input_mirror_type  # type: ignore[method-assign]
+    test_repo.rpm_list = "fedora-gpg-keys"  # type: ignore[method-assign]
     test_settings = cobbler_api.settings()
     repo_path = os.path.join(test_settings.webdir, "repo_mirror", test_repo.name)
     mocked_subprocess = mocker.patch(
@@ -240,7 +239,6 @@ def test_reposync_yum(
         assert mocked_repo_walker.call_count == 1
 
 
-@pytest.mark.usefixtures("remove_repo")
 @pytest.mark.parametrize(
     "input_mirror_type,input_mirror,input_arch,input_rpm_list,expected_exception",
     [
@@ -294,13 +292,13 @@ def test_reposync_apt(
 ):
     # Arrange
     test_repo = repo
-    test_repo.breed = enums.RepoBreeds.APT
-    test_repo.arch = input_arch
-    test_repo.apt_components = "main"
-    test_repo.apt_dists = "stable"
-    test_repo.mirror = input_mirror
-    test_repo.mirror_type = input_mirror_type
-    test_repo.rpm_list = input_rpm_list
+    test_repo.breed = enums.RepoBreeds.APT  # type: ignore[method-assign]
+    test_repo.arch = input_arch  # type: ignore[method-assign]
+    test_repo.apt_components = "main"  # type: ignore[method-assign]
+    test_repo.apt_dists = "stable"  # type: ignore[method-assign]
+    test_repo.mirror = input_mirror  # type: ignore[method-assign]
+    test_repo.mirror_type = input_mirror_type  # type: ignore[method-assign]
+    test_repo.rpm_list = input_rpm_list  # type: ignore[method-assign]
     test_settings = cobbler_api.settings()
     repo_path = os.path.join(test_settings.webdir, "repo_mirror", test_repo.name)
     mocked_subprocess = mocker.patch(
@@ -330,7 +328,6 @@ def test_reposync_apt(
         )
 
 
-@pytest.mark.usefixtures("remove_repo")
 @pytest.mark.parametrize(
     "input_mirror_type,input_mirror,expected_exception",
     [
@@ -362,9 +359,9 @@ def test_reposync_wget(
 ):
     # Arrange
     test_repo = repo
-    test_repo.breed = enums.RepoBreeds.WGET
-    test_repo.mirror = input_mirror
-    test_repo.mirror_type = input_mirror_type
+    test_repo.breed = enums.RepoBreeds.WGET  # type: ignore[method-assign]
+    test_repo.mirror = input_mirror  # type: ignore[method-assign]
+    test_repo.mirror_type = input_mirror_type  # type: ignore[method-assign]
     repo_path = os.path.join(
         reposync_object.settings.webdir, "repo_mirror", test_repo.name
     )
@@ -400,7 +397,7 @@ def test_reposync_rhn(
     mocker: "MockerFixture", reposync_object: reposync.RepoSync, repo: Repo
 ):
     # Arrange
-    repo.mirror = "rhn://%s" % repo.name
+    repo.mirror = "rhn://%s" % repo.name  # type: ignore[method-assign]
     mocked_subprocess = mocker.patch(
         "cobbler.utils.subprocess_call", autospec=True, return_value=0
     )
@@ -461,9 +458,9 @@ def test_createrepo_walker(
 ):
     # Arrange
     input_repo = repo
-    input_repo.breed = enums.RepoBreeds.RSYNC
+    input_repo.breed = enums.RepoBreeds.RSYNC  # type: ignore[method-assign]
     input_dirname = ""
-    input_fnames = []
+    input_fnames: List[Any] = []  # type: ignore[method-assign]
     expected_call = ["createrepo", "--testflags", f"'{input_dirname}'"]
     mocked_subprocess = mocker.patch(
         "cobbler.utils.subprocess_call", autospec=True, return_value=0
@@ -508,7 +505,7 @@ def test_sync(
 ):
     # Arrange
     test_repo = Repo(cobbler_api)
-    test_repo.breed = input_repotype
+    test_repo.breed = input_repotype  # type: ignore[method-assign]
     rhn_sync_mock = mocker.patch.object(reposync_object, "rhn_sync")
     yum_sync_mock = mocker.patch.object(reposync_object, "yum_sync")
     apt_sync_mock = mocker.patch.object(reposync_object, "apt_sync")

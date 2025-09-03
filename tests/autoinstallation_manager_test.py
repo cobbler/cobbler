@@ -14,8 +14,12 @@ from cobbler.items.system import System
 from cobbler.settings import Settings
 
 
-@pytest.fixture
-def api_mock():
+@pytest.fixture(name="api_mock")
+def fixture_api_mock():
+    """
+    Fixture to create an API mock to allow testing the autoinstallation manager more independently of the global test
+    settings.
+    """
     api_mock = MagicMock(spec=CobblerAPI)
     settings_mock = MagicMock(name="autoinstall_setting_mock", spec=Settings)
     settings_mock.autoinstall_snippets_dir = "/var/lib/cobbler/snippets"
@@ -87,8 +91,10 @@ def api_mock():
 
 
 def test_create_autoinstallation_manager(api_mock: CobblerAPI):
+    """
+    Verify that the autoinstallation manager object can be created successfully.
+    """
     # Arrange
-    # TODO
 
     # Act
     result = autoinstall_manager.AutoInstallationManager(api_mock)

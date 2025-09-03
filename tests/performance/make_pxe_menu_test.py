@@ -5,7 +5,7 @@ Test module to assert the performance of creating the PXE menu.
 from typing import Callable
 
 import pytest
-from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
+from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs,import-untyped]
     BenchmarkFixture,
 )
 

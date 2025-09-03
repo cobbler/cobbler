@@ -18,11 +18,12 @@ from cobbler.items.repo import Repo
 from cobbler.items.system import System
 
 
-@pytest.fixture(scope="function")
-def inmemory_api() -> CobblerAPI:
+@pytest.fixture(scope="function", name="inmemory_api")
+def fixture_inmemory_api() -> CobblerAPI:
     """
     Fixture to provide an CobblerAPI object that is suitable for testing lazy loading items.
     """
+    # pylint: disable=protected-access
     CobblerAPI.__shared_state = {}  # type: ignore[reportPrivateUsage]
     CobblerAPI.__has_loaded = False  # type: ignore[reportPrivateUsage]
     api = CobblerAPI()
@@ -51,7 +52,7 @@ def test_inmemory(
         inmemory_api,
         **{
             "name": "test_menu2",
-            "parent": test_menu1.name,
+            "parent": test_menu1.uid,
             "comment": "test comment",
         },
     )
@@ -74,10 +75,10 @@ def test_inmemory(
         inmemory_api,
         **{
             "name": "test_profile1",
-            "distro": test_distro.name,
+            "distro": test_distro.uid,
             "enable_menu": False,
-            "repos": [test_repo.name],
-            "menu": test_menu1.name,
+            "repos": [test_repo.uid],
+            "menu": test_menu1.uid,
             "comment": "test comment",
         },
     )
@@ -86,9 +87,9 @@ def test_inmemory(
         inmemory_api,
         **{
             "name": "test_profile2",
-            "parent": test_profile1.name,
+            "parent": test_profile1.uid,
             "enable_menu": False,
-            "menu": test_menu2.name,
+            "menu": test_menu2.uid,
             "comment": "test comment",
         },
     )
@@ -97,44 +98,44 @@ def test_inmemory(
         inmemory_api,
         **{
             "name": "test_profile3",
-            "parent": test_profile1.name,
+            "parent": test_profile1.uid,
             "enable_menu": False,
-            "repos": [test_repo.name],
-            "menu": test_menu1.name,
+            "repos": [test_repo.uid],
+            "menu": test_menu1.uid,
             "comment": "test comment",
         },
     )
     inmemory_api.add_profile(test_profile3)
     test_image = Image(
         inmemory_api,
-        **{"name": "test_image", "menu": test_menu1.name, "comment": "test comment"},
+        **{"name": "test_image", "menu": test_menu1.uid, "comment": "test comment"},
     )
     inmemory_api.add_image(test_image)
     test_system1 = System(
         inmemory_api,
         **{
             "name": "test_system1",
-            "profile": test_profile1.name,
+            "profile": test_profile1.uid,
             "comment": "test comment",
         },
     )
     inmemory_api.add_system(test_system1)
     test_system2 = System(
         inmemory_api,
-        **{"name": "test_system2", "image": test_image.name, "comment": "test comment"},
+        **{"name": "test_system2", "image": test_image.uid, "comment": "test comment"},
     )
     inmemory_api.add_system(test_system2)
 
-    inmemory_api.systems().listing.pop(test_system2.name)
-    inmemory_api.systems().listing.pop(test_system1.name)
-    inmemory_api.images().listing.pop(test_image.name)
-    inmemory_api.profiles().listing.pop(test_profile3.name)
-    inmemory_api.profiles().listing.pop(test_profile2.name)
-    inmemory_api.profiles().listing.pop(test_profile1.name)
-    inmemory_api.distros().listing.pop(test_distro.name)
-    inmemory_api.menus().listing.pop(test_menu2.name)
-    inmemory_api.menus().listing.pop(test_menu1.name)
-    inmemory_api.repos().listing.pop(test_repo.name)
+    inmemory_api.systems().listing.pop(test_system2.uid)
+    inmemory_api.systems().listing.pop(test_system1.uid)
+    inmemory_api.images().listing.pop(test_image.uid)
+    inmemory_api.profiles().listing.pop(test_profile3.uid)
+    inmemory_api.profiles().listing.pop(test_profile2.uid)
+    inmemory_api.profiles().listing.pop(test_profile1.uid)
+    inmemory_api.distros().listing.pop(test_distro.uid)
+    inmemory_api.menus().listing.pop(test_menu2.uid)
+    inmemory_api.menus().listing.pop(test_menu1.uid)
+    inmemory_api.repos().listing.pop(test_repo.uid)
 
     inmemory_api.systems().indexes = {}
     inmemory_api.images().indexes = {}
@@ -145,16 +146,16 @@ def test_inmemory(
 
     inmemory_api.deserialize()
 
-    test_repo: Repo = inmemory_api.find_repo("test_repo")  # type: ignore[reportAssignmentType]
-    test_menu1: Menu = inmemory_api.find_menu("test_menu1")  # type: ignore[reportAssignmentType]
-    test_menu2: Menu = inmemory_api.find_menu("test_menu2")  # type: ignore[reportAssignmentType]
-    test_distro: Distro = inmemory_api.find_distro("test_distro")  # type: ignore[reportAssignmentType]
-    test_profile1: Profile = inmemory_api.find_profile("test_profile1")  # type: ignore[reportAssignmentType]
-    test_profile2: Profile = inmemory_api.find_profile("test_profile2")  # type: ignore[reportAssignmentType]
-    test_profile3: Profile = inmemory_api.find_profile("test_profile3")  # type: ignore[reportAssignmentType]
-    test_image: Image = inmemory_api.find_image("test_image")  # type: ignore[reportAssignmentType]
-    test_system1: System = inmemory_api.find_system("test_system1")  # type: ignore[reportAssignmentType]
-    test_system2: System = inmemory_api.find_system("test_system2")  # type: ignore[reportAssignmentType]
+    test_repo: Repo = inmemory_api.find_repo(uid=test_repo.uid)  # type: ignore[reportAssignmentType]
+    test_menu1: Menu = inmemory_api.find_menu(uid=test_menu1.uid)  # type: ignore[reportAssignmentType]
+    test_menu2: Menu = inmemory_api.find_menu(uid=test_menu2.uid)  # type: ignore[reportAssignmentType]
+    test_distro: Distro = inmemory_api.find_distro(uid=test_distro.uid)  # type: ignore[reportAssignmentType]
+    test_profile1: Profile = inmemory_api.find_profile(uid=test_profile1.uid)  # type: ignore[reportAssignmentType]
+    test_profile2: Profile = inmemory_api.find_profile(uid=test_profile2.uid)  # type: ignore[reportAssignmentType]
+    test_profile3: Profile = inmemory_api.find_profile(uid=test_profile3.uid)  # type: ignore[reportAssignmentType]
+    test_image: Image = inmemory_api.find_image(uid=test_image.uid)  # type: ignore[reportAssignmentType]
+    test_system1: System = inmemory_api.find_system(uid=test_system1.uid)  # type: ignore[reportAssignmentType]
+    test_system2: System = inmemory_api.find_system(uid=test_system2.uid)  # type: ignore[reportAssignmentType]
 
     # Act
     result = True
@@ -181,7 +182,6 @@ def test_inmemory(
     result = not test_image.inmemory if result else result
     result = test_system1.inmemory if result else result
     result = not test_system2.inmemory if result else result
-
     result = test_repo.__dict__["_comment"] == "test comment" if result else result
     result = test_menu1.__dict__["_comment"] == "test comment" if result else result
     result = test_menu2.__dict__["_comment"] == "" if result else result
@@ -192,18 +192,6 @@ def test_inmemory(
     result = test_image.__dict__["_comment"] == "" if result else result
     result = test_system1.__dict__["_comment"] == "test comment" if result else result
     result = test_system2.__dict__["_comment"] == "" if result else result
-
-    # Cleanup
-    inmemory_api.remove_system(test_system1)
-    inmemory_api.remove_system(test_system2)
-    inmemory_api.remove_image(test_image)
-    inmemory_api.remove_profile(test_profile3)
-    inmemory_api.remove_profile(test_profile2)
-    inmemory_api.remove_profile(test_profile1)
-    inmemory_api.remove_distro(test_distro)
-    inmemory_api.remove_menu(test_menu2)
-    inmemory_api.remove_menu(test_menu1)
-    inmemory_api.remove_repo(test_repo)
 
     # Assert
     assert result

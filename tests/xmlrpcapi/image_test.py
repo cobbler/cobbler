@@ -10,7 +10,7 @@ from cobbler.remote import CobblerXMLRPCInterface
 
 class TestImage:
     """
-    TODO
+    Test class to group all XML-RPC related image tests.
     """
 
     def test_create_image(self, remote: CobblerXMLRPCInterface, token: str):

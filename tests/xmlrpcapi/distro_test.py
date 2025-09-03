@@ -110,7 +110,7 @@ def test_create_distro_negative(
         pytest.fail("Bad field did not raise an exception!")
 
 
-@pytest.mark.usefixtures("create_testdistro", "remove_testdistro")
+@pytest.mark.usefixtures("create_testdistro")
 def test_get_distro(remote: CobblerXMLRPCInterface, fk_initrd: str, fk_kernel: str):
     """
     Test: get a distro object
@@ -153,7 +153,7 @@ def test_find_distro(remote: CobblerXMLRPCInterface, token: str):
     assert result == []
 
 
-@pytest.mark.usefixtures("create_testdistro", "remove_testdistro")
+@pytest.mark.usefixtures("create_testdistro")
 def test_copy_distro(remote: CobblerXMLRPCInterface, token: str):
     """
     Test: copy a distro object

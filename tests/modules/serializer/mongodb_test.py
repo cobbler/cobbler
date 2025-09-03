@@ -17,16 +17,16 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
-@pytest.mark.mongodb
-def mongodb_obj_fixture(cobbler_api: CobblerAPI) -> mongodb.MongoDBSerializer:
+@pytest.fixture(name="mongodb_obj")
+def fixture_mongodb_obj(cobbler_api: CobblerAPI) -> mongodb.MongoDBSerializer:
     """
     Fixture to create a fresh MongoDB Serializer for each test.
     """
     return mongodb.storage_factory(cobbler_api)
 
 
-@pytest.fixture(scope="function", autouse=True)
-def reset_database(mongodb_obj: mongodb.MongoDBSerializer):
+@pytest.fixture(name="reset_database", scope="function", autouse=True)
+def fixture_reset_database(mongodb_obj: mongodb.MongoDBSerializer):
     """
     Fixture to reset the MongoDB database after each test.
     """
@@ -72,6 +72,7 @@ def test_serialize_item(
     mock_collection = mocker.MagicMock()
     mock_collection.collection_types.return_value = "distros"
     mock_item = mocker.MagicMock()
+    mock_item.uid = "8b1fe974e7a240bfb5639976ab64b4fb"
     mock_item.name = "testitem"
     mock_item.arch = "x86_64"
     mock_item.serialize.return_value = {"name": mock_item.name, "arch": mock_item.arch}
@@ -94,6 +95,7 @@ def test_serialize_delete(
     mock_collection = mocker.MagicMock()
     mock_collection.collection_types.return_value = "distros"
     mock_item = mocker.MagicMock()
+    mock_item.uid = "8b1fe974e7a240bfb5639976ab64b4fb"
     mock_item.name = "testitem"
 
     # Act
@@ -168,10 +170,10 @@ def test_deserialize(mocker: "MockerFixture", mongodb_obj: mongodb.MongoDBSerial
 
 @pytest.mark.mongodb
 @pytest.mark.parametrize(
-    "item_name,expected_exception",
+    "item_uid,expected_exception",
     [
         (
-            "testitem",
+            "8b1fe974e7a240bfb5639976ab64b4fb",
             does_not_raise(),
         ),
         (
@@ -181,16 +183,20 @@ def test_deserialize(mocker: "MockerFixture", mongodb_obj: mongodb.MongoDBSerial
     ],
 )
 def test_deserialize_item(
-    mongodb_obj: mongodb.MongoDBSerializer, item_name: str, expected_exception: Any
+    mongodb_obj: mongodb.MongoDBSerializer, item_uid: str, expected_exception: Any
 ):
     """
     Test that will assert if a given item can be successfully deserialized.
     """
     # Arrange
     collection_type = "distros"
-    input_value = {"name": item_name, "arch": "x86_64"}
+    input_value = {
+        "uid": "8b1fe974e7a240bfb5639976ab64b4fb",
+        "name": item_uid,
+        "arch": "x86_64",
+    }
     test_item = copy.deepcopy(input_value)
-    if item_name is not None:  # type: ignore
+    if item_uid is not None:  # type: ignore
         mongodb_obj.mongodb["cobbler"][collection_type].insert_one(test_item)  # type: ignore
 
     expected_value = input_value.copy()
@@ -198,7 +204,7 @@ def test_deserialize_item(
 
     # Act
     with expected_exception:
-        result = mongodb_obj.deserialize_item(collection_type, item_name)
+        result = mongodb_obj.deserialize_item(collection_type, item_uid)
         print(result)
 
         # Assert

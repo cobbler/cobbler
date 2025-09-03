@@ -1,3 +1,7 @@
+"""
+Test module to verify the functionality of profile-related XML-RPC endpoints.
+"""
+
 import os
 from typing import Callable, Union
 
@@ -23,9 +27,6 @@ def test_get_profiles(remote: CobblerXMLRPCInterface, token: str):
 @pytest.mark.usefixtures(
     "create_testdistro",
     "create_testmenu",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
 )
 @pytest.mark.parametrize(
     "field_name,field_value",
@@ -33,7 +34,7 @@ def test_get_profiles(remote: CobblerXMLRPCInterface, token: str):
         ("comment", "test comment"),
         ("dhcp_tag", ""),
         ("dhcp_tag", "foo"),
-        ("distro", "testdistro0"),
+        ("distro", "<VALUE IGNORED>"),
         ("enable_ipxe", True),
         ("enable_ipxe", False),
         ("enable_menu", True),
@@ -50,7 +51,7 @@ def test_get_profiles(remote: CobblerXMLRPCInterface, token: str):
         ("owners", "user1 user2 user3"),
         ("proxy", "testproxy"),
         ("server", "1.1.1.1"),
-        ("menu", "testmenu0"),
+        ("menu", "<VALUE IGNORED>"),
         ("virt_auto_boot", True),
         ("virt_auto_boot", False),
         ("enable_ipxe", True),
@@ -109,9 +110,14 @@ def test_create_profile_positive(
     Test: create/edit a profile object
     """
     # Arrange
+    distro_uid = remote.get_distro_handle("testdistro0")
     profile = remote.new_profile(token)
     remote.modify_profile(profile, "name", "testprofile0", token)
-    remote.modify_profile(profile, "distro", "testdistro0", token)
+    remote.modify_profile(profile, "distro", distro_uid, token)
+    if field_name == "menu":
+        field_value = remote.get_menu_handle("testmenu0")
+    if field_name == "distro":
+        field_value = distro_uid
 
     # Act
     result = remote.modify_profile(profile, field_name, field_value, token)
@@ -123,9 +129,6 @@ def test_create_profile_positive(
 @pytest.mark.usefixtures(
     "create_testdistro",
     "create_testmenu",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
 )
 @pytest.mark.parametrize(
     "field_name,field_value",
@@ -165,9 +168,6 @@ def test_create_profile_negative(
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
 )
 def test_create_subprofile(remote: CobblerXMLRPCInterface, token: str):
     """
@@ -176,13 +176,14 @@ def test_create_subprofile(remote: CobblerXMLRPCInterface, token: str):
 
     # Arrange
     profiles = remote.get_profiles(token)
+    profile_uid = remote.get_profile_handle("testprofile0")
 
     # Act
     subprofile = remote.new_subprofile(token)
 
     # Assert
     assert remote.modify_profile(subprofile, "name", "testsubprofile0", token)
-    assert remote.modify_profile(subprofile, "parent", "testprofile0", token)
+    assert remote.modify_profile(subprofile, "parent", profile_uid, token)
 
     assert remote.save_profile(subprofile, token)
 
@@ -194,23 +195,22 @@ def test_create_subprofile(remote: CobblerXMLRPCInterface, token: str):
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
 )
 def test_get_profile(remote: CobblerXMLRPCInterface):
     """
     Test: get a profile object
     """
-    # Arrange --> Done in fixture.
+    # Arrange
+    menu_uid = remote.get_menu_handle("testmenu0")
+    distro_uid = remote.get_distro_handle("testdistro0")
 
     # Act
     profile = remote.get_profile("testprofile0")
 
     # Assert
     assert profile.get("name") == "testprofile0"  # type: ignore
-    assert profile.get("distro") == "testdistro0"  # type: ignore
-    assert profile.get("menu") == "testmenu0"  # type: ignore
+    assert profile.get("distro") == distro_uid  # type: ignore
+    assert profile.get("menu") == menu_uid  # type: ignore
     assert profile.get("kernel_options") == {  # type: ignore
         "a": "1",
         "b": "2",
@@ -244,8 +244,8 @@ def test_find_profile(
     folder = create_kernel_initrd(fk_kernel, fk_initrd)
     kernel_path = os.path.join(folder, fk_kernel)
     initrd_path = os.path.join(folder, fk_initrd)
-    create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
-    create_profile(profile_name, distro_name, "")  # type: ignore
+    distro_handle = create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
+    create_profile(profile_name, distro_handle, "")  # type: ignore
 
     # Act
     result = remote.find_profile(criteria={"name": profile_name}, token=token)
@@ -260,9 +260,6 @@ def test_find_profile(
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testdistro",
-    "remove_testmenu",
-    "remove_testprofile",
 )
 def test_copy_profile(remote: CobblerXMLRPCInterface, token: str):
     """
@@ -286,9 +283,6 @@ def test_copy_profile(remote: CobblerXMLRPCInterface, token: str):
     "create_testdistro",
     "create_testmenu",
     "create_testprofile",
-    "remove_testprofile",
-    "remove_testmenu",
-    "remove_testdistro",
 )
 def test_rename_profile(remote: CobblerXMLRPCInterface, token: str):
     """
@@ -332,8 +326,8 @@ def test_remove_profile(
     folder = create_kernel_initrd(fk_kernel, fk_initrd)
     kernel_path = os.path.join(folder, fk_kernel)
     initrd_path = os.path.join(folder, fk_initrd)
-    create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
-    create_profile(profile_name, distro_name, "")  # type: ignore
+    distro_handle = create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
+    create_profile(profile_name, distro_handle, "")  # type: ignore
 
     # Act
     result_profile_remove = remote.remove_profile(profile_name, token)  # type: ignore

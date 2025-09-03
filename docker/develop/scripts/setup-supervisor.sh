@@ -10,9 +10,6 @@ echo "Setup openLDAP"
 echo "Setup reposync"
 /code/docker/develop/scripts/setup-reposync.sh
 
-echo "Setup MongoDB"
-/code/docker/develop/scripts/setup-mongodb.sh
-
 echo "Enable Apache2 modules"
 a2enmod proxy
 a2enmod proxy_http
@@ -34,7 +31,7 @@ echo "Create DHCPD leases file"
 touch /var/lib/dhcp/db/dhcpd.leases
 
 echo "Show Cobbler version"
-cobbler version
+curl -XPOST -d '<?xml version="1.0" encoding="UTF-8"?><methodCall><methodName>extended_version</methodName></methodCall>' http://localhost:25151/
 
 echo "Update pytest"
 pip install --break-system-packages -U pytest

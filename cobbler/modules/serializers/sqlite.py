@@ -36,14 +36,18 @@ def what() -> str:
 
 class SQLiteSerializer(StorageBase):
     """
-    Each collection is stored in a separate table named distros, profiles, etc.
-    Tables are created on demand, when the first object of this type is written.
+    SQLite based serializer for Cobbler items.
 
-    TABLE name // name from collection.collection_types()
-    (
-        name TEXT PRIMARY KEY,    // name from item.name
-        item TEXT                 // JSON representation of an object
-    )
+    Each collection is stored in a separate table named distros, profiles, etc. Tables are created on demand, when the
+    first object of this type is written.
+
+    .. code:: sql
+
+       TABLE name // name from collection.collection_types()
+       (
+           uid  TEXT PRIMARY KEY,    // uid from item.uid
+           item TEXT                 // JSON representation of an object
+       )
     """
 
     def __init__(self, api: "CobblerAPI"):
@@ -100,7 +104,7 @@ class SQLiteSerializer(StorageBase):
         :param table_name: The table name.
         """
         try:
-            self.connection.execute(f"CREATE TABLE {table_name}(name text primary key, item text)")  # type: ignore
+            self.connection.execute(f"CREATE TABLE {table_name}(uid text primary key, item text)")  # type: ignore
         except sqlite3.DatabaseError as error:
             raise CX(f'Unable to create table "{table_name}": {error}') from error
 
@@ -135,9 +139,9 @@ class SQLiteSerializer(StorageBase):
             self.__create_table(table_name)
         try:
             self.connection.executemany(  # type: ignore
-                f"INSERT INTO {table_name}(name, item) "  # nosec
-                "VALUES(:name, :item) "
-                "ON CONFLICT(name) DO UPDATE SET item=excluded.item",
+                f"INSERT INTO {table_name}(uid, item) "  # nosec
+                "VALUES(:uid, :item) "
+                "ON CONFLICT(uid) DO UPDATE SET item=excluded.item",
                 bind_vars,  # type: ignore
             )
             self.connection.commit()  # type: ignore
@@ -160,7 +164,7 @@ class SQLiteSerializer(StorageBase):
 
         _dict = item.serialize()
         data = json.dumps(_dict, sort_keys=sort_keys, indent=indent)
-        return {"name": item.name, "item": data}
+        return {"uid": item.uid, "item": data}
 
     def serialize_item(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         """
@@ -201,8 +205,8 @@ class SQLiteSerializer(StorageBase):
         table_name = collection.collection_types()
         try:
             self.connection.execute(  # type: ignore
-                f"DELETE FROM {table_name} WHERE name=:name",  # nosec
-                {"name": item.name},
+                f"DELETE FROM {table_name} WHERE uid=:uid",  # nosec
+                {"uid": item.uid},
             )
             self.connection.commit()  # type: ignore
         except sqlite3.DatabaseError as error:
@@ -225,7 +229,7 @@ class SQLiteSerializer(StorageBase):
         projection = "item"
         lazy_start = self.api.settings().lazy_start
         if lazy_start:
-            projection = "name"
+            projection = "uid"
 
         try:
             cursor = self.connection.execute(  # type: ignore
@@ -238,7 +242,7 @@ class SQLiteSerializer(StorageBase):
         cursor.arraysize = self.arraysize
         for result in cursor.fetchall():
             if lazy_start:
-                _dict = {"name": result[0]}
+                _dict = {"uid": result[0]}
             else:
                 _dict = json.loads(result[0])
             _dict["inmemory"] = not lazy_start
@@ -262,24 +266,24 @@ class SQLiteSerializer(StorageBase):
             datastruct.sort(key=lambda x: x.get("depth", 1))  # type: ignore
         collection.from_list(datastruct)  # type: ignore
 
-    def deserialize_item(self, collection_type: str, name: str) -> Dict[str, Any]:
+    def deserialize_item(self, collection_type: str, uid: str) -> Dict[str, Any]:
         """
         Get a collection item from disk and parse it into an object.
 
         :param collection_type: The collection type to deserialize.
-        :param item_name: The collection item name to deserialize.
+        :param uid: The collection item uid to deserialize.
         :return: Dictionary of the collection item.
         """
         self.__connect()
         if not self.__is_table_exists(collection_type):
             raise CX(
-                f"Item {name} of collection {collection_type} was not found in SQLite database {self.database_file}!"
+                f"Item {uid} of collection {collection_type} was not found in SQLite database {self.database_file}!"
             )
 
         try:
             cursor = self.connection.execute(  # type: ignore
-                f"SELECT item from {collection_type} WHERE name=:name",  # nosec
-                {"name": name},
+                f"SELECT item from {collection_type} WHERE uid=:uid",  # nosec
+                {"uid": uid},
             )
         except sqlite3.DatabaseError as error:
             raise CX(
@@ -288,12 +292,12 @@ class SQLiteSerializer(StorageBase):
         result = cursor.fetchone()
         if result is None:
             raise CX(
-                f"Item {name} of collection {collection_type} was not found in SQLite database {self.database_file}!"
+                f"Item {uid} of collection {collection_type} was not found in SQLite database {self.database_file}!"
             )
         _dict = json.loads(result[0])
-        if _dict["name"] != name:
+        if _dict["uid"] != uid:
             raise CX(
-                f"The file name {name} does not match the {_dict['name']} {collection_type}!"
+                f"The {uid} in the SQLite database does not match the {_dict['uid']} {collection_type}!"
             )
         _dict["inmemory"] = True
         return _dict
@@ -301,6 +305,7 @@ class SQLiteSerializer(StorageBase):
 
 def storage_factory(api: "CobblerAPI") -> SQLiteSerializer:
     """
-    TODO
+    Factory method to allow the serializer interface to instaniate the concrete serializer without knowing which
+    serializer is initalized.
     """
     return SQLiteSerializer(api)

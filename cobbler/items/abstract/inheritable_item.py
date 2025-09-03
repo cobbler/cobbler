@@ -170,7 +170,7 @@ class InheritableItem(BaseItem, ABC):
         """
         return self._depth
 
-    @depth.setter
+    @depth.setter  # type: ignore[no-redef]
     def depth(self, depth: int) -> None:
         """
         Setter for depth.
@@ -188,13 +188,13 @@ class InheritableItem(BaseItem, ABC):
         None.
 
         :getter: Returns the parent object or None if it can't be resolved via the Cobbler API.
-        :setter: The name of the new logical parent.
+        :setter: The uid of the new logical parent.
         """
         if self._parent == "":
             return None
-        return self.api.get_items(self.COLLECTION_TYPE).get(self._parent)  # type: ignore
+        return self.api.get_items(self.COLLECTION_TYPE).listing.get(self._parent)  # type: ignore
 
-    @parent.setter
+    @parent.setter  # type: ignore[no-redef]
     def parent(self, parent: Union["InheritableItem", str]) -> None:
         """
         Set the parent object for this object.
@@ -206,7 +206,7 @@ class InheritableItem(BaseItem, ABC):
         found = None
         if isinstance(parent, InheritableItem):
             found = parent
-            parent = parent.name
+            parent = parent.uid
         old_parent = self._parent
         if self.TYPE_NAME == "profile":  # type: ignore[reportUnnecessaryComparison]
             old_arch: Optional[enums.Archs] = getattr(self, "arch")
@@ -222,11 +222,11 @@ class InheritableItem(BaseItem, ABC):
                     for child in self.tree_walk():
                         items.update_index_value(child, "arch", old_arch, new_arch)  # type: ignore[reportArgumentType]
             return
-        if parent == self.name:
+        if parent == self.uid:
             # check must be done in two places as setting parent could be called before/after setting name...
             raise CX("self parentage is forbidden")
         if found is None:
-            found = items.get(parent)
+            found = items.listing.get(parent)
         if found is None:
             raise CX(f'parent item "{parent}" not found, inheritance not possible')
         self._parent = parent
@@ -265,12 +265,12 @@ class InheritableItem(BaseItem, ABC):
         if curr_obj.TYPE_NAME in curr_obj.LOGICAL_INHERITANCE:
             for prev_level in curr_obj.LOGICAL_INHERITANCE[curr_obj.TYPE_NAME].up:
                 prev_level_type = prev_level.dependant_item_type
-                prev_level_name = getattr(
+                prev_level_uid = getattr(
                     curr_obj, "_" + prev_level.dependant_type_attribute
                 )
-                if prev_level_name is not None and prev_level_name != "":
+                if prev_level_uid is not None and prev_level_uid != "":
                     prev_level_item = self.api.find_items(
-                        prev_level_type, name=prev_level_name, return_list=False
+                        prev_level_type, {"uid": prev_level_uid}, return_list=False
                     )
                     if prev_level_item is not None and not isinstance(
                         prev_level_item, list
@@ -284,8 +284,9 @@ class InheritableItem(BaseItem, ABC):
         This property contains the name of the logical parent of an object. In case there is not parent this return
         None.
 
+        .. note:: This is a read only property.
+
         :getter: Returns the parent object or None if it can't be resolved via the Cobbler API.
-        :setter: The name of the new logical parent.
         """
         parent = self.parent
         if parent is None:
@@ -296,14 +297,16 @@ class InheritableItem(BaseItem, ABC):
     def children(self) -> List["InheritableItem"]:
         """
         The list of logical children of any depth.
+
+        .. note:: This is a read only property.
+
         :getter: An empty list in case of items which don't have logical children.
-        :setter: Replace the list of children completely with the new provided one.
         """
         if self.COLLECTION_TYPE not in ["profile", "menu"]:
             return []
 
         results: Optional[List["InheritableItem"]] = self.api.find_items(  # type: ignore
-            self.COLLECTION_TYPE, {"parent": self._name}, return_list=True
+            self.COLLECTION_TYPE, {"parent": self._uid}, return_list=True
         )
         if results is None:
             return []
@@ -314,6 +317,7 @@ class InheritableItem(BaseItem, ABC):
     ) -> List["InheritableItem"]:
         """
         Get all children related by parent/child relationship.
+
         :return: The list of children objects.
         """
         results: List["InheritableItem"] = []
@@ -343,7 +347,7 @@ class InheritableItem(BaseItem, ABC):
             for item_type in self.TYPE_DEPENDENCIES[child.COLLECTION_TYPE]:
                 dep_type_items = self.api.find_items(
                     item_type.dependant_item_type,
-                    {item_type.dependant_type_attribute: child.name},
+                    {item_type.dependant_type_attribute: child.uid},
                     return_list=True,
                 )
                 if dep_type_items is None or not isinstance(dep_type_items, list):
@@ -363,7 +367,7 @@ class InheritableItem(BaseItem, ABC):
         """
         return self._is_subobject
 
-    @is_subobject.setter
+    @is_subobject.setter  # type: ignore[no-redef]
     def is_subobject(self, value: bool) -> None:
         """
         Setter for the property ``is_subobject``.

@@ -519,7 +519,7 @@ class Distro(BootableItem):
         self.api.distros().update_index_value(self, "arch", old_arch, self._arch)
         profiles: Optional[List[Profile]] = self.api.find_profile(
             return_list=True,
-            **{"distro": self._name},  # type: ignore[reportArgumentType]
+            **{"distro": self._uid},  # type: ignore[reportArgumentType]
         )
         if profiles is None:
             return

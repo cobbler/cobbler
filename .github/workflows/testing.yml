@@ -12,20 +12,22 @@ jobs:
     name: "Unit-Tests"
     steps:
       - uses: actions/checkout@v4
-      - name: Pull Docker Test Container
-        run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
-      - name: Run previously built Docker Container
-        run: docker run --privileged -t -d -v $PWD:/code --name cobbler registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
+      - name: Run Docker Compose Stack
+        run: docker compose -f docker/tests/compose.yml up -d
       - name: Setup Cobbler in the Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          docker exec -u 0 -it cobbler bash -c "./docker/develop/scripts/setup-supervisor.sh"
+          docker compose -f docker/tests/compose.yml exec -it cobbler bash -c "./docker/develop/scripts/setup-supervisor.sh"
+      - name: Mark Git repository as safe
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          docker compose -f docker/tests/compose.yml exec -it cobbler bash -c "git config --global --add safe.directory /code"
       - name: Run the Tests inside the Docker Container
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          docker exec -u 0 -it cobbler bash -c "pytest -m 'not mongodb and not integration' --cov=./cobbler --benchmark-skip && git config --global --add safe.directory /code && coverage xml"
+          docker compose -f docker/tests/compose.yml exec -it cobbler bash -c "pytest -m 'not integration' --cov=./cobbler --benchmark-skip && coverage xml"
       - name: Stop and remove the container
-        run: docker stop cobbler && docker rm cobbler
+        run: docker compose -f docker/tests/compose.yml down
       # https://github.com/actions/upload-artifact
       - name: Upload coverage report to GH artifacts
         uses: actions/upload-artifact@v4

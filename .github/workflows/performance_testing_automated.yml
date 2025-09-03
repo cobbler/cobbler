@@ -2,9 +2,9 @@ name: Performance testing
 
 on:
   push:
-    branches: [ main, release* ]
+    branches: [main, release*]
   pull_request:
-    branches: [ main, release* ]
+    branches: [main, release*]
 
 jobs:
   run_performance_tests:
@@ -16,6 +16,8 @@ jobs:
         test: [deserialize, get_autoinstall, item_add, item_copy, item_edit, item_remove, item_rename, make_pxe_menu, start, sync]
     steps:
       - uses: actions/checkout@v4
+      - name: Disable Docker IPTables RAW requirement
+        run: ./docker/develop/scripts/disable-docker-iptables-raw.sh
       - name: Pull Docker Test Container
         run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
       - name: Replace number of rounds in the test setup class

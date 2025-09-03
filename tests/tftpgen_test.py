@@ -76,15 +76,18 @@ def test_copy_single_distro_files(
     fk_kernel: str,
     cobbler_api: CobblerAPI,
 ):
+    """
+    Test to verify that copying all files for a single Cobbler Distro is working as expected.
+    """
     # Arrange
     # Create fake files
     directory = create_kernel_initrd(fk_kernel, fk_initrd)
     (pathlib.Path(directory) / "images").mkdir()
     # Create a test Distro
     test_distro = Distro(cobbler_api)
-    test_distro.name = "test_copy_single_distro_files"
-    test_distro.kernel = str(os.path.join(directory, fk_kernel))
-    test_distro.initrd = str(os.path.join(directory, fk_initrd))
+    test_distro.name = "test_copy_single_distro_files"  # type: ignore[method-assign]
+    test_distro.kernel = str(os.path.join(directory, fk_kernel))  # type: ignore[method-assign]
+    test_distro.initrd = str(os.path.join(directory, fk_initrd))  # type: ignore[method-assign]
     # Add test distro to the API
     cobbler_api.add_distro(test_distro)
     # Create class under test
@@ -104,6 +107,9 @@ def test_copy_single_distro_files(
 def test_copy_single_image_files(
     cobbler_api: CobblerAPI, create_image: Callable[[], Image]
 ):
+    """
+    Test to verify that the files for a given image can be copyied to the correct destinations.
+    """
     # Arrange
     test_image = create_image()
     test_gen = tftpgen.TFTPGen(cobbler_api)
@@ -116,8 +122,8 @@ def test_copy_single_image_files(
     assert expected_file.exists()
 
 
-@pytest.fixture()
-def setup_test_write_all_system_files(
+@pytest.fixture(name="setup_test_write_all_system_files")
+def fixture_setup_test_write_all_system_files(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], Distro],
     create_profile: Callable[[str], Profile],
@@ -127,8 +133,8 @@ def setup_test_write_all_system_files(
     Setup fixture for "test_write_all_system_files".
     """
     test_distro = create_distro()
-    test_profile = create_profile(test_distro.name)
-    test_system: System = create_system(profile_name=test_profile.name)
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
     test_gen = tftpgen.TFTPGen(cobbler_api)
     return test_system, test_gen
 
@@ -209,14 +215,14 @@ def test_write_all_system_files_s390(
     """
     # Arrange
     test_distro = create_distro()
-    test_distro.kernel_options = {
+    test_distro.kernel_options = {  # type: ignore[method-assign]
         "foobar1": "whatever",
         "autoyast": "http://xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/this-is-a-long-string-that-need-to-be-splitted/zzzzzzzzzzzzzzzzz",
         "foobar2": "woohooo",
     }
-    test_profile = create_profile(test_distro.name)
-    test_system: System = create_system(profile_name=test_profile.name)
-    test_system.netboot_enabled = True
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+    test_system.netboot_enabled = True  # type: ignore[method-assign]
     test_image = create_image()
     test_gen = tftpgen.TFTPGen(cobbler_api)
 
@@ -239,6 +245,9 @@ def test_write_all_system_files_s390(
 
 
 def test_make_pxe_menu(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test to verify that generating the complete PXE menu works as intended.
+    """
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
     metadata_mock = {
@@ -259,6 +268,9 @@ def test_make_pxe_menu(mocker: "MockerFixture", cobbler_api: CobblerAPI):
 
 
 def test_get_menu_items(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test to verify that retrieving the top-level menu is working as expected.
+    """
     # Arrange
     expected_result = {"expected": "dict"}
     test_gen = tftpgen.TFTPGen(cobbler_api)
@@ -273,6 +285,9 @@ def test_get_menu_items(mocker: "MockerFixture", cobbler_api: CobblerAPI):
 
 @pytest.mark.skip("Test broken atm.")
 def test_get_submenus(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test to verify that retrieving the submenus works as expected.
+    """
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
     # TODO: Mock self.menus
@@ -287,6 +302,9 @@ def test_get_submenus(mocker: "MockerFixture", cobbler_api: CobblerAPI):
 
 @pytest.mark.skip("Test broken atm.")
 def test_get_profiles_menu(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test to verify that retrieving the profiles menu works as expected.
+    """
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
     # FIXME: Mock self.profiles()
@@ -302,6 +320,9 @@ def test_get_profiles_menu(mocker: "MockerFixture", cobbler_api: CobblerAPI):
 
 @pytest.mark.skip("Test broken atm.")
 def test_get_images_menu(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test to verify that retrieving the images menu works as expected.
+    """
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
     # FIXME: Mock self.images()
@@ -317,6 +338,9 @@ def test_get_images_menu(mocker: "MockerFixture", cobbler_api: CobblerAPI):
 
 @pytest.mark.skip("Test broken atm.")
 def test_get_menu_level(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test to verify that getting the metadata for a given menu level works as expected.
+    """
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
     # FIXME: Mock self.settings.boot_loader_conf_template_dir - maybe?
@@ -335,6 +359,9 @@ def test_get_menu_level(mocker: "MockerFixture", cobbler_api: CobblerAPI):
 
 @pytest.mark.skip("Test broken atm.")
 def test_write_pxe_file(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test to verify that writing a single file related to PXE into the TFTP-root directory.
+    """
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
     # FIXME: Mock self.settings.to_dict() - maybe?
@@ -353,6 +380,9 @@ def test_write_pxe_file(mocker: "MockerFixture", cobbler_api: CobblerAPI):
 
 @pytest.mark.skip("Test broken atm.")
 def test_build_kernel(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test to verify that the kernel and initrd metadata can be successfully generated.
+    """
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
     mocker.patch("cobbler.utils.blender", return_value={})
@@ -366,6 +396,9 @@ def test_build_kernel(mocker: "MockerFixture", cobbler_api: CobblerAPI):
 
 @pytest.mark.skip("Test broken atm.")
 def test_build_kernel_options(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test to verify that the kernel options can be generated successfully.
+    """
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
     mocker.patch("cobbler.utils.blender", return_value={})
@@ -387,6 +420,9 @@ def test_write_templates(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], Distro],
 ):
+    """
+    Test to verify that the templates for a given distro can be written to disk.
+    """
     # Arrange
     test_distro = create_distro()
     test_gen = tftpgen.TFTPGen(cobbler_api)
@@ -410,6 +446,9 @@ def test_generate_ipxe(
     create_distro: Callable[[], Distro],
     create_profile: Callable[[str], Profile],
 ):
+    """
+    Test to verify that the ipxe config for a given profile can be generated.
+    """
     # Arrange
     test_distro = create_distro()
     test_profile = create_profile(test_distro.name)
@@ -436,6 +475,9 @@ def test_generate_bootcfg(
     create_distro: Callable[[], Distro],
     create_profile: Callable[[str], Profile],
 ):
+    """
+    Test to verify that the bootcfg for a given profile can be generated.
+    """
     # Arrange
     test_distro = create_distro()
     test_profile = create_profile(test_distro.name)
@@ -462,9 +504,12 @@ def test_generate_script(
     create_distro: Callable[[], Distro],
     create_profile: Callable[[str], Profile],
 ):
+    """
+    Test to verify that a requested script is generated.
+    """
     # Arrange
     test_distro = create_distro()
-    test_profile = create_profile(test_distro.name)
+    test_profile = create_profile(test_distro.uid)
     test_gen = tftpgen.TFTPGen(cobbler_api)
     mocker.patch("cobbler.utils.blender", return_value={})
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
@@ -476,12 +521,15 @@ def test_generate_script(
 
     # Assert
     assert isinstance(result, mocker.MagicMock)
-    test_gen.templar.render.assert_called_with(
+    test_gen.templar.render.assert_called_with(  # type: ignore
         "test", {"img_path": f"/images/{test_distro.name}"}, None
     )
 
 
 def test_generate_windows_initrd(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the initrd for a Windows distro is generated.
+    """
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
 
@@ -494,6 +542,9 @@ def test_generate_windows_initrd(cobbler_api: CobblerAPI):
 
 
 def test_generate_initrd(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+    """
+    Test to verify that the initrd for a Linux distro is generated.
+    """
     # Arrange
     test_gen = tftpgen.TFTPGen(cobbler_api)
     mocker.patch.object(test_gen, "_build_windows_initrd", return_value="Test")
@@ -503,7 +554,7 @@ def test_generate_initrd(mocker: "MockerFixture", cobbler_api: CobblerAPI):
         "bcd": "True",
         "winpe": "True",
     }
-    expected_result = []
+    expected_result: List[Any] = []
 
     # Act
     # pylint: disable-next=protected-access
@@ -513,8 +564,8 @@ def test_generate_initrd(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     assert result == expected_result
 
 
-@pytest.fixture(scope="function")
-def cleanup_tftproot():
+@pytest.fixture(name="cleanup_tftproot", scope="function")
+def fixture_cleanup_tftproot():
     """
     Fixture that is responsible for cleaning up for ESXi generated content.
     """
@@ -527,6 +578,11 @@ def test_write_bootcfg_file(
     cleanup_tftproot: Callable[[], None],
     cobbler_api: CobblerAPI,
 ):
+    """
+    Test to verify that the bootcfg file is generated for esxi.
+    """
+    # pylint: disable=unused-argument
+    # Disable unused-argument warning for pytest fixture
     # Arrange
     expected_result = "generated bootcfg"
     test_gen = tftpgen.TFTPGen(cobbler_api)

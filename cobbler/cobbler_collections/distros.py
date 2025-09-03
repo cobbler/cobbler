@@ -47,7 +47,7 @@ class Distros(collection.Collection[distro.Distro]):
 
     def remove(
         self,
-        name: str,
+        ref: distro.Distro,
         with_delete: bool = True,
         with_sync: bool = True,
         with_triggers: bool = True,
@@ -55,27 +55,33 @@ class Distros(collection.Collection[distro.Distro]):
         rebuild_menu: bool = True,
     ) -> None:
         """
-        Remove element named 'name' from the collection
+        Remove the given element from the collection
 
+        :param ref: The object to delete
+        :param with_delete: In case the deletion triggers are executed for this distro.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        :param with_triggers: In case the Cobbler Trigger mechanism should be executed.
+        :param recursive: In case you want to delete all objects this distro references.
+        :param rebuild_menu: unused
         :raises CX: In case any subitem (profiles or systems) would be orphaned. If the option ``recursive`` is set then
                     the orphaned items would be removed automatically.
         """
         # rebuild_menu is not used
         _ = rebuild_menu
 
-        obj = self.listing.get(name, None)
+        if ref is None:  # type: ignore
+            raise CX("cannot delete an object that does not exist")
 
-        if obj is None:
-            raise CX(f"cannot delete an object that does not exist: {name}")
-
+        kids = self.api.find_profile(return_list=True, distro=ref.uid)
         # first see if any Groups use this distro
         if not recursive:
-            for profile in self.api.profiles():
-                if profile.distro and profile.distro.name == name:  # type: ignore
-                    raise CX(f"removal would orphan profile: {profile.name}")
+            if not isinstance(kids, list):
+                raise TypeError("Expected search result to be of type list!")
+            if len(kids) > 0:
+                profile_str = ",".join([ref.uid for ref in kids])
+                raise CX(f"removal would orphan profile(s): {profile_str}")
 
         if recursive:
-            kids = self.api.find_profile(return_list=True, distro=obj.name)
             if kids is None:
                 kids = []
             if not isinstance(kids, list):
@@ -92,24 +98,23 @@ class Distros(collection.Collection[distro.Distro]):
         if with_delete:
             if with_triggers:
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/delete/distro/pre/*", []
                 )
             if with_sync:
-                lite_sync = self.api.get_sync()
-                lite_sync.remove_single_distro(obj)
+                self.remove_quick_pxe_sync(ref)
         with self.lock:
-            self.remove_from_indexes(obj)
-            del self.listing[name]
+            self.remove_from_indexes(ref)
+            del self.listing[ref.uid]
 
-        self.collection_mgr.serialize_delete(self, obj)
+        self.collection_mgr.serialize_delete(self, ref)
 
         if with_delete:
             if with_triggers:
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/delete/distro/post/*", []
                 )
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/change/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/change/*", []
                 )
 
         # look through all mirrored directories and find if any directory is holding this particular distribution's
@@ -117,7 +122,7 @@ class Distros(collection.Collection[distro.Distro]):
         settings = self.api.settings()
         possible_storage = glob.glob(settings.webdir + "/distro_mirror/*")
         path = None
-        kernel = obj.kernel
+        kernel = ref.kernel
         for storage in possible_storage:
             if os.path.dirname(kernel).find(storage) != -1:
                 path = storage
@@ -140,3 +145,8 @@ class Distros(collection.Collection[distro.Distro]):
                     found = True
             if not found:
                 filesystem_helpers.rmtree(path)
+
+    def remove_quick_pxe_sync(
+        self, ref: distro.Distro, rebuild_menu: bool = True
+    ) -> None:
+        self.api.get_sync().remove_single_distro(ref)

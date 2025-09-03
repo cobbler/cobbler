@@ -185,7 +185,7 @@ class CollectionManager:
         :param obj: collection item
         """
         collection_type = self.get_items(obj.COLLECTION_TYPE).collection_types()
-        return self.__serializer.deserialize_item(collection_type, obj.name)
+        return self.__serializer.deserialize_item(collection_type, obj.uid)
 
     def get_items(self, collection_type: str) -> "Collection[BaseItem]":
         """

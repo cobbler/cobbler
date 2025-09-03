@@ -41,6 +41,9 @@ def test_calculate_grub_name(
     expected_exception: Any,
     cobbler_api: CobblerAPI,
 ):
+    """
+    Test to verify that the correct grub binary name is calculated based on the architecture.
+    """
     # Arrange
     test_builder = buildiso.BuildIso(cobbler_api)
 
@@ -66,6 +69,9 @@ def test_calculate_grub_name(
     ],
 )
 def test_add_remaining_kopts(input_kopts_dict: Dict[str, Any], exepcted_output: str):
+    """
+    Test to verify that the kernel options are correctly formatted and added.
+    """
     # Arrange (missing)
     # Act
     output = buildiso.add_remaining_kopts(input_kopts_dict)
@@ -75,6 +81,10 @@ def test_add_remaining_kopts(input_kopts_dict: Dict[str, Any], exepcted_output: 
 
 
 def test_make_shorter(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the make_shorter function generates a shorter unique identifier
+    for a given distribution name and maintains a mapping.
+    """
     # Arrange
     build_iso = NetbootBuildiso(cobbler_api)
     distroname = "Testdistro"
@@ -83,7 +93,7 @@ def test_make_shorter(cobbler_api: CobblerAPI):
     result = build_iso.make_shorter(distroname)
 
     # Assert
-    assert type(result) == str
+    assert isinstance(result, str)
     assert distroname in build_iso.distmap
     assert result == "1"
 
@@ -91,6 +101,9 @@ def test_make_shorter(cobbler_api: CobblerAPI):
 def test_copy_boot_files(
     cobbler_api: CobblerAPI, create_distro: Callable[[], Distro], tmpdir: Any
 ):
+    """
+    Test to verify that the boot files (kernel and initrd) are correctly copied to the target folder.
+    """
     # Arrange
     target_folder: str = tmpdir.mkdir("target")
     build_iso = buildiso.BuildIso(cobbler_api)
@@ -110,11 +123,15 @@ def test_netboot_generate_boot_loader_configs(
     create_profile: Callable[[str], Profile],
     create_system: Callable[[str], System],
 ):
+    """
+    Test to verify that the boot loader configurations are correctly generated for both isolinux and grub,
+    including kernel options from distro, profile, and system levels.
+    """
     test_distro = create_distro()
     test_distro.kernel_options = "test_distro_option=distro"  # type: ignore
-    test_profile = create_profile(test_distro.name)
+    test_profile = create_profile(test_distro.uid)
     test_profile.kernel_options = "test_profile_option=profile"  # type: ignore
-    test_system = create_system(test_profile.name)
+    test_system = create_system(test_profile.uid)
     test_system.kernel_options = "test_system_option=system"  # type: ignore
     build_iso = NetbootBuildiso(cobbler_api)
 
@@ -178,11 +195,15 @@ def test_netboot_generate_boot_loader_config_for_profile_only(
     create_profile: Callable[[str], Profile],
     create_system: Callable[[str], System],
 ):
+    """
+    Test to verify that the boot loader configurations are correctly generated for both isolinux and grub,
+    including kernel options from distro and profile levels, but not system level when no systems are provided
+    """
     test_distro = create_distro()
     test_distro.kernel_options = "test_distro_option=distro"  # type: ignore
-    test_profile = create_profile(test_distro.name)
+    test_profile = create_profile(test_distro.uid)
     test_profile.kernel_options = "test_profile_option=profile"  # type: ignore
-    test_system = create_system(test_profile.name)
+    test_system = create_system(test_profile.uid)
     test_system.kernel_options = "test_system_option=system"  # type: ignore
     build_iso = NetbootBuildiso(cobbler_api)
 
@@ -245,12 +266,16 @@ def test_filter_system(
     create_system: Any,
     create_image: Callable[[], Image],
 ):
+    """
+    Test to verify that the filter_systems function correctly filters systems based on provided names,
+    considering both profile and image associations.
+    """
     test_distro = create_distro()
-    test_profile = create_profile(test_distro.name)
-    test_system_profile = create_system(profile_name=test_profile.name)
+    test_profile = create_profile(test_distro.uid)
+    test_system_profile = create_system(profile_uid=test_profile.uid)
     test_image = create_image()
     test_system_image: System = create_system(
-        image_name=test_image.name, name="test_filter_system_image_image"
+        image_uid=test_image.uid, name="test_filter_system_image_image"
     )
     itemlist = [test_system_profile.name, test_system_image.name]
     build_iso = NetbootBuildiso(cobbler_api)
@@ -268,9 +293,12 @@ def test_filter_profile(
     create_distro: Callable[[], Distro],
     create_profile: Callable[[str], Profile],
 ):
+    """
+    Test to verify that the filter_profiles function correctly filters profiles based on provided names.
+    """
     # Arrange
     test_distro = create_distro()
-    test_profile = create_profile(test_distro.name)
+    test_profile = create_profile(test_distro.uid)
     itemlist = [test_profile.name]
     build_iso = buildiso.BuildIso(cobbler_api)
     expected_result = [test_profile]
@@ -287,9 +315,12 @@ def test_filter_profile_disabled(
     create_distro: Callable[[], Distro],
     create_profile: Callable[[str], Profile],
 ):
+    """
+    Test to verify that the filter_profiles function correctly excludes disabled profiles.
+    """
     # Arrange
     test_distro = create_distro()
-    test_profile = create_profile(test_distro.name)
+    test_profile = create_profile(test_distro.uid)
     test_profile.enable_menu = False  # type: ignore
     itemlist = [test_profile.name]
     build_iso = buildiso.BuildIso(cobbler_api)
@@ -308,9 +339,12 @@ def test_netboot_run(
     create_profile: Callable[[str], Profile],
     tmpdir: Any,
 ):
+    """
+    Test to verify that a netboot ISO can be built and the output file is created.
+    """
     # Arrange
     test_distro = create_distro()
-    create_profile(test_distro.name)
+    create_profile(test_distro.uid)
     build_iso = NetbootBuildiso(cobbler_api)
     iso_location = tmpdir.join("autoinst.iso")
 
@@ -327,9 +361,12 @@ def test_netboot_run_autodetect_distro(
     create_profile: Callable[[str], Profile],
     tmpdir: Any,
 ):
+    """
+    Test to verify that a netboot ISO can be built by autodetecting the distro from the profile.
+    """
     # Arrange
     test_distro = create_distro()
-    create_profile(test_distro.name)
+    create_profile(test_distro.uid)
     build_iso = NetbootBuildiso(cobbler_api)
     iso_location = tmpdir.join("autoinst.iso")
 
@@ -345,6 +382,9 @@ def test_standalone_run(
     create_distro: Callable[[], Distro],
     tmpdir_factory: pytest.TempPathFactory,
 ):
+    """
+    Test to verify that a standalone ISO can be built and the output file is created.
+    """
     # Arrange
     iso_directory = tmpdir_factory.mktemp("isodir")
     iso_source = tmpdir_factory.mktemp("isosource")
@@ -367,12 +407,15 @@ def test_standalone_run_autodetect_distro(
     create_profile: Callable[[str], Profile],
     tmpdir_factory: pytest.TempPathFactory,
 ):
+    """
+    Test to verify that a standalone ISO can be built by autodetecting the distro from the profile.
+    """
     # Arrange
     iso_directory = tmpdir_factory.mktemp("isodir")
     iso_source = tmpdir_factory.mktemp("isosource")
     iso_location: Any = iso_directory.join("autoinst.iso")  # type: ignore
     test_distro = create_distro()
-    create_profile(test_distro.name)
+    create_profile(test_distro.uid)
     build_iso = StandaloneBuildiso(cobbler_api)
 
     # Act

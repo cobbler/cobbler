@@ -52,7 +52,7 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
     if not settings.sign_puppet_certs_automatically:
         return 0
 
-    system = api.find_system(name)
+    system = api.find_system(name=name)
     if system is None or isinstance(system, list):
         raise ValueError("Ambigous search match!")
     blendered_system = utils.blender(api, False, system)

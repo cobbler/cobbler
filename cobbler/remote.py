@@ -141,6 +141,7 @@ from typing import (
     Dict,
     Iterable,
     List,
+    NamedTuple,
     Optional,
     Sequence,
     Tuple,
@@ -172,6 +173,7 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.cobbler_collections.collection import ITEM
     from cobbler.items.abstract.base_item import BaseItem
+    from cobbler.items.abstract.bootable_item import BootableItem
     from cobbler.items.distro import Distro
     from cobbler.items.image import Image
     from cobbler.items.profile import Profile
@@ -179,6 +181,38 @@ if TYPE_CHECKING:
 
 EVENT_TIMEOUT = 7 * 24 * 60 * 60  # 1 week
 CACHE_TIMEOUT = 10 * 60  # 10 minutes
+
+
+class TransactionItemModifications(NamedTuple):
+    """
+    This tuple is providing named access to a changelog of values that can be used to updated indicies later onwards.
+    """
+
+    attribute: str
+    old_value: Any
+    new_value: Any
+
+
+class TransactionTuple(NamedTuple):
+    """
+    This tuple is providing named access to values that are saved for a single object inside a single transaction.
+    """
+
+    what: str
+    ref: "InheritableItem"
+    to_delete: bool
+    mtime: float
+    uid: str
+    item_modifications: List[TransactionItemModifications]
+
+
+class UnsavedItemsTuple(NamedTuple):
+    """
+    This tuple is providing named access to values that are not yet saved to the daemon of Cobbler.
+    """
+
+    time: float
+    item: "BaseItem"
 
 
 class CobblerXMLRPCInterface:
@@ -197,10 +231,8 @@ class CobblerXMLRPCInterface:
         self.api = api
         self.logger = logging.getLogger()
         self.token_cache: Dict[str, Tuple[Any, ...]] = {}
-        self.unsaved_items: Dict[str, Tuple[float, "BaseItem"]] = {}
-        self.transactions: Dict[
-            str, Dict[str, Tuple[str, "InheritableItem", bool, float, str]]
-        ] = {}
+        self.unsaved_items: Dict[str, UnsavedItemsTuple] = {}
+        self.transactions: Dict[str, Dict[str, TransactionTuple]] = {}
         self.timestamp = self.api.last_modified_time()
         self.events: Dict[str, CobblerEvent] = {}
         self.shared_secret = utils.get_shared_secret()
@@ -514,11 +546,11 @@ class CobblerXMLRPCInterface:
 
     def background_mkloaders(self, options: Dict[str, Any], token: str) -> str:
         """
-        TODO
+        Create the bootloaders that Cobbler uses inside its TFTP-directory and stage them in the background.
 
-        :param options: TODO
-        :param token: TODO
-        :return: TODO
+        :param options: This parameter is unused for this background task.
+        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :return: The id of the task which was started.
         """
 
         def runner(self: "CobblerThread"):
@@ -550,12 +582,11 @@ class CobblerXMLRPCInterface:
                 count = 0
                 begin_time = time.time()
                 collection = self.api.get_items(item_type)
-                names_copy = collection.get_names()
-                for name in names_copy:
+                # "collection.py" implement the "__iter__" method, so we can just directly iterate over the items
+                for item_obj in collection:
                     count += 1
                     with lock:
-                        item_obj = collection.get(name)
-                        if item_obj is not None and not item_obj.inmemory:
+                        if not item_obj.inmemory:
                             item_obj.deserialize()
                 if count > 0:
                     collection.inmemory = True
@@ -753,9 +784,7 @@ class CobblerXMLRPCInterface:
 
         # add any attributes being modified, if any
         if attribute:
-            if (
-                isinstance(attribute, str) and attribute.isidentifier()  # type: ignore
-            ) or keyword.iskeyword(attribute):
+            if isinstance(attribute, str) and keyword.iskeyword(attribute):  # type: ignore
                 return
             msg = f"{msg}; attribute({attribute})"
 
@@ -875,7 +904,7 @@ class CobblerXMLRPCInterface:
             and token in self.transactions
             and object_id in self.transactions[token]
         ):
-            _, obj, removed, _, _ = self.transactions[token][object_id]
+            _, obj, removed, _, _, _ = self.transactions[token][object_id]
             if removed:
                 raise ValueError("Object has been deleted in current transaction!")
             return obj
@@ -988,10 +1017,10 @@ class CobblerXMLRPCInterface:
             requested_item = self.__get_object(item_handle, token=token)
         except ValueError:
             return self.xmlrpc_hacks(None)
-        requested_item = requested_item.to_dict(resolved=resolved)
+        requested_item_dict = requested_item.to_dict(resolved=resolved)
         if flatten:
-            requested_item = utils.flatten(requested_item)
-        return self.xmlrpc_hacks(requested_item)
+            requested_item_dict = utils.flatten(requested_item_dict)  # type: ignore[arg-type,assignment]
+        return self.xmlrpc_hacks(requested_item_dict)
 
     def get_distro(
         self,
@@ -1285,11 +1314,7 @@ class CobblerXMLRPCInterface:
         if criteria is None:
             criteria = {}
         # self._log("find_items(%s); criteria(%s); sort(%s)" % (what, criteria, sort_field))
-        if "name" in criteria:
-            name = criteria.pop("name")
-            items = self.api.find_items(what, criteria=criteria, name=name)
-        else:
-            items = self.api.find_items(what, criteria=criteria)
+        items = self.api.find_items(what, criteria=criteria)
         if items is None:
             return []
         items = self.__sort(items, sort_field)  # type: ignore
@@ -1453,10 +1478,11 @@ class CobblerXMLRPCInterface:
             f"find_items_paged({what}); criteria({criteria}); sort({sort_field})",
             token=token,
         )
+        items: Iterable["BaseItem"]
         if criteria is None:
             items = self.api.get_items(what)
         else:
-            items = self.api.find_items(what, criteria=criteria)
+            items = self.api.find_items(what, criteria=criteria)  # type: ignore[assignment]
         items = self.__sort(items, sort_field)  # type: ignore
         (items, pageinfo) = self.__paginate(items, page, items_per_page)  # type: ignore
         items = [x.to_dict(resolved=resolved) for x in items]  # type: ignore
@@ -1493,24 +1519,29 @@ class CobblerXMLRPCInterface:
             raise CX("invalid object name")
 
         if token in self.transactions:
-            for handle, (iwhat, item, deleted, _, _) in self.transactions[
+            for handle, (iwhat, item_obj, deleted, _, _, _) in self.transactions[
                 token
             ].items():
-                if iwhat == what and item.name == name:
+                if iwhat == what and item_obj.name == name:
                     if deleted:
                         return self.xmlrpc_hacks(None)  # type: ignore
                     else:
                         return handle
 
-        found_saved = self.api.find_items(what, name=name, return_list=True)
+        found_saved = self.api.find_items(
+            what, criteria={"name": name}, return_list=True
+        )
         if len(found_saved) > 1:  # type: ignore
-            raise CX(f"ambiguous match for given collection and name")
+            raise CX("ambiguous match for given collection and name")
         elif len(found_saved) == 1:  # type: ignore
             return found_saved[0].uid  # type: ignore
         # Check if in cache
-        for item in self.unsaved_items.values():
-            if item[1].name == name and item[1].TYPE_NAME == what:
-                return item[1].uid
+        for unsaved_item_tuple in self.unsaved_items.values():
+            if (
+                unsaved_item_tuple.item.name == name
+                and unsaved_item_tuple.item.TYPE_NAME == what
+            ):
+                return unsaved_item_tuple.item.uid
         return self.xmlrpc_hacks(None)  # type: ignore
 
     def get_distro_handle(self, name: str):
@@ -1575,7 +1606,7 @@ class CobblerXMLRPCInterface:
         if token in self.transactions:
             handle = obj.uid
             if handle in self.transactions[token]:
-                _, item, deleted, _, _ = self.transactions[token][handle]
+                _, item, deleted, _, _, _ = self.transactions[token][handle]
                 if deleted:
                     return None
                 return item
@@ -1624,14 +1655,17 @@ class CobblerXMLRPCInterface:
             for item_type in InheritableItem.TYPE_DEPENDENCIES[child.COLLECTION_TYPE]:
                 dep_type_items = cast(
                     List["InheritableItem"],
-                    self.api.find_items(item_type[0], {item_type[1]: child.name}),
+                    self.api.find_items(
+                        item_type.dependant_item_type,
+                        {item_type.dependant_type_attribute: child.uid},
+                    ),
                 )
                 for dep_item in dep_type_items:
                     dep_item = self._transaction_get_modified(token, dep_item)
                     if (
                         not dep_item
                         or not getattr(dep_item, item_type[1])
-                        or getattr(dep_item, item_type[1]).name != child.name
+                        or getattr(dep_item, item_type[1]).uid != child.uid
                     ):
                         continue
                     results.add(dep_item)
@@ -1661,15 +1695,18 @@ class CobblerXMLRPCInterface:
             return False
         self.check_access(token, f"remove_{what}", obj.name)
         if token in self.transactions:
-            self.transactions[token][obj_handle] = (what, obj, True, obj.mtime, obj.uid)
+            self.transactions[token][obj_handle] = TransactionTuple(
+                what, obj, True, obj.mtime, obj.uid, []
+            )
             if recursive:
                 for k in self._transaction_descendants(token, obj):
-                    self.transactions[token][k.uid] = (
+                    self.transactions[token][k.uid] = TransactionTuple(
                         k.COLLECTION_TYPE,
                         k,
                         True,
                         k.mtime,
                         k.uid,
+                        [],
                     )
 
             return True
@@ -1764,14 +1801,18 @@ class CobblerXMLRPCInterface:
         if token in self.transactions:
             obj = self.__get_object(object_id, token)
             obj_copy = cast(InheritableItem, obj.make_clone())
-            obj_copy.name = newname
-            self.transactions[token][obj_copy.uid] = (what, obj_copy, False, 0.0, "")
+            obj_copy.name = newname  # type: ignore[method-assign]
+            self.transactions[token][obj_copy.uid] = TransactionTuple(
+                what, obj_copy, False, 0.0, "", []
+            )
             return True
 
-        obj = self.api.find_items(what, criteria={"uid": object_id}, return_list=False)
-        if obj is None or isinstance(obj, list):
+        target_obj = self.api.find_items(
+            what, criteria={"uid": object_id}, return_list=False
+        )
+        if target_obj is None or isinstance(target_obj, list):
             raise ValueError(f'Item with id "{object_id}" not found.')
-        self.api.copy_item(what, obj, newname)
+        self.api.copy_item(what, target_obj, newname)
         return True
 
     def copy_distro(self, object_id: str, newname: str, token: Optional[str] = None):
@@ -1859,28 +1900,33 @@ class CobblerXMLRPCInterface:
         if token in self.transactions:
             obj = self.__get_object(object_id, token)
             obj_copy = cast(InheritableItem, obj.make_clone())
-            obj_copy.name = newname
-            self.transactions[token][obj_copy.uid] = (what, obj_copy, False, 0.0, "")
+            obj_copy.name = newname  # type: ignore[method-assign]
+            self.transactions[token][obj_copy.uid] = TransactionTuple(
+                what, obj_copy, False, 0.0, "", []
+            )
 
             saved_obj = self.api.find_items(
                 what, criteria={"uid": object_id}, return_list=False
             )
             if saved_obj is not None:
-                self.transactions[token][object_id] = (
+                self.transactions[token][object_id] = TransactionTuple(
                     what,
                     cast(InheritableItem, saved_obj),
                     True,
                     cast(InheritableItem, saved_obj).mtime,
                     cast(InheritableItem, saved_obj).uid,
+                    [],
                 )
             else:
                 del self.transactions[token][object_id]
             return True
 
-        obj = self.api.find_items(what, criteria={"uid": object_id}, return_list=False)
-        if obj is None or isinstance(obj, list):
+        target_obj = self.api.find_items(
+            what, criteria={"uid": object_id}, return_list=False
+        )
+        if target_obj is None or isinstance(target_obj, list):
             raise ValueError(f'Item with id "{object_id}" not found!')
-        self.api.rename_item(what, obj, newname)
+        self.api.rename_item(what, target_obj, newname)
         return True
 
     def rename_distro(
@@ -1978,9 +2024,11 @@ class CobblerXMLRPCInterface:
         self.check_access(token, f"new_{what}")
         new_item = self.api.new_item(what, is_subobject, **kwargs)
         if token in self.transactions:
-            self.transactions[token][new_item.uid] = (what, new_item, False, 0.0, "")
+            self.transactions[token][new_item.uid] = TransactionTuple(
+                what, new_item, False, 0.0, "", []
+            )
             return new_item.uid
-        self.unsaved_items[new_item.uid] = (time.time(), new_item)
+        self.unsaved_items[new_item.uid] = UnsavedItemsTuple(time.time(), new_item)
         return new_item.uid
 
     def new_distro(self, token: str):
@@ -2076,13 +2124,15 @@ class CobblerXMLRPCInterface:
 
         if token in self.transactions and object_id not in self.transactions[token]:
             new_obj = cast(InheritableItem, obj.make_clone())
-            self.transactions[token][object_id] = (
+            self.transactions[token][object_id] = TransactionTuple(
                 what,
                 new_obj,
                 False,
                 obj.mtime,
                 obj.uid,
+                [],
             )
+            new_obj.in_transaction = True
             obj = new_obj
 
         if what == "system":
@@ -2100,8 +2150,15 @@ class CobblerXMLRPCInterface:
                 return True
 
         if attribute in ["parent", "profile", "distro"] and token in self.transactions:
-            for (what, parent, to_delete, _, _) in self.transactions[token].values():
-                if what in InheritableItem.TYPE_DEPENDENCIES and parent.name == arg:
+            self.transactions[token][object_id].item_modifications.append(
+                TransactionItemModifications(
+                    attribute,
+                    getattr(obj, f"_{attribute}"),
+                    arg.uid if isinstance(arg, base_item.BaseItem) else arg,
+                )
+            )
+            for what, parent, to_delete, _, _, _ in self.transactions[token].values():
+                if what in InheritableItem.TYPE_DEPENDENCIES and parent.uid == arg:
                     for (
                         dependant_item_type,
                         dependant_type_attribute,
@@ -2121,6 +2178,14 @@ class CobblerXMLRPCInterface:
                                 return True
 
         if hasattr(obj, attribute):
+            if token in self.transactions:
+                self.transactions[token][object_id].item_modifications.append(
+                    TransactionItemModifications(
+                        attribute,
+                        getattr(obj, f"_{attribute}"),
+                        arg.uid if isinstance(arg, base_item.BaseItem) else arg,
+                    )
+                )
             setattr(obj, attribute, arg)
             return True
         return False
@@ -2413,7 +2478,7 @@ class CobblerXMLRPCInterface:
         :param rest: This is dropped in this method since it is not needed here.
         :return: The str representation of the file.
         """
-        # ToDo: Remove unneed params: REMOTE_ADDR, REMOTE_MAC, rest
+        # TODO: Remove unneed params: REMOTE_ADDR, REMOTE_MAC, rest
         self._log("generate_autoinstall")
         try:
             return self.autoinstall_mgr.generate_autoinstall(profile, system)
@@ -2527,14 +2592,17 @@ class CobblerXMLRPCInterface:
         :param system: The system for which the data should be rendered.
         :return: All values which could be blended together through the inheritance chain.
         """
+        obj: "BootableItem"
         if profile is not None and profile != "":
-            obj = self.api.find_profile(profile)
-            if obj is None or isinstance(obj, list):
+            search_result = self.api.find_profile(name=profile)
+            if search_result is None or isinstance(search_result, list):
                 raise CX(f"profile not found: {profile}")
+            obj = search_result
         elif system is not None and system != "":
-            obj = self.api.find_system(system)
-            if obj is None or isinstance(obj, list):
+            search_result = self.api.find_system(name=system)  # type: ignore
+            if search_result is None or isinstance(search_result, list):
                 raise CX(f"system not found: {system}")
+            obj = search_result
         else:
             raise CX("internal error, no system or profile specified")
         data = utils.blender(self.api, True, obj)
@@ -2636,7 +2704,7 @@ class CobblerXMLRPCInterface:
         self._log("get_valid_distro_boot_loaders", token=token)
         if distro_name is None:
             return utils.get_supported_system_boot_loaders()
-        obj = self.api.find_distro(distro_name)
+        obj = self.api.find_distro(name=distro_name)
         if obj is None or isinstance(obj, list):
             return f"# object not found: {distro_name}"
         return self.api.get_valid_obj_boot_loaders(obj)
@@ -2654,7 +2722,7 @@ class CobblerXMLRPCInterface:
         self._log("get_valid_image_boot_loaders", token=token)
         if image_name is None:
             return utils.get_supported_system_boot_loaders()
-        obj = self.api.find_image(image_name)
+        obj = self.api.find_image(name=image_name)
         if obj is None:
             return f"# object not found: {image_name}"
         return self.api.get_valid_obj_boot_loaders(obj)  # type: ignore
@@ -2672,7 +2740,7 @@ class CobblerXMLRPCInterface:
         self._log("get_valid_profile_boot_loaders", token=token)
         if profile_name is None:
             return utils.get_supported_system_boot_loaders()
-        obj = self.api.find_profile(profile_name)
+        obj = self.api.find_profile(name=profile_name)
         if obj is None or isinstance(obj, list):
             return f"# object not found: {profile_name}"
         distro = obj.get_conceptual_parent()
@@ -2691,7 +2759,7 @@ class CobblerXMLRPCInterface:
         self._log("get_valid_system_boot_loaders", token=token)
         if system_name is None:
             return utils.get_supported_system_boot_loaders()
-        obj = self.api.find_system(system_name)
+        obj = self.api.find_system(name=system_name)
         if obj is None or isinstance(obj, list):
             return [f"# object not found: {system_name}"]
         parent = obj.get_conceptual_parent()
@@ -2708,7 +2776,7 @@ class CobblerXMLRPCInterface:
         :param rest: This is dropped in this method since it is not needed here.
         :return: The repository configuration for the profile.
         """
-        obj = self.api.find_profile(profile_name)
+        obj = self.api.find_profile(name=profile_name)
         if obj is None or isinstance(obj, list):
             return f"# object not found: {profile_name}"
         return self.api.get_repo_config_for_profile(obj)
@@ -2721,7 +2789,7 @@ class CobblerXMLRPCInterface:
         :param rest: This is dropped in this method since it is not needed here.
         :return: The repository configuration for the system.
         """
-        obj = self.api.find_system(system_name)
+        obj = self.api.find_system(name=system_name)
         if obj is None or isinstance(obj, list):
             return f"# object not found: {system_name}"
         return self.api.get_repo_config_for_system(obj)
@@ -2735,7 +2803,7 @@ class CobblerXMLRPCInterface:
         :param rest: This is dropped in this method since it is not needed here.
         :return: The template file as a str representation.
         """
-        obj = self.api.find_profile(profile_name)
+        obj = self.api.find_profile(name=profile_name)
         if obj is None or isinstance(obj, list):
             return f"# object not found: {profile_name}"
         return self.api.get_template_file_for_profile(obj, path)
@@ -2749,7 +2817,7 @@ class CobblerXMLRPCInterface:
         :param rest: This is dropped in this method since it is not needed here.
         :return: The template file as a str representation.
         """
-        obj = self.api.find_system(system_name)
+        obj = self.api.find_system(name=system_name)
         if obj is None or isinstance(obj, list):
             return f"# object not found: {system_name}"
         return self.api.get_template_file_for_system(obj, path)
@@ -2816,11 +2884,11 @@ class CobblerXMLRPCInterface:
 
         # looks like we can go ahead and create a system now
         obj = self.api.new_system()
-        obj.profile = profile
-        obj.name = name
+        obj.profile = profile  # type: ignore[method-assign]
+        obj.name = name  # type: ignore[method-assign]
         if hostname != "":
-            obj.hostname = hostname
-        obj.netboot_enabled = False
+            obj.hostname = hostname  # type: ignore[method-assign]
+        obj.netboot_enabled = False  # type: ignore[method-assign]
         for iname in inames:
             if info["interfaces"][iname].get("bridge", "") == 1:
                 # don't add bridges
@@ -2831,7 +2899,7 @@ class CobblerXMLRPCInterface:
             if mac == "?":
                 # see koan/utils.py for explanation of network info discovery
                 continue
-            obj.interfaces = {
+            obj.interfaces = {  # type: ignore[method-assign]
                 iname: {
                     "mac_address": mac,
                     "ip_address": ip_address,
@@ -2839,7 +2907,7 @@ class CobblerXMLRPCInterface:
                 }
             }
             if hostname != "":
-                obj.hostname = hostname
+                obj.hostname = hostname  # type: ignore[method-assign]
             if ip_address not in ("", "?"):
                 obj.interfaces[iname].ip_address = ip_address
             if netmask not in ("", "?"):
@@ -2873,7 +2941,7 @@ class CobblerXMLRPCInterface:
         if isinstance(obj, list):
             # Duplicate entries found - can't be but mypy requires this check
             return False
-        obj.netboot_enabled = False
+        obj.netboot_enabled = False  # type: ignore[method-assign]
         # disabling triggers and sync to make this extremely fast.
         self.api.systems().add(
             obj,
@@ -3209,7 +3277,7 @@ class CobblerXMLRPCInterface:
         :return: The list of compatible repositories.
         """
         self._log("get_repos_compatible_with_profile", token=token)
-        profile_obj = self.api.find_profile(profile)
+        profile_obj = self.api.find_profile(name=profile)
         if profile_obj is None or isinstance(profile_obj, list):
             self.logger.info(
                 'The profile name supplied ("%s") for get_repos_compatible_with_profile was not'
@@ -3405,7 +3473,7 @@ class CobblerXMLRPCInterface:
         :param rest: This is dropped in this method since it is not needed here.
         :return: The random mac address which shall be used somewhere else.
         """
-        # ToDo: Remove rest param
+        # TODO: Remove rest param
         self._log("get_random_mac", token=None)
         return utils.get_random_mac(self.api, virt_type)
 
@@ -3935,20 +4003,20 @@ class CobblerXMLRPCInterface:
 
 class RequestHandler(SimpleXMLRPCRequestHandler):
     """
-    TODO
+    Custom request handler class for our XML-RPC server. This provides custom headers to allow usage behind proxies.
     """
 
     def do_OPTIONS(self) -> None:
         """
-        TODO
+        Set the HTTP status code for all of our reponses that we send and set the custom headers.
         """
+        # pylint: disable=invalid-name
         self.send_response(200)
         self.end_headers()
 
-    # Add these headers to all responses
     def end_headers(self) -> None:
         """
-        TODO
+        Add custom headers to all of our responses.
         """
         self.send_header(
             "Access-Control-Allow-Headers",
@@ -3981,12 +4049,12 @@ class CobblerXMLRPCServer(ThreadingMixIn, xmlrpc.server.SimpleXMLRPCServer):
 
 class ProxiedXMLRPCInterface:
     """
-    TODO
+    This interface allows proxying request through another class.
     """
 
     def __init__(self, api: "CobblerAPI", proxy_class: Type[Any]) -> None:
         """
-        This interface allows proxying request through another class.
+        Constructor to initialize the interface for proxing requests.
 
         :param api: The api object to resolve information with
         :param proxy_class: The class which proxies the requests.
@@ -4003,7 +4071,7 @@ class ProxiedXMLRPCInterface:
         :param rest: This gets dropped curently.
         :return: The result of the method.
         """
-        # ToDo: Drop rest param
+        # TODO: Drop rest param
         if method.startswith("_") or method == "background_load_items":
             raise CX("forbidden method")
 

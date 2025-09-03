@@ -295,23 +295,23 @@ class Settings:
         self.lazy_start = False
         self.memory_indexes = {
             "distro": {
-                "uid": {"nonunique": False, "disabled": False},
+                "name": {"nonunique": False, "disabled": False},
                 "arch": {"nonunique": True, "disabled": False},
             },
             "image": {
-                "uid": {"nonunique": False, "disabled": False},
+                "name": {"nonunique": False, "disabled": False},
                 "arch": {"nonunique": True, "disabled": False},
                 "menu": {"nonunique": True, "disabled": False},
             },
             "menu": {
-                "uid": {"nonunique": False, "disabled": False},
+                "name": {"nonunique": False, "disabled": False},
                 "parent": {
                     "nonunique": True,
                     "disabled": False,
                 },
             },
             "profile": {
-                "uid": {"nonunique": False, "disabled": False},
+                "name": {"nonunique": False, "disabled": False},
                 "parent": {
                     "nonunique": True,
                     "disabled": False,
@@ -322,10 +322,10 @@ class Settings:
                 "repos": {"nonunique": True, "disabled": False},
             },
             "repo": {
-                "uid": {"nonunique": False, "disabled": False},
+                "name": {"nonunique": False, "disabled": False},
             },
             "system": {
-                "uid": {"nonunique": False, "disabled": False},
+                "name": {"nonunique": False, "disabled": False},
                 "image": {"nonunique": True, "disabled": False},
                 "profile": {"nonunique": True, "disabled": False},
                 "mac_address": {

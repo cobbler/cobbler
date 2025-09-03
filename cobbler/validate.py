@@ -310,13 +310,11 @@ def validate_repos(
     if repos is None:  # type: ignore
         repos = []
     else:
-        # TODO: Don't store the names. Store the internal references.
-        # repos are not allowed to be inherited atm
         repos = api.input_string_or_list_no_inherit(repos)
     if not bypass_check:
         for repo in repos:
             # FIXME: First check this and then set the repos if the bypass check is used.
-            if api.repos().find(name=repo) is None:
+            if api.repos().find(uid=repo) is None:
                 raise ValueError(f"repo {repo} is not defined")
     return repos
 
@@ -486,7 +484,7 @@ def validate_serial_device(value: Union[str, int]) -> int:
 
 
 def validate_serial_baud_rate(
-    baud_rate: Union[int, str, enums.BaudRates]
+    baud_rate: Union[int, str, enums.BaudRates],
 ) -> enums.BaudRates:
     """
     The baud rate is very import that the communication between the two devices can be established correctly. This is

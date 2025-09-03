@@ -5,7 +5,7 @@ Test module to assert the performance of editing items.
 from typing import Any, Callable, Dict, Tuple
 
 import pytest
-from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
+from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs,import-untyped]
     BenchmarkFixture,
 )
 
@@ -73,9 +73,9 @@ def test_item_edit(
     def item_edit(api: CobblerAPI, what: str):
         for test_item in api.get_items(what):
             if inherit_property:
-                test_item.owners = "test owners"
+                test_item.owners = "test owners"  # type: ignore[method-assign]
             else:
-                test_item.comment = "test commect"
+                test_item.comment = "test commect"  # type: ignore[method-assign]
 
     # Arrange
     cobbler_api.settings().cache_enabled = cache_enabled

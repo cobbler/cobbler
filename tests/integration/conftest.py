@@ -1,5 +1,5 @@
 """
-TODO
+Shared fixture module for all integration tests.
 """
 
 import pathlib
@@ -19,7 +19,7 @@ WaitTaskEndType = Callable[[str, CobblerXMLRPCInterface], None]
 @pytest.fixture(name="listings_directory")
 def fixture_listings_directory() -> pathlib.Path:
     """
-    TODO
+    Return the directory for all integration test ISO listings.
     """
     return pathlib.Path("/code/system-tests/listings")
 
@@ -27,7 +27,7 @@ def fixture_listings_directory() -> pathlib.Path:
 @pytest.fixture(name="images_fake_path")
 def fixture_images_fake_path() -> pathlib.Path:
     """
-    TODO
+    Return the directory for our fake image.
     """
     return pathlib.Path("/code/system-tests/images/fake")
 
@@ -35,7 +35,7 @@ def fixture_images_fake_path() -> pathlib.Path:
 @pytest.fixture(name="images_dummy_path")
 def fixture_images_dummy_path() -> pathlib.Path:
     """
-    TODO
+    Return the directory for our dummy image.
     """
     return pathlib.Path("/code/system-tests/images/dummy")
 

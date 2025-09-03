@@ -3,6 +3,9 @@ next_server_v4: 192.168.1.1
 manage_dhcp: true
 manage_dhcp_v4: true
 manage_dhcp_v6: false
+mongodb:
+  host: mongo
+  port: 27017
 power_management_default_type: 'ipmilan'
 tftpboot_location: '/srv/tftpboot'
 webdir: '/srv/www/cobbler'

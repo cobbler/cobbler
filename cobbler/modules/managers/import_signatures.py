@@ -484,7 +484,7 @@ class _ImportSignatureManager(ManagerModule):
 
             new_profile = self.api.new_profile(
                 name=name,
-                distro=name,
+                distro=new_distro.uid,
                 autoinstall=self.autoinstall_file,  # type: ignore
             )
 

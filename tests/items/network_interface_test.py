@@ -25,6 +25,9 @@ if TYPE_CHECKING:
 
 @pytest.fixture(name="test_settings")
 def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> Settings:
+    """
+    Fixture to provide a mock settings object for testing inheritance in NetworkInterface.
+    """
     settings = mocker.MagicMock(
         name="interface_setting_mock", spec=cobbler_api.settings()
     )
@@ -35,6 +38,9 @@ def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> S
 
 
 def test_network_interface_object_creation(cobbler_api: CobblerAPI):
+    """
+    Test to verify that a NetworkInterface object can be created.
+    """
     # Arrange
 
     # Act
@@ -45,6 +51,9 @@ def test_network_interface_object_creation(cobbler_api: CobblerAPI):
 
 
 def test_network_interface_to_dict(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the to_dict method of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -60,6 +69,9 @@ def test_network_interface_to_dict(cobbler_api: CobblerAPI):
 
 
 def test_network_interface_to_dict_resolved(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the to_dict method of NetworkInterface works as expected when resolved is True.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -87,6 +99,9 @@ def test_network_interface_from_dict(
     expected_result: str,
     expect_logger_warning: bool,
 ):
+    """
+    Test to verify that the from_dict method of NetworkInterface works as expected.
+    """
     # Arrange
     caplog.set_level(logging.INFO)
     interface = NetworkInterface(cobbler_api, "")
@@ -103,11 +118,15 @@ def test_network_interface_from_dict(
 
 
 def test_serialize():
-    pass
+    """
+    Test to verify that the serialize method of NetworkInterface works as expected.
+    """
 
 
 def test_deserialize():
-    pass
+    """
+    Test to verify that the deserialize method of NetworkInterface works as expected.
+    """
 
 
 @pytest.mark.parametrize(
@@ -124,6 +143,9 @@ def test_dhcp_tag(
     expected_result: str,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the dhcp_tag property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -137,6 +159,9 @@ def test_dhcp_tag(
 
 
 def test_cnames(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the cnames property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -149,6 +174,9 @@ def test_cnames(cobbler_api: CobblerAPI):
 
 
 def test_static_routes(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the static_routes property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -175,6 +203,9 @@ def test_static(
     expected_result: Union[bool, str],
     expected_exception: Any,
 ):
+    """
+    Test to verify that the static property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -202,6 +233,9 @@ def test_management(
     expected_result: Union[bool, str],
     expected_exception: Any,
 ):
+    """
+    Test to verify that the management property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -231,10 +265,13 @@ def test_dns_name(
     expected_result: str,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the dns_name property of NetworkInterface works as expected.
+    """
     # Arrange
     distro = create_distro()
-    profile = create_profile(distro.name)
-    system = create_system(profile.name)
+    profile = create_profile(distro.uid)
+    system = create_system(profile.uid)
     system.interfaces["default"].dns_name = "duplicate.example.org"
     cobbler_api.add_system(system)
     interface = NetworkInterface(cobbler_api, "")
@@ -274,13 +311,16 @@ def test_mac_address(
     expected_result: str,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the mac_address property of NetworkInterface works as expected.
+    """
     # Arrange
     distro = create_distro()
-    profile = create_profile(distro.name)
-    system: System = create_system(profile.name)
+    profile = create_profile(distro.uid)
+    system: System = create_system(profile.uid)
     system.interfaces["default"].mac_address = "AA:AA:AA:AA:AA:AA"
     cobbler_api.add_system(system)
-    system2: System = create_system(profile_name=profile.name, name="test_system2")
+    system2: System = create_system(profile_uid=profile.uid, name="test_system2")
     system2.interfaces["default"].mac_address = "random"
     cobbler_api.add_system(system2)
     mocker.patch("cobbler.utils.get_random_mac", return_value="AA:BB:CC:DD:EE:FF")
@@ -297,6 +337,9 @@ def test_mac_address(
 
 
 def test_netmask(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the netmask property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -309,6 +352,9 @@ def test_netmask(cobbler_api: CobblerAPI):
 
 
 def test_if_gateway(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the if_gateway property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -335,6 +381,9 @@ def test_virt_bridge(
     expected_result: str,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the virt_bridge property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -365,6 +414,9 @@ def test_interface_type(
     expected_result: enums.NetworkInterfaceType,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the interface_type property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -390,6 +442,9 @@ def test_interface_master(
     expected_result: str,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the interface_master property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -415,6 +470,9 @@ def test_bonding_opts(
     expected_result: str,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the bonding_opts property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -440,6 +498,9 @@ def test_bridge_opts(
     expected_result: str,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the bridge_opts property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -469,10 +530,13 @@ def test_ip_address(
     expected_result: str,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the ip_address property of NetworkInterface works as expected.
+    """
     # Arrange
     distro = create_distro()
-    profile = create_profile(distro.name)
-    system = create_system(profile.name)
+    profile = create_profile(distro.uid)
+    system = create_system(profile.uid)
     system.interfaces["default"].ip_address = "172.30.0.2"
     cobbler_api.add_system(system)
     interface = NetworkInterface(cobbler_api, "")
@@ -504,10 +568,13 @@ def test_ipv6_address(
     expected_result: str,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the ipv6_address property of NetworkInterface works as expected.
+    """
     # Arrange
     distro = create_distro()
-    profile = create_profile(distro.name)
-    system = create_system(profile.name)
+    profile = create_profile(distro.uid)
+    system = create_system(profile.uid)
     system.interfaces["default"].ipv6_address = "2001:db8:3c4d::2"
     cobbler_api.add_system(system)
     interface = NetworkInterface(cobbler_api, "")
@@ -535,6 +602,9 @@ def test_ipv6_prefix(
     expected_result: str,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the ipv6_prefix property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -561,6 +631,9 @@ def test_ipv6_secondaries(
     expected_result: List[str],
     expected_exception: Any,
 ):
+    """
+    Test to verify that the ipv6_secondaries property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -588,6 +661,9 @@ def test_ipv6_default_gateway(
     expected_result: str,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the ipv6_default_gateway property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -601,6 +677,9 @@ def test_ipv6_default_gateway(
 
 
 def test_ipv6_static_routes(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the ipv6_static_routes property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -625,6 +704,9 @@ def test_ipv6_mtu(
     expected_result: str,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the ipv6_mtu property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -650,6 +732,9 @@ def test_mtu(
     expected_result: str,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the mtu property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -677,6 +762,9 @@ def test_connected_mode(
     expected_result: Any,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the connected_mode property of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
@@ -703,6 +791,9 @@ def test_modify_interface(
     expected_value: str,
     expected_exception: Any,
 ):
+    """
+    Test to verify that the modify_interface method of NetworkInterface works as expected.
+    """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 

@@ -12,7 +12,8 @@ if TYPE_CHECKING:
 
 class StorageBase:
     """
-    TODO
+    Base class for all storage modules. The serializers are responsible for transforming the items from and to the
+    serializer representation.
     """
 
     def __init__(self, api: "CobblerAPI"):
@@ -76,12 +77,12 @@ class StorageBase:
             "The implementation for the configured serializer is missing!"
         )
 
-    def deserialize_item(self, collection_type: str, name: str) -> Dict[str, Any]:
+    def deserialize_item(self, collection_type: str, uid: str) -> Dict[str, Any]:
         """
         Get a collection item from disk and parse it into an object.
 
         :param collection_type: The collection type to deserialize.
-        :param item_name: The collection item name to deserialize.
+        :param uid: The collection item uid to deserialize.
         :return: Dictionary of the collection item.
         """
         raise NotImplementedError(
@@ -91,20 +92,21 @@ class StorageBase:
 
 def register() -> str:
     """
-    TODO
+    The mandatory Cobbler module registration hook.
     """
     return "StorageBase"
 
 
 def what() -> str:
     """
-    TODO
+    Module identification function
     """
     return "serializer/base"
 
 
 def storage_factory(api: "CobblerAPI") -> StorageBase:
     """
-    TODO
+    Factory method to allow the serializer interface to instaniate the concrete serializer without knowing which
+    serializer is initalized.
     """
     return StorageBase(api)

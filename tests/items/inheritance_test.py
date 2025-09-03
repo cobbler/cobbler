@@ -20,14 +20,14 @@ def test_resolved_dict_deduplication(
     """
     # Arrange
     test_distro = create_distro()
-    test_profile = create_profile(test_distro.name)
-    test_distro.kernel_options = {"a": True, "b": 5}
+    test_profile = create_profile(test_distro.uid)
+    test_distro.kernel_options = {"a": True, "b": 5}  # type: ignore[method-assign]
     expected_result_raw = {"b": 6, "c": "test"}
     expected_result_resolved = {"a": True, "b": 6, "c": "test"}
     expected_result_distro = {"a": True, "b": 5}
 
     # Act
-    test_profile.kernel_options = {"a": True, "b": 6, "c": "test"}
+    test_profile.kernel_options = {"a": True, "b": 6, "c": "test"}  # type: ignore[method-assign]
 
     # Assert
     assert test_profile._kernel_options == expected_result_raw  # type: ignore
@@ -44,14 +44,14 @@ def test_resolved_list_deduplication(
     """
     # Arrange
     test_distro = create_distro()
-    test_profile = create_profile(test_distro.name)
-    test_distro.owners = ["owner1"]
+    test_profile = create_profile(test_distro.uid)
+    test_distro.owners = ["owner1"]  # type: ignore[method-assign]
     expected_result_raw = ["owner2"]
     expected_result_resolved = ["owner2"]
     expected_result_distro = ["owner1"]
 
     # Act
-    test_profile.owners = ["owner2"]
+    test_profile.owners = ["owner2"]  # type: ignore[method-assign]
 
     # Assert
     assert test_profile._owners == expected_result_raw  # type: ignore
@@ -67,19 +67,19 @@ def test_to_dict_filter_resolved(
     """
     # Arrange
     test_distro = create_distro()
-    test_distro.kernel_options = {"test": True}
-    test_distro.autoinstall_meta = {"tree": "http://test/url"}
+    test_distro.kernel_options = {"test": True}  # type: ignore[method-assign]
+    test_distro.autoinstall_meta = {"tree": "http://test/url"}  # type: ignore[method-assign]
     cobbler_api.add_distro(test_distro)
 
     titem = Profile(cobbler_api)
     titem.name = "to_dict_filter_resolved_profile"
-    titem.distro = test_distro.name
+    titem.distro = test_distro.uid  # type: ignore[method-assign]
     new_kernel_options = titem.kernel_options
     new_autoinstall_meta = titem.autoinstall_meta
     new_kernel_options["test"] = False
     new_autoinstall_meta["tree"] = "http://newtest/url"
-    titem.kernel_options = new_kernel_options
-    titem.autoinstall_meta = new_autoinstall_meta
+    titem.kernel_options = new_kernel_options  # type: ignore[method-assign]
+    titem.autoinstall_meta = new_autoinstall_meta  # type: ignore[method-assign]
     cobbler_api.add_profile(titem)
 
     # Act

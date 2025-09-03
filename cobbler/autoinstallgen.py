@@ -195,7 +195,7 @@ class AutoInstallationGen:
 
         for repo in repos:
             # see if this is a source_repo or not; we know that this is a single match due to return_list=False
-            repo_obj = self.api.find_repo(repo, return_list=False)  # type: ignore
+            repo_obj = self.api.find_repo(return_list=False, name=repo)
             if repo_obj is None or isinstance(repo_obj, list):
                 # FIXME: what to do if we can't find the repo object that is listed?
                 # This should be a warning at another point, probably not here so we'll just not list it so the

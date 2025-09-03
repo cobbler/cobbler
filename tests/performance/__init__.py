@@ -37,7 +37,7 @@ class CobblerTree:
         """
         for i in range(CobblerTree.repos_count):
             test_item: Repo = Repo(api)
-            test_item.name = f"test_repo_{i}"
+            test_item.name = f"test_repo_{i}"  # type: ignore[method-assign]
             api.repos().add(
                 test_item, save=save, with_triggers=with_triggers, with_sync=with_sync
             )
@@ -54,8 +54,11 @@ class CobblerTree:
         Create a number of distros for benchmark testing. This pairs the distros with the repositories and mgmt classes.
         """
         for i in range(CobblerTree.distros_count):
+            repo = api.repos().find(name=f"test_repo_{i % CobblerTree.repos_count}")
+            if isinstance(repo, list) or repo is None:
+                raise ValueError("Could not find the test repo that was just created.")
             test_item = create_distro(f"test_distro_{i}", False)
-            test_item.source_repos = [f"test_repo_{i % CobblerTree.repos_count}"]
+            test_item.source_repos = [repo.uid]  # type: ignore[method-assign]
             api.distros().add(
                 test_item, save=save, with_triggers=with_triggers, with_sync=with_sync
             )
@@ -69,11 +72,16 @@ class CobblerTree:
         for l in range(CobblerTree.tree_levels):
             for i in range(CobblerTree.menus_count):
                 test_item: Menu = Menu(api)
-                test_item.name = f"level_{l}_test_menu_{i}"
+                test_item.name = f"level_{l}_test_menu_{i}"  # type: ignore[method-assign]
                 if l > 0:
-                    test_item.parent = f"level_{l - 1}_test_menu_{i}"
+                    menu = api.menus().find(name=f"level_{l - 1}_test_menu_{i}")
+                    if isinstance(menu, list) or menu is None:
+                        raise ValueError(
+                            "Could not find the test menu that was just created."
+                        )
+                    test_item.parent = menu.uid  # type: ignore[method-assign]
                 else:
-                    test_item.parent = ""
+                    test_item.parent = ""  # type: ignore[method-assign]
                 api.menus().add(
                     test_item,
                     save=save,
@@ -91,14 +99,35 @@ class CobblerTree:
         """
         for l in range(CobblerTree.tree_levels):
             for i in range(CobblerTree.profiles_count):
+                menu = api.menus().find(
+                    name=f"level_{l}_test_menu_{i % CobblerTree.menus_count}"
+                )
+                if isinstance(menu, list) or menu is None:
+                    raise ValueError(
+                        "Could not find the test menu that was just created."
+                    )
                 test_item: Profile = Profile(api)
-                test_item.name = f"level_{l}_test_profile_{i}"
+                test_item.name = f"level_{l}_test_profile_{i}"  # type: ignore[method-assign]
                 if l > 0:
-                    test_item.parent = f"level_{l - 1}_test_profile_{i}"
+                    profile = api.profiles().find(
+                        name=f"level_{l - 1}_test_profile_{i}"
+                    )
+                    if isinstance(profile, list) or profile is None:
+                        raise ValueError(
+                            "Could not find the test profile that was just created."
+                        )
+                    test_item.parent = profile.uid  # type: ignore[method-assign]
                 else:
-                    test_item.distro = f"test_distro_{i % CobblerTree.distros_count}"
-                test_item.menu = f"level_{l}_test_menu_{i % CobblerTree.menus_count}"
-                test_item.autoinstall = "sample.ks"
+                    distro = api.distros().find(
+                        name=f"test_distro_{i % CobblerTree.distros_count}"
+                    )
+                    if isinstance(distro, list) or distro is None:
+                        raise ValueError(
+                            "Could not find the test distro that was just created."
+                        )
+                    test_item.distro = distro.uid  # type: ignore[method-assign]
+                test_item.menu = menu.uid  # type: ignore[method-assign]
+                test_item.autoinstall = "sample.ks"  # type: ignore[method-assign]
                 api.profiles().add(
                     test_item,
                     save=save,
@@ -114,10 +143,15 @@ class CobblerTree:
         Create a number of images for benchmark testing.
         """
         for i in range(CobblerTree.images_count):
+            menu = api.menus().find(
+                name=f"level_{CobblerTree.tree_levels - 1}_test_menu_{i % CobblerTree.menus_count}"
+            )
+            if isinstance(menu, list) or menu is None:
+                raise ValueError("Could not find the test menu that was just created.")
             test_item: Image = Image(api)
-            test_item.name = f"test_image_{i}"
-            test_item.menu = f"level_{CobblerTree.tree_levels - 1}_test_menu_{i % CobblerTree.menus_count}"
-            test_item.autoinstall = "sample.ks"
+            test_item.name = f"test_image_{i}"  # type: ignore[method-assign]
+            test_item.menu = menu.uid  # type: ignore[method-assign]
+            test_item.autoinstall = "sample.ks"  # type: ignore[method-assign]
             api.images().add(
                 test_item, save=save, with_triggers=with_triggers, with_sync=with_sync
             )
@@ -132,12 +166,26 @@ class CobblerTree:
         """
         for i in range(CobblerTree.systems_count):
             test_item: System = System(api)
-            test_item.name = f"test_system_{i}"
+            test_item.name = f"test_system_{i}"  # type: ignore[method-assign]
             if i % 2 == 0:
-                test_item.profile = f"level_{CobblerTree.tree_levels - 1}_test_profile_{i % CobblerTree.profiles_count}"
+                profile = api.profiles().find(
+                    name=f"level_{CobblerTree.tree_levels - 1}_test_profile_{i % CobblerTree.profiles_count}"
+                )
+                if isinstance(profile, list) or profile is None:
+                    raise ValueError(
+                        "Could not find the test profile that was just created."
+                    )
+                test_item.profile = profile.uid  # type: ignore[method-assign]
             else:
-                test_item.image = f"test_image_{i % CobblerTree.images_count}"
-            test_item.interfaces = {"default": NetworkInterface(api, test_item.name)}
+                image = api.images().find(
+                    name=f"test_image_{i % CobblerTree.images_count}"
+                )
+                if isinstance(image, list) or image is None:
+                    raise ValueError(
+                        "Could not find the test image that was just created."
+                    )
+                test_item.image = image.uid  # type: ignore[method-assign]
+            test_item.interfaces = {"default": NetworkInterface(api, test_item.uid)}  # type: ignore[method-assign]
             api.systems().add(
                 test_item, save=save, with_triggers=with_triggers, with_sync=with_sync
             )
@@ -166,7 +214,7 @@ class CobblerTree:
         Method that removes all repositories.
         """
         for test_item in api.repos():
-            api.repos().remove(test_item.name, with_triggers=False, with_sync=False)
+            api.repos().remove(test_item, with_triggers=False, with_sync=False)
 
     @staticmethod
     def remove_distros(api: CobblerAPI):
@@ -174,7 +222,7 @@ class CobblerTree:
         Method that removes all distributions.
         """
         for test_item in api.distros():
-            api.distros().remove(test_item.name, with_triggers=False, with_sync=False)
+            api.distros().remove(test_item, with_triggers=False, with_sync=False)
 
     @staticmethod
     def remove_menus(api: CobblerAPI):
@@ -183,7 +231,7 @@ class CobblerTree:
         """
         while len(api.menus()) > 0:
             api.menus().remove(
-                list(api.menus())[0].name,
+                list(api.menus())[0],
                 recursive=True,
                 with_triggers=False,
                 with_sync=False,
@@ -196,7 +244,7 @@ class CobblerTree:
         """
         while len(api.profiles()) > 0:
             api.profiles().remove(
-                list(api.profiles())[0].name,
+                list(api.profiles())[0],
                 recursive=True,
                 with_triggers=False,
                 with_sync=False,
@@ -208,7 +256,7 @@ class CobblerTree:
         Method that removes all images.
         """
         for test_item in api.images():
-            api.images().remove(test_item.name, with_triggers=False, with_sync=False)
+            api.images().remove(test_item, with_triggers=False, with_sync=False)
 
     @staticmethod
     def remove_systems(api: CobblerAPI):
@@ -216,7 +264,7 @@ class CobblerTree:
         Method that removes all systems.
         """
         for test_item in api.systems():
-            api.systems().remove(test_item.name, with_triggers=False, with_sync=False)
+            api.systems().remove(test_item, with_triggers=False, with_sync=False)
 
     @staticmethod
     def remove_all_objs(api: CobblerAPI):

@@ -246,17 +246,17 @@ def authorize(
     obj = None
     if resource.find("remove") != -1:
         if resource == "remove_distro":
-            obj = api_handle.find_distro(arg1)
+            obj = api_handle.find_distro(name=arg1)
         elif resource == "remove_profile":
-            obj = api_handle.find_profile(arg1)
+            obj = api_handle.find_profile(name=arg1)
         elif resource == "remove_system":
-            obj = api_handle.find_system(arg1)
+            obj = api_handle.find_system(name=arg1)
         elif resource == "remove_repo":
-            obj = api_handle.find_repo(arg1)
+            obj = api_handle.find_repo(name=arg1)
         elif resource == "remove_image":
-            obj = api_handle.find_image(arg1)
+            obj = api_handle.find_image(name=arg1)
     elif resource.find("save") != -1 or resource.find("modify") != -1:
-        obj = api_handle.find_items(what="", name=arg1)
+        obj = api_handle.find_items(what="", criteria={"name": arg1})
 
     if obj is None or isinstance(obj, list):
         raise ValueError("Object not found or found multiple times!")

@@ -228,8 +228,8 @@ class Profile(BootableItem):
             self._filename = enums.VALUE_INHERITED
 
         # Use setters to validate settings
-        self.virt_disk_driver = api.settings().default_virt_disk_driver
-        self.virt_type = api.settings().default_virt_type
+        self.virt_disk_driver = api.settings().default_virt_disk_driver  # type: ignore[method-assign]
+        self.virt_type = api.settings().default_virt_type  # type: ignore[method-assign]
 
         if len(kwargs) > 0:
             self.from_dict(kwargs)
@@ -323,28 +323,28 @@ class Profile(BootableItem):
         """
         if not self._distro:
             return None
-        parent_distro = self.api.distros().find(name=self._distro)
+        parent_distro = self.api.distros().find(uid=self._distro)
         if isinstance(parent_distro, list):
             raise ValueError("Ambigous parent distro name detected!")
         return parent_distro
 
-    @distro.setter
-    def distro(self, distro_name: Union["Distro", str]):
+    @distro.setter  # type: ignore[no-redef]
+    def distro(self, distro_uid: Union["Distro", str]):
         """
-        Sets the distro. This must be the name of an existing Distro object in the Distros collection.
+        Sets the distro. This must be the uid of an existing Distro object in the Distros collection.
 
-        :param distro_name: The name of the distro.
+        :param distro_uid: The uid of the distro.
         """
         distro = None
-        if isinstance(distro_name, Distro):
-            distro = distro_name
-            distro_name = distro.name
-        elif not isinstance(distro_name, str):  # type: ignore
-            raise TypeError("distro_name needs to be of type str")
+        if isinstance(distro_uid, Distro):
+            distro = distro_uid
+            distro_uid = distro.uid
+        elif not isinstance(distro_uid, str):  # type: ignore
+            raise TypeError("distro_uid needs to be of type str")
         items = self.api.profiles()
         old_distro = self._distro
         old_arch = self.arch
-        if not distro_name:
+        if not distro_uid:
             self._distro = ""
             items.update_index_value(self, "distro", old_distro, "")
             items.update_index_value(self, "arch", old_arch, self.arch)
@@ -354,14 +354,14 @@ class Profile(BootableItem):
                 )
             return
         if distro is None:
-            distro = self.api.distros().find(name=distro_name)
+            distro = self.api.distros().find(uid=distro_uid)
         if distro is None or isinstance(distro, list):
-            raise ValueError(f'distribution "{distro_name}" not found')
-        self._distro = distro_name
+            raise ValueError(f'distribution "{distro_uid}" not found')
+        self._distro = distro_uid
         self.depth = (
             distro.depth + 1
         )  # reset depth if previously a subprofile and now top-level
-        items.update_index_value(self, "distro", old_distro, distro_name)
+        items.update_index_value(self, "distro", old_distro, distro_uid)
         items.update_index_value(self, "arch", old_arch, distro.arch)
         for child in self.tree_walk():
             items.update_index_value(
@@ -493,7 +493,7 @@ class Profile(BootableItem):
         """
         return self._dhcp_tag
 
-    @dhcp_tag.setter
+    @dhcp_tag.setter  # type: ignore[no-redef]
     def dhcp_tag(self, dhcp_tag: str):
         r"""
         Setter for the ``dhcp_tag`` property.
@@ -539,7 +539,7 @@ class Profile(BootableItem):
         """
         return self._resolve("next_server_v4")
 
-    @next_server_v4.setter
+    @next_server_v4.setter  # type: ignore[no-redef]
     def next_server_v4(self, server: str = ""):
         """
         Setter for the next server value.
@@ -564,7 +564,7 @@ class Profile(BootableItem):
         """
         return self._resolve("next_server_v6")
 
-    @next_server_v6.setter
+    @next_server_v6.setter  # type: ignore[no-redef]
     def next_server_v6(self, server: str = ""):
         """
         Setter for the next server value.
@@ -621,7 +621,7 @@ class Profile(BootableItem):
         """
         return self._resolve("autoinstall")
 
-    @autoinstall.setter
+    @autoinstall.setter  # type: ignore[no-redef]
     def autoinstall(self, autoinstall: str):
         """
         Setter for the ``autoinstall`` property.
@@ -667,7 +667,7 @@ class Profile(BootableItem):
         """
         return self._resolve("virt_cpus")
 
-    @virt_cpus.setter
+    @virt_cpus.setter  # type: ignore[no-redef]
     def virt_cpus(self, num: Union[int, str]):
         """
         Setter for the number of virtual CPU cores to assign to the virtual machine.
@@ -794,7 +794,7 @@ class Profile(BootableItem):
         """
         return self._virt_path
 
-    @virt_path.setter
+    @virt_path.setter  # type: ignore[no-redef]
     def virt_path(self, path: str):
         """
         Setter for the ``virt_path`` property.
@@ -809,16 +809,16 @@ class Profile(BootableItem):
         The repositories to add once the system is provisioned.
 
         :getter: The names of the repositories the profile has assigned.
-        :setter: The new names of the repositories for the profile. Validated against existing repositories.
+        :setter: The new uids of the repositories for the profile. Validated against existing repositories.
         """
         return self._repos
 
-    @repos.setter
+    @repos.setter  # type: ignore[no-redef]
     def repos(self, repos: Union[str, List[str]]):
         """
         Setter of the repositories for the profile.
 
-        :param repos: The new repositories which will be set.
+        :param repos: The new repositories which will be set. Must be a list of UIDs.
         """
         old_repos = self._repos
         self._repos = validate.validate_repos(repos, self.api, bypass_check=False)
@@ -901,12 +901,12 @@ class Profile(BootableItem):
         r"""
         Property to represent the menu which this image should be put into.
 
-        :getter: The name of the menu or an emtpy str.
-        :setter: Should only be the name of the menu not the object. May raise ``CX`` in case the menu does not exist.
+        :getter: The uid of the menu or an emtpy str.
+        :setter: Should only be the uid of the menu not the object. May raise ``CX`` in case the menu does not exist.
         """
         return self._menu
 
-    @menu.setter
+    @menu.setter  # type: ignore[no-redef]
     def menu(self, menu: str):
         """
         Setter for the menu property.
@@ -918,7 +918,7 @@ class Profile(BootableItem):
             raise TypeError("Field menu of object profile needs to be of type str!")
         if menu and menu != "":
             menu_list = self.api.menus()
-            if not menu_list.find(name=menu):
+            if not menu_list.find(uid=menu):
                 raise CX(f"menu {menu} not found")
         old_menu = self._menu
         self._menu = menu
@@ -934,7 +934,7 @@ class Profile(BootableItem):
         """
         return self._display_name
 
-    @display_name.setter
+    @display_name.setter  # type: ignore[no-redef]
     def display_name(self, display_name: str):
         """
         Setter for the display_name of the item.

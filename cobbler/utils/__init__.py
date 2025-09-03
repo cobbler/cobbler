@@ -18,7 +18,6 @@ import subprocess
 import sys
 import traceback
 import urllib.error
-import urllib.parse
 import urllib.request
 from functools import reduce
 from pathlib import Path
@@ -501,7 +500,7 @@ def blender(
         # logger.info("Children: %s", child_names)
         for key in child_names:
             # We use return_list=False, thus this is only Optional[ITEM]
-            child = api_handle.find_items("", name=key, return_list=False)  # type: ignore
+            child = api_handle.find_items("", criteria={"name": key}, return_list=False)
             if child is None or isinstance(child, list):
                 raise ValueError(
                     f'Child with the name "{key}" of parent object "{root_obj.name}" did not exist!'
@@ -703,10 +702,9 @@ def dict_to_string(_dict: Dict[Any, Any]) -> Union[str, Dict[Any, Any]]:
         value = _dict[key]
         if not value:
             buffer += str(key) + " "
-        elif isinstance(value, list):
-            # this value is an array, so we print out every
-            # key=value
-            item: Any
+        elif isinstance(value, list):  # type: ignore
+            # this value is an array, so we print out every key=value
+            value: List[Any]  # type: ignore[no-redef]
             for item in value:
                 # strip possible leading and trailing whitespaces
                 _item = str(item).strip()
@@ -1104,7 +1102,7 @@ def strip_none(
 
 
 def revert_strip_none(
-    data: Union[str, int, float, bool, List[Any], Dict[Any, Any]]
+    data: Union[str, int, float, bool, List[Any], Dict[Any, Any]],
 ) -> Optional[Union[str, int, float, bool, List[Any], Dict[Any, Any]]]:
     """
     Does the opposite to strip_none. If a value which represents None is detected, it replaces it with None.

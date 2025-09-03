@@ -38,7 +38,7 @@ class Profiles(collection.Collection[profile.Profile]):
 
     def remove(
         self,
-        name: str,
+        ref: profile.Profile,
         with_delete: bool = True,
         with_sync: bool = True,
         with_triggers: bool = True,
@@ -46,27 +46,28 @@ class Profiles(collection.Collection[profile.Profile]):
         rebuild_menu: bool = True,
     ):
         """
-        Remove element named 'name' from the collection
+        Remove the given element from the collection
 
-        :raises CX: In case the name of the object was not given or any other descendant would be orphaned.
+        :param ref: The object to delete
+        :param with_delete: In case the deletion triggers are executed for this profile.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        :param with_triggers: In case the Cobbler Trigger mechanism should be executed.
+        :param recursive: In case you want to delete all objects this profile references.
+        :param rebuild_menu: unused
+        :raises CX: In case the reference to the object was not given.
         """
+        if ref is None:  # type: ignore
+            raise CX("cannot delete an object that does not exist")
+
         if not recursive:
-            for system in self.api.systems():
-                if system.profile == name:
-                    raise CX(f"removal would orphan system: {system.name}")
+            search_result = self.api.find_system(True, profile=ref.uid)
+            if isinstance(search_result, list) and len(search_result) > 0:
+                raise CX(
+                    f"removal would orphan the following system(s): {', '.join([ref.uid for ref in search_result])}"
+                )
 
-        obj = self.listing.get(name, None)
-
-        if obj is None:
-            raise CX(f"cannot delete an object that does not exist: {name}")
-
-        if isinstance(obj, list):
-            # Will never happen, but we want to make mypy happy.
-            raise CX("Ambiguous match detected!")
-
-        print(f"Profiles remove: {name}, recursive={recursive}")
         if recursive:
-            kids = obj.descendants
+            kids = ref.descendants
             kids.sort(key=lambda x: -x.depth)
             for k in kids:
                 self.api.remove_item(
@@ -81,21 +82,25 @@ class Profiles(collection.Collection[profile.Profile]):
         if with_delete:
             if with_triggers:
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/delete/profile/pre/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/delete/profile/pre/*", []
                 )
 
         with self.lock:
-            self.remove_from_indexes(obj)
-            del self.listing[name]
-        self.collection_mgr.serialize_delete(self, obj)
+            self.remove_from_indexes(ref)
+            del self.listing[ref.uid]
+        self.collection_mgr.serialize_delete(self, ref)
         if with_delete:
             if with_triggers:
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/delete/profile/post/*", []
                 )
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/change/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/change/*", []
                 )
             if with_sync:
-                lite_sync = self.api.get_sync()
-                lite_sync.remove_single_profile(obj, rebuild_menu=rebuild_menu)
+                self.remove_quick_pxe_sync(ref)
+
+    def remove_quick_pxe_sync(
+        self, ref: profile.Profile, rebuild_menu: bool = True
+    ) -> None:
+        self.api.get_sync().remove_single_profile(ref, rebuild_menu=rebuild_menu)

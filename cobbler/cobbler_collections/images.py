@@ -43,7 +43,7 @@ class Images(collection.Collection[image.Image]):
 
     def remove(
         self,
-        name: str,
+        ref: image.Image,
         with_delete: bool = True,
         with_sync: bool = True,
         with_triggers: bool = True,
@@ -51,26 +51,32 @@ class Images(collection.Collection[image.Image]):
         rebuild_menu: bool = True,
     ) -> None:
         """
-        Remove element named 'name' from the collection
+        Remove the given element from the collection
 
-        :raises CX: In case object does not exist or it would orhan a system.
+        :param ref: The object to delete
+        :param with_delete: In case the deletion triggers are executed for this image.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        :param with_triggers: In case the Cobbler Trigger mechanism should be executed.
+        :param recursive: In case you want to delete all objects this image references.
+        :param rebuild_menu: unused
+        :raises CX: Raised in case you want to delete a none existing image.
         """
         # rebuild_menu is not used
         _ = rebuild_menu
-        # NOTE: with_delete isn't currently meaningful for repos but is left in for consistency in the API. Unused.
-        obj = self.listing.get(name, None)
 
-        if obj is None:
-            raise CX(f"cannot delete an object that does not exist: {name}")
+        if ref is None:  # type: ignore
+            raise CX("cannot delete an object that does not exist")
 
         # first see if any Groups use this distro
         if not recursive:
-            for system in self.api.systems():
-                if system.image == name:
-                    raise CX(f"removal would orphan system: {system.name}")
+            search_result = self.api.find_system(True, image=ref.uid)
+            if isinstance(search_result, list) and len(search_result) > 0:
+                raise CX(
+                    f"removal would orphan the following system(s): {', '.join([ref.uid for ref in search_result])}"
+                )
 
         if recursive:
-            kids = self.api.find_system(return_list=True, image=obj.name)
+            kids = self.api.find_system(return_list=True, image=ref.uid)
             if kids is None:
                 kids = []
             if not isinstance(kids, list):
@@ -81,22 +87,26 @@ class Images(collection.Collection[image.Image]):
         if with_delete:
             if with_triggers:
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/delete/image/pre/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/delete/image/pre/*", []
                 )
             if with_sync:
-                lite_sync = self.api.get_sync()
-                lite_sync.remove_single_image(obj)
+                self.remove_quick_pxe_sync(ref)
 
         with self.lock:
-            self.remove_from_indexes(obj)
-            del self.listing[name]
-        self.collection_mgr.serialize_delete(self, obj)
+            self.remove_from_indexes(ref)
+            del self.listing[ref.uid]
+        self.collection_mgr.serialize_delete(self, ref)
 
         if with_delete:
             if with_triggers:
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/delete/image/post/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/delete/image/post/*", []
                 )
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/change/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/change/*", []
                 )
+
+    def remove_quick_pxe_sync(
+        self, ref: image.Image, rebuild_menu: bool = True
+    ) -> None:
+        self.api.get_sync().remove_single_image(ref)

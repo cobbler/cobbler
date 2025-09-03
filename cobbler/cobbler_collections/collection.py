@@ -29,7 +29,6 @@ from cobbler import enums, utils
 from cobbler.cexceptions import CX
 from cobbler.items import distro, image, menu, profile, repo, system
 from cobbler.items.abstract.base_item import BaseItem
-from cobbler.items.abstract.inheritable_item import InheritableItem
 
 if TYPE_CHECKING:
     from cobbler.actions.sync import CobblerSync
@@ -77,7 +76,7 @@ class Collection(Generic[ITEM]):
         """
         Returns size of the collection.
         """
-        return len(list(self.listing.values()))
+        return len(self.listing)
 
     @property
     def lite_sync(self) -> "CobblerSync":
@@ -140,7 +139,7 @@ class Collection(Generic[ITEM]):
     @abstractmethod
     def remove(
         self,
-        name: str,
+        ref: ITEM,
         with_delete: bool = True,
         with_sync: bool = True,
         with_triggers: bool = True,
@@ -150,13 +149,24 @@ class Collection(Generic[ITEM]):
         """
         Remove an item from collection. This method must be overridden in any subclass.
 
-        :param name: Item Name
+        :param ref: The item to remove
         :param with_delete: sync and run triggers
         :param with_sync: sync to server file system
         :param with_triggers: run "on delete" triggers
         :param recursive: recursively delete children
         :param rebuild_menu: rebuild menu after removing the item
         :returns: NotImplementedError
+        """
+
+    @abstractmethod
+    def remove_quick_pxe_sync(self, ref: ITEM, rebuild_menu: bool = True) -> None:
+        """
+        Execute the quick sync that is required after an item has been removed.
+
+        .. note:: This method is for internal Cobbler use only.
+
+        :param ref: The item to remove from the PXE tree
+        :param rebuild_menu: If the menu hierarchy has to be rebuilt.
         """
 
     def get(self, name: str) -> Optional[ITEM]:
@@ -166,62 +176,49 @@ class Collection(Generic[ITEM]):
         :param name: The name of the object to retrieve from the collection.
         :return: The object if it exists. Otherwise, "None".
         """
-        return self.listing.get(name, None)
-
-    def get_names(self) -> List[str]:
-        """
-        Return list of names in the collection.
-
-        :return: list of names in the collection.
-        """
-        return list(self.listing)
+        result = self.find(return_list=False, name=name)
+        if isinstance(result, list):
+            raise ValueError("Search result cannot be of type list.")
+        return result
 
     def find(
         self,
-        name: str = "",
         return_list: bool = False,
         no_errors: bool = False,
-        **kargs: FIND_KWARGS,
+        **kwargs: FIND_KWARGS,
     ) -> Optional[Union[List[ITEM], ITEM]]:
         """
         Return first object in the collection that matches all item='value' pairs passed, else return None if no objects
         can be found. When return_list is set, can also return a list.  Empty list would be returned instead of None in
         that case.
 
-        :param name: The object name which should be found.
         :param return_list: If a list should be returned or the first match.
         :param no_errors: If errors which are possibly thrown while searching should be ignored or not.
-        :param kargs: If name is present, this is optional, otherwise this dict needs to have at least a key with
-                      ``name``. You may specify more keys to finetune the search.
+        :param kwargs: This dict needs to have one or more keys with search criteria. You may specify more keys to
+                       narrow down the search.
         :return: The first item or a list with all matches.
         :raises ValueError: In case no arguments for searching were specified.
         """
         matches: List[ITEM] = []
 
-        if name:
-            kargs["name"] = name
-
-        kargs = self.__rekey(kargs)
+        kwargs = self.__rekey(kwargs)
 
         # no arguments is an error, so we don't return a false match
-        if len(kargs) == 0:
+        if len(kwargs) == 0:
             raise ValueError("calling find with no arguments")
 
         # performance: if the only key is name we can skip the whole loop
-        if len(kargs) == 1 and "name" in kargs and not return_list:
-            try:
-                return self.listing.get(kargs["name"], None)  # type: ignore
-            except Exception:
-                return self.listing.get(name, None)
+        if len(kwargs) == 1 and "uid" in kwargs and not return_list:
+            return self.listing.get(kwargs["uid"], None)  # type: ignore
 
         if self.api.settings().lazy_start:
             # Forced deserialization of the entire collection to prevent deadlock in the search loop
             self._deserialize()
 
         with self.lock:
-            orig_kargs_len = len(kargs)
-            result = self.find_by_indexes(kargs)
-            new_kargs_len = len(kargs)
+            orig_kargs_len = len(kwargs)
+            result = self.find_by_indexes(kwargs)
+            new_kargs_len = len(kwargs)
             if new_kargs_len > 0:
                 obj_list: List[ITEM] = []
                 if result is not None:
@@ -230,7 +227,7 @@ class Collection(Generic[ITEM]):
                     if new_kargs_len == orig_kargs_len:
                         obj_list = list(self)
                 for obj in obj_list:
-                    if obj.inmemory and obj.find_match(kargs, no_errors=no_errors):
+                    if obj.inmemory and obj.find_match(kwargs, no_errors=no_errors):
                         matches.append(obj)
             else:
                 if result is not None:
@@ -324,9 +321,10 @@ class Collection(Generic[ITEM]):
         :param with_sync: If a sync should be triggered when the object is copying.
         :param with_triggers: If triggers should be run when the object is copying.
         """
-        copied_item: ITEM = ref.make_clone()
+        copied_item: ITEM = ref.make_clone()  # type: ignore[assignment]
         copied_item.ctime = time.time()
-        copied_item.name = newname
+        copied_item.name = newname  # type: ignore[method-assign]
+        # TODO: Check if uid is changing
         self.add(
             copied_item,
             save=True,
@@ -340,16 +338,12 @@ class Collection(Generic[ITEM]):
         self,
         ref: "ITEM",
         newname: str,
-        with_sync: bool = True,
-        with_triggers: bool = True,
     ):
         """
         Allows an object "ref" to be given a new name without affecting the rest of the object tree.
 
         :param ref: The reference to the object which should be renamed.
         :param newname: The new name for the object.
-        :param with_sync: If a sync should be triggered when the object is renamed.
-        :param with_triggers: If triggers should be run when the object is renamed.
         """
         # Nothing to do when it is the same name
         if newname == ref.name:
@@ -357,50 +351,13 @@ class Collection(Generic[ITEM]):
 
         # Save the old name
         oldname: str = ref.name
-        with self.lock:
-            # Delete the old item
-            self.collection_mgr.serialize_delete_one_item(ref)
-            self.remove_from_indexes(ref)
-            self.listing.pop(oldname)
-            # Change the name of the object
-            ref.name = newname
-            # Save just this item
-            self.collection_mgr.serialize_one_item(ref)
-            self.listing[newname] = ref
-            self.add_to_indexes(ref)
-
-        for dep_type in InheritableItem.TYPE_DEPENDENCIES[ref.COLLECTION_TYPE]:
-            items = self.api.find_items(
-                dep_type[0], {dep_type[1]: oldname}, return_list=True
-            )
-            if items is None:
-                continue
-            if not isinstance(items, list):
-                raise ValueError("Unexepcted return value from find_items!")
-            for item in items:
-                attr = getattr(item, "_" + dep_type[1])
-                if isinstance(attr, (str, BaseItem)):
-                    setattr(item, dep_type[1], newname)
-                elif isinstance(attr, list):
-                    start_search = 0
-                    for _ in range(attr.count(oldname)):  # type: ignore
-                        offset = attr.index(oldname, start_search)  # type: ignore
-                        attr[offset] = newname
-                        start_search = offset + 1
-                else:
-                    raise CX(
-                        f'Internal error, unknown attribute type {type(attr)} for "{item.name}"!'
-                    )
-                self.api.get_items(item.COLLECTION_TYPE).add(
-                    item,  # type: ignore
-                    save=True,
-                    with_sync=with_sync,
-                    with_triggers=with_triggers,
-                )
+        # Change the name of the object
+        ref.name = newname  # type: ignore[method-assign]
+        # Save just this item
+        self.collection_mgr.serialize_one_item(ref)
 
         # for a repo, rename the mirror directory
         if isinstance(ref, repo.Repo):
-            # if ref.COLLECTION_TYPE == "repo":
             path = os.path.join(self.api.settings().webdir, "repo_mirror")
             old_path = os.path.join(path, oldname)
             if os.path.exists(old_path):
@@ -409,7 +366,6 @@ class Collection(Generic[ITEM]):
 
         # for a distro, rename the mirror and references to it
         if isinstance(ref, distro.Distro):
-            # if ref.COLLECTION_TYPE == "distro":
             path = ref.find_distro_path()  # type: ignore
 
             # create a symlink for the new distro name
@@ -429,8 +385,8 @@ class Collection(Generic[ITEM]):
                 distros = self.api.distros()
                 for distro_obj in distros:
                     if distro_obj.kernel.find(path) == 0:
-                        distro_obj.kernel = distro_obj.kernel.replace(path, newpath)
-                        distro_obj.initrd = distro_obj.initrd.replace(path, newpath)
+                        distro_obj.kernel = distro_obj.kernel.replace(path, newpath)  # type: ignore[method-assign]
+                        distro_obj.initrd = distro_obj.initrd.replace(path, newpath)  # type: ignore[method-assign]
                         self.collection_mgr.serialize_one_item(distro_obj)
 
     def add(
@@ -448,7 +404,7 @@ class Collection(Generic[ITEM]):
         Add an object to the collection
 
         :param ref: The reference to the object.
-        :param save: If this is true then the objet is persisted on the disk.
+        :param save: If this is true then the object is persisted on the disk.
         :param with_copy: Is a bit of a misnomer, but lots of internal add operations can run with "with_copy" as False.
                           True means a real final commit, as if entered from the command line (or basically, by a user).
                           With with_copy as False, the particular add call might just be being run during
@@ -483,11 +439,13 @@ class Collection(Generic[ITEM]):
 
         # Avoid adding objects to the collection with the same name
         if check_for_duplicate_names:
-            for item_obj in self.listing.values():
-                if item_obj.name == ref.name:
-                    raise CX(
-                        f'An object with that name "{ref.name}" exists already. Try "edit"?'
-                    )
+            search_result = self.find(True, name=ref.name)
+            if not isinstance(search_result, list):
+                raise TypeError("Search result must be of type list!")
+            if len(search_result) > 0:
+                raise CX(
+                    f'An object with that name "{ref.name}" exists already. Try "edit"?'
+                )
 
         if ref.COLLECTION_TYPE != self.collection_type():
             raise TypeError("API error: storing wrong data type in collection")
@@ -501,7 +459,7 @@ class Collection(Generic[ITEM]):
             )
 
         with self.lock:
-            self.listing[ref.name] = ref
+            self.listing[ref.uid] = ref
             self.add_to_indexes(ref)
 
         # perform filesystem operations
@@ -510,41 +468,10 @@ class Collection(Generic[ITEM]):
             self.collection_mgr.serialize_one_item(ref)
 
             if with_sync:
-                if isinstance(ref, system.System):
-                    # we don't need openvz containers to be network bootable
-                    if ref.virt_type == enums.VirtType.OPENVZ:
-                        ref.netboot_enabled = False
-                    self.lite_sync.add_single_system(ref)
-                elif isinstance(ref, profile.Profile):
-                    # we don't need openvz containers to be network bootable
-                    if ref.virt_type == "openvz":  # type: ignore
-                        ref.enable_menu = False
-                    self.lite_sync.add_single_profile(ref, rebuild_menu=rebuild_menu)
-                    self.api.sync_systems(
-                        systems=[
-                            x.name  # type: ignore
-                            for x in self.api.find_system(  # type: ignore
-                                return_list=True,
-                                no_errors=False,
-                                **{"profile": ref.name},
-                            )
-                        ]  # type: ignore
-                    )
-                elif isinstance(ref, distro.Distro):
-                    self.lite_sync.add_single_distro(ref, rebuild_menu=rebuild_menu)
-                elif isinstance(ref, image.Image):
-                    self.lite_sync.add_single_image(ref, rebuild_menu=rebuild_menu)
-                elif isinstance(ref, repo.Repo):
-                    pass
-                elif isinstance(ref, menu.Menu):
-                    pass
-                else:
-                    self.logger.error(
-                        "Internal error. Object type not recognized: %s", type(ref)
-                    )
+                self.add_quick_pxe_sync(ref, rebuild_menu=rebuild_menu)
             if not with_sync and quick_pxe_update:
                 if isinstance(ref, system.System):
-                    self.lite_sync.update_system_netboot_status(ref.name)
+                    self.lite_sync.update_system_netboot_status(ref)
 
             # save the tree, so if neccessary, scripts can examine it.
             if with_triggers:
@@ -558,6 +485,48 @@ class Collection(Generic[ITEM]):
                     [],
                 )
 
+    def add_quick_pxe_sync(self, ref: ITEM, rebuild_menu: bool = True):
+        """
+        Execute the quick sync that is required after an item has been added.
+
+        .. note:: This method is for internal Cobbler use only.
+
+        :param ref: The item to add to the PXE tree
+        :param rebuild_menu: If the menu hierarchy has to be rebuilt.
+        """
+        if isinstance(ref, system.System):
+            # we don't need openvz containers to be network bootable
+            if ref.virt_type == enums.VirtType.OPENVZ:
+                ref.netboot_enabled = False  # type: ignore[method-assign]
+            self.lite_sync.add_single_system(ref)
+        elif isinstance(ref, profile.Profile):
+            # we don't need openvz containers to be network bootable
+            if ref.virt_type == "openvz":  # type: ignore
+                ref.enable_menu = False  # type: ignore[method-assign]
+            self.lite_sync.add_single_profile(ref, rebuild_menu=rebuild_menu)
+            self.api.sync_systems(
+                systems=[
+                    x.uid  # type: ignore
+                    for x in self.api.find_system(  # type: ignore
+                        return_list=True,
+                        no_errors=False,
+                        **{"profile": ref.uid},
+                    )
+                ]  # type: ignore
+            )
+        elif isinstance(ref, distro.Distro):
+            self.lite_sync.add_single_distro(ref, rebuild_menu=rebuild_menu)
+        elif isinstance(ref, image.Image):
+            self.lite_sync.add_single_image(ref, rebuild_menu=rebuild_menu)
+        elif isinstance(ref, repo.Repo):
+            pass
+        elif isinstance(ref, menu.Menu):
+            pass
+        else:
+            self.logger.error(
+                "Internal error. Object type not recognized: %s", type(ref)
+            )
+
     def _deserialize(self) -> None:
         """
         Loading all collection items from disk in case of lazy start.
@@ -568,9 +537,8 @@ class Collection(Generic[ITEM]):
             return
 
         self.deserialize_running = True
-        for obj_name in self.get_names():
-            obj = self.get(obj_name)
-            if obj is not None and not obj.inmemory:
+        for obj in self.listing.values():
+            if not obj.inmemory:
                 obj.deserialize()
         self.inmemory = True
         self.deserialize_running = False
@@ -614,26 +582,26 @@ class Collection(Generic[ITEM]):
             "nonunique"
         ]
         indx_dict = self.indexes[index_name]
-        item_name = ref.name
+        item_uid = ref.uid
         if isinstance(key, (str, int)):
-            index_operation(key, item_name, indx_dict, indx_uniq)
+            index_operation(key, item_uid, indx_dict, indx_uniq)
         elif isinstance(key, (list, set, dict)):
             if len(key) == 0:  # type: ignore
-                index_operation("", item_name, indx_dict, indx_uniq)
+                index_operation("", item_uid, indx_dict, indx_uniq)
             else:
                 for k in key:  # type: ignore
                     if isinstance(k, (str, int)):
-                        index_operation(k, item_name, indx_dict, indx_uniq)
+                        index_operation(k, item_uid, indx_dict, indx_uniq)
                     else:
                         raise CX(
-                            f'Attribute type {key}({type(k)}) for "{item_name}"'  # type: ignore
+                            f'Attribute type {key}({type(k)}) for "{item_uid}"'  # type: ignore
                             " cannot be used to create an index!"
                         )
         elif isinstance(key, enums.ConvertableEnum):
-            index_operation(key.value, item_name, indx_dict, indx_uniq)
+            index_operation(key.value, item_uid, indx_dict, indx_uniq)
         else:
             raise CX(
-                f'Attribute type {type(key)} for "{item_name}" cannot be used to create an index!'
+                f'Attribute type {type(key)} for "{item_uid}" cannot be used to create an index!'
             )
 
     def _get_index_property(self, ref: ITEM, index_name: str) -> str:
@@ -648,7 +616,7 @@ class Collection(Generic[ITEM]):
         if hasattr(ref, property_name):
             return getattr(ref, property_name)
         raise CX(
-            f'Internal error, unknown attribute "{property_name}" for "{ref.name}"!'
+            f'Internal error, unknown attribute "{property_name}" for "{ref.uid}"!'
         )
 
     def add_single_index_value(
@@ -677,7 +645,7 @@ class Collection(Generic[ITEM]):
         :param ref: The reference to the object whose indexes are updated.
         """
         for indx in self.indexes:
-            if indx == "uid" or ref.inmemory:
+            if indx == "name" or ref.inmemory:
                 self.index_helper(
                     ref,
                     indx,
@@ -730,7 +698,10 @@ class Collection(Generic[ITEM]):
 
         :param ref: The reference to the object whose index keys are updated.
         """
-        if ref.name in self.listing and attribute_name in self.indexes:
+        if ref.in_transaction:
+            # Don't update the index for items inside a transaction, this is done during the transaction commit.
+            return
+        if ref.uid in self.listing and attribute_name in self.indexes:
             with self.lock:
                 self.index_helper(
                     ref,
@@ -745,7 +716,7 @@ class Collection(Generic[ITEM]):
                     self.add_single_index_value,
                 )
 
-    def find_by_indexes(self, kargs: Dict[str, Any]) -> Optional[List[ITEM]]:
+    def find_by_indexes(self, kwargs: Dict[str, Any]) -> Optional[List[ITEM]]:
         """
         Searching for items in the collection by indexes.
 
@@ -764,7 +735,7 @@ class Collection(Generic[ITEM]):
         found_keys: List[str] = []
         found: bool = True
 
-        for key, value in kargs.items():
+        for key, value in kwargs.items():
             # fnmatch and "~" are not supported
             if (
                 key not in self.indexes
@@ -803,7 +774,7 @@ class Collection(Generic[ITEM]):
             found_keys.append(key)
 
         for key in found_keys:
-            kargs.pop(key)
+            kwargs.pop(key)
         if result is None or len(result) == 0 or not found:
             return None
         return result

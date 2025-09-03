@@ -5,7 +5,7 @@ Test module to assert the performance of adding different kinds of items.
 from typing import Any, Callable, Dict, Tuple
 
 import pytest
-from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
+from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs,import-untyped]
     BenchmarkFixture,
 )
 

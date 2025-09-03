@@ -250,7 +250,7 @@ def test_manager_gen_full_config(mocker: "MockerFixture", api_isc_mock: CobblerA
     mock_profile.virt_file_size = ""
     mock_system = System(api_isc_mock)
     mock_system.name = "test_manager_regen_hosts_system"
-    mock_interface = NetworkInterface(api_isc_mock, mock_system.name)
+    mock_interface = NetworkInterface(api_isc_mock, mock_system.uid)
     mock_interface._dns_name = "host.example.org"  # type: ignore
     mock_interface._mac_address = "aa:bb:cc:dd:ee:ff"  # type: ignore
     mock_interface._ip_address = "192.168.1.2"  # type: ignore
@@ -324,7 +324,7 @@ def test_manager_remove_single_system(
     mock_profile.virt_file_size = ""
     mock_system = System(api_isc_mock)
     mock_system.name = "test_manager_regen_hosts_system"
-    mock_interface = NetworkInterface(api_isc_mock, mock_system.name)
+    mock_interface = NetworkInterface(api_isc_mock, mock_system.uid)
     mock_interface._dns_name = "host.example.org"  # type: ignore
     mock_interface._mac_address = "aa:bb:cc:dd:ee:ff"  # type: ignore
     mock_interface._ip_address = "192.168.1.2"  # type: ignore
@@ -370,7 +370,7 @@ def test_manager_sync_single_system(mocker: "MockerFixture", api_isc_mock: Cobbl
     mock_profile.virt_file_size = ""
     mock_system = System(api_isc_mock)
     mock_system.name = "test_manager_regen_hosts_system"
-    mock_interface = NetworkInterface(api_isc_mock, mock_system.name)
+    mock_interface = NetworkInterface(api_isc_mock, mock_system.uid)
     mock_interface._dns_name = "host.example.org"  # type: ignore
     mock_interface._mac_address = "bb:bb:cc:dd:ee:ff"  # type: ignore
     mock_interface._ip_address = "192.168.1.2"  # type: ignore

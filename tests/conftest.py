@@ -2,6 +2,7 @@
 Fixtures that are shared between all tests inside the testsuite.
 """
 
+import logging
 import os
 import pathlib
 import shutil
@@ -20,6 +21,8 @@ from cobbler.items.menu import Menu
 from cobbler.items.network_interface import NetworkInterface
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
+
+logger = logging.getLogger()
 
 
 @contextmanager
@@ -152,7 +155,7 @@ def create_profile(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     """
 
     def _create_profile(
-        distro_name: str = "", profile_name: str = "", name: str = ""
+        distro_uid: str = "", profile_uid: str = "", name: str = ""
     ) -> Profile:
         test_profile = cobbler_api.new_profile()
         test_profile.name = (
@@ -162,10 +165,10 @@ def create_profile(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
         )
         if name != "":
             test_profile.name = name
-        if profile_name == "":
-            test_profile.distro = distro_name  # type: ignore
+        if profile_uid == "":
+            test_profile.distro = distro_uid  # type: ignore
         else:
-            test_profile.parent = profile_name  # type: ignore
+            test_profile.parent = profile_uid  # type: ignore
         cobbler_api.add_profile(test_profile)
         return test_profile
 
@@ -202,7 +205,7 @@ def create_system(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     """
 
     def _create_system(
-        profile_name: str = "", image_name: str = "", name: str = ""
+        profile_uid: str = "", image_uid: str = "", name: str = ""
     ) -> System:
         test_system = cobbler_api.new_system()
         if name == "":
@@ -213,12 +216,12 @@ def create_system(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
             )
         else:
             test_system.name = name
-        if profile_name != "":
-            test_system.profile = profile_name  # type: ignore
-        if image_name != "":
-            test_system.image = image_name  # type: ignore
+        if profile_uid != "":
+            test_system.profile = profile_uid  # type: ignore
+        if image_uid != "":
+            test_system.image = image_uid  # type: ignore
         test_system.interfaces = {  # type: ignore
-            "default": NetworkInterface(cobbler_api, test_system.name)  # type: ignore
+            "default": NetworkInterface(cobbler_api, test_system.uid)  # type: ignore
         }
         cobbler_api.add_system(test_system)
         return test_system
@@ -269,7 +272,7 @@ def cleanup_leftover_items():
         path = collection_path / collection
         for file in path.iterdir():
             file.unlink()
-            print(f"Deleted {str(file)}")
+            logger.info(f"Deleted {str(file)}")
 
 
 @pytest.fixture(name="fk_initrd", scope="function")

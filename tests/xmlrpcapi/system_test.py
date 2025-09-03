@@ -45,7 +45,7 @@ def test_get_systems(remote: CobblerXMLRPCInterface, token: str):
         ("netboot_enabled", True),
         ("netboot_enabled", False),
         ("owners", "user1 user2 user3"),
-        ("profile", "testprofile0"),
+        ("profile", "<VALUE IGNORED>"),
         ("repos_enabled", True),
         ("repos_enabled", False),
         ("status", "development"),
@@ -102,9 +102,12 @@ def test_create_system_positive(
     Test: create/edit a system object
     """
     # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
     system = remote.new_system(token)
     remote.modify_system(system, "name", "testsystem0", token)
-    remote.modify_system(system, "profile", "testprofile0", token)
+    remote.modify_system(system, "profile", profile_uid, token)
+    if field_name == "profile":
+        field_value = profile_uid
 
     # Act
     result = remote.modify_system(system, field_name, field_value, token)
@@ -138,9 +141,10 @@ def test_create_system_negative(
     Test: create/edit a system object
     """
     # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
     system = remote.new_system(token)
     remote.modify_system(system, "name", "testsystem0", token)
-    remote.modify_system(system, "profile", "testprofile0", token)
+    remote.modify_system(system, "profile", profile_uid, token)
 
     # Act & Assert
     try:
@@ -176,9 +180,10 @@ def test_add_interface_to_system(remote: CobblerXMLRPCInterface, token: str):
     """
 
     # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
     system = remote.new_system(token)
     remote.modify_system(system, "name", "testsystem0", token)
-    remote.modify_system(system, "profile", "testprofile0", token)
+    remote.modify_system(system, "profile", profile_uid, token)
 
     # Act
     result = remote.modify_system(
@@ -208,9 +213,10 @@ def test_remove_interface_from_system(remote: CobblerXMLRPCInterface, token: str
     """
 
     # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
     system = remote.new_system(token)
     remote.modify_system(system, "name", "testsystem0", token)
-    remote.modify_system(system, "profile", "testprofile0", token)
+    remote.modify_system(system, "profile", profile_uid, token)
     remote.modify_system(
         system, "modify_interface", {"macaddress-eth0": "aa:bb:cc:dd:ee:ff"}, token
     )
@@ -241,9 +247,10 @@ def test_rename_interface(remote: CobblerXMLRPCInterface, token: str):
     """
 
     # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
     system = remote.new_system(token)
     remote.modify_system(system, "name", "testsystem0", token)
-    remote.modify_system(system, "profile", "testprofile0", token)
+    remote.modify_system(system, "profile", profile_uid, token)
     result_add = remote.modify_system(
         system, "modify_interface", {"macaddress-eth0": "aa:bb:cc:dd:ee:ff"}, token
     )
@@ -343,9 +350,9 @@ def test_remove_system(
     folder = create_kernel_initrd(fk_kernel, fk_initrd)
     kernel_path = os.path.join(folder, fk_kernel)
     initrd_path = os.path.join(folder, fk_initrd)
-    create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
-    create_profile(profile_name, distro_name, "")  # type: ignore
-    create_system(system_name, profile_name)  # type: ignore
+    distro_handle = create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
+    profile_handle = create_profile(profile_name, distro_handle, "")  # type: ignore
+    create_system(system_name, profile_handle)  # type: ignore
 
     # Act
     result = remote.remove_system(system_name, token)  # type: ignore

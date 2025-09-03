@@ -44,7 +44,7 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
     if not validate.validate_obj_type(objtype):
         return 1
 
-    if not api.find_items(objtype, name=name, return_list=False):
+    if not api.find_items(objtype, criteria={"name": name}, return_list=False):
         return 1
 
     if not (

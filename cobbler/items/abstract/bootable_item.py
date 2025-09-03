@@ -436,9 +436,11 @@ class BootableItem(InheritableItem, ABC):
         Deserializes the object itself and, if necessary, recursively all the objects it depends on.
         """
 
-        def deserialize_ancestor(ancestor_item_type: str, ancestor_name: str):
-            if ancestor_name not in {"", enums.VALUE_INHERITED}:
-                ancestor = self.api.get_items(ancestor_item_type).get(ancestor_name)
+        def deserialize_ancestor(ancestor_item_type: str, ancestor_uid: str):
+            if ancestor_uid not in {"", enums.VALUE_INHERITED}:
+                ancestor = self.api.get_items(ancestor_item_type).listing.get(
+                    ancestor_uid
+                )
                 if ancestor is not None and not ancestor.inmemory:
                     ancestor.deserialize()
 
@@ -453,10 +455,10 @@ class BootableItem(InheritableItem, ABC):
             ) in InheritableItem.TYPE_DEPENDENCIES.items():
                 for ancestor_dep in ancestor_deps:
                     if self.TYPE_NAME == ancestor_dep.dependant_item_type:
-                        attr_name = ancestor_dep.dependant_type_attribute
-                        if attr_name not in item_dict:
+                        attr_uid = ancestor_dep.dependant_type_attribute
+                        if attr_uid not in item_dict:
                             continue
-                        attr_val = item_dict[attr_name]
+                        attr_val = item_dict[attr_uid]
                         if isinstance(attr_val, str):
                             deserialize_ancestor(ancestor_item_type, attr_val)
                         elif isinstance(attr_val, list):  # type: ignore
@@ -478,10 +480,12 @@ class BootableItem(InheritableItem, ABC):
             attr = getattr(type(self), name[1:])
             if (
                 isinstance(attr, (InheritableProperty, InheritableDictProperty))
-                and self.api.get_items(self.COLLECTION_TYPE).get(self.name) is not None
+                and self.api.get_items(self.COLLECTION_TYPE).listing.get(self.uid)
+                is not None
             ):
                 # Invalidating "resolved" caches
                 for dep_item in self.tree_walk(name):
+                    self.logger.info(dep_item.cache.get_dict_cache(True))
                     dep_item.cache.set_dict_cache(None, True)
 
         # Invalidating the cache of the object itself.

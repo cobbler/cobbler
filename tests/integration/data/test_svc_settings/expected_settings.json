@@ -204,7 +204,7 @@
         }
     },
     "mongodb": {
-        "host": "localhost",
+        "host": "mongo",
         "port": 27017
     },
     "next_server_v4": "192.168.1.1",
@@ -279,7 +279,7 @@
     "lazy_start": false,
     "memory_indexes": {
         "distro": {
-            "uid": {
+            "name": {
                 "nonunique": false,
                 "disabled": false
             },
@@ -289,7 +289,7 @@
             }
         },
         "image": {
-            "uid": {
+            "name": {
                 "nonunique": false,
                 "disabled": false
             },
@@ -303,7 +303,7 @@
             }
         },
         "menu": {
-            "uid": {
+            "name": {
                 "nonunique": false,
                 "disabled": false
             },
@@ -313,7 +313,7 @@
             }
         },
         "profile": {
-            "uid": {
+            "name": {
                 "nonunique": false,
                 "disabled": false
             },
@@ -339,13 +339,13 @@
             }
         },
         "repo": {
-            "uid": {
+            "name": {
                 "nonunique": false,
                 "disabled": false
             }
         },
         "system": {
-            "uid": {
+            "name": {
                 "nonunique": false,
                 "disabled": false
             },

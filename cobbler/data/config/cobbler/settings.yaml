@@ -647,14 +647,14 @@ lazy_start: false
 # Indexing collections in memory can speed up access to collections with a large number of elements.
 memory_indexes:
     distro:
-        uid:
+        name:
             nonunique: false
             disabled: false
         arch:
             nonunique: true
             disabled: false
     image:
-        uid:
+        name:
             nonunique: false
             disabled: false
         arch:
@@ -664,7 +664,7 @@ memory_indexes:
             nonunique: true
             disabled: false
     menu:
-        uid:
+        name:
             nonunique: false
             disabled: false
         parent:
@@ -672,7 +672,7 @@ memory_indexes:
             nonunique: true
             disabled: false
     profile:
-        uid:
+        name:
             nonunique: false
             disabled: false
         parent:
@@ -692,11 +692,11 @@ memory_indexes:
             nonunique: true
             disabled: false
     repo:
-        uid:
+        name:
             nonunique: false
             disabled: false
     system:
-        uid:
+        name:
             nonunique: false
             disabled: false
         image:

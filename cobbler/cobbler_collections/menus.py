@@ -43,7 +43,7 @@ class Menus(collection.Collection[menu.Menu]):
 
     def remove(
         self,
-        name: str,
+        ref: menu.Menu,
         with_delete: bool = True,
         with_sync: bool = True,
         with_triggers: bool = True,
@@ -51,9 +51,9 @@ class Menus(collection.Collection[menu.Menu]):
         rebuild_menu: bool = True,
     ) -> None:
         """
-        Remove element named 'name' from the collection
+        Remove the given element from the collection
 
-        :param name: The name of the menu
+        :param ref: The object to delete
         :param with_delete: In case the deletion triggers are executed for this menu.
         :param with_sync: In case a Cobbler Sync should be executed after the action.
         :param with_triggers: In case the Cobbler Trigger mechanism should be executed.
@@ -64,12 +64,11 @@ class Menus(collection.Collection[menu.Menu]):
         # rebuild_menu is not used
         _ = rebuild_menu
 
-        obj = self.find(name=name)
-        if obj is None or not isinstance(obj, menu.Menu):
-            raise CX(f"cannot delete an object that does not exist: {name}")
+        if ref is None:  # type: ignore
+            raise CX("cannot delete an object that does not exist")
 
         for item_type in ["image", "profile"]:
-            items = self.api.find_items(item_type, {"menu": obj.name}, return_list=True)
+            items = self.api.find_items(item_type, {"menu": ref.uid}, return_list=True)
             if items is None:
                 continue
             if not isinstance(items, list):
@@ -78,7 +77,7 @@ class Menus(collection.Collection[menu.Menu]):
                 item.menu = ""
 
         if recursive:
-            kids = obj.descendants
+            kids = ref.descendants
             kids.sort(key=lambda x: -x.depth)
             for k in kids:
                 self.api.remove_item(
@@ -93,20 +92,22 @@ class Menus(collection.Collection[menu.Menu]):
         if with_delete:
             if with_triggers:
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/delete/menu/pre/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/delete/menu/pre/*", []
                 )
         with self.lock:
-            self.remove_from_indexes(obj)
-            del self.listing[name]
-        self.collection_mgr.serialize_delete(self, obj)
+            self.remove_from_indexes(ref)
+            del self.listing[ref.uid]
+        self.collection_mgr.serialize_delete(self, ref)
         if with_delete:
             if with_triggers:
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/delete/menu/post/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/delete/menu/post/*", []
                 )
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/change/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/change/*", []
                 )
             if with_sync:
-                lite_sync = self.api.get_sync()
-                lite_sync.remove_single_menu()
+                self.remove_quick_pxe_sync(ref)
+
+    def remove_quick_pxe_sync(self, ref: menu.Menu, rebuild_menu: bool = True) -> None:
+        self.api.get_sync().remove_single_menu()

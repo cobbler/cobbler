@@ -22,6 +22,9 @@ if TYPE_CHECKING:
 
 @pytest.fixture(name="test_settings")
 def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> Settings:
+    """
+    Fixture to create test settings that can be introspected for test assertions at the end of a test.
+    """
     settings = mocker.MagicMock(
         name="profile_setting_mock", spec=cobbler_api.settings()
     )
@@ -67,14 +70,14 @@ def test_to_dict(
     """
     # Arrange
     distro = create_distro()
-    profile: Profile = create_profile(distro_name=distro.name)
+    profile: Profile = create_profile(distro_uid=distro.uid)
 
     # Act
     result = profile.to_dict()
 
     # Assert
     assert len(result) == 41
-    assert result["distro"] == distro.name
+    assert result["distro"] == distro.uid
     assert result.get("boot_loaders") == enums.VALUE_INHERITED
 
 
@@ -86,12 +89,12 @@ def test_to_dict_resolved(
     """
     # Arrange
     test_distro_obj = create_distro()  # type: ignore
-    test_distro_obj.kernel_options = {"test": True}
+    test_distro_obj.kernel_options = {"test": True}  # type: ignore[method-assign]
     cobbler_api.add_distro(test_distro_obj)  # type: ignore
     titem = Profile(cobbler_api)
-    titem.name = "to_dict_resolved_profile"
-    titem.distro = test_distro_obj.name  # type: ignore
-    titem.kernel_options = {"my_value": 5}
+    titem.name = "to_dict_resolved_profile"  # type: ignore[method-assign]
+    titem.distro = test_distro_obj.uid  # type: ignore[method-assign]
+    titem.kernel_options = {"my_value": 5}  # type: ignore[method-assign]
     cobbler_api.add_profile(titem)
 
     # Act
@@ -115,7 +118,7 @@ def test_parent_empty(cobbler_api: CobblerAPI):
     profile = Profile(cobbler_api)
 
     # Act
-    profile.parent = ""
+    profile.parent = ""  # type: ignore[method-assign]
 
     # Assert
     assert profile.parent is None
@@ -131,11 +134,11 @@ def test_parent_profile(
     """
     # Arrange
     test_dist = create_distro()  # type: ignore
-    test_profile = create_profile(test_dist.name)  # type: ignore
+    test_profile = create_profile(test_dist.uid)  # type: ignore
     profile = Profile(cobbler_api)
 
     # Act
-    profile.parent = test_profile.name  # type: ignore
+    profile.parent = test_profile.uid  # type: ignore
 
     # Assert
     assert profile.parent is test_profile
@@ -153,7 +156,7 @@ def test_parent_other_object_type(
 
     # Act
     with pytest.raises(CX):
-        profile.parent = test_image.name  # type: ignore
+        profile.parent = test_image.uid  # type: ignore
 
 
 def test_parent_invalid_type(cobbler_api: CobblerAPI):
@@ -174,11 +177,11 @@ def test_parent_self(cobbler_api: CobblerAPI):
     """
     # Arrange
     profile = Profile(cobbler_api)
-    profile.name = "testname"
+    profile.name = "testname"  # type: ignore[method-assign]
 
     # Act & Assert
     with pytest.raises(CX):
-        profile.parent = profile.name
+        profile.parent = profile.uid  # type: ignore[method-assign]
 
 
 def test_distro(cobbler_api: CobblerAPI):
@@ -189,7 +192,7 @@ def test_distro(cobbler_api: CobblerAPI):
     profile = Profile(cobbler_api)
 
     # Act
-    profile.distro = ""
+    profile.distro = ""  # type: ignore[method-assign]
 
     # Assert
     assert profile.distro is None
@@ -203,7 +206,7 @@ def test_name_servers(cobbler_api: CobblerAPI):
     profile = Profile(cobbler_api)
 
     # Act
-    profile.name_servers = []
+    profile.name_servers = []  # type: ignore[method-assign]
 
     # Assert
     assert profile.name_servers == []
@@ -231,7 +234,7 @@ def test_proxy(cobbler_api: CobblerAPI):
     profile = Profile(cobbler_api)
 
     # Act
-    profile.proxy = ""
+    profile.proxy = ""  # type: ignore[method-assign]
 
     # Assert
     assert profile.proxy == ""
@@ -247,7 +250,7 @@ def test_enable_ipxe(cobbler_api: CobblerAPI, value: Any, expected_exception: An
 
     # Act
     with expected_exception:
-        profile.enable_ipxe = value
+        profile.enable_ipxe = value  # type: ignore[method-assign]
 
         # Assert
         assert profile.enable_ipxe is value
@@ -271,7 +274,7 @@ def test_enable_menu(cobbler_api: CobblerAPI, value: Any, expected_exception: An
 
     # Act
     with expected_exception:
-        profile.enable_menu = value
+        profile.enable_menu = value  # type: ignore[method-assign]
 
         # Assert
         assert isinstance(profile.enable_menu, bool)
@@ -286,7 +289,7 @@ def test_dhcp_tag(cobbler_api: CobblerAPI):
     profile = Profile(cobbler_api)
 
     # Act
-    profile.dhcp_tag = ""
+    profile.dhcp_tag = ""  # type: ignore[method-assign]
 
     # Assert
     assert profile.dhcp_tag == ""
@@ -314,7 +317,7 @@ def test_server(
 
     # Act
     with expected_exception:
-        profile.server = input_server
+        profile.server = input_server  # type: ignore[method-assign]
 
         # Assert
         assert profile.server == expected_result
@@ -328,7 +331,7 @@ def test_next_server_v4(cobbler_api: CobblerAPI):
     profile = Profile(cobbler_api)
 
     # Act
-    profile.next_server_v4 = ""
+    profile.next_server_v4 = ""  # type: ignore[method-assign]
 
     # Assert
     assert profile.next_server_v4 == ""
@@ -342,7 +345,7 @@ def test_next_server_v6(cobbler_api: CobblerAPI):
     profile = Profile(cobbler_api)
 
     # Act
-    profile.next_server_v6 = ""
+    profile.next_server_v6 = ""  # type: ignore[method-assign]
 
     # Assert
     assert profile.next_server_v6 == ""
@@ -375,15 +378,15 @@ def test_filename(
     # Arrange
     test_dist = create_distro()  # type: ignore
     profile = Profile(cobbler_api)
-    profile.name = "filename_test_profile"
+    profile.name = "filename_test_profile"  # type: ignore[method-assign]
     if is_subitem:
-        test_profile = create_profile(test_dist.name)  # type: ignore
-        profile.parent = test_profile.name  # type: ignore
-    profile.distro = test_dist.name  # type: ignore
+        test_profile = create_profile(test_dist.uid)  # type: ignore
+        profile.parent = test_profile.uid  # type: ignore
+    profile.distro = test_dist.uid  # type: ignore
 
     # Act
     with expected_exception:
-        profile.filename = input_filename
+        profile.filename = input_filename  # type: ignore[method-assign]
 
         # Assert
         assert profile.filename == expected_result
@@ -397,7 +400,7 @@ def test_autoinstall(cobbler_api: CobblerAPI):
     profile = Profile(cobbler_api)
 
     # Act
-    profile.autoinstall = ""
+    profile.autoinstall = ""  # type: ignore[method-assign]
 
     # Assert
     assert profile.autoinstall == ""
@@ -423,7 +426,7 @@ def test_virt_auto_boot(
 
     # Act
     with expected_exception:
-        profile.virt_auto_boot = value
+        profile.virt_auto_boot = value  # type: ignore[method-assign]
 
         # Assert
         assert isinstance(profile.virt_auto_boot, bool)
@@ -451,7 +454,7 @@ def test_virt_cpus(
 
     # Act
     with expected_exception:
-        profile.virt_cpus = value
+        profile.virt_cpus = value  # type: ignore[method-assign]
 
         # Assert
         assert profile.virt_cpus == expected_result
@@ -479,7 +482,7 @@ def test_virt_file_size(
 
     # Act
     with expected_exception:
-        profile.virt_file_size = value
+        profile.virt_file_size = value  # type: ignore[method-assign]
 
         # Assert
         assert profile.virt_file_size == expected_result
@@ -506,7 +509,7 @@ def test_virt_disk_driver(
 
     # Act
     with expected_exception:
-        profile.virt_disk_driver = value
+        profile.virt_disk_driver = value  # type: ignore[method-assign]
 
         # Assert
         assert profile.virt_disk_driver == expected_result
@@ -532,7 +535,7 @@ def test_virt_ram(
 
     # Act
     with expected_exception:
-        profile.virt_ram = value
+        profile.virt_ram = value  # type: ignore[method-assign]
 
         # Assert
         assert profile.virt_ram == expected_result
@@ -562,7 +565,7 @@ def test_virt_type(
 
     # Act
     with expected_exception:
-        profile.virt_type = value
+        profile.virt_type = value  # type: ignore[method-assign]
 
         # Assert
         assert profile.virt_type == expected_result
@@ -591,7 +594,7 @@ def test_virt_bridge(
 
     # Act
     with expected_exception:
-        profile.virt_bridge = value
+        profile.virt_bridge = value  # type: ignore[method-assign]
 
         # Assert
         # This is the default from the settings
@@ -606,7 +609,7 @@ def test_virt_path(cobbler_api: CobblerAPI):
     profile = Profile(cobbler_api)
 
     # Act
-    profile.virt_path = ""
+    profile.virt_path = ""  # type: ignore[method-assign]
 
     # Assert
     assert profile.virt_path == ""
@@ -620,7 +623,7 @@ def test_repos(cobbler_api: CobblerAPI):
     profile = Profile(cobbler_api)
 
     # Act
-    profile.repos = ""
+    profile.repos = ""  # type: ignore[method-assign]
 
     # Assert
     assert profile.repos == []
@@ -634,7 +637,7 @@ def test_redhat_management_key(cobbler_api: CobblerAPI):
     profile = Profile(cobbler_api)
 
     # Act
-    profile.redhat_management_key = ""
+    profile.redhat_management_key = ""  # type: ignore[method-assign]
 
     # Assert
     assert profile.redhat_management_key == ""
@@ -663,11 +666,11 @@ def test_boot_loaders(
     # Arrange
     distro: Distro = create_distro()
     profile = Profile(cobbler_api)
-    profile.distro = distro.name
+    profile.distro = distro.uid  # type: ignore[method-assign]
 
     # Act
     with expected_exception:
-        profile.boot_loaders = input_boot_loaders
+        profile.boot_loaders = input_boot_loaders  # type: ignore[method-assign]
 
         # Assert
         assert profile.boot_loaders == expected_result
@@ -681,7 +684,7 @@ def test_menu(cobbler_api: CobblerAPI):
     profile = Profile(cobbler_api)
 
     # Act
-    profile.menu = ""
+    profile.menu = ""  # type: ignore[method-assign]
 
     # Assert
     assert profile.menu == ""
@@ -695,7 +698,7 @@ def test_display_name(cobbler_api: CobblerAPI):
     profile = Profile(cobbler_api)
 
     # Act
-    profile.display_name = ""
+    profile.display_name = ""  # type: ignore[method-assign]
 
     # Assert
     assert profile.display_name == ""
@@ -726,9 +729,9 @@ def test_find_match_single_key(
     """
     # Arrange
     test_distro_obj = create_distro()
-    test_distro_obj.arch = enums.Archs.X86_64
+    test_distro_obj.arch = enums.Archs.X86_64  # type: ignore[method-assign]
     profile = Profile(cobbler_api)
-    profile.distro = test_distro_obj.name
+    profile.distro = test_distro_obj.uid  # type: ignore[method-assign]
 
     # Act
     result = profile.find_match_single_key(data_keys, check_key, check_value)
@@ -750,9 +753,9 @@ def test_distro_inherit(
     distro = create_distro()
     api = distro.api
     mocker.patch.object(api, "settings", return_value=test_settings)
-    distro.arch = enums.Archs.X86_64
+    distro.arch = enums.Archs.X86_64  # type: ignore[method-assign]
     profile = Profile(api)
-    profile.distro = distro.name
+    profile.distro = distro.uid  # type: ignore[method-assign]
 
     # Act
     for key, key_value in profile.__dict__.items():
@@ -772,7 +775,7 @@ def test_distro_inherit(
                 if hasattr(test_settings, f"default_{settings_name}"):
                     settings_name = f"default_{settings_name}"
                 if hasattr(test_settings, settings_name):
-                    parent_obj = test_settings
+                    parent_obj = test_settings  # type: ignore
 
             if parent_obj is not None:
                 setting = getattr(parent_obj, settings_name)

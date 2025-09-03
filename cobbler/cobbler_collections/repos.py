@@ -46,7 +46,7 @@ class Repos(collection.Collection[repo.Repo]):
 
     def remove(
         self,
-        name: str,
+        ref: repo.Repo,
         with_delete: bool = True,
         with_sync: bool = True,
         with_triggers: bool = True,
@@ -54,44 +54,46 @@ class Repos(collection.Collection[repo.Repo]):
         rebuild_menu: bool = True,
     ):
         """
-        Remove element named 'name' from the collection
+        Remove the given element from the collection
 
-        :raises CX: In case the object does not exist.
+        :param ref: The object to delete
+        :param with_delete: In case the deletion triggers are executed for this repository.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        :param with_triggers: In case the Cobbler Trigger mechanism should be executed.
+        :param recursive: In case you want to delete all objects this repository references.
+        :param rebuild_menu: unused
+        :raises CX: Raised in case you want to delete a none existing repository.
         """
         # rebuild_menu is not used
         _ = rebuild_menu
 
-        # NOTE: with_delete isn't currently meaningful for repos
-        # but is left in for consistancy in the API.  Unused.
-        obj = self.find(name=name)
-
-        if obj is None:
-            raise CX(f"cannot delete an object that does not exist: {name}")
-
-        if isinstance(obj, list):
-            # Will never happen, but we want to make mypy happy.
-            raise CX("Ambiguous match detected!")
+        if ref is None:  # type: ignore
+            raise CX("cannot delete an object that does not exist")
 
         if with_delete:
             if with_triggers:
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/delete/repo/pre/*", []
                 )
 
         with self.lock:
-            self.remove_from_indexes(obj)
-            del self.listing[name]
-        self.collection_mgr.serialize_delete(self, obj)
+            self.remove_from_indexes(ref)
+            del self.listing[ref.uid]
+        self.collection_mgr.serialize_delete(self, ref)
 
         if with_delete:
             if with_triggers:
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/delete/repo/post/*", []
                 )
                 utils.run_triggers(
-                    self.api, obj, "/var/lib/cobbler/triggers/change/*", []
+                    self.api, ref, "/var/lib/cobbler/triggers/change/*", []
                 )
 
-            path = os.path.join(self.api.settings().webdir, "repo_mirror", obj.name)
+            path = os.path.join(self.api.settings().webdir, "repo_mirror", ref.name)
             if os.path.exists(path):
                 filesystem_helpers.rmtree(path)
+
+    def remove_quick_pxe_sync(self, ref: repo.Repo, rebuild_menu: bool = True) -> None:
+        # Nothing to do for repos
+        pass

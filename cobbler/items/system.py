@@ -332,18 +332,6 @@ class System(BootableItem):
                     f"Error with system {self.name} - profile or image is required"
                 )
 
-    @BootableItem.name.setter
-    def name(self, name: str) -> None:
-        """
-        The systems name.
-
-        :param name: system name string
-        """
-        # We have defined the Getter in BaseItem. As such this linter error is incorrect.
-        BootableItem.name.fset(self, name)  # type: ignore[reportOptionalCall]
-        for interface in self.interfaces.values():
-            interface.system_name = name
-
     #
     # specific methods for item.System
     #
@@ -372,13 +360,13 @@ class System(BootableItem):
         collection = self.api.systems()
         if all(isinstance(x, NetworkInterface) for x in dict_values):
             for network_iface in value.values():
-                network_iface.system_name = self.name
+                network_iface.system_uid = self.uid
             collection.update_interfaces_indexes(self, value)
             self._interfaces = value
             return
         if all(isinstance(x, dict) for x in dict_values):
             for key in value:
-                network_iface = NetworkInterface(self.api, self.name)
+                network_iface = NetworkInterface(self.api, self.uid)
                 network_iface.from_dict(value[key])
                 collection.update_interface_indexes(self, key, network_iface)
                 self._interfaces[key] = network_iface
@@ -793,7 +781,7 @@ class System(BootableItem):
 
         :param interface: The name of the interface
         """
-        self.interfaces[interface] = NetworkInterface(self.api, self.name)
+        self.interfaces[interface] = NetworkInterface(self.api, self.uid)
 
     def __get_interface(
         self, interface_name: Optional[str] = "default"
@@ -963,40 +951,40 @@ class System(BootableItem):
         return self._profile
 
     @profile.setter
-    def profile(self, profile_name: Union["Profile", str]):
+    def profile(self, profile_uid: Union["Profile", str]):
         """
         Set the system to use a certain named profile. The profile must have already been loaded into the profiles
         collection.
 
-        :param profile_name: The name of the profile which the system is underneath.
-        :raises TypeError: In case profile_name is no string.
-        :raises ValueError: In case profile_name does not exist.
+        :param uid: The uid of the profile which the system is underneath.
+        :raises TypeError: In case profile_uid is no string.
+        :raises ValueError: In case profile_uid does not exist.
         """
         profile = None
-        if isinstance(profile_name, Profile):
-            profile = profile_name
-            profile_name = profile.name
-        elif not isinstance(profile_name, str):  # type: ignore
+        if isinstance(profile_uid, Profile):
+            profile = profile_uid
+            profile_uid = profile.name
+        elif not isinstance(profile_uid, str):  # type: ignore
             raise TypeError("The name of a profile needs to be of type str.")
 
         items = self.api.systems()
         old_profile = self._profile
-        if profile_name in ["delete", "None", "~", ""]:
+        if profile_uid in ["delete", "None", "~", ""]:
             self._profile = ""
             items.update_index_value(self, "profile", old_profile, "")
             return
 
         if profile is None:
-            profile = self.api.profiles().find(name=profile_name, return_list=False)
+            profile = self.api.profiles().find(uid=profile_uid, return_list=False)
         if isinstance(profile, list):
             raise ValueError("Search returned ambigous match!")
         if profile is None:
-            raise ValueError(f'Profile with the name "{profile_name}" is not existing')
+            raise ValueError(f'Profile with the name "{profile_uid}" is not existing')
 
         self.image = ""  # mutual exclusion rule
-        self._profile = profile_name
+        self._profile = profile_uid
         self.depth = profile.depth + 1  # subprofiles have varying depths.
-        items.update_index_value(self, "profile", old_profile, profile_name)
+        items.update_index_value(self, "profile", old_profile, profile_uid)
 
     @LazyProperty
     def image(self) -> str:
@@ -1009,35 +997,35 @@ class System(BootableItem):
         return self._image
 
     @image.setter
-    def image(self, image_name: str):
+    def image(self, image_uid: str):
         """
         Set the system to use a certain named image. Works like ``set_profile()`` but cannot be used at the same time.
         It's one or the other.
 
-        :param image_name: The name of the image which will act as a parent.
+        :param image_uid: The uid of the image which will act as a parent.
         :raises ValueError: In case the image name was invalid.
         :raises TypeError: In case image_name is no string.
         """
-        if not isinstance(image_name, str):  # type: ignore
-            raise TypeError("The name of an image must be of type str.")
+        if not isinstance(image_uid, str):  # type: ignore
+            raise TypeError("The uid of an image must be of type str.")
 
         items = self.api.systems()
         old_image = self._image
-        if image_name in ["delete", "None", "~", ""]:
+        if image_uid in ["delete", "None", "~", ""]:
             self._image = ""
             items.update_index_value(self, "image", old_image, "")
             return
 
-        img = self.api.images().find(name=image_name)
+        img = self.api.images().find(uid=image_uid)
         if isinstance(img, list):
             raise ValueError("Search returned ambigous match!")
         if img is None:
-            raise ValueError(f'Image with the name "{image_name}" is not existing')
+            raise ValueError(f'Image with the name "{image_uid}" is not existing')
 
         self.profile = ""  # mutual exclusion rule
-        self._image = image_name
+        self._image = image_uid
         self.depth = img.depth + 1
-        items.update_index_value(self, "image", old_image, image_name)
+        items.update_index_value(self, "image", old_image, image_uid)
 
     @InheritableProperty
     def virt_cpus(self) -> int:

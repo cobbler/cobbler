@@ -2,8 +2,8 @@
 Tests that are ensuring the correct functionality of the CobblerAPI in regard to adding items via it.
 """
 
+import json
 import pathlib
-from pathlib import Path
 from typing import Callable
 
 from cobbler.api import CobblerAPI
@@ -14,15 +14,17 @@ def test_image_add(cobbler_api: CobblerAPI):
     # Arrange
     test_image = Image(cobbler_api)
     test_image.name = "test_cobbler_api_add_image"
-    expected_result = Path(
-        "/var/lib/cobbler/collections/images/test_cobbler_api_add_image.json"
-    )
 
     # Act
     cobbler_api.add_image(test_image)
 
     # Assert
-    assert expected_result.exists()
+    result_image_json = next(
+        pathlib.Path("/var/lib/cobbler/collections/images/").iterdir()
+    )
+    json_content = json.loads(result_image_json.read_text(encoding="UTF-8"))
+    assert result_image_json.exists()
+    assert json_content.get("name") == test_image.name
 
 
 def test_case_sensitive_add(

@@ -1,7 +1,8 @@
 """
-TODO
+Check that Cobbler is able to perform most basic actions that a general user would like to perform.
 """
 
+import json
 import pathlib
 import shutil
 import subprocess
@@ -33,7 +34,7 @@ def test_basic_buildiso(
     expected_result = b"BIOS\nUEFI\n"
     iso_path = tmp_path / "autoinst.iso"
 
-    create_distro(
+    distro_id = create_distro(
         {
             "name": distro_name,
             "arch": "x86_64",
@@ -43,11 +44,11 @@ def test_basic_buildiso(
     )
     profile_id = remote.new_profile(token)
     remote.modify_profile(profile_id, "name", "fake", token)
-    remote.modify_profile(profile_id, "distro", distro_name, token)
+    remote.modify_profile(profile_id, "distro", distro_id, token)
     remote.save_profile(profile_id, token, "new")
     system_id = remote.new_system(token)
     remote.modify_system(system_id, "name", "testbed", token)
-    remote.modify_system(system_id, "profile", "fake", token)
+    remote.modify_system(system_id, "profile", profile_id, token)
     remote.save_system(system_id, token, "new")
     buildisodir.mkdir(parents=True, exist_ok=True)
 
@@ -126,18 +127,15 @@ def test_basic_distro_rename(
     )
     pid = remote.new_profile(token)
     remote.modify_profile(pid, "name", "fake", token)
-    remote.modify_profile(pid, "distro", "fake", token)
+    remote.modify_profile(pid, "distro", did, token)
     remote.save_profile(pid, token, "new")
 
     # Act
     remote.rename_distro(did, "fake-renamed", token)
 
     # Assert
-    distro_result = remote.get_distro("fake-renamed", False, False, token)
-    distro_uuid: str = distro_result.get("uid")  # type: ignore
-    assert not (collections_path / "distros" / "fake.json").exists()
-    assert (collections_path / "distros" / "fake-renamed.json").exists()
-    dump_vars_result = remote.dump_vars(distro_uuid)  # type: ignore
+    assert (collections_path / "distros" / f"{did}.json").exists()
+    dump_vars_result = remote.dump_vars(did)  # type: ignore
     assert dump_vars_result.get("distro_name") == "fake-renamed"  # type: ignore
 
 
@@ -165,7 +163,7 @@ def test_basic_inheritance(
     profile_name_level_4 = "fake-4"
 
     # Act
-    create_distro(
+    did = create_distro(
         {
             "name": distro_name,
             "arch": "x86_64",
@@ -176,10 +174,10 @@ def test_basic_inheritance(
 
     # The following part is kinda complex. The idea is to check how Cobbler treats
     # all three kinds of variables: scalar, list and dict.
-    create_profile(
+    pid_level_0 = create_profile(
         {
             "name": profile_name_level_0,
-            "distro": "fake",
+            "distro": did,
             "autoinstall": str(test_template.name),
             "server": "10.0.0.1",
             "name_servers": "8.8.4.4",
@@ -191,31 +189,31 @@ def test_basic_inheritance(
     # adds 'bar' and 'not-wanted'. The next offspring removes 'not-wanted' and
     # finally its own child fake-4 overrides 'bar'.
 
-    create_profile(
+    pid_level_1 = create_profile(
         {
             "name": profile_name_level_1,
-            "parent": profile_name_level_0,
+            "parent": pid_level_0,
             "kernel_options": "foo=1",
         }
     )
-    create_profile(
+    pid_level_2 = create_profile(
         {
             "name": profile_name_level_2,
-            "parent": profile_name_level_1,
+            "parent": pid_level_1,
             "kernel_options": "bar=3 not-wanted",
         }
     )
-    create_profile(
+    pid_level_3 = create_profile(
         {
             "name": profile_name_level_3,
-            "parent": profile_name_level_2,
+            "parent": pid_level_2,
             "kernel_options": "!not-wanted",
         }
     )
-    create_profile(
+    pid_level_4 = create_profile(
         {
             "name": profile_name_level_4,
-            "parent": profile_name_level_3,
+            "parent": pid_level_3,
             "kernel_options": "bar=2",
         }
     )
@@ -232,14 +230,14 @@ def test_basic_inheritance(
     create_system(
         {
             "name": "testbed-1",
-            "profile": profile_name_level_2,
+            "profile": pid_level_2,
             "name_servers": "8.8.8.8",
         }
     )
     create_system(
         {
             "name": "testbed-2",
-            "profile": profile_name_level_4,
+            "profile": pid_level_4,
             "kernel_options": "baz=3",
         }
     )
@@ -298,7 +296,7 @@ def test_basic_profile_add_remove(
     Check that Cobbler can add and remove profiles
     """
     # Arrange
-    create_distro(
+    did = create_distro(
         {
             "name": "fake",
             "arch": "x86_64",
@@ -310,15 +308,15 @@ def test_basic_profile_add_remove(
     # Act - Create Profiles
     for i in range(1, 3):
         top_profile_name = f"fake-{i}"
-        create_profile({"name": top_profile_name, "distro": "fake"})
+        pid_top = create_profile({"name": top_profile_name, "distro": did})
         for k in range(1, 3):
             middle_profile_name = f"fake-{i}-child-{k}"
-            create_profile({"name": middle_profile_name, "parent": top_profile_name})
+            pid_middle = create_profile(
+                {"name": middle_profile_name, "parent": pid_top}
+            )
             for j in range(1, 3):
                 bottom_profile_name = f"fake-{i}-grandchild-{k}-{j}"
-                create_profile(
-                    {"name": bottom_profile_name, "parent": middle_profile_name}
-                )
+                create_profile({"name": bottom_profile_name, "parent": pid_middle})
 
     # Assert - Assert Profiles created
     profile_names = remote.get_item_names("profile")
@@ -346,14 +344,10 @@ def test_basic_profile_rename(
     Check that Cobbler can rename profiles
     """
     # Arrange
-    expected_result = "fake-renamed"
     profiles_collection_folder = pathlib.Path("/var/lib/cobbler/collections/profiles")
-    distro_name = "fake"
-    profile_name = "fake"
-    profile_child_name = "fake-child"
-    create_distro(
+    did = create_distro(
         {
-            "name": distro_name,
+            "name": "fake",
             "arch": "x86_64",
             "kernel": str(images_fake_path / "vmlinuz"),
             "initrd": str(images_fake_path / "initramfs"),
@@ -361,27 +355,25 @@ def test_basic_profile_rename(
     )
     pid = create_profile(
         {
-            "name": profile_name,
-            "distro": distro_name,
+            "name": "fake",
+            "distro": did,
         }
     )
-    create_profile(
+    pid_child = create_profile(
         {
-            "name": profile_child_name,
-            "parent": profile_name,
+            "name": "fake-child",
+            "parent": pid,
         }
     )
-    child_uuid: str = remote.get_profile(profile_child_name).get("uid")  # type: ignore
 
     # Act
-    remote.rename_profile(pid, expected_result, token)
+    remote.rename_profile(pid, "fake-renamed", token)
 
     # Assert
-    assert not (profiles_collection_folder / f"{profile_name}.json").exists()
-    assert (profiles_collection_folder / f"{expected_result}.json").exists()
+    assert (profiles_collection_folder / f"{pid}.json").exists()
 
-    result = remote.dump_vars(child_uuid)
-    assert expected_result == result.get("parent")  # type: ignore
+    result = remote.dump_vars(pid_child)
+    assert pid == result.get("parent")  # type: ignore
 
 
 @pytest.mark.integration
@@ -398,7 +390,7 @@ def test_basic_system_add_remove(
     """
     # Arrange
     distro_name = "fake"
-    create_distro(
+    did = create_distro(
         {
             "name": distro_name,
             "arch": "x86_64",
@@ -406,16 +398,16 @@ def test_basic_system_add_remove(
             "initrd": str(images_fake_path / "initramfs"),
         }
     )
-    create_profile(
+    pid = create_profile(
         {
             "name": "fake",
-            "distro": distro_name,
+            "distro": did,
         }
     )
 
     # Act - Create Systems
     for i in range(1, 4):
-        create_system({"name": f"testbed-{i}", "profile": "fake"})
+        create_system({"name": f"testbed-{i}", "profile": pid})
 
     # Assert - Check systems created
     assert len(remote.get_item_names("system")) == 3
@@ -442,7 +434,7 @@ def test_basic_system_ipxe_dhpd_conf_update(
     """
     # Arrange
     distro_name = "fake"
-    create_distro(
+    did = create_distro(
         {
             "name": distro_name,
             "arch": "x86_64",
@@ -450,16 +442,16 @@ def test_basic_system_ipxe_dhpd_conf_update(
             "initrd": str(images_fake_path / "initramfs"),
         }
     )
-    create_profile(
+    pid = create_profile(
         {
             "name": "fake",
-            "distro": distro_name,
+            "distro": did,
         }
     )
     sid = create_system(
         {
             "name": "testbed",
-            "profile": "fake",
+            "profile": pid,
             "modify_interface": {"mac_address-default": "aa:bb:cc:dd:ee:ff"},
         }
     )
@@ -496,7 +488,7 @@ def test_basic_system_parent_image(
     # Act
     sid = remote.new_system(token)
     remote.modify_system(sid, "name", "testbed", token)
-    remote.modify_system(sid, "image", "fake", token)
+    remote.modify_system(sid, "image", iid, token)
     remote.modify_system(
         sid, "modify_interface", {"mac_address-default": "aa:bb:cc:dd:ee:ff"}, token
     )
@@ -523,31 +515,35 @@ def test_basic_system_rename(
     Check that Cobbler can rename systems
     """
     # Arrange
-    distro_name = "fake"
-    create_distro(
+    expected_result = "testbed-renamed"
+    did = create_distro(
         {
-            "name": distro_name,
+            "name": "fake",
             "arch": "x86_64",
             "kernel": str(images_fake_path / "vmlinuz"),
             "initrd": str(images_fake_path / "initramfs"),
         }
     )
-    create_profile(
+    pid = create_profile(
         {
             "name": "fake",
-            "distro": distro_name,
+            "distro": did,
         }
     )
-    sid = create_system({"name": "testbed", "profile": "fake"})
+    sid = create_system({"name": "testbed", "profile": pid})
 
     # Act
-    remote.rename_system(sid, "testbed-renamed", token)
+    remote.rename_system(sid, expected_result, token)
     # cobbler system rename --name testbed --newname testbed-renamed
 
     # Assert
     system_collections_path = pathlib.Path("/var/lib/cobbler/collections/systems")
-    assert not (system_collections_path / "testbed.json").exists()
-    assert (system_collections_path / "testbed-renamed.json").exists()
+    system_json_path = system_collections_path / f"{sid}.json"
+    assert system_json_path.exists()
+    assert (
+        json.loads(system_json_path.read_text(encoding="UTF-8")).get("name")
+        == expected_result
+    )
 
 
 @pytest.mark.integration
@@ -564,19 +560,18 @@ def test_basic_system_serial(
     Check that Cobbler can configure serial console
     """
     # Arrange
-    distro_name = "fake"
-    create_distro(
+    did = create_distro(
         {
-            "name": distro_name,
+            "name": "fake",
             "arch": "x86_64",
             "kernel": str(images_fake_path / "vmlinuz"),
             "initrd": str(images_fake_path / "initramfs"),
         }
     )
-    create_profile(
+    pid = create_profile(
         {
             "name": "fake",
-            "distro": distro_name,
+            "distro": did,
         }
     )
 
@@ -592,7 +587,7 @@ def test_basic_system_serial(
         create_system(
             {
                 "name": f"testbed-1-{loader}",
-                "profile": "fake",
+                "profile": pid,
                 "boot_loader": loader,
                 "modify_interface": {"mac_address-default": "random"},
                 "serial_device": 0,
@@ -601,7 +596,7 @@ def test_basic_system_serial(
         create_system(
             {
                 "name": f"testbed-2-{loader}",
-                "profile": "fake",
+                "profile": pid,
                 "boot_loader": loader,
                 "modify_interface": {"mac_address-default": "random"},
                 "serial_baud_rate": 115200,
@@ -610,7 +605,7 @@ def test_basic_system_serial(
         create_system(
             {
                 "name": f"testbed-3-{loader}",
-                "profile": "fake",
+                "profile": pid,
                 "boot_loader": loader,
                 "modify_interface": {"mac_address-default": "random"},
             }

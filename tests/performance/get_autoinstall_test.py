@@ -5,7 +5,7 @@ Test module to assert the performance of retrieving an auto-installation file.
 from typing import Any, Callable, Dict, Tuple
 
 import pytest
-from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs]
+from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs,import-untyped]
     BenchmarkFixture,
 )
 
