@@ -9,8 +9,6 @@ Cobbler module that at runtime holds all repos in Cobbler.
 import os.path
 from typing import TYPE_CHECKING, Any, Dict
 
-from cobbler import utils
-from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import collection
 from cobbler.items import repo
 from cobbler.utils import filesystem_helpers
@@ -64,36 +62,16 @@ class Repos(collection.Collection[repo.Repo]):
         :param rebuild_menu: unused
         :raises CX: Raised in case you want to delete a none existing repository.
         """
-        # rebuild_menu is not used
-        _ = rebuild_menu
-
-        if ref is None:  # type: ignore
-            raise CX("cannot delete an object that does not exist")
-
-        if with_delete:
-            if with_triggers:
-                utils.run_triggers(
-                    self.api, ref, "/var/lib/cobbler/triggers/delete/repo/pre/*", []
-                )
-
-        with self.lock:
-            self.remove_from_indexes(ref)
-            del self.listing[ref.uid]
-        self.collection_mgr.serialize_delete(self, ref)
+        super().remove(
+            ref,
+            with_delete=with_delete,
+            with_sync=with_sync,
+            with_triggers=with_triggers,
+            recursive=recursive,
+            rebuild_menu=rebuild_menu,
+        )
 
         if with_delete:
-            if with_triggers:
-                utils.run_triggers(
-                    self.api, ref, "/var/lib/cobbler/triggers/delete/repo/post/*", []
-                )
-                utils.run_triggers(
-                    self.api, ref, "/var/lib/cobbler/triggers/change/*", []
-                )
-
             path = os.path.join(self.api.settings().webdir, "repo_mirror", ref.name)
             if os.path.exists(path):
                 filesystem_helpers.rmtree(path)
-
-    def remove_quick_pxe_sync(self, ref: repo.Repo, rebuild_menu: bool = True) -> None:
-        # Nothing to do for repos
-        pass

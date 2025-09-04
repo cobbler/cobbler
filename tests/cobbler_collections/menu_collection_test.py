@@ -2,6 +2,8 @@
 Tests that validate the functionality of the module that is responsible for managing the list of menus.
 """
 
+from typing import Any
+
 import pytest
 
 from cobbler.api import CobblerAPI
@@ -9,6 +11,8 @@ from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import menus
 from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items import menu
+
+from tests.conftest import does_not_raise
 
 
 @pytest.fixture(name="menu_collection")
@@ -255,6 +259,43 @@ def test_remove(
     assert item1.uid not in menu_collection.listing
     assert len(menu_collection.indexes["name"]) == 0
     assert len(menu_collection.indexes["parent"]) == 0
+
+
+@pytest.mark.parametrize(
+    "recursive,expected_exception,expected_result",
+    [
+        (False, pytest.raises(CX), 2),
+        (True, does_not_raise(), 0),
+    ],
+)
+def test_remove_by_parent_dependency(
+    cobbler_api: CobblerAPI,
+    menu_collection: menus.Menus,
+    recursive: bool,
+    expected_exception: Any,
+    expected_result: int,
+):
+    """
+    Test removing a Menu item from the collection.
+    """
+    # Arrange
+    name = "test_remove"
+    item1 = cobbler_api.new_menu()
+    item1.name = name  # type: ignore[method-assign]
+    menu_collection.add(item1)
+    item2 = cobbler_api.new_menu()
+    item2.name = "test_parent_menu"  # type: ignore[method-assign]
+    menu_collection.add(item2)
+    item1.parent = item2.uid  # type: ignore[method-assign]
+
+    # Act
+    with expected_exception:
+        menu_collection.remove(item2, recursive=recursive)
+
+    # Assert
+    assert (item1.uid not in menu_collection.listing) == recursive
+    assert len(menu_collection.indexes["name"]) == expected_result
+    assert len(menu_collection.indexes["parent"]) == expected_result
 
 
 def test_indexes(

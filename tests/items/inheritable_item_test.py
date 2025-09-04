@@ -192,8 +192,8 @@ def test_descendants(
     cobbler_api.remove_profile(test_profile3.name)
     cobbler_api.remove_profile(test_profile2.name)
     cobbler_api.remove_profile(test_profile1.name)
-    cobbler_api.remove_menu(test_menu2.name)
-    cobbler_api.remove_menu(test_menu1.name)
+    cobbler_api.remove_menu(test_menu2.name, recursive=True)
+    cobbler_api.remove_menu(test_menu1.name, recursive=True)
 
 
 def test_tree_walk(cobbler_api: CobblerAPI):

@@ -12,6 +12,8 @@ from cobbler.cobbler_collections import systems
 from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items import distro, image, network_interface, profile, system
 
+from tests.conftest import does_not_raise
+
 
 @pytest.fixture(name="system_collection")
 def fixture_system_collection(cobbler_api: CobblerAPI):
@@ -337,7 +339,6 @@ def test_remove(
     Validate that a system can be removed from the collection.
     """
     # Arrange
-    name = "test_remove"
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
     system1 = create_system(test_profile.uid)
@@ -359,9 +360,369 @@ def test_remove(
     system_collection.remove(system1)
 
     # Assert
-    assert name not in system_collection.listing
+    assert system1.uid not in system_collection.listing
     for key, _ in system_collection.indexes.items():
         assert len(system_collection.indexes[key]) == 0
+
+
+@pytest.mark.parametrize(
+    "recursive,expected_exception,expected_result",
+    [
+        (False, pytest.raises(CX), 1),
+        (True, does_not_raise(), 0),
+    ],
+)
+def test_remove_by_image_dependency(
+    cobbler_api: CobblerAPI,
+    create_image: Callable[[], image.Image],
+    create_system: Callable[..., system.System],
+    system_collection: systems.Systems,
+    recursive: bool,
+    expected_exception: Any,
+    expected_result: int,
+):
+    """
+    Validate that a system can be removed from the collection.
+    """
+    # Arrange
+    test_image = create_image()
+    system1 = create_system(image_uid=test_image.uid)
+    system1.interfaces = {  # type: ignore[method-assign]
+        "default": {
+            "ip_address": "192.168.1.1",
+            "ipv6_address": "::1",
+            "dns_name": "example.org",
+            "mac_address": "52:54:00:7d:81:f4",
+        }
+    }
+
+    # Act
+    with expected_exception:
+        cobbler_api.images().remove(test_image, recursive=recursive)
+
+    # Assert
+    assert (system1.uid not in system_collection.listing) == recursive
+    for key, _ in system_collection.indexes.items():
+        assert len(system_collection.indexes[key]) == expected_result
+
+
+@pytest.mark.parametrize(
+    "recursive,expected_exception,expected_result",
+    [
+        (False, pytest.raises(CX), 1),
+        (True, does_not_raise(), 0),
+    ],
+)
+def test_remove_by_menu_image_dependency(
+    cobbler_api: CobblerAPI,
+    create_image: Callable[[], image.Image],
+    create_system: Callable[..., system.System],
+    system_collection: systems.Systems,
+    recursive: bool,
+    expected_exception: Any,
+    expected_result: int,
+):
+    """
+    Validate that a system can be removed from the collection.
+    """
+    # Arrange
+    test_image = create_image()
+    test_menu = cobbler_api.new_menu()
+    test_menu.name = "test_menu"  # type: ignore[method-assign]
+    cobbler_api.menus().add(test_menu)
+    test_image.menu = test_menu.uid  # type: ignore[method-assign]
+    system1 = create_system(image_uid=test_image.uid)
+    system1.interfaces = {  # type: ignore[method-assign]
+        "default": {
+            "ip_address": "192.168.1.1",
+            "ipv6_address": "::1",
+            "dns_name": "example.org",
+            "mac_address": "52:54:00:7d:81:f4",
+        }
+    }
+
+    # Act
+    with expected_exception:
+        cobbler_api.menus().remove(test_menu, recursive=recursive)
+
+    # Assert
+    assert (system1.uid not in system_collection.listing) == recursive
+    for key, _ in system_collection.indexes.items():
+        assert len(system_collection.indexes[key]) == expected_result
+
+
+@pytest.mark.parametrize(
+    "recursive,expected_exception,expected_result",
+    [
+        (False, pytest.raises(CX), 1),
+        (True, does_not_raise(), 0),
+    ],
+)
+def test_remove_by_parent_menu_dependency(
+    cobbler_api: CobblerAPI,
+    create_image: Callable[[], image.Image],
+    create_system: Callable[..., system.System],
+    system_collection: systems.Systems,
+    recursive: bool,
+    expected_exception: Any,
+    expected_result: int,
+):
+    """
+    Validate that a system can be removed from the collection.
+    """
+    # Arrange
+    test_image = create_image()
+    test_menu = cobbler_api.new_menu()
+    test_menu.name = "test_menu"  # type: ignore[method-assign]
+    cobbler_api.menus().add(test_menu)
+    test_parent_menu = cobbler_api.new_menu()
+    test_parent_menu.name = "test_parent_menu"  # type: ignore[method-assign]
+    cobbler_api.menus().add(test_parent_menu)
+    test_menu.parent = test_parent_menu.uid  # type: ignore[method-assign]
+    test_image.menu = test_menu.uid  # type: ignore[method-assign]
+    system1 = create_system(image_uid=test_image.uid)
+    system1.interfaces = {  # type: ignore[method-assign]
+        "default": {
+            "ip_address": "192.168.1.1",
+            "ipv6_address": "::1",
+            "dns_name": "example.org",
+            "mac_address": "52:54:00:7d:81:f4",
+        }
+    }
+
+    # Act
+    with expected_exception:
+        cobbler_api.menus().remove(test_parent_menu, recursive=recursive)
+
+    # Assert
+    assert (system1.uid not in system_collection.listing) == recursive
+    for key, _ in system_collection.indexes.items():
+        assert len(system_collection.indexes[key]) == expected_result
+
+
+@pytest.mark.parametrize(
+    "recursive,expected_exception,expected_result",
+    [
+        (False, pytest.raises(CX), 1),
+        (True, does_not_raise(), 0),
+    ],
+)
+def test_remove_by_distro_dependency(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
+    create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
+    recursive: bool,
+    expected_exception: Any,
+    expected_result: int,
+):
+    """
+    Validate that a system can be removed from the collection.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    system1 = create_system(test_profile.uid)
+    system1.interfaces = {  # type: ignore[method-assign]
+        "default": {
+            "ip_address": "192.168.1.1",
+            "ipv6_address": "::1",
+            "dns_name": "example.org",
+            "mac_address": "52:54:00:7d:81:f4",
+        }
+    }
+
+    # Act
+    with expected_exception:
+        cobbler_api.distros().remove(test_distro, recursive=recursive)
+
+    # Assert
+    assert (system1.uid not in system_collection.listing) == recursive
+    for key, _ in system_collection.indexes.items():
+        assert len(system_collection.indexes[key]) == expected_result
+
+
+@pytest.mark.parametrize(
+    "recursive,expected_exception,expected_result",
+    [
+        (False, pytest.raises(CX), 1),
+        (True, does_not_raise(), 0),
+    ],
+)
+def test_remove_by_profile_dependency(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
+    create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
+    recursive: bool,
+    expected_exception: Any,
+    expected_result: int,
+):
+    """
+    Validate that a system can be removed from the collection.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    system1 = create_system(test_profile.uid)
+    system1.interfaces = {  # type: ignore[method-assign]
+        "default": {
+            "ip_address": "192.168.1.1",
+            "ipv6_address": "::1",
+            "dns_name": "example.org",
+            "mac_address": "52:54:00:7d:81:f4",
+        }
+    }
+
+    # Act
+    with expected_exception:
+        cobbler_api.profiles().remove(test_profile, recursive=recursive)
+
+    # Assert
+    assert (system1.uid not in system_collection.listing) == recursive
+    for key, _ in system_collection.indexes.items():
+        assert len(system_collection.indexes[key]) == expected_result
+
+
+@pytest.mark.parametrize(
+    "recursive,expected_exception,expected_result",
+    [
+        (False, pytest.raises(CX), 1),
+        (True, does_not_raise(), 0),
+    ],
+)
+def test_remove_by_menu_profile_dependency(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
+    create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
+    recursive: bool,
+    expected_exception: Any,
+    expected_result: int,
+):
+    """
+    Validate that a system can be removed from the collection.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_menu = cobbler_api.new_menu()
+    test_menu.name = "test_menu"  # type: ignore[method-assign]
+    cobbler_api.menus().add(test_menu)
+    test_profile.menu = test_menu.uid  # type: ignore[method-assign]
+    system1 = create_system(test_profile.uid)
+    system1.interfaces = {  # type: ignore[method-assign]
+        "default": {
+            "ip_address": "192.168.1.1",
+            "ipv6_address": "::1",
+            "dns_name": "example.org",
+            "mac_address": "52:54:00:7d:81:f4",
+        }
+    }
+
+    # Act
+    with expected_exception:
+        cobbler_api.menus().remove(test_menu, recursive=recursive)
+
+    # Assert
+    assert (system1.uid not in system_collection.listing) == recursive
+    for key, _ in system_collection.indexes.items():
+        assert len(system_collection.indexes[key]) == expected_result
+
+
+@pytest.mark.parametrize(
+    "recursive,expected_exception,expected_result",
+    [
+        (False, pytest.raises(CX), 1),
+        (True, does_not_raise(), 0),
+    ],
+)
+def test_remove_by_repos_profile_dependency(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
+    create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
+    recursive: bool,
+    expected_exception: Any,
+    expected_result: int,
+):
+    """
+    Validate that a system can be removed from the collection.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_repo = cobbler_api.new_repo()
+    test_repo.name = "test_repo"  # type: ignore[method-assign]
+    cobbler_api.repos().add(test_repo)
+    test_profile.repos = [test_repo.uid]  # type: ignore[method-assign]
+    system1 = create_system(test_profile.uid)
+    system1.interfaces = {  # type: ignore[method-assign]
+        "default": {
+            "ip_address": "192.168.1.1",
+            "ipv6_address": "::1",
+            "dns_name": "example.org",
+            "mac_address": "52:54:00:7d:81:f4",
+        }
+    }
+
+    # Act
+    with expected_exception:
+        cobbler_api.repos().remove(test_repo, recursive=recursive)
+
+    # Assert
+    assert (system1.uid not in system_collection.listing) == recursive
+    for key, _ in system_collection.indexes.items():
+        assert len(system_collection.indexes[key]) == expected_result
+
+
+@pytest.mark.parametrize(
+    "recursive,expected_exception,expected_result",
+    [
+        (False, pytest.raises(CX), 1),
+        (True, does_not_raise(), 0),
+    ],
+)
+def test_remove_by_parent_profile_dependency(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[..., profile.Profile],
+    create_system: Callable[[str], system.System],
+    system_collection: systems.Systems,
+    recursive: bool,
+    expected_exception: Any,
+    expected_result: int,
+):
+    """
+    Validate that a system can be removed from the collection.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_parent_profile = create_profile(test_distro.uid, name="test_parent_profile")
+    test_profile.parent = test_parent_profile.uid  # type: ignore[method-assign]
+    system1 = create_system(test_profile.uid)
+    system1.interfaces = {  # type: ignore[method-assign]
+        "default": {
+            "ip_address": "192.168.1.1",
+            "ipv6_address": "::1",
+            "dns_name": "example.org",
+            "mac_address": "52:54:00:7d:81:f4",
+        }
+    }
+
+    # Act
+    with expected_exception:
+        cobbler_api.profiles().remove(test_parent_profile, recursive=recursive)
+
+    # Assert
+    assert (system1.uid not in system_collection.listing) == recursive
+    for key, _ in system_collection.indexes.items():
+        assert len(system_collection.indexes[key]) == expected_result
 
 
 def test_indexes(

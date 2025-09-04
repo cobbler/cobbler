@@ -8,8 +8,6 @@ Cobbler module that at runtime holds all systems in Cobbler.
 
 from typing import TYPE_CHECKING, Any, Dict, Set
 
-from cobbler import utils
-from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import collection
 from cobbler.items import network_interface, system
 
@@ -42,53 +40,6 @@ class Systems(collection.Collection[system.System]):
         :returns: The created object.
         """
         return system.System(self.api, **seed_data)
-
-    def remove(
-        self,
-        ref: system.System,
-        with_delete: bool = True,
-        with_sync: bool = True,
-        with_triggers: bool = True,
-        recursive: bool = False,
-        rebuild_menu: bool = True,
-    ) -> None:
-        """
-        Remove the given element from the collection
-
-        :param ref: The object to delete
-        :param with_delete: In case the deletion triggers are executed for this system.
-        :param with_sync: In case a Cobbler Sync should be executed after the action.
-        :param with_triggers: In case the Cobbler Trigger mechanism should be executed.
-        :param recursive: In case you want to delete all objects this system references.
-        :param rebuild_menu: unused
-        :raises CX: In case the reference to the object was not given.
-        """
-        # rebuild_menu is not used
-        _ = rebuild_menu
-
-        if ref is None:  # type: ignore
-            raise CX("cannot delete an object that does not exist")
-
-        if with_delete:
-            if with_triggers:
-                utils.run_triggers(
-                    self.api, ref, "/var/lib/cobbler/triggers/delete/system/pre/*", []
-                )
-            if with_sync:
-                self.remove_quick_pxe_sync(ref)
-
-        with self.lock:
-            self.remove_from_indexes(ref)
-            del self.listing[ref.uid]
-        self.collection_mgr.serialize_delete(self, ref)
-        if with_delete:
-            if with_triggers:
-                utils.run_triggers(
-                    self.api, ref, "/var/lib/cobbler/triggers/delete/system/post/*", []
-                )
-                utils.run_triggers(
-                    self.api, ref, "/var/lib/cobbler/triggers/change/*", []
-                )
 
     def remove_quick_pxe_sync(
         self, ref: system.System, rebuild_menu: bool = True
