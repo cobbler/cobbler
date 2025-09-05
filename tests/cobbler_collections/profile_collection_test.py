@@ -2,7 +2,7 @@
 Test module to validate the functionality of the module that is responsible for managing the collection of profiles.
 """
 
-from typing import Callable
+from typing import Any, Callable
 
 import pytest
 
@@ -12,6 +12,8 @@ from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import profiles
 from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items import distro, profile
+
+from tests.conftest import does_not_raise
 
 
 @pytest.fixture(name="profile_collection")
@@ -310,6 +312,148 @@ def test_remove(
     assert test_profile.uid not in profile_collection.listing
     for key, _ in profile_collection.indexes.items():
         assert len(profile_collection.indexes[key]) == 0
+
+
+@pytest.mark.parametrize(
+    "recursive,expected_exception,expected_result",
+    [
+        (False, pytest.raises(CX), 1),
+        (True, does_not_raise(), 0),
+    ],
+)
+def test_remove_by_distro_dependency(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
+    profile_collection: profiles.Profiles,
+    recursive: bool,
+    expected_exception: Any,
+    expected_result: int,
+):
+    """
+    Test removing a profile from the collection.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+
+    # Act
+    with expected_exception:
+        cobbler_api.distros().remove(test_distro, recursive=recursive)
+
+    # Assert
+    assert (test_profile.uid not in profile_collection.listing) == recursive
+    for key, _ in profile_collection.indexes.items():
+        assert len(profile_collection.indexes[key]) == expected_result
+
+
+@pytest.mark.parametrize(
+    "recursive,expected_exception,expected_result",
+    [
+        (False, pytest.raises(CX), 1),
+        (True, does_not_raise(), 0),
+    ],
+)
+def test_remove_by_repo_dependency(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
+    profile_collection: profiles.Profiles,
+    recursive: bool,
+    expected_exception: Any,
+    expected_result: int,
+):
+    """
+    Test removing a profile from the collection.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_repo = cobbler_api.new_repo()
+    test_repo.name = "test_repo"  # type: ignore[method-assign]
+    cobbler_api.repos().add(test_repo)
+    test_profile.repos = [test_repo.uid]  # type: ignore[method-assign]
+
+    # Act
+    with expected_exception:
+        cobbler_api.repos().remove(test_repo, recursive=recursive)
+
+    # Assert
+    assert (test_profile.uid not in profile_collection.listing) == recursive
+    for key, _ in profile_collection.indexes.items():
+        assert len(profile_collection.indexes[key]) == expected_result
+
+
+@pytest.mark.parametrize(
+    "recursive,expected_exception,expected_result",
+    [
+        (False, pytest.raises(CX), 1),
+        (True, does_not_raise(), 0),
+    ],
+)
+def test_remove_by_menu_dependency(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
+    profile_collection: profiles.Profiles,
+    recursive: bool,
+    expected_exception: Any,
+    expected_result: int,
+):
+    """
+    Test removing a profile from the collection.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_menu = cobbler_api.new_menu()
+    test_menu.name = "test_menu"  # type: ignore[method-assign]
+    cobbler_api.menus().add(test_menu)
+    test_profile.menu = test_menu.uid  # type: ignore[method-assign]
+
+    # Act
+    with expected_exception:
+        cobbler_api.menus().remove(test_menu, recursive=recursive)
+
+    # Assert
+    assert (test_profile.uid not in profile_collection.listing) == recursive
+    for key, _ in profile_collection.indexes.items():
+        assert len(profile_collection.indexes[key]) == expected_result
+
+
+@pytest.mark.parametrize(
+    "recursive,expected_exception,expected_result",
+    [
+        (False, pytest.raises(CX), 1),
+        (True, does_not_raise(), 0),
+    ],
+)
+def test_remove_by_parent_dependency(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[..., profile.Profile],
+    profile_collection: profiles.Profiles,
+    recursive: bool,
+    expected_exception: Any,
+    expected_result: int,
+):
+    """
+    Test removing a profile from the collection.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_parent_profile = create_profile(test_distro.uid, name="test_parent_profile")
+    test_profile.parent = test_parent_profile.uid  # type: ignore[method-assign]
+
+    # Act
+    with expected_exception:
+        profile_collection.remove(test_parent_profile, recursive=recursive)
+
+    # Assert
+    assert (test_profile.uid not in profile_collection.listing) == recursive
+    for key, _ in profile_collection.indexes.items():
+        assert len(profile_collection.indexes[key]) >= expected_result
 
 
 def test_indexes(

@@ -10,8 +10,6 @@ import glob
 import os.path
 from typing import TYPE_CHECKING, Any, Dict
 
-from cobbler import utils
-from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import collection
 from cobbler.items import distro
 from cobbler.utils import filesystem_helpers
@@ -66,56 +64,14 @@ class Distros(collection.Collection[distro.Distro]):
         :raises CX: In case any subitem (profiles or systems) would be orphaned. If the option ``recursive`` is set then
                     the orphaned items would be removed automatically.
         """
-        # rebuild_menu is not used
-        _ = rebuild_menu
-
-        if ref is None:  # type: ignore
-            raise CX("cannot delete an object that does not exist")
-
-        kids = self.api.find_profile(return_list=True, distro=ref.uid)
-        # first see if any Groups use this distro
-        if not recursive:
-            if not isinstance(kids, list):
-                raise TypeError("Expected search result to be of type list!")
-            if len(kids) > 0:
-                profile_str = ",".join([ref.uid for ref in kids])
-                raise CX(f"removal would orphan profile(s): {profile_str}")
-
-        if recursive:
-            if kids is None:
-                kids = []
-            if not isinstance(kids, list):
-                raise ValueError("find_items is expected to return a list or None!")
-            for k in kids:
-                self.api.remove_profile(
-                    k,
-                    recursive=recursive,
-                    delete=with_delete,
-                    with_triggers=with_triggers,
-                    with_sync=with_sync,
-                )
-
-        if with_delete:
-            if with_triggers:
-                utils.run_triggers(
-                    self.api, ref, "/var/lib/cobbler/triggers/delete/distro/pre/*", []
-                )
-            if with_sync:
-                self.remove_quick_pxe_sync(ref)
-        with self.lock:
-            self.remove_from_indexes(ref)
-            del self.listing[ref.uid]
-
-        self.collection_mgr.serialize_delete(self, ref)
-
-        if with_delete:
-            if with_triggers:
-                utils.run_triggers(
-                    self.api, ref, "/var/lib/cobbler/triggers/delete/distro/post/*", []
-                )
-                utils.run_triggers(
-                    self.api, ref, "/var/lib/cobbler/triggers/change/*", []
-                )
+        super().remove(
+            ref,
+            with_delete=with_delete,
+            with_sync=with_sync,
+            with_triggers=with_triggers,
+            recursive=recursive,
+            rebuild_menu=rebuild_menu,
+        )
 
         # look through all mirrored directories and find if any directory is holding this particular distribution's
         # kernel and initrd

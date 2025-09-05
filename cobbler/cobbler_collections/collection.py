@@ -29,6 +29,7 @@ from cobbler import enums, utils
 from cobbler.cexceptions import CX
 from cobbler.items import distro, image, menu, profile, repo, system
 from cobbler.items.abstract.base_item import BaseItem
+from cobbler.items.abstract.inheritable_item import InheritableItem
 
 if TYPE_CHECKING:
     from cobbler.actions.sync import CobblerSync
@@ -136,7 +137,6 @@ class Collection(Generic[ITEM]):
         :param seed_data: Unused Parameter in the base collection.
         """
 
-    @abstractmethod
     def remove(
         self,
         ref: ITEM,
@@ -155,10 +155,65 @@ class Collection(Generic[ITEM]):
         :param with_triggers: run "on delete" triggers
         :param recursive: recursively delete children
         :param rebuild_menu: rebuild menu after removing the item
-        :returns: NotImplementedError
+        :raises CX: In case any subitem (images, profiles or systems) would be orphaned. If the option ``recursive``
+                    is set then the orphaned items would be removed automatically.
         """
+        if ref is None:  # type: ignore
+            raise CX("cannot delete an object that does not exist")
 
-    @abstractmethod
+        for item_type in InheritableItem.TYPE_DEPENDENCIES[ref.COLLECTION_TYPE]:
+            dep_type_items = self.api.find_items(
+                item_type.dependant_item_type,
+                {item_type.dependant_type_attribute: ref.uid},
+                return_list=True,
+            )
+            if dep_type_items is None or not isinstance(dep_type_items, list):
+                raise ValueError("Expected list to be returned by find_items")
+            if len(dep_type_items) > 0:
+                if recursive:
+                    for dep_item in dep_type_items:
+                        self.api.remove_item(
+                            dep_item.COLLECTION_TYPE,
+                            dep_item,
+                            recursive=recursive,
+                            delete=with_delete,
+                            with_triggers=with_triggers,
+                            with_sync=with_sync,
+                        )
+                else:
+                    dep_str = ",".join([dep_item.uid for dep_item in dep_type_items])
+                    raise CX(
+                        f"removal would orphan {item_type.dependant_item_type}(s): {dep_str}"
+                    )
+
+        if with_delete:
+            if with_triggers:
+                utils.run_triggers(
+                    self.api,
+                    ref,
+                    f"/var/lib/cobbler/triggers/delete/{self.collection_type()}/pre/*",
+                    [],
+                )
+
+        with self.lock:
+            self.remove_from_indexes(ref)
+            del self.listing[ref.uid]
+        self.collection_mgr.serialize_delete(self, ref)
+
+        if with_delete:
+            if with_triggers:
+                utils.run_triggers(
+                    self.api,
+                    ref,
+                    f"/var/lib/cobbler/triggers/delete/{self.collection_type()}/post/*",
+                    [],
+                )
+                utils.run_triggers(
+                    self.api, ref, "/var/lib/cobbler/triggers/change/*", []
+                )
+            if with_sync:
+                self.remove_quick_pxe_sync(ref, rebuild_menu=rebuild_menu)
+
     def remove_quick_pxe_sync(self, ref: ITEM, rebuild_menu: bool = True) -> None:
         """
         Execute the quick sync that is required after an item has been removed.

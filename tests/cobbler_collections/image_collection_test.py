@@ -3,7 +3,7 @@ Tests that validate the functionality of the module that is responsible for mana
 """
 
 import os.path
-from typing import Callable
+from typing import Any, Callable
 
 import pytest
 
@@ -13,6 +13,8 @@ from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import images
 from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items import image, menu
+
+from tests.conftest import does_not_raise
 
 
 @pytest.fixture(name="image_collection")
@@ -269,10 +271,47 @@ def test_remove(
     image_collection.remove(item1)
 
     # Assert
-    assert name not in image_collection.listing
+    assert item1.uid not in image_collection.listing
     assert len(image_collection.indexes["name"]) == 0
     assert len(image_collection.indexes["arch"]) == 0
     assert len(image_collection.indexes["menu"]) == 0
+
+
+@pytest.mark.parametrize(
+    "recursive,expected_exception,expected_result",
+    [
+        (False, pytest.raises(CX), 1),
+        (True, does_not_raise(), 0),
+    ],
+)
+def test_remove_by_menu_dependency(
+    cobbler_api: CobblerAPI,
+    create_image: Callable[[str], image.Image],
+    image_collection: images.Images,
+    recursive: bool,
+    expected_exception: Any,
+    expected_result: int,
+):
+    """
+    Test removing an image from the collection.
+    """
+    # Arrange
+    name = "test_remove"
+    item1 = create_image(name)
+    test_menu = cobbler_api.new_menu()
+    test_menu.name = "test_menu"  # type: ignore[method-assign]
+    cobbler_api.menus().add(test_menu)
+    item1.menu = test_menu.uid  # type: ignore[method-assign]
+
+    # Act
+    with expected_exception:
+        cobbler_api.menus().remove(test_menu, recursive=recursive)
+
+    # Assert
+    assert (item1.uid not in image_collection.listing) == recursive
+    assert len(image_collection.indexes["name"]) == expected_result
+    assert len(image_collection.indexes["arch"]) == expected_result
+    assert len(image_collection.indexes["menu"]) == expected_result
 
 
 def test_indexes(
