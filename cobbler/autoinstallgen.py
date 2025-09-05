@@ -10,7 +10,7 @@ import xml.dom.minidom
 from typing import TYPE_CHECKING, Any, List, Optional, Union, cast
 from urllib import parse
 
-from cobbler import templar, utils, validate
+from cobbler import utils, validate
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
@@ -34,7 +34,6 @@ class AutoInstallationGen:
         """
         self.api = api
         self.settings = api.settings()
-        self.templar = templar.Templar(self.api)
 
     def create_autoyast_script(
         self, document: xml.dom.minidom.Document, script: str, name: str
@@ -368,7 +367,7 @@ class AutoInstallationGen:
             if raw_data is None:
                 raise FileNotFoundError("File to template could not be read!")
 
-            data = self.templar.render(raw_data, meta, None)
+            data = self.api.templar.render(raw_data, meta, None)
 
             return data
         except FileNotFoundError:
@@ -404,4 +403,4 @@ class AutoInstallationGen:
         :return: The list of error messages which are available. This may not only contain error messages related to
                  generating autoinstallation configuration and scripts.
         """
-        return self.templar.last_errors
+        return self.api.templar.last_errors

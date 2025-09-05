@@ -139,6 +139,7 @@ if __name__ == "__main__":
             "systemd-python",
             "gunicorn",
             "dataclasses; python_version < '3.7'",
+            "importlib-resources",
         ],
         extras_require={
             "windows": [
@@ -161,6 +162,7 @@ if __name__ == "__main__":
                 "types-mock",
                 "types-urllib3",
                 "isort",
+                "pre-commit",
             ],
             "test": [
                 "pytest>6",

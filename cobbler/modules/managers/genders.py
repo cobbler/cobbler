@@ -10,8 +10,6 @@ import sys
 import time
 from typing import TYPE_CHECKING, Any, Dict, Union
 
-from cobbler.templar import Templar
-
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
@@ -62,8 +60,7 @@ def write_genders_file(
         "mgmtcls_genders": mgmtcls_genders,
     }
 
-    templar_inst = Templar(config)
-    templar_inst.render(template_data, metadata, SETTINGS_FILE)
+    config.templar.render(template_data, metadata, SETTINGS_FILE)
 
 
 def run(api: "CobblerAPI", args: Any) -> int:

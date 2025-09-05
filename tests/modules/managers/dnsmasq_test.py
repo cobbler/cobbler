@@ -1,10 +1,8 @@
 import time
-from unittest.mock import MagicMock
 
 import pytest
-from pytest_mock.plugin import MockerFixture
+from pytest_mock import MockerFixture
 
-from cobbler import utils
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.network_interface import NetworkInterface
@@ -12,15 +10,15 @@ from cobbler.items.profile import Profile
 from cobbler.items.system import System
 from cobbler.modules.managers import dnsmasq
 from cobbler.settings import Settings
-from cobbler.templar import Templar
+from cobbler import utils
 
 
 @pytest.fixture
-def cobbler_api():
+def cobbler_api(mocker: "MockerFixture") -> CobblerAPI:
     """
     Mock to prevent the full creation of a CobblerAPI and Settings object.
     """
-    settings_mock = MagicMock(name="cobbler_api_mock", spec=Settings)
+    settings_mock = mocker.MagicMock(name="cobbler_api_mock", spec=Settings)
     settings_mock.server = "192.168.1.1"
     settings_mock.next_server_v4 = "192.168.1.1"
     settings_mock.next_server_v6 = "::1"
@@ -33,15 +31,15 @@ def cobbler_api():
     settings_mock.allow_duplicate_ips = True
     settings_mock.dnsmasq_hosts_file = "/var/lib/cobbler/cobbler_hosts"
     settings_mock.dnsmasq_ethers_file = "/etc/ethers"
-    api_mock = MagicMock(autospec=True, spec=CobblerAPI)
+    api_mock = mocker.MagicMock(autospec=True, spec=CobblerAPI)
     api_mock.settings.return_value = settings_mock
     return api_mock
 
 
 def _generate_test_system(cobbler_api: CobblerAPI):
     mock_system = System(cobbler_api)
-    mock_system.name = "test_manager_regen_ethers_system"
-    mock_system.interfaces = {"default": NetworkInterface(cobbler_api, mock_system.uid)}
+    mock_system.name = "test_manager_regen_ethers_system"  # type: ignore[method-assign]
+    mock_system.interfaces = {"default": NetworkInterface(cobbler_api, mock_system.uid)}  # type: ignore[method-assign]
     mock_system.interfaces["default"].dns_name = "host.example.org"
     mock_system.interfaces["default"].mac_address = "AA:BB:CC:DD:EE:FF"
     mock_system.interfaces["default"].ip_address = "192.168.1.2"
@@ -82,11 +80,11 @@ def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI)
     )
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
     mock_distro = Distro(cobbler_api)
-    mock_distro.arch = "x86_64"
+    mock_distro.arch = "x86_64"  # type: ignore[method-assign]
     mock_profile = Profile(cobbler_api)
     mock_system = System(cobbler_api)
-    mock_system.name = "test_manager_regen_hosts_system"
-    mock_system.interfaces = {"default": NetworkInterface(cobbler_api, mock_system.uid)}
+    mock_system.name = "test_manager_regen_hosts_system"  # type: ignore[method-assign]
+    mock_system.interfaces = {"default": NetworkInterface(cobbler_api, mock_system.uid)}  # type: ignore[method-assign]
     mock_system.interfaces["default"].dns_name = system_dns
     mock_system.interfaces["default"].mac_address = system_mac
     mock_system.interfaces["default"].ip_address = system_ip4
@@ -96,13 +94,12 @@ def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI)
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
     test_manager.systems = [mock_system]  # type: ignore
-    test_manager.templar = MagicMock(spec=Templar, autospec=True)
 
     # Act
     test_manager.write_configs()
 
     # Assert
-    test_manager.templar.render.assert_called_once_with(
+    test_manager.api.templar.render.assert_called_once_with(
         "test",
         {
             "insert_cobbler_system_definitions": f"dhcp-host=net:x86_64,{system_mac},{system_dns},{system_ip4},[{system_ip6}]\n",
@@ -135,18 +132,18 @@ def test_manager_sync_single_system(mocker: "MockerFixture", cobbler_api: Cobble
     )
     mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
     mock_distro = Distro(cobbler_api)
-    mock_distro.arch = "x86_64"
+    mock_distro.arch = "x86_64"  # type: ignore[method-assign]
     mock_profile = Profile(cobbler_api)
     mock_system = _generate_test_system(cobbler_api)
     mocker.patch.object(mock_system, "get_conceptual_parent", return_value=mock_profile)
     mocker.patch.object(mock_profile, "get_conceptual_parent", return_value=mock_distro)
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
-    mock_write_configs = MagicMock()
-    mock_sync_single_ethers_entry = MagicMock()
+    mock_write_configs = mocker.MagicMock()
+    mock_sync_single_ethers_entry = mocker.MagicMock()
     test_manager._write_configs = mock_write_configs  # type: ignore
     test_manager.sync_single_ethers_entry = mock_sync_single_ethers_entry
-    test_manager.restart_service = MagicMock()
+    test_manager.restart_service = mocker.MagicMock()
     test_manager.config = mock_config
     system_mac = mock_system.interfaces["default"].mac_address
     system_dns = mock_system.interfaces["default"].dns_name
@@ -187,9 +184,11 @@ def test_manager_regen_ethers(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     write_handle.write.assert_called_once_with(f"{system_mac}\t{system_ip4}\n")
 
 
-def test_manager_remove_single_ethers_entry(cobbler_api: CobblerAPI):
+def test_manager_remove_single_ethers_entry(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI
+):
     # Arrange
-    mock_remove_line_in_file = MagicMock()
+    mock_remove_line_in_file = mocker.MagicMock()
     mock_system = _generate_test_system(cobbler_api)
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
@@ -205,9 +204,11 @@ def test_manager_remove_single_ethers_entry(cobbler_api: CobblerAPI):
     )
 
 
-def test_manager_remove_single_hosts_entry(cobbler_api: CobblerAPI):
+def test_manager_remove_single_hosts_entry(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI
+):
     # Arrange
-    mock_remove_line_in_file = MagicMock()
+    mock_remove_line_in_file = mocker.MagicMock()
     mock_system = _generate_test_system(cobbler_api)
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
@@ -298,12 +299,12 @@ def test_manager_remove_single_system(mocker: "MockerFixture", cobbler_api: Cobb
     mock_system = _generate_test_system(cobbler_api)
     mock_profile = Profile(cobbler_api)
     mock_distro = Distro(cobbler_api)
-    mock_distro.arch = "x86_64"
+    mock_distro.arch = "x86_64"  # type: ignore[method-assign]
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
     test_manager.systems = [mock_system]  # type: ignore
-    mock_write_configs = MagicMock()
-    mock_remove_single_ethers_entry = MagicMock()
+    mock_write_configs = mocker.MagicMock()
+    mock_remove_single_ethers_entry = mocker.MagicMock()
     test_manager._write_configs = mock_write_configs  # type: ignore
     test_manager.remove_single_ethers_entry = mock_remove_single_ethers_entry
     mocker.patch.object(mock_system, "get_conceptual_parent", return_value=mock_profile)

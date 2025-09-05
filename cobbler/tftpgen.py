@@ -15,7 +15,7 @@ import re
 import socket
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
-from cobbler import enums, grub, templar, utils
+from cobbler import enums, grub, utils
 from cobbler.cexceptions import CX
 from cobbler.enums import Archs, ImageTypes
 from cobbler.utils import filesystem_helpers, input_converters
@@ -49,7 +49,6 @@ class TFTPGen:
         self.repos = api.repos()
         self.images = api.images()
         self.menus = api.menus()
-        self.templar = templar.Templar(self.api)
         self.bootloc = self.settings.tftpboot_location
 
     def copy_bootloaders(self, dest: str) -> None:
@@ -577,7 +576,7 @@ class TFTPGen:
             encoding="UTF-8",
         ) as template_src:
             template_data = template_src.read()
-            boot_menu["pxe"] = self.templar.render(template_data, metadata, outfile)
+            boot_menu["pxe"] = self.api.templar.render(template_data, metadata, outfile)
 
     def _make_pxe_menu_ipxe(
         self,
@@ -605,7 +604,7 @@ class TFTPGen:
                 encoding="UTF-8",
             ) as template_src:
                 template_data = template_src.read()
-                boot_menu["ipxe"] = self.templar.render(
+                boot_menu["ipxe"] = self.api.templar.render(
                     template_data, metadata, outfile
                 )
 
@@ -675,7 +674,7 @@ class TFTPGen:
             encoding="UTF-8",
         ) as template_src:
             template_data = template_src.read()
-            return self.templar.render(template_data, metadata, None)
+            return self.api.templar.render(template_data, metadata, None)
 
     def _generate_pxe_menu_ipxe(
         self,
@@ -695,7 +694,7 @@ class TFTPGen:
             encoding="UTF-8",
         ) as template_src:
             template_data = template_src.read()
-            return self.templar.render(template_data, metadata, None)
+            return self.api.templar.render(template_data, metadata, None)
 
     def get_menu_items(
         self, arch: Optional[enums.Archs] = None
@@ -1042,7 +1041,7 @@ class TFTPGen:
                 metadata["menu_items"] = menu_items[boot_loader]
                 if boot_loader in menu_labels:
                     metadata["menu_labels"] = menu_labels[boot_loader]
-                menu_items[boot_loader] = self.templar.render(
+                menu_items[boot_loader] = self.api.templar.render(
                     template_data[boot_loader], metadata, None
                 )
                 if boot_loader == "ipxe":
@@ -1190,7 +1189,7 @@ class TFTPGen:
             template_data = "\n"
 
         # save file and/or return results, depending on how called.
-        buffer += self.templar.render(template_data, metadata, None)
+        buffer += self.api.templar.render(template_data, metadata, None)
 
         if filename is not None:
             self.logger.info("generating: %s", filename)
@@ -1512,7 +1511,7 @@ class TFTPGen:
         # promote all of the autoinstall_meta variables
         if "autoinstall_meta" in blended:
             blended.update(blended["autoinstall_meta"])
-        append_line = self.templar.render(append_line, utils.flatten(blended), None)  # type: ignore
+        append_line = self.api.templar.render(append_line, utils.flatten(blended), None)  # type: ignore
 
         # For now console=ttySx,BAUDRATE are only set for systems
         # This could get enhanced for profile/distro via utils.blender (inheritance)
@@ -1604,8 +1603,10 @@ class TFTPGen:
                 continue
 
             # Run the source and destination files through templar first to allow for variables in the path
-            template = self.templar.render(template, blended, None).strip()
-            dest = os.path.normpath(self.templar.render(dest, blended, None).strip())
+            template = self.api.templar.render(template, blended, None).strip()
+            dest = os.path.normpath(
+                self.api.templar.render(dest, blended, None).strip()
+            )
             # Get the path for the destination output
             dest_dir = os.path.normpath(os.path.dirname(dest))
 
@@ -1654,7 +1655,7 @@ class TFTPGen:
             with open(template, encoding="UTF-8") as template_fh:
                 template_data = template_fh.read()
 
-            buffer = self.templar.render(template_data, blended, None)
+            buffer = self.api.templar.render(template_data, blended, None)
             results[dest] = buffer
 
             if write_file:
@@ -1780,7 +1781,7 @@ class TFTPGen:
         with open(template, encoding="UTF-8") as template_fh:
             template_data = template_fh.read()
 
-        return self.templar.render(template_data, blended, None)
+        return self.api.templar.render(template_data, blended, None)
 
     def generate_script(self, what: str, objname: str, script_name: str) -> str:
         """
@@ -1838,7 +1839,7 @@ class TFTPGen:
         with open(template, encoding="UTF-8") as template_fh:
             template_data = template_fh.read()
 
-        return self.templar.render(template_data, blended, None)
+        return self.api.templar.render(template_data, blended, None)
 
     def _build_windows_initrd(
         self, loader_name: str, custom_loader_name: str, bootloader_format: str

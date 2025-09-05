@@ -10,11 +10,14 @@ This is the code behind 'cobbler sync'.
 import pathlib
 from typing import TYPE_CHECKING, List
 
-from cobbler import templar, utils
+from cobbler import utils
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.items.abstract.base_item import BaseItem
+
+if TYPE_CHECKING:
+    from cobbler.api import CobblerAPI
 
 
 class YumGen:
@@ -30,7 +33,6 @@ class YumGen:
         """
         self.api = api
         self.settings = api.settings()
-        self.templar = templar.Templar(self.api)
 
     def get_yum_config(self, obj: "BaseItem", is_profile: bool) -> str:
         """
@@ -78,7 +80,7 @@ class YumGen:
                 continue
 
             outfile = None  # disk output only
-            totalbuf += self.templar.render(infile_data, blended, outfile)
+            totalbuf += self.api.templar.render(infile_data, blended, outfile)
             totalbuf += "\n\n"
 
         return totalbuf

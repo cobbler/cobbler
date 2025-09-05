@@ -13,7 +13,7 @@ import os
 import time
 from typing import TYPE_CHECKING, Dict, List, Optional
 
-from cobbler import templar, tftpgen, utils
+from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import filesystem_helpers
 
@@ -62,8 +62,6 @@ class CobblerSync:
         self.images = api.images()
         self.settings = api.settings()
         self.repos = api.repos()
-        self.templar = templar.Templar(self.api)
-        self.tftpgen = tftpgen.TFTPGen(api)
         if dns is None:
             raise ValueError("dns not optional")
         self.dns = dns
@@ -153,10 +151,10 @@ class CobblerSync:
         for distro in self.distros:
             try:
                 self.logger.info("copying files for distro: %s", distro.name)
-                self.tftpgen.copy_single_distro_files(
+                self.api.tftpgen.copy_single_distro_files(
                     distro, self.settings.webdir, True
                 )
-                self.tftpgen.write_templates(distro, write_file=True)
+                self.api.tftpgen.write_templates(distro, write_file=True)
             except CX as cobbler_exception:
                 self.logger.error(cobbler_exception.value)
 
@@ -304,7 +302,7 @@ class CobblerSync:
             "webdir": self.settings.webdir,
         }
 
-        self.templar.render(template_data, metadata, "/etc/rsyncd.conf")
+        self.api.templar.render(template_data, metadata, "/etc/rsyncd.conf")
 
     def add_single_distro(
         self, distro_obj: "Distro", rebuild_menu: bool = True
@@ -315,7 +313,9 @@ class CobblerSync:
         :param name: The name of the distribution.
         """
         # copy image files to images/$name in webdir & tftpboot:
-        self.tftpgen.copy_single_distro_files(distro_obj, self.settings.webdir, True)
+        self.api.tftpgen.copy_single_distro_files(
+            distro_obj, self.settings.webdir, True
+        )
         self.tftpd.add_single_distro(distro_obj)
 
         # create the symlink for this distro
@@ -342,7 +342,7 @@ class CobblerSync:
                 self.logger.error("symlink failed (%s -> %s)", src_dir, dst_dir)
 
         # generate any templates listed in the distro
-        self.tftpgen.write_templates(distro_obj, write_file=True)
+        self.api.tftpgen.write_templates(distro_obj, write_file=True)
         # cascade sync
         kids = self.api.find_profile(return_list=True, distro=distro_obj.name)
         if not isinstance(kids, list):
@@ -350,7 +350,7 @@ class CobblerSync:
         for k in kids:
             self.add_single_profile(k, rebuild_menu=False)
         if rebuild_menu:
-            self.tftpgen.make_pxe_menu()
+            self.api.tftpgen.make_pxe_menu()
 
     def add_single_image(self, image_obj: "Image", rebuild_menu: bool = True) -> None:
         """
@@ -358,14 +358,14 @@ class CobblerSync:
 
         :param name: The name of the image.
         """
-        self.tftpgen.copy_single_image_files(image_obj)
+        self.api.tftpgen.copy_single_image_files(image_obj)
         kids = self.api.find_system(return_list=True, image=image_obj.name)
         if not isinstance(kids, list):
             raise ValueError("Expected to get list of profiles from search!")
         for k in kids:
             self.add_single_system(k)
         if rebuild_menu:
-            self.tftpgen.make_pxe_menu()
+            self.api.tftpgen.make_pxe_menu()
 
     def remove_single_distro(self, distro_obj: "Distro") -> None:
         """
@@ -414,7 +414,7 @@ class CobblerSync:
             # this is just noise.
             return None
         # Rebuild the yum configuration files for any attached repos generate any templates listed in the distro.
-        self.tftpgen.write_templates(profile)
+        self.api.tftpgen.write_templates(profile)
         # Cascade sync
         for k in profile.children:
             self.add_single_profile(k, rebuild_menu=False)  # type: ignore
@@ -424,7 +424,7 @@ class CobblerSync:
         for k in kids:
             self.add_single_system(k)
         if rebuild_menu:
-            self.tftpgen.make_pxe_menu()
+            self.api.tftpgen.make_pxe_menu()
         return True
 
     def remove_single_profile(
@@ -445,7 +445,7 @@ class CobblerSync:
             os.path.join(self.settings.webdir, "autoinstalls", profile_obj.name)
         )
         if rebuild_menu:
-            self.tftpgen.make_pxe_menu()
+            self.api.tftpgen.make_pxe_menu()
 
     def update_system_netboot_status(self, obj: "System") -> None:
         """
@@ -511,4 +511,4 @@ class CobblerSync:
         :param rebuild_menu: Whether to rebuild the grub/... menu or not.
         """
         if rebuild_menu:
-            self.tftpgen.make_pxe_menu()
+            self.api.tftpgen.make_pxe_menu()

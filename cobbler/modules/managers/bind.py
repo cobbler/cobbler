@@ -325,7 +325,7 @@ zone "{arpa}." {{
             ) from error
 
         self.logger.info("generating %s", settings_file)
-        self.templar.render(template_data, metadata.__dict__, settings_file)
+        self.api.templar.render(template_data, metadata.__dict__, settings_file)
 
     def __write_secondary_conf(self) -> None:
         """
@@ -388,7 +388,7 @@ zone "{arpa}." {{
             ) from error
 
         self.logger.info("generating %s", settings_file)
-        self.templar.render(template_data, metadata.__dict__, settings_file)
+        self.api.templar.render(template_data, metadata.__dict__, settings_file)
 
     def __ip_sort(self, ips: List[str]) -> List[str]:
         """
@@ -593,7 +593,7 @@ zone "{arpa}." {{
 
             zonefilename = zonefileprefix + zone
             self.logger.info("generating (forward) %s", zonefilename)
-            self.templar.render(template_data, metadata, zonefilename)
+            self.api.templar.render(template_data, metadata, zonefilename)
 
         for zone, hosts in reverse.items():
             metadata = {
@@ -621,7 +621,7 @@ zone "{arpa}." {{
 
             zonefilename = zonefileprefix + zone
             self.logger.info("generating (reverse) %s", zonefilename)
-            self.templar.render(template_data, metadata, zonefilename)
+            self.api.templar.render(template_data, metadata, zonefilename)
 
     def write_configs(self) -> None:
         """

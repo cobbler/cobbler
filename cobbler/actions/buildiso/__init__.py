@@ -14,7 +14,7 @@ import re
 import shutil
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Tuple, Union
 
-from cobbler import templar, utils
+from cobbler import utils
 from cobbler.enums import Archs
 from cobbler.utils import filesystem_helpers, input_converters
 
@@ -97,7 +97,6 @@ class BuildIso:
         self.distmap: Dict[str, str] = {}
         self.distctr = 0
         self.logger = logging.getLogger()
-        self.templar = templar.Templar(api)
         self.isolinuxdir = ""
 
         # based on https://uefi.org/sites/default/files/resources/UEFI%20Spec%202.8B%20May%202020.pdf
@@ -349,7 +348,7 @@ class BuildIso:
         :param kernel_path: TODO
         :param initrd_path: TODO
         """
-        return self.templar.render(
+        return self.api.templar.render(
             self.grub_menuentry_template,
             out_path=None,
             search_table={
@@ -364,7 +363,7 @@ class BuildIso:
         self, append_line: str, menu_name: str, kernel_path: str, menu_indent: int = 0
     ) -> str:
         """Render a single isolinux.cfg menu entry."""
-        return self.templar.render(
+        return self.api.templar.render(
             self.isolinux_menuentry_template,
             out_path=None,
             search_table={
@@ -378,7 +377,7 @@ class BuildIso:
 
     def _render_bootinfo_txt(self, distro_name: str) -> str:
         """Render bootinfo.txt for ppc."""
-        return self.templar.render(
+        return self.api.templar.render(
             self.bootinfo_template,
             out_path=None,
             search_table={"distro_name": distro_name},
@@ -728,9 +727,9 @@ class BuildIso:
         if distro_name:
             distro_obj = self.parse_distro(distro_name)
         elif len(profile_list) > 0:
-            distro_obj = profile_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
+            distro_obj = profile_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues,assignment]
         elif len(system_list) > 0:
-            distro_obj = system_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
+            distro_obj = system_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues,assignment]
 
         if distro_obj is None:
             raise ValueError("Unable to find suitable distro and none set by caller")
