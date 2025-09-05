@@ -246,7 +246,6 @@ def test_get_random_mac(remote: CobblerXMLRPCInterface, token: str):
             },
             does_not_raise(),
         ),
-        ("modify_interface", "system", {}, pytest.raises(ValueError)),
         ("doesnt_exist", "system", {}, pytest.raises(AttributeError)),
     ],
 )

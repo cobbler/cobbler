@@ -6,6 +6,7 @@ Changelog (NetworkInterface):
 
 V3.4.0 (unreleased):
     * Changes:
+        * The NetworkInterface class is now a dedicated item type.
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``virt_type``: str - Inheritable; One of "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz" or
           "auto".
@@ -72,22 +73,28 @@ V2.8.5:
         * ``cnames``: List[str]
 """
 
-import enum
-import logging
+import copy
 from ipaddress import AddressValueError
-from typing import TYPE_CHECKING, Any, Dict, List, Union
+from typing import TYPE_CHECKING, Any, List, Union
 
 from cobbler import enums, utils, validate
+from cobbler.cexceptions import CX
 from cobbler.decorator import InheritableProperty
+from cobbler.items.abstract.base_item import BaseItem
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.items.system import System
 
 
-class NetworkInterface:
+class NetworkInterface(BaseItem):
     """
     A subobject of a Cobbler System which represents the network interfaces
     """
+
+    # Constants
+    TYPE_NAME = "network_interface"
+    COLLECTION_TYPE = "network_interface"
 
     def __init__(
         self,
@@ -102,10 +109,10 @@ class NetworkInterface:
         :param api: The Cobbler API object which is used for resolving information.
         :param system_uid: The UID of the system, to which the interface is attached to.
         """
-        # Warning disabled due to polymorphism
-        # pylint: disable=unused-argument
-        self.__logger = logging.getLogger()
-        self.__api = api
+        super().__init__(api)
+        # Prevent attempts to clear the to_dict cache before the object is initialized.
+        self._has_initialized = False
+
         self._bonding_opts = ""
         self._bridge_opts = ""
         self._cnames: List[str] = []
@@ -133,6 +140,8 @@ class NetworkInterface:
 
         if len(kwargs) > 0:
             self.from_dict(kwargs)
+        if not self._has_initialized:
+            self._has_initialized = True
 
     def __hash__(self):
         """
@@ -146,67 +155,43 @@ class NetworkInterface:
             (self._mac_address, self._ip_address, self._dns_name, self._ipv6_address)
         )
 
-    def from_dict(self, dictionary: Dict[str, Any]):
+    def make_clone(self) -> "NetworkInterface":
         """
-        Initializes the object with attributes from the dictionary.
+        Clone this file object. Please manually adjust all value yourself to make the cloned object unique.
 
-        :param dictionary: The dictionary with values.
+        :return: The cloned instance of this object.
         """
-        dictionary_keys = list(dictionary.keys())
-        for key in dictionary:
-            if hasattr(self, key):
-                setattr(self, key, dictionary[key])
-                dictionary_keys.remove(key)
-        if len(dictionary_keys) > 0:
-            self.__logger.info(
-                "The following keys were ignored and could not be set for the NetworkInterface object: "
-                "%s",
-                str(dictionary_keys),
+        _dict = copy.deepcopy(self.to_dict())
+        # Drop attributes which are computed from other attributes
+        computed_properties = ["uid"]
+        for property_name in computed_properties:
+            _dict.pop(property_name, None)
+        return NetworkInterface(self.api, **_dict)
+
+    def _resolve(self, property_name: str) -> Any:
+        """
+        Resolve the ``property_name`` value in the object tree. For Network Interfaces this means that we just look up
+        a default value in the settings.
+
+        :param property_name: The property name to resolve.
+        :raises AttributeError: In case one of the objects try to inherit from a parent that does not have
+                                ``property_name``.
+        :return: The resolved value.
+        """
+        # FIXME: Implement real behavior
+        return getattr(self, property_name)
+
+    def check_if_valid(self):
+        """
+        Checks if the current item passes logical validation.
+
+        :raises CX: In case name is missing. Additionally either image or profile is required.
+        """
+        super().check_if_valid()
+        if self._system_name == "":
+            raise CX(
+                f"Error with network interface {self.uid} - system_name is required"
             )
-
-    def to_dict(self, resolved: bool = False) -> Dict[str, Any]:
-        """
-        This converts everything in this object to a dictionary.
-
-        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
-                         objects raw value.
-        :return: A dictionary with all values present in this object.
-        """
-        result: Dict[str, Any] = {}
-        for iface_attr, iface_attr_value in self.__dict__.items():
-            if "__" in iface_attr:
-                continue
-            if iface_attr.startswith("_"):
-                new_key = iface_attr[1:].lower()
-                if isinstance(iface_attr_value, enum.Enum):
-                    result[new_key] = iface_attr_value.name.lower()
-                elif (
-                    isinstance(iface_attr_value, str)
-                    and iface_attr_value == enums.VALUE_INHERITED
-                    and resolved
-                ):
-                    result[new_key] = getattr(self, iface_attr[1:])
-                else:
-                    result[new_key] = iface_attr_value
-        return result
-
-    # These two methods are currently not used, but we do want to use them in the future, so let's define them.
-    def serialize(self) -> Dict[str, Any]:
-        """
-        This method is a proxy for :meth:`~cobbler.items.abstract.base_item.BaseItem.to_dict` and contains additional
-        logic for serialization to a persistent location.
-
-        :return: The dictionary with the information for serialization.
-        """
-        return self.to_dict()
-
-    def deserialize(self, interface_dict: Dict[str, Any]):
-        """
-        This is currently a proxy for :py:meth:`~cobbler.items.abstract.base_item.BaseItem.from_dict` .
-
-        :param interface_dict: The dictionary with the data to deserialize.
-        """
-        self.from_dict(interface_dict)
 
     @property
     def dhcp_tag(self) -> str:
@@ -248,7 +233,7 @@ class NetworkInterface:
 
         :param cnames: The new cnames.
         """
-        self._cnames = self.__api.input_string_or_list_no_inherit(cnames)
+        self._cnames = self.api.input_string_or_list_no_inherit(cnames)
 
     @property
     def static_routes(self) -> List[str]:
@@ -267,7 +252,7 @@ class NetworkInterface:
 
         :param routes: The new routes.
         """
-        self._static_routes = self.__api.input_string_or_list_no_inherit(routes)
+        self._static_routes = self.api.input_string_or_list_no_inherit(routes)
 
     @property
     def static(self) -> bool:
@@ -287,7 +272,7 @@ class NetworkInterface:
         :param truthiness: The new value if the interface is static or not.
         """
         try:
-            truthiness = self.__api.input_boolean(truthiness)
+            truthiness = self.api.input_boolean(truthiness)
         except TypeError as error:
             raise TypeError(
                 "Field static of NetworkInterface needs to be of Type bool!"
@@ -312,7 +297,7 @@ class NetworkInterface:
         :param truthiness: The new value for management.
         """
         try:
-            truthiness = self.__api.input_boolean(truthiness)
+            truthiness = self.api.input_boolean(truthiness)
         except TypeError as error:
             raise TypeError(
                 "Field management of object NetworkInterface needs to be of type bool!"
@@ -340,8 +325,8 @@ class NetworkInterface:
         if self._dns_name == dns_name:
             return
         dns_name = validate.hostname(dns_name)
-        if dns_name != "" and not self.__api.settings().allow_duplicate_hostnames:
-            matched = self.__api.find_system(return_list=True, dns_name=dns_name)
+        if dns_name != "" and not self.api.settings().allow_duplicate_hostnames:
+            matched = self.api.find_system(return_list=True, dns_name=dns_name)
             if matched is None:
                 matched = []
             if not isinstance(matched, list):  # type: ignore
@@ -354,7 +339,7 @@ class NetworkInterface:
                 )
         old_dns_name = self._dns_name
         self._dns_name = dns_name
-        self.__api.systems().update_interface_index_value(
+        self.api.systems().update_interface_index_value(
             self, "dns_name", old_dns_name, dns_name
         )
 
@@ -379,8 +364,8 @@ class NetworkInterface:
         if self._ip_address == address:
             return
         address = validate.ipv4_address(address)
-        if address != "" and not self.__api.settings().allow_duplicate_ips:
-            matched = self.__api.find_system(return_list=True, ip_address=address)
+        if address != "" and not self.api.settings().allow_duplicate_ips:
+            matched = self.api.find_system(return_list=True, ip_address=address)
             if matched is None:
                 matched = []
             if not isinstance(matched, list):
@@ -395,7 +380,7 @@ class NetworkInterface:
                 )
         old_ip_address = self._ip_address
         self._ip_address = address
-        self.__api.systems().update_interface_index_value(
+        self.api.systems().update_interface_index_value(
             self, "ip_address", old_ip_address, address
         )
 
@@ -422,9 +407,9 @@ class NetworkInterface:
         address = validate.mac_address(address)
         if address == "random":
             # FIXME: Pass virt_type of system
-            address = utils.get_random_mac(self.__api)
-        if address != "" and not self.__api.settings().allow_duplicate_macs:
-            matched = self.__api.find_system(return_list=True, mac_address=address)
+            address = utils.get_random_mac(self.api)
+        if address != "" and not self.api.settings().allow_duplicate_macs:
+            matched = self.api.find_system(return_list=True, mac_address=address)
             if matched is None:
                 matched = []
             if not isinstance(matched, list):
@@ -439,7 +424,7 @@ class NetworkInterface:
                 )
         old_mac_address = self._mac_address
         self._mac_address = address
-        self.__api.systems().update_interface_index_value(
+        self.api.systems().update_interface_index_value(
             self, "mac_address", old_mac_address, address
         )
 
@@ -491,7 +476,7 @@ class NetworkInterface:
         :setter: Sets the value for the property ``virt_bridge``.
         """
         if self._virt_bridge == enums.VALUE_INHERITED:
-            return self.__api.settings().default_virt_bridge
+            return self.api.settings().default_virt_bridge
         return self._virt_bridge
 
     @virt_bridge.setter
@@ -643,8 +628,8 @@ class NetworkInterface:
         if self._ipv6_address == address:
             return
         address = validate.ipv6_address(address)
-        if address != "" and not self.__api.settings().allow_duplicate_ips:
-            matched = self.__api.find_system(return_list=True, ipv6_address=address)
+        if address != "" and not self.api.settings().allow_duplicate_ips:
+            matched = self.api.find_system(return_list=True, ipv6_address=address)
             if matched is None:
                 matched = []
             if not isinstance(matched, list):
@@ -660,7 +645,7 @@ class NetworkInterface:
                 )
         old_ipv6_address = self._ipv6_address
         self._ipv6_address = address
-        self.__api.systems().update_interface_index_value(
+        self.api.systems().update_interface_index_value(
             self, "ipv6_address", old_ipv6_address, address
         )
 
@@ -704,7 +689,7 @@ class NetworkInterface:
 
         :param addresses: The new secondaries for the interface.
         """
-        data = self.__api.input_string_or_list(addresses)
+        data = self.api.input_string_or_list(addresses)
         secondaries: List[str] = []
         for address in data:
             if address == "" or utils.is_ip(address):
@@ -758,7 +743,7 @@ class NetworkInterface:
 
         :param routes: The new static routes for the interface.
         """
-        self._ipv6_static_routes = self.__api.input_string_or_list_no_inherit(routes)
+        self._ipv6_static_routes = self.api.input_string_or_list_no_inherit(routes)
 
     @property
     def ipv6_mtu(self) -> str:
@@ -824,7 +809,7 @@ class NetworkInterface:
         :param truthiness: The new value for connected mode of the interface.
         """
         try:
-            truthiness = self.__api.input_boolean(truthiness)
+            truthiness = self.api.input_boolean(truthiness)
         except TypeError as error:
             raise TypeError(
                 "Field connected_mode of object NetworkInterface needs to be of type bool!"
@@ -863,59 +848,16 @@ class NetworkInterface:
         """
         self.__system_uid = system_uid
 
-    def modify_interface(self, _dict: Dict[str, Any]):
+    @property
+    def system(self) -> "System":
         """
-        Modify the interface
-
-        :param _dict: The dict with the parameter.
+        Return the system the network interface belongs to.
         """
-        for key, value in list(_dict.items()):
-            (field, _) = key.split("-", 1)
-            field = field.replace("_", "").replace("-", "")
-
-            if field == "bondingopts":
-                self.bonding_opts = value
-            if field == "bridgeopts":
-                self.bridge_opts = value
-            if field == "connectedmode":
-                self.connected_mode = value
-            if field == "cnames":
-                self.cnames = value
-            if field == "dhcptag":
-                self.dhcp_tag = value
-            if field == "dnsname":
-                self.dns_name = value
-            if field == "ifgateway":
-                self.if_gateway = value
-            if field == "interfacetype":
-                self.interface_type = value
-            if field == "interfacemaster":
-                self.interface_master = value
-            if field == "ipaddress":
-                self.ip_address = value
-            if field == "ipv6address":
-                self.ipv6_address = value
-            if field == "ipv6defaultgateway":
-                self.ipv6_default_gateway = value
-            if field == "ipv6mtu":
-                self.ipv6_mtu = value
-            if field == "ipv6prefix":
-                self.ipv6_prefix = value
-            if field == "ipv6secondaries":
-                self.ipv6_secondaries = value
-            if field == "ipv6staticroutes":
-                self.ipv6_static_routes = value
-            if field == "macaddress":
-                self.mac_address = value
-            if field == "management":
-                self.management = value
-            if field == "mtu":
-                self.mtu = value
-            if field == "netmask":
-                self.netmask = value
-            if field == "static":
-                self.static = value
-            if field == "staticroutes":
-                self.static_routes = value
-            if field == "virtbridge":
-                self.virt_bridge = value
+        result = self.api.find_system(name=self._system_name, return_list=False)
+        if result is None:
+            raise ValueError(
+                f"System ({self._system_name}) associated with interface ({self.uid}) not present!"
+            )
+        if isinstance(result, list):
+            raise TypeError("Result must be a single item!")
+        return result

@@ -101,6 +101,10 @@ class ItemTypes(ConvertableEnum):
     """
     See :func:`~cobbler.items.menu.Menu`
     """
+    NETWORK_INTERFACE = "network_interface"
+    """
+    See :func:`~cobbler.items.network_interface.NetworkInterface`
+    """
 
 
 class DHCP(enum.Enum):

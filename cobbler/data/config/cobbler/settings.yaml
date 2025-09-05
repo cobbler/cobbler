@@ -721,3 +721,7 @@ memory_indexes:
             property: "get_dns_names"
             nonunique: *allow_duplicate_hostnames
             disabled: *allow_duplicate_hostnames
+    network_interface:
+        name:
+            nonunique: true
+            disabled: false

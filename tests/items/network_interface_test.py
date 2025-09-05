@@ -777,34 +777,6 @@ def test_connected_mode(
         assert interface.connected_mode is expected_result
 
 
-@pytest.mark.parametrize(
-    "input_modify_interface,expected_modified_field,expected_value,expected_exception",
-    [
-        ({}, "mtu", "", does_not_raise()),
-        ({"mtu-eth0": "test"}, "mtu", "test", does_not_raise()),
-    ],
-)
-def test_modify_interface(
-    cobbler_api: CobblerAPI,
-    input_modify_interface: Dict[str, str],
-    expected_modified_field: str,
-    expected_value: str,
-    expected_exception: Any,
-):
-    """
-    Test to verify that the modify_interface method of NetworkInterface works as expected.
-    """
-    # Arrange
-    interface = NetworkInterface(cobbler_api, "")
-
-    # Act
-    with expected_exception:
-        interface.modify_interface(input_modify_interface)
-
-        # Assert
-        assert getattr(interface, expected_modified_field) == expected_value
-
-
 def test_inheritance(
     mocker: "MockerFixture", cobbler_api: CobblerAPI, test_settings: Settings
 ):

@@ -27,7 +27,7 @@ from typing import (
 
 from cobbler import enums, utils
 from cobbler.cexceptions import CX
-from cobbler.items import distro, image, menu, profile, repo, system
+from cobbler.items import distro, image, menu, network_interface, profile, repo, system
 from cobbler.items.abstract.base_item import BaseItem
 from cobbler.items.abstract.inheritable_item import InheritableItem
 
@@ -576,6 +576,8 @@ class Collection(Generic[ITEM]):
         elif isinstance(ref, repo.Repo):
             pass
         elif isinstance(ref, menu.Menu):
+            pass
+        elif isinstance(ref, network_interface.NetworkInterface):
             pass
         else:
             self.logger.error(

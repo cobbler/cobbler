@@ -9,6 +9,7 @@ Current Schema: Please refer to the documentation visible of the individual meth
 
 V3.4.0 (unreleased)
     * Added:
+        * Create, Read, Update & Delete methods for the NetworkInterface class
         * ``clean_items_cache``
         * ``new_item``
         * ``deserialize_item``
@@ -163,6 +164,7 @@ from cobbler.items import menu
 from cobbler.items import profile as profile_module
 from cobbler.items import repo
 from cobbler.items import system as system_module
+from cobbler.items import network_interface
 from cobbler.items.abstract import bootable_item as item_base
 from cobbler.items.abstract.inheritable_item import InheritableItem
 from cobbler.utils import filesystem_helpers, input_converters, signatures
@@ -175,6 +177,7 @@ if TYPE_CHECKING:
     from cobbler.cobbler_collections.profiles import Profiles
     from cobbler.cobbler_collections.repos import Repos
     from cobbler.cobbler_collections.systems import Systems
+    from cobbler.cobbler_collections.network_interfaces import NetworkInterfaces
     from cobbler.items.abstract.base_item import BaseItem
     from cobbler.items.abstract.bootable_item import BootableItem
     from cobbler.remote import TransactionTuple
@@ -468,6 +471,7 @@ class CobblerAPI:
                 "image",
                 "profile",
                 "system",
+                "network_interface",
             ]
         elif obj == self.get_signatures():
             item_types = ["distro", "image", "profile", "system"]
@@ -544,6 +548,12 @@ class CobblerAPI:
         Return the current list of menus
         """
         return self._collection_mgr.menus()
+
+    def network_interfaces(self) -> "NetworkInterfaces":
+        """
+        Return the current list of network interfaces
+        """
+        return self._collection_mgr.network_interfaces()
 
     # =======================================================================
 
@@ -750,6 +760,17 @@ class CobblerAPI:
         """
         self._collection_mgr.menus().copy(ref, newname)
 
+    def copy_network_interface(
+        self, ref: "network_interface.NetworkInterface", newname: str
+    ) -> None:
+        """
+        This method copies a network interface which is just different in the name of the object.
+
+        :param ref: The object itself which gets copied.
+        :param newname: The new name of the newly created object.
+        """
+        self._collection_mgr.network_interfaces().copy(ref, newname)
+
     # ==========================================================================
 
     def remove_item(
@@ -944,6 +965,32 @@ class CobblerAPI:
             with_sync=with_sync,
         )
 
+    def remove_network_interface(
+        self,
+        ref: Union["network_interface.NetworkInterface", str],
+        recursive: bool = False,
+        delete: bool = True,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+    ) -> None:
+        """
+        Remove a network interface from Cobbler.
+
+        :param ref: The internal unique handle for the item.
+        :param recursive: If the item should recursively should delete dependencies on itself.
+        :param delete: Not known what this parameter does exactly.
+        :param with_triggers: Whether you would like to have the removal triggers executed or not.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        """
+        self.remove_item(
+            "network_interface",
+            ref,
+            recursive=recursive,
+            delete=delete,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+        )
+
     # ==========================================================================
 
     def rename_item(self, what: str, ref: "BaseItem", newname: str) -> None:
@@ -1011,6 +1058,17 @@ class CobblerAPI:
         :param newname: The new name for the item.
         """
         self.rename_item("menu", ref, newname)
+
+    def rename_network_interface(
+        self, ref: "network_interface.NetworkInterface", newname: str
+    ) -> None:
+        """
+        Rename a network interface to a new name.
+
+        :param ref: The internal unique handle for the item.
+        :param newname: The new name for the item.
+        """
+        self.rename_item("network_interface", ref, newname)
 
     # ==========================================================================
 
@@ -1102,6 +1160,18 @@ class CobblerAPI:
         """
         self.log("new_menu", kwargs)
         return menu.Menu(self, is_subobject, **kwargs)
+
+    def new_network_interface(
+        self, **kwargs: Any
+    ) -> "network_interface.NetworkInterface":
+        """
+        Returns a new empty network interface object. This file is not automatically persisted. Persistence is achieved
+        via ``save()``.
+
+        :return: An empty Menu object.
+        """
+        self.log("new_network_interface", kwargs)
+        return network_interface.NetworkInterface(self, **kwargs)
 
     # ==========================================================================
     def add_remove_items(self, items: List["TransactionTuple"]) -> None:
@@ -1354,6 +1424,32 @@ class CobblerAPI:
             with_sync=with_sync,
         )
 
+    def add_network_interface(
+        self,
+        ref: "network_interface.NetworkInterface",
+        check_for_duplicate_names: bool = False,
+        save: bool = True,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+    ) -> None:
+        """
+        Add a submenu to Cobbler.
+
+        :param ref: The identifier for the object to add to a collection.
+        :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
+        :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        """
+        self.add_item(
+            "network_interface",
+            ref,
+            check_for_duplicate_names=check_for_duplicate_names,
+            save=save,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+        )
+
     # ==========================================================================
 
     def find_items(
@@ -1412,6 +1508,7 @@ class CobblerAPI:
             "repo",
             "image",
             "menu",
+            "network_interface",
         ]
         for collection_name in collections:
             match = self.find_items(
@@ -1440,6 +1537,7 @@ class CobblerAPI:
             "repo",
             "image",
             "menu",
+            "network_interface",
         ]
         for collection_name in collections:
             match = self.find_items(
@@ -1560,6 +1658,31 @@ class CobblerAPI:
             return_list=return_list, no_errors=no_errors, **kwargs
         )
 
+    def find_network_interface(
+        self,
+        name: str = "",
+        return_list: bool = False,
+        no_errors: bool = False,
+        **kargs: "FIND_KWARGS",
+    ) -> Optional[
+        Union[
+            List["network_interface.NetworkInterface"],
+            "network_interface.NetworkInterface",
+        ]
+    ]:
+        """
+        Find a network interface via a name or keys specified in the ``**kargs``.
+
+        :param name: The name to search for.
+        :param return_list: If only the first result or all results should be returned.
+        :param no_errors: Silence some errors which would raise if this turned to False.
+        :param kargs: Additional key-value pairs which may help in finding the desired objects.
+        :return: A single object or a list of all search results.
+        """
+        return self._collection_mgr.network_interfaces().find(
+            name=name, return_list=return_list, no_errors=no_errors, **kargs
+        )
+
     # ==========================================================================
 
     @staticmethod
@@ -1663,6 +1786,19 @@ class CobblerAPI:
         :return: The list of files which are newer then the given timestamp.
         """
         return self.__since(mtime, self.menus, collapse=collapse)
+
+    def get_network_interfaces_since(
+        self, mtime: float, collapse: bool = False
+    ) -> List["network_interface.NetworkInterface"]:
+        """
+        Return network interfaces modified since a certain time (in seconds since Epoch)
+
+        :param mtime: The timestamp which marks the gate if an object is included or not.
+        :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
+                         objects.
+        :return: The list of files which are newer then the given timestamp.
+        """
+        return self.__since(mtime, self.network_interfaces, collapse=collapse)
 
     # ==========================================================================
 

@@ -504,6 +504,9 @@ def create_trigger_dirs(api: "CobblerAPI") -> None:
         trigger_directory / "add" / "menu",
         trigger_directory / "add" / "menu" / "pre",
         trigger_directory / "add" / "menu" / "post",
+        trigger_directory / "add" / "network_interface",
+        trigger_directory / "add" / "network_interface" / "pre",
+        trigger_directory / "add" / "network_interface" / "post",
         trigger_directory / "delete",
         trigger_directory / "delete" / "distro",
         trigger_directory / "delete" / "distro" / "pre",
@@ -520,6 +523,9 @@ def create_trigger_dirs(api: "CobblerAPI") -> None:
         trigger_directory / "delete" / "menu",
         trigger_directory / "delete" / "menu" / "pre",
         trigger_directory / "delete" / "menu" / "post",
+        trigger_directory / "delete" / "network_interface",
+        trigger_directory / "delete" / "network_interface" / "pre",
+        trigger_directory / "delete" / "network_interface" / "post",
         trigger_directory / "install",
         trigger_directory / "install" / "pre",
         trigger_directory / "install" / "post",
@@ -544,6 +550,9 @@ def create_trigger_dirs(api: "CobblerAPI") -> None:
         trigger_directory / "task" / "menu",
         trigger_directory / "task" / "menu" / "pre",
         trigger_directory / "task" / "menu" / "post",
+        trigger_directory / "task" / "network_interface",
+        trigger_directory / "task" / "network_interface" / "pre",
+        trigger_directory / "task" / "network_interface" / "post",
     ]
 
     for directory_path in trigger_directories:
@@ -566,6 +575,7 @@ def create_json_database_dirs(api: "CobblerAPI") -> None:
         libpath / "collections" / "repos",
         libpath / "collections" / "systems",
         libpath / "collections" / "menus",
+        libpath / "collections" / "network_interfaces",
     ]
 
     for directory_path in database_directories:
