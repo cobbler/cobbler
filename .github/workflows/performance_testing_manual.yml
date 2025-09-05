@@ -19,6 +19,8 @@ jobs:
     timeout-minutes: 720
     steps:
       - uses: actions/checkout@v4
+      - name: Disable Docker IPTables RAW requirement
+        run: ./docker/develop/scripts/disable-docker-iptables-raw.sh
       - name: Pull Docker Test Container
         run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
       - name: Run previously built Docker Container
