@@ -64,6 +64,7 @@ V2.8.5
 # SPDX-FileCopyrightText: based on code copyright 2007 Albert P. Tobey <tobert@gmail.com>
 # SPDX-FileCopyrightText: additions: 2007-2009 Michael DeHaan <michael.dehaan AT gmail>
 
+import enum
 import json
 import time
 import xmlrpc.client
@@ -73,6 +74,28 @@ from urllib import parse
 import yaml
 
 from cobbler import download_manager
+
+
+VALUE_KEY = object()
+"""
+This variable signals that the dictionary key is the actual value. None is not allowed as it might be a reasonable value
+for a dictionary value.
+"""
+
+
+class AutoinstallerTypes(enum.Enum):
+    """
+    This enum represents the currently allowed types that may request a file with the "autoinstallation" endpoint.
+    """
+
+    LEGACY = "legacy"
+    PRESEED = "preseed"
+    KICKSTART = "kickstart"
+    AUTOYAST = "autoyast"
+    CLOUDINIT = "cloud-init"
+    # IGNITION = "ignition"
+    # COMBUSTION = "combustion"
+    # WINDOWS = "windows"
 
 
 class CobblerSvc:
@@ -101,6 +124,21 @@ class CobblerSvc:
             self.__remote = xmlrpc.client.Server(self.server, allow_none=True)
         return self.__remote
 
+    @staticmethod
+    def __find_value_keys(rest_dict: dict) -> List[str]:
+        """
+        Helper method that scans a dictionary for the sentinel value VALUE_KEY and returns the values that have been
+        found.
+
+        :param rest_dict: The dictionary to scan.
+        :return: The list of str with the values.
+        """
+        result = []
+        for key, value in rest_dict.items():
+            if value == VALUE_KEY:
+                result.append(key)
+        return result
+
     def settings(self, **kwargs: Any) -> str:
         """
         Get the application configuration.
@@ -118,56 +156,75 @@ class CobblerSvc:
         """
         return "no mode specified"
 
+    @staticmethod
+    def __retrieve_autoinstaller_information(
+        **kwargs,
+    ) -> Tuple[AutoinstallerTypes, str]:
+        """
+        Retrieves the autoinstaller type and filename if present and returns that.
+
+        :param kwargs: The dictionary with the arguments.
+        :return: A tuple where the first argument is the autoinstaller type and the second one is the filename.
+        """
+        autoinstaller = AutoinstallerTypes.LEGACY
+        requested_file = ""
+        if AutoinstallerTypes.PRESEED.value in kwargs:
+            requested_file = kwargs.get(AutoinstallerTypes.PRESEED.value)
+            autoinstaller = AutoinstallerTypes.PRESEED
+        elif AutoinstallerTypes.AUTOYAST.value in kwargs:
+            requested_file = kwargs.get(AutoinstallerTypes.AUTOYAST.value)
+            autoinstaller = AutoinstallerTypes.AUTOYAST
+        elif AutoinstallerTypes.KICKSTART.value in kwargs:
+            requested_file = kwargs.get(AutoinstallerTypes.KICKSTART.value)
+            autoinstaller = AutoinstallerTypes.KICKSTART
+        elif AutoinstallerTypes.CLOUDINIT.value in kwargs:
+            requested_file = kwargs.get(AutoinstallerTypes.CLOUDINIT.value)
+            autoinstaller = AutoinstallerTypes.CLOUDINIT
+
+        return autoinstaller, requested_file
+
     def autoinstall(
         self,
         profile: Optional[str] = None,
         system: Optional[str] = None,
-        REMOTE_ADDR: Optional[str] = None,
-        REMOTE_MAC: Optional[str] = None,
         **rest: Any,
-    ) -> str:
+    ) -> None:
         """
         Generate automatic installation files.
 
         :param profile:
         :param system:
-        :param REMOTE_ADDR:
-        :param REMOTE_MAC:
         :param rest: This parameter is unused.
         :return:
         """
+        (autoinstaller, requested_file) = self.__retrieve_autoinstaller_information(
+            **rest
+        )
+
         data = self.remote.generate_autoinstall(
-            profile, system, REMOTE_ADDR, REMOTE_MAC
+            profile,
+            system,
+            autoinstaller.value,
+            requested_file,
         )
         if isinstance(data, str):
             return data
         return "ERROR: Server returned unexpected data!"
 
-    def ks(
-        self,
-        profile: Optional[str] = None,
-        system: Optional[str] = None,
-        REMOTE_ADDR: Optional[str] = None,
-        REMOTE_MAC: Optional[str] = None,
-        **rest: Any,
-    ) -> str:
+    def ks(self, profile=None, system=None, **rest):
         """
         Generate automatic installation files. This is a legacy function for part backward compatibility to 2.6.6
         releases.
 
-        :param profile:
-        :param system:
-        :param REMOTE_ADDR:
-        :param REMOTE_MAC:
+        .. deprecated:: 3.4.0
+           The auto-installation endpoint should be used. This will be removed with 4.0.0!
+
+        :param profile: The profile name to use for auto-installing the system.
+        :param system: The system name (if already present in Cobbler) to use for auto-installing the system.
         :param rest: This parameter is unused.
         :return:
         """
-        data = self.remote.generate_autoinstall(
-            profile, system, REMOTE_ADDR, REMOTE_MAC
-        )
-        if isinstance(data, str):
-            return data
-        return "ERROR: Server returned unexpected data!"
+        self.autoinstall(profile, system, **rest)
 
     def ipxe(
         self,
@@ -176,7 +233,7 @@ class CobblerSvc:
         system: Optional[str] = None,
         mac: Optional[str] = None,
         **rest: Any,
-    ) -> str:
+    ):
         """
         Generates an iPXE configuration.
 
@@ -509,8 +566,10 @@ def __fillup_form_dict(form: Dict[Any, Any], my_uri: str) -> str:
     for token in tokens:
         if label:
             field = token
+            form[field] = VALUE_KEY
         else:
             form[field] = token
+            field = ""
         label = not label
     return my_uri
 

@@ -128,8 +128,6 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Un
 from schema import SchemaError  # type: ignore
 
 from cobbler import (
-    autoinstall_manager,
-    autoinstallgen,
     download_manager,
     enums,
     module_loader,
@@ -154,6 +152,7 @@ from cobbler.actions import (
 from cobbler.actions import sync as sync_module
 from cobbler.actions.buildiso.netboot import NetbootBuildiso
 from cobbler.actions.buildiso.standalone import StandaloneBuildiso
+from cobbler.autoinstall.manager import AutoInstallationManager
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import manager
 from cobbler.decorator import InheritableDictProperty, InheritableProperty
@@ -254,10 +253,7 @@ class CobblerAPI:
                 "authorization", "module", "authorization.allowall"
             )
 
-            # FIXME: pass more loggers around, and also see that those using things via tasks construct their own
-            #  yumgen/tftpgen versus reusing this one, which has the wrong logger (most likely) for background tasks.
-
-            self.autoinstallgen = autoinstallgen.AutoInstallationGen(self)
+            self.autoinstall_mgr = AutoInstallationManager(self)
             self.yumgen = yumgen.YumGen(self)
             self.tftpgen = tftpgen.TFTPGen(self)
             self.__directory_startup_preparations()
@@ -1830,6 +1826,24 @@ class CobblerAPI:
 
     # ==========================================================================
 
+    def generate_pxe_file(
+        self,
+        filename: Optional[str],
+        system: system_module.System,
+        profile: profile_module.Profile,
+        distro: distro.Distro,
+        arch: enums.Archs,
+        image: image_module.Image = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        bootloader_format: str = "pxe",
+    ):
+        """
+        .. seealso:: :func:`~cobbler.tftpgen.TFTPGen.write_pxe_file`
+        """
+        return self.tftpgen.write_pxe_file(
+            filename, system, profile, distro, arch, image, metadata, bootloader_format
+        )
+
     def generate_ipxe(self, profile: str, image: str, system: str) -> str:
         """
         Generate the ipxe configuration files. The system wins over the profile. Profile and System win over Image.
@@ -1908,14 +1922,175 @@ class CobblerAPI:
 
     # ==========================================================================
 
+    def get_autoinstall_templates(self):
+        """
+        Returns all automatic OS installation templates that are in use by the system.
+
+        :return: A list with all templates.
+        """
+        return self.autoinstall_mgr.get_autoinstall_templates()
+
+    def get_autoinstall_snippets(self):
+        """
+        Returns all automatic OS installation templates' snippets.
+
+        :return: A list with all snippets.
+        """
+        return self.autoinstall_mgr.get_autoinstall_snippets()
+
+    def is_autoinstall_in_use(
+        self,
+        ai,
+    ):
+        """
+        Check if the auto-installation for a system is in use.
+
+        :param ai: The name of the system which could potentially be in autoinstall mode.
+        :return: True if this is the case, otherwise False.
+        """
+        return self.autoinstall_mgr.is_autoinstall_in_use(ai)
+
+    def generate_autoinstall(
+        self,
+        profile: Optional[Union[str, Profile]] = None,
+        system: Optional[Union[str, System]] = None,
+        autoinstaller_type="",
+        autoinstaller_file="",
+    ):
+        """
+        Generate the auto-installation file and return it.
+
+        :param profile: The profile to generate the file for.
+        :param system: The system to generate the file for.
+        :param autoinstaller_type: TODO
+        :param autoinstaller_file: TODO
+        :return: The str representation of the file.
+        """
+        self.logger.info("generate_autoinstall")
+        if isinstance(profile, str):
+            return self.autoinstall_mgr.autoinstallgen.generate_autoinstall_for_profile(
+                profile,
+                autoinstaller_type=autoinstaller_type,
+                autoinstaller_file=autoinstaller_file,
+            )
+        elif isinstance(system, str):
+            return self.autoinstall_mgr.autoinstallgen.generate_autoinstall_for_profile(
+                system,
+                autoinstaller_type=autoinstaller_type,
+                autoinstaller_file=autoinstaller_file,
+            )
+        else:
+            obj = system if system else profile
+        try:
+            return self.autoinstall_mgr.autoinstallgen.generate_autoinstall(
+                obj,
+                autoinstaller_type=autoinstaller_type,
+                autoinstaller_file=autoinstaller_file,
+            )
+        except Exception:
+            utils.log_exc()
+            return (
+                "# This automatic OS installation file had errors that prevented it from being rendered correctly.\n"
+                "# The cobbler.log should have information relating to this failure."
+            )
+
+    def generate_profile_autoinstall(
+        self, profile_name: str, autoinstaller_type="", autoinstaller_file=""
+    ):
+        """
+        Generate a profile autoinstallation.
+
+        :param profile_name: The profile name to generate the file for.
+        :param autoinstaller_type: TODO
+        :param autoinstaller_file: TODO
+        :return: The str representation of the file.
+        """
+        return self.autoinstall_mgr.autoinstallgen.generate_autoinstall_for_profile(
+            profile_name,
+            autoinstaller_type=autoinstaller_type,
+            autoinstaller_file=autoinstaller_file,
+        )
+
+    def generate_system_autoinstall(
+        self, system_name: str, autoinstaller_type="", autoinstaller_file=""
+    ):
+        """
+        Generate a system auto-installation.
+
+        :param system_name: The system name to generate the file for.
+        :param autoinstaller_type: TODO
+        :param autoinstaller_file: TODO
+        :return: The str representation of the file.
+        """
+        return self.autoinstall_mgr.autoinstallgen.generate_autoinstall_for_profile(
+            system_name,
+            autoinstaller_type=autoinstaller_type,
+            autoinstaller_file=autoinstaller_file,
+        )
+
+    def read_autoinstall_template(self, file_path: str) -> str:
+        """
+        Read an automatic OS installation template file
+
+        :param file_path: automatic OS installation template file path
+        :returns: file content
+        """
+        return self.autoinstall_mgr.read_autoinstall_template(file_path)
+
+    def write_autoinstall_template(self, file_path: str, data: str):
+        """
+        Write an automatic OS installation template file
+
+        :param file_path: automatic OS installation template file path
+        :param data: new file content
+        :returns: bool if operation was successful
+        """
+        self.autoinstall_mgr.write_autoinstall_template(file_path, data)
+
+    def remove_autoinstall_template(self, file_path: str):
+        """
+        Remove an automatic OS installation template file
+
+        :param file_path: automatic OS installation template file path
+        :returns: bool if operation was successful
+        """
+        self.autoinstall_mgr.remove_autoinstall_template(file_path)
+
+    def read_autoinstall_snippet(self, file_path: str) -> str:
+        """
+        Read an automatic OS installation snippet file
+
+        :param file_path: automatic OS installation snippet file path
+        :returns: file content
+        """
+        return self.autoinstall_mgr.read_autoinstall_snippet(file_path)
+
+    def write_autoinstall_snippet(self, file_path: str, data: str):
+        """
+        Write an automatic OS installation snippet file
+
+        :param file_path: automatic OS installation snippet file path
+        :param data: new file content
+        :return: if operation was successful
+        """
+        self.autoinstall_mgr.write_autoinstall_snippet(file_path, data)
+
+    def remove_autoinstall_snippet(self, file_path: str):
+        """
+        Remove an automated OS installation snippet file
+
+        :param file_path: automated OS installation snippet file path
+        :return: bool if operation was successful
+        """
+        self.autoinstall_mgr.remove_autoinstall_snippet(file_path)
+
     def validate_autoinstall_files(self) -> None:
         """
         Validate if any of the autoinstallation files are invalid and if yes report this.
 
         """
         self.log("validate_autoinstall_files")
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self)
-        autoinstall_mgr.validate_autoinstall_files()
+        self.autoinstall_mgr.validate_autoinstall_files()
 
     # ==========================================================================
 
@@ -2407,10 +2582,10 @@ class CobblerAPI:
         self, obj: Union["distro.Distro", "image_module.Image"]
     ) -> List[str]:
         """
-        Return the list of valid boot loaders for the object
+        Return the list of valid bootloaders for the object
 
-        :param obj: The object for which the boot loaders should be looked up.
-        :return: Get a list of all valid boot loaders.
+        :param obj: The object for which the bootloaders should be looked up.
+        :return: Get a list of all valid bootloaders.
         """
         return obj.supported_boot_loaders
 
@@ -2441,6 +2616,7 @@ class CobblerAPI:
         """
         return input_converters.input_string_or_list(options)
 
+    @staticmethod
     def input_string_or_dict(
         self,
         options: Union[str, List[Any], Dict[Any, Any]],
@@ -2453,6 +2629,7 @@ class CobblerAPI:
             options, allow_multiples=allow_multiples
         )
 
+    @staticmethod
     def input_string_or_dict_no_inherit(
         self,
         options: Union[str, List[Any], Dict[Any, Any]],
@@ -2465,13 +2642,15 @@ class CobblerAPI:
             options, allow_multiples=allow_multiples
         )
 
-    def input_boolean(self, value: Union[str, bool, int]) -> bool:
+    @staticmethod
+    def input_boolean(value: Union[str, bool, int]) -> bool:
         """
         .. seealso:: :func:`~cobbler.utils.input_converters.input_boolean`
         """
         return input_converters.input_boolean(value)
 
-    def input_int(self, value: Union[str, int, float]) -> int:
+    @staticmethod
+    def input_int(value: Union[str, int, float]) -> int:
         """
         .. seealso:: :func:`~cobbler.utils.input_converters.input_int`
         """
