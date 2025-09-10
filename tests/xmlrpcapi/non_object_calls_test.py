@@ -222,7 +222,9 @@ def test_get_random_mac(remote: CobblerXMLRPCInterface, token: str):
                     "bonding_opts": "",
                     "bridge_opts": "",
                     "cnames": [],
+                    "comment": "",
                     "connected_mode": False,
+                    "ctime": 0.0,
                     "dhcp_tag": "",
                     "dns_name": "",
                     "if_gateway": "",
@@ -237,16 +239,20 @@ def test_get_random_mac(remote: CobblerXMLRPCInterface, token: str):
                     "ipv6_static_routes": [],
                     "mac_address": "aa:bb:cc:dd:ee:ff",
                     "management": False,
+                    "mtime": 0.0,
                     "mtu": "",
+                    "name": "eth0",
                     "netmask": "",
+                    "owners": ["admin"],
                     "static": False,
                     "static_routes": [],
+                    "system_uid": "",
+                    "uid": "",
                     "virt_bridge": "virbr0",
                 }
             },
             does_not_raise(),
         ),
-        ("modify_interface", "system", {}, pytest.raises(ValueError)),
         ("doesnt_exist", "system", {}, pytest.raises(AttributeError)),
     ],
 )
@@ -276,12 +282,17 @@ def test_get_item_resolved_value(
     profile_uid = create_profile(name_profile, distro_uid, "a=1 b=2 c=3 c=4 c=5 d e")
     test_system_handle = create_system(name_system, profile_uid)
     remote.modify_system(test_system_handle, "kernel_options", "!c !e", token=token)
-    remote.modify_system(
-        test_system_handle,
-        "modify_interface",
-        {"macaddress-eth0": "aa:bb:cc:dd:ee:ff"},
-        token=token,
+    remote.save_system(test_system_handle, token)
+    test_network_interface_handle = remote.new_network_interface(
+        test_system_handle, token
     )
+    remote.modify_network_interface(
+        test_network_interface_handle, "name", "eth0", token
+    )
+    remote.modify_network_interface(
+        test_network_interface_handle, "mac_address", "aa:bb:cc:dd:ee:ff", token
+    )
+    remote.save_network_interface(test_network_interface_handle, token, "new")
     if checked_object == "distro":
         test_item = remote.get_distro(name_distro, token=token)
     elif checked_object == "profile":
@@ -299,6 +310,18 @@ def test_get_item_resolved_value(
             result.pop("default")  # type: ignore
 
         # Assert
+        if isinstance(result, dict) and "eth0" in result and "ctime" in result["eth0"]:
+            result["eth0"]["ctime"] = 0.0
+        if isinstance(result, dict) and "eth0" in result and "mtime" in result["eth0"]:
+            result["eth0"]["mtime"] = 0.0
+        if isinstance(result, dict) and "eth0" in result and "uid" in result["eth0"]:
+            result["eth0"]["uid"] = ""
+        if (
+            isinstance(result, dict)
+            and "eth0" in result
+            and "system_uid" in result["eth0"]
+        ):
+            result["eth0"]["system_uid"] = ""
         if input_attribute == "profile":
             assert profile_uid == result
         else:

@@ -614,6 +614,7 @@ def validate_obj_type(object_type: str) -> bool:
         "repo",
         "image",
         "menu",
+        "network_interface",
     ]
 
 

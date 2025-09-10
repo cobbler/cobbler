@@ -9,6 +9,7 @@ Current Schema: Please refer to the documentation visible of the individual meth
 
 V3.4.0 (unreleased)
     * Added:
+        * Create, Read, Update & Delete methods for the NetworkInterface class
         * ``set_item_resolved_value``
         * ``input_string_or_list_no_inherit``
         * ``input_string_or_list``
@@ -963,7 +964,7 @@ class CobblerXMLRPCInterface:
                 return interface_return_value
             return self.xmlrpc_hacks(return_value)
 
-        if not isinstance(
+        if not isinstance(  # type: ignore
             return_value, (str, int, float, bool, tuple, bytes, bytearray, dict, list)
         ):
             self._log(
@@ -1160,6 +1161,29 @@ class CobblerXMLRPCInterface:
             "menu", name, flatten=flatten, resolved=resolved, token=token
         )
 
+    def get_network_interface(
+        self,
+        name: str,
+        flatten: bool = False,
+        resolved: bool = False,
+        token: Optional[str] = None,
+        **rest: Any,
+    ):
+        """
+        Get a network interface.
+
+        :param name: The name of the network interface to get.
+        :param flatten: If the item should be flattened.
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
+        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param rest: Not used with this method currently.
+        :return: The item or None.
+        """
+        return self.get_item(
+            "menu", name, flatten=flatten, resolved=resolved, token=token
+        )
+
     def get_items(self, what: str) -> List[Dict[str, Any]]:
         """
         Individual list elements are the same for get_item.
@@ -1286,6 +1310,24 @@ class CobblerXMLRPCInterface:
         :return: The list of all files.
         """
         return self.get_items("menu")
+
+    def get_network_interfaces(
+        self,
+        page: Any = None,
+        results_per_page: Any = None,
+        token: Optional[str] = None,
+        **rest: Any,
+    ) -> List[Dict[str, Any]]:
+        """
+        This returns all menus.
+
+        :param page: This parameter is not used currently.
+        :param results_per_page: This parameter is not used currently.
+        :param token: The API-token obtained via the login() method.
+        :param rest: This parameter is not used currently.
+        :return: The list of all files.
+        """
+        return self.get_items("network_interface")
 
     def find_items(
         self,
@@ -1450,6 +1492,29 @@ class CobblerXMLRPCInterface:
         """
         return self.find_items("menu", criteria, expand=expand, resolved=resolved)
 
+    def find_network_interface(
+        self,
+        criteria: Optional[Dict[str, Any]] = None,
+        expand: bool = False,
+        resolved: bool = False,
+        token: Optional[str] = None,
+        **rest: Any,
+    ) -> List[Any]:
+        """
+        Find a network interface matching certain criteria.
+
+        :param criteria: The criteria a network interface needs to match.
+        :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
+        :param token: The API-token obtained via the login() method.
+        :param rest: This parameter is not used currently.
+        :return: All files which have matched the criteria.
+        """
+        return self.find_items(
+            "network_interface", criteria, expand=expand, resolved=resolved
+        )
+
     def find_items_paged(
         self,
         what: str,
@@ -1598,6 +1663,16 @@ class CobblerXMLRPCInterface:
         :return: The handle of the desired object.
         """
         return self.get_item_handle("menu", name)
+
+    def get_network_interface_handle(self, name: str):
+        """
+        Get a handle for a network interface which allows you to use the functions ``modify_*`` or ``save_*`` to
+        manipulate it.
+
+        :param name: The name of the item.
+        :return: The handle of the desired object.
+        """
+        return self.get_item_handle("network_interface", name)
 
     def _transaction_get_modified(self, token: str, obj: "InheritableItem"):
         """
@@ -1784,6 +1859,17 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("menu", name, token, recursive)
 
+    def remove_network_interface(self, name: str, token: str, recursive: bool = True):
+        """
+        Deletes a network interface from Cobbler.
+
+        :param name: The name of the item to remove.
+        :param token: The API-token obtained via the login() method.
+        :param recursive: If items which are depending on this one should be erased too.
+        :return: True if the action was successful.
+        """
+        return self.remove_item("network_interface", name, token, recursive)
+
     def copy_item(
         self, what: str, object_id: str, newname: str, token: Optional[str] = None
     ):
@@ -1873,6 +1959,19 @@ class CobblerXMLRPCInterface:
     def copy_menu(self, object_id: str, newname: str, token: Optional[str] = None):
         """
         Copies a menu and rename it afterwards.
+
+        :param object_id: The object id of the item in question.
+        :param newname: The new name for the copied object.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action succeeded.
+        """
+        return self.copy_item("menu", object_id, newname, token)
+
+    def copy_network_interface(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ):
+        """
+        Copies a network interface and rename it afterwards.
 
         :param object_id: The object id of the item in question.
         :param newname: The new name for the copied object.
@@ -2007,6 +2106,19 @@ class CobblerXMLRPCInterface:
         """
         return self.rename_item("menu", object_id, newname, token)
 
+    def rename_network_interface(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
+        """
+        Renames a network interface specified by object_id to a new name.
+
+        :param object_id: The id which refers to the object.
+        :param newname: The new name for the object.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action succeeded.
+        """
+        return self.rename_item("network_interface", object_id, newname, token)
+
     def new_item(
         self, what: str, token: str, is_subobject: bool = False, **kwargs: Any
     ) -> str:
@@ -2094,6 +2206,16 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("menu", token)
 
+    def new_network_interface(self, system_uid: str, token: str):
+        """
+        See ``new_item()``.
+
+        :param token: The API-token obtained via the login() method.
+        :param system_uid: The UID of the system to attach the network interface to.
+        :return: The object id for the newly created object.
+        """
+        return self.new_item("network_interface", token, system_uid=system_uid)
+
     def modify_item(
         self,
         what: str,
@@ -2134,20 +2256,6 @@ class CobblerXMLRPCInterface:
             )
             new_obj.in_transaction = True
             obj = new_obj
-
-        if what == "system":
-            if attribute == "modify_interface":
-                obj.modify_interface(arg)  # type: ignore
-                return True
-            if attribute == "delete_interface":
-                obj.delete_interface(arg)  # type: ignore
-                return True
-            if attribute == "rename_interface":
-                obj.rename_interface(  # type: ignore
-                    old_name=arg.get("interface", ""),  # type: ignore
-                    new_name=arg.get("rename_interface", ""),  # type: ignore
-                )
-                return True
 
         if attribute in ["parent", "profile", "distro"] and token in self.transactions:
             self.transactions[token][object_id].item_modifications.append(
@@ -2253,6 +2361,20 @@ class CobblerXMLRPCInterface:
     def modify_menu(self, object_id: str, attribute: str, arg: Any, token: str):
         """
         Modify a single attribute of a menu.
+
+        :param object_id: The id of the object which shall be modified.
+        :param attribute: The attribute name which shall be edited.
+        :param arg: The new value for the argument.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action was successful. Otherwise False.
+        """
+        return self.modify_item("menu", object_id, attribute, arg, token)
+
+    def modify_network_interface(
+        self, object_id: str, attribute: str, arg: Any, token: str
+    ):
+        """
+        Modify a single attribute of a network_interface.
 
         :param object_id: The id of the object which shall be modified.
         :param attribute: The attribute name which shall be edited.
@@ -2423,6 +2545,20 @@ class CobblerXMLRPCInterface:
         :return: True if the action succeeded.
         """
         return self.save_item("menu", object_id, token, editmode=editmode)
+
+    def save_network_interface(
+        self, object_id: str, token: str, editmode: str = "bypass"
+    ):
+        """
+        Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
+
+        :param object_id: The id of the object to save.
+        :param token: The API-token obtained via the login() method.
+        :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
+                         supported.
+        :return: True if the action succeeded.
+        """
+        return self.save_item("network_interface", object_id, token, editmode=editmode)
 
     def get_autoinstall_templates(self, token: Optional[str] = None, **rest: Any):
         """
@@ -2889,6 +3025,7 @@ class CobblerXMLRPCInterface:
         if hostname != "":
             obj.hostname = hostname  # type: ignore[method-assign]
         obj.netboot_enabled = False  # type: ignore[method-assign]
+        self.api.add_system(obj)
         for iname in inames:
             if info["interfaces"][iname].get("bridge", "") == 1:
                 # don't add bridges
@@ -2899,20 +3036,16 @@ class CobblerXMLRPCInterface:
             if mac == "?":
                 # see koan/utils.py for explanation of network info discovery
                 continue
-            obj.interfaces = {  # type: ignore[method-assign]
-                iname: {
-                    "mac_address": mac,
-                    "ip_address": ip_address,
-                    "netmask": netmask,
-                }
-            }
-            if hostname != "":
-                obj.hostname = hostname  # type: ignore[method-assign]
+            new_network_interface = self.api.new_network_interface(system_uid=obj.uid)
+            new_network_interface.name = iname  # type: ignore[method-assign]
+            new_network_interface.mac_address = mac
+            new_network_interface.ip_address = ip_address
+            new_network_interface.netmask = netmask
             if ip_address not in ("", "?"):
-                obj.interfaces[iname].ip_address = ip_address
+                new_network_interface.ip_address = ip_address
             if netmask not in ("", "?"):
-                obj.interfaces[iname].netmask = netmask
-        self.api.add_system(obj)
+                new_network_interface.netmask = netmask
+            self.api.add_network_interface(new_network_interface)
         return 0
 
     def disable_netboot(
@@ -3265,6 +3398,18 @@ class CobblerXMLRPCInterface:
         data = self.api.get_menus_since(mtime, collapse=True)
         return self.xmlrpc_hacks(data)
 
+    def get_network_interfaces_since(
+        self, mtime: float
+    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
+        """
+        See documentation for get_distros_since
+
+        :param mtime: The time after which all items should be included. Everything before this will be excluded.
+        :return: The list of items which were modified after ``mtime``.
+        """
+        data = self.api.get_network_interfaces_since(mtime, collapse=True)
+        return self.xmlrpc_hacks(data)
+
     def get_repos_compatible_with_profile(
         self, profile: str, token: Optional[str] = None, **rest: Any
     ) -> List[Dict[Any, Any]]:
@@ -3462,6 +3607,24 @@ class CobblerXMLRPCInterface:
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
+    def get_network_interface_as_rendered(
+        self, name: str, token: Optional[str] = None, **rest: Any
+    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
+        """
+        Get network interface after passing through Cobbler's inheritance engine
+
+        :param name: Network Interface name
+        :param token: Authentication token
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: Get a template rendered as a file.
+        """
+
+        self._log("get_network_interface_as_rendered", name=name, token=token)
+        obj = self.api.find_network_interface(name=name)
+        if obj is not None and not isinstance(obj, list):
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
+
     def get_random_mac(
         self, virt_type: str = "kvm", token: Optional[str] = None, **rest: Any
     ) -> str:
@@ -3631,6 +3794,7 @@ class CobblerXMLRPCInterface:
             "repo",
             "image",
             "menu",
+            "network_interface",
         ]:
             if arg1 is not None and resource.find(item_type) != -1:
                 need_remap = True

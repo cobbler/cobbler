@@ -27,7 +27,7 @@ from typing import (
 
 from cobbler import enums, utils
 from cobbler.cexceptions import CX
-from cobbler.items import distro, image, menu, profile, repo, system
+from cobbler.items import distro, image, menu, network_interface, profile, repo, system
 from cobbler.items.abstract.base_item import BaseItem
 from cobbler.items.abstract.inheritable_item import InheritableItem
 
@@ -273,13 +273,13 @@ class Collection(Generic[ITEM]):
         with self.lock:
             orig_kargs_len = len(kwargs)
             result = self.find_by_indexes(kwargs)
-            new_kargs_len = len(kwargs)
-            if new_kargs_len > 0:
+            new_kwargs_len = len(kwargs)
+            if new_kwargs_len > 0:
                 obj_list: List[ITEM] = []
                 if result is not None:
                     obj_list = result
                 else:
-                    if new_kargs_len == orig_kargs_len:
+                    if new_kwargs_len == orig_kargs_len:
                         obj_list = list(self)
                 for obj in obj_list:
                     if obj.inmemory and obj.find_match(kwargs, no_errors=no_errors):
@@ -444,6 +444,21 @@ class Collection(Generic[ITEM]):
                         distro_obj.initrd = distro_obj.initrd.replace(path, newpath)  # type: ignore[method-assign]
                         self.collection_mgr.serialize_one_item(distro_obj)
 
+    def check_for_duplicate_names(self, ref: ITEM) -> None:
+        """
+        This method verified if the name of an object is a duplicate or not.
+
+        :raises TypeError: In case the search result had an incorrect type.
+        :raises CX: In case an item with that name already exists.
+        """
+        search_result = self.find(True, name=ref.name)
+        if not isinstance(search_result, list):
+            raise TypeError("Search result must be of type list!")
+        if len(search_result) > 0:
+            raise CX(
+                f'An object with that name "{ref.name}" exists already. Try "edit"?'
+            )
+
     def add(
         self,
         ref: ITEM,
@@ -494,13 +509,7 @@ class Collection(Generic[ITEM]):
 
         # Avoid adding objects to the collection with the same name
         if check_for_duplicate_names:
-            search_result = self.find(True, name=ref.name)
-            if not isinstance(search_result, list):
-                raise TypeError("Search result must be of type list!")
-            if len(search_result) > 0:
-                raise CX(
-                    f'An object with that name "{ref.name}" exists already. Try "edit"?'
-                )
+            self.check_for_duplicate_names(ref)
 
         if ref.COLLECTION_TYPE != self.collection_type():
             raise TypeError("API error: storing wrong data type in collection")
@@ -576,6 +585,8 @@ class Collection(Generic[ITEM]):
         elif isinstance(ref, repo.Repo):
             pass
         elif isinstance(ref, menu.Menu):
+            pass
+        elif isinstance(ref, network_interface.NetworkInterface):
             pass
         else:
             self.logger.error(

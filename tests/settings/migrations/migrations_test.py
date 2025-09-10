@@ -28,6 +28,8 @@ from cobbler.settings.migrations import (
     V3_3_3,
     V3_3_4,
     V3_3_5,
+    V3_3_6,
+    V3_3_7,
     V3_4_0,
 )
 
@@ -99,7 +101,9 @@ def test_get_settings_file_version():
 
 def test_migrate_v3_0_0():
     # Arrange
-    with open("/code/tests/test_data/V2_8_5/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V2_8_5/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -111,7 +115,9 @@ def test_migrate_v3_0_0():
 
 def test_migrate_v3_0_1():
     # Arrange
-    with open("/code/tests/test_data/V3_0_0/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_0_0/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
     shutil.copy("/code/tests/test_data/V3_0_0/modules.conf", modules_conf_location)
 
@@ -119,7 +125,7 @@ def test_migrate_v3_0_1():
     new_settings = V3_0_1.migrate(old_settings_dict)
 
     # Read migrated modules.conf
-    with open("/etc/cobbler/modules.conf") as modules_conf:
+    with open("/etc/cobbler/modules.conf", encoding="UTF-8") as modules_conf:
         new_modules_conf_content = modules_conf.readlines()
 
     # Assert
@@ -131,7 +137,9 @@ def test_migrate_v3_0_1():
 
 def test_migrate_v3_1_0():
     # Arrange
-    with open("/code/tests/test_data/V3_0_1/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_0_1/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -143,7 +151,9 @@ def test_migrate_v3_1_0():
 
 def test_migrate_v3_1_1():
     # Arrange
-    with open("/code/tests/test_data/V3_1_0/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_1_0/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -155,7 +165,9 @@ def test_migrate_v3_1_1():
 
 def test_migrate_v3_1_2():
     # Arrange
-    with open("/code/tests/test_data/V3_1_1/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_1_1/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -167,7 +179,9 @@ def test_migrate_v3_1_2():
 
 def test_migrate_v3_2_0():
     # Arrange
-    with open("/code/tests/test_data/V3_1_2/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_1_2/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -179,7 +193,9 @@ def test_migrate_v3_2_0():
 
 def test_migrate_v3_2_1():
     # Arrange
-    with open("/code/tests/test_data/V3_2_0/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_2_0/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -193,7 +209,9 @@ def test_migrate_v3_2_1():
 
 def test_migrate_v3_3_0():
     # Arrange
-    with open("/code/tests/test_data/V3_2_1/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_2_1/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -214,7 +232,9 @@ def test_migrate_v3_3_0():
 
 def test_migrate_v3_3_1():
     # Arrange
-    with open("/code/tests/test_data/V3_3_0/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_3_0/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -229,7 +249,9 @@ def test_migrate_v3_3_1():
 
 def test_migrate_v3_3_2():
     # Arrange
-    with open("/code/tests/test_data/V3_3_1/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_3_1/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -241,7 +263,9 @@ def test_migrate_v3_3_2():
 
 def test_migrate_v3_3_3():
     # Arrange
-    with open("/code/tests/test_data/V3_3_2/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_3_2/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -287,19 +311,64 @@ def test_migrate_v3_3_5():
     assert V3_3_5.validate(new_settings)
 
 
-def test_migrate_v3_4_0():
+def test_migrate_v3_3_6():
+    """
+    Test to validate that a migrations of the settings from Cobbler 3.3.5 to 3.3.6 is working as expected.
+    """
     # Arrange
-    with open("/code/tests/test_data/V3_3_5/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_3_5/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
-    shutil.copy("/code/tests/test_data/V3_3_5/modules.conf", modules_conf_location)
+
+    # Act
+    new_settings = V3_3_6.migrate(old_settings_dict)
+
+    # Assert
+    assert V3_3_6.validate(new_settings)
+
+
+def test_migrate_v3_3_7():
+    """
+    Test to validate that a migrations of the settings from Cobbler 3.3.6 to 3.3.7 is working as expected.
+    """
+    # Arrange
+    with open(
+        "/code/tests/test_data/V3_3_6/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+
+    # Act
+    new_settings = V3_3_7.migrate(old_settings_dict)
+
+    # Assert
+    assert V3_3_7.validate(new_settings)
+
+
+def test_migrate_v3_4_0():
+    """
+    Test to validate that a migrations of the settings from Cobbler 3.3.7 to 3.4.0 is working as expected.
+    """
+    # Arrange
+    with open(
+        "/code/tests/test_data/V3_3_7/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+    shutil.copy("/code/tests/test_data/V3_3_7/modules.conf", modules_conf_location)
     shutil.copy(
-        "/code/tests/test_data/V3_3_5/mongodb.conf", "/etc/cobbler/mongodb.conf"
+        "/code/tests/test_data/V3_3_7/mongodb.conf", "/etc/cobbler/mongodb.conf"
+    )
+    shutil.copy(
+        "/code/tests/test_data/V3_3_7/collections/systems/host.example.org.json",
+        "/var/lib/cobbler/collections/systems/host.example.org.json",
     )
 
     # Act
     new_settings = V3_4_0.migrate(old_settings_dict)
 
     # Assert
+    # We cannot assert that the collection migration has succeeded as the code inside network_interface.py
+    # might change over time (aka we are not loading the 3.4.0 Network Interface model but the current one).
     assert V3_4_0.validate(new_settings)
     assert not pathlib.Path("/etc/cobbler/mongodb.conf").exists()
     assert not pathlib.Path(modules_conf_location).exists()

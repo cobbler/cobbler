@@ -401,7 +401,7 @@ class BootableItem(InheritableItem, ABC):
         """
         return self._template_files
 
-    @template_files.setter
+    @template_files.setter  # type: ignore[no-redef]
     def template_files(self, template_files: Union[str, Dict[str, str]]) -> None:
         """
         A comma seperated list of source=destination templates that should be generated during a sync.
@@ -462,7 +462,7 @@ class BootableItem(InheritableItem, ABC):
                         if isinstance(attr_val, str):
                             deserialize_ancestor(ancestor_item_type, attr_val)
                         elif isinstance(attr_val, list):  # type: ignore
-                            attr_val: List[str]
+                            attr_val: List[str]  # type: ignore[no-redef]
                             for ancestor_name in attr_val:
                                 deserialize_ancestor(ancestor_item_type, ancestor_name)
         self.from_dict(item_dict)

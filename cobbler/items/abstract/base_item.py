@@ -443,52 +443,10 @@ class BaseItem(ABC):
         :param no_errors: How strict this matching is.
         :return: Whether the data matches or not.
         """
-        # special case for systems
-        key_found_already = False
-        if "interfaces" in data:
-            if key in [
-                "cnames",
-                "connected_mode",
-                "if_gateway",
-                "ipv6_default_gateway",
-                "ipv6_mtu",
-                "ipv6_prefix",
-                "ipv6_secondaries",
-                "ipv6_static_routes",
-                "management",
-                "mtu",
-                "static",
-                "mac_address",
-                "ip_address",
-                "ipv6_address",
-                "netmask",
-                "virt_bridge",
-                "dhcp_tag",
-                "dns_name",
-                "static_routes",
-                "interface_type",
-                "interface_master",
-                "bonding_opts",
-                "bridge_opts",
-                "interface",
-            ]:
-                key_found_already = True
-                for name, interface in list(data["interfaces"].items()):
-                    if value == name:
-                        return True
-                    if value is not None and key in interface:
-                        if self.__find_compare(interface[key], value):
-                            return True
-
-        if key not in data:
-            if not key_found_already:
-                if not no_errors:
-                    # FIXME: removed for 2.0 code, shouldn't cause any problems to not have an exception here?
-                    # raise CX("searching for field that does not exist: %s" % key)
-                    return False
-            else:
-                if value is not None:  # FIXME: new?
-                    return False
+        if key not in data and not no_errors:
+            # FIXME: removed for 2.0 code, shouldn't cause any problems to not have an exception here?
+            # raise CX("searching for field that does not exist: %s" % key)
+            return False
 
         if value is None:
             return True
@@ -577,15 +535,6 @@ class BaseItem(ABC):
                         value[new_key] = getattr(self, new_key).value
                     else:
                         value[new_key] = key_value.value
-                elif new_key == "interfaces":
-                    # This is the special interfaces dict. Let's fix it before it gets to the normal process.
-                    serialized_interfaces = {}
-                    interfaces = key_value
-                    for interface_key in interfaces:
-                        serialized_interfaces[interface_key] = interfaces[
-                            interface_key
-                        ].to_dict(resolved)
-                    value[new_key] = serialized_interfaces
                 elif isinstance(key_value, list):
                     value[new_key] = copy.deepcopy(key_value)  # type: ignore
                 elif isinstance(key_value, dict):

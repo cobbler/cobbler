@@ -251,7 +251,7 @@ def test_blender(cobbler_api):  # type: ignore
     result = utils.blender(cobbler_api, False, root_item)  # type: ignore
 
     # Assert
-    assert len(result) == 170
+    assert len(result) == 171
     # Must be present because the settings have it
     assert "server" in result
     # Must be present because it is a field of distro

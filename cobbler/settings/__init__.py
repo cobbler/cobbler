@@ -310,6 +310,25 @@ class Settings:
                     "disabled": False,
                 },
             },
+            "network_interface": {
+                "name": {"nonunique": True, "disabled": False},
+                "mac_address": {
+                    "nonunique": self.allow_duplicate_macs,
+                    "disabled": self.allow_duplicate_macs,
+                },
+                "ip_address": {
+                    "nonunique": self.allow_duplicate_ips,
+                    "disabled": self.allow_duplicate_ips,
+                },
+                "ipv6_address": {
+                    "nonunique": self.allow_duplicate_ips,
+                    "disabled": self.allow_duplicate_ips,
+                },
+                "dns_name": {
+                    "nonunique": self.allow_duplicate_hostnames,
+                    "disabled": self.allow_duplicate_hostnames,
+                },
+            },
             "profile": {
                 "name": {"nonunique": False, "disabled": False},
                 "parent": {
@@ -328,26 +347,6 @@ class Settings:
                 "name": {"nonunique": False, "disabled": False},
                 "image": {"nonunique": True, "disabled": False},
                 "profile": {"nonunique": True, "disabled": False},
-                "mac_address": {
-                    "property": "get_mac_addresses",
-                    "nonunique": self.allow_duplicate_macs,
-                    "disabled": self.allow_duplicate_macs,
-                },
-                "ip_address": {
-                    "property": "get_ipv4_addresses",
-                    "nonunique": self.allow_duplicate_ips,
-                    "disabled": self.allow_duplicate_ips,
-                },
-                "ipv6_address": {
-                    "property": "get_ipv6_addresses",
-                    "nonunique": self.allow_duplicate_ips,
-                    "disabled": self.allow_duplicate_ips,
-                },
-                "dns_name": {
-                    "property": "get_dns_names",
-                    "nonunique": self.allow_duplicate_hostnames,
-                    "disabled": self.allow_duplicate_hostnames,
-                },
             },
         }
 

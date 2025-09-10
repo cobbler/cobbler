@@ -11,7 +11,6 @@ from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image
-from cobbler.items.network_interface import NetworkInterface
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
 from cobbler.settings import Settings
@@ -929,7 +928,11 @@ def test_from_dict_with_network_interface(cobbler_api: CobblerAPI):
     """
     # Arrange
     system = System(cobbler_api)
-    system.interfaces = {"default": NetworkInterface(cobbler_api, system.uid)}  # type: ignore[method-assign]
+    test_network_interface = cobbler_api.new_network_interface(
+        system_uid=system.uid,
+        name="default",
+    )
+    cobbler_api.add_network_interface(test_network_interface)
     sys_dict = system.to_dict()
 
     # Act
@@ -937,53 +940,6 @@ def test_from_dict_with_network_interface(cobbler_api: CobblerAPI):
 
     # Assert
     assert "default" in system.interfaces
-
-
-@pytest.mark.parametrize(
-    "value,expected_exception,expected_result",
-    [
-        ("foobar_not_existing", pytest.raises(ValueError), None),
-        ("", pytest.raises(ValueError), None),
-        ("na", does_not_raise(), enums.NetworkInterfaceType.NA),
-        ("bond", does_not_raise(), enums.NetworkInterfaceType.BOND),
-        ("bond_slave", does_not_raise(), enums.NetworkInterfaceType.BOND_SLAVE),
-        ("bridge", does_not_raise(), enums.NetworkInterfaceType.BRIDGE),
-        ("bridge_slave", does_not_raise(), enums.NetworkInterfaceType.BRIDGE_SLAVE),
-        (
-            "bonded_bridge_slave",
-            does_not_raise(),
-            enums.NetworkInterfaceType.BONDED_BRIDGE_SLAVE,
-        ),
-        ("bmc", does_not_raise(), enums.NetworkInterfaceType.BMC),
-        ("infiniband", does_not_raise(), enums.NetworkInterfaceType.INFINIBAND),
-        (0, does_not_raise(), enums.NetworkInterfaceType.NA),
-        (1, does_not_raise(), enums.NetworkInterfaceType.BOND),
-        (2, does_not_raise(), enums.NetworkInterfaceType.BOND_SLAVE),
-        (3, does_not_raise(), enums.NetworkInterfaceType.BRIDGE),
-        (4, does_not_raise(), enums.NetworkInterfaceType.BRIDGE_SLAVE),
-        (5, does_not_raise(), enums.NetworkInterfaceType.BONDED_BRIDGE_SLAVE),
-        (6, does_not_raise(), enums.NetworkInterfaceType.BMC),
-        (7, does_not_raise(), enums.NetworkInterfaceType.INFINIBAND),
-    ],
-)
-def test_network_interface_type(
-    cobbler_api: CobblerAPI,
-    value: Any,
-    expected_exception: Any,
-    expected_result: Optional[enums.NetworkInterfaceType],
-):
-    """
-    Test that verifies that the ``NetworkInterface.interface_type`` works as expected.
-    """
-    # Arrange
-    interface = NetworkInterface(cobbler_api, "")
-
-    # Act
-    with expected_exception:
-        interface.interface_type = value
-
-        # Assert
-        assert interface.interface_type == expected_result
 
 
 @pytest.mark.parametrize(
@@ -1008,16 +964,36 @@ def test_is_management_supported(
     """
     # Arrange
     system = System(cobbler_api)
-    system.interfaces = {"default": NetworkInterface(cobbler_api, system.uid)}  # type: ignore[method-assign]
-    system.interfaces["default"].mac_address = input_mac
-    system.interfaces["default"].ip_address = input_ipv4
-    system.interfaces["default"].ipv6_address = input_ipv6
+    test_network_interface = cobbler_api.new_network_interface(
+        system_uid=system.uid,
+        name="default",
+        ip_address=input_ipv4,
+        ipv6_address=input_ipv6,
+        mac_address=input_mac,
+    )
+    cobbler_api.add_network_interface(test_network_interface)
 
     # Act
     result = system.is_management_supported()
 
     # Assert
     assert result is expected_result
+
+
+def test_interfaces(cobbler_api: CobblerAPI):
+    """
+    Test that verifies the ``interfaces`` property works as expected.
+    """
+    # Arrange
+    system = System(cobbler_api)
+    test_network_interface = cobbler_api.new_network_interface(
+        system_uid=system.uid,
+        name="default",
+    )
+    cobbler_api.add_network_interface(test_network_interface)
+
+    # Act & Assert
+    assert "default" in system.interfaces
 
 
 def test_display_name(cobbler_api: CobblerAPI):

@@ -3,7 +3,6 @@ Tests that validate the functionality of the module that is responsible for prov
 functionality.
 """
 
-import logging
 from ipaddress import AddressValueError
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Union
 
@@ -65,7 +64,7 @@ def test_network_interface_to_dict(cobbler_api: CobblerAPI):
     assert "logger" not in result
     assert "api" not in result
     assert result.get("virt_bridge") == enums.VALUE_INHERITED
-    assert len(result) == 23
+    assert len(result) == 30
 
 
 def test_network_interface_to_dict_resolved(cobbler_api: CobblerAPI):
@@ -85,36 +84,36 @@ def test_network_interface_to_dict_resolved(cobbler_api: CobblerAPI):
 
 
 @pytest.mark.parametrize(
-    "input_dict,modified_field,expected_result,expect_logger_warning",
+    "input_dict,modified_field,expected_result,expected_exception",
     [
-        ({"dns_name": "host.example.com"}, "dns_name", "host.example.com", False),
-        ({"not_existing": "invalid"}, "dhcp_tag", "", True),
+        (
+            {"dns_name": "host.example.com"},
+            "dns_name",
+            "host.example.com",
+            does_not_raise(),
+        ),
+        ({"not_existing": "invalid"}, "dhcp_tag", "", pytest.raises(KeyError)),
     ],
 )
 def test_network_interface_from_dict(
-    caplog: pytest.LogCaptureFixture,
     cobbler_api: CobblerAPI,
     input_dict: Dict[str, str],
     modified_field: str,
     expected_result: str,
-    expect_logger_warning: bool,
+    expected_exception: Any,
 ):
     """
     Test to verify that the from_dict method of NetworkInterface works as expected.
     """
     # Arrange
-    caplog.set_level(logging.INFO)
     interface = NetworkInterface(cobbler_api, "")
 
     # Act
-    interface.from_dict(input_dict)
+    with expected_exception:
+        interface.from_dict(input_dict)
 
     # Assert
     assert getattr(interface, f"_{modified_field}") == expected_result
-    if expect_logger_warning:
-        assert "The following keys were ignored" in caplog.records[0].message
-    else:
-        assert len(caplog.records) == 0
 
 
 def test_serialize():
@@ -399,9 +398,22 @@ def test_virt_bridge(
 @pytest.mark.parametrize(
     "input_interface_type,expected_result,expected_exception",
     [
+        ("foobar_not_existing", None, pytest.raises(ValueError)),
+        ("", None, pytest.raises(ValueError)),
+        ("na", enums.NetworkInterfaceType.NA, does_not_raise()),
+        ("bond", enums.NetworkInterfaceType.BOND, does_not_raise()),
+        ("bond_slave", enums.NetworkInterfaceType.BOND_SLAVE, does_not_raise()),
+        ("bridge", enums.NetworkInterfaceType.BRIDGE, does_not_raise()),
+        ("bridge_slave", enums.NetworkInterfaceType.BRIDGE_SLAVE, does_not_raise()),
+        (
+            "bonded_bridge_slave",
+            enums.NetworkInterfaceType.BONDED_BRIDGE_SLAVE,
+            does_not_raise(),
+        ),
+        ("bmc", enums.NetworkInterfaceType.BMC, does_not_raise()),
+        ("infiniband", enums.NetworkInterfaceType.INFINIBAND, does_not_raise()),
         ([], enums.NetworkInterfaceType.NA, pytest.raises(TypeError)),
-        (0, enums.NetworkInterfaceType.NA, does_not_raise()),
-        (100, enums.NetworkInterfaceType.NA, pytest.raises(ValueError)),
+        (100, enums.NetworkInterfaceType.NA, pytest.raises(TypeError)),
         ("INVALID", enums.NetworkInterfaceType.NA, pytest.raises(ValueError)),
         # TODO: Create test for last ValueError
         ("NA", enums.NetworkInterfaceType.NA, does_not_raise()),
@@ -775,34 +787,6 @@ def test_connected_mode(
         # Assert
         assert isinstance(interface.connected_mode, bool)
         assert interface.connected_mode is expected_result
-
-
-@pytest.mark.parametrize(
-    "input_modify_interface,expected_modified_field,expected_value,expected_exception",
-    [
-        ({}, "mtu", "", does_not_raise()),
-        ({"mtu-eth0": "test"}, "mtu", "test", does_not_raise()),
-    ],
-)
-def test_modify_interface(
-    cobbler_api: CobblerAPI,
-    input_modify_interface: Dict[str, str],
-    expected_modified_field: str,
-    expected_value: str,
-    expected_exception: Any,
-):
-    """
-    Test to verify that the modify_interface method of NetworkInterface works as expected.
-    """
-    # Arrange
-    interface = NetworkInterface(cobbler_api, "")
-
-    # Act
-    with expected_exception:
-        interface.modify_interface(input_modify_interface)
-
-        # Assert
-        assert getattr(interface, expected_modified_field) == expected_value
 
 
 def test_inheritance(

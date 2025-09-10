@@ -464,6 +464,7 @@ def blender(
     tree = root_obj.grab_tree()
     tree.reverse()  # start with top of tree, override going down
     results: Dict[str, Any] = {}
+    results["obj_type"] = root_obj.TYPE_NAME
     for node in tree:
         __consolidate(node, results)
 
@@ -514,7 +515,7 @@ def blender(
         results = flatten(results)  # type: ignore
 
     # Add in some variables for easier templating as these variables change based on object type.
-    if "interfaces" in results:
+    if root_obj.TYPE_NAME == "system":  # type: ignore
         # is a system object
         results["system_name"] = results["name"]
         results["profile_name"] = results["profile"]
@@ -523,17 +524,13 @@ def blender(
         elif "image" in results:
             results["distro_name"] = "N/A"
             results["image_name"] = results["image"]
-    elif "distro" in results:
+    elif root_obj.TYPE_NAME == "profile":  # type: ignore
         # is a profile or subprofile object
         results["profile_name"] = results["name"]
         results["distro_name"] = results["distro"]
-    elif "kernel" in results:
+    elif root_obj.TYPE_NAME == "distro":  # type: ignore
         # is a distro object
         results["distro_name"] = results["name"]
-    elif "file" in results:
-        # is an image object
-        results["distro_name"] = "N/A"
-        results["image_name"] = results["name"]
 
     return results
 

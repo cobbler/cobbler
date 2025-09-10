@@ -312,6 +312,28 @@
                 "disabled": false
             }
         },
+        "network_interface": {
+            "name": {
+                "nonunique": true,
+                "disabled": false
+            },
+            "mac_address": {
+                "nonunique": false,
+                "disabled": false
+            },
+            "ip_address": {
+                "nonunique": false,
+                "disabled": false
+            },
+            "ipv6_address": {
+                "nonunique": false,
+                "disabled": false
+            },
+            "dns_name": {
+                "nonunique": false,
+                "disabled": false
+            }
+        },
         "profile": {
             "name": {
                 "nonunique": false,
@@ -355,26 +377,6 @@
             },
             "profile": {
                 "nonunique": true,
-                "disabled": false
-            },
-            "mac_address": {
-                "property": "get_mac_addresses",
-                "nonunique": false,
-                "disabled": false
-            },
-            "ip_address": {
-                "property": "get_ipv4_addresses",
-                "nonunique": false,
-                "disabled": false
-            },
-            "ipv6_address": {
-                "property": "get_ipv6_addresses",
-                "nonunique": false,
-                "disabled": false
-            },
-            "dns_name": {
-                "property": "get_dns_names",
-                "nonunique": false,
                 "disabled": false
             }
         }

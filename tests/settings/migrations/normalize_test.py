@@ -1,6 +1,7 @@
 """
 Tests for the Cobbler settings normalizations
 """
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
@@ -22,13 +23,17 @@ from cobbler.settings.migrations import (
     V3_3_3,
     V3_3_4,
     V3_3_5,
+    V3_3_6,
+    V3_3_7,
     V3_4_0,
 )
 
 
 def test_normalize_v3_0_0():
     # Arrange
-    with open("/code/tests/test_data/V3_0_0/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_0_0/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -40,7 +45,9 @@ def test_normalize_v3_0_0():
 
 def test_normalize_v3_0_1():
     # Arrange
-    with open("/code/tests/test_data/V3_0_1/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_0_1/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -52,7 +59,9 @@ def test_normalize_v3_0_1():
 
 def test_normalize_v3_1_0():
     # Arrange
-    with open("/code/tests/test_data/V3_1_0/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_1_0/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -64,7 +73,9 @@ def test_normalize_v3_1_0():
 
 def test_normalize_v3_1_1():
     # Arrange
-    with open("/code/tests/test_data/V3_1_1/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_1_1/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -76,7 +87,9 @@ def test_normalize_v3_1_1():
 
 def test_normalize_v3_1_2():
     # Arrange
-    with open("/code/tests/test_data/V3_1_2/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_1_2/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -88,7 +101,9 @@ def test_normalize_v3_1_2():
 
 def test_normalize_v3_2_0():
     # Arrange
-    with open("/code/tests/test_data/V3_2_0/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_2_0/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -100,7 +115,9 @@ def test_normalize_v3_2_0():
 
 def test_normalize_v3_2_1():
     # Arrange
-    with open("/code/tests/test_data/V3_2_1/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_2_1/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -112,7 +129,9 @@ def test_normalize_v3_2_1():
 
 def test_normalize_v3_3_0():
     # Arrange
-    with open("/code/tests/test_data/V3_3_0/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_3_0/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -124,7 +143,9 @@ def test_normalize_v3_3_0():
 
 def test_normalize_v3_3_1():
     # Arrange
-    with open("/code/tests/test_data/V3_3_1/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_3_1/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -136,7 +157,9 @@ def test_normalize_v3_3_1():
 
 def test_normalize_v3_3_2():
     # Arrange
-    with open("/code/tests/test_data/V3_3_2/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_3_2/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -148,7 +171,9 @@ def test_normalize_v3_3_2():
 
 def test_normalize_v3_3_3():
     # Arrange
-    with open("/code/tests/test_data/V3_3_3/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_3_3/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -162,7 +187,9 @@ def test_normalize_v3_3_3():
 
 def test_normalize_v3_3_4():
     # Arrange
-    with open("/code/tests/test_data/V3_3_4/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_3_4/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -174,7 +201,9 @@ def test_normalize_v3_3_4():
 
 def test_normalize_v3_3_5():
     # Arrange
-    with open("/code/tests/test_data/V3_3_4/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_3_4/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
@@ -182,6 +211,34 @@ def test_normalize_v3_3_5():
 
     # Assert
     assert len(new_settings) == 132
+
+
+def test_normalize_v3_3_6():
+    # Arrange
+    with open(
+        "/code/tests/test_data/V3_3_6/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+
+    # Act
+    new_settings = V3_3_6.normalize(old_settings_dict)
+
+    # Assert
+    assert len(new_settings) == 133
+
+
+def test_normalize_v3_3_7():
+    # Arrange
+    with open(
+        "/code/tests/test_data/V3_3_7/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+
+    # Act
+    new_settings = V3_3_7.normalize(old_settings_dict)
+
+    # Assert
+    assert len(new_settings) == 133
 
 
 def test_normalize_v3_4_0_empty():
@@ -207,7 +264,9 @@ def test_normalize_v3_4_0_partial():
 
 def test_normalize_v3_4_0_full():
     # Arrange
-    with open("/code/tests/test_data/V3_4_0/settings.yaml") as old_settings:
+    with open(
+        "/code/tests/test_data/V3_4_0/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
