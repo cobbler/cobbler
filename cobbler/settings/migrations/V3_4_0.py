@@ -11,6 +11,7 @@ import glob
 import json
 import os
 import pathlib
+import uuid
 from configparser import ConfigParser
 from typing import Any, Dict
 
@@ -413,11 +414,13 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
         modules_config_path.unlink()
 
     # Drop defaults
+    # pylint: disable-next=import-outside-toplevel
     from cobbler.settings import Settings
 
     helper.key_drop_if_default(settings, Settings().to_dict())
 
     # Write settings to disk
+    # pylint: disable-next=import-outside-toplevel
     from cobbler.settings import update_settings_file
 
     update_settings_file(settings)
@@ -436,6 +439,8 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     # TODO
     # Migrate MongoDB
     # TODO
+    # Migrate Network Interfaces to dedicated collection
+    migrate_cobbler_network_interfaces(collection_folder)
 
     return normalize(settings)
 
@@ -456,7 +461,7 @@ def migrate_cobbler_collections(collections_dir: str) -> None:
         with open(collection_file, encoding="utf-8") as _f:
             data = json.loads(_f.read())
 
-        # migrate interface.interface_type from emptry string to "NA"
+        # migrate interface.interface_type from empty string to "NA"
         if "interfaces" in data:
             for iface in data["interfaces"]:
                 if data["interfaces"][iface]["interface_type"] == "":
@@ -468,7 +473,10 @@ def migrate_cobbler_collections(collections_dir: str) -> None:
 
         # Migrate boot_files to template_files
         if "boot_files" in data and "template_files" in data:
-            data["template_files"] = {**data["template_files"], **data["boot_files"]}
+            # Dicts can both be implicitly and explicitly inherited
+            old_boot_files = data.pop("boot_files")
+            if old_boot_files != "<<inherit>>":
+                data["template_files"] = {**data["template_files"], **old_boot_files}
 
         with open(collection_file, "w", encoding="utf-8") as _f:
             _f.write(json.dumps(data))
@@ -483,8 +491,31 @@ def migrate_cobbler_json_files(collection_folder: pathlib.Path) -> None:
     helper.backup_dir(str(collection_folder))
     for folder in pathlib.Path(collection_folder).iterdir():
         for file in folder.iterdir():
-            if file.name.endswith(".json"):
-                uid = json.loads(file.read_text(encoding="UTF-8")).get("uid")
-                file.rename(f"{uid}.json")
+            if not file.name.endswith(".json"):
+                continue
+            uid = json.loads(file.read_text(encoding="UTF-8")).get("uid")
+            file.rename(file.parent / f"{uid}.json")
 
-    # TODO: Implement Network Interface migration
+
+def migrate_cobbler_network_interfaces(collection_folder: pathlib.Path) -> None:
+    """
+    Move all network interfaces from embedded system files to the dedicated collection.
+
+    :param collection_folder: The directory of Cobbler where the collections files are.
+    """
+    for file in (collection_folder / "systems").iterdir():
+        if not file.name.endswith(".json"):
+            continue
+        system_dict = json.loads(file.read_text(encoding="UTF-8"))
+        interfaces = system_dict.pop("interfaces")
+        for interface_name, interface_dict in interfaces.items():
+            interface_uid = uuid.uuid4().hex
+            interface_file = (
+                collection_folder / "network_interfaces" / f"{interface_uid}.json"
+            )
+            # Set uid & name and system uid of the interface
+            interface_dict["uid"] = interface_uid
+            interface_dict["name"] = interface_name
+            interface_dict["system_uid"] = system_dict["uid"]
+            interface_file.write_text(json.dumps(interface_dict), encoding="UTF-8")
+        file.write_text(json.dumps(system_dict), encoding="UTF-8")
