@@ -7,7 +7,9 @@ import logging
 import os
 from typing import TYPE_CHECKING, Any, List, Optional
 
-from cobbler import autoinstallgen, utils
+from cobbler.autoinstall.generate import AutoInstallationGen
+from cobbler import utils
+from cobbler.cexceptions import CX
 from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:
@@ -26,15 +28,36 @@ class AutoInstallationManager:
 
     def __init__(self, api: "CobblerAPI"):
         """
-        Constructor for the autoinstall manager.
+        Constructor for the auto-installation manager.
 
         :param api: The collection manager which has all objects.
         """
-        self.api = api
-        self.snippets_base_dir = api.settings().autoinstall_snippets_dir
-        self.templates_base_dir = api.settings().autoinstall_templates_dir
-        self.autoinstallgen = autoinstallgen.AutoInstallationGen(api)
         self.logger = logging.getLogger()
+        self.api = api
+        self.snippets_base_dir = self.api.settings().autoinstall_snippets_dir
+        self.templates_base_dir = self.api.settings().autoinstall_templates_dir
+        self.autoinstallgen = AutoInstallationGen(self.api)
+
+    @staticmethod
+    def __get_autoinstall_files(path: str) -> List[str]:
+        """
+        Generic way to load a list of files that are in a folder. The folder may contain sub-folders.
+
+        :param path: The root folder to start at.
+        :return: The list of files. If the file is in a sub-folder the path will be relative.
+        """
+        files: List[str] = []
+        for root, _, filenames in os.walk(path):
+            for filename in filenames:
+                rel_root = root[len(path) + 1 :]
+                if rel_root:
+                    rel_path = f"{rel_root}/{filename}"
+                else:
+                    rel_path = filename
+                files.append(rel_path)
+
+        files.sort()
+        return files
 
     def validate_autoinstall_template_file_path(
         self, autoinstall: str, for_item: bool = True, new_autoinstall: bool = False
@@ -56,7 +79,7 @@ class AutoInstallationManager:
         autoinstall = autoinstall.strip()
 
         if autoinstall == "":
-            # empty autoinstall is allowed (interactive installations)
+            # empty auto-installation is allowed (interactive installations)
             return autoinstall
 
         if for_item is True:
@@ -84,19 +107,7 @@ class AutoInstallationManager:
 
         :returns: A list of automatic installation templates
         """
-
-        files: List[str] = []
-        for root, _, filenames in os.walk(self.templates_base_dir):
-            for filename in filenames:
-                rel_root = root[len(self.templates_base_dir) + 1 :]
-                if rel_root:
-                    rel_path = f"{rel_root}/{filename}"
-                else:
-                    rel_path = filename
-                files.append(rel_path)
-
-        files.sort()
-        return files
+        return self.__get_autoinstall_files(self.templates_base_dir)
 
     def read_autoinstall_template(self, file_path: str) -> str:
         """
@@ -131,7 +142,7 @@ class AutoInstallationManager:
         file_full_path = f"{self.templates_base_dir}/{file_path}"
         try:
             filesystem_helpers.mkdir(os.path.dirname(file_full_path))
-        except Exception:
+        except CX:
             utils.die(
                 f"unable to create directory for automatic OS installation template at {file_path}"
             )
@@ -191,27 +202,15 @@ class AutoInstallationManager:
 
     def get_autoinstall_snippets(self) -> List[str]:
         """
-        Get a list of all autoinstallation snippets.
+        Get a list of all auto-installation snippets.
 
         :return: The list of snippets
         """
-        files: List[str] = []
-        for root, _, filenames in os.walk(self.snippets_base_dir):
-
-            for filename in filenames:
-                rel_root = root[len(self.snippets_base_dir) + 1 :]
-                if rel_root:
-                    rel_path = f"{rel_root}/{filename}"
-                else:
-                    rel_path = filename
-                files.append(rel_path)
-
-        files.sort()
-        return files
+        return self.__get_autoinstall_files(self.snippets_base_dir)
 
     def read_autoinstall_snippet(self, file_path: str) -> str:
         """
-        Reads a autoinstall snippet from underneath the configured snippet base dir.
+        Reads an auto-installation snippet from underneath the configured snippet base dir.
 
         :param file_path: The relative file path under the configured snippets base dir.
         :return: The read snippet.
@@ -248,7 +247,7 @@ class AutoInstallationManager:
 
     def remove_autoinstall_snippet(self, file_path: str) -> bool:
         """
-        Remove the autoinstall snippet with the given path.
+        Remove the auto-installation snippet with the given path.
 
         :param file_path: The path relative to the configured snippet root.
         :return: A boolean indicating the success of the task.
@@ -279,11 +278,11 @@ class AutoInstallationManager:
         self, profile: Optional[str] = None, system: Optional[str] = None
     ) -> str:
         """
-        Generates the autoinstallation for a system or a profile. You may only specifify one parameter. If you specify
+        Generates the auto-installation for a system or a profile. You may only specify one parameter. If you specify
         both, the system is generated and the profile argument is ignored.
 
-        :param profile: The Cobbler profile you want an autoinstallation generated for.
-        :param system: The Cobbler system you want an autoinstallation generated for.
+        :param profile: The Cobbler profile you want an auto-installation generated for.
+        :param system: The Cobbler system you want an auto-installation generated for.
         :return: The rendered template for the system or profile.
         """
         if system is not None:
