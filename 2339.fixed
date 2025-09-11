@@ -1,0 +1,1 @@
+Support Ubuntu 20.04 and later auto-installs via PXE & Ubuntu cloud-config (not cloud-init).
