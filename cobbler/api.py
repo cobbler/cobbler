@@ -2543,7 +2543,7 @@ class CobblerAPI:
 
     def get_valid_obj_boot_loaders(
         self, obj: Union["distro.Distro", "image_module.Image"]
-    ) -> List[str]:
+    ) -> List[enums.BootLoader]:
         """
         Return the list of valid boot loaders for the object
 

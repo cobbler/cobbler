@@ -4,6 +4,7 @@ Tests that validate the functionality of the module that is responsible for mana
 
 from typing import Any, Dict
 
+from cobbler import enums
 from cobbler.utils import signatures
 
 
@@ -14,7 +15,11 @@ def test_get_supported_distro_boot_loaders():
     result = signatures.get_supported_distro_boot_loaders(None)  # type: ignore
 
     # Assert
-    assert result == ["grub", "pxe", "ipxe"]
+    assert result == [
+        enums.BootLoader.GRUB,
+        enums.BootLoader.PXE,
+        enums.BootLoader.IPXE,
+    ]
 
 
 def test_load_signatures():

@@ -447,7 +447,11 @@ def test_get_supported_system_boot_loaders():
     result = utils.get_supported_system_boot_loaders()
 
     # Assert
-    assert result == ["grub", "pxe", "ipxe"]
+    assert result == [
+        enums.BootLoader.GRUB,
+        enums.BootLoader.PXE,
+        enums.BootLoader.IPXE,
+    ]
 
 
 @pytest.mark.parametrize("web_ss_exists", [True, False])

@@ -1004,13 +1004,13 @@ def subprocess_get(
     return data
 
 
-def get_supported_system_boot_loaders() -> List[str]:
+def get_supported_system_boot_loaders() -> List[enums.BootLoader]:
     """
     Return the list of currently supported bootloaders.
 
     :return: The list of currently supported bootloaders.
     """
-    return ["grub", "pxe", "ipxe"]
+    return list({value for value in enums.BootLoader} - {enums.BootLoader.INHERITED})
 
 
 def get_shared_secret() -> Union[str, int]:
@@ -1281,9 +1281,9 @@ def kopts_overwrite(
             kopts["textmode"] = ["1"]
         if system_name and cobbler_server_hostname:
             # only works if pxe_just_once is enabled in global settings
-            kopts[
-                "info"
-            ] = f"http://{cobbler_server_hostname}/cblr/svc/op/nopxe/system/{system_name}"
+            kopts["info"] = (
+                f"http://{cobbler_server_hostname}/cblr/svc/op/nopxe/system/{system_name}"
+            )
 
 
 def is_str_int(value: str) -> bool:

@@ -159,19 +159,18 @@ class Distro(BootableItem):
 
         self._tree_build_time = 0.0
         self._arch = enums.Archs.X86_64
-        self._boot_loaders: Union[List[str], str] = enums.VALUE_INHERITED
+        self._boot_loaders: List[enums.BootLoader] = [enums.BootLoader.INHERITED]
         self._breed = ""
         self._initrd = ""
         self._kernel = ""
-        self._mgmt_classes = []
         self._os_version = ""
         self._redhat_management_key = enums.VALUE_INHERITED
-        self._source_repos = []
+        self._source_repos: List[str] = []
         self._remote_boot_kernel = ""
         self._remote_grub_kernel = ""
         self._remote_boot_initrd = ""
         self._remote_grub_initrd = ""
-        self._supported_boot_loaders: List[str] = []
+        self._supported_boot_loaders: List[enums.BootLoader] = []
 
         if len(kwargs) > 0:
             self.from_dict(kwargs)
@@ -259,7 +258,7 @@ class Distro(BootableItem):
         """
         return self._kernel
 
-    @kernel.setter
+    @kernel.setter  # type: ignore[no-redef]
     def kernel(self, kernel: str):
         """
         Setter for the ``kernel`` property.
@@ -290,7 +289,7 @@ class Distro(BootableItem):
         # TODO: Obsolete it and merge with kernel property
         return self._remote_boot_kernel
 
-    @remote_boot_kernel.setter
+    @remote_boot_kernel.setter  # type: ignore[no-redef]
     def remote_boot_kernel(self, remote_boot_kernel: str):
         """
         Setter for the ``remote_boot_kernel`` property.
@@ -329,7 +328,7 @@ class Distro(BootableItem):
         """
         return self._tree_build_time
 
-    @tree_build_time.setter
+    @tree_build_time.setter  # type: ignore[no-redef]
     def tree_build_time(self, datestamp: float):
         r"""
         Setter for the ``tree_build_time`` property.
@@ -354,7 +353,7 @@ class Distro(BootableItem):
         """
         return self._breed
 
-    @breed.setter
+    @breed.setter  # type: ignore[no-redef]
     def breed(self, breed: str):
         """
         Set the Operating system breed.
@@ -373,7 +372,7 @@ class Distro(BootableItem):
         """
         return self._os_version
 
-    @os_version.setter
+    @os_version.setter  # type: ignore[no-redef]
     def os_version(self, os_version: str):
         """
         Set the Operating System Version.
@@ -392,7 +391,7 @@ class Distro(BootableItem):
         """
         return self._initrd
 
-    @initrd.setter
+    @initrd.setter  # type: ignore[no-redef]
     def initrd(self, initrd: str):
         r"""
         Setter for the ``initrd`` property.
@@ -439,7 +438,7 @@ class Distro(BootableItem):
         """
         return self._remote_boot_initrd
 
-    @remote_boot_initrd.setter
+    @remote_boot_initrd.setter  # type: ignore[no-redef]
     def remote_boot_initrd(self, remote_boot_initrd: str):
         r"""
         The setter for the ``remote_boot_initrd`` property.
@@ -477,7 +476,7 @@ class Distro(BootableItem):
         """
         return self._source_repos
 
-    @source_repos.setter
+    @source_repos.setter  # type: ignore[no-redef]
     def source_repos(self, repos: List[str]):
         r"""
         Setter for the ``source_repos`` property.
@@ -507,7 +506,7 @@ class Distro(BootableItem):
         """
         return self._arch
 
-    @arch.setter
+    @arch.setter  # type: ignore[no-redef]
     def arch(self, arch: Union[str, enums.Archs]):
         """
         The setter for the arch property.
@@ -532,7 +531,7 @@ class Distro(BootableItem):
                 )
 
     @property
-    def supported_boot_loaders(self) -> List[str]:
+    def supported_boot_loaders(self) -> List[enums.BootLoader]:
         """
         Some distributions, particularly on powerpc, can only be netbooted using specific bootloaders.
 
@@ -545,7 +544,7 @@ class Distro(BootableItem):
         return self._supported_boot_loaders
 
     @InheritableProperty
-    def boot_loaders(self) -> List[str]:
+    def boot_loaders(self) -> List[enums.BootLoader]:
         """
         All boot loaders for which Cobbler generates entries for.
 
@@ -555,14 +554,14 @@ class Distro(BootableItem):
         :setter: Validates this against the list of well-known bootloaders and raises a ``TypeError`` or ``ValueError``
                  in case the validation goes south.
         """
-        if self._boot_loaders == enums.VALUE_INHERITED:
+        if self._boot_loaders == [enums.BootLoader.INHERITED]:
             return self.supported_boot_loaders
         # The following line is missleading for pyright since it doesn't understand
         # that we use only a constant with str type.
-        return self._boot_loaders  # type: ignore
+        return self._boot_loaders
 
     @boot_loaders.setter  # type: ignore[no-redef]
-    def boot_loaders(self, boot_loaders: Union[str, List[str]]):
+    def boot_loaders(self, boot_loaders: Union[str, List[str], List[enums.BootLoader]]):
         """
         Set the bootloader for the distro.
 
@@ -570,22 +569,48 @@ class Distro(BootableItem):
         :raises TypeError: In case the value could not be converted to a list or was not of type list.
         :raises ValueError: In case the boot loader is not in the list of valid boot loaders.
         """
-        if isinstance(boot_loaders, str):
-            # allow the magic inherit string to persist, otherwise split the string.
-            if boot_loaders == enums.VALUE_INHERITED:
-                self._boot_loaders = enums.VALUE_INHERITED
+        boot_loaders_split: List[enums.BootLoader] = []
+        if isinstance(boot_loaders, list):
+            if all([isinstance(value, str) for value in boot_loaders]):
+                boot_loaders_split = [
+                    enums.BootLoader.to_enum(value) for value in boot_loaders
+                ]
+            elif all([isinstance(value, enums.BootLoader) for value in boot_loaders]):
+                boot_loaders_split = boot_loaders  # type: ignore
+            else:
+                raise TypeError(
+                    "The items inside the list of boot_loaders must all be of type str or cobbler.enums.BootLoader"
+                )
+        elif isinstance(boot_loaders, str):  # type: ignore
+            if boot_loaders == "":
+                self._boot_loaders = []
                 return
-            boot_loaders = input_converters.input_string_or_list(boot_loaders)
+            if boot_loaders == enums.VALUE_INHERITED:
+                self._boot_loaders = [enums.BootLoader.INHERITED]
+                return
+            boot_loaders_split = [
+                enums.BootLoader.to_enum(value)
+                for value in input_converters.input_string_or_list_no_inherit(
+                    boot_loaders
+                )
+            ]
+        else:
+            raise TypeError("The bootloaders need to be either a str or list")
 
-        if not isinstance(boot_loaders, list):  # type: ignore
-            raise TypeError("boot_loaders needs to be of type list!")
+        if (
+            len(boot_loaders_split) == 1
+            and boot_loaders_split[0] == enums.BootLoader.INHERITED
+        ):
+            self._boot_loaders = [enums.BootLoader.INHERITED]
+            return
 
-        if not set(boot_loaders).issubset(self.supported_boot_loaders):
+        if not set(boot_loaders_split).issubset(self.supported_boot_loaders):
+            self.logger.info(boot_loaders_split)
             raise ValueError(
-                f"Invalid boot loader names: {boot_loaders}. Supported boot loaders are:"
-                f" {' '.join(self.supported_boot_loaders)}"
+                f"Invalid boot loader names: {boot_loaders_split}. Supported boot loaders are:"
+                f" {' '.join([value.value for value in self.supported_boot_loaders])}"
             )
-        self._boot_loaders = boot_loaders
+        self._boot_loaders = boot_loaders_split
 
     @InheritableProperty
     def redhat_management_key(self) -> str:

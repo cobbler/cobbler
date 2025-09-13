@@ -207,7 +207,9 @@ class _IscManager(DhcpManagerModule):
                 iface["filename_esxi"] = (
                     "esxi/system",
                     # config filename can be None
-                    system_obj.get_config_filename(interface=iface_name, loader="pxe")
+                    system_obj.get_config_filename(
+                        interface=iface_name, loader=enums.BootLoader.PXE
+                    )
                     or "",
                     "mboot.efi",
                 )

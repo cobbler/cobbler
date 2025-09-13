@@ -536,7 +536,24 @@ class BaseItem(ABC):
                     else:
                         value[new_key] = key_value.value
                 elif isinstance(key_value, list):
-                    value[new_key] = copy.deepcopy(key_value)  # type: ignore
+                    new_value: List[Any] = copy.deepcopy(key_value)  # type: ignore
+                    for idx, list_value in enumerate(new_value):
+                        if isinstance(list_value, enum.Enum):
+                            new_value[idx] = list_value.value
+                    if (
+                        resolved
+                        and len(new_value) == 1
+                        and new_value[0] == enums.VALUE_INHERITED
+                    ):
+                        # Attempt to convert inherited lists if resolved dicts are requested
+                        new_value = getattr(self, new_key)
+                        for idx, list_value in enumerate(new_value):
+                            if isinstance(list_value, enum.Enum):
+                                new_value[idx] = list_value.value
+                        value[new_key] = new_value
+                    else:
+                        # If this is a normal dict, leave the inherit value present
+                        value[new_key] = new_value
                 elif isinstance(key_value, dict):
                     if resolved:
                         value[new_key] = getattr(self, new_key)

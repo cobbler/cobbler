@@ -275,3 +275,14 @@ class TlsRequireCert(ConvertableEnum):
     ALLOW = "allow"
     DEMAND = "demand"
     HARD = "hard"
+
+
+class BootLoader(ConvertableEnum):
+    """
+    This enum represents all supported boot loaders inside Cobbler.
+    """
+
+    INHERITED = VALUE_INHERITED
+    GRUB = "grub"
+    IPXE = "ipxe"
+    PXE = "pxe"

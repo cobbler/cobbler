@@ -194,7 +194,7 @@ class Profile(BootableItem):
         self._has_initialized = False
 
         self._autoinstall = enums.VALUE_INHERITED
-        self._boot_loaders: Union[List[str], str] = enums.VALUE_INHERITED
+        self._boot_loaders: List[enums.BootLoader] = [enums.BootLoader.INHERITED]
         self._dhcp_tag = ""
         self._distro = ""
         self._enable_ipxe: Union[str, bool] = enums.VALUE_INHERITED
@@ -850,7 +850,7 @@ class Profile(BootableItem):
         self._redhat_management_key = management_key
 
     @InheritableProperty
-    def boot_loaders(self) -> List[str]:
+    def boot_loaders(self) -> List[enums.BootLoader]:
         """
         This represents all boot loaders for which Cobbler will try to generate bootloader configuration for.
 
@@ -859,42 +859,72 @@ class Profile(BootableItem):
         :getter: The bootloaders.
         :setter: The new bootloaders. Will be validates against a list of well known ones.
         """
-        return self._resolve("boot_loaders")
+        return self._resolve_enum("boot_loaders", enums.BootLoader)
 
     @boot_loaders.setter  # type: ignore[no-redef]
-    def boot_loaders(self, boot_loaders: Union[List[str], str]):
+    def boot_loaders(
+        self,
+        boot_loaders: Union[str, List[str], List[enums.BootLoader]],
+    ):
         """
         Setter of the boot loaders.
 
         :param boot_loaders: The boot loaders for the profile.
         :raises ValueError: In case the supplied boot loaders were not a subset of the valid ones.
         """
-        if boot_loaders == enums.VALUE_INHERITED:
-            self._boot_loaders = enums.VALUE_INHERITED
+        boot_loaders_split: List[enums.BootLoader] = []
+        if isinstance(boot_loaders, list):
+            if all([isinstance(value, str) for value in boot_loaders]):
+                boot_loaders_split = [
+                    enums.BootLoader.to_enum(value) for value in boot_loaders
+                ]
+            elif all([isinstance(value, enums.BootLoader) for value in boot_loaders]):
+                boot_loaders_split = boot_loaders  # type: ignore
+            else:
+                raise TypeError(
+                    "The items inside the list of boot_loaders must all be of type str or cobbler.enums.BootLoader"
+                )
+        elif isinstance(boot_loaders, str):  # type: ignore
+            if boot_loaders == "":
+                self._boot_loaders = []
+                return
+            if boot_loaders == enums.VALUE_INHERITED:
+                self._boot_loaders = [enums.BootLoader.INHERITED]
+                return
+            boot_loaders_split = [
+                enums.BootLoader.to_enum(value)
+                for value in input_converters.input_string_or_list_no_inherit(
+                    boot_loaders
+                )
+            ]
+        else:
+            raise TypeError("The bootloaders need to be either a str or list")
+
+        parent = self.parent
+        if parent is None:
+            parent = self.distro
+        if parent is not None:
+            parent_boot_loaders: List[enums.BootLoader] = parent.boot_loaders  # type: ignore
+        else:
+            self.logger.warning(
+                'Parent of profile "%s" could not be found for resolving the parent bootloaders.',
+                self.name,
+            )
+            parent_boot_loaders = []
+
+        if (
+            len(boot_loaders_split) == 1
+            and boot_loaders_split[0] == enums.BootLoader.INHERITED
+        ):
+            self._boot_loaders = [enums.BootLoader.INHERITED]
             return
 
-        if boot_loaders:
-            boot_loaders_split = input_converters.input_string_or_list(boot_loaders)
-
-            parent = self.parent
-            if parent is None:
-                parent = self.distro
-            if parent is not None:
-                parent_boot_loaders = parent.boot_loaders  # type: ignore
-            else:
-                self.logger.warning(
-                    'Parent of profile "%s" could not be found for resolving the parent bootloaders.',
-                    self.name,
-                )
-                parent_boot_loaders = []
-            if not set(boot_loaders_split).issubset(parent_boot_loaders):  # type: ignore
-                raise CX(
-                    f'Error with profile "{self.name}" - not all boot_loaders are supported (given:'
-                    f'"{str(boot_loaders_split)}"; supported: "{str(parent_boot_loaders)}")'  # type: ignore
-                )
-            self._boot_loaders = boot_loaders_split
-        else:
-            self._boot_loaders = []
+        if not set(boot_loaders_split).issubset(parent_boot_loaders):  # type: ignore
+            raise ValueError(
+                f"Invalid boot loader names: {boot_loaders_split}. Supported boot loaders are:"
+                f" {' '.join([value.value for value in parent_boot_loaders])}"  # type: ignore
+            )
+        self._boot_loaders = boot_loaders_split
 
     @LazyProperty
     def menu(self) -> str:

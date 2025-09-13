@@ -90,7 +90,7 @@ class Menu(BootableItem):
         """
         return self._display_name
 
-    @display_name.setter
+    @display_name.setter  # type: ignore[no-redef]
     def display_name(self, display_name: str) -> None:
         """
         Setter for the display_name of the item.

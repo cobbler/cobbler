@@ -164,8 +164,8 @@ class Image(BootableItem):
         self._image_type = enums.ImageTypes.DIRECT
         self._network_count = 0
         self._os_version = ""
-        self._supported_boot_loaders: List[str] = []
-        self._boot_loaders: Union[List[str], str] = enums.VALUE_INHERITED
+        self._supported_boot_loaders: List[enums.BootLoader] = []
+        self._boot_loaders: List[enums.BootLoader] = [enums.BootLoader.INHERITED]
         self._menu = ""
         self._display_name = ""
         self._virt_auto_boot: Union[str, bool] = enums.VALUE_INHERITED
@@ -217,7 +217,7 @@ class Image(BootableItem):
         """
         return self._arch
 
-    @arch.setter
+    @arch.setter  # type: ignore[no-redef]
     def arch(self, arch: Union[str, enums.Archs]):
         """
         The field is mainly relevant to PXE provisioning.
@@ -245,7 +245,7 @@ class Image(BootableItem):
         """
         return self._resolve("autoinstall")
 
-    @autoinstall.setter
+    @autoinstall.setter  # type: ignore[no-redef]
     def autoinstall(self, autoinstall: str):
         """
         Set the automatic installation file path, this must be a local file.
@@ -273,7 +273,7 @@ class Image(BootableItem):
         """
         return self._file
 
-    @file.setter
+    @file.setter  # type: ignore[no-redef]
     def file(self, filename: str):
         """
         The setter for the image location.
@@ -331,7 +331,7 @@ class Image(BootableItem):
         """
         return self._os_version
 
-    @os_version.setter
+    @os_version.setter  # type: ignore[no-redef]
     def os_version(self, os_version: str):
         """
         Set the operating system version with this setter.
@@ -350,7 +350,7 @@ class Image(BootableItem):
         """
         return self._breed
 
-    @breed.setter
+    @breed.setter  # type: ignore[no-redef]
     def breed(self, breed: str):
         """
         Set the operating system breed with this setter.
@@ -373,7 +373,7 @@ class Image(BootableItem):
         """
         return self._image_type
 
-    @image_type.setter
+    @image_type.setter  # type: ignore[no-redef]
     def image_type(self, image_type: Union[enums.ImageTypes, str]):
         """
         The setter which accepts enum type or str type values. Latter ones will be automatically converted if possible.
@@ -413,7 +413,7 @@ class Image(BootableItem):
         """
         return self._virt_cpus
 
-    @virt_cpus.setter
+    @virt_cpus.setter  # type: ignore[no-redef]
     def virt_cpus(self, num: int):
         """
         Setter for the number of virtual cpus.
@@ -435,7 +435,7 @@ class Image(BootableItem):
         """
         return self._network_count
 
-    @network_count.setter
+    @network_count.setter  # type: ignore[no-redef]
     def network_count(self, network_count: Union[int, str]):
         """
         Setter for the number of networks.
@@ -461,7 +461,7 @@ class Image(BootableItem):
         """
         return self._resolve("virt_auto_boot")
 
-    @virt_auto_boot.setter
+    @virt_auto_boot.setter  # type: ignore[no-redef]
     def virt_auto_boot(self, num: Union[str, bool]):
         """
         Setter for the virtual automatic boot option.
@@ -483,7 +483,7 @@ class Image(BootableItem):
         """
         return self._resolve("virt_file_size")
 
-    @virt_file_size.setter
+    @virt_file_size.setter  # type: ignore[no-redef]
     def virt_file_size(self, num: float):
         """
         Setter for the virtual file size of the image.
@@ -503,7 +503,7 @@ class Image(BootableItem):
         """
         return self._resolve_enum("virt_disk_driver", enums.VirtDiskDrivers)
 
-    @virt_disk_driver.setter
+    @virt_disk_driver.setter  # type: ignore[no-redef]
     def virt_disk_driver(self, driver: enums.VirtDiskDrivers):
         """
         Setter for the virtual disk driver.
@@ -522,7 +522,7 @@ class Image(BootableItem):
         """
         return self._resolve("virt_ram")
 
-    @virt_ram.setter
+    @virt_ram.setter  # type: ignore[no-redef]
     def virt_ram(self, num: int):
         """
         Setter for the amount of virtual RAM the machine will have.
@@ -541,7 +541,7 @@ class Image(BootableItem):
         """
         return self._resolve_enum("virt_type", enums.VirtType)
 
-    @virt_type.setter
+    @virt_type.setter  # type: ignore[no-redef]
     def virt_type(self, vtype: enums.VirtType):
         """
         Setter for the virtual type
@@ -562,7 +562,7 @@ class Image(BootableItem):
         """
         return self._resolve("virt_bridge")
 
-    @virt_bridge.setter
+    @virt_bridge.setter  # type: ignore[no-redef]
     def virt_bridge(self, vbridge: str):
         """
         Setter for the virtual bridge which is used.
@@ -581,7 +581,7 @@ class Image(BootableItem):
         """
         return self._virt_path
 
-    @virt_path.setter
+    @virt_path.setter  # type: ignore[no-redef]
     def virt_path(self, path: str):
         """
         Setter for the virtual path which is used.
@@ -600,7 +600,7 @@ class Image(BootableItem):
         """
         return self._menu
 
-    @menu.setter
+    @menu.setter  # type: ignore[no-redef]
     def menu(self, menu: str):
         """
         Setter for the menu property.
@@ -626,7 +626,7 @@ class Image(BootableItem):
         """
         return self._display_name
 
-    @display_name.setter
+    @display_name.setter  # type: ignore[no-redef]
     def display_name(self, display_name: str):
         """
         Setter for the display_name of the item.
@@ -636,7 +636,7 @@ class Image(BootableItem):
         self._display_name = display_name
 
     @property
-    def supported_boot_loaders(self) -> List[str]:
+    def supported_boot_loaders(self) -> List[enums.BootLoader]:
         """
         Read only property which represents the subset of settable bootloaders.
 
@@ -649,21 +649,24 @@ class Image(BootableItem):
         return self._supported_boot_loaders
 
     @InheritableProperty
-    def boot_loaders(self) -> List[str]:
+    def boot_loaders(self) -> List[enums.BootLoader]:
         """
         Represents the boot loaders which are able to boot this image.
 
         :getter: The bootloaders. May be an emtpy list.
         :setter: A list with the supported boot loaders for this image.
         """
-        if self._boot_loaders == enums.VALUE_INHERITED:
+        if self._boot_loaders == [enums.BootLoader.INHERITED]:
             return self.supported_boot_loaders
         # The following line is missleading for pyright since it doesn't understand
         # that we use only a constant with str type.
         return self._boot_loaders  # type: ignore
 
     @boot_loaders.setter  # type: ignore[no-redef]
-    def boot_loaders(self, boot_loaders: Union[List[str], str]):
+    def boot_loaders(
+        self,
+        boot_loaders: Union[str, List[str], List[enums.BootLoader]],
+    ):
         """
         Setter of the boot loaders.
 
@@ -671,22 +674,44 @@ class Image(BootableItem):
         :raises TypeError: In case this was of a not allowed type.
         :raises ValueError: In case the str which contained the list could not be successfully split.
         """
-        # allow the magic inherit string to persist
-        if boot_loaders == enums.VALUE_INHERITED:
-            self._boot_loaders = enums.VALUE_INHERITED
+        boot_loaders_split: List[enums.BootLoader] = []
+        if isinstance(boot_loaders, list):
+            if all([isinstance(value, str) for value in boot_loaders]):
+                boot_loaders_split = [
+                    enums.BootLoader.to_enum(value) for value in boot_loaders
+                ]
+            elif all([isinstance(value, enums.BootLoader) for value in boot_loaders]):
+                boot_loaders_split = boot_loaders  # type: ignore
+            else:
+                raise TypeError(
+                    "The items inside the list of boot_loaders must all be of type str or cobbler.enums.BootLoader"
+                )
+        elif isinstance(boot_loaders, str):  # type: ignore
+            if boot_loaders == "":
+                self._boot_loaders = []
+                return
+            if boot_loaders == enums.VALUE_INHERITED:
+                self._boot_loaders = [enums.BootLoader.INHERITED]
+                return
+            boot_loaders_split = [
+                enums.BootLoader.to_enum(value)
+                for value in input_converters.input_string_or_list_no_inherit(
+                    boot_loaders
+                )
+            ]
+        else:
+            raise TypeError("The bootloaders need to be either a str or list")
+
+        if (
+            len(boot_loaders_split) == 1
+            and boot_loaders_split[0] == enums.BootLoader.INHERITED
+        ):
+            self._boot_loaders = [enums.BootLoader.INHERITED]
             return
 
-        if boot_loaders:
-            boot_loaders_split = input_converters.input_string_or_list(boot_loaders)
-
-            if not isinstance(boot_loaders_split, list):
-                raise TypeError("boot_loaders needs to be of type list!")
-
-            if not set(boot_loaders_split).issubset(self.supported_boot_loaders):
-                raise ValueError(
-                    f"Error with image {self.name} - not all boot_loaders {boot_loaders_split} are"
-                    f" supported {self.supported_boot_loaders}"
-                )
-            self._boot_loaders = boot_loaders_split
-        else:
-            self._boot_loaders = []
+        if not set(boot_loaders).issubset(self.supported_boot_loaders):
+            raise ValueError(
+                f"Invalid boot loader names: {boot_loaders}. Supported boot loaders are:"
+                f" {' '.join([value.value for value in self.supported_boot_loaders])}"
+            )
+        self._boot_loaders = boot_loaders_split

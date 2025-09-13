@@ -345,8 +345,12 @@ class TFTPGen:
             # Passing "pxe" here is a hack, but we need to make sure that
             # get_config_filename() will return a filename in the pxelinux
             # bootloader_format.
-            pxe_name = system.get_config_filename(interface=name, loader="pxe")
-            grub_name = system.get_config_filename(interface=name, loader="grub")
+            pxe_name = system.get_config_filename(
+                interface=name, loader=enums.BootLoader.PXE
+            )
+            grub_name = system.get_config_filename(
+                interface=name, loader=enums.BootLoader.GRUB
+            )
 
             if pxe_name is not None:
                 pxe_path = os.path.join(self.bootloc, "pxelinux.cfg", pxe_name)
@@ -405,7 +409,7 @@ class TFTPGen:
                             profile,
                             distro,
                             working_arch,
-                            bootloader_format="grub",
+                            bootloader_format=enums.BootLoader.GRUB,
                         )
                         # Generate a link named after system to the mac file for easier lookup
                         link_path = os.path.join(
@@ -501,7 +505,9 @@ class TFTPGen:
             raise ValueError("Arch could not be fetched!")
 
         for name, _ in system.interfaces.items():
-            pxe_name = system.get_config_filename(interface=name, loader="pxe")
+            pxe_name = system.get_config_filename(
+                interface=name, loader=enums.BootLoader.PXE
+            )
             if pxe_name and (
                 path == pathlib.Path("/pxelinux.cfg", pxe_name)
                 or path == pathlib.Path("/esxi/pxelinux.cfg", pxe_name)
@@ -514,7 +520,9 @@ class TFTPGen:
                     working_arch,
                     metadata=metadata,
                 )
-            grub_name = system.get_config_filename(interface=name, loader="grub")
+            grub_name = system.get_config_filename(
+                interface=name, loader=enums.BootLoader.GRUB
+            )
             if grub_name and path == pathlib.Path("/grub/system", grub_name):
                 return self.write_pxe_file(
                     None,
@@ -522,7 +530,7 @@ class TFTPGen:
                     profile,
                     distro,
                     working_arch,
-                    bootloader_format="grub",
+                    bootloader_format=enums.BootLoader.GRUB,
                 )
             if path == pathlib.Path("/esxi/system", system.name, "boot.cfg"):
                 # FIXME: generate_bootcfg shouldn't waste time searching for the system again
@@ -790,9 +798,9 @@ class TFTPGen:
     def _get_item_menu(
         self,
         arch: Optional[enums.Archs],
-        boot_loader: str,
-        current_menu_items: Dict[str, Any],
-        menu_labels: Dict[str, Any],
+        boot_loader: enums.BootLoader,
+        current_menu_items: Dict[enums.BootLoader, Any],
+        menu_labels: Dict[enums.BootLoader, Any],
         distro: Optional["Distro"] = None,
         profile: Optional["Profile"] = None,
         image: Optional["Image"] = None,
@@ -836,11 +844,11 @@ class TFTPGen:
                 menu_labels[boot_loader] = []
 
             # iPXE Level menu
-            if boot_loader == "ipxe":
+            if boot_loader == enums.BootLoader.IPXE:
                 display_name = target_item.name
                 if target_item.display_name and target_item.display_name != "":
                     display_name = target_item.display_name
-                menu_labels["ipxe"].append(
+                menu_labels[enums.BootLoader.IPXE].append(
                     {"name": target_item.name, "display_name": display_name}
                 )
 
@@ -873,7 +881,7 @@ class TFTPGen:
             raise ValueError("find_profile was expexted to return a list!")
         profile_list.sort(key=lambda profile: profile.name)
 
-        current_menu_items: Dict[str, Any] = {}
+        current_menu_items: Dict[enums.BootLoader, Any] = {}
         menu_labels = metadata["menu_labels"]
 
         for profile in profile_list:
@@ -962,7 +970,7 @@ class TFTPGen:
         metadata: Dict[str, Any] = {}
         metadata["parent_menu_name"] = "Cobbler"
         metadata["parent_menu_label"] = "Cobbler"
-        template_data: Dict[str, Any] = {}
+        template_data: Dict[enums.BootLoader, Any] = {}
         boot_loaders = utils.get_supported_system_boot_loaders()
 
         if menu:
@@ -982,7 +990,7 @@ class TFTPGen:
         for boot_loader in boot_loaders:
             template = (
                 pathlib.Path(self.settings.boot_loader_conf_template_dir)
-                / f"{boot_loader}_submenu.template"
+                / f"{boot_loader.value}_submenu.template"
             )
             if template.exists():
                 with open(template, encoding="UTF-8") as template_fh:
@@ -991,7 +999,7 @@ class TFTPGen:
                 self.logger.warning(
                     'Template for building a submenu not found for bootloader "%s"! Submenu '
                     "structure thus missing for this bootloader.",
-                    boot_loader,
+                    boot_loader.value,
                 )
 
         self.get_submenus(menu, metadata, arch)
@@ -1001,7 +1009,7 @@ class TFTPGen:
         self.get_images_menu(menu, metadata, arch)
         current_menu_items = metadata["menu_items"]
 
-        menu_items: Dict[str, Any] = {}
+        menu_items: Dict[enums.BootLoader, Any] = {}
         menu_labels = metadata["menu_labels"]
         line_pat = re.compile(r"^(.+)$", re.MULTILINE)
         line_sub = "\t\\g<1>"
@@ -1014,7 +1022,7 @@ class TFTPGen:
                 continue
 
             menu_items[boot_loader] = ""
-            if boot_loader == "ipxe":
+            if boot_loader == enums.BootLoader.IPXE:
                 if menu:
                     if boot_loader in current_menu_items:
                         menu_items[boot_loader] = current_menu_items[boot_loader]
@@ -1045,7 +1053,7 @@ class TFTPGen:
                 menu_items[boot_loader] = self.templar.render(
                     template_data[boot_loader], metadata, None
                 )
-                if boot_loader == "ipxe":
+                if boot_loader == enums.BootLoader.IPXE:
                     menu_items[boot_loader] += "\n"
         metadata["menu_items"] = menu_items
         metadata["menu_labels"] = menu_labels
@@ -1060,7 +1068,7 @@ class TFTPGen:
         arch: Optional[Archs],
         image: Optional["Image"] = None,
         metadata: Optional[Dict[str, Union[str, Dict[str, str]]]] = None,
-        bootloader_format: str = "pxe",
+        bootloader_format: enums.BootLoader = enums.BootLoader.PXE,
     ) -> str:
         """
         Write a configuration file for the boot loader(s).
@@ -1121,7 +1129,8 @@ class TFTPGen:
         buffer = ""
 
         template = os.path.join(
-            self.settings.boot_loader_conf_template_dir, bootloader_format + ".template"
+            self.settings.boot_loader_conf_template_dir,
+            bootloader_format.value + ".template",
         )
         self.build_kernel(metadata, system, profile, distro, image, bootloader_format)  # type: ignore
 
@@ -1155,9 +1164,9 @@ class TFTPGen:
                 else:
                     serial_baud_rate = system.serial_baud_rate.value
 
-                if bootloader_format == "pxe":
+                if bootloader_format == enums.BootLoader.PXE:
                     buffer += f"serial {serial_device:d} {serial_baud_rate:d}\n"
-                elif bootloader_format == "grub":
+                elif bootloader_format == enums.BootLoader.GRUB:
                     buffer += "set serial_console=true\n"
                     buffer += f"set serial_baud={serial_baud_rate}\n"
                     buffer += f"set serial_line={serial_device}\n"
@@ -1173,7 +1182,7 @@ class TFTPGen:
                 else:
                     bootcfg_path = os.path.join("system", system.name, "boot.cfg")
                 # write the boot.cfg file in the bootcfg_path
-                if bootloader_format == "pxe":
+                if bootloader_format == enums.BootLoader.PXE:
                     self._write_bootcfg_file("system", system.name, bootcfg_path)
                 # make bootcfg_path available for templating
                 metadata["bootcfg_path"] = bootcfg_path
@@ -1703,7 +1712,13 @@ class TFTPGen:
             return ""
 
         result = self.write_pxe_file(
-            None, system, profile, distro, arch, image, bootloader_format="ipxe"
+            None,
+            system,
+            profile,
+            distro,
+            arch,
+            image,
+            bootloader_format=enums.BootLoader.IPXE,
         )
         if not result:
             return ""

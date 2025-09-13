@@ -226,19 +226,31 @@ class BootableItem(InheritableItem, ABC):
         See :meth:`~cobbler.items.abstract.bootable_item.BootableItem._resolve`
         """
         attribute_value, settings_name = self.__common_resolve(property_name)
-        unwrapped_value = getattr(attribute_value, "value", "")
+        if (
+            isinstance(attribute_value, list)
+            and len(attribute_value) == 1  # type: ignore
+            and attribute_value[0].value == enums.VALUE_INHERITED  # type: ignore
+        ):
+            unwrapped_value = enums.VALUE_INHERITED
+        else:
+            unwrapped_value = getattr(attribute_value, "value", "")  # type: ignore
         if unwrapped_value == enums.VALUE_INHERITED:
             possible_return = self.__resolve_get_parent_or_settings(
-                unwrapped_value, settings_name
+                property_name, settings_name
             )
-            if possible_return is not None:
+            if isinstance(possible_return, list):
+                for idx, value in enumerate(possible_return):  # type: ignore
+                    if not isinstance(value, enums.ConvertableEnum):
+                        possible_return[idx] = enum_type(value)
+                return possible_return  # type: ignore
+            elif possible_return is not None:
                 return enum_type(possible_return)
             raise AttributeError(
                 f'{type(self)} "{self.name}" inherits property "{property_name}", but neither its parent nor'
                 f" settings have it"
             )
 
-        return attribute_value
+        return attribute_value  # type: ignore
 
     def _resolve_dict(self, property_name: str) -> Dict[str, Any]:
         """

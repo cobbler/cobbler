@@ -187,9 +187,13 @@ def test_autoinstall(cobbler_api: CobblerAPI):
     [
         ("", does_not_raise(), []),
         ([], does_not_raise(), []),
-        ("<<inherit>>", does_not_raise(), ["grub", "pxe", "ipxe"]),
-        ([""], pytest.raises(CX), []),
-        (["ipxe"], does_not_raise(), ["ipxe"]),
+        (
+            "<<inherit>>",
+            does_not_raise(),
+            [enums.BootLoader.GRUB, enums.BootLoader.PXE, enums.BootLoader.IPXE],
+        ),
+        ([""], pytest.raises(ValueError), []),
+        (["ipxe"], does_not_raise(), [enums.BootLoader.IPXE]),
     ],
 )
 def test_boot_loaders(

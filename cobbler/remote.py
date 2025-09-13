@@ -2829,7 +2829,7 @@ class CobblerXMLRPCInterface:
 
     def get_valid_distro_boot_loaders(
         self, distro_name: Optional[str], token: Optional[str] = None
-    ):
+    ) -> List[str]:
         """
         Return the list of valid boot loaders for the distro
 
@@ -2839,15 +2839,15 @@ class CobblerXMLRPCInterface:
         """
         self._log("get_valid_distro_boot_loaders", token=token)
         if distro_name is None:
-            return utils.get_supported_system_boot_loaders()
+            return [value.value for value in utils.get_supported_system_boot_loaders()]
         obj = self.api.find_distro(name=distro_name)
         if obj is None or isinstance(obj, list):
-            return f"# object not found: {distro_name}"
-        return self.api.get_valid_obj_boot_loaders(obj)
+            return [f"# object not found: {distro_name}"]
+        return [value.value for value in self.api.get_valid_obj_boot_loaders(obj)]  # type: ignore[arg-type]
 
     def get_valid_image_boot_loaders(
         self, image_name: Optional[str], token: Optional[str] = None
-    ):
+    ) -> List[str]:
         """
         Return the list of valid boot loaders for the image
 
@@ -2857,15 +2857,15 @@ class CobblerXMLRPCInterface:
         """
         self._log("get_valid_image_boot_loaders", token=token)
         if image_name is None:
-            return utils.get_supported_system_boot_loaders()
+            return [value.value for value in utils.get_supported_system_boot_loaders()]
         obj = self.api.find_image(name=image_name)
         if obj is None:
-            return f"# object not found: {image_name}"
-        return self.api.get_valid_obj_boot_loaders(obj)  # type: ignore
+            return [f"# object not found: {image_name}"]
+        return [value.value for value in self.api.get_valid_obj_boot_loaders(obj)]  # type: ignore[arg-type]
 
     def get_valid_profile_boot_loaders(
         self, profile_name: Optional[str], token: Optional[str] = None
-    ):
+    ) -> List[str]:
         """
         Return the list of valid boot loaders for the profile
 
@@ -2875,12 +2875,12 @@ class CobblerXMLRPCInterface:
         """
         self._log("get_valid_profile_boot_loaders", token=token)
         if profile_name is None:
-            return utils.get_supported_system_boot_loaders()
+            return [value.value for value in utils.get_supported_system_boot_loaders()]
         obj = self.api.find_profile(name=profile_name)
         if obj is None or isinstance(obj, list):
-            return f"# object not found: {profile_name}"
+            return [f"# object not found: {profile_name}"]
         distro = obj.get_conceptual_parent()
-        return self.api.get_valid_obj_boot_loaders(distro)  # type: ignore
+        return [value.value for value in self.api.get_valid_obj_boot_loaders(distro)]  # type: ignore[arg-type]
 
     def get_valid_system_boot_loaders(
         self, system_name: Optional[str], token: Optional[str] = None
@@ -2894,7 +2894,7 @@ class CobblerXMLRPCInterface:
         """
         self._log("get_valid_system_boot_loaders", token=token)
         if system_name is None:
-            return utils.get_supported_system_boot_loaders()
+            return [value.value for value in utils.get_supported_system_boot_loaders()]
         obj = self.api.find_system(name=system_name)
         if obj is None or isinstance(obj, list):
             return [f"# object not found: {system_name}"]
@@ -2902,7 +2902,7 @@ class CobblerXMLRPCInterface:
 
         if parent and parent.COLLECTION_TYPE == "profile":  # type: ignore[reportUnnecessaryComparison]
             return parent.boot_loaders  # type: ignore
-        return self.api.get_valid_obj_boot_loaders(parent)  # type: ignore
+        return [value.value for value in self.api.get_valid_obj_boot_loaders(parent)]  # type: ignore[arg-type]
 
     def get_repo_config_for_profile(self, profile_name: str, **rest: Any):
         """

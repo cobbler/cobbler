@@ -22,6 +22,9 @@ if TYPE_CHECKING:
 
 @pytest.fixture(name="test_settings")
 def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> Settings:
+    """
+    Fixture to provide test settings for the distro tests.
+    """
     settings = mocker.MagicMock(name="distro_setting_mock", spec=cobbler_api.settings())
     orig = cobbler_api.settings()
     for key in orig.to_dict():
@@ -79,10 +82,10 @@ def test_make_clone(
     folder = create_kernel_initrd(fk_kernel, fk_initrd)
     signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
     distro = Distro(cobbler_api)
-    distro.breed = "suse"
-    distro.os_version = "sles15generic"
-    distro.kernel = os.path.join(folder, fk_kernel)
-    distro.initrd = os.path.join(folder, fk_initrd)
+    distro.breed = "suse"  # type: ignore[method-assign]
+    distro.os_version = "sles15generic"  # type: ignore[method-assign]
+    distro.kernel = os.path.join(folder, fk_kernel)  # type: ignore[method-assign]
+    distro.initrd = os.path.join(folder, fk_initrd)  # type: ignore[method-assign]
 
     # Act
     result = distro.make_clone()
@@ -115,9 +118,9 @@ def test_check_if_valid(
     # Arrange
     test_folder = create_kernel_initrd(fk_kernel, fk_initrd)
     test_distro = Distro(cobbler_api)
-    test_distro.name = "testname"
-    test_distro.kernel = os.path.join(test_folder, fk_kernel)
-    test_distro.initrd = os.path.join(test_folder, fk_initrd)
+    test_distro.name = "testname"  # type: ignore[method-assign]
+    test_distro.kernel = os.path.join(test_folder, fk_kernel)  # type: ignore[method-assign]
+    test_distro.initrd = os.path.join(test_folder, fk_initrd)  # type: ignore[method-assign]
 
     # Act
     test_distro.check_if_valid()
@@ -140,7 +143,7 @@ def test_to_dict(cobbler_api: CobblerAPI):
     assert isinstance(result, dict)
     assert "autoinstall_meta" in result
     assert "ks_meta" in result
-    assert result.get("boot_loaders") == enums.VALUE_INHERITED
+    assert result.get("boot_loaders") == [enums.VALUE_INHERITED]
     # TODO check more fields
 
 
@@ -150,7 +153,7 @@ def test_to_dict_resolved(cobbler_api: CobblerAPI, create_distro: Callable[[], D
     """
     # Arrange
     test_distro = create_distro()
-    test_distro.kernel_options = {"test": True}
+    test_distro.kernel_options = {"test": True}  # type: ignore[method-assign]
     cobbler_api.add_distro(test_distro)
 
     # Act
@@ -187,7 +190,7 @@ def test_tree_build_time(cobbler_api: CobblerAPI, value: Any, expected: Any):
 
     # Act
     with expected:
-        distro.tree_build_time = value
+        distro.tree_build_time = value  # type: ignore[method-assign]
 
         # Assert
         assert distro.tree_build_time == value
@@ -216,7 +219,7 @@ def test_arch(cobbler_api: CobblerAPI, value: Any, expected: Any):
 
     # Act
     with expected:
-        distro.arch = value
+        distro.arch = value  # type: ignore[method-assign]
 
         # Assert
         if isinstance(value, str):
@@ -229,10 +232,14 @@ def test_arch(cobbler_api: CobblerAPI, value: Any, expected: Any):
     "value,expected_exception,expected_result",
     [
         ("", does_not_raise(), ""),
-        ("<<inherit>>", does_not_raise(), ["grub", "pxe", "ipxe"]),
+        (
+            "<<inherit>>",
+            does_not_raise(),
+            [enums.BootLoader.GRUB, enums.BootLoader.PXE, enums.BootLoader.IPXE],
+        ),
         ("Test", pytest.raises(ValueError), ""),
         (0, pytest.raises(TypeError), ""),
-        (["grub"], does_not_raise(), ["grub"]),
+        (["grub"], does_not_raise(), [enums.BootLoader.GRUB]),
     ],
 )
 def test_boot_loaders(
@@ -246,7 +253,7 @@ def test_boot_loaders(
 
     # Act
     with expected_exception:
-        distro.boot_loaders = value
+        distro.boot_loaders = value  # type: ignore[method-assign]
 
         # Assert
         if value == "":
@@ -269,7 +276,7 @@ def test_breed(cobbler_api: CobblerAPI, value: Any, expected_exception: Any):
 
     # Act
     with expected_exception:
-        distro.breed = value
+        distro.breed = value  # type: ignore[method-assign]
 
         # Assert
         assert distro.breed == value
@@ -292,7 +299,7 @@ def test_initrd(cobbler_api: CobblerAPI, value: Any, expected_exception: Any):
 
     # Act
     with expected_exception:
-        distro.initrd = value
+        distro.initrd = value  # type: ignore[method-assign]
 
         # Assert
         assert distro.initrd == value
@@ -315,7 +322,7 @@ def test_kernel(cobbler_api: CobblerAPI, value: Any, expected_exception: Any):
 
     # Act
     with expected_exception:
-        distro.kernel = value
+        distro.kernel = value  # type: ignore[method-assign]
 
         # Assert
         assert distro.kernel == value
@@ -334,7 +341,7 @@ def test_os_version(cobbler_api: CobblerAPI, value: Any, expected_exception: Any
 
     # Act
     with expected_exception:
-        distro.os_version = value
+        distro.os_version = value  # type: ignore[method-assign]
 
         # Assert
         assert distro.os_version == value
@@ -349,7 +356,7 @@ def test_owners(cobbler_api: CobblerAPI, value: Any):
     distro = Distro(cobbler_api)
 
     # Act
-    distro.owners = value
+    distro.owners = value  # type: ignore[method-assign]
 
     # Assert
     assert distro.owners == value
@@ -374,7 +381,7 @@ def test_redhat_management_key(
 
     # Act
     with expected_exception:
-        distro.redhat_management_key = value
+        distro.redhat_management_key = value  # type: ignore[method-assign]
 
         # Assert
         assert distro.redhat_management_key == expected_result
@@ -389,7 +396,7 @@ def test_source_repos(cobbler_api: CobblerAPI, value: Any):
     distro = Distro(cobbler_api)
 
     # Act
-    distro.source_repos = value
+    distro.source_repos = value  # type: ignore[method-assign]
 
     # Assert
     assert distro.source_repos == value
@@ -414,7 +421,7 @@ def test_remote_boot_kernel(
 
     # Act
     with expected_exception:
-        distro.remote_boot_kernel = value
+        distro.remote_boot_kernel = value  # type: ignore[method-assign]
 
         # Assert
         assert distro.remote_boot_kernel == value
@@ -439,7 +446,7 @@ def test_remote_grub_kernel(
 
     # Act
     with expected_exception:
-        distro.remote_boot_kernel = value
+        distro.remote_boot_kernel = value  # type: ignore[method-assign]
 
         # Assert
         assert distro.remote_grub_kernel == value
@@ -461,7 +468,7 @@ def test_remote_boot_initrd(
 
     # Act
     with expected_exception:
-        distro.remote_boot_initrd = value
+        distro.remote_boot_initrd = value  # type: ignore[method-assign]
 
         # Assert
         assert distro.remote_boot_initrd == value
@@ -482,7 +489,7 @@ def test_remote_grub_initrd(
 
     # Act
     with expected_exception:
-        distro.remote_boot_initrd = value
+        distro.remote_boot_initrd = value  # type: ignore[method-assign]
 
         # Assert
         assert distro.remote_grub_initrd == value
@@ -497,7 +504,11 @@ def test_supported_boot_loaders(cobbler_api: CobblerAPI):
 
     # Assert
     assert isinstance(distro.supported_boot_loaders, list)
-    assert distro.supported_boot_loaders == ["grub", "pxe", "ipxe"]
+    assert distro.supported_boot_loaders == [
+        enums.BootLoader.GRUB,
+        enums.BootLoader.PXE,
+        enums.BootLoader.IPXE,
+    ]
 
 
 @pytest.mark.skip(
@@ -530,7 +541,7 @@ def test_find_distro_path(
     fk_kernel = "vmlinuz1"
     create_testfile(fk_kernel)
     test_distro = Distro(cobbler_api)
-    test_distro.kernel = os.path.join(tmp_path, fk_kernel)
+    test_distro.kernel = os.path.join(tmp_path, fk_kernel)  # type: ignore[method-assign]
 
     # Act
     result = test_distro.find_distro_path()

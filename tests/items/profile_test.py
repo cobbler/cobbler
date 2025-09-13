@@ -78,7 +78,7 @@ def test_to_dict(
     # Assert
     assert len(result) == 41
     assert result["distro"] == distro.uid
-    assert result.get("boot_loaders") == enums.VALUE_INHERITED
+    assert result.get("boot_loaders") == [enums.VALUE_INHERITED]
 
 
 def test_to_dict_resolved(
@@ -647,9 +647,13 @@ def test_redhat_management_key(cobbler_api: CobblerAPI):
     "input_boot_loaders,expected_result,expected_exception",
     [
         ("", [], does_not_raise()),
-        ("grub", ["grub"], does_not_raise()),
-        ("grub ipxe", ["grub", "ipxe"], does_not_raise()),
-        ("<<inherit>>", ["grub", "pxe", "ipxe"], does_not_raise()),
+        ("grub", [enums.BootLoader.GRUB], does_not_raise()),
+        ("grub ipxe", [enums.BootLoader.GRUB, enums.BootLoader.IPXE], does_not_raise()),
+        (
+            "<<inherit>>",
+            [enums.BootLoader.GRUB, enums.BootLoader.PXE, enums.BootLoader.IPXE],
+            does_not_raise(),
+        ),
         ([], [], does_not_raise()),
     ],
 )

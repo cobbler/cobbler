@@ -241,7 +241,7 @@ class System(BootableItem):
         self._ipv6_autoconfiguration = False
         self._repos_enabled = False
         self._autoinstall = enums.VALUE_INHERITED
-        self._boot_loaders: Union[List[str], str] = enums.VALUE_INHERITED
+        self._boot_loaders = [enums.BootLoader.INHERITED]
         self._enable_ipxe: Union[bool, str] = enums.VALUE_INHERITED
         self._gateway = ""
         self._hostname = ""
@@ -390,7 +390,7 @@ class System(BootableItem):
         self._status = status
 
     @InheritableProperty
-    def boot_loaders(self) -> List[str]:
+    def boot_loaders(self) -> List[enums.BootLoader]:
         """
         boot_loaders property.
 
@@ -399,42 +399,65 @@ class System(BootableItem):
         :getter: Returns the value for ``boot_loaders``.
         :setter: Sets the value for the property ``boot_loaders``.
         """
-        return self._resolve("boot_loaders")
+        return self._resolve_enum("boot_loaders", enums.BootLoader)
 
     @boot_loaders.setter  # type: ignore[no-redef]
-    def boot_loaders(self, boot_loaders: Union[str, List[str]]):
+    def boot_loaders(
+        self,
+        boot_loaders: Union[str, List[str], List[enums.BootLoader]],
+    ):
         """
         Setter of the boot loaders.
 
         :param boot_loaders: The boot loaders for the system.
         :raises CX: This is risen in case the bootloaders set are not valid ones.
         """
-        if not isinstance(boot_loaders, (str, list)):  # type: ignore
-            raise TypeError("The bootloaders need to be either a str or list")
-
-        if boot_loaders == enums.VALUE_INHERITED:
-            self._boot_loaders = enums.VALUE_INHERITED
-            return
-
-        if boot_loaders in ("", []):
-            self._boot_loaders = []
-            return
-
-        if isinstance(boot_loaders, str):
-            boot_loaders_split = input_converters.input_string_or_list(boot_loaders)
+        boot_loaders_split: List[enums.BootLoader] = []
+        if isinstance(boot_loaders, list):
+            if all([isinstance(value, str) for value in boot_loaders]):
+                boot_loaders_split = [
+                    enums.BootLoader.to_enum(value) for value in boot_loaders
+                ]
+            elif all([isinstance(value, enums.BootLoader) for value in boot_loaders]):
+                boot_loaders_split = boot_loaders  # type: ignore
+            else:
+                raise TypeError(
+                    "The items inside the list of boot_loaders must all be of type str or cobbler.enums.BootLoader"
+                )
+        elif isinstance(boot_loaders, str):  # type: ignore
+            if boot_loaders == "":
+                self._boot_loaders = []
+                return
+            if boot_loaders == enums.VALUE_INHERITED:
+                self._boot_loaders = [enums.BootLoader.INHERITED]
+                return
+            boot_loaders_split = [
+                enums.BootLoader.to_enum(value)
+                for value in input_converters.input_string_or_list_no_inherit(
+                    boot_loaders
+                )
+            ]
         else:
-            boot_loaders_split = boot_loaders
+            raise TypeError("The bootloaders need to be either a str or list")
 
         parent = self.logical_parent
         if parent is not None:
             # This can only be an item type that has the boot loaders property
-            parent_boot_loaders: List[str] = parent.boot_loaders  # type: ignore
+            parent_boot_loaders: List[enums.BootLoader] = parent.boot_loaders  # type: ignore
         else:
             self.logger.warning(
                 'Parent of System "%s" could not be found for resolving the parent bootloaders.',
                 self.name,
             )
             parent_boot_loaders = []
+
+        if (
+            len(boot_loaders_split) == 1
+            and boot_loaders_split[0] == enums.BootLoader.INHERITED
+        ):
+            self._boot_loaders = [enums.BootLoader.INHERITED]
+            return
+
         if not set(boot_loaders_split).issubset(parent_boot_loaders):
             raise CX(
                 f'Error with system "{self.name}" - not all boot_loaders are supported (given:'
@@ -1393,7 +1416,7 @@ class System(BootableItem):
         self._serial_baud_rate = validate.validate_serial_baud_rate(baud_rate)
 
     def get_config_filename(
-        self, interface: str, loader: Optional[str] = None
+        self, interface: str, loader: Optional[enums.BootLoader] = None
     ) -> Optional[str]:
         """
         The configuration file for each system pxe uses is either a form of the MAC address or the hex version or the
@@ -1408,9 +1431,9 @@ class System(BootableItem):
         boot_loaders = self.boot_loaders
         if loader is None:
             if (
-                "grub" in boot_loaders or len(boot_loaders) < 1
+                enums.BootLoader.GRUB in boot_loaders or len(boot_loaders) < 1
             ):  # pylint: disable=unsupported-membership-test
-                loader = "grub"
+                loader = enums.BootLoader.GRUB
             else:
                 loader = boot_loaders[0]  # pylint: disable=unsubscriptable-object
 
@@ -1423,14 +1446,14 @@ class System(BootableItem):
             return None
 
         if self.name == "default":
-            if loader == "grub":
+            if loader == enums.BootLoader.GRUB:
                 return None
             return "default"
 
         mac = self.get_mac_address(interface)
         ip_address = self.get_ip_address(interface)
         if mac is not None and mac != "":
-            if loader == "grub":
+            if loader == enums.BootLoader.GRUB:
                 return mac.lower()
             return "01-" + "-".join(mac.split(":")).lower()
         if ip_address != "":
