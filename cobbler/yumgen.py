@@ -19,7 +19,12 @@ if TYPE_CHECKING:
 
 class YumGen:
     """
-    TODO
+    YumGen is responsible for generating yum repository configuration blobs for target systems in Cobbler.
+
+    This class uses the Cobbler API to access system settings and templating utilities, and produces a complete yum
+    configuration suitable for use by clients requesting repository information. It collects relevant repository
+    sources, renders configuration files using templates, and handles missing sources gracefully by reporting errors in
+    the output.
     """
 
     def __init__(self, api: "CobblerAPI"):

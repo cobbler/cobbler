@@ -105,25 +105,35 @@ class ManagerModule:
 
 class DhcpManagerModule(ManagerModule):
     """
-    TODO
+    Abstract base class for DHCP manager modules.
+
+    Defines the interface for DHCP-specific service management in Cobbler.
     """
 
     @abstractmethod
     def sync_dhcp(self) -> None:
         """
-        TODO
+        Synchronize DHCP configuration and restart the DHCP service.
+
+        This method should be implemented by subclasses to write DHCP-specific configuration files
+        and ensure the DHCP service is restarted to apply changes.
         """
 
 
 class DnsManagerModule(ManagerModule):
     """
-    TODO
+    Abstract base class for DNS manager modules.
+
+    Defines the interface for DNS-specific service management in Cobbler.
     """
 
     @abstractmethod
     def regen_hosts(self) -> None:
         """
-        TODO
+        Regenerate the hosts file for all managed systems.
+
+        This method should be implemented by subclasses to update the hosts file
+        based on the current state of managed systems.
         """
 
     def add_single_hosts_entry(self, system: "System") -> None:
@@ -151,29 +161,41 @@ class DnsManagerModule(ManagerModule):
 
 class TftpManagerModule(ManagerModule):
     """
-    TODO
+    Abstract base class for TFTP manager modules.
+
+    Defines the interface for TFTP-specific service management in Cobbler.
     """
 
     @abstractmethod
     def sync_systems(self, systems: List[str], verbose: bool = True) -> None:
         """
-        TODO
+        Synchronize TFTP configuration for the specified systems.
 
-        :param systems: TODO
-        :param verbose: TODO
+        This method should be implemented by subclasses to update TFTP boot files and configuration for the given list
+        of systems.
+
+        :param systems: List of system identifiers to synchronize.
+        :param verbose: If True, provide detailed output during synchronization.
         """
 
     @abstractmethod
     def write_boot_files(self) -> int:
         """
-        TODO
+        Write all necessary TFTP boot files for managed systems.
+
+        This method should be implemented by subclasses to generate and write boot files required for network booting.
+
+        :return: Integer status code (0 for success, non-zero for failure).
         """
         return 1
 
     @abstractmethod
     def add_single_distro(self, distro: "Distro") -> None:
         """
-        TODO
+        Add a single distribution to the TFTP configuration.
 
-        :param distro: TODO
+        This method should be implemented by subclasses to update TFTP boot files and configuration for the specified
+        distribution.
+
+        :param distro: The distribution object to add.
         """

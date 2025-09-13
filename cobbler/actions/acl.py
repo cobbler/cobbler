@@ -20,7 +20,11 @@ if TYPE_CHECKING:
 
 class AclConfig:
     """
-    TODO
+    AclConfig provides methods to manage filesystem Access Control Lists (ACLs) for Cobbler directories.
+
+    It automates the process of adding or removing users and groups with specific permissions, using setfacl commands.
+    The class interacts with Cobbler's API to retrieve configuration settings and applies ACL changes to relevant
+    directories.
     """
 
     def __init__(self, api: "CobblerAPI") -> None:

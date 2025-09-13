@@ -1,5 +1,5 @@
 """
-TODO
+Utility module to provide methods for working with the distro signatures JSON database file.
 """
 
 import json
@@ -79,8 +79,24 @@ def load_signatures(filename: str, cache: bool = True) -> None:
     with open(filename, "r", encoding="UTF-8") as signature_file_fd:
         sigjson = signature_file_fd.read()
     sigdata = json.loads(sigjson)
+    __convert_boot_loaders(sigdata)
     if cache:
         signature_cache = sigdata
+
+
+def __convert_boot_loaders(signatures: Dict[str, Any]) -> None:
+    """
+    Method that iterates over the signatures dictionary and converts the bootloaders from a string to their enum form.
+
+    :param signatures: The full signatures dictionary.
+    """
+    for _, breed_value in signatures["breeds"].items():
+        for _, osversion_value in breed_value.items():
+            if osversion_value.get("boot_loaders"):
+                for _, arch_value in osversion_value.get("boot_loaders").items():
+                    loaders = arch_value
+                    for idx, loader in enumerate(loaders):
+                        loaders[idx] = enums.BootLoader.to_enum(loader)
 
 
 def get_valid_breeds() -> List[str]:

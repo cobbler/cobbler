@@ -21,7 +21,7 @@ class TestImage:
         image = remote.new_image(token)
 
         # Assert
-        assert remote.modify_image(image, "name", "testimage0", token)
+        assert remote.modify_image(image, ["name"], "testimage0", token)
         assert remote.save_image(image, token)
         image_list = remote.get_images(token)
         assert len(image_list) == 1

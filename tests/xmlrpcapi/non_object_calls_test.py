@@ -6,7 +6,7 @@ non object calls.
 import os
 import re
 import time
-from typing import Any, Callable, Dict, Union
+from typing import Any, Callable, Dict, List, Union
 
 import pytest
 
@@ -210,42 +210,50 @@ def test_get_random_mac(remote: CobblerXMLRPCInterface, token: str):
 @pytest.mark.parametrize(
     "input_attribute,checked_object,expected_result,expected_exception",
     [
-        ("kernel_options", "system", {"a": "1", "b": "2", "d": "~"}, does_not_raise()),
-        ("arch", "distro", "x86_64", does_not_raise()),
-        ("distro", "profile", "testdistro_item_resolved_value", does_not_raise()),
-        ("profile", "system", "<VALUE IGNORED>", does_not_raise()),
         (
-            "interfaces",
+            ["kernel_options"],
+            "system",
+            {"a": "1", "b": "2", "d": "~"},
+            does_not_raise(),
+        ),
+        (["arch"], "distro", "x86_64", does_not_raise()),
+        (["distro"], "profile", "testdistro_item_resolved_value", does_not_raise()),
+        (["profile"], "system", "<VALUE IGNORED>", does_not_raise()),
+        (
+            ["interfaces"],
             "system",
             {
                 "eth0": {
                     "bonding_opts": "",
                     "bridge_opts": "",
-                    "cnames": [],
                     "comment": "",
                     "connected_mode": False,
                     "ctime": 0.0,
                     "dhcp_tag": "",
-                    "dns_name": "",
+                    "dns": {"name": "", "common_names": []},
                     "if_gateway": "",
                     "interface_master": "",
                     "interface_type": "na",
-                    "ip_address": "",
-                    "ipv6_address": "",
-                    "ipv6_default_gateway": "",
-                    "ipv6_mtu": "",
-                    "ipv6_prefix": "",
-                    "ipv6_secondaries": [],
-                    "ipv6_static_routes": [],
+                    "ipv4": {
+                        "address": "",
+                        "mtu": "",
+                        "netmask": "",
+                        "static_routes": [],
+                    },
+                    "ipv6": {
+                        "address": "",
+                        "default_gateway": "",
+                        "mtu": "",
+                        "prefix": "",
+                        "secondaries": [],
+                        "static_routes": [],
+                    },
                     "mac_address": "aa:bb:cc:dd:ee:ff",
                     "management": False,
                     "mtime": 0.0,
-                    "mtu": "",
                     "name": "eth0",
-                    "netmask": "",
                     "owners": ["admin"],
                     "static": False,
-                    "static_routes": [],
                     "system_uid": "",
                     "uid": "",
                     "virt_bridge": "virbr0",
@@ -253,7 +261,7 @@ def test_get_random_mac(remote: CobblerXMLRPCInterface, token: str):
             },
             does_not_raise(),
         ),
-        ("doesnt_exist", "system", {}, pytest.raises(AttributeError)),
+        (["doesnt_exist"], "system", {}, pytest.raises(AttributeError)),
     ],
 )
 def test_get_item_resolved_value(
@@ -263,7 +271,7 @@ def test_get_item_resolved_value(
     create_profile: Callable[[str, str, str], str],
     create_system: Callable[[str, str], str],
     create_kernel_initrd: Callable[[str, str], str],
-    input_attribute: str,
+    input_attribute: List[str],
     checked_object: str,
     expected_result: Union[str, Dict[str, Any]],
     expected_exception: Any,
@@ -281,16 +289,16 @@ def test_get_item_resolved_value(
     distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
     profile_uid = create_profile(name_profile, distro_uid, "a=1 b=2 c=3 c=4 c=5 d e")
     test_system_handle = create_system(name_system, profile_uid)
-    remote.modify_system(test_system_handle, "kernel_options", "!c !e", token=token)
+    remote.modify_system(test_system_handle, ["kernel_options"], "!c !e", token=token)
     remote.save_system(test_system_handle, token)
     test_network_interface_handle = remote.new_network_interface(
         test_system_handle, token
     )
     remote.modify_network_interface(
-        test_network_interface_handle, "name", "eth0", token
+        test_network_interface_handle, ["name"], "eth0", token
     )
     remote.modify_network_interface(
-        test_network_interface_handle, "mac_address", "aa:bb:cc:dd:ee:ff", token
+        test_network_interface_handle, ["mac_address"], "aa:bb:cc:dd:ee:ff", token
     )
     remote.save_network_interface(test_network_interface_handle, token, "new")
     if checked_object == "distro":
@@ -306,7 +314,7 @@ def test_get_item_resolved_value(
     with expected_exception:
         result = remote.get_item_resolved_value(test_item.get("uid"), input_attribute)  # type: ignore
 
-        if input_attribute == "interfaces" and "default" in result:  # type: ignore
+        if input_attribute == ["interfaces"] and "default" in result:  # type: ignore
             result.pop("default")  # type: ignore
 
         # Assert
@@ -322,7 +330,7 @@ def test_get_item_resolved_value(
             and "system_uid" in result["eth0"]
         ):
             result["eth0"]["system_uid"] = ""
-        if input_attribute == "profile":
+        if input_attribute == ["profile"]:
             assert profile_uid == result
         else:
             assert expected_result == result

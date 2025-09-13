@@ -14,16 +14,21 @@ import logging
 import re
 import uuid
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
 
 from cobbler import enums
 from cobbler.cexceptions import CX
-from cobbler.decorator import InheritableProperty, LazyProperty
 from cobbler.items.abstract.item_cache import ItemCache
+from cobbler.items.options import base
 from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+
+    InheritableProperty = property
+    LazyProperty = property
+else:
+    from cobbler.decorator import InheritableProperty, LazyProperty
 
 
 RE_OBJECT_NAME = re.compile(r"[a-zA-Z0-9_\-.:]*$")
@@ -240,7 +245,7 @@ class BaseItem(ABC):
         """
         return self._name
 
-    @name.setter  # type: ignore[no-redef]
+    @name.setter
     def name(self, name: str) -> None:
         """
         The objects name.
@@ -269,7 +274,7 @@ class BaseItem(ABC):
         """
         return self._comment
 
-    @comment.setter  # type: ignore[no-redef]
+    @comment.setter
     def comment(self, comment: str) -> None:
         """
         Setter for the comment of the item.
@@ -279,7 +284,7 @@ class BaseItem(ABC):
         self._comment = comment
 
     @InheritableProperty
-    def owners(self) -> List[Any]:
+    def owners(self) -> List[str]:
         """
         This is a feature which is related to the ownership module of Cobbler which gives only specific people access
         to specific records. Otherwise this is just a cosmetic feature to allow assigning records to specific users.
@@ -293,9 +298,9 @@ class BaseItem(ABC):
         :setter: The list of people which should be new owners. May lock you out if you are using the ownership
                  authorization module.
         """
-        return self._resolve("owners")
+        return self._resolve(["owners"])
 
-    @owners.setter  # type: ignore[no-redef]
+    @owners.setter
     def owners(self, owners: Union[str, List[Any]]):
         """
         Setter for the ``owners`` property.
@@ -329,14 +334,19 @@ class BaseItem(ABC):
     @property
     def in_transaction(self) -> bool:
         """
-        TODO
+        Property to reflect if the given item is currently part of a transaction.
+
+        :getter: Returns True if the item is part of at least one transaction.
+        :setter: Set the new boolean if the value is part of a transaction or not.
         """
         return self._in_transaction
 
     @in_transaction.setter
     def in_transaction(self, in_transaction: bool) -> None:
         """
-        TODO
+        Setter for the "in_transaction" property.
+
+        :param in_transaction: New value for the "in_transaction" property.
         """
         self._in_transaction = in_transaction
 
@@ -369,7 +379,7 @@ class BaseItem(ABC):
         """
 
     @abstractmethod
-    def _resolve(self, property_name: str) -> Any:
+    def _resolve(self, property_name: List[str]) -> Any:
         """
         Resolve the ``property_name`` value in the object tree. This function traverses the tree from the object to its
         topmost parent and returns the first value that is not inherited. If the tree does not contain a value the
@@ -382,6 +392,31 @@ class BaseItem(ABC):
         :raises AttributeError: In case one of the objects try to inherit from a parent that does not have
                                 ``property_name``.
         :return: The resolved value.
+        """
+        raise NotImplementedError("Must be implemented in a specific Item")
+
+    @abstractmethod
+    def _resolve_enum(
+        self, property_name: List[str], enum_type: Type[enums.ConvertableEnum]
+    ) -> Any:
+        """
+        Resolves and merges an enum property from the current object, its parent, and global settings.
+
+        :param property_name: The list of strings that represent the names of the attributes/properties to travel to
+            the target attribute.
+        :param enum_type: The type of enum that is blended together.
+        :returns: The enum value after blending all levels together.
+        """
+        raise NotImplementedError("Must be implemented in a specific Item")
+
+    @abstractmethod
+    def _resolve_list(self, property_name: List[str]) -> Any:
+        """
+        Resolves and merges a list property from the current object, its parent, and global settings.
+
+        :param property_name: The list of strings that represent the names of the attributes/properties to travel to
+            the target attribute.
+        :returns: The list with all values blended together.
         """
         raise NotImplementedError("Must be implemented in a specific Item")
 
@@ -495,15 +530,20 @@ class BaseItem(ABC):
         result = copy.deepcopy(dictionary)
         for key in dictionary:
             lowered_key = key.lower()
+            private_key = "_" + lowered_key
             # The following also works for child classes because self is a child class at this point and not only an
             # Item.
-            if hasattr(self, "_" + lowered_key):
-                try:
-                    setattr(self, lowered_key, dictionary[key])
-                except AttributeError as error:
-                    raise AttributeError(
-                        f'Attribute "{lowered_key}" could not be set!'
-                    ) from error
+            if hasattr(self, private_key):
+                private_property = getattr(self, private_key)
+                if isinstance(private_property, base.ItemOption):
+                    private_property.from_dict(dictionary[key])
+                else:
+                    try:
+                        setattr(self, lowered_key, dictionary[key])
+                    except AttributeError as error:
+                        raise AttributeError(
+                            f'Attribute "{lowered_key}" could not be set!'
+                        ) from error
                 result.pop(key)
         self._has_initialized = old_has_initialized
         self.clean_cache()
@@ -546,7 +586,7 @@ class BaseItem(ABC):
                         and new_value[0] == enums.VALUE_INHERITED
                     ):
                         # Attempt to convert inherited lists if resolved dicts are requested
-                        new_value = getattr(self, new_key)
+                        new_value = getattr(self, new_key).copy()
                         for idx, list_value in enumerate(new_value):
                             if isinstance(list_value, enum.Enum):
                                 new_value[idx] = list_value.value
@@ -565,6 +605,8 @@ class BaseItem(ABC):
                     and resolved
                 ):
                     value[new_key] = getattr(self, key[1:])
+                elif isinstance(key_value, base.ItemOption):
+                    value[new_key] = key_value.to_dict(resolved=resolved)
                 else:
                     value[new_key] = key_value
         if "autoinstall" in value:

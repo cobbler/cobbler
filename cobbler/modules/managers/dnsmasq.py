@@ -165,9 +165,9 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
 
         for interface in system_obj.interfaces.values():
             mac = interface.mac_address
-            ip_address = interface.ip_address
-            host = interface.dns_name
-            ipv6 = interface.ipv6_address
+            ip_address = interface.ipv4.address
+            host = interface.dns.name
+            ipv6 = interface.ipv6.address
 
             if not mac:
                 # can't write a DHCP entry for this system
@@ -297,7 +297,7 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
         output = ""
         for interface in system_obj.interfaces.values():
             mac = interface.mac_address
-            ip_address = interface.ip_address
+            ip_address = interface.ipv4.address
             if not mac:
                 # can't write this w/o a MAC address
                 continue
@@ -379,10 +379,10 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
         output = ""
         for _, interface in system_obj.interfaces.items():
             mac = interface.mac_address
-            host = interface.dns_name
-            cnames = " ".join(interface.cnames)
-            ipv4 = interface.ip_address
-            ipv6 = interface.ipv6_address
+            host = interface.dns.name
+            cnames = " ".join(interface.dns.common_names)
+            ipv4 = interface.ipv4.address
+            ipv6 = interface.ipv6.address
             if not mac:
                 continue
             if host != "" and ipv6 != "":

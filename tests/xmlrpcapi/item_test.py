@@ -33,8 +33,8 @@ def test_remove_item(remote: CobblerXMLRPCInterface, token: str):
     """
     # Arrange
     test_menu = remote.new_menu(token)  # type: ignore
-    remote.modify_menu(test_menu, "name", "testmenu0", token)
-    remote.modify_menu(test_menu, "display_name", "testmenu0", token)
+    remote.modify_menu(test_menu, ["name"], "testmenu0", token)
+    remote.modify_menu(test_menu, ["display_name"], "testmenu0", token)
 
     # Act
     result = remote.remove_menu("testmenu0", token, True)  # type: ignore
@@ -49,6 +49,6 @@ def test_create_unsaved_item(remote: CobblerXMLRPCInterface, token: str):
     Test: create unsaved item (in this case menu)
     """
     test_menu = remote.new_menu(token)
-    remote.modify_menu(test_menu, "name", "testmenu0", token)
-    remote.modify_menu(test_menu, "display_name", "testmenu", token)
+    remote.modify_menu(test_menu, ["name"], "testmenu0", token)
+    remote.modify_menu(test_menu, ["display_name"], "testmenu", token)
     assert test_menu in remote.unsaved_items

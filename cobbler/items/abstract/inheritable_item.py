@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING, Any, Dict, List, NamedTuple, Optional, Union
 
 from cobbler import enums
 from cobbler.cexceptions import CX
-from cobbler.decorator import LazyProperty
 from cobbler.items.abstract.base_item import BaseItem
 
 if TYPE_CHECKING:
@@ -24,6 +23,10 @@ if TYPE_CHECKING:
     from cobbler.items.profile import Profile
     from cobbler.items.system import System
     from cobbler.settings import Settings
+
+    LazyProperty = property
+else:
+    from cobbler.decorator import LazyProperty
 
 
 class HierarchyItem(NamedTuple):
@@ -171,7 +174,7 @@ class InheritableItem(BaseItem, ABC):
         """
         return self._depth
 
-    @depth.setter  # type: ignore[no-redef]
+    @depth.setter
     def depth(self, depth: int) -> None:
         """
         Setter for depth.
@@ -195,7 +198,7 @@ class InheritableItem(BaseItem, ABC):
             return None
         return self.api.get_items(self.COLLECTION_TYPE).listing.get(self._parent)  # type: ignore
 
-    @parent.setter  # type: ignore[no-redef]
+    @parent.setter
     def parent(self, parent: Union["InheritableItem", str]) -> None:
         """
         Set the parent object for this object.
@@ -227,7 +230,7 @@ class InheritableItem(BaseItem, ABC):
             # check must be done in two places as setting parent could be called before/after setting name...
             raise CX("self parentage is forbidden")
         if found is None:
-            found = items.listing.get(parent)
+            found = items.listing.get(parent)  # type: ignore
         if found is None:
             raise CX(f'parent item "{parent}" not found, inheritance not possible')
         self._parent = parent
@@ -369,7 +372,7 @@ class InheritableItem(BaseItem, ABC):
         """
         return self._is_subobject
 
-    @is_subobject.setter  # type: ignore[no-redef]
+    @is_subobject.setter
     def is_subobject(self, value: bool) -> None:
         """
         Setter for the property ``is_subobject``.

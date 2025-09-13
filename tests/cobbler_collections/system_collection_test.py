@@ -166,9 +166,9 @@ def test_copy(
     test_network_interface = cobbler_api.new_network_interface(
         system_uid=system1.uid,
         name="default",
-        ip_address="192.168.1.1",
-        ipv6_address="::1",
-        dns_name="example.org",
+        ipv4={"address": "192.168.1.1"},
+        ipv6={"address": "::1"},
+        dns={"name": "example.org"},
         mac_address="52:54:00:7d:81:f4",
     )
     cobbler_api.add_network_interface(test_network_interface)
@@ -225,10 +225,10 @@ def test_rename(
     test_profile = create_profile(test_distro.uid)
     system1 = create_system(test_profile.uid)
     test_network_interface = cobbler_api.new_network_interface(system_uid=system1.uid)
-    test_network_interface.name = "default"  # type: ignore[method-assign]
-    test_network_interface.ip_address = "192.168.1.1"
-    test_network_interface.ipv6_address = "::1"
-    test_network_interface.dns_name = "example.org"
+    test_network_interface.name = "default"
+    test_network_interface.ipv4.address = "192.168.1.1"
+    test_network_interface.ipv6.address = "::1"
+    test_network_interface.dns.name = "example.org"
     test_network_interface.mac_address = "52:54:00:7d:81:f4"
     cobbler_api.add_network_interface(test_network_interface)
 
@@ -268,9 +268,9 @@ def test_collection_add(
     test_network_interface = cobbler_api.new_network_interface(
         system_uid=system1.uid,
         name="default",
-        ip_address="192.168.1.1",
-        ipv6_address="::1",
-        dns_name="example.org",
+        ipv4={"address": "192.168.1.1"},
+        ipv6={"address": "::1"},
+        dns={"name": "example.org"},
         mac_address="52:54:00:7d:81:f4",
     )
     cobbler_api.add_network_interface(test_network_interface)
@@ -312,9 +312,9 @@ def test_duplicate_add(
     test_network_interface = cobbler_api.new_network_interface(
         system_uid=system1.uid,
         name="default",
-        ip_address="192.168.1.1",
-        ipv6_address="::1",
-        dns_name="example.org",
+        ipv4={"address": "192.168.1.1"},
+        ipv6={"address": "::1"},
+        dns={"name": "example.org"},
         mac_address="52:54:00:7d:81:f4",
     )
     cobbler_api.add_network_interface(test_network_interface)
@@ -380,9 +380,9 @@ def test_remove_by_image_dependency(
     # Arrange
     test_image = create_image()
     system1 = create_system(image_uid=test_image.uid)
-    system1.interfaces["default"].ip_address = "192.168.1.1"
-    system1.interfaces["default"].ipv6_address = "::1"
-    system1.interfaces["default"].dns_name = "example.org"
+    system1.interfaces["default"].ipv4.address = "192.168.1.1"
+    system1.interfaces["default"].ipv6.address = "::1"
+    system1.interfaces["default"].dns.name = "example.org"
     system1.interfaces["default"].mac_address = "52:54:00:7d:81:f4"
 
     # Act
@@ -417,13 +417,13 @@ def test_remove_by_menu_image_dependency(
     # Arrange
     test_image = create_image()
     test_menu = cobbler_api.new_menu()
-    test_menu.name = "test_menu"  # type: ignore[method-assign]
+    test_menu.name = "test_menu"
     cobbler_api.menus().add(test_menu)
-    test_image.menu = test_menu.uid  # type: ignore[method-assign]
+    test_image.menu = test_menu.uid
     system1 = create_system(image_uid=test_image.uid)
-    system1.interfaces["default"].ip_address = "192.168.1.1"
-    system1.interfaces["default"].ipv6_address = "::1"
-    system1.interfaces["default"].dns_name = "example.org"
+    system1.interfaces["default"].ipv4.address = "192.168.1.1"
+    system1.interfaces["default"].ipv6.address = "::1"
+    system1.interfaces["default"].dns.name = "example.org"
     system1.interfaces["default"].mac_address = "52:54:00:7d:81:f4"
 
     # Act
@@ -458,17 +458,17 @@ def test_remove_by_parent_menu_dependency(
     # Arrange
     test_image = create_image()
     test_menu = cobbler_api.new_menu()
-    test_menu.name = "test_menu"  # type: ignore[method-assign]
+    test_menu.name = "test_menu"
     cobbler_api.menus().add(test_menu)
     test_parent_menu = cobbler_api.new_menu()
-    test_parent_menu.name = "test_parent_menu"  # type: ignore[method-assign]
+    test_parent_menu.name = "test_parent_menu"
     cobbler_api.menus().add(test_parent_menu)
-    test_menu.parent = test_parent_menu.uid  # type: ignore[method-assign]
-    test_image.menu = test_menu.uid  # type: ignore[method-assign]
+    test_menu.parent = test_parent_menu.uid  # type: ignore
+    test_image.menu = test_menu.uid
     system1 = create_system(image_uid=test_image.uid)
-    system1.interfaces["default"].ip_address = "192.168.1.1"
-    system1.interfaces["default"].ipv6_address = "::1"
-    system1.interfaces["default"].dns_name = "example.org"
+    system1.interfaces["default"].ipv4.address = "192.168.1.1"
+    system1.interfaces["default"].ipv6.address = "::1"
+    system1.interfaces["default"].dns.name = "example.org"
     system1.interfaces["default"].mac_address = "52:54:00:7d:81:f4"
 
     # Act
@@ -505,9 +505,9 @@ def test_remove_by_distro_dependency(
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
     system1 = create_system(test_profile.uid)
-    system1.interfaces["default"].ip_address = "192.168.1.1"
-    system1.interfaces["default"].ipv6_address = "::1"
-    system1.interfaces["default"].dns_name = "example.org"
+    system1.interfaces["default"].ipv4.address = "192.168.1.1"
+    system1.interfaces["default"].ipv6.address = "::1"
+    system1.interfaces["default"].dns.name = "example.org"
     system1.interfaces["default"].mac_address = "52:54:00:7d:81:f4"
 
     # Act
@@ -544,9 +544,9 @@ def test_remove_by_profile_dependency(
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
     system1 = create_system(test_profile.uid)
-    system1.interfaces["default"].ip_address = "192.168.1.1"
-    system1.interfaces["default"].ipv6_address = "::1"
-    system1.interfaces["default"].dns_name = "example.org"
+    system1.interfaces["default"].ipv4.address = "192.168.1.1"
+    system1.interfaces["default"].ipv6.address = "::1"
+    system1.interfaces["default"].dns.name = "example.org"
     system1.interfaces["default"].mac_address = "52:54:00:7d:81:f4"
 
     # Act
@@ -583,13 +583,13 @@ def test_remove_by_menu_profile_dependency(
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
     test_menu = cobbler_api.new_menu()
-    test_menu.name = "test_menu"  # type: ignore[method-assign]
+    test_menu.name = "test_menu"
     cobbler_api.menus().add(test_menu)
-    test_profile.menu = test_menu.uid  # type: ignore[method-assign]
+    test_profile.menu = test_menu.uid
     system1 = create_system(test_profile.uid)
-    system1.interfaces["default"].ip_address = "192.168.1.1"
-    system1.interfaces["default"].ipv6_address = "::1"
-    system1.interfaces["default"].dns_name = "example.org"
+    system1.interfaces["default"].ipv4.address = "192.168.1.1"
+    system1.interfaces["default"].ipv6.address = "::1"
+    system1.interfaces["default"].dns.name = "example.org"
     system1.interfaces["default"].mac_address = "52:54:00:7d:81:f4"
 
     # Act
@@ -626,13 +626,13 @@ def test_remove_by_repos_profile_dependency(
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
     test_repo = cobbler_api.new_repo()
-    test_repo.name = "test_repo"  # type: ignore[method-assign]
+    test_repo.name = "test_repo"
     cobbler_api.repos().add(test_repo)
-    test_profile.repos = [test_repo.uid]  # type: ignore[method-assign]
+    test_profile.repos = [test_repo.uid]
     system1 = create_system(test_profile.uid)
-    system1.interfaces["default"].ip_address = "192.168.1.1"
-    system1.interfaces["default"].ipv6_address = "::1"
-    system1.interfaces["default"].dns_name = "example.org"
+    system1.interfaces["default"].ipv4.address = "192.168.1.1"
+    system1.interfaces["default"].ipv6.address = "::1"
+    system1.interfaces["default"].dns.name = "example.org"
     system1.interfaces["default"].mac_address = "52:54:00:7d:81:f4"
 
     # Act
@@ -669,11 +669,11 @@ def test_remove_by_parent_profile_dependency(
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
     test_parent_profile = create_profile(test_distro.uid, name="test_parent_profile")
-    test_profile.parent = test_parent_profile.uid  # type: ignore[method-assign]
+    test_profile.parent = test_parent_profile.uid  # type: ignore
     system1 = create_system(test_profile.uid)
-    system1.interfaces["default"].ip_address = "192.168.1.1"
-    system1.interfaces["default"].ipv6_address = "::1"
-    system1.interfaces["default"].dns_name = "example.org"
+    system1.interfaces["default"].ipv4.address = "192.168.1.1"
+    system1.interfaces["default"].ipv6.address = "::1"
+    system1.interfaces["default"].dns.name = "example.org"
     system1.interfaces["default"].mac_address = "52:54:00:7d:81:f4"
 
     # Act
@@ -715,9 +715,9 @@ def test_add_to_indexes(
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
     system1 = create_system(test_profile.uid)
-    system1.interfaces["default"].ip_address = "192.168.1.1"
-    system1.interfaces["default"].ipv6_address = "::1"
-    system1.interfaces["default"].dns_name = "example.org"
+    system1.interfaces["default"].ipv4.address = "192.168.1.1"
+    system1.interfaces["default"].ipv6.address = "::1"
+    system1.interfaces["default"].dns.name = "example.org"
     system1.interfaces["default"].mac_address = "52:54:00:7d:81:f4"
     for key, value in system_collection.indexes.items():
         if hasattr(system1, key):
@@ -760,9 +760,9 @@ def test_update_system_indexes(
     # Act
     original_uid = system1.uid
     original_image = system1.image
-    system1.name = "test_update_system_indexes_renamed"  # type: ignore[method-assign]
-    system1.profile = ""  # type: ignore[method-assign]
-    system1.image = image1.uid  # type: ignore[method-assign]
+    system1.name = "test_update_system_indexes_renamed"
+    system1.profile = ""
+    system1.image = image1.uid
 
     # Assert
     assert original_uid not in system_collection.indexes["name"]
@@ -786,9 +786,9 @@ def test_remove_from_indexes(
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
     system1 = create_system(test_profile.uid)
-    system1.interfaces["default"].ip_address = "192.168.1.1"
-    system1.interfaces["default"].ipv6_address = "::1"
-    system1.interfaces["default"].dns_name = "example.org"
+    system1.interfaces["default"].ipv4.address = "192.168.1.1"
+    system1.interfaces["default"].ipv6.address = "::1"
+    system1.interfaces["default"].dns.name = "example.org"
     system1.interfaces["default"].mac_address = "52:54:00:7d:81:f4"
 
     # Act

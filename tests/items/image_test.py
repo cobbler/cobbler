@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 @pytest.fixture(name="test_settings")
 def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> Settings:
     """
-    TODO
+    Fixture for test settings using a mock CobblerAPI.
     """
     settings = mocker.MagicMock(name="image_setting_mock", spec=cobbler_api.settings())
     orig = cobbler_api.settings()
@@ -32,7 +32,7 @@ def fixture_test_settings(mocker: "MockerFixture", cobbler_api: CobblerAPI) -> S
 
 def test_object_creation(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test that an Image object can be created.
     """
     # Arrange
 
@@ -45,7 +45,7 @@ def test_object_creation(cobbler_api: CobblerAPI):
 
 def test_make_clone(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test cloning of an Image object.
     """
     # Arrange
     image = Image(cobbler_api)
@@ -59,13 +59,13 @@ def test_make_clone(cobbler_api: CobblerAPI):
 
 def test_arch(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the architecture property of Image.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.arch = "x86_64"  # type: ignore[method-assign]
+    image.arch = "x86_64"  # type: ignore
 
     # Assert
     assert image.arch == enums.Archs.X86_64
@@ -73,13 +73,13 @@ def test_arch(cobbler_api: CobblerAPI):
 
 def test_autoinstall(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the autoinstall property of Image.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.autoinstall = ""  # type: ignore[method-assign]
+    image.autoinstall = ""
 
     # Assert
     assert image.autoinstall == ""
@@ -87,13 +87,13 @@ def test_autoinstall(cobbler_api: CobblerAPI):
 
 def test_file(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the file property of Image.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.file = "/tmp/test"  # type: ignore[method-assign]
+    image.file = "/tmp/test"
 
     # Assert
     assert image.file == "/tmp/test"
@@ -101,15 +101,15 @@ def test_file(cobbler_api: CobblerAPI):
 
 def test_os_version(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the OS version property of Image.
     """
     # Arrange
     signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
     image = Image(cobbler_api)
-    image.breed = "suse"  # type: ignore[method-assign]
+    image.breed = "suse"
 
     # Act
-    image.os_version = "sles15generic"  # type: ignore[method-assign]
+    image.os_version = "sles15generic"
 
     # Assert
     assert image.os_version == "sles15generic"
@@ -117,14 +117,14 @@ def test_os_version(cobbler_api: CobblerAPI):
 
 def test_breed(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the breed property of Image.
     """
     # Arrange
     signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
     image = Image(cobbler_api)
 
     # Act
-    image.breed = "suse"  # type: ignore[method-assign]
+    image.breed = "suse"
 
     # Assert
     assert image.breed == "suse"
@@ -132,13 +132,13 @@ def test_breed(cobbler_api: CobblerAPI):
 
 def test_image_type(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the image type property of Image.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.image_type = enums.ImageTypes.DIRECT  # type: ignore[method-assign]
+    image.image_type = enums.ImageTypes.DIRECT
 
     # Assert
     assert image.image_type == enums.ImageTypes.DIRECT
@@ -146,27 +146,27 @@ def test_image_type(cobbler_api: CobblerAPI):
 
 def test_virt_cpus(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the virtualization CPU count property.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.virt_cpus = 5  # type: ignore[method-assign]
+    image.virt.cpus = 5
 
     # Assert
-    assert image.virt_cpus == 5
+    assert image.virt.cpus == 5
 
 
 def test_network_count(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the network count property of Image.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.network_count = 2  # type: ignore[method-assign]
+    image.network_count = 2
 
     # Assert
     assert image.network_count == 2
@@ -174,16 +174,16 @@ def test_network_count(cobbler_api: CobblerAPI):
 
 def test_virt_auto_boot(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the virtualization auto boot property.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.virt_auto_boot = False  # type: ignore[method-assign]
+    image.virt.auto_boot = False
 
     # Assert
-    assert not image.virt_auto_boot
+    assert not image.virt.auto_boot
 
 
 @pytest.mark.parametrize(
@@ -201,70 +201,70 @@ def test_virt_file_size(
     expected_result: float,
 ):
     """
-    TODO
+    Test the virtualization file size property.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
     with expected_exception:
-        image.virt_file_size = input_virt_file_size  # type: ignore[method-assign]
+        image.virt.file_size = input_virt_file_size
 
         # Assert
-        assert image.virt_file_size == expected_result
+        assert image.virt.file_size == expected_result
 
 
 def test_virt_disk_driver(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the virtualization disk driver property.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.virt_disk_driver = enums.VirtDiskDrivers.RAW  # type: ignore[method-assign]
+    image.virt.disk_driver = enums.VirtDiskDrivers.RAW
 
     # Assert
-    assert image.virt_disk_driver == enums.VirtDiskDrivers.RAW
+    assert image.virt.disk_driver == enums.VirtDiskDrivers.RAW
 
 
 def test_virt_ram(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the virtualization RAM property.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.virt_ram = 5  # type: ignore[method-assign]
+    image.virt.ram = 5
 
     # Assert
-    assert image.virt_ram == 5
+    assert image.virt.ram == 5
 
 
 def test_virt_type(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the virtualization type property.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.virt_type = enums.VirtType.AUTO  # type: ignore[method-assign]
+    image.virt.type = enums.VirtType.AUTO
 
     # Assert
-    assert image.virt_type == enums.VirtType.AUTO
+    assert image.virt.type == enums.VirtType.AUTO
 
 
 def test_virt_bridge(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the virtualization bridge property.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.virt_bridge = "testbridge"  # type: ignore[method-assign]
+    image.virt_bridge = "testbridge"
 
     # Assert
     assert image.virt_bridge == "testbridge"
@@ -272,27 +272,27 @@ def test_virt_bridge(cobbler_api: CobblerAPI):
 
 def test_virt_path(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the virtualization path property.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.virt_path = ""  # type: ignore[method-assign]
+    image.virt.path = ""
 
     # Assert
-    assert image.virt_path == ""
+    assert image.virt.path == ""
 
 
 def test_menu(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the menu property of Image.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.menu = ""  # type: ignore[method-assign]
+    image.menu = ""
 
     # Assert
     assert image.menu == ""
@@ -300,13 +300,13 @@ def test_menu(cobbler_api: CobblerAPI):
 
 def test_display_name(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the display name property of Image.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.display_name = ""  # type: ignore[method-assign]
+    image.display_name = ""
 
     # Assert
     assert image.display_name == ""
@@ -314,7 +314,7 @@ def test_display_name(cobbler_api: CobblerAPI):
 
 def test_supported_boot_loaders(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test supported boot loaders for Image.
     """
     # Arrange
     image = Image(cobbler_api)
@@ -329,13 +329,13 @@ def test_supported_boot_loaders(cobbler_api: CobblerAPI):
 
 def test_boot_loaders(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test the boot loaders property of Image.
     """
     # Arrange
     image = Image(cobbler_api)
 
     # Act
-    image.boot_loaders = ""  # type: ignore[method-assign]
+    image.boot_loaders = ""  # type: ignore
 
     # Assert
     assert image.boot_loaders == []
@@ -343,7 +343,7 @@ def test_boot_loaders(cobbler_api: CobblerAPI):
 
 def test_to_dict(create_image: Callable[[], Image]):
     """
-    TODO
+    Test the to_dict method of Image.
     """
     # Arrange
     test_image = create_image()
@@ -358,7 +358,7 @@ def test_to_dict(create_image: Callable[[], Image]):
 
 def test_to_dict_resolved(create_image: Callable[[], Image]):
     """
-    TODO
+    Test the to_dict method with resolved values.
     """
     # Arrange
     test_image = create_image()

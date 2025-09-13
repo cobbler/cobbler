@@ -1,5 +1,5 @@
 """
-TODO
+Module for managing and restarting services using systemd, supervisord, or SysV service manager.
 """
 
 import logging

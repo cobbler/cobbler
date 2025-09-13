@@ -42,9 +42,9 @@ def fixture_repo(cobbler_api: CobblerAPI) -> Repo:
     Creates a Repository "testrepo0" with a keep_updated=True and mirror_locally=True".
     """
     test_repo = Repo(cobbler_api)
-    test_repo.name = "testrepo0"  # type: ignore[method-assign]
-    test_repo.mirror_locally = True  # type: ignore[method-assign]
-    test_repo.keep_updated = True  # type: ignore[method-assign]
+    test_repo.name = "testrepo0"
+    test_repo.mirror_locally = True
+    test_repo.keep_updated = True
     return test_repo
 
 
@@ -188,10 +188,10 @@ def test_reposync_yum(
 ):
     # Arrange
     test_repo = repo
-    test_repo.breed = enums.RepoBreeds.YUM  # type: ignore[method-assign]
-    test_repo.mirror = input_mirror  # type: ignore[method-assign]
-    test_repo.mirror_type = input_mirror_type  # type: ignore[method-assign]
-    test_repo.rpm_list = "fedora-gpg-keys"  # type: ignore[method-assign]
+    test_repo.breed = enums.RepoBreeds.YUM
+    test_repo.mirror = input_mirror
+    test_repo.mirror_type = input_mirror_type
+    test_repo.rpm_list = ["fedora-gpg-keys"]
     test_settings = cobbler_api.settings()
     repo_path = os.path.join(test_settings.webdir, "repo_mirror", test_repo.name)
     mocked_subprocess = mocker.patch(
@@ -292,13 +292,13 @@ def test_reposync_apt(
 ):
     # Arrange
     test_repo = repo
-    test_repo.breed = enums.RepoBreeds.APT  # type: ignore[method-assign]
-    test_repo.arch = input_arch  # type: ignore[method-assign]
-    test_repo.apt_components = "main"  # type: ignore[method-assign]
-    test_repo.apt_dists = "stable"  # type: ignore[method-assign]
-    test_repo.mirror = input_mirror  # type: ignore[method-assign]
-    test_repo.mirror_type = input_mirror_type  # type: ignore[method-assign]
-    test_repo.rpm_list = input_rpm_list  # type: ignore[method-assign]
+    test_repo.breed = enums.RepoBreeds.APT
+    test_repo.arch = input_arch
+    test_repo.apt.components = ["main"]
+    test_repo.apt.dists = ["stable"]
+    test_repo.mirror = input_mirror
+    test_repo.mirror_type = input_mirror_type
+    test_repo.rpm_list = input_rpm_list  # type: ignore[assignment]
     test_settings = cobbler_api.settings()
     repo_path = os.path.join(test_settings.webdir, "repo_mirror", test_repo.name)
     mocked_subprocess = mocker.patch(
@@ -359,9 +359,9 @@ def test_reposync_wget(
 ):
     # Arrange
     test_repo = repo
-    test_repo.breed = enums.RepoBreeds.WGET  # type: ignore[method-assign]
-    test_repo.mirror = input_mirror  # type: ignore[method-assign]
-    test_repo.mirror_type = input_mirror_type  # type: ignore[method-assign]
+    test_repo.breed = enums.RepoBreeds.WGET
+    test_repo.mirror = input_mirror
+    test_repo.mirror_type = input_mirror_type
     repo_path = os.path.join(
         reposync_object.settings.webdir, "repo_mirror", test_repo.name
     )
@@ -397,7 +397,7 @@ def test_reposync_rhn(
     mocker: "MockerFixture", reposync_object: reposync.RepoSync, repo: Repo
 ):
     # Arrange
-    repo.mirror = "rhn://%s" % repo.name  # type: ignore[method-assign]
+    repo.mirror = "rhn://%s" % repo.name
     mocked_subprocess = mocker.patch(
         "cobbler.utils.subprocess_call", autospec=True, return_value=0
     )
@@ -458,9 +458,9 @@ def test_createrepo_walker(
 ):
     # Arrange
     input_repo = repo
-    input_repo.breed = enums.RepoBreeds.RSYNC  # type: ignore[method-assign]
+    input_repo.breed = enums.RepoBreeds.RSYNC
     input_dirname = ""
-    input_fnames: List[Any] = []  # type: ignore[method-assign]
+    input_fnames: List[Any] = []
     expected_call = ["createrepo", "--testflags", f"'{input_dirname}'"]
     mocked_subprocess = mocker.patch(
         "cobbler.utils.subprocess_call", autospec=True, return_value=0
@@ -505,7 +505,7 @@ def test_sync(
 ):
     # Arrange
     test_repo = Repo(cobbler_api)
-    test_repo.breed = input_repotype  # type: ignore[method-assign]
+    test_repo.breed = input_repotype
     rhn_sync_mock = mocker.patch.object(reposync_object, "rhn_sync")
     yum_sync_mock = mocker.patch.object(reposync_object, "yum_sync")
     apt_sync_mock = mocker.patch.object(reposync_object, "apt_sync")

@@ -128,12 +128,12 @@ def test_buildiso_integration(
         tid = remote.background_mkloaders({}, token)
         wait_task_end(tid, remote)
     sid = remote.new_system(token)
-    remote.modify_system(sid, "name", "testbed", token)
+    remote.modify_system(sid, ["name"], "testbed", token)
     if flavor == "ppc64le":
         pid = remote.get_profile_handle("leap-ppc64le")
     else:
         pid = remote.get_profile_handle("leap-x86_64")
-    remote.modify_system(sid, "profile", pid, token)
+    remote.modify_system(sid, ["profile"], pid, token)
     remote.save_system(sid, token, "new")
     print("Testsystem created")
 

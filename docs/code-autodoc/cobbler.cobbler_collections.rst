@@ -44,6 +44,14 @@ cobbler.cobbler\_collections.menus module
    :undoc-members:
    :show-inheritance:
 
+cobbler.cobbler\_collections.network\_interfaces module
+-------------------------------------------------------
+
+.. automodule:: cobbler.cobbler_collections.network_interfaces
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 cobbler.cobbler\_collections.profiles module
 --------------------------------------------
 

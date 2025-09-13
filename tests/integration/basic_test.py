@@ -7,7 +7,7 @@ import pathlib
 import shutil
 import subprocess
 from time import sleep
-from typing import Any, Callable, Dict
+from typing import Any, Callable, List, Tuple
 
 import pytest
 
@@ -23,7 +23,7 @@ def test_basic_buildiso(
     token: str,
     wait_task_end: WaitTaskEndType,
     images_fake_path: pathlib.Path,
-    create_distro: Callable[[Dict[str, Any]], str],
+    create_distro: Callable[[List[Tuple[List[str], Any]]], str],
 ):
     """
     Check that Cobbler is able to build customized ISOs by the "cobbler buildiso" command
@@ -35,20 +35,20 @@ def test_basic_buildiso(
     iso_path = tmp_path / "autoinst.iso"
 
     distro_id = create_distro(
-        {
-            "name": distro_name,
-            "arch": "x86_64",
-            "kernel": str(images_fake_path / "vmlinuz"),
-            "initrd": str(images_fake_path / "initramfs"),
-        }
+        [
+            (["name"], distro_name),
+            (["arch"], "x86_64"),
+            (["kernel"], str(images_fake_path / "vmlinuz")),
+            (["initrd"], str(images_fake_path / "initramfs")),
+        ]
     )
     profile_id = remote.new_profile(token)
-    remote.modify_profile(profile_id, "name", "fake", token)
-    remote.modify_profile(profile_id, "distro", distro_id, token)
+    remote.modify_profile(profile_id, ["name"], "fake", token)
+    remote.modify_profile(profile_id, ["distro"], distro_id, token)
     remote.save_profile(profile_id, token, "new")
     system_id = remote.new_system(token)
-    remote.modify_system(system_id, "name", "testbed", token)
-    remote.modify_system(system_id, "profile", profile_id, token)
+    remote.modify_system(system_id, ["name"], "testbed", token)
+    remote.modify_system(system_id, ["profile"], profile_id, token)
     remote.save_system(system_id, token, "new")
     buildisodir.mkdir(parents=True, exist_ok=True)
 
@@ -85,13 +85,13 @@ def test_basic_distro_add_remove(
     # 1. Create Distro's
     for name in distro_names:
         distro_id = remote.new_distro(token)
-        remote.modify_distro(distro_id, "name", name, token)
-        remote.modify_distro(distro_id, "arch", "x86_64", token)
+        remote.modify_distro(distro_id, ["name"], name, token)
+        remote.modify_distro(distro_id, ["arch"], "x86_64", token)
         remote.modify_distro(
-            distro_id, "kernel", str(images_fake_path / "vmlinuz"), token
+            distro_id, ["kernel"], str(images_fake_path / "vmlinuz"), token
         )
         remote.modify_distro(
-            distro_id, "initrd", str(images_fake_path / "initramfs"), token
+            distro_id, ["initrd"], str(images_fake_path / "initramfs"), token
         )
         remote.save_distro(distro_id, token, "new")
     # 2. Assert distros are present
@@ -108,7 +108,7 @@ def test_basic_distro_add_remove(
 def test_basic_distro_rename(
     remote: CobblerXMLRPCInterface,
     token: str,
-    create_distro: Callable[[Dict[str, Any]], str],
+    create_distro: Callable[[List[Tuple[List[str], Any]]], str],
     images_fake_path: pathlib.Path,
 ):
     """
@@ -118,16 +118,16 @@ def test_basic_distro_rename(
     collections_path = pathlib.Path("/var/lib/cobbler/collections")
     distro_name = "fake"
     did = create_distro(
-        {
-            "name": distro_name,
-            "arch": "x86_64",
-            "kernel": str(images_fake_path / "vmlinuz"),
-            "initrd": str(images_fake_path / "initramfs"),
-        }
+        [
+            (["name"], distro_name),
+            (["arch"], "x86_64"),
+            (["kernel"], str(images_fake_path / "vmlinuz")),
+            (["initrd"], str(images_fake_path / "initramfs")),
+        ]
     )
     pid = remote.new_profile(token)
-    remote.modify_profile(pid, "name", "fake", token)
-    remote.modify_profile(pid, "distro", did, token)
+    remote.modify_profile(pid, ["name"], "fake", token)
+    remote.modify_profile(pid, ["distro"], did, token)
     remote.save_profile(pid, token, "new")
 
     # Act
@@ -141,9 +141,9 @@ def test_basic_distro_rename(
 
 @pytest.mark.integration
 def test_basic_inheritance(
-    create_distro: Callable[[Dict[str, Any]], str],
-    create_profile: Callable[[Dict[str, Any]], str],
-    create_system: Callable[[Dict[str, Any]], str],
+    create_distro: Callable[[List[Tuple[List[str], Any]]], str],
+    create_profile: Callable[[List[Tuple[List[str], Any]]], str],
+    create_system: Callable[[List[Tuple[List[str], Any]]], str],
     images_fake_path: pathlib.Path,
     remote: CobblerXMLRPCInterface,
 ):
@@ -153,7 +153,7 @@ def test_basic_inheritance(
     # Arrange
     test_template = pathlib.Path("/var/lib/cobbler/templates/system-tests.sh")
     test_template.write_text(
-        "${name_servers} ${server} ${kernel_options}\n", encoding="UTF-8"
+        "${dns.name_servers} ${server} ${kernel_options}\n", encoding="UTF-8"
     )
     distro_name = "fake"
     profile_name_level_0 = "fake-0"
@@ -164,24 +164,24 @@ def test_basic_inheritance(
 
     # Act
     did = create_distro(
-        {
-            "name": distro_name,
-            "arch": "x86_64",
-            "kernel": str(images_fake_path / "vmlinuz"),
-            "initrd": str(images_fake_path / "initramfs"),
-        }
+        [
+            (["name"], distro_name),
+            (["arch"], "x86_64"),
+            (["kernel"], str(images_fake_path / "vmlinuz")),
+            (["initrd"], str(images_fake_path / "initramfs")),
+        ]
     )
 
     # The following part is kinda complex. The idea is to check how Cobbler treats
     # all three kinds of variables: scalar, list and dict.
     pid_level_0 = create_profile(
-        {
-            "name": profile_name_level_0,
-            "distro": did,
-            "autoinstall": str(test_template.name),
-            "server": "10.0.0.1",
-            "name_servers": "8.8.4.4",
-        }
+        [
+            (["name"], profile_name_level_0),
+            (["distro"], did),
+            (["autoinstall"], str(test_template.name)),
+            (["server"], "10.0.0.1"),
+            (["dns", "name_servers"], "8.8.4.4"),
+        ]
     )
 
     # Then we start adding descendants. The first one, fake-1, inherits from fake-0
@@ -190,32 +190,32 @@ def test_basic_inheritance(
     # finally its own child fake-4 overrides 'bar'.
 
     pid_level_1 = create_profile(
-        {
-            "name": profile_name_level_1,
-            "parent": pid_level_0,
-            "kernel_options": "foo=1",
-        }
+        [
+            (["name"], profile_name_level_1),
+            (["parent"], pid_level_0),
+            (["kernel_options"], "foo=1"),
+        ]
     )
     pid_level_2 = create_profile(
-        {
-            "name": profile_name_level_2,
-            "parent": pid_level_1,
-            "kernel_options": "bar=3 not-wanted",
-        }
+        [
+            (["name"], profile_name_level_2),
+            (["parent"], pid_level_1),
+            (["kernel_options"], "bar=3 not-wanted"),
+        ]
     )
     pid_level_3 = create_profile(
-        {
-            "name": profile_name_level_3,
-            "parent": pid_level_2,
-            "kernel_options": "!not-wanted",
-        }
+        [
+            (["name"], profile_name_level_3),
+            (["parent"], pid_level_2),
+            (["kernel_options"], "!not-wanted"),
+        ]
     )
     pid_level_4 = create_profile(
-        {
-            "name": profile_name_level_4,
-            "parent": pid_level_3,
-            "kernel_options": "bar=2",
-        }
+        [
+            (["name"], profile_name_level_4),
+            (["parent"], pid_level_3),
+            (["kernel_options"], "bar=2"),
+        ]
     )
 
     # Now we create two systems: testbed-1 and testbed-2.
@@ -228,18 +228,18 @@ def test_basic_inheritance(
     # server.
 
     create_system(
-        {
-            "name": "testbed-1",
-            "profile": pid_level_2,
-            "name_servers": "8.8.8.8",
-        }
+        [
+            (["name"], "testbed-1"),
+            (["profile"], pid_level_2),
+            (["dns", "name_servers"], "8.8.8.8"),
+        ]
     )
     create_system(
-        {
-            "name": "testbed-2",
-            "profile": pid_level_4,
-            "kernel_options": "baz=3",
-        }
+        [
+            (["name"], "testbed-2"),
+            (["profile"], pid_level_4),
+            (["kernel_options"], "baz=3"),
+        ]
     )
 
     # Assert
@@ -288,8 +288,8 @@ def test_basic_mkloaders(
 def test_basic_profile_add_remove(
     remote: CobblerXMLRPCInterface,
     token: str,
-    create_distro: Callable[[Dict[str, Any]], str],
-    create_profile: Callable[[Dict[str, Any]], str],
+    create_distro: Callable[[List[Tuple[List[str], Any]]], str],
+    create_profile: Callable[[List[Tuple[List[str], Any]]], str],
     images_fake_path: pathlib.Path,
 ):
     """
@@ -297,26 +297,28 @@ def test_basic_profile_add_remove(
     """
     # Arrange
     did = create_distro(
-        {
-            "name": "fake",
-            "arch": "x86_64",
-            "kernel": str(images_fake_path / "vmlinuz"),
-            "initrd": str(images_fake_path / "initramfs"),
-        }
+        [
+            (["name"], "fake"),
+            (["arch"], "x86_64"),
+            (["kernel"], str(images_fake_path / "vmlinuz")),
+            (["initrd"], str(images_fake_path / "initramfs")),
+        ]
     )
 
     # Act - Create Profiles
     for i in range(1, 3):
         top_profile_name = f"fake-{i}"
-        pid_top = create_profile({"name": top_profile_name, "distro": did})
+        pid_top = create_profile([(["name"], top_profile_name), (["distro"], did)])
         for k in range(1, 3):
             middle_profile_name = f"fake-{i}-child-{k}"
             pid_middle = create_profile(
-                {"name": middle_profile_name, "parent": pid_top}
+                [(["name"], middle_profile_name), (["parent"], pid_top)]
             )
             for j in range(1, 3):
                 bottom_profile_name = f"fake-{i}-grandchild-{k}-{j}"
-                create_profile({"name": bottom_profile_name, "parent": pid_middle})
+                create_profile(
+                    [(["name"], bottom_profile_name), (["parent"], pid_middle)]
+                )
 
     # Assert - Assert Profiles created
     profile_names = remote.get_item_names("profile")
@@ -336,8 +338,8 @@ def test_basic_profile_add_remove(
 def test_basic_profile_rename(
     remote: CobblerXMLRPCInterface,
     token: str,
-    create_distro: Callable[[Dict[str, Any]], str],
-    create_profile: Callable[[Dict[str, Any]], str],
+    create_distro: Callable[[List[Tuple[List[str], Any]]], str],
+    create_profile: Callable[[List[Tuple[List[str], Any]]], str],
     images_fake_path: pathlib.Path,
 ):
     """
@@ -346,24 +348,24 @@ def test_basic_profile_rename(
     # Arrange
     profiles_collection_folder = pathlib.Path("/var/lib/cobbler/collections/profiles")
     did = create_distro(
-        {
-            "name": "fake",
-            "arch": "x86_64",
-            "kernel": str(images_fake_path / "vmlinuz"),
-            "initrd": str(images_fake_path / "initramfs"),
-        }
+        [
+            (["name"], "fake"),
+            (["arch"], "x86_64"),
+            (["kernel"], str(images_fake_path / "vmlinuz")),
+            (["initrd"], str(images_fake_path / "initramfs")),
+        ]
     )
     pid = create_profile(
-        {
-            "name": "fake",
-            "distro": did,
-        }
+        [
+            (["name"], "fake"),
+            (["distro"], did),
+        ]
     )
     pid_child = create_profile(
-        {
-            "name": "fake-child",
-            "parent": pid,
-        }
+        [
+            (["name"], "fake-child"),
+            (["parent"], pid),
+        ]
     )
 
     # Act
@@ -378,9 +380,9 @@ def test_basic_profile_rename(
 
 @pytest.mark.integration
 def test_basic_system_add_remove(
-    create_distro: Callable[[Dict[str, Any]], str],
-    create_profile: Callable[[Dict[str, Any]], str],
-    create_system: Callable[[Dict[str, Any]], str],
+    create_distro: Callable[[List[Tuple[List[str], Any]]], str],
+    create_profile: Callable[[List[Tuple[List[str], Any]]], str],
+    create_system: Callable[[List[Tuple[List[str], Any]]], str],
     images_fake_path: pathlib.Path,
     remote: CobblerXMLRPCInterface,
     token: str,
@@ -391,23 +393,23 @@ def test_basic_system_add_remove(
     # Arrange
     distro_name = "fake"
     did = create_distro(
-        {
-            "name": distro_name,
-            "arch": "x86_64",
-            "kernel": str(images_fake_path / "vmlinuz"),
-            "initrd": str(images_fake_path / "initramfs"),
-        }
+        [
+            (["name"], distro_name),
+            (["arch"], "x86_64"),
+            (["kernel"], str(images_fake_path / "vmlinuz")),
+            (["initrd"], str(images_fake_path / "initramfs")),
+        ]
     )
     pid = create_profile(
-        {
-            "name": "fake",
-            "distro": did,
-        }
+        [
+            (["name"], "fake"),
+            (["distro"], did),
+        ]
     )
 
     # Act - Create Systems
     for i in range(1, 4):
-        create_system({"name": f"testbed-{i}", "profile": pid})
+        create_system([(["name"], f"testbed-{i}"), (["profile"], pid)])
 
     # Assert - Check systems created
     assert len(remote.get_item_names("system")) == 3
@@ -422,9 +424,9 @@ def test_basic_system_add_remove(
 
 @pytest.mark.integration
 def test_basic_system_ipxe_dhcpd_conf_update(
-    create_distro: Callable[[Dict[str, Any]], str],
-    create_profile: Callable[[Dict[str, Any]], str],
-    create_system: Callable[[Dict[str, Any]], str],
+    create_distro: Callable[[List[Tuple[List[str], Any]]], str],
+    create_profile: Callable[[List[Tuple[List[str], Any]]], str],
+    create_system: Callable[[List[Tuple[List[str], Any]]], str],
     images_fake_path: pathlib.Path,
     remote: CobblerXMLRPCInterface,
     token: str,
@@ -435,33 +437,33 @@ def test_basic_system_ipxe_dhcpd_conf_update(
     # Arrange
     distro_name = "fake"
     did = create_distro(
-        {
-            "name": distro_name,
-            "arch": "x86_64",
-            "kernel": str(images_fake_path / "vmlinuz"),
-            "initrd": str(images_fake_path / "initramfs"),
-        }
+        [
+            (["name"], distro_name),
+            (["arch"], "x86_64"),
+            (["kernel"], str(images_fake_path / "vmlinuz")),
+            (["initrd"], str(images_fake_path / "initramfs")),
+        ]
     )
     pid = create_profile(
-        {
-            "name": "fake",
-            "distro": did,
-        }
+        [
+            (["name"], "fake"),
+            (["distro"], did),
+        ]
     )
     sid = create_system(
-        {
-            "name": "testbed",
-            "profile": pid,
-        }
+        [
+            (["name"], "testbed"),
+            (["profile"], pid),
+        ]
     )
     nid = remote.new_network_interface(sid, token)
-    remote.modify_network_interface(nid, "name", "default", token)
-    remote.modify_network_interface(nid, "mac_address", "aa:bb:cc:dd:ee:ff", token)
+    remote.modify_network_interface(nid, ["name"], "default", token)
+    remote.modify_network_interface(nid, ["mac_address"], "aa:bb:cc:dd:ee:ff", token)
     remote.save_network_interface(nid, token)
 
     # Act
-    remote.modify_system(sid, "netboot_enabled", True, token)
-    remote.modify_system(sid, "enable_ipxe", True, token)
+    remote.modify_system(sid, ["netboot_enabled"], True, token)
+    remote.modify_system(sid, ["enable_ipxe"], True, token)
     remote.save_system(sid, token)
 
     # Assert
@@ -485,17 +487,17 @@ def test_basic_system_parent_image(
     """
     # Arrange
     iid = remote.new_image(token)
-    remote.modify_image(iid, "name", "fake", token)
+    remote.modify_image(iid, ["name"], "fake", token)
     remote.save_image(iid, token, "new")
 
     # Act
     sid = remote.new_system(token)
-    remote.modify_system(sid, "name", "testbed", token)
-    remote.modify_system(sid, "image", iid, token)
+    remote.modify_system(sid, ["name"], "testbed", token)
+    remote.modify_system(sid, ["image"], iid, token)
     remote.save_system(sid, token)
     nid = remote.new_network_interface(sid, token)
-    remote.modify_network_interface(nid, "name", "default", token)
-    remote.modify_network_interface(nid, "mac_address", "aa:bb:cc:dd:ee:ff", token)
+    remote.modify_network_interface(nid, ["name"], "default", token)
+    remote.modify_network_interface(nid, ["mac_address"], "aa:bb:cc:dd:ee:ff", token)
     remote.save_network_interface(nid, token)
     restart_cobbler()
 
@@ -508,9 +510,9 @@ def test_basic_system_parent_image(
 
 @pytest.mark.integration
 def test_basic_system_rename(
-    create_distro: Callable[[Dict[str, Any]], str],
-    create_profile: Callable[[Dict[str, Any]], str],
-    create_system: Callable[[Dict[str, Any]], str],
+    create_distro: Callable[[List[Tuple[List[str], Any]]], str],
+    create_profile: Callable[[List[Tuple[List[str], Any]]], str],
+    create_system: Callable[[List[Tuple[List[str], Any]]], str],
     remote: CobblerXMLRPCInterface,
     token: str,
     images_fake_path: pathlib.Path,
@@ -521,20 +523,20 @@ def test_basic_system_rename(
     # Arrange
     expected_result = "testbed-renamed"
     did = create_distro(
-        {
-            "name": "fake",
-            "arch": "x86_64",
-            "kernel": str(images_fake_path / "vmlinuz"),
-            "initrd": str(images_fake_path / "initramfs"),
-        }
+        [
+            (["name"], "fake"),
+            (["arch"], "x86_64"),
+            (["kernel"], str(images_fake_path / "vmlinuz")),
+            (["initrd"], str(images_fake_path / "initramfs")),
+        ]
     )
     pid = create_profile(
-        {
-            "name": "fake",
-            "distro": did,
-        }
+        [
+            (["name"], "fake"),
+            (["distro"], did),
+        ]
     )
-    sid = create_system({"name": "testbed", "profile": pid})
+    sid = create_system([(["name"], "testbed"), (["profile"], pid)])
 
     # Act
     remote.rename_system(sid, expected_result, token)
@@ -554,10 +556,10 @@ def test_basic_system_rename(
 def test_basic_system_serial(
     remote: CobblerXMLRPCInterface,
     token: str,
-    create_distro: Callable[[Dict[str, Any]], str],
-    create_profile: Callable[[Dict[str, Any]], str],
-    create_system: Callable[[Dict[str, Any]], str],
-    create_network_interface: Callable[[str, Dict[str, Any]], str],
+    create_distro: Callable[[List[Tuple[List[str], Any]]], str],
+    create_profile: Callable[[List[Tuple[List[str], Any]]], str],
+    create_system: Callable[[List[Tuple[List[str], Any]]], str],
+    create_network_interface: Callable[[str, List[Tuple[List[str], Any]]], str],
     wait_task_end: WaitTaskEndType,
     images_fake_path: pathlib.Path,
 ):
@@ -566,18 +568,18 @@ def test_basic_system_serial(
     """
     # Arrange
     did = create_distro(
-        {
-            "name": "fake",
-            "arch": "x86_64",
-            "kernel": str(images_fake_path / "vmlinuz"),
-            "initrd": str(images_fake_path / "initramfs"),
-        }
+        [
+            (["name"], "fake"),
+            (["arch"], "x86_64"),
+            (["kernel"], str(images_fake_path / "vmlinuz")),
+            (["initrd"], str(images_fake_path / "initramfs")),
+        ]
     )
     pid = create_profile(
-        {
-            "name": "fake",
-            "distro": did,
-        }
+        [
+            (["name"], "fake"),
+            (["distro"], did),
+        ]
     )
 
     # Create three systems per bootloader:
@@ -590,48 +592,48 @@ def test_basic_system_serial(
     # Cobbler defaults to 0 and 115200 for device and baud rate respectively.
     for loader in ["grub", "pxe"]:
         sid1 = create_system(
-            {
-                "name": f"testbed-1-{loader}",
-                "profile": pid,
-                "boot_loader": loader,
-                "serial_device": 0,
-            }
+            [
+                (["name"], f"testbed-1-{loader}"),
+                (["profile"], pid),
+                (["boot_loader"], loader),
+                (["serial_device"], 0),
+            ]
         )
         sid2 = create_system(
-            {
-                "name": f"testbed-2-{loader}",
-                "profile": pid,
-                "boot_loader": loader,
-                "serial_baud_rate": 115200,
-            }
+            [
+                (["name"], f"testbed-2-{loader}"),
+                (["profile"], pid),
+                (["boot_loader"], loader),
+                (["serial_baud_rate"], 115200),
+            ]
         )
         sid3 = create_system(
-            {
-                "name": f"testbed-3-{loader}",
-                "profile": pid,
-                "boot_loader": loader,
-            }
+            [
+                (["name"], f"testbed-3-{loader}"),
+                (["profile"], pid),
+                (["boot_loader"], loader),
+            ]
         )
         create_network_interface(
             sid1,
-            {
-                "name": "default",
-                "mac_address": "random",
-            },
+            [
+                (["name"], "default"),
+                (["mac_address"], "random"),
+            ],
         )
         create_network_interface(
             sid2,
-            {
-                "name": "default",
-                "mac_address": "random",
-            },
+            [
+                (["name"], "default"),
+                (["mac_address"], "random"),
+            ],
         )
         create_network_interface(
             sid3,
-            {
-                "name": "default",
-                "mac_address": "random",
-            },
+            [
+                (["name"], "default"),
+                (["mac_address"], "random"),
+            ],
         )
 
     # Act

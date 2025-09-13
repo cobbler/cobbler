@@ -6,7 +6,7 @@ file in the desired ways.
 import pathlib
 import shutil
 from configparser import ConfigParser
-from typing import Any, Callable, Dict
+from typing import Any, Callable, List, Tuple
 
 import pytest
 
@@ -85,7 +85,7 @@ def test_settings_cli_migrate():
 
 @pytest.mark.integration
 def test_settings_cli_migrate_from_2_8_5(
-    create_distro: Callable[[Dict[str, Any]], str],
+    create_distro: Callable[[List[Tuple[List[str], Any]]], str],
     images_fake_path: pathlib.Path,
     remote: CobblerXMLRPCInterface,
     token: str,
@@ -105,13 +105,13 @@ def test_settings_cli_migrate_from_2_8_5(
 
     # Create new distro
     create_distro(
-        {
-            "name": "fake",
-            "arch": "x86_64",
-            "kernel": str(images_fake_path / "vmlinuz"),
-            "initrd": str(images_fake_path / "initramfs"),
-            "boot_loaders": "<<inherit>>",
-        }
+        [
+            (["name"], "fake"),
+            (["arch"], "x86_64"),
+            (["kernel"], str(images_fake_path / "vmlinuz")),
+            (["initrd"], str(images_fake_path / "initramfs")),
+            (["boot_loaders"], "<<inherit>>"),
+        ]
     )
 
     # Move collections to old "config" place to be processed during migration
@@ -145,9 +145,9 @@ def test_settings_cli_migrate_from_2_8_5(
     restart_cobbler()
 
     # Assert - Boot loaders should be preserved after migration.
-    assert (
-        remote.get_distro("fake", False, False, token).get("boot_loaders") == "<<inherit>>"  # type: ignore
-    )
+    assert remote.get_distro("fake", False, False, token).get("boot_loaders") == [  # type: ignore
+        "<<inherit>>"
+    ]
 
     # Cleanup
     shutil.rmtree("/var/lib/cobbler/config/", ignore_errors=True)

@@ -557,13 +557,15 @@ class CobblerAPI:
 
     # =======================================================================
 
-    def __item_resolved_helper(self, item_uuid: str, attribute: str) -> "BaseItem":
+    def __item_resolved_helper(
+        self, item_uuid: str, attribute_path: List[str]
+    ) -> "BaseItem":
         """
         This helper validates the common data for ``*_item_resolved_value``.
 
         :param item_uuid: The uuid for the item.
         :param attribute: The attribute name that is requested.
-        :returns: The desired item to further process.
+        :returns: The desired item to further process and the target property.
         :raises TypeError: If ``item_uuid`` or ``attribute`` are not a str.
         :raises ValueError: In case the uuid was invalid or the requested item did not exist.
         :raises AttributeError: In case the attribute did not exist on the item that was requested.
@@ -574,8 +576,8 @@ class CobblerAPI:
         if not validate.validate_uuid(item_uuid):
             raise ValueError("The given uuid did not have the correct format!")
 
-        if not isinstance(attribute, str):  # type: ignore
-            raise TypeError("attribute must be of type str!")
+        if not all([isinstance(attribute, str) for attribute in attribute_path]):  # type: ignore
+            raise TypeError("attribute_path must be of a list of str!")
 
         # We pass return_list=False, thus the return type is Optional[ITEM]
         desired_item = self.find_items(
@@ -587,14 +589,35 @@ class CobblerAPI:
         if isinstance(desired_item, list):
             raise ValueError("Ambiguous match during searching for resolved item!")
 
-        if not hasattr(desired_item, attribute):
-            raise AttributeError(
-                f'Attribute "{attribute}" did not exist on item type "{desired_item.TYPE_NAME}".'
-            )
+        current_obj: Any = desired_item
+        for attribute in attribute_path:
+            if not hasattr(current_obj, attribute):
+                raise AttributeError(
+                    f'Attribute "{attribute_path}" did not exist on item type "{desired_item.TYPE_NAME}".'
+                )
+            current_obj = getattr(current_obj, attribute)
 
         return desired_item
 
-    def get_item_resolved_value(self, item_uuid: str, attribute: str) -> Any:
+    def __get_nested_value(
+        self, obj: Any, attribute_path: List[str]
+    ) -> Tuple[Any, bool]:
+        """
+        Retrieve the value from a given object that can be deeply nested.
+
+        :param obj: The object to retrieve the attribute from.
+        :param attribute_path: The list of strings which represent the attributes that are retrieved.
+        :returns: A Tuple where the retrieved value is the first item and the second item is a bool that indicates if
+                  the operation was successful.
+        """
+        current_obj = obj
+        for attribute in attribute_path:
+            if not hasattr(current_obj, attribute):
+                return None, False
+            current_obj = getattr(current_obj, attribute)
+        return current_obj, True
+
+    def get_item_resolved_value(self, item_uuid: str, attribute_path: List[str]) -> Any:
         """
         This method helps non Python API consumers to retrieve the final data of a field with inheritance.
 
@@ -602,18 +625,19 @@ class CobblerAPI:
         queried via their UUID.
 
         :param item_uuid: The UUID of the item that should be retrieved.
-        :param attribute: The attribute that should be retrieved.
+        :param attribute_path: The attribute that should be retrieved.
         :raises ValueError: In case a value given was either malformed or the desired item did not exist.
         :raises TypeError: In case the type of the method arguments do have the wrong type.
         :raises AttributeError: In case the attribute specified is not available on the given item (type).
         :returns: The attribute value. Since this might be of type NetworkInterface we cannot yet set this explicitly.
         """
-        desired_item = self.__item_resolved_helper(item_uuid, attribute)
+        desired_item = self.__item_resolved_helper(item_uuid, attribute_path)
 
-        return getattr(desired_item, attribute)
+        result, _ = self.__get_nested_value(desired_item, attribute_path)
+        return result
 
     def set_item_resolved_value(
-        self, item_uuid: str, attribute: str, value: Any
+        self, item_uuid: str, attribute_path: List[str], value: Any
     ) -> None:
         """
         This method helps non Python API consumers to use the Python property setters without having access to the raw
@@ -626,72 +650,87 @@ class CobblerAPI:
                      Cobbler.
 
         :param item_uuid: The UUID of the item that should be retrieved.
-        :param attribute: The attribute that should be retrieved.
+        :param attribute_path: The attribute that should be retrieved.
         :param value: The new value to set.
         :raises ValueError: In case a value given was either malformed or the desired item did not exist.
         :raises TypeError: In case the type of the method arguments do have the wrong type.
         :raises AttributeError: In case the attribute specified is not available on the given item (type).
         """
-        desired_item = self.__item_resolved_helper(item_uuid, attribute)
-        property_object_of_attribute = getattr(type(desired_item), attribute)
+        desired_item = self.__item_resolved_helper(item_uuid, attribute_path)
+        current_obj = desired_item
+        for idx in range(0, len(attribute_path) - 1):
+            current_obj = getattr(current_obj, attribute_path[idx])
+        property_object_of_attribute = getattr(type(current_obj), attribute_path[-1])  # type: ignore
         # Check if value can be inherited or not
         if "inheritable" not in dir(property_object_of_attribute):
             if value == enums.VALUE_INHERITED:
                 raise ValueError(
                     "<<inherit>> not allowed for non-inheritable properties."
                 )
-            setattr(desired_item, attribute, value)
+            property_object_of_attribute.fset(current_obj, value)
             return
         if isinstance(property_object_of_attribute, InheritableDictProperty):
             # Deduplicate dictionaries
             if isinstance(desired_item, InheritableItem):
                 parent_item = desired_item.logical_parent
-                if hasattr(parent_item, attribute):
-                    parent_value = getattr(parent_item, attribute)
-                    dict_value = input_converters.input_string_or_dict(value)
-                    if isinstance(dict_value, str):
-                        # This can only be the inherited case
-                        dict_value = enums.VALUE_INHERITED
-                    else:
-                        for key in parent_value:
-                            if (
-                                key in dict_value
-                                and key in parent_value
-                                and dict_value[key] == parent_value[key]
-                            ):
-                                dict_value.pop(key)
-                    setattr(desired_item, attribute, dict_value)
+                parent_value, success = self.__get_nested_value(
+                    parent_item, attribute_path
+                )
+                if not success:
+                    self.logger.warning(
+                        "set_item_resolved_value could not find the requested dict property."
+                    )
                     return
+                dict_value = input_converters.input_string_or_dict(value)
+                if isinstance(dict_value, str):
+                    # This can only be the inherited case
+                    dict_value = enums.VALUE_INHERITED
+                else:
+                    for key in parent_value:
+                        if (
+                            key in dict_value
+                            and key in parent_value
+                            and dict_value[key] == parent_value[key]
+                        ):
+                            dict_value.pop(key)
+                property_object_of_attribute.fset(current_obj, dict_value)  # type: ignore
+                return
             else:
                 # Value can only be coming from settings?
                 raise ValueError(
                     "Deduplication of dictionaries not supported for Items not inheriting from InheritableItem!"
                 )
         if isinstance(property_object_of_attribute, InheritableProperty) and isinstance(
-            getattr(desired_item, attribute), list
+            self.__get_nested_value(desired_item, attribute_path)[0], list
         ):
             # Deduplicate lists
             if isinstance(desired_item, InheritableItem):
                 parent_item = desired_item.logical_parent
-                if hasattr(parent_item, attribute):
-                    parent_value = getattr(parent_item, attribute)
-                    list_value = input_converters.input_string_or_list(value)
-                    if isinstance(list_value, str):
-                        # This can only be the inherited case
-                        list_value = enums.VALUE_INHERITED
-                    else:
-                        for item in parent_value:
-                            if item in list_value:
-                                list_value.remove(item)
-                    setattr(desired_item, attribute, list_value)
+                parent_value, success = self.__get_nested_value(
+                    parent_item, attribute_path
+                )
+                if not success:
+                    self.logger.warning(
+                        "set_item_resolved_value could not find the requested list property."
+                    )
                     return
+                list_value = input_converters.input_string_or_list(value)
+                if isinstance(list_value, str):
+                    # This can only be the inherited case
+                    list_value = enums.VALUE_INHERITED
+                else:
+                    for item in parent_value:
+                        if item in list_value:
+                            list_value.remove(item)
+                property_object_of_attribute.fset(current_obj, list_value)  # type: ignore
+                return
             else:
                 # Value can only be coming from settings?
                 raise ValueError(
                     "Deduplication of dictionaries not supported for Items not inheriting from InheritableItem!"
                 )
         # Use property setter
-        setattr(desired_item, attribute, value)
+        property_object_of_attribute.fset(current_obj, value)  # type: ignore
 
     # =======================================================================
 
@@ -1222,7 +1261,7 @@ class CobblerAPI:
             ref.in_transaction = False
             for item in item_changelog:
                 self.get_items(what).update_index_value(
-                    ref, item.attribute, item.old_value, item.new_value
+                    ref, ".".join(item.attribute), item.old_value, item.new_value
                 )
 
         for what, ref, _, _, _, _ in to_remove:
@@ -1890,9 +1929,9 @@ class CobblerAPI:
 
             if self.find_repo(auto_name) is None:  # type: ignore
                 cobbler_repo = self.new_repo()
-                cobbler_repo.name = auto_name  # type: ignore[method-assign]
-                cobbler_repo.breed = enums.RepoBreeds.YUM  # type: ignore[method-assign]
-                cobbler_repo.arch = basearch  # type: ignore[method-assign]
+                cobbler_repo.name = auto_name
+                cobbler_repo.breed = enums.RepoBreeds.YUM
+                cobbler_repo.arch = basearch
                 cobbler_repo.comment = repository.name  # type: ignore
                 baseurl = repository.baseurl  # type: ignore
                 metalink = repository.metalink  # type: ignore
@@ -1911,8 +1950,8 @@ class CobblerAPI:
                     mirror = ""
                     mirror_type = enums.MirrorType.NONE
 
-                cobbler_repo.mirror = mirror  # type: ignore[method-assign]
-                cobbler_repo.mirror_type = mirror_type  # type: ignore[method-assign]
+                cobbler_repo.mirror = mirror
+                cobbler_repo.mirror_type = mirror_type
                 self.log(f"auto repo adding: {auto_name}")
                 self.add_repo(cobbler_repo)
             else:

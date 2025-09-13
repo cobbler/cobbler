@@ -161,7 +161,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
                 self.validate_repos(name, repos, repo_mirrordir)
                 autoinstall = re.sub(
                     rf"^(\s*repo --name=\S+ --baseurl=).*/cobbler/distro_mirror/{distro_obj.name}/?(.*)",
-                    rf"\1 file:///mnt/source/repo_mirror/\2",
+                    r"\1 file:///mnt/source/repo_mirror/\2",
                     autoinstall,
                     re.MULTILINE,
                 )
@@ -253,16 +253,16 @@ class StandaloneBuildiso(buildiso.BuildIso):
     ):
         """
         Run the whole iso generation from bottom to top. Per default this builds an ISO for all available systems
-        and profiles.
-        This is the only method which should be called from non-class members. The ``profiles`` and ``system``
-        parameters can be combined.
+        and profiles. This is the only method which should be called from non-class members. The ``profiles`` and
+        ``system`` parameters can be combined.
+
         :param iso: The name of the iso. Defaults to "autoinst.iso".
         :param buildisodir: This overwrites the directory from the settings in which the iso is built in.
         :param profiles: The filter to generate the ISO only for selected profiles. None means all.
         :param systems: The filter to generate the ISO only for selected systems. None means all.
         :param xorrisofs_opts: ``xorrisofs`` options to include additionally.
-        :param distro_name: For detecting the architecture of the ISO.
-                            If not provided, taken from first profile or system item
+        :param distro_name: For detecting the architecture of the ISO. If not provided, taken from first profile or
+            system item.
         :param airgapped: This option implies ``standalone=True``.
         :param source: If the iso should be offline available this is the path to the sources of the image.
         :param exclude_systems: Whether system entries should not be exported.
@@ -319,7 +319,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
             if esp:
                 esp_location = esp
             else:
-                esp_location = self._find_esp(buildiso_dirs.root)
+                esp_location = self._find_esp(buildiso_dirs.root)  # type: ignore[assignment]
 
             if esp_location is None:
                 esp_location = self._create_esp_image_file(buildisodir)
@@ -332,7 +332,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
 
         elif distro_obj.arch in (Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL):
             xorriso_func = self._xorriso_ppc64le
-            buildiso_dirs = self.create_buildiso_dirs_ppc64le(buildisodir)
+            buildiso_dirs = self.create_buildiso_dirs_ppc64le(buildisodir)  # type: ignore[assignment]
             grub_bin = (
                 pathlib.Path(self.api.settings().bootloaders_dir)
                 / "grub"
@@ -341,11 +341,11 @@ class StandaloneBuildiso(buildiso.BuildIso):
             bootinfo_txt = self._render_bootinfo_txt(distro_obj.name)
             # fill temporary directory with arch-specific binaries
             filesystem_helpers.copyfile(
-                str(grub_bin), str(buildiso_dirs.grub / "grub.elf")
+                str(grub_bin), str(buildiso_dirs.grub / "grub.elf")  # type: ignore[union-attr]
             )
 
-            self._write_bootinfo(bootinfo_txt, buildiso_dirs.ppc)
-            self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)
+            self._write_bootinfo(bootinfo_txt, buildiso_dirs.ppc)  # type: ignore[union-attr]
+            self._write_grub_cfg(loader_config_parts.grub, buildiso_dirs.grub)  # type: ignore[union-attr]
         else:
             raise ValueError(
                 "cobbler buildiso does not work for arch={distro_obj.arch}"
@@ -356,21 +356,21 @@ class StandaloneBuildiso(buildiso.BuildIso):
                 distro_obj.kernel, str(distro_mirrordir)
             )
         # copy kernels, initrds, and distro files (e.g. installer)
-        self._copy_distro_files(filesource, str(buildiso_dirs.root))
+        self._copy_distro_files(filesource, str(buildiso_dirs.root))  # type: ignore[union-attr]
         for copyset in loader_config_parts.bootfiles_copysets:
             self._copy_boot_files(
                 copyset.src_kernel,
                 copyset.src_initrd,
-                str(buildiso_dirs.root),
+                str(buildiso_dirs.root),  # type: ignore[union-attr]
                 copyset.new_filename,
             )
 
         # sync repos
         if airgapped:
-            buildiso_dirs.repo.mkdir(exist_ok=True)
+            buildiso_dirs.repo.mkdir(exist_ok=True)  # type: ignore[union-attr]
             self._copy_repos(
-                autoinstall_data.values(), repo_mirrordir, buildiso_dirs.repo
+                autoinstall_data.values(), repo_mirrordir, buildiso_dirs.repo  # type: ignore[union-attr]
             )
 
-        self._write_autoinstall_cfg(autoinstall_data, buildiso_dirs.autoinstall)
+        self._write_autoinstall_cfg(autoinstall_data, buildiso_dirs.autoinstall)  # type: ignore[union-attr]
         xorriso_func(xorrisofs_opts, iso, buildisodir, buildisodir + "/efi")

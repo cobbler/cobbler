@@ -5,7 +5,7 @@ Integration test module to verify the functionality of the /svc/ HTTP endpoint.
 import pathlib
 import shutil
 import urllib.request
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, List, Tuple
 
 import pytest
 
@@ -17,9 +17,9 @@ from tests.integration.conftest import WaitTaskEndType
 @pytest.fixture(name="create_distro_profile_system")
 def fixture_create_distro_profile_system(
     images_fake_path: pathlib.Path,
-    create_distro: Callable[[Dict[str, Any]], str],
-    create_profile: Callable[[Dict[str, Any]], str],
-    create_system: Callable[[Dict[str, Any]], str],
+    create_distro: Callable[[List[Tuple[List[str], Any]]], str],
+    create_profile: Callable[[List[Tuple[List[str], Any]]], str],
+    create_system: Callable[[List[Tuple[List[str], Any]]], str],
 ) -> Tuple[str, str, str]:
     """
     Fixture to create the set of Cobbler Distro, Profile and System.
@@ -27,20 +27,15 @@ def fixture_create_distro_profile_system(
     :returns: The IDs of Distro, Profile and System (in that order.)
     """
     did = create_distro(
-        {
-            "name": "fake",
-            "arch": "x86_64",
-            "kernel": str(images_fake_path / "vmlinuz"),
-            "initrd": str(images_fake_path / "initramfs"),
-        }
+        [
+            (["name"], "fake"),
+            (["arch"], "x86_64"),
+            (["kernel"], str(images_fake_path / "vmlinuz")),
+            (["initrd"], str(images_fake_path / "initramfs")),
+        ]
     )
-    pid = create_profile(
-        {
-            "name": "fake",
-            "distro": did,
-        }
-    )
-    sid = create_system({"name": "testbed", "profile": pid})
+    pid = create_profile([(["name"], "fake"), (["distro"], did)])
+    sid = create_system([(["name"], "testbed"), (["profile"], pid)])
     return did, pid, sid
 
 
@@ -130,7 +125,7 @@ def test_svc_bootcfg_esxi(
     remote: CobblerXMLRPCInterface,
     token: str,
     listings_directory: pathlib.Path,
-    create_system: Callable[[Dict[str, Any]], str],
+    create_system: Callable[[List[Tuple[List[str], Any]]], str],
     tmp_path: pathlib.Path,
     wait_task_end: WaitTaskEndType,
 ):
@@ -163,7 +158,7 @@ def test_svc_bootcfg_esxi(
     )
     wait_task_end(tid, remote)
     pid = remote.get_profile_handle("fake-x86_64")
-    create_system({"name": "testbed", "profile": pid})
+    create_system([(["name"], "testbed"), (["profile"], pid)])
     # Prepare expected result
     expected_result_profile = pathlib.Path(
         "/code/tests/integration/data/test_svc_bootcfg_esxi/expected_result_profile"
@@ -247,16 +242,16 @@ def test_svc_findks(create_distro_profile_system: Tuple[str, str, str]):
 def test_svc_ipxe_image(
     remote: CobblerXMLRPCInterface,
     token: str,
-    create_system: Callable[[Dict[str, Any]], str],
+    create_system: Callable[[List[Tuple[List[str], Any]]], str],
 ):
     """
     Check that the Cobbler HTTP endpoint /ipxe/image/ is callable
     """
     # Arrange
     iid = remote.new_image(token)
-    remote.modify_image(iid, "name", "fakeimage", token)
+    remote.modify_image(iid, ["name"], "fakeimage", token)
     remote.save_image(iid, token, "new")
-    create_system({"name": "testbed", "image": iid})
+    create_system([(["name"], "testbed"), (["image"], iid)])
     # Prepare expected result
     expected_result = ""
 
@@ -273,32 +268,27 @@ def test_svc_ipxe_profile(
     remote: CobblerXMLRPCInterface,
     token: str,
     images_fake_path: pathlib.Path,
-    create_distro: Callable[[Dict[str, Any]], str],
-    create_profile: Callable[[Dict[str, Any]], str],
-    create_system: Callable[[Dict[str, Any]], str],
+    create_distro: Callable[[List[Tuple[List[str], Any]]], str],
+    create_profile: Callable[[List[Tuple[List[str], Any]]], str],
+    create_system: Callable[[List[Tuple[List[str], Any]]], str],
 ):
     """
     Check that the Cobbler HTTP endpoint /ipxe/profile/ is callable
     """
     # Arrange
     iid = remote.new_image(token)
-    remote.modify_image(iid, "name", "fakeimage", token)
+    remote.modify_image(iid, ["name"], "fakeimage", token)
     remote.save_image(iid, token, "new")
     did = create_distro(
-        {
-            "name": "fake",
-            "arch": "x86_64",
-            "kernel": str(images_fake_path / "vmlinuz"),
-            "initrd": str(images_fake_path / "initramfs"),
-        }
+        [
+            (["name"], "fake"),
+            (["arch"], "x86_64"),
+            (["kernel"], str(images_fake_path / "vmlinuz")),
+            (["initrd"], str(images_fake_path / "initramfs")),
+        ]
     )
-    pid = create_profile(
-        {
-            "name": "fake",
-            "distro": did,
-        }
-    )
-    create_system({"name": "testbed", "profile": pid, "image": iid})
+    pid = create_profile([(["name"], "fake"), (["distro"], did)])
+    create_system([(["name"], "testbed"), (["profile"], pid), (["image"], iid)])
     # Prepare expected result
     expected_result = pathlib.Path(
         "/code/tests/integration/data/test_svc_ipxe_profile/expected_result"

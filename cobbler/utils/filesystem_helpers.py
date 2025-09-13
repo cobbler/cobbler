@@ -1,5 +1,5 @@
 """
-TODO
+Utilities for filesystem operations used by Cobbler, including file linking, copying, hashing, and directory management.
 """
 
 import errno

@@ -3,7 +3,7 @@ Test module to verify the functionality of profile-related XML-RPC endpoints.
 """
 
 import os
-from typing import Callable, Union
+from typing import Callable, List, Union
 
 import pytest
 
@@ -31,71 +31,70 @@ def test_get_profiles(remote: CobblerXMLRPCInterface, token: str):
 @pytest.mark.parametrize(
     "field_name,field_value",
     [
-        ("comment", "test comment"),
-        ("dhcp_tag", ""),
-        ("dhcp_tag", "foo"),
-        ("distro", "<VALUE IGNORED>"),
-        ("enable_ipxe", True),
-        ("enable_ipxe", False),
-        ("enable_menu", True),
-        ("enable_menu", False),
-        ("kernel_options", "a=1 b=2 c=3 c=4 c=5 d e"),
-        ("kernel_options_post", "a=1 b=2 c=3 c=4 c=5 d e"),
-        ("autoinstall", "test.ks"),
-        ("autoinstall", "test.xml"),
-        ("autoinstall", "test.seed"),
-        ("autoinstall_meta", "a=1 b=2 c=3 c=4 c=5 d e"),
-        ("name", "testprofile0"),
-        ("name_servers", "1.1.1.1 1.1.1.2 1.1.1.3"),
-        ("name_servers_search", "example.com foo.bar.com"),
-        ("owners", "user1 user2 user3"),
-        ("proxy", "testproxy"),
-        ("server", "1.1.1.1"),
-        ("menu", "<VALUE IGNORED>"),
-        ("virt_auto_boot", True),
-        ("virt_auto_boot", False),
-        ("enable_ipxe", True),
-        ("enable_ipxe", False),
-        ("enable_ipxe", "yes"),
-        ("enable_ipxe", "YES"),
-        ("enable_ipxe", "1"),
-        ("enable_ipxe", "0"),
-        ("enable_ipxe", "no"),
-        ("enable_menu", True),
-        ("enable_menu", False),
-        ("enable_menu", "yes"),
-        ("enable_menu", "YES"),
-        ("enable_menu", "1"),
-        ("enable_menu", "0"),
-        ("enable_menu", "no"),
-        ("virt_auto_boot", "yes"),
-        ("virt_auto_boot", "no"),
-        ("virt_bridge", "<<inherit>>"),
-        ("virt_bridge", "br0"),
-        ("virt_bridge", "virbr0"),
-        ("virt_bridge", "xenbr0"),
-        ("virt_cpus", "<<inherit>>"),
-        ("virt_cpus", 1),
-        ("virt_cpus", 2),
-        ("virt_disk_driver", "<<inherit>>"),
-        ("virt_disk_driver", "raw"),
-        ("virt_disk_driver", "qcow2"),
-        ("virt_disk_driver", "vdmk"),
-        ("virt_file_size", "<<inherit>>"),
-        ("virt_file_size", "5"),
-        ("virt_file_size", "10"),
-        ("virt_path", "<<inherit>>"),
-        ("virt_path", "/path/to/test"),
-        ("virt_ram", "<<inherit>>"),
-        ("virt_ram", 256),
-        ("virt_ram", 1024),
-        ("virt_type", "<<inherit>>"),
-        ("virt_type", "xenpv"),
-        ("virt_type", "xenfv"),
-        ("virt_type", "qemu"),
-        ("virt_type", "kvm"),
-        ("virt_type", "vmware"),
-        ("virt_type", "openvz"),
+        (["comment"], "test comment"),
+        (["dhcp_tag"], ""),
+        (["dhcp_tag"], "foo"),
+        (["distro"], "<VALUE IGNORED>"),
+        (["enable_ipxe"], True),
+        (["enable_ipxe"], False),
+        (["enable_menu"], True),
+        (["enable_menu"], False),
+        (["kernel_options"], "a=1 b=2 c=3 c=4 c=5 d e"),
+        (["kernel_options_post"], "a=1 b=2 c=3 c=4 c=5 d e"),
+        (["autoinstall"], "test.ks"),
+        (["autoinstall"], "test.xml"),
+        (["autoinstall"], "test.seed"),
+        (["autoinstall_meta"], "a=1 b=2 c=3 c=4 c=5 d e"),
+        (["name"], "testprofile0"),
+        (["dns", "name_servers"], "1.1.1.1 1.1.1.2 1.1.1.3"),
+        (["dns", "name_servers_search"], "example.com foo.bar.com"),
+        (["owners"], "user1 user2 user3"),
+        (["proxy"], "testproxy"),
+        (["server"], "1.1.1.1"),
+        (["menu"], "<VALUE IGNORED>"),
+        (["virt", "auto_boot"], True),
+        (["virt", "auto_boot"], False),
+        (["enable_ipxe"], True),
+        (["enable_ipxe"], False),
+        (["enable_ipxe"], "yes"),
+        (["enable_ipxe"], "YES"),
+        (["enable_ipxe"], "1"),
+        (["enable_ipxe"], "0"),
+        (["enable_ipxe"], "no"),
+        (["enable_menu"], True),
+        (["enable_menu"], False),
+        (["enable_menu"], "yes"),
+        (["enable_menu"], "YES"),
+        (["enable_menu"], "1"),
+        (["enable_menu"], "0"),
+        (["enable_menu"], "no"),
+        (["virt", "auto_boot"], "yes"),
+        (["virt", "auto_boot"], "no"),
+        (["virt_bridge"], "<<inherit>>"),
+        (["virt_bridge"], "br0"),
+        (["virt_bridge"], "virbr0"),
+        (["virt_bridge"], "xenbr0"),
+        (["virt", "cpus"], "<<inherit>>"),
+        (["virt", "cpus"], 1),
+        (["virt", "cpus"], 2),
+        (["virt", "disk_driver"], "<<inherit>>"),
+        (["virt", "disk_driver"], "raw"),
+        (["virt", "disk_driver"], "qcow2"),
+        (["virt", "disk_driver"], "vdmk"),
+        (["virt", "file_size"], "<<inherit>>"),
+        (["virt", "file_size"], "5"),
+        (["virt", "file_size"], "10"),
+        (["virt", "path"], "/path/to/test"),
+        (["virt", "ram"], "<<inherit>>"),
+        (["virt", "ram"], 256),
+        (["virt", "ram"], 1024),
+        (["virt", "type"], "<<inherit>>"),
+        (["virt", "type"], "xenpv"),
+        (["virt", "type"], "xenfv"),
+        (["virt", "type"], "qemu"),
+        (["virt", "type"], "kvm"),
+        (["virt", "type"], "vmware"),
+        (["virt", "type"], "openvz"),
         # ("boot_loaders", "pxe ipxe grub") FIXME: This raises currently but it did not in the past
     ],
 )
@@ -103,7 +102,7 @@ def test_create_profile_positive(
     remote: CobblerXMLRPCInterface,
     token: str,
     template_files: Callable[[], None],
-    field_name: str,
+    field_name: List[str],
     field_value: Union[str, int, bool],
 ):
     """
@@ -112,11 +111,11 @@ def test_create_profile_positive(
     # Arrange
     distro_uid = remote.get_distro_handle("testdistro0")
     profile = remote.new_profile(token)
-    remote.modify_profile(profile, "name", "testprofile0", token)
-    remote.modify_profile(profile, "distro", distro_uid, token)
-    if field_name == "menu":
+    remote.modify_profile(profile, ["name"], "testprofile0", token)
+    remote.modify_profile(profile, ["distro"], distro_uid, token)
+    if field_name == ["menu"]:
         field_value = remote.get_menu_handle("testmenu0")
-    if field_name == "distro":
+    if field_name == ["distro"]:
         field_value = distro_uid
 
     # Act
@@ -133,25 +132,26 @@ def test_create_profile_positive(
 @pytest.mark.parametrize(
     "field_name,field_value",
     [
-        ("distro", "baddistro"),
-        ("autoinstall", "/path/to/bad/autoinstall"),
-        ("menu", "badmenu"),
-        ("virt_cpus", "a"),
-        ("virt_file_size", "a"),
-        ("virt_ram", "a"),
-        ("virt_type", "bad"),
-        ("boot_loaders", "badloader"),
+        (["distro"], "baddistro"),
+        (["autoinstall"], "/path/to/bad/autoinstall"),
+        (["menu"], "badmenu"),
+        (["virt", "cpus"], "a"),
+        (["virt", "file_size"], "a"),
+        (["virt", "path"], "<<inherit>>"),
+        (["virt", "ram"], "a"),
+        (["virt", "type"], "bad"),
+        (["boot_loaders"], "badloader"),
     ],
 )
 def test_create_profile_negative(
-    remote: CobblerXMLRPCInterface, token: str, field_name: str, field_value: str
+    remote: CobblerXMLRPCInterface, token: str, field_name: List[str], field_value: str
 ):
     """
     Test: create/edit a profile object
     """
     # Arrange
     profile = remote.new_profile(token)
-    remote.modify_profile(profile, "name", "testprofile0", token)
+    remote.modify_profile(profile, ["name"], "testprofile0", token)
 
     # Act & Assert
     try:
@@ -182,8 +182,8 @@ def test_create_subprofile(remote: CobblerXMLRPCInterface, token: str):
     subprofile = remote.new_subprofile(token)
 
     # Assert
-    assert remote.modify_profile(subprofile, "name", "testsubprofile0", token)
-    assert remote.modify_profile(subprofile, "parent", profile_uid, token)
+    assert remote.modify_profile(subprofile, ["name"], "testsubprofile0", token)
+    assert remote.modify_profile(subprofile, ["parent"], profile_uid, token)
 
     assert remote.save_profile(subprofile, token)
 

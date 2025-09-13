@@ -38,6 +38,7 @@ from netaddr.ip import IPAddress, IPNetwork
 
 from cobbler import enums, settings
 from cobbler.cexceptions import CX
+from cobbler.items.options import base
 from cobbler.utils import process_management
 
 if TYPE_CHECKING:
@@ -467,7 +468,6 @@ def blender(
     results["obj_type"] = root_obj.TYPE_NAME
     for node in tree:
         __consolidate(node, results)
-
     # Make interfaces accessible without Cheetah-voodoo in the templates
     # EXAMPLE: $ip == $ip0, $ip1, $ip2 and so on.
 
@@ -597,72 +597,32 @@ def __consolidate(node: Union["ITEM", "Settings"], results: Dict[Any, Any]) -> D
     :param node: The object to merge data into. The data from the node always wins.
     :return: A dictionary with the consolidated data.
     """
-    node_data = node.to_dict()
-
+    node_data = node.to_dict(resolved=True)
     # If the node has any data items labelled <<inherit>> we need to expunge them. So that they do not override the
     # supernodes.
-    node_data_copy: Dict[Any, Any] = {}
     for key in node_data:
         value = node_data[key]
         if value == enums.VALUE_INHERITED:
             if key not in results:
                 # We need to add at least one value per key, use the property getter to resolve to the
                 # settings or wherever we inherit from.
-                node_data_copy[key] = getattr(node, key)
+                results[key] = getattr(node, key)
             # Old keys should have no inherit and thus are not a real property
             if key == "kickstart":
-                node_data_copy[key] = getattr(type(node), "autoinstall").fget(node)
+                results[key] = getattr(type(node), "autoinstall").fget(node)
             elif key == "ks_meta":
-                node_data_copy[key] = getattr(type(node), "autoinstall_meta").fget(node)
+                results[key] = getattr(type(node), "autoinstall_meta").fget(node)
         else:
             if isinstance(value, dict):
-                node_data_copy[key] = value.copy()
+                results[key] = value.copy()
             elif isinstance(value, list):
-                node_data_copy[key] = value[:]
+                results[key] = value[:]
+            elif isinstance(value, base.ItemOption):
+                results[key] = value.to_dict(resolved=True)
             else:
-                node_data_copy[key] = value
+                results[key] = value
 
-    for field, data_item in node_data_copy.items():
-        if field in results:
-            # Now merge data types separately depending on whether they are dict, list, or scalar.
-            fielddata = results[field]
-            if isinstance(fielddata, dict):
-                # interweave dict results
-                results[field].update(data_item.copy())
-            elif isinstance(fielddata, (list, tuple)):
-                # add to lists (Cobbler doesn't have many lists)
-                # FIXME: should probably uniquify list after doing this
-                results[field].extend(data_item)
-                results[field] = uniquify(results[field])
-            else:
-                # distro field gets special handling, since we don't want to overwrite it ever.
-                # FIXME: should the parent's field too? It will be overwritten if there are multiple sub-profiles in
-                #        the chain of inheritance
-                if field != "distro":
-                    results[field] = data_item
-        else:
-            results[field] = data_item
-
-    # Now if we have any "!foo" results in the list, delete corresponding key entry "foo", and also the entry "!foo",
-    # allowing for removal of kernel options set in a distro later in a profile, etc.
-
-    dict_removals(results, "kernel_options")
-    dict_removals(results, "kernel_options_post")
-    dict_removals(results, "autoinstall_meta")
-    dict_removals(results, "template_files")
     return results
-
-
-def dict_removals(results: Dict[Any, Any], subkey: str) -> None:
-    """
-    Remove entries from a dictionary starting with a "!".
-
-    :param results: The dictionary to search in
-    :param subkey: The subkey to search through.
-    """
-    if subkey not in results:
-        return
-    return dict_annihilate(results[subkey])
 
 
 def dict_annihilate(dictionary: Dict[Any, Any]) -> None:
@@ -1281,9 +1241,9 @@ def kopts_overwrite(
             kopts["textmode"] = ["1"]
         if system_name and cobbler_server_hostname:
             # only works if pxe_just_once is enabled in global settings
-            kopts["info"] = (
-                f"http://{cobbler_server_hostname}/cblr/svc/op/nopxe/system/{system_name}"
-            )
+            kopts[
+                "info"
+            ] = f"http://{cobbler_server_hostname}/cblr/svc/op/nopxe/system/{system_name}"
 
 
 def is_str_int(value: str) -> bool:

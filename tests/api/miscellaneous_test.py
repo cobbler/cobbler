@@ -3,7 +3,7 @@ Tests that validate the functionality of the module that is responsible for prov
 """
 
 import logging
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, List
 from unittest.mock import create_autospec
 
 import pytest
@@ -89,28 +89,28 @@ def test_buildiso(mocker: "MockerFixture", cobbler_api: CobblerAPI):
         ("", 0, pytest.raises(TypeError), ""),  # Wrong argument type attribute name
         (
             "yxvyxcvyxcvyxcvyxcvyxcvyxcv",
-            "kernel_options",
+            ["kernel_options"],
             pytest.raises(ValueError),
             "",
         ),  # Wrong uuid format
         (
             "4c1d2e0050344a9ba96e2fd36908a53e",
-            "kernel_options",
+            ["kernel_options"],
             pytest.raises(ValueError),
             "",
         ),  # Item not existing
         (
             "",
-            "test_not_existing",
+            ["test_not_existing"],
             pytest.raises(AttributeError),
             "",
         ),  # Attribute not existing
-        ("", "redhat_management_key", does_not_raise(), ""),  # str attribute test
-        ("", "enable_ipxe", does_not_raise(), False),  # bool attribute
-        ("", "virt_ram", does_not_raise(), 512),  # int attribute
-        ("", "virt_file_size", does_not_raise(), 5.0),  # double attribute
-        ("", "kernel_options", does_not_raise(), {}),  # dict attribute
-        ("", "owners", does_not_raise(), ["admin"]),  # list attribute
+        ("", ["redhat_management_key"], does_not_raise(), ""),  # str attribute test
+        ("", ["enable_ipxe"], does_not_raise(), False),  # bool attribute
+        ("", ["virt", "ram"], does_not_raise(), 512),  # int attribute
+        ("", ["virt", "file_size"], does_not_raise(), 5.0),  # double attribute
+        ("", ["kernel_options"], does_not_raise(), {}),  # dict attribute
+        ("", ["owners"], does_not_raise(), ["admin"]),  # list attribute
     ],
 )
 def test_get_item_resolved_value(
@@ -119,7 +119,7 @@ def test_get_item_resolved_value(
     create_profile: Callable[[str], Profile],
     create_system: Callable[[str], System],
     input_uuid: str,
-    input_attribute_name: str,
+    input_attribute_name: List[str],
     expected_exception: Any,
     expected_result: Any,
 ):
@@ -149,64 +149,64 @@ def test_get_item_resolved_value(
         ("", 0, "", pytest.raises(TypeError), ""),  # Wrong argument type attribute name
         (
             "yxvyxcvyxcvyxcvyxcvyxcvyxcv",
-            "kernel_options",
+            ["kernel_options"],
             "",
             pytest.raises(ValueError),
             "",
         ),  # Wrong uuid format
         (
             "4c1d2e0050344a9ba96e2fd36908a53e",
-            "kernel_options",
+            ["kernel_options"],
             "",
             pytest.raises(ValueError),
             "",
         ),  # Item not existing
         (
             "",
-            "test_not_existing",
+            ["test_not_existing"],
             "",
             pytest.raises(AttributeError),
             "",
         ),  # Attribute not existing
-        ("", "redhat_management_key", "", does_not_raise(), ""),  # str attribute test
-        ("", "enable_ipxe", "", does_not_raise(), False),  # bool attribute
-        ("", "virt_ram", "", does_not_raise(), 0),  # int attribute
+        ("", ["redhat_management_key"], "", does_not_raise(), ""),  # str attribute test
+        ("", ["enable_ipxe"], "", does_not_raise(), False),  # bool attribute
+        ("", ["virt", "ram"], "", does_not_raise(), 0),  # int attribute
         (
             "",
-            "virt_ram",
+            ["virt", "ram"],
             enums.VALUE_INHERITED,
             does_not_raise(),
             enums.VALUE_INHERITED,
         ),  # int attribute inherit
-        ("", "virt_file_size", "", does_not_raise(), 0.0),  # double attribute
-        ("", "kernel_options", "", does_not_raise(), {}),  # dict attribute
-        ("", "kernel_options", "a=5", does_not_raise(), {}),  # dict attribute
-        ("", "kernel_options", "a=6", does_not_raise(), {"a": "6"}),  # dict attribute
+        ("", ["virt", "file_size"], "", does_not_raise(), 0.0),  # double attribute
+        ("", ["kernel_options"], "", does_not_raise(), {}),  # dict attribute
+        ("", ["kernel_options"], "a=5", does_not_raise(), {}),  # dict attribute
+        ("", ["kernel_options"], "a=6", does_not_raise(), {"a": "6"}),  # dict attribute
         (
             "",
-            "kernel_options",
+            ["kernel_options"],
             enums.VALUE_INHERITED,
             does_not_raise(),
             enums.VALUE_INHERITED,
         ),  # dict attribute
-        ("", "owners", "", does_not_raise(), []),  # list attribute
+        ("", ["owners"], "", does_not_raise(), []),  # list attribute
         (
             "",
-            "owners",
+            ["owners"],
             enums.VALUE_INHERITED,
             does_not_raise(),
             enums.VALUE_INHERITED,
         ),  # list attribute inherit
         (
             "",
-            "name_servers",
+            ["dns", "name_servers"],
             "10.0.0.1",
             does_not_raise(),
             [],
         ),  # list attribute deduplicate
         (
             "",
-            "name_servers",
+            ["dns", "name_servers"],
             "10.0.0.1 10.0.0.2",
             does_not_raise(),
             ["10.0.0.2"],
@@ -219,7 +219,7 @@ def test_set_item_resolved_value(
     create_profile: Callable[[str], Profile],
     create_system: Callable[[str], System],
     input_uuid: str,
-    input_attribute_name: str,
+    input_attribute_name: List[str],
     input_value: str,
     expected_exception: Any,
     expected_result: Any,
@@ -231,7 +231,7 @@ def test_set_item_resolved_value(
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
     test_profile.kernel_options = "a=5"  # type: ignore
-    test_profile.name_servers = ["10.0.0.1"]  # type: ignore[method-assign]
+    test_profile.dns.name_servers = ["10.0.0.1"]  # type: ignore[method-assign]
     cobbler_api.add_profile(test_profile)
     test_system = create_system(test_profile.uid)
 
@@ -245,4 +245,7 @@ def test_set_item_resolved_value(
         )
 
         # Assert
-        assert test_system.to_dict().get(input_attribute_name) == expected_result
+        system_result = test_system.to_dict()
+        for item in input_attribute_name:
+            system_result = system_result.get(item)  # type: ignore
+        assert system_result == expected_result

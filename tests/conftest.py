@@ -139,6 +139,7 @@ def create_distro(
             test_distro.name = name  # type: ignore[method-assign]
         test_distro.kernel = os.path.join(test_folder, fk_kernel)  # type: ignore
         test_distro.initrd = os.path.join(test_folder, fk_initrd)  # type: ignore
+        print(test_distro.boot_loaders)
         if with_add:
             cobbler_api.add_distro(test_distro)
         return test_distro

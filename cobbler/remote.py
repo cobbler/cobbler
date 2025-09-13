@@ -189,7 +189,7 @@ class TransactionItemModifications(NamedTuple):
     This tuple is providing named access to a changelog of values that can be used to updated indicies later onwards.
     """
 
-    attribute: str
+    attribute: List[str]
     old_value: Any
     new_value: Any
 
@@ -429,8 +429,8 @@ class CobblerXMLRPCInterface:
             if isinstance(self.options, list):
                 raise ValueError("options for background_import need to be dict!")
             self.remote.api.import_tree(
-                self.options.get("path", None),
-                self.options.get("name", None),
+                self.options.get("path", None),  # type: ignore
+                self.options.get("name", None),  # type: ignore
                 self.options.get("available_as", None),
                 self.options.get("autoinstall_file", None),
                 self.options.get("rsync_flags", None),
@@ -911,25 +911,27 @@ class CobblerXMLRPCInterface:
             return obj
         if object_id in self.unsaved_items:
             return self.unsaved_items[object_id][1]
-        obj = self.api.find_items("", criteria={"uid": object_id}, return_list=False)
+        obj = self.api.find_items("", criteria={"uid": object_id}, return_list=False)  # type: ignore
         if obj is None or isinstance(obj, list):
             raise ValueError("Object not found or ambigous match!")
         return obj
 
     def get_item_resolved_value(
-        self, item_uuid: str, attribute: str
+        self, item_uuid: str, attribute: List[str]
     ) -> Union[str, int, float, List[Any], Dict[Any, Any]]:
         """
         .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.get_item_resolved_value`
         """
-        self._log(f"get_item_resolved_value({item_uuid})", attribute=attribute)
+        self._log(
+            f"get_item_resolved_value({item_uuid})", attribute=".".join(attribute)
+        )
         return_value: Optional[
             Union[str, int, float, enums.ConvertableEnum, List[Any], Dict[Any, Any]]
         ] = self.api.get_item_resolved_value(item_uuid, attribute)
         if return_value is None:
             self._log(
                 f"get_item_resolved_value({item_uuid}): returned None",
-                attribute=attribute,
+                attribute=".".join(attribute),
             )
             raise ValueError(
                 f'None is not a valid value for the resolved attribute "{attribute}". Please fix the item(s) '
@@ -949,7 +951,7 @@ class CobblerXMLRPCInterface:
             return return_value.name
         if isinstance(return_value, dict):
             if (
-                attribute == "interfaces"
+                attribute[0] == "interfaces"
                 and len(return_value) > 0
                 and all(
                     isinstance(value, network_interface.NetworkInterface)
@@ -977,12 +979,18 @@ class CobblerXMLRPCInterface:
         return return_value
 
     def set_item_resolved_value(
-        self, item_uuid: str, attribute: str, value: Any, token: Optional[str] = None
+        self,
+        item_uuid: str,
+        attribute: List[str],
+        value: Any,
+        token: Optional[str] = None,
     ):
         """
         .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.set_item_resolved_value`
         """
-        self._log(f"get_item_resolved_value({item_uuid})", attribute=attribute)
+        self._log(
+            f"get_item_resolved_value({item_uuid})", attribute=".".join(attribute)
+        )
         # Duplicated logic to check from api.py method, but we require this to check the access of the user.
         if not validate_uuid(item_uuid):
             raise ValueError("The given uuid did not have the correct format!")
@@ -1887,7 +1895,7 @@ class CobblerXMLRPCInterface:
         if token in self.transactions:
             obj = self.__get_object(object_id, token)
             obj_copy = cast(InheritableItem, obj.make_clone())
-            obj_copy.name = newname  # type: ignore[method-assign]
+            obj_copy.name = newname
             self.transactions[token][obj_copy.uid] = TransactionTuple(
                 what, obj_copy, False, 0.0, "", []
             )
@@ -1999,7 +2007,7 @@ class CobblerXMLRPCInterface:
         if token in self.transactions:
             obj = self.__get_object(object_id, token)
             obj_copy = cast(InheritableItem, obj.make_clone())
-            obj_copy.name = newname  # type: ignore[method-assign]
+            obj_copy.name = newname
             self.transactions[token][obj_copy.uid] = TransactionTuple(
                 what, obj_copy, False, 0.0, "", []
             )
@@ -2216,11 +2224,24 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("network_interface", token, system_uid=system_uid)
 
+    def __get_raw_value(self, obj: Any, attribute_path: List[str]) -> Any:
+        """
+        Retrieve the value from a given object that can be deeply nested.
+
+        :param obj: The object to retrieve the attribute from.
+        :param attribute_path: The list of strings which represent the attributes that are retrieved.
+        :returns: The retrieved value.
+        """
+        cur_obj = obj
+        for idx in range(0, len(attribute_path) - 1):
+            cur_obj = getattr(cur_obj, attribute_path[idx])
+        return getattr(cur_obj, f"_{attribute_path[-1]}")
+
     def modify_item(
         self,
         what: str,
         object_id: str,
-        attribute: str,
+        attribute: List[str],
         arg: Union[str, int, float, List[str], Dict[str, Any]],
         token: str,
     ) -> bool:
@@ -2238,7 +2259,7 @@ class CobblerXMLRPCInterface:
         self._log(
             f"modify_item({what})",
             object_id=object_id,
-            attribute=attribute,
+            attribute=".".join(attribute),
             token=token,
         )
         obj = self.__get_object(object_id, token)
@@ -2257,11 +2278,15 @@ class CobblerXMLRPCInterface:
             new_obj.in_transaction = True
             obj = new_obj
 
-        if attribute in ["parent", "profile", "distro"] and token in self.transactions:
+        if (
+            len(attribute) > 0
+            and attribute[0] in ["parent", "profile", "distro"]
+            and token in self.transactions
+        ):
             self.transactions[token][object_id].item_modifications.append(
                 TransactionItemModifications(
                     attribute,
-                    getattr(obj, f"_{attribute}"),
+                    self.__get_raw_value(obj, attribute),
                     arg.uid if isinstance(arg, base_item.BaseItem) else arg,
                 )
             )
@@ -2273,7 +2298,7 @@ class CobblerXMLRPCInterface:
                     ) in InheritableItem.TYPE_DEPENDENCIES[what]:
                         if (
                             dependant_item_type == obj.COLLECTION_TYPE
-                            and dependant_type_attribute == attribute
+                            and dependant_type_attribute == attribute[0]
                         ):
                             if to_delete:
                                 raise ValueError(
@@ -2281,24 +2306,27 @@ class CobblerXMLRPCInterface:
                                 )
 
                             # replace the string argument with the corresponding unsaved object from transactions
-                            if hasattr(obj, attribute):
-                                setattr(obj, attribute, parent)
+                            if hasattr(obj, attribute[0]):
+                                setattr(obj, attribute[0], parent)
                                 return True
 
-        if hasattr(obj, attribute):
-            if token in self.transactions:
-                self.transactions[token][object_id].item_modifications.append(
-                    TransactionItemModifications(
-                        attribute,
-                        getattr(obj, f"_{attribute}"),
-                        arg.uid if isinstance(arg, base_item.BaseItem) else arg,
-                    )
+        cur_obj = obj
+        for idx in range(0, len(attribute) - 1):
+            if not hasattr(cur_obj, attribute[idx]):
+                return False
+            cur_obj = getattr(cur_obj, attribute[idx])
+        if token in self.transactions:
+            self.transactions[token][object_id].item_modifications.append(
+                TransactionItemModifications(
+                    attribute,
+                    getattr(cur_obj, f"_{attribute[-1]}"),
+                    arg.uid if isinstance(arg, base_item.BaseItem) else arg,
                 )
-            setattr(obj, attribute, arg)
-            return True
-        return False
+            )
+        setattr(cur_obj, attribute[-1], arg)
+        return True
 
-    def modify_distro(self, object_id: str, attribute: str, arg: Any, token: str):
+    def modify_distro(self, object_id: str, attribute: List[str], arg: Any, token: str):
         """
         Modify a single attribute of a distribution.
 
@@ -2310,7 +2338,9 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("distro", object_id, attribute, arg, token)
 
-    def modify_profile(self, object_id: str, attribute: str, arg: Any, token: str):
+    def modify_profile(
+        self, object_id: str, attribute: List[str], arg: Any, token: str
+    ):
         """
         Modify a single attribute of a profile.
 
@@ -2322,7 +2352,7 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("profile", object_id, attribute, arg, token)
 
-    def modify_system(self, object_id: str, attribute: str, arg: Any, token: str):
+    def modify_system(self, object_id: str, attribute: List[str], arg: Any, token: str):
         """
         Modify a single attribute of a system.
 
@@ -2334,7 +2364,7 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("system", object_id, attribute, arg, token)
 
-    def modify_image(self, object_id: str, attribute: str, arg: Any, token: str):
+    def modify_image(self, object_id: str, attribute: List[str], arg: Any, token: str):
         """
         Modify a single attribute of an image.
 
@@ -2346,7 +2376,7 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("image", object_id, attribute, arg, token)
 
-    def modify_repo(self, object_id: str, attribute: str, arg: Any, token: str):
+    def modify_repo(self, object_id: str, attribute: List[str], arg: Any, token: str):
         """
         Modify a single attribute of a repository.
 
@@ -2358,7 +2388,7 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("repo", object_id, attribute, arg, token)
 
-    def modify_menu(self, object_id: str, attribute: str, arg: Any, token: str):
+    def modify_menu(self, object_id: str, attribute: List[str], arg: Any, token: str):
         """
         Modify a single attribute of a menu.
 
@@ -2371,7 +2401,7 @@ class CobblerXMLRPCInterface:
         return self.modify_item("menu", object_id, attribute, arg, token)
 
     def modify_network_interface(
-        self, object_id: str, attribute: str, arg: Any, token: str
+        self, object_id: str, attribute: List[str], arg: Any, token: str
     ):
         """
         Modify a single attribute of a network_interface.
@@ -3020,11 +3050,11 @@ class CobblerXMLRPCInterface:
 
         # looks like we can go ahead and create a system now
         obj = self.api.new_system()
-        obj.profile = profile  # type: ignore[method-assign]
-        obj.name = name  # type: ignore[method-assign]
+        obj.profile = profile
+        obj.name = name
         if hostname != "":
-            obj.hostname = hostname  # type: ignore[method-assign]
-        obj.netboot_enabled = False  # type: ignore[method-assign]
+            obj.hostname = hostname
+        obj.netboot_enabled = False
         self.api.add_system(obj)
         for iname in inames:
             if info["interfaces"][iname].get("bridge", "") == 1:
@@ -3037,14 +3067,14 @@ class CobblerXMLRPCInterface:
                 # see koan/utils.py for explanation of network info discovery
                 continue
             new_network_interface = self.api.new_network_interface(system_uid=obj.uid)
-            new_network_interface.name = iname  # type: ignore[method-assign]
+            new_network_interface.name = iname
             new_network_interface.mac_address = mac
-            new_network_interface.ip_address = ip_address
-            new_network_interface.netmask = netmask
+            new_network_interface.ipv4.address = ip_address
+            new_network_interface.ipv4.netmask = netmask
             if ip_address not in ("", "?"):
-                new_network_interface.ip_address = ip_address
+                new_network_interface.ipv4.address = ip_address
             if netmask not in ("", "?"):
-                new_network_interface.netmask = netmask
+                new_network_interface.ipv4.netmask = netmask
             self.api.add_network_interface(new_network_interface)
         return 0
 
@@ -3074,7 +3104,7 @@ class CobblerXMLRPCInterface:
         if isinstance(obj, list):
             # Duplicate entries found - can't be but mypy requires this check
             return False
-        obj.netboot_enabled = False  # type: ignore[method-assign]
+        obj.netboot_enabled = False
         # disabling triggers and sync to make this extremely fast.
         self.api.systems().add(
             obj,
@@ -3126,7 +3156,7 @@ class CobblerXMLRPCInterface:
         # Find matching system or profile record
         obj = self.api.find_system(name=sys_name)
         if obj is None or isinstance(obj, list):
-            obj = self.api.find_profile(name=sys_name)
+            obj = self.api.find_profile(name=sys_name)  # type: ignore
             if obj is None or isinstance(obj, list):
                 # system or profile not found!
                 self._log(
@@ -3622,7 +3652,7 @@ class CobblerXMLRPCInterface:
         self._log("get_network_interface_as_rendered", name=name, token=token)
         obj = self.api.find_network_interface(name=name)
         if obj is not None and not isinstance(obj, list):
-            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
         return self.xmlrpc_hacks({})
 
     def get_random_mac(
@@ -3760,15 +3790,17 @@ class CobblerXMLRPCInterface:
     def __name_to_object(self, resource: str, name: str) -> Optional["ITEM"]:  # type: ignore
         result: Optional["ITEM"] = None
         if resource.find("distro") != -1:
-            result = self.api.find_distro(name, return_list=False)  # type: ignore
+            result = self.api.find_distro(return_list=False, name=name)  # type: ignore
         if resource.find("profile") != -1:
-            result = self.api.find_profile(name, return_list=False)  # type: ignore
+            result = self.api.find_profile(return_list=False, name=name)  # type: ignore
         if resource.find("system") != -1:
-            result = self.api.find_system(name, return_list=False)  # type: ignore
+            result = self.api.find_system(return_list=False, name=name)  # type: ignore
         if resource.find("repo") != -1:
-            result = self.api.find_repo(name, return_list=False)  # type: ignore
+            result = self.api.find_repo(return_list=False, name=name)  # type: ignore
         if resource.find("menu") != -1:
-            result = self.api.find_menu(name, return_list=False)  # type: ignore
+            result = self.api.find_menu(return_list=False, name=name)  # type: ignore
+        if resource.find("network_interface") != -1:
+            result = self.api.find_network_interface(return_list=False, name=name)  # type: ignore
         if isinstance(result, list):
             raise ValueError("Search is not allowed to return list!")
         return result
@@ -4134,7 +4166,9 @@ class CobblerXMLRPCInterface:
     def transaction_commit(self, token: str) -> bool:
         """
         Commits a transaction.
+
         This performs validation and applies all accumulated transaction operations:
+
         1. Checks for conflicting external modifications. If any object was modified
            outside the transaction (mtime mismatch), the commit fails and all changes
            are discarded.

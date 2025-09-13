@@ -128,7 +128,6 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from cobbler import enums, grub, utils, validate
 from cobbler.cexceptions import CX
-from cobbler.decorator import InheritableProperty, LazyProperty
 from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.utils import input_converters, signatures
 
@@ -136,6 +135,11 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.items.abstract.inheritable_item import InheritableItem
     from cobbler.items.profile import Profile
+
+    InheritableProperty = property
+    LazyProperty = property
+else:
+    from cobbler.decorator import InheritableProperty, LazyProperty
 
 
 class Distro(BootableItem):
@@ -258,7 +262,7 @@ class Distro(BootableItem):
         """
         return self._kernel
 
-    @kernel.setter  # type: ignore[no-redef]
+    @kernel.setter
     def kernel(self, kernel: str):
         """
         Setter for the ``kernel`` property.
@@ -289,7 +293,7 @@ class Distro(BootableItem):
         # TODO: Obsolete it and merge with kernel property
         return self._remote_boot_kernel
 
-    @remote_boot_kernel.setter  # type: ignore[no-redef]
+    @remote_boot_kernel.setter
     def remote_boot_kernel(self, remote_boot_kernel: str):
         """
         Setter for the ``remote_boot_kernel`` property.
@@ -328,7 +332,7 @@ class Distro(BootableItem):
         """
         return self._tree_build_time
 
-    @tree_build_time.setter  # type: ignore[no-redef]
+    @tree_build_time.setter
     def tree_build_time(self, datestamp: float):
         r"""
         Setter for the ``tree_build_time`` property.
@@ -353,7 +357,7 @@ class Distro(BootableItem):
         """
         return self._breed
 
-    @breed.setter  # type: ignore[no-redef]
+    @breed.setter
     def breed(self, breed: str):
         """
         Set the Operating system breed.
@@ -372,7 +376,7 @@ class Distro(BootableItem):
         """
         return self._os_version
 
-    @os_version.setter  # type: ignore[no-redef]
+    @os_version.setter
     def os_version(self, os_version: str):
         """
         Set the Operating System Version.
@@ -391,7 +395,7 @@ class Distro(BootableItem):
         """
         return self._initrd
 
-    @initrd.setter  # type: ignore[no-redef]
+    @initrd.setter
     def initrd(self, initrd: str):
         r"""
         Setter for the ``initrd`` property.
@@ -438,7 +442,7 @@ class Distro(BootableItem):
         """
         return self._remote_boot_initrd
 
-    @remote_boot_initrd.setter  # type: ignore[no-redef]
+    @remote_boot_initrd.setter
     def remote_boot_initrd(self, remote_boot_initrd: str):
         r"""
         The setter for the ``remote_boot_initrd`` property.
@@ -476,7 +480,7 @@ class Distro(BootableItem):
         """
         return self._source_repos
 
-    @source_repos.setter  # type: ignore[no-redef]
+    @source_repos.setter
     def source_repos(self, repos: List[str]):
         r"""
         Setter for the ``source_repos`` property.
@@ -506,7 +510,7 @@ class Distro(BootableItem):
         """
         return self._arch
 
-    @arch.setter  # type: ignore[no-redef]
+    @arch.setter
     def arch(self, arch: Union[str, enums.Archs]):
         """
         The setter for the arch property.
@@ -516,9 +520,9 @@ class Distro(BootableItem):
         old_arch = self._arch
         self._arch = enums.Archs.to_enum(arch)
         self.api.distros().update_index_value(self, "arch", old_arch, self._arch)
-        profiles: Optional[List[Profile]] = self.api.find_profile(
+        profiles: Optional[List[Profile]] = self.api.find_profile(  # type: ignore
             return_list=True,
-            **{"distro": self._uid},  # type: ignore[reportArgumentType]
+            **{"distro": self._uid},  # type: ignore[reportArgumentType,arg-type]
         )
         if profiles is None:
             return
@@ -527,7 +531,7 @@ class Distro(BootableItem):
             profile_collection.update_index_value(profile, "arch", old_arch, self._arch)
             for child in profile.tree_walk():
                 profile_collection.update_index_value(
-                    child, "arch", old_arch, self._arch  # type: ignore[reportArgumentType]
+                    child, "arch", old_arch, self._arch  # type: ignore[reportArgumentType,arg-type]
                 )
 
     @property
@@ -560,7 +564,7 @@ class Distro(BootableItem):
         # that we use only a constant with str type.
         return self._boot_loaders
 
-    @boot_loaders.setter  # type: ignore[no-redef]
+    @boot_loaders.setter
     def boot_loaders(self, boot_loaders: Union[str, List[str], List[enums.BootLoader]]):
         """
         Set the bootloader for the distro.
@@ -622,9 +626,9 @@ class Distro(BootableItem):
 
         :return: The key as a string.
         """
-        return self._resolve("redhat_management_key")
+        return self._resolve(["redhat_management_key"])
 
-    @redhat_management_key.setter  # type: ignore[no-redef]
+    @redhat_management_key.setter
     def redhat_management_key(self, management_key: str):
         """
         Set the redhat management key. This is probably only needed if you have spacewalk, uyuni or SUSE Manager

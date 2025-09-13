@@ -298,18 +298,18 @@ class Collection(Generic[ITEM]):
         "kopts": "kernel_options",
         "kopts_post": "kernel_options_post",
         "inherit": "parent",
-        "ip": "ip_address",
+        "ip": "ipv4.address",
         "mac": "mac_address",
-        "virt-auto-boot": "virt_auto_boot",
-        "virt-file-size": "virt_file_size",
-        "virt-disk-driver": "virt_disk_driver",
-        "virt-ram": "virt_ram",
-        "virt-path": "virt_path",
-        "virt-type": "virt_type",
+        "virt-auto-boot": "virt.auto_boot",
+        "virt-file-size": "virt.file_size",
+        "virt-disk-driver": "virt.disk_driver",
+        "virt-ram": "virt.ram",
+        "virt-path": "virt.path",
+        "virt-type": "virt.type",
         "virt-bridge": "virt_bridge",
-        "virt-cpus": "virt_cpus",
-        "virt-host": "virt_host",
-        "virt-group": "virt_group",
+        "virt-cpus": "virt.cpus",
+        "virt-host": "virt.host",
+        "virt-group": "virt.group",
         "dhcp-tag": "dhcp_tag",
         "netboot-enabled": "netboot_enabled",
         "enable_gpxe": "enable_ipxe",
@@ -378,7 +378,7 @@ class Collection(Generic[ITEM]):
         """
         copied_item: ITEM = ref.make_clone()  # type: ignore[assignment]
         copied_item.ctime = time.time()
-        copied_item.name = newname  # type: ignore[method-assign]
+        copied_item.name = newname
         # TODO: Check if uid is changing
         self.add(
             copied_item,
@@ -407,7 +407,7 @@ class Collection(Generic[ITEM]):
         # Save the old name
         oldname: str = ref.name
         # Change the name of the object
-        ref.name = newname  # type: ignore[method-assign]
+        ref.name = newname
         # Save just this item
         self.collection_mgr.serialize_one_item(ref)
 
@@ -440,8 +440,8 @@ class Collection(Generic[ITEM]):
                 distros = self.api.distros()
                 for distro_obj in distros:
                     if distro_obj.kernel.find(path) == 0:
-                        distro_obj.kernel = distro_obj.kernel.replace(path, newpath)  # type: ignore[method-assign]
-                        distro_obj.initrd = distro_obj.initrd.replace(path, newpath)  # type: ignore[method-assign]
+                        distro_obj.kernel = distro_obj.kernel.replace(path, newpath)
+                        distro_obj.initrd = distro_obj.initrd.replace(path, newpath)
                         self.collection_mgr.serialize_one_item(distro_obj)
 
     def check_for_duplicate_names(self, ref: ITEM) -> None:
@@ -560,13 +560,13 @@ class Collection(Generic[ITEM]):
         """
         if isinstance(ref, system.System):
             # we don't need openvz containers to be network bootable
-            if ref.virt_type == enums.VirtType.OPENVZ:
-                ref.netboot_enabled = False  # type: ignore[method-assign]
+            if ref.virt.type == enums.VirtType.OPENVZ:
+                ref.netboot_enabled = False
             self.lite_sync.add_single_system(ref)
         elif isinstance(ref, profile.Profile):
             # we don't need openvz containers to be network bootable
-            if ref.virt_type == "openvz":  # type: ignore
-                ref.enable_menu = False  # type: ignore[method-assign]
+            if ref.virt.type == "openvz":  # type: ignore
+                ref.enable_menu = False
             self.lite_sync.add_single_profile(ref, rebuild_menu=rebuild_menu)
             self.api.sync_systems(
                 systems=[
@@ -671,19 +671,52 @@ class Collection(Generic[ITEM]):
             )
 
     def _get_index_property(self, ref: ITEM, index_name: str) -> str:
+        """
+        Retrieves the value of the index property for a given reference object based on the specified index name.
+
+        The method determines the appropriate property name to access on the reference object, considering
+        memory index settings, dot-separated index names, and fallback logic. If the property exists, its value
+        is returned; otherwise, an exception is raised.
+
+        :param ref: The reference object from which to retrieve the index property.
+        :param index_name: The name of the index property, possibly dot-separated for nested properties.
+        :returns: The value of the index property for the given reference object.
+        :raises CX: If the property does not exist on the reference object.
+        """
         indx_prop = self.api.settings().memory_indexes[self.collection_type()][  # type: ignore
             index_name
         ]
-        property_name: str = f"_{index_name}"
+        split_property_name = index_name.split(".")
+        if len(split_property_name) > 1:
+            property_name: str = f"_{split_property_name[-1]}"
+        else:
+            property_name = f"_{index_name}"
         if "property" in indx_prop:
             property_name = indx_prop["property"]  # type: ignore
-        elif not hasattr(ref, property_name):
+        elif not hasattr(ref, property_name) and len(split_property_name) == 1:
             property_name = index_name
+        if len(split_property_name) > 1:
+            return self.__get_index_property(ref, split_property_name)
         if hasattr(ref, property_name):
             return getattr(ref, property_name)
         raise CX(
             f'Internal error, unknown attribute "{property_name}" for "{ref.uid}"!'
         )
+
+    def __get_index_property(self, ref: Any, property_name: List[str]) -> Any:
+        """
+        Recursively retrieves a nested property from an object using a list of property names.
+
+        :param ref: The object from which to retrieve the property.
+        :param property_name: A list of property names representing the path to the desired property.
+        :return: The value of the nested property.
+        """
+        if len(property_name) > 1:
+            local_property_name = property_name.pop(0)
+            return self.__get_index_property(
+                getattr(ref, local_property_name), property_name
+            )
+        return getattr(ref, property_name[0])
 
     def add_single_index_value(
         self,

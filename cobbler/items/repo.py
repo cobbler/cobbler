@@ -97,12 +97,17 @@ from typing import TYPE_CHECKING, Any, Dict, List, Union
 
 from cobbler import enums
 from cobbler.cexceptions import CX
-from cobbler.decorator import InheritableProperty, LazyProperty
 from cobbler.items.abstract.bootable_item import BootableItem
+from cobbler.items.options.package import APTOption
 from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+
+    InheritableProperty = property
+    LazyProperty = property
+else:
+    from cobbler.decorator import InheritableProperty, LazyProperty
 
 
 class Repo(BootableItem):
@@ -129,8 +134,7 @@ class Repo(BootableItem):
         self._yumopts: Dict[str, str] = {}
         self._rsyncopts: Dict[str, Any] = {}
         self._mirror_type = enums.MirrorType.BASEURL
-        self._apt_components: List[str] = []
-        self._apt_dists: List[str] = []
+        self._apt = APTOption(api=api, item=self)
         self._createrepo_flags = enums.VALUE_INHERITED
         self._keep_updated = False
         self._mirror = ""
@@ -191,6 +195,15 @@ class Repo(BootableItem):
                 self.breed = enums.RepoBreeds.RHN
             else:
                 self.breed = enums.RepoBreeds.RSYNC
+
+    @property
+    def apt(self) -> APTOption:
+        """
+        The APTOption instance associated with a Repo.
+
+        :getter: Returns the current APTOption instance.
+        """
+        return self._apt
 
     @LazyProperty
     def mirror(self) -> str:
@@ -415,9 +428,9 @@ class Repo(BootableItem):
         :getter: The createrepo_flags to apply to the repo.
         :setter: The new flags. May raise a ``TypeError`` in case the options are not a ``str``.
         """
-        return self._resolve("createrepo_flags")
+        return self._resolve(["createrepo_flags"])
 
-    @createrepo_flags.setter  # type: ignore[no-redef]
+    @createrepo_flags.setter
     def createrepo_flags(self, createrepo_flags: str):
         """
         Setter for the ``createrepo_flags`` property.
@@ -535,45 +548,6 @@ class Repo(BootableItem):
             raise TypeError("mirror_locally needs to be of type bool")
         self._mirror_locally = value
 
-    @LazyProperty
-    def apt_components(self) -> List[str]:
-        """
-        Specify the section of Debian to mirror. Defaults to "main,contrib,non-free,main/debian-installer".
-
-        :getter: If empty the default is used.
-        :setter: May be a comma delimited ``str`` or a real ``list``.
-        """
-        return self._apt_components
-
-    @apt_components.setter
-    def apt_components(self, value: Union[str, List[str]]) -> None:
-        """
-        Setter for the apt command property.
-
-        :param value: The new value for ``apt_components``.
-        """
-        self._apt_components = input_converters.input_string_or_list_no_inherit(value)
-
-    @LazyProperty
-    def apt_dists(self) -> List[str]:
-        r"""
-        This decides which installer images are downloaded. For more information please see:
-        https://www.debian.org/CD/mirroring/index.html or the manpage of ``debmirror``.
-
-        :getter: Per default no images are mirrored.
-        :setter: Either a comma delimited ``str`` or a real ``list``.
-        """
-        return self._apt_dists
-
-    @apt_dists.setter
-    def apt_dists(self, value: Union[str, List[str]]) -> None:
-        """
-        Setter for the apt dists.
-
-        :param value: The new value for ``apt_dists``.
-        """
-        self._apt_dists = input_converters.input_string_or_list_no_inherit(value)
-
     @InheritableProperty
     def proxy(self) -> str:
         """
@@ -584,9 +558,9 @@ class Repo(BootableItem):
         :getter: Returns the default one or the specific one for this repository.
         :setter: May raise a ``TypeError`` in case the wrong value is given.
         """
-        return self._resolve("proxy_url_ext")
+        return self._resolve(["proxy_url_ext"])
 
-    @proxy.setter  # type: ignore[no-redef]
+    @proxy.setter
     def proxy(self, value: str):
         r"""
         Setter for the proxy setting of the repository.

@@ -100,8 +100,8 @@ def run(api: "CobblerAPI", args: List[Any]):
 
     # process all interfaces and perform dynamic update for those with --dns-name
     for name, interface in system.interfaces.items():
-        host = interface.dns_name
-        host_ip = interface.ip_address
+        host = interface.dns.name
+        host_ip = interface.ipv4.address
 
         if not system.is_management_supported(cidr_ok=False):
             continue

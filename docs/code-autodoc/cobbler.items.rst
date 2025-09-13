@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    cobbler.items.abstract
+   cobbler.items.options
 
 Submodules
 ----------

@@ -110,11 +110,11 @@ def create_distro(remote: CobblerXMLRPCInterface, token: str):
         name: str, arch: str, breed: str, path_kernel: str, path_initrd: str
     ) -> str:
         distro = remote.new_distro(token)
-        remote.modify_distro(distro, "name", name, token)
-        remote.modify_distro(distro, "arch", arch, token)
-        remote.modify_distro(distro, "breed", breed, token)
-        remote.modify_distro(distro, "kernel", path_kernel, token)
-        remote.modify_distro(distro, "initrd", path_initrd, token)
+        remote.modify_distro(distro, ["name"], name, token)
+        remote.modify_distro(distro, ["arch"], arch, token)
+        remote.modify_distro(distro, ["breed"], breed, token)
+        remote.modify_distro(distro, ["kernel"], path_kernel, token)
+        remote.modify_distro(distro, ["initrd"], path_initrd, token)
         remote.save_distro(distro, token)
         return distro
 
@@ -143,9 +143,9 @@ def create_profile(remote: CobblerXMLRPCInterface, token: str):
         name: str, distro: str, kernel_options: Union[Dict[str, Any], str]
     ) -> str:
         profile = remote.new_profile(token)
-        remote.modify_profile(profile, "name", name, token)
-        remote.modify_profile(profile, "distro", distro, token)
-        remote.modify_profile(profile, "kernel_options", kernel_options, token)
+        remote.modify_profile(profile, ["name"], name, token)
+        remote.modify_profile(profile, ["distro"], distro, token)
+        remote.modify_profile(profile, ["kernel_options"], kernel_options, token)
         remote.save_profile(profile, token)
         return profile
 
@@ -172,8 +172,8 @@ def create_system(remote: CobblerXMLRPCInterface, token: str):
 
     def _create_system(name: str, profile: str) -> str:
         system = remote.new_system(token)
-        remote.modify_system(system, "name", name, token)
-        remote.modify_system(system, "profile", profile, token)
+        remote.modify_system(system, ["name"], name, token)
+        remote.modify_system(system, ["profile"], profile, token)
         remote.save_system(system, token)
         return system
 
@@ -230,9 +230,9 @@ def create_repo(
 
     def _create_repo(name: str, mirror: str, mirror_locally: bool):
         repo = remote.new_repo(token)
-        remote.modify_repo(repo, "name", name, token)
-        remote.modify_repo(repo, "mirror", mirror, token)
-        remote.modify_repo(repo, "mirror_locally", mirror_locally, token)
+        remote.modify_repo(repo, ["name"], name, token)
+        remote.modify_repo(repo, ["mirror"], mirror, token)
+        remote.modify_repo(repo, ["mirror_locally"], mirror_locally, token)
         remote.save_repo(repo, token)
         return repo
 
@@ -260,8 +260,8 @@ def create_menu(remote: CobblerXMLRPCInterface, token: str):
     def _create_menu(name: str, display_name: str):
         menu_id = remote.new_menu(token)
 
-        remote.modify_menu(menu_id, "name", name, token)
-        remote.modify_menu(menu_id, "display_name", display_name, token)
+        remote.modify_menu(menu_id, ["name"], name, token)
+        remote.modify_menu(menu_id, ["display_name"], display_name, token)
 
         remote.save_menu(menu_id, token)
         return menu_id
@@ -291,10 +291,10 @@ def create_testprofile(remote: CobblerXMLRPCInterface, token: str):
     distro_uid = remote.get_distro_handle("testdistro0")
     menu_uid = remote.get_menu_handle("testmenu0")
     profile = remote.new_profile(token)
-    remote.modify_profile(profile, "name", "testprofile0", token)
-    remote.modify_profile(profile, "distro", distro_uid, token)
-    remote.modify_profile(profile, "kernel_options", "a=1 b=2 c=3 c=4 c=5 d e", token)
-    remote.modify_profile(profile, "menu", menu_uid, token)
+    remote.modify_profile(profile, ["name"], "testprofile0", token)
+    remote.modify_profile(profile, ["distro"], distro_uid, token)
+    remote.modify_profile(profile, ["kernel_options"], "a=1 b=2 c=3 c=4 c=5 d e", token)
+    remote.modify_profile(profile, ["menu"], menu_uid, token)
     remote.save_profile(profile, token)
 
 
@@ -316,11 +316,11 @@ def create_testdistro(
     """
     folder = create_kernel_initrd(fk_kernel, fk_initrd)
     distro = remote.new_distro(token)
-    remote.modify_distro(distro, "name", "testdistro0", token)
-    remote.modify_distro(distro, "arch", "x86_64", token)
-    remote.modify_distro(distro, "breed", "suse", token)
-    remote.modify_distro(distro, "kernel", os.path.join(folder, fk_kernel), token)
-    remote.modify_distro(distro, "initrd", os.path.join(folder, fk_initrd), token)
+    remote.modify_distro(distro, ["name"], "testdistro0", token)
+    remote.modify_distro(distro, ["arch"], "x86_64", token)
+    remote.modify_distro(distro, ["breed"], "suse", token)
+    remote.modify_distro(distro, ["kernel"], os.path.join(folder, fk_kernel), token)
+    remote.modify_distro(distro, ["initrd"], os.path.join(folder, fk_initrd), token)
     remote.save_distro(distro, token)
 
 
@@ -333,8 +333,8 @@ def create_testsystem(remote: CobblerXMLRPCInterface, token: str):
     """
     profile_uid = remote.get_profile_handle("testprofile0")
     system = remote.new_system(token)
-    remote.modify_system(system, "name", "testsystem0", token)
-    remote.modify_system(system, "profile", profile_uid, token)
+    remote.modify_system(system, ["name"], "testsystem0", token)
+    remote.modify_system(system, ["profile"], profile_uid, token)
     remote.save_system(system, token)
 
 
@@ -346,9 +346,9 @@ def create_testrepo(remote: CobblerXMLRPCInterface, token: str):
     :param token: See the corresponding fixture.
     """
     repo = remote.new_repo(token)
-    remote.modify_repo(repo, "name", "testrepo0", token)
-    remote.modify_repo(repo, "arch", "x86_64", token)
-    remote.modify_repo(repo, "mirror", "http://something", token)
+    remote.modify_repo(repo, ["name"], "testrepo0", token)
+    remote.modify_repo(repo, ["arch"], "x86_64", token)
+    remote.modify_repo(repo, ["mirror"], "http://something", token)
     remote.save_repo(repo, token)
 
 
@@ -360,7 +360,7 @@ def create_testimage(remote: CobblerXMLRPCInterface, token: str):
     :param token: See the corresponding fixture.
     """
     image = remote.new_image(token)
-    remote.modify_image(image, "name", "testimage0", token)
+    remote.modify_image(image, ["name"], "testimage0", token)
     remote.save_image(image, token)
 
 
@@ -373,7 +373,7 @@ def create_testmenu(remote: CobblerXMLRPCInterface, token: str):
     """
 
     menu = remote.new_menu(token)
-    remote.modify_menu(menu, "name", "testmenu0", token)
+    remote.modify_menu(menu, ["name"], "testmenu0", token)
     remote.save_menu(menu, token)
 
 

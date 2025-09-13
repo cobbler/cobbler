@@ -165,7 +165,7 @@ def test_find_system_by_dns_name(
     create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
     create_profile(name_profile, name_distro, "text")
     system = create_system(name_system, name_profile)
-    remote.modify_system(system, "dns_name", dns_name, token)
+    remote.modify_system(system, ["dns", "name"], dns_name, token)
     remote.save_system(system, token)
 
     # Act
@@ -324,7 +324,7 @@ def test_get_config_data(
     distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
     profile_uid = create_profile(name_profile, distro_uid, "text")
     system = create_system(name_system, profile_uid)
-    remote.modify_system(system, "hostname", system_hostname, token)
+    remote.modify_system(system, ["hostname"], system_hostname, token)
     remote.save_system(system, token)
 
     # Act
@@ -359,9 +359,9 @@ def test_get_repos_compatible_with_profile(
     create_profile(name_profile, distro_uid, "text")
     repo_compatible = create_repo(name_repo_compatible, "http://localhost", False)
     repo_incompatible = create_repo(name_repo_incompatible, "http://localhost", False)
-    remote.modify_repo(repo_compatible, "arch", "x86_64", token)
+    remote.modify_repo(repo_compatible, ["arch"], "x86_64", token)
     remote.save_repo(repo_compatible, token)
-    remote.modify_repo(repo_incompatible, "arch", "ppc64le", token)
+    remote.modify_repo(repo_incompatible, ["arch"], "ppc64le", token)
     remote.save_repo(repo_incompatible, token)
 
     # Act
@@ -774,7 +774,7 @@ def test_render_vars(remote: CobblerXMLRPCInterface, token: str):
 
     # Act
     distro = remote.get_item_handle("distro", "testdistro0")
-    remote.modify_distro(distro, "kernel_options", kernel_options, token)
+    remote.modify_distro(distro, ["kernel_options"], kernel_options, token)
     remote.save_distro(distro, token)
 
     # Assert --> Let the test pass if the call is okay.

@@ -54,10 +54,10 @@ def fixture_api_isc_mock(mocker: "MockerFixture"):
     api_mock = mocker.MagicMock(autospec=True, spec=CobblerAPI)
     api_mock.settings.return_value = settings_mock  # type: ignore
     test_distro = Distro(api_mock)
-    test_distro.name = "test"  # type: ignore[method-assign]
+    test_distro.name = "test"
     api_mock.distros.return_value = [test_distro]  # type: ignore
     test_profile = Profile(api_mock)
-    test_profile.name = "test"  # type: ignore[method-assign]
+    test_profile.name = "test"
     # pylint: disable-next=protected-access
     test_profile._parent = test_distro.name  # type: ignore
     api_mock.profiles.return_value = [test_profile]  # type: ignore
@@ -69,16 +69,16 @@ def fixture_api_isc_mock(mocker: "MockerFixture"):
                     api=api_mock,
                     system_uid="not-empty",
                     name="default",
-                    ip_address="192.168.1.2",
-                    ipv6_address="::1",
-                    dns_name="host.example.org",
+                    ipv4={"address": "192.168.1.2"},
+                    ipv6={"address": "::1"},
+                    dns={"name": "host.example.org"},
                     mac_address="aa:bb:cc:dd:ee:ff",
                 )
             }
         ),
     )
     test_system = System(api_mock)
-    test_system.name = "test"  # type: ignore[method-assign]
+    test_system.name = "test"
     # pylint: disable-next=protected-access
     test_system._parent = test_profile.name  # type: ignore
     api_mock.systems.return_value = [test_system]  # type: ignore
@@ -266,18 +266,20 @@ def test_manager_gen_full_config(mocker: "MockerFixture", api_isc_mock: CobblerA
     isc.MANAGER = None
     manager = isc.get_manager(api_isc_mock)
     mock_distro = Distro(api_isc_mock)
-    mock_distro.redhat_management_key = ""  # type: ignore[method-assign]
+    mock_distro.redhat_management_key = ""
     mock_profile = Profile(api_isc_mock)
-    mock_profile.autoinstall = ""  # type: ignore[method-assign]
-    mock_profile.proxy = ""  # type: ignore[method-assign]
-    mock_profile.virt_file_size = ""  # type: ignore[method-assign]
+    mock_profile.autoinstall = ""
+    mock_profile._distro = mock_distro.uid  # type: ignore
+    mock_profile.proxy = ""
+    mock_profile.virt.file_size = ""  # type: ignore
     mock_system = System(api_isc_mock)
-    mock_system.name = "test_manager_regen_hosts_system"  # type: ignore[method-assign]
+    mock_system.name = "test_manager_regen_hosts_system"
+    mock_system._profile = mock_profile.uid  # type: ignore
     mock_interface = NetworkInterface(api_isc_mock, mock_system.uid)
-    mock_interface._dns_name = "host.example.org"  # type: ignore
+    mock_interface._dns._name = "host.example.org"  # type: ignore
     mock_interface._mac_address = "aa:bb:cc:dd:ee:ff"  # type: ignore
-    mock_interface._ip_address = "192.168.1.2"  # type: ignore
-    mock_interface._ipv6_address = "::1"  # type: ignore
+    mock_interface._ipv4._address = "192.168.1.2"  # type: ignore
+    mock_interface._ipv6._address = "::1"  # type: ignore
     mock_system._interfaces = {"default": mock_interface}  # type: ignore
     mocker.patch.object(mock_system, "get_conceptual_parent", return_value=mock_profile)
     mocker.patch.object(mock_profile, "get_conceptual_parent", return_value=mock_distro)
@@ -289,10 +291,10 @@ def test_manager_gen_full_config(mocker: "MockerFixture", api_isc_mock: CobblerA
     # Assert
     assert mock_interface.mac_address in result["dhcp_tags"]["default"]
     result_dhcp_tags = result["dhcp_tags"]["default"][mock_interface.mac_address]
-    assert result_dhcp_tags["dns_name"] == mock_interface.dns_name
+    assert result_dhcp_tags["dns"]["name"] == mock_interface.dns.name
     assert result_dhcp_tags["mac_address"] == mock_interface.mac_address
-    assert result_dhcp_tags["ip_address"] == mock_interface.ip_address
-    assert result_dhcp_tags["ipv6_address"] == mock_interface.ipv6_address
+    assert result_dhcp_tags["ipv4"]["address"] == mock_interface.ipv4.address
+    assert result_dhcp_tags["ipv6"]["address"] == mock_interface.ipv6.address
 
 
 def _get_mock_config():  # type: ignore
@@ -344,13 +346,15 @@ def test_manager_remove_single_system(
     isc.MANAGER = None
     manager = isc.get_manager(api_isc_mock)
     mock_distro = Distro(api_isc_mock)
-    mock_distro.redhat_management_key = ""  # type: ignore[method-assign]
+    mock_distro.redhat_management_key = ""
     mock_profile = Profile(api_isc_mock)
-    mock_profile.autoinstall = ""  # type: ignore[method-assign]
-    mock_profile.proxy = ""  # type: ignore[method-assign]
-    mock_profile.virt_file_size = ""  # type: ignore[method-assign]
+    mock_profile.autoinstall = ""
+    mock_profile._distro = mock_distro.uid  # type: ignore
+    mock_profile.proxy = ""
+    mock_profile.virt.file_size = ""  # type: ignore
     mock_system = System(api_isc_mock)
-    mock_system.name = "test_manager_regen_hosts_system"  # type: ignore[method-assign]
+    mock_system.name = "test_manager_regen_hosts_system"
+    mock_system._profile = mock_profile.uid  # type: ignore
     mock_interface = NetworkInterface(api_isc_mock, mock_system.uid)
     mock_interface._dns_name = "host.example.org"  # type: ignore
     mock_interface._mac_address = "aa:bb:cc:dd:ee:ff"  # type: ignore
@@ -395,11 +399,12 @@ def test_manager_sync_single_system(mocker: "MockerFixture", api_isc_mock: Cobbl
     isc.MANAGER = None
     manager = isc.get_manager(api_isc_mock)
     mock_distro = Distro(api_isc_mock)
-    mock_distro.redhat_management_key = ""  # type: ignore[method-assign]
+    mock_distro.redhat_management_key = ""
     mock_profile = Profile(api_isc_mock)
-    mock_profile.autoinstall = ""  # type: ignore[method-assign]
-    mock_profile.proxy = ""  # type: ignore[method-assign]
-    mock_profile.virt_file_size = ""  # type: ignore[method-assign]
+    mock_profile.autoinstall = ""
+    mock_profile._distro = mock_distro.uid  # type: ignore
+    mock_profile.proxy = ""
+    mock_profile.virt.file_size = ""  # type: ignore
     mocker.patch(
         "cobbler.items.system.System.interfaces",
         new_callable=mocker.PropertyMock(
@@ -407,16 +412,17 @@ def test_manager_sync_single_system(mocker: "MockerFixture", api_isc_mock: Cobbl
                 "default": NetworkInterface(
                     api=api_isc_mock,
                     system_uid="not-zero",
-                    dns_name="host.example.org",
+                    dns={"name": "host.example.org"},
                     mac_address=mocker_mac_address,
-                    ip_address="192.168.1.2",
-                    ipv6_address="::1",
+                    ipv4={"address": "192.168.1.2"},
+                    ipv6={"address": "::1"},
                 )
             }
         ),
     )
     mock_system = System(api_isc_mock)
-    mock_system.name = "test_manager_regen_hosts_system"  # type: ignore[method-assign]
+    mock_system.name = "test_manager_regen_hosts_system"
+    mock_system._profile = mock_profile.uid  # type: ignore
     mocker.patch.object(mock_system, "get_conceptual_parent", return_value=mock_profile)
     mocker.patch.object(mock_profile, "get_conceptual_parent", return_value=mock_distro)
     manager.config = _get_mock_config()

@@ -3,7 +3,7 @@ Tests that validate the functionality of the module that is responsible for prov
 """
 
 import copy
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional, Type
 
 import pytest
 
@@ -39,11 +39,11 @@ class MockItem(BaseItem):
             _dict.pop(property_name, None)
         return MockItem(self.api, **_dict)
 
-    def _resolve(self, property_name: str) -> Any:
-        settings_name = property_name
-        if property_name == "owners":
+    def _resolve(self, property_name: List[str]) -> Any:
+        settings_name = property_name[-1]
+        if property_name[-1] == "owners":
             settings_name = "default_ownership"
-        attribute = "_" + property_name
+        attribute = "_" + property_name[-1]
         attribute_value = getattr(self, attribute)
 
         if attribute_value == enums.VALUE_INHERITED:
@@ -58,6 +58,16 @@ class MockItem(BaseItem):
                 return possible_return
 
         return attribute_value
+
+    def _resolve_enum(
+        self, property_name: List[str], enum_type: Type[enums.ConvertableEnum]
+    ) -> Any:
+        # The MockItem doesn't have any enum types that need resolving
+        return None
+
+    def _resolve_list(self, property_name: List[str]) -> Any:
+        # The MockItem doesn't have any list types that need resolving
+        return None
 
     @property
     def uid(self) -> str:

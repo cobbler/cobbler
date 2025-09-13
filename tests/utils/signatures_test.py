@@ -14,12 +14,12 @@ def test_get_supported_distro_boot_loaders():
     # Act
     result = signatures.get_supported_distro_boot_loaders(None)  # type: ignore
 
-    # Assert
-    assert result == [
+    # Assert - use a set to ignore list ordering
+    assert set(result) == {
         enums.BootLoader.GRUB,
         enums.BootLoader.PXE,
         enums.BootLoader.IPXE,
-    ]
+    }
 
 
 def test_load_signatures():

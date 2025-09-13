@@ -5,7 +5,7 @@ Shared fixture module for all integration tests.
 import pathlib
 import time
 import xmlrpc.client
-from typing import Any, Callable, Dict, Generator, Tuple
+from typing import Any, Callable, Generator, List, Tuple
 
 import pytest
 
@@ -109,9 +109,9 @@ def fixture_create_distro(remote: CobblerXMLRPCInterface, token: str):
     Fixture to create a Cobbler Distro via XML-RPC.
     """
 
-    def _create_distro(args: Dict[str, Any]) -> str:
+    def _create_distro(args: List[Tuple[List[str], Any]]) -> str:
         did = remote.new_distro(token)
-        for key, value in args.items():
+        for key, value in args:
             remote.modify_distro(did, key, value, token)
         remote.save_distro(did, token, "new")
         return did
@@ -122,14 +122,14 @@ def fixture_create_distro(remote: CobblerXMLRPCInterface, token: str):
 @pytest.fixture(name="create_profile")
 def fixture_create_profile(
     remote: CobblerXMLRPCInterface, token: str
-) -> Callable[[Dict[str, Any]], str]:
+) -> Callable[[List[Tuple[List[str], Any]]], str]:
     """
     Fixture to create a Cobbler Profile via XML-RPC.
     """
 
-    def _create_profile(args: Dict[str, Any]) -> str:
+    def _create_profile(args: List[Tuple[List[str], Any]]) -> str:
         pid = remote.new_profile(token)
-        for key, value in args.items():
+        for key, value in args:
             remote.modify_profile(pid, key, value, token)
         remote.save_profile(pid, token, "new")
         return pid
@@ -140,14 +140,14 @@ def fixture_create_profile(
 @pytest.fixture(name="create_system")
 def fixture_create_system(
     remote: CobblerXMLRPCInterface, token: str
-) -> Callable[[Dict[str, Any]], str]:
+) -> Callable[[List[Tuple[List[str], Any]]], str]:
     """
     Fixture to create a Cobbler System via XML-RPC
     """
 
-    def _create_system(args: Dict[str, Any]) -> str:
+    def _create_system(args: List[Tuple[List[str], Any]]) -> str:
         sid = remote.new_system(token)
-        for key, value in args.items():
+        for key, value in args:
             remote.modify_system(sid, key, value, token)
         remote.save_system(sid, token, "new")
         return sid
@@ -158,14 +158,14 @@ def fixture_create_system(
 @pytest.fixture(name="create_network_interface")
 def fixture_create_network_interface(
     remote: CobblerXMLRPCInterface, token: str
-) -> Callable[[str, Dict[str, Any]], str]:
+) -> Callable[[str, List[Tuple[List[str], Any]]], str]:
     """
     Fixture to create a Cobbler Network Interface via XML-RPC
     """
 
-    def _create_network_interface(sid: str, args: Dict[str, Any]) -> str:
+    def _create_network_interface(sid: str, args: List[Tuple[List[str], Any]]) -> str:
         nid = remote.new_network_interface(sid, token)
-        for key, value in args.items():
+        for key, value in args:
             remote.modify_network_interface(nid, key, value, token)
         remote.save_network_interface(nid, token, "new")
         return nid
