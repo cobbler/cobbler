@@ -11,13 +11,16 @@ import shutil
 import time
 from pathlib import Path
 from threading import Thread
-from typing import TYPE_CHECKING, Any, Generator
+from typing import TYPE_CHECKING, Any, Callable, Generator
 
 import pytest
 from netaddr.ip import IPAddress
 
 from cobbler import enums, utils
+from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
+from cobbler.items.profile import Profile
+from cobbler.items.system import System
 
 from tests.conftest import does_not_raise
 
@@ -251,13 +254,42 @@ def test_blender(cobbler_api):  # type: ignore
     result = utils.blender(cobbler_api, False, root_item)  # type: ignore
 
     # Assert
-    assert len(result) == 171
+    assert len(result) == 170
     # Must be present because the settings have it
     assert "server" in result
     # Must be present because it is a field of distro
     assert "os_version" in result
     # Must be present because it inherits but is a field of distro
     assert "template_files" in result
+
+
+def test_blender_inherit(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Any,
+    create_system: Any,
+):
+    """
+    Test to verify that blending object data works with muliple levels of inheritance.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile_lvl0: Profile = create_profile(test_distro.uid)
+    test_profile_lvl0.kernel_options = {"test": "bar", "not-wanted": None}
+    test_profile_lvl0.dns.name_servers = ["8.8.4.4"]
+    test_profile_lvl1: Profile = create_profile(profile_uid=test_profile_lvl0.uid)
+    test_system: System = create_system(profile_uid=test_profile_lvl1.uid)
+    test_system.dns.name_servers = ["8.8.8.8"]
+    test_system.kernel_options = {"!not-wanted": None}
+
+    # Act
+    result = utils.blender(cobbler_api, False, test_system)
+
+    # Assert
+    # print(json.dumps(result, indent=2))
+    assert isinstance(result, dict)
+    assert set(result.get("dns", {}).get("name_servers", [])) == {"8.8.4.4", "8.8.8.8"}
+    assert result.get("kernel_options") == {"test": "bar"}
 
 
 @pytest.mark.parametrize(
@@ -292,28 +324,6 @@ def test_uniquify(testinput, expected_result):  # type: ignore
 
     # Assert
     assert expected_result == result
-
-
-@pytest.mark.parametrize(
-    "testdict,subkey,expected_result",
-    [
-        ({}, "", {}),
-        (
-            {"Test": 0, "Test2": {"SubTest": 0, "!SubTest2": 0}},
-            "Test2",
-            {"Test": 0, "Test2": {"SubTest": 0}},
-        ),
-    ],
-)
-def test_dict_removals(testdict, subkey, expected_result):  # type: ignore
-    # Arrange
-    # TODO: Generate more parameter combinations
-
-    # Act
-    utils.dict_removals(testdict, subkey)  # type: ignore
-
-    # Assert
-    assert expected_result == testdict
 
 
 @pytest.mark.parametrize("testinput,expected_result", [({}, "")])
@@ -446,8 +456,12 @@ def test_get_supported_system_boot_loaders():
     # Act
     result = utils.get_supported_system_boot_loaders()
 
-    # Assert
-    assert result == ["grub", "pxe", "ipxe"]
+    # Assert - use a set to ignore list ordering
+    assert set(result) == {
+        enums.BootLoader.GRUB,
+        enums.BootLoader.PXE,
+        enums.BootLoader.IPXE,
+    }
 
 
 @pytest.mark.parametrize("web_ss_exists", [True, False])

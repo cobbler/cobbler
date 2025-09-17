@@ -20,7 +20,11 @@ if TYPE_CHECKING:
 
 class HardLinker:
     """
-    TODO
+    HardLinker is responsible for managing hardlinking of Cobbler-managed directories to save disk space.
+
+    This class locates the system's 'hardlink' executable and uses it to deduplicate files in specified directories,
+    typically those used for distribution and repository mirrors. The arguments passed to the 'hardlink' command
+    are determined by the detected Linux distribution family.
     """
 
     def __init__(self, api: "CobblerAPI") -> None:

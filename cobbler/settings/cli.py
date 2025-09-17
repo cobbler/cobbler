@@ -61,7 +61,9 @@ def __update_settings(
 
 def validate(args: argparse.Namespace) -> int:
     """
-    TODO
+    Validates the Cobbler settings file against the specified version schema.
+
+    :param args: argparse.Namespace containing the required attributes.
     """
     try:
         result = settings.read_yaml_file(args.config)
@@ -87,7 +89,9 @@ def validate(args: argparse.Namespace) -> int:
 
 def migrate(args: argparse.Namespace) -> int:
     """
-    TODO
+    Migrate settings file to a specified version, optionally updating the target file.
+
+    :param args: argparse.Namespace containing migration options and arguments.
     """
     settings_dict = __check_settings(args.config, args.preserve_settings)
     if not settings_dict:
@@ -117,7 +121,9 @@ def migrate(args: argparse.Namespace) -> int:
 
 def automigrate(args: argparse.Namespace) -> int:
     """
-    TODO
+    Automigrates settings based on provided arguments.
+
+    :param args: argparse.Namespace containing configuration and migration options.
     """
     settings_dict = __check_settings(args.config, args.preserve_settings)
     if not settings_dict:
@@ -131,7 +137,9 @@ def automigrate(args: argparse.Namespace) -> int:
 
 def modify(args: argparse.Namespace) -> int:
     """
-    TODO
+    Modify a single configuration setting based on the provided arguments.
+
+    :param args: argparse.Namespace containing configuration and migration options.
     """
     # pylint: disable=protected-access
     # Disable protected-access because we can't use the property that is available in newer versions of the schema

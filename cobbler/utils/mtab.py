@@ -11,7 +11,7 @@ MTAB_MAP = []
 
 class MntEntObj:
     """
-    TODO
+    Represents a mounted filesystem entry with its attributes parsed from a whitespace-separated string.
     """
 
     mnt_fsname = None  # name of mounted file system

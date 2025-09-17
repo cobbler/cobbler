@@ -216,7 +216,7 @@ class _ImportSignatureManager(ManagerModule):
             self.arch = None
 
         if self.name == "":
-            self.name = None
+            self.name = None  # type: ignore
 
         if self.autoinstall_file == "":
             self.autoinstall_file = None
@@ -490,11 +490,11 @@ class _ImportSignatureManager(ManagerModule):
 
             # depending on the name of the profile we can define a good virt-type for usage with koan
             if name.find("-xen") != -1:
-                new_profile.virt_type = enums.VirtType.XENPV
+                new_profile.virt.type = enums.VirtType.XENPV
             elif name.find("vmware") != -1:
-                new_profile.virt_type = enums.VirtType.VMWARE
+                new_profile.virt.type = enums.VirtType.VMWARE
             else:
-                new_profile.virt_type = enums.VirtType.KVM
+                new_profile.virt.type = enums.VirtType.KVM
 
             if self.breed == "windows":  # type: ignore
                 dest_path = os.path.join(self.path, "boot")

@@ -207,16 +207,24 @@ V2.8.5:
 import copy
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
-from cobbler import autoinstall_manager, enums, power_manager, utils, validate
+from cobbler import autoinstall_manager, enums, utils, validate
 from cobbler.cexceptions import CX
-from cobbler.decorator import InheritableProperty, LazyProperty
 from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.items.network_interface import NetworkInterface
+from cobbler.items.options.dns import DNSOption
+from cobbler.items.options.power import PowerOption
+from cobbler.items.options.tftp import TFTPOption
+from cobbler.items.options.virt import VirtOption
 from cobbler.items.profile import Profile
-from cobbler.utils import filesystem_helpers, input_converters
+from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+
+    InheritableProperty = property
+    LazyProperty = property
+else:
+    from cobbler.decorator import InheritableProperty, LazyProperty
 
 
 class System(BootableItem):
@@ -241,38 +249,23 @@ class System(BootableItem):
         self._ipv6_autoconfiguration = False
         self._repos_enabled = False
         self._autoinstall = enums.VALUE_INHERITED
-        self._boot_loaders: Union[List[str], str] = enums.VALUE_INHERITED
+        self._boot_loaders = [enums.BootLoader.INHERITED]
+        self._dns = DNSOption(api=api, item=self)
         self._enable_ipxe: Union[bool, str] = enums.VALUE_INHERITED
         self._gateway = ""
         self._hostname = ""
         self._image = ""
         self._ipv6_default_device = ""
-        self._name_servers: Union[str, List[str]] = []
-        self._name_servers_search: Union[str, List[str]] = []
         self._netboot_enabled = False
-        self._next_server_v4 = enums.VALUE_INHERITED
-        self._next_server_v6 = enums.VALUE_INHERITED
+        self._tftp = TFTPOption(api=api, item=self)
         self._filename = enums.VALUE_INHERITED
-        self._power_address = ""
-        self._power_id = ""
-        self._power_pass = ""
-        self._power_type = ""
-        self._power_user = ""
-        self._power_options = ""
-        self._power_identity_file = ""
+        self._power = PowerOption(api=api, item=self)
         self._profile = ""
         self._proxy = enums.VALUE_INHERITED
         self._redhat_management_key = enums.VALUE_INHERITED
         self._server = enums.VALUE_INHERITED
         self._status = ""
-        self._virt_auto_boot: Union[bool, str] = enums.VALUE_INHERITED
-        self._virt_cpus: Union[int, str] = enums.VALUE_INHERITED
-        self._virt_disk_driver = enums.VirtDiskDrivers.INHERITED
-        self._virt_file_size: Union[float, str] = enums.VALUE_INHERITED
-        self._virt_path = enums.VALUE_INHERITED
-        self._virt_pxe_boot = False
-        self._virt_ram: Union[int, str] = enums.VALUE_INHERITED
-        self._virt_type = enums.VirtType.INHERITED
+        self._virt = VirtOption(api=api, item=self)
         self._serial_device = -1
         self._serial_baud_rate = enums.BaudRates.DISABLED
         self._display_name = ""
@@ -347,6 +340,42 @@ class System(BootableItem):
             result[item.name] = item
         return result
 
+    @property
+    def tftp(self) -> TFTPOption:
+        """
+        Property for the TFTPOptions.
+
+        :getter: The TFTPOptions of the System.
+        """
+        return self._tftp
+
+    @property
+    def power(self) -> PowerOption:
+        """
+        Property for the PowerOptions.
+
+        :getter: The PowerOptions of the System.
+        """
+        return self._power
+
+    @property
+    def virt(self) -> VirtOption:
+        """
+        Property for the VirtOptions.
+
+        :getter: The VirtOptions of the System.
+        """
+        return self._virt
+
+    @property
+    def dns(self) -> DNSOption:
+        """
+        Property for the DNSOptions.
+
+        :getter: The DNSOptions of the System.
+        """
+        return self._dns
+
     @LazyProperty
     def hostname(self) -> str:
         """
@@ -357,7 +386,7 @@ class System(BootableItem):
         """
         return self._hostname
 
-    @hostname.setter  # type: ignore[no-redef]
+    @hostname.setter
     def hostname(self, value: str):
         """
         Setter for the hostname of the System class.
@@ -378,7 +407,7 @@ class System(BootableItem):
         """
         return self._status
 
-    @status.setter  # type: ignore[no-redef]
+    @status.setter
     def status(self, status: str):
         """
         Setter for the status of the System class.
@@ -390,7 +419,7 @@ class System(BootableItem):
         self._status = status
 
     @InheritableProperty
-    def boot_loaders(self) -> List[str]:
+    def boot_loaders(self) -> List[enums.BootLoader]:
         """
         boot_loaders property.
 
@@ -399,42 +428,65 @@ class System(BootableItem):
         :getter: Returns the value for ``boot_loaders``.
         :setter: Sets the value for the property ``boot_loaders``.
         """
-        return self._resolve("boot_loaders")
+        return self._resolve_enum(["boot_loaders"], enums.BootLoader)
 
-    @boot_loaders.setter  # type: ignore[no-redef]
-    def boot_loaders(self, boot_loaders: Union[str, List[str]]):
+    @boot_loaders.setter
+    def boot_loaders(
+        self,
+        boot_loaders: Union[str, List[str], List[enums.BootLoader]],
+    ):
         """
         Setter of the boot loaders.
 
         :param boot_loaders: The boot loaders for the system.
         :raises CX: This is risen in case the bootloaders set are not valid ones.
         """
-        if not isinstance(boot_loaders, (str, list)):  # type: ignore
-            raise TypeError("The bootloaders need to be either a str or list")
-
-        if boot_loaders == enums.VALUE_INHERITED:
-            self._boot_loaders = enums.VALUE_INHERITED
-            return
-
-        if boot_loaders in ("", []):
-            self._boot_loaders = []
-            return
-
-        if isinstance(boot_loaders, str):
-            boot_loaders_split = input_converters.input_string_or_list(boot_loaders)
+        boot_loaders_split: List[enums.BootLoader] = []
+        if isinstance(boot_loaders, list):
+            if all([isinstance(value, str) for value in boot_loaders]):
+                boot_loaders_split = [
+                    enums.BootLoader.to_enum(value) for value in boot_loaders
+                ]
+            elif all([isinstance(value, enums.BootLoader) for value in boot_loaders]):
+                boot_loaders_split = boot_loaders  # type: ignore
+            else:
+                raise TypeError(
+                    "The items inside the list of boot_loaders must all be of type str or cobbler.enums.BootLoader"
+                )
+        elif isinstance(boot_loaders, str):  # type: ignore
+            if boot_loaders == "":
+                self._boot_loaders = []
+                return
+            if boot_loaders == enums.VALUE_INHERITED:
+                self._boot_loaders = [enums.BootLoader.INHERITED]
+                return
+            boot_loaders_split = [
+                enums.BootLoader.to_enum(value)
+                for value in input_converters.input_string_or_list_no_inherit(
+                    boot_loaders
+                )
+            ]
         else:
-            boot_loaders_split = boot_loaders
+            raise TypeError("The bootloaders need to be either a str or list")
 
         parent = self.logical_parent
         if parent is not None:
             # This can only be an item type that has the boot loaders property
-            parent_boot_loaders: List[str] = parent.boot_loaders  # type: ignore
+            parent_boot_loaders: List[enums.BootLoader] = parent.boot_loaders  # type: ignore
         else:
             self.logger.warning(
                 'Parent of System "%s" could not be found for resolving the parent bootloaders.',
                 self.name,
             )
             parent_boot_loaders = []
+
+        if (
+            len(boot_loaders_split) == 1
+            and boot_loaders_split[0] == enums.BootLoader.INHERITED
+        ):
+            self._boot_loaders = [enums.BootLoader.INHERITED]
+            return
+
         if not set(boot_loaders_split).issubset(parent_boot_loaders):
             raise CX(
                 f'Error with system "{self.name}" - not all boot_loaders are supported (given:'
@@ -452,9 +504,9 @@ class System(BootableItem):
         :getter: Returns the value for ``server``.
         :setter: Sets the value for the property ``server``.
         """
-        return self._resolve("server")
+        return self._resolve(["server"])
 
-    @server.setter  # type: ignore[no-redef]
+    @server.setter
     def server(self, server: str):
         """
         If a system can't reach the boot server at the value configured in settings
@@ -470,60 +522,6 @@ class System(BootableItem):
         self._server = server
 
     @InheritableProperty
-    def next_server_v4(self) -> str:
-        """
-        next_server_v4 property.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: Returns the value for ``next_server_v4``.
-        :setter: Sets the value for the property ``next_server_v4``.
-        """
-        return self._resolve("next_server_v4")
-
-    @next_server_v4.setter  # type: ignore[no-redef]
-    def next_server_v4(self, server: str = ""):
-        """
-        Setter for the IPv4 next server. See profile.py for more details.
-
-        :param server: The address of the IPv4 next server. Must be a string or ``enums.VALUE_INHERITED``.
-        :raises TypeError: In case server is no string.
-        """
-        if not isinstance(server, str):  # type: ignore
-            raise TypeError("next_server_v4 must be a string.")
-        if server == enums.VALUE_INHERITED:
-            self._next_server_v4 = enums.VALUE_INHERITED
-        else:
-            self._next_server_v4 = validate.ipv4_address(server)
-
-    @InheritableProperty
-    def next_server_v6(self) -> str:
-        """
-        next_server_v6 property.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: Returns the value for ``next_server_v6``.
-        :setter: Sets the value for the property ``next_server_v6``.
-        """
-        return self._resolve("next_server_v6")
-
-    @next_server_v6.setter  # type: ignore[no-redef]
-    def next_server_v6(self, server: str = ""):
-        """
-        Setter for the IPv6 next server. See profile.py for more details.
-
-        :param server: The address of the IPv6 next server. Must be a string or ``enums.VALUE_INHERITED``.
-        :raises TypeError: In case server is no string.
-        """
-        if not isinstance(server, str):  # type: ignore
-            raise TypeError("next_server_v6 must be a string.")
-        if server == enums.VALUE_INHERITED:
-            self._next_server_v6 = enums.VALUE_INHERITED
-        else:
-            self._next_server_v6 = validate.ipv6_address(server)
-
-    @InheritableProperty
     def filename(self) -> str:
         """
         filename property.
@@ -533,9 +531,9 @@ class System(BootableItem):
         """
         if self.image != "":
             return ""
-        return self._resolve("filename")
+        return self._resolve(["filename"])
 
-    @filename.setter  # type: ignore[no-redef]
+    @filename.setter
     def filename(self, filename: str):
         """
         Setter for the filename of the System class.
@@ -561,10 +559,10 @@ class System(BootableItem):
         :setter: Sets the value for the property ``proxy``.
         """
         if self.profile != "":
-            return self._resolve("proxy")
-        return self._resolve("proxy_url_int")
+            return self._resolve(["proxy"])
+        return self._resolve(["proxy_url_int"])
 
-    @proxy.setter  # type: ignore[no-redef]
+    @proxy.setter
     def proxy(self, proxy: str):
         """
         Setter for the proxy of the System class.
@@ -586,9 +584,9 @@ class System(BootableItem):
         :getter: Returns the value for ``redhat_management_key``.
         :setter: Sets the value for the property ``redhat_management_key``.
         """
-        return self._resolve("redhat_management_key")
+        return self._resolve(["redhat_management_key"])
 
-    @redhat_management_key.setter  # type: ignore[no-redef]
+    @redhat_management_key.setter
     def redhat_management_key(self, management_key: str):
         """
         Setter for the redhat_management_key of the System class.
@@ -644,48 +642,9 @@ class System(BootableItem):
         )
         if search_result is None or isinstance(search_result, list):
             return ""
-        if search_result.ip_address:
-            return search_result.ip_address.strip()
+        if search_result.ipv4.address:
+            return search_result.ipv4.address.strip()
         return ""
-
-    @property
-    def get_ipv4_addresses(self) -> Set[str]:
-        """
-        Get the set of system ipv4 addresses.
-        """
-        ips: Set[str] = set()
-        for intf in self.interfaces.values():
-            ipv4 = intf.ip_address
-            if ipv4:
-                ipv4 = ipv4.strip()
-            ips.add(ipv4)
-        return ips
-
-    @property
-    def get_ipv6_addresses(self) -> Set[str]:
-        """
-        Get the set of system ipv6 addresses.
-        """
-        ips: Set[str] = set()
-        for intf in self.interfaces.values():
-            ipv6 = intf.ipv6_address
-            if ipv6:
-                ipv6 = ipv6.strip()
-            ips.add(ipv6)
-        return ips
-
-    @property
-    def get_dns_names(self) -> Set[str]:
-        """
-        Get the set of system ipv6 addresses.
-        """
-        dns_names: Set[str] = set()
-        for intf in self.interfaces.values():
-            dns_name = intf.dns_name
-            if dns_name:
-                dns_name = dns_name.strip()
-            dns_names.add(dns_name)
-        return dns_names
 
     def is_management_supported(self, cidr_ok: bool = True) -> bool:
         """
@@ -697,8 +656,8 @@ class System(BootableItem):
             return True
         for interface in self.interfaces.values():
             mac = interface.mac_address
-            ip_v4 = interface.ip_address
-            ip_v6 = interface.ipv6_address
+            ip_v4 = interface.ipv4.address
+            ip_v6 = interface.ipv6.address
             if mac or ip_v4 or ip_v6:
                 return True
         return False
@@ -713,7 +672,7 @@ class System(BootableItem):
         """
         return self._gateway
 
-    @gateway.setter  # type: ignore[no-redef]
+    @gateway.setter
     def gateway(self, gateway: str):
         """
         Set a gateway IPv4 address.
@@ -722,48 +681,6 @@ class System(BootableItem):
         :returns: True or CX
         """
         self._gateway = validate.ipv4_address(gateway)
-
-    @InheritableProperty
-    def name_servers(self) -> List[str]:
-        """
-        name_servers property.
-        FIXME: Differentiate between IPv4/6
-
-        :getter: Returns the value for ``name_servers``.
-        :setter: Sets the value for the property ``name_servers``.
-        """
-        return self._resolve("name_servers")
-
-    @name_servers.setter  # type: ignore[no-redef]
-    def name_servers(self, data: Union[str, List[str]]):
-        """
-        Set the DNS servers.
-        FIXME: Differentiate between IPv4/6
-
-        :param data: string or list of nameservers
-        :returns: True or CX
-        """
-        self._name_servers = validate.name_servers(data)
-
-    @LazyProperty
-    def name_servers_search(self) -> List[str]:
-        """
-        name_servers_search property.
-
-        :getter: Returns the value for ``name_servers_search``.
-        :setter: Sets the value for the property ``name_servers_search``.
-        """
-        return self._resolve("name_servers_search")
-
-    @name_servers_search.setter  # type: ignore[no-redef]
-    def name_servers_search(self, data: Union[str, List[Any]]):
-        """
-        Set the DNS search paths.
-
-        :param data: string or list of search domains
-        :returns: True or CX
-        """
-        self._name_servers_search = validate.name_servers_search(data)
 
     @LazyProperty
     def ipv6_autoconfiguration(self) -> bool:
@@ -775,7 +692,7 @@ class System(BootableItem):
         """
         return self._ipv6_autoconfiguration
 
-    @ipv6_autoconfiguration.setter  # type: ignore[no-redef]
+    @ipv6_autoconfiguration.setter
     def ipv6_autoconfiguration(self, value: bool):
         """
         Setter for the ipv6_autoconfiguration of the System class.
@@ -797,7 +714,7 @@ class System(BootableItem):
         """
         return self._ipv6_default_device
 
-    @ipv6_default_device.setter  # type: ignore[no-redef]
+    @ipv6_default_device.setter
     def ipv6_default_device(self, interface_name: str):
         """
         Setter for the ipv6_default_device of the System class.
@@ -820,9 +737,9 @@ class System(BootableItem):
         :getter: Returns the value for ``enable_ipxe``.
         :setter: Sets the value for the property ``enable_ipxe``.
         """
-        return self._resolve("enable_ipxe")
+        return self._resolve(["enable_ipxe"])
 
-    @enable_ipxe.setter  # type: ignore[no-redef]
+    @enable_ipxe.setter
     def enable_ipxe(self, enable_ipxe: Union[str, bool]):
         """
         Sets whether the system will use iPXE for booting.
@@ -849,7 +766,7 @@ class System(BootableItem):
         """
         return self._profile
 
-    @profile.setter  # type: ignore[no-redef]
+    @profile.setter
     def profile(self, profile_uid: Union["Profile", str]):
         """
         Set the system to use a certain named profile. The profile must have already been loaded into the profiles
@@ -874,7 +791,7 @@ class System(BootableItem):
             return
 
         if profile is None:
-            profile = self.api.profiles().find(uid=profile_uid, return_list=False)
+            profile = self.api.profiles().find(uid=profile_uid, return_list=False)  # type: ignore
         if isinstance(profile, list):
             raise ValueError("Search returned ambigous match!")
         if profile is None:
@@ -895,7 +812,7 @@ class System(BootableItem):
         """
         return self._image
 
-    @image.setter  # type: ignore[no-redef]
+    @image.setter
     def image(self, image_uid: str):
         """
         Set the system to use a certain named image. Works like ``set_profile()`` but cannot be used at the same time.
@@ -926,181 +843,6 @@ class System(BootableItem):
         self.depth = img.depth + 1
         items.update_index_value(self, "image", old_image, image_uid)
 
-    @InheritableProperty
-    def virt_cpus(self) -> int:
-        """
-        virt_cpus property.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: Returns the value for ``virt_cpus``.
-        :setter: Sets the value for the property ``virt_cpus``.
-        """
-        return self._resolve("virt_cpus")
-
-    @virt_cpus.setter  # type: ignore[no-redef]
-    def virt_cpus(self, num: Union[int, str]):
-        """
-        Setter for the virt_cpus of the System class.
-
-        :param num: The new value for the number of CPU cores.
-        """
-        if num == enums.VALUE_INHERITED:
-            self._virt_cpus = enums.VALUE_INHERITED
-            return
-
-        self._virt_cpus = validate.validate_virt_cpus(num)
-
-    @InheritableProperty
-    def virt_file_size(self) -> float:
-        """
-        virt_file_size property.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: Returns the value for ``virt_file_size``.
-        :setter: Sets the value for the property ``virt_file_size``.
-        """
-        return self._resolve("virt_file_size")
-
-    @virt_file_size.setter  # type: ignore[no-redef]
-    def virt_file_size(self, num: float):
-        """
-        Setter for the virt_file_size of the System class.
-
-
-        :param num:
-        """
-        self._virt_file_size = validate.validate_virt_file_size(num)
-
-    @InheritableProperty
-    def virt_disk_driver(self) -> enums.VirtDiskDrivers:
-        """
-        virt_disk_driver property.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: Returns the value for ``virt_disk_driver``.
-        :setter: Sets the value for the property ``virt_disk_driver``.
-        """
-        return self._resolve_enum("virt_disk_driver", enums.VirtDiskDrivers)
-
-    @virt_disk_driver.setter  # type: ignore[no-redef]
-    def virt_disk_driver(self, driver: Union[str, enums.VirtDiskDrivers]):
-        """
-        Setter for the virt_disk_driver of the System class.
-
-        :param driver: The new disk driver for the virtual disk.
-        """
-        self._virt_disk_driver = enums.VirtDiskDrivers.to_enum(driver)
-
-    @InheritableProperty
-    def virt_auto_boot(self) -> bool:
-        """
-        virt_auto_boot property.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: Returns the value for ``virt_auto_boot``.
-        :setter: Sets the value for the property ``virt_auto_boot``.
-        """
-        return self._resolve("virt_auto_boot")
-
-    @virt_auto_boot.setter  # type: ignore[no-redef]
-    def virt_auto_boot(self, value: Union[bool, str]):
-        """
-        Setter for the virt_auto_boot of the System class.
-
-        :param value: Weather the VM should automatically boot or not.
-        """
-        if value == enums.VALUE_INHERITED:
-            self._virt_auto_boot = enums.VALUE_INHERITED
-            return
-        self._virt_auto_boot = validate.validate_virt_auto_boot(value)
-
-    @LazyProperty
-    def virt_pxe_boot(self) -> bool:
-        """
-        virt_pxe_boot property.
-
-        :getter: Returns the value for ``virt_pxe_boot``.
-        :setter: Sets the value for the property ``virt_pxe_boot``.
-        """
-        return self._virt_pxe_boot
-
-    @virt_pxe_boot.setter  # type: ignore[no-redef]
-    def virt_pxe_boot(self, num: bool):
-        """
-        Setter for the virt_pxe_boot of the System class.
-
-        :param num:
-        """
-        self._virt_pxe_boot = validate.validate_virt_pxe_boot(num)
-
-    @InheritableProperty
-    def virt_ram(self) -> int:
-        """
-        virt_ram property.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: Returns the value for ``virt_ram``.
-        :setter: Sets the value for the property ``virt_ram``.
-        """
-        return self._resolve("virt_ram")
-
-    @virt_ram.setter  # type: ignore[no-redef]
-    def virt_ram(self, num: Union[int, str]):
-        """
-        Setter for the virt_ram of the System class.
-
-
-        :param num:
-        """
-        self._virt_ram = validate.validate_virt_ram(num)
-
-    @InheritableProperty
-    def virt_type(self) -> enums.VirtType:
-        """
-        virt_type property.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: Returns the value for ``virt_type``.
-        :setter: Sets the value for the property ``virt_type``.
-        """
-        return self._resolve_enum("virt_type", enums.VirtType)
-
-    @virt_type.setter  # type: ignore[no-redef]
-    def virt_type(self, vtype: Union[enums.VirtType, str]):
-        """
-        Setter for the virt_type of the System class.
-
-        :param vtype: The new virtual type.
-        """
-        self._virt_type = enums.VirtType.to_enum(vtype)
-
-    @InheritableProperty
-    def virt_path(self) -> str:
-        """
-        virt_path property.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: Returns the value for ``virt_path``.
-        :setter: Sets the value for the property ``virt_path``.
-        """
-        return self._resolve("virt_path")
-
-    @virt_path.setter  # type: ignore[no-redef]
-    def virt_path(self, path: str):
-        """
-        Setter for the virt_path of the System class.
-
-        :param path: The new path.
-        """
-        self._virt_path = validate.validate_virt_path(path, for_system=True)
-
     @LazyProperty
     def netboot_enabled(self) -> bool:
         """
@@ -1111,7 +853,7 @@ class System(BootableItem):
         """
         return self._netboot_enabled
 
-    @netboot_enabled.setter  # type: ignore[no-redef]
+    @netboot_enabled.setter
     def netboot_enabled(self, netboot_enabled: bool):
         """
         If true, allows per-system PXE files to be generated on sync (or add). If false, these files are not generated,
@@ -1141,9 +883,9 @@ class System(BootableItem):
         :getter: Returns the value for ``autoinstall``.
         :setter: Sets the value for the property ``autoinstall``.
         """
-        return self._resolve("autoinstall")
+        return self._resolve(["autoinstall"])
 
-    @autoinstall.setter  # type: ignore[no-redef]
+    @autoinstall.setter
     def autoinstall(self, autoinstall: str):
         """
         Set the automatic installation template filepath, this must be a local file.
@@ -1156,180 +898,6 @@ class System(BootableItem):
         )
 
     @LazyProperty
-    def power_type(self) -> str:
-        """
-        power_type property.
-
-        :getter: Returns the value for ``power_type``.
-        :setter: Sets the value for the property ``power_type``.
-        """
-        return self._power_type
-
-    @power_type.setter  # type: ignore[no-redef]
-    def power_type(self, power_type: str):
-        """
-        Setter for the power_type of the System class.
-
-        :param power_type: The new value for the ``power_type`` property.
-        :raises TypeError: In case power_type is no string.
-        """
-        if not isinstance(power_type, str):  # type: ignore
-            raise TypeError("power_type must be of type str")
-        if not power_type:
-            self._power_type = ""
-            return
-        power_manager.validate_power_type(power_type)
-        self._power_type = power_type
-
-    @LazyProperty
-    def power_identity_file(self) -> str:
-        """
-        power_identity_file property.
-
-        :getter: Returns the value for ``power_identity_file``.
-        :setter: Sets the value for the property ``power_identity_file``.
-        """
-        return self._power_identity_file
-
-    @power_identity_file.setter  # type: ignore[no-redef]
-    def power_identity_file(self, power_identity_file: str):
-        """
-        Setter for the power_identity_file of the System class.
-
-        :param power_identity_file: The new value for the ``power_identity_file`` property.
-        :raises TypeError: In case power_identity_file is no string.
-        """
-        if not isinstance(power_identity_file, str):  # type: ignore
-            raise TypeError(
-                "Field power_identity_file of object system needs to be of type str!"
-            )
-        filesystem_helpers.safe_filter(power_identity_file)
-        self._power_identity_file = power_identity_file
-
-    @LazyProperty
-    def power_options(self) -> str:
-        """
-        power_options property.
-
-        :getter: Returns the value for ``power_options``.
-        :setter: Sets the value for the property ``power_options``.
-        """
-        return self._power_options
-
-    @power_options.setter  # type: ignore[no-redef]
-    def power_options(self, power_options: str):
-        """
-        Setter for the power_options of the System class.
-
-        :param power_options: The new value for the ``power_options`` property.
-        :raises TypeError: In case power_options is no string.
-        """
-        if not isinstance(power_options, str):  # type: ignore
-            raise TypeError(
-                "Field power_options of object system needs to be of type str!"
-            )
-        filesystem_helpers.safe_filter(power_options)
-        self._power_options = power_options
-
-    @LazyProperty
-    def power_user(self) -> str:
-        """
-        power_user property.
-
-        :getter: Returns the value for ``power_user``.
-        :setter: Sets the value for the property ``power_user``.
-        """
-        return self._power_user
-
-    @power_user.setter  # type: ignore[no-redef]
-    def power_user(self, power_user: str):
-        """
-        Setter for the power_user of the System class.
-
-        :param power_user: The new value for the ``power_user`` property.
-        :raises TypeError: In case power_user is no string.
-        """
-        if not isinstance(power_user, str):  # type: ignore
-            raise TypeError(
-                "Field power_user of object system needs to be of type str!"
-            )
-        filesystem_helpers.safe_filter(power_user)
-        self._power_user = power_user
-
-    @LazyProperty
-    def power_pass(self) -> str:
-        """
-        power_pass property.
-
-        :getter: Returns the value for ``power_pass``.
-        :setter: Sets the value for the property ``power_pass``.
-        """
-        return self._power_pass
-
-    @power_pass.setter  # type: ignore[no-redef]
-    def power_pass(self, power_pass: str):
-        """
-        Setter for the power_pass of the System class.
-
-        :param power_pass: The new value for the ``power_pass`` property.
-        :raises TypeError: In case power_pass is no string.
-        """
-        if not isinstance(power_pass, str):  # type: ignore
-            raise TypeError(
-                "Field power_pass of object system needs to be of type str!"
-            )
-        filesystem_helpers.safe_filter(power_pass)
-        self._power_pass = power_pass
-
-    @LazyProperty
-    def power_address(self) -> str:
-        """
-        power_address property.
-
-        :getter: Returns the value for ``power_address``.
-        :setter: Sets the value for the property ``power_address``.
-        """
-        return self._power_address
-
-    @power_address.setter  # type: ignore[no-redef]
-    def power_address(self, power_address: str):
-        """
-        Setter for the power_address of the System class.
-
-        :param power_address: The new value for the ``power_address`` property.
-        :raises TypeError: In case power_address is no string.
-        """
-        if not isinstance(power_address, str):  # type: ignore
-            raise TypeError(
-                "Field power_address of object system needs to be of type str!"
-            )
-        filesystem_helpers.safe_filter(power_address)
-        self._power_address = power_address
-
-    @LazyProperty
-    def power_id(self) -> str:
-        """
-        power_id property.
-
-        :getter: Returns the value for ``power_id``.
-        :setter: Sets the value for the property ``power_id``.
-        """
-        return self._power_id
-
-    @power_id.setter  # type: ignore[no-redef]
-    def power_id(self, power_id: str):
-        """
-        Setter for the power_id of the System class.
-
-        :param power_id: The new value for the ``power_id`` property.
-        :raises TypeError: In case power_id is no string.
-        """
-        if not isinstance(power_id, str):  # type: ignore
-            raise TypeError("Field power_id of object system needs to be of type str!")
-        filesystem_helpers.safe_filter(power_id)
-        self._power_id = power_id
-
-    @LazyProperty
     def repos_enabled(self) -> bool:
         """
         repos_enabled property.
@@ -1339,7 +907,7 @@ class System(BootableItem):
         """
         return self._repos_enabled
 
-    @repos_enabled.setter  # type: ignore[no-redef]
+    @repos_enabled.setter
     def repos_enabled(self, repos_enabled: bool):
         """
         Setter for the repos_enabled of the System class.
@@ -1364,7 +932,7 @@ class System(BootableItem):
         """
         return self._serial_device
 
-    @serial_device.setter  # type: ignore[no-redef]
+    @serial_device.setter
     def serial_device(self, device_number: int):
         """
         Setter for the serial_device of the System class.
@@ -1383,7 +951,7 @@ class System(BootableItem):
         """
         return self._serial_baud_rate
 
-    @serial_baud_rate.setter  # type: ignore[no-redef]
+    @serial_baud_rate.setter
     def serial_baud_rate(self, baud_rate: int):
         """
         Setter for the serial_baud_rate of the System class.
@@ -1393,7 +961,7 @@ class System(BootableItem):
         self._serial_baud_rate = validate.validate_serial_baud_rate(baud_rate)
 
     def get_config_filename(
-        self, interface: str, loader: Optional[str] = None
+        self, interface: str, loader: Optional[enums.BootLoader] = None
     ) -> Optional[str]:
         """
         The configuration file for each system pxe uses is either a form of the MAC address or the hex version or the
@@ -1408,9 +976,9 @@ class System(BootableItem):
         boot_loaders = self.boot_loaders
         if loader is None:
             if (
-                "grub" in boot_loaders or len(boot_loaders) < 1
+                enums.BootLoader.GRUB in boot_loaders or len(boot_loaders) < 1
             ):  # pylint: disable=unsupported-membership-test
-                loader = "grub"
+                loader = enums.BootLoader.GRUB
             else:
                 loader = boot_loaders[0]  # pylint: disable=unsubscriptable-object
 
@@ -1423,14 +991,14 @@ class System(BootableItem):
             return None
 
         if self.name == "default":
-            if loader == "grub":
+            if loader == enums.BootLoader.GRUB:
                 return None
             return "default"
 
         mac = self.get_mac_address(interface)
         ip_address = self.get_ip_address(interface)
         if mac is not None and mac != "":
-            if loader == "grub":
+            if loader == enums.BootLoader.GRUB:
                 return mac.lower()
             return "01-" + "-".join(mac.split(":")).lower()
         if ip_address != "":
@@ -1447,7 +1015,7 @@ class System(BootableItem):
         """
         return self._display_name
 
-    @display_name.setter  # type: ignore[no-redef]
+    @display_name.setter
     def display_name(self, display_name: str):
         """
         Setter for the display_name of the item.

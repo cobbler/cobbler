@@ -49,10 +49,10 @@ class _InTftpdManager(TftpManagerModule):
 
     def write_boot_files_distro(self, distro: "Distro") -> int:
         """
-        TODO
+        Write all templated boot files for a given distro into the TFTP root.
 
-        :param distro: TODO
-        :return: TODO
+        :param distro: The distro to write files for.
+        :return: ``0`` on success.
         """
         # Collapse the object down to a rendered datastructure.
         # The second argument set to false means we don't collapse dicts/arrays into a flat string.
@@ -133,9 +133,9 @@ class _InTftpdManager(TftpManagerModule):
 
     def add_single_distro(self, distro: "Distro") -> None:
         """
-        TODO
+        Add a single distribution to the TFTP configuration.
 
-        :param distro: TODO
+        :param distro: The distribution object to add.
         """
         self.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
         self.write_boot_files_distro(distro)

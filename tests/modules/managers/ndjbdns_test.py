@@ -90,9 +90,9 @@ def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI)
                     api=cobbler_api,
                     system_uid="not-empty",
                     name="default",
-                    ip_address="192.168.1.2",
-                    ipv6_address="::1",
-                    dns_name="host.example.org",
+                    ipv4={"address": "192.168.1.2"},
+                    ipv6={"address": "::1"},
+                    dns={"name": "host.example.org"},
                     mac_address="aa:bb:cc:dd:ee:ff",
                 )
             }

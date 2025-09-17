@@ -1,5 +1,5 @@
 """
-TODO
+Module to provide reasonable defaults to the cobblerd setup utility.
 """
 
 import pathlib

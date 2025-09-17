@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 class RebootSystemThread(Thread):
     """
-    TODO
+    Handles rebooting a system in a separate thread after a delay.
     """
 
     def __init__(self, api: "CobblerAPI", target: "System"):

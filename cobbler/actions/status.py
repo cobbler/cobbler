@@ -54,7 +54,10 @@ class InstallStatus:
 
 class CobblerStatusReport:
     """
-    TODO
+    The class provides functionality to collect, process, and report the status of Cobbler automatic installations.
+
+    It scans installation log files, catalogs installation events, and generates status reports for systems based on
+    their IP addresses. It supports both machine-readable and human-readable output formats.
     """
 
     def __init__(self, api: "CobblerAPI", mode: str) -> None:

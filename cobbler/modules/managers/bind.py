@@ -126,10 +126,10 @@ class _BindManager(DnsManagerModule):
 
         for system in self.systems:
             for _, interface in system.interfaces.items():
-                host: str = interface.dns_name
-                ipv4: str = interface.ip_address
-                ipv6: str = interface.ipv6_address
-                ipv6_sec_addrs: List[str] = interface.ipv6_secondaries
+                host: str = interface.dns.name
+                ipv4: str = interface.ipv4.address
+                ipv6: str = interface.ipv6.address
+                ipv6_sec_addrs: List[str] = interface.ipv6.secondaries
                 if not system.is_management_supported(cidr_ok=False):
                     continue
                 if not host:
@@ -218,10 +218,10 @@ class _BindManager(DnsManagerModule):
 
         for system in self.systems:
             for _, interface in system.interfaces.items():
-                host = interface.dns_name
-                ip_address = interface.ip_address
-                ipv6 = interface.ipv6_address
-                ipv6_sec_addrs = interface.ipv6_secondaries
+                host = interface.dns.name
+                ip_address = interface.ipv4.address
+                ipv6 = interface.ipv6.address
+                ipv6_sec_addrs = interface.ipv6.secondaries
                 if not system.is_management_supported(cidr_ok=False):
                     continue
                 if not host or ((not ip_address) and (not ipv6)):
@@ -436,7 +436,7 @@ zone "{arpa}." {{
 
         for system in self.systems:
             for name, interface in system.interfaces.items():
-                if interface.dns_name == "":
+                if interface.dns.name == "":
                     self.logger.info(
                         "Warning: dns_name unspecified in the system: %s, while writing host records",
                         system.name,
@@ -490,11 +490,11 @@ zone "{arpa}." {{
 
         for system in self.systems:
             for _, interface in system.interfaces.items():
-                cnames = interface.cnames
+                cnames = interface.dns.common_names
 
                 try:
-                    if interface.dns_name != "":
-                        dnsname = interface.dns_name.split(".")[0]
+                    if interface.dns.name != "":
+                        dnsname = interface.dns.name.split(".")[0]
                         for cname in cnames:
                             result += f"{cname.split('.')[0]}  {rectype}  {dnsname};\n"
                     else:

@@ -98,7 +98,7 @@ def test_mirror(cobbler_api: CobblerAPI):
     repo = Repo(cobbler_api)
 
     # Act
-    repo.mirror = "https://mymirror.com"  # type: ignore[method-assign]
+    repo.mirror = "https://mymirror.com"
 
     # Assert
     assert repo.mirror == "https://mymirror.com"
@@ -112,7 +112,7 @@ def test_mirror_type(cobbler_api: CobblerAPI):
     repo = Repo(cobbler_api)
 
     # Act
-    repo.mirror_type = enums.MirrorType.BASEURL  # type: ignore[method-assign]
+    repo.mirror_type = enums.MirrorType.BASEURL
 
     # Assert
     assert repo.mirror_type == enums.MirrorType.BASEURL
@@ -126,7 +126,7 @@ def test_keep_updated(cobbler_api: CobblerAPI):
     repo = Repo(cobbler_api)
 
     # Act
-    repo.keep_updated = False  # type: ignore[method-assign]
+    repo.keep_updated = False
 
     # Assert
     assert not repo.keep_updated
@@ -140,7 +140,7 @@ def test_yumopts(cobbler_api: CobblerAPI):
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.yumopts = {}  # type: ignore[method-assign]
+    testrepo.yumopts = {}
 
     # Assert
     assert testrepo.yumopts == {}
@@ -154,7 +154,7 @@ def test_rsyncopts(cobbler_api: CobblerAPI):
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.rsyncopts = {}  # type: ignore[method-assign]
+    testrepo.rsyncopts = {}
 
     # Assert
     assert testrepo.rsyncopts == {}
@@ -168,7 +168,7 @@ def test_environment(cobbler_api: CobblerAPI):
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.environment = {}  # type: ignore[method-assign]
+    testrepo.environment = {}
 
     # Assert
     assert testrepo.environment == {}
@@ -182,7 +182,7 @@ def test_priority(cobbler_api: CobblerAPI):
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.priority = 5  # type: ignore[method-assign]
+    testrepo.priority = 5
 
     # Assert
     assert testrepo.priority == 5
@@ -196,7 +196,7 @@ def test_rpm_list(cobbler_api: CobblerAPI):
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.rpm_list = []  # type: ignore[method-assign]
+    testrepo.rpm_list = []
 
     # Assert
     assert testrepo.rpm_list == []
@@ -228,7 +228,7 @@ def test_createrepo_flags(
 
     # Act
     with expected_exception:
-        testrepo.createrepo_flags = input_flags  # type: ignore[method-assign]
+        testrepo.createrepo_flags = input_flags
 
         # Assert
         assert testrepo.createrepo_flags == expected_result
@@ -242,7 +242,7 @@ def test_breed(cobbler_api: CobblerAPI):
     repo = Repo(cobbler_api)
 
     # Act
-    repo.breed = "yum"  # type: ignore[method-assign]
+    repo.breed = "yum"  # type: ignore
 
     # Assert
     assert repo.breed == enums.RepoBreeds.YUM
@@ -254,10 +254,10 @@ def test_os_version(cobbler_api: CobblerAPI):
     """
     # Arrange
     testrepo = Repo(cobbler_api)
-    testrepo.breed = "yum"  # type: ignore[method-assign]
+    testrepo.breed = "yum"  # type: ignore
 
     # Act
-    testrepo.os_version = "rhel4"  # type: ignore[method-assign]
+    testrepo.os_version = "rhel4"
 
     # Assert
     assert testrepo.breed == enums.RepoBreeds.YUM
@@ -283,7 +283,7 @@ def test_arch(cobbler_api: CobblerAPI, value: Any, expected_exception: Any):
 
     # Act
     with expected_exception:
-        testrepo.arch = value  # type: ignore[method-assign]
+        testrepo.arch = value
 
         # Assert
         if isinstance(value, str):
@@ -300,7 +300,7 @@ def test_mirror_locally(cobbler_api: CobblerAPI):
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.mirror_locally = False  # type: ignore[method-assign]
+    testrepo.mirror_locally = False
 
     # Assert
     assert not testrepo.mirror_locally
@@ -314,10 +314,10 @@ def test_apt_components(cobbler_api: CobblerAPI):
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.apt_components = []  # type: ignore[method-assign]
+    testrepo.apt.components = []
 
     # Assert
-    assert testrepo.apt_components == []
+    assert testrepo.apt.components == []
 
 
 def test_apt_dists(cobbler_api: CobblerAPI):
@@ -328,10 +328,10 @@ def test_apt_dists(cobbler_api: CobblerAPI):
     testrepo = Repo(cobbler_api)
 
     # Act
-    testrepo.apt_dists = []  # type: ignore[method-assign]
+    testrepo.apt.dists = []
 
     # Assert
-    assert testrepo.apt_dists == []
+    assert testrepo.apt.dists == []
 
 
 @pytest.mark.parametrize(
@@ -356,7 +356,7 @@ def test_proxy(
 
     # Act
     with expected_exception:
-        testrepo.proxy = input_proxy  # type: ignore[method-assign]
+        testrepo.proxy = input_proxy
 
         # Assert
         assert testrepo.proxy == expected_result

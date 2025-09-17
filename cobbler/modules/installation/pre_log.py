@@ -1,5 +1,5 @@
 """
-TODO
+Module for logging the start of Cobbler installation triggers.
 """
 
 import time

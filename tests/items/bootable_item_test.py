@@ -11,6 +11,8 @@ from cobbler import enums
 from cobbler.api import CobblerAPI
 from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.items.distro import Distro
+from cobbler.items.profile import Profile
+from cobbler.items.system import System
 from cobbler.settings import Settings
 
 from tests.conftest import does_not_raise
@@ -95,6 +97,33 @@ def test_kernel_options(
 
         # Assert
         assert titem.kernel_options == expected_result
+
+
+def test_kernel_options_inherited(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Any,
+    create_system: Any,
+):
+    """
+    Assert that the inheritance of dictionaries works as expected when removing keys from a given dictionary.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile: Profile = create_profile(
+        distro_uid=test_distro.uid, name="test_profile1"
+    )
+    test_profile.kernel_options = {"test": "foo", "example": "bar"}
+    cobbler_api.add_profile(test_profile)
+    test_system: System = create_system(
+        profile_uid=test_profile.uid, name="test_system1"
+    )
+
+    # Act
+    test_system.kernel_options = {"!test": None}
+
+    # Assert
+    assert test_system.kernel_options == {"example": "bar"}
 
 
 @pytest.mark.parametrize(
@@ -258,7 +287,7 @@ def test_dump_vars(cobbler_api: CobblerAPI):
     print(result)
     assert "default_ownership" in result
     assert "owners" in result
-    assert len(result) == 171
+    assert len(result) == 170
 
 
 def test_to_dict(cobbler_api: CobblerAPI):

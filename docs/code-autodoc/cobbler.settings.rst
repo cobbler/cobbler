@@ -9,6 +9,17 @@ Subpackages
 
    cobbler.settings.migrations
 
+Submodules
+----------
+
+cobbler.settings.cli module
+---------------------------
+
+.. automodule:: cobbler.settings.cli
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

@@ -1,5 +1,5 @@
 import os
-from typing import Any, Callable
+from typing import Any, Callable, List
 
 import pytest
 
@@ -31,27 +31,27 @@ def test_get_distros(remote: CobblerXMLRPCInterface, token: str):
 @pytest.mark.parametrize(
     "field_name,field_value",
     [
-        ("arch", "i386"),
-        ("breed", "debian"),
-        ("breed", "freebsd"),
-        ("breed", "redhat"),
-        ("breed", "suse"),
-        ("breed", "ubuntu"),
-        ("breed", "unix"),
-        ("breed", "vmware"),
-        ("breed", "windows"),
-        ("breed", "xen"),
-        ("breed", "generic"),
-        ("comment", "test comment"),
-        ("initrd", ""),
-        ("name", "testdistro0"),
-        ("kernel", ""),
-        ("kernel_options", "a=1 b=2 c=3 c=4 c=5 d e"),
-        ("kernel_options_post", "a=1 b=2 c=3 c=4 c=5 d e"),
-        ("autoinstall_meta", "a=1 b=2 c=3 c=4 c=5 d e"),
-        ("os_version", "rhel4"),
-        ("owners", "user1 user2 user3"),
-        ("boot_loaders", "pxe ipxe grub"),
+        (["arch"], "i386"),
+        (["breed"], "debian"),
+        (["breed"], "freebsd"),
+        (["breed"], "redhat"),
+        (["breed"], "suse"),
+        (["breed"], "ubuntu"),
+        (["breed"], "unix"),
+        (["breed"], "vmware"),
+        (["breed"], "windows"),
+        (["breed"], "xen"),
+        (["breed"], "generic"),
+        (["comment"], "test comment"),
+        (["initrd"], ""),
+        (["name"], "testdistro0"),
+        (["kernel"], ""),
+        (["kernel_options"], "a=1 b=2 c=3 c=4 c=5 d e"),
+        (["kernel_options_post"], "a=1 b=2 c=3 c=4 c=5 d e"),
+        (["autoinstall_meta"], "a=1 b=2 c=3 c=4 c=5 d e"),
+        (["os_version"], "rhel4"),
+        (["owners"], "user1 user2 user3"),
+        (["boot_loaders"], "pxe ipxe grub"),
     ],
 )
 def test_create_distro_positive(
@@ -60,7 +60,7 @@ def test_create_distro_positive(
     create_kernel_initrd: Callable[[str, str], str],
     fk_kernel: str,
     fk_initrd: str,
-    field_name: str,
+    field_name: List[str],
     field_value: str,
     cleanup_create_distro_positive: Any,
 ):
@@ -70,12 +70,12 @@ def test_create_distro_positive(
     # Arrange --> Nothing to do.
     folder = create_kernel_initrd(fk_kernel, fk_initrd)
     distro = remote.new_distro(token)
-    remote.modify_distro(distro, "name", "create_distro_positive", token)
+    remote.modify_distro(distro, ["name"], "create_distro_positive", token)
 
     # Act
-    if field_name == "kernel":
+    if field_name == ["kernel"]:
         field_value = os.path.join(folder, fk_kernel)
-    if field_name == "initrd":
+    if field_name == ["initrd"]:
         field_value = os.path.join(folder, fk_initrd)
     result = remote.modify_distro(distro, field_name, field_value, token)
 
@@ -85,21 +85,17 @@ def test_create_distro_positive(
 
 @pytest.mark.parametrize(
     "field_name,field_value",
-    [
-        ("arch", "badarch"),
-        ("breed", "badbreed"),
-        # ("boot_loader", "badloader") FIXME: This does not raise but did in the past
-    ],
+    [(["arch"], "badarch"), (["breed"], "badbreed"), (["boot_loaders"], "badloader")],
 )
 def test_create_distro_negative(
-    remote: CobblerXMLRPCInterface, token: str, field_name: str, field_value: str
+    remote: CobblerXMLRPCInterface, token: str, field_name: List[str], field_value: str
 ):
     """
     Test: create/edit a distro with invalid values
     """
     # Arrange
     distro = remote.new_distro(token)
-    remote.modify_distro(distro, "name", "testdistro0", token)
+    remote.modify_distro(distro, ["name"], "testdistro0", token)
 
     # Act & Assert
     try:

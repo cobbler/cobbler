@@ -356,7 +356,7 @@ class RepoSync:
         if not repo.mirror.startswith("rsync://") and not repo.mirror.startswith("/"):
             spacer = ["-e ssh"]
         if not repo.mirror.endswith("/"):
-            repo.mirror = f"{repo.mirror}/"  # type: ignore[method-assign]
+            repo.mirror = f"{repo.mirror}/"
 
         flags: List[str] = []
         for repo_option in repo.rsyncopts:
@@ -698,8 +698,8 @@ class RepoSync:
             host = mirror[:idx]
             mirror = mirror[idx:]
 
-            dists = ",".join(repo.apt_dists)
-            components = ",".join(repo.apt_components)
+            dists = ",".join(repo.apt.dists)
+            components = ",".join(repo.apt.components)
 
             mirror_data = [
                 f"--method={shlex.quote(method)}",

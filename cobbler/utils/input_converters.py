@@ -1,5 +1,5 @@
 """
-TODO
+Utility functions for converting input types (string, list, dict, boolean, int) in Cobbler.
 """
 
 import shlex
@@ -9,7 +9,7 @@ from cobbler import enums
 
 
 def input_string_or_list_no_inherit(
-    options: Optional[Union[str, List[Any]]]
+    options: Optional[Union[str, List[Any]]],
 ) -> List[Any]:
     """
     Accepts a delimited list of stuff or a list, but always returns a list.
@@ -30,7 +30,7 @@ def input_string_or_list_no_inherit(
 
 
 def input_string_or_list(
-    options: Optional[Union[str, List[Any]]]
+    options: Optional[Union[str, List[Any]]],
 ) -> Union[List[Any], str]:
     """
     Accepts a delimited list of stuff or a list, but always returns a list.

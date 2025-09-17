@@ -8,7 +8,6 @@ import pytest
 
 from cobbler import enums
 from cobbler.api import CobblerAPI
-from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image
 from cobbler.items.profile import Profile
@@ -81,24 +80,24 @@ def test_to_dict(cobbler_api: CobblerAPI):
 
 
 def test_to_dict_resolved_profile(
-    cobbler_api: CobblerAPI, create_distro: Callable[[], Distro]
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
 ):
     """
     Test that verfies that a system which is based on a profile can be converted to a dictionary successfully.
     """
     # Arrange
     test_distro = create_distro()
-    test_distro.kernel_options = {"test": True}  # type: ignore[method-assign]
+    test_distro.kernel_options = {"test": True}
     cobbler_api.add_distro(test_distro)
-    titem = Profile(cobbler_api)
-    titem.name = "to_dict_resolved_profile"  # type: ignore[method-assign]
-    titem.distro = test_distro.uid  # type: ignore[method-assign]
-    titem.kernel_options = {"my_value": 5}  # type: ignore[method-assign]
+    titem = create_profile(test_distro.uid)
+    titem.kernel_options = {"my_value": 5}
     cobbler_api.add_profile(titem)
     system = System(cobbler_api)
-    system.name = "to_dict_resolved_system_profile"  # type: ignore[method-assign]
-    system.profile = titem.uid  # type: ignore[method-assign]
-    system.kernel_options = {"my_value": 10}  # type: ignore[method-assign]
+    system.name = "to_dict_resolved_system_profile"
+    system.profile = titem.uid
+    system.kernel_options = {"my_value": 10}
     cobbler_api.add_system(system)
 
     # Act
@@ -119,12 +118,12 @@ def test_to_dict_resolved_image(
     """
     # Arrange
     test_image_obj = create_image()
-    test_image_obj.kernel_options = {"test": True}  # type: ignore[method-assign]
+    test_image_obj.kernel_options = {"test": True}
     cobbler_api.add_image(test_image_obj)
     system = System(cobbler_api)
-    system.name = "to_dict_resolved_system_image"  # type: ignore[method-assign]
-    system.image = test_image_obj.uid  # type: ignore[method-assign]
-    system.kernel_options = {"my_value": 5}  # type: ignore[method-assign]
+    system.name = "to_dict_resolved_system_image"
+    system.image = test_image_obj.uid
+    system.kernel_options = {"my_value": 5}
     cobbler_api.add_system(system)
 
     # Act
@@ -148,7 +147,7 @@ def test_ipv6_autoconfiguration(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.ipv6_autoconfiguration = False  # type: ignore[method-assign]
+    system.ipv6_autoconfiguration = False
 
     # Assert
     assert not system.ipv6_autoconfiguration
@@ -162,7 +161,7 @@ def test_repos_enabled(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.repos_enabled = False  # type: ignore[method-assign]
+    system.repos_enabled = False
 
     # Assert
     assert not system.repos_enabled
@@ -176,7 +175,7 @@ def test_autoinstall(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.autoinstall = ""  # type: ignore[method-assign]
+    system.autoinstall = ""
 
     # Assert
     assert system.autoinstall == ""
@@ -187,9 +186,13 @@ def test_autoinstall(cobbler_api: CobblerAPI):
     [
         ("", does_not_raise(), []),
         ([], does_not_raise(), []),
-        ("<<inherit>>", does_not_raise(), ["grub", "pxe", "ipxe"]),
-        ([""], pytest.raises(CX), []),
-        (["ipxe"], does_not_raise(), ["ipxe"]),
+        (
+            "<<inherit>>",
+            does_not_raise(),
+            [enums.BootLoader.GRUB, enums.BootLoader.PXE, enums.BootLoader.IPXE],
+        ),
+        ([""], pytest.raises(ValueError), []),
+        (["ipxe"], does_not_raise(), [enums.BootLoader.IPXE]),
     ],
 )
 def test_boot_loaders(
@@ -208,16 +211,16 @@ def test_boot_loaders(
     tmp_distro = create_distro()
     tmp_profile = create_profile(tmp_distro.uid)
     system = System(cobbler_api)
-    system.name = (  # type: ignore[method-assign]
+    system.name = (
         request.node.originalname  # type: ignore
         if request.node.originalname  # type: ignore
         else request.node.name  # type: ignore
     )
-    system.profile = tmp_profile.uid  # type: ignore[method-assign]
+    system.profile = tmp_profile.uid
 
     # Act
     with expected_exception:
-        system.boot_loaders = input_value  # type: ignore[method-assign]
+        system.boot_loaders = input_value
 
         # Assert
         assert system.boot_loaders == expected_output
@@ -250,7 +253,7 @@ def test_enable_ipxe(cobbler_api: CobblerAPI, value: Any, expected: Any):
 
     # Act
     with expected:
-        distro.enable_ipxe = value  # type: ignore[method-assign]
+        distro.enable_ipxe = value
 
         # Assert
         assert isinstance(distro.enable_ipxe, bool)
@@ -265,7 +268,7 @@ def test_gateway(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.gateway = ""  # type: ignore[method-assign]
+    system.gateway = ""
 
     # Assert
     assert system.gateway == ""
@@ -279,7 +282,7 @@ def test_hostname(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.hostname = ""  # type: ignore[method-assign]
+    system.hostname = ""
 
     # Assert
     assert system.hostname == ""
@@ -293,7 +296,7 @@ def test_image(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.image = ""  # type: ignore[method-assign]
+    system.image = ""
 
     # Assert
     assert system.image == ""
@@ -307,7 +310,7 @@ def test_ipv6_default_device(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.ipv6_default_device = ""  # type: ignore[method-assign]
+    system.ipv6_default_device = ""
 
     # Assert
     assert system.ipv6_default_device == ""
@@ -321,10 +324,55 @@ def test_name_servers(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.name_servers = []  # type: ignore[method-assign]
+    system.dns.name_servers = []
 
     # Assert
-    assert system.name_servers == []
+    assert system.dns.name_servers == []
+
+
+def test_name_servers_direct_inheritance(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
+    """
+    Test that verifies the functionality of the inherited property "name_servers".
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile_obj = create_profile(test_distro.uid)
+    test_system = System(cobbler_api, profile=test_profile_obj.uid)
+    test_profile_obj.dns.name_servers = ["8.8.4.4"]
+
+    # Act
+    test_system.dns.name_servers = ["8.8.8.8"]
+
+    # Assert
+    assert set(test_system.dns.name_servers) == {"8.8.4.4", "8.8.8.8"}
+
+
+def test_name_servers_indirect_inheritance(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
+    """
+    Test that verifies the functionality of the inherited property "name_servers".
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile_obj_lvl0 = create_profile(test_distro.uid)
+    test_profile_obj_lvl1 = create_profile(  # type: ignore
+        profile_uid=test_profile_obj_lvl0.uid, name="subprofile"  # type: ignore
+    )
+    test_system = System(cobbler_api, profile=test_profile_obj_lvl1.uid)  # type: ignore
+    test_profile_obj_lvl0.dns.name_servers = ["8.8.4.4"]  # type: ignore
+
+    # Act
+    test_system.dns.name_servers = ["8.8.8.8"]
+
+    # Assert
+    assert set(test_system.dns.name_servers) == {"8.8.4.4", "8.8.8.8"}
 
 
 def test_name_servers_search(cobbler_api: CobblerAPI):
@@ -335,7 +383,7 @@ def test_name_servers_search(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.name_servers_search = ""  # type: ignore[method-assign]
+    system.name_servers_search = ""
 
     # Assert
     assert system.name_servers_search == ""
@@ -364,7 +412,7 @@ def test_netboot_enabled(cobbler_api: CobblerAPI, value: Any, expected: Any):
 
     # Act
     with expected:
-        distro.netboot_enabled = value  # type: ignore[method-assign]
+        distro.netboot_enabled = value
 
         # Assert
         assert isinstance(distro.netboot_enabled, bool)
@@ -393,10 +441,10 @@ def test_next_server_v4(
 
     # Act
     with expected_exception:
-        system.next_server_v4 = input_next_server  # type: ignore[method-assign]
+        system.tftp.next_server_v4 = input_next_server
 
         # Assert
-        assert system.next_server_v4 == expected_result
+        assert system.tftp.next_server_v4 == expected_result
 
 
 @pytest.mark.parametrize(
@@ -421,10 +469,10 @@ def test_next_server_v6(
 
     # Act
     with expected_exception:
-        system.next_server_v6 = input_next_server  # type: ignore[method-assign]
+        system.tftp.next_server_v6 = input_next_server
 
         # Assert
-        assert system.next_server_v6 == expected_result
+        assert system.tftp.next_server_v6 == expected_result
 
 
 def test_filename(
@@ -441,7 +489,7 @@ def test_filename(
     test_system: System = create_system(profile_uid=test_profile_obj.uid)  # type: ignore
 
     # Act
-    test_system.filename = "<<inherit>>"  # type: ignore[method-assign]
+    test_system.filename = "<<inherit>>"
 
     # Assert
     assert test_system.filename == ""
@@ -455,10 +503,10 @@ def test_power_address(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.power_address = ""  # type: ignore[method-assign]
+    system.power.address = ""
 
     # Assert
-    assert system.power_address == ""
+    assert system.power.address == ""
 
 
 def test_power_id(cobbler_api: CobblerAPI):
@@ -469,7 +517,7 @@ def test_power_id(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.power_id = ""  # type: ignore[method-assign]
+    system.power_id = ""
 
     # Assert
     assert system.power_id == ""
@@ -483,7 +531,7 @@ def test_power_pass(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.power_pass = ""  # type: ignore[method-assign]
+    system.power_pass = ""
 
     # Assert
     assert system.power_pass == ""
@@ -497,7 +545,7 @@ def test_power_type(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.power_type = "redfish"  # type: ignore[method-assign]
+    system.power_type = "redfish"
 
     # Assert
     assert system.power_type == "redfish"
@@ -511,7 +559,7 @@ def test_power_user(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.power_user = ""  # type: ignore[method-assign]
+    system.power_user = ""
 
     # Assert
     assert system.power_user == ""
@@ -525,7 +573,7 @@ def test_power_options(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.power_options = ""  # type: ignore[method-assign]
+    system.power_options = ""
 
     # Assert
     assert system.power_options == ""
@@ -539,7 +587,7 @@ def test_power_identity_file(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.power_identity_file = ""  # type: ignore[method-assign]
+    system.power_identity_file = ""
 
     # Assert
     assert system.power_identity_file == ""
@@ -553,7 +601,7 @@ def test_profile(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.profile = ""  # type: ignore[method-assign]
+    system.profile = ""
 
     # Assert
     assert system.profile == ""
@@ -581,7 +629,7 @@ def test_proxy(
 
     # Act
     with expected_exception:
-        system.proxy = input_proxy  # type: ignore[method-assign]
+        system.proxy = input_proxy
 
         # Assert
         assert system.proxy == expected_result
@@ -609,7 +657,7 @@ def test_redhat_management_key(
 
     # Act
     with expected_exception:
-        system.redhat_management_key = input_redhat_management_key  # type: ignore[method-assign]
+        system.redhat_management_key = input_redhat_management_key
 
         # Assert
         assert system.redhat_management_key == expected_result
@@ -638,7 +686,7 @@ def test_server(
 
     # Act
     with expected_exception:
-        system.server = input_server  # type: ignore[method-assign]
+        system.server = input_server
 
         # Assert
         assert system.server == expected_result
@@ -652,7 +700,7 @@ def test_status(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.status = ""  # type: ignore[method-assign]
+    system.status = ""
 
     # Assert
     assert system.status == ""
@@ -680,10 +728,10 @@ def test_virt_auto_boot(
 
     # Act
     with expected_exception:
-        system.virt_auto_boot = value  # type: ignore[method-assign]
+        system.virt.auto_boot = value
 
         # Assert
-        assert system.virt_auto_boot is expected_result
+        assert system.virt.auto_boot is expected_result
 
 
 @pytest.mark.parametrize(
@@ -707,10 +755,10 @@ def test_virt_cpus(
 
     # Act
     with expected_exception:
-        system.virt_cpus = value  # type: ignore[method-assign]
+        system.virt.cpus = value
 
         # Assert
-        assert system.virt_cpus == expected_result
+        assert system.virt.cpus == expected_result
 
 
 @pytest.mark.parametrize(
@@ -737,10 +785,10 @@ def test_virt_disk_driver(
 
     # Act
     with expected_exception:
-        system.virt_disk_driver = value  # type: ignore[method-assign]
+        system.virt.disk_driver = value
 
         # Assert
-        assert system.virt_disk_driver == expected_result
+        assert system.virt.disk_driver == expected_result
 
 
 @pytest.mark.parametrize(
@@ -765,10 +813,10 @@ def test_virt_file_size(
 
     # Act
     with expected_exception:
-        system.virt_file_size = input_virt_file_size  # type: ignore[method-assign]
+        system.virt.file_size = input_virt_file_size
 
         # Assert
-        assert system.virt_file_size == expected_result
+        assert system.virt.file_size == expected_result
 
 
 @pytest.mark.parametrize(
@@ -794,14 +842,14 @@ def test_virt_path(
     tmp_distro = create_distro()
     tmp_profile = create_profile(tmp_distro.uid)
     system = System(cobbler_api)
-    system.profile = tmp_profile.uid  # type: ignore[method-assign]
+    system.profile = tmp_profile.uid
 
     # Act
     with expected_exception:
-        system.virt_path = input_path  # type: ignore[method-assign]
+        system.virt.path = input_path
 
         # Assert
-        assert system.virt_path == expected_result
+        assert system.virt.path == expected_result
 
 
 def test_virt_pxe_boot(cobbler_api: CobblerAPI):
@@ -812,10 +860,10 @@ def test_virt_pxe_boot(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.virt_pxe_boot = False  # type: ignore[method-assign]
+    system.virt.pxe_boot = False
 
     # Assert
-    assert not system.virt_pxe_boot
+    assert not system.virt.pxe_boot
 
 
 @pytest.mark.parametrize(
@@ -842,14 +890,14 @@ def test_virt_ram(
     distro = create_distro()
     profile = create_profile(distro.uid)
     system = System(cobbler_api)
-    system.profile = profile.uid  # type: ignore[method-assign]
+    system.profile = profile.uid
 
     # Act
     with expected_exception:
-        system.virt_ram = value  # type: ignore[method-assign]
+        system.virt.ram = value
 
         # Assert
-        assert system.virt_ram == expected_result
+        assert system.virt.ram == expected_result
 
 
 @pytest.mark.parametrize(
@@ -876,10 +924,10 @@ def test_virt_type(
 
     # Act
     with expected_exception:
-        system.virt_type = value  # type: ignore[method-assign]
+        system.virt.type = value
 
         # Assert
-        assert system.virt_type == expected_result
+        assert system.virt.type == expected_result
 
 
 def test_serial_device(cobbler_api: CobblerAPI):
@@ -890,7 +938,7 @@ def test_serial_device(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.serial_device = 5  # type: ignore[method-assign]
+    system.serial_device = 5
 
     # Assert
     assert system.serial_device == 5
@@ -913,7 +961,7 @@ def test_serial_baud_rate(cobbler_api: CobblerAPI, value: Any, expected_exceptio
 
     # Act
     with expected_exception:
-        system.serial_baud_rate = value  # type: ignore[method-assign]
+        system.serial_baud_rate = value
 
         # Assert
         if isinstance(value, int):
@@ -967,8 +1015,8 @@ def test_is_management_supported(
     test_network_interface = cobbler_api.new_network_interface(
         system_uid=system.uid,
         name="default",
-        ip_address=input_ipv4,
-        ipv6_address=input_ipv6,
+        ipv4={"address": input_ipv4},
+        ipv6={"address": input_ipv6},
         mac_address=input_mac,
     )
     cobbler_api.add_network_interface(test_network_interface)
@@ -1004,7 +1052,7 @@ def test_display_name(cobbler_api: CobblerAPI):
     system = System(cobbler_api)
 
     # Act
-    system.display_name = ""  # type: ignore[method-assign]
+    system.display_name = ""
 
     # Assert
     assert system.display_name == ""
@@ -1023,7 +1071,7 @@ def test_profile_inherit(
     distro = create_distro()
     api = distro.api
     mocker.patch.object(api, "settings", return_value=test_settings)
-    distro.arch = enums.Archs.X86_64  # type: ignore[method-assign]
+    distro.arch = enums.Archs.X86_64
     profile = api.new_profile(name="test_profile_inherit", distro=distro.uid)
     api.add_profile(profile)
     system = api.new_system(profile=profile.uid)
@@ -1094,7 +1142,7 @@ def test_image_inherit(
     api = image.api
     mocker.patch.object(api, "settings", return_value=test_settings)
     system = System(api)
-    system.image = image.uid  # type: ignore[method-assign]
+    system.image = image.uid
 
     # Act
     for key, key_value in system.__dict__.items():

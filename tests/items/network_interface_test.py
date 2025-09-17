@@ -64,7 +64,7 @@ def test_network_interface_to_dict(cobbler_api: CobblerAPI):
     assert "logger" not in result
     assert "api" not in result
     assert result.get("virt_bridge") == enums.VALUE_INHERITED
-    assert len(result) == 30
+    assert len(result) == 21
 
 
 def test_network_interface_to_dict_resolved(cobbler_api: CobblerAPI):
@@ -83,24 +83,41 @@ def test_network_interface_to_dict_resolved(cobbler_api: CobblerAPI):
     assert enums.VALUE_INHERITED not in str(result)
 
 
+@pytest.fixture(name="get_property_value")
+def fixture_get_property_value() -> Callable[[Any, List[str]], Any]:
+    """
+    Fixture provide a method which retrieves the raw target property value.
+    """
+
+    def _get_property_value(obj: Any, property_path: List[str]) -> Any:
+        if len(property_path) > 1:
+            return _get_property_value(
+                getattr(obj, property_path[0]), property_path[1:]
+            )
+        return getattr(obj, f"_{property_path[0]}")
+
+    return _get_property_value
+
+
 @pytest.mark.parametrize(
     "input_dict,modified_field,expected_result,expected_exception",
     [
         (
-            {"dns_name": "host.example.com"},
-            "dns_name",
+            {"dns": {"name": "host.example.com"}},
+            ["dns", "name"],
             "host.example.com",
             does_not_raise(),
         ),
-        ({"not_existing": "invalid"}, "dhcp_tag", "", pytest.raises(KeyError)),
+        ({"not_existing": "invalid"}, ["dhcp_tag"], "", pytest.raises(KeyError)),
     ],
 )
 def test_network_interface_from_dict(
     cobbler_api: CobblerAPI,
     input_dict: Dict[str, str],
-    modified_field: str,
+    modified_field: List[str],
     expected_result: str,
     expected_exception: Any,
+    get_property_value: Callable[[Any, List[str]], Any],
 ):
     """
     Test to verify that the from_dict method of NetworkInterface works as expected.
@@ -113,7 +130,7 @@ def test_network_interface_from_dict(
         interface.from_dict(input_dict)
 
     # Assert
-    assert getattr(interface, f"_{modified_field}") == expected_result
+    assert get_property_value(interface, modified_field) == expected_result
 
 
 def test_serialize():
@@ -165,11 +182,11 @@ def test_cnames(cobbler_api: CobblerAPI):
     interface = NetworkInterface(cobbler_api, "")
 
     # Act
-    interface.cnames = []
+    interface.dns.common_names = []
 
     # Assert
-    assert isinstance(interface.cnames, list)
-    assert interface.cnames == []
+    assert isinstance(interface.dns.common_names, list)
+    assert interface.dns.common_names == []
 
 
 def test_static_routes(cobbler_api: CobblerAPI):
@@ -180,11 +197,11 @@ def test_static_routes(cobbler_api: CobblerAPI):
     interface = NetworkInterface(cobbler_api, "")
 
     # Act
-    interface.static_routes = []
+    interface.ipv4.static_routes = []
 
     # Assert
-    assert isinstance(interface.static_routes, list)
-    assert interface.static_routes == []
+    assert isinstance(interface.ipv4.static_routes, list)
+    assert interface.ipv4.static_routes == []
 
 
 @pytest.mark.parametrize(
@@ -271,18 +288,18 @@ def test_dns_name(
     distro = create_distro()
     profile = create_profile(distro.uid)
     system = create_system(profile.uid)
-    system.interfaces["default"].dns_name = "duplicate.example.org"
+    system.interfaces["default"].dns.name = "duplicate.example.org"
     cobbler_api.add_system(system)
-    interface = NetworkInterface(cobbler_api, "")
+    interface = NetworkInterface(cobbler_api, system.uid)
 
     # Act
     with expected_exception:
         # TODO: Test matching self
-        interface.dns_name = input_dns_name
+        interface.dns.name = input_dns_name
 
         # Assert
-        assert isinstance(interface.dns_name, str)
-        assert interface.dns_name == expected_result
+        assert isinstance(interface.dns.name, str)
+        assert interface.dns.name == expected_result
 
 
 @pytest.mark.parametrize(
@@ -343,11 +360,11 @@ def test_netmask(cobbler_api: CobblerAPI):
     interface = NetworkInterface(cobbler_api, "")
 
     # Act
-    interface.netmask = ""
+    interface.ipv4.netmask = ""
 
     # Assert
-    assert isinstance(interface.netmask, str)
-    assert interface.netmask == ""
+    assert isinstance(interface.ipv4.netmask, str)
+    assert interface.ipv4.netmask == ""
 
 
 def test_if_gateway(cobbler_api: CobblerAPI):
@@ -549,18 +566,18 @@ def test_ip_address(
     distro = create_distro()
     profile = create_profile(distro.uid)
     system = create_system(profile.uid)
-    system.interfaces["default"].ip_address = "172.30.0.2"
+    system.interfaces["default"].ipv4.address = "172.30.0.2"
     cobbler_api.add_system(system)
     interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
         # TODO: Match self in loop
-        interface.ip_address = input_ip_address
+        interface.ipv4.address = input_ip_address
 
         # Assert
-        assert isinstance(interface.ip_address, str)
-        assert interface.ip_address == expected_result
+        assert isinstance(interface.ipv4.address, str)
+        assert interface.ipv4.address == expected_result
 
 
 @pytest.mark.parametrize(
@@ -587,18 +604,18 @@ def test_ipv6_address(
     distro = create_distro()
     profile = create_profile(distro.uid)
     system = create_system(profile.uid)
-    system.interfaces["default"].ipv6_address = "2001:db8:3c4d::2"
+    system.interfaces["default"].ipv6.address = "2001:db8:3c4d::2"
     cobbler_api.add_system(system)
     interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
         # TODO: match self
-        interface.ipv6_address = input_address
+        interface.ipv6.address = input_address
 
         # Assert
-        assert isinstance(interface.ipv6_address, str)
-        assert interface.ipv6_address == expected_result
+        assert isinstance(interface.ipv6.address, str)
+        assert interface.ipv6.address == expected_result
 
 
 @pytest.mark.parametrize(
@@ -622,11 +639,11 @@ def test_ipv6_prefix(
 
     # Act
     with expected_exception:
-        interface.ipv6_prefix = input_ipv6_prefix
+        interface.ipv6.prefix = input_ipv6_prefix
 
         # Assert
-        assert isinstance(interface.ipv6_prefix, str)
-        assert interface.ipv6_prefix == expected_result
+        assert isinstance(interface.ipv6.prefix, str)
+        assert interface.ipv6.prefix == expected_result
 
 
 @pytest.mark.parametrize(
@@ -651,11 +668,11 @@ def test_ipv6_secondaries(
 
     # Act
     with expected_exception:
-        interface.ipv6_secondaries = input_secondaries
+        interface.ipv6.secondaries = input_secondaries
 
         # Assert
-        assert isinstance(interface.ipv6_secondaries, list)
-        assert interface.ipv6_secondaries == expected_result  # type: ignore
+        assert isinstance(interface.ipv6.secondaries, list)
+        assert interface.ipv6.secondaries == expected_result  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -724,11 +741,11 @@ def test_ipv6_mtu(
 
     # Act
     with expected_exception:
-        interface.ipv6_mtu = input_ipv6_mtu
+        interface.ipv6.mtu = input_ipv6_mtu
 
         # Assert
-        assert isinstance(interface.ipv6_mtu, str)
-        assert interface.ipv6_mtu == expected_result
+        assert isinstance(interface.ipv6.mtu, str)
+        assert interface.ipv6.mtu == expected_result
 
 
 @pytest.mark.parametrize(
@@ -752,11 +769,11 @@ def test_mtu(
 
     # Act
     with expected_exception:
-        interface.mtu = input_mtu
+        interface.ipv4.mtu = input_mtu
 
         # Assert
-        assert isinstance(interface.mtu, str)
-        assert interface.mtu == expected_result
+        assert isinstance(interface.ipv4.mtu, str)
+        assert interface.ipv4.mtu == expected_result
 
 
 @pytest.mark.parametrize(

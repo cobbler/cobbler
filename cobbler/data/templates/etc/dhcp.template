@@ -101,16 +101,16 @@ group {
         #else
             hardware ethernet $mac;
         #end if
-        #if $iface.ip_address:
-            fixed-address $iface.ip_address;
+        #if $iface.ipv4.address:
+            fixed-address $iface.ipv4.address;
         #end if
-        #if $iface.dns_name:
-           option host-name "$iface.dns_name";
+        #if $iface.dns.name:
+           option host-name "$iface.dns.name";
         #else if $iface.hostname:
             option host-name "$iface.hostname";
         #end if
-        #if $iface.netmask:
-            option subnet-mask $iface.netmask;
+        #if $iface.ipv4.netmask:
+            option subnet-mask $iface.ipv4.netmask;
         #end if
         #if $iface.if_gateway:
             option routers $iface.if_gateway;
@@ -153,8 +153,8 @@ group {
         #if $iface.filename:
             filename "$iface.filename";
         #end if
-        #if $iface.name_servers:
-            #set $mynameservers = ','.join($iface.name_servers)
+        #if $iface.dns.name_servers:
+            #set $mynameservers = ','.join($iface.dns.name_servers)
             option domain-name-servers $mynameservers;
         #end if
     }

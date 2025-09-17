@@ -7,6 +7,7 @@ This module provides decorators that are required for Cobbler to work as expecte
 from typing import Any, Optional
 
 from cobbler.items.abstract import base_item
+from cobbler.items.options import base
 
 
 class LazyProperty(property):
@@ -14,7 +15,7 @@ class LazyProperty(property):
     This property is supposed to provide a way to override the lazy-read value getter.
     """
 
-    def __get__(self, obj: Any, objtype: Optional[type] = None):
+    def __get__(self, obj: Any, objtype: Optional[type] = None) -> Any:
         if obj is None:
             return self
         if (
@@ -23,6 +24,12 @@ class LazyProperty(property):
             and obj._has_initialized  # pyright: ignore [reportPrivateUsage]
         ):
             obj.deserialize()
+        if (
+            isinstance(obj, base.ItemOption)
+            and not obj._item.inmemory  # type: ignore
+            and obj._item._has_initialized  # type: ignore
+        ):
+            obj._item.deserialize()  # type: ignore
         if self.fget is None:
             # This may occur if the functional way of using a property is used.
             raise ValueError("Property had no getter!")

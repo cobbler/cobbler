@@ -109,12 +109,21 @@ from abc import ABC
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, TypeVar, Union
 
 from cobbler import enums, utils
-from cobbler.decorator import InheritableDictProperty, InheritableProperty, LazyProperty
 from cobbler.items.abstract.inheritable_item import InheritableItem
 from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+
+    InheritableDictProperty = property
+    InheritableProperty = property
+    LazyProperty = property
+else:
+    from cobbler.decorator import (
+        InheritableDictProperty,
+        InheritableProperty,
+        LazyProperty,
+    )
 
 
 T = TypeVar("T")
@@ -169,31 +178,88 @@ class BootableItem(InheritableItem, ABC):
             self.clean_cache(name)
         super().__setattr__(name, value)
 
-    def __common_resolve(self, property_name: str):
-        settings_name = property_name
-        if property_name.startswith("proxy_url_"):
-            property_name = "proxy"
-        if property_name == "owners":
+    def __common_resolve(self, property_name: List[str]):
+        property_name_copy = property_name.copy()
+        settings_name = property_name_copy[-1]
+        if property_name_copy[-1].startswith("proxy_url_"):
+            property_name_copy[-1] = "proxy"
+        if property_name_copy[-1] == "owners":
             settings_name = "default_ownership"
-        attribute = "_" + property_name
+        elif (
+            len(property_name_copy) >= 2
+            and property_name_copy[-2] == "virt"
+            and property_name_copy[-1] == "file_size"
+        ):
+            settings_name = "default_virt_file_size"
+        elif (
+            len(property_name_copy) >= 2
+            and property_name_copy[-2] == "virt"
+            and property_name_copy[-1] == "type"
+        ):
+            settings_name = "default_virt_type"
+        elif (
+            len(property_name_copy) >= 2
+            and property_name_copy[-2] == "virt"
+            and property_name_copy[-1] == "disk_driver"
+        ):
+            settings_name = "default_virt_disk_driver"
+        elif (
+            len(property_name_copy) >= 2
+            and property_name_copy[-2] == "virt"
+            and property_name_copy[-1] == "auto_boot"
+        ):
+            settings_name = "virt_auto_boot"
+        elif (
+            len(property_name_copy) >= 2
+            and property_name_copy[-2] == "virt"
+            and property_name_copy[-1] == "ram"
+        ):
+            settings_name = "default_virt_ram"
+        property_name_copy[-1] = "_" + property_name_copy[-1]
+        return self.__get_raw_value(self, property_name_copy), settings_name
 
-        return getattr(self, attribute), settings_name
-
-    def __resolve_get_parent_or_settings(self, property_name: str, settings_name: str):
+    def __resolve_get_parent_or_settings(
+        self, property_name: List[str], settings_name: str
+    ):
         settings = self.api.settings()
         conceptual_parent = self.get_conceptual_parent()
 
-        if hasattr(self.parent, property_name):
-            return getattr(self.parent, property_name)
-        elif hasattr(conceptual_parent, property_name):
-            return getattr(conceptual_parent, property_name)
-        elif hasattr(settings, settings_name):
+        try:
+            return self.__get_raw_value(self.parent, property_name)
+        except AttributeError:
+            # Does not have the requested attribute
+            pass
+        try:
+            return self.__get_raw_value(conceptual_parent, property_name)
+        except AttributeError:
+            # Does not have the requested attribute
+            pass
+        if hasattr(settings, settings_name):
             return getattr(settings, settings_name)
         elif hasattr(settings, f"default_{settings_name}"):
             return getattr(settings, f"default_{settings_name}")
         return None
 
-    def _resolve(self, property_name: str) -> Any:
+    def __get_raw_value(self, obj: Any, property_name: List[str]) -> Any:
+        """
+        Retrieve the value of a nested attribute from an object using a list of attribute names.
+
+        :returns: The retrieved attribute value.
+        :raises AttributeError: In case on any of the references the target attribute doesn't exist.
+        """
+        property_name_copy = property_name.copy()
+        if hasattr(obj, property_name_copy[0]):
+            property_key = property_name_copy.pop(0)
+            if len(property_name_copy) > 0:
+                return self.__get_raw_value(
+                    getattr(obj, property_key), property_name_copy
+                )
+            return getattr(obj, property_key)
+        raise AttributeError(
+            f'Could not retrieve "{property_name_copy[0]}" with obj "{obj}!'
+        )
+
+    def _resolve(self, property_name: List[str]) -> Any:
         """
         Resolve the ``property_name`` value in the object tree. This function traverses the tree from the object to its
         topmost parent and returns the first value that is not inherited. If the tree does not contain a value the
@@ -220,27 +286,39 @@ class BootableItem(InheritableItem, ABC):
         return attribute_value
 
     def _resolve_enum(
-        self, property_name: str, enum_type: Type[enums.ConvertableEnum]
+        self, property_name: List[str], enum_type: Type[enums.ConvertableEnum]
     ) -> Any:
         """
         See :meth:`~cobbler.items.abstract.bootable_item.BootableItem._resolve`
         """
         attribute_value, settings_name = self.__common_resolve(property_name)
-        unwrapped_value = getattr(attribute_value, "value", "")
+        if (
+            isinstance(attribute_value, list)
+            and len(attribute_value) == 1  # type: ignore
+            and attribute_value[0].value == enums.VALUE_INHERITED  # type: ignore
+        ):
+            unwrapped_value = enums.VALUE_INHERITED
+        else:
+            unwrapped_value = getattr(attribute_value, "value", "")  # type: ignore
         if unwrapped_value == enums.VALUE_INHERITED:
             possible_return = self.__resolve_get_parent_or_settings(
-                unwrapped_value, settings_name
+                property_name, settings_name
             )
-            if possible_return is not None:
+            if isinstance(possible_return, list):
+                for idx, value in enumerate(possible_return):  # type: ignore
+                    if not isinstance(value, enums.ConvertableEnum):
+                        possible_return[idx] = enum_type(value)
+                return possible_return  # type: ignore
+            elif possible_return is not None:
                 return enum_type(possible_return)
             raise AttributeError(
                 f'{type(self)} "{self.name}" inherits property "{property_name}", but neither its parent nor'
                 f" settings have it"
             )
 
-        return attribute_value
+        return attribute_value  # type: ignore
 
-    def _resolve_dict(self, property_name: str) -> Dict[str, Any]:
+    def _resolve_dict(self, property_name: List[str]) -> Dict[str, Any]:
         """
         Merge the ``property_name`` dictionary of the object with the ``property_name`` of all its parents. The value
         of the child takes precedence over the value of the parent.
@@ -249,18 +327,24 @@ class BootableItem(InheritableItem, ABC):
         :return: The merged dictionary.
         :raises AttributeError: In case the the the object had no attribute with the name :py:property_name: .
         """
-        attribute = "_" + property_name
+        property_name_raw = property_name.copy()
+        property_name_raw[-1] = "_" + property_name_raw[-1]
 
-        attribute_value = getattr(self, attribute)
+        attribute_value = self.__get_raw_value(self, property_name_raw)
         settings = self.api.settings()
 
         merged_dict: Dict[str, Any] = {}
 
-        conceptual_parent = self.get_conceptual_parent()
-        if hasattr(conceptual_parent, property_name):
-            merged_dict.update(getattr(conceptual_parent, property_name))
-        elif hasattr(settings, property_name):
-            merged_dict.update(getattr(settings, property_name))
+        parent = self.parent
+        if self.parent is None:
+            parent = self.get_conceptual_parent()  # type: ignore
+        try:
+            merged_dict.update(self.__get_raw_value(parent, property_name))
+        except AttributeError:
+            # Does not have the requested attribute
+            pass
+        if hasattr(settings, property_name[-1]):
+            merged_dict.update(getattr(settings, property_name[-1]))
 
         if attribute_value != enums.VALUE_INHERITED:
             merged_dict.update(attribute_value)
@@ -268,8 +352,40 @@ class BootableItem(InheritableItem, ABC):
         utils.dict_annihilate(merged_dict)
         return merged_dict
 
+    def _resolve_list(self, property_name: List[str]) -> List[Any]:
+        """
+        Resolves and merges a list property from the current object, its parent, and global settings.
+
+        :param property_name: The list of strings that represent the names of the attributes/properties to travel to
+            the target attribute.
+        :returns: The list with all values blended together.
+        """
+        property_name_raw = property_name.copy()
+        property_name_raw[-1] = "_" + property_name_raw[-1]
+
+        attribute_value = self.__get_raw_value(self, property_name_raw)
+        settings = self.api.settings()
+
+        merged_list: List[Any] = []
+
+        parent = self.parent
+        if self.parent is None:
+            parent = self.get_conceptual_parent()  # type: ignore
+        try:
+            merged_list.extend(self.__get_raw_value(parent, property_name))
+        except AttributeError:
+            # Does not have the requested attribute
+            pass
+        if hasattr(settings, property_name[-1]):
+            merged_list.extend(getattr(settings, property_name[-1]))
+
+        if attribute_value != enums.VALUE_INHERITED:
+            merged_list.extend(attribute_value)
+
+        return merged_list
+
     def _deduplicate_dict(
-        self, property_name: str, value: Dict[str, T]
+        self, property_name: List[str], value: Dict[str, T]
     ) -> Dict[str, T]:
         """
         Filter out the key:value pair may come from parent and global settings.
@@ -283,16 +399,21 @@ class BootableItem(InheritableItem, ABC):
         settings = self.api.settings()
         conceptual_parent = self.get_conceptual_parent()
 
-        if hasattr(self.parent, property_name):
-            parent_value = getattr(self.parent, property_name)
-        elif hasattr(conceptual_parent, property_name):
-            parent_value = getattr(conceptual_parent, property_name)
-        elif hasattr(settings, settings_name):
-            parent_value = getattr(settings, settings_name)
-        elif hasattr(settings, f"default_{settings_name}"):
-            parent_value = getattr(settings, f"default_{settings_name}")
-        else:
-            parent_value = {}
+        try:
+            parent_value = self.__get_raw_value(self.parent, property_name)
+        except AttributeError:
+            # Does not have the requested attribute
+            try:
+                # Only try this if the direct parent doesn't have one.
+                parent_value = self.__get_raw_value(conceptual_parent, property_name)
+            except AttributeError:
+                # Does not have the requested attribute
+                if hasattr(settings, settings_name):
+                    parent_value = getattr(settings, settings_name)
+                elif hasattr(settings, f"default_{settings_name}"):
+                    parent_value = getattr(settings, f"default_{settings_name}")
+                else:
+                    parent_value = {}
 
         # Because we use getattr pyright cannot correctly check this.
         for key in parent_value:  # type: ignore
@@ -311,9 +432,9 @@ class BootableItem(InheritableItem, ABC):
         :getter: The parsed kernel options.
         :setter: The new kernel options as a space delimited list. May raise ``ValueError`` in case of parsing problems.
         """
-        return self._resolve_dict("kernel_options")
+        return self._resolve_dict(["kernel_options"])
 
-    @kernel_options.setter  # type: ignore[no-redef]
+    @kernel_options.setter
     def kernel_options(self, options: Dict[str, Any]):
         """
         Setter for ``kernel_options``.
@@ -327,7 +448,7 @@ class BootableItem(InheritableItem, ABC):
                 self._kernel_options = enums.VALUE_INHERITED
                 return
             # pyright doesn't understand that the only valid str return value is this constant.
-            self._kernel_options = self._deduplicate_dict("kernel_options", value)  # type: ignore
+            self._kernel_options = self._deduplicate_dict(["kernel_options"], value)  # type: ignore
         except TypeError as error:
             raise TypeError("invalid kernel value") from error
 
@@ -341,9 +462,9 @@ class BootableItem(InheritableItem, ABC):
         :getter: The dictionary with the parsed values.
         :setter: Accepts str in above mentioned format or directly a dict.
         """
-        return self._resolve_dict("kernel_options_post")
+        return self._resolve_dict(["kernel_options_post"])
 
-    @kernel_options_post.setter  # type: ignore[no-redef]
+    @kernel_options_post.setter
     def kernel_options_post(self, options: Union[Dict[Any, Any], str]) -> None:
         """
         Setter for ``kernel_options_post``.
@@ -369,9 +490,9 @@ class BootableItem(InheritableItem, ABC):
         :getter: The metadata or an empty dict.
         :setter: Accepts anything which can be split by :meth:`~cobbler.utils.input_converters.input_string_or_dict`.
         """
-        return self._resolve_dict("autoinstall_meta")
+        return self._resolve_dict(["autoinstall_meta"])
 
-    @autoinstall_meta.setter  # type: ignore[no-redef]
+    @autoinstall_meta.setter
     def autoinstall_meta(self, options: Dict[Any, Any]):
         """
         Setter for the ``autoinstall_meta`` property.
@@ -384,7 +505,7 @@ class BootableItem(InheritableItem, ABC):
             self._autoinstall_meta = enums.VALUE_INHERITED
             return
         # pyright doesn't understand that the only valid str return value is this constant.
-        self._autoinstall_meta = self._deduplicate_dict("autoinstall_meta", value)  # type: ignore
+        self._autoinstall_meta = self._deduplicate_dict(["autoinstall_meta"], value)  # type: ignore
 
     @LazyProperty
     def template_files(self) -> Dict[str, str]:
@@ -401,7 +522,7 @@ class BootableItem(InheritableItem, ABC):
         """
         return self._template_files
 
-    @template_files.setter  # type: ignore[no-redef]
+    @template_files.setter
     def template_files(self, template_files: Union[str, Dict[str, str]]) -> None:
         """
         A comma seperated list of source=destination templates that should be generated during a sync.

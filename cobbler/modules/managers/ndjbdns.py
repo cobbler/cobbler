@@ -63,8 +63,8 @@ class _NDjbDnsManager(DnsManagerModule):
 
         for system in self.systems:
             for _, interface in list(system.interfaces.items()):
-                host = interface.dns_name
-                ip_address = interface.ip_address
+                host = interface.dns.name
+                ip_address = interface.ipv4.address
 
                 if host:
                     if host in a_records:

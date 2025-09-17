@@ -131,12 +131,17 @@ from typing import TYPE_CHECKING, Any, List, Union
 
 from cobbler import autoinstall_manager, enums, validate
 from cobbler.cexceptions import CX
-from cobbler.decorator import InheritableProperty, LazyProperty
 from cobbler.items.abstract.bootable_item import BootableItem
+from cobbler.items.options.virt import VirtOption
 from cobbler.utils import input_converters, signatures
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+
+    InheritableProperty = property
+    LazyProperty = property
+else:
+    from cobbler.decorator import InheritableProperty, LazyProperty
 
 
 class Image(BootableItem):
@@ -164,18 +169,13 @@ class Image(BootableItem):
         self._image_type = enums.ImageTypes.DIRECT
         self._network_count = 0
         self._os_version = ""
-        self._supported_boot_loaders: List[str] = []
-        self._boot_loaders: Union[List[str], str] = enums.VALUE_INHERITED
+        self._supported_boot_loaders: List[enums.BootLoader] = []
+        self._boot_loaders: List[enums.BootLoader] = [enums.BootLoader.INHERITED]
         self._menu = ""
         self._display_name = ""
-        self._virt_auto_boot: Union[str, bool] = enums.VALUE_INHERITED
+        self._virt = VirtOption(api=api, item=self, cpus=1, path="")
         self._virt_bridge = enums.VALUE_INHERITED
-        self._virt_cpus = 1
-        self._virt_disk_driver: enums.VirtDiskDrivers = enums.VirtDiskDrivers.INHERITED
-        self._virt_file_size: Union[str, float] = enums.VALUE_INHERITED
-        self._virt_path = ""
-        self._virt_ram: Union[str, int] = enums.VALUE_INHERITED
-        self._virt_type: Union[str, enums.VirtType] = enums.VirtType.INHERITED
+        # TODO: Evaluate missing pxe_boot and virt_bridge
 
         if len(kwargs):
             self.from_dict(kwargs)
@@ -204,6 +204,15 @@ class Image(BootableItem):
     #
     # specific methods for item.Image
     #
+
+    @property
+    def virt(self) -> VirtOption:
+        """
+        Property for the VirtOptions.
+
+        :getter: The VirtOptions of the Image.
+        """
+        return self._virt
 
     @LazyProperty
     def arch(self) -> enums.Archs:
@@ -243,7 +252,7 @@ class Image(BootableItem):
         :getter: The path relative to the template directory.
         :setter: The location of the template relative to the template base directory.
         """
-        return self._resolve("autoinstall")
+        return self._resolve(["autoinstall"])
 
     @autoinstall.setter
     def autoinstall(self, autoinstall: str):
@@ -404,25 +413,6 @@ class Image(BootableItem):
         self._image_type = image_type
 
     @LazyProperty
-    def virt_cpus(self) -> int:
-        """
-        The amount of vCPU cores used in case the image is being deployed on top of a VM host.
-
-        :getter: The cores used.
-        :setter: The new number of cores.
-        """
-        return self._virt_cpus
-
-    @virt_cpus.setter
-    def virt_cpus(self, num: int):
-        """
-        Setter for the number of virtual cpus.
-
-        :param num: The number of virtual cpu cores.
-        """
-        self._virt_cpus = validate.validate_virt_cpus(num)
-
-    @LazyProperty
     def network_count(self) -> int:
         """
         Represents the number of virtual NICs this image has.
@@ -452,105 +442,6 @@ class Image(BootableItem):
         self._network_count = network_count
 
     @InheritableProperty
-    def virt_auto_boot(self) -> bool:
-        r"""
-        Whether the VM should be booted when booting the host or not.
-
-        :getter: ``True`` means autoboot is enabled, otherwise VM is not booted automatically.
-        :setter: The new state for the property.
-        """
-        return self._resolve("virt_auto_boot")
-
-    @virt_auto_boot.setter
-    def virt_auto_boot(self, num: Union[str, bool]):
-        """
-        Setter for the virtual automatic boot option.
-
-        :param num: May be "0" (disabled) or "1" (enabled), will be converted to a real bool.
-        """
-        self._virt_auto_boot = validate.validate_virt_auto_boot(num)
-
-    @InheritableProperty
-    def virt_file_size(self) -> float:
-        r"""
-        The size of the image and thus the usable size for the guest.
-
-        .. warning:: There is a regression which makes the usage of multiple disks not possible right now. This will be
-                     fixed in a future release.
-
-        :getter: The size of the image(s) in GB.
-        :setter: The float with the new size in GB.
-        """
-        return self._resolve("virt_file_size")
-
-    @virt_file_size.setter
-    def virt_file_size(self, num: float):
-        """
-        Setter for the virtual file size of the image.
-
-        :param num: Is a non-negative integer (0 means default). Can also be a comma seperated list -- for usage with
-                    multiple disks
-        """
-        self._virt_file_size = validate.validate_virt_file_size(num)
-
-    @InheritableProperty
-    def virt_disk_driver(self) -> enums.VirtDiskDrivers:
-        """
-        The type of disk driver used for storing the image.
-
-        :getter: The enum type representation of the disk driver.
-        :setter: May be a ``str`` with the name of the disk driver or from the enum type directly.
-        """
-        return self._resolve_enum("virt_disk_driver", enums.VirtDiskDrivers)
-
-    @virt_disk_driver.setter
-    def virt_disk_driver(self, driver: enums.VirtDiskDrivers):
-        """
-        Setter for the virtual disk driver.
-
-        :param driver: The virtual disk driver which will be set.
-        """
-        self._virt_disk_driver = enums.VirtDiskDrivers.to_enum(driver)
-
-    @InheritableProperty
-    def virt_ram(self) -> int:
-        """
-        The amount of RAM given to the guest in MB.
-
-        :getter: The amount of RAM currently assigned to the image.
-        :setter: The new amount of ram. Must be an integer.
-        """
-        return self._resolve("virt_ram")
-
-    @virt_ram.setter
-    def virt_ram(self, num: int):
-        """
-        Setter for the amount of virtual RAM the machine will have.
-
-        :param num: 0 tells Koan to just choose a reasonable default.
-        """
-        self._virt_ram = validate.validate_virt_ram(num)
-
-    @InheritableProperty
-    def virt_type(self) -> enums.VirtType:
-        """
-        The type of image used.
-
-        :getter: The value of the virtual machine.
-        :setter: May be of the enum type or a str which is then converted to the enum type.
-        """
-        return self._resolve_enum("virt_type", enums.VirtType)
-
-    @virt_type.setter
-    def virt_type(self, vtype: enums.VirtType):
-        """
-        Setter for the virtual type
-
-        :param vtype: May be one of "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz" or "auto".
-        """
-        self._virt_type = enums.VirtType.to_enum(vtype)
-
-    @InheritableProperty
     def virt_bridge(self) -> str:
         r"""
         The name of the virtual bridge used for networking.
@@ -560,7 +451,7 @@ class Image(BootableItem):
         :getter: The name of the bridge.
         :setter: The new name of the bridge. If set to an empty ``str``, it will be taken from the settings.
         """
-        return self._resolve("virt_bridge")
+        return self._resolve(["virt_bridge"])
 
     @virt_bridge.setter
     def virt_bridge(self, vbridge: str):
@@ -570,25 +461,6 @@ class Image(BootableItem):
         :param vbridge: The name of the virtual bridge to use.
         """
         self._virt_bridge = validate.validate_virt_bridge(vbridge)
-
-    @LazyProperty
-    def virt_path(self) -> str:
-        """
-        Represents the location where the image for the VM is stored.
-
-        :getter: The path.
-        :setter: Is being validated for being a reasonable path. If yes is set, otherwise ignored.
-        """
-        return self._virt_path
-
-    @virt_path.setter
-    def virt_path(self, path: str):
-        """
-        Setter for the virtual path which is used.
-
-        :param path: The path to where the virtual image is stored.
-        """
-        self._virt_path = validate.validate_virt_path(path)
 
     @LazyProperty
     def menu(self) -> str:
@@ -636,7 +508,7 @@ class Image(BootableItem):
         self._display_name = display_name
 
     @property
-    def supported_boot_loaders(self) -> List[str]:
+    def supported_boot_loaders(self) -> List[enums.BootLoader]:
         """
         Read only property which represents the subset of settable bootloaders.
 
@@ -649,21 +521,24 @@ class Image(BootableItem):
         return self._supported_boot_loaders
 
     @InheritableProperty
-    def boot_loaders(self) -> List[str]:
+    def boot_loaders(self) -> List[enums.BootLoader]:
         """
         Represents the boot loaders which are able to boot this image.
 
         :getter: The bootloaders. May be an emtpy list.
         :setter: A list with the supported boot loaders for this image.
         """
-        if self._boot_loaders == enums.VALUE_INHERITED:
+        if self._boot_loaders == [enums.BootLoader.INHERITED]:
             return self.supported_boot_loaders
         # The following line is missleading for pyright since it doesn't understand
         # that we use only a constant with str type.
         return self._boot_loaders  # type: ignore
 
-    @boot_loaders.setter  # type: ignore[no-redef]
-    def boot_loaders(self, boot_loaders: Union[List[str], str]):
+    @boot_loaders.setter
+    def boot_loaders(
+        self,
+        boot_loaders: Union[str, List[str], List[enums.BootLoader]],
+    ):
         """
         Setter of the boot loaders.
 
@@ -671,22 +546,44 @@ class Image(BootableItem):
         :raises TypeError: In case this was of a not allowed type.
         :raises ValueError: In case the str which contained the list could not be successfully split.
         """
-        # allow the magic inherit string to persist
-        if boot_loaders == enums.VALUE_INHERITED:
-            self._boot_loaders = enums.VALUE_INHERITED
+        boot_loaders_split: List[enums.BootLoader] = []
+        if isinstance(boot_loaders, list):
+            if all([isinstance(value, str) for value in boot_loaders]):
+                boot_loaders_split = [
+                    enums.BootLoader.to_enum(value) for value in boot_loaders
+                ]
+            elif all([isinstance(value, enums.BootLoader) for value in boot_loaders]):
+                boot_loaders_split = boot_loaders  # type: ignore
+            else:
+                raise TypeError(
+                    "The items inside the list of boot_loaders must all be of type str or cobbler.enums.BootLoader"
+                )
+        elif isinstance(boot_loaders, str):  # type: ignore
+            if boot_loaders == "":
+                self._boot_loaders = []
+                return
+            if boot_loaders == enums.VALUE_INHERITED:
+                self._boot_loaders = [enums.BootLoader.INHERITED]
+                return
+            boot_loaders_split = [
+                enums.BootLoader.to_enum(value)
+                for value in input_converters.input_string_or_list_no_inherit(
+                    boot_loaders
+                )
+            ]
+        else:
+            raise TypeError("The bootloaders need to be either a str or list")
+
+        if (
+            len(boot_loaders_split) == 1
+            and boot_loaders_split[0] == enums.BootLoader.INHERITED
+        ):
+            self._boot_loaders = [enums.BootLoader.INHERITED]
             return
 
-        if boot_loaders:
-            boot_loaders_split = input_converters.input_string_or_list(boot_loaders)
-
-            if not isinstance(boot_loaders_split, list):
-                raise TypeError("boot_loaders needs to be of type list!")
-
-            if not set(boot_loaders_split).issubset(self.supported_boot_loaders):
-                raise ValueError(
-                    f"Error with image {self.name} - not all boot_loaders {boot_loaders_split} are"
-                    f" supported {self.supported_boot_loaders}"
-                )
-            self._boot_loaders = boot_loaders_split
-        else:
-            self._boot_loaders = []
+        if not set(boot_loaders).issubset(self.supported_boot_loaders):
+            raise ValueError(
+                f"Invalid boot loader names: {boot_loaders}. Supported boot loaders are:"
+                f" {' '.join([value.value for value in self.supported_boot_loaders])}"
+            )
+        self._boot_loaders = boot_loaders_split

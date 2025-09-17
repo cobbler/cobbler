@@ -30,11 +30,14 @@ V3.3.0:
 import copy
 from typing import TYPE_CHECKING, Any
 
-from cobbler.decorator import LazyProperty
 from cobbler.items.abstract.bootable_item import BootableItem
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+
+    LazyProperty = property
+else:
+    from cobbler.decorator import LazyProperty
 
 
 class Menu(BootableItem):

@@ -158,24 +158,24 @@ class _IscManager(DhcpManagerModule):
                 else:
                     ignore_macs.add(mac)
                 # IPv4
-                iface["netmask"] = master_iface.netmask
-                iface["ip_address"] = master_iface.ip_address
+                iface["netmask"] = master_iface.ipv4.netmask
+                iface["ip_address"] = master_iface.ipv4.address
                 if not iface["ip_address"]:
                     iface["ip_address"] = self._find_ip_addr(
                         system_obj.interfaces, prefix=master_name, ip_version="ipv4"
                     )
                 # IPv6
-                iface["ipv6_address"] = master_iface.ipv6_address
+                iface["ipv6_address"] = master_iface.ipv6.address
                 if not iface["ipv6_address"]:
                     iface["ipv6_address"] = self._find_ip_addr(
                         system_obj.interfaces, prefix=master_name, ip_version="ipv6"
                     )
                 # common
-                host = master_iface.dns_name
+                host = master_iface.dns.name
                 dhcp_tag = master_iface.dhcp_tag
             else:
                 # TODO: simplify _slave / non_slave branches
-                host = iface["dns_name"]
+                host = iface["dns"]["name"]
                 dhcp_tag = iface["dhcp_tag"]
 
             if distro_obj is not None:
@@ -192,22 +192,24 @@ class _IscManager(DhcpManagerModule):
                 iface["name"] = f"generic{self.generic_entry_cnt:d}"
 
             for key in (
-                "next_server_v6",
-                "next_server_v4",
                 "filename",
                 "netboot_enabled",
                 "hostname",
                 "enable_ipxe",
-                "name_servers",
             ):
                 iface[key] = system_blend_data[key]
+            iface["next_server_v4"] = system_blend_data["tftp"]["next_server_v4"]
+            iface["next_server_v6"] = system_blend_data["tftp"]["next_server_v6"]
+            iface["dns"]["name_servers"] = system_blend_data["dns"]["name_servers"]
             iface["owner"] = system_blend_data["name"]
             # esxi
             if distro_obj is not None and distro_obj.os_version.startswith("esxi"):
                 iface["filename_esxi"] = (
                     "esxi/system",
                     # config filename can be None
-                    system_obj.get_config_filename(interface=iface_name, loader="pxe")
+                    system_obj.get_config_filename(
+                        interface=iface_name, loader=enums.BootLoader.PXE
+                    )
                     or "",
                     "mboot.efi",
                 )

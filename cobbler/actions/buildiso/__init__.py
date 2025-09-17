@@ -269,10 +269,10 @@ class BuildIso:
         self, profiles: Optional[List[str]], distro_obj: "Distro"
     ) -> List["Profile"]:
         """
-        TODO
+        Parses and filters profile names for a given distro, ensuring all profiles are valid children of the distro.
 
-        :param profiles: TODO
-        :param distro_obj: TODO
+        :param profiles: The optional list of profile names. If no list is given, all profiles are used.
+        :param distro_obj: The distro object that acts as the parent.
         """
         profile_names = input_converters.input_string_or_list_no_inherit(profiles)
         if profile_names:
@@ -286,7 +286,7 @@ class BuildIso:
                 )
             return self.filter_profiles(profile_names)
         else:
-            return self.filter_profiles(distro_obj.children)  # type: ignore[reportGeneralTypeIssues]
+            return self.filter_profiles(distro_obj.children)  # type: ignore[reportGeneralTypeIssues,arg-type]
 
     def _copy_isolinux_files(self):
         """
@@ -342,12 +342,12 @@ class BuildIso:
         self, append_line: str, menu_name: str, kernel_path: str, initrd_path: str
     ) -> str:
         """
-        TODO
+        Renders a GRUB menu entry using the provided parameters and template.
 
-        :param append_line: TODO
-        :param menu_name: TODO
-        :param kernel_path: TODO
-        :param initrd_path: TODO
+        :param append_line: Kernel command line options to be passed to the boot entry.
+        :param menu_name: Display name for the GRUB menu entry.
+        :param kernel_path: Path to the kernel image file.
+        :param initrd_path: Path to the initrd (initial RAM disk) image file.
         """
         return self.templar.render(
             self.grub_menuentry_template,
@@ -411,7 +411,7 @@ class BuildIso:
         grub_binary_names: Dict[str, str] = {}
 
         for loader_format, values in loader_formats.items():
-            name = values.get("binary_name", None)
+            name = values.get("binary_name", None)  # type: ignore[attr-defined]
             if name is not None and isinstance(name, str):
                 grub_binary_names[loader_format.lower()] = name
 
@@ -728,9 +728,9 @@ class BuildIso:
         if distro_name:
             distro_obj = self.parse_distro(distro_name)
         elif len(profile_list) > 0:
-            distro_obj = profile_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
+            distro_obj = profile_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues,assignment]
         elif len(system_list) > 0:
-            distro_obj = system_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
+            distro_obj = system_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues,assignment]
 
         if distro_obj is None:
             raise ValueError("Unable to find suitable distro and none set by caller")

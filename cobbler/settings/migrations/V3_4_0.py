@@ -228,17 +228,17 @@ schema = Schema(
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
                 },
-                Optional("ip_address"): {
+                Optional("ipv4.address"): {
                     Optional("property"): str,
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
                 },
-                Optional("ipv6_address"): {
+                Optional("ipv6.address"): {
                     Optional("property"): str,
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
                 },
-                Optional("dns_name"): {
+                Optional("dns.name"): {
                     Optional("property"): str,
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,

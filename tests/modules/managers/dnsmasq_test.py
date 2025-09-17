@@ -52,9 +52,9 @@ def fixture_generate_test_system(
         api=cobbler_api,
         system_uid="not-empty",
         name="default",
-        ip_address="192.168.1.2",
-        ipv6_address="::1",
-        dns_name="host.example.org",
+        ipv4={"address": "192.168.1.2"},
+        ipv6={"address": "::1"},
+        dns={"name": "host.example.org"},
         mac_address="AA:BB:CC:DD:EE:FF",
     )
     mocker.patch(
@@ -125,9 +125,9 @@ def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI)
                     api=cobbler_api,
                     system_uid="not-empty",
                     name="default",
-                    ip_address=system_ip4,
-                    ipv6_address=system_ip6,
-                    dns_name=system_dns,
+                    ipv4={"address": system_ip4},
+                    ipv6={"address": system_ip6},
+                    dns={"name": system_dns},
                     mac_address=system_mac,
                 )
             }
@@ -199,9 +199,9 @@ def test_manager_sync_single_system(
     test_manager.restart_service = mocker.MagicMock()  # type: ignore[method-assign]
     test_manager.config = mock_config
     system_mac = mock_system.interfaces["default"].mac_address
-    system_dns = mock_system.interfaces["default"].dns_name
-    system_ip4 = mock_system.interfaces["default"].ip_address
-    system_ip6 = mock_system.interfaces["default"].ipv6_address
+    system_dns = mock_system.interfaces["default"].dns.name
+    system_ip4 = mock_system.interfaces["default"].ipv4.address
+    system_ip6 = mock_system.interfaces["default"].ipv6.address
 
     expected_config = mock_config.copy()
     expected_config[
@@ -229,7 +229,7 @@ def test_manager_regen_ethers(
     test_manager = dnsmasq.get_manager(cobbler_api)
     test_manager.systems = [mock_system]  # type: ignore
     system_mac = mock_system.interfaces["default"].mac_address.upper()
-    system_ip4 = mock_system.interfaces["default"].ip_address
+    system_ip4 = mock_system.interfaces["default"].ipv4.address
 
     # Act
     test_manager.regen_ethers()
@@ -277,8 +277,8 @@ def test_manager_remove_single_hosts_entry(
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
     utils.remove_lines_in_file = mock_remove_line_in_file  # type: ignore
-    system_ip_addr = mock_system.interfaces["default"].ipv6_address
-    system_dns = mock_system.interfaces["default"].dns_name
+    system_ip_addr = mock_system.interfaces["default"].ipv6.address
+    system_dns = mock_system.interfaces["default"].dns.name
 
     # Act
     test_manager.remove_single_hosts_entry(mock_system)
@@ -301,7 +301,7 @@ def test_manager_sync_single_ethers_entry(
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
     system_mac = mock_system.interfaces["default"].mac_address.upper()
-    system_ip4 = mock_system.interfaces["default"].ip_address
+    system_ip4 = mock_system.interfaces["default"].ipv4.address
 
     # Act
     test_manager.sync_single_ethers_entry(mock_system)
@@ -326,8 +326,8 @@ def test_manager_regen_hosts(
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
     test_manager.systems = [mock_system]  # type: ignore
-    system_dns = mock_system.interfaces["default"].dns_name
-    system_ip6 = mock_system.interfaces["default"].ipv6_address
+    system_dns = mock_system.interfaces["default"].dns.name
+    system_ip6 = mock_system.interfaces["default"].ipv6.address
 
     # Act
     test_manager.regen_hosts()
@@ -351,8 +351,8 @@ def test_manager_add_single_hosts_entry(
     mock_system = generate_test_system
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
-    system_dns = mock_system.interfaces["default"].dns_name
-    system_ip6 = mock_system.interfaces["default"].ipv6_address
+    system_dns = mock_system.interfaces["default"].dns.name
+    system_ip6 = mock_system.interfaces["default"].ipv6.address
 
     # Act
     test_manager.add_single_hosts_entry(mock_system)

@@ -13,7 +13,7 @@ import os
 import time
 from typing import TYPE_CHECKING, Dict, List, Optional
 
-from cobbler import templar, tftpgen, utils
+from cobbler import enums, templar, tftpgen, utils
 from cobbler.cexceptions import CX
 from cobbler.utils import filesystem_helpers
 
@@ -479,10 +479,10 @@ class CobblerSync:
         # delete contents of autoinsts_sys/$name in webdir
         for interface_name, _ in list(system_obj.interfaces.items()):
             pxe_filename = system_obj.get_config_filename(
-                interface=interface_name, loader="pxe"
+                interface=interface_name, loader=enums.BootLoader.PXE
             )
             grub_filename = system_obj.get_config_filename(
-                interface=interface_name, loader="grub"
+                interface=interface_name, loader=enums.BootLoader.GRUB
             )
             if pxe_filename is not None:
                 filesystem_helpers.rmfile(

@@ -712,12 +712,12 @@ memory_indexes:
         mac_address:
             nonunique: *allow_duplicate_macs
             disabled: *allow_duplicate_macs
-        ip_address:
+        ipv4.address:
             nonunique: *allow_duplicate_ips
             disabled: *allow_duplicate_ips
-        ipv6_address:
+        ipv6.address:
             nonunique: *allow_duplicate_ips
             disabled: *allow_duplicate_ips
-        dns_name:
+        dns.name:
             nonunique: *allow_duplicate_hostnames
             disabled: *allow_duplicate_hostnames

@@ -371,7 +371,14 @@ def test_write_pxe_file(mocker: "MockerFixture", cobbler_api: CobblerAPI):
 
     # Act
     result = test_gen.write_pxe_file(
-        "", None, None, None, enums.Archs.X86_64, None, {}, ""
+        "",
+        None,
+        None,
+        None,
+        enums.Archs.X86_64,
+        None,
+        {},
+        enums.BootLoader.GRUB,
     )
 
     # Assert

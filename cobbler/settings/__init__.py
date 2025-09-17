@@ -316,15 +316,15 @@ class Settings:
                     "nonunique": self.allow_duplicate_macs,
                     "disabled": self.allow_duplicate_macs,
                 },
-                "ip_address": {
+                "ipv4.address": {
                     "nonunique": self.allow_duplicate_ips,
                     "disabled": self.allow_duplicate_ips,
                 },
-                "ipv6_address": {
+                "ipv6.address": {
                     "nonunique": self.allow_duplicate_ips,
                     "disabled": self.allow_duplicate_ips,
                 },
-                "dns_name": {
+                "dns.name": {
                     "nonunique": self.allow_duplicate_hostnames,
                     "disabled": self.allow_duplicate_hostnames,
                 },

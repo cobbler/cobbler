@@ -39,9 +39,10 @@ def read_macro_file(location: str = "/etc/cobbler/cheetah_macros") -> str:
 
 def generate_cheetah_macros() -> Template:
     """
-    TODO
+    Generate the globally available Cheetah base class. The source for this global template is taken from
+    "/etc/cobbler/cheetah_macros".
 
-    :return: TODO
+    :return: The compiled Cheetah template. May be empty in case no template file is found.
     """
     try:
         macro_file = read_macro_file()

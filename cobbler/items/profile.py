@@ -166,13 +166,20 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from cobbler import autoinstall_manager, enums, validate
 from cobbler.cexceptions import CX
-from cobbler.decorator import InheritableProperty, LazyProperty
 from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.items.distro import Distro
+from cobbler.items.options.dns import DNSOption
+from cobbler.items.options.tftp import TFTPOption
+from cobbler.items.options.virt import VirtOption
 from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+
+    InheritableProperty = property
+    LazyProperty = property
+else:
+    from cobbler.decorator import InheritableProperty, LazyProperty
 
 
 class Profile(BootableItem):
@@ -194,15 +201,13 @@ class Profile(BootableItem):
         self._has_initialized = False
 
         self._autoinstall = enums.VALUE_INHERITED
-        self._boot_loaders: Union[List[str], str] = enums.VALUE_INHERITED
+        self._boot_loaders: List[enums.BootLoader] = [enums.BootLoader.INHERITED]
         self._dhcp_tag = ""
         self._distro = ""
+        self._dns = DNSOption(api=api, item=self)
         self._enable_ipxe: Union[str, bool] = enums.VALUE_INHERITED
         self._enable_menu: Union[str, bool] = enums.VALUE_INHERITED
-        self._name_servers = enums.VALUE_INHERITED
-        self._name_servers_search = enums.VALUE_INHERITED
-        self._next_server_v4 = enums.VALUE_INHERITED
-        self._next_server_v6 = enums.VALUE_INHERITED
+        self._tftp = TFTPOption(api=api, item=self)
         self._filename = ""
         self._proxy = enums.VALUE_INHERITED
         self._redhat_management_key = enums.VALUE_INHERITED
@@ -210,14 +215,8 @@ class Profile(BootableItem):
         self._server = enums.VALUE_INHERITED
         self._menu = ""
         self._display_name = ""
-        self._virt_auto_boot: Union[str, bool] = enums.VALUE_INHERITED
+        self._virt = VirtOption(api=api, item=self, cpus=1, path="")
         self._virt_bridge = enums.VALUE_INHERITED
-        self._virt_cpus: int = 1
-        self._virt_disk_driver: enums.VirtDiskDrivers = enums.VirtDiskDrivers.INHERITED
-        self._virt_file_size: Union[str, float] = enums.VALUE_INHERITED
-        self._virt_path = ""
-        self._virt_ram: Union[str, int] = enums.VALUE_INHERITED
-        self._virt_type: Union[str, enums.VirtType] = enums.VirtType.INHERITED
 
         # Overwrite defaults from bootable_item.py
         self._autoinstall_meta: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
@@ -228,8 +227,8 @@ class Profile(BootableItem):
             self._filename = enums.VALUE_INHERITED
 
         # Use setters to validate settings
-        self.virt_disk_driver = api.settings().default_virt_disk_driver  # type: ignore[method-assign]
-        self.virt_type = api.settings().default_virt_type  # type: ignore[method-assign]
+        self.virt.disk_driver = api.settings().default_virt_disk_driver  # type: ignore
+        self.virt.type = api.settings().default_virt_type  # type: ignore
 
         if len(kwargs) > 0:
             self.from_dict(kwargs)
@@ -300,6 +299,33 @@ class Profile(BootableItem):
     #
 
     @property
+    def dns(self) -> DNSOption:
+        """
+        The DNS configuration option for this profile.
+
+        :getter: DNSOption object representing the profile's DNS settings.
+        """
+        return self._dns
+
+    @property
+    def tftp(self) -> TFTPOption:
+        """
+        The TFTPOption instance associated with this profile.
+
+        :getter: TFTPOption object representing the configuration for network booting.
+        """
+        return self._tftp
+
+    @property
+    def virt(self) -> VirtOption:
+        """
+        Property for the VirtOptions.
+
+        :getter: The VirtOptions of the Profile.
+        """
+        return self._virt
+
+    @property
     def arch(self) -> Optional[enums.Archs]:
         """
         This represents the architecture of a profile. It is read only.
@@ -328,7 +354,7 @@ class Profile(BootableItem):
             raise ValueError("Ambigous parent distro name detected!")
         return parent_distro
 
-    @distro.setter  # type: ignore[no-redef]
+    @distro.setter
     def distro(self, distro_uid: Union["Distro", str]):
         """
         Sets the distro. This must be the uid of an existing Distro object in the Distros collection.
@@ -350,11 +376,11 @@ class Profile(BootableItem):
             items.update_index_value(self, "arch", old_arch, self.arch)
             for child in self.tree_walk():
                 items.update_index_value(
-                    child, "arch", old_arch, self.arch  # type: ignore[reportArgumentType]
+                    child, "arch", old_arch, self.arch  # type: ignore[reportArgumentType,arg-type]
                 )
             return
         if distro is None:
-            distro = self.api.distros().find(uid=distro_uid)
+            distro = self.api.distros().find(uid=distro_uid)  # type: ignore
         if distro is None or isinstance(distro, list):
             raise ValueError(f'distribution "{distro_uid}" not found')
         self._distro = distro_uid
@@ -365,46 +391,8 @@ class Profile(BootableItem):
         items.update_index_value(self, "arch", old_arch, distro.arch)
         for child in self.tree_walk():
             items.update_index_value(
-                child, "arch", old_arch, self.arch  # type: ignore[reportArgumentType]
+                child, "arch", old_arch, self.arch  # type: ignore[reportArgumentType,arg-type]
             )
-
-    @InheritableProperty
-    def name_servers(self) -> List[str]:
-        """
-        Represents the list of nameservers to set for the profile.
-
-        :getter: The nameservers.
-        :setter: Comma delimited ``str`` or list with the nameservers.
-        """
-        return self._resolve("name_servers")
-
-    @name_servers.setter  # type: ignore[no-redef]
-    def name_servers(self, data: List[str]):
-        """
-        Set the DNS servers.
-
-        :param data: string or list of nameservers
-        """
-        self._name_servers = validate.name_servers(data)
-
-    @InheritableProperty
-    def name_servers_search(self) -> List[str]:
-        """
-        Represents the list of DNS search paths.
-
-        :getter: The list of DNS search paths.
-        :setter: Comma delimited ``str`` or list with the nameservers search paths.
-        """
-        return self._resolve("name_servers_search")
-
-    @name_servers_search.setter  # type: ignore[no-redef]
-    def name_servers_search(self, data: List[str]):
-        """
-        Set the DNS search paths.
-
-        :param data: string or list of search domains
-        """
-        self._name_servers_search = validate.name_servers_search(data)
 
     @InheritableProperty
     def proxy(self) -> str:
@@ -414,9 +402,9 @@ class Profile(BootableItem):
         :getter: Returns the default one or the specific one for this repository.
         :setter: May raise a ``TypeError`` in case the wrong value is given.
         """
-        return self._resolve("proxy_url_int")
+        return self._resolve(["proxy_url_int"])
 
-    @proxy.setter  # type: ignore[no-redef]
+    @proxy.setter
     def proxy(self, proxy: str):
         """
         Setter for the proxy setting of the repository.
@@ -436,9 +424,9 @@ class Profile(BootableItem):
         :getter: If set to inherit then this returns the parent value, otherwise it returns the real value.
         :setter: May throw a ``TypeError`` in case the new value cannot be cast to ``bool``.
         """
-        return self._resolve("enable_ipxe")
+        return self._resolve(["enable_ipxe"])
 
-    @enable_ipxe.setter  # type: ignore[no-redef]
+    @enable_ipxe.setter
     def enable_ipxe(self, enable_ipxe: Union[str, bool]):
         r"""
         Setter for the ``enable_ipxe`` property.
@@ -464,9 +452,9 @@ class Profile(BootableItem):
         :getter: The value resolved from the defaults or the value specific to the profile.
         :setter: May raise a ``TypeError`` in case the boolean could not be converted.
         """
-        return self._resolve("enable_menu")
+        return self._resolve(["enable_menu"])
 
-    @enable_menu.setter  # type: ignore[no-redef]
+    @enable_menu.setter
     def enable_menu(self, enable_menu: Union[str, bool]):
         """
         Setter for the ``enable_menu`` property.
@@ -493,7 +481,7 @@ class Profile(BootableItem):
         """
         return self._dhcp_tag
 
-    @dhcp_tag.setter  # type: ignore[no-redef]
+    @dhcp_tag.setter
     def dhcp_tag(self, dhcp_tag: str):
         r"""
         Setter for the ``dhcp_tag`` property.
@@ -515,9 +503,9 @@ class Profile(BootableItem):
         :getter: The hostname of the Cobbler server.
         :setter: May raise a ``TypeError`` in case the new value is not a ``str``.
         """
-        return self._resolve("server")
+        return self._resolve(["server"])
 
-    @server.setter  # type: ignore[no-redef]
+    @server.setter
     def server(self, server: str):
         """
         Setter for the server property.
@@ -530,56 +518,6 @@ class Profile(BootableItem):
         self._server = server
 
     @InheritableProperty
-    def next_server_v4(self) -> str:
-        """
-        Represents the next server for IPv4.
-
-        :getter: The IP for the next server.
-        :setter: May raise a ``TypeError`` if the new value is not of type ``str``.
-        """
-        return self._resolve("next_server_v4")
-
-    @next_server_v4.setter  # type: ignore[no-redef]
-    def next_server_v4(self, server: str = ""):
-        """
-        Setter for the next server value.
-
-        :param server: The address of the IPv4 next server. Must be a string or ``enums.VALUE_INHERITED``.
-        :raises TypeError: In case server is no string.
-        """
-        if not isinstance(server, str):  # type: ignore
-            raise TypeError("Server must be a string.")
-        if server == enums.VALUE_INHERITED:
-            self._next_server_v4 = enums.VALUE_INHERITED
-        else:
-            self._next_server_v4 = validate.ipv4_address(server)
-
-    @InheritableProperty
-    def next_server_v6(self) -> str:
-        r"""
-        Represents the next server for IPv6.
-
-        :getter: The IP for the next server.
-        :setter: May raise a ``TypeError`` if the new value is not of type ``str``.
-        """
-        return self._resolve("next_server_v6")
-
-    @next_server_v6.setter  # type: ignore[no-redef]
-    def next_server_v6(self, server: str = ""):
-        """
-        Setter for the next server value.
-
-        :param server: The address of the IPv6 next server. Must be a string or ``enums.VALUE_INHERITED``.
-        :raises TypeError: In case server is no string.
-        """
-        if not isinstance(server, str):  # type: ignore
-            raise TypeError("Server must be a string.")
-        if server == enums.VALUE_INHERITED:
-            self._next_server_v6 = enums.VALUE_INHERITED
-        else:
-            self._next_server_v6 = validate.ipv6_address(server)
-
-    @InheritableProperty
     def filename(self) -> str:
         """
         The filename which is fetched by the client from TFTP.
@@ -589,9 +527,9 @@ class Profile(BootableItem):
         :getter: Either the default/inherited one, or the one specific to this profile.
         :setter: The new filename which is fetched on boot. May raise a ``TypeError`` when the wrong type was given.
         """
-        return self._resolve("filename")
+        return self._resolve(["filename"])
 
-    @filename.setter  # type: ignore[no-redef]
+    @filename.setter
     def filename(self, filename: str):
         """
         The setter for the ``filename`` property.
@@ -619,9 +557,9 @@ class Profile(BootableItem):
         :getter: Either the inherited name or the one specific to this profile.
         :setter: The name of the new autoinstall template is validated. The path should come in the format of a ``str``.
         """
-        return self._resolve("autoinstall")
+        return self._resolve(["autoinstall"])
 
-    @autoinstall.setter  # type: ignore[no-redef]
+    @autoinstall.setter
     def autoinstall(self, autoinstall: str):
         """
         Setter for the ``autoinstall`` property.
@@ -634,136 +572,6 @@ class Profile(BootableItem):
         )
 
     @InheritableProperty
-    def virt_auto_boot(self) -> bool:
-        """
-        Whether the VM should be booted when booting the host or not.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: ``True`` means autoboot is enabled, otherwise VM is not booted automatically.
-        :setter: The new state for the property.
-        """
-        return self._resolve("virt_auto_boot")
-
-    @virt_auto_boot.setter  # type: ignore[no-redef]
-    def virt_auto_boot(self, num: Union[bool, str, int]):
-        """
-        Setter for booting a virtual machine automatically.
-
-        :param num: The new value for whether to enable it or not.
-        """
-        if num == enums.VALUE_INHERITED:
-            self._virt_auto_boot = enums.VALUE_INHERITED
-            return
-        self._virt_auto_boot = validate.validate_virt_auto_boot(num)
-
-    @LazyProperty
-    def virt_cpus(self) -> int:
-        """
-        The amount of vCPU cores used in case the image is being deployed on top of a VM host.
-
-        :getter: The cores used.
-        :setter: The new number of cores.
-        """
-        return self._resolve("virt_cpus")
-
-    @virt_cpus.setter  # type: ignore[no-redef]
-    def virt_cpus(self, num: Union[int, str]):
-        """
-        Setter for the number of virtual CPU cores to assign to the virtual machine.
-
-        :param num: The number of cpu cores.
-        """
-        self._virt_cpus = validate.validate_virt_cpus(num)
-
-    @InheritableProperty
-    def virt_file_size(self) -> float:
-        r"""
-        The size of the image and thus the usable size for the guest.
-
-        .. warning:: There is a regression which makes the usage of multiple disks not possible right now. This will be
-                     fixed in a future release.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: The size of the image(s) in GB.
-        :setter: The float with the new size in GB.
-        """
-        return self._resolve("virt_file_size")
-
-    @virt_file_size.setter  # type: ignore[no-redef]
-    def virt_file_size(self, num: Union[str, int, float]):
-        """
-        Setter for the size of the virtual image size.
-
-        :param num: The new size of the image.
-        """
-        self._virt_file_size = validate.validate_virt_file_size(num)
-
-    @InheritableProperty
-    def virt_disk_driver(self) -> enums.VirtDiskDrivers:
-        """
-        The type of disk driver used for storing the image.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: The enum type representation of the disk driver.
-        :setter: May be a ``str`` with the name of the disk driver or from the enum type directly.
-        """
-        return self._resolve_enum("virt_disk_driver", enums.VirtDiskDrivers)
-
-    @virt_disk_driver.setter  # type: ignore[no-redef]
-    def virt_disk_driver(self, driver: str):
-        """
-        Setter for the virtual disk driver that will be used.
-
-        :param driver: The new driver.
-        """
-        self._virt_disk_driver = enums.VirtDiskDrivers.to_enum(driver)
-
-    @InheritableProperty
-    def virt_ram(self) -> int:
-        """
-        The amount of RAM given to the guest in MB.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: The amount of RAM currently assigned to the image.
-        :setter: The new amount of ram. Must be an integer.
-        """
-        return self._resolve("virt_ram")
-
-    @virt_ram.setter  # type: ignore[no-redef]
-    def virt_ram(self, num: Union[str, int]):
-        """
-        Setter for the virtual RAM used for the VM.
-
-        :param num: The number of RAM to use for the VM.
-        """
-        self._virt_ram = validate.validate_virt_ram(num)
-
-    @InheritableProperty
-    def virt_type(self) -> enums.VirtType:
-        """
-        The type of image used.
-
-        .. note:: This property can be set to ``<<inherit>>``.
-
-        :getter: The value of the virtual machine.
-        :setter: May be of the enum type or a str which is then converted to the enum type.
-        """
-        return self._resolve_enum("virt_type", enums.VirtType)
-
-    @virt_type.setter  # type: ignore[no-redef]
-    def virt_type(self, vtype: Union[enums.VirtType, str]):
-        """
-        Setter for the virtual machine type.
-
-        :param vtype: May be on out of "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz" or "auto".
-        """
-        self._virt_type = enums.VirtType.to_enum(vtype)
-
-    @InheritableProperty
     def virt_bridge(self) -> str:
         """
         Represents the name of the virtual bridge to use.
@@ -773,9 +581,9 @@ class Profile(BootableItem):
         :getter: Either the default name for the bridge or the specific one for this profile.
         :setter: The new name. Does not overwrite the default one.
         """
-        return self._resolve("virt_bridge")
+        return self._resolve(["virt_bridge"])
 
-    @virt_bridge.setter  # type: ignore[no-redef]
+    @virt_bridge.setter
     def virt_bridge(self, vbridge: str):
         """
         Setter for the name of the virtual bridge to use.
@@ -783,25 +591,6 @@ class Profile(BootableItem):
         :param vbridge: The name of the virtual bridge to use.
         """
         self._virt_bridge = validate.validate_virt_bridge(vbridge)
-
-    @LazyProperty
-    def virt_path(self) -> str:
-        """
-        The path to the place where the image will be stored.
-
-        :getter: The path to the image.
-        :setter: The new path for the image.
-        """
-        return self._virt_path
-
-    @virt_path.setter  # type: ignore[no-redef]
-    def virt_path(self, path: str):
-        """
-        Setter for the ``virt_path`` property.
-
-        :param path: The path to where the image will be stored.
-        """
-        self._virt_path = validate.validate_virt_path(path)
 
     @LazyProperty
     def repos(self) -> Union[str, List[str]]:
@@ -813,7 +602,7 @@ class Profile(BootableItem):
         """
         return self._repos
 
-    @repos.setter  # type: ignore[no-redef]
+    @repos.setter
     def repos(self, repos: Union[str, List[str]]):
         """
         Setter of the repositories for the profile.
@@ -834,9 +623,9 @@ class Profile(BootableItem):
         :getter: Returns the redhat_management_key of the profile.
         :setter: May raise a ``TypeError`` in case of a validation error.
         """
-        return self._resolve("redhat_management_key")
+        return self._resolve(["redhat_management_key"])
 
-    @redhat_management_key.setter  # type: ignore[no-redef]
+    @redhat_management_key.setter
     def redhat_management_key(self, management_key: str):
         """
         Setter of the redhat management key.
@@ -850,7 +639,7 @@ class Profile(BootableItem):
         self._redhat_management_key = management_key
 
     @InheritableProperty
-    def boot_loaders(self) -> List[str]:
+    def boot_loaders(self) -> List[enums.BootLoader]:
         """
         This represents all boot loaders for which Cobbler will try to generate bootloader configuration for.
 
@@ -859,42 +648,71 @@ class Profile(BootableItem):
         :getter: The bootloaders.
         :setter: The new bootloaders. Will be validates against a list of well known ones.
         """
-        return self._resolve("boot_loaders")
+        return self._resolve_enum(["boot_loaders"], enums.BootLoader)
 
-    @boot_loaders.setter  # type: ignore[no-redef]
-    def boot_loaders(self, boot_loaders: Union[List[str], str]):
+    @boot_loaders.setter
+    def boot_loaders(
+        self,
+        boot_loaders: Union[str, List[str], List[enums.BootLoader]],
+    ):
         """
         Setter of the boot loaders.
 
         :param boot_loaders: The boot loaders for the profile.
         :raises ValueError: In case the supplied boot loaders were not a subset of the valid ones.
         """
-        if boot_loaders == enums.VALUE_INHERITED:
-            self._boot_loaders = enums.VALUE_INHERITED
+        boot_loaders_split: List[enums.BootLoader] = []
+        if isinstance(boot_loaders, list):
+            if all([isinstance(value, str) for value in boot_loaders]):
+                boot_loaders_split = [
+                    enums.BootLoader.to_enum(value) for value in boot_loaders
+                ]
+            elif all([isinstance(value, enums.BootLoader) for value in boot_loaders]):
+                boot_loaders_split = boot_loaders  # type: ignore
+            else:
+                raise TypeError(
+                    "The items inside the list of boot_loaders must all be of type str or cobbler.enums.BootLoader"
+                )
+        elif isinstance(boot_loaders, str):  # type: ignore
+            if boot_loaders == "":
+                self._boot_loaders = []
+                return
+            if boot_loaders == enums.VALUE_INHERITED:
+                self._boot_loaders = [enums.BootLoader.INHERITED]
+                return
+            boot_loaders_split = [
+                enums.BootLoader.to_enum(value)
+                for value in input_converters.input_string_or_list_no_inherit(
+                    boot_loaders
+                )
+            ]
+        else:
+            raise TypeError("The bootloaders need to be either a str or list")
+
+        parent = self.parent
+        if parent is None:
+            parent = self.distro
+        if parent is not None:
+            parent_boot_loaders: List[enums.BootLoader] = parent.boot_loaders  # type: ignore
+        else:
+            self.logger.warning(
+                'Parent of profile "%s" could not be found for resolving the parent bootloaders.',
+                self.name,
+            )
+            parent_boot_loaders = []
+        if (
+            len(boot_loaders_split) == 1
+            and boot_loaders_split[0] == enums.BootLoader.INHERITED
+        ):
+            self._boot_loaders = [enums.BootLoader.INHERITED]
             return
 
-        if boot_loaders:
-            boot_loaders_split = input_converters.input_string_or_list(boot_loaders)
-
-            parent = self.parent
-            if parent is None:
-                parent = self.distro
-            if parent is not None:
-                parent_boot_loaders = parent.boot_loaders  # type: ignore
-            else:
-                self.logger.warning(
-                    'Parent of profile "%s" could not be found for resolving the parent bootloaders.',
-                    self.name,
-                )
-                parent_boot_loaders = []
-            if not set(boot_loaders_split).issubset(parent_boot_loaders):  # type: ignore
-                raise CX(
-                    f'Error with profile "{self.name}" - not all boot_loaders are supported (given:'
-                    f'"{str(boot_loaders_split)}"; supported: "{str(parent_boot_loaders)}")'  # type: ignore
-                )
-            self._boot_loaders = boot_loaders_split
-        else:
-            self._boot_loaders = []
+        if not set(boot_loaders_split).issubset(parent_boot_loaders):  # type: ignore
+            raise ValueError(
+                f"Invalid boot loader names: {boot_loaders_split}. Supported boot loaders are:"
+                f" {' '.join([value.value for value in parent_boot_loaders])}"  # type: ignore
+            )
+        self._boot_loaders = boot_loaders_split
 
     @LazyProperty
     def menu(self) -> str:
@@ -906,7 +724,7 @@ class Profile(BootableItem):
         """
         return self._menu
 
-    @menu.setter  # type: ignore[no-redef]
+    @menu.setter
     def menu(self, menu: str):
         """
         Setter for the menu property.
@@ -934,7 +752,7 @@ class Profile(BootableItem):
         """
         return self._display_name
 
-    @display_name.setter  # type: ignore[no-redef]
+    @display_name.setter
     def display_name(self, display_name: str):
         """
         Setter for the display_name of the item.

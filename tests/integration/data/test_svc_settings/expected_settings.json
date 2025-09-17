@@ -321,15 +321,15 @@
                 "nonunique": false,
                 "disabled": false
             },
-            "ip_address": {
+            "ipv4.address": {
                 "nonunique": false,
                 "disabled": false
             },
-            "ipv6_address": {
+            "ipv6.address": {
                 "nonunique": false,
                 "disabled": false
             },
-            "dns_name": {
+            "dns.name": {
                 "nonunique": false,
                 "disabled": false
             }

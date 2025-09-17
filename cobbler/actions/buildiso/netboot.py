@@ -381,8 +381,8 @@ class AppendLineBuilder:
             if self.data.get("gateway", "") != "":
                 self.system_gw = self.data["gateway"]
         if self.system_dns is None:
-            if self.data.get("name_servers") != "":
-                self.system_dns = self.data["name_servers"]
+            if self.data.get("dns", {}).get("name_servers") != "":
+                self.system_dns = self.data.get("dns", {})["name_servers"]
 
     def generate_system(
         self, dist: "Distro", system: "System", exclude_dns: bool, scheme: str = "http"
@@ -544,7 +544,7 @@ class NetbootBuildiso(buildiso.BuildIso):
 
         :param profile: Profile object to generate the configuration for.
         """
-        distro: Optional["Distro"] = profile.get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues]
+        distro: Optional["Distro"] = profile.get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues,assignment]
         if distro is None:
             raise ValueError("Distro of a Profile must not be None!")
         distroname = self.make_shorter(distro.name)
