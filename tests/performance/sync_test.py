@@ -2,6 +2,7 @@
 Test module to assert the performance of "cobbler sync".
 """
 
+import os
 from typing import Callable
 
 import pytest
@@ -52,6 +53,12 @@ def test_sync(
         cobbler_api.sync()
 
     # Arrange
+    iterations = 1
+    if CobblerTree.test_iterations > -1:
+        iterations = CobblerTree.test_iterations
+    iterations_per_test = int(os.getenv("COBBLER_PERFORMANCE_TEST_SYNC_ITERATIONS", -1))
+    if iterations_per_test > -1:
+        iterations = iterations_per_test
     # Reset the tftp singleton to prevent accessing stale manager collections
     in_tftpd.MANAGER = None
     cobbler_api.settings().cache_enabled = cache_enabled
@@ -59,6 +66,6 @@ def test_sync(
     CobblerTree.create_all_objs(cobbler_api, create_distro, False, False, False)
 
     # Act
-    result = benchmark.pedantic(sync, rounds=CobblerTree.test_rounds)  # type: ignore
+    result = benchmark.pedantic(sync, rounds=CobblerTree.test_rounds, iterations=iterations)  # type: ignore
 
     # Assert
