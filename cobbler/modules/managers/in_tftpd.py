@@ -9,7 +9,7 @@ import os.path
 import shutil
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-from cobbler import templar, tftpgen, utils
+from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.modules.managers import TftpManagerModule
 from cobbler.utils import filesystem_helpers
@@ -43,7 +43,6 @@ class _InTftpdManager(TftpManagerModule):
     def __init__(self, api: "CobblerAPI"):
         super().__init__(api)
 
-        self.tftpgen = tftpgen.TFTPGen(api)
         self.bootloc = api.settings().tftpboot_location
         self.webdir = api.settings().webdir
 
@@ -65,14 +64,12 @@ class _InTftpdManager(TftpManagerModule):
         metadata["web_img_path"] = os.path.join(
             self.webdir, "distro_mirror", distro.name
         )
-        # Create the templar instance.  Used to template the target directory
-        templater = templar.Templar(self.api)
 
         # Loop through the dict of boot files, executing a cp for each one
         self.logger.info("processing template_files for distro: %s", distro.name)
         for boot_file in target["template_files"].keys():
-            rendered_target_file = templater.render(boot_file, metadata, None)
-            rendered_source_file = templater.render(
+            rendered_target_file = self.api.templar.render(boot_file, metadata, None)
+            rendered_source_file = self.api.templar.render(
                 target["template_files"][boot_file], metadata, None
             )
             file = ""  # to prevent unboundlocalerror
@@ -125,10 +122,10 @@ class _InTftpdManager(TftpManagerModule):
         :param menu_items: The menu items to add
         """
         if not menu_items:
-            menu_items = self.tftpgen.get_menu_items()
-        self.tftpgen.write_all_system_files(system, menu_items)
+            menu_items = self.api.tftpgen.get_menu_items()
+        self.api.tftpgen.write_all_system_files(system, menu_items)
         # generate any templates listed in the distro
-        self.tftpgen.write_templates(system)
+        self.api.tftpgen.write_templates(system)
         return 0
 
     def add_single_distro(self, distro: "Distro") -> None:
@@ -137,7 +134,7 @@ class _InTftpdManager(TftpManagerModule):
 
         :param distro: The distribution object to add.
         """
-        self.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
+        self.api.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
         self.write_boot_files_distro(distro)
 
     def sync_systems(self, systems: List[str], verbose: bool = True) -> None:
@@ -167,19 +164,19 @@ class _InTftpdManager(TftpManagerModule):
                 raise ValueError("Ambiguous match detected!")
             system_objs.append(system_obj)
 
-        menu_items = self.tftpgen.get_menu_items()
+        menu_items = self.api.tftpgen.get_menu_items()
         for system in system_objs:
             self.sync_single_system(system, menu_items)
 
         self.logger.info("generating PXE menu structure")
-        self.tftpgen.make_pxe_menu()
+        self.api.tftpgen.make_pxe_menu()
 
     def sync(self) -> int:
         """
         Write out all files to /tftpdboot
         """
         self.logger.info("copying bootloaders")
-        self.tftpgen.copy_bootloaders(self.bootloc)
+        self.api.tftpgen.copy_bootloaders(self.bootloc)
 
         self.logger.info("copying distros to tftpboot")
 
@@ -188,21 +185,21 @@ class _InTftpdManager(TftpManagerModule):
         for distro in self.distros:
             try:
                 self.logger.info("copying files for distro: %s", distro.name)
-                self.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
+                self.api.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
             except CX as cobbler_exception:
                 self.logger.error(cobbler_exception.value)
 
         self.logger.info("copying images")
-        self.tftpgen.copy_images()
+        self.api.tftpgen.copy_images()
 
         # the actual pxelinux.cfg files, for each interface
         self.logger.info("generating PXE configuration files")
-        menu_items = self.tftpgen.get_menu_items()
+        menu_items = self.api.tftpgen.get_menu_items()
         for system in self.systems:
-            self.tftpgen.write_all_system_files(system, menu_items)
+            self.api.tftpgen.write_all_system_files(system, menu_items)
 
         self.logger.info("generating PXE menu structure")
-        self.tftpgen.make_pxe_menu()
+        self.api.tftpgen.make_pxe_menu()
 
         return 0
 

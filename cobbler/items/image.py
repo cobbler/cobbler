@@ -261,6 +261,7 @@ class Image(BootableItem):
 
         :param autoinstall: local automatic installation template file path
         """
+        # FIXME: Implement return Template
         autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api)
         self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(
             autoinstall

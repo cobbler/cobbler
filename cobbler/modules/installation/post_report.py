@@ -8,13 +8,14 @@ Post install trigger for Cobbler to send out a pretty email report that contains
 
 import smtplib
 from builtins import str
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
-from cobbler import templar, utils
+from cobbler import enums, utils
 from cobbler.cexceptions import CX
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.items.template import Template
 
 
 def register() -> str:
@@ -92,23 +93,38 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
     }
     metadata.update(target_dict)
 
-    with open(
-        "/etc/cobbler/reporting/build_report_email.template", encoding="UTF-8"
-    ) as input_template:
-        input_data = input_template.read()
+    search_result = api.find_template(
+        True, False, tags=enums.TemplateTag.REPORTING_BUILD_EMAIL.value
+    )
+    if search_result is None or not isinstance(search_result, list):
+        raise TypeError(
+            "Search result for the build reporting Template must of of type list!"
+        )
+    build_reporting_template: Optional["Template"] = None
+    for template in search_result:
+        if enums.TemplateTag.ACTIVE.value in template.tags:
+            build_reporting_template = template
+            break
+        if enums.TemplateTag.DEFAULT.value in template.tags:
+            build_reporting_template = template
 
-        message = templar.Templar(api).render(input_data, metadata, None)
+    if build_reporting_template is None:
+        raise ValueError(
+            "Neither specific nor default build reporting template could be found inside Cobbler!"
+        )
 
-        sendmail = True
-        for prefix in settings.build_reporting_ignorelist:
-            if prefix != "" and name.startswith(prefix):
-                sendmail = False
+    message = api.templar.render(build_reporting_template.content, metadata, None)
 
-        if sendmail:
-            # Send the mail
-            # FIXME: on error, return non-zero
-            server_handle = smtplib.SMTP(smtp_server)
-            server_handle.sendmail(from_addr, to_addr, message)
-            server_handle.quit()
+    sendmail = True
+    for prefix in settings.build_reporting_ignorelist:
+        if prefix != "" and name.startswith(prefix):
+            sendmail = False
+
+    if sendmail:
+        # Send the mail
+        # FIXME: on error, return non-zero
+        server_handle = smtplib.SMTP(smtp_server)
+        server_handle.sendmail(from_addr, to_addr, message)
+        server_handle.quit()
 
     return 0

@@ -49,7 +49,6 @@ def fixture_api_isc_mock(mocker: "MockerFixture"):
     settings_mock.allow_duplicate_hostnames = True
     settings_mock.allow_duplicate_macs = True
     settings_mock.allow_duplicate_ips = True
-    settings_mock.autoinstall_snippets_dir = ""
     settings_mock.autoinstall_templates_dir = ""
     api_mock = mocker.MagicMock(autospec=True, spec=CobblerAPI)
     api_mock.settings.return_value = settings_mock  # type: ignore

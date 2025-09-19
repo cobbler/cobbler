@@ -163,7 +163,6 @@ schema = Schema(
         Optional("ldap_tls_reqcert", default=""): str,
         Optional("ldap_tls_cipher_suite", default=""): str,
         Optional("bind_manage_ipmi", default=False): bool,
-        # TODO: Remove following line
         "manage_dhcp": bool,
         "manage_dhcp_v4": bool,
         "manage_dhcp_v6": bool,

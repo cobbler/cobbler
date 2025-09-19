@@ -76,6 +76,14 @@ cobbler.cobbler\_collections.systems module
    :undoc-members:
    :show-inheritance:
 
+cobbler.cobbler\_collections.templates module
+---------------------------------------------
+
+.. automodule:: cobbler.cobbler_collections.templates
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

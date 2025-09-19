@@ -5,7 +5,7 @@ Test to verify the functionality of the dnsmasq DHCP & DNS module.
 import time
 
 import pytest
-from pytest_mock.plugin import MockerFixture
+from pytest_mock import MockerFixture
 
 from cobbler import utils
 from cobbler.api import CobblerAPI
@@ -15,7 +15,6 @@ from cobbler.items.profile import Profile
 from cobbler.items.system import System
 from cobbler.modules.managers import dnsmasq
 from cobbler.settings import Settings
-from cobbler.templar import Templar
 
 
 @pytest.fixture(name="cobbler_api")
@@ -140,13 +139,12 @@ def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI)
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
     test_manager.systems = [mock_system]  # type: ignore
-    test_manager.templar = mocker.MagicMock(spec=Templar, autospec=True)
 
     # Act
     test_manager.write_configs()
 
     # Assert
-    test_manager.templar.render.assert_called_once_with(  # type: ignore
+    test_manager.api.templar.render.assert_called_once_with(  # type: ignore
         "test",
         {
             "insert_cobbler_system_definitions": f"dhcp-host=net:x86_64,{system_mac},{system_dns},{system_ip4},[{system_ip6}]\n",
@@ -243,7 +241,9 @@ def test_manager_regen_ethers(
 
 
 def test_manager_remove_single_ethers_entry(
-    mocker: "MockerFixture", cobbler_api: CobblerAPI, generate_test_system: System
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    generate_test_system: System,
 ):
     """
     Test to verify that a single entry can be removed from the ethers file.
