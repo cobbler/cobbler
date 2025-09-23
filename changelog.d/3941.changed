@@ -1,0 +1,2 @@
+Changed kickstart network configuration to use anaconda kickstart network commands as
+much as possible and drop use of ifcfg files
