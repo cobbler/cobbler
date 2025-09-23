@@ -34,29 +34,24 @@ get_ifname() {
     #set $vlanpattern = $re.compile("[a-zA-Z0-9]+[\.][0-9]+")
     #set $routepattern = $re.compile("[0-9/.]+:[0-9.]+")
     ##
-    ## Determine if we should use the MAC address to configure the interfaces first
-    ## Only physical interfaces are required to have a MAC address
-    #set $configbymac = True
+    ## collect bridge slaves
+    #set $bridge_slaves = {}
     #for $iname in $ikeys
-        #set $idata = $interfaces[$iname]
-        ## Ignore BMC interface
-        #if $idata["interface_type"].lower() == "bmc"
-            #continue
-        #end if
-        #if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["interface_type"].lower() in ("bond","bridge","bonded_bridge_slave")
-            #set $configbymac = False
+        #if $interfaces[$iname]["interface_type"] == "bridge_slave"
+            #set $this_master = $interfaces[$iname]["interface_master"]
+            #if $this_master and not $this_master in $bridge_slaves
+                #set $bridge_slaves[$this_master] = []
+            #end if
+            <% bridge_slaves[this_master].append(iname) %>
         #end if
     #end for
     #set $i = 0
 
-    #if $configbymac
-        ## Output diagnostic message
-# Start of code to match cobbler system interfaces to physical interfaces by their mac addresses
-    #end if
     #for $iname in $ikeys
 #  Start $iname
         #set $idata         = $interfaces[$iname]
         #set $mac           = $idata["mac_address"]
+        #set $management    = $idata["management"]
         #set $static        = $idata["static"]
         #set $ip            = $idata["ip_address"]
         #set $netmask       = $idata["netmask"]
@@ -69,18 +64,11 @@ get_ifname() {
         #set $ip6_prefix    = $idata["ipv6_prefix"]
         #set $ip6_gw        = $idata["ipv6_default_gateway"]
         #set $devfile       = "/etc/sysconfig/network-scripts/ifcfg-" + $iname
-        #if $vlanpattern.match($iname)
-            ## If this is a VLAN interface, skip it, anaconda doesn't know
-            ## about VLANs.
-            #set $is_vlan = "true"
-        #else
-            #set $is_vlan = "false"
-        #end if
         ## Ignore BMC interface
         #if $iface_type.lower() == "bmc"
             #continue
         #end if
-        #if ($configbymac and $is_vlan == "false" and $iface_type.lower() not in ("bond_slave","bridge_slave","bonded_bridge_slave")) or $iface_type.lower() in ("bond","bridge")
+        #if ($iface_type.lower() not in ("bond_slave","bridge_slave","bonded_bridge_slave")) or $iface_type.lower() in ("bond","bridge")
             ## This is a physical interface, hand it to anaconda. Do not
             ## process slave interface here.
             #if $iface_type.lower() in ("bond","bridge","bonded_bridge_slave")
@@ -124,18 +112,18 @@ get_ifname() {
 	                #else
 	                   #set $netinfo = "%s --gateway=%s --nodefroute" % ($netinfo, $if_gateway)
 	                #end if
-                #else if $gateway != ""
+                #else if $gateway != "" and $management
 	                #set $netinfo = "%s --gateway=%s" % ($netinfo, $gateway)
     	        #end if
     	        #if $len($name_servers) > 0
-    	            #set $netinfo = "%s --nameserver=%s" % ($netinfo, $name_servers[0])
+                    #set $netinfo = "%s --nameserver=%s" % ($netinfo, ','.join($name_servers))
                 #end if
-    	        #if $ip6 != "" and $ip6_gw != ""
+                #if $ip6 != "" and $ip6_gw != ""
                     #if $ip6_prefix == ""
                         ## Prefix not provided, default to /64.
                         #set $ip6_prefix = "64"
                     #end if
-    	            #set $netinfo = "%s --ipv6=%s/%s --ipv6gateway=%s" % ($netinfo, $ip6, $ip6_prefix, $ip6_gw)
+                    #set $netinfo = "%s --ipv6=%s/%s --ipv6gateway=%s" % ($netinfo, $ip6, $ip6_prefix, $ip6_gw)
                 #end if
             #else if not $static
                 #set $netinfo = "--bootproto=dhcp"
@@ -150,7 +138,15 @@ touch /tmp/pre_install_network_config
             #if $hostname != ""
                 #set $netinfo = "%s --hostname=%s" % ($netinfo, $hostname)
             #end if
-# Configuring $iname ($mac)
+            #if $vlanpattern.match($iname)
+                #set $vlan_id = $iname.split(".")[1]
+                #set $netinfo += " --vlanid=$vlan_id"
+            #end if
+# Configuring $iname ($mac) $iface_type
+            #if $iface_type == "bridge"
+            #set $this_slaves = ','.join($bridge_slaves[$iname])
+echo "network $netinfo --device=$iname --bridgeslaves=$this_slaves --onboot=on" >> /tmp/pre_install_network_config
+            #else
 if mac_exists $mac
 then
   get_ifname $mac
@@ -164,14 +160,39 @@ then
   # Warning: invalid route "$route"
                 #end if
             #end for
+else
+  echo "network --device=$iname $netinfo" >> /tmp/pre_install_network_config
+            #for $route in $static_routes
+                #if $routepattern.match($route)
+                    #set $routebits = $route.split(":")
+                    #set [$network, $router] = $route.split(":")
+  ip route add $network via $router dev $iname
+                #else
+  # Warning: invalid route "$route"
+                #end if
+            #end for
 fi
+            #end if
         #else
             #if $iface_type.lower() in ("bond_slave","bridge_slave","bonded_bridge_slave")
 #  Skipping (slave-interface)
+                #if $getVar("os_version","") in ["rhel8", "rhel9"]
+#    work around https://bugzilla.redhat.com/show_bug.cgi?id=2031385#c8
+if mac_exists $mac
+then
+  get_ifname $mac
+  echo "network --device=\$IFNAME --onboot=off" >> /tmp/pre_install_network_config
+else
+  echo "network --device=$iname --onboot=off" >> /tmp/pre_install_network_config
+fi
+                #end if
             #else
 #  Skipping (not a physical interface)...
             #end if
         #end if
     #end for
 # End pre_install_network_config generated code
+#else
+# profile based install so just let anaconda do its best
+echo "network --bootproto=dhcp --onboot=on" > /tmp/pre_install_network_config
 #end if
