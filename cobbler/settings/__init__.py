@@ -65,12 +65,10 @@ class Settings:
         self.anamon_enabled = False
         self.auth_token_expiration = 3600
         self.authn_pam_service = "login"
-        self.autoinstall_snippets_dir = "/var/lib/cobbler/snippets"
         self.autoinstall_templates_dir = "/var/lib/cobbler/templates"
         self.bind_chroot_path = ""
         self.bind_zonefile_path = "/var/lib/named"
         self.bind_master = "127.0.0.1"
-        self.boot_loader_conf_template_dir = "/etc/cobbler/boot_loader_conf"
         self.bootloaders_dir = "/var/lib/cobbler/loaders"
         self.bootloaders_shim_folder = "/usr/share/efi/*/"
         self.bootloaders_shim_file = r"shim\.efi$"
@@ -165,7 +163,7 @@ class Settings:
         self.cobbler_master = ""
         self.convert_server_to_ip = False
         self.createrepo_flags = "-c cache -s sha"
-        self.autoinstall = "default.ks"
+        self.autoinstall = "built-in-default.ks"
         self.default_name_servers: List[str] = []
         self.default_name_servers_search: List[str] = []
         self.default_ownership = ["admin"]
@@ -178,13 +176,13 @@ class Settings:
         self.default_virt_type = "kvm"
         self.dnsmasq_ethers_file = "/etc/ethers"
         self.dnsmasq_hosts_file = "/var/lib/cobbler/cobbler_hosts"
+        self.dnsmasq_settings_file = "/etc/dnsmasq.conf"
         self.enable_ipxe = False
         self.enable_menu = True
         self.extra_settings_list: List[str] = []
+        self.genders_settings_file = "/etc/genders"
         self.grub2_mod_dir = "/usr/share/grub2/"
         self.http_port = 80
-        self.iso_template_dir = "/etc/cobbler/iso"
-        self.jinja2_includedir = "/var/lib/cobbler/jinja2"
         self.kernel_options: Dict[str, Any] = {}
         self.ldap_anonymous_bind = True
         self.ldap_base_dn = "DC=devel,DC=redhat,DC=com"
@@ -201,8 +199,6 @@ class Settings:
         self.ldap_tls_reqcert = "hard"
         self.ldap_tls_cipher_suite = ""
         self.bind_manage_ipmi = False
-        # TODO: Remove following line
-        self.manage_dhcp = False
         self.manage_dhcp_v6 = False
         self.manage_dhcp_v4 = False
         self.manage_dns = False
@@ -225,6 +221,7 @@ class Settings:
         self.mongodb = {"host": "localhost", "port": 27017}
         self.next_server_v4 = "127.0.0.1"
         self.next_server_v6 = "::1"
+        self.ndjbdns_data_file = "/etc/ndjbdns/data"
         self.nsupdate_enabled = False
         self.nsupdate_log = "/var/log/cobbler/nsupdate.log"
         self.nsupdate_tsig_algorithm = "hmac-sha512"
@@ -289,7 +286,7 @@ class Settings:
         self.yum_post_install_mirror = True
         self.yumdownloader_flags = "--resolve"
         self.windows_enabled = False
-        self.windows_template_dir = "/etc/cobbler/windows"
+        self.windows_wimupdate_location = "/usr/bin/wimupdate"
         self.samba_distro_share = "DISTRO"
         self.cache_enabled = False
         self.lazy_start = False
@@ -349,6 +346,13 @@ class Settings:
                 "profile": {"nonunique": True, "disabled": False},
             },
         }
+
+    @property
+    def manage_dhcp(self) -> bool:
+        """
+        TODO
+        """
+        return self.manage_dhcp_v4 or self.manage_dhcp_v6
 
     def to_dict(self, resolved: bool = False) -> Dict[str, Any]:
         """

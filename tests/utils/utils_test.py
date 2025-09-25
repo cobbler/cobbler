@@ -254,7 +254,7 @@ def test_blender(cobbler_api):  # type: ignore
     result = utils.blender(cobbler_api, False, root_item)  # type: ignore
 
     # Assert
-    assert len(result) == 170
+    assert len(result) == 168
     # Must be present because the settings have it
     assert "server" in result
     # Must be present because it is a field of distro
@@ -286,7 +286,6 @@ def test_blender_inherit(
     result = utils.blender(cobbler_api, False, test_system)
 
     # Assert
-    # print(json.dumps(result, indent=2))
     assert isinstance(result, dict)
     assert set(result.get("dns", {}).get("name_servers", [])) == {"8.8.4.4", "8.8.8.8"}
     assert result.get("kernel_options") == {"test": "bar"}

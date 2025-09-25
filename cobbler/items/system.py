@@ -207,7 +207,7 @@ V2.8.5:
 import copy
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
-from cobbler import autoinstall_manager, enums, utils, validate
+from cobbler import enums, utils, validate
 from cobbler.cexceptions import CX
 from cobbler.items.abstract.bootable_item import BootableItem
 from cobbler.items.network_interface import NetworkInterface
@@ -220,6 +220,7 @@ from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.items.template import Template
 
     InheritableProperty = property
     LazyProperty = property
@@ -334,7 +335,6 @@ class System(BootableItem):
         if search_result is None:
             return result
         if not isinstance(search_result, list):
-            print(type(search_result), search_result)
             raise TypeError("Result must be of type list!")
         for item in search_result:
             result[item.name] = item
@@ -861,7 +861,7 @@ class System(BootableItem):
         order. In general, users who are PXE booting first in the boot order won't create system definitions, so this
         feature primarily comes into play for programmatic users of the API, who want to initially create a system with
         netboot enabled and then disable it after the system installs, as triggered by some action in automatic
-        installation file's %post section. For this reason, this option is not urfaced in the CLI, output, or
+        installation file's %post section. For this reason, this option is not surfaced in the CLI, output, or
         documentation (yet).
 
         Use of this option does not affect the ability to use PXE menus. If an admin has machines set up to PXE only
@@ -876,26 +876,37 @@ class System(BootableItem):
         self._netboot_enabled = netboot_enabled
 
     @InheritableProperty
-    def autoinstall(self) -> str:
+    def autoinstall(self) -> Optional["Template"]:
         """
-        autoinstall property.
+        Represents the automatic OS installation template object.
 
-        :getter: Returns the value for ``autoinstall``.
-        :setter: Sets the value for the property ``autoinstall``.
+        :getter: The template object that is configured.
+        :setter: The name, UID or Template object. This property may be set to ``<<inherit>>``.
         """
-        return self._resolve(["autoinstall"])
+        if self._autoinstall == "":
+            return None
+        autoinstall = self._resolve(["autoinstall"])
+        if validate.validate_uuid(autoinstall):
+            search_result = self.api.find_template(False, False, uid=autoinstall)
+        elif hasattr(autoinstall, "TYPE_NAME"):
+            return autoinstall
+        else:
+            # Built-In Templates save the names to survive serialization.
+            search_result = self.api.find_template(False, False, name=autoinstall)
+        if search_result is None:
+            raise ValueError("No search result for given template UID/Name!")
+        if isinstance(search_result, list):
+            raise ValueError("Ambigous template match name detected!")
+        return search_result
 
     @autoinstall.setter
-    def autoinstall(self, autoinstall: str):
+    def autoinstall(self, autoinstall: Union[str, "Template"]):
         """
-        Set the automatic installation template filepath, this must be a local file.
+        Setter for the ``autoinstall`` property.
 
-        :param autoinstall: local automatic installation template file path
+        :param autoinstall: local automatic installation template name, UID or Template object.
         """
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api)
-        self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(
-            autoinstall
-        )
+        self._autoinstall = validate.validate_template(self.api, autoinstall)
 
     @LazyProperty
     def repos_enabled(self) -> bool:

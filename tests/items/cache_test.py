@@ -35,7 +35,7 @@ def test_collection_types(cobbler_api: CobblerAPI):
     result = mgr.__dict__.items()
 
     # Assert
-    assert len(result) == 9
+    assert len(result) == 10
 
 
 @pytest.mark.parametrize(

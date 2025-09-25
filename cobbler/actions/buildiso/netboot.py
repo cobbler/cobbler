@@ -5,12 +5,16 @@ This module contains the specific code to generate a network bootable ISO.
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import pathlib
-import re
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 from cobbler import utils
 from cobbler.actions import buildiso
-from cobbler.actions.buildiso import BootFilesCopyset, LoaderCfgsParts
+from cobbler.actions.buildiso import (
+    BootFilesCopyset,
+    BuildisoDirsPPC64LE,
+    BuildisoDirsX86_64,
+    LoaderCfgsParts,
+)
 from cobbler.enums import Archs, NetworkInterfaceType
 from cobbler.utils import filesystem_helpers
 
@@ -554,12 +558,11 @@ class NetbootBuildiso(buildiso.BuildIso):
             data["kernel_options"], self.api.settings().server, distro.breed
         )
 
-        if not re.match(r"[a-z]+://.*", data["autoinstall"]):
-            autoinstall_scheme = self.api.settings().autoinstall_scheme
-            data["autoinstall"] = (
-                f"{autoinstall_scheme}://{data['server']}:{data['http_port']}/cblr/svc/op/autoinstall/"
-                f"profile/{profile.name}"
-            )
+        autoinstall_scheme = self.api.settings().autoinstall_scheme
+        data["autoinstall"] = (
+            f"{autoinstall_scheme}://{data['server']}:{data['http_port']}/cblr/svc/op/autoinstall/"
+            f"profile/{profile.name}"
+        )
 
         append_line = AppendLineBuilder(
             distro_name=distroname, data=data
@@ -621,11 +624,10 @@ class NetbootBuildiso(buildiso.BuildIso):
 
         data = utils.blender(self.api, False, system)
         autoinstall_scheme = self.api.settings().autoinstall_scheme
-        if not re.match(r"[a-z]+://.*", data["autoinstall"]):
-            data["autoinstall"] = (
-                f"{autoinstall_scheme}://{data['server']}:{data['http_port']}/cblr/svc/op/autoinstall/"
-                f"system/{system.name}"
-            )
+        data["autoinstall"] = (
+            f"{autoinstall_scheme}://{data['server']}:{data['http_port']}/cblr/svc/op/autoinstall/"
+            f"system/{system.name}"
+        )
 
         append_line = AppendLineBuilder(
             distro_name=distroname, data=data
@@ -695,7 +697,7 @@ class NetbootBuildiso(buildiso.BuildIso):
             profile_list, system_list, exclude_dns
         )
         buildisodir = self._prepare_buildisodir(buildisodir)
-        buildiso_dirs = None
+        buildiso_dirs: Optional[Union[BuildisoDirsX86_64, BuildisoDirsPPC64LE]] = None
         distro_mirrordir = pathlib.Path(self.api.settings().webdir) / "distro_mirror"
         xorriso_func = None
         esp_location = ""
@@ -708,7 +710,7 @@ class NetbootBuildiso(buildiso.BuildIso):
             self._copy_isolinux_files()
             if esp:
                 self.logger.info("esp=%s", esp)
-                distro_esp = esp
+                distro_esp: Optional[str] = esp
             else:
                 try:
                     filesource = self._find_distro_source(

@@ -14,6 +14,7 @@ Subpackages
    cobbler.items
    cobbler.modules
    cobbler.settings
+   cobbler.templates
    cobbler.utils
 
 Submodules
@@ -127,22 +128,6 @@ cobbler.services module
 -----------------------
 
 .. automodule:: cobbler.services
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-cobbler.templar module
-----------------------
-
-.. automodule:: cobbler.templar
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-cobbler.template\_api module
-----------------------------
-
-.. automodule:: cobbler.template_api
    :members:
    :undoc-members:
    :show-inheritance:

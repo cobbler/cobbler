@@ -4,11 +4,12 @@ Tests that validate the functionality of the module that is responsible for mana
 
 from typing import TYPE_CHECKING, Any
 
+import pytest
+
 from cobbler.api import CobblerAPI
 from cobbler.items.network_interface import NetworkInterface
 from cobbler.items.system import System
 from cobbler.modules.managers import ndjbdns
-from cobbler.templar import Templar
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
@@ -80,7 +81,11 @@ def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI)
     Test if the manager is able to correctly write the configuration files.
     """
     # Arrange
-    mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
+    search_result = cobbler_api.find_template(False, False, name="built-in-ndjbdns")
+    if search_result is None or isinstance(search_result, list):
+        pytest.fail("Couldn't find ndjbdns template for test arrange")
+    # pylint: disable-next=protected-access
+    search_result._Template__content = "test"  # type: ignore
     mocker.patch("subprocess.Popen", MockedPopen)
     mocker.patch(
         "cobbler.items.system.System.interfaces",
@@ -99,16 +104,17 @@ def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI)
         ),
     )
     mock_system = System(cobbler_api)
-    mock_system.name = "test_manager_regen_hosts_system"  # type: ignore[method-assign]
+    mock_system.name = "test_manager_regen_hosts_system"
     ndjbdns.MANAGER = None
     test_manager = ndjbdns.get_manager(cobbler_api)
-    test_manager.templar = mocker.MagicMock(spec=Templar, autospec=True)
     test_manager.systems = [mock_system]  # type: ignore[reportAttributeAccessIssue,assignment]
+    templar_mock = mocker.MagicMock()
+    mocker.patch.object(test_manager.api, "templar", new=templar_mock)
 
     # Act
     test_manager.write_configs()
 
     # Assert
-    test_manager.templar.render.assert_called_once_with(  # type: ignore[attr-defined]
+    templar_mock.render.assert_called_once_with(
         "test", {"forward": [("host.example.org", "192.168.1.2")]}, "/etc/ndjbdns/data"
     )

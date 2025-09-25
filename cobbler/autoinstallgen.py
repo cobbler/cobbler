@@ -6,11 +6,10 @@ Builds out filesystem trees/data based on the object tree. This is the code behi
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-import xml.dom.minidom
 from typing import TYPE_CHECKING, Any, List, Optional, Union, cast
 from urllib import parse
 
-from cobbler import templar, utils, validate
+from cobbler import utils, validate
 from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
@@ -34,143 +33,6 @@ class AutoInstallationGen:
         """
         self.api = api
         self.settings = api.settings()
-        self.templar = templar.Templar(self.api)
-
-    def create_autoyast_script(
-        self, document: xml.dom.minidom.Document, script: str, name: str
-    ) -> xml.dom.minidom.Element:
-        """
-        This method attaches a script with a given name to an existing AutoYaST XML file.
-
-        :param document: The existing AutoYaST XML file.
-        :param script: The script to attach.
-        :param name: The name of the script.
-        :return: The AutoYaST file with the attached script.
-        """
-        new_script = document.createElement("script")
-        new_script_source = document.createElement("source")
-        new_script_source_text = document.createCDATASection(script)
-        new_script.appendChild(new_script_source)  # type: ignore
-
-        new_script_file = document.createElement("filename")
-        new_script_file_text = document.createTextNode(name)
-        new_script.appendChild(new_script_file)  # type: ignore
-
-        new_script_source.appendChild(new_script_source_text)  # type: ignore
-        new_script_file.appendChild(new_script_file_text)  # type: ignore
-        return new_script
-
-    def add_autoyast_script(
-        self, document: xml.dom.minidom.Document, script_type: str, source: str
-    ):
-        """
-        Add scripts to an existing AutoYaST XML.
-
-        :param document: The existing AutoYaST XML object.
-        :param script_type: The type of the script which should be added.
-        :param source: The source of the script. This should be ideally a string.
-        """
-        scripts = document.getElementsByTagName("scripts")  # type: ignore
-        if scripts.length == 0:  # type: ignore
-            new_scripts = document.createElement("scripts")
-            document.documentElement.appendChild(new_scripts)  # type: ignore
-            scripts = document.getElementsByTagName("scripts")  # type: ignore
-        added = 0
-        for stype in scripts[0].childNodes:  # type: ignore
-            if stype.nodeType == stype.ELEMENT_NODE and stype.tagName == script_type:  # type: ignore
-                stype.appendChild(  # type: ignore
-                    self.create_autoyast_script(
-                        document, source, script_type + "_cobbler"
-                    )
-                )
-                added = 1
-        if added == 0:
-            new_chroot_scripts = document.createElement(script_type)
-            new_chroot_scripts.setAttribute("config:type", "list")
-            new_chroot_scripts.appendChild(  # type: ignore
-                self.create_autoyast_script(document, source, script_type + "_cobbler")
-            )
-            scripts[0].appendChild(new_chroot_scripts)  # type: ignore
-
-    def generate_autoyast(
-        self,
-        profile: Optional["Profile"] = None,
-        system: Optional["System"] = None,
-        raw_data: Optional[str] = None,
-    ) -> str:
-        """
-        Generate auto installation information for SUSE distribution (AutoYaST XML file) for a specific system or
-        general profile. Only a system OR profile can be supplied, NOT both.
-
-        :param profile: The profile to generate the AutoYaST file for.
-        :param system: The system to generate the AutoYaST file for.
-        :param raw_data: The raw data which should be included in the profile.
-        :return: The generated AutoYaST XML file.
-        """
-        self.api.logger.info(
-            "AutoYaST XML file found. Checkpoint: profile=%s system=%s", profile, system
-        )
-
-        what = "none"
-        blend_this = None
-        if profile:
-            what = "profile"
-            blend_this = profile
-        if system:
-            what = "system"
-            blend_this = system  # type: ignore
-        if blend_this is None:
-            raise ValueError("Profile or System required for generating autoyast!")
-
-        blended = utils.blender(self.api, False, blend_this)
-        srv = blended["http_server"]
-
-        document: xml.dom.minidom.Document = xml.dom.minidom.parseString(raw_data)  # type: ignore
-
-        # Do we already have the #raw comment in the XML? (add_comment = 0 means, don't add #raw comment)
-        add_comment = 1
-        for node in document.childNodes[1].childNodes:
-            if node.nodeType == node.ELEMENT_NODE and node.tagName == "cobbler":
-                add_comment = 0
-                break
-
-        # Add some cobbler information to the XML file, maybe that should be configurable.
-        if add_comment == 1:
-            cobbler_element = document.createElement("cobbler")
-            cobbler_element_system = xml.dom.minidom.Element("system_name")
-            cobbler_element_profile = xml.dom.minidom.Element("profile_name")
-            if system is not None:
-                cobbler_text_system = document.createTextNode(system.name)
-                cobbler_element_system.appendChild(cobbler_text_system)  # type: ignore
-            if profile is not None:
-                cobbler_text_profile = document.createTextNode(profile.name)
-                cobbler_element_profile.appendChild(cobbler_text_profile)  # type: ignore
-
-            cobbler_element_server = document.createElement("server")
-            cobbler_text_server = document.createTextNode(blended["http_server"])
-            cobbler_element_server.appendChild(cobbler_text_server)  # type: ignore
-
-            cobbler_element.appendChild(cobbler_element_server)  # type: ignore
-            cobbler_element.appendChild(cobbler_element_system)  # type: ignore
-            cobbler_element.appendChild(cobbler_element_profile)  # type: ignore
-
-        name = blend_this.name
-
-        if self.settings.run_install_triggers:
-            # notify cobblerd when we start/finished the installation
-            protocol = self.api.settings().autoinstall_scheme
-            self.add_autoyast_script(
-                document,
-                "pre-scripts",
-                f'\ncurl "{protocol}://{srv}/cblr/svc/op/trig/mode/pre/{what}/{name}" > /dev/null',
-            )
-            self.add_autoyast_script(
-                document,
-                "init-scripts",
-                f'\ncurl "{protocol}://{srv}/cblr/svc/op/trig/mode/post/{what}/{name}" > /dev/null',
-            )
-
-        return document.toxml()  # type: ignore
 
     def generate_repo_stanza(
         self, obj: Union["Profile", "System"], is_profile: bool = True
@@ -359,25 +221,12 @@ class AutoInstallationGen:
             urlparts = parse.urlsplit(meta["tree"])  # type: ignore
             meta["install_source_directory"] = urlparts[2]
 
-        try:
-            autoinstall_path = (
-                f"{self.settings.autoinstall_templates_dir}/{autoinstall_rel_path}"
-            )
-            raw_data = utils.read_file_contents(autoinstall_path)
+        if obj.autoinstall is None:
+            return "# no automatic installation template set"
 
-            if raw_data is None:
-                raise FileNotFoundError("File to template could not be read!")
+        data = self.api.templar.render(obj.autoinstall.content, meta, None)
 
-            data = self.templar.render(raw_data, meta, None)
-
-            return data
-        except FileNotFoundError:
-            error_msg = (
-                f"automatic installation file {meta['autoinstall']} not found"
-                f" at {self.settings.autoinstall_templates_dir}"
-            )
-            self.api.logger.warning(error_msg)
-            return f"# {error_msg}"
+        return data
 
     def generate_autoinstall_for_profile(self, profile: str) -> str:
         """
@@ -404,4 +253,4 @@ class AutoInstallationGen:
         :return: The list of error messages which are available. This may not only contain error messages related to
                  generating autoinstallation configuration and scripts.
         """
-        return self.templar.last_errors
+        return self.api.templar.last_errors

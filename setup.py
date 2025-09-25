@@ -130,7 +130,6 @@ if __name__ == "__main__":
             "pyyaml",
             "netaddr",
             "Cheetah3",
-            "pymongo<4.2",  # Cobbler requires Python 3.6; Version 4.2+ requires Python 3.7
             "distro",
             "python-ldap",
             "dnspython",
@@ -139,8 +138,14 @@ if __name__ == "__main__":
             "systemd-python",
             "gunicorn",
             "dataclasses; python_version < '3.7'",
+            "importlib-resources; python_version < '3.7'",
         ],
         extras_require={
+            "mongodb": [
+                # Cobbler requires Python 3.6; Version 4.2+ requires Python 3.7
+                "pymongo>=4.2; python_version > '3.6'",
+                "pymongo<4.2; python_version <= '3.6'",
+            ],
             "windows": [
                 # "hivex",
                 "pefile"
@@ -161,6 +166,7 @@ if __name__ == "__main__":
                 "types-mock",
                 "types-urllib3",
                 "isort",
+                "pre-commit",
             ],
             "test": [
                 "pytest>6",

@@ -19,8 +19,8 @@ TEST_POWER_MANAGEMENT = True
 TEST_SYSTEM = ""
 
 
-@pytest.fixture(scope="function")
-def wait_task_end() -> WaitTaskEndType:
+@pytest.fixture(name="wait_task_end", scope="function")
+def fixture_wait_task_end() -> WaitTaskEndType:
     """
     Wait until a task is finished
     """
@@ -31,11 +31,11 @@ def wait_task_end() -> WaitTaskEndType:
         while remote.get_task_status(tid)[2] != "complete":
             if remote.get_task_status(tid)[2] == "failed":
                 pytest.fail("Task failed")
-            print("task %s status: %s" % (tid, remote.get_task_status(tid)))
+            print(f"task {tid} status: {remote.get_task_status(tid)}")
             time.sleep(5)
             timeout += 5
             if timeout == 60:
-                raise Exception
+                pytest.fail(f"Timeout reached for waiting for task {tid}!")
 
     return _wait_task_end
 
@@ -106,31 +106,42 @@ def test_sync(
     assert isinstance(event_log, str)
 
 
-def test_get_autoinstall_templates(remote: CobblerXMLRPCInterface, token: str):
-    """
-    Test: get autoinstall templates
-    """
-
-    result = remote.get_autoinstall_templates(token)
-    assert len(result) > 0
-
-
-def test_get_autoinstall_snippets(remote: CobblerXMLRPCInterface, token: str):
-    """
-    Test: get autoinstall snippets
-    """
-
-    result = remote.get_autoinstall_snippets(token)
-    assert len(result) > 0
-
-
-def test_generate_autoinstall(remote: CobblerXMLRPCInterface):
+def test_generate_autoinstall(
+    create_kernel_initrd: Callable[[str, str], str],
+    create_distro: Callable[[str, str, str, str, str], str],
+    create_profile: Callable[[str, str, str], str],
+    create_system: Callable[[str, str], str],
+    create_autoinstall_template: Callable[[str, str], str],
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
     """
     Test: generate autoinstall content
     """
+    # Arrange
+    template_uid = create_autoinstall_template(
+        "system-tests.sh",
+        "${dns.name_servers} ${server} ${kernel_options}\n",
+    )
+    fk_kernel = "vmlinuz1"
+    fk_initrd = "initrd1.img"
+    name_distro = "testdistro_item_resolved_value"
+    name_profile = "testprofile_item_resolved_value"
+    name_system = "testsystem_item_resolved_value"
+    basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+    path_kernel = os.path.join(basepath, fk_kernel)
+    path_initrd = os.path.join(basepath, fk_initrd)
 
-    if TEST_SYSTEM:
-        remote.generate_autoinstall(None, TEST_SYSTEM)
+    distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+    profile_uid = create_profile(name_profile, distro_uid, "a=1 b=2 c=3 c=4 c=5 d e")
+    test_system_handle = create_system(name_system, profile_uid)
+    remote.modify_system(test_system_handle, ["autoinstall"], template_uid, token)
+
+    # Act
+    result = remote.generate_autoinstall("", name_system)
+
+    # Assert
+    assert result != ""
 
 
 def test_generate_ipxe(remote: CobblerXMLRPCInterface):
@@ -276,6 +287,9 @@ def test_get_item_resolved_value(
     expected_result: Union[str, Dict[str, Any]],
     expected_exception: Any,
 ):
+    """
+    TODO
+    """
     # Arrange
     fk_kernel = "vmlinuz1"
     fk_initrd = "initrd1.img"

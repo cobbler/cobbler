@@ -395,7 +395,6 @@ def test_get_template_file_for_profile(
     create_distro: Callable[[str, str, str, str, str], str],
     create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
     create_autoinstall_template: Callable[[str, str], None],
-    remove_autoinstall_template: Callable[[str], None],
     create_kernel_initrd: Callable[[str, str], str],
 ):
     """
@@ -419,9 +418,6 @@ def test_get_template_file_for_profile(
     # TODO: Fix test & functionality!
     result = remote.get_template_file_for_profile(name_profile, name_template)
 
-    # Cleanup
-    remove_autoinstall_template(name_template)
-
     # Assert
     assert result == content_template
 
@@ -432,7 +428,6 @@ def test_get_template_file_for_system(
     create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
     create_system: Callable[[str, str], str],
     create_autoinstall_template: Callable[[str, str], None],
-    remove_autoinstall_template: Callable[[str], None],
     create_kernel_initrd: Callable[[str, str], str],
 ):
     """
@@ -456,9 +451,6 @@ def test_get_template_file_for_system(
 
     # Act
     result = remote.get_template_file_for_system(name_system, name_template)
-
-    # Cleanup
-    remove_autoinstall_template(name_template)
 
     # Assert
     assert result
@@ -548,8 +540,8 @@ def test_logout(remote: CobblerXMLRPCInterface):
     "setting_name,input_allow_dynamic_settings,input_value,expected_result",
     [
         ("auth_token_expiration", True, 7200, 0),
-        ("manage_dhcp", True, True, 0),
-        ("manage_dhcp", False, True, 1),
+        ("manage_dhcp_v4", True, True, 0),
+        ("manage_dhcp_v4", False, True, 1),
         ("bootloaders_ipxe_folder", True, "/my/test/folder", 0),
         ("bootloaders_modules", True, ["fake", "bootloaders"], 0),
         ("mongodb", True, {"host": "test", "port": 1234}, 0),
@@ -575,136 +567,6 @@ def test_modify_setting(
     # Assert
     assert result == expected_result
     assert remote.get_settings().get(setting_name) == input_value
-
-
-def test_read_autoinstall_template(
-    remote: CobblerXMLRPCInterface,
-    token: str,
-    create_autoinstall_template: Callable[[str, str], None],
-    remove_autoinstall_template: Callable[[str], None],
-):
-    """
-    Test to verify that a given autoinstallation template can be read as expected.
-    """
-    # Arrange
-    name = "test_template_name"
-    create_autoinstall_template(name, "# Testtemplate")
-
-    # Act
-    result = remote.read_autoinstall_template(name, token)
-
-    # Cleanup
-    remove_autoinstall_template(name)
-
-    # Assert
-    assert result
-
-
-def test_write_autoinstall_template(
-    remote: CobblerXMLRPCInterface,
-    token: str,
-    remove_autoinstall_template: Callable[[str], None],
-):
-    """
-    Test to verify that a given autoinstallation template can be saved as expected.
-    """
-    # Arrange
-    name = "testtemplate"
-
-    # Act
-    result = remote.write_autoinstall_template(name, "# Testtemplate", token)
-
-    # Cleanup
-    remove_autoinstall_template(name)
-
-    # Assert
-    assert result
-
-
-def test_remove_autoinstall_template(
-    remote: CobblerXMLRPCInterface,
-    token: str,
-    create_autoinstall_template: Callable[[str, str], None],
-):
-    """
-    Test to verify that a given autoinstallation template can be removed as expected.
-    """
-    # Arrange
-    name = "test_template_remove"
-    create_autoinstall_template(name, "# Testtemplate")
-
-    # Act
-    result = remote.remove_autoinstall_template(name, token)
-
-    # Assert
-    assert result
-
-
-def test_read_autoinstall_snippet(
-    remote: CobblerXMLRPCInterface,
-    token: str,
-    testsnippet: str,
-    snippet_add: Callable[[str, str], None],
-    snippet_remove: Callable[[str], None],
-):
-    """
-    Test to verify that a given autoinstallation snippet can be read as expected.
-    """
-    # Arrange
-    snippet_name = "testsnippet_read"
-    snippet_add(snippet_name, testsnippet)
-
-    # Act
-    result = remote.read_autoinstall_snippet(snippet_name, token)
-
-    # Assert
-    assert result == testsnippet
-
-    # Cleanup
-    snippet_remove(snippet_name)
-
-
-def test_write_autoinstall_snippet(
-    remote: CobblerXMLRPCInterface,
-    token: str,
-    testsnippet: str,
-    snippet_remove: Callable[[str], None],
-):
-    """
-    Test to verify that a given autoinstallation snippet can be saved as expected.
-    """
-    # Arrange
-    # See fixture: testsnippet
-    name = "testsnippet_write"
-
-    # Act
-    result = remote.write_autoinstall_snippet(name, testsnippet, token)
-
-    # Assert
-    assert result
-
-    # Cleanup
-    snippet_remove(name)
-
-
-def test_remove_autoinstall_snippet(
-    remote: CobblerXMLRPCInterface,
-    token: str,
-    snippet_add: Callable[[str, str], None],
-    testsnippet: str,
-):
-    """
-    Test to verify that a given autoinstallation snippet can be removed as expected.
-    """
-    # Arrange
-    name = "testsnippet_remove"
-    snippet_add(name, testsnippet)
-
-    # Act
-    result = remote.remove_autoinstall_snippet(name, token)
-
-    # Assert
-    assert result
 
 
 def test_run_install_triggers(

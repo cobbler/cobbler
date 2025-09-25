@@ -482,10 +482,14 @@ class _ImportSignatureManager(ManagerModule):
                 )
                 continue
 
+            autoinstall_template = self.api.find_template(
+                False, False, name=self.autoinstall_file  # type: ignore
+            )
+            if autoinstall_template is None or isinstance(autoinstall_template, list):
+                raise ValueError("Given autoinstall template could not be located!")
+
             new_profile = self.api.new_profile(
-                name=name,
-                distro=new_distro.uid,
-                autoinstall=self.autoinstall_file,  # type: ignore
+                name=name, distro=new_distro.uid, autoinstall=autoinstall_template.uid
             )
 
             # depending on the name of the profile we can define a good virt-type for usage with koan

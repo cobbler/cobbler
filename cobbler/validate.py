@@ -5,12 +5,19 @@ Cobbler module that is related to validating data for other internal Cobbler mod
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Copyright 2014-2015. Jorgen Maas <jorgen.maas@gmail.com>
 
+import os
+import pathlib
 import re
 import shlex
 from ipaddress import AddressValueError, NetmaskValueError
 from typing import TYPE_CHECKING, List, Union
 from urllib.parse import urlparse
 from uuid import UUID
+
+try:
+    from importlib import resources as importlib_resources
+except ImportError:
+    import importlib_resources  # type: ignore[no-redef]
 
 import netaddr
 
@@ -20,6 +27,7 @@ from cobbler.utils import input_converters, signatures
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.items.template import Template
 
 
 RE_HOSTNAME = re.compile(
@@ -615,6 +623,7 @@ def validate_obj_type(object_type: str) -> bool:
         "image",
         "menu",
         "network_interface",
+        "template",
     ]
 
 
@@ -628,3 +637,90 @@ def validate_obj_name(object_name: str) -> bool:
     if not isinstance(object_name, str):  # type: ignore
         return False
     return bool(re.fullmatch(base_item.RE_OBJECT_NAME, object_name))
+
+
+def validate_template(api: "CobblerAPI", value: Union[str, "Template"]) -> str:
+    """
+    This validates the input for the validate setter against the database of templates.
+
+    :param api: The api to find the templates.
+    :param value: The input to verify and sanitize.
+    :returns: The name of the template (if built-in one), the object UID or
+    """
+    if isinstance(value, str):
+        # Must be empty str, "<<inherit>>", object name or UID.
+        if value == "":
+            # empty autoinstall is allowed (interactive installations)
+            return ""
+        if value == enums.VALUE_INHERITED:
+            return enums.VALUE_INHERITED
+        if validate_uuid(value):
+            search_result = api.find_template(False, False, uid=value)
+        else:
+            search_result = api.find_template(False, False, name=value)
+        if search_result is None:
+            raise ValueError("No search result found for given template name/uid!")
+        if isinstance(search_result, list):
+            raise TypeError(
+                "Searching for Template via name/uid yielded incorrect search result type!"
+            )
+        if search_result.name.startswith("built-in"):
+            return search_result.name
+        return search_result.uid
+    elif hasattr(value, "TYPE_NAME") and getattr(value, "TYPE_NAME") == "template":
+        # Template object
+        object_name = getattr(value, "name")
+        if object_name.startswith("built-in"):
+            return object_name
+        return getattr(value, "uid")
+    raise TypeError(
+        'Value passed to "autoinstall" wasn\'t a valid str or Template object.'
+    )
+
+
+def validate_autoinstall_template_file_path(
+    api: "CobblerAPI",
+    template_schema: enums.TemplateSchema,
+    template_language: str,
+    autoinstall: str,
+) -> bool:
+    """
+    Validate the automatic installation template's relative file path.
+
+    :param api: The api to get the base template path.
+    :param autoinstall: automatic installation template relative file path
+    :returns: If the template is a valid path or not.
+    """
+
+    if not isinstance(autoinstall, str):  # type: ignore
+        raise TypeError("Invalid input, autoinstall must be a string")
+
+    if autoinstall == "":
+        # empty autoinstall is allowed (interactive installations)
+        return True
+
+    if autoinstall.find("..") != -1:
+        # Relative paths are not allowed
+        return False
+
+    if template_schema == enums.TemplateSchema.ENVIRONMENT:
+        return autoinstall in os.environ
+
+    autoinstall_child_path = pathlib.Path(autoinstall)
+    settings_base_path = pathlib.Path(api.settings().autoinstall_templates_dir)
+    if template_schema == enums.TemplateSchema.IMPORTLIB:
+        template_base_traversable = importlib_resources.files(
+            f"cobbler.data.templates.{template_language}"
+        )
+        autoinstall_path = pathlib.Path(str(template_base_traversable)) / autoinstall
+    else:
+        autoinstall_path = settings_base_path / autoinstall
+
+    # The file exists, is not a symlink ...
+    common_checks = autoinstall_path.is_file() and not autoinstall_path.is_symlink()
+    if template_schema == enums.TemplateSchema.IMPORTLIB:
+        # and both paths are identical
+        return common_checks and autoinstall_child_path == autoinstall_path
+    else:
+        # and is inside the template directory
+        return common_checks and settings_base_path in autoinstall_path.parents

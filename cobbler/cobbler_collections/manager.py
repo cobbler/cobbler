@@ -19,6 +19,7 @@ from cobbler.cobbler_collections.network_interfaces import NetworkInterfaces
 from cobbler.cobbler_collections.profiles import Profiles
 from cobbler.cobbler_collections.repos import Repos
 from cobbler.cobbler_collections.systems import Systems
+from cobbler.cobbler_collections.templates import Templates
 from cobbler.settings import Settings
 
 if TYPE_CHECKING:
@@ -61,6 +62,7 @@ class CollectionManager:
         self._images = Images(weakref.proxy(self))
         self._menus = Menus(weakref.proxy(self))
         self._network_interfaces = NetworkInterfaces(weakref.proxy(self))
+        self._templates = Templates(weakref.proxy(self))
 
     def distros(self) -> Distros:
         """
@@ -110,6 +112,12 @@ class CollectionManager:
         """
         return self._network_interfaces
 
+    def templates(self) -> Templates:
+        """
+        Return the definitive copy of the Templates collection
+        """
+        return self._templates
+
     def serialize(self) -> None:
         """
         Save all cobbler_collections to disk
@@ -122,6 +130,7 @@ class CollectionManager:
         self.__serializer.serialize(self._systems)
         self.__serializer.serialize(self._menus)
         self.__serializer.serialize(self._network_interfaces)
+        self.__serializer.serialize(self._templates)
 
     def serialize_one_item(self, item: "BaseItem") -> None:
         """
@@ -169,6 +178,7 @@ class CollectionManager:
         :raises CX: if there is an error in deserialization
         """
         for args in (
+            (self._templates, False),
             (self._menus, True),
             (self._distros, False),
             (self._repos, False),

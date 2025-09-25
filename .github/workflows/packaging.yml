@@ -23,14 +23,14 @@ jobs:
           name: rpms-rockylinux-9
           path: |
             rpm-build/RPMS/*.rpm
-  build-fedora37-rpms:
+  build-fedora41-rpms:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build a Fedora 37 Package
+      - name: Build a Fedora 41 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          ./docker/rpms/build-and-install-rpms.sh fc37 docker/rpms/Fedora_37/Fedora37.dockerfile
+          ./docker/rpms/build-and-install-rpms.sh fc41 docker/rpms/Fedora_41/Fedora41.dockerfile
       - name: Archive RPMs
         uses: actions/upload-artifact@v4
         with:
@@ -157,7 +157,7 @@ jobs:
     needs:
       [
         build-rockylinux9-rpms,
-        build-fedora37-rpms,
+        build-fedora41-rpms,
         build-opensuse-leap-rpms,
         build-opensuse-tumbleweed-rpms,
         build-debian11-debs,

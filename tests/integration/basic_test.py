@@ -144,6 +144,7 @@ def test_basic_inheritance(
     create_distro: Callable[[List[Tuple[List[str], Any]]], str],
     create_profile: Callable[[List[Tuple[List[str], Any]]], str],
     create_system: Callable[[List[Tuple[List[str], Any]]], str],
+    create_autoinstall_template: Callable[[str, str], str],
     images_fake_path: pathlib.Path,
     remote: CobblerXMLRPCInterface,
 ):
@@ -151,9 +152,9 @@ def test_basic_inheritance(
     Check that Cobbler can properly inherit template variables
     """
     # Arrange
-    test_template = pathlib.Path("/var/lib/cobbler/templates/system-tests.sh")
-    test_template.write_text(
-        "${dns.name_servers} ${server} ${kernel_options}\n", encoding="UTF-8"
+    template_uid = create_autoinstall_template(
+        "system-tests.sh",
+        "${dns.name_servers} ${server} ${kernel_options}\n",
     )
     distro_name = "fake"
     profile_name_level_0 = "fake-0"
@@ -178,7 +179,7 @@ def test_basic_inheritance(
         [
             (["name"], profile_name_level_0),
             (["distro"], did),
-            (["autoinstall"], str(test_template.name)),
+            (["autoinstall"], template_uid),
             (["server"], "10.0.0.1"),
             (["dns", "name_servers"], "8.8.4.4"),
         ]

@@ -66,7 +66,6 @@ class TestImage:
 
         # Act
         result = remote.find_image({"name": test_image.name}, True, False, token)
-        print(result)
 
         # Assert - We want to find exactly the one item we added
         assert len(result) == 1

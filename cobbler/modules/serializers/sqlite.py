@@ -176,6 +176,10 @@ class SQLiteSerializer(StorageBase):
         if not item.name:
             raise CX("name unset for item!")
 
+        if hasattr(item, "built_in") and getattr(item, "built_in") is True:
+            # Don't attempt to serialize templates which are built-in
+            return
+
         self.__connect()
         self.__upsert_items(
             collection.collection_types(), [self.__build_bind_vars(item)]

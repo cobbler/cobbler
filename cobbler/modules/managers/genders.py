@@ -3,24 +3,17 @@ Cobbler Module that manages the cluster configuration tool from CHAOS. For more 
 `GitHub - chaos/genders <https://github.com/chaos/genders>`_
 """
 
-import distutils.sysconfig
 import logging
-import os
-import sys
+import pathlib
 import time
-from typing import TYPE_CHECKING, Any, Dict, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
-from cobbler.templar import Templar
+from cobbler import enums
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.items.template import Template
 
-
-plib = distutils.sysconfig.get_python_lib()
-mod_path = f"{plib}/cobbler"
-sys.path.insert(0, mod_path)
-TEMPLATE_FILE = "/etc/cobbler/genders.template"
-SETTINGS_FILE = "/etc/genders"
 
 logger = logging.getLogger()
 
@@ -49,11 +42,23 @@ def write_genders_file(
     :param mgmtcls_genders: The management classes which should be included.
     :raises OSError: Raised in case the template could not be read.
     """
-    try:
-        with open(TEMPLATE_FILE, "r", encoding="UTF-8") as template_fd:
-            template_data = template_fd.read()
-    except Exception as error:
-        raise OSError(f"error reading template: {TEMPLATE_FILE}") from error
+    search_result = config.find_template(
+        True, False, tags=enums.TemplateTag.GENDERS.value
+    )
+    if search_result is None or not isinstance(search_result, list):
+        raise TypeError("Search result for Genders Template must of of type list!")
+    genders_template: Optional["Template"] = None
+    for template in search_result:
+        if enums.TemplateTag.ACTIVE.value in template.tags:
+            genders_template = template
+            break
+        if enums.TemplateTag.DEFAULT.value in template.tags:
+            genders_template = template
+
+    if genders_template is None:
+        raise ValueError(
+            "Neither specific nor default iPXE menu template could be found inside Cobbler!"
+        )
 
     metadata: Dict[str, Union[str, Dict[str, str]]] = {
         "date": time.asctime(time.gmtime()),
@@ -62,8 +67,9 @@ def write_genders_file(
         "mgmtcls_genders": mgmtcls_genders,
     }
 
-    templar_inst = Templar(config)
-    templar_inst.render(template_data, metadata, SETTINGS_FILE)
+    config.templar.render(
+        genders_template.content, metadata, config.settings().genders_settings_file
+    )
 
 
 def run(api: "CobblerAPI", args: Any) -> int:
@@ -118,9 +124,12 @@ def run(api: "CobblerAPI", args: Any) -> int:
 
     # The file doesn't exist and for some reason the template engine won't create it, so spit out an error and tell the
     # user what to do.
-    if not os.path.isfile(SETTINGS_FILE):
-        logger.info("Error: %s does not exist.", SETTINGS_FILE)
-        logger.info("Please run: touch %s as root and try again.", SETTINGS_FILE)
+    genders_settings_file = pathlib.Path(api.settings().genders_settings_file)
+    if not genders_settings_file.exists():
+        logger.info(
+            'Genders configuration file doesn\'t exist! Please run: "touch %s" as root and try again.',
+            api.settings().genders_settings_file,
+        )
         return 1
 
     write_genders_file(api, profiles_genders, distros_genders, mgmtcls_genders)

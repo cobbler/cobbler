@@ -95,7 +95,6 @@ def test_to_dict_resolved(
     titem.name = "to_dict_resolved_profile"
     titem.distro = test_distro_obj.uid  # type: ignore
     titem.kernel_options = {"my_value": 5}
-    print("DBG =======================")
     cobbler_api.add_profile(titem)
 
     # Act
@@ -401,10 +400,10 @@ def test_autoinstall(cobbler_api: CobblerAPI):
     profile = Profile(cobbler_api)
 
     # Act
-    profile.autoinstall = ""
+    profile.autoinstall = ""  # type: ignore[assignment]
 
     # Assert
-    assert profile.autoinstall == ""
+    assert profile.autoinstall is None
 
 
 @pytest.mark.parametrize(
@@ -670,11 +669,9 @@ def test_boot_loaders(
     """
     # Arrange
     distro: Distro = create_distro()
-    print(distro.boot_loaders)
     profile = Profile(cobbler_api, distro=distro.uid)
 
     # Act
-    print(distro.boot_loaders)
     with expected_exception:
         profile.boot_loaders = input_boot_loaders
 
@@ -760,6 +757,8 @@ def test_distro_inherit(
     api = distro.api
     mocker.patch.object(api, "settings", return_value=test_settings)
     distro.arch = enums.Archs.X86_64
+    test_template = api.new_template(name="test_inheritance", template_type="cheetah")
+    api.add_template(test_template)
     profile = Profile(api)
     profile.distro = distro.uid  # type: ignore
 
@@ -806,5 +805,8 @@ def test_distro_inherit(
             setattr(profile, new_key, enums.VALUE_INHERITED)
 
             # Assert
-            assert prev_value == new_value
+            if key == "_autoinstall":
+                assert prev_value == test_template
+            else:
+                assert prev_value == new_value
             assert prev_value == getattr(profile, new_key)

@@ -205,7 +205,6 @@ def test_deserialize_item(
     # Act
     with expected_exception:
         result = mongodb_obj.deserialize_item(collection_type, item_uid)
-        print(result)
 
         # Assert
         assert result in (expected_value, {"inmemory": True})

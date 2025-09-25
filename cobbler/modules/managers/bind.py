@@ -7,13 +7,13 @@ This is some of the code behind 'cobbler sync'.
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 # SPDX-FileCopyrightText: John Eckersberg <jeckersb@redhat.com>
 
+import pathlib
 import re
 import socket
 import time
 from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Union
 
-from cobbler import utils
-from cobbler.cexceptions import CX
+from cobbler import enums, utils
 from cobbler.modules.managers import DnsManagerModule
 from cobbler.utils import process_management
 
@@ -276,9 +276,6 @@ class _BindManager(DnsManagerModule):
         :raises OSError
         """
         settings_file = self.settings.bind_chroot_path + self.settings_file
-        template_file = "/etc/cobbler/named.template"
-        # forward_zones = self.settings.manage_forward_zones
-        # reverse_zones = self.settings.manage_reverse_zones
 
         metadata = MetadataZoneHelper(list(self.__forward_zones().keys()), [], "")
         metadata.bind_zonefiles = self.settings.bind_zonefile_path
@@ -316,25 +313,20 @@ zone "{arpa}." {{
 """
             metadata.zone_include = metadata.zone_include + txt
 
-        try:
-            with open(template_file, "r", encoding="UTF-8") as template_fd:
-                template_data = template_fd.read()
-        except Exception as error:
-            raise OSError(
-                f"error reading template from file: {template_file}"
-            ) from error
+        search_result = self.api.find_template(
+            False, False, tags=enums.TemplateTag.NAMED_PRIMARY.value
+        )
+        if search_result is None or isinstance(search_result, list):
+            raise ValueError("Could not location primary named template.")
 
         self.logger.info("generating %s", settings_file)
-        self.templar.render(template_data, metadata.__dict__, settings_file)
+        self.api.templar.render(search_result.content, metadata.__dict__, settings_file)
 
     def __write_secondary_conf(self) -> None:
         """
         Write out the secondary.conf secondary config file from the template.
         """
         settings_file = self.settings.bind_chroot_path + "/etc/secondary.conf"
-        template_file = "/etc/cobbler/secondary.template"
-        # forward_zones = self.settings.manage_forward_zones
-        # reverse_zones = self.settings.manage_reverse_zones
 
         metadata = MetadataZoneHelper(list(self.__forward_zones().keys()), [], "")
         metadata.bind_zonefiles = self.settings.bind_zonefile_path
@@ -379,16 +371,14 @@ zone "{arpa}." {{
             metadata.zone_include = metadata.zone_include + txt
             metadata.bind_master = self.settings.bind_master
 
-        try:
-            with open(template_file, "r", encoding="UTF-8") as template_fd:
-                template_data = template_fd.read()
-        except Exception as error:
-            raise OSError(
-                f"error reading template from file: {template_file}"
-            ) from error
+        search_result = self.api.find_template(
+            False, False, tags=enums.TemplateTag.NAMED_SECONDARY.value
+        )
+        if search_result is None or isinstance(search_result, list):
+            raise ValueError("Could not location secondary named template.")
 
         self.logger.info("generating %s", settings_file)
-        self.templar.render(template_data, metadata.__dict__, settings_file)
+        self.api.templar.render(search_result.content, metadata.__dict__, settings_file)
 
     def __ip_sort(self, ips: List[str]) -> List[str]:
         """
@@ -516,35 +506,27 @@ zone "{arpa}." {{
         """
         Write out the forward and reverse zone files for all configured zones
         """
-        default_template_file = "/etc/cobbler/zone.template"
         cobbler_server = self.settings.server
         # this could be a config option too
-        serial_filename = "/var/lib/cobbler/bind_serial"
+        serial_filename = pathlib.Path("/var/lib/cobbler/bind_serial")
         # need a counter for new bind format
         serial = time.strftime("%Y%m%d00")
-        try:
-            with open(serial_filename, "r", encoding="UTF-8") as serialfd:
-                old_serial = serialfd.readline()
-                # same date
-                if serial[0:8] == old_serial[0:8]:
-                    if int(old_serial[8:10]) < 99:
-                        serial = f"{serial[0:8]}{int(old_serial[8:10]) + 1:.2d}"
-        except Exception:
-            pass
-
-        with open(serial_filename, "w", encoding="UTF-8") as serialfd:
-            serialfd.write(serial)
+        if serial_filename.exists():
+            old_serial = serial_filename.read_text(encoding="UTF-8")
+            # same date
+            if serial[0:8] == old_serial[0:8]:
+                if int(old_serial[8:10]) < 99:
+                    serial = f"{serial[0:8]}{(int(old_serial[8:10]) + 1):02}"
+        serial_filename.write_text(serial, encoding="UTF-8")
 
         forward = self.__forward_zones()
         reverse = self.__reverse_zones()
 
-        try:
-            with open(default_template_file, "r", encoding="UTF-8") as template_fd:
-                default_template_data = template_fd.read()
-        except Exception as error:
-            raise CX(
-                f"error reading template from file: {default_template_file}"
-            ) from error
+        search_result = self.api.find_template(
+            False, False, tags=enums.TemplateTag.NAMED_ZONE_DEFAULT.value
+        )
+        if search_result is None or isinstance(search_result, list):
+            raise ValueError("Could not locate default zone named template.")
 
         zonefileprefix = self.settings.bind_chroot_path + self.zonefile_base
 
@@ -566,34 +548,38 @@ zone "{arpa}." {{
             else:
                 zone_origin = ""
             # grab zone-specific template if it exists
-            try:
-                with open(
-                    f"/etc/cobbler/zone_templates/{zone}", encoding="UTF-8"
-                ) as zone_fd:
-                    # If this is an IPv6 zone, set the origin to the zone for this
-                    # template
+            search_result_zone = self.api.find_template(
+                True, False, tags=enums.TemplateTag.NAMED_ZONE_SPECIFC.value
+            )
+            if search_result_zone is None or not isinstance(search_result_zone, list):
+                raise ValueError("Could not locate primary named template.")
+            found_zone_specific_template = False
+            for result in search_result_zone:
+                if zone in result.tags:
+                    found_zone_specific_template = True
+                    # If this is an IPv6 zone, set the origin to the zone for this template
                     if zone_origin:
                         template_data = (
-                            r"\$ORIGIN " + zone_origin + "\n" + zone_fd.read()
+                            r"\$ORIGIN " + zone_origin + "\n" + result.content
                         )
                     else:
-                        template_data = zone_fd.read()
-            except Exception:
-                # If this is an IPv6 zone, set the origin to the zone for this
-                # template
+                        template_data = result.content
+            if not found_zone_specific_template:
+                # If this is an IPv6 zone, set the origin to the zone for this template
                 if zone_origin:
                     template_data = (
-                        r"\$ORIGIN " + zone_origin + "\n" + default_template_data
+                        r"\$ORIGIN " + zone_origin + "\n" + search_result.content
                     )
                 else:
-                    template_data = default_template_data
+                    template_data = search_result.content
 
             metadata["cname_record"] = self.__pretty_print_cname_records(hosts)
             metadata["host_record"] = self.__pretty_print_host_records(hosts)
 
             zonefilename = zonefileprefix + zone
             self.logger.info("generating (forward) %s", zonefilename)
-            self.templar.render(template_data, metadata, zonefilename)
+            # pylint: disable-next=possibly-used-before-assignment
+            self.api.templar.render(template_data, metadata, zonefilename)  # type: ignore
 
         for zone, hosts in reverse.items():
             metadata = {
@@ -606,13 +592,18 @@ zone "{arpa}." {{
             }
 
             # grab zone-specific template if it exists
-            try:
-                with open(
-                    f"/etc/cobbler/zone_templates/{zone}", encoding="UTF-8"
-                ) as zone_fd:
-                    template_data = zone_fd.read()
-            except Exception:
-                template_data = default_template_data
+            search_result_zone = self.api.find_template(
+                True, False, tags=enums.TemplateTag.NAMED_ZONE_SPECIFC.value
+            )
+            if search_result_zone is None or not isinstance(search_result_zone, list):
+                raise ValueError("Could not locate primary named template.")
+            found_zone_specific_template = False
+            for result in search_result_zone:
+                if zone in result.tags:
+                    found_zone_specific_template = True
+                    template_data = result.content
+            if not found_zone_specific_template:
+                template_data = search_result.content
 
             metadata["cname_record"] = self.__pretty_print_cname_records(hosts)
             metadata["host_record"] = self.__pretty_print_host_records(
@@ -621,7 +612,7 @@ zone "{arpa}." {{
 
             zonefilename = zonefileprefix + zone
             self.logger.info("generating (reverse) %s", zonefilename)
-            self.templar.render(template_data, metadata, zonefilename)
+            self.api.templar.render(template_data, metadata, zonefilename)  # type: ignore
 
     def write_configs(self) -> None:
         """

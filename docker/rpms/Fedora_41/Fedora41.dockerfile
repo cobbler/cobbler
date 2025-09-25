@@ -1,6 +1,6 @@
 # vim: ft=dockerfile
 
-FROM fedora:37
+FROM fedora:41
 
 RUN dnf makecache
 
@@ -38,6 +38,7 @@ RUN yum install -y          \
     python3-cheetah         \
     python3-netaddr         \
     python3-dns             \
+    python3-importlib-resources \
     python3-file-magic      \
     python3-ldap            \
     python3-librepo         \
@@ -70,8 +71,8 @@ RUN dnf install -y          \
     time                    \
     iproute
 
-COPY ./docker/rpms/Fedora_37/supervisord/supervisord.conf /etc/supervisord.conf
-COPY ./docker/rpms/Fedora_37/supervisord/conf.d /etc/supervisord/conf.d
+COPY ./docker/rpms/Fedora_41/supervisord/supervisord.conf /etc/supervisord.conf
+COPY ./docker/rpms/Fedora_41/supervisord/conf.d /etc/supervisord/conf.d
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler

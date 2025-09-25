@@ -105,6 +105,10 @@ class ItemTypes(ConvertableEnum):
     """
     See :func:`~cobbler.items.network_interface.NetworkInterface`
     """
+    TEMPLATE = "template"
+    """
+    See :func:`~cobbler.items.template.Template`
+    """
 
 
 class DHCP(enum.Enum):
@@ -286,3 +290,51 @@ class BootLoader(ConvertableEnum):
     GRUB = "grub"
     IPXE = "ipxe"
     PXE = "pxe"
+
+
+class TemplateSchema(ConvertableEnum):
+    """
+    This enum represents all supported template sources that Cobbler can read.
+    """
+
+    FILE = "file"
+    ENVIRONMENT = "environment"
+    IMPORTLIB = "importlib"
+
+
+class TemplateTag(ConvertableEnum):
+    """
+    This enum represents all the well-known tags that represent special templates that are needed so Cobbler can manage
+    the target daemons.
+    """
+
+    ACTIVE = "active"
+    DEFAULT = "default"
+    DHCPV4 = "dhcpv4"
+    DHCPV6 = "dhcpv6"
+    DNSMASQ = "dnsmasq"
+    GENDERS = "genders"
+    NAMED_PRIMARY = "named_primary"
+    NAMED_SECONDARY = "named_secondary"
+    NAMED_ZONE_DEFAULT = "named_zone_default"
+    NAMED_ZONE_SPECIFC = "named_zone_specifc"
+    NDJBDNS = "ndjbdns"
+    RSYNC = "rsync"
+    BOOTCFG = "bootcfg"
+    GRUB = "grub"
+    GRUB_MENU = "grub_menu"
+    GRUB_SUBMENU = "grub_submenu"
+    IPXE = "ipxe"
+    IPXE_MENU = "ipxe_menu"
+    IPXE_SUBMENU = "ipxe_submenu"
+    PXE = "pxe"
+    PXE_MENU = "pxe_menu"
+    PXE_SUBMENU = "pxe_submenu"
+    ISO_BOOTINFO = "iso_bootinfo"
+    ISO_BUILDISO = "iso_buildiso"
+    ISO_GRUB_MENUENTRY = "iso_grub_menuentry"
+    ISO_ISOLINUX_MENUENTRY = "iso_isolinux_menuentry"
+    REPORTING_BUILD_EMAIL = "reporting_build_email"
+    WINDOWS_ANSWERFILE = "windows_answerfile"
+    WINDOWS_POST_INST_CMD = "windows_post_inst_cmd"
+    WINDOWS_STARTNET = "windows_startnet"

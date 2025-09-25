@@ -152,7 +152,7 @@ from typing import (
 )
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 
-from cobbler import autoinstall_manager, configgen, enums, tftpgen, utils
+from cobbler import autoinstall_manager, configgen, enums, utils
 from cobbler.cexceptions import CX
 from cobbler.items import network_interface, system
 from cobbler.items.abstract import base_item
@@ -238,7 +238,6 @@ class CobblerXMLRPCInterface:
         self.events: Dict[str, CobblerEvent] = {}
         self.shared_secret = utils.get_shared_secret()
         random.seed(time.time())
-        self.tftpgen = tftpgen.TFTPGen(api)
         self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api)
         # Semaphore that suspends the execution of the background_load_items when the execution
         # of any command or any other task begins until it finishes.
@@ -1189,7 +1188,30 @@ class CobblerXMLRPCInterface:
         :return: The item or None.
         """
         return self.get_item(
-            "menu", name, flatten=flatten, resolved=resolved, token=token
+            "network_interface", name, flatten=flatten, resolved=resolved, token=token
+        )
+
+    def get_template(
+        self,
+        name: str,
+        flatten: bool = False,
+        resolved: bool = False,
+        token: Optional[str] = None,
+        **rest: Any,
+    ):
+        """
+        Get a template.
+
+        :param name: The name of the template to get.
+        :param flatten: If the item should be flattened.
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
+        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param rest: Not used with this method currently.
+        :return: The item or None.
+        """
+        return self.get_item(
+            "template", name, flatten=flatten, resolved=resolved, token=token
         )
 
     def get_items(self, what: str) -> List[Dict[str, Any]]:
@@ -1327,7 +1349,7 @@ class CobblerXMLRPCInterface:
         **rest: Any,
     ) -> List[Dict[str, Any]]:
         """
-        This returns all menus.
+        This returns all network interfaces.
 
         :param page: This parameter is not used currently.
         :param results_per_page: This parameter is not used currently.
@@ -1336,6 +1358,24 @@ class CobblerXMLRPCInterface:
         :return: The list of all files.
         """
         return self.get_items("network_interface")
+
+    def get_templates(
+        self,
+        page: Any = None,
+        results_per_page: Any = None,
+        token: Optional[str] = None,
+        **rest: Any,
+    ) -> List[Dict[str, Any]]:
+        """
+        This returns all templates.
+
+        :param page: This parameter is not used currently.
+        :param results_per_page: This parameter is not used currently.
+        :param token: The API-token obtained via the login() method.
+        :param rest: This parameter is not used currently.
+        :return: The list of all files.
+        """
+        return self.get_items("template")
 
     def find_items(
         self,
@@ -1523,6 +1563,29 @@ class CobblerXMLRPCInterface:
             "network_interface", criteria, expand=expand, resolved=resolved
         )
 
+    def find_template(
+        self,
+        criteria: Optional[Dict[str, Any]] = None,
+        expand: bool = False,
+        resolved: bool = False,
+        token: Optional[str] = None,
+        **rest: Any,
+    ) -> List[Any]:
+        """
+        Find a template matching certain criteria.
+
+        :param criteria: The criteria a template needs to match.
+        :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
+        :param token: The API-token obtained via the login() method.
+        :param rest: This parameter is not used currently.
+        :return: All files which have matched the criteria.
+        """
+        return self.find_items(
+            "network_interface", criteria, expand=expand, resolved=resolved
+        )
+
     def find_items_paged(
         self,
         what: str,
@@ -1682,6 +1745,15 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item_handle("network_interface", name)
 
+    def get_template_handle(self, name: str):
+        """
+        Get a handle for a template which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
+
+        :param name: The name of the item.
+        :return: The handle of the desired object.
+        """
+        return self.get_item_handle("template", name)
+
     def _transaction_get_modified(self, token: str, obj: "InheritableItem"):
         """
         If there is a modified version of the obj in current transaction, return it
@@ -1801,7 +1873,7 @@ class CobblerXMLRPCInterface:
         )
         return True
 
-    def remove_distro(self, name: str, token: str, recursive: bool = True):
+    def remove_distro(self, name: str, token: str, recursive: bool = True) -> bool:
         """
         Deletes a distribution from Cobbler.
 
@@ -1812,7 +1884,7 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("distro", name, token, recursive)
 
-    def remove_profile(self, name: str, token: str, recursive: bool = True):
+    def remove_profile(self, name: str, token: str, recursive: bool = True) -> bool:
         """
         Deletes a profile from Cobbler.
 
@@ -1823,7 +1895,7 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("profile", name, token, recursive)
 
-    def remove_system(self, name: str, token: str, recursive: bool = True):
+    def remove_system(self, name: str, token: str, recursive: bool = True) -> bool:
         """
         Deletes a system from Cobbler.
 
@@ -1834,7 +1906,7 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("system", name, token, recursive)
 
-    def remove_repo(self, name: str, token: str, recursive: bool = True):
+    def remove_repo(self, name: str, token: str, recursive: bool = True) -> bool:
         """
         Deletes a repository from Cobbler.
 
@@ -1845,7 +1917,7 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("repo", name, token, recursive)
 
-    def remove_image(self, name: str, token: str, recursive: bool = True):
+    def remove_image(self, name: str, token: str, recursive: bool = True) -> bool:
         """
         Deletes an image from Cobbler.
 
@@ -1856,7 +1928,7 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("image", name, token, recursive)
 
-    def remove_menu(self, name: str, token: str, recursive: bool = True):
+    def remove_menu(self, name: str, token: str, recursive: bool = True) -> bool:
         """
         Deletes a menu from Cobbler.
 
@@ -1867,7 +1939,9 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("menu", name, token, recursive)
 
-    def remove_network_interface(self, name: str, token: str, recursive: bool = True):
+    def remove_network_interface(
+        self, name: str, token: str, recursive: bool = True
+    ) -> bool:
         """
         Deletes a network interface from Cobbler.
 
@@ -1878,9 +1952,20 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("network_interface", name, token, recursive)
 
+    def remove_template(self, name: str, token: str, recursive: bool = True) -> bool:
+        """
+        Deletes a template from Cobbler.
+
+        :param name: The name of the item to remove.
+        :param token: The API-token obtained via the login() method.
+        :param recursive: If items which are depending on this one should be erased too.
+        :return: True if the action was successful.
+        """
+        return self.remove_item("template", name, token, recursive)
+
     def copy_item(
         self, what: str, object_id: str, newname: str, token: Optional[str] = None
-    ):
+    ) -> bool:
         """
         Creates a new object that matches an existing object, as specified by an id.
 
@@ -1909,7 +1994,9 @@ class CobblerXMLRPCInterface:
         self.api.copy_item(what, target_obj, newname)
         return True
 
-    def copy_distro(self, object_id: str, newname: str, token: Optional[str] = None):
+    def copy_distro(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
         """
         Copies a distribution and renames it afterwards.
 
@@ -1920,7 +2007,9 @@ class CobblerXMLRPCInterface:
         """
         return self.copy_item("distro", object_id, newname, token)
 
-    def copy_profile(self, object_id: str, newname: str, token: Optional[str] = None):
+    def copy_profile(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
         """
         Copies a profile and renames it afterwards.
 
@@ -1931,7 +2020,9 @@ class CobblerXMLRPCInterface:
         """
         return self.copy_item("profile", object_id, newname, token)
 
-    def copy_system(self, object_id: str, newname: str, token: Optional[str] = None):
+    def copy_system(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
         """
         Copies a system and renames it afterwards.
 
@@ -1942,7 +2033,9 @@ class CobblerXMLRPCInterface:
         """
         return self.copy_item("system", object_id, newname, token)
 
-    def copy_repo(self, object_id: str, newname: str, token: Optional[str] = None):
+    def copy_repo(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
         """
         Copies a repository and renames it afterwards.
 
@@ -1953,7 +2046,9 @@ class CobblerXMLRPCInterface:
         """
         return self.copy_item("repo", object_id, newname, token)
 
-    def copy_image(self, object_id: str, newname: str, token: Optional[str] = None):
+    def copy_image(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
         """
         Copies an image and renames it afterwards.
 
@@ -1964,7 +2059,9 @@ class CobblerXMLRPCInterface:
         """
         return self.copy_item("image", object_id, newname, token)
 
-    def copy_menu(self, object_id: str, newname: str, token: Optional[str] = None):
+    def copy_menu(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
         """
         Copies a menu and rename it afterwards.
 
@@ -1977,7 +2074,7 @@ class CobblerXMLRPCInterface:
 
     def copy_network_interface(
         self, object_id: str, newname: str, token: Optional[str] = None
-    ):
+    ) -> bool:
         """
         Copies a network interface and rename it afterwards.
 
@@ -1986,7 +2083,20 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        return self.copy_item("menu", object_id, newname, token)
+        return self.copy_item("network_interface", object_id, newname, token)
+
+    def copy_template(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
+        """
+        Copies a template and rename it afterwards.
+
+        :param object_id: The object id of the item in question.
+        :param newname: The new name for the copied object.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action succeeded.
+        """
+        return self.copy_item("template", object_id, newname, token)
 
     def rename_item(
         self, what: str, object_id: str, newname: str, token: Optional[str] = None
@@ -2127,6 +2237,19 @@ class CobblerXMLRPCInterface:
         """
         return self.rename_item("network_interface", object_id, newname, token)
 
+    def rename_template(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
+        """
+        Renames a template specified by object_id to a new name.
+
+        :param object_id: The id which refers to the object.
+        :param newname: The new name for the object.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action succeeded.
+        """
+        return self.rename_item("template", object_id, newname, token)
+
     def new_item(
         self, what: str, token: str, is_subobject: bool = False, **kwargs: Any
     ) -> str:
@@ -2151,7 +2274,7 @@ class CobblerXMLRPCInterface:
         self.unsaved_items[new_item.uid] = UnsavedItemsTuple(time.time(), new_item)
         return new_item.uid
 
-    def new_distro(self, token: str):
+    def new_distro(self, token: str) -> str:
         """
         See ``new_item()``.
 
@@ -2160,7 +2283,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("distro", token)
 
-    def new_profile(self, token: str):
+    def new_profile(self, token: str) -> str:
         """
         See ``new_item()``.
 
@@ -2169,7 +2292,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("profile", token)
 
-    def new_subprofile(self, token: str):
+    def new_subprofile(self, token: str) -> str:
         """
         See ``new_item()``.
 
@@ -2178,7 +2301,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("profile", token, is_subobject=True)
 
-    def new_system(self, token: str):
+    def new_system(self, token: str) -> str:
         """
         See ``new_item()``.
 
@@ -2187,7 +2310,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("system", token)
 
-    def new_repo(self, token: str):
+    def new_repo(self, token: str) -> str:
         """
         See ``new_item()``.
 
@@ -2196,7 +2319,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("repo", token)
 
-    def new_image(self, token: str):
+    def new_image(self, token: str) -> str:
         """
         See ``new_item()``.
 
@@ -2205,7 +2328,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("image", token)
 
-    def new_menu(self, token: str):
+    def new_menu(self, token: str) -> str:
         """
         See ``new_item()``.
 
@@ -2214,7 +2337,7 @@ class CobblerXMLRPCInterface:
         """
         return self.new_item("menu", token)
 
-    def new_network_interface(self, system_uid: str, token: str):
+    def new_network_interface(self, system_uid: str, token: str) -> str:
         """
         See ``new_item()``.
 
@@ -2223,6 +2346,15 @@ class CobblerXMLRPCInterface:
         :return: The object id for the newly created object.
         """
         return self.new_item("network_interface", token, system_uid=system_uid)
+
+    def new_template(self, token: str) -> str:
+        """
+        See ``new_item()``.
+
+        :param token: The API-token obtained via the login() method.
+        :return: The object id for the newly created object.
+        """
+        return self.new_item("template", token)
 
     def __get_raw_value(self, obj: Any, attribute_path: List[str]) -> Any:
         """
@@ -2326,7 +2458,9 @@ class CobblerXMLRPCInterface:
         setattr(cur_obj, attribute[-1], arg)
         return True
 
-    def modify_distro(self, object_id: str, attribute: List[str], arg: Any, token: str):
+    def modify_distro(
+        self, object_id: str, attribute: List[str], arg: Any, token: str
+    ) -> bool:
         """
         Modify a single attribute of a distribution.
 
@@ -2340,7 +2474,7 @@ class CobblerXMLRPCInterface:
 
     def modify_profile(
         self, object_id: str, attribute: List[str], arg: Any, token: str
-    ):
+    ) -> bool:
         """
         Modify a single attribute of a profile.
 
@@ -2352,7 +2486,9 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("profile", object_id, attribute, arg, token)
 
-    def modify_system(self, object_id: str, attribute: List[str], arg: Any, token: str):
+    def modify_system(
+        self, object_id: str, attribute: List[str], arg: Any, token: str
+    ) -> bool:
         """
         Modify a single attribute of a system.
 
@@ -2364,7 +2500,9 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("system", object_id, attribute, arg, token)
 
-    def modify_image(self, object_id: str, attribute: List[str], arg: Any, token: str):
+    def modify_image(
+        self, object_id: str, attribute: List[str], arg: Any, token: str
+    ) -> bool:
         """
         Modify a single attribute of an image.
 
@@ -2376,7 +2514,9 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("image", object_id, attribute, arg, token)
 
-    def modify_repo(self, object_id: str, attribute: List[str], arg: Any, token: str):
+    def modify_repo(
+        self, object_id: str, attribute: List[str], arg: Any, token: str
+    ) -> bool:
         """
         Modify a single attribute of a repository.
 
@@ -2388,7 +2528,9 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("repo", object_id, attribute, arg, token)
 
-    def modify_menu(self, object_id: str, attribute: List[str], arg: Any, token: str):
+    def modify_menu(
+        self, object_id: str, attribute: List[str], arg: Any, token: str
+    ) -> bool:
         """
         Modify a single attribute of a menu.
 
@@ -2402,7 +2544,7 @@ class CobblerXMLRPCInterface:
 
     def modify_network_interface(
         self, object_id: str, attribute: List[str], arg: Any, token: str
-    ):
+    ) -> bool:
         """
         Modify a single attribute of a network_interface.
 
@@ -2412,7 +2554,21 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: True if the action was successful. Otherwise False.
         """
-        return self.modify_item("menu", object_id, attribute, arg, token)
+        return self.modify_item("network_interface", object_id, attribute, arg, token)
+
+    def modify_template(
+        self, object_id: str, attribute: List[str], arg: Any, token: str
+    ) -> bool:
+        """
+        Modify a single attribute of a template.
+
+        :param object_id: The id of the object which shall be modified.
+        :param attribute: The attribute name which shall be edited.
+        :param arg: The new value for the argument.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action was successful. Otherwise False.
+        """
+        return self.modify_item("template", object_id, attribute, arg, token)
 
     def modify_setting(
         self,
@@ -2478,7 +2634,7 @@ class CobblerXMLRPCInterface:
 
     def save_item(
         self, what: str, object_id: str, token: str, editmode: str = "bypass"
-    ):
+    ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
@@ -2504,7 +2660,7 @@ class CobblerXMLRPCInterface:
             del self.unsaved_items[object_id]
         return True
 
-    def save_distro(self, object_id: str, token: str, editmode: str = "bypass"):
+    def save_distro(self, object_id: str, token: str, editmode: str = "bypass") -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
@@ -2516,7 +2672,9 @@ class CobblerXMLRPCInterface:
         """
         return self.save_item("distro", object_id, token, editmode=editmode)
 
-    def save_profile(self, object_id: str, token: str, editmode: str = "bypass"):
+    def save_profile(
+        self, object_id: str, token: str, editmode: str = "bypass"
+    ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
@@ -2528,7 +2686,7 @@ class CobblerXMLRPCInterface:
         """
         return self.save_item("profile", object_id, token, editmode=editmode)
 
-    def save_system(self, object_id: str, token: str, editmode: str = "bypass"):
+    def save_system(self, object_id: str, token: str, editmode: str = "bypass") -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
@@ -2540,7 +2698,7 @@ class CobblerXMLRPCInterface:
         """
         return self.save_item("system", object_id, token, editmode=editmode)
 
-    def save_image(self, object_id: str, token: str, editmode: str = "bypass"):
+    def save_image(self, object_id: str, token: str, editmode: str = "bypass") -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
@@ -2552,7 +2710,7 @@ class CobblerXMLRPCInterface:
         """
         return self.save_item("image", object_id, token, editmode=editmode)
 
-    def save_repo(self, object_id: str, token: str, editmode: str = "bypass"):
+    def save_repo(self, object_id: str, token: str, editmode: str = "bypass") -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
@@ -2564,7 +2722,7 @@ class CobblerXMLRPCInterface:
         """
         return self.save_item("repo", object_id, token, editmode=editmode)
 
-    def save_menu(self, object_id: str, token: str, editmode: str = "bypass"):
+    def save_menu(self, object_id: str, token: str, editmode: str = "bypass") -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
@@ -2578,7 +2736,7 @@ class CobblerXMLRPCInterface:
 
     def save_network_interface(
         self, object_id: str, token: str, editmode: str = "bypass"
-    ):
+    ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
@@ -2590,29 +2748,19 @@ class CobblerXMLRPCInterface:
         """
         return self.save_item("network_interface", object_id, token, editmode=editmode)
 
-    def get_autoinstall_templates(self, token: Optional[str] = None, **rest: Any):
+    def save_template(
+        self, object_id: str, token: str, editmode: str = "bypass"
+    ) -> bool:
         """
-        Returns all of the automatic OS installation templates that are in use by the system.
+        Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
+        :param object_id: The id of the object to save.
         :param token: The API-token obtained via the login() method.
-        :param rest: This is dropped in this method since it is not needed here.
-        :return: A list with all templates.
+        :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
+                         supported.
+        :return: True if the action succeeded.
         """
-        self._log("get_autoinstall_templates", token=token)
-        # self.check_access(token, "get_autoinstall_templates")
-        return self.autoinstall_mgr.get_autoinstall_templates()
-
-    def get_autoinstall_snippets(self, token: Optional[str] = None, **rest: Any):
-        """
-        Returns all the automatic OS installation templates' snippets.
-
-        :param token: The API-token obtained via the login() method.
-        :param rest: This is dropped in this method since it is not needed here.
-        :return: A list with all snippets.
-        """
-
-        self._log("get_autoinstall_snippets", token=token)
-        return self.autoinstall_mgr.get_autoinstall_snippets()
+        return self.save_item("template", object_id, token, editmode=editmode)
 
     def is_autoinstall_in_use(self, ai: str, token: Optional[str] = None, **rest: Any):
         """
@@ -2743,7 +2891,9 @@ class CobblerXMLRPCInterface:
         )
         if obj is None or isinstance(obj, list):
             raise ValueError(f'Item with uuid "{item_uuid}" does not exist!')
-        return self.api.dump_vars(obj, formatted_output, remove_dicts)
+        result = self.api.dump_vars(obj, formatted_output, remove_dicts)
+        self._log(str(result))
+        return result
 
     def get_blended_data(
         self, profile: Optional[str] = None, system: Optional[str] = None
@@ -3440,6 +3590,18 @@ class CobblerXMLRPCInterface:
         data = self.api.get_network_interfaces_since(mtime, collapse=True)
         return self.xmlrpc_hacks(data)
 
+    def get_templates_since(
+        self, mtime: float
+    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
+        """
+        See documentation for get_distros_since
+
+        :param mtime: The time after which all items should be included. Everything before this will be excluded.
+        :return: The list of items which were modified after ``mtime``.
+        """
+        data = self.api.get_templates_since(mtime, collapse=True)
+        return self.xmlrpc_hacks(data)
+
     def get_repos_compatible_with_profile(
         self, profile: str, token: Optional[str] = None, **rest: Any
     ) -> List[Dict[Any, Any]]:
@@ -3572,11 +3734,11 @@ class CobblerXMLRPCInterface:
 
             if obj.is_management_supported():
                 if not image_based:
-                    _dict["pxelinux.cfg"] = self.tftpgen.write_pxe_file(
+                    _dict["pxelinux.cfg"] = self.api.tftpgen.write_pxe_file(
                         None, obj, profile, distro, arch  # type: ignore
                     )
                 else:
-                    _dict["pxelinux.cfg"] = self.tftpgen.write_pxe_file(
+                    _dict["pxelinux.cfg"] = self.api.tftpgen.write_pxe_file(
                         None, obj, None, None, arch, image=profile  # type: ignore
                     )
 
@@ -3644,6 +3806,24 @@ class CobblerXMLRPCInterface:
         Get network interface after passing through Cobbler's inheritance engine
 
         :param name: Network Interface name
+        :param token: Authentication token
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: Get a template rendered as a file.
+        """
+
+        self._log("get_network_interface_as_rendered", name=name, token=token)
+        obj = self.api.find_network_interface(name=name)
+        if obj is not None and not isinstance(obj, list):
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
+        return self.xmlrpc_hacks({})
+
+    def get_template_as_rendered(
+        self, name: str, token: Optional[str] = None, **rest: Any
+    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
+        """
+        Get template after passing through Cobbler's inheritance engine
+
+        :param name: Template name
         :param token: Authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a file.
@@ -3955,103 +4135,6 @@ class CobblerXMLRPCInterface:
         self._log("sync", token=token)
         self.check_access(token, "sync")
         self.api.sync()
-        return True
-
-    def read_autoinstall_template(self, file_path: str, token: str) -> str:
-        """
-        Read an automatic OS installation template file
-
-        :param file_path: automatic OS installation template file path
-        :param token: The API-token obtained via the login() method. Cobbler token, obtained form login()
-        :returns: file content
-        """
-        what = "read_autoinstall_template"
-        self._log(what, name=file_path, token=token)
-        self.check_access(token, what, file_path, True)
-
-        return self.autoinstall_mgr.read_autoinstall_template(file_path)
-
-    def write_autoinstall_template(self, file_path: str, data: str, token: str) -> bool:
-        """
-        Write an automatic OS installation template file
-
-        :param file_path: automatic OS installation template file path
-        :param data: new file content
-        :param token: The API-token obtained via the login() method. Cobbler token, obtained form login()
-        :returns: bool if operation was successful
-        """
-
-        what = "write_autoinstall_template"
-        self._log(what, name=file_path, token=token)
-        self.check_access(token, what, file_path, True)
-
-        self.autoinstall_mgr.write_autoinstall_template(file_path, data)
-
-        return True
-
-    def remove_autoinstall_template(self, file_path: str, token: str) -> bool:
-        """
-        Remove an automatic OS installation template file
-
-        :param file_path: automatic OS installation template file path
-        :param token: The API-token obtained via the login() method. Cobbler token, obtained form login()
-        :returns: bool if operation was successful
-        """
-        what = "write_autoinstall_template"
-        self._log(what, name=file_path, token=token)
-        self.check_access(token, what, file_path, True)
-
-        self.autoinstall_mgr.remove_autoinstall_template(file_path)
-
-        return True
-
-    def read_autoinstall_snippet(self, file_path: str, token: str) -> str:
-        """
-        Read an automatic OS installation snippet file
-
-        :param file_path: automatic OS installation snippet file path
-        :param token: The API-token obtained via the login() method. Cobbler token, obtained form login()
-        :returns: file content
-        """
-        what = "read_autoinstall_snippet"
-        self._log(what, name=file_path, token=token)
-        self.check_access(token, what, file_path, True)
-
-        return self.autoinstall_mgr.read_autoinstall_snippet(file_path)
-
-    def write_autoinstall_snippet(self, file_path: str, data: str, token: str) -> bool:
-        """
-        Write an automatic OS installation snippet file
-
-        :param file_path: automatic OS installation snippet file path
-        :param data: new file content
-        :param token: Cobbler token, obtained form login()
-        :return: if operation was successful
-        """
-
-        what = "write_autoinstall_snippet"
-        self._log(what, name=file_path, token=token)
-        self.check_access(token, what, file_path, True)
-
-        self.autoinstall_mgr.write_autoinstall_snippet(file_path, data)
-
-        return True
-
-    def remove_autoinstall_snippet(self, file_path: str, token: str) -> bool:
-        """
-        Remove an automated OS installation snippet file
-
-        :param file_path: automated OS installation snippet file path
-        :param token: Cobbler token, obtained form login()
-        :return: bool if operation was successful
-        """
-
-        what = "remove_autoinstall_snippet"
-        self._log(what, name=file_path, token=token)
-        self.check_access(token, what, file_path, True)
-
-        self.autoinstall_mgr.remove_autoinstall_snippet(file_path)
-
         return True
 
     def get_config_data(self, hostname: str) -> str:

@@ -95,7 +95,7 @@ class BaseItem(ABC):
             return match  # type: ignore
 
         if isinstance(from_search, str):
-            if isinstance(from_obj, list):
+            if isinstance(from_obj, (list, set)):
                 from_search = input_converters.input_string_or_list(from_search)
                 for list_element in from_search:
                     if list_element not in from_obj:
@@ -503,6 +503,19 @@ class BaseItem(ABC):
         result = self.to_dict()
         for key in keys_to_drop:
             result.pop(key, "")
+        if (
+            "autoinstall" in result
+            and result["autoinstall"] != enums.VALUE_INHERITED
+            and result["autoinstall"] != ""
+        ):
+            # Built-In Templates must be saved by name!
+            search_result = self.api.find_template(
+                False, False, uid=result["autoinstall"]["uid"]
+            )
+            if search_result is None or isinstance(search_result, list):
+                raise ValueError("Search result for template empty or ambigous!")
+            if search_result.name.startswith("built-in"):
+                result["autoinstall"] = search_result.name
         return result
 
     def deserialize(self) -> None:
@@ -567,6 +580,8 @@ class BaseItem(ABC):
             return cached_result
 
         value: Dict[str, Any] = {}
+        if self.name == "to_dict_resolved_system_profile":
+            self.logger.warning("%s", self.__dict__.keys())
         for key, key_value in self.__dict__.items():
             if BaseItem._is_dict_key(key):
                 new_key = key[1:].lower()
@@ -594,6 +609,9 @@ class BaseItem(ABC):
                     else:
                         # If this is a normal dict, leave the inherit value present
                         value[new_key] = new_value
+                elif isinstance(key_value, set):
+                    # Currently the only set is tags in the Template class and they don't inherit
+                    value[new_key] = list(key_value)  # type: ignore
                 elif isinstance(key_value, dict):
                     if resolved:
                         value[new_key] = getattr(self, new_key)
@@ -604,11 +622,24 @@ class BaseItem(ABC):
                     and key_value == enums.VALUE_INHERITED
                     and resolved
                 ):
-                    value[new_key] = getattr(self, key[1:])
+                    if new_key == "autoinstall":
+                        # Templates have to be serialized to dictionary
+                        value[new_key] = getattr(self, key[1:]).to_dict(resolved=True)
+                    else:
+                        value[new_key] = getattr(self, key[1:])
                 elif isinstance(key_value, base.ItemOption):
                     value[new_key] = key_value.to_dict(resolved=resolved)
+                elif isinstance(key_value, BaseItem):
+                    value[new_key] = key_value.to_dict(resolved=resolved)
                 else:
-                    value[new_key] = key_value
+                    if new_key == "autoinstall" and key_value not in (
+                        "",
+                        enums.VALUE_INHERITED,
+                    ):
+                        # Templates have to be serialized to dictionary
+                        value[new_key] = getattr(self, key[1:]).to_dict(resolved=True)
+                    else:
+                        value[new_key] = key_value
         if "autoinstall" in value:
             value.update({"kickstart": value["autoinstall"]})  # type: ignore
         if "autoinstall_meta" in value:

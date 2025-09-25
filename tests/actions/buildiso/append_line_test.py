@@ -32,12 +32,17 @@ def test_generate_system(
     Test to verify that generating the append line for a System works as expected.
     """
     # Arrange
+    autoinstall_scheme = cobbler_api.settings().autoinstall_scheme
     test_distro = create_distro()
     test_distro.breed = "suse"  # type: ignore[method-assign]
     cobbler_api.add_distro(test_distro)
     test_profile = create_profile(test_distro.uid)
     test_system = create_system(profile_uid=test_profile.uid)  # type: ignore
     blendered_data = utils.blender(cobbler_api, False, test_system)  # type: ignore
+    blendered_data["autoinstall"] = (
+        f"{autoinstall_scheme}://{blendered_data['server']}:{blendered_data['http_port']}/cblr/svc/op/autoinstall/"
+        f"profile/{test_system.name}"  # type: ignore
+    )
     test_builder = AppendLineBuilder(test_distro.name, blendered_data)
     originalname = request.node.originalname or request.node.name  # type: ignore
 
@@ -49,8 +54,8 @@ def test_generate_system(
     # TODO: Make tests more sophisticated
     assert (
         result
-        == "  APPEND initrd=/%s.img install=http://192.168.1.1:80/cblr/links/%s autoyast=default.ks"
-        % (originalname, originalname)
+        == f"  APPEND initrd=/{originalname}.img install=http://192.168.1.1:80/cblr/links/{originalname} "
+        "autoyast=http://192.168.1.1:80/cblr/svc/op/autoinstall/profile/test_generate_system"
     )
 
 
@@ -64,12 +69,17 @@ def test_generate_system_redhat(
     Test to verify that generating the append line for a RedHat Distro works as expected.
     """
     # Arrange
+    autoinstall_scheme = cobbler_api.settings().autoinstall_scheme
     test_distro = create_distro()
     test_distro.breed = "redhat"  # type: ignore[method-assign]
     cobbler_api.add_distro(test_distro)
     test_profile = create_profile(test_distro.uid)
     test_system = create_system(profile_uid=test_profile.uid)  # type: ignore
     blendered_data = utils.blender(cobbler_api, False, test_system)  # type: ignore
+    blendered_data["autoinstall"] = (
+        f"{autoinstall_scheme}://{blendered_data['server']}:{blendered_data['http_port']}/cblr/svc/op/autoinstall/"
+        f"profile/{test_system.name}"  # type: ignore
+    )
     test_builder = AppendLineBuilder(test_distro.name, blendered_data)
 
     # Act
@@ -78,7 +88,10 @@ def test_generate_system_redhat(
     # Assert
     # Very basic test yes but this is the expected result atm
     # TODO: Make tests more sophisticated
-    assert result == f"  APPEND initrd=/{test_distro.name}.img inst.ks=default.ks"
+    assert (
+        result == f"  APPEND initrd=/{test_distro.name}.img "
+        "inst.ks=http://192.168.1.1:80/cblr/svc/op/autoinstall/profile/test_generate_system_redhat"
+    )
 
 
 def test_generate_profile(
@@ -91,9 +104,14 @@ def test_generate_profile(
     Test to verify that generating the append line for a Profile works as expected.
     """
     # Arrange
+    autoinstall_scheme = cobbler_api.settings().autoinstall_scheme
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
     blendered_data = utils.blender(cobbler_api, False, test_profile)
+    blendered_data["autoinstall"] = (
+        f"{autoinstall_scheme}://{blendered_data['server']}:{blendered_data['http_port']}/cblr/svc/op/autoinstall/"
+        f"profile/{test_profile.name}"  # type: ignore
+    )
     test_builder = AppendLineBuilder(test_distro.name, blendered_data)
     originalname = request.node.originalname or request.node.name  # type: ignore
 
@@ -105,8 +123,8 @@ def test_generate_profile(
     # TODO: Make tests more sophisticated
     assert (
         result
-        == " append initrd=/%s.img install=http://192.168.1.1:80/cblr/links/%s autoyast=default.ks"
-        % (originalname, originalname)
+        == f" append initrd=/{originalname}.img install=http://192.168.1.1:80/cblr/links/{originalname} "
+        "autoyast=http://192.168.1.1:80/cblr/svc/op/autoinstall/profile/test_generate_profile"
     )
 
 
@@ -120,14 +138,18 @@ def test_generate_profile_install(
     Test to verify that generating the append line for a Profile with an install option works as expected.
     """
     # Arrange
+    autoinstall_scheme = cobbler_api.settings().autoinstall_scheme
     test_distro = create_distro()
     originalname = request.node.originalname or request.node.name  # type: ignore
-
     test_distro.kernel_options = (  # type: ignore[method-assign]
-        "install=http://192.168.40.1:80/cblr/links/%s" % originalname  # type: ignore
+        f"install=http://192.168.40.1:80/cblr/links/{originalname}"  # type: ignore
     )
     test_profile = create_profile(test_distro.uid)
     blendered_data = utils.blender(cobbler_api, False, test_profile)
+    blendered_data["autoinstall"] = (
+        f"{autoinstall_scheme}://{blendered_data['server']}:{blendered_data['http_port']}/cblr/svc/op/autoinstall/"
+        f"profile/{test_profile.name}"  # type: ignore
+    )
     test_builder = AppendLineBuilder(test_distro.name, blendered_data)
 
     # Act
@@ -138,8 +160,8 @@ def test_generate_profile_install(
     # TODO: Make tests more sophisticated
     assert (
         result
-        == " append initrd=/%s.img install=http://192.168.40.1:80/cblr/links/%s autoyast=default.ks"
-        % (originalname, originalname)
+        == f" append initrd=/{originalname}.img install=http://192.168.40.1:80/cblr/links/{originalname} "
+        "autoyast=http://192.168.1.1:80/cblr/svc/op/autoinstall/profile/test_generate_profile_install"
     )
 
 
@@ -152,11 +174,16 @@ def test_generate_profile_rhel7(
     Test to verify that generating the append line for a RedHat 7 Profile works as expected.
     """
     # Arrange
+    autoinstall_scheme = cobbler_api.settings().autoinstall_scheme
     test_distro = create_distro()
     test_distro.breed = "redhat"  # type: ignore[method-assign]
     cobbler_api.add_distro(test_distro)
     test_profile = create_profile(test_distro.uid)
     blendered_data = utils.blender(cobbler_api, False, test_profile)
+    blendered_data["autoinstall"] = (
+        f"{autoinstall_scheme}://{blendered_data['server']}:{blendered_data['http_port']}/cblr/svc/op/autoinstall/"
+        f"profile/{test_profile.name}"  # type: ignore
+    )
     test_builder = AppendLineBuilder(test_distro.name, blendered_data)
 
     # Act
@@ -165,7 +192,10 @@ def test_generate_profile_rhel7(
     # Assert
     # Very basic test yes but this is the expected result atm
     # TODO: Make tests more sophisticated
-    assert result == f" append initrd=/{test_distro.name}.img inst.ks=default.ks"
+    assert (
+        result == f" append initrd=/{test_distro.name}.img "
+        "inst.ks=http://192.168.1.1:80/cblr/svc/op/autoinstall/profile/test_generate_profile_rhel7"
+    )
 
 
 def test_generate_profile_rhel6(
@@ -177,11 +207,16 @@ def test_generate_profile_rhel6(
     Test to verify that generating the append line for a RedHat 6 Profile works as expected.
     """
     # Arrange
+    autoinstall_scheme = cobbler_api.settings().autoinstall_scheme
     test_distro = create_distro()
     test_distro.breed = "redhat"  # type: ignore[method-assign]
     cobbler_api.add_distro(test_distro)
     test_profile = create_profile(test_distro.uid)
     blendered_data = utils.blender(cobbler_api, False, test_profile)
+    blendered_data["autoinstall"] = (
+        f"{autoinstall_scheme}://{blendered_data['server']}:{blendered_data['http_port']}/cblr/svc/op/autoinstall/"
+        f"profile/{test_profile.name}"  # type: ignore
+    )
     test_builder = AppendLineBuilder(test_distro.name, blendered_data)
 
     # Act
@@ -190,4 +225,7 @@ def test_generate_profile_rhel6(
     # Assert
     # Very basic test yes but this is the expected result atm
     # TODO: Make tests more sophisticated
-    assert result == f" append initrd=/{test_distro.name}.img ks=default.ks"
+    assert (
+        result == f" append initrd=/{test_distro.name}.img "
+        "ks=http://192.168.1.1:80/cblr/svc/op/autoinstall/profile/test_generate_profile_rhel6"
+    )

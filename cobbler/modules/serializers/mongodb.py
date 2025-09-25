@@ -114,6 +114,9 @@ class MongoDBSerializer(StorageBase):
     def serialize_item(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         if self.mongodb_database is None:
             raise ValueError("Database not available!")
+        if hasattr(item, "built_in") and getattr(item, "built_in") is True:
+            # Don't attempt to serialize templates which are built-in
+            return
         mongodb_collection = self.mongodb_database[collection.collection_types()]
         data = mongodb_collection.find_one({"uid": item.uid})
         if data:

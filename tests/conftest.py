@@ -139,7 +139,6 @@ def create_distro(
             test_distro.name = name  # type: ignore[method-assign]
         test_distro.kernel = os.path.join(test_folder, fk_kernel)  # type: ignore
         test_distro.initrd = os.path.join(test_folder, fk_initrd)  # type: ignore
-        print(test_distro.boot_loaders)
         if with_add:
             cobbler_api.add_distro(test_distro)
         return test_distro
@@ -270,12 +269,33 @@ def cleanup_leftover_items():
         "repos",
         "systems",
         "network_interfaces",
+        "templates",
     ]
     for collection in cobbler_collections:
         path = collection_path / collection
         for file in path.iterdir():
             file.unlink()
-            logger.info(f"Deleted {str(file)}")
+            logger.info("Deleted %s", str(file))
+
+
+@pytest.fixture(name="cleanup_bind_serial", scope="function", autouse=True)
+def fixture_cleanup_bind_serial():
+    """
+    Will delete the bind serial file after every testrun.
+    """
+    yield
+    pathlib.Path("/var/lib/cobbler/bind_serial").unlink(missing_ok=True)
+
+
+@pytest.fixture(name="cleanup_templates_directory", scope="function", autouse=True)
+def fixture_cleanup_templates_directory():
+    """
+    Will delete the bind serial file after every testrun.
+    """
+    yield
+    for path in pathlib.Path("/var/lib/cobbler/templates").iterdir():
+        if path.is_file():
+            path.unlink()
 
 
 @pytest.fixture(name="fk_initrd", scope="function")
@@ -300,31 +320,3 @@ def fixture_fk_kernel(request: "pytest.FixtureRequest") -> str:
     return "vmlinuz_%s" % (
         request.node.originalname if request.node.originalname else request.node.name  # type: ignore
     )
-
-
-@pytest.fixture(scope="function")
-def redhat_autoinstall() -> str:
-    """
-    The path to the test.ks file for redhat autoinstall.
-
-    :return: A path as a string.
-    """
-    return "test.ks"
-
-
-@pytest.fixture(scope="function")
-def suse_autoyast() -> str:
-    """
-    The path to the suse autoyast xml-file.
-    :return: A path as a string.
-    """
-    return "test.xml"
-
-
-@pytest.fixture(scope="function")
-def ubuntu_preseed() -> str:
-    """
-    The path to the ubuntu preseed file.
-    :return: A path as a string.
-    """
-    return "test.seed"

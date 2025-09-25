@@ -5,17 +5,18 @@ Test to verify the functionality of the dnsmasq DHCP & DNS module.
 import time
 
 import pytest
-from pytest_mock.plugin import MockerFixture
+from pytest_mock import MockerFixture
 
-from cobbler import utils
+from cobbler import enums, utils
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.network_interface import NetworkInterface
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
+from cobbler.items.template import Template
 from cobbler.modules.managers import dnsmasq
 from cobbler.settings import Settings
-from cobbler.templar import Templar
+from cobbler.templates import Templar
 
 
 @pytest.fixture(name="cobbler_api")
@@ -23,6 +24,7 @@ def fixture_cobbler_api(mocker: "MockerFixture") -> CobblerAPI:
     """
     Mock to prevent the full creation of a CobblerAPI and Settings object.
     """
+    # pylint: disable=protected-access
     settings_mock = mocker.MagicMock(name="cobbler_api_mock", spec=Settings)
     settings_mock.server = "192.168.1.1"
     settings_mock.next_server_v4 = "192.168.1.1"
@@ -34,10 +36,17 @@ def fixture_cobbler_api(mocker: "MockerFixture") -> CobblerAPI:
     settings_mock.allow_duplicate_hostnames = True
     settings_mock.allow_duplicate_macs = True
     settings_mock.allow_duplicate_ips = True
+    settings_mock.dnsmasq_settings_file = "/etc/dnsmasq.conf"
     settings_mock.dnsmasq_hosts_file = "/var/lib/cobbler/cobbler_hosts"
     settings_mock.dnsmasq_ethers_file = "/etc/ethers"
     api_mock = mocker.MagicMock(autospec=True, spec=CobblerAPI)
     api_mock.settings.return_value = settings_mock
+    test_template = Template(
+        api_mock, tags={enums.TemplateTag.ACTIVE.value, enums.TemplateTag.DNSMASQ.value}
+    )
+    test_template._Template__content = "test"  # type: ignore
+    api_mock.find_template.return_value = [test_template]
+    api_mock.templar = mocker.MagicMock(autospec=True, spec=Templar)
     return api_mock
 
 
@@ -113,7 +122,6 @@ def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI)
         "time.gmtime",
         return_value=time.struct_time((2000, 1, 1, 0, 0, 0, 0, 1, 1)),
     )
-    mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
     mock_distro = Distro(cobbler_api)
     mock_distro.arch = "x86_64"  # type: ignore[method-assign]
     mock_profile = Profile(cobbler_api)
@@ -140,13 +148,12 @@ def test_manager_write_configs(mocker: "MockerFixture", cobbler_api: CobblerAPI)
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
     test_manager.systems = [mock_system]  # type: ignore
-    test_manager.templar = mocker.MagicMock(spec=Templar, autospec=True)
 
     # Act
     test_manager.write_configs()
 
     # Assert
-    test_manager.templar.render.assert_called_once_with(  # type: ignore
+    test_manager.api.templar.render.assert_called_once_with(  # type: ignore
         "test",
         {
             "insert_cobbler_system_definitions": f"dhcp-host=net:x86_64,{system_mac},{system_dns},{system_ip4},[{system_ip6}]\n",
@@ -243,7 +250,9 @@ def test_manager_regen_ethers(
 
 
 def test_manager_remove_single_ethers_entry(
-    mocker: "MockerFixture", cobbler_api: CobblerAPI, generate_test_system: System
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    generate_test_system: System,
 ):
     """
     Test to verify that a single entry can be removed from the ethers file.

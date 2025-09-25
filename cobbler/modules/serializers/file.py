@@ -49,6 +49,10 @@ class FileSerializer(StorageBase):
         self.libpath = "/var/lib/cobbler/collections"
 
     def serialize_item(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
+        if hasattr(item, "built_in") and getattr(item, "built_in") is True:
+            # Don't attempt to serialize templates which are built-in
+            return
+
         collection_types = collection.collection_types()
         filename = os.path.join(self.libpath, collection_types, item.uid + ".json")
 
@@ -72,10 +76,11 @@ class FileSerializer(StorageBase):
             os.remove(filename)
 
     def serialize(self, collection: "Collection[ITEM]") -> None:
-        # do not serialize settings
-        if collection.collection_type() != "setting":
-            for item in collection:
-                self.serialize_item(collection, item)
+        if collection.collection_type() == "setting":
+            # do not serialize settings
+            return
+        for item in collection:
+            self.serialize_item(collection, item)
 
     def deserialize_raw(self, collection_type: str) -> List[Dict[str, Any]]:
         results: List[Dict[str, Any]] = []

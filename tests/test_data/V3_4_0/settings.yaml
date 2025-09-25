@@ -9,15 +9,15 @@ auto_migrate_settings: false
 
 # If "true", Cobbler will allow insertions of system records that duplicate the "--dns-name" information of other system
 # records. In general, this is undesirable and should be left "false".
-allow_duplicate_hostnames: false
+allow_duplicate_hostnames: &allow_duplicate_hostnames false
 
 # If "true", Cobbler will allow insertions of system records that duplicate the ip address information of other system
 # records. In general, this is undesirable and should be left "false".
-allow_duplicate_ips: false
+allow_duplicate_ips: &allow_duplicate_ips false
 
 # If "true", Cobbler will allow insertions of system records that duplicate the MAC address information of other system
 # records. In general, this is undesirable.
-allow_duplicate_macs: false
+allow_duplicate_macs: &allow_duplicate_macs false
 
 # If "true", Cobbler will allow settings to be changed dynamically without a restart of the cobblerd daemon. You can
 # only change this variable by manually editing the settings file, and you MUST restart cobblerd after changing it.
@@ -30,21 +30,14 @@ allow_dynamic_settings: false
 # ok with this limitation.
 anamon_enabled: false
 
-# If using "authn_pam" in the "modules.conf", this can be configured to change the PAM service authentication will be
-# tested against.
-# The default value is "login".
+# If the key "modules.authentication.module" in this file is set to the value "authentication.pam", this setting chooses
+# the PAM authentication stack used.
 authn_pam_service: "login"
 
 # How long the authentication token is valid for, in seconds.
 auth_token_expiration: 3600
 
-# This is a directory of files that Cobbler uses to make templating easier. See the Wiki for more information.  Changing
-# this directory should not be required.
-autoinstall_snippets_dir: /var/lib/cobbler/snippets
-autoinstall_templates_dir: /var/lib/cobbler/templates
-
 # location of templates used for boot loader config generation
-boot_loader_conf_template_dir: "/etc/cobbler/boot_loader_conf"
 bootloaders_dir: "/var/lib/cobbler/loaders"
 bootloaders_formats:
   aarch64:
@@ -127,15 +120,15 @@ bootloaders_modules:
   - gcry_rijndael
   - gcry_sha1
   - gcry_sha256
-syslinux_dir: '/usr/share/syslinux'
-syslinux_memdisk_folder: '/usr/share/syslinux'
-syslinux_pxelinux_folder: '/usr/share/syslinux'
-grub2_mod_dir: '/usr/share/grub2'
-bootloaders_shim_folder: '/usr/share/efi/*/'
-bootloaders_shim_file: 'shim\.efi'
-secure_boot_grub_folder: '/usr/share/efi/*/'
-secure_boot_grub_file: 'grub\.efi'
-bootloaders_ipxe_folder: '/usr/share/ipxe/'
+syslinux_dir: '@@syslinux_dir@@'
+syslinux_memdisk_folder: '@@memdisk_folder@@'
+syslinux_pxelinux_folder: '@@pxelinux_folder@@'
+grub2_mod_dir: '@@grub_mod_folder@@'
+bootloaders_shim_folder: '@@shim_folder@@'
+bootloaders_shim_file: '@@shim_file@@'
+secure_boot_grub_folder: '@@secure_grub_folder@@'
+secure_boot_grub_file: '@@secure_grub_file@@'
+bootloaders_ipxe_folder: '@@ipxe_folder@@'
 
 # Email out a report when Cobbler finishes installing a system.
 # enabled: set to true to turn this feature on
@@ -165,7 +158,7 @@ cheetah_import_whitelist:
 createrepo_flags: "--cachedir=cache --update"
 
 # if no autoinstall template is specified to profile add, use this template (path is relative to template root)
-autoinstall: "default.ks"
+autoinstall: "built-in-default.ks"
 
 # configure all installed systems to use these nameservers by default
 # unless defined differently in the profile.  For DHCP configurations
@@ -200,9 +193,9 @@ default_password_crypted: "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac."
 default_template_type: "cheetah"
 
 # for libvirt based installs in koan, if no virt bridge
-# is specified, which bridge do we try?  For EL 4/5 hosts
-# this should be xenbr0, for all versions of Fedora, try
-# "virbr0".  This can be overriden on a per-profile
+# is specified, which bridge do we try?  For defauit libvirt
+# NAT nework use "virbr0".  For bridged networks, use bridge
+# device name (e.g. "br0"). This can be overriden on a per-profile
 # basis or at the koan command line though this saves
 # typing to just set it here to the most common option.
 default_virt_bridge: virbr0
@@ -215,9 +208,22 @@ default_virt_ram: 512
 
 # if koan is invoked without --virt-type and no virt-type
 # is set on the profile/system, what virtualization type
-# should be assumed?  Values: xenpv, xenfv, qemu, vmware
+# should be assumed?
+# Values: qemu, kvm, xenpv, xenfv, vmware, vmwarew, openvz, auto
 # (NOTE: this does not change what virt_type is chosen by import)
 default_virt_type: kvm
+
+# The virtualization disk format
+default_virt_disk_driver: "raw"
+
+# The path to the ethers file used by the dnsmasq manager module.
+# Note that if you change this path, you might have to reconfigure
+# external systems that also use the file. See `man 5 ethers`
+# for more information about the file and its uses.
+dnsmasq_ethers_file: "/etc/ethers"
+
+# The path to the hosts file used by the dnsmasq manager module.
+dnsmasq_hosts_file: "/var/lib/cobbler/cobbler_hosts"
 
 # enable iPXE booting? Enabling this option will cause Cobbler
 # to copy the undionly.kpxe file to the tftp root directory,
@@ -288,25 +294,22 @@ puppetca_path: "/usr/bin/puppet"
 remove_old_puppet_certs_automatically: false
 
 # choose a --server argument when running puppetd/puppet agent during autoinstall
-#puppet_server: 'puppet'
+puppet_server: ""
 
 # let Cobbler know that you're using a newer version of puppet
 # choose version 3 to use: 'puppet agent'; version 2 uses status quo: 'puppetd'
-#puppet_version: 2
+puppet_version: 2
 
 # choose whether to enable puppet parameterized classes or not.
 # puppet versions prior to 2.6.5 do not support parameters
 puppet_parameterized_classes: true
 
-# set to true to enable Cobbler's DHCP management features.
-# the choice of DHCP management engine is in /etc/cobbler/modules.conf
+# Use the "modules.dhcp.module" key to configure DHCP management engine
 # See the docs (https://cobbler.readthedocs.io/en/latest/user-guide.html#dhcp-management) for more info
-manage_dhcp: false
 
 # set to true to enable DHCP IPv6 address configuration generation.
 # This currently only works with manager.isc DHCP module (isc dhcpd6 daemon)
-# See /etc/cobbler/modules.conf whether this isc module is chosen for dhcp
-# generation.
+# See "modules.dhcp.module" whether this isc module is chosen for dhcp generation.
 manage_dhcp_v6: false
 
 # set to true to enable DHCP IPv4 address configuration generation.
@@ -323,9 +326,9 @@ next_server_v4: 127.0.0.1
 # Set the cobbler IPv6 address here so that PXE booting guests can find it
 next_server_v6: "::1"
 
-# set to true to enable Cobbler's DNS management features.
-# the choice of DNS management engine is in /etc/cobbler/modules.conf
-# needs manage_forward_zones and manage_reverse_zones to be set, too.
+# Set this key to true to enable Cobbler's DNS management features.
+# Use the key "modules.dns.module" in this file to control which DNS management engine is utilized. Needs
+# "manage_forward_zones" and "manage_reverse_zones" to be set as well.
 manage_dns: false
 
 # set to path of bind chroot to create bind-chroot compatible bind
@@ -337,15 +340,14 @@ bind_chroot_path: ""
 bind_manage_ipmi: true
 
 # set to path where zonefiles of bind/named server are located.
-bind_zonefile_path: "/var/lib/named"
+bind_zonefile_path: "@@bind_zonefiles@@"
 
 # set to the ip address of the master bind DNS server for creating secondary
 # bind configuration files
 bind_master: 127.0.0.1
 
-# if using BIND (named) for DNS management in /etc/cobbler/modules.conf
-# and manage_dns is enabled (above), this lists which zones are managed
-# See the docs (https://cobbler.readthedocs.io/en/latest/user-guide.html#dns-configuration-management) for more info
+# If you use BIND (named) for DNS management and manage_dns is enabled (above), this lists managed zones.
+# See https://cobbler.rtfd.io/en/latest/user-guide/dns-management.html for more info.
 manage_forward_zones: []
 manage_reverse_zones: []
 
@@ -353,19 +355,22 @@ manage_reverse_zones: []
 manage_genders: false
 
 # set to true to enable Cobbler's TFTP management features.
-# the choice of TFTP management engine is in /etc/cobbler/modules.conf
+# Use the key "modules.tftpd.module" in this file to choose of TFTP management engine which is utilized.
 manage_tftpd: true
 
 # This variable contains the location of the tftpboot directory. If this directory is not present Cobbler does not
 # start.
-# Default: "/var/lib/tftpboot"
-tftpboot_location: "/var/lib/tftpboot"
+# Default: @@tftproot@@
+tftpboot_location: "@@tftproot@@"
+
+# The location where Cobbler searches for GRUB configuration files
+grubconfig_dir: "/var/lib/cobbler/grub_config"
 
 # set to true to enable Cobbler's RSYNC management features.
 manage_rsync: false
 
 # settings for power management features.  optional.
-# see https://github.com/cobbler/cobbler/wiki/Power-management to learn more
+# see https://cobbler.rtfd.io/en/latest/user-guide/power-management.html to learn more
 # choices (refer to codes.py):
 #    apc_snmp bladecenter bullpap drac ether_wake ilo integrity
 #    ipmilan ipmilanplus lpar rsa virsh wti
@@ -388,17 +393,19 @@ nopxe_with_triggers: true
 # authentication within Cobbler Web and Cobbler XMLRPC.
 redhat_management_server: "xmlrpc.rhn.redhat.com"
 
-# if using authn_spacewalk in modules.conf to let Cobbler authenticate
-# against Satellite/Spacewalk's auth system, by default it will not allow per user
-# access into Cobbler Web and Cobbler XMLRPC.
-# in order to permit this, the following setting must be enabled HOWEVER
-# doing so will permit all Spacewalk/Satellite users of certain types to edit all
-# of Cobbler's configuration.
-# these roles are:  config_admin and org_admin
-# users should turn this on only if they want this behavior and
-# do not have a cross-multi-org seperation concern.  If you have
-# a single org in your satellite, it's probably safe to turn this
-# on and then you can use CobblerWeb alongside a Satellite install.
+# This setting is only used by the code that supports using uyuni/SUSE Manager
+# authentication within Cobbler Web and Cobbler XMLRPC. This is the endpoint for 
+# uyuni/SUSE Manager authentication: if empty redhat_management_server will be used.
+uyuni_authentication_endpoint: ""
+
+# If the key "modules.authentication.module" in this file is set to the value "authentication.spacewalk"
+# Satellite/Spacewalk's auth system is used. Cobbler does not allow user-based access into Cobbler Web and
+# Cobbler XMLRPC by default.
+# Enable the following setting to permit user-based access to Cobbler's API. Note that doing so permits all
+# Spacewalk/Satellite users with the "config_admin" and "org_admin" roles to edit Cobbler's configuration.
+# Users should turn this on only if they want this behavior and do not have a cross-multi-org seperation concern. If
+# you have a single org in your satellite, it's probably safe to turn this on and then you can use CobblerWeb alongside
+# a Satellite install.
 redhat_management_permissive: false
 
 # specify the default Red Hat authorization key to use to register
@@ -478,7 +485,7 @@ virt_auto_boot: true
 
 # Cobbler's web directory. Don't change this setting -- see the Wiki on "Relocating your Cobbler install" if your "/var"
 # partition is not large enough.
-webdir: "/var/www/cobbler"
+webdir: "@@webroot@@/cobbler"
 
 # Directories that will not get wiped and recreated on a "cobbler sync".
 webdir_whitelist:
@@ -527,6 +534,9 @@ yumdownloader_flags: "--resolve"
 # sort and indent JSON output to make it more human-readable
 serializer_pretty_json: false
 
+# Used for replicating the Cobbler instance
+cobbler_master: ""
+
 # replication rsync options for distros, autoinstalls, snippets set to override default value of "-avzH"
 replicate_rsync_options: "-avzH"
 
@@ -544,10 +554,6 @@ proxy_url_ext: ""
 # Eg: proxy_url_int: "http://10.0.0.1:8080"
 proxy_url_int: ""
 
-# This is a directory of files that Cobbler uses to include
-# files into Jinja2 templates
-jinja2_includedir: "/var/lib/cobbler/jinja2"
-
 # Up to now, cobblerd used $server's IP address instead of the DNS name in autoinstallation
 # file settings (pxelinux.cfg files) to save bytes, which seemed required for S/390 systems.
 # This behavior can have negative impact on installs with multi-homed Cobbler servers, because
@@ -555,16 +561,8 @@ jinja2_includedir: "/var/lib/cobbler/jinja2"
 # This behavior was now made conditional, with default being "off".
 convert_server_to_ip: false
 
-# Leftover settings
+# Used for caching the intermediate files for ISO-Building
 buildisodir: "/var/cache/cobbler/buildiso"
-cobbler_master: ""
-default_virt_disk_driver: "raw"
-grubconfig_dir: "/var/lib/cobbler/grub_config"
-iso_template_dir: "/etc/cobbler/iso"
-
-# Puppet
-puppet_server: ""
-puppet_version: 2
 
 # Signatures
 signature_path: "/var/lib/cobbler/distro_signatures.json"
@@ -584,9 +582,6 @@ nsupdate_log: "/var/log/cobbler/nsupdate.log"
 
 # Set to true to enable the generation of Windows boot files in Cobbler.
 windows_enabled: false
-
-# Location of templates used for Windows
-windows_template_dir: "/etc/cobbler/windows"
 
 # Samba share name for distros
 samba_distro_share: "DISTRO"
@@ -612,10 +607,15 @@ mongodb:
   host: "localhost"
   port: 27017
 
-# A cache of some internal operations can speed up their execution, but can slow down
+# Set to true to cache of some internal operations can speed up their execution, but can slow down
 # editing objects.
 cache_enabled: false
 
+# This should contain the protocol over which the autointall-file is available.
+# Valid values are: http, https
+# This is setting does not setup your api for https it just changes the way the url for your profiles and systems are
+# generated.
+autoinstall_scheme: "http"
 
 # Set to true to speed up the start of the Cobbler. When storing collections as files, the directory with the names
 # of the collection elements will be scanned without reading and parsing the files themselves. In the case of storing
@@ -626,5 +626,80 @@ cache_enabled: false
 # Suitable for configurations with a large number of elements placed on a slow device (HDD, network).
 lazy_start: false
 
-# list settings keys to exclude from validation - helpful to validate and migrate custom settings
-extra_settings_list: []
+# Indexing collections in memory can speed up access to collections with a large number of elements.
+memory_indexes:
+    distro:
+        name:
+            nonunique: false
+            disabled: false
+        arch:
+            nonunique: true
+            disabled: false
+    image:
+        name:
+            nonunique: false
+            disabled: false
+        arch:
+            nonunique: true
+            disabled: false
+        menu:
+            nonunique: true
+            disabled: false
+    menu:
+        name:
+            nonunique: false
+            disabled: false
+        parent:
+            property: "get_parent"
+            nonunique: true
+            disabled: false
+    profile:
+        name:
+            nonunique: false
+            disabled: false
+        parent:
+            property: "get_parent"
+            nonunique: true
+            disabled: false
+        distro:
+            nonunique: true
+            disabled: false
+        arch:
+            nonunique: true
+            disabled: false
+        menu:
+            nonunique: true
+            disabled: false
+        repos:
+            nonunique: true
+            disabled: false
+    repo:
+        name:
+            nonunique: false
+            disabled: false
+    system:
+        name:
+            nonunique: false
+            disabled: false
+        image:
+            nonunique: true
+            disabled: false
+        profile:
+            nonunique: true
+            disabled: false
+    network_interface:
+        name:
+            nonunique: true
+            disabled: false
+        mac_address:
+            nonunique: *allow_duplicate_macs
+            disabled: *allow_duplicate_macs
+        ipv4.address:
+            nonunique: *allow_duplicate_ips
+            disabled: *allow_duplicate_ips
+        ipv6.address:
+            nonunique: *allow_duplicate_ips
+            disabled: *allow_duplicate_ips
+        dns.name:
+            nonunique: *allow_duplicate_hostnames
+            disabled: *allow_duplicate_hostnames

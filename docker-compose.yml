@@ -44,11 +44,11 @@ services:
     volumes:
       - ./rpm-build/rl9:/usr/src/cobbler/rpm-build
 
-  fedora37-build:
-    image: local/cobbler-fedora37
-    container_name: cobbler-fedora37
+  fedora41-build:
+    image: local/cobbler-fedora41
+    container_name: cobbler-fedora41
     build:
       context: .
-      dockerfile: docker/rpms/Fedora_37/Fedora37.dockerfile
+      dockerfile: docker/rpms/Fedora_41/Fedora37.dockerfile
     volumes:
-      - ./rpm-build/f37:/usr/src/cobbler/rpm-build
+      - ./rpm-build/f41:/usr/src/cobbler/rpm-build
