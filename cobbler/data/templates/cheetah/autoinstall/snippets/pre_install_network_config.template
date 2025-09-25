@@ -34,10 +34,18 @@ get_ifname() {
     #set $vlanpattern = $re.compile("[a-zA-Z0-9]+[\.][0-9]+")
     #set $routepattern = $re.compile("[0-9/.]+:[0-9.]+")
     ##
-    ## collect bridge slaves
+    ## collect bond and bridge slaves
+    #set $bond_slaves = {}
     #set $bridge_slaves = {}
     #for $iname in $ikeys
-        #if $interfaces[$iname]["interface_type"] == "bridge_slave"
+        #if $interfaces[$iname]["interface_type"] == "bond_slave"
+            #set $this_master = $interfaces[$iname]["interface_master"]
+            #if $this_master and not $this_master in $bridge_slaves
+                #set $bond_slaves[$this_master] = []
+            #end if
+            <% bond_slaves[this_master].append(iname) %>
+        #end if
+        #if $interfaces[$iname]["interface_type"] in ("bridge_slave","bonded_bridge_slave")
             #set $this_master = $interfaces[$iname]["interface_master"]
             #if $this_master and not $this_master in $bridge_slaves
                 #set $bridge_slaves[$this_master] = []
@@ -45,8 +53,6 @@ get_ifname() {
             <% bridge_slaves[this_master].append(iname) %>
         #end if
     #end for
-    #set $i = 0
-
     #for $iname in $ikeys
 #  Start $iname
         #set $idata         = $interfaces[$iname]
@@ -68,34 +74,7 @@ get_ifname() {
         #if $iface_type.lower() == "bmc"
             #continue
         #end if
-        #if ($iface_type.lower() not in ("bond_slave","bridge_slave","bonded_bridge_slave")) or $iface_type.lower() in ("bond","bridge")
-            ## This is a physical interface, hand it to anaconda. Do not
-            ## process slave interface here.
-            #if $iface_type.lower() in ("bond","bridge","bonded_bridge_slave")
-                ## Find a slave for this interface
-                #for $tiname in $ikeys
-                    #set $tidata = $interfaces[$tiname]
-                    #if $tidata["interface_type"].lower() in ("bond_slave","bridge_slave") and $tidata["interface_master"].lower() == $iname
-                        #if $tidata["mac_address"] != '':
-                            #set $mac = $tidata["mac_address"]
-#  Found a slave for this interface: $tiname ($mac)
-                            #break
-                        #end if
-                    #else if $tidata["interface_type"].lower() == "bonded_bridge_slave" and $tidata["interface_master"].lower() == $iname
-                        ## find a slave for this slave interface...
-                        #for $stiname in $ikeys
-                            #set $stidata = $interfaces[$stiname]
-                            #if $stidata["interface_type"].lower() in ("bond_slave","bridge_slave") and $stidata["interface_master"].lower() == $tiname
-                                #if $stidata["mac_address"] != '':
-                                    #set $mac = $stidata["mac_address"]
-#  Found a slave for this interface: $tiname -> $stiname ($mac)
-                                    #break
-                                #end if
-                            #end if
-                        #end for
-                    #end if
-                #end for
-            #end if
+        #if $iface_type.lower() not in ("bond_slave","bridge_slave","bonded_bridge_slave")
             #if $static and ($ip != "" or $ip6 != "")
                 ## Set static proto, don't know yet if ipv4 or ipv6 or both
                 #set $netinfo = "--bootproto=static"
@@ -130,8 +109,8 @@ get_ifname() {
             #else
                 ## Skip this interface, it's set as static, but without
                 ## networking info.
-#  Skipping (no configuration)...
-#  Ensure there is some pre_install_network_config file created
+#   Skipping (no configuration)...
+#   Ensure there is some pre_install_network_config file created
 touch /tmp/pre_install_network_config
                 #continue
             #end if
@@ -142,11 +121,38 @@ touch /tmp/pre_install_network_config
                 #set $vlan_id = $iname.split(".")[1]
                 #set $netinfo += " --vlanid=$vlan_id"
             #end if
-# Configuring $iname ($mac) $iface_type
-            #if $iface_type == "bridge"
-            #set $this_slaves = ','.join($bridge_slaves[$iname])
-echo "network $netinfo --device=$iname --bridgeslaves=$this_slaves --onboot=on" >> /tmp/pre_install_network_config
+        #end if
+#   Configuring $iname ($mac) $iface_type
+        #if $iface_type in ("bond", "bonded_bridge_slave")
+            #set $opts = $idata["bonding_opts"]
+            #if $iname in $bond_slaves
+                #set $slaves = ','.join($bond_slaves[$iname])
+echo "network $netinfo --device=$iname --bondslaves=$slaves --bondopts=$opts --onboot=on" >> /tmp/pre_install_network_config
             #else
+#    ERROR - no slaves for $iname
+            #end if
+        #else if $iface_type == "bridge"
+            #set $opts = $idata["bridge_opts"]
+            #if $iname in $bridge_slaves
+                #set $slaves = ','.join($bridge_slaves[$iname])
+echo "network $netinfo --device=$iname --bridgeslaves=$slaves --bridgeopts=$opts --onboot=on" >> /tmp/pre_install_network_config
+            #else
+#    ERROR - no slaves for $iname
+            #end if
+        #else if $iface_type.lower() in ("bond_slave","bridge_slave")
+            #if $getVar("os_version","") in ["rhel8", "rhel9"]
+#   Work around https://bugzilla.redhat.com/show_bug.cgi?id=2031385#c8
+if mac_exists $mac
+then
+  get_ifname $mac
+  echo "network --device=\$IFNAME --onboot=off" >> /tmp/pre_install_network_config
+else
+  echo "network --device=$iname --onboot=off" >> /tmp/pre_install_network_config
+fi
+            #else
+#   Skipping (slave-interface)
+            #end if
+        #else
 if mac_exists $mac
 then
   get_ifname $mac
@@ -172,23 +178,6 @@ else
                 #end if
             #end for
 fi
-            #end if
-        #else
-            #if $iface_type.lower() in ("bond_slave","bridge_slave","bonded_bridge_slave")
-#  Skipping (slave-interface)
-                #if $getVar("os_version","") in ["rhel8", "rhel9"]
-#    work around https://bugzilla.redhat.com/show_bug.cgi?id=2031385#c8
-if mac_exists $mac
-then
-  get_ifname $mac
-  echo "network --device=\$IFNAME --onboot=off" >> /tmp/pre_install_network_config
-else
-  echo "network --device=$iname --onboot=off" >> /tmp/pre_install_network_config
-fi
-                #end if
-            #else
-#  Skipping (not a physical interface)...
-            #end if
         #end if
     #end for
 # End pre_install_network_config generated code
