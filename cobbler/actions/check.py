@@ -142,7 +142,7 @@ class CobblerCheck:
                     status.append("service %s is not running%s" % (which, notes))
                     return
         elif utils.is_systemd():
-            return_code = utils.subprocess_call("systemctl status %s > /dev/null 2>/dev/null" % which,
+            return_code = utils.subprocess_call("systemctl is-active --quiet %s > /dev/null 2>/dev/null" % which,
                                                 shell=True)
             if return_code != 0:
                 status.append("service %s is not running%s" % (which, notes))
