@@ -1,0 +1,1 @@
+check: Use systemctl is-active --quiet to check the status of services
