@@ -4,7 +4,7 @@ After=syslog.target network.target
 Wants=@@httpd_service@@
 
 [Service]
-ExecStart=/usr/bin/cobblerd -F
+ExecStart=@@cobblerd_location@@ -F
 PrivateTmp=yes
 KillMode=process
 Type=notify

@@ -25,6 +25,7 @@ four sources or from source with Git Tags.
 - `openSUSE Tumbleweed <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
 - `openSUSE Leap 15.x <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
 
+.. _install-prerequisites:
 
 Prerequisites
 #############
@@ -182,6 +183,38 @@ Init script:
 
 - add Required-Stop line
 - path needs to be ``/usr/local/...`` or fix the install location
+
+Pip
+###
+
+While this installation method is not recommended, since Cobbler is a Python-Project, you can install Cobbler with
+``pip`` (the Python Package manager). To do so please follow the following steps:
+
+.. note::
+   Cobbler will never be compatible with virtual environments that don't inherit from the system due to dependencies
+   like ``dnf`` (`PyPi Link <https://pypi.org/project/dnf/>`_)
+
+Additional dependencies needed for installation via pip:
+
+- python-pip
+- openldap2 (with devel and client subpackages)
+- cyrus-sasl development headers
+
+Installation process:
+
+#. Please ensure that the system-level dependencies mentioned in :ref:`install-prerequisites` are available.
+#. Ensure that additional system-level dependencies for pip-installation are available.
+#. Install Pip (in case you haven't automatically done so)
+#. Install Cobbler with pip: ``pip install --break-system-packages git+https://github.com/cobbler/cobbler.git``
+#. Move all required files and folders into place with ``cobblerd setup``
+
+Example with a minimal openSUSE Tumbleweed container:
+
+```
+zypper in -y gcc git python3-devel fence-agents rsync syslinux python3-gunicorn createrepo_c ipmitool python3-gunicorn cyrus-sasl-devel python3-legacycrypt systemd-devel mtools dosfstools python3-pip openldap2-devel openldap2 openldap2-client
+pip install --break-system-packages git+https://github.com/cobbler/cobbler.git
+cobblerd setup
+```
 
 Multi-Build
 ###########

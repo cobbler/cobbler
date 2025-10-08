@@ -3,6 +3,7 @@ Module to provide reasonable defaults to the cobblerd setup utility.
 """
 
 import pathlib
+import shutil
 from dataclasses import dataclass
 from typing import Dict
 
@@ -68,6 +69,10 @@ class DistroOptions:
         result: Dict[str, str] = {}
         for key, value in vars(self).items():
             result[key] = str(value)
+        cobblerd_location = shutil.which("cobblerd")
+        if cobblerd_location is None:
+            cobblerd_location = "/usr/bin/cobblerd"
+        result["cobblerd_location"] = cobblerd_location
         return result
 
 
