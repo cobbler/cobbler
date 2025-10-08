@@ -15,6 +15,11 @@ import re
 import socket
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
+try:
+    from importlib.resources import files  # type: ignore
+except ImportError:
+    from importlib_resources import files  # type: ignore
+
 from cobbler import enums, grub, utils
 from cobbler.cexceptions import CX
 from cobbler.enums import Archs, ImageTypes
@@ -52,6 +57,30 @@ class TFTPGen:
         self.menus = api.menus()
         self.bootloc = self.settings.tftpboot_location
 
+    def copy_static_grub_files(self) -> None:
+        """
+        Copy the embedded, hardcoded GRUB configuration to the TFTP root. This method only writes files that don't yet
+        exist.
+        """
+        bootloc = pathlib.Path(self.bootloc)
+        resource_files = files("cobbler.data.config.grub")
+        # Create grub folder
+        (bootloc / "grub").mkdir(exist_ok=True)
+        # Copy grub.cfg
+        grub_cfg = bootloc / "grub.cfg"
+        if not grub_cfg.exists():
+            grub_cfg.write_text(
+                resource_files.joinpath("grub.cfg").read_text(encoding="UTF-8"),
+                encoding="UTF-8",
+            )
+        # Copy contents of grub subfolder
+        for file in resource_files.joinpath("grub").iterdir():
+            grub_config_file = bootloc / "grub" / file.name
+            if not grub_config_file.exists():
+                grub_config_file.write_text(
+                    file.read_text(encoding="UTF-8"), encoding="UTF-8"
+                )
+
     def copy_bootloaders(self, dest: str) -> None:
         """
         Copy bootloaders to the configured tftpboot directory
@@ -59,6 +88,7 @@ class TFTPGen:
         """
         src = self.settings.bootloaders_dir
         dest = self.bootloc
+        self.copy_static_grub_files()
         # Unfortunately using shutils copy_tree the dest directory must not exist, but we must not delete an already
         # partly synced /srv/tftp dir here. rsync is very convenient here, being very fast on an already copied folder.
         utils.subprocess_call(
