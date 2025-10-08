@@ -7,6 +7,7 @@ components based on distribution options and installation scope.
 """
 
 import pathlib
+import shutil
 from typing import TYPE_CHECKING, List
 
 try:
@@ -86,13 +87,15 @@ def setup_cobblerd_manpages(
     """
     man_directory = base_path
     man5_files = resource_files.joinpath("man").joinpath("man5")
-    man5_directory = man_directory / "man5"
-    man5_directory.mkdir(parents=True, exist_ok=True)
-    copy_directory(man5_files, man5_directory)
+    if man5_files.is_dir():
+        man5_directory = man_directory / "man5"
+        man5_directory.mkdir(parents=True, exist_ok=True)
+        copy_directory(man5_files, man5_directory)
     man8_files = resource_files.joinpath("man").joinpath("man8")
-    man8_directory = man_directory / "man8"
-    man8_directory.mkdir(parents=True, exist_ok=True)
-    copy_directory(man8_files, man8_directory)
+    if man8_files.is_dir():
+        man8_directory = man_directory / "man8"
+        man8_directory.mkdir(parents=True, exist_ok=True)
+        copy_directory(man8_files, man8_directory)
 
 
 def setup_cobblerd_logrotate(
@@ -189,7 +192,10 @@ def setup_cobblerd(
     autoinstall_templates_path.mkdir(parents=True, exist_ok=True)
     # Move distro_signatures.json to /var/lib/cobbler
     signatures_filename = "distro_signatures.json"
-    (etc_path / signatures_filename).rename((var_path / signatures_filename))
+    old_signatures_path = etc_path / signatures_filename
+    if old_signatures_path.exists():
+        # Can't use rename because may be cross-device
+        shutil.move(old_signatures_path, (var_path / signatures_filename))
     # Create Apache & Nginx config
     webconfigpath = get_prefixed_path(distro_options.webconfig, base_path)
     if "apache" in scope or "full" in scope:
@@ -220,7 +226,7 @@ def setup_cobblerd(
         (etc_path / "settings.yaml"),
         (webconfigpath / "cobbler.conf"),
         base_path / pathlib.Path("etc/nginx/cobbler.conf"),
-        base_path / pathlib.Path("etc/systemd/system/cobbler.service"),
+        base_path / pathlib.Path("etc/systemd/system/cobblerd.service"),
     ]
     for file in configure_files:
         if file.exists():
