@@ -461,15 +461,17 @@ zone "%(arpa)s." {
                 s += "%s  %s  %s  %s;\n" % (my_name, rclass, my_rectype, my_host)
         return s
 
-    def __pretty_print_cname_records(self, hosts, rectype: str = 'CNAME'):
+    def __pretty_print_cname_records(self, hosts, rectype: str = 'CNAME', rclass: str = 'IN'):
         """
         Format CNAMEs and with consistent indentation
 
         :param hosts: This parameter is currently unused.
         :param rectype: The type of record which shall be pretty printed.
+        :param rclass: The record class.
         :return: The pretty printed version of the cname records.
         """
         s = ""
+        zone_alliases = {}
 
         # This loop warns and skips the host without dns_name instead of outright exiting
         # Which results in empty records without any warning to the users
@@ -482,13 +484,22 @@ zone "%(arpa)s." {
                     if interface.dns_name != "":
                         dnsname = interface.dns_name.split('.')[0]
                         for cname in cnames:
-                            s += "%s  %s  %s;\n" % (cname.split('.')[0], rectype, dnsname)
+                            zone_alliases[cname.split('.')[0]] = dnsname
                     else:
                         self.logger.info("Warning: dns_name unspecified in the system: %s, Skipped!, while writing "
                                          "cname records", system.name)
                         continue
                 except:
                     pass
+
+        aliases = [ k for k, v in zone_alliases.items() ]
+        aliases.sort()
+        max_alias = max([ len(i) for i in aliases ])
+
+        for alias in aliases:
+            spacing = " " * (max_alias - len(alias))
+            my_alias = "%s%s" % (alias, spacing)
+            s += "%s  %s  %s  %s;\n" % (my_alias, rclass, rectype, zone_alliases[alias])
 
         return s
 
