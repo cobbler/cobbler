@@ -210,11 +210,11 @@ Installation process:
 
 Example with a minimal openSUSE Tumbleweed container:
 
-```
-zypper in -y gcc git python3-devel fence-agents rsync syslinux python3-gunicorn createrepo_c ipmitool python3-gunicorn cyrus-sasl-devel python3-legacycrypt systemd-devel mtools dosfstools python3-pip openldap2-devel openldap2 openldap2-client
-pip install --break-system-packages git+https://github.com/cobbler/cobbler.git
-cobblerd setup
-```
+.. code-block:: shell
+
+   $ zypper in -y gcc git python3-devel fence-agents rsync syslinux python3-gunicorn createrepo_c ipmitool python3-gunicorn cyrus-sasl-devel python3-legacycrypt systemd-devel mtools dosfstools python3-pip openldap2-devel openldap2 openldap2-client
+   $ pip install --break-system-packages git+https://github.com/cobbler/cobbler.git
+   $ cobblerd setup
 
 Multi-Build
 ###########
