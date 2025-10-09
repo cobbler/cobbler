@@ -9,10 +9,10 @@ reboot
 
 autopart --firstdisk --overwritevmfs
  
-$SNIPPET('network_config_esxi')
+$SNIPPET('built-in-network_config_esxi')
 
 %pre --unsupported --interpreter=busybox
-$SNIPPET('autoinstall_start')
+$SNIPPET('built-in-autoinstall_start')
 
 %post --unsupported --interpreter=busybox
-$SNIPPET('autoinstall_done')
+$SNIPPET('built-in-autoinstall_done')

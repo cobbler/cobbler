@@ -13,4 +13,3 @@ network --bootproto dhcp
 
 # Rescue method (only NFS/FTP/HTTP currently supported)
 url --url=$tree
-

@@ -1,4 +1,4 @@
-# Start post_install_network_config generated code 
+# Start post_install_network_config generated code
 #if $getVar("system_name","") != ""
     ## this is being provisioned by system records, not profile records
     ## so we can do the more complex stuff
@@ -276,4 +276,4 @@ echo "nameserver $nameserver" >>/etc/resolv.conf
         #end for
     #end if
 #end if
-# End post_install_network_config generated code 
+# End post_install_network_config generated code

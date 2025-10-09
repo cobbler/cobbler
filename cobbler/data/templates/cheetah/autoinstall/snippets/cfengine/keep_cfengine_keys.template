@@ -12,8 +12,8 @@ keys_found=no
 # /var could be a separate partition
 SHORTDIR=${SEARCHDIR#/var}
 if [ $SHORTDIR = $SEARCHDIR ]; then
-	SHORTDIR=''
-fi	
+  SHORTDIR=''
+fi
 insmod /lib/jbd.o
 insmod /lib/ext3.o
 
@@ -32,15 +32,15 @@ function findkeys
     fi
     # Copy current host keys out to be reused
     if [ -d /tmp/$tmpdir$SEARCHDIR ] && cp -a /tmp/$tmpdir$SEARCHDIR/${PATTERN}* /tmp/$TEMPDIR; then
-        keys_found="yes"
-	umount /tmp/$tmpdir
-	rm -r /tmp/$tmpdir
-	break
+      keys_found="yes"
+      umount /tmp/$tmpdir
+      rm -r /tmp/$tmpdir
+      break
     elif [ -n "$SHORTDIR" ] && [ -d /tmp/$tmpdir$SHORTDIR ] && cp -a /tmp/$tmpdir$SHORTDIR/${PATTERN}* /tmp/$TEMPDIR; then
-	keys_found="yes"
-        umount /tmp/$tmpdir
-	rm -r /tmp/$tmpdir
-        break
+      keys_found="yes"
+      umount /tmp/$tmpdir
+      rm -r /tmp/$tmpdir
+      break
     fi
     umount /tmp/$tmpdir
     rm -r /tmp/$tmpdir

@@ -515,21 +515,26 @@ def test_generate_script(
     Test to verify that a requested script is generated.
     """
     # Arrange
+    expected_template = "# Start preseed_early_default\n"
+    expected_template += "# This script is not run in the chroot /target by default\n"
+    expected_template += "$SNIPPET('built-in-autoinstall_start')\n"
+    expected_template += "$SNIPPET('built-in-save_boot_device')\n"
+    expected_template += "# End preseed_early_default\n"
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
     test_gen = tftpgen.TFTPGen(cobbler_api)
     mocker.patch("cobbler.utils.blender", return_value={})
-    mocker.patch("builtins.open", mocker.mock_open(read_data="test"))
-    mocker.patch("os.path.exists", return_value=True)
     test_gen.api.templar = mocker.MagicMock(spec=Templar, autospec=True)
 
     # Act
-    result = test_gen.generate_script("profile", test_profile.name, "script_name.xml")
+    result = test_gen.generate_script(
+        "profile", test_profile.name, "built-in-preseed_early_default"
+    )
 
     # Assert
     assert isinstance(result, mocker.MagicMock)
     test_gen.api.templar.render.assert_called_with(  # type: ignore
-        "test", {"img_path": f"/images/{test_distro.name}"}, None
+        expected_template, {"img_path": f"/images/{test_distro.name}"}, None
     )
 
 

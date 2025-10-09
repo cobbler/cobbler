@@ -1,6 +1,6 @@
 wpeinit
 
-$SNIPPET('wait_network_online')
+$SNIPPET('built-in-wait_network_online')
 #set $distros_dir = '\\\\' + $http_server + '\\' + $samba_distro_share
 #set $distro_share = 'Z:\\links\\' + $distro_name
 net use z: $distros_dir

@@ -10,13 +10,13 @@ rootpw --iscrypted $default_password_crypted
 install --firstdisk --overwritevmfs
 clearpart --firstdisk --overwritevmfs
 
-$SNIPPET('network_config')
+$SNIPPET('built-in-network_config')
 
 %pre --interpreter=busybox
 
-$SNIPPET('autoinstall_start')
-$SNIPPET('pre_install_network_config')
+$SNIPPET('built-in-autoinstall_start')
+$SNIPPET('built-in-pre_install_network_config')
 
 %post --interpreter=busybox
 
-$SNIPPET('autoinstall_done')
+$SNIPPET('built-in-autoinstall_done')

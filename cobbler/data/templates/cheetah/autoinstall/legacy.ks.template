@@ -18,7 +18,7 @@ lang en_US
 # Use network installation
 url --url=$tree
 # Network information
-$SNIPPET('network_config')
+$SNIPPET('built-in-network_config')
 # Reboot after installation
 reboot
 
@@ -38,29 +38,28 @@ zerombr
 autopart
 
 %pre
-$SNIPPET('log_ks_pre')
-$SNIPPET('autoinstall_start')
-$SNIPPET('pre_install_network_config')
-$SNIPPET('pre_anamon')
+$SNIPPET('built-in-log_ks_pre')
+$SNIPPET('built-in-autoinstall_start')
+$SNIPPET('built-in-pre_install_network_config')
+$SNIPPET('built-in-pre_anamon')
 
 %packages
 
 %post --nochroot
-$SNIPPET('log_ks_post_nochroot')
+$SNIPPET('built-in-log_ks_post_nochroot')
 %end
 
 %post
-$SNIPPET('log_ks_post')
+$SNIPPET('built-in-log_ks_post')
 # Begin yum configuration
 $yum_config_stanza
 # End yum configuration
-$SNIPPET('post_install_kernel_options')
-$SNIPPET('post_install_network_config')
-$SNIPPET('download_config_files')
-$SNIPPET('koan_environment')
-$SNIPPET('redhat_register')
-$SNIPPET('cobbler_register')
+$SNIPPET('built-in-post_install_kernel_options')
+$SNIPPET('built-in-post_install_network_config')
+$SNIPPET('built-in-download_config_files')
+$SNIPPET('built-in-koan_environment')
+$SNIPPET('built-in-redhat_register')
+$SNIPPET('built-in-cobbler_register')
 # Begin final steps
-$SNIPPET('autoinstall_done')
+$SNIPPET('built-in-autoinstall_done')
 # End final steps
-
