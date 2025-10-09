@@ -9,6 +9,7 @@ User Guide
    DNS Management <user-guide/dns-management>
    Configuration Management Integrations <user-guide/configuration-management-integrations>
    Windows installation with Cobbler <user-guide/wingen>
+   Ubuntu cloud-init autoinstall with Cobbler <user-guide/ubuntu-autoinstall>
    Extending Cobbler <user-guide/extending-cobbler>
    Terraform Provider for Cobbler <user-guide/terraform-provider>
    Building ISOs <user-guide/building-isos>
