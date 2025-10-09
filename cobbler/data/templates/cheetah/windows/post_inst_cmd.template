@@ -1,6 +1,6 @@
 Echo on
 
-$SNIPPET('wait_network_online')
+$SNIPPET('built-in-wait_network_online')
 #if $os_version not in ('xp', '2003')
 powershell -command "& {\$WebClient = New-Object System.Net.WebClient; \$WebClient.DownloadFile('http://@@http_server@@/cblr/svc/op/autoinstall/profile/%1','install.cmd')}"
 #else

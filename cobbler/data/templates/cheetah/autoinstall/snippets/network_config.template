@@ -85,7 +85,7 @@ network $network_str --device=$iname
 #else
 ## profile based install so just provide one interface for starters
 #if $getVar('os_version','').find("rhel3") == -1
-network --bootproto=dhcp --device=eth0 --onboot=on  
+network --bootproto=dhcp --device=eth0 --onboot=on
 #else
 network $network_str --device=$iname
 #end if

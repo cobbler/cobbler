@@ -1,0 +1,22 @@
+## Start download cobbler managed config files (if applicable)
+#import os
+#import stat
+#set $cmd = '\\'
+#for $tkey, $tpath in $template_files.items()
+    #set $orig = $tpath
+    #set $tpath = $tpath.replace("_","__").replace("/","_")
+    #if $getVar("system_name","") != ""
+        #set $ttype = "system"
+        #set $tname = $system_name
+    #else
+        #set $ttype = "profile"
+        #set $tname = $profile_name
+    #end if
+    #set $turl = "http://"+$http_server+"/cblr/svc/op/template/"+$ttype+"/"+$tname+"/path/"+$tpath
+#if $orig.startswith("/")
+#set $perms = oct(stat.S_IMODE(os.stat($tkey).st_mode))[-3:]
+#set $cmd = $cmd + "\n" + "mkdir -p " + "`dirname " + $orig + "`; wget -nv " + $turl + " --output-document=" + $orig + "; chmod " + $perms +" " + $orig +"; \\"
+#end if
+#end for
+#echo $cmd
+## End download cobbler managed config files (if applicable)

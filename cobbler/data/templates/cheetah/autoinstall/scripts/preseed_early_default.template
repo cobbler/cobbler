@@ -1,5 +1,5 @@
 # Start preseed_early_default
 # This script is not run in the chroot /target by default
-$SNIPPET('autoinstall_start')
-$SNIPPET('save_boot_device')
+$SNIPPET('built-in-autoinstall_start')
+$SNIPPET('built-in-save_boot_device')
 # End preseed_early_default

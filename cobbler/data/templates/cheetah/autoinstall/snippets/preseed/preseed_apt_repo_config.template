@@ -1,0 +1,22 @@
+# Additional repositories, local[0-9] available
+#set $cur=0
+#set $repo_data = $getVar("repo_data",[])
+#for $repo in $repo_data
+ #for $dist in $repo.apt_dists
+ #set $comps = " ".join($repo.apt_components)
+d-i apt-setup/local${cur}/repository string \
+ #if $repo.mirror_locally
+      http://$http_server/cblr/repo_mirror/${repo.name} $dist $comps
+ #else
+      ${repo.mirror} $dist $comps
+ #end if
+ #if $repo.comment != ""
+d-i apt-setup/local${cur}/comment string ${repo.comment}
+ #end if
+ #if $repo.breed == "src"
+# Enable deb-src lines
+d-i apt-setup/local${cur}/source boolean false
+ #end if
+ #set $cur=$cur+1
+ #end for
+#end for

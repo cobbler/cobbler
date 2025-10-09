@@ -94,7 +94,7 @@ d-i passwd/make-user boolean false
 # d-i apt-setup/security_host string security.ubuntu.com
 # d-i apt-setup/security_path string /ubuntu
 
-$SNIPPET('preseed_apt_repo_config')
+$SNIPPET('built-in-preseed_apt_repo_config')
 
 # Enable deb-src lines
 # d-i apt-setup/local0/source boolean true

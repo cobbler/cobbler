@@ -1,0 +1,4 @@
+# Start koan environment setup
+echo "export COBBLER_SERVER=$server" > /etc/profile.d/cobbler.sh
+echo "setenv COBBLER_SERVER $server" > /etc/profile.d/cobbler.csh
+# End koan environment setup

@@ -1,0 +1,3 @@
+#if $str($getVar('puppet_auto_setup','')) == "True"
+puppet
+#end if

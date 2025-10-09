@@ -1,0 +1,7 @@
+#if $str($getVar('anamon_enabled','')) == "True"
+curl -o /tmp/anamon "http://$server:$http_port/cobbler/misc/anamon"
+python=python
+[ -x /usr/libexec/platform-python ] && python=/usr/libexec/platform-python
+[ -x /usr/bin/python3 ] && python=/usr/bin/python3
+\$python /tmp/anamon --name "$name" --server "$server" --port "$http_port"
+#end if

@@ -1,0 +1,15 @@
+# start puppet registration 
+#if $str($getVar('puppet_auto_setup','')) == "True"
+# generate puppet certificates and trigger a signing request, but
+# don't wait for signing to complete
+#if $int($getVar('puppet_version',2)) >= 3
+/usr/bin/puppet agent --test --waitforcert 0 #echo (($str($getVar('puppet_server','')) != '') and "--server '"+$str($getVar('puppet_server',''))+"'" or '')
+#else
+/usr/sbin/puppetd --test --waitforcert 0 #echo (($str($getVar('puppet_server','')) != '') and "--server '"+$str($getVar('puppet_server',''))+"'" or '')
+#end if
+
+# turn puppet service on for reboot
+/sbin/chkconfig puppet on
+
+#end if
+# end puppet registration

@@ -1,4 +1,4 @@
 # Start preseed_nochroot_late_default
 # This script runs in the / directory by default
-$SNIPPET('restore_boot_device')
+$SNIPPET('built-in-restore_boot_device')
 # End preseed_nochroot_late_default

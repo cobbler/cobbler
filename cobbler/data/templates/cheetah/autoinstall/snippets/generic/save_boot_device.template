@@ -1,0 +1,17 @@
+#if ( "ppc" in $arch ) and ( $breed == "suse" or $breed == "redhat" or $breed == "ubuntu" )
+# Some Linux distributions, such as Fedora 17+, SLES 11+ and RHEL 7+, set the disk
+# as first boot device in Power machines. Therefore, save the original boot
+# order, so it can be restored after installation is completed.
+#if ( $breed == "suse" or $breed == "ubuntu" )
+nvram --print-config=boot-device > /root/boot-device.bak
+#else
+# Once root's homedir is there, copy over the log.
+while : ; do
+    sleep 10
+    if [ -d /mnt/sysimage/root ]; then
+	nvram --print-config=boot-device > /mnt/sysimage/root/boot-device.bak
+        break
+    fi
+done &
+#end if
+#end if

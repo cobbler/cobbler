@@ -10,18 +10,18 @@ partition / --ondisk=/dev/sda
 # device on the command-line, we can skip it
 
 %pre
-$SNIPPET('log_ks_pre')
-$SNIPPET('autoinstall_start')
+$SNIPPET('built-in-log_ks_pre')
+$SNIPPET('built-in-autoinstall_start')
 %end
 
 %post
-$SNIPPET('log_ks_post')
+$SNIPPET('built-in-log_ks_post')
 # Start yum configuration
 $yum_config_stanza
 # End yum configuration
-$SNIPPET('post_install_kernel_options')
-$SNIPPET('post_install_network_config')
+$SNIPPET('built-in-post_install_kernel_options')
+$SNIPPET('built-in-post_install_network_config')
 # Start final steps
-$SNIPPET('autoinstall_done')
+$SNIPPET('built-in-autoinstall_done')
 # End final steps
 %end

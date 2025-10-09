@@ -46,15 +46,15 @@ function findkeys
     fi
     # Copy current host keys out to be reused
     if [ -d /tmp/$tmpdir$SEARCHDIR ] && cp -a /tmp/$tmpdir$SEARCHDIR/${PATTERN}* /tmp/$TEMPDIR; then
-        keys_found="yes"
-	umount /tmp/$tmpdir
-	rm -r /tmp/$tmpdir
-	break
+      keys_found="yes"
+      umount /tmp/$tmpdir
+      rm -r /tmp/$tmpdir
+      break
     elif [ -n "$SHORTDIR" ] && [ -d /tmp/$tmpdir$SHORTDIR ] && cp -a /tmp/$tmpdir$SHORTDIR/${PATTERN}* /tmp/$TEMPDIR; then
-	keys_found="yes"
-        umount /tmp/$tmpdir
-	rm -r /tmp/$tmpdir
-        break
+      keys_found="yes"
+      umount /tmp/$tmpdir
+      rm -r /tmp/$tmpdir
+      break
     fi
     umount /tmp/$tmpdir
     rm -r /tmp/$tmpdir
@@ -72,7 +72,7 @@ function search_for_keys
  # /var could be a separate partition
  SHORTDIR=${SEARCHDIR#/var}
  if [ $SHORTDIR = $SEARCHDIR ]; then
-	SHORTDIR=''
+  SHORTDIR=''
  fi
 
  mkdir -p /tmp/$TEMPDIR
@@ -134,7 +134,7 @@ function fix_ssh_key_groups
         echo "SSH: ssh_keys has group id: $gid_ssh_keys -> setting that on the key-files."
         chown :$gid_ssh_keys /mnt/sysimage/etc/ssh/ssh_host*key
     else
-	echo "SSH: ssh_keys -group id not found."
+        echo "SSH: ssh_keys -group id not found."
     fi
  fi
 }
@@ -151,10 +151,10 @@ function restore_keys
         if [ -d /mnt/sysimage${SEARCHDIR} ] ; then
             cp -af /tmp/${TEMPDIR}/${PATTERN}* /mnt/sysimage${SEARCHDIR}
             logger "${TEMPDIR} keys copied to newly installed system"
-	    if [ "$PATTERN" = "ssh_host_" ]; then
-	       fix_ssh_key_groups
-	    fi
-	    break
+            if [ "$PATTERN" = "ssh_host_" ]; then
+               fix_ssh_key_groups
+            fi
+            break
         fi
     done &
  fi

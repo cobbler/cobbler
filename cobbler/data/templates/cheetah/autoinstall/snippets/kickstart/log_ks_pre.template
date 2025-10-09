@@ -1,0 +1,12 @@
+set -x -v
+exec 1>/tmp/ks-pre.log 2>&1
+
+# Once root's homedir is there, copy over the log.
+while : ; do
+    sleep 10
+    if [ -d /mnt/sysimage/root ]; then
+        cp /tmp/ks-pre.log /mnt/sysimage/root/
+        logger "Copied %pre section log to system"
+        break
+    fi
+done &

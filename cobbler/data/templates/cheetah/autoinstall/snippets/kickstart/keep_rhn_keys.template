@@ -1,0 +1,88 @@
+#raw
+
+## this snippet should NOT be used with systems subscribed
+## to Red Hat Satellite Server or Spacewalk as these
+## have a concept of "reactivation keys" to keep the systems
+## appearing to be the same.  Also do not use if changing
+## base channels, i.e. RHEL4 -> RHEL5 upgrades.
+
+echo "Saving RHN keys..." > /dev/ttyS0
+
+rhn_keys_found=no
+
+insmod /lib/jbd.o
+insmod /lib/ext3.o
+
+mkdir -p /tmp/rhn
+
+drives=$(list-harddrives | awk '{print $1}')
+for disk in $drives; do
+    DISKS="$DISKS $(fdisk -l /dev/$disk | awk '/^\/dev/{print $1}')"
+done
+
+# Try to find the keys on ordinary partitions
+for disk in $DISKS; do
+    name=$(basename $disk)
+    mkdir -p /tmp/$name
+    mount $disk /tmp/$name
+    [ $? -eq 0 ] || continue # Skip to the next partition if the mount fails
+
+    # Copy current RHN host keys out to be reused
+    if [ -d /tmp/${name}/etc/sysconfig/rhn ]; then
+        cp -a /tmp/${name}/etc/sysconfig/rhn/install-num /tmp/rhn
+        cp -a /tmp/${name}/etc/sysconfig/rhn/systemid /tmp/rhn
+        cp -a /tmp/${name}/etc/sysconfig/rhn/up2date /tmp/rhn
+        rhn_keys_found="yes"
+        umount /tmp/$name
+        break
+    fi
+    umount /tmp/$name
+    rm -r /tmp/$name
+done
+
+# Try LVM if that didn't work
+if [ "$rhn_keys_found" = "no" ]; then
+    lvm lvmdiskscan
+    vgs=$(lvm vgs | tail -n +2 | awk '{ print $1 }')
+    for vg in $vgs; do
+        # Activate any VG we found
+        lvm vgchange -ay $vg
+    done
+    
+    lvs=$(lvm lvs | tail -n +2 | awk '{ print "/dev/" $2 "/" $1 }')
+    for lv in $lvs; do
+        tmpdir=$(mktemp -d findkeys.XXXXXX)
+        mkdir -p /tmp/${tmpdir}
+        mount $lv /tmp/${tmpdir} || continue # Skip to next volume if this fails
+
+        # Let's see if the keys are in there
+        if [ -d /tmp/${tmpdir}/etc/sysconfig/rhn ]; then
+            cp -a /tmp/${tmpdir}/etc/sysconfig/rhn/install-num* /tmp/rhn/
+            cp -a /tmp/${tmpdir}/etc/sysconfig/rhn/systemid* /tmp/rhn/
+            cp -a /tmp/${tmpdir}/etc/sysconfig/rhn/up2date /tmp/rhn/
+            rhn_keys_found="yes"
+            umount /tmp/${tmpdir}
+            break # We're done!
+        fi
+        umount /tmp/${tmpdir}
+        rm -r /tmp/${tmpdir}
+    done
+    
+    # And clean up..
+    for vg in $vgs; do
+        lvm vgchange -an $vg
+    done
+fi
+
+# Loop until the RHN rpm is installed
+if [ "$rhn_keys_found" = "yes" ]; then
+    while : ; do
+        sleep 10
+        if [ -d /mnt/sysimage/etc/sysconfig/rhn ] ; then
+            cp -af /tmp/rhn/* /mnt/sysimage/etc/sysconfig/rhn/
+            logger "RHN KEY copied to newly installed system"
+            break
+        fi
+    done &
+fi
+#end raw

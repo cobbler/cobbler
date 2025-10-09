@@ -1,0 +1,23 @@
+#if $str($getVar('anamon_enabled','')) == "True"
+
+## install anamon script
+curl -o /usr/local/sbin/anamon "http://$server:$http_port/cobbler/misc/anamon"
+## install anamon system service
+curl -o /etc/rc.d/init.d/anamon "http://$server:$http_port/cobbler/misc/anamon.init"
+
+## adjust permissions
+chmod 755 /etc/rc.d/init.d/anamon /usr/local/sbin/anamon
+test -d /selinux && restorecon /etc/rc.d/init.d/anamon /usr/local/sbin/anamon
+
+## enable the script
+chkconfig --add anamon
+
+## configure anamon service
+cat << __EOT__ > /etc/sysconfig/anamon
+COBBLER_SERVER="$server"
+COBBLER_PORT="$http_port"
+COBBLER_NAME="$name"
+LOGFILES="/var/log/boot.log /var/log/messages /var/log/dmesg /root/ks-post.log"
+__EOT__
+
+#end if

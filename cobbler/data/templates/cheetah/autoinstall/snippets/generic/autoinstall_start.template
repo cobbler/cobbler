@@ -1,0 +1,27 @@
+#set system_name = $getVar('system_name','')
+#set profile_name = $getVar('profile_name','')
+#if $system_name != ''
+    #set object_type = 'system'
+    #set object_name = $system_name
+#else if $profile_name != ''
+    #set object_type = 'profile'
+    #set object_name = $profile_name
+#else
+    #set object_type = ''
+    #set object_name = ''
+#end if
+#set breed = $getVar('breed','')
+#set srv = $getVar('http_server','')
+#set run_install_triggers = $getVar('run_install_triggers','')
+#set runpre = ""
+#if $object_type != ''
+    ## RUN PRE TRIGGER
+    #if $run_install_triggers
+        #if $breed == 'redhat' or $breed == 'suse'
+            #set runpre = "\ncurl \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -o /dev/null" % (srv, object_type, object_name)
+        #else
+            #set runpre = "\nwget \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -O /dev/null" % (srv, object_type, object_name)
+        #end if
+    #end if
+#end if
+#echo $runpre

@@ -1,0 +1,16 @@
+#if ( "ppc" in $arch ) and ( $breed == "suse" or $breed == "redhat" or $breed == "ubuntu")
+# Some Linux distributions, such as Fedora 17+, SLES 11+ and RHEL 7+, set the disk
+# as first boot device in Power machines. Therefore, restore the original boot
+# order.
+#if ( $breed == "suse" )
+# we have already chrooted, former /root is available now at /root/inst-sys
+boot_order_orig="\$(cat /root/inst-sys/boot-device.bak)"
+#else
+boot_order_orig="\$(cat /root/boot-device.bak)"
+#end if
+boot_order_cur="\$(nvram --print-config=boot-device)"
+if [[ ( -n "\$boot_order_orig" ) &&  ( "\$boot_order_orig" != "\$boot_order_cur" ) ]]
+then
+    nvram --update-config boot-device="\$boot_order_orig"
+fi
+#end if
