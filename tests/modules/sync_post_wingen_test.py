@@ -1,5 +1,5 @@
 """
-TODO
+Test module to verify the functionality of the sync_post_wingen plugin module.
 """
 
 from typing import TYPE_CHECKING
@@ -17,6 +17,9 @@ if TYPE_CHECKING:
 
 
 def test_register():
+    """
+    Test if the module registers with the correct ID.
+    """
     # Arrange & Act
     result = sync_post_wingen.register()
 
@@ -25,6 +28,9 @@ def test_register():
 
 
 def test_run(mocker: "MockerFixture"):
+    """
+    Test that the module can be executed sucessfully if all dependencies are available.
+    """
     # Arrange
     settings_mock = mocker.MagicMock(
         name="sync_post_wingen_run_setting_mock", spec=Settings

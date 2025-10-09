@@ -795,7 +795,7 @@ class System(BootableItem):
         if isinstance(profile, list):
             raise ValueError("Search returned ambigous match!")
         if profile is None:
-            raise ValueError(f'Profile with the name "{profile_uid}" is not existing')
+            raise ValueError(f'Profile with the uid "{profile_uid}" is not existing')
 
         self.image = ""  # mutual exclusion rule
         self._profile = profile_uid

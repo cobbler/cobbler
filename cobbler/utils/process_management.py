@@ -59,7 +59,9 @@ def service_restart(service_name: str) -> int:
             try:
                 process_info = server.supervisor.getProcessInfo(service_name)
                 if not isinstance(process_info, dict):
-                    raise ValueError("TODO")
+                    raise ValueError(
+                        f"Returned Process Info didn't have the expected type dict! Found type {type(process_info)}."
+                    )
                 process_state = process_info.get("state", -1)
                 if process_state in (10, 20):
                     server.supervisor.stopProcess(service_name)

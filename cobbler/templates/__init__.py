@@ -75,7 +75,7 @@ new templates are added or old ones are removed, this mapping has to be adjusted
 
 class BaseTemplateProvider:
     """
-    TODO
+    Abstract base template provider that allows custom providers to be implemented with a common set of methods.
     """
 
     template_language = "generic"
@@ -85,9 +85,9 @@ class BaseTemplateProvider:
 
     def __init__(self, api: "CobblerAPI"):
         """
-        TODO
+        Construcutor
 
-        :param api: TODO
+        :param api: The CobblerAPI instance to use for querying for information inside Cobbler.
         """
         self.api = api
         self.logger = logging.getLogger()
@@ -131,7 +131,10 @@ class BaseTemplateProvider:
 
     def __load_templates_in_folder(self, folder: "Traversable") -> List[Template]:
         """
-        TODO
+        This method loads all templates in a given importlib Traversable and adds them to the application as built-in.
+        The method will call itself recursively in case it encounters another folder.
+
+        :param folder: The Traversable object to use as a base folder. The folder may contain templates and folders.
         """
         result: List[Template] = []
         for entry in folder.iterdir():
@@ -187,7 +190,8 @@ class Templar:
 
     def load_template_providers(self) -> None:
         """
-        TODO
+        Load all template providers that Cobbler is offering. This is dynamic to prevent the need to adjust for
+        hardcoding the available types and discourage the assumption that a given provider is available.
         """
         self.logger.debug("Loading template providers...")
         template_providers = pathlib.Path(__file__).parent
@@ -213,7 +217,8 @@ class Templar:
 
     def load_built_in_templates(self) -> None:
         """
-        TODO
+        Load all built-in templates for all providers and add them to the API. The added templates will not be
+        modifiable.
         """
         self.logger.debug("Loading built-in templates...")
         total_templates = 0
@@ -237,11 +242,11 @@ class Templar:
         self, template_type: str, lines: List[str]
     ) -> Tuple[str, str]:
         """
-        TODO
+        Method to detect the kind of template.
 
-        :param template_type: TODO
-        :param lines: TODO
-        :returns: TODO
+        :param template_type: The requested template type. In case "default" is given, auto-detection is attempted.
+        :param lines: The lines of the template.
+        :returns: A Tuple with the template type as the first element and the content of the template.
         """
         if template_type is None:  # type: ignore[reportUnnecessaryComparison]
             raise ValueError('"template_type" can\'t be "None"!')

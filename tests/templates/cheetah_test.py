@@ -1,5 +1,5 @@
 """
-TODO
+Test module for verifying Cheetah template functionalities in Cobbler.
 """
 
 import pytest
@@ -11,7 +11,7 @@ from cobbler.templates.cheetah import CheetahTemplateProvider, CobblerCheetahTem
 
 def test_check_for_invalid_imports(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify that invalid imports in Cheetah templates are correctly identified and raise an exception.
     """
     # Arrange
     test_templar = CheetahTemplateProvider(cobbler_api)
@@ -24,7 +24,7 @@ def test_check_for_invalid_imports(cobbler_api: CobblerAPI):
 
 def test_compile(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify that a simple Cheetah template can be compiled and rendered correctly.
     """
     # Arrange
 
@@ -40,7 +40,7 @@ def test_compile(cobbler_api: CobblerAPI):
 
 def test_read_snippet_none(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify that attempting to read a non-existing snippet returns None.
     """
     # Arrange
     test_template = CobblerCheetahTemplate(cobbler_api=cobbler_api)
@@ -54,7 +54,7 @@ def test_read_snippet_none(cobbler_api: CobblerAPI):
 
 def test_read_snippet(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify that a known built-in snippet can be read correctly.
     """
     # Arrange
     test_template = CobblerCheetahTemplate(cobbler_api=cobbler_api)
@@ -72,7 +72,7 @@ def test_read_snippet(cobbler_api: CobblerAPI):
 
 def test_nonexisting_snippet(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify that requesting a non-existing snippet returns the appropriate error message.
     """
     # Arrange
     test_template = CobblerCheetahTemplate(cobbler_api=cobbler_api)
@@ -86,7 +86,7 @@ def test_nonexisting_snippet(cobbler_api: CobblerAPI):
 
 def test_snippet(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify that a known built-in snippet can be retrieved correctly.
     """
     # Arrange
     test_template = CobblerCheetahTemplate(
@@ -105,7 +105,7 @@ def test_snippet(cobbler_api: CobblerAPI):
 
 def test_sedesc(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify that special characters in a string are correctly escaped.
     """
     # Arrange
     test_input = "This () needs [] to ^ be * escaped {}."

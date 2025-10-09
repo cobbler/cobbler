@@ -166,7 +166,6 @@ def test_built_in_legacy_ks(
     result = autoinstall_manager.generate_autoinstall(test_profile.name, None)
 
     # Assert
-    # TODO: Extend assertion
     assert isinstance(result, str)
     assert result == "\n".join(expected_result)
 

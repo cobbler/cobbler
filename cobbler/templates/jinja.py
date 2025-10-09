@@ -23,23 +23,20 @@ if JINJA2_AVAILABLE:
 
     class CobblerJinjaLoader(jinja2.BaseLoader):
         """
-        TODO
+        Custom Jinja template loader that allows loading templates from the CobblerAPI.
         """
 
         def __init__(self, cobbler_api: "CobblerAPI") -> None:
             """
             Constructor
 
-            :param cobbler_api: TODO
+            :param cobbler_api: The CobblerAPI object to search for templates.
             """
             self.cobbler_api = cobbler_api
 
         def get_source(
             self, environment: "jinja2.Environment", template: str
         ) -> Tuple[str, Optional[str], Optional[Callable[[], bool]]]:
-            """
-            TODO
-            """
             search_result = self.cobbler_api.find_template(False, False, name=template)
             if search_result is None or isinstance(search_result, list):
                 raise jinja2.TemplateNotFound(template)

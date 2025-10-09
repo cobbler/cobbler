@@ -1,5 +1,10 @@
 """
-TODO
+All code blonging to Cobbler Templates.
+
+Changelog:
+
+V3.4.0 (unrelased):
+    * Initial add of datatype.
 """
 
 import copy
@@ -22,7 +27,7 @@ else:
 
 class Template(BaseItem):
     """
-    TODO
+    A Cobbler template object.
     """
 
     TYPE_NAME = "template"
@@ -42,11 +47,11 @@ class Template(BaseItem):
             self: "URIOption", cobbler_api: "CobblerAPI", value: str
         ) -> bool:
             """
-            TODO
+            Autoinstall Path validation hook that allows to validate if the path is a valid one.
 
-            :param api: TODO
-            :param value: TODO
-            :returns: TODO
+            :param api: The Cobbler API object to search for data.
+            :param value: The new value for the path component.
+            :returns: True in case the path is valid, False otherwhise.
             """
             return validate.validate_autoinstall_template_file_path(
                 cobbler_api,
@@ -141,17 +146,20 @@ class Template(BaseItem):
     @property
     def content(self) -> str:
         """
-        The content of the template.
+        Property for the content of the template.
 
-        :getter: TODO
-        :setter: TODO
+        :getter: Returns a cached version of the template content.
+        :setter: In case a supported template type is set this will write the given content to the target URI.
         """
         return self.__content
 
     @content.setter
     def content(self, val: str) -> None:
         """
-        TODO
+        The setter for the content of a given template. Accept a string.
+
+        :raises ValueError: In case the URI is empty, the schema is of type improtlib or the template schema is
+            unsupported.
         """
         if not self._uri.path:
             raise ValueError("Setting the content with an empty URI is not possible!")
@@ -168,21 +176,28 @@ class Template(BaseItem):
     @property
     def uri(self) -> URIOption:
         """
-        TODO
+        Represents the location where the template is located at.
+
+        :getter: Returns the current URIOption object.
         """
         return self._uri
 
     @LazyProperty
     def template_type(self) -> str:
         """
-        TODO
+        This represents the template type/language that must be used to render the template.
+
+        :getter: Returns the current template_type.
+        :setter: Sets the new value for the template_type property.
         """
         return self._template_type
 
     @template_type.setter
     def template_type(self, val: str):
         """
-        TODO
+        Setter for the template_type property.
+
+        :param val: The string with the new value.
         """
         template_providers = self.api.templar.available_template_providers
         if val not in template_providers:
@@ -195,20 +210,30 @@ class Template(BaseItem):
     @LazyProperty
     def built_in(self) -> bool:
         """
-        TODO
+        Property that represents if a template is built-in or not.
+
+        If a template is built-in it is not persisted to disk and none of it effectively becomes read-only.
+
+        :getter: Returns True if the template is built-in.
         """
         return self._built_in
 
     @LazyProperty
     def tags(self) -> Set[str]:
         """
-        TODO
+        Property that represents the set of tags a template has. A tag can be any string, there are however strings with
+        special meanings that means that a template is used for a special purpose inside of Cobbler.
+
+        :getter: Returns the current Set of tags.
+        :setter: Sets the new value for the tags property.
         """
         return self._tags
 
     @tags.setter
     def tags(self, val: Set[str]):
         """
-        TODO
+        Setter for the tags property.
+
+        :param val: The string with the new value.
         """
         self._tags = val

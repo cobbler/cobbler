@@ -288,7 +288,7 @@ def test_get_item_resolved_value(
     expected_exception: Any,
 ):
     """
-    TODO
+    Verify that getting resolved values via XML-RPC works as expected.
     """
     # Arrange
     fk_kernel = "vmlinuz1"

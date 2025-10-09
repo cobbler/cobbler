@@ -24,7 +24,8 @@ if TYPE_CHECKING:
 @pytest.fixture(name="api_genders_mock")
 def fixture_api_genders_mock(mocker: "MockerFixture") -> CobblerAPI:
     """
-    TODO
+    Fixture to provide a CobblerAPI mock that allows for test assertions and more isolated testing of the genders
+    module.
     """
     # pylint: disable=protected-access
     settings_mock = mocker.MagicMock(name="genders_setting_mock", spec=Settings)
@@ -76,7 +77,7 @@ def fixture_api_genders_mock(mocker: "MockerFixture") -> CobblerAPI:
 
 def test_register():
     """
-    TODO
+    Test if the manager registers with the correct ID.
     """
     # Arrange
     # Act
@@ -88,7 +89,7 @@ def test_register():
 
 def test_write_genders_file(mocker: "MockerFixture", api_genders_mock: CobblerAPI):
     """
-    TODO
+    Test to verify if the genders configuration file is generated correctly.
     """
     # Arrange
     templar_mock = api_genders_mock.templar
@@ -121,7 +122,7 @@ def test_write_genders_file(mocker: "MockerFixture", api_genders_mock: CobblerAP
 
 def test_run(mocker: "MockerFixture", api_genders_mock: CobblerAPI):
     """
-    TODO
+    Test to verify that the module works as desired in its entirety.
     """
     # Arrange
     genders_mock = mocker.patch(
