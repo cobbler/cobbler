@@ -1,5 +1,5 @@
 """
-TODO
+Cobbler module that at runtime holds all templates in Cobbler.
 """
 
 from typing import TYPE_CHECKING, Any, Dict, List
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 class Templates(Collection[template.Template]):
     """
-    TODO
+    A template represents a text file that has placeholders which are replaced with actual values during rendering.
     """
 
     @staticmethod

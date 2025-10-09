@@ -1,5 +1,5 @@
 """
-TODO
+Test module for verifying Jinja template functionalities in Cobbler.
 """
 
 import pytest
@@ -11,14 +11,14 @@ from cobbler.templates.jinja import JinjaTemplateProvider
 @pytest.fixture(name="test_provider", scope="function")
 def fixture_test_provider(cobbler_api: CobblerAPI):
     """
-    TODO
+    Fixture to provide a JinjaTemplateProvider instance for testing.
     """
     return JinjaTemplateProvider(cobbler_api)
 
 
 def test_provider_creation(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify the creation of a JinjaTemplateProvider instance.
     """
     # Arrange & Act
     result = JinjaTemplateProvider(cobbler_api)
@@ -29,7 +29,7 @@ def test_provider_creation(cobbler_api: CobblerAPI):
 
 def test_template_type_available(test_provider: JinjaTemplateProvider):
     """
-    TODO
+    Test to verify if the Jinja template type is available.
     """
     # Arrange & Act
     result = test_provider.template_type_available
@@ -40,7 +40,7 @@ def test_template_type_available(test_provider: JinjaTemplateProvider):
 
 def test_template_file_extension(test_provider: JinjaTemplateProvider):
     """
-    TODO
+    Test to verify the file extension used by Jinja templates.
     """
     # Arrange & Act
     result = test_provider.template_file_extension
@@ -49,9 +49,9 @@ def test_template_file_extension(test_provider: JinjaTemplateProvider):
     assert result == "jinja"
 
 
-def test_render(cobbler_api: CobblerAPI, test_provider: JinjaTemplateProvider):
+def test_render(test_provider: JinjaTemplateProvider):
     """
-    TODO
+    Test to verify the rendering of a Jinja template with provided context.
     """
     # Arrange
     test_template = '{% include "built-in-isolinux_menuentry" %}'

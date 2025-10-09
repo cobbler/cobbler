@@ -350,7 +350,7 @@ class Settings:
     @property
     def manage_dhcp(self) -> bool:
         """
-        TODO
+        Property to disclose if at least one of IPv4 or IPv6 DHCP is managed.
         """
         return self.manage_dhcp_v4 or self.manage_dhcp_v6
 

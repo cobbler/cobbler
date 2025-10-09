@@ -12,7 +12,7 @@ from cobbler.templates import Templar
 @pytest.fixture(scope="function")
 def setup_cheetah_macros_file():
     """
-    TODO
+    Fixture to setup a custom Cheetah Macros file.
     """
     with open("/etc/cobbler/cheetah_macros", "w", encoding="UTF-8") as f:
         f.writelines(
@@ -37,7 +37,7 @@ def setup_cheetah_macros_file():
 
 def test_render(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify that rendering an empty template returns an empty string.
     """
     # Arrange
     test_templar = Templar(cobbler_api)
@@ -52,7 +52,7 @@ def test_render(cobbler_api: CobblerAPI):
 
 def test_render_cheetah(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify that rendering a simple Cheetah template works as expected.
     """
     # Arrange
     test_templar = Templar(cobbler_api)
@@ -69,7 +69,7 @@ def test_render_cheetah(cobbler_api: CobblerAPI):
 @pytest.mark.skip("Macros only work if we restart cobblerd")
 def test_cheetah_macros(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify that a custom cheetah macros file works as expected.
     """
     # Arrange
     test_templar = Templar(cobbler_api)
@@ -84,7 +84,7 @@ def test_cheetah_macros(cobbler_api: CobblerAPI):
 
 def test_render_jinja2(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify that rendering a simple Jinja2 template works as expected.
     """
     # Arrange
     test_templar = Templar(cobbler_api)
@@ -99,7 +99,7 @@ def test_render_jinja2(cobbler_api: CobblerAPI):
 
 def test_load_template_providers(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify that loading the template providers works as expected.
     """
     # Arrange
     test_templar = Templar(cobbler_api)

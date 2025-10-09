@@ -1,5 +1,5 @@
 """
-TODO
+Test module to verify the functionality of the Template item class.
 """
 
 from cobbler import enums

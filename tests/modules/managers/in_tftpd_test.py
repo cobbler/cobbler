@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 @pytest.fixture(name="api_mock_tftp")
 def fixture_api_mock_tftp(mocker: "MockerFixture") -> CobblerAPI:
     """
-    TODO
+    Fixture to provide a mocked CobblerAPI instance with necessary attributes for testing in_tftpd manager.
     """
     api_mock_tftp = mocker.MagicMock(spec=CobblerAPI)
     settings_mock = mocker.MagicMock(
@@ -73,7 +73,7 @@ def fixture_api_mock_tftp(mocker: "MockerFixture") -> CobblerAPI:
 @pytest.fixture(name="reset_singleton", scope="function", autouse=True)
 def fixture_reset_singleton() -> Generator[Any, Any, Any]:
     """
-    TODO
+    Fixture to reset the singleton instance of InTftpdManager before and after each test.
     """
     in_tftpd.MANAGER = None
     yield
@@ -82,7 +82,7 @@ def fixture_reset_singleton() -> Generator[Any, Any, Any]:
 
 def test_register():
     """
-    TODO
+    Test the register function to ensure it returns the expected string.
     """
     # Arrange & Act
     result = in_tftpd.register()
@@ -93,7 +93,7 @@ def test_register():
 
 def test_manager_what():
     """
-    TODO
+    Test the what method of the InTftpdManager class to ensure it returns the expected string.
     """
     # pylint: disable=protected-access
     # Arrange & Act & Assert
@@ -102,7 +102,7 @@ def test_manager_what():
 
 def test_tftpd_singleton(mocker: "MockerFixture"):
     """
-    TODO
+    Test to ensure that the InTftpdManager class implements the singleton pattern correctly.
     """
     # Arrange
     mcollection = mocker.Mock()
@@ -117,7 +117,7 @@ def test_tftpd_singleton(mocker: "MockerFixture"):
 
 def test_manager_write_boot_files_distro(api_mock_tftp: CobblerAPI):
     """
-    TODO
+    Test to verify the write_boot_files_distro method of the InTftpdManager class.
     """
     # Arrange
     manager_obj = in_tftpd.get_manager(api_mock_tftp)
@@ -131,7 +131,7 @@ def test_manager_write_boot_files_distro(api_mock_tftp: CobblerAPI):
 
 def test_manager_write_boot_files(mocker: "MockerFixture", api_mock_tftp: CobblerAPI):
     """
-    TODO
+    Test to verify the write_boot_files method of the InTftpdManager class.
     """
     # Arrange
     manager_obj = in_tftpd.get_manager(api_mock_tftp)
@@ -148,7 +148,7 @@ def test_manager_write_boot_files(mocker: "MockerFixture", api_mock_tftp: Cobble
 
 def test_manager_sync_single_system(api_mock_tftp: CobblerAPI):
     """
-    TODO
+    Test to verify the sync_single_system method of the InTftpdManager class.
     """
     # Arrange
     manager_obj = in_tftpd.get_manager(api_mock_tftp)
@@ -165,7 +165,7 @@ def test_manager_sync_single_system(api_mock_tftp: CobblerAPI):
 
 def test_manager_add_single_distro(mocker: "MockerFixture", api_mock_tftp: CobblerAPI):
     """
-    TODO
+    Test to verify the add_single_distro method of the InTftpdManager class.
     """
     # Arrange
     manager_obj = in_tftpd.get_manager(api_mock_tftp)
@@ -193,7 +193,7 @@ def test_sync_systems(
     expected_output: str,
 ):
     """
-    TODO
+    Test to verify the sync_systems method of the InTftpdManager class.
     """
     # Arrange
     manager_obj = in_tftpd.get_manager(api_mock_tftp)
@@ -212,7 +212,7 @@ def test_sync_systems(
 
 def test_manager_sync(api_mock_tftp: CobblerAPI):
     """
-    TODO
+    Test to verify the sync method of the InTftpdManager class.
     """
     # Arrange
     manager_obj = in_tftpd.get_manager(api_mock_tftp)

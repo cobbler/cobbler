@@ -1,5 +1,5 @@
 """
-TODO
+Test module to verify the functionality of filesystem helper functions.
 """
 
 import os
@@ -34,7 +34,7 @@ def test_is_safe_to_hardlink(
     expected_result: bool,
 ):
     """
-    TODO
+    Test to verify the behavior of the is_safe_to_hardlink function.
     """
     # Arrange
     if is_symlink and test_src:
@@ -55,7 +55,7 @@ def test_is_safe_to_hardlink(
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
 def test_hashfile():
     """
-    TODO
+    Test to verify the behavior of the hashfile function.
     """
     # Arrange
     # TODO: Create testfile
@@ -72,7 +72,7 @@ def test_hashfile():
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
 def test_cachefile():
     """
-    TODO
+    Test to verify the behavior of the cachefile function.
     """
     # Arrange
     cache_src = ""
@@ -90,7 +90,7 @@ def test_cachefile():
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
 def test_linkfile(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify the behavior of the linkfile function.
     """
     # Arrange
     test_source = ""
@@ -106,7 +106,7 @@ def test_linkfile(cobbler_api: CobblerAPI):
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
 def test_copyfile():
     """
-    TODO
+    Test to verify the behavior of the copyfile function.
     """
     # Arrange
     test_source = ""
@@ -122,7 +122,7 @@ def test_copyfile():
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
 def test_copyremotefile():
     """
-    TODO
+    Test to verify the behavior of the copyremotefile function.
     """
     # Arrange
     test_source = ""
@@ -138,7 +138,7 @@ def test_copyremotefile():
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
 def test_mkdirimage():
     """
-    TODO
+    Test to verify the behavior of the mkdirimage function.
     """
     # Arrange
     test_path = pathlib.Path("/tmp")
@@ -154,7 +154,7 @@ def test_mkdirimage():
 @pytest.mark.skip("This calls a lot of os-specific stuff. Let's fix this test later.")
 def test_copyfileimage():
     """
-    TODO
+    Test to verify the behavior of the copyfileimage function.
     """
     # Arrange
     test_src = ""
@@ -170,7 +170,7 @@ def test_copyfileimage():
 
 def test_rmfile(tmp_path: Path):
     """
-    TODO
+    Test to verify the behavior of the rmfile function.
     """
     # Arrange
     tfile = tmp_path / "testfile"
@@ -184,7 +184,7 @@ def test_rmfile(tmp_path: Path):
 
 def test_rmglob_files(tmp_path: Path):
     """
-    TODO
+    Test to verify the behavior of the rmglob_files function.
     """
     # Arrange
     tfile1 = tmp_path / "file1.tfile"
@@ -200,7 +200,7 @@ def test_rmglob_files(tmp_path: Path):
 
 def test_rmtree_contents():
     """
-    TODO
+    Test to verify the behavior of the rmtree_contents function.
     """
     # Arrange
     testfolder = "/dev/shm/"
@@ -217,7 +217,7 @@ def test_rmtree_contents():
 
 def test_rmtree():
     """
-    TODO
+    Test to verify the behavior of the rmtree function.
     """
     # Arrange
     testtree = "/dev/shm/testtree"
@@ -235,7 +235,7 @@ def test_rmtree():
 
 def test_mkdir():
     """
-    TODO
+    Test to verify the behavior of the mkdir function.
     """
     # TODO: Check how already existing folder is handled.
     # Arrange
@@ -263,7 +263,7 @@ def test_mkdir():
 )
 def test_path_tail(test_first_path: str, test_second_path: str, expected_result: str):
     """
-    TODO
+    Test to verify the behavior of the path_tail function.
     """
     # Arrange
     # TODO: Check if this actually makes sense...
@@ -285,7 +285,7 @@ def test_path_tail(test_first_path: str, test_second_path: str, expected_result:
 )
 def test_safe_filter(test_input: str, expected_exception: Any):
     """
-    TODO
+    Test to verify the behavior of the safe_filter function.
     """
     # Arrange, Act & Assert
     with expected_exception:
@@ -294,7 +294,7 @@ def test_safe_filter(test_input: str, expected_exception: Any):
 
 def test_create_web_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify the behavior of the create_web_dirs function.
     """
     # Arrange
     settings_mock = mocker.MagicMock()
@@ -314,7 +314,7 @@ def test_create_web_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
 
 def test_create_tftpboot_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify the behavior of the create_tftpboot_dirs function.
     """
     # Arrange
     settings_mock = mocker.MagicMock()
@@ -335,7 +335,7 @@ def test_create_tftpboot_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
 
 def test_create_trigger_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify the behavior of the create_trigger_dirs function.
     """
     # Arrange
     mock_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
@@ -350,7 +350,7 @@ def test_create_trigger_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
 
 def test_create_json_database_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to verify the behavior of the create_json_database_dirs function.
     """
     # Arrange
     mock_mkdir = mocker.patch("cobbler.utils.filesystem_helpers.mkdir")

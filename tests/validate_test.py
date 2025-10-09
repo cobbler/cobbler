@@ -27,7 +27,7 @@ from tests.conftest import does_not_raise
 )
 def test_hostname(input_dnsname: Any, expected_result: str, expected_exception: Any):
     """
-    TODO
+    Test to verify if a given datapoint can be validated as a hostname.
     """
     # Arrange
 
@@ -51,7 +51,7 @@ def test_hostname(input_dnsname: Any, expected_result: str, expected_exception: 
 )
 def test_ipv4_address(input_addr: Any, expected_result: str, expected_exception: Any):
     """
-    TODO
+    Test to verify if a given datapoint can be validated as an IPv4 address.
     """
     # Arrange
     # Act
@@ -64,7 +64,7 @@ def test_ipv4_address(input_addr: Any, expected_result: str, expected_exception:
 
 def test_validate_os_version():
     """
-    TODO
+    Test to verify if a given datapoint can be validated as an OS version.
     """
     # Arrange
     signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
@@ -78,7 +78,7 @@ def test_validate_os_version():
 
 def test_validate_breed():
     """
-    TODO
+    Test to validate if a given datapoint can be validated as an operating system breed.
     """
     # Arrange
     signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
@@ -92,7 +92,7 @@ def test_validate_breed():
 
 def test_set_repos(cobbler_api: CobblerAPI):
     """
-    TODO
+    Test to validate if a given datapoint can be validated as a list of repositories.
     """
     # Arrange
 
@@ -108,7 +108,7 @@ def test_set_repos(cobbler_api: CobblerAPI):
 
 def test_set_virt_file_size():
     """
-    TODO
+    Test to validate if a given datapoint can be validated as a virtual disk size.
     """
     # Arrange
 
@@ -134,7 +134,7 @@ def test_set_virt_file_size():
 )
 def test_set_virt_auto_boot(test_autoboot: Any, expectation: Any):
     """
-    TODO
+    Test to validate if a given datapoint can be validated as a boolean or string for the virt_auto_boot setting.
     """
     # Arrange
 
@@ -160,7 +160,7 @@ def test_set_virt_auto_boot(test_autoboot: Any, expectation: Any):
 )
 def test_set_virt_pxe_boot(test_input: Any, expected_exception: Any):
     """
-    TODO
+    Test to validate if a given datapoint can be validated as a boolean or integer for the virt_pxe_boot setting.
     """
     # Arrange
 
@@ -175,7 +175,7 @@ def test_set_virt_pxe_boot(test_input: Any, expected_exception: Any):
 
 def test_set_virt_ram():
     """
-    TODO
+    Test to validate if a given datapoint can be validated as an integer for the virt_ram setting.
     """
     # Arrange
 
@@ -188,7 +188,7 @@ def test_set_virt_ram():
 
 def test_set_virt_bridge():
     """
-    TODO
+    Test to validate if a given datapoint can be validated as a string for the virt_bridge setting.
     """
     # Arrange
 
@@ -201,7 +201,7 @@ def test_set_virt_bridge():
 
 def test_validate_virt_path():
     """
-    TODO
+    Test to validate if a given datapoint can be validated as a string for the virt_path setting.
     """
     # Arrange
     test_location = "/somerandomfakelocation"
@@ -227,7 +227,7 @@ def test_validate_virt_path():
 )
 def test_set_virt_cpus(value: Any, expected_exception: Any):
     """
-    TODO
+    Test to validate if a given datapoint can be validated as an integer for the virt_cpus setting.
     """
     # Arrange
 
@@ -244,7 +244,7 @@ def test_set_virt_cpus(value: Any, expected_exception: Any):
 
 def test_set_serial_device():
     """
-    TODO
+    Test to validate if a given datapoint can be validated for the serial_device setting.
     """
     # Arrange
 
@@ -257,7 +257,7 @@ def test_set_serial_device():
 
 def test_set_serial_baud_rate():
     """
-    TODO
+    Test to validate if a given datapoint can be validated for the serial_baud_rate setting.
     """
     # Arrange
 
@@ -286,7 +286,7 @@ def test_set_serial_baud_rate():
 )
 def test_validate_boot_remote_file(test_value: Any, expected_result: bool):
     """
-    TODO
+    Test to validate if a given datapoint can be validated as a remote file URL for boot files.
     """
     # Arrange
 
@@ -315,7 +315,7 @@ def test_validate_boot_remote_file(test_value: Any, expected_result: bool):
 )
 def test_validate_grub_remote_file(test_value: Any, expected_result: bool):
     """
-    TODO
+    Test to validate if a given datapoint can be validated as a remote file URL for GRUB files.
     """
     # Arrange
 
@@ -328,7 +328,7 @@ def test_validate_grub_remote_file(test_value: Any, expected_result: bool):
 
 def test_validate_uuid():
     """
-    TODO
+    Test to validate if a given datapoint can be validated as a UUID.
     """
     # Arrange
     test_uuid = uuid.uuid4().hex
