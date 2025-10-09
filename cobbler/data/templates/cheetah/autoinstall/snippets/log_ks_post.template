@@ -1,2 +1,0 @@
-set -x -v
-exec 1>/root/ks-post.log 2>&1

@@ -1,2 +1,0 @@
-set -x -v
-exec 1>/mnt/sysimage/root/ks-post-nochroot.log 2>&1

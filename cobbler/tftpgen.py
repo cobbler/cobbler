@@ -1958,17 +1958,11 @@ class TFTPGen:
         else:
             blended["img_path"] = os.path.join("/images", distro.name)  # type: ignore
 
-        scripts_root = "/var/lib/cobbler/scripts"
-        template = os.path.normpath(os.path.join(scripts_root, script_name))
-        if not template.startswith(scripts_root):
-            return f'# script template "{script_name}" could not be found in the script root'
-        if not os.path.exists(template):
+        search_result = self.api.find_template(False, False, name=script_name)
+        if search_result is None or isinstance(search_result, list):
             return f'# script template "{script_name}" not found'
 
-        with open(template, encoding="UTF-8") as template_fh:
-            template_data = template_fh.read()
-
-        return self.api.templar.render(template_data, blended, None)
+        return self.api.templar.render(search_result.content, blended, None)
 
     def _build_windows_initrd(
         self, loader_name: str, custom_loader_name: str, bootloader_format: str
