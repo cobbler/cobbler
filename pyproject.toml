@@ -7,6 +7,7 @@ profile = "black"
 known_cobbler="cobbler"
 known_tests="tests"
 sections="FUTURE,STDLIB,FIRSTPARTY,THIRDPARTY,LOCALFOLDER,COBBLER,TESTS"
+extend_skip = ["system-tests"]
 
 [tool.pyright]
 pythonVersion = "3.6"

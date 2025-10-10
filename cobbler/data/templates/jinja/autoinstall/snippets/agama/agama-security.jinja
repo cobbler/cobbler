@@ -1,0 +1,14 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/security -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- if agama_security is defined -%}
+    "security": {
+        "sslCertificates": [
+    {% for certificate in agama_security_sslcertificates %}
+            {
+                "fingerprint": "{{ certificate["fingerprint"] }}",
+                "algorithm": "{{ certificate["algorithm"] }}"
+            }
+    {% endfor %}
+        ]
+    }
+{%- endif -%}

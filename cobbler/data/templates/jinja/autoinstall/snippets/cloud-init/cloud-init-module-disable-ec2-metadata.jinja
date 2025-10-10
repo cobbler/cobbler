@@ -1,0 +1,4 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#disable-ec2-instance-metadata-service -#}
+{%- if cloud_init_disable_ec2_metadata is defined %}
+disable_ec2_metadata: {{ cloud_init_disable_ec2_metadata }}
+{%- endif%}

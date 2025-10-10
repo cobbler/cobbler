@@ -176,12 +176,14 @@ def fixture_create_network_interface(
 @pytest.fixture(name="create_autoinstall_template", scope="function")
 def fixture_create_autoinstall_template(
     remote: CobblerXMLRPCInterface, token: str
-) -> Callable[[str, str], str]:
+) -> Callable[[str, str, List[str]], str]:
     """
     Fixture that creates an autoinstall template and adds it to Cobbler.
     """
 
-    def _create_autoinstall_template(filename: str, content: str) -> str:
+    def _create_autoinstall_template(
+        filename: str, content: str, tags: List[str]
+    ) -> str:
         template_path = pathlib.Path("/var/lib/cobbler/templates") / filename
         template_path.write_text(content, encoding="UTF-8")
         template = remote.new_template(token)
@@ -189,6 +191,7 @@ def fixture_create_autoinstall_template(
         remote.modify_template(template, ["template_type"], "cheetah", token)
         remote.modify_template(template, ["uri", "schema"], "file", token)
         remote.modify_template(template, ["uri", "path"], filename, token)
+        remote.modify_template(template, ["tags"], tags, token)
         remote.save_template(template, token, "new")
         return template
 

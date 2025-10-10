@@ -1,0 +1,37 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/network -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{#- Be aware of the kernel option default of inst.copy_network=1 -#}
+{%- if interfaces is defined %}
+    "network": {
+        "connections": [
+    {%- for interface in interfaces.values() %}
+            {
+                "id": "{{ interface.name }}",
+                "method4": "",
+                "method6": "",
+                "interface": "",
+                "macAddress": "{{ interface.macAddress }}",
+                "mtu": "",
+                "gateway4": "",
+                "gateway6": "",
+                "addresses": [
+                    {{ interface.ipv4.address|tojson }},
+                    {{ interface.ipv6.address|tojson }},
+                    {{ interface.ipv6.secondaries|tojson }}
+                ],
+                "nameservers": [],
+                "dnsSearchlist": [],
+                "ignoreAutoDns": "",
+                "status": "",
+                "autoconnect": "",
+                "persistent": "",
+                "match": "",
+                "bridge": {},
+                "wireless": {},
+                "bond": {},
+                "vlan": {}
+            }
+    {%- endfor %}
+        ]
+    }
+{%- endif %}

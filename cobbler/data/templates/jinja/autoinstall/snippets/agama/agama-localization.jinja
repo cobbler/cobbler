@@ -1,0 +1,11 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/localization -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- set agama_localization_language_comma = (agama_localization_keyboard, agama_localization_keyboard_comma)|any -%}
+{%- set agama_localization_keyboard_comma = (agama_localization_timezone)|any -%}
+{%- if agama_localization_language is defined or agama_localization_keyboard is defined or agama_localization_timezone is defined %}
+    "localization": {
+        "language": "{{ agama_localization_language }}"{{ "," if agama_localization_language_comma }}
+        "keyboard": "{{ agama_localization_keyboard }}"{{ "," if agama_localization_keyboard_comma }}
+        "timezone": "{{ agama_localization_timezone }}"
+    }
+{%- endif %}
