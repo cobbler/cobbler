@@ -5,6 +5,8 @@ background tasks.
 
 from cobbler.remote import CobblerXMLRPCInterface
 
+from tests.integration.conftest import WaitTaskEndType
+
 
 class TestBackground:
     """
@@ -85,3 +87,20 @@ class TestBackground:
 
         # Assert
         assert result
+
+
+def test_background_templates_refresh_content(
+    remote: CobblerXMLRPCInterface, token: str, wait_task_end: WaitTaskEndType
+):
+    """
+    Test to verify that templates can be successfully refreshed as a background task.
+    """
+    # Arrange
+
+    # Act
+    tid = remote.background_templates_refresh_content({}, token)
+    wait_task_end(tid, remote)
+
+    # Assert
+    # If the task doesn't fail that is enough for now.
+    assert True

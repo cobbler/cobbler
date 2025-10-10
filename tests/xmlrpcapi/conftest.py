@@ -5,6 +5,7 @@ Fixtures that are shared by the XML-RPC tests that are in the "xmlrpcapi" module
 import os
 import pathlib
 import sys
+import time
 from typing import Any, Callable, Dict, Tuple, Union
 
 import pytest
@@ -12,6 +13,8 @@ import pytest
 from cobbler.api import CobblerAPI
 from cobbler.remote import CobblerXMLRPCInterface
 from cobbler.utils import get_shared_secret
+
+WaitTaskEndType = Callable[[str, CobblerXMLRPCInterface], None]
 
 
 @pytest.fixture(name="remote", scope="function")
@@ -345,3 +348,24 @@ def template_files(create_autoinstall_template: Callable[[str, str], str]):
     create_autoinstall_template("test.ks", "")
     create_autoinstall_template("test.xml", "")
     create_autoinstall_template("test.seed", "")
+
+
+@pytest.fixture(name="wait_task_end", scope="function")
+def fixture_wait_task_end() -> WaitTaskEndType:
+    """
+    Wait until a task is finished
+    """
+
+    def _wait_task_end(tid: str, remote: CobblerXMLRPCInterface) -> None:
+        timeout = 0
+        # "complete" is the constant: EVENT_COMPLETE from cobbler.remote
+        while remote.get_task_status(tid)[2] != "complete":
+            if remote.get_task_status(tid)[2] == "failed":
+                pytest.fail("Task failed")
+            print(f"task {tid} status: {remote.get_task_status(tid)}")
+            time.sleep(5)
+            timeout += 5
+            if timeout == 60:
+                pytest.fail(f"Timeout reached for waiting for task {tid}!")
+
+    return _wait_task_end
