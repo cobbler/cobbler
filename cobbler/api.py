@@ -2728,6 +2728,29 @@ class CobblerAPI:
 
     # ==========================================================================
 
+    def templates_refresh_content(
+        self, objects: Optional[List["template.Template"]] = None
+    ) -> None:
+        """
+        Method to refresh the in-memory content of zero or more templates inside Cobbler.
+
+        :param objects: With the default value None, all templates are refreshed. Otherwhise each template inside the
+            list is refreshed. An empty list refreshes no templates.
+        """
+        if objects is None:
+            self._collection_mgr.templates().refresh_content()
+        else:
+            for obj in objects:
+                refresh_result = obj.refresh_content()
+                if not refresh_result:
+                    self.logger.warning(
+                        'Template with uid "%s" and name "%s" failed to refresh in-memory content!',
+                        obj.uid,
+                        obj.name,
+                    )
+
+    # ==========================================================================
+
     def input_string_or_list_no_inherit(
         self, options: Optional[Union[str, List[Any]]]
     ) -> List[Any]:

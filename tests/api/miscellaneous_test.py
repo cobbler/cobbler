@@ -12,6 +12,7 @@ from cobbler import enums, settings
 from cobbler.actions.buildiso.netboot import NetbootBuildiso
 from cobbler.actions.buildiso.standalone import StandaloneBuildiso
 from cobbler.api import CobblerAPI
+from cobbler.cobbler_collections.templates import Templates
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
@@ -249,3 +250,49 @@ def test_set_item_resolved_value(
         for item in input_attribute_name:
             system_result = system_result.get(item)  # type: ignore
         assert system_result == expected_result
+
+
+def test_templates_refresh_content_none(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI
+):
+    """
+    TODO
+    """
+    # Arrange
+    # pylint: disable=protected-access
+    refresh_content_spy = mocker.patch.object(
+        Templates,
+        "refresh_content",
+        wraps=cobbler_api._collection_mgr.templates().refresh_content,  # pyright: ignore [reportPrivateUsage]
+    )
+    # pylint: enable=protected-access
+
+    # Act
+    cobbler_api.templates_refresh_content(None)
+
+    # Assert
+    refresh_content_spy.assert_called_once()
+
+
+def test_templates_refresh_content_objs(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI
+):
+    """
+    Test to verify that templates can be successfully refreshed.
+    """
+    # Arrange
+    object_list = cobbler_api.find_template(True, False, name="built-in-preseed_*")
+    if object_list is None or not isinstance(object_list, list):
+        pytest.fail("Search result for templates was of incorrect type!")
+
+    spy_list = [
+        mocker.patch.object(obj, "refresh_content", wraps=obj.refresh_content)
+        for obj in object_list
+    ]
+
+    # Act
+    cobbler_api.templates_refresh_content(object_list)
+
+    # Assert
+    for spy in spy_list:
+        spy.assert_called_once()

@@ -5,7 +5,6 @@ non object calls.
 
 import os
 import re
-import time
 from typing import Any, Callable, Dict, List, Union
 
 import pytest
@@ -13,31 +12,10 @@ import pytest
 from cobbler.remote import CobblerXMLRPCInterface
 
 from tests.conftest import does_not_raise
+from tests.integration.conftest import WaitTaskEndType
 
-WaitTaskEndType = Callable[[str, CobblerXMLRPCInterface], None]
 TEST_POWER_MANAGEMENT = True
 TEST_SYSTEM = ""
-
-
-@pytest.fixture(name="wait_task_end", scope="function")
-def fixture_wait_task_end() -> WaitTaskEndType:
-    """
-    Wait until a task is finished
-    """
-
-    def _wait_task_end(tid: str, remote: CobblerXMLRPCInterface) -> None:
-        timeout = 0
-        # "complete" is the constant: EVENT_COMPLETE from cobbler.remote
-        while remote.get_task_status(tid)[2] != "complete":
-            if remote.get_task_status(tid)[2] == "failed":
-                pytest.fail("Task failed")
-            print(f"task {tid} status: {remote.get_task_status(tid)}")
-            time.sleep(5)
-            timeout += 5
-            if timeout == 60:
-                pytest.fail(f"Timeout reached for waiting for task {tid}!")
-
-    return _wait_task_end
 
 
 def test_token(token: str):
