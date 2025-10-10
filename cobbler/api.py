@@ -251,6 +251,13 @@ class CobblerAPI:
             self.__load_signatures()
 
             self._collection_mgr = manager.CollectionManager(self)
+
+            # Prepare built-in templates before deserializing to allow intact references
+            # To intialize the templates, everything else needs to be set up beforehand as they are adding items.
+            self.templar = templates.Templar(self)
+            self.templar.load_template_providers()
+            self.templar.load_built_in_templates()
+
             self.deserialize()
 
             self.authn = self.get_module_from_file(
@@ -260,14 +267,10 @@ class CobblerAPI:
                 "authorization", "module", "authorization.allowall"
             )
 
-            self.templar = templates.Templar(self)
             self.autoinstallgen = autoinstallgen.AutoInstallationGen(self)
             self.yumgen = yumgen.YumGen(self)
             self.tftpgen = tftpgen.TFTPGen(self)
             self.__directory_startup_preparations()
-            # To intialize the templates, everything else needs to be set up beforehand as they are adding items.
-            self.templar.load_template_providers()
-            self.templar.load_built_in_templates()
             self._collection_mgr.templates().refresh_content()
             self.logger.debug("API handle initialized")
 
@@ -1821,7 +1824,7 @@ class CobblerAPI:
         return_list: bool = False,
         no_errors: bool = False,
         **kwargs: "FIND_KWARGS",
-    ) -> Optional[Union[List["template.Template"], "template.Template",]]:
+    ) -> Optional[Union[List["template.Template"], "template.Template"]]:
         """
         Find a network interface via a name or keys specified in the ``**kargs``.
 
