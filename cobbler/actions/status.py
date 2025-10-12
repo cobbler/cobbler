@@ -15,7 +15,7 @@ import lzma
 import os
 import re
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, TextIO, Tuple, Union
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -128,21 +128,22 @@ class CobblerStatusReport:
         return files
 
     @staticmethod
-    def _open_logfile(filename: str):
+    def _open_logfile(filename: str) -> TextIO:
         """
         Open a Cobbler installation log file with the appropriate decompressor.
 
         :param filename: Path to the log file.
         :return: File object opened in text mode.
         """
-        text_kwargs = {"encoding": "utf-8", "errors": "replace"}
+        encoding = "utf-8"
+        errors = "replace"
         if filename.endswith(".gz"):
-            return gzip.open(filename, "rt", **text_kwargs)
+            return gzip.open(filename, mode="rt", encoding=encoding, errors=errors)
         if filename.endswith(".bz2"):
-            return bz2.open(filename, "rt", **text_kwargs)
+            return bz2.open(filename, mode="rt", encoding=encoding, errors=errors)
         if filename.endswith(".xz") or filename.endswith(".lzma"):
-            return lzma.open(filename, "rt", **text_kwargs)
-        return open(filename, "r", **text_kwargs)
+            return lzma.open(filename, mode="rt", encoding=encoding, errors=errors)
+        return open(filename, mode="r", encoding=encoding, errors=errors)
 
     def scan_logfiles(self) -> None:
         """
