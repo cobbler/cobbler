@@ -1,0 +1,1 @@
+XML-RPC generate_autoinstall now normalizes empty string parameters to None, preventing incorrect error banner when clients send "" instead of null
