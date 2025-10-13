@@ -362,7 +362,7 @@ def run(api: "CobblerAPI", args: Any):
         )
 
     search_result = api.find_template(
-        True, False, tags=enums.TemplateTag.WINDOWS_POST_INST_CMD.value
+        True, False, tags=enums.TemplateTag.WINDOWS_ANSWERFILE.value
     )
     if search_result is None or not isinstance(search_result, list):
         raise TypeError(
@@ -382,7 +382,7 @@ def run(api: "CobblerAPI", args: Any):
         )
 
     search_result = api.find_template(
-        True, False, tags=enums.TemplateTag.WINDOWS_POST_INST_CMD.value
+        True, False, tags=enums.TemplateTag.WINDOWS_STARTNET.value
     )
     if search_result is None or not isinstance(search_result, list):
         raise TypeError(
