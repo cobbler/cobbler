@@ -1293,6 +1293,23 @@ class CobblerXMLRPCInterface:
             "template", name, flatten=flatten, resolved=resolved, token=token
         )
 
+    def get_template_content(self, uid: str, token: Optional[str] = None) -> str:
+        """
+        Search for the given object and return the content of the template. Call
+        :meth:`~cobbler.remote.CobblerXMLRPCInterface.templates_refresh_content` or
+        :meth:`~cobbler.remote.CobblerXMLRPCInterface.background_templates_refresh_content` to refresh the content if
+        something has changes that the in-memory representation isn't showing.
+
+        :param uid: The UID of the desired template.
+        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :returns: The content of the autoinstallation template that is currently available in-memory.
+        """
+        if not isinstance(uid, str) or not isinstance(token, str):  # type: ignore[reportUnnecessaryComparison]
+            raise ValueError("uid and token must be of type str!")
+
+        target_obj: "Template" = self.__get_object(uid, token=token)  # type: ignore
+        return target_obj.content
+
     def get_items(self, what: str) -> List[Dict[str, Any]]:
         """
         Individual list elements are the same for get_item.
