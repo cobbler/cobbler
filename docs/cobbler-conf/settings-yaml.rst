@@ -503,7 +503,8 @@ kernel_options
 ##############
 
 Kernel options that should be present in every Cobbler installation. Kernel options can also be applied at the
-distro/profile/system level.
+distro/profile/system level. Each entry is a flat key/value pair (duplicate keys become lists); nested dictionaries are
+not supported. Scalar values (ints, bools, etc.) are stringified when rendered on the kernel command line.
 
 default: ``{}``
 
