@@ -1501,7 +1501,7 @@ class TFTPGen:
         # support additional initrd= entries in kernel options.
         if "initrd" in kopts:
             append_line.append_raw(f",{kopts.pop('initrd')}")
-        hkopts = utils.dict_to_string(kopts)
+        hkopts = utils.kernel_options_to_string(kopts)
         if hkopts:
             append_line.append_raw(hkopts)
 
@@ -1605,7 +1605,7 @@ class TFTPGen:
                 if distro.os_version.find("esxi") != -1:
                     # ESXi is very picky, it's easier just to redo the
                     # entire append line here since
-                    hkopts = utils.dict_to_string(kopts)
+                    hkopts = utils.kernel_options_to_string(kopts)
                     append_line.append_key_value("ks", autoinstall_path)
                 else:
                     append_line.append_key_value("vmkopts", "debugLogToSerial:1")
