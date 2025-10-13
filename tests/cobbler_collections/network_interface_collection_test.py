@@ -468,21 +468,21 @@ def test_find_by_indexes(
     item1 = cobbler_api.new_network_interface(system_uid=test_system.uid)
     item1.name = name  # type: ignore[method-assign]
     network_interface_collection.add(item1)
-    kargs1 = {"name": item1.name}
-    kargs2 = {"name": "fake_uid"}
-    kargs3 = {"fake_index": item1.uid}
+    kwargs1 = {"name": item1.name}
+    kwargs2 = {"name": "fake_uid"}
+    kwargs3 = {"fake_index": item1.uid}
 
     # Act
-    result1 = network_interface_collection.find_by_indexes(kargs1)
-    result2 = network_interface_collection.find_by_indexes(kargs2)
-    result3 = network_interface_collection.find_by_indexes(kargs3)
+    result1 = network_interface_collection.find_by_indexes(kwargs1)
+    result2 = network_interface_collection.find_by_indexes(kwargs2)
+    result3 = network_interface_collection.find_by_indexes(kwargs3)
 
     # Assert
     assert isinstance(result1, list)
     assert len(result1) == 1
     assert result1[0] == item1
-    assert len(kargs1) == 0
+    assert len(kwargs1) == 0
     assert result2 is None
-    assert len(kargs2) == 0
+    assert len(kwargs2) == 0
     assert result3 is None
-    assert len(kargs3) == 1
+    assert len(kwargs3) == 1

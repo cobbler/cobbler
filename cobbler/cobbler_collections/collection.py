@@ -289,7 +289,7 @@ class Collection(Generic[ITEM]):
             self._deserialize()
 
         with self.lock:
-            orig_kargs_len = len(kwargs)
+            orig_kwargs_len = len(kwargs)
             result = self.find_by_indexes(kwargs)
             new_kwargs_len = len(kwargs)
             if new_kwargs_len > 0:
@@ -297,7 +297,7 @@ class Collection(Generic[ITEM]):
                 if result is not None:
                     obj_list = result
                 else:
-                    if new_kwargs_len == orig_kargs_len:
+                    if new_kwargs_len == orig_kwargs_len:
                         obj_list = list(self)
                 for obj in obj_list:
                     if obj.inmemory and obj.find_match(kwargs, no_errors=no_errors):
