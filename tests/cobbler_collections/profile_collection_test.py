@@ -769,66 +769,66 @@ def test_find_by_indexes(
     # Arrange
     distro1 = create_distro()
     profile1 = create_profile(distro1.uid)
-    kargs1 = {"name": profile1.name}
-    kargs2 = {"name": "fake_uid"}
-    kargs3 = {"fake_index": profile1.uid}
-    kargs4 = {"parent": ""}
-    kargs5 = {"parent": "fake_parent"}
-    kargs6 = {"menu": ""}
-    kargs7 = {"parent": "fake_menu"}
-    kargs8 = {"repos": ""}
-    kargs9 = {"repos": "fake_repos"}
-    kargs10 = {"distro": distro1.uid}
-    kargs11 = {"repos": "fake_distro"}
-    kargs12 = {"arch": profile1.arch.value}  # type: ignore[reportOptionalMemberAccess,union-attr]
-    kargs13 = {"repos": "fake_arch"}
+    kwargs1 = {"name": profile1.name}
+    kwargs2 = {"name": "fake_uid"}
+    kwargs3 = {"fake_index": profile1.uid}
+    kwargs4 = {"parent": ""}
+    kwargs5 = {"parent": "fake_parent"}
+    kwargs6 = {"menu": ""}
+    kwargs7 = {"parent": "fake_menu"}
+    kwargs8 = {"repos": ""}
+    kwargs9 = {"repos": "fake_repos"}
+    kwargs10 = {"distro": distro1.uid}
+    kwargs11 = {"repos": "fake_distro"}
+    kwargs12 = {"arch": profile1.arch.value}  # type: ignore[reportOptionalMemberAccess,union-attr]
+    kwargs13 = {"repos": "fake_arch"}
 
     # Act
-    result1 = profile_collection.find_by_indexes(kargs1)
-    result2 = profile_collection.find_by_indexes(kargs2)
-    result3 = profile_collection.find_by_indexes(kargs3)
-    result4 = profile_collection.find_by_indexes(kargs4)
-    result5 = profile_collection.find_by_indexes(kargs5)
-    result6 = profile_collection.find_by_indexes(kargs6)
-    result7 = profile_collection.find_by_indexes(kargs7)
-    result8 = profile_collection.find_by_indexes(kargs8)
-    result9 = profile_collection.find_by_indexes(kargs9)
-    result10 = profile_collection.find_by_indexes(kargs10)
-    result11 = profile_collection.find_by_indexes(kargs11)
-    result12 = profile_collection.find_by_indexes(kargs12)
-    result13 = profile_collection.find_by_indexes(kargs13)
+    result1 = profile_collection.find_by_indexes(kwargs1)
+    result2 = profile_collection.find_by_indexes(kwargs2)
+    result3 = profile_collection.find_by_indexes(kwargs3)
+    result4 = profile_collection.find_by_indexes(kwargs4)
+    result5 = profile_collection.find_by_indexes(kwargs5)
+    result6 = profile_collection.find_by_indexes(kwargs6)
+    result7 = profile_collection.find_by_indexes(kwargs7)
+    result8 = profile_collection.find_by_indexes(kwargs8)
+    result9 = profile_collection.find_by_indexes(kwargs9)
+    result10 = profile_collection.find_by_indexes(kwargs10)
+    result11 = profile_collection.find_by_indexes(kwargs11)
+    result12 = profile_collection.find_by_indexes(kwargs12)
+    result13 = profile_collection.find_by_indexes(kwargs13)
 
     # Assert
     assert isinstance(result1, list)
     assert len(result1) == 1
     assert result1[0] == profile1
-    assert len(kargs1) == 0
+    assert len(kwargs1) == 0
     assert result2 is None
-    assert len(kargs2) == 0
+    assert len(kwargs2) == 0
     assert result3 is None
-    assert len(kargs3) == 1
+    assert len(kwargs3) == 1
     assert result4 is not None
     assert len(result4) == 1
-    assert len(kargs4) == 0
+    assert len(kwargs4) == 0
     assert result5 is None
-    assert len(kargs5) == 0
+    assert len(kwargs5) == 0
     assert result6 is not None
     assert len(result6) == 1
-    assert len(kargs6) == 0
+    assert len(kwargs6) == 0
     assert result7 is None
-    assert len(kargs7) == 0
+    assert len(kwargs7) == 0
     assert result8 is not None
     assert len(result8) == 1
-    assert len(kargs8) == 0
+    assert len(kwargs8) == 0
     assert result9 is None
-    assert len(kargs9) == 0
+    assert len(kwargs9) == 0
     assert result10 is not None
     assert len(result10) == 1
-    assert len(kargs10) == 0
+    assert len(kwargs10) == 0
     assert result11 is None
-    assert len(kargs11) == 0
+    assert len(kwargs11) == 0
     assert result12 is not None
     assert len(result12) == 1
-    assert len(kargs12) == 0
+    assert len(kwargs12) == 0
     assert result13 is None
-    assert len(kargs13) == 0
+    assert len(kwargs13) == 0
