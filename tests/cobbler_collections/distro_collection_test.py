@@ -345,30 +345,30 @@ def test_find_by_indexes(
     """
     # Arrange
     item1 = create_distro()
-    kargs1 = {"name": item1.name}
-    kargs2 = {"name": "fake_name"}
-    kargs3 = {"fake_index": item1.uid}
-    kargs4 = {"arch": item1.arch.value}
-    kargs5 = {"arch": "fake_arch"}
+    kwargs1 = {"name": item1.name}
+    kwargs2 = {"name": "fake_name"}
+    kwargs3 = {"fake_index": item1.uid}
+    kwargs4 = {"arch": item1.arch.value}
+    kwargs5 = {"arch": "fake_arch"}
 
     # Act
-    result1 = distro_collection.find_by_indexes(kargs1)
-    result2 = distro_collection.find_by_indexes(kargs2)
-    result3 = distro_collection.find_by_indexes(kargs3)
-    result4 = distro_collection.find_by_indexes(kargs4)
-    result5 = distro_collection.find_by_indexes(kargs5)
+    result1 = distro_collection.find_by_indexes(kwargs1)
+    result2 = distro_collection.find_by_indexes(kwargs2)
+    result3 = distro_collection.find_by_indexes(kwargs3)
+    result4 = distro_collection.find_by_indexes(kwargs4)
+    result5 = distro_collection.find_by_indexes(kwargs5)
 
     # Assert
     assert isinstance(result1, list)
     assert len(result1) == 1
     assert result1[0] == item1
-    assert len(kargs1) == 0
+    assert len(kwargs1) == 0
     assert result2 is None
-    assert len(kargs2) == 0
+    assert len(kwargs2) == 0
     assert result3 is None
-    assert len(kargs3) == 1
+    assert len(kwargs3) == 1
     assert result4 is not None
     assert len(result4) == 1
-    assert len(kargs4) == 0
+    assert len(kwargs4) == 0
     assert result5 is None
-    assert len(kargs5) == 0
+    assert len(kwargs5) == 0

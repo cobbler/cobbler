@@ -85,10 +85,10 @@ def fixture_api_mock(mocker: "MockerFixture"):
 #     g = self.api.find_profile(name=g)
 #
 #   File "/usr/lib/python3.6/site-packages/cobbler/api.py", line 931, in find_profile
-#     return self._collection_mgr.profiles().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+#     return self._collection_mgr.profiles().find(name=name, return_list=return_list, no_errors=no_errors, **kwargs)
 #
 #   File "/usr/lib/python3.6/site-packages/cobbler/cobbler_collections/collection.py", line 127, in find
-#     return self.listing.get(kargs["name"], None)
+#     return self.listing.get(kwargs["name"], None)
 #
 # [2022-02-28_093028_validate_autoinstall_files] 2022-02-28T09:30:29 - ERROR | ### TASK FAILED ###
 

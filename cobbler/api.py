@@ -1805,7 +1805,7 @@ class CobblerAPI:
         ]
     ]:
         """
-        Find a network interface via a name or keys specified in the ``**kargs``.
+        Find a network interface via a name or keys specified in the ``**kwargs``.
 
         :param return_list: If only the first result or all results should be returned.
         :param no_errors: Silence some errors which would raise if this turned to False.
@@ -1821,9 +1821,14 @@ class CobblerAPI:
         return_list: bool = False,
         no_errors: bool = False,
         **kwargs: "FIND_KWARGS",
-    ) -> Optional[Union[List["template.Template"], "template.Template",]]:
+    ) -> Optional[
+        Union[
+            List["template.Template"],
+            "template.Template",
+        ]
+    ]:
         """
-        Find a network interface via a name or keys specified in the ``**kargs``.
+        Find a network interface via a name or keys specified in the ``**kwargs``.
 
         :param return_list: If only the first result or all results should be returned.
         :param no_errors: Silence some errors which would raise if this turned to False.

@@ -406,39 +406,39 @@ def test_find_by_indexes(
     """
     # Arrange
     item1 = create_image()
-    kargs1 = {"name": item1.name}
-    kargs2 = {"name": "fake_uid"}
-    kargs3 = {"fake_index": item1.uid}
-    kargs4 = {"menu": ""}
-    kargs5 = {"menu": "fake_menu"}
-    kargs6 = {"arch": item1.arch.value}
-    kargs7 = {"arch": "fake_arch"}
+    kwargs1 = {"name": item1.name}
+    kwargs2 = {"name": "fake_uid"}
+    kwargs3 = {"fake_index": item1.uid}
+    kwargs4 = {"menu": ""}
+    kwargs5 = {"menu": "fake_menu"}
+    kwargs6 = {"arch": item1.arch.value}
+    kwargs7 = {"arch": "fake_arch"}
 
     # Act
-    result1 = image_collection.find_by_indexes(kargs1)
-    result2 = image_collection.find_by_indexes(kargs2)
-    result3 = image_collection.find_by_indexes(kargs3)
-    result4 = image_collection.find_by_indexes(kargs4)
-    result5 = image_collection.find_by_indexes(kargs5)
-    result6 = image_collection.find_by_indexes(kargs6)
-    result7 = image_collection.find_by_indexes(kargs7)
+    result1 = image_collection.find_by_indexes(kwargs1)
+    result2 = image_collection.find_by_indexes(kwargs2)
+    result3 = image_collection.find_by_indexes(kwargs3)
+    result4 = image_collection.find_by_indexes(kwargs4)
+    result5 = image_collection.find_by_indexes(kwargs5)
+    result6 = image_collection.find_by_indexes(kwargs6)
+    result7 = image_collection.find_by_indexes(kwargs7)
 
     # Assert
     assert isinstance(result1, list)
     assert len(result1) == 1
     assert result1[0] == item1
-    assert len(kargs1) == 0
+    assert len(kwargs1) == 0
     assert result2 is None
-    assert len(kargs2) == 0
+    assert len(kwargs2) == 0
     assert result3 is None
-    assert len(kargs3) == 1
+    assert len(kwargs3) == 1
     assert result4 is not None
     assert len(result4) == 1
-    assert len(kargs4) == 0
+    assert len(kwargs4) == 0
     assert result5 is None
-    assert len(kargs5) == 0
+    assert len(kwargs5) == 0
     assert result6 is not None
     assert len(result6) == 1
-    assert len(kargs6) == 0
+    assert len(kwargs6) == 0
     assert result7 is None
-    assert len(kargs7) == 0
+    assert len(kwargs7) == 0
