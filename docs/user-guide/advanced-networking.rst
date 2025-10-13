@@ -101,5 +101,4 @@ Three different networking [Kickstart Snippets](Kickstart Snippets) must be pres
 * ``network_config``
 * ``post_install_network_config``
 
-The default kickstart templates (``/var/lib/cobbler/kickstart/sample\*.ks``) have these installed by default so they
-work out of the box.
+The default kickstart templates (``built-in-sample\*.ks``) have these installed by default so they work out of the box.

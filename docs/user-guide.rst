@@ -24,6 +24,7 @@ User Guide
    Boot CD <user-guide/boot-cd>
    Advanced Networking <user-guide/advanced-networking>
    SELinux <user-guide/selinux>
+   Templating <user-guide/templating>
 
 
 API

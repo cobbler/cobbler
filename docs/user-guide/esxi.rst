@@ -303,12 +303,13 @@ The boot.cfg file
 #################
 
 .. note::
-    As stated on VMware docs, *the boot loader configuration file boot.cfg specifies the kernel, the kernel options, and the boot modules that the mboot.c32
-    or mboot.efi boot loader uses in an ESXi installation. The boot.cfg file is provided in the ESXi installer. You can modify the
-    kernelopt line of the boot.cfg file to specify the location of an installation script or to pass other boot options.*
+    As stated on VMware docs, *the boot loader configuration file boot.cfg specifies the kernel, the kernel options, and
+    the boot modules that the mboot.c32 or mboot.efi boot loader uses in an ESXi installation. The boot.cfg file is
+    provided in the ESXi installer. You can modify the kernelopt line of the boot.cfg file to specify the location of an
+    installation script or to pass other boot options.*
 
-Cobbler will provide with boot.cfg configuration files from systems and profiles. They are generated via the ``bootcfg.template``.
-You can obtain cobbler's boot.cfg file for a system and profile via HTTP API.
+Cobbler will provide with boot.cfg configuration files from systems and profiles. They are generated via the a template
+with the tags ``bootcfg`` and ``active``. You can obtain cobbler's boot.cfg file for a system and profile via HTTP API.
 
 Example call for profile (modules shortened for readability)
 
@@ -325,7 +326,8 @@ Example call for profile (modules shortened for readability)
     updated=0
 
 
-Example call for system (modules shortened for readability). Note that as system is iPXE enabled, prefix is now an http location.
+Example call for system (modules shortened for readability). Note that as system is iPXE enabled, prefix is now an http
+location.
 
 .. code-block:: console
 

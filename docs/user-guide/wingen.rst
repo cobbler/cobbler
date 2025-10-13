@@ -374,19 +374,22 @@ Boot entries were created for this profile:
 Additional Windows metadata
 ###########################
 
-Additional metadata for preparing Windows boot files can be passed through the ``--autoinstall-meta`` option for distro, profile or system.
-The source files for Windows boot files should be located in the ``/var/www/cobbler/distro_mirror/<distro_name>/Boot`` directory.
-The trigger copies them to ``/var/lib/tftpboot/images/<distro_name>`` with the new names specified in the metadata and and changes their contents.
+Additional metadata for preparing Windows boot files can be passed through the ``--autoinstall-meta`` option for distro,
+profile or system. The source files for Windows boot files should be located in the
+``/var/www/cobbler/distro_mirror/<distro_name>/Boot`` directory. The trigger copies them to
+``/var/lib/tftpboot/images/<distro_name>`` with the new names specified in the metadata and and changes their contents.
 The resulting files will be available via tftp and http.
 
 The ``sync_post_wingen`` trigger uses the following set of metadata:
 
 * kernel
 
-    ``kernel`` in autoinstall-meta is only used if the boot kernel is ``pxeboot.n12`` (``--kernel=/path_to_kernel/pxeboot.n12`` in distro).
-    In this case, the trigger copies the ``pxeboot.n12`` file into a file with a new name and replaces:
+    ``kernel`` in autoinstall-meta is only used if the boot kernel is ``pxeboot.n12``
+    (``--kernel=/path_to_kernel/pxeboot.n12`` in distro). In this case, the trigger copies the ``pxeboot.n12`` file into
+    a file with a new name and replaces:
 
-    - ``bootmgr.exe`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using Micrisoft ADK.
+    - ``bootmgr.exe`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using
+      Microsoft ADK.
     - ``NTLDR`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using Legacy RIS.
 
     Value of the ``kernel`` key in ``autoinstall-meta`` will be the actual first boot file.
@@ -394,45 +397,54 @@ The ``sync_post_wingen`` trigger uses the following set of metadata:
 
 * bootmgr
 
-    The bootmgr key value is passed the name of the second boot file in the Windows boot chain. The source file to create it can be:
+    The bootmgr key value is passed the name of the second boot file in the Windows boot chain. The source file to
+    create it can be:
 
-    - ``bootmgr.exe`` in case of using Micrisoft ADK
+    - ``bootmgr.exe`` in case of using Microsoft ADK
     - ``setupldr.exe`` for Legacy RIS
 
     Trigger copies the corresponding source file to a file with the name given by this key and replaces in it:
 
-    - substring ``\Boot\BCD`` to ``\Boot\<bcd_value>``, where ``<bcd_value>`` is the metadata ``bcd`` key value for Micrisoft ADK.
+    - substring ``\Boot\BCD`` to ``\Boot\<bcd_value>``, where ``<bcd_value>`` is the metadata ``bcd`` key value for
+      Microsoft ADK.
     - substring ``winnt.sif`` with the value passed through the ``answerfile`` metadata key in case of using Legacy RIS.
 
 * bcd
 
-    This key is used to pass the value of the ``BCD`` file name in case of using Micrisoft ADK. Any ``BCD`` file from the Windows distribution can be used as a source for this file.
-    The trigger copies it, then removes all boot information from the copy and adds new data from the ``initrd`` value of the distro and the value passed through the ``winpe`` metadata key.
+    This key is used to pass the value of the ``BCD`` file name in case of using Microsoft ADK. Any ``BCD`` file from
+    the Windows distribution can be used as a source for this file. The trigger copies it, then removes all boot
+    information from the copy and adds new data from the ``initrd`` value of the distro and the value passed through the
+    ``winpe`` metadata key.
 
 * winpe
 
-    This metadata key allows you to specify the name of the WinPE image. The image is copied by the cp utility trigger with the ``--reflink=auto`` option,
-    which allows to reduce copying time and the size of the disk space on CoW file systems.
-    In the copy of the file, the tribger changes the ``/Windows/System32/startnet.cmd`` script to the script generated from the ``startnet.template`` template.
+    This metadata key allows you to specify the name of the WinPE image. The image is copied by the cp utility trigger
+    with the ``--reflink=auto`` option, which allows to reduce copying time and the size of the disk space on CoW file
+    systems. In the copy of the file, the tribger changes the ``/Windows/System32/startnet.cmd`` script to the script
+    generated from the template with the tags ``windows_answerfile`` and ``active``.
 
 * answerfile
 
-    This is the name of the answer file for the Windows installation. This file is generated from the ``answerfile.template`` template and is used in:
+    This is the name of the answer file for the Windows installation. This file is generated from the template with tags
+    ``windows_startnet`` and ``active`` and is used in:
 
     - ``startnet.cmd`` to start WinPE installation
     - the file name is written to the binary file ``setupldr.exe`` for RIS
 
 * post_install_script
 
-    This is the name of the script to run immediately after the Windows installation completes.
-    The script is specified in the Windows answer file. All the necessary completing the installation actions can be performed directly in this script,
-    or it can be used to get and start additional steps from ``http://<server>/cblr/svc/op/autoinstall/<profile|system>/name``.
-    To make this script available after the installation is complete, the trigger creates it in ``/var/www/cobbler/distro_mirror/<distro_name>/$OEM$/$1`` from the ``post_inst_cmd.template`` template.
+    This is the name of the script to run immediately after the Windows installation completes. The script is specified
+    in the Windows answer file. All the necessary completing the installation actions can be performed directly in this
+    script, or it can be used to get and start additional steps from
+    ``http://<server>/cblr/svc/op/autoinstall/<profile|system>/name``. To make this script available after the
+    installation is complete, the trigger creates it in ``/var/www/cobbler/distro_mirror/<distro_name>/$OEM$/$1`` from
+    the template with the tags ``windows_post_inst_cmd`` and ``active``.
 
 Legacy Windows XP and Windows 2003 Server
 #########################################
 
-- WinPE 3.0 and wimboot can be used to install legacy versions of Windows. ``startnet.template`` contains the code for starting such an installation via ``winnt32.exe``.
+- WinPE 3.0 and wimboot can be used to install legacy versions of Windows. The template ``built-in-startnet`` contains
+  the code for starting such an installation via ``winnt32.exe``.
 
   - copy ``bootmgr.exe``, ``bcd``, ``boot.sdi`` from Windows 7 and ``winpe.wim`` from WAIK to the ``/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot``
 

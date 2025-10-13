@@ -83,7 +83,7 @@ autoinstall
 
 If no autoinstall template is specified to profile add, use this template.
 
-default: ``default.ks``
+default: ``built-in-default.ks``
 
 autoinstall_scheme
 ####################
@@ -99,14 +99,6 @@ Choices:
 - ``https``
 
 default: ``http``
-
-autoinstall_snippets_dir
-########################
-
-This is a directory of files that Cobbler uses to make templating easier. See the Wiki for more information. Changing
-this directory should not be required.
-
-default: ``/var/lib/cobbler/snippets``
 
 autoinstall_templates_dir
 #########################
@@ -136,13 +128,6 @@ bind_zonefile_path
 Set to path where zonefiles of bind/named server are located.
 
 default: ``"@@bind_zonefiles@@"``
-
-boot_loader_conf_template_dir
-#############################
-
-Location of templates used for boot loader config generation.
-
-default: ``"/etc/cobbler/boot_loader_conf"``
 
 bootloaders_dir
 ###############
@@ -370,10 +355,10 @@ default:
 default_password_crypted
 ########################
 
-Cobbler has various sample automatic installation templates stored in ``/var/lib/cobbler/templates/``. This
-controls what install (root) password is set up for those systems that reference this variable. The factory default is
-"cobbler" and Cobbler check will warn if this is not changed. The simplest way to change the password is to run
-``openssl passwd -1`` and put the output between the ``""``.
+Cobbler has various sample automatic installation templates stored. This controls what install (root) password is set up
+for those systems that reference this variable. The factory default is "cobbler" and Cobbler check will warn if this is
+not changed. The simplest way to change the password is to run ``openssl passwd -1`` and put the output between the
+``""``.
 
 default: ``"$1$mF86/UHC$WvcIcX2t6crBz2onWxyac."``
 
@@ -483,21 +468,6 @@ http_port
 Change this port if Apache is not running plain text on port 80. Most people can leave this alone.
 
 default: ``80``
-
-iso_template_dir
-################
-
-Folder to search for the ISO templates. These will build the boot-menu of the built ISO.
-
-default: ``/etc/cobbler/iso``
-
-jinja2_includedir
-#################
-
-This is a directory of files that Cobbler uses to include files into Jinja2 templates. Per default this settings is
-commented out.
-
-default: ``/var/lib/cobbler/jinja2``
 
 kernel_options
 ##############
@@ -1010,15 +980,6 @@ windows_enabled
 Set to true to enable the generation of Windows boot files in Cobbler.
 
 default: ``False``
-
-For more information see :ref:`wingen`.
-
-windows_template_dir
-####################
-
-Location of templates used for Windows.
-
-default: ``/etc/cobbler/windows``
 
 For more information see :ref:`wingen`.
 

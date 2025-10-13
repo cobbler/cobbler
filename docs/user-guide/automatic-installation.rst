@@ -8,6 +8,14 @@ Autoinstallation Support
 AutoYaST
 ========
 
+Cobbler supports AutoYaST for automated installations of SUSE and openSUSE systems. You can provide an AutoYaST XML
+profile to Cobbler, which will be served to clients during installation.
+
+For more information about AutoYaST, see:
+
+* https://documentation.suse.com/sles/15-SP7/html/SLES-all/Invoking.html
+* https://github.com/yast/yast-autoinstallation
+
 Kickstart
 =========
 
@@ -23,6 +31,13 @@ one of the following websites:
 
 Preseed
 =======
+
+Cobbler supports Preseed for automated installations of Debian and Ubuntu systems. You can provide a Preseed
+configuration file to Cobbler, which will be delivered to clients during installation.
+
+For more information about Preseed, see:
+
+* https://wiki.debian.org/DebianInstaller/Preseed
 
 Cloud-Init
 ==========
@@ -64,26 +79,20 @@ For NFS and HTTP automatic installation file URLs, the ``--autoinstall_meta`` op
 good reason to let Cobbler manage your automatic installation files, though the URL functionality is provided for
 integration with legacy infrastructure, possibly including web apps that already generate automatic installation files.
 
-Templated automatic files are processed by the templating program/package Cheetah, so anything you can do in a Cheetah
-template can be done to an automatic installation template.  Learn more at https://cheetahtemplate.org/users_guide/intro.html
-
-When working with Cheetah, be sure to escape any shell macros that look like ``$(this)`` with something like
-``\$(this)`` or errors may show up during the sync process.
-
-The Cobbler Wiki also contains numerous Cheetah examples that should prove useful in using this feature.
-
-Also useful is the following repository: https://github.com/FlossWare/cobbler
+Templated automatic files are processed by the templating program/package Cheetah or Jinja. To learn more about
+templating in Cobbler please visit the corresponding page in our doucmentation: :ref:`templating`
 
 Automatic installation snippets
 ###############################
 
-Anywhere a automatic installation template mentions ``SNIPPET::snippet_name``, the file named
-``/var/lib/cobbler/snippets/snippet_name`` (if present) will be included automatically in the automatic installation
-template. This serves as a way to recycle frequently used automatic installation snippets without duplication. Snippets
-can contain templating variables, and the variables will be evaluated according to the profile and/or system as one
-would expect.
+For Cheetah anywhere an automatic installation template mentions ``SNIPPET::snippet_name``, Cobbler will search for a
+template with this name. This serves as a way to recycle frequently used automatic installation snippets without
+duplication. Snippets can contain templating variables, and the variables will be evaluated according to the profile
+and/or system as one would expect.
 
-Snippets can also be overridden for specific profile names or system names. This is described on the Cobbler Wiki.
+Snippets can also be overridden for specific profile names or system names. Do do this simply set a tag with
+``per_<item type>`` and a second tag with the desired identifier (either name or UID) so the template qualifies as an
+override.
 
 Autoinstall validation
 ######################
