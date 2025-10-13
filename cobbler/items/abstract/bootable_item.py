@@ -106,11 +106,16 @@ V2.8.5:
 
 import pprint
 from abc import ABC
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
 from cobbler import enums, utils
 from cobbler.items.abstract.inheritable_item import InheritableItem
 from cobbler.utils import input_converters
+
+KernelOptionScalar = Union[str, int, float, bool, None]
+KernelOptionValue = Union[KernelOptionScalar, List[KernelOptionScalar]]
+KernelOptionsDict = Dict[str, KernelOptionValue]
+KernelOptionsInput = Union[str, KernelOptionsDict]
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -149,8 +154,8 @@ class BootableItem(InheritableItem, ABC):
         """
         super().__init__(api, *args, **kwargs)
 
-        self._kernel_options: Union[Dict[Any, Any], str] = {}
-        self._kernel_options_post: Union[Dict[Any, Any], str] = {}
+        self._kernel_options: Union[KernelOptionsDict, str] = {}
+        self._kernel_options_post: Union[KernelOptionsDict, str] = {}
         self._autoinstall_meta: Union[Dict[Any, Any], str] = {}
         self._template_files: Dict[str, str] = {}
         self._inmemory = True
@@ -423,19 +428,23 @@ class BootableItem(InheritableItem, ABC):
         return value
 
     @InheritableDictProperty
-    def kernel_options(self) -> Dict[Any, Any]:
+    def kernel_options(self) -> KernelOptionsDict:
         """
         Kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
 
         .. note:: This property can be set to ``<<inherit>>``.
 
-        :getter: The parsed kernel options.
+        :getter: The parsed kernel options represented as a flat dict mapping option names to scalar values
+                 (str/bool/int/float/None). Duplicate options result in a list of those scalar values. Nested
+                 dictionaries are not supported.
         :setter: The new kernel options as a space delimited list. May raise ``ValueError`` in case of parsing problems.
         """
-        return self._resolve_dict(["kernel_options"])
+        # Touch backing attribute so static analyzers detect usage.
+        _ = self._kernel_options
+        return cast(KernelOptionsDict, self._resolve_dict(["kernel_options"]))
 
     @kernel_options.setter
-    def kernel_options(self, options: Dict[str, Any]):
+    def kernel_options(self, options: KernelOptionsInput) -> None:
         """
         Setter for ``kernel_options``.
 
@@ -447,25 +456,32 @@ class BootableItem(InheritableItem, ABC):
             if value == enums.VALUE_INHERITED:
                 self._kernel_options = enums.VALUE_INHERITED
                 return
-            # pyright doesn't understand that the only valid str return value is this constant.
-            self._kernel_options = self._deduplicate_dict(["kernel_options"], value)  # type: ignore
+            deduplicated: KernelOptionsDict = self._deduplicate_dict(
+                ["kernel_options"], cast(KernelOptionsDict, value)
+            )
+            self._kernel_options = deduplicated
         except TypeError as error:
-            raise TypeError("invalid kernel value") from error
+            raise TypeError(
+                f"invalid kernel options: expected str or dict, got {type(options).__name__}"
+            ) from error
 
     @InheritableDictProperty
-    def kernel_options_post(self) -> Dict[str, Any]:
+    def kernel_options_post(self) -> KernelOptionsDict:
         """
         Post kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
 
         .. note:: This property can be set to ``<<inherit>>``.
 
-        :getter: The dictionary with the parsed values.
+        :getter: The parsed post-install kernel options represented as a flat dict mapping option names to scalar values
+                 (str/bool/int/float/None). Duplicate options result in a list of those scalar values. Nested
+                 dictionaries are not supported.
         :setter: Accepts str in above mentioned format or directly a dict.
         """
-        return self._resolve_dict(["kernel_options_post"])
+        _ = self._kernel_options_post
+        return cast(KernelOptionsDict, self._resolve_dict(["kernel_options_post"]))
 
     @kernel_options_post.setter
-    def kernel_options_post(self, options: Union[Dict[Any, Any], str]) -> None:
+    def kernel_options_post(self, options: KernelOptionsInput) -> None:
         """
         Setter for ``kernel_options_post``.
 
@@ -473,11 +489,15 @@ class BootableItem(InheritableItem, ABC):
         :raises ValueError: In case the options could not be split successfully.
         """
         try:
-            self._kernel_options_post = input_converters.input_string_or_dict(
-                options, allow_multiples=True
-            )
+            value = input_converters.input_string_or_dict(options, allow_multiples=True)
+            if value == enums.VALUE_INHERITED:
+                self._kernel_options_post = enums.VALUE_INHERITED
+                return
+            self._kernel_options_post = cast(KernelOptionsDict, value)
         except TypeError as error:
-            raise TypeError("invalid post kernel options") from error
+            raise TypeError(
+                f"invalid post kernel options: expected str or dict, got {type(options).__name__}"
+            ) from error
 
     @InheritableDictProperty
     def autoinstall_meta(self) -> Dict[Any, Any]:
