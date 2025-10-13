@@ -1477,7 +1477,7 @@ class TFTPGen:
         # support additional initrd= entries in kernel options.
         if "initrd" in kopts:
             append_line = f",{kopts.pop('initrd')}"
-        hkopts = utils.dict_to_string(kopts)
+        hkopts = utils.kernel_options_to_string(kopts)
         append_line = f"{append_line} {hkopts}"
 
         # automatic installation file path rewriting (get URLs for local files)
@@ -1567,7 +1567,7 @@ class TFTPGen:
                 if distro.os_version.find("esxi") != -1:
                     # ESXi is very picky, it's easier just to redo the
                     # entire append line here since
-                    hkopts = utils.dict_to_string(kopts)
+                    hkopts = utils.kernel_options_to_string(kopts)
                     append_line = f"{hkopts} ks={autoinstall_path}"
                 else:
                     append_line = f"{append_line} vmkopts=debugLogToSerial:1 mem=512M ks={autoinstall_path}"
