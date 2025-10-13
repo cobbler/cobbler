@@ -253,3 +253,77 @@ def test_find_menu(
             assert result is None
         else:
             assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "return_list,no_errors,criteria,expected_exception,expected_result",
+    [
+        (False, False, {}, pytest.raises(ValueError), None),
+        (False, False, {"name": "test"}, does_not_raise(), None),
+        (False, False, None, pytest.raises(ValueError), None),
+        (False, False, {"name": "testdistro"}, does_not_raise(), None),
+    ],
+)
+def test_find_network_interface(
+    find_fillup: CobblerAPI,
+    return_list: bool,
+    no_errors: bool,
+    criteria: Optional[Dict[str, Any]],
+    expected_exception: Any,
+    expected_result: None,
+):
+    """
+    Test to verify that network_interfaces can be searched for.
+    """
+    # Arrange
+    test_api = find_fillup
+
+    # Act
+    with expected_exception:
+        if criteria is not None:
+            result = test_api.find_network_interface(return_list, no_errors, **criteria)
+        else:
+            result = test_api.find_network_interface(return_list, no_errors)
+
+        # Assert
+        if expected_result is None:
+            assert result is None
+        else:
+            assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "return_list,no_errors,criteria,expected_exception,expected_result",
+    [
+        (False, False, {}, pytest.raises(ValueError), None),
+        (False, False, {"name": "test"}, does_not_raise(), None),
+        (False, False, None, pytest.raises(ValueError), None),
+        (False, False, {"name": "testdistro"}, does_not_raise(), None),
+    ],
+)
+def test_find_template(
+    find_fillup: CobblerAPI,
+    return_list: bool,
+    no_errors: bool,
+    criteria: Optional[Dict[str, Any]],
+    expected_exception: Any,
+    expected_result: None,
+):
+    """
+    Test to verify that templates can be searched for.
+    """
+    # Arrange
+    test_api = find_fillup
+
+    # Act
+    with expected_exception:
+        if criteria is not None:
+            result = test_api.find_template(return_list, no_errors, **criteria)
+        else:
+            result = test_api.find_template(return_list, no_errors)
+
+        # Assert
+        if expected_result is None:
+            assert result is None
+        else:
+            assert result == expected_result

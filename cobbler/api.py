@@ -1639,22 +1639,17 @@ class CobblerAPI:
     def __find_without_collection(
         self, return_list: bool, no_errors: bool, criteria: Dict[Any, Any]
     ) -> Optional[Union["BootableItem", List["BootableItem"]]]:
-        collections = [
-            "distro",
-            "profile",
-            "system",
-            "repo",
-            "image",
-            "menu",
-            "network_interface",
-        ]
-        for collection_name in collections:
+        for collection_name in enums.ItemTypes:
             match = self.find_items(
-                collection_name,
+                collection_name.value,
                 criteria,
                 return_list=return_list,
                 no_errors=no_errors,
             )
+            if isinstance(match, list):
+                if len(match) > 0:
+                    return match
+                continue
             if match is not None:
                 return match
         return None
@@ -1668,18 +1663,9 @@ class CobblerAPI:
         """
         if not isinstance(uid, str):  # type: ignore
             raise TypeError("name of an object must be of type str!")
-        collections = [
-            "distro",
-            "profile",
-            "system",
-            "repo",
-            "image",
-            "menu",
-            "network_interface",
-        ]
-        for collection_name in collections:
+        for collection_name in enums.ItemTypes:
             match = self.find_items(
-                collection_name, return_list=False, criteria={"uid": uid}
+                collection_name.value, return_list=False, criteria={"uid": uid}
             )
             if isinstance(match, list):
                 raise ValueError("Ambiguous match during search!")

@@ -1661,9 +1661,7 @@ class CobblerXMLRPCInterface:
         :param rest: This parameter is not used currently.
         :return: All files which have matched the criteria.
         """
-        return self.find_items(
-            "network_interface", criteria, expand=expand, resolved=resolved
-        )
+        return self.find_items("template", criteria, expand=expand, resolved=resolved)
 
     def find_items_paged(
         self,
