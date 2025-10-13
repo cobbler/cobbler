@@ -327,7 +327,7 @@ class TFTPGen:
         Writes all files for tftp for a given system with the menu items handed to this method. The system must have a
         profile attached. Otherwise this method throws an error.
 
-        Directory structure:
+        Directory structure and cleanup behaviour:
 
         .. code-block::
 
@@ -342,6 +342,8 @@ class TFTPGen:
 
         :param system: The system to generate files for.
         :param menu_items: The list of labels that are used for displaying the menu entry.
+        This method is also responsible for removing stale boot loader artefacts when support for PXE/GRUB is disabled
+        or management is no longer supported for the system.
         """
         system_parent: Optional[
             Union["Profile", "Image"]
@@ -368,6 +370,12 @@ class TFTPGen:
         if distro is not None and distro.arch in (enums.Archs.S390, enums.Archs.S390X):
             self._write_all_system_files_s390(distro, profile, image, system)  # type: ignore
             return
+
+        boot_loaders = list(system.boot_loaders)
+        pxe_enabled = enums.BootLoader.PXE in boot_loaders
+        grub_enabled = enums.BootLoader.GRUB in boot_loaders
+        link_path = os.path.join(self.bootloc, "grub", "system_link", system.name)
+        grub_targets: List[str] = []
 
         # generate one record for each described NIC ..
         for name, _ in system.interfaces.items():
@@ -421,9 +429,17 @@ class TFTPGen:
             else:
                 continue
 
-            if system.is_management_supported():
-                if image is None:
-                    if pxe_path:
+            if not system.is_management_supported():
+                # ensure the files don't exist
+                if pxe_path:
+                    filesystem_helpers.rmfile(pxe_path)
+                if grub_path:
+                    filesystem_helpers.rmfile(grub_path)
+                continue
+
+            if image is None:
+                if pxe_path:
+                    if pxe_enabled:
                         self.write_pxe_file(
                             pxe_path,
                             system,
@@ -432,7 +448,10 @@ class TFTPGen:
                             working_arch,
                             metadata=pxe_metadata,  # type: ignore
                         )
-                    if grub_path:
+                    else:
+                        filesystem_helpers.rmfile(pxe_path)
+                if grub_path:
+                    if grub_enabled:
                         self.write_pxe_file(
                             grub_path,
                             system,
@@ -441,28 +460,37 @@ class TFTPGen:
                             working_arch,
                             bootloader_format=enums.BootLoader.GRUB,
                         )
-                        # Generate a link named after system to the mac file for easier lookup
-                        link_path = os.path.join(
-                            self.bootloc, "grub", "system_link", system.name
-                        )
-                        filesystem_helpers.rmfile(link_path)
-                        filesystem_helpers.mkdir(os.path.dirname(link_path))
-                        os.symlink(os.path.join("..", "system", grub_name), link_path)  # type: ignore
-                else:
-                    self.write_pxe_file(
-                        pxe_path,
-                        system,
-                        profile,
-                        distro,
-                        working_arch,
-                        image=image,
-                        metadata=pxe_metadata,  # type: ignore
-                    )
+                        if grub_name is not None:
+                            grub_targets.append(grub_name)
+                    else:
+                        filesystem_helpers.rmfile(grub_path)
             else:
-                # ensure the file doesn't exist
-                filesystem_helpers.rmfile(pxe_path)
-                if grub_path:
-                    filesystem_helpers.rmfile(grub_path)
+                if pxe_path:
+                    if pxe_enabled:
+                        self.write_pxe_file(
+                            pxe_path,
+                            system,
+                            profile,
+                            distro,
+                            working_arch,
+                            image=image,
+                            metadata=pxe_metadata,  # type: ignore
+                        )
+                    else:
+                        filesystem_helpers.rmfile(pxe_path)
+
+        filesystem_helpers.rmfile(link_path)
+        if grub_enabled and grub_targets:
+            filesystem_helpers.mkdir(os.path.dirname(link_path))
+            grub_target = sorted(grub_targets)[0]
+            try:
+                os.symlink(os.path.join("..", "system", grub_target), link_path)
+            except OSError as os_error:
+                self.logger.warning(
+                    'Failed to create GRUB system link for "%s": %s',
+                    system.name,
+                    os_error,
+                )
 
     def _generate_system_file_s390x(
         self,
