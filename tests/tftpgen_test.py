@@ -7,6 +7,7 @@ import os
 import pathlib
 import shutil
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Union
+from unittest.mock import PropertyMock
 
 import pytest
 
@@ -143,11 +144,11 @@ def fixture_setup_test_write_all_system_files(
     "mock_is_management_supported,mock_get_config_filename,expected_pxe_file,expected_rmfile,expected_mkdir,expected_symlink",
     [
         (True, ["A", "B"], 2, 1, 1, 1),
-        (True, ["A", None], 1, 0, 0, 0),
+        (True, ["A", None], 1, 1, 0, 0),
         (True, [None, "B"], 1, 1, 1, 1),
         # TODO: Add image based scenario
-        (False, ["A", "B"], 0, 2, 0, 0),
-        (False, ["A", None], 0, 1, 0, 0),
+        (False, ["A", "B"], 0, 3, 0, 0),
+        (False, ["A", None], 0, 2, 0, 0),
     ],
 )
 def test_write_all_system_files(
@@ -183,6 +184,12 @@ def test_write_all_system_files(
     mocker.patch.object(
         test_system, "get_config_filename", side_effect=mock_get_config_filename
     )
+    mocker.patch.object(
+        type(test_system),
+        "boot_loaders",
+        new_callable=PropertyMock,
+        return_value=[enums.BootLoader.PXE, enums.BootLoader.GRUB],
+    )
     mock_write_pxe_file = mocker.patch.object(test_gen, "write_pxe_file")
     mock_write_pxe_file_s390 = mocker.patch.object(
         test_gen, "_write_all_system_files_s390"
@@ -200,6 +207,87 @@ def test_write_all_system_files(
     assert mock_fs_helpers_rmfile.call_count == expected_rmfile
     assert mock_fs_helpers_mkdir.call_count == expected_mkdir
     assert mock_os_symlink.call_count == expected_symlink
+
+
+def test_write_all_system_files_removes_unused_pxe_files(
+    mocker: "MockerFixture",
+    setup_test_write_all_system_files: Tuple[System, tftpgen.TFTPGen],
+):
+    """
+    When PXE support is removed from the system boot loaders we should remove the stale PXE file.
+    """
+    # Arrange
+    test_system, test_gen = setup_test_write_all_system_files
+    menu_items: Dict[str, Union[str, Dict[str, str]]] = {}
+    pxe_filename = "01-aa-bb"
+    grub_filename = "aa:bb"
+    mocker.patch.object(test_system, "is_management_supported", return_value=True)
+    mocker.patch.object(
+        test_system,
+        "get_config_filename",
+        side_effect=[pxe_filename, grub_filename],
+    )
+    mocker.patch.object(
+        type(test_system),
+        "boot_loaders",
+        new_callable=PropertyMock,
+        return_value=[enums.BootLoader.GRUB],
+    )
+    mocker.patch.object(test_gen, "write_pxe_file")
+    mock_rmfile = mocker.patch("cobbler.utils.filesystem_helpers.rmfile")
+    mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
+    mocker.patch("os.symlink")
+
+    # Act
+    test_gen.write_all_system_files(test_system, menu_items)
+
+    # Assert
+    expected_pxe_path = os.path.join(test_gen.bootloc, "pxelinux.cfg", pxe_filename)
+    removed_paths = [call.args[0] for call in mock_rmfile.call_args_list]
+    assert expected_pxe_path in removed_paths
+
+
+def test_write_all_system_files_removes_unused_grub_files(
+    mocker: "MockerFixture",
+    setup_test_write_all_system_files: Tuple[System, tftpgen.TFTPGen],
+):
+    """
+    When GRUB support is removed from the system boot loaders we should remove the stale GRUB file and the system link.
+    """
+    # Arrange
+    test_system, test_gen = setup_test_write_all_system_files
+    menu_items: Dict[str, Union[str, Dict[str, str]]] = {}
+    pxe_filename = "01-aa-bb"
+    grub_filename = "aa:bb"
+    mocker.patch.object(test_system, "is_management_supported", return_value=True)
+    mocker.patch.object(
+        test_system,
+        "get_config_filename",
+        side_effect=[pxe_filename, grub_filename],
+    )
+    mocker.patch.object(
+        type(test_system),
+        "boot_loaders",
+        new_callable=PropertyMock,
+        return_value=[enums.BootLoader.PXE],
+    )
+    mocker.patch.object(test_gen, "write_pxe_file")
+    mock_rmfile = mocker.patch("cobbler.utils.filesystem_helpers.rmfile")
+    mocker.patch("cobbler.utils.filesystem_helpers.mkdir")
+    mock_symlink = mocker.patch("os.symlink")
+
+    # Act
+    test_gen.write_all_system_files(test_system, menu_items)
+
+    # Assert
+    expected_grub_path = os.path.join(test_gen.bootloc, "grub", "system", grub_filename)
+    expected_link_path = os.path.join(
+        test_gen.bootloc, "grub", "system_link", test_system.name
+    )
+    removed_paths = [call.args[0] for call in mock_rmfile.call_args_list]
+    assert expected_grub_path in removed_paths
+    assert expected_link_path in removed_paths
+    assert mock_symlink.call_count == 0
 
 
 def test_write_all_system_files_s390(
