@@ -210,9 +210,9 @@ class AutoInstallationGen:
             )
         # FIXME: implement something similar to zypper (SUSE based distros) and apt (Debian based distros)
 
-        meta["kernel_options"] = utils.dict_to_string(meta["kernel_options"])
+        meta["kernel_options"] = utils.kernel_options_to_string(meta["kernel_options"])
         if "kernel_options_post" in meta:
-            meta["kernel_options_post"] = utils.dict_to_string(
+            meta["kernel_options_post"] = utils.kernel_options_to_string(
                 meta["kernel_options_post"]
             )
 

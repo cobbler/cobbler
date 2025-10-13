@@ -337,6 +337,80 @@ def test_dict_to_string(testinput, expected_result):  # type: ignore
     assert expected_result == result
 
 
+def test_kernel_options_to_string_sorts_regular_keys():  # type: ignore
+    # Arrange
+    kernel_options = {
+        "panic": "5",
+        "nosshkey": None,
+        "rescue": "1",
+        "printk.devkmsg": "on",
+    }
+
+    # Act
+    result = utils.kernel_options_to_string(kernel_options)
+
+    # Assert
+    assert result == "nosshkey panic=5 printk.devkmsg=on rescue=1 "
+
+
+def test_kernel_options_to_string_keeps_special_order():  # type: ignore
+    # Arrange
+    kernel_options = {
+        "panic": "5",
+        "console": ["ttyS0", "ttyS1"],
+        "dud": ["driver2", "driver 1"],
+    }
+
+    # Act
+    result = utils.kernel_options_to_string(kernel_options)
+
+    # Assert
+    assert result == "panic=5 dud=driver2 dud='driver 1' console=ttyS0 console=ttyS1 "
+
+
+def test_kernel_options_to_string_reorders_prioritised_keys():  # type: ignore
+    # Arrange
+    kernel_options = {
+        "console": ["ttyS0", "ttyS1"],
+        "dud": ["driver2", "driver 1"],
+    }
+
+    # Act
+    result = utils.kernel_options_to_string(kernel_options)
+
+    # Assert
+    assert result == "dud=driver2 dud='driver 1' console=ttyS0 console=ttyS1 "
+
+
+def test_kernel_options_to_string_mixed_regular_and_special_keys():  # type: ignore
+    # Arrange
+    kernel_options = {
+        "z": 1,
+        "console": "ttyS0",
+        "a": 1,
+        "dud": "drv",
+    }
+
+    # Act
+    result = utils.kernel_options_to_string(kernel_options)
+
+    # Assert
+    assert result == "a=1 z=1 dud=drv console=ttyS0 "
+
+
+def test_kernel_options_to_string_preserves_single_quotes():  # type: ignore
+    # Arrange
+    kernel_options = {
+        "foo": "value 'with quote'",
+    }
+
+    # Act
+    result = utils.kernel_options_to_string(kernel_options)
+
+    # Assert
+    assert result == "foo='value 'with quote'' "
+
+
 @pytest.mark.skip("This method needs mocking of subprocess_call. We do this later.")
 def test_rsync_files():
     # Arrange

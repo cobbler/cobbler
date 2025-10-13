@@ -31,6 +31,7 @@ from typing import (
     Pattern,
     Tuple,
     Union,
+    cast,
 )
 
 import distro
@@ -548,9 +549,11 @@ def flatten(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     if "environment" in data:
         data["environment"] = dict_to_string(data["environment"])
     if "kernel_options" in data:
-        data["kernel_options"] = dict_to_string(data["kernel_options"])
+        data["kernel_options"] = kernel_options_to_string(data["kernel_options"])
     if "kernel_options_post" in data:
-        data["kernel_options_post"] = dict_to_string(data["kernel_options_post"])
+        data["kernel_options_post"] = kernel_options_to_string(
+            data["kernel_options_post"]
+        )
     if "yumopts" in data:
         data["yumopts"] = dict_to_string(data["yumopts"])
     if "autoinstall_meta" in data:
@@ -639,6 +642,38 @@ def dict_annihilate(dictionary: Dict[Any, Any]) -> None:
             del dictionary[key]
 
 
+ORDER_SENSITIVE_KERNEL_OPTION_KEYS = ("dud", "console")
+# TODO(issue-3797): remove hard coded list once kernel options are persisted as ordered structures.
+ORDER_SENSITIVE_KERNEL_OPTION_PRIORITIES = {
+    key: priority for priority, key in enumerate(ORDER_SENSITIVE_KERNEL_OPTION_KEYS)
+}
+
+
+def _dict_item_to_tokens(key: Any, value: Any) -> List[str]:
+    """
+    Convert a single dictionary entry into the list of cli tokens that should be emitted.
+    """
+
+    tokens: List[str] = []
+    if not value:
+        tokens.append(str(key))
+    elif isinstance(value, list):  # type: ignore
+        value = cast(List[Any], value)
+        for item in value:
+            item_str = str(item).strip()
+            if " " in item_str:
+                tokens.append(f"{key}='{item_str}'")
+            else:
+                tokens.append(f"{key}={item_str}")
+    else:
+        value_str = str(value).strip()
+        if " " in value_str:
+            tokens.append(f"{key}='{value_str}'")
+        else:
+            tokens.append(f"{key}={value_str}")
+    return tokens
+
+
 def dict_to_string(_dict: Dict[Any, Any]) -> Union[str, Dict[Any, Any]]:
     """
     Convert a dictionary to a printable string. Used primarily in the kernel options string and for some legacy stuff
@@ -650,30 +685,58 @@ def dict_to_string(_dict: Dict[Any, Any]) -> Union[str, Dict[Any, Any]]:
     :return: The string which was previously a dictionary.
     """
 
-    buffer = ""
     if not isinstance(_dict, dict):  # type: ignore
         return _dict
-    for key in _dict:
-        value = _dict[key]
-        if not value:
-            buffer += str(key) + " "
-        elif isinstance(value, list):  # type: ignore
-            # this value is an array, so we print out every key=value
-            value: List[Any]  # type: ignore[no-redef]
-            for item in value:
-                # strip possible leading and trailing whitespaces
-                _item = str(item).strip()
-                if " " in _item:
-                    buffer += str(key) + "='" + _item + "' "
-                else:
-                    buffer += str(key) + "=" + _item + " "
+
+    tokens: List[str] = []
+    for key, value in _dict.items():
+        tokens.extend(_dict_item_to_tokens(key, value))
+
+    return " ".join(tokens) + (" " if tokens else "")
+
+
+def kernel_options_to_string(options: Dict[Any, Any]) -> Union[str, Dict[Any, Any]]:
+    """
+    Convert kernel options to a deterministic string representation. Options that are not order-sensitive are sorted
+    alphabetically by key, while order-sensitive keys are appended in a defined priority (currently ``dud`` followed by
+    ``console``) while respecting their relative insertion order.
+
+    :param options: The kernel options to convert.
+    :return: A deterministic string representation of the kernel options.
+    """
+
+    if not isinstance(options, dict):  # type: ignore
+        return dict_to_string(options)  # type: ignore[arg-type]
+
+    key_map: Dict[str, Any] = {}
+    deterministic_key_names: List[str] = []
+    trailing_keys: List[Tuple[int, int, str]] = []
+
+    for index, key in enumerate(options.keys()):
+        key_str = str(key)
+        if key_str in key_map and key_map[key_str] is not key:
+            raise ValueError(
+                "Kernel option keys must be unique once converted to string form."
+            )
+        key_map[key_str] = key
+        if key_str in ORDER_SENSITIVE_KERNEL_OPTION_PRIORITIES:
+            trailing_keys.append(
+                (ORDER_SENSITIVE_KERNEL_OPTION_PRIORITIES[key_str], index, key_str)
+            )
         else:
-            _value = str(value).strip()
-            if " " in _value:
-                buffer += str(key) + "='" + _value + "' "
-            else:
-                buffer += str(key) + "=" + _value + " "
-    return buffer
+            deterministic_key_names.append(key_str)
+
+    deterministic_key_names.sort()
+    trailing_keys.sort(key=lambda entry: (entry[0], entry[1]))
+    ordered_keys: List[Any] = [key_map[name] for name in deterministic_key_names]
+    ordered_keys.extend(key_map[name] for _, _, name in trailing_keys)
+
+    tokens: List[str] = []
+    for key in ordered_keys:
+        tokens.extend(_dict_item_to_tokens(key, options[key]))
+
+    # Maintain trailing space for backward compatibility with callers that expect the legacy formatting.
+    return " ".join(tokens) + (" " if tokens else "")
 
 
 def rsync_files(src: str, dst: str, args: str, quiet: bool = True) -> bool:
@@ -1239,9 +1302,9 @@ def kopts_overwrite(
             kopts["textmode"] = ["1"]
         if system_name and cobbler_server_hostname:
             # only works if pxe_just_once is enabled in global settings
-            kopts[
-                "info"
-            ] = f"http://{cobbler_server_hostname}/cblr/svc/op/nopxe/system/{system_name}"
+            kopts["info"] = (
+                f"http://{cobbler_server_hostname}/cblr/svc/op/nopxe/system/{system_name}"
+            )
 
 
 def is_str_int(value: str) -> bool:
