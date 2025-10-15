@@ -192,9 +192,9 @@ for instance, BIOS config files for usage from a live environment.
 Leveraging Mod Python
 =====================
 
-All template files are generated dynamically at run-time. If a change is made to a template, a ``--ks-meta`` variable or
-some other variable in Cobbler, the result of template rendering will be different on subsequent runs. This is covered
-in more depth in the `Developer documentation <https://github.com/cobbler/cobbler/wiki>_`.
+All template files are generated dynamically at run-time. If a change is made to a template, a ``--autoinstall-meta``
+variable or some other variable in Cobbler, the result of template rendering will be different on subsequent runs. This
+is covered in more depth in the `Developer documentation <https://github.com/cobbler/cobbler/wiki>_`.
 
 Possible future developments
 ============================

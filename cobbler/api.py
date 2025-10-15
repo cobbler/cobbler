@@ -251,6 +251,13 @@ class CobblerAPI:
             self.__load_signatures()
 
             self._collection_mgr = manager.CollectionManager(self)
+
+            # Prepare built-in templates before deserializing to allow intact references
+            # To intialize the templates, everything else needs to be set up beforehand as they are adding items.
+            self.templar = templates.Templar(self)
+            self.templar.load_template_providers()
+            self.templar.load_built_in_templates()
+
             self.deserialize()
 
             self.authn = self.get_module_from_file(
@@ -260,14 +267,10 @@ class CobblerAPI:
                 "authorization", "module", "authorization.allowall"
             )
 
-            self.templar = templates.Templar(self)
             self.autoinstallgen = autoinstallgen.AutoInstallationGen(self)
             self.yumgen = yumgen.YumGen(self)
             self.tftpgen = tftpgen.TFTPGen(self)
             self.__directory_startup_preparations()
-            # To intialize the templates, everything else needs to be set up beforehand as they are adding items.
-            self.templar.load_template_providers()
-            self.templar.load_built_in_templates()
             self._collection_mgr.templates().refresh_content()
             self.logger.debug("API handle initialized")
 
@@ -1636,22 +1639,17 @@ class CobblerAPI:
     def __find_without_collection(
         self, return_list: bool, no_errors: bool, criteria: Dict[Any, Any]
     ) -> Optional[Union["BootableItem", List["BootableItem"]]]:
-        collections = [
-            "distro",
-            "profile",
-            "system",
-            "repo",
-            "image",
-            "menu",
-            "network_interface",
-        ]
-        for collection_name in collections:
+        for collection_name in enums.ItemTypes:
             match = self.find_items(
-                collection_name,
+                collection_name.value,
                 criteria,
                 return_list=return_list,
                 no_errors=no_errors,
             )
+            if isinstance(match, list):
+                if len(match) > 0:
+                    return match
+                continue
             if match is not None:
                 return match
         return None
@@ -1665,18 +1663,9 @@ class CobblerAPI:
         """
         if not isinstance(uid, str):  # type: ignore
             raise TypeError("name of an object must be of type str!")
-        collections = [
-            "distro",
-            "profile",
-            "system",
-            "repo",
-            "image",
-            "menu",
-            "network_interface",
-        ]
-        for collection_name in collections:
+        for collection_name in enums.ItemTypes:
             match = self.find_items(
-                collection_name, return_list=False, criteria={"uid": uid}
+                collection_name.value, return_list=False, criteria={"uid": uid}
             )
             if isinstance(match, list):
                 raise ValueError("Ambiguous match during search!")
@@ -1821,7 +1810,7 @@ class CobblerAPI:
         return_list: bool = False,
         no_errors: bool = False,
         **kwargs: "FIND_KWARGS",
-    ) -> Optional[Union[List["template.Template"], "template.Template",]]:
+    ) -> Optional[Union[List["template.Template"], "template.Template"]]:
         """
         Find a network interface via a name or keys specified in the ``**kargs``.
 
@@ -2722,6 +2711,29 @@ class CobblerAPI:
         """
         action = mkloaders.MkLoaders(self)
         action.run()
+
+    # ==========================================================================
+
+    def templates_refresh_content(
+        self, objects: Optional[List["template.Template"]] = None
+    ) -> None:
+        """
+        Method to refresh the in-memory content of zero or more templates inside Cobbler.
+
+        :param objects: With the default value None, all templates are refreshed. Otherwhise each template inside the
+            list is refreshed. An empty list refreshes no templates.
+        """
+        if objects is None:
+            self._collection_mgr.templates().refresh_content()
+        else:
+            for obj in objects:
+                refresh_result = obj.refresh_content()
+                if not refresh_result:
+                    self.logger.warning(
+                        'Template with uid "%s" and name "%s" failed to refresh in-memory content!',
+                        obj.uid,
+                        obj.name,
+                    )
 
     # ==========================================================================
 

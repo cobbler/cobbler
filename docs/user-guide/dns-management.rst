@@ -24,10 +24,9 @@ If using BIND, you must define the zones to be managed with. This is done with t
 * ``manage_forward_zones``: This option is a list of domain names.
 * ``manage_reverse_zones``: This option is a list of IP addresses.
 
-If using BIND, Cobbler will use ``/etc/cobbler/named.template`` and ``/etc/cobbler/zone.template`` as a starting point
-for the ``named.conf`` and individual zone files, respectively. You may drop zone-specific template files in
-``/etc/cobbler/zone_templates/<name-of-zone>`` which will override the default. These files must be user edited for the
-user's particular networking environment. Read the file and understand how BIND works before proceeding.
+While the built-in templates provide a good starting point for many environment, they may not be suitable for all
+use-cases. As such, these files must be user edited for the user's particular networking environment. Read the files and
+understand how BIND works before proceeding.
 
 Helpful links:
 
@@ -36,15 +35,13 @@ Helpful links:
 
 Templates used during generation:
 
-* ``/etc/cobbler/named.template``
-* ``/etc/cobbler/zone.template``
-* ``/etc/cobbler/zone_templates/<name-of-zone>``
+* ``named.conf``: A template with the tags ``named_primary`` and ``active``.
+* ``secondary.conf``: A template with the tags ``named_secondary`` and ``active``.
+* Default zone template: A template with the tags ``named_zone_default`` and ``active``.
+* Specific zone template: A template with the tags ``named_zone_specifc`` and your DNS zone name (e.g. ``example.org``).
 
 dnsmasq DNS
 ###########
-
-If using dnsmasq, the template is ``/etc/cobbler/dnsmasq.template``. Read this file and understand how dnsmasq works
-before proceeding.
 
 Helpful links:
 
@@ -53,7 +50,7 @@ Helpful links:
 
 Templates used during generation:
 
-* ``/etc/cobbler/dnsmasq.template``
+* A template with the tags ``dnsmasq`` and ``active`` qualifies.
 
 ndjbdns DNS
 ###########
@@ -69,4 +66,4 @@ Helpful links:
 
 Templates used during generation:
 
-* ``/etc/cobbler/ndjbdns.template``
+* A template with the tags ``ndjbdns`` and ``active`` qualifies.

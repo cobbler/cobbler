@@ -72,7 +72,7 @@ Autoinstallation (AutoYaST/Kickstart)
 
 For help in building kickstarts, try using the ``system-config-kickstart`` tool, or install a new system and look at the
 ``/root/anaconda-ks.cfg`` file left over from the installer. General kickstart questions can also be asked at
-kickstart-list@redhat.com. Cobbler ships some autoinstall templates in ``/etc/cobbler`` that may also be helpful.
+kickstart-list@redhat.com. Cobbler ships some built-in autoinstall templates that may also be helpful.
 
 For AutoYaST guides and help please refer to `the opensuse project <https://doc.opensuse.org/projects/autoyast/>`_.
 

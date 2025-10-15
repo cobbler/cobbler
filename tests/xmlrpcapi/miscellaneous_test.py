@@ -662,3 +662,17 @@ def test_upload_log_data(remote: CobblerXMLRPCInterface):
     # Assert
     assert isinstance(result, bool)
     assert result
+
+
+def test_templates_refresh_content(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Test to verify that templates can be successfully refreshed.
+    """
+    # Arrange
+
+    # Act
+    remote.templates_refresh_content(["built-in-isolinux_menuentry"], token)
+
+    # Assert
+    # No exception should be enough for a basic smoke test.
+    assert True

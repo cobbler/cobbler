@@ -114,13 +114,6 @@ reinstall to the new profile -- assuming PXE is working)
 Since not all power management systems support reboot, this is a "power off, sleep for 1 second, and power on"
 operation.
 
-Implementation
-##############
-
-The individual command syntaxes are generated from Cheetah templates in /etc/cobbler/power in case you need to modify
-the commands or add additional options. You can also add new power types if you like if you are using Cobbler 2.0 and
-later, just by making new files in that directory.
-
 Important: Security Implications
 ################################
 

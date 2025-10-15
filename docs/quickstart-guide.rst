@@ -81,14 +81,12 @@ where it can download the network boot files. Cobbler can manage this for you, v
 
 .. code-block:: yaml
 
-   manage_dhcp: 0
+   manage_dhcp_v4: false
+   manage_dhcp_v6: false
 
-Change that setting to 1 so Cobbler will generate the ``dhcpd.conf`` file based on the ``dhcp.template`` that is
-included with Cobbler. This template will most likely need to be modified as well, based on your network settings:
-
-.. code-block:: shell
-
-    $ vi /etc/cobbler/dhcp.template
+Change one or both of the settings to ``true`` so Cobbler will generate the ``dhcpd.conf`` file based on the currently
+active DHCP template that configuured. This template will most likely need to be modified as well, based on your
+network settings. For an example to use your own DHCP template please check out :ref:`templating`
 
 For most uses, you'll only need to modify this block:
 

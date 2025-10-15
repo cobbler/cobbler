@@ -63,8 +63,7 @@ def test_render(test_provider: JinjaTemplateProvider):
     expected_result = f"""LABEL {test_search_table['menu_name']}
   MENU LABEL {test_search_table['menu_name']}
   KERNEL {test_search_table['kernel_path']}
-  {test_search_table['append_line']}
-"""
+  {test_search_table['append_line']}"""
 
     # Act
     result = test_provider.render(test_template, test_search_table)

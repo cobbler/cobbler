@@ -178,6 +178,7 @@ if TYPE_CHECKING:
     from cobbler.items.distro import Distro
     from cobbler.items.image import Image
     from cobbler.items.profile import Profile
+    from cobbler.items.template import Template
 
 
 EVENT_TIMEOUT = 7 * 24 * 60 * 60  # 1 week
@@ -549,7 +550,7 @@ class CobblerXMLRPCInterface:
         Create the bootloaders that Cobbler uses inside its TFTP-directory and stage them in the background.
 
         :param options: This parameter is unused for this background task.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
 
@@ -601,6 +602,84 @@ class CobblerXMLRPCInterface:
             token = self.login("", self.shared_secret)
             return self.__start_task(runner, token, "load_items", "Loading items", {})
         return ""
+
+    def _common_templates_refresh(
+        self, objects: List[str]
+    ) -> Optional[List["Template"]]:
+        """
+        TODO
+
+        :param objects: TODO
+        """
+        if not (isinstance(objects, list) and all([isinstance(obj, str) for obj in objects])):  # type: ignore
+            raise TypeError("objects must be a list of strings!")
+
+        object_list: List["Template"] = []
+        for obj in objects:
+            search_result_name = self.api.find_template(False, False, name=obj)
+            search_result_uid = self.api.find_template(False, False, uid=obj)
+            if isinstance(search_result_name, list) or isinstance(
+                search_result_uid, list
+            ):
+                self._log(
+                    "Ambigous search result while searching for template! Skipping."
+                )
+                continue
+            if search_result_name is not None and search_result_uid is not None:
+                self._log(
+                    "Got search result for both name and UID while searching for template! Skipping."
+                )
+                continue
+            if search_result_name is not None:
+                object_list.append(search_result_name)
+            if search_result_uid is not None:
+                object_list.append(search_result_uid)
+
+        if len(object_list) == 0:
+            return None
+
+        return object_list
+
+    def background_templates_refresh_content(
+        self, options: Dict[str, Any], token: str
+    ) -> str:
+        """
+        Calls :meth:`cobbler.api.CobblerAPI.templates_refresh_content` with the given list of templates as a background
+        task.
+
+        :param options: The dict should have a single key named ``objects``. This key should be a list of strings with
+            names or UIDs of template objects. A single list may contain a mix of names and UIDs.
+        :param token: The API-token obtained via the login() method.
+        """
+
+        def runner(self: "CobblerThread"):
+            objects = self.options.get("objects", [])
+            # pylint: disable-next=protected-access
+            object_list = self.remote._common_templates_refresh(objects)
+            self.api.templates_refresh_content(objects=object_list)
+
+        return self.__start_task(
+            runner,
+            token,
+            "templates_refresh_content",
+            "Refresh in-memory content of Templates",
+            options,
+        )
+
+    def templates_refresh_content(
+        self, objects: List[str], token: Optional[str] = ""
+    ) -> None:
+        """
+        Calls :meth:`cobbler.api.CobblerAPI.templates_refresh_content` with the given list of templates.
+
+        :param objects: A list of strings which represent the names and/or UIDs of template objects. Missing or not
+            found elements are skipped.
+        :param token: The API-token obtained via the login() method.
+        """
+        self.check_access(token, "templates_refresh_content")
+
+        object_list = self._common_templates_refresh(objects=objects)
+        self.api.templates_refresh_content(objects=object_list)
 
     def get_events(self, for_user: str = "") -> Dict[str, List[Union[str, float]]]:
         """
@@ -1214,6 +1293,23 @@ class CobblerXMLRPCInterface:
             "template", name, flatten=flatten, resolved=resolved, token=token
         )
 
+    def get_template_content(self, uid: str, token: Optional[str] = None) -> str:
+        """
+        Search for the given object and return the content of the template. Call
+        :meth:`~cobbler.remote.CobblerXMLRPCInterface.templates_refresh_content` or
+        :meth:`~cobbler.remote.CobblerXMLRPCInterface.background_templates_refresh_content` to refresh the content if
+        something has changes that the in-memory representation isn't showing.
+
+        :param uid: The UID of the desired template.
+        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :returns: The content of the autoinstallation template that is currently available in-memory.
+        """
+        if not isinstance(uid, str) or not isinstance(token, str):  # type: ignore[reportUnnecessaryComparison]
+            raise ValueError("uid and token must be of type str!")
+
+        target_obj: "Template" = self.__get_object(uid, token=token)  # type: ignore
+        return target_obj.content
+
     def get_items(self, what: str) -> List[Dict[str, Any]]:
         """
         Individual list elements are the same for get_item.
@@ -1582,9 +1678,7 @@ class CobblerXMLRPCInterface:
         :param rest: This parameter is not used currently.
         :return: All files which have matched the criteria.
         """
-        return self.find_items(
-            "network_interface", criteria, expand=expand, resolved=resolved
-        )
+        return self.find_items("template", criteria, expand=expand, resolved=resolved)
 
     def find_items_paged(
         self,

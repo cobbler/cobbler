@@ -11,7 +11,7 @@ The following options are available for ``modules.dhcp.module``:
 * ``"managers.isc"``
 * ``"managers.dnsmasq"``
 
-Set ``manage_dhcp: true`` and ``manage_dhcp_v4`` or ``manage_dhcp_v6`` to ``true`` for this setting to take effect.
+Set ``manage_dhcp_v4`` or ``manage_dhcp_v6`` to ``true`` for this setting to take effect.
 
 This allows DHCP to be managed via "cobbler system add" commands, when you specify the MAC address and IP address for
 systems you add into Cobbler.
@@ -36,8 +36,8 @@ Helpful links:
 
 Templates used during generation:
 
-* ``/etc/cobbler/dhcp.template``
-* ``/etc/cobbler/dhcp6.template``
+* DHCPv4: A template with the tags ``dhcpv4`` and ``active`` qualifies.
+* DHCPv4: A template with the tags ``dhcpv6`` and ``active`` qualifies.
 
 dnsmasq DHCP
 ############
@@ -49,7 +49,7 @@ Helpful links:
 
 Templates used during generation:
 
-* ``/etc/cobbler/dnsmasq.template``
+* A template with the tags ``dnsmasq`` and ``active`` qualifies.
 
 Kea DHCP
 ########
