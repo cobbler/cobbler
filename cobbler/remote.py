@@ -2888,6 +2888,10 @@ class CobblerXMLRPCInterface:
         """
         # TODO: Remove unneed params: REMOTE_ADDR, REMOTE_MAC, rest
         self._log("generate_autoinstall")
+        if profile == "":
+            profile = None
+        if system == "":
+            system = None
         try:
             return self.autoinstall_mgr.generate_autoinstall(profile, system)
         except Exception:

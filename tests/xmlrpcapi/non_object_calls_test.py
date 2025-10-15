@@ -120,6 +120,42 @@ def test_generate_autoinstall(
 
     # Assert
     assert result != ""
+    assert not result.startswith("# This automatic OS installation file had errors")
+
+
+def test_generate_autoinstall_empty_string_normalization(
+    create_kernel_initrd: Callable[[str, str], str],
+    create_distro: Callable[[str, str, str, str, str], str],
+    create_profile: Callable[[str, str, str], str],
+    create_autoinstall_template: Callable[[str, str], str],
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: generate autoinstall with empty string should normalize to None (issue #3807)
+    """
+    template_uid = create_autoinstall_template(
+        "empty-test.ks",
+        "# Test template\n",
+    )
+    fk_kernel = "vmlinuz2"
+    fk_initrd = "initrd2.img"
+    name_distro = "testdistro_empty_normalization"
+    name_profile = "testprofile_empty_normalization"
+    basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+    path_kernel = os.path.join(basepath, fk_kernel)
+    path_initrd = os.path.join(basepath, fk_initrd)
+
+    distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+    _ = create_profile(name_profile, distro_uid, "")
+    profile_handle = remote.get_profile_handle(name_profile)
+    remote.modify_profile(profile_handle, ["autoinstall"], template_uid, token)
+    remote.save_profile(profile_handle, token)
+
+    result = remote.generate_autoinstall(name_profile, "")
+
+    assert result != ""
+    assert not result.startswith("# This automatic OS installation file had errors")
 
 
 def test_generate_ipxe(remote: CobblerXMLRPCInterface):
