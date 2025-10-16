@@ -7,7 +7,7 @@ from typing import Callable
 import pytest
 
 from cobbler.api import CobblerAPI
-from cobbler.autoinstall_manager import AutoInstallationManager
+from cobbler.autoinstall.manager import AutoInstallationManager
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
 
@@ -37,7 +37,7 @@ def test_built_in_default_ks(
     test_profile.autoinstall = target_template
 
     # Act
-    result = autoinstall_manager.generate_autoinstall(test_profile.name, None)
+    result = autoinstall_manager.generate_autoinstall(test_profile, target_template)
 
     # Assert
     assert isinstance(result, str)
@@ -163,7 +163,7 @@ def test_built_in_legacy_ks(
     test_profile.autoinstall = target_template
 
     # Act
-    result = autoinstall_manager.generate_autoinstall(test_profile.name, None)
+    result = autoinstall_manager.generate_autoinstall(test_profile, target_template)
 
     # Assert
     assert isinstance(result, str)
@@ -238,7 +238,7 @@ def test_built_in_powerkvm_ks(
     test_profile.autoinstall = target_template
 
     # Act
-    result = autoinstall_manager.generate_autoinstall(test_profile.name, None)
+    result = autoinstall_manager.generate_autoinstall(test_profile, target_template)
 
     # Assert
     assert result == "\n".join(expected_result)
@@ -282,7 +282,7 @@ def test_built_in_pxerescue_ks(
     test_profile.autoinstall = target_template
 
     # Act
-    result = autoinstall_manager.generate_autoinstall(test_profile.name, None)
+    result = autoinstall_manager.generate_autoinstall(test_profile, target_template)
 
     # Assert
     assert result == "\n".join(expected_result)
@@ -332,7 +332,7 @@ def test_built_in_sample_esxi4_ks(
     test_profile.autoinstall = target_template
 
     # Act
-    result = autoinstall_manager.generate_autoinstall(test_profile.name, None)
+    result = autoinstall_manager.generate_autoinstall(test_profile, target_template)
 
     # Assert
     assert result == "\n".join(expected_result)
@@ -384,7 +384,7 @@ def test_built_in_sample_esxi5_ks(
     test_profile.autoinstall = target_template
 
     # Act
-    result = autoinstall_manager.generate_autoinstall(test_profile.name, None)
+    result = autoinstall_manager.generate_autoinstall(test_profile, target_template)
 
     # Assert
     assert result == "\n".join(expected_result)
@@ -436,7 +436,7 @@ def test_built_in_sample_esxi6_ks(
     test_profile.autoinstall = target_template
 
     # Act
-    result = autoinstall_manager.generate_autoinstall(test_profile.name, None)
+    result = autoinstall_manager.generate_autoinstall(test_profile, target_template)
 
     # Assert
     assert result == "\n".join(expected_result)
@@ -488,7 +488,7 @@ def test_built_in_sample_esxi7_ks(
     test_profile.autoinstall = target_template
 
     # Act
-    result = autoinstall_manager.generate_autoinstall(test_profile.name, None)
+    result = autoinstall_manager.generate_autoinstall(test_profile, target_template)
 
     # Assert
     assert result == "\n".join(expected_result)
@@ -631,7 +631,7 @@ def test_built_in_sample_legacy_ks(
     test_profile.autoinstall = target_template
 
     # Act
-    result = autoinstall_manager.generate_autoinstall(test_profile.name, None)
+    result = autoinstall_manager.generate_autoinstall(test_profile, target_template)
 
     # Assert
     assert result == "\n".join(expected_result)
@@ -764,7 +764,7 @@ def test_built_in_sample_ks(
     test_profile.autoinstall = target_template
 
     # Act
-    result = autoinstall_manager.generate_autoinstall(test_profile.name, None)
+    result = autoinstall_manager.generate_autoinstall(test_profile, target_template)
 
     # Assert
     assert result == "\n".join(expected_result)

@@ -152,7 +152,7 @@ from typing import (
 )
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 
-from cobbler import autoinstall_manager, configgen, enums, utils
+from cobbler import enums, utils
 from cobbler.cexceptions import CX
 from cobbler.items import network_interface, system
 from cobbler.items.abstract import base_item
@@ -239,7 +239,6 @@ class CobblerXMLRPCInterface:
         self.events: Dict[str, CobblerEvent] = {}
         self.shared_secret = utils.get_shared_secret()
         random.seed(time.time())
-        self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api)
         # Semaphore that suspends the execution of the background_load_items when the execution
         # of any command or any other task begins until it finishes.
         self.load_items_lock = threading.Semaphore()
@@ -377,7 +376,7 @@ class CobblerXMLRPCInterface:
         """
 
         def runner(self: "CobblerThread"):
-            return self.remote.api.validate_autoinstall_files()
+            self.remote.api.autoinstall_mgr.validate_autoinstall_files()
 
         return self.__start_task(
             runner,
@@ -2856,9 +2855,11 @@ class CobblerXMLRPCInterface:
         """
         return self.save_item("template", object_id, token, editmode=editmode)
 
-    def is_autoinstall_in_use(self, ai: str, token: Optional[str] = None, **rest: Any):
+    def is_autoinstall_in_use(
+        self, ai: str, token: Optional[str] = None, **rest: Any
+    ) -> bool:
         """
-        Check if the autoinstall for a system is in use.
+        Check if the auto-installation for a system is in use.
 
         :param ai: The name of the system which could potentially be in autoinstall mode.
         :param token: The API-token obtained via the login() method.
@@ -2866,54 +2867,54 @@ class CobblerXMLRPCInterface:
         :return: True if this is the case, otherwise False.
         """
         self._log("is_autoinstall_in_use", token=token)
-        return self.autoinstall_mgr.is_autoinstall_in_use(ai)
+        return self.api.is_autoinstall_in_use(ai)
 
     def generate_autoinstall(
         self,
-        profile: Optional[str] = None,
-        system: Optional[str] = None,
-        REMOTE_ADDR: Optional[Any] = None,
-        REMOTE_MAC: Optional[Any] = None,
-        **rest: Any,
+        obj_identifier: str = "",
+        obj_type: str = "profile",
+        obj_field: str = "name",
+        autoinstaller_file: str = "",
+        autoinstaller_subfile: str = "",
     ) -> str:
         """
-        Generate the autoinstallation file and return it.
+        Generate the auto-installation file and return it.
 
-        :param profile: The profile to generate the file for.
-        :param system: The system to generate the file for.
-        :param REMOTE_ADDR: This is dropped in this method since it is not needed here.
-        :param REMOTE_MAC: This is dropped in this method since it is not needed here.
-        :param rest: This is dropped in this method since it is not needed here.
+        :param obj_identifier: The identifier of the object to generate the file for.
+        :param obj_type: Must be either the str "profile" or "system".
+        :param obj_field: Must be either the str "name" or "uid".
+        :param autoinstaller_type: All currently available types can be found at
+            :class:`cobbler.enums.AutoinstallerType`. Please use the string values as an argument to this endpoint.
+        :param autoinstaller_file: TODO
+        :param autoinstaller_subfile: TODO
         :return: The str representation of the file.
         """
-        # TODO: Remove unneed params: REMOTE_ADDR, REMOTE_MAC, rest
         self._log("generate_autoinstall")
-        try:
-            return self.autoinstall_mgr.generate_autoinstall(profile, system)
-        except Exception:
-            utils.log_exc()
-            return (
-                "# This automatic OS installation file had errors that prevented it from being rendered "
-                "correctly.\n# The cobbler.log should have information relating to this failure."
+        if obj_type not in ("profile", "system"):
+            raise ValueError("Incorrect obj_type for generate_autoinstall!")
+        if obj_field not in ("name", "uid"):
+            raise ValueError("Incorrect obj_field for generate_autoinstall!")
+        if not isinstance(obj_identifier, str):  # type: ignore
+            raise TypeError("Incorrect type for obj_identifier. Must be of type str!")
+        search_result = self.api.find_items(
+            obj_type, criteria={obj_field: obj_identifier}, return_list=False
+        )
+        if search_result is None or isinstance(search_result, list):
+            raise ValueError(f"Ambigous or no search result for {obj_type}!")
+        search_result_template: Optional[Union["Template", List["Template"]]]
+        if autoinstaller_file == "":
+            search_result_template = search_result.autoinstall  # type: ignore
+        else:
+            search_result_template = self.api.find_template(
+                False, False, **{obj_field: autoinstaller_file}
             )
-
-    def generate_profile_autoinstall(self, profile: str):
-        """
-        Generate a profile autoinstallation.
-
-        :param profile: The profile to generate the file for.
-        :return: The str representation of the file.
-        """
-        return self.generate_autoinstall(profile=profile)
-
-    def generate_system_autoinstall(self, system: str):
-        """
-        Generate a system autoinstallation.
-
-        :param system: The system to generate the file for.
-        :return: The str representation of the file.
-        """
-        return self.generate_autoinstall(system=system)
+        if search_result_template is None or isinstance(search_result_template, list):
+            raise ValueError("Ambigous or no search result for template!")
+        return self.api.generate_autoinstall(
+            obj=search_result,
+            autoinstall_template=search_result_template,  # type: ignore
+            autoinstaller_subfile=autoinstaller_subfile,
+        )
 
     def generate_ipxe(
         self,
@@ -3828,11 +3829,11 @@ class CobblerXMLRPCInterface:
 
             if obj.is_management_supported():
                 if not image_based:
-                    _dict["pxelinux.cfg"] = self.api.tftpgen.write_pxe_file(
+                    _dict["pxelinux.cfg"] = self.api.generate_pxe_file(
                         None, obj, profile, distro, arch  # type: ignore
                     )
                 else:
-                    _dict["pxelinux.cfg"] = self.api.tftpgen.write_pxe_file(
+                    _dict["pxelinux.cfg"] = self.api.generate_pxe_file(
                         None, obj, None, None, arch, image=profile  # type: ignore
                     )
 
@@ -4239,8 +4240,7 @@ class CobblerXMLRPCInterface:
         :return: The config data as a json for Koan.
         """
         self._log(f"get_config_data for {hostname}")
-        obj = configgen.ConfigGen(self.api, hostname)
-        return obj.gen_config_data_for_koan()
+        return self.api.get_config_data(hostname)
 
     def clear_system_logs(self, object_id: str, token: str) -> bool:
         """

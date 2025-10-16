@@ -456,29 +456,12 @@ def test_get_template_file_for_system(
     assert result
 
 
-def test_is_autoinstall_in_use(
-    remote: CobblerXMLRPCInterface,
-    token: str,
-    create_distro: Callable[[str, str, str, str, str], str],
-    create_profile: Callable[[str, str, Union[Dict[str, Any], str]], str],
-    create_kernel_initrd: Callable[[str, str], str],
-):
+def test_is_autoinstall_in_use(remote: CobblerXMLRPCInterface, token: str):
     """
     Test to verify that it can be sucessfully check if a given autoinstall is currently in use.
     """
-    # Arrange
-    fk_kernel = "vmlinuz1"
-    fk_initrd = "initrd1.img"
-    basepath = create_kernel_initrd(fk_kernel, fk_initrd)
-    path_kernel = os.path.join(basepath, fk_kernel)
-    path_initrd = os.path.join(basepath, fk_initrd)
-    name_distro = "test_distro_is_autoinstall_in_use"
-    name_profile = "test_profile_is_autoinstall_in_use"
-    distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, distro_uid, "text")
-
-    # Act
-    result = remote.is_autoinstall_in_use(name_profile, token)
+    # Arrange & Act
+    result = remote.is_autoinstall_in_use("built-in-powerkvm.ks", token)
 
     # Assert
     assert not result

@@ -13,12 +13,12 @@ import pathlib
 from typing import TYPE_CHECKING, Any, List, Set, Type
 
 from cobbler import enums, validate
+from cobbler.cexceptions import CX
 from cobbler.items.abstract.base_item import BaseItem
 from cobbler.items.options.uri import URIOption
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.items.options.uri import URIOption
 
     LazyProperty = property
 else:
@@ -85,6 +85,17 @@ class Template(BaseItem):
         seed_dict.pop("uid", None)
         seed_dict.pop("built_in", None)
         return Template(self.api, **seed_dict)
+
+    def check_if_valid(self):
+        """
+        Check if a distro object is valid. If invalid an exception is raised.
+        """
+        super().check_if_valid()
+        if not self.inmemory:
+            return
+
+        if self.template_type == "":
+            raise CX("Template Type cannot be empty!")
 
     def _resolve(self, property_name: List[str]) -> Any:
         settings_name = property_name[-1]

@@ -237,8 +237,6 @@ class CobblerCheetahTemplate(CheetahTemplate):  # type: ignore
         """
         Escape a string for use in sed.
 
-        This function is used by several cheetah methods in cheetah_macros. It can be used by the end user as well.
-
         Example: Replace all instances of ``/etc/banner`` with a value stored in ``$new_banner``
 
         ..code::

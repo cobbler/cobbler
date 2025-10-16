@@ -192,20 +192,3 @@ The trivial case for a cli module is:
 
 Other than that, modules do not have a particular API signature -- they are "Duck Typed" based on how they are employed.
 When starting a new module, look at other modules of the same type to see what functions they possess.
-
-
-Cheetah Macros
-##############
-
-Cobbler uses Cheetah for its templating system, it also wants to support other choices and may in the future support
-others.
-
-It is possible to add new functions to the templating engine, much like snippets that provide the ability to do
-macro-based things in the template. If you are new to Cheetah, see the documentation at
-`Cheetah User Guide <https://cheetahtemplate.org/users_guide/index.html>`_ and pay special attention to the ``#def``
-directive.
-
-To create new functions, add your Cheetah code to ``/etc/cobbler/cheetah_macros``. This file will be sourced in all
-Cheetah templates automatically, making it possible to write custom functions and use them from this file.
-
-You will need to restart ``cobblerd`` after changing the macros file.

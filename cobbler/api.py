@@ -130,8 +130,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Un
 from schema import SchemaError  # type: ignore
 
 from cobbler import (
-    autoinstall_manager,
-    autoinstallgen,
+    configgen,
     download_manager,
     enums,
     module_loader,
@@ -157,6 +156,7 @@ from cobbler.actions import (
 from cobbler.actions import sync as sync_module
 from cobbler.actions.buildiso.netboot import NetbootBuildiso
 from cobbler.actions.buildiso.standalone import StandaloneBuildiso
+from cobbler.autoinstall.manager import AutoInstallationManager
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import manager
 from cobbler.decorator import InheritableDictProperty, InheritableProperty
@@ -267,7 +267,7 @@ class CobblerAPI:
                 "authorization", "module", "authorization.allowall"
             )
 
-            self.autoinstallgen = autoinstallgen.AutoInstallationGen(self)
+            self.autoinstall_mgr = AutoInstallationManager(self)
             self.yumgen = yumgen.YumGen(self)
             self.tftpgen = tftpgen.TFTPGen(self)
             self.__directory_startup_preparations()
@@ -2119,6 +2119,24 @@ class CobblerAPI:
 
     # ==========================================================================
 
+    def generate_pxe_file(
+        self,
+        filename: Optional[str],
+        system: system_module.System,
+        profile: profile_module.Profile,
+        distro: distro.Distro,
+        arch: enums.Archs,
+        image: Optional[image_module.Image] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        bootloader_format: enums.BootLoader = enums.BootLoader.PXE,
+    ):
+        """
+        .. seealso:: :func:`~cobbler.tftpgen.TFTPGen.write_pxe_file`
+        """
+        return self.tftpgen.write_pxe_file(
+            filename, system, profile, distro, arch, image, metadata, bootloader_format
+        )
+
     def generate_ipxe(self, profile: str, image: str, system: str) -> str:
         """
         Generate the ipxe configuration files. The system wins over the profile. Profile and System win over Image.
@@ -2197,14 +2215,43 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def validate_autoinstall_files(self) -> None:
+    def is_autoinstall_in_use(self, autoinstall: str):
         """
-        Validate if any of the autoinstallation files are invalid and if yes report this.
+        Check if the auto-installation template is referenced by at least one Profile or System.
 
+        :param ai: The name of the template.
+        :return: True if this is the case, otherwise False.
         """
-        self.log("validate_autoinstall_files")
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self)
-        autoinstall_mgr.validate_autoinstall_files()
+        return self.autoinstall_mgr.is_autoinstall_in_use(autoinstall)
+
+    def generate_autoinstall(
+        self,
+        obj: "BootableItem",
+        autoinstall_template: template.Template,
+        autoinstaller_subfile: str = "",
+    ) -> str:
+        """
+        Generate the auto-installation file and return it.
+
+        :param obj: The profile to generate the file for.
+        :param autoinstall_template: TODO
+        :param autoinstaller_subfile: TODO
+        :return: The str representation of the file.
+        """
+        # pylint: disable=broad-exception-caught
+        self.logger.info("generate_autoinstall")
+        try:
+            return self.autoinstall_mgr.generate_autoinstall(
+                obj,
+                autoinstall_template=autoinstall_template,
+                autoinstaller_subfile=autoinstaller_subfile,
+            )
+        except Exception:
+            utils.log_exc()
+            return (
+                "# This automatic OS installation file had errors that prevented it from being rendered correctly.\n"
+                "# The cobbler.log should have information relating to this failure."
+            )
 
     # ==========================================================================
 
@@ -2801,3 +2848,14 @@ class CobblerAPI:
         normalized_path = Path(os.path.normpath(os.path.join("/", path)))
 
         return self.tftpgen.generate_tftp_file(normalized_path, offset, size)
+
+    # ==========================================================================
+
+    def get_config_data(self, hostname: str) -> str:
+        """
+        Encodes configuration data for Koan as a JSON.
+
+        :param hostname: The hostname ot encode the configuration data for.
+        :returns: A string with JSON data.
+        """
+        return configgen.ConfigGen(self, hostname).gen_config_data_for_koan()

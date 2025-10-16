@@ -116,7 +116,7 @@ def test_generate_autoinstall(
     remote.modify_system(test_system_handle, ["autoinstall"], template_uid, token)
 
     # Act
-    result = remote.generate_autoinstall("", name_system)
+    result = remote.generate_autoinstall(name_system, "system", "name", "")
 
     # Assert
     assert result != ""

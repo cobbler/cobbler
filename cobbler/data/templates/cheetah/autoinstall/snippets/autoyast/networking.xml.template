@@ -24,15 +24,15 @@
       <resolv_conf_policy></resolv_conf_policy>
       <hostname>$my_hostname</hostname>
       <domain>$my_domainname</domain>
-      #if $getVar("name_servers_search",[]) != []
+      #if $getVar("dns.name_servers_search", []) != []
       <searchlist config:type="list">
-      #for $sd in $name_servers_search
+      #for $sd in $dns.name_servers_search
         <search>$sd</search>
       #end for
       </searchlist>
       #end if
       <nameservers config:type="list">
-      #for $ns in $name_servers
+      #for $ns in $dns.name_servers
         <nameserver>$ns</nameserver>
       #end for
       </nameservers>

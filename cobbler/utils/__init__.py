@@ -472,10 +472,12 @@ def blender(
     # EXAMPLE: $ip == $ip0, $ip1, $ip2 and so on.
 
     if root_obj.COLLECTION_TYPE == "system":  # type: ignore
+        results["interfaces"] = {}
         for name, interface in root_obj.interfaces.items():  # type: ignore
-            intf_dict = interface.to_dict()  # type: ignore
-            for key in intf_dict:  # type: ignore
-                results[f"{key}_{name}"] = intf_dict[key]  # type: ignore
+            interface_dict = interface.to_dict()  # type: ignore
+            results["interfaces"][name] = interface_dict
+            for key in interface_dict:  # type: ignore
+                results[f"{key}_{name}"] = interface_dict[key]  # type: ignore
 
     # If the root object is a profile or system, add in all repo data for repos that belong to the object chain
     if root_obj.COLLECTION_TYPE in ("profile", "system"):  # type: ignore

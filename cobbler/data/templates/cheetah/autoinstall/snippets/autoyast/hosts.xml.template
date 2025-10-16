@@ -10,13 +10,13 @@
       #set $ikeys = $interfaces.keys()
       #for $iface in $ikeys
       #set $idata = $interfaces[$iface]
-      #if $idata["interface_type"].lower() in ["","na","bridge","bond"] and $idata["dns_name"] != ""
+      #if $idata["interface_type"].lower() in ["","na","bridge","bond"] and $idata["dns"]["name"] != ""
       <hosts_entry>
         <host_address>$idata["ip_address"]</host_address>
         <names config:type="list">
-          <name>$idata["dns_name"]</name>
-          #set $my_interface_hostname_short = $idata["dns_name"].split('.',1)[:1][0]
-          #if $my_interface_hostname_short != $idata["dns_name"]
+          <name>$idata["dns"]["name"]</name>
+          #set $my_interface_hostname_short = $idata["dns"]["name"].split('.',1)[:1][0]
+          #if $my_interface_hostname_short != $idata["dns"]["name"]
           <name>$my_interface_hostname_short</name>
           #end if
         </names>
