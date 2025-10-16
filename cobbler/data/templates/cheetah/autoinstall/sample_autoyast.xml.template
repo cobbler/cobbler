@@ -49,12 +49,12 @@
   <scripts>
     ## we have to include the pre-scripts tag to get autoinstall_start included
     <pre-scripts config:type="list">
-      #set global $wrappedscript = 'autoinstall_start'
+      #set global $wrappedscript = 'built-in-autoinstall_start'
       $SNIPPET('built-in-suse_scriptwrapper.xml')
 	## SuSE has an annoying habit on ppc64 of changing the system
 	## boot order after installation. This makes it non-trivial to
 	## automatically re-install future OS.
-	#set global $wrappedscript = 'save_boot_device'
+	#set global $wrappedscript = 'built-in-save_boot_device'
 	$SNIPPET('built-in-suse_scriptwrapper.xml')
     </pre-scripts>
     <post-scripts config:type="list">
@@ -73,12 +73,12 @@
 	## SuSE has an annoying habit on ppc64 of changing the system
 	## boot order after installation. This makes it non-trivial to
 	## automatically re-install future OS.
-	#set global $wrappedscript = 'restore_boot_device'
+	#set global $wrappedscript = 'built-in-restore_boot_device'
 	$SNIPPET('built-in-suse_scriptwrapper.xml')
     </post-scripts>
     ## we have to include the init-scripts tag to get autoinstall_done included
     <init-scripts config:type="list">
-      #set global $wrappedscript = 'autoinstall_done'
+      #set global $wrappedscript = 'built-in-autoinstall_done'
       $SNIPPET('built-in-suse_scriptwrapper.xml')
     </init-scripts>
   </scripts>
