@@ -12,7 +12,7 @@ import os
 import pathlib
 import re
 import shutil
-from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Tuple
 
 from cobbler import enums, utils
 from cobbler.enums import Archs
@@ -25,29 +25,6 @@ if TYPE_CHECKING:
     from cobbler.items.profile import Profile
     from cobbler.items.system import System
     from cobbler.items.template import Template
-
-
-def add_remaining_kopts(kopts: Dict[str, Union[str, List[str]]]) -> str:
-    """Add remaining kernel_options to append_line
-    :param kopts: The kernel options which are not present in append_line.
-    :return: A single line with all kernel options from the dictionary in the string. Starts with a space.
-    """
-    append_line = [""]  # empty str to ensure the returned str starts with a space
-    for option, args in kopts.items():
-        if args is None:  # type: ignore
-            append_line.append(f"{option}")
-            continue
-
-        if not isinstance(args, list):
-            args = [args]
-
-        for arg in args:
-            arg_str = format(arg)
-            if " " in arg_str:
-                arg_str = f'"{arg_str}"'
-            append_line.append(f"{option}={arg_str}")
-
-    return " ".join(append_line)
 
 
 class BootFilesCopyset(NamedTuple):  # pylint: disable=missing-class-docstring

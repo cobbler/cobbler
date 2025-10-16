@@ -641,7 +641,7 @@ def dict_annihilate(dictionary: Dict[Any, Any]) -> None:
             del dictionary[key]
 
 
-def dict_to_string(_dict: Dict[Any, Any]) -> Union[str, Dict[Any, Any]]:
+def dict_to_string(_dict: Dict[Any, Any]) -> str:
     """
     Convert a dictionary to a printable string. Used primarily in the kernel options string and for some legacy stuff
     where koan expects strings (though this last part should be changed to dictionaries)
