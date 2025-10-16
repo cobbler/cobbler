@@ -1,0 +1,5 @@
+#template=jinja
+#cloud-config
+{%- for module in cloud_init_user_data_modules %}
+{% include "built-in-cloud-init-module-%s" % module %}
+{%- endfor %}

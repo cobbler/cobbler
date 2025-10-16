@@ -101,9 +101,11 @@ def test_get_last_errors(cobbler_api: CobblerAPI):
     "input_template_type",
     [
         enums.AutoinstallerType.AUTOYAST,
+        enums.AutoinstallerType.AGAMA,
         enums.AutoinstallerType.LEGACY,
         enums.AutoinstallerType.KICKSTART,
         enums.AutoinstallerType.PRESEED,
+        enums.AutoinstallerType.CLOUDINIT,
     ],
 )
 def test_generate_autoinstall(
@@ -120,7 +122,15 @@ def test_generate_autoinstall(
     expected_result = "Success"
     test_manager = manager.AutoInstallationManager(cobbler_api)
     mocker.patch(
+        "cobbler.autoinstall.generate.agama.AgamaGenerator.generate_autoinstall",
+        return_value=expected_result,
+    )
+    mocker.patch(
         "cobbler.autoinstall.generate.autoyast.AutoYaSTGenerator.generate_autoinstall",
+        return_value=expected_result,
+    )
+    mocker.patch(
+        "cobbler.autoinstall.generate.cloud_init.CloudInitGenerator.generate_autoinstall",
         return_value=expected_result,
     )
     mocker.patch(

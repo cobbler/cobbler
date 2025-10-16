@@ -2743,10 +2743,10 @@ class CobblerAPI:
         self, obj: Union["distro.Distro", "image_module.Image"]
     ) -> List[enums.BootLoader]:
         """
-        Return the list of valid boot loaders for the object
+        Return the list of valid bootloaders for the object
 
-        :param obj: The object for which the boot loaders should be looked up.
-        :return: Get a list of all valid boot loaders.
+        :param obj: The object for which the bootloaders should be looked up.
+        :return: Get a list of all valid bootloaders.
         """
         return obj.supported_boot_loaders
 
@@ -2800,8 +2800,8 @@ class CobblerAPI:
         """
         return input_converters.input_string_or_list(options)
 
+    @staticmethod
     def input_string_or_dict(
-        self,
         options: Union[str, List[Any], Dict[Any, Any]],
         allow_multiples: bool = True,
     ) -> Union[str, Dict[Any, Any]]:
@@ -2812,8 +2812,8 @@ class CobblerAPI:
             options, allow_multiples=allow_multiples
         )
 
+    @staticmethod
     def input_string_or_dict_no_inherit(
-        self,
         options: Union[str, List[Any], Dict[Any, Any]],
         allow_multiples: bool = True,
     ) -> Dict[Any, Any]:
@@ -2824,13 +2824,15 @@ class CobblerAPI:
             options, allow_multiples=allow_multiples
         )
 
-    def input_boolean(self, value: Union[str, bool, int]) -> bool:
+    @staticmethod
+    def input_boolean(value: Union[str, bool, int]) -> bool:
         """
         .. seealso:: :func:`~cobbler.utils.input_converters.input_boolean`
         """
         return input_converters.input_boolean(value)
 
-    def input_int(self, value: Union[str, int, float]) -> int:
+    @staticmethod
+    def input_int(value: Union[str, int, float]) -> int:
         """
         .. seealso:: :func:`~cobbler.utils.input_converters.input_int`
         """
