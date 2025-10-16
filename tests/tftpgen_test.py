@@ -401,24 +401,130 @@ def test_build_kernel(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     assert False
 
 
-@pytest.mark.skip("Test broken atm.")
-def test_build_kernel_options(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+def test_build_kernel_options_profile(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
     """
-    Test to verify that the kernel options can be generated successfully.
+    Test to verify that the kernel options for profiles can be generated successfully.
     """
     # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
     test_gen = tftpgen.TFTPGen(cobbler_api)
-    mocker.patch("cobbler.utils.blender", return_value={})
-    mocker.patch("cobbler.utils.dict_to_string", return_value="")
-    # FIXME: Mock self.settings.server - maybe?
-    # FIXME: Mock self.settings.convert_server_to_ip - maybe?
-    test_gen.api.templar = mocker.MagicMock(spec=Templar, autospec=True)
 
     # Act
-    test_gen.build_kernel_options(None, None, None, None, enums.Archs.X86_64, "")
+    result = test_gen.build_kernel_options(
+        None, test_profile, test_distro, None, enums.Archs.X86_64
+    )
 
     # Assert
-    assert False
+    assert result == ""
+
+
+def test_build_kernel_options_system(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+):
+    """
+    Test to verify that the kernel options for systems can be generated successfully.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen.build_kernel_options(
+        test_system, None, test_distro, None, enums.Archs.X86_64
+    )
+
+    # Assert
+    assert result == ""
+
+
+# pylint: disable=line-too-long
+@pytest.mark.parametrize(
+    "input_os_breed,input_os_version,input_autoinstall_template,expected_result",
+    [
+        (
+            "redhat",
+            "",
+            "built-in-default.ks",
+            "inst.ks.sendmac inst.ks=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-default.ks",
+        ),
+        (
+            "redhat",
+            "rhel4",
+            "built-in-legacy.ks",
+            "kssendmac ks=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-legacy.ks",
+        ),
+        (
+            "suse",
+            "",
+            "built-in-sample_autoyast.xml",
+            "info=http://192.168.1.1/cblr/svc/op/nopxe/system/test_build_kernel_options_autoinstall  autoyast=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-sample_autoyast.xml",
+        ),
+        (
+            "debian",
+            "jessie",
+            "built-in-sample.seed",
+            "auto-install/enable=true priority=critical netcfg/choose_interface=auto url=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-sample.seed hostname=test_build_kernel_options_autoinstall domain=local.lan suite=jessie",
+        ),
+        (
+            "freebsd",
+            "",
+            "built-in-default.ks",
+            "ks=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-default.ks",
+        ),
+        (
+            "vmware",
+            "esx4",
+            "built-in-sample_esxi4.ks",
+            "vmkopts=debugLogToSerial:1 mem=512M ks=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-sample_esxi4.ks",
+        ),
+        (
+            "powerkvm",
+            "",
+            "built-in-powerkvm.ks",
+            "kssendmac kvmp.inst.auto=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-powerkvm.ks",
+        ),
+    ],
+)
+# pylint: enable=line-too-long
+def test_build_kernel_options_autoinstall(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+    input_os_breed: str,
+    input_os_version: str,
+    input_autoinstall_template: str,
+    expected_result: str,
+):
+    """
+    Test to verify that the kernel options for systems can be generated successfully.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_distro.breed = input_os_breed
+    test_distro.os_version = input_os_version
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+    test_system.autoinstall = input_autoinstall_template  # type: ignore
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen.build_kernel_options(
+        test_system, None, test_distro, None, enums.Archs.X86_64
+    )
+
+    # Assert
+    assert result == expected_result
 
 
 @pytest.mark.skip("Test broken atm.")

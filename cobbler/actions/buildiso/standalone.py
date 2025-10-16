@@ -12,7 +12,12 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Un
 
 from cobbler import utils
 from cobbler.actions import buildiso
-from cobbler.actions.buildiso import Autoinstall, BootFilesCopyset, LoaderCfgsParts
+from cobbler.actions.buildiso import (
+    Autoinstall,
+    BootFilesCopyset,
+    LoaderCfgsParts,
+    append_line,
+)
 from cobbler.enums import Archs
 from cobbler.utils import filesystem_helpers
 
@@ -23,38 +28,6 @@ if TYPE_CHECKING:
 
 
 CDREGEX = re.compile(r"^\s*url .*\n", re.IGNORECASE | re.MULTILINE)
-
-
-def _generate_append_line_standalone(
-    data: Dict[Any, Any], distro: "Distro", descendant: Union["Profile", "System"]
-) -> str:
-    """
-    Generates the append line for the kernel so the installation can be done unattended.
-    :param data: The values for the append line. The key "kernel_options" must be present.
-    :param distro: The distro object to generate the append line from.
-    :param descendant: The profile or system which is underneath the distro.
-    :return: The base append_line which we need for booting the built ISO. Contains initrd and autoinstall parameter.
-    """
-    append_line = f"  APPEND initrd=/{os.path.basename(distro.initrd)}"
-    if distro.breed == "redhat":
-        if distro.os_version in ["rhel4", "rhel5", "rhel6", "fedora16"]:
-            append_line += f" ks=cdrom:/autoinstall/{descendant.name}.cfg  repo=cdrom"
-        else:
-            append_line += (
-                f" inst.ks=cdrom:/autoinstall/{descendant.name}.cfg inst.repo=cdrom"
-            )
-    elif distro.breed == "suse":
-        append_line += (
-            f" autoyast=file:///autoinstall/{descendant.name}.cfg install=cdrom:///"
-        )
-        if "install" in data["kernel_options"]:
-            del data["kernel_options"]["install"]
-    elif distro.breed in ["ubuntu", "debian"]:
-        append_line += f" auto-install/enable=true preseed/file=/cdrom/autoinstall/{descendant.name}.cfg"
-
-    # add remaining kernel_options to append_line
-    append_line += buildiso.add_remaining_kopts(data["kernel_options"])
-    return append_line
 
 
 class StandaloneBuildiso(buildiso.BuildIso):
@@ -135,12 +108,14 @@ class StandaloneBuildiso(buildiso.BuildIso):
         utils.kopts_overwrite(
             data["kernel_options"], self.api.settings().server, distro_obj.breed
         )
-        append_line = _generate_append_line_standalone(data, distro_obj, descendant_obj)
+
         name = descendant_obj.name
         config_args: Dict[str, Any] = {
             "descendant": descendant_obj,
             "distro": distro_obj,
-            "append_line": append_line,
+            "append_line": append_line.AppendLineBuilder(
+                self.api, "", {}
+            ).generate_standalone(data, distro_obj, descendant_obj),
         }
 
         if descendant_obj.COLLECTION_TYPE == "profile":
