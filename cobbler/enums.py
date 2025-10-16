@@ -338,3 +338,30 @@ class TemplateTag(ConvertableEnum):
     WINDOWS_ANSWERFILE = "windows_answerfile"
     WINDOWS_POST_INST_CMD = "windows_post_inst_cmd"
     WINDOWS_STARTNET = "windows_startnet"
+
+
+class AutoinstallerType(ConvertableEnum):
+    """
+    This enum represents the currently allowed types that may request a file with the "autoinstallation" endpoints.
+    """
+
+    LEGACY = "legacy"
+    PRESEED = "preseed"
+    KICKSTART = "kickstart"
+    AUTOYAST = "autoyast"
+    # AGAMA = "agama"
+    # CLOUDINIT = "cloud-init"
+    WINDOWS = "windows"
+    XEN = "xen"
+    # IGNITION = "ignition"
+    # COMBUSTION = "combustion"
+
+
+class AutoinstallValidationError(ConvertableEnum):
+    """
+    This enum represents the template validation error codes that are well-known to Cobbler.
+    """
+
+    NONE = 0
+    TEMPLATING = 1
+    KICKSTART = 2

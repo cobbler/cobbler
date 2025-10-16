@@ -221,24 +221,6 @@ def test_svc_find_autoinstall(create_distro_profile_system: Tuple[str, str, str]
 
 
 @pytest.mark.integration
-def test_svc_findks(create_distro_profile_system: Tuple[str, str, str]):
-    """
-    Check that the Cobbler HTTP endpoint /findks/ is callable
-    """
-    # Arrange
-    _ = create_distro_profile_system
-    # Prepare expected result
-    # expected_result = "TODO"
-
-    # Act
-    urllib.request.urlopen("http://localhost/cblr/svc/op/findks/system/testbed")
-    urllib.request.urlopen("http://localhost/cblr/svc/op/findks/profile/fake")
-
-    # Assert
-    # FIXME endpoint not yet testable
-
-
-@pytest.mark.integration
 def test_svc_ipxe_image(
     remote: CobblerXMLRPCInterface,
     token: str,
@@ -318,30 +300,6 @@ def test_svc_ipxe_system(create_distro_profile_system: Tuple[str, str, str]):
 
     # Assert
     assert result.read().decode() == expected_result
-
-
-@pytest.mark.integration
-def test_svc_ks(create_distro_profile_system: Tuple[str, str, str]):
-    """
-    Check that the Cobbler HTTP endpoint /ks/ is callable
-    """
-    # Arrange
-    _ = create_distro_profile_system
-    # Prepare expected result
-    expected_result = "# this file intentionally left blank\n"
-    expected_result += "# admins:  edit it as you like, or leave it blank for non-interactive install\n"
-
-    # Act
-    result_system = urllib.request.urlopen(
-        "http://localhost/cblr/svc/op/ks/system/testbed"
-    )
-    result_profile = urllib.request.urlopen(
-        "http://localhost/cblr/svc/op/ks/profile/fake"
-    )
-
-    # Assert
-    assert result_profile.read().decode() == expected_result
-    assert result_system.read().decode("utf-8") == expected_result
 
 
 @pytest.mark.integration

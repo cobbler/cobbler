@@ -158,7 +158,7 @@ def test_built_in_networking_xml(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {"name_servers": []}
+    meta: Dict[str, Any] = {"dns": {"name_servers": []}}
 
     # Act
     result = cobbler_api.templar.render(target_template.content, meta, None)

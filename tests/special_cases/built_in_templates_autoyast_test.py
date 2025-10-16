@@ -7,7 +7,7 @@ from typing import Callable
 import pytest
 
 from cobbler.api import CobblerAPI
-from cobbler.autoinstall_manager import AutoInstallationManager
+from cobbler.autoinstall.manager import AutoInstallationManager
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
 
@@ -32,7 +32,7 @@ def test_built_in_sample_autoyast_xml(
     test_profile.autoinstall = target_template
 
     # Act
-    result = autoinstall_manager.generate_autoinstall(test_profile.name, None)
+    result = autoinstall_manager.generate_autoinstall(test_profile, target_template)
 
     # Assert
     # TODO: Extend assertion

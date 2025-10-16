@@ -17,7 +17,7 @@ import os.path
 import pathlib
 import pkgutil
 import re
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, TextIO, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, TextIO, Tuple, Union
 
 try:
     from importlib import resources as importlib_resources
@@ -37,35 +37,57 @@ if TYPE_CHECKING:
         from importlib_resources.abc import Traversable  # type: ignore
 
 
-TEMPLATE_TAG_MAPPING: Dict[str, enums.TemplateTag] = {
-    "bootcfg.template": enums.TemplateTag.BOOTCFG,
-    "grub.template": enums.TemplateTag.GRUB,
-    "grub_menu.template": enums.TemplateTag.GRUB_MENU,
-    "grub_submenu.template": enums.TemplateTag.GRUB_SUBMENU,
-    "ipxe.template": enums.TemplateTag.IPXE,
-    "ipxe_menu.template": enums.TemplateTag.IPXE_MENU,
-    "ipxe_submenu.template": enums.TemplateTag.IPXE_SUBMENU,
-    "pxe.template": enums.TemplateTag.PXE,
-    "pxe_menu.template": enums.TemplateTag.PXE_MENU,
-    "pxe_submenu.template": enums.TemplateTag.PXE_SUBMENU,
-    "dhcp.template": enums.TemplateTag.DHCPV4,
-    "dhcp6.template": enums.TemplateTag.DHCPV6,
-    "dnsmasq.template": enums.TemplateTag.DNSMASQ,
-    "genders.template": enums.TemplateTag.GENDERS,
-    "named.template": enums.TemplateTag.NAMED_PRIMARY,
-    "ndjbdns.template": enums.TemplateTag.NDJBDNS,
-    "rsync.template": enums.TemplateTag.RSYNC,
-    "secondary.template": enums.TemplateTag.NAMED_SECONDARY,
-    "zone.template": enums.TemplateTag.NAMED_ZONE_DEFAULT,
-    "bootinfo.template": enums.TemplateTag.ISO_BOOTINFO,
-    "buildiso.template": enums.TemplateTag.ISO_BUILDISO,
-    "grub_menuentry.template": enums.TemplateTag.ISO_GRUB_MENUENTRY,
-    "isolinux_menuentry.jinja": enums.TemplateTag.ISO_ISOLINUX_MENUENTRY,
-    "build_report_email.template": enums.TemplateTag.REPORTING_BUILD_EMAIL,
-    "answerfile.template": enums.TemplateTag.WINDOWS_ANSWERFILE,
-    "post_inst_cmd.template": enums.TemplateTag.WINDOWS_POST_INST_CMD,
-    "startnet.template": enums.TemplateTag.WINDOWS_STARTNET,
-    # FIXME: Specific Zone Template example
+TEMPLATE_TAG_MAPPING: Dict[str, Set[enums.ConvertableEnum]] = {
+    "bootcfg.template": {enums.TemplateTag.BOOTCFG},
+    "grub.template": {enums.TemplateTag.GRUB},
+    "grub_menu.template": {enums.TemplateTag.GRUB_MENU},
+    "grub_submenu.template": {enums.TemplateTag.GRUB_SUBMENU},
+    "ipxe.template": {enums.TemplateTag.IPXE},
+    "ipxe_menu.template": {enums.TemplateTag.IPXE_MENU},
+    "ipxe_submenu.template": {enums.TemplateTag.IPXE_SUBMENU},
+    "pxe.template": {enums.TemplateTag.PXE},
+    "pxe_menu.template": {enums.TemplateTag.PXE_MENU},
+    "pxe_submenu.template": {enums.TemplateTag.PXE_SUBMENU},
+    "dhcp.template": {enums.TemplateTag.DHCPV4},
+    "dhcp6.template": {enums.TemplateTag.DHCPV6},
+    "dnsmasq.template": {enums.TemplateTag.DNSMASQ},
+    "genders.template": {enums.TemplateTag.GENDERS},
+    "named.template": {enums.TemplateTag.NAMED_PRIMARY},
+    "ndjbdns.template": {enums.TemplateTag.NDJBDNS},
+    "rsync.template": {enums.TemplateTag.RSYNC},
+    "secondary.template": {enums.TemplateTag.NAMED_SECONDARY},
+    "zone.template": {enums.TemplateTag.NAMED_ZONE_DEFAULT},
+    "bootinfo.template": {enums.TemplateTag.ISO_BOOTINFO},
+    "buildiso.template": {enums.TemplateTag.ISO_BUILDISO},
+    "grub_menuentry.template": {enums.TemplateTag.ISO_GRUB_MENUENTRY},
+    "isolinux_menuentry.jinja": {enums.TemplateTag.ISO_ISOLINUX_MENUENTRY},
+    "build_report_email.template": {enums.TemplateTag.REPORTING_BUILD_EMAIL},
+    "answerfile.template": {
+        enums.AutoinstallerType.WINDOWS,
+        enums.TemplateTag.WINDOWS_ANSWERFILE,
+    },
+    "post_inst_cmd.template": {
+        enums.AutoinstallerType.WINDOWS,
+        enums.TemplateTag.WINDOWS_POST_INST_CMD,
+    },
+    "startnet.template": {
+        enums.AutoinstallerType.WINDOWS,
+        enums.TemplateTag.WINDOWS_STARTNET,
+    },
+    "default.ks.template": {enums.AutoinstallerType.KICKSTART},
+    "legacy.ks.template": {enums.AutoinstallerType.KICKSTART},
+    "powerkvm.ks.template": {enums.AutoinstallerType.KICKSTART},
+    "pxerescue.ks.template": {enums.AutoinstallerType.KICKSTART},
+    "sample_autoyast.xml.template": {enums.AutoinstallerType.AUTOYAST},
+    "sample_esxi4.ks.template": {enums.AutoinstallerType.KICKSTART},
+    "sample_esxi5.ks.template": {enums.AutoinstallerType.KICKSTART},
+    "sample_esxi6.ks.template": {enums.AutoinstallerType.KICKSTART},
+    "sample_esxi7.ks.template": {enums.AutoinstallerType.KICKSTART},
+    "sample_legacy.ks.template": {enums.AutoinstallerType.KICKSTART},
+    "sample_old.seed.template": {enums.AutoinstallerType.PRESEED},
+    "sample.ks.template": {enums.AutoinstallerType.KICKSTART},
+    "sample.seed.template": {enums.AutoinstallerType.PRESEED},
+    "win.xml.template": {enums.AutoinstallerType.WINDOWS},
 }
 """
 This static mapping is adding the function tags to all built-in templates that are well-known to the application. If
@@ -129,6 +151,17 @@ class BaseTemplateProvider:
             )
         )
 
+    def __generate_template_tags(self, entry: "Traversable") -> Set[str]:
+        """
+        This method generates the Set of tags that are required to find a given template.
+
+        :param folder: The Traversable object to use as a base folder. The folder may contain templates and folders.
+        """
+        template_tags = {enums.TemplateTag.DEFAULT.value}
+        if entry.name in TEMPLATE_TAG_MAPPING:
+            template_tags.update({x.value for x in TEMPLATE_TAG_MAPPING[entry.name]})
+        return template_tags
+
     def __load_templates_in_folder(self, folder: "Traversable") -> List[Template]:
         """
         This method loads all templates in a given importlib Traversable and adds them to the application as built-in.
@@ -141,18 +174,18 @@ class BaseTemplateProvider:
             if entry.is_file() and entry.name.endswith(
                 f".{self.template_file_extension}"
             ):
-                template_tags = {enums.TemplateTag.DEFAULT.value}
-                if entry.name in TEMPLATE_TAG_MAPPING:
-                    template_tags.add(TEMPLATE_TAG_MAPPING[entry.name].value)
+                template_name = entry.name.removesuffix(
+                    f".{self.template_file_extension}"
+                )
                 built_in_template = Template(
                     self.api,
-                    name=f"built-in-{entry.name.removesuffix(f'.{self.template_file_extension}')}",
+                    name=f"built-in-{template_name}",
                     uri={
                         "schema": enums.TemplateSchema.IMPORTLIB.value,
                         "path": str(entry),
                     },
                     template_type=self.template_language,
-                    tags=template_tags,
+                    tags=self.__generate_template_tags(entry),
                 )
                 result.append(built_in_template)
             if entry.is_dir():

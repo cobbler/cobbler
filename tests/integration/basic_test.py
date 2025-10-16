@@ -144,7 +144,7 @@ def test_basic_inheritance(
     create_distro: Callable[[List[Tuple[List[str], Any]]], str],
     create_profile: Callable[[List[Tuple[List[str], Any]]], str],
     create_system: Callable[[List[Tuple[List[str], Any]]], str],
-    create_autoinstall_template: Callable[[str, str], str],
+    create_autoinstall_template: Callable[[str, str, List[str]], str],
     images_fake_path: pathlib.Path,
     remote: CobblerXMLRPCInterface,
 ):
@@ -155,6 +155,7 @@ def test_basic_inheritance(
     template_uid = create_autoinstall_template(
         "system-tests.sh",
         "${dns.name_servers} ${server} ${kernel_options}\n",
+        ["legacy"],
     )
     distro_name = "fake"
     profile_name_level_0 = "fake-0"
@@ -249,8 +250,12 @@ def test_basic_inheritance(
     )
     expected_result_testbed_2 = "['8.8.4.4'] 10.0.0.1 foo=1 bar=2 baz=3 \n"
 
-    result_testbed_1 = remote.generate_autoinstall("", "testbed-1")
-    result_testbed_2 = remote.generate_autoinstall("", "testbed-2")
+    result_testbed_1 = remote.generate_autoinstall(
+        "testbed-1", "system", "name", "system-tests.sh"
+    )
+    result_testbed_2 = remote.generate_autoinstall(
+        "testbed-2", "system", "name", "system-tests.sh"
+    )
     assert result_testbed_1 == expected_result_testbed_1
     assert result_testbed_2 == expected_result_testbed_2
 

@@ -74,6 +74,12 @@ import yaml
 
 from cobbler import download_manager
 
+VALUE_KEY = object()
+"""
+Empty instance. A unique marker value used instead of None to differentiate between when a key should be used for a
+value and when 'None' is a valid entry in a dictionary.
+"""
+
 
 class CobblerSvc:
     """
@@ -109,11 +115,11 @@ class CobblerSvc:
         """
         return json.dumps(self.remote.get_settings(), indent=4)
 
-    def index(self, **args: Any) -> str:
+    def index(self, **kwargs: Any) -> str:
         """
         Just a placeholder method as an entry point.
 
-        :param args: This parameter is unused.
+        :param kwargs: This parameter is unused.
         :return: "no mode specified"
         """
         return "no mode specified"
@@ -122,48 +128,29 @@ class CobblerSvc:
         self,
         profile: Optional[str] = None,
         system: Optional[str] = None,
-        REMOTE_ADDR: Optional[str] = None,
-        REMOTE_MAC: Optional[str] = None,
-        **rest: Any,
+        file: str = "",
+        **kwargs: Any,
     ) -> str:
         """
         Generate automatic installation files.
 
-        :param profile:
-        :param system:
-        :param REMOTE_ADDR:
-        :param REMOTE_MAC:
-        :param rest: This parameter is unused.
-        :return:
+        :param profile: The name of the profile to generate the autoinstall for.
+        :param system: The name of the system to generate the autoinstall for.
+        :param kwargs: This parameter is unused.
+        :return: TODO
         """
-        data = self.remote.generate_autoinstall(
-            profile, system, REMOTE_ADDR, REMOTE_MAC
-        )
-        if isinstance(data, str):
-            return data
-        return "ERROR: Server returned unexpected data!"
+        if profile is None and system is None:
+            return "ERROR: Neither profile, nor system was given!"
 
-    def ks(
-        self,
-        profile: Optional[str] = None,
-        system: Optional[str] = None,
-        REMOTE_ADDR: Optional[str] = None,
-        REMOTE_MAC: Optional[str] = None,
-        **rest: Any,
-    ) -> str:
-        """
-        Generate automatic installation files. This is a legacy function for part backward compatibility to 2.6.6
-        releases.
+        if profile is not None and system is not None:
+            return "ERROR: Both profile and system were given!"
 
-        :param profile:
-        :param system:
-        :param REMOTE_ADDR:
-        :param REMOTE_MAC:
-        :param rest: This parameter is unused.
-        :return:
-        """
         data = self.remote.generate_autoinstall(
-            profile, system, REMOTE_ADDR, REMOTE_MAC
+            profile if profile else system,
+            "profile" if profile else "system",
+            "name",
+            file,
+            "",
         )
         if isinstance(data, str):
             return data
@@ -175,7 +162,7 @@ class CobblerSvc:
         image: Optional[str] = None,
         system: Optional[str] = None,
         mac: Optional[str] = None,
-        **rest: Any,
+        **kwargs: Any,
     ) -> str:
         """
         Generates an iPXE configuration.
@@ -184,7 +171,7 @@ class CobblerSvc:
         :param image: An image.
         :param system: A system.
         :param mac: A MAC address.
-        :param rest: This parameter is unused.
+        :param kwargs: This parameter is unused.
         """
         if not system and mac:
             query = {"mac_address": mac}
@@ -203,14 +190,14 @@ class CobblerSvc:
         return "ERROR: Server returned unexpected data!"
 
     def bootcfg(
-        self, profile: Optional[str] = None, system: Optional[str] = None, **rest: Any
+        self, profile: Optional[str] = None, system: Optional[str] = None, **kwargs: Any
     ) -> str:
         """
         Generate a boot.cfg config file. Used primarily for VMware ESXi.
 
         :param profile:
         :param system:
-        :param rest: This parameter is unused.
+        :param kwargs: This parameter is unused.
         :return:
         """
         data = self.remote.generate_bootcfg(profile, system)
@@ -219,7 +206,7 @@ class CobblerSvc:
         return "ERROR: Server returned unexpected data!"
 
     def script(
-        self, profile: Optional[str] = None, system: Optional[str] = None, **rest: Any
+        self, profile: Optional[str] = None, system: Optional[str] = None, **kwargs: Any
     ) -> str:
         """
         Generate a script based on snippets. Useful for post or late-action scripts where it's difficult to embed the
@@ -227,23 +214,23 @@ class CobblerSvc:
 
         :param profile: The profile to generate the script for.
         :param system: The system to generate the script for.
-        :param rest: This may contain a parameter with the key "query_string" which has a key "script" which may be an
+        :param kwargs: This may contain a parameter with the key "query_string" which has a key "script" which may be an
                      array. The element from position zero is taken.
         :return: The generated script.
         """
         data = self.remote.generate_script(
-            profile, system, rest["query_string"]["script"][0]
+            profile, system, kwargs["query_string"]["script"][0]
         )
         if isinstance(data, str):
             return data
         return "ERROR: Server returned unexpected data!"
 
-    def events(self, user: str = "", **rest: Any) -> str:
+    def events(self, user: str = "", **kwargs: Any) -> str:
         """
         If no user is given then all events are returned. Otherwise only event associated to a user are returned.
 
         :param user: Filter the events for a given user.
-        :param rest: This parameter is unused.
+        :param kwargs: This parameter is unused.
         :return: A JSON object which contains all events.
         """
         if user == "":
@@ -270,7 +257,7 @@ class CobblerSvc:
         profile: Optional[str] = None,
         system: Optional[str] = None,
         path: Optional[str] = None,
-        **rest: Any,
+        **kwargs: Any,
     ) -> str:
         """
         Generate a templated file for the system. Either specify a profile OR a system.
@@ -278,7 +265,7 @@ class CobblerSvc:
         :param profile: The profile to provide for the generation of the template.
         :param system: The system to provide for the generation of the template.
         :param path: The path to the template.
-        :param rest: This parameter is unused.
+        :param kwargs: This parameter is unused.
         :return: The rendered template.
         """
         if path is not None:
@@ -298,14 +285,14 @@ class CobblerSvc:
         return data
 
     def yum(
-        self, profile: Optional[str] = None, system: Optional[str] = None, **rest: Any
+        self, profile: Optional[str] = None, system: Optional[str] = None, **kwargs: Any
     ) -> str:
         """
         Generate a repo config. Either specify a profile OR a system.
 
         :param profile: The profile to provide for the generation of the template.
         :param system: The system to provide for the generation of the template.
-        :param rest: This parameter is unused.
+        :param kwargs: This parameter is unused.
         :return: The generated repository config.
         """
         if profile is not None:
@@ -324,7 +311,7 @@ class CobblerSvc:
         profile: Optional[str] = None,
         system: Optional[str] = None,
         REMOTE_ADDR: Optional[str] = None,
-        **rest: Any,
+        **kwargs: Any,
     ) -> str:
         """
         Hook to call install triggers. Only valid for a profile OR a system.
@@ -333,7 +320,7 @@ class CobblerSvc:
         :param profile: The profile object to run triggers for.
         :param system: The system object to run triggers for.
         :param REMOTE_ADDR: The ip if the remote system/profile.
-        :param rest: This parameter is unused.
+        :param kwargs: This parameter is unused.
         :return: The return code of the action.
         """
         ip_address = REMOTE_ADDR
@@ -347,22 +334,22 @@ class CobblerSvc:
             )
         return str(return_code)
 
-    def nopxe(self, system: Optional[str] = None, **rest: Any) -> str:
+    def nopxe(self, system: Optional[str] = None, **kwargs: Any) -> str:
         """
         Disables the network boot for the given system.
 
         :param system: The system to disable netboot for.
-        :param rest: This parameter is unused.
+        :param kwargs: This parameter is unused.
         :return: A boolean status if the action succeed or not.
         """
         return str(self.remote.disable_netboot(system))
 
-    def list(self, what: str = "systems", **rest: Any) -> str:
+    def list(self, what: str = "systems", **kwargs: Any) -> str:
         """
         Return a list of objects of a desired category. Defaults to "systems".
 
         :param what: May be "systems", "profiles", "distros", "images", "repos" or "menus"
-        :param rest: This parameter is unused.
+        :param kwargs: This parameter is unused.
         :return: The list of object names.
         """
         # mypy and xmlrpc don't play well together
@@ -386,24 +373,24 @@ class CobblerSvc:
             return "\n".join(names) + "\n"
         return ""
 
-    def autodetect(self, **rest: Union[str, int, List[str]]) -> str:
+    def autodetect(self, **kwargs: Union[str, int, List[str]]) -> str:
         """
         This tries to autodect the system with the given information. If more than one candidate is found an error
         message is returned.
 
-        :param rest: The keys "REMOTE_MACS", "REMOTE_ADDR" or "interfaces".
+        :param kwargs: The keys "REMOTE_MACS", "REMOTE_ADDR" or "interfaces".
         :return: The name of the possible object or an error message.
         """
         # If kssendmac was in the kernel options line, see if a system can be found matching the MAC address. This is
         # more specific than an IP match.
 
         # We cannot be certain that this header is included, thus we can't add a type check (potential breaking change).
-        mac_addresses: List[str] = rest["REMOTE_MACS"]  # type: ignore
+        mac_addresses: List[str] = kwargs["REMOTE_MACS"]  # type: ignore
         macinput: List[str] = []
         for mac in mac_addresses:
             macinput.extend(mac.lower().split(" "))
 
-        ip_address = rest["REMOTE_ADDR"]
+        ip_address = kwargs["REMOTE_ADDR"]
 
         candidates: List[str] = []
 
@@ -431,15 +418,15 @@ class CobblerSvc:
         self,
         system: Optional[str] = None,
         profile: Optional[str] = None,
-        **rest: Union[str, int],
+        **kwargs: Union[str, int],
     ) -> str:
         """
         Find an autoinstallation for a system or a profile. If this is not known different parameters can be passed to
-        rest to find it automatically. See "autodetect".
+        kwargs to find it automatically. See "autodetect".
 
         :param system: The system to find the autoinstallation for,
         :param profile: The profile to find the autoinstallation for.
-        :param rest: The metadata to find the autoinstallation automatically.
+        :param kwargs: The metadata to find the autoinstallation automatically.
         :return: The autoinstall script or error message.
         """
         name = "?"
@@ -448,7 +435,7 @@ class CobblerSvc:
         elif profile is not None:
             url = f"{self.server}/cblr/svc/op/autoinstall/profile/{name}"
         else:
-            name = self.autodetect(**rest)
+            name = self.autodetect(**kwargs)
             if name.startswith("FAILED"):
                 return f"# autodetection {name}"
             url = f"{self.server}/cblr/svc/op/autoinstall/system/{name}"
@@ -457,37 +444,6 @@ class CobblerSvc:
             return self.dlmgr.urlread(url).content.decode("UTF-8")
         except Exception:
             return f"# automatic installation file retrieval failed ({url})"
-
-    def findks(
-        self,
-        system: Optional[str] = None,
-        profile: Optional[str] = None,
-        **rest: Union[str, int],
-    ) -> str:
-        """
-        This is a legacy function which enabled Cobbler partly to be backward compatible to 2.6.6 releases.
-
-        It should be only be used if you must. Please use find_autoinstall if possible!
-        :param system: If you wish to find a system please set this parameter to not null. Hand over the name of it.
-        :param profile: If you wish to find a system please set this parameter to not null. Hand over the name of it.
-        :param rest: If you wish you can try to let Cobbler autodetect the system with the MAC address.
-        :return: Returns the autoinstall/kickstart profile.
-        """
-        name = "?"
-        if system is not None:
-            url = f"{self.server}/cblr/svc/op/ks/system/{name}"
-        elif profile is not None:
-            url = f"{self.server}/cblr/svc/op/ks/profile/{name}"
-        else:
-            name = self.autodetect(**rest)
-            if name.startswith("FAILED"):
-                return f"# autodetection {name}"
-            url = f"{self.server}/cblr/svc/op/ks/system/{name}"
-
-        try:
-            return self.dlmgr.urlread(url).content.decode("UTF-8")
-        except Exception:
-            return f"# kickstart retrieval failed ({url})"
 
 
 def __fillup_form_dict(form: Dict[Any, Any], my_uri: str) -> str:
@@ -560,26 +516,30 @@ def application(
     # Corresponding HTTP status codes:
 
     status = "200 OK"
-    # Execute corresponding operation on the CobblerSvc object:
-    func = getattr(http_api, mode)
-    try:
-        content = func(**form)
+    if hasattr(http_api, mode):
+        # Execute corresponding operation on the CobblerSvc object:
+        func = getattr(http_api, mode)
+        try:
+            content = func(**form)
 
-        if content.find("# *** ERROR ***") != -1:
+            if content.find("# *** ERROR ***") != -1:
+                status = "500 SERVER ERROR"
+                print("possible cheetah template error")
+
+            # TODO: Not sure these strings are the right ones to look for...
+            elif (
+                content.find("# profile not found") != -1
+                or content.find("# system not found") != -1
+                or content.find("# object not found") != -1
+            ):
+                print(f"content not found: {my_uri}")
+                status = "404 NOT FOUND"
+        except xmlrpc.client.Fault as err:
             status = "500 SERVER ERROR"
-            print("possible cheetah template error")
-
-        # TODO: Not sure these strings are the right ones to look for...
-        elif (
-            content.find("# profile not found") != -1
-            or content.find("# system not found") != -1
-            or content.find("# object not found") != -1
-        ):
-            print(f"content not found: {my_uri}")
-            status = "404 NOT FOUND"
-    except xmlrpc.client.Fault as err:
-        status = "500 SERVER ERROR"
-        content = err.faultString
+            content = err.faultString
+    else:
+        status = "404 NOT FOUND"
+        content = "Unkown endpoint!"
 
     content = content.encode("utf-8")
 
