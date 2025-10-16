@@ -79,8 +79,10 @@ V3.3.0:
         * ``boot_files``: list/dict? -> enums.VALUE_INHERITED
         * ``fetchable_files``: dict -> enums.VALUE_INHERITED
         * ``autoinstall_meta``: dict -> enums.VALUE_INHERITED
-        * ``kernel_options``: dict -> enums.VALUE_INHERITED
-        * ``kernel_options_post``: dict -> enums.VALUE_INHERITED
+        * ``kernel_options``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
+          -> enums.VALUE_INHERITED
+        * ``kernel_options_post``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
+          -> enums.VALUE_INHERITED
         * mgmt_classes: list -> enums.VALUE_INHERITED
         * ``mgmt_parameters``: Union[str, inherit] -> enums.VALUE_INHERITED
         (``mgmt_classes`` parameter has a duplicate)
@@ -131,8 +133,8 @@ V2.8.5:
         * ``enable_gpxe``: Union[bool, SETTINGS:enable_gpxe]
         * ``enable_menu``: Union[bool, SETTINGS:enable_menu]
         * ``fetchable_files``: dict
-        * ``kernel_options``: dict
-        * ``kernel_options_post``: dict
+        * ``kernel_options``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
+        * ``kernel_options_post``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
         * ``mgmt_classes``: list
         * ``mgmt_parameters``: Union[str, inherit]
         * ``name``: str
@@ -166,7 +168,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from cobbler import enums, validate
 from cobbler.cexceptions import CX
-from cobbler.items.abstract.bootable_item import BootableItem
+from cobbler.items.abstract.bootable_item import BootableItem, KernelOptionsDict
 from cobbler.items.distro import Distro
 from cobbler.items.options.dns import DNSOption
 from cobbler.items.options.tftp import TFTPOption
@@ -221,8 +223,8 @@ class Profile(BootableItem):
 
         # Overwrite defaults from bootable_item.py
         self._autoinstall_meta: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
-        self._kernel_options: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
-        self._kernel_options_post: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
+        self._kernel_options: Union[KernelOptionsDict, str] = enums.VALUE_INHERITED
+        self._kernel_options_post: Union[KernelOptionsDict, str] = enums.VALUE_INHERITED
 
         if self._is_subobject:
             self._filename = enums.VALUE_INHERITED

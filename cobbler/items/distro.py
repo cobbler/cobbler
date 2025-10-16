@@ -31,8 +31,8 @@ V3.3.0:
         * ``depth``: int
         * ``mtime``: float
         * ``uid``: str
-        * ``kernel_options``: dict
-        * ``kernel_options_post``: dict
+        * ``kernel_options``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
+        * ``kernel_options_post``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
         * ``autoinstall_meta``: dict
         * ``boot_files``: list/dict
         * ``template_files``: list/dict
@@ -99,8 +99,8 @@ V2.8.5:
         * ``owners``: Union[list, SETTINGS:default_ownership]
         * ``kernel``: str
         * ``initrd``: str
-        * ``kernel_options``: dict
-        * ``kernel_options_post``: dict
+        * ``kernel_options``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
+        * ``kernel_options_post``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
         * ``ks_meta``: dict
         * ``arch``: str
         * ``breed``: str
