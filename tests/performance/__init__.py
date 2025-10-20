@@ -129,7 +129,7 @@ class CobblerTree:
                         )
                     test_item.distro = distro.uid  # type: ignore[method-assign]
                 test_item.menu = menu.uid  # type: ignore[method-assign]
-                test_item.autoinstall = "sample.ks"  # type: ignore[method-assign]
+                test_item.autoinstall = "built-in-sample.ks"  # type: ignore[method-assign]
                 api.profiles().add(
                     test_item,
                     save=save,
@@ -153,7 +153,7 @@ class CobblerTree:
             test_item: Image = Image(api)
             test_item.name = f"test_image_{i}"  # type: ignore[method-assign]
             test_item.menu = menu.uid  # type: ignore[method-assign]
-            test_item.autoinstall = "sample.ks"  # type: ignore[method-assign]
+            test_item.autoinstall = "built-in-sample.ks"  # type: ignore[method-assign]
             api.images().add(
                 test_item, save=save, with_triggers=with_triggers, with_sync=with_sync
             )
