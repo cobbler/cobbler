@@ -49,7 +49,7 @@ def test_object_creation(cobbler_api: CobblerAPI):
 
 def test_make_clone(cobbler_api: CobblerAPI):
     """
-    Assert that a profile can be cloned and NOT have the same identity.
+    Assert that a Profile can be cloned and NOT have the same identity.
     """
     # Arrange
     profile = Profile(cobbler_api)
@@ -59,6 +59,21 @@ def test_make_clone(cobbler_api: CobblerAPI):
 
     # Assert
     assert result != profile
+
+
+def test_make_clone_with_template(cobbler_api: CobblerAPI):
+    """
+    Test cloning of a Profile object with a concrete Template.
+    """
+    # Arrange
+    profile = Profile(cobbler_api)
+    profile.autoinstall = "built-in-sample.ks"  # type: ignore
+
+    # Act
+    result = profile.make_clone()
+
+    # Assert
+    assert profile != result
 
 
 def test_to_dict(

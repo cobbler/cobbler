@@ -64,6 +64,21 @@ def test_make_clone(cobbler_api: CobblerAPI):
     assert result != system
 
 
+def test_make_clone_with_template(cobbler_api: CobblerAPI):
+    """
+    Test cloning of a System object with a concrete Template.
+    """
+    # Arrange
+    system = System(cobbler_api)
+    system.autoinstall = "built-in-sample.ks"  # type: ignore
+
+    # Act
+    result = system.make_clone()
+
+    # Assert
+    assert result != system
+
+
 def test_to_dict(cobbler_api: CobblerAPI):
     """
     Test that verfies that converting the System to a dict works as expected.
