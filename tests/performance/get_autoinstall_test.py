@@ -4,7 +4,7 @@ Test module to assert the performance of retrieving an auto-installation file.
 
 import gc
 import os
-from typing import Any, Callable, Dict, Tuple
+from typing import Callable
 
 import pytest
 from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs,import-untyped]
@@ -46,7 +46,7 @@ def test_get_autoinstall(
     def item_get_autoinstall(api: CobblerAPI, what: str):
         autoinstall_mgr = AutoInstallationManager(cobbler_api)
         for test_item in api.get_items(what):
-            autoinstall_mgr.generate_autoinstall(test_item, None)  # type: ignore
+            autoinstall_mgr.generate_autoinstall(test_item, test_item.autoinstall)  # type: ignore
         gc.collect()
 
     # Arrange

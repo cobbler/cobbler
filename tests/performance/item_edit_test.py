@@ -3,7 +3,7 @@ Test module to assert the performance of editing items.
 """
 
 import os
-from typing import Any, Callable, Dict, Tuple
+from typing import Callable
 
 import pytest
 from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs,import-untyped]
