@@ -35,6 +35,7 @@ jobs:
             --env COBBLER_PERFORMANCE_TEST_ROUNDS=${{ (github.event_name == 'workflow_dispatch' && inputs.rounds) || 10 }} \
             --env COBBLER_PERFORMANCE_TEST_ITERATIONS=${{ (github.event_name == 'workflow_dispatch' && inputs.iterations) || 25 }} \
             --env COBBLER_PERFORMANCE_TEST_GET_AUTOINSTALL_ITERATIONS=2 \
+            --env COBBLER_PERFORMANCE_TEST_SYNC_ITERATIONS=2 \
             -v $PWD:/code \
             --name cobbler \
             registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
