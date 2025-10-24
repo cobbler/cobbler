@@ -56,10 +56,12 @@ jobs:
             docker exec -u 0 -it cobbler bash -c "pytest --benchmark-only --benchmark-autosave --benchmark-compare=\"0002\" --benchmark-group-by=name --benchmark-compare-fail=\"mean:10%\" tests/performance"
           fi
       - name: Stop and remove the container
+        if: always()
         run: docker stop cobbler && docker rm cobbler
       # https://github.com/actions/upload-artifact
       - name: Upload benchmark report to GH artifacts
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: benchmark-report
           path: .benchmarks/
