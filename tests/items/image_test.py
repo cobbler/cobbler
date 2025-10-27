@@ -57,6 +57,21 @@ def test_make_clone(cobbler_api: CobblerAPI):
     assert image != result
 
 
+def test_make_clone_with_template(cobbler_api: CobblerAPI):
+    """
+    Test cloning of an Image object with a concrete Template.
+    """
+    # Arrange
+    image = Image(cobbler_api)
+    image.autoinstall = "built-in-sample.ks"  # type: ignore
+
+    # Act
+    result = image.make_clone()
+
+    # Assert
+    assert image != result
+
+
 def test_arch(cobbler_api: CobblerAPI):
     """
     Test the architecture property of Image.

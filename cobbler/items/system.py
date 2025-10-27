@@ -296,6 +296,10 @@ class System(BootableItem):
     def make_clone(self):
         _dict = copy.deepcopy(self.to_dict())
         _dict.pop("uid", None)
+        if isinstance(_dict.get("autoinstall"), dict):
+            # This is a concrete dict object, not inherited.
+            autoinstall = _dict.pop("autoinstall")
+            _dict["autoinstall"] = autoinstall["uid"]
         return System(self.api, **_dict)
 
     def check_if_valid(self):

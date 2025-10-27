@@ -1,0 +1,69 @@
+name: Performance Testing
+
+on:
+  workflow_dispatch:
+    inputs:
+      rounds:
+        description: "The number of rounds for the benchmark"
+        default: "25"
+        type: number
+      iterations:
+        description: "The number of iterations for the benchmark"
+        default: "100"
+        type: number
+  push:
+    branches: [main, release*]
+  pull_request:
+    branches: [main, release*]
+
+jobs:
+  run_performance_tests:
+    runs-on: fireactions
+    name: "Performance-Tests"
+    timeout-minutes: 720
+    steps:
+      - uses: actions/checkout@v4
+      - name: Disable Docker IPTables RAW requirement
+        run: ./docker/develop/scripts/disable-docker-iptables-raw.sh
+      - name: Pull Docker Test Container
+        run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
+      - name: Run previously built Docker Container
+        run: |
+          docker run --privileged \
+            --tty \
+            --detach \
+            --env COBBLER_PERFORMANCE_TEST_ROUNDS=${{ (github.event_name == 'workflow_dispatch' && inputs.rounds) || 10 }} \
+            --env COBBLER_PERFORMANCE_TEST_ITERATIONS=${{ (github.event_name == 'workflow_dispatch' && inputs.iterations) || 25 }} \
+            --env COBBLER_PERFORMANCE_TEST_GET_AUTOINSTALL_ITERATIONS=2 \
+            --env COBBLER_PERFORMANCE_TEST_SYNC_ITERATIONS=2 \
+            -v $PWD:/code \
+            --name cobbler \
+            registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
+      - name: Trust the git repository inside the container
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          docker exec -u 0 -it cobbler bash -c "git config --global --add safe.directory /code"
+      - name: Setup Cobbler in the Container
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          docker exec -u 0 -it cobbler bash -c "./docker/develop/scripts/setup-supervisor.sh"
+      - name: Run the Performance Tests inside the Docker Container
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            docker exec -u 0 -it cobbler bash -c "pytest --benchmark-only --benchmark-autosave tests/performance"
+          else
+            docker exec -u 0 -it cobbler bash -c "pytest --benchmark-only --benchmark-autosave --benchmark-compare=\"0002\" --benchmark-group-by=name --benchmark-compare-fail=\"mean:10%\" tests/performance"
+          fi
+      - name: Stop and remove the container
+        if: always()
+        run: docker stop cobbler && docker rm cobbler
+      # https://github.com/actions/upload-artifact
+      - name: Upload benchmark report to GH artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-report
+          path: .benchmarks/
+          include-hidden-files: true
+          if-no-files-found: error

@@ -125,6 +125,9 @@ jobs:
           cache: pip
           cache-dependency-path: "**/setup.py"
           python-version: ">=3.6"
+      - name: Update apt cache
+        run: >-
+          sudo apt-get update
       - name: Install system dependencies
         run: >-
           sudo apt-get install -y

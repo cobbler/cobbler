@@ -12,7 +12,7 @@
       #set $idata = $interfaces[$iface]
       #if $idata["interface_type"].lower() in ["","na","bridge","bond"] and $idata["dns"]["name"] != ""
       <hosts_entry>
-        <host_address>$idata["ip_address"]</host_address>
+        <host_address>$idata["ipv4"]["address"]</host_address>
         <names config:type="list">
           <name>$idata["dns"]["name"]</name>
           #set $my_interface_hostname_short = $idata["dns"]["name"].split('.',1)[:1][0]

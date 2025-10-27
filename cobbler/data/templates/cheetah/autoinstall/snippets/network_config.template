@@ -29,8 +29,8 @@
             #set $idata    = $interfaces[$iname]
             #set $mac      = $idata["mac_address"]
             #set $static   = $idata["static"]
-            #set $ip       = $idata["ip_address"]
-            #set $netmask  = $idata["netmask"]
+            #set $ip       = $idata["ipv4"]["address"]
+            #set $netmask  = $idata["ipv4"]["netmask"]
             #set $type     = $idata["interface_type"]
             ## Ignore BMC interface
             #if $type == "bmc"

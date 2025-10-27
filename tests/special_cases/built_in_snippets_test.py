@@ -403,8 +403,10 @@ def test_built_in_network_config_esxi(cobbler_api: CobblerAPI):
             "default": {
                 "mac_address": "aa:bb:cc:dd:ee:ff",
                 "static": True,
-                "ip_address": "",
-                "netmask": "",
+                "ipv4": {
+                    "address": "",
+                    "netmask": "",
+                },
                 "interface_type": "",
             }
         },
@@ -438,8 +440,10 @@ def test_built_in_network_config_esx(cobbler_api: CobblerAPI):
             "default": {
                 "mac_address": "aa:bb:cc:dd:ee:ff",
                 "static": True,
-                "ip_address": "",
-                "netmask": "",
+                "ipv4": {
+                    "address": "",
+                    "netmask": "",
+                },
                 "interface_type": "",
             }
         },

@@ -65,8 +65,8 @@ echo "" >> /etc/network/interfaces
         #set $idata                = $interfaces[$iname]
         #set $mac                  = $idata.get("mac_address", "").upper()
         #set $static               = $idata.get("static", "")
-        #set $ip                   = $idata.get("ip_address", "")
-        #set $netmask              = $idata.get("netmask", "")
+        #set $ip                   = $idata.get("ipv4", {}).get("address", "")
+        #set $netmask              = $idata.get("ipv4", {}).get("netmask", "")
         ## configure the gateway if set up, preferring per-interface over global
         #if $idata.get("if_gateway") != ""
             #set $if_gateway = $idata.get("if_gateway")
@@ -75,15 +75,15 @@ echo "" >> /etc/network/interfaces
         #else
             #set $if_gateway = ""
         #end if
-        #set $static_routes        = $idata.get("static_routes", "")
+        #set $static_routes        = $idata.get("ipv4", {}).get("static_routes", "")
         #set $iface_type           = $idata.get("interface_type", "").lower()
         #set $iface_master         = $idata.get("interface_master", "")
         #set $bonding_opts         = $idata.get("bonding_opts", "")
         #set $bridge_opts          = $idata.get("bridge_opts", "").split(" ")
-        #set $ipv6_address         = $idata.get("ipv6_address", "")
-        #set $ipv6_secondaries     = $idata.get("ipv6_secondaries", "")
-        #set $ipv6_default_gateway = $idata.get("ipv6_default_gateway", "")
-        #set $ipv6_static_routes   = $idata.get("ipv6_static_routes", "")
+        #set $ipv6_address         = $idata.get("ipv6", {}).get("address", "")
+        #set $ipv6_secondaries     = $idata.get("ipv6", {}).get("secondaries", "")
+        #set $ipv6_default_gateway = $idata.get("ipv6", {}).get("default_gateway", "")
+        #set $ipv6_static_routes   = $idata.get("ipv6", {}).get("static_routes", "")
         ## determine if this interface is for a VLAN
         #if $vlanpattern.match($iname)
             #set $is_vlan = "true"

@@ -22,7 +22,7 @@ $comment
 #end if
 #for $intf in $interfaces.keys():
     #set $mac = $interfaces[$intf].get("mac_address","")
-    #set $ip  = $interfaces[$intf].get("ip_address","")
+    #set $ip  = $interfaces[$intf].get("ipv4", {}).get("address", "")
     #set $static = $interfaces[$intf].get("static","")
 
    Interface: $intf
