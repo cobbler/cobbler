@@ -6,6 +6,7 @@ import json
 import pathlib
 import shutil
 import subprocess
+import urllib.request
 from time import sleep
 from typing import Any, Callable, List, Tuple
 
@@ -668,3 +669,49 @@ def test_basic_system_serial(
         for line in file_content:
             if "serial" in line:
                 result += line
+
+
+@pytest.mark.integration
+def test_basic_system_autoinstall_agama(
+    create_distro: Callable[[List[Tuple[List[str], Any]]], str],
+    create_profile: Callable[[List[Tuple[List[str], Any]]], str],
+    create_system: Callable[[List[Tuple[List[str], Any]]], str],
+    images_fake_path: pathlib.Path,
+):
+    """
+    Check that Cobbler can generate Cloud-Init Autoinstall templates.
+    """
+    # Arrange
+    did = create_distro(
+        [
+            (["name"], "fake"),
+            (["arch"], "x86_64"),
+            (["kernel"], str(images_fake_path / "vmlinuz")),
+            (["initrd"], str(images_fake_path / "initramfs")),
+        ]
+    )
+    pid = create_profile(
+        [
+            (["name"], "fake"),
+            (["distro"], did),
+        ]
+    )
+    create_system(
+        [
+            (["name"], "testbed"),
+            (["profile"], pid),
+            (["autoinstall"], "built-in-autoinst.json"),
+            (["autoinstall_meta"], {"cloud_init_user_data_modules": ["network-v1"]}),
+        ]
+    )
+
+    # Act
+    sleep(5)  # sleep for 5 seconds to prevent supervisord backoff errors
+    with urllib.request.urlopen(
+        "http://127.0.0.1/cblr/svc/op/autoinstall/system/testbed/file/built-in-autoinst.json"
+    ) as f:
+        result = f.read().decode("utf-8")
+
+    # Assert
+    json_result = json.loads(result)
+    assert json_result.get("product", {}).get("id", "") == "Tumbleweed"

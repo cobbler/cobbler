@@ -1,0 +1,13 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/bootloader -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- set agama_bootloader_stop_on_boot_menu_comma = (agama_bootloader_kernel_options)| any -%}
+{%- if agama_bootloader_stop_on_boot_menu is defined or agama_bootloader_kernel_options is defined %}
+    "bootloader": {
+    {%- if agama_bootloader_stop_on_boot_menu is defined %}
+        "stopOnBootMenu": {{ agama_bootloader_stop_on_boot_menu | tojson }}{{ "," if agama_bootloader_stop_on_boot_menu_comma}}
+    {%- endif %}
+    {%- if agama_bootloader_kernel_options is defined %}
+        "extraKernelParams": "{{ agama_bootloader_kernel_options }}"
+    {%- endif %}
+    }
+{%- endif %}

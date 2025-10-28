@@ -1,0 +1,10 @@
+#template=jinja
+{# Default Cobbler Agama template #}
+{# https://agama-project.github.io/docs/user/reference/profile #}
+{% set agama_product_comma = (agama_modules is defined and agama_modules|length > 0) %}
+{
+    {% include "built-in-agama-product" %}{{ "," if agama_product_comma }}
+{%- for module in agama_modules %}
+    {% include "built-in-agama-%s" % module %}{{", " if not loop.last}}
+{%- endfor %}
+}

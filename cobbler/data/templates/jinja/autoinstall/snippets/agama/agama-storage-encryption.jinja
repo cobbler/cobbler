@@ -1,0 +1,38 @@
+{%- if encryption is string %}
+"{{ encryption }}"
+{%- else %}
+{
+    {%- if encryption.type == "luks1" %}
+    "luks1": {
+        "password": "{{ encryption.data.password }}"{{ "," if encryption.data.cipher or encryption.data.keySize }}
+        {%- if encryption.data.cipher %}
+        "cipher": "{{ encryption.data.cipher }}"{{ "," if encryption.data.keySize is defined }}
+        {%- endif %}
+        {%- if encryption.data.keySize %}
+        "keySize": {{ encryption.data.keySize }}
+        {%- endif %}
+    }
+    {%- elif encryption.type == "luks2" %}
+    "luks2": {
+        "password": "{{ encryption.data.password }}"{{ "," if encryption.data.cipher or encryption.data.keySize or encryption.data.pbkdFunction }}
+        {%- if encryption.data.cipher %}
+        "cipher": "{{ encryption.data.cipher }}"{{ "," if encryption.data.keySize or encryption.data.pbkdFunction }}
+        {%- endif %}
+        {%- if encryption.data.keySize %}
+        "keySize": {{ encryption.data.keySize }}{{ "," if encryption.data.pbkdFunction }}
+        {%- endif %}
+        {%- if encryption.data.pbkdFunction %}
+        "pbkdFunction": "{{ encryption.data.pbkdFunction }}"
+        {%- endif %}
+    }
+    {%- elif encryption.type == "luks2" %}
+    "pervasiveLuks2": {
+        "password": "{{ encryption.data.password }}"
+    }
+    {%- elif encryption.type == "luks2" %}
+    "tpmFde": {
+        "password": "{{ encryption.data.password }}"
+    }
+    {%- endif %}
+}
+{%- endif %}

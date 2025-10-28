@@ -2340,6 +2340,30 @@
         "kernel_options_post": "",
         "boot_files": []
       },
+      "opensuse16.0": {
+        "signatures": [
+          ""
+        ],
+        "version_file": "Leap-release-16.0-(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "x86_64",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd(.*)",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-autoinst.json",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
       "leapmicro5.3": {
         "signatures": [
           ""

@@ -1,0 +1,32 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/answers -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- if agama_questions is defined and agama_questions_policy is defined -%}
+    "questions": {
+        "policy": "{{ agama_questions_policy }}",
+        "answers": [
+    {%- for question in agama_questions %}
+        {%- set question_password_comma = (question.data)|any %}
+        {%- set question_answer_comma = (question.password, question_password_comma)|any %}
+        {%- set question_text_comma = (question.answer, question_answer_comma)|any %}
+        {%- set question_class_comma = (question.text, question_text_comma)|any %}
+            {
+        {%- if question.class is defined %}
+                "class": "{{ question.class }}"{{ "," if question_class_comma }}
+        {%- endif %}
+        {%- if question.text is defined %}
+                "text": "{{ question.text }}"{{ "," if question_text_comma }}
+        {%- endif %}
+        {%- if question.answer is defined %}
+                "answer": "{{ question.answer }}"{{ "," if question_answer_comma }}
+        {%- endif %}
+        {%- if question.password is defined %}
+                "password": "{{ question.password }}"{{ "," if question_password_comma }}
+        {%- endif %}
+        {%- if question.data is defined %}
+                "data": {{ question.data|tojson}}
+        {%- endif %}
+            }{{ "," if not loop.last }}
+    {%- endfor %}
+        ]
+    }
+{%- endif -%}

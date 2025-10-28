@@ -28,6 +28,14 @@ cobbler.utils.input\_converters module
    :undoc-members:
    :show-inheritance:
 
+cobbler.utils.kernel\_command\_line module
+------------------------------------------
+
+.. automodule:: cobbler.utils.kernel_command_line
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 cobbler.utils.mtab module
 -------------------------
 

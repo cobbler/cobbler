@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    cobbler.actions
+   cobbler.autoinstall
    cobbler.cobbler_collections
    cobbler.cobblerd
    cobbler.data
@@ -24,22 +25,6 @@ cobbler.api module
 ------------------
 
 .. automodule:: cobbler.api
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-cobbler.autoinstall\_manager module
------------------------------------
-
-.. automodule:: cobbler.autoinstall_manager
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-cobbler.autoinstallgen module
------------------------------
-
-.. automodule:: cobbler.autoinstallgen
    :members:
    :undoc-members:
    :show-inheritance:

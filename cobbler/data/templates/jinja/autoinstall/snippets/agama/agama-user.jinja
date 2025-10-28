@@ -1,0 +1,10 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/users -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- if agama_user_fullname is defined and agama_user_username is defined and agama_user_password is defined %}
+    "user": {
+        "fullName": "{{ agama_user_fullname }}",
+        "userName": "{{ agama_user_username}}",
+        "hashedPassword": true,
+        "password": {{ agama_user_password|tojson }}
+    }
+{%- endif %}

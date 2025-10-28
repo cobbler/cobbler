@@ -43,6 +43,7 @@ from tests.integration.conftest import WaitTaskEndType
         ("suse", "opensuse15.3"),
         ("suse", "opensuse15.4"),
         ("suse", "opensuse15.5"),
+        ("suse", "opensuse16.0"),
         ("suse", "slemicro5.3"),
         ("suse", "slemicro5.4"),
         ("suse", "slemicro5.5"),

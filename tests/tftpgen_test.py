@@ -470,6 +470,12 @@ def test_build_kernel_options_system(
             "info=http://192.168.1.1/cblr/svc/op/nopxe/system/test_build_kernel_options_autoinstall  autoyast=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-sample_autoyast.xml",
         ),
         (
+            "suse",
+            "",
+            "built-in-autoinst.json",
+            "info=http://192.168.1.1/cblr/svc/op/nopxe/system/test_build_kernel_options_autoinstall  inst.auto=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-autoinst.json",
+        ),
+        (
             "debian",
             "jessie",
             "built-in-sample.seed",

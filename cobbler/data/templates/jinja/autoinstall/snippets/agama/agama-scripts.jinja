@@ -1,0 +1,16 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/scripts -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- if agama_scripts is defined %}
+    "scripts": {
+    {%- for stage, stage_scripts in agama_scripts.items() %}
+        "{{ stage}}": [
+        {%- for script in stage_scripts %}
+            {
+                "name": "{{ script }}",
+                "url": "{{ autoinstall_scheme}}://{{ server }}/cblr/svc/op/autoinstall/{{ obj_type }}/{{ name }}/filename/{{ script }}"
+            }{{ "," if not loop.last }}
+        {%- endfor%}
+        ]
+    {%- endfor %}
+    }
+{%- endif %}

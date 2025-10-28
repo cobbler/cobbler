@@ -1,0 +1,38 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/network -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{#- Be aware of the kernel option default of inst.copy_network=1 -#}
+{%- if interfaces is defined %}
+    "network": {
+        "connections": [
+    {%- for interface in interfaces.values() %}
+            {
+                "id": "{{ interface.name }}",
+                "method4": {{ "manual" if interface.static else "auto" }},
+                "method6": {{ "manual" if interface.static else "auto" }},
+                "interface": "{{ interface.name }}",
+                "macAddress": "{{ interface.macAddress }}",
+                {#- Agama doesn't support setting seperate MTUs. #}
+                "mtu": "{{ interface.ipv4.mtu }}",
+                "gateway4": "{{ interface.if_gateway }}",
+                {#- "gateway6": "", #}
+                "addresses": [
+                    {{ interface.ipv4.address|tojson }},
+                    {{ interface.ipv6.address|tojson }},
+                    {{ interface.ipv6.secondaries|tojson }}
+                ],
+                "nameservers": {{ interface.dns.name_servers|tojson }},
+                "dnsSearchlist": {{ interface.dns.name_servers_search|tojson }},
+                "ignoreAutoDns": false,
+                "status": "up",
+                "autoconnect": true,
+                "persistent": true,
+                {#- "match": "",#}
+                {#- "bridge": {},#}
+                {#- "wireless": {}, #}
+                {#- "bond": {},#}
+                {#- "vlan": {}#}
+            }{{ "," if not loop.last }}
+    {%- endfor %}
+        ]
+    }
+{%- endif %}

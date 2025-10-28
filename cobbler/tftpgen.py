@@ -1542,9 +1542,10 @@ class TFTPGen:
                 if ipxe:
                     append_line.replace_key("ksdevice", "bootif", "${net0/mac}")
             elif distro.breed == "suse":
-                # TODO: Autoyast vs Agama
                 if enums.AutoinstallerType.AUTOYAST.value in autoinstall_tags:
                     append_line.append_key_value("autoyast", autoinstall_path)
+                elif enums.AutoinstallerType.AGAMA.value in autoinstall_tags:
+                    append_line.append_key_value("inst.auto", autoinstall_path)
                 else:
                     self.logger.warning("Unsupported autoinstaller type for SUSE!")
                 if management_mac and distro.arch not in (

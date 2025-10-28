@@ -56,6 +56,8 @@ class JinjaTemplateProvider(BaseTemplateProvider):
         super().__init__(api)
         if JINJA2_AVAILABLE:
             self.jinja2_env = jinja2.Environment(loader=CobblerJinjaLoader(self.api))
+            self.jinja2_env.filters["any"] = any  # type: ignore
+            self.jinja2_env.filters["all"] = all  # type: ignore
 
     @property
     def template_type_available(self) -> bool:

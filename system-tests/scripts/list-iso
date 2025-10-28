@@ -12,7 +12,7 @@ distro=${3}
 out=listings/${breed}/${distro}/$(basename ${iso})
 index=${out}/index
 files=${out}/files
-signatures=../config/cobbler/distro_signatures.json
+signatures=../cobbler/data/config/cobbler/distro_signatures.json
 
 create_index() {
 	mkdir -p $(dirname ${index})
@@ -43,7 +43,7 @@ grep_iso() {
 				cat_iso "${file}" | grep -E "${2}" >"${files}/${file}"
 			fi
 		fi
-	done < "${index}"
+	done <"${index}"
 }
 
 find_signatures() {

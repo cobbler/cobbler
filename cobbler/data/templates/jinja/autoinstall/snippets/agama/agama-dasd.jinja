@@ -1,0 +1,25 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/dasd -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- if agama_dasd is defined -%}
+    "dasd": {
+        "devices": [
+    {%- for device in agama_dasd %}
+    {%- set device_format_comma = (device.diag)|any %}
+    {%- set device_state_comma = (device.format, agama_localization_keyboard_comma)|any %}
+    {%- set device_channel_comma = (device.state, device_state_comma)|any %}
+            {
+                "channel": "{{ device.channel }}"{{ "," if device_channel_comma }}
+            {%- if device.state %}
+                "state": "{{ device.state }}"{{ "," if device_state_comma }}
+            {%- endif %}
+            {%- if device.format %}
+                "format": {{ device.format }}{{ "," if device_format_comma }}
+            {%- endif %}
+            {%- if device.diag %}
+                "diag": {{ device.diag }}
+            {%- endif %}
+            }{{ "," if not loop.last }}
+    {%- endfor %}
+        ]
+    }
+{%- endif -%}

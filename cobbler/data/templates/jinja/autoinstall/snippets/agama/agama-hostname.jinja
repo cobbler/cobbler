@@ -1,0 +1,7 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/hostname -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- if hostname is defined and hostname != "" %}
+    "hostname": {
+        "static": "{{ hostname }}"
+    }
+{%- endif %}

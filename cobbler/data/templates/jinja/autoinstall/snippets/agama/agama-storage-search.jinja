@@ -1,0 +1,20 @@
+{% if search is string %}
+{# searchName or searchAll #}
+"{{ search }}"
+{% else %}
+{
+{#- driveAdvancedSearch or mdRaidAdvancedSearch#}
+{%- if search.condition %}
+    "condition": {{ search.condition|tojson }}
+{%- endif %}
+{%- if search.sort %}
+    "sort": {{ search.sort|tojson }}
+{%- endif %}
+{%- if search.max %}
+    "max": {{ search.max }}
+{%- endif %}
+{%- if search.ifNotFound %}
+    "ifNotFound": "{{ search.ifNotFound }}"
+{%- endif %}
+}
+{% endif %}

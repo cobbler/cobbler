@@ -52,6 +52,14 @@ cobbler.items.options.tftp module
    :undoc-members:
    :show-inheritance:
 
+cobbler.items.options.uri module
+--------------------------------
+
+.. automodule:: cobbler.items.options.uri
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 cobbler.items.options.virt module
 ---------------------------------
 

@@ -1,0 +1,37 @@
+{%- set mkfsOption_comma = (filesystem.mountOptions)|any %}
+{%- set mountBy_comma = (filesystem.mkfsOptions, mkfsOption_comma)|any %}
+{%- set path_comma = (filesystem.mountBy, mountBy_comma)|any %}
+{%- set label_comma = (filesystem.path, path_comma)|any %}
+{%- set type_comma = (filesystem.label, label_comma)|any %}
+{%- set reuseIfPossible_comma = (filesystem.type, type_comma)|any %}
+{
+{%- if filesystem.reuseIfPossible is defined %}
+    "reuseIfPossible": {{ filesystem.reuseIfPossible }}{{ "," if reuseIfPossible_comma }}
+{%- endif %}
+{%- if filesystem.type is mapping and filesystem.type.name == "btrfs" %}
+    "type": {
+        "snapshots": {
+            "btrfs": {
+                "snapshots": {{ filesystem.type.snapshots }}",
+            }
+        }
+    }{{ "," if type_comma }}
+{%- else %}
+    "type": "{{ filesystem.type }}"{{ "," if type_comma }}
+{%- endif %}
+{%- if filesystem.label is defined %}
+    "label": "{{ filesystem.label }}"{{ "," if label_comma }}
+{%- endif %}
+{%- if filesystem.path is defined %}
+    "path": "{{ filesystem.path }}"{{ "," if path_comma }}
+{%- endif %}
+{%- if filesystem.mountBy is defined %}
+    "mountBy": "{{ filesystem.mountBy }}"{{ "," if mountBy_comma }}
+{%- endif %}
+{%- if filesystem.mkfsOptions is defined %}
+    "mkfsOptions": {{ filesystem.mkfsOptions|tojson }}{{ "," if mkfsOption_comma }}
+{%- endif %}
+{%- if filesystem.mountOptions is defined %}
+    "mountOptions": {{ filesystem.mountOptions|tojson }}
+{%- endif %}
+}
