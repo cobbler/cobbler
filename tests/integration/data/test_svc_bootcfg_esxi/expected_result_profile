@@ -2,7 +2,7 @@ bootstate=0
 title=Loading ESXi installer
 prefix=/images/fake-x86_64
 kernel=b.b00
-kernelopt=runweasel  ks=http://192.168.1.1/cblr/svc/op/autoinstall/profile/fake-x86_64
+kernelopt=runweasel ks=http://192.168.1.1/cblr/svc/op/autoinstall/profile/fake-x86_64/file/built-in-sample_esxi7.ks
 modules=module1.gz --- module2.gz --- module3.v00 --- module4.tgz
 build=
 updated=0

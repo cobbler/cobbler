@@ -3,7 +3,7 @@ Tests that validate the functionality of the module that is responsible for buil
 """
 
 import os
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, List
 
 import pytest
 
@@ -53,31 +53,6 @@ def test_calculate_grub_name(
 
         # Assert
         assert result == result_binary_name
-
-
-@pytest.mark.parametrize(
-    "input_kopts_dict,exepcted_output",
-    [
-        ({}, ""),
-        ({"test": 1}, " test=1"),
-        ({"test": None}, " test"),
-        ({"test": '"test"'}, ' test="test"'),
-        ({"test": "test test test"}, ' test="test test test"'),
-        ({"test": 'test "test" test'}, ' test="test "test" test"'),
-        ({"test": ['"test"']}, ' test="test"'),
-        ({"test": ['"test"', "test"]}, ' test="test" test=test'),
-    ],
-)
-def test_add_remaining_kopts(input_kopts_dict: Dict[str, Any], exepcted_output: str):
-    """
-    Test to verify that the kernel options are correctly formatted and added.
-    """
-    # Arrange (missing)
-    # Act
-    output = buildiso.add_remaining_kopts(input_kopts_dict)
-
-    # Assert
-    assert output == exepcted_output
 
 
 def test_make_shorter(cobbler_api: CobblerAPI):

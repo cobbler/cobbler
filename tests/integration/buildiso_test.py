@@ -205,7 +205,7 @@ def test_buildiso_integration(
     if flavor == "ppc64le":
         expected_result = "MBR CHRP cyl-align-off\n"
         result = subprocess.check_output(
-            rf"xorriso -indev {iso_path} -toc 2>/dev/null | sed -En 's/^Boot record.* \(system area only\) , (.*)$/\\1/p'",
+            rf"xorriso -indev {iso_path} -toc 2>/dev/null | sed -En 's/^Boot record.* \(system area only\) , (.*)$/\1/p'",
             shell=True,
         )
     else:

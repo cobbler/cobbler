@@ -209,11 +209,23 @@ def wait_task_end() -> WaitTaskEndType:
         # "complete" is the constant: EVENT_COMPLETE from cobbler.remote
         while remote.get_task_status(tid)[2] != "complete":
             if remote.get_task_status(tid)[2] == "failed":
+                print(
+                    (
+                        pathlib.Path("/var/log/cobbler/tasks") / (tid + ".log")
+                    ).read_text()
+                )
                 pytest.fail("Task failed")
             print(f"task {tid} status: {remote.get_task_status(tid)}")
             time.sleep(5)
             timeout += 5
             if timeout == 60:
+                print(
+                    (
+                        pathlib.Path("/var/log/cobbler/tasks") / (tid + ".log")
+                    ).read_text()
+                )
                 pytest.fail(f'Task with tid "{tid}" failed to complete!')
+
+        print((pathlib.Path("/var/log/cobbler/tasks") / (tid + ".log")).read_text())
 
     return _wait_task_end
