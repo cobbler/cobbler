@@ -452,7 +452,6 @@ def create_tftpboot_dirs(api: "CobblerAPI") -> None:
     esxi_dir = bootloc / "esxi"
 
     tftpboot_directory_paths = [
-        bootloc / "boot",
         bootloc / "etc",
         bootloc / "images2",
         bootloc / "ppc",
@@ -475,6 +474,8 @@ def create_tftpboot_dirs(api: "CobblerAPI") -> None:
     __symlink_if_not_exists(pathlib.Path("../images"), esxi_images_link)
     esxi_pxelinux_link = esxi_dir / "pxelinux.cfg"
     __symlink_if_not_exists(pathlib.Path("../pxelinux.cfg"), esxi_pxelinux_link)
+    boot_link = bootloc / "boot"
+    __symlink_if_not_exists(pathlib.Path("."), boot_link)
 
 
 def create_trigger_dirs(api: "CobblerAPI") -> None:
