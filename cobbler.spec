@@ -299,6 +299,11 @@ chmod 640 %{_sysconfdir}/cobbler/users.conf
 chmod 640 %{_sysconfdir}/cobbler/users.digest
 chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
 
+# enable required Apache module on install, but not on upgrade
+if [ $1 -eq 1 ]; then
+    a2enmod wsgi >/dev/null || :
+fi
+
 %preun
 %systemd_preun cobblerd.service
 %systemd_preun cobblerd-gunicorn.service
