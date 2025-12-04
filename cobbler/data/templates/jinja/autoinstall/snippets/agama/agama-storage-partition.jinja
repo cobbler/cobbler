@@ -1,0 +1,47 @@
+{%- if partition.generate is defined and partition.generate is string %}
+{ "generate": "{{ partition.generate }}" }
+{%- elif partition.generate is defined and partition.generate is mapping %}
+{
+    "generate": {
+        "partitions": "{{ partition.generate.partitions }}"{{ "," if partition.generate.encryption is defined }}
+    {%- if partition.generate.encryption is defined %}
+        {%- macro paritionGenerateEncryptionInclude() %}{% with encryption=partition.generate.encryption %}{% include "built-in-agama-storage-encryption" %}{% endwith %}{% endmacro %}
+        "encryption": {{ paritionGenerateEncryptionInclude() | indent(8, True) | trim }}
+    {%- endif %}
+    }
+}
+{%- elif partition.id is defined %}
+{
+    {%- if partition.alias is defined %}
+    "alias": "{{ partition.alias }}",
+    {%- endif %}
+    {%- macro partitionSearchInclude() %}{% with search=partition.search %}{% include "built-in-agama-storage-search" %}{% endwith %}{% endmacro %}
+    "search": {{ partitionSearchInclude() | indent(4, True) | trim }},
+    "id": "{{ partition.id }}",
+    "size": {{ partition.size|tojson }},
+    {%- if partition.encryption is defined %}
+        {%- macro partitionEncryptionInclude() %}{% with encryption=partition.encryption %}{% include "built-in-agama-storage-encryption" %}{% endwith %}{% endmacro %}
+    "encryption": {{ partitionEncryptionInclude() | indent(4, True) | trim }},
+    {%- endif %}
+    {%- if partition.filesystem is defined %}
+    {%- macro partitionFilesystemInclude() %}{% with filesystem=partition.filesystem %}{% include "built-in-agama-storage-filesystem" %}{% endwith %}{% endmacro %}
+    "filesystem": {{ partitionFilesystemInclude() | indent(4, True) | trim }}
+    {%- endif %}
+}
+{%- elif partition.delete is defined %}
+{
+    {%- macro partitionDeleteSearchInclude() %}{% with search=partition.delete %}{% include "built-in-agama-storage-search" %}{% endwith %}{% endmacro %}
+    "search": {{ partitionDeleteSearchInclude() | indent(4, True) | trim }},
+    "delete": true
+}
+{%- elif partition.deleteIfNeeded is defined %}
+    {%- set agama_storage_partition_search_comma = (partition.size, partition.deleteIfNeeded)|any %}
+{
+    {%- macro partitionDeleteIfNeededSearchInclude() %}{% with search=partition.deleteIfNeeded %}{% include "built-in-agama-storage-search" %}{% endwith %}{% endmacro %}
+    "search": {{ partitionDeleteIfNeededSearchInclude() | indent(4, True) | trim }}{{ "," if agama_storage_partition_search_comma }}
+    {%- if partition.size %}
+    "size": {{ partition.size|tojson }}{{ "," if partition.deleteIfNeeded }}
+    {%- endif %}
+    "deleteIfNeeded": true
+}
+{%- endif %}

@@ -1,0 +1,181 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/storage -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- if agama_storage is defined -%}
+    "storage": {
+    {%- if agama_storage.drives is defined %}
+        "drives": [
+    {%- for disk in agama_storage.drives %}
+        {%- set agama_storage_drives_partitions_comma = (disk.ptabletype)|any %}
+        {%- set agama_storage_drives_filesystem_comma = (disk.partitions, agama_storage_drives_partitions_comma)|any %}
+        {%- set agama_storage_drives_encryption_comma = (disk.filesystem, agama_storage_drives_filesystem_comma)|any %}
+        {%- set agama_storage_drives_search_comma = (disk.encryption, agama_storage_drives_encryption_comma)|any %}
+        {%- set agama_storage_drives_alias_comma = (disk.search, agama_storage_drives_search_comma)|any %}
+            {
+        {%- if disk.alias is defined %}
+                "alias": "{{ disk.alias }}"{{ "," if agama_storage_drives_alias_comma }}
+        {%- endif %}
+        {%- if disk.search is defined %}
+            {%- macro diskSearchInclude() %}{% with search=disk.search %}{% include "built-in-agama-storage-search" %}{% endwith %}{% endmacro %}
+                "search": {{ diskSearchInclude() | indent(16, True) | trim }}{{ "," if agama_storage_drives_search_comma }}
+        {%- endif %}
+        {%- if disk.encryption is defined %}
+            {%- macro diskEncryptionInclude() %}{% with encryption=disk.encryption %}{% include "built-in-agama-storage-encryption" %}{% endwith %}{% endmacro %}
+                "encryption": {{ diskEncryptionInclude() | indent(16, True) | trim }}{{ "," if agama_storage_drives_encryption_comma }}
+        {%- endif %}
+        {%- if disk.filesystem is defined %}
+            {%- macro diskFilesystemInclude() %}{% with filesystem=disk.filesystem %}{% include "built-in-agama-storage-filesystem" %}{% endwith %}{% endmacro %}
+                "filesystem": {{ diskFilesystemInclude() | indent(16, True) | trim }}{{ "," if agama_storage_drives_filesystem_comma }}
+        {%- endif %}
+        {%- if disk.partitions is defined %}
+                "partitions": [
+            {%- for partition in disk.partitions %}
+                {%- macro diskPartitionInclude() %}{% with partition=partition %}{% include "built-in-agama-storage-partition" %}{% endwith %}{% endmacro %}
+                    {{ diskPartitionInclude() | indent(20, True) | trim }}{{ "," if not loop.last }}
+            {%- endfor %}
+                ]{{ "," if agama_storage_drives_partitions_comma }}
+        {%- endif %}
+        {%- if disk.ptabletype is defined %}
+                "ptableType": "{{ disk.ptabletype }}"
+        {%- endif %}
+            }
+    {%- endfor %}
+        ]{{ "," if agama_storage.boot is defined or agama_storage.md is defined or agama_storage.vg is defined }}
+    {%- endif %}
+    {%- if agama_storage.vg is defined %}
+        "volumeGroups": [
+        {%- for vg in agama_storage.vg %}
+            {%- set agama_storage_vg_physicalVolumes_comma = (vg.lv)|any %}
+            {%- set agama_storage_vg_extentSize_comma = (vg.pv, agama_storage_vg_physicalVolumes_comma)|any %}
+            {%- set agama_storage_vg_name_comma = (vg.extentSize, agama_storage_vg_extentSize_comma)|any %}
+            {
+                "name": "{{ vg.name }}"{{ "," if agama_storage_vg_name_comma }}
+            {%- if vg.extentSize is defined %}
+                "extentSize": {{ vg.extentSize|tojson }}{{ "," if agama_storage_vg_extentSize_comma }}
+            {%- endif %}
+            {%- if vg.pv is defined %}
+                "physicalVolumes": [
+                {%- for phyiscalVolume in vg.pv %}
+                    {%- if phyiscalVolume is string %}
+                    "{{ phyiscalVolume }}"{{ "," if not loop.last }}
+                    {%- else %}
+                    {
+                        {%- if phyiscalVolume.generate is iterable %}
+                        "generate": {{ phyiscalVolume.generate|tojson }}
+                        {%- else %}
+                            {%- macro pvEncryptionInclude() %}{% with encryption=phyiscalVolume.generate.encryption %}{% include "built-in-agama-storage-encryption" %}{% endwith %}{% endmacro %}
+                        "generate": {
+                            "targetDevices": {{ phyiscalVolume.generate.targetDevices|tojson }},
+                            "encryption": {{ pvEncryptionInclude() | indent(24, True) | trim }}
+                        }
+                        {%- endif %}
+                    }
+                    {%- endif %}
+                {%- endfor %}
+                ]{{ "," if agama_storage_vg_physicalVolumes_comma }}
+            {%- endif %}
+            {%- if vg.lv %}
+                "logicalVolumes": [
+                {%- for logicalVolume in vg.lv %}
+                    {
+                    {%- if logicalVolume.generate is defined and logicalVolume.generate is string %}
+                        "generate": "{{ logicalVolume.generate }}"
+                    {%- elif logicalVolume.generate is defined and logicalVolume.generate is mapping %}
+                        "generate": {
+                            "logicalVolumes": "{{ logicalVolume.generate.logicalVolumes }}",
+                        {%- macro lvGenerateEncryptionInclude() %}{% with encryption=logicalVolume.generate.encryption %}{% include "built-in-agama-storage-encryption" %}{% endwith %}{% endmacro %}
+                            "encryption": {{ lvGenerateEncryptionInclude() | indent(24, True) | trim }},
+                            "stripes": {{ logicalVolume.generate.stripes }},
+                            "stripeSize": {{ logicalVolume.generate.stripeSize|tojson }}
+                        }
+                    {%- else %}
+                        "alias": "{{ logicalVolume.alias }}",
+                        {%- macro lvSearchInclude() %}{% with search=logicalVolume.delete %}{% include "built-in-agama-storage-search" %}{% endwith %}{% endmacro %}
+                        "search": {{ lvSearchInclude() | indent(24, True) | trim }},
+                        "name": "{{ logicalVolume.name }}",
+                        "size": {{ logicalVolume.size|tojson }},
+                        {%- if logicalVolume.encryption %}
+                            {%- macro lvEncryptionInclude() %}{% with encryption=logicalVolume.encryption %}{% include "built-in-agama-storage-encryption" %}{% endwith %}{% endmacro %}
+                        "encryption": {{ lvEncryptionInclude() | indent(24, True) | trim }},
+                        {%- endif %}
+                        {%- macro lvFilesystemInclude() %}{% with filesystem=logicalVolume.filesystem %}{% include "built-in-agama-storage-filesystem" %}{% endwith %}{% endmacro %}
+                        "filesystem": {{ lvFilesystemInclude() | indent(24, True) | trim }},
+                        {% if logicalVolume.pool is defined %}
+                        "pool": true,
+                        {% endif %}
+                        "usedPool": "{{ logicalVolume.usedPool }}",
+                        "stripes": {{ logicalVolume.stripes }},
+                        "stripeSize": {{ logicalVolume.stripeSize|tojson }},
+                    {%- endif %}
+                    }{{ "," if not loop.last }}
+                {%- endfor %}
+                ]
+            {%- endif %}
+            }{{ "," if not loop.last }}
+        {%- endfor %}
+        ]{{ "," if agama_storage.boot is defined or agama_storage.md is defined }}
+    {%- endif %}
+    {%- if agama_storage.md is defined %}
+        "mdRaids": [
+    {%- for md in agama_storage.md %}
+        {%- set agama_storage_md_partition_comma = (md.ptabletype)|any %}
+        {%- set agama_storage_md_filesystem_comma = (md.partitions, agama_storage_md_partition_comma)|any %}
+        {%- set agama_storage_md_encryption_comma = (md.filesystem, agama_storage_md_filesystem_comma)|any %}
+        {%- set agama_storage_md_size_comma = (md.encryption, agama_storage_md_encryption_comma)|any %}
+        {%- set agama_storage_md_device_comma = (md.size, agama_storage_md_size_comma)|any %}
+        {%- set agama_storage_md_chunkSize_comma = (md.devices, agama_storage_md_device_comma)|any %}
+        {%- set agama_storage_md_level_comma = (md.chunkSize, agama_storage_md_chunkSize_comma)|any %}
+        {%- set agama_storage_md_search_comma = (md.level, agama_storage_md_level_comma)|any %}
+        {%- set agama_storage_md_name_comma = (md.search, agama_storage_md_search_comma)|any %}
+        {%- set agama_storage_md_alias_comma = (md.name, agama_storage_md_name_comma)|any %}
+            {
+        {%- if md.alias is defined %}
+                "alias": "{{ md.alias }}"{{ "," if agama_storage_md_alias_comma }}
+        {%- endif %}
+        {%- if md.name is defined %}
+                "name": "{{ md.name }}"{{ "," if agama_storage_md_name_comma }}
+        {%- endif %}
+        {%- if md.search is defined %}
+            {%- macro mdSearchInclude() %}{% with search=md.search %}{% include "built-in-agama-storage-search" %}{% endwith %}{% endmacro %}
+                "search": {{ mdSearchInclude() | indent(16, True) | trim }}{{ "," if agama_storage_md_search_comma }}
+        {%- endif %}
+        {%- if md.level is defined %}
+                "level": "{{ md.level }}"{{ "," if agama_storage_md_level_comma }}
+        {%- endif %}
+        {%- if md.chunkSize is defined %}
+                "chunkSize": {{ md.chunkSize|tojson }}{{ "," if agama_storage_md_chunkSize_comma }}
+        {%- endif %}
+        {%- if md.devices is defined %}
+                "devices": {{ md.devices|tojson }}{{ "," if agama_storage_md_device_comma }}
+        {%- endif %}
+        {%- if md.size is defined %}
+                "size": {{ md.size|tojson }}{{ "," if agama_storage_md_size_comma }}
+        {%- endif %}
+        {%- if md.encryption is defined and md.filesystem is defined %}
+            {%- macro mdEncryptionInclude() %}{% with encryption=logicalVolume.encryption %}{% include "built-in-agama-storage-encryption" %}{% endwith %}{% endmacro %}
+                "encryption": {{ mdEncryptionInclude() | indent(16, True) | trim }}{{ "," if agama_storage_md_encryption_comma }}
+            {%- macro mdFilesystemInclude() %}{% with filesystem=md.filesystem %}{% include "built-in-agama-storage-filesystem" %}{% endwith %}{% endmacro %}
+                "filesystem": {{ mdFilesystemInclude() | indent(16, True) | trim }}{{ "," if agama_storage_md_filesystem_comma }}
+        {%- elif md.partitions is defined and md.ptableType is defined %}
+                "partitions": [
+            {%- for partition in md.partitions %}
+                {% with partition=partition %}{% include "built-in-agama-storage-partition" %}{% endwith %}{{ "," if not loop.last }}
+            {%- endfor %}
+                ]{{ "," if agama_storage_md_partition_comma }}
+            {%- if md.ptabletype is defined %}
+                "ptableType": "{{ md.ptabletype }}"
+            {%- endif %}
+        {%- endif %}
+            }{{ "," if not loop.last }}
+    {%- endfor %}
+        ]{{ "," if agama_storage.disks is defined }}
+    {%- endif %}
+    {%- if agama_storage.boot is defined %}
+        "boot": {
+            "configure": {{ agama_storage.boot.configure }}{{ "," if agama_storage.boot.device is defined }}
+        {%- if agama_storage.boot.device is defined %}
+            "device": "{{ agama_storage.boot.device }}"
+        {%- endif %}
+        }
+    {%- endif %}
+    }
+{%- endif -%}

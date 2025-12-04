@@ -349,7 +349,7 @@ class AutoinstallerType(ConvertableEnum):
     PRESEED = "preseed"
     KICKSTART = "kickstart"
     AUTOYAST = "autoyast"
-    # AGAMA = "agama"
+    AGAMA = "agama"
     # CLOUDINIT = "cloud-init"
     WINDOWS = "windows"
     XEN = "xen"

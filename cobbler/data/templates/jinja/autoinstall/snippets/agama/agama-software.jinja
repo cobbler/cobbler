@@ -1,0 +1,25 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/software -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- set agama_software_patterns_comma = (agama_software_packages, agama_software_packages_comma)|any -%}
+{%- set agama_software_patterns_add_comma = (agama_software_patterns_remove|any) -%}
+{%- set agama_software_packages_comma = (agama_software_repositories)|any %}
+    "software": {
+{%- if agama_software_patterns %}
+        "patterns": [{{ agama_software_patterns }}]{{ "," if agama_software_patterns_comma }}
+{%- elif agama_software_patterns_add or agama_software_patterns_remove %}
+        "patterns": {
+    {%- if agama_software_patterns_add %}
+            add: [{{ agama_software_patterns_add }}]{{ "," if agama_software_patterns_add_comma }}
+    {%- endif %}
+    {%- if agama_software_patterns_remove %}
+            remove: [{{ agama_software_patterns_remove }}]
+    {%- endif %}
+        }{{ "," if agama_software_patterns_comma }}
+{% endif %}
+{%- if agama_software_packages is defined %}
+        "packages": [{{ agama_software_packages }}]{{ "," if agama_software_packages_comma }}
+{%- endif %}
+{%- if agama_software_repositories is defined %}
+        "extraRepositories": [{{ agama_software_repositories }}]
+{%- endif %}
+    }

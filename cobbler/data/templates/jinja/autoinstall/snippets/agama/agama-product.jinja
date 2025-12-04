@@ -1,0 +1,34 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/product -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- set agama_product_registration_url_comma = (agama_product_addons)|any -%}
+{%- set agama_product_registration_email_comma = (agama_product_registration_url_comma, agama_product_registration_url)|any -%}
+{%- set agama_product_registration_code_comma = (agama_product_registration_email_comma, agama_product_registration_email)|any -%}
+{%- set agama_product_id_comma = (agama_product_registration_code_comma, agama_product_registration_code)|any -%}
+    "product": {
+        "id": "{{ agama_product_id|default("Tumbleweed", true) }}"{{ "," if agama_product_id_comma }}
+{%- if agama_product_registration_code %}
+        "registrationCode": "{{ agama_product_registration_code }}"{{ "," if agama_product_registration_code_comma }}
+{%- endif %}
+{%- if agama_product_registration_email %}
+        "registrationEmail": "{{ agama_product_registration_email }}"{{ "," if agama_product_registration_email_comma }}
+{%- endif %}
+{%- if agama_product_registration_url %}
+        "registrationUrl": "{{ agama_product_registration_url }}"{{ "," if agama_product_registration_url_comma }}
+{%- endif %}
+{%- if agama_product_addons %}
+        {#- FIXME: Think of something for the Addons #}
+        "addons": [
+    {%- for addon in agama_product_addons %}
+            {
+                "id": "{{ addon.id }}"{{ "," if (addon.version is defined, addon.registrationCode is defined)|any }}
+        {%- if addon.version is defined %}
+                "version": "{{ addon.version }}"{{ "," if addon.registrationCode is defined }}
+        {%- endif %}
+        {%- if addon.registrationCode %}
+                "registrationCode": "{{ addon.registrationCode }}"
+        {%- endif %}
+            }{{ "," if not loop.last }}
+        ]
+    {%- endfor %}   
+{%- endif %}
+    }

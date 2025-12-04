@@ -1,0 +1,15 @@
+{#- https://agama-project.github.io/docs/user/reference/profile/files -#}
+{#- Cobbler Agama Snippets shall be 4 spaces indented and should not contain a final comma -#}
+{%- if agama_files is defined -%}
+    "files": [
+    {%- for file in agama_files %}
+        {
+            "url": "{{ autoinstall_scheme }}://{{ server }}/cblr/svc/op/script/{{ obj_type }}/{{ name }}/?script={{ file.template }}",
+            "destination": "{{ file.destination }}",
+            "permissions": "{{ file.permissions }}",
+            "user": "{{ file.user }}",
+            "group": "{{ file.group }}"
+        }{{ "," if not loop.last }}
+    {%- endfor %}
+    ]
+{%- endif -%}

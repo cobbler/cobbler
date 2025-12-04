@@ -7,6 +7,7 @@ import logging
 from typing import TYPE_CHECKING, Any, List, NamedTuple, Optional, Sequence, Union
 
 from cobbler import enums, utils
+from cobbler.autoinstall.generate.agama import AgamaGenerator
 from cobbler.autoinstall.generate.autoyast import AutoYaSTGenerator
 from cobbler.autoinstall.generate.kickstart import KickstartGenerator
 from cobbler.autoinstall.generate.legacy import LegacyGenerator
@@ -184,6 +185,8 @@ class AutoInstallationManager:
             return LegacyGenerator(api=self.api)
         elif autoinstaller_type == enums.AutoinstallerType.AUTOYAST:
             return AutoYaSTGenerator(api=self.api)
+        elif autoinstaller_type == enums.AutoinstallerType.AGAMA:
+            return AgamaGenerator(api=self.api)
         elif autoinstaller_type == enums.AutoinstallerType.WINDOWS:
             return WindowsGenerator(api=self.api)
         raise ValueError("Unknown template type selected!")

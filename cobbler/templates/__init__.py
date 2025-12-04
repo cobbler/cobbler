@@ -88,6 +88,7 @@ TEMPLATE_TAG_MAPPING: Dict[str, Set[enums.ConvertableEnum]] = {
     "sample.ks.template": {enums.AutoinstallerType.KICKSTART},
     "sample.seed.template": {enums.AutoinstallerType.PRESEED},
     "win.xml.template": {enums.AutoinstallerType.WINDOWS},
+    "autoinst.json.jinja": {enums.AutoinstallerType.AGAMA},
 }
 """
 This static mapping is adding the function tags to all built-in templates that are well-known to the application. If
