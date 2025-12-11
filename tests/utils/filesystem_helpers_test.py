@@ -329,8 +329,8 @@ def test_create_tftpboot_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
     filesystem_helpers.create_tftpboot_dirs(cobbler_api)
 
     # Assert
-    assert mock_mkdir.call_count == 13
-    assert mock_path_symlink_to.call_count == 3
+    assert mock_mkdir.call_count == 12
+    assert mock_path_symlink_to.call_count == 4
 
 
 def test_create_trigger_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
