@@ -32,6 +32,31 @@ from cobbler.cexceptions import CX
 from cobbler.enums import Archs
 from cobbler.validate import validate_autoinstall_script_name
 
+ubuntu_preseed = [
+    "artful",
+    "bionic",
+    "cosmic",
+    "disco",
+    "eoan",
+    "groovy",
+    "hirsute",
+    "impish",
+    "kinetic",
+    "lucid",
+    "lunar",
+    "oneiric",
+    "precise",
+    "quantal",
+    "raring",
+    "saucy",
+    "trusty",
+    "utopic",
+    "vivid",
+    "wily",
+    "xenial",
+    "yakkety",
+    "zesty"
+]
 
 class TFTPGen:
     """
@@ -925,10 +950,14 @@ class TFTPGen:
                 if management_mac and distro.arch not in (enums.Archs.S390, enums.Archs.S390X):
                     append_line += " netdevice=%s" % management_mac
             elif distro.breed == "debian" or distro.breed == "ubuntu":
-                append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" \
-                              % (append_line, autoinstall_path)
-                if management_interface:
-                    append_line += " netcfg/choose_interface=%s" % management_interface
+                if distro.breed == "debian" or distro.os_version in ubuntu_preseed:
+                    append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" \
+                                  % (append_line, autoinstall_path)
+                    if management_interface:
+                        append_line += " netcfg/choose_interface=%s" % management_interface
+                else:
+                    append_line ="%s %s" \
+                                  % (append_line, ''.join(("autoinstall cloud-config-url=", autoinstall_path)))
             elif distro.breed == "freebsd":
                 append_line = "%s ks=%s" % (append_line, autoinstall_path)
 

@@ -1,0 +1,14 @@
+##Configurations in this section are applied upon first boot, after the system installation completes and exits.
+  user-data:
+    apt:
+      sources_list: |
+#set $repo_data = $getVar("repo_data",[])
+#for $repo in $repo_data
+ #for $dist in $repo.apt_dists
+  #if $repo.mirror_locally
+        deb http://$http_server/cblr/repo_mirror/${repo.name} $dist ${repo.apt_components}
+  #else
+        deb ${repo.mirror} $dist ${repo.apt_components}
+  #end if
+ #end for
+#end for

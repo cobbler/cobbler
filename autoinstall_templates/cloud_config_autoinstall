@@ -1,0 +1,41 @@
+\#cloud-config
+autoinstall:
+  version: 1
+  refresh-installer:
+    update: no
+$SNIPPET('cloud_config_apt')
+  identity:
+$SNIPPET('cloud_config_hostname')
+    password: $default_password_crypted
+    realname: ubuntu
+    username: ubuntu
+  kernel:
+    package: linux-generic
+  keyboard:
+    layout: us
+    toggle: null
+    variant: ''
+  locale: en_US.UTF-8
+  timezone: America/New_York
+$SNIPPET('cloud_config_network')
+$SNIPPET('cloud_config_user_data')
+  ssh:
+    install-server: true
+    ##authorized-keys:
+      ##- ssh-rsa AAA...
+  storage:
+    layout:
+      name: lvm
+      sizing-policy: all
+## Figure out if we're automating OS installation for a system or a profile
+#if $getVar('system_name','') != ''
+#set $what = "system"
+#else
+#set $what = "profile"
+#end if
+  early-commands:
+    - wget -O- http://$http_server/cblr/svc/op/script/$what/$name/?script=cloud_config_early_default |
+        /bin/sh -s
+  late-commands:
+    - chroot /target /bin/bash -c 'wget -O- http://$http_server/cblr/svc/op/script/$what/$name/?script=cloud_config_late_default |
+        /bin/bash -s'

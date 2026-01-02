@@ -1,0 +1,12 @@
+#if $getVar("system_name","") != ""
+    #if $hostname != ""
+    hostname: $hostname
+    #else
+    #set $myhostname = $getVar('name','').replace("_","-")
+    hostname: $myhostname
+    #end if
+#else
+## profile based install so just provide one interface for starters
+#set $myhostname = $getVar('hostname',$getVar('name','cobbler')).replace("_","-")
+    hostname: $myhostname
+#end if
