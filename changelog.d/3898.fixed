@@ -1,0 +1,1 @@
+cobbler status now reads rotated logs compressed with gzip, bzip2, or xz without failing on binary data
