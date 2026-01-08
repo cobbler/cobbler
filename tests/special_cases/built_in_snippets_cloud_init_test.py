@@ -642,7 +642,49 @@ def test_built_in_cloud_init_module_network_v2(cobbler_api: CobblerAPI):
     assert result == ""
 
 
-def test_built_in_cloud_init_module_ntp(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        ({"cloud_init_ntp": {"enabled": True}}, ["ntp:", "  enabled: true"]),
+        (
+            {"cloud_init_ntp": {"servers": ["0.pool.ntp.org", "1.pool.ntp.org"]}},
+            [
+                "ntp:",
+                "  servers:",
+                "    - 0.pool.ntp.org",
+                "    - 1.pool.ntp.org",
+            ],
+        ),
+        (
+            {
+                "cloud_init_ntp": {
+                    "pools": ["0.pool.ntp.org"],
+                    "config": {
+                        "service_name": "ntp",
+                        "packages": ["ntp"],
+                        "template": "driftfile /var/lib/ntp/ntp.drift\nserver 0.pool.ntp.org",
+                    },
+                }
+            },
+            [
+                "ntp:",
+                "  pools:",
+                "    - 0.pool.ntp.org",
+                "  config:",
+                "    packages:",
+                "      - ntp",
+                "    service_name: ntp",
+                "    template: |",
+                "      driftfile /var/lib/ntp/ntp.drift",
+                "      server 0.pool.ntp.org",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_ntp(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
     Test to verify the rendering of the built-in Cloud-Init ntp snippet.
     """
@@ -652,16 +694,16 @@ def test_built_in_cloud_init_module_ntp(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_packages(cobbler_api: CobblerAPI):
