@@ -12,9 +12,124 @@ import yaml
 from cobbler.api import CobblerAPI
 
 
-def test_built_in_cloud_init_module_ansible(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {
+                "cloud_init_ansible": {
+                    "package_name": "ansible-core",
+                    "install_method": "distro",
+                    "pull": [
+                        {
+                            "url": "https://github.com/holmanb/vmboot.git",
+                            "playbook_names": ["ubuntu.yml"],
+                        }
+                    ],
+                }
+            },
+            [
+                "ansible:",
+                '  install_method: "distro"',
+                '  package_name: "ansible-core"',
+                "  pull:",
+                "    -",
+                '      url: "https://github.com/holmanb/vmboot.git"',
+                '      playbook_names: [ "ubuntu.yml" ]',
+            ],
+        ),
+        (
+            {
+                "cloud_init_ansible": {
+                    "install_method": "pip",
+                    "package_name": "ansible-core",
+                    "pull": [
+                        {
+                            "url": "https://github.com/holmanb/vmboot.git",
+                            "playbook_names": ["ubuntu.yml", "watermark.yml"],
+                        }
+                    ],
+                }
+            },
+            [
+                "ansible:",
+                '  install_method: "pip"',
+                '  package_name: "ansible-core"',
+                "  pull:",
+                "    -",
+                '      url: "https://github.com/holmanb/vmboot.git"',
+                '      playbook_names: [ "ubuntu.yml", "watermark.yml" ]',
+            ],
+        ),
+        (
+            {
+                "cloud_init_ansible": {
+                    "run_user": "ansible",
+                    "ansible_config": "/etc/ansible/ansible.cfg",
+                    "package_name": "ansible-core",
+                    "setup_controller": {
+                        "repositories": [
+                            {
+                                "path": "/opt/playbooks",
+                                "source": "git@github.com:example/playbooks.git",
+                            }
+                        ]
+                    },
+                }
+            },
+            [
+                "ansible:",
+                '  run_user: "ansible"',
+                '  ansible_config: "/etc/ansible/ansible.cfg"',
+                "  setup_controller:",
+                "    repositories:",
+                '      - path: "/opt/playbooks"',
+                '        source: "git@github.com:example/playbooks.git"',
+                '  package_name: "ansible-core"',
+            ],
+        ),
+        (
+            {
+                "cloud_init_ansible": {
+                    "package_name": "ansible-core",
+                    "setup_controller": {
+                        "run_ansible": [
+                            {
+                                "playbook_name": "site.yml",
+                                "list_hosts": True,
+                                "syntax_check": False,
+                            }
+                        ]
+                    },
+                    "galaxy": {"actions": [["install", "role1"], ["remove", "role2"]]},
+                }
+            },
+            [
+                "ansible:",
+                "  setup_controller:",
+                "    run_ansible:",
+                '      - playbook_name: "site.yml"',
+                "        list_hosts: true",
+                "        syntax_check: false",
+                "  galaxy:",
+                "    actions:",
+                "      -",
+                '        - "install"',
+                '        - "role1"',
+                "      -",
+                '        - "remove"',
+                '        - "role2"',
+                '  package_name: "ansible-core"',
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_ansible(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
-    Test to verify the rendering of the built-in Cloud-Init addons XML snippet.
+    Parametrized tests for the built-in Cloud-Init ansible snippet.
     """
     # Arrange
     target_template = cobbler_api.find_template(
@@ -22,16 +137,16 @@ def test_built_in_cloud_init_module_ansible(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_apk_repos(cobbler_api: CobblerAPI):
