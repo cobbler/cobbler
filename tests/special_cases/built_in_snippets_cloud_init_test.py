@@ -940,26 +940,287 @@ def test_built_in_cloud_init_module_mounts(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_network_v1(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {
+                "cloud_init_network": {
+                    "config": [{"type": "nameserver", "address": "8.8.8.8"}]
+                }
+            },
+            [
+                "network:",
+                "  version: 1",
+                "  config:",
+                "    - type: nameserver",
+                "      address:",
+                "        - 8.8.8.8",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network": {
+                    "config": [
+                        {
+                            "type": "nameserver",
+                            "address": ["8.8.8.8", "8.8.4.4"],
+                            "search": ["example.org"],
+                            "interface": "eth0",
+                        }
+                    ]
+                }
+            },
+            [
+                "network:",
+                "  version: 1",
+                "  config:",
+                "    - type: nameserver",
+                "      address:",
+                "        - 8.8.8.8",
+                "        - 8.8.4.4",
+                "      search:",
+                "        - example.org",
+                "      interface: eth0",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network": {
+                    "config": [
+                        {
+                            "type": "route",
+                            "network": "0.0.0.0/0",
+                            "gateway": "192.0.2.1",
+                        }
+                    ]
+                }
+            },
+            [
+                "network:",
+                "  version: 1",
+                "  config:",
+                "    - type: route",
+                "      network: 0.0.0.0/0",
+                "      gateway: 192.0.2.1",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network": {
+                    "config": [
+                        {
+                            "type": "route",
+                            "destination": "10.0.0.0/8",
+                            "netmask": "255.0.0.0",
+                            "gateway": "10.0.0.1",
+                            "metric": 100,
+                        }
+                    ]
+                }
+            },
+            [
+                "network:",
+                "  version: 1",
+                "  config:",
+                "    - type: route",
+                "      destination: 10.0.0.0/8",
+                "      netmask: 255.0.0.0",
+                "      gateway: 10.0.0.1",
+                "      metric: 100",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network": {
+                    "config": [
+                        {
+                            "type": "physical",
+                            "name": "eth0",
+                            "mac_address": "aa:bb:cc:dd:ee:ff",
+                            "mtu": 1500,
+                            "accept-ra": True,
+                            "keep_configuration": True,
+                            "subnets": [
+                                {
+                                    "type": "static",
+                                    "address": "192.0.2.5/24",
+                                    "gateway": "192.0.2.1",
+                                }
+                            ],
+                        }
+                    ]
+                }
+            },
+            [
+                "network:",
+                "  version: 1",
+                "  config:",
+                "    - type: physical",
+                "      name: eth0",
+                "      mac_address: aa:bb:cc:dd:ee:ff",
+                "      mtu: 1500",
+                "      accept-ra: true",
+                "      keep_configuration: true",
+                "      subnets:",
+                "        - type: static",
+                "          address: 192.0.2.5/24",
+                "          gateway: 192.0.2.1",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network": {
+                    "config": [
+                        {
+                            "type": "bond",
+                            "name": "bond0",
+                            "bond_interfaces": ["eth0", "eth1"],
+                            "params": {"bond-miimon": 100, "bond-mode": "balance-rr"},
+                        }
+                    ]
+                }
+            },
+            [
+                "network:",
+                "  version: 1",
+                "  config:",
+                "    - type: bond",
+                "      name: bond0",
+                "      bond_interfaces:",
+                "        - eth0",
+                "        - eth1",
+                "      params:",
+                "        bond-miimon: 100",
+                "        bond-mode: balance-rr",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network": {
+                    "config": [
+                        {
+                            "type": "bridge",
+                            "name": "br0",
+                            "bridge_interfaces": ["eth0"],
+                            "params": {"bridge_fd": 30, "bridge_maxwait": 5},
+                        }
+                    ]
+                }
+            },
+            [
+                "network:",
+                "  version: 1",
+                "  config:",
+                "    - type: bridge",
+                "      name: br0",
+                "      bridge_interfaces:",
+                "        - eth0",
+                "      params:",
+                "        bridge_fd: 30",
+                "        bridge_maxwait: 5",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network": {
+                    "config": [
+                        {
+                            "type": "vlan",
+                            "name": "v100",
+                            "vlan_link": "eth0",
+                            "vlan_id": 100,
+                            "subnets": [{"type": "static", "address": "192.0.2.10/24"}],
+                        }
+                    ]
+                }
+            },
+            [
+                "network:",
+                "  version: 1",
+                "  config:",
+                "    - type: vlan",
+                "      name: v100",
+                "      vlan_link: eth0",
+                "      vlan_id: 100",
+                "      subnets:",
+                "        - type: static",
+                "          address: 192.0.2.10/24",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network": {
+                    "config": [
+                        {
+                            "type": "physical",
+                            "name": "eth1",
+                            "subnets": [
+                                {
+                                    "type": "static",
+                                    "address": "10.0.0.5/24",
+                                    "dns_nameservers": ["8.8.8.8"],
+                                    "dns_search": ["example.com"],
+                                    "routes": [
+                                        {
+                                            "destination": "10.0.1.0/24",
+                                            "gateway": "10.0.0.1",
+                                            "metric": 10,
+                                        }
+                                    ],
+                                    "ipv4": True,
+                                }
+                            ],
+                        }
+                    ]
+                }
+            },
+            [
+                "network:",
+                "  version: 1",
+                "  config:",
+                "    - type: physical",
+                "      name: eth1",
+                "      subnets:",
+                "        - type: static",
+                "          address: 10.0.0.5/24",
+                "          dns_nameservers:",
+                "            - 8.8.8.8",
+                "          dns_search:",
+                "            - example.com",
+                "          routes:",
+                "            - ",
+                "              destination: 10.0.1.0/24",
+                "              gateway: 10.0.0.1",
+                "              metric: 10",
+                "          ipv4: true",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_network_v1(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
-    Test to verify the rendering of the built-in Cloud-Init network v1 snippet.
+    Parametrized tests for the built-in Cloud-Init network v1 snippet.
     """
     # Arrange
     target_template = cobbler_api.find_template(
-        False, False, name="built-in-cloud-init-module-network v1"
+        False, False, name="built-in-cloud-init-module-network-v1"
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 @pytest.mark.parametrize(
