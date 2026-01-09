@@ -1627,7 +1627,77 @@ def test_built_in_cloud_init_module_wireguard(cobbler_api: CobblerAPI):
     assert result == ""
 
 
-def test_built_in_cloud_init_module_write_files(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_write_files": [{"path": "/tmp/test"}]},
+            ["write_files:", "  - path: /tmp/test"],
+        ),
+        (
+            {
+                "cloud_init_write_files": [
+                    {"path": "/etc/example", "content": "line1\nline2"}
+                ]
+            },
+            [
+                "write_files:",
+                "  - path: /etc/example",
+                "    content: |",
+                "      line1",
+                "      line2",
+            ],
+        ),
+        (
+            {
+                "cloud_init_write_files": [
+                    {
+                        "path": "/etc/fromuri",
+                        "source": {
+                            "uri": "http://example.com/file",
+                            "headers": {"X-Test": "val"},
+                        },
+                    }
+                ]
+            },
+            [
+                "write_files:",
+                "  - path: /etc/fromuri",
+                "    source:",
+                "      uri: http://example.com/file",
+                "      headers:",
+                "        X-Test: val",
+            ],
+        ),
+        (
+            {
+                "cloud_init_write_files": [
+                    {
+                        "path": "/etc/properties",
+                        "owner": "user:group",
+                        "permissions": "0640",
+                        "encoding": "b64",
+                        "append": True,
+                        "defer": True,
+                    }
+                ]
+            },
+            [
+                "write_files:",
+                "  - path: /etc/properties",
+                "    owner: user:group",
+                "    permissions: 0640",
+                "    encoding: b64",
+                "    append: true",
+                "    defer: true",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_write_files(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
     Test to verify the rendering of the built-in Cloud-Init write files snippet.
     """
@@ -1637,16 +1707,16 @@ def test_built_in_cloud_init_module_write_files(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_yum_add_repo(cobbler_api: CobblerAPI):
