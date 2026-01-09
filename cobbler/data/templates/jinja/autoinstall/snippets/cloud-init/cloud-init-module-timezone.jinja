@@ -1,0 +1,4 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#timezone -#}
+{%- if cloud_init_timezone is defined %}
+timezone: {{ cloud_init_timezone }}
+{%- endif %}

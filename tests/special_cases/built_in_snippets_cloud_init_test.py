@@ -2089,7 +2089,7 @@ def test_built_in_cloud_init_module_timezone(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
+    meta: Dict[str, Any] = {"cloud_init_timezone": "America/New_York"}
 
     # Act
     result = cobbler_api.templar.render(
@@ -2097,8 +2097,9 @@ def test_built_in_cloud_init_module_timezone(cobbler_api: CobblerAPI):
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "timezone: America/New_York"
 
 
 def test_built_in_cloud_init_module_ubuntu_autoinstall(cobbler_api: CobblerAPI):
