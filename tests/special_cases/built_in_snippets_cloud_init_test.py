@@ -253,9 +253,166 @@ def test_built_in_cloud_init_module_disable_ec2_metadata(cobbler_api: CobblerAPI
     assert result == "disable_ec2_metadata: False"
 
 
-def test_built_in_cloud_init_module_disk_setup(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_disk_setup": {"device_aliases": {"my_alias": "/dev/sdd"}}},
+            ["device_aliases:", "  my_alias: /dev/sdd"],
+        ),
+        (
+            {
+                "cloud_init_disk_setup": {
+                    "disk_setup": {
+                        "/dev/sdd": {
+                            "table_type": "mbr",
+                            "overwrite": True,
+                            "layout": True,
+                        }
+                    }
+                }
+            },
+            [
+                "disk_setup:",
+                "  /dev/sdd:",
+                "    table_type: mbr",
+                "    overwrite: true",
+                "    layout: true",
+            ],
+        ),
+        (
+            {
+                "cloud_init_disk_setup": {
+                    "disk_setup": {
+                        "my_alias": {
+                            "table_type": "gpt",
+                            "overwrite": True,
+                            "layout": [[100, 82]],
+                        }
+                    }
+                }
+            },
+            [
+                "disk_setup:",
+                "  my_alias:",
+                "    table_type: gpt",
+                "    overwrite: true",
+                "    layout:",
+                "      - [100, 82]",
+            ],
+        ),
+        (
+            {
+                "cloud_init_disk_setup": {
+                    "fs_setup": [
+                        {
+                            "label": "fs1",
+                            "filesystem": "ext4",
+                            "device": "my_alias.1",
+                            "partition": 1,
+                            "overwrite": True,
+                            "replace_fs": False,
+                        }
+                    ]
+                }
+            },
+            [
+                "fs_setup:",
+                "  -",
+                "    label: fs1",
+                "    filesystem: ext4",
+                "    device: my_alias.1",
+                "    partition: 1",
+                "    overwrite: true",
+                "    replace_fs: false",
+            ],
+        ),
+        (
+            {
+                "cloud_init_disk_setup": {
+                    "device_aliases": {"my_alias": "/dev/sdb", "swap_disk": "/dev/sdc"},
+                    "disk_setup": {
+                        "/dev/sdd": {
+                            "layout": True,
+                            "overwrite": True,
+                            "table_type": "mbr",
+                        },
+                        "my_alias": {
+                            "layout": [50, 50],
+                            "overwrite": True,
+                            "table_type": "gpt",
+                        },
+                        "swap_disk": {
+                            "layout": [[100, 82]],
+                            "overwrite": True,
+                            "table_type": "gpt",
+                        },
+                    },
+                    "fs_setup": [
+                        {
+                            "cmd": "mkfs -t %(filesystem)s -L %(label)s %(device)s",
+                            "device": "my_alias.1",
+                            "filesystem": "ext4",
+                            "label": "fs1",
+                        },
+                        {"device": "my_alias.2", "filesystem": "ext4", "label": "fs2"},
+                        {
+                            "device": "swap_disk.1",
+                            "filesystem": "swap",
+                            "label": "swap",
+                        },
+                        {"device": "/dev/sdd1", "filesystem": "ext4", "label": "fs3"},
+                    ],
+                }
+            },
+            [
+                "device_aliases:",
+                "  my_alias: /dev/sdb",
+                "  swap_disk: /dev/sdc",
+                "disk_setup:",
+                "  /dev/sdd:",
+                "    table_type: mbr",
+                "    overwrite: true",
+                "    layout: true",
+                "  my_alias:",
+                "    table_type: gpt",
+                "    overwrite: true",
+                "    layout:",
+                "      - 50",
+                "      - 50",
+                "  swap_disk:",
+                "    table_type: gpt",
+                "    overwrite: true",
+                "    layout:",
+                "      - [100, 82]",
+                "fs_setup:",
+                "  -",
+                "    label: fs1",
+                "    filesystem: ext4",
+                "    device: my_alias.1",
+                "    cmd: mkfs -t %(filesystem)s -L %(label)s %(device)s",
+                "  -",
+                "    label: fs2",
+                "    filesystem: ext4",
+                "    device: my_alias.2",
+                "  -",
+                "    label: swap",
+                "    filesystem: swap",
+                "    device: swap_disk.1",
+                "  -",
+                "    label: fs3",
+                "    filesystem: ext4",
+                "    device: /dev/sdd1",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_disk_setup(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
-    Test to verify the rendering of the built-in Cloud-Init addons XML snippet.
+    Test to verify the rendering of the built-in Cloud-Init disk_setup snippet.
     """
     # Arrange
     target_template = cobbler_api.find_template(
@@ -263,16 +420,16 @@ def test_built_in_cloud_init_module_disk_setup(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_fan(cobbler_api: CobblerAPI):
@@ -576,7 +733,77 @@ def test_built_in_cloud_init_module_mcollective(cobbler_api: CobblerAPI):
     assert result == ""
 
 
-def test_built_in_cloud_init_module_mounts(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {
+                "cloud_init_mounts": {
+                    "mounts": [
+                        ["/dev/ephemeral0", "/mnt", "auto", "defaults,noexec"],
+                        ["sdc", "/opt/data"],
+                        [
+                            "xvdh",
+                            "/opt/data",
+                            "auto",
+                            "defaults,nofail",
+                            "0",
+                            "0",
+                        ],
+                    ],
+                    "mount_default_fields": [
+                        None,
+                        None,
+                        "auto",
+                        "defaults,nofail",
+                        "0",
+                        "2",
+                    ],
+                    "swap": {
+                        "filename": "/my/swapfile",
+                        "size": "auto",
+                        "maxsize": 10485760,
+                    },
+                }
+            },
+            [
+                "mounts:",
+                '  - [ "/dev/ephemeral0", "/mnt", "auto", "defaults,noexec" ]',
+                '  - [ "sdc", "/opt/data" ]',
+                '  - [ "xvdh", "/opt/data", "auto", "defaults,nofail", "0", "0" ]',
+                'mount_default_fields: [ None, None, "auto", "defaults,nofail", "0", "2" ]',
+                "swap:",
+                "  filename: /my/swapfile",
+                "  size: auto",
+                "  maxsize: 10485760",
+            ],
+        ),
+        (
+            {
+                "cloud_init_mounts": {
+                    "mounts": [["onlyspec"], ["sdc", "/opt/data"]],
+                    "mount_default_fields": [
+                        None,
+                        None,
+                        "auto",
+                        "defaults,nofail",
+                        "0",
+                        "2",
+                    ],
+                }
+            },
+            [
+                "mounts:",
+                '  - [ "sdc", "/opt/data" ]',
+                'mount_default_fields: [ None, None, "auto", "defaults,nofail", "0", "2" ]',
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_mounts(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
     Test to verify the rendering of the built-in Cloud-Init mounts snippet.
     """
@@ -586,16 +813,16 @@ def test_built_in_cloud_init_module_mounts(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_network_v1(cobbler_api: CobblerAPI):

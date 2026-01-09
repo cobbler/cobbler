@@ -1,1 +1,64 @@
 {#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#disk-setup -#}
+
+{%- if cloud_init_disk_setup is defined %}
+  {%- if cloud_init_disk_setup.device_aliases is defined and cloud_init_disk_setup.device_aliases|length > 0 %}
+device_aliases:
+    {%- for alias, device in cloud_init_disk_setup.device_aliases.items() %}
+  {{ alias }}: {{ device }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_disk_setup.disk_setup is defined and cloud_init_disk_setup.disk_setup|length > 0 %}
+disk_setup:
+    {%- for device, cfg in cloud_init_disk_setup.disk_setup.items() %}
+  {{ device }}:
+      {%- if cfg.table_type is defined %}
+    table_type: {{ cfg.table_type }}
+      {%- endif %}
+      {%- if cfg.overwrite is defined %}
+    overwrite: {{ cfg.overwrite|lower }}
+      {%- endif %}
+      {%- if cfg.layout is sequence %}
+    layout:
+        {%- for item in cfg.layout %}
+          {%- if item is sequence %}
+      - [{{ item | join(', ') }}]
+          {%- else %}
+      - {{ item }}
+          {%- endif %}
+        {%- endfor %}
+      {%- else %}
+    layout: {{ cfg.layout|lower if cfg.layout is boolean else cfg.layout }}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_disk_setup.fs_setup is defined and cloud_init_disk_setup.fs_setup|length > 0 %}
+fs_setup:
+    {%- for entry in cloud_init_disk_setup.fs_setup %}
+  -
+      {%- if entry.label is defined %}
+    label: {{ entry.label }}
+      {%- endif %}
+      {%- if entry.filesystem is defined %}
+    filesystem: {{ entry.filesystem }}
+      {%- endif %}
+      {%- if entry.device is defined %}
+    device: {{ entry.device }}
+      {%- endif %}
+      {%- if entry.partition is defined %}
+    partition: {{ entry.partition }}
+      {%- endif %}
+      {%- if entry.overwrite is defined %}
+    overwrite: {{ entry.overwrite|lower }}
+      {%- endif %}
+      {%- if entry.replace_fs is defined %}
+    replace_fs: {{ entry.replace_fs|lower }}
+      {%- endif %}
+      {%- if entry.options is defined %}
+    extra_opts: {{ entry.extra_opts }}
+      {%- endif %}
+      {%- if entry.cmd is defined %}
+    cmd: {{ entry.cmd }}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+{%- endif %}
