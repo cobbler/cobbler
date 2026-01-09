@@ -962,26 +962,219 @@ def test_built_in_cloud_init_module_network_v1(cobbler_api: CobblerAPI):
     assert result == ""
 
 
-def test_built_in_cloud_init_module_network_v2(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_network_v2": {"renderer": "networkd"}},
+            ["network:", "  version: 2", "  renderer: networkd"],
+        ),
+        (
+            {"cloud_init_network_v2": {"ethernets": {"eth0": {"dhcp4": True}}}},
+            [
+                "network:",
+                "  version: 2",
+                "  ethernets:",
+                "    eth0:",
+                "      dhcp4: true",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network_v2": {
+                    "ethernets": {
+                        "eth0": {
+                            "addresses": ["192.0.2.5/24"],
+                            "gateway4": "192.0.2.1",
+                            "nameservers": {"addresses": ["8.8.8.8"]},
+                        }
+                    }
+                }
+            },
+            [
+                "network:",
+                "  version: 2",
+                "  ethernets:",
+                "    eth0:",
+                "      addresses:",
+                "        - 192.0.2.5/24",
+                "      gateway4: 192.0.2.1",
+                "      nameservers:",
+                "        addresses:",
+                "          - 8.8.8.8",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network_v2": {
+                    "ethernets": {
+                        "eth0": {
+                            "routes": [
+                                {"to": "0.0.0.0/0", "via": "192.0.2.1", "metric": 100}
+                            ]
+                        }
+                    }
+                }
+            },
+            [
+                "network:",
+                "  version: 2",
+                "  ethernets:",
+                "    eth0:",
+                "      routes:",
+                "        - to: 0.0.0.0/0",
+                "          via: 192.0.2.1",
+                "          metric: 100",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network_v2": {
+                    "ethernets": {
+                        "eth0": {
+                            "match": {"macaddress": "aa:bb:cc:dd:ee:ff"},
+                            "set-name": "net0",
+                        }
+                    }
+                }
+            },
+            [
+                "network:",
+                "  version: 2",
+                "  ethernets:",
+                "    eth0:",
+                "      match:",
+                "        macaddress: aa:bb:cc:dd:ee:ff",
+                "      set-name: net0",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network_v2": {
+                    "bonds": {
+                        "bond0": {
+                            "interfaces": ["eth0", "eth1"],
+                            "parameters": {
+                                "mode": "active-backup",
+                                "mii-monitor-interval": 100,
+                            },
+                        }
+                    }
+                }
+            },
+            [
+                "network:",
+                "  version: 2",
+                "  bonds:",
+                "    bond0:",
+                "      interfaces:",
+                "        - eth0",
+                "        - eth1",
+                "      parameters:",
+                "        mode: active-backup",
+                "        mii-monitor-interval: 100",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network_v2": {
+                    "bridges": {
+                        "br0": {
+                            "interfaces": ["eth0"],
+                            "parameters": {"stp": True, "forward-delay": 30},
+                        }
+                    }
+                }
+            },
+            [
+                "network:",
+                "  version: 2",
+                "  bridges:",
+                "    br0:",
+                "      interfaces:",
+                "        - eth0",
+                "      parameters:",
+                "        stp: true",
+                "        forward-delay: 30",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network_v2": {
+                    "vlans": {
+                        "v100": {
+                            "id": 100,
+                            "link": "eth0",
+                            "addresses": ["192.0.2.10/24"],
+                        }
+                    }
+                }
+            },
+            [
+                "network:",
+                "  version: 2",
+                "  vlans:",
+                "    v100:",
+                "      id: 100",
+                "      link: eth0",
+                "      addresses:",
+                "        - 192.0.2.10/24",
+            ],
+        ),
+        (
+            {
+                "cloud_init_network_v2": {
+                    "renderer": "NetworkManager",
+                    "ethernets": {
+                        "eth0": {
+                            "dhcp6": "yes",
+                            "nameservers": {
+                                "search": ["example.org"],
+                                "addresses": ["2001:db8::1"],
+                            },
+                        }
+                    },
+                }
+            },
+            [
+                "network:",
+                "  version: 2",
+                "  renderer: NetworkManager",
+                "  ethernets:",
+                "    eth0:",
+                "      dhcp6: yes",
+                "      nameservers:",
+                "        search:",
+                "          - example.org",
+                "        addresses:",
+                "          - 2001:db8::1",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_network_v2(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
-    Test to verify the rendering of the built-in Cloud-Init network v2 snippet.
+    Parametrized tests for the built-in Cloud-Init network v2 snippet.
     """
     # Arrange
     target_template = cobbler_api.find_template(
-        False, False, name="built-in-cloud-init-module-network v2"
+        False, False, name="built-in-cloud-init-module-network-v2"
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 @pytest.mark.parametrize(
