@@ -2225,9 +2225,111 @@ def test_built_in_cloud_init_module_update_hostname(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_user_and_groups(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_users_groups": {"groups": {"wheel": ["root", "admin"]}}},
+            [
+                "groups:",
+                "  wheel:",
+                "    - root",
+                "    - admin",
+            ],
+        ),
+        (
+            {"cloud_init_users_groups": {"groups": ["wheel", "staff"]}},
+            [
+                "groups:",
+                "  - wheel",
+                "  - staff",
+            ],
+        ),
+        (
+            {"cloud_init_users_groups": {"groups": {"docker": "dev"}}},
+            [
+                "groups:",
+                "  docker:",
+                "    dev",
+            ],
+        ),
+        (
+            {"cloud_init_users_groups": {"user": "ubuntu"}},
+            [
+                "user:",
+                "  ubuntu",
+            ],
+        ),
+        (
+            {
+                "cloud_init_users_groups": {
+                    "user": {
+                        "name": "alice",
+                        "ssh_authorized_keys": ["ssh-rsa AAA"],
+                    }
+                }
+            },
+            [
+                "user:",
+                "  name: alice",
+                "  ssh_authorized_keys:",
+                "    - ssh-rsa AAA",
+            ],
+        ),
+        (
+            {"cloud_init_users_groups": {"users": ["alice", "bob"]}},
+            [
+                "users:",
+                "  - alice",
+                "  - bob",
+            ],
+        ),
+        (
+            {"cloud_init_users_groups": {"users": {"bob": {"gecos": "Bob"}}}},
+            [
+                "users:",
+                "  - name: bob",
+                "    gecos: Bob",
+            ],
+        ),
+        (
+            {
+                "cloud_init_users_groups": {
+                    "user": {"name": "charlie", "hashed_passwd": "$6$hash"}
+                }
+            },
+            [
+                "user:",
+                "  name: charlie",
+                "  hashed_passwd: $6$hash",
+            ],
+        ),
+        (
+            {
+                "cloud_init_users_groups": {
+                    "user": {
+                        "name": "ops",
+                        "doas": ["permit nopass :wheel"],
+                        "create_groups": False,
+                    }
+                }
+            },
+            [
+                "user:",
+                "  name: ops",
+                "  create_groups: false",
+                "  doas:",
+                "    - permit nopass :wheel",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_user_and_groups(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
-    Test to verify the rendering of the built-in Cloud-Init user and groups snippet.
+    Parametrized tests for the built-in Cloud-Init user and groups snippet.
     """
     # Arrange
     target_template = cobbler_api.find_template(
@@ -2235,16 +2337,16 @@ def test_built_in_cloud_init_module_user_and_groups(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_wireguard(cobbler_api: CobblerAPI):

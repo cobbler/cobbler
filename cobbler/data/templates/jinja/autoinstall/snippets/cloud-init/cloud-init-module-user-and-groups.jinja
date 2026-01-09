@@ -1,0 +1,252 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#users-and-groups -#}
+{%- if cloud_init_users_groups is defined %}
+{%- if cloud_init_users_groups.groups is defined %}
+groups:
+  {%- if cloud_init_users_groups.groups is string %}
+  {{ cloud_init_users_groups.groups }}
+  {%- elif cloud_init_users_groups.groups is mapping %}
+  {%- for gname, members in cloud_init_users_groups.groups.items() %}
+  {{ gname }}:
+    {%- if members is string %}
+    {{ members }}
+    {%- elif members is iterable %}
+    {%- for m in members %}
+    - {{ m }}
+    {%- endfor %}
+    {%- endif %}
+  {%- endfor %}
+  {%- elif cloud_init_users_groups.groups is iterable %}
+  {%- for g in cloud_init_users_groups.groups %}
+  - {{ g }}
+  {%- endfor %}
+  {%- endif %}
+{%- endif %}
+{%- if cloud_init_users_groups.user is defined %}
+user:
+  {%- if cloud_init_users_groups.user is string %}
+  {{ cloud_init_users_groups.user }}
+  {%- else %}
+  {%- set u = cloud_init_users_groups.user %}
+  {%- if u.name is defined %}
+  name: {{ u.name }}
+  {%- endif %}
+  {%- if u.snapuser is defined %}
+  snapuser: {{ u.snapuser }}
+  {%- endif %}
+  {%- if u.gecos is defined %}
+  gecos: {{ u.gecos }}
+  {%- endif %}
+  {%- if u.groups is defined %}
+  groups:
+    {%- if u.groups is string %}
+    {{ u.groups }}
+    {%- else %}
+    {%- for g in u.groups %}
+    - {{ g }}
+    {%- endfor %}
+    {%- endif %}
+  {%- endif %}
+  {%- if u.homedir is defined %}
+  homedir: {{ u.homedir }}
+  {%- endif %}
+  {%- if u.inactive is defined %}
+  inactive: {{ u.inactive }}
+  {%- endif %}
+  {%- if u.expiredate is defined %}
+  expiredate: {{ u.expiredate }}
+  {%- endif %}
+  {%- if u.lock_passwd is defined %}
+  lock_passwd: {{ u.lock_passwd | string | lower }}
+  {%- endif %}
+  {%- if u.no_create_home is defined %}
+  no_create_home: {{ u.no_create_home | string | lower }}
+  {%- endif %}
+  {%- if u.no_log_init is defined %}
+  no_log_init: {{ u.no_log_init | string | lower }}
+  {%- endif %}
+  {%- if u.no_user_group is defined %}
+  no_user_group: {{ u.no_user_group | string | lower }}
+  {%- endif %}
+  {%- if u.passwd is defined %}
+  passwd: {{ u.passwd }}
+  {%- endif %}
+  {%- if u.hashed_passwd is defined %}
+  hashed_passwd: {{ u.hashed_passwd }}
+  {%- endif %}
+  {%- if u.plain_text_passwd is defined %}
+  plain_text_passwd: {{ u.plain_text_passwd }}
+  {%- endif %}
+  {%- if u.create_groups is defined %}
+  create_groups: {{ u.create_groups | string | lower }}
+  {%- endif %}
+  {%- if u.primary_group is defined %}
+  primary_group: {{ u.primary_group }}
+  {%- endif %}
+  {%- if u.selinux_user is defined %}
+  selinux_user: {{ u.selinux_user }}
+  {%- endif %}
+  {%- if u.shell is defined %}
+  shell: {{ u.shell }}
+  {%- endif %}
+  {%- if u.snapuser is defined %}
+  snapuser: {{ u.snapuser }}
+  {%- endif %}
+  {%- if u.ssh_authorized_keys is defined %}
+  ssh_authorized_keys:
+    {%- for key in u.ssh_authorized_keys %}
+    - {{ key }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if u.ssh_import_id is defined %}
+  ssh_import_id:
+    {%- for sid in u.ssh_import_id %}
+    - {{ sid }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if u.ssh_redirect_user is defined %}
+  ssh_redirect_user: {{ u.ssh_redirect_user | string | lower }}
+  {%- endif %}
+  {%- if u.system is defined %}
+  system: {{ u.system | string | lower }}
+  {%- endif %}
+  {%- if u.sudo is defined %}
+  sudo:
+    {%- if u.sudo is iterable and not u.sudo is string %}
+    {%- for s in u.sudo %}
+    - {{ s }}
+    {%- endfor %}
+    {%- else %}
+    {{ u.sudo }}
+    {%- endif %}
+  {%- endif %}
+  {%- if u.uid is defined %}
+  uid: {{ u.uid }}
+  {%- endif %}
+  {%- if u.doas is defined %}
+  doas:
+    {%- for r in u.doas %}
+    - {{ r }}
+    {%- endfor %}
+  {%- endif %}
+  {%- endif %}
+{%- endif %}
+{%- if cloud_init_users_groups.users is defined %}
+users:
+  {%- if cloud_init_users_groups.users is string %}
+  - {{ cloud_init_users_groups.users }}
+  {%- elif cloud_init_users_groups.users is mapping %}
+  {%- for uname, u in cloud_init_users_groups.users.items() %}
+  - name: {{ uname }}
+    {%- if u is string %}
+    gecos: {{ u }}
+    {%- elif u is iterable and not u is string and not u is mapping %}
+    {%- for v in u %}
+    - {{ v }}
+    {%- endfor %}
+    {%- else %}
+    {%- if u.name is defined %}
+    name: {{ u.name }}
+    {%- endif %}
+    {%- if u.gecos is defined %}
+    gecos: {{ u.gecos }}
+    {%- endif %}
+    {%- if u.groups is defined %}
+    groups:
+      {%- if u.groups is string %}
+      {{ u.groups }}
+      {%- else %}
+      {%- for g in u.groups %}
+      - {{ g }}
+      {%- endfor %}
+      {%- endif %}
+    {%- endif %}
+    {%- if u.homedir is defined %}
+    homedir: {{ u.homedir }}
+    {%- endif %}
+    {%- if u.lock_passwd is defined %}
+    lock_passwd: {{ u.lock_passwd | string | lower }}
+    {%- endif %}
+    {%- if u.hashed_passwd is defined %}
+    hashed_passwd: {{ u.hashed_passwd }}
+    {%- endif %}
+    {%- if u.ssh_authorized_keys is defined %}
+    ssh_authorized_keys:
+      {%- for key in u.ssh_authorized_keys %}
+      - {{ key }}
+      {%- endfor %}
+    {%- endif %}
+    {%- if u.ssh_import_id is defined %}
+    ssh_import_id:
+      {%- for sid in u.ssh_import_id %}
+      - {{ sid }}
+      {%- endfor %}
+    {%- endif %}
+    {%- if u.sudo is defined %}
+    sudo:
+      {%- if u.sudo is iterable and not u.sudo is string %}
+      {%- for s in u.sudo %}
+      - {{ s }}
+      {%- endfor %}
+      {%- else %}
+      {{ u.sudo }}
+      {%- endif %}
+    {%- endif %}
+    {%- if u.uid is defined %}
+    uid: {{ u.uid }}
+    {%- endif %}
+    {%- if u.system is defined %}
+    system: {{ u.system | string | lower }}
+    {%- endif %}
+    {%- if u.doas is defined %}
+    doas:
+      {%- for r in u.doas %}
+      - {{ r }}
+      {%- endfor %}
+    {%- endif %}
+    {%- endif %}
+  {%- endfor %}
+  {%- elif cloud_init_users_groups.users is iterable %}
+  {%- for u in cloud_init_users_groups.users %}
+  {%- if u is string %}
+  - {{ u }}
+  {%- elif u is iterable %}
+  - {{ u | join(' ') }}
+  {%- else %}
+  - name: {{ u.name }}
+    {%- if u.gecos is defined %}
+    gecos: {{ u.gecos }}
+    {%- endif %}
+    {%- if u.groups is defined %}
+    groups:
+      {%- if u.groups is string %}
+      {{ u.groups }}
+      {%- else %}
+      {%- for g in u.groups %}
+      - {{ g }}
+      {%- endfor %}
+      {%- endif %}
+    {%- endif %}
+    {%- if u.homedir is defined %}
+    homedir: {{ u.homedir }}
+    {%- endif %}
+    {%- if u.ssh_authorized_keys is defined %}
+    ssh_authorized_keys:
+      {%- for key in u.ssh_authorized_keys %}
+      - {{ key }}
+      {%- endfor %}
+    {%- endif %}
+    {%- if u.sudo is defined %}
+    sudo:
+      {%- if u.sudo is iterable and not u.sudo is string %}
+      {%- for s in u.sudo %}
+      - {{ s }}
+      {%- endfor %}
+      {%- else %}
+      {{ u.sudo }}
+      {%- endif %}
+    {%- endif %}
+  {%- endif %}
+  {%- endfor %}
+  {%- endif %}
+{%- endif %}
+{%- endif %}
