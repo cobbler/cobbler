@@ -1,0 +1,12 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#update-hostname -#}
+{%- if cloud_init_update_hostname is defined %}
+  {%- if cloud_init_update_hostname.preserve_hostname is defined %}
+preserve_hostname: {{ cloud_init_update_hostname.preserve_hostname|lower }}
+  {%- endif %}
+  {%- if cloud_init_update_hostname.prefer_fqdn_over_hostname is defined %}
+prefer_fqdn_over_hostname: {{ cloud_init_update_hostname.prefer_fqdn_over_hostname|lower }}
+  {%- endif %}
+  {%- if cloud_init_update_hostname.create_hostname_file is defined %}
+create_hostname_file: {{ cloud_init_update_hostname.create_hostname_file|lower }}
+  {%- endif %}
+{%- endif %}
