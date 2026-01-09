@@ -1556,7 +1556,66 @@ def test_built_in_cloud_init_module_phone_home(cobbler_api: CobblerAPI):
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_power_state_change(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        ({"cloud_init_power_state": {"delay": 15}}, ["power_state:", "  delay: 15"]),
+        (
+            {"cloud_init_power_state": {"mode": "halt"}},
+            ["power_state:", "  mode: halt"],
+        ),
+        (
+            {"cloud_init_power_state": {"message": "Shutting down"}},
+            ["power_state:", "  message: Shutting down"],
+        ),
+        (
+            {"cloud_init_power_state": {"timeout": 30}},
+            ["power_state:", "  timeout: 30"],
+        ),
+        (
+            {"cloud_init_power_state": {"condition": ["ready", "ok"]}},
+            [
+                "power_state:",
+                "  condition:",
+                '    - "ready"',
+                '    - "ok"',
+            ],
+        ),
+        (
+            {"cloud_init_power_state": {"condition": True}},
+            ["power_state:", "  condition: true"],
+        ),
+        (
+            {"cloud_init_power_state": {"condition": "on_event"}},
+            ["power_state:", "  condition: on_event"],
+        ),
+        (
+            {
+                "cloud_init_power_state": {
+                    "delay": 5,
+                    "mode": "reboot",
+                    "message": "Going down",
+                    "timeout": 60,
+                    "condition": ["a", 2],
+                }
+            },
+            [
+                "power_state:",
+                "  delay: 5",
+                "  mode: reboot",
+                "  message: Going down",
+                "  timeout: 60",
+                "  condition:",
+                '    - "a"',
+                "    - 2",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_power_state_change(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
     Test to verify the rendering of the built-in Cloud-Init power state change snippet.
     """
@@ -1566,16 +1625,16 @@ def test_built_in_cloud_init_module_power_state_change(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_puppet(cobbler_api: CobblerAPI):
