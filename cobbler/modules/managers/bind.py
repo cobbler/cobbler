@@ -382,44 +382,61 @@ zone "%(arpa)s." {
         self.logger.info("generating %s", settings_file)
         self.templar.render(template_data, metadata, settings_file)
 
-    def __ip_sort(self, ips: list):
+    def __ip_sort(self, ips: list, protocol: int = 4):
         """
         Sorts IP addresses (or partial addresses) in a numerical fashion per-octet or quartet
 
         :param ips: A list of all IP addresses (v6 and v4 mixed possible) which shall be sorted.
+        :param protocol: Whether this is sorting IPv4 or IPv6 addresses. Only relevent when rectype is PTR.
         :return: The list with sorted IP addresses.
         """
         quartets = []
         octets = []
+        ipv6_ptr = False
         for each_ip in ips:
-            # IPv6 addresses are ':' delimited
             if ":" in each_ip:
-                # IPv6
+                # IPv6 AAAA - ":" separated
                 # strings to integer quartet chunks so we can sort numerically
                 quartets.append([int(i, 16) for i in each_ip.split(':')])
+            elif protocol == 6 and "." in each_ip:
+                # IPv6 PTR - "." separated
+                ipv6_ptr = True
+                quartets.append([int(i, 16) for i in each_ip.split('.')])
             else:
-                # IPv4
+                # IPv4 A - "." separated
                 # strings to integer octet chunks so we can sort numerically
                 octets.append([int(i) for i in each_ip.split('.')])
         quartets.sort()
         # integers back to four character hex strings
-        quartets = [[format(i, '04x') for i in x] for x in quartets]
-        #
+        sorted_quartets = []
+        for x in quartets:
+            if ":" in x:
+                # AAAA
+                sorted_quartets.append([format(i, '04x') for i in x])
+            else:
+                # PTR
+                sorted_quartets.append([f'{i:x}' for i in x])
+
+        # Sort IPv4 addresses
         octets.sort()
         # integers back to strings
         octets = [[str(i) for i in x] for x in octets]
-        #
-        return ['.'.join(i) for i in octets] + [':'.join(i) for i in quartets]
+        # Merge lists into result
+        return ['.'.join(i) for i in octets] + ['.'.join(i) if ipv6_ptr else ':'.join(i) for i in sorted_quartets]
 
-    def __pretty_print_host_records(self, hosts, rectype: str = 'A', rclass: str = 'IN') -> str:
+    def __pretty_print_host_records(self, hosts, rectype: str = 'A', rclass: str = 'IN', protocol: int = 4) -> str:
         """
         Format host records by order and with consistent indentation
 
         :param hosts: The hosts to pretty print.
         :param rectype: The record type.
         :param rclass: The record class.
+        :param protocol: Whether this is sorting IPv4 or IPv6 addresses. Only relevent when rectype is PTR.
         :return: A string with all pretty printed hosts.
         """
+
+        if protocol not in (4, 6):
+            raise ValueError("Invalid protocol. Only IPv4 (4) and IPv6 (6) are valid protocols!")
 
         # Warns on hosts without dns_name, need to iterate over system to name the
         # particular system
@@ -435,7 +452,7 @@ zone "%(arpa)s." {
             return ''  # zones with no hosts
 
         if rectype == 'PTR':
-            names = self.__ip_sort(names)
+            names = self.__ip_sort(names, protocol=protocol)
         else:
             names.sort()
 
@@ -604,7 +621,11 @@ zone "%(arpa)s." {
                 template_data = default_template_data
 
             metadata['cname_record'] = self.__pretty_print_cname_records(hosts)
-            metadata['host_record'] = self.__pretty_print_host_records(hosts, rectype='PTR')
+            metadata['host_record'] = self.__pretty_print_host_records(
+                hosts,
+                rectype='PTR',
+                protocol=(6 if ":" in zone else 4)
+            )
 
             zonefilename = zonefileprefix + zone
             self.logger.info("generating (reverse) %s", zonefilename)
