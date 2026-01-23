@@ -1374,7 +1374,78 @@ def test_built_in_cloud_init_module_locale(cobbler_api: CobblerAPI):
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_lxd(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_lxd": {"init": {"storage_backend": "dir"}}},
+            ["lxd:", "  init:", "    storage_backend: dir"],
+        ),
+        (
+            {"cloud_init_lxd": {"init": {"network_address": "127.0.0.1"}}},
+            ["lxd:", "  init:", "    network_address: 127.0.0.1"],
+        ),
+        (
+            {"cloud_init_lxd": {"bridge": {"name": "br0", "mode": "none"}}},
+            ["lxd:", "  bridge:", "    mode: none", "    name: br0"],
+        ),
+        (
+            {
+                "cloud_init_lxd": {
+                    "init": {
+                        "network_address": "0.0.0.0",
+                        "network_port": 8443,
+                        "storage_backend": "zfs",
+                        "storage_pool": "datapool",
+                        "storage_create_loop": 10,
+                    },
+                    "bridge": {
+                        "mode": "new",
+                        "mtu": 1500,
+                        "name": "lxdbr0",
+                        "ipv4_address": "10.0.8.1",
+                        "ipv4_netmask": 24,
+                        "ipv4_dhcp_first": "10.0.8.2",
+                        "ipv4_dhcp_last": "10.0.8.3",
+                        "ipv4_dhcp_leases": 250,
+                        "ipv4_nat": True,
+                        "ipv6_address": "fd98:9e0:3744::1",
+                        "ipv6_netmask": 64,
+                        "ipv6_nat": True,
+                        "domain": "lxd",
+                    },
+                }
+            },
+            [
+                "lxd:",
+                "  init:",
+                "    network_address: 0.0.0.0",
+                "    network_port: 8443",
+                "    storage_backend: zfs",
+                "    storage_create_loop: 10",
+                "    storage_pool: datapool",
+                "  bridge:",
+                "    mode: new",
+                "    name: lxdbr0",
+                "    mtu: 1500",
+                "    ipv4_address: 10.0.8.1",
+                "    ipv4_netmask: 24",
+                "    ipv4_dhcp_first: 10.0.8.2",
+                "    ipv4_dhcp_last: 10.0.8.3",
+                "    ipv4_dhcp_leases: 250",
+                "    ipv4_nat: true",
+                "    ipv6_address: fd98:9e0:3744::1",
+                "    ipv6_netmask: 64",
+                "    ipv6_nat: true",
+                "    domain: lxd",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_lxd(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
     Test to verify the rendering of the built-in Cloud-Init lxd snippet.
     """
@@ -1384,16 +1455,16 @@ def test_built_in_cloud_init_module_lxd(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_mcollective(cobbler_api: CobblerAPI):
