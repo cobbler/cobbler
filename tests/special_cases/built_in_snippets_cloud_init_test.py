@@ -2894,7 +2894,78 @@ def test_built_in_cloud_init_module_rpi(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_rsyslog(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_rsyslog": {"install_rsyslog": True}},
+            ["rsyslog:", "  install_rsyslog: true"],
+        ),
+        (
+            {
+                "cloud_init_rsyslog": {
+                    "config_dir": "/etc/rsyslog.d",
+                    "config_filename": "my.conf",
+                    "check_exe": "rsyslogd",
+                }
+            },
+            [
+                "rsyslog:",
+                "  config_dir: /etc/rsyslog.d",
+                "  config_filename: my.conf",
+                "  check_exe: rsyslogd",
+            ],
+        ),
+        (
+            {
+                "cloud_init_rsyslog": {
+                    "remotes": {"server1": "@@server1:514", "server2": "@server2"},
+                    "packages": ["rsyslog", "rsyslog-relp"],
+                }
+            },
+            [
+                "rsyslog:",
+                "  remotes:",
+                '    server1: "@@server1:514"',
+                '    server2: "@server2"',
+                "  packages:",
+                "    - rsyslog",
+                "    - rsyslog-relp",
+            ],
+        ),
+        (
+            {
+                "cloud_init_rsyslog": {
+                    "configs": [
+                        "*.* /var/log/all.log",
+                        {
+                            "filename": "99-my.conf",
+                            "content": "local7.* /var/log/my.log",
+                        },
+                    ],
+                    "service_reload_command": ["systemctl", "restart", "rsyslog"],
+                }
+            },
+            [
+                "rsyslog:",
+                "  configs:",
+                "    - |",
+                "      *.* /var/log/all.log",
+                "    - filename: 99-my.conf",
+                "      content: |",
+                "        local7.* /var/log/my.log",
+                "  service_reload_command:",
+                "    - systemctl",
+                "    - restart",
+                "    - rsyslog",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_rsyslog(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
     Test to verify the rendering of the built-in Cloud-Init rsyslog snippet.
     """
@@ -2904,16 +2975,16 @@ def test_built_in_cloud_init_module_rsyslog(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_runcmd(cobbler_api: CobblerAPI):

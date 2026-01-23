@@ -1,0 +1,51 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#rsyslog -#}
+{%- if cloud_init_rsyslog is defined %}
+rsyslog:
+  {%- if cloud_init_rsyslog.config_dir is defined %}
+  config_dir: {{ cloud_init_rsyslog.config_dir }}
+  {%- endif %}
+  {%- if cloud_init_rsyslog.config_filename is defined %}
+  config_filename: {{ cloud_init_rsyslog.config_filename }}
+  {%- endif %}
+  {%- if cloud_init_rsyslog.configs is defined and cloud_init_rsyslog.configs|length > 0 %}
+  configs:
+    {%- for config in cloud_init_rsyslog.configs %}
+    {%- if config is string %}
+    - |
+      {{ config | indent(6) }}
+    {%- else %}
+    - filename: {{ config.filename }}
+      content: |
+        {{ config.content | trim | indent(8) }}
+    {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_rsyslog.remotes is defined and cloud_init_rsyslog.remotes|length > 0 %}
+  remotes:
+    {%- for name, remote in cloud_init_rsyslog.remotes.items() %}
+    {{ name }}: "{{ remote }}"
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_rsyslog.service_reload_command is defined %}
+  service_reload_command:
+    {%- if cloud_init_rsyslog.service_reload_command is string %}
+    {{ cloud_init_rsyslog.service_reload_command }}
+    {%- else %}
+      {%- for command in cloud_init_rsyslog.service_reload_command %}
+    - {{ command }}
+      {%- endfor %}
+    {%- endif %}
+  {%- endif %}
+  {%- if cloud_init_rsyslog.install_rsyslog is defined %}
+  install_rsyslog: {{ cloud_init_rsyslog.install_rsyslog|lower }}
+  {%- endif %}
+  {%- if cloud_init_rsyslog.check_exe is defined %}
+  check_exe: {{ cloud_init_rsyslog.check_exe }}
+  {%- endif %}
+  {%- if cloud_init_rsyslog.packages is defined and cloud_init_rsyslog.packages|length > 0 %}
+  packages:
+    {%- for pkg in cloud_init_rsyslog.packages %}
+    - {{ pkg }}
+    {%- endfor %}
+  {%- endif %}
+{%- endif %}
