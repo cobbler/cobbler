@@ -2451,9 +2451,100 @@ def test_built_in_cloud_init_module_power_state_change(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_puppet(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        ({"cloud_init_puppet": {"install": False}}, ["puppet:", "  install: false"]),
+        (
+            {"cloud_init_puppet": {"version": "6"}},
+            ["puppet:", "  version: 6"],
+        ),
+        (
+            {
+                "cloud_init_puppet": {
+                    "exec": True,
+                    "exec_args": ["--test", "--verbose"],
+                }
+            },
+            [
+                "puppet:",
+                "  exec: true",
+                "  exec_args:",
+                "    - --test",
+                "    - --verbose",
+            ],
+        ),
+        (
+            {"cloud_init_puppet": {"conf": {"ca_cert": "CERT"}}},
+            ["puppet:", "  conf:", "    ca_cert: |", "      CERT"],
+        ),
+        (
+            {
+                "cloud_init_puppet": {
+                    "conf": {"agent": {"server": "puppet.example.com"}}
+                }
+            },
+            ["puppet:", "  conf:", "    agent:", "      server: puppet.example.com"],
+        ),
+        (
+            {
+                "cloud_init_puppet": {
+                    "csr_attributes": {
+                        "custom_attributes": {
+                            "1.2.840.113549.1.9.7": "challengePassword"
+                        }
+                    }
+                }
+            },
+            [
+                "puppet:",
+                "  csr_attributes:",
+                "    custom_attributes:",
+                "      1.2.840.113549.1.9.7: challengePassword",
+            ],
+        ),
+        (
+            {
+                "cloud_init_puppet": {
+                    "install": True,
+                    "version": "7",
+                    "install_type": "aio",
+                    "exec": True,
+                    "start_service": False,
+                    "conf": {
+                        "ca_cert": "---BEGIN CERT---\nCERT\n---END CERT---",
+                        "agent": {
+                            "server": "puppet.example.com",
+                            "certname": "my-instance",
+                        },
+                    },
+                }
+            },
+            [
+                "puppet:",
+                "  install: true",
+                "  version: 7",
+                "  install_type: aio",
+                "  exec: true",
+                "  start_service: false",
+                "  conf:",
+                "    ca_cert: |",
+                "      ---BEGIN CERT---",
+                "      CERT",
+                "      ---END CERT---",
+                "    agent:",
+                "      server: puppet.example.com",
+                "      certname: my-instance",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_puppet(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
-    Test to verify the rendering of the built-in Cloud-Init addons XML snippet.
+    Test to verify the rendering of the built-in Cloud-Init puppet snippet.
     """
     # Arrange
     target_template = cobbler_api.find_template(
@@ -2461,16 +2552,16 @@ def test_built_in_cloud_init_module_puppet(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_redhat_subscription(cobbler_api: CobblerAPI):
