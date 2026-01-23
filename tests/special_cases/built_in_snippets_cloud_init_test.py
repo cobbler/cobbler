@@ -3431,9 +3431,61 @@ def test_built_in_cloud_init_module_ssh_import_id(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_ssh(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_ssh": {"ssh_keys": {"rsa_private": "keydata"}}},
+            ["ssh_keys:", "  rsa_private: |", "    keydata"],
+        ),
+        (
+            {
+                "cloud_init_ssh": {
+                    "ssh_authorized_keys": ["ssh-rsa AAA...", "ssh-ed25519 BBB..."]
+                }
+            },
+            ["ssh_authorized_keys:", "  - ssh-rsa AAA...", "  - ssh-ed25519 BBB..."],
+        ),
+        (
+            {"cloud_init_ssh": {"ssh_deletekeys": True}},
+            ["ssh_deletekeys: true"],
+        ),
+        (
+            {"cloud_init_ssh": {"ssh_genkeytypes": ["rsa", "ecdsa"]}},
+            ["ssh_genkeytypes:", "  - rsa", "  - ecdsa"],
+        ),
+        (
+            {"cloud_init_ssh": {"disable_root": True}},
+            ["disable_root: true"],
+        ),
+        (
+            {
+                "cloud_init_ssh": {
+                    "disable_root_opts": "no-port-forwarding,no-agent-forwarding"
+                }
+            },
+            ['disable_root_opts: "no-port-forwarding,no-agent-forwarding"'],
+        ),
+        (
+            {"cloud_init_ssh": {"allow_public_ssh_keys": False}},
+            ["allow_public_ssh_keys: false"],
+        ),
+        (
+            {"cloud_init_ssh": {"ssh_quiet_keygen": True}},
+            ["ssh_quiet_keygen: true"],
+        ),
+        (
+            {"cloud_init_ssh": {"ssh_publish_hostkeys": {"enabled": True}}},
+            ["ssh_publish_hostkeys:", "  enabled: True"],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_ssh(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
-    Test to verify the rendering of the built-in Cloud-Init SSH snippet.
+    Parametrized tests for the built-in Cloud-Init SSH snippet.
     """
     # Arrange
     target_template = cobbler_api.find_template(
@@ -3441,16 +3493,16 @@ def test_built_in_cloud_init_module_ssh(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_timezone(cobbler_api: CobblerAPI):
