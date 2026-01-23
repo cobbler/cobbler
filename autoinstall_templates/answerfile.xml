@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+ <installation sr-type="ext" mode="fresh" netinstall-gpg-check="true">
+  <keymap>us</keymap>
+  <timezone>US/Eastern</timezone>
+  <source type="url">$tree/</source>
+  <driver-source type="url">$tree/</driver-source>
+  <primary-disk>sda</primary-disk>
+  <root-password type="hash">$default_password_crypted</root-password>
+  <bootloader location="mbr">grub2</bootloader>
+$SNIPPET('network_config_xcp')
+  <ntp-server>us.pool.ntp.org</ntp-server>
+  <network-backend>vswitch</network-backend>
+## Figure out if we're automating OS installation for a system or a profile
+#if $getVar('system_name','') != ''
+#set $what = "system"
+#else
+#set $what = "profile"
+#end if
+  <script stage="installation-start" type="url">http://$http_server/cblr/svc/op/script/$what/$name/?script=xcp_pre_install</script>
+  <script stage="installation-complete" type="url">http://$http_server/cblr/svc/op/script/$what/$name/?script=xcp_post_install</script>
+ </installation>
