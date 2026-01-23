@@ -1,1 +1,25 @@
 {#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#apk-configure -#}
+{%- if cloud_init_apk_configure is defined %}
+apk_repos:
+  {%- if cloud_init_apk_configure.preserve_repositories is defined %}
+  preserve_repositories: {{ cloud_init_apk_configure.preserve_repositories|lower }}
+  {%- endif %}
+  {%- if cloud_init_apk_configure.alpine_repo is defined %}
+  alpine_repo:
+    {%- if cloud_init_apk_configure.alpine_repo.base_url is defined %}
+    base_url: {{ cloud_init_apk_configure.alpine_repo.base_url }}
+    {%- endif %}
+    {%- if cloud_init_apk_configure.alpine_repo.community_enabled is defined %}
+    community_enabled: {{ cloud_init_apk_configure.alpine_repo.community_enabled|lower }}
+    {%- endif %}
+    {%- if cloud_init_apk_configure.alpine_repo.testing_enabled is defined %}
+    testing_enabled: {{ cloud_init_apk_configure.alpine_repo.testing_enabled|lower }}
+    {%- endif %}
+    {%- if cloud_init_apk_configure.alpine_repo.version is defined %}
+    version: {{ cloud_init_apk_configure.alpine_repo.version }}
+    {%- endif %}
+  {%- endif %}
+  {%- if cloud_init_apk_configure.local_repo_base_url is defined %}
+  local_repo_base_url: {{ cloud_init_apk_configure.local_repo_base_url }}
+  {%- endif %}
+{%- endif %}

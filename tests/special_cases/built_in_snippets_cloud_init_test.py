@@ -149,9 +149,49 @@ def test_built_in_cloud_init_module_ansible(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_apk_repos(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_apk_configure": {"preserve_repositories": True}},
+            ["apk_repos:", "  preserve_repositories: true"],
+        ),
+        (
+            {
+                "cloud_init_apk_configure": {
+                    "alpine_repo": {
+                        "base_url": "https://mirror.example/alpine",
+                        "community_enabled": True,
+                        "testing_enabled": False,
+                        "version": "v3.12",
+                    }
+                }
+            },
+            [
+                "apk_repos:",
+                "  alpine_repo:",
+                "    base_url: https://mirror.example/alpine",
+                "    community_enabled: true",
+                "    testing_enabled: false",
+                "    version: v3.12",
+            ],
+        ),
+        (
+            {
+                "cloud_init_apk_configure": {
+                    "local_repo_base_url": "https://local.example/alpine"
+                }
+            },
+            ["apk_repos:", "  local_repo_base_url: https://local.example/alpine"],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_apk_repos(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
-    Test to verify the rendering of the built-in Cloud-Init addons XML snippet.
+    Parametrized tests for the built-in Cloud-Init apk_repos snippet.
     """
     # Arrange
     target_template = cobbler_api.find_template(
@@ -159,16 +199,16 @@ def test_built_in_cloud_init_module_apk_repos(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_apt(cobbler_api: CobblerAPI):
