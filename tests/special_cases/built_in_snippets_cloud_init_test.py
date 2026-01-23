@@ -4151,7 +4151,86 @@ def test_built_in_cloud_init_module_write_files(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_yum_add_repo(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {
+                "cloud_init_yum_add_repo": {
+                    "yum_repos": {
+                        "epel": {
+                            "baseurl": "https://download.fedoraproject.org/pub/epel/$releasever/$basearch/",
+                            "gpgkey": "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL",
+                        }
+                    }
+                }
+            },
+            [
+                "yum_repos:",
+                "  epel:",
+                "    baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/",
+                "    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL",
+            ],
+        ),
+        (
+            {
+                "cloud_init_yum_add_repo": {
+                    "yum_repos": {
+                        "remi": {
+                            "name": "Remi's RPM repository - $releasever - $basearch",
+                            "baseurl": "http://rpms.remirepo.net/enterprise/$releasever/remi/$basearch/",
+                            "mirrorlist": "http://cdn.remirepo.net/enterprise/$releasever/remi/mirror",
+                            "enabled": True,
+                            "gpgcheck": True,
+                            "gpgkey": "http://rpms.remirepo.net/RPM-GPG-KEY-remi",
+                        }
+                    }
+                }
+            },
+            [
+                "yum_repos:",
+                "  remi:",
+                "    baseurl: http://rpms.remirepo.net/enterprise/$releasever/remi/$basearch/",
+                "    mirrorlist: http://cdn.remirepo.net/enterprise/$releasever/remi/mirror",
+                "    name: Remi's RPM repository - $releasever - $basearch",
+                "    enabled: true",
+                "    gpgcheck: true",
+                "    gpgkey: http://rpms.remirepo.net/RPM-GPG-KEY-remi",
+            ],
+        ),
+        (
+            {
+                "cloud_init_yum_add_repo": {
+                    "yum_repos": {
+                        "epel": {
+                            "baseurl": "https://download.fedoraproject.org/pub/epel/$releasever/$basearch/",
+                            "enabled": False,
+                        },
+                        "remi": {
+                            "name": "Remi's RPM repository",
+                            "mirrorlist": "http://cdn.remirepo.net/enterprise/$releasever/remi/mirror",
+                            "enabled": True,
+                        },
+                    }
+                },
+            },
+            [
+                "yum_repos:",
+                "  epel:",
+                "    baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/",
+                "    enabled: false",
+                "  remi:",
+                "    mirrorlist: http://cdn.remirepo.net/enterprise/$releasever/remi/mirror",
+                "    name: Remi's RPM repository",
+                "    enabled: true",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_yum_add_repo(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
     Test to verify the rendering of the built-in Cloud-Init YUM add repo snippet.
     """
@@ -4161,16 +4240,16 @@ def test_built_in_cloud_init_module_yum_add_repo(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 @pytest.mark.parametrize(
