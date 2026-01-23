@@ -2564,7 +2564,96 @@ def test_built_in_cloud_init_module_puppet(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_redhat_subscription(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {
+                "cloud_init_rh_subscription": {
+                    "username": "user",
+                    "password": "password",
+                }
+            },
+            ["rh_subscription:", "  username: user", "  password: password"],
+        ),
+        (
+            {
+                "cloud_init_rh_subscription": {
+                    "activation_key": "key",
+                    "org": "org",
+                }
+            },
+            ["rh_subscription:", "  activation_key: key", "  org: org"],
+        ),
+        (
+            {"cloud_init_rh_subscription": {"auto_attach": True}},
+            ["rh_subscription:", "  auto_attach: true"],
+        ),
+        (
+            {"cloud_init_rh_subscription": {"add_pool": ["pool1", "pool2"]}},
+            [
+                "rh_subscription:",
+                "  add_pool:",
+                "    - pool1",
+                "    - pool2",
+            ],
+        ),
+        (
+            {"cloud_init_rh_subscription": {"enable_repo": ["repo1", "repo2"]}},
+            [
+                "rh_subscription:",
+                "  enable_repo:",
+                "    - repo1",
+                "    - repo2",
+            ],
+        ),
+        (
+            {"cloud_init_rh_subscription": {"disable_repo": ["repo1", "repo2"]}},
+            [
+                "rh_subscription:",
+                "  disable_repo:",
+                "    - repo1",
+                "    - repo2",
+            ],
+        ),
+        (
+            {
+                "cloud_init_rh_subscription": {
+                    "username": "user",
+                    "password": "password",
+                    "auto_attach": True,
+                    "service_level": "self-support",
+                    "add_pool": ["pool1"],
+                    "enable_repo": ["repo1"],
+                    "disable_repo": ["repo2"],
+                    "release_version": "8.2",
+                    "rhsm_baseurl": "https://cdn.redhat.com",
+                    "server_hostname": "subscription.rhsm.redhat.com",
+                }
+            },
+            [
+                "rh_subscription:",
+                "  username: user",
+                "  password: password",
+                "  auto_attach: true",
+                "  service_level: self-support",
+                "  add_pool:",
+                "    - pool1",
+                "  enable_repo:",
+                "    - repo1",
+                "  disable_repo:",
+                "    - repo2",
+                "  release_version: 8.2",
+                "  rhsm_baseurl: https://cdn.redhat.com",
+                "  server_hostname: subscription.rhsm.redhat.com",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_redhat_subscription(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
     Test to verify the rendering of the built-in Cloud-Init RedHat subscription snippet.
     """
@@ -2574,16 +2663,16 @@ def test_built_in_cloud_init_module_redhat_subscription(cobbler_api: CobblerAPI)
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_resizefs(cobbler_api: CobblerAPI):
