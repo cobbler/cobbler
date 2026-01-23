@@ -1,0 +1,46 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#ubuntu-pro -#}
+{%- if cloud_init_ubuntu_pro is defined %}
+ubuntu_pro:
+  {%- if cloud_init_ubuntu_pro.token is defined %}
+  token: {{ cloud_init_ubuntu_pro.token }}
+  {%- endif %}
+  {%- if cloud_init_ubuntu_pro.enable is defined and cloud_init_ubuntu_pro.enable|length > 0 %}
+  enable:
+    {%- for e in cloud_init_ubuntu_pro.enable %}
+    - {{ e }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_ubuntu_pro.enable_beta is defined and cloud_init_ubuntu_pro.enable_beta|length > 0 %}
+  enable_beta:
+    {%- for e in cloud_init_ubuntu_pro.enable_beta %}
+    - {{ e }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_ubuntu_pro.features is defined %}
+  features:
+    {%- if cloud_init_ubuntu_pro.features.disable_auto_attach is defined %}
+    disable_auto_attach: {{ cloud_init_ubuntu_pro.features.disable_auto_attach|lower }}
+    {%- endif %}
+  {%- endif %}
+  {%- if cloud_init_ubuntu_pro.config is defined %}
+  config:
+    {%- if cloud_init_ubuntu_pro.config.http_proxy is defined %}
+    http_proxy: {{ cloud_init_ubuntu_pro.config.http_proxy }}
+    {%- endif %}
+    {%- if cloud_init_ubuntu_pro.config.https_proxy is defined %}
+    https_proxy: {{ cloud_init_ubuntu_pro.config.https_proxy }}
+    {%- endif %}
+    {%- if cloud_init_ubuntu_pro.config.global_apt_http_proxy is defined %}
+    global_apt_http_proxy: {{ cloud_init_ubuntu_pro.config.global_apt_http_proxy }}
+    {%- endif %}
+    {%- if cloud_init_ubuntu_pro.config.global_apt_https_proxy is defined %}
+    global_apt_https_proxy: {{ cloud_init_ubuntu_pro.config.global_apt_https_proxy }}
+    {%- endif %}
+    {%- if cloud_init_ubuntu_pro.config.ua_apt_http_proxy is defined %}
+    ua_apt_http_proxy: {{ cloud_init_ubuntu_pro.config.ua_apt_http_proxy }}
+    {%- endif %}
+    {%- if cloud_init_ubuntu_pro.config.ua_apt_https_proxy is defined %}
+    ua_apt_https_proxy: {{ cloud_init_ubuntu_pro.config.ua_apt_https_proxy }}
+    {%- endif %}
+  {%- endif %}
+{%- endif %}
