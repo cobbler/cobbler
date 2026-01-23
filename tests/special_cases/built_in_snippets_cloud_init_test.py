@@ -3963,7 +3963,81 @@ def test_built_in_cloud_init_module_user_and_groups(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_wireguard(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_wireguard": {}},
+            [],
+        ),
+        (
+            {
+                "cloud_init_wireguard": {
+                    "interfaces": [
+                        {
+                            "name": "wg0",
+                            "config_path": "/etc/wireguard/wg0.conf",
+                            "content": "[Interface]\nPrivateKey = ...\n\n[Peer]\nPublicKey = ...\nEndpoint = ...",
+                        }
+                    ]
+                }
+            },
+            [
+                "wireguard:",
+                "  interfaces:",
+                "    - name: wg0",
+                "      config_path: /etc/wireguard/wg0.conf",
+                "      content: |",
+                "        [Interface]",
+                "        PrivateKey = ...",
+                "",
+                "        [Peer]",
+                "        PublicKey = ...",
+                "        Endpoint = ...",
+            ],
+        ),
+        (
+            {
+                "cloud_init_wireguard": {
+                    "readinessprobe": ["wg show wg0", "ping -c 1 10.0.0.1"]
+                }
+            },
+            [
+                "wireguard:",
+                "  readinessprobe:",
+                "    - wg show wg0",
+                "    - ping -c 1 10.0.0.1",
+            ],
+        ),
+        (
+            {
+                "cloud_init_wireguard": {
+                    "interfaces": [
+                        {
+                            "name": "wg0",
+                            "content": "[Interface]\nPrivateKey = ...",
+                        }
+                    ],
+                    "readinessprobe": ["wg show all"],
+                }
+            },
+            [
+                "wireguard:",
+                "  interfaces:",
+                "    - name: wg0",
+                "      content: |",
+                "        [Interface]",
+                "        PrivateKey = ...",
+                "  readinessprobe:",
+                "    - wg show all",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_wireguard(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
     Test to verify the rendering of the built-in Cloud-Init Wireguard snippet.
     """
@@ -3973,16 +4047,16 @@ def test_built_in_cloud_init_module_wireguard(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 @pytest.mark.parametrize(
