@@ -1,0 +1,13 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#spacewalk -#}
+{%- if cloud_init_spacewalk is defined %}
+spacewalk:
+  {%- if cloud_init_spacewalk.server is defined %}
+  server: {{ cloud_init_spacewalk.server }}
+  {%- endif %}
+  {%- if cloud_init_spacewalk.proxy is defined %}
+  proxy: {{ cloud_init_spacewalk.proxy }}
+  {%- endif %}
+  {%- if cloud_init_spacewalk.activation_key is defined %}
+  activation_key: {{ cloud_init_spacewalk.activation_key }}
+  {%- endif %}
+{%- endif %}
