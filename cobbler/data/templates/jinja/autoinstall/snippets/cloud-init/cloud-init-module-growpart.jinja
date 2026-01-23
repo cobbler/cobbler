@@ -11,6 +11,6 @@ growpart:
   {%- endfor %}
 {%- endif %}
 {%- if cloud_init_growpart_ignore_growroot_disabled is defined %}
-  ignore_growroot_disabled: {{ cloud_init_growpart_ignore_growroot_disabled }}
+  ignore_growroot_disabled: {{ cloud_init_growpart_ignore_growroot_disabled|lower }}
 {%- endif %}
 {%- endif %}

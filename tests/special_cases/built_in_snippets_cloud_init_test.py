@@ -983,36 +983,90 @@ def test_built_in_cloud_init_module_final_message(cobbler_api: CobblerAPI):
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_growpart(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {
+                "cloud_init_growpart_mode": "auto",
+            },
+            [
+                "growpart:",
+                '  mode: "auto"',
+            ],
+        ),
+        (
+            {
+                "cloud_init_growpart_devices": ["testdevice"],
+            },
+            [
+                "growpart:",
+                "  devices:",
+                '    - "testdevice"',
+            ],
+        ),
+        (
+            {
+                "cloud_init_growpart_ignore_growroot_disabled": True,
+            },
+            [
+                "growpart:",
+                "  ignore_growroot_disabled: true",
+            ],
+        ),
+        (
+            {
+                "cloud_init_growpart_mode": "auto",
+                "cloud_init_growpart_devices": ["testdevice"],
+                "cloud_init_growpart_ignore_growroot_disabled": True,
+            },
+            [
+                "growpart:",
+                '  mode: "auto"',
+                "  devices:",
+                '    - "testdevice"',
+                "  ignore_growroot_disabled: true",
+            ],
+        ),
+        (
+            {
+                "cloud_init_growpart_mode": "auto",
+                "cloud_init_growpart_devices": ["testdevice1", "testdevice2"],
+                "cloud_init_growpart_ignore_growroot_disabled": False,
+            },
+            [
+                "growpart:",
+                '  mode: "auto"',
+                "  devices:",
+                '    - "testdevice1"',
+                '    - "testdevice2"',
+                "  ignore_growroot_disabled: false",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_growpart(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
     Test to verify the rendering of the built-in Cloud-Init addons XML snippet.
     """
     # Arrange
-    expected_result = [
-        "growpart:",
-        '  mode: "auto"',
-        "  devices:",
-        '    - "testdevice"',
-        "  ignore_growroot_disabled: True",
-    ]
     target_template = cobbler_api.find_template(
         False, False, name="built-in-cloud-init-module-growpart"
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {
-        "cloud_init_growpart_mode": "auto",
-        "cloud_init_growpart_devices": ["testdevice"],
-        "cloud_init_growpart_ignore_growroot_disabled": True,
-    }
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
+    if result:
+        assert yaml.safe_load(result)
     assert result == "\n".join(expected_result)
 
 
