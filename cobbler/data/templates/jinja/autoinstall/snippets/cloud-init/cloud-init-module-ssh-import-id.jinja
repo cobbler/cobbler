@@ -1,0 +1,7 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#ssh-import-id -#}
+{%- if cloud_init_ssh_import_id is defined and cloud_init_ssh_import_id|length > 0 %}
+ssh_import_id:
+  {%- for key in cloud_init_ssh_import_id %}
+  - {{ key }}
+  {%- endfor %}
+{%- endif %}
