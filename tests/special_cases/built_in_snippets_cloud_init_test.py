@@ -3342,7 +3342,36 @@ def test_built_in_cloud_init_module_spacewalk(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_ssh_authkey_fingerprints(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_ssh_authkey_fingerprints": {"no_ssh_fingerprints": True}},
+            ["no_ssh_fingerprints: true"],
+        ),
+        (
+            {"cloud_init_ssh_authkey_fingerprints": {"no_ssh_fingerprints": False}},
+            ["no_ssh_fingerprints: false"],
+        ),
+        (
+            {"cloud_init_ssh_authkey_fingerprints": {"authkey_hash": "sha512"}},
+            ["authkey_hash: sha512"],
+        ),
+        (
+            {
+                "cloud_init_ssh_authkey_fingerprints": {
+                    "no_ssh_fingerprints": True,
+                    "authkey_hash": "md5",
+                }
+            },
+            ["no_ssh_fingerprints: true", "authkey_hash: md5"],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_ssh_authkey_fingerprints(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
     Test to verify the rendering of the built-in Cloud-Init SSH authkey fingerprints snippet.
     """
@@ -3352,16 +3381,16 @@ def test_built_in_cloud_init_module_ssh_authkey_fingerprints(cobbler_api: Cobble
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_ssh_import_id(cobbler_api: CobblerAPI):

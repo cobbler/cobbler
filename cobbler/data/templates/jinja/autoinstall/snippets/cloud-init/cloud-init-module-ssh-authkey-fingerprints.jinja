@@ -1,0 +1,9 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#ssh-authkey-fingerprints -#}
+{%- if cloud_init_ssh_authkey_fingerprints is defined %}
+{%- if cloud_init_ssh_authkey_fingerprints.no_ssh_fingerprints is defined %}
+no_ssh_fingerprints: {{ cloud_init_ssh_authkey_fingerprints.no_ssh_fingerprints|lower }}
+{%- endif %}
+{%- if cloud_init_ssh_authkey_fingerprints.authkey_hash is defined %}
+authkey_hash: {{ cloud_init_ssh_authkey_fingerprints.authkey_hash }}
+{%- endif %}
+{%- endif %}
