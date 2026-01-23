@@ -2247,9 +2247,78 @@ def test_built_in_cloud_init_module_ntp(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_packages(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_package_update_upgrade_install": {"package_update": True}},
+            ["package_update: true"],
+        ),
+        (
+            {"cloud_init_package_update_upgrade_install": {"package_upgrade": True}},
+            ["package_upgrade: true"],
+        ),
+        (
+            {
+                "cloud_init_package_update_upgrade_install": {
+                    "package_reboot_if_required": True
+                }
+            },
+            ["package_reboot_if_required: true"],
+        ),
+        (
+            {
+                "cloud_init_package_update_upgrade_install": {
+                    "packages": ["pkg1", "pkg2"]
+                }
+            },
+            ["packages:", "  - pkg1", "  - pkg2"],
+        ),
+        (
+            {
+                "cloud_init_package_update_upgrade_install": {
+                    "packages": [["pkg1", "1.0"], "pkg2"]
+                }
+            },
+            ["packages:", "  - ['pkg1', '1.0']", "  - pkg2"],
+        ),
+        (
+            {
+                "cloud_init_package_update_upgrade_install": {
+                    "packages": [{"apt": ["pkg1", ["pkg2", "2.0"]], "snap": ["pkg3"]}]
+                }
+            },
+            [
+                "packages:",
+                "  - {'apt': ['pkg1', ['pkg2', '2.0']], 'snap': ['pkg3']}",
+            ],
+        ),
+        (
+            {
+                "cloud_init_package_update_upgrade_install": {
+                    "package_update": True,
+                    "package_upgrade": False,
+                    "package_reboot_if_required": True,
+                    "packages": ["pkg1", "pkg2"],
+                }
+            },
+            [
+                "package_update: true",
+                "package_upgrade: false",
+                "package_reboot_if_required: true",
+                "packages:",
+                "  - pkg1",
+                "  - pkg2",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_packages(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
-    Test to verify the rendering of the built-in Cloud-Init addons XML snippet.
+    Test to verify the rendering of the built-in Cloud-Init packages snippet.
     """
     # Arrange
     target_template = cobbler_api.find_template(
@@ -2257,16 +2326,16 @@ def test_built_in_cloud_init_module_packages(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_phone_home(cobbler_api: CobblerAPI):

@@ -1,0 +1,19 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#package-update-upgrade-install -#}
+{%- set config = cloud_init_package_update_upgrade_install %}
+{%- if config is defined %}
+{%- if config.package_update is defined %}
+package_update: {{ config.package_update|string|lower }}
+{%- endif %}
+{%- if config.package_upgrade is defined %}
+package_upgrade: {{ config.package_upgrade|string|lower }}
+{%- endif %}
+{%- if config.package_reboot_if_required is defined %}
+package_reboot_if_required: {{ config.package_reboot_if_required|string|lower }}
+{%- endif %}
+{%- if config.packages is defined and config.packages|length > 0 %}
+packages:
+{%- for p in config.packages %}
+  - {{ p }}
+{%- endfor %}
+{%- endif %}
+{%- endif %}
