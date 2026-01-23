@@ -3748,9 +3748,43 @@ def test_built_in_cloud_init_module_ubuntu_pro(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_update_etc_hosts(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_update_etc_hosts": {"manage_etc_hosts": True}},
+            ["manage_etc_hosts: True"],
+        ),
+        (
+            {"cloud_init_update_etc_hosts": {"manage_etc_hosts": "localhost"}},
+            ["manage_etc_hosts: localhost"],
+        ),
+        (
+            {"cloud_init_update_etc_hosts": {"fqdn": "example.com"}},
+            ["fqdn: example.com"],
+        ),
+        (
+            {
+                "cloud_init_update_etc_hosts": {
+                    "manage_etc_hosts": False,
+                    "fqdn": "server.example.org",
+                    "hostname": "server",
+                }
+            },
+            [
+                "manage_etc_hosts: False",
+                "fqdn: server.example.org",
+                "hostname: server",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_update_etc_hosts(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
-    Test to verify the rendering of the built-in Cloud-Init update /etc/hosts snippet.
+    Parametrized tests for the built-in Cloud-Init update /etc/hosts snippet.
     """
     # Arrange
     target_template = cobbler_api.find_template(
@@ -3758,16 +3792,16 @@ def test_built_in_cloud_init_module_update_etc_hosts(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 @pytest.mark.parametrize(
