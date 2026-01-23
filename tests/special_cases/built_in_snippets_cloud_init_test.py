@@ -3528,9 +3528,42 @@ def test_built_in_cloud_init_module_timezone(cobbler_api: CobblerAPI):
     assert result == "timezone: America/New_York"
 
 
-def test_built_in_cloud_init_module_ubuntu_autoinstall(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_ubuntu_autoinstall": {"version": 1}},
+            ["autoinstall:", "  version: 1"],
+        ),
+        (
+            {"cloud_init_ubuntu_autoinstall": {"user_data": "test_data"}},
+            ["autoinstall:", "  user_data: |", "    test_data"],
+        ),
+        (
+            {
+                "cloud_init_ubuntu_autoinstall": {
+                    "version": 1,
+                    "user_data": "test_data",
+                }
+            },
+            ["autoinstall:", "  version: 1", "  user_data: |", "    test_data"],
+        ),
+        (
+            {
+                "cloud_init_ubuntu_autoinstall": {
+                    "user_data": "line1\nline2",
+                }
+            },
+            ["autoinstall:", "  user_data: |", "    line1", "    line2"],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_ubuntu_autoinstall(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
-    Test to verify the rendering of the built-in Cloud-Init Ubuntu autoinstall snippet.
+    Parametrized tests for the built-in Cloud-Init Ubuntu autoinstall snippet.
     """
     # Arrange
     target_template = cobbler_api.find_template(
@@ -3538,16 +3571,16 @@ def test_built_in_cloud_init_module_ubuntu_autoinstall(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_ubuntu_drivers(cobbler_api: CobblerAPI):
