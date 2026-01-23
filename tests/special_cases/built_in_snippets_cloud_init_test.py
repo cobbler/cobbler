@@ -1467,7 +1467,111 @@ def test_built_in_cloud_init_module_lxd(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_mcollective(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {
+                "cloud_init_mcollective": {
+                    "conf": {
+                        "public-cert": "PUBLIC_CERT",
+                    }
+                }
+            },
+            [
+                "mcollective:",
+                "  conf:",
+                "    public-cert: |",
+                "      PUBLIC_CERT",
+            ],
+        ),
+        (
+            {
+                "cloud_init_mcollective": {
+                    "conf": {
+                        "private-cert": "PRIVATE_CERT",
+                    }
+                }
+            },
+            [
+                "mcollective:",
+                "  conf:",
+                "    private-cert: |",
+                "      PRIVATE_CERT",
+            ],
+        ),
+        (
+            {
+                "cloud_init_mcollective": {
+                    "conf": {
+                        "plugin.yaml": "test",
+                    }
+                }
+            },
+            [
+                "mcollective:",
+                "  conf:",
+                "    plugin.yaml: test",
+            ],
+        ),
+        (
+            {
+                "cloud_init_mcollective": {
+                    "conf": {
+                        "securityprovider": True,
+                    }
+                }
+            },
+            [
+                "mcollective:",
+                "  conf:",
+                "    securityprovider: True",
+            ],
+        ),
+        (
+            {
+                "cloud_init_mcollective": {
+                    "conf": {
+                        "connector": 123,
+                    }
+                }
+            },
+            [
+                "mcollective:",
+                "  conf:",
+                "    connector: 123",
+            ],
+        ),
+        (
+            {
+                "cloud_init_mcollective": {
+                    "conf": {
+                        "public-cert": "PUBLIC_CERT",
+                        "private-cert": "PRIVATE_CERT",
+                        "plugin.yaml": "test",
+                        "securityprovider": True,
+                        "connector": 123,
+                    }
+                }
+            },
+            [
+                "mcollective:",
+                "  conf:",
+                "    public-cert: |",
+                "      PUBLIC_CERT",
+                "    private-cert: |",
+                "      PRIVATE_CERT",
+                "    plugin.yaml: test",
+                "    securityprovider: True",
+                "    connector: 123",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_mcollective(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
     Test to verify the rendering of the built-in Cloud-Init mcollective snippet.
     """
@@ -1477,16 +1581,16 @@ def test_built_in_cloud_init_module_mcollective(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 @pytest.mark.parametrize(
