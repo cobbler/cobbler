@@ -1,0 +1,37 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#resolv-conf -#}
+{%- set config = cloud_init_resolv_conf %}
+{%- if config is defined %}
+{%- if config.manage_resolv_conf is defined %}
+manage_resolv_conf: {{ config.manage_resolv_conf|string|lower }}
+{%- endif %}
+{%- if config.resolv_conf is defined %}
+resolv_conf:
+  {%- if config.resolv_conf.nameservers is defined and config.resolv_conf.nameservers|length > 0 %}
+  nameservers:
+    {%- for ns in config.resolv_conf.nameservers %}
+    - '{{ ns }}'
+    {%- endfor %}
+  {%- endif %}
+  {%- if config.resolv_conf.searchdomains is defined and config.resolv_conf.searchdomains|length > 0 %}
+  searchdomains:
+    {%- for d in config.resolv_conf.searchdomains %}
+    - {{ d }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if config.resolv_conf.domain is defined %}
+  domain: {{ config.resolv_conf.domain }}
+  {%- endif %}
+  {%- if config.resolv_conf.sortlist is defined and config.resolv_conf.sortlist|length > 0 %}
+  sortlist:
+    {%- for ip in config.resolv_conf.sortlist %}
+    - {{ ip }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if config.resolv_conf.options is defined %}
+  options:
+    {%- for key, value in config.resolv_conf.options.items() %}
+    {{ key }}: {{ value }}
+    {%- endfor %}
+  {%- endif %}
+{%- endif %}
+{%- endif %}

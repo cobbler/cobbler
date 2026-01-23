@@ -2698,7 +2698,93 @@ def test_built_in_cloud_init_module_resizefs(cobbler_api: CobblerAPI):
     assert result == expected_result
 
 
-def test_built_in_cloud_init_module_resolveconf(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_resolv_conf": {"manage_resolv_conf": True}},
+            ["manage_resolv_conf: true"],
+        ),
+        (
+            {
+                "cloud_init_resolv_conf": {
+                    "resolv_conf": {"nameservers": ["8.8.8.8", "8.8.4.4"]}
+                }
+            },
+            [
+                "resolv_conf:",
+                "  nameservers:",
+                "    - '8.8.8.8'",
+                "    - '8.8.4.4'",
+            ],
+        ),
+        (
+            {
+                "cloud_init_resolv_conf": {
+                    "resolv_conf": {"searchdomains": ["example.com", "example.org"]}
+                }
+            },
+            [
+                "resolv_conf:",
+                "  searchdomains:",
+                "    - example.com",
+                "    - example.org",
+            ],
+        ),
+        (
+            {"cloud_init_resolv_conf": {"resolv_conf": {"domain": "example.com"}}},
+            ["resolv_conf:", "  domain: example.com"],
+        ),
+        (
+            {
+                "cloud_init_resolv_conf": {
+                    "resolv_conf": {"sortlist": ["10.0.0.0/8", "192.168.1.0"]}
+                }
+            },
+            [
+                "resolv_conf:",
+                "  sortlist:",
+                "    - 10.0.0.0/8",
+                "    - 192.168.1.0",
+            ],
+        ),
+        (
+            {"cloud_init_resolv_conf": {"resolv_conf": {"options": {"timeout": 1}}}},
+            ["resolv_conf:", "  options:", "    timeout: 1"],
+        ),
+        (
+            {
+                "cloud_init_resolv_conf": {
+                    "manage_resolv_conf": True,
+                    "resolv_conf": {
+                        "nameservers": ["8.8.8.8"],
+                        "searchdomains": ["example.com"],
+                        "domain": "example.com",
+                        "sortlist": ["10.0.0.0/8"],
+                        "options": {"timeout": 2},
+                    },
+                }
+            },
+            [
+                "manage_resolv_conf: true",
+                "resolv_conf:",
+                "  nameservers:",
+                "    - '8.8.8.8'",
+                "  searchdomains:",
+                "    - example.com",
+                "  domain: example.com",
+                "  sortlist:",
+                "    - 10.0.0.0/8",
+                "  options:",
+                "    timeout: 2",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_resolveconf(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
     Test to verify the rendering of the built-in Cloud-Init resolveconf snippet.
     """
@@ -2708,16 +2794,16 @@ def test_built_in_cloud_init_module_resolveconf(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_rpi(cobbler_api: CobblerAPI):
