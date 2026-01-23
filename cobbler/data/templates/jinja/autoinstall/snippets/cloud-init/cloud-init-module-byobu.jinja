@@ -1,1 +1,4 @@
 {#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#byobu -#}
+{%- if cloud_init_byobu is defined %}
+byobu_by_default: {{ cloud_init_byobu }}
+{%- endif %}
