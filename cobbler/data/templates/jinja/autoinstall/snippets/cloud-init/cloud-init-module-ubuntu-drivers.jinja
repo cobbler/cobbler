@@ -1,0 +1,13 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#ubuntu-drivers -#}
+{%- if cloud_init_ubuntu_drivers is defined %}
+drivers:
+  {%- if cloud_init_ubuntu_drivers.nvidia is defined %}
+  nvidia:
+    {%- if cloud_init_ubuntu_drivers.nvidia.license_accepted is defined %}
+    license-accepted: {{ cloud_init_ubuntu_drivers.nvidia.license_accepted | lower }}
+    {%- endif %}
+    {%- if cloud_init_ubuntu_drivers.nvidia.version %}
+    version: "{{ cloud_init_ubuntu_drivers.nvidia.version }}"
+    {%- endif %}
+  {%- endif %}
+{%- endif %}
