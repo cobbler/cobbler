@@ -211,9 +211,282 @@ def test_built_in_cloud_init_module_apk_repos(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_apt(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_apt_configure": {"preserve_sources_list": True}},
+            ["apt:", "  preserve_sources_list: true"],
+        ),
+        (
+            {"cloud_init_apt_configure": {"disable_suites": ["updates"]}},
+            ["apt:", "  disable_suites:", "    - updates"],
+        ),
+        (
+            {
+                "cloud_init_apt_configure": {
+                    "add_apt_repo_match": "^[\\w-]+:\\w",
+                }
+            },
+            ["apt:", "  add_apt_repo_match: ^[\\w-]+:\\w"],
+        ),
+        (
+            {
+                "cloud_init_apt_configure": {
+                    "debconf_selections": {"myconf": "pkg question type answer"}
+                }
+            },
+            [
+                "apt:",
+                "  debconf_selections:",
+                "    myconf: |",
+                "      pkg question type answer",
+            ],
+        ),
+        (
+            {
+                "cloud_init_apt_configure": {
+                    "sources_list": "deb http://archive.ubuntu.com/ubuntu focal main"
+                }
+            },
+            [
+                "apt:",
+                "  sources_list: |",
+                "    deb http://archive.ubuntu.com/ubuntu focal main",
+            ],
+        ),
+        (
+            {
+                "cloud_init_apt_configure": {
+                    "conf": 'Acquire::http::Proxy "http://proxy:8080/";'
+                }
+            },
+            ["apt:", "  conf: |", '    Acquire::http::Proxy "http://proxy:8080/";'],
+        ),
+        (
+            {
+                "cloud_init_apt_configure": {
+                    "primary": [
+                        {
+                            "arches": ["amd64"],
+                            "uri": "http://archive.ubuntu.com/ubuntu",
+                            "keyid": "ABC123",
+                        }
+                    ]
+                }
+            },
+            [
+                "apt:",
+                "  primary:",
+                "    - arches:",
+                "        - amd64",
+                "      uri: http://archive.ubuntu.com/ubuntu",
+                "      keyid: ABC123",
+            ],
+        ),
+        (
+            {
+                "cloud_init_apt_configure": {
+                    "security": [
+                        {
+                            "arches": ["amd64", "i386"],
+                            "search": ["http://localmirror1", "http://localmirror2"],
+                            "key": "KEYDATA",
+                        }
+                    ]
+                }
+            },
+            [
+                "apt:",
+                "  security:",
+                "    - arches:",
+                "        - amd64",
+                "        - i386",
+                "      search:",
+                "        - http://localmirror1",
+                "        - http://localmirror2",
+                "      key: KEYDATA",
+            ],
+        ),
+        (
+            {
+                "cloud_init_apt_configure": {
+                    "sources": {
+                        "myrepo": {
+                            "source": "deb http://example focal main",
+                            "keyid": "ID123",
+                            "filename": "myrepo.list",
+                            "append": False,
+                        }
+                    }
+                }
+            },
+            [
+                "apt:",
+                "  sources:",
+                "    myrepo:",
+                "      source: deb http://example focal main",
+                "      keyid: ID123",
+                "      filename: myrepo.list",
+                "      append: false",
+            ],
+        ),
+        (
+            {
+                "cloud_init_apt_configure": {
+                    "preserve_sources_list": False,
+                    "disable_suites": [
+                        "$RELEASE-updates",
+                        "backports",
+                        "$RELEASE",
+                        "mysuite",
+                    ],
+                    "primary": [
+                        {
+                            "arches": ["amd64", "i386", "default"],
+                            "uri": "http://us.archive.ubuntu.com/ubuntu",
+                            "search": [
+                                "http://cool.but-sometimes-unreachable.com/ubuntu",
+                                "http://us.archive.ubuntu.com/ubuntu",
+                            ],
+                            "search_dns": False,
+                        },
+                        {
+                            "arches": ["s390x", "arm64"],
+                            "uri": "http://archive-to-use-for-arm64.example.com/ubuntu",
+                        },
+                    ],
+                    "security": [{"arches": ["default"], "search_dns": True}],
+                    "sources_list": (
+                        "deb $MIRROR $RELEASE main restricted\n"
+                        "deb-src $MIRROR $RELEASE main restricted\n"
+                        "deb $PRIMARY $RELEASE universe restricted\n"
+                        "deb $SECURITY $RELEASE-security multiverse"
+                    ),
+                    "debconf_selections": {
+                        "set1": "the-package the-package/some-flag boolean true"
+                    },
+                    "conf": (
+                        "APT {\n"
+                        "    Get {\n"
+                        "        Assume-Yes 'true';\n"
+                        "        Fix-Broken 'true';\n"
+                        "    }\n"
+                        "}"
+                    ),
+                    "proxy": "http://[[user][:pass]@]host[:port]/",
+                    "http_proxy": "http://[[user][:pass]@]host[:port]/",
+                    "ftp_proxy": "ftp://[[user][:pass]@]host[:port]/",
+                    "https_proxy": "https://[[user][:pass]@]host[:port]/",
+                    "sources": {
+                        "source1": {
+                            "keyid": "keyid",
+                            "keyserver": "keyserverurl",
+                            "source": "deb [signed-by=$KEY_FILE] http://<url>/ bionic main",
+                        },
+                        "source2": {"source": "ppa:<ppa-name>"},
+                        "source3": {
+                            "source": "deb $MIRROR $RELEASE multiverse",
+                            "key": "------BEGIN PGP PUBLIC KEY BLOCK-------\n<key data>\n------END PGP PUBLIC KEY BLOCK-------",
+                        },
+                        "source4": {
+                            "source": "deb $MIRROR $RELEASE multiverse",
+                            "append": False,
+                            "key": "------BEGIN PGP PUBLIC KEY BLOCK-------\n<key data>\n------END PGP PUBLIC KEY BLOCK-------",
+                        },
+                    },
+                }
+            },
+            [
+                "apt:",
+                "  preserve_sources_list: false",
+                "  disable_suites:",
+                "    - $RELEASE-updates",
+                "    - backports",
+                "    - $RELEASE",
+                "    - mysuite",
+                "  primary:",
+                "    - arches:",
+                "        - amd64",
+                "        - i386",
+                "        - default",
+                "      uri: http://us.archive.ubuntu.com/ubuntu",
+                "      search:",
+                "        - http://cool.but-sometimes-unreachable.com/ubuntu",
+                "        - http://us.archive.ubuntu.com/ubuntu",
+                "      search_dns: false",
+                "    - arches:",
+                "        - s390x",
+                "        - arm64",
+                "      uri: http://archive-to-use-for-arm64.example.com/ubuntu",
+                "  security:",
+                "    - arches:",
+                "        - default",
+                "      search_dns: true",
+                "  debconf_selections:",
+                "    set1: |",
+                "      the-package the-package/some-flag boolean true",
+                "  sources_list: |",
+                "    deb $MIRROR $RELEASE main restricted",
+                "    deb-src $MIRROR $RELEASE main restricted",
+                "    deb $PRIMARY $RELEASE universe restricted",
+                "    deb $SECURITY $RELEASE-security multiverse",
+                "  conf: |",
+                "    APT {",
+                "        Get {",
+                "            Assume-Yes 'true';",
+                "            Fix-Broken 'true';",
+                "        }",
+                "    }",
+                "  https_proxy: https://[[user][:pass]@]host[:port]/",
+                "  http_proxy: http://[[user][:pass]@]host[:port]/",
+                "  proxy: http://[[user][:pass]@]host[:port]/",
+                "  ftp_proxy: ftp://[[user][:pass]@]host[:port]/",
+                "  sources:",
+                "    source1:",
+                "      source: deb [signed-by=$KEY_FILE] http://<url>/ bionic main",
+                "      keyid: keyid",
+                "      keyserver: keyserverurl",
+                "    source2:",
+                "      source: ppa:<ppa-name>",
+                "    source3:",
+                "      source: deb $MIRROR $RELEASE multiverse",
+                "      key: |",
+                "        ------BEGIN PGP PUBLIC KEY BLOCK-------",
+                "        <key data>",
+                "        ------END PGP PUBLIC KEY BLOCK-------",
+                "    source4:",
+                "      source: deb $MIRROR $RELEASE multiverse",
+                "      key: |",
+                "        ------BEGIN PGP PUBLIC KEY BLOCK-------",
+                "        <key data>",
+                "        ------END PGP PUBLIC KEY BLOCK-------",
+                "      append: false",
+            ],
+        ),
+        (
+            {
+                "cloud_init_apt_configure": {
+                    "sources_list": "Types: deb\nURIs: http://archive.ubuntu.com/ubuntu/\nSuites: $RELEASE\nComponents: main"
+                }
+            },
+            [
+                "apt:",
+                "  sources_list: |",
+                "    Types: deb",
+                "    URIs: http://archive.ubuntu.com/ubuntu/",
+                "    Suites: $RELEASE",
+                "    Components: main",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_apt(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
-    Test to verify the rendering of the built-in Cloud-Init addons XML snippet.
+    Parametrized tests for the built-in Cloud-Init apt snippet.
     """
     # Arrange
     target_template = cobbler_api.find_template(
@@ -221,16 +494,16 @@ def test_built_in_cloud_init_module_apt(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_apt_pipelining(cobbler_api: CobblerAPI):
