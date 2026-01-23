@@ -643,9 +643,69 @@ def test_built_in_cloud_init_module_ca_certs(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_chef(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_chef": {"server_url": "https://chef.example"}},
+            ["chef:", "  server_url: https://chef.example"],
+        ),
+        (
+            {"cloud_init_chef": {"directories": ["/etc/chef", "/var/log/chef"]}},
+            ["chef:", "  directories:", "    - /etc/chef", "    - /var/log/chef"],
+        ),
+        (
+            {"cloud_init_chef": {"initial_attributes": "apache:\n  keepalive: true"}},
+            ["chef:", "  initial_attributes:", "    apache:", "      keepalive: true"],
+        ),
+        (
+            {
+                "cloud_init_chef": {
+                    "directories": ["/etc/chef", "/var/log/chef"],
+                    "encrypted_data_bag_secret": "/etc/chef/encrypted_data_bag_secret",
+                    "environment": "_default",
+                    "initial_attributes": "apache:\n  keepalive: false\n  prefork: {maxclients: 100}",
+                    "install_type": "omnibus",
+                    "log_level": ":auto",
+                    "omnibus_url_retries": 2,
+                    "run_list": ["'recipe[apache2]'", "'role[db]'"],
+                    "server_url": "https://chef.yourorg.com:4000",
+                    "ssl_verify_mode": ":verify_peer",
+                    "validation_cert": "system",
+                    "validation_name": "yourorg-validator",
+                }
+            },
+            [
+                "chef:",
+                "  directories:",
+                "    - /etc/chef",
+                "    - /var/log/chef",
+                "  validation_cert: system",
+                "  encrypted_data_bag_secret: /etc/chef/encrypted_data_bag_secret",
+                "  environment: _default",
+                "  log_level: :auto",
+                "  omnibus_url_retries: 2",
+                "  server_url: https://chef.yourorg.com:4000",
+                "  ssl_verify_mode: :verify_peer",
+                "  validation_name: yourorg-validator",
+                "  initial_attributes:",
+                "    apache:",
+                "      keepalive: false",
+                "      prefork: {maxclients: 100}",
+                "  install_type: omnibus",
+                "  run_list:",
+                "    - 'recipe[apache2]'",
+                "    - 'role[db]'",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_chef(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
-    Test to verify the rendering of the built-in Cloud-Init addons XML snippet.
+    Parametrized tests for the built-in Cloud-Init chef snippet.
     """
     # Arrange
     target_template = cobbler_api.find_template(
@@ -653,16 +713,16 @@ def test_built_in_cloud_init_module_chef(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_disable_ec2_metadata(cobbler_api: CobblerAPI):
