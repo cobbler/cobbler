@@ -3036,9 +3036,53 @@ def test_built_in_cloud_init_module_salt_minion(cobbler_api: CobblerAPI):
 
 
 
-def test_built_in_cloud_init_module_seed_random(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {"cloud_init_seed_random": {"file": "/dev/urandom"}},
+            ["random_seed:", "  file: /dev/urandom"],
+        ),
+        (
+            {"cloud_init_seed_random": {"data": "deadbeef", "encoding": "hex"}},
+            ["random_seed:", "  data: deadbeef", "  encoding: hex"],
+        ),
+        (
+            {"cloud_init_seed_random": {"command": ["cmd1", "cmd2"]}},
+            ["random_seed:", "  command:", "    - cmd1", "    - cmd2"],
+        ),
+        (
+            {"cloud_init_seed_random": {"command_required": True}},
+            ["random_seed:", "  command_required: True"],
+        ),
+        (
+            {
+                "cloud_init_seed_random": {
+                    "file": "/dev/urandom",
+                    "data": "mydata",
+                    "encoding": "raw",
+                    "command": ["echo 1"],
+                    "command_required": False,
+                }
+            },
+            [
+                "random_seed:",
+                "  file: /dev/urandom",
+                "  data: mydata",
+                "  encoding: raw",
+                "  command:",
+                "    - echo 1",
+                "  command_required: False",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_seed_random(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
-    Test to verify the rendering of the built-in Cloud-Init seed random snippet.
+    Parametrized tests for the built-in Cloud-Init seed random snippet.
     """
     # Arrange
     target_template = cobbler_api.find_template(
@@ -3046,16 +3090,16 @@ def test_built_in_cloud_init_module_seed_random(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 @pytest.mark.parametrize(
