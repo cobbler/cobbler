@@ -1240,7 +1240,93 @@ def test_built_in_cloud_init_module_keys_to_console(
     assert result == "\n".join(expected_result)
 
 
-def test_built_in_cloud_init_module_landscape(cobbler_api: CobblerAPI):
+@pytest.mark.parametrize(
+    "input_meta,expected_result",
+    [
+        ({}, []),
+        (
+            {
+                "cloud_init_landscape": {
+                    "client": {
+                        "computer_title": "myhost",
+                        "account_name": "myacct",
+                    }
+                }
+            },
+            [
+                "landscape:",
+                "  client:",
+                "    computer_title: myhost",
+                "    account_name: myacct",
+            ],
+        ),
+        (
+            {
+                "cloud_init_landscape": {
+                    "client": {
+                        "url": "https://landscape.example/message-system",
+                        "ping_url": "https://landscape.example/ping",
+                        "computer_title": "host2",
+                        "account_name": "acct2",
+                    }
+                }
+            },
+            [
+                "landscape:",
+                "  client:",
+                "    url: https://landscape.example/message-system",
+                "    ping_url: https://landscape.example/ping",
+                "    computer_title: host2",
+                "    account_name: acct2",
+            ],
+        ),
+        (
+            {
+                "cloud_init_landscape": {
+                    "client": {
+                        "computer_title": "tagged-host",
+                        "account_name": "acct3",
+                        "tags": "tag1,tag2",
+                        "http_proxy": "http://proxy:8080",
+                        "https_proxy": "https://secure-proxy:8443",
+                    }
+                }
+            },
+            [
+                "landscape:",
+                "  client:",
+                "    computer_title: tagged-host",
+                "    account_name: acct3",
+                "    tags: tag1,tag2",
+                "    http_proxy: http://proxy:8080",
+                "    https_proxy: https://secure-proxy:8443",
+            ],
+        ),
+        (
+            {
+                "cloud_init_landscape": {
+                    "client": {
+                        "computer_title": "fullhost",
+                        "account_name": "acct4",
+                        "log_level": "debug",
+                        "registration_key": "REGKEY123",
+                    }
+                }
+            },
+            [
+                "landscape:",
+                "  client:",
+                "    log_level: debug",
+                "    computer_title: fullhost",
+                "    account_name: acct4",
+                "    registration_key: REGKEY123",
+            ],
+        ),
+    ],
+)
+def test_built_in_cloud_init_module_landscape(
+    cobbler_api: CobblerAPI, input_meta: Dict[str, Any], expected_result: List[str]
+):
     """
     Test to verify the rendering of the built-in Cloud-Init landscape snippet.
     """
@@ -1250,16 +1336,16 @@ def test_built_in_cloud_init_module_landscape(cobbler_api: CobblerAPI):
     )
     if target_template is None or isinstance(target_template, list):
         pytest.fail("Target template not found!")
-    meta: Dict[str, Any] = {}
 
     # Act
     result = cobbler_api.templar.render(
-        target_template.content, meta, None, template_type="jinja"
+        target_template.content, input_meta, None, template_type="jinja"
     )
 
     # Assert
-    assert yaml.safe_load(result)
-    assert result == ""
+    if result:
+        assert yaml.safe_load(result)
+    assert result == "\n".join(expected_result)
 
 
 def test_built_in_cloud_init_module_locale(cobbler_api: CobblerAPI):
