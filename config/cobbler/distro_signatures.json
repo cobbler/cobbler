@@ -3324,6 +3324,202 @@
           "install.img"
         ]
       },
+      "xcp75": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "^xcp-ng-release-7\\.5\\.0.*\\.x86_64\\.rpm$",
+        "version_file_regex": null,
+        "kernel_arch": "xcp-ng-release-7\\.5\\.0.*\\.x86_64\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64"
+        ],
+        "boot_loaders":{
+          "x86_64":[
+            "pxe",
+            "grub"
+          ]
+        },
+        "supported_repo_breeds": [],
+        "kernel_file": "vmlinuz",
+        "initrd_file": "xen\\.gz",
+        "isolinux_ok": false,
+        "default_autoinstall": "answerfile.xml",
+        "kernel_options": "xencons=hvc console=hvc0 console=tty0",
+        "kernel_options_post": "",
+        "boot_files": [
+          "install.img"
+        ]
+      },
+      "xcp76": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "^xcp-ng-release-7\\.6\\.0.*\\.x86_64\\.rpm$",
+        "version_file_regex": null,
+        "kernel_arch": "xcp-ng-release-7\\.6\\.0.*\\.x86_64\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64"
+        ],
+        "boot_loaders":{
+          "x86_64":[
+            "pxe",
+            "grub"
+          ]
+        },
+        "supported_repo_breeds": [],
+        "kernel_file": "vmlinuz",
+        "initrd_file": "xen\\.gz",
+        "isolinux_ok": false,
+        "default_autoinstall": "answerfile.xml",
+        "kernel_options": "xencons=hvc console=hvc0 console=tty0",
+        "kernel_options_post": "",
+        "boot_files": [
+          "install.img"
+        ]
+      },
+      "xcp80": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "^xcp-ng-release-8\\.0\\.0.*\\.x86_64\\.rpm$",
+        "version_file_regex": null,
+        "kernel_arch": "xcp-ng-release-8\\.0\\.0.*\\.x86_64\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64"
+        ],
+        "boot_loaders":{
+          "x86_64":[
+            "pxe",
+            "grub"
+          ]
+        },
+        "supported_repo_breeds": [],
+        "kernel_file": "vmlinuz",
+        "initrd_file": "xen\\.gz",
+        "isolinux_ok": false,
+        "default_autoinstall": "answerfile.xml",
+        "kernel_options": "xencons=hvc console=hvc0 console=tty0",
+        "kernel_options_post": "",
+        "boot_files": [
+          "install.img"
+        ]
+      },
+      "xcp81": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "^xcp-ng-release-8\\.1\\.0.*\\.x86_64\\.rpm$",
+        "version_file_regex": null,
+        "kernel_arch": "xcp-ng-release-8\\.1\\.0.*\\.x86_64\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64"
+        ],
+        "boot_loaders":{
+          "x86_64":[
+            "pxe",
+            "grub"
+          ]
+        },
+        "supported_repo_breeds": [],
+        "kernel_file": "vmlinuz",
+        "initrd_file": "xen\\.gz",
+        "isolinux_ok": false,
+        "default_autoinstall": "answerfile.xml",
+        "kernel_options": "xencons=hvc console=hvc0 console=tty0",
+        "kernel_options_post": "",
+        "boot_files": [
+          "install.img"
+        ]
+      },
+      "xcp82": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "^xcp-ng-release-8\\.2\\.0.*\\.x86_64\\.rpm$",
+        "version_file_regex": null,
+        "kernel_arch": "xcp-ng-release-8\\.2\\.0.*\\.x86_64\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64"
+        ],
+        "boot_loaders":{
+          "x86_64":[
+            "pxe",
+            "grub"
+          ]
+        },
+        "supported_repo_breeds": [],
+        "kernel_file": "vmlinuz",
+        "initrd_file": "xen\\.gz",
+        "isolinux_ok": false,
+        "default_autoinstall": "answerfile.xml",
+        "kernel_options": "xencons=hvc console=hvc0 console=tty0",
+        "kernel_options_post": "",
+        "boot_files": [
+          "install.img"
+        ]
+      },
+      "xcp821": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "^xcp-ng-release-8\\.2\\.1.*\\.x86_64\\.rpm$",
+        "version_file_regex": null,
+        "kernel_arch": "xcp-ng-release-8\\.2\\.1.*\\.x86_64\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64"
+        ],
+        "boot_loaders":{
+          "x86_64":[
+            "pxe",
+            "grub"
+          ]
+        },
+        "supported_repo_breeds": [],
+        "kernel_file": "vmlinuz",
+        "initrd_file": "xen\\.gz",
+        "isolinux_ok": false,
+        "default_autoinstall": "answerfile.xml",
+        "kernel_options": "xencons=hvc console=hvc0 console=tty0",
+        "kernel_options_post": "",
+        "boot_files": [
+          "install.img"
+        ]
+      },
+      "xcp83": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "^xcp-ng-release-8\\.3\\.0.*\\.x86_64\\.rpm$",
+        "version_file_regex": null,
+        "kernel_arch": "xcp-ng-release-8\\.3\\.0.*\\.x86_64\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64"
+        ],
+        "boot_loaders":{
+          "x86_64":[
+            "pxe",
+            "grub"
+          ]
+        },
+        "supported_repo_breeds": [],
+        "kernel_file": "vmlinuz",
+        "initrd_file": "xen\\.gz",
+        "isolinux_ok": false,
+        "default_autoinstall": "answerfile.xml",
+        "kernel_options": "xencons=hvc console=hvc0 console=tty0",
+        "kernel_options_post": "",
+        "boot_files": [
+          "install.img"
+        ]
+      },
       "xenserver620": {
         "signatures": [
           "packages.xenserver"
