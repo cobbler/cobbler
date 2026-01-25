@@ -20,5 +20,6 @@ cobbler mkloaders
 [ -f /var/lib/cobbler/loaders/grub/shim.efi ]
 [ -f /var/lib/cobbler/loaders/memdisk ]
 [ -f /var/lib/cobbler/loaders/menu.c32 ]
+[ -f /var/lib/cobbler/loaders/mboot.c32 ]
 [ -f /var/lib/cobbler/loaders/pxelinux.0 ]
 [ -f /var/lib/cobbler/loaders/undionly.pxe ]
