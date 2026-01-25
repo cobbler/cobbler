@@ -1,6 +1,9 @@
 #if $breed == "vmware"
 #set $append_line="append -c " + $img_path + "/cobbler-boot.cfg" + $append_line
 #end if
+#if $breed == "xen" and $os_version.startswith("xcp")
+#set $append_line="append " + $initrd_path + " dom0_max_vcpus=2 dom0_mem=max:2048M com1=115200,8n1 console=com1,vga --- " + $img_path + "/" + os.path.basename($kernel) + $append_line + " --- " + $img_path + "/" + "install.img"
+#end if
 #set $system_local=False
 #if $varExists('system_name')
 #if not $netboot_enabled
