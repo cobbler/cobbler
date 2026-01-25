@@ -8,6 +8,14 @@ set default='local'
 #end if
 #end if
 menuentry '$menu_name' --class gnu-linux --class gnu --class os {
+#if $breed == "xen" and $os_version.startswith("xcp")
+  echo 'Loading Xen kernel ...'
+  multiboot2 $initrd_path dom0_mem=max:2048M watchdog dom0_max_vcpus=4 com1=115200,8n1 console=com1,vga
+  echo 'Loading Dom0 kernel ...'
+  module2 $kernel_path $kernel_options
+  echo 'Loading initial ramdisk ...'
+  module2 $img_path/install.img
+#else
   echo 'Loading kernel ...'
   clinux $kernel_path $kernel_options
 #if "wimboot" in $kernel_path
@@ -19,6 +27,7 @@ menuentry '$menu_name' --class gnu-linux --class gnu --class os {
 #if $breed != "windows" or "wimboot" in $kernel_path
   echo 'Loading initial ramdisk ...'
   cinitrd $initrd_path
+#end if
 #end if
   echo '...done'
 }
