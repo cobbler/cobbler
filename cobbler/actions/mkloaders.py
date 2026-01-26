@@ -146,6 +146,12 @@ class MkLoaders:
             self.bootloaders_dir.joinpath("pxelinux.0"),
             skip_existing=True
         )
+        # Make mboot.c32
+        symlink(
+            self.syslinux_folder.joinpath("mboot.c32"),
+            self.bootloaders_dir.joinpath("mboot.c32"),
+            skip_existing=True
+        )
         # Make linux.c32 for syslinux + wimboot
         libcom32_c32_path = self.syslinux_folder.joinpath("libcom32.c32")
         if syslinux_version > 4 and libcom32_c32_path.exists():
