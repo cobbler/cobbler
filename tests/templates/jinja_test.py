@@ -70,3 +70,27 @@ def test_render(test_provider: JinjaTemplateProvider):
 
     # Assert
     assert result == expected_result
+
+
+def test_render_toyaml(test_provider: JinjaTemplateProvider):
+    """
+    Test to verify the custom Jinja filter "toyaml" is working as expected.
+    """
+    test_template = "{{ context | toyaml }}"
+    test_search_table = {
+        "context": [
+            {
+                "my": "custom",
+                "mapping": True,
+                "with": 5,
+                "complex": ["data", 5, {"test": True}],
+            }
+        ]
+    }
+    expected_result = "- complex:\n  - data\n  - 5\n  - test: true\n  mapping: true\n  my: custom\n  with: 5"
+
+    # Act
+    result = test_provider.render(test_template, test_search_table)
+
+    # Assert
+    assert result == expected_result

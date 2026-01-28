@@ -1,0 +1,150 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/network-config.html -#}
+{#- https://cloudinit.readthedocs.io/en/latest/reference/network-config-format-v1.html -#}
+{%- if cloud_init_network is defined %}
+network:
+  version: 1
+  config:
+    {%- for item in cloud_init_network.config %}
+    {%- if item.type == 'nameserver' %}
+    - type: nameserver
+      address:
+        {%- if item.address is string %}
+        - {{ item.address }}
+        {%- else %}
+          {%- for a in item.address %}
+        - {{ a }}
+          {%- endfor %}
+        {%- endif %}
+      {%- if item.search is defined %}
+      search:
+        {%- for s in item.search %}
+        - {{ s }}
+        {%- endfor %}
+      {%- endif %}
+      {%- if item.interface is defined %}
+      interface: {{ item.interface }}
+      {%- endif %}
+    {%- elif item.type == 'route' %}
+    - type: route
+      {%- if item.network is defined %}
+      network: {{ item.network }}
+      {%- endif %}
+      {%- if item.destination is defined %}
+      destination: {{ item.destination }}
+      {%- endif %}
+      {%- if item.netmask is defined %}
+      netmask: {{ item.netmask }}
+      {%- endif %}
+      {%- if item.gateway is defined %}
+      gateway: {{ item.gateway }}
+      {%- endif %}
+      {%- if item.metric is defined %}
+      metric: {{ item.metric }}
+      {%- endif %}
+    {%- else %}
+    - type: {{ item.type }}
+      {%- if item.name is defined %}
+      name: {{ item.name }}
+      {%- endif %}
+      {%- if item.vlan_link is defined %}
+      vlan_link: {{ item.vlan_link }}
+      {%- endif %}
+      {%- if item.vlan_id is defined %}
+      vlan_id: {{ item.vlan_id }}
+      {%- endif %}
+      {%- if item.bridge_interfaces is defined and item.bridge_interfaces|length > 0 %}
+      bridge_interfaces:
+        {%- for b in item.bridge_interfaces %}
+        - {{ b }}
+        {%- endfor %}
+      {%- endif %}
+      {%- if item.bond_interfaces is defined and item.bond_interfaces|length > 0 %}
+      bond_interfaces:
+        {%- for b in item.bond_interfaces %}
+        - {{ b }}
+        {%- endfor %}
+      {%- endif %}
+      {%- if item.mac_address is defined %}
+      mac_address: {{ item.mac_address }}
+      {%- endif %}
+      {%- if item.mtu is defined %}
+      mtu: {{ item.mtu }}
+      {%- endif %}
+      {%- if item['accept-ra'] is defined %}
+      accept-ra: {{ item['accept-ra']|lower }}
+      {%- endif %}
+      {%- if item.keep_configuration is defined %}
+      keep_configuration: {{ item.keep_configuration|lower }}
+      {%- endif %}
+      {%- if item.params is defined %}
+      params:
+        {%- for k, v in item.params.items() %}
+        {{ k }}: {{ v }}
+        {%- endfor %}
+      {%- endif %}
+      {%- if item.bridge is defined %}
+      bridge: {{ item.bridge }}
+      {%- endif %}
+      {%- if item.subnets is defined and item.subnets|length > 0 %}
+      subnets:
+        {%- for s in item.subnets %}
+        - {% if s.type is defined %}type: {{ s.type }}{% endif %}
+          {%- if s.control is defined %}
+          control: {{ s.control }}
+          {%- endif %}
+          {%- if s.address is defined %}
+          address: {{ s.address }}
+          {%- endif %}
+          {%- if s.netmask is defined %}
+          netmask: {{ s.netmask }}
+          {%- endif %}
+          {%- if s.broadcast is defined %}
+          broadcast: {{ s.broadcast }}
+          {%- endif %}
+          {%- if s.gateway is defined %}
+          gateway: {{ s.gateway }}
+          {%- endif %}
+          {%- if s.dns_nameservers is defined and s.dns_nameservers|length > 0 %}
+          dns_nameservers:
+            {%- for ns in s.dns_nameservers %}
+            - {{ ns }}
+            {%- endfor %}
+          {%- endif %}
+          {%- if s.dns_search is defined and s.dns_search|length > 0 %}
+          dns_search:
+            {%- for d in s.dns_search %}
+            - {{ d }}
+            {%- endfor %}
+          {%- endif %}
+          {%- if s.routes is defined and s.routes|length > 0 %}
+          routes:
+            {%- for r in s.routes %}
+            - {% if r.network is defined %}network: {{ r.network }}{% endif %}
+              {%- if r.destination is defined %}
+              destination: {{ r.destination }}
+              {%- endif %}
+              {%- if r.netmask is defined %}
+              netmask: {{ r.netmask }}
+              {%- endif %}
+              {%- if r.gateway is defined %}
+              gateway: {{ r.gateway }}
+              {%- endif %}
+              {%- if r.metric is defined %}
+              metric: {{ r.metric }}
+              {%- endif %}
+            {%- endfor %}
+          {%- endif %}
+          {%- if s.ipv4 is defined %}
+          ipv4: {{ s.ipv4|lower }}
+          {%- endif %}
+          {%- if s.ipv6 is defined %}
+          ipv6: {{ s.ipv6|lower }}
+          {%- endif %}
+          {%- if s.metric is defined %}
+          metric: {{ s.metric }}
+          {%- endif %}
+        {%- endfor %}
+      {%- endif %}
+    {%- endif %}
+    {%- endfor %}
+{%- endif %}

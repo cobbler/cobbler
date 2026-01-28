@@ -1,0 +1,12 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#update-etc-hosts -#}
+{%- if cloud_init_update_etc_hosts is defined %}
+{%- if cloud_init_update_etc_hosts.manage_etc_hosts is defined %}
+manage_etc_hosts: {{ cloud_init_update_etc_hosts.manage_etc_hosts }}
+{%- endif %}
+{%- if cloud_init_update_etc_hosts.fqdn is defined %}
+fqdn: {{ cloud_init_update_etc_hosts.fqdn }}
+{%- endif %}
+{%- if cloud_init_update_etc_hosts.hostname is defined %}
+hostname: {{ cloud_init_update_etc_hosts.hostname }}
+{%- endif %}
+{%- endif %}

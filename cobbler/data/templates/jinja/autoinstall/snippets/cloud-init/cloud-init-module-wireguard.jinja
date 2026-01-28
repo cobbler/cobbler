@@ -1,0 +1,25 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#wireguard -#}
+{%- if cloud_init_wireguard is defined %}
+{%- if cloud_init_wireguard.interfaces is defined or cloud_init_wireguard.readinessprobe is defined %}
+wireguard:
+  {%- if cloud_init_wireguard.interfaces is defined and cloud_init_wireguard.interfaces|length > 0 %}
+  interfaces:
+    {%- for iface in cloud_init_wireguard.interfaces %}
+    - name: {{ iface.name }}
+      {%- if iface.config_path is defined %}
+      config_path: {{ iface.config_path }}
+      {%- endif %}
+      {%- if iface.content is defined %}
+      content: |
+        {{ iface.content | trim | indent(8) }}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_wireguard.readinessprobe is defined and cloud_init_wireguard.readinessprobe|length > 0 %}
+  readinessprobe:
+    {%- for cmd in cloud_init_wireguard.readinessprobe %}
+    - {{ cmd }}
+    {%- endfor %}
+  {%- endif %}
+{%- endif %}
+{%- endif %}

@@ -1,0 +1,27 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#mounts -#}
+{%- if cloud_init_mounts is defined %}
+mounts:
+  {%- if cloud_init_mounts.mounts is defined and cloud_init_mounts.mounts|length > 0 %}
+  {%- for m in cloud_init_mounts.mounts %}
+    {%- if m is sequence and m|length > 1 %}
+  - [ {% for i in m %}{{ i|tojson }}{{ ', ' if not loop.last }}{%- endfor %} ]
+    {%- endif %}
+  {%- endfor %}
+  {%- endif %}
+
+  {%- if cloud_init_mounts.mount_default_fields is defined %}
+mount_default_fields: [ {% for f in cloud_init_mounts.mount_default_fields %}{{ 'None' if f is none else f|tojson }}{{ ', ' if not loop.last }}{%- endfor %} ]
+  {%- endif %}
+{%- if cloud_init_mounts.swap is defined %}
+swap:
+  {%- if cloud_init_mounts.swap.filename is defined %}
+  filename: {{ cloud_init_mounts.swap.filename }}
+  {%- endif %}
+  {%- if cloud_init_mounts.swap.size is defined %}
+  size: {{ cloud_init_mounts.swap.size }}
+  {%- endif %}
+  {%- if cloud_init_mounts.swap.maxsize is defined %}
+  maxsize: {{ cloud_init_mounts.swap.maxsize }}
+  {%- endif %}
+{%- endif %}
+{%- endif %}

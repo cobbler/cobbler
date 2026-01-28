@@ -1,0 +1,38 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#landscape -#}
+{#- Support for additional properties not present yet. -#}
+{%- if cloud_init_landscape is defined %}
+landscape:
+  {%- if cloud_init_landscape.client is defined %}
+  client:
+    {%- if cloud_init_landscape.client.url is defined %}
+    url: {{ cloud_init_landscape.client.url }}
+    {%- endif %}
+    {%- if cloud_init_landscape.client.ping_url is defined %}
+    ping_url: {{ cloud_init_landscape.client.ping_url }}
+    {%- endif %}
+    {%- if cloud_init_landscape.client.data_path is defined %}
+    data_path: {{ cloud_init_landscape.client.data_path }}
+    {%- endif %}
+    {%- if cloud_init_landscape.client.log_level is defined %}
+    log_level: {{ cloud_init_landscape.client.log_level }}
+    {%- endif %}
+    {%- if cloud_init_landscape.client.computer_title is defined %}
+    computer_title: {{ cloud_init_landscape.client.computer_title }}
+    {%- endif %}
+    {%- if cloud_init_landscape.client.account_name is defined %}
+    account_name: {{ cloud_init_landscape.client.account_name }}
+    {%- endif %}
+    {%- if cloud_init_landscape.client.registration_key is defined %}
+    registration_key: {{ cloud_init_landscape.client.registration_key }}
+    {%- endif %}
+    {%- if cloud_init_landscape.client.tags is defined %}
+    tags: {{ cloud_init_landscape.client.tags }}
+    {%- endif %}
+    {%- if cloud_init_landscape.client.http_proxy is defined %}
+    http_proxy: {{ cloud_init_landscape.client.http_proxy }}
+    {%- endif %}
+    {%- if cloud_init_landscape.client.https_proxy is defined %}
+    https_proxy: {{ cloud_init_landscape.client.https_proxy }}
+    {%- endif %}
+  {%- endif %}
+{%- endif %}

@@ -1,0 +1,26 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#power-state-change -#}
+{%- if cloud_init_power_state is defined %}
+power_state:
+  {%- if cloud_init_power_state.delay is defined %}
+  delay: {{ cloud_init_power_state.delay }}
+  {%- endif %}
+  {%- if cloud_init_power_state.mode is defined %}
+  mode: {{ cloud_init_power_state.mode }}
+  {%- endif %}
+  {%- if cloud_init_power_state.message is defined %}
+  message: {{ cloud_init_power_state.message }}
+  {%- endif %}
+  {%- if cloud_init_power_state.timeout is defined %}
+  timeout: {{ cloud_init_power_state.timeout }}
+  {%- endif %}
+  {%- if cloud_init_power_state.condition is defined and cloud_init_power_state.condition is boolean %}
+  condition: {{ cloud_init_power_state.condition|lower }}
+  {%- elif cloud_init_power_state.condition is defined and cloud_init_power_state.condition is string %}
+  condition: {{ cloud_init_power_state.condition }}
+  {%- elif cloud_init_power_state.condition is defined and cloud_init_power_state.condition is iterable %}
+  condition:
+    {%- for c in cloud_init_power_state.condition %}
+    - {{ c|tojson }}
+    {%- endfor %}
+  {%- endif %}
+{%- endif %}

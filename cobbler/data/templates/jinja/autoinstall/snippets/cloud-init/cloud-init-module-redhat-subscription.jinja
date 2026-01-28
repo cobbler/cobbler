@@ -1,0 +1,50 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#rh-subscription -#}
+{%- set config = cloud_init_rh_subscription %}
+{%- if config is defined %}
+rh_subscription:
+  {%- if config.username is defined %}
+  username: {{ config.username }}
+  {%- endif %}
+  {%- if config.password is defined %}
+  password: {{ config.password }}
+  {%- endif %}
+  {%- if config.activation_key is defined %}
+  activation_key: {{ config.activation_key }}
+  {%- endif %}
+  {%- if config.org is defined %}
+  org: {{ config.org }}
+  {%- endif %}
+  {%- if config.auto_attach is defined %}
+  auto_attach: {{ config.auto_attach|string|lower }}
+  {%- endif %}
+  {%- if config.service_level is defined %}
+  service_level: {{ config.service_level }}
+  {%- endif %}
+  {%- if config.add_pool is defined and config.add_pool|length > 0 %}
+  add_pool:
+    {%- for pool in config.add_pool %}
+    - {{ pool }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if config.enable_repo is defined and config.enable_repo|length > 0 %}
+  enable_repo:
+    {%- for repo in config.enable_repo %}
+    - {{ repo }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if config.disable_repo is defined and config.disable_repo|length > 0 %}
+  disable_repo:
+    {%- for repo in config.disable_repo %}
+    - {{ repo }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if config.release_version is defined %}
+  release_version: {{ config.release_version }}
+  {%- endif %}
+  {%- if config.rhsm_baseurl is defined %}
+  rhsm_baseurl: {{ config.rhsm_baseurl }}
+  {%- endif %}
+  {%- if config.server_hostname is defined %}
+  server_hostname: {{ config.server_hostname }}
+  {%- endif %}
+{%- endif %}

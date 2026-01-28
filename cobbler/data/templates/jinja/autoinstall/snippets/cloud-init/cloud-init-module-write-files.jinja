@@ -1,0 +1,43 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#write-files -#}
+{%- if cloud_init_write_files is defined and cloud_init_write_files|length > 0 %}
+write_files:
+  {%- for f in cloud_init_write_files %}
+    {%- if f.path is defined %}
+      {%- set file_path = f.path %}
+    {%- else %}
+      {%- set file_path = "" %}
+    {%- endif %}
+  - path: {{ file_path }}
+    {%- if f.content is defined %}
+    content: |
+      {{ f.content | trim | indent(6) }}
+    {%- endif %}
+    {%- if f.source is defined %}
+    source:
+      {%- if f.source.uri is defined %}
+      uri: {{ f.source.uri }}
+      {%- endif %}
+      {%- if f.source.headers is defined and f.source.headers|length > 0 %}
+      headers:
+        {%- for hk,hv in f.source.headers.items() %}
+        {{ hk }}: {{ hv }}
+        {%- endfor %}
+      {%- endif %}
+    {%- endif %}
+    {%- if f.owner is defined %}
+    owner: {{ f.owner }}
+    {%- endif %}
+    {%- if f.permissions is defined %}
+    permissions: {{ f.permissions }}
+    {%- endif %}
+    {%- if f.encoding is defined %}
+    encoding: {{ f.encoding }}
+    {%- endif %}
+    {%- if f.append is defined %}
+    append: {{ f.append|lower }}
+    {%- endif %}
+    {%- if f.defer is defined %}
+    defer: {{ f.defer|lower }}
+    {%- endif %}
+  {%- endfor %}
+{%- endif %}

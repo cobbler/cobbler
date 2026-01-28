@@ -1,0 +1,5 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#final-message -#}
+{%- if cloud_init_final_message is defined %}
+final_message: |
+  {{ cloud_init_final_message|indent(width=2) }}
+{%- endif %}

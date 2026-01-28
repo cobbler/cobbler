@@ -145,12 +145,22 @@ class CobblerSvc:
         if profile is not None and system is not None:
             return "ERROR: Both profile and system were given!"
 
+        subfile = ""
+        if "user-data" in kwargs:
+            subfile = "user-data"
+        elif "vendor-data" in kwargs:
+            subfile = "vendor-data"
+        elif "meta-data" in kwargs:
+            subfile = "meta-data"
+        elif "network-config" in kwargs:
+            subfile = "network-config"
+
         data = self.remote.generate_autoinstall(
             profile if profile else system,
             "profile" if profile else "system",
             "name",
             file,
-            "",
+            subfile,
         )
         if isinstance(data, str):
             return data
@@ -163,7 +173,7 @@ class CobblerSvc:
         system: Optional[str] = None,
         mac: Optional[str] = None,
         **kwargs: Any,
-    ) -> str:
+    ):
         """
         Generates an iPXE configuration.
 
@@ -463,8 +473,10 @@ def __fillup_form_dict(form: Dict[Any, Any], my_uri: str) -> str:
     for token in tokens:
         if label:
             field = token
+            form[field] = VALUE_KEY
         else:
             form[field] = token
+            field = ""
         label = not label
     return my_uri
 

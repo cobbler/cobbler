@@ -1,0 +1,75 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#lxd -#}
+{%- if cloud_init_lxd is defined %}
+lxd:
+  {%- if cloud_init_lxd.preseed is defined %}
+  preseed: |
+    {{- cloud_init_lxd.preseed | trim | indent(4) }}
+  {%- else %}
+  {%- if cloud_init_lxd.init is defined %}
+  init:
+    {%- if cloud_init_lxd.init.network_address is defined %}
+    network_address: {{ cloud_init_lxd.init.network_address }}
+    {%- endif %}
+    {%- if cloud_init_lxd.init.network_port is defined %}
+    network_port: {{ cloud_init_lxd.init.network_port }}
+    {%- endif %}
+    {%- if cloud_init_lxd.init.storage_backend is defined %}
+    storage_backend: {{ cloud_init_lxd.init.storage_backend }}
+    {%- endif %}
+    {%- if cloud_init_lxd.init.storage_create_device is defined %}
+    storage_create_device: {{ cloud_init_lxd.init.storage_create_device }}
+    {%- endif %}
+    {%- if cloud_init_lxd.init.storage_create_loop is defined %}
+    storage_create_loop: {{ cloud_init_lxd.init.storage_create_loop }}
+    {%- endif %}
+    {%- if cloud_init_lxd.init.storage_pool is defined %}
+    storage_pool: {{ cloud_init_lxd.init.storage_pool }}
+    {%- endif %}
+    {%- if cloud_init_lxd.init.trust_password is defined %}
+    trust_password: {{ cloud_init_lxd.init.trust_password }}
+    {%- endif %}
+  {%- endif %}
+  {%- if cloud_init_lxd.bridge is defined %}
+  bridge:
+    {%- if cloud_init_lxd.bridge.mode is defined %}
+    mode: {{ cloud_init_lxd.bridge.mode }}
+    {%- endif %}
+    {%- if cloud_init_lxd.bridge.name is defined %}
+    name: {{ cloud_init_lxd.bridge.name }}
+    {%- endif %}
+    {%- if cloud_init_lxd.bridge.mtu is defined %}
+    mtu: {{ cloud_init_lxd.bridge.mtu }}
+    {%- endif %}
+    {%- if cloud_init_lxd.bridge.ipv4_address is defined %}
+    ipv4_address: {{ cloud_init_lxd.bridge.ipv4_address }}
+    {%- endif %}
+    {%- if cloud_init_lxd.bridge.ipv4_netmask is defined %}
+    ipv4_netmask: {{ cloud_init_lxd.bridge.ipv4_netmask }}
+    {%- endif %}
+    {%- if cloud_init_lxd.bridge.ipv4_dhcp_first is defined %}
+    ipv4_dhcp_first: {{ cloud_init_lxd.bridge.ipv4_dhcp_first }}
+    {%- endif %}
+    {%- if cloud_init_lxd.bridge.ipv4_dhcp_last is defined %}
+    ipv4_dhcp_last: {{ cloud_init_lxd.bridge.ipv4_dhcp_last }}
+    {%- endif %}
+    {%- if cloud_init_lxd.bridge.ipv4_dhcp_leases is defined %}
+    ipv4_dhcp_leases: {{ cloud_init_lxd.bridge.ipv4_dhcp_leases }}
+    {%- endif %}
+    {%- if cloud_init_lxd.bridge.ipv4_nat is defined %}
+    ipv4_nat: {{ cloud_init_lxd.bridge.ipv4_nat|lower }}
+    {%- endif %}
+    {%- if cloud_init_lxd.bridge.ipv6_address is defined %}
+    ipv6_address: {{ cloud_init_lxd.bridge.ipv6_address }}
+    {%- endif %}
+    {%- if cloud_init_lxd.bridge.ipv6_netmask is defined %}
+    ipv6_netmask: {{ cloud_init_lxd.bridge.ipv6_netmask }}
+    {%- endif %}
+    {%- if cloud_init_lxd.bridge.ipv6_nat is defined %}
+    ipv6_nat: {{ cloud_init_lxd.bridge.ipv6_nat|lower }}
+    {%- endif %}
+    {%- if cloud_init_lxd.bridge.domain is defined %}
+    domain: {{ cloud_init_lxd.bridge.domain }}
+    {%- endif %}
+  {%- endif %}
+  {%- endif %}
+{%- endif %}

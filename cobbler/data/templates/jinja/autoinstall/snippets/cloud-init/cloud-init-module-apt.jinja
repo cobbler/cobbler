@@ -1,0 +1,128 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#apt-configure -#}
+{%- if cloud_init_apt_configure is defined %}
+apt:
+  {%- if cloud_init_apt_configure.preserve_sources_list is defined %}
+  preserve_sources_list: {{ cloud_init_apt_configure.preserve_sources_list|lower }}
+  {%- endif %}
+  {%- if cloud_init_apt_configure.disable_suites is defined and cloud_init_apt_configure.disable_suites|length > 0 %}
+  disable_suites:
+    {%- for s in cloud_init_apt_configure.disable_suites %}
+    - {{ s }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_apt_configure.primary is defined %}
+  primary:
+    {%- for entry in cloud_init_apt_configure.primary %}
+    - arches:
+        {%- for a in entry.arches %}
+        - {{ a }}
+        {%- endfor %}
+      {%- if entry.uri is defined %}
+      uri: {{ entry.uri }}
+      {%- endif %}
+      {%- if entry.search is defined %}
+      search:
+        {%- for u in entry.search %}
+        - {{ u }}
+        {%- endfor %}
+      {%- endif %}
+      {%- if entry.search_dns is defined %}
+      search_dns: {{ entry.search_dns | lower }}
+      {%- endif %}
+      {%- if entry.keyid is defined %}
+      keyid: {{ entry.keyid }}
+      {%- endif %}
+      {%- if entry.key is defined %}
+      key: {{ entry.key }}
+      {%- endif %}
+      {%- if entry.keyserver is defined %}
+      keyserver: {{ entry.keyserver }}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_apt_configure.security is defined %}
+  security:
+    {%- for entry in cloud_init_apt_configure.security %}
+    - arches:
+        {%- for a in entry.arches %}
+        - {{ a }}
+        {%- endfor %}
+      {%- if entry.uri is defined %}
+      uri: {{ entry.uri }}
+      {%- endif %}
+      {%- if entry.search is defined %}
+      search:
+        {%- for u in entry.search %}
+        - {{ u }}
+        {%- endfor %}
+      {%- endif %}
+      {%- if entry.search_dns %}
+      search_dns: {{ entry.search_dns | lower }}
+      {%- endif %}
+      {%- if entry.keyid is defined %}
+      keyid: {{ entry.keyid }}
+      {%- endif %}
+      {%- if entry.key is defined %}
+      key: {{ entry.key }}
+      {%- endif %}
+      {%- if entry.keyserver is defined %}
+      keyserver: {{ entry.keyserver }}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_apt_configure.add_apt_repo_match is defined %}
+  add_apt_repo_match: {{ cloud_init_apt_configure.add_apt_repo_match }}
+  {%- endif %}
+  {%- if cloud_init_apt_configure.debconf_selections is defined and cloud_init_apt_configure.debconf_selections|length > 0 %}
+  debconf_selections:
+    {%- for name, val in cloud_init_apt_configure.debconf_selections.items() %}
+    {{ name }}: |
+      {{ val | trim | indent(6) }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_apt_configure.sources_list is defined %}
+  sources_list: |
+    {{ cloud_init_apt_configure.sources_list | trim | indent(4) }}
+  {%- endif %}
+  {%- if cloud_init_apt_configure.conf is defined %}
+  conf: |
+    {{ cloud_init_apt_configure.conf | trim | indent(4) }}
+  {%- endif %}
+  {%- if cloud_init_apt_configure.https_proxy is defined %}
+  https_proxy: {{ cloud_init_apt_configure.https_proxy }}
+  {%- endif %}
+  {%- if cloud_init_apt_configure.http_proxy is defined %}
+  http_proxy: {{ cloud_init_apt_configure.http_proxy }}
+  {%- endif %}
+  {%- if cloud_init_apt_configure.proxy is defined %}
+  proxy: {{ cloud_init_apt_configure.proxy }}
+  {%- endif %}
+  {%- if cloud_init_apt_configure.ftp_proxy is defined %}
+  ftp_proxy: {{ cloud_init_apt_configure.ftp_proxy }}
+  {%- endif %}
+  {%- if cloud_init_apt_configure.sources is defined and cloud_init_apt_configure.sources|length > 0 %}
+  sources:
+    {%- for name, src in cloud_init_apt_configure.sources.items() %}
+    {{ name }}:
+      {%- if src.source is defined %}
+      source: {{ src.source }}
+      {%- endif %}
+      {%- if src.keyid is defined %}
+      keyid: {{ src.keyid }}
+      {%- endif %}
+      {%- if src.key is defined %}
+      key: |
+        {{ src.key | trim | indent(8) }}
+      {%- endif %}
+      {%- if src.keyserver is defined %}
+      keyserver: {{ src.keyserver }}
+      {%- endif %}
+      {%- if src.filename is defined %}
+      filename: {{ src.filename }}
+      {%- endif %}
+      {%- if src.append is defined %}
+      append: {{ src.append|lower }}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+{%- endif %}

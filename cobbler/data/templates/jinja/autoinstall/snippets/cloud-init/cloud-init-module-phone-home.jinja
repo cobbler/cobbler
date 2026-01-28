@@ -1,0 +1,16 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#phone-home -#}
+{%- if cloud_init_phone_home_url is defined %}
+phone_home:
+  url: "{{ cloud_init_phone_home_url }}"
+{%- if cloud_init_phone_home_post is string %}
+  post: "{{ cloud_init_phone_home_post }}"
+{%- elif cloud_init_phone_home_post is list %}
+  post:
+  {%- for element in cloud_init_phone_home_post %}
+    - "{{ element }}"
+  {%- endfor %}
+{%- endif %}
+{%- if cloud_init_phone_home_tries is defined %}
+  tries: {{ cloud_init_phone_home_tries }}
+{%- endif %}
+{%- endif %}

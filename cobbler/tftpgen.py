@@ -1164,7 +1164,7 @@ class TFTPGen:
         bootloader_format: enums.BootLoader = enums.BootLoader.PXE,
     ) -> str:
         """
-        Write a configuration file for the boot loader(s).
+        Write a configuration file for the bootloader(s).
 
         More system-specific configuration may come in later, if so that would appear inside the system object in api.py
         Can be used for different formats, "pxe" (default) and "grub".
@@ -1174,13 +1174,13 @@ class TFTPGen:
         :param system: If you supply a system there are other templates used then when using only a profile/image/
                        distro.
         :param profile: The profile to generate the pxe-file for.
-        :param distro: If you don't ship an image, this is needed. Otherwise this just supplies information needed for
+        :param distro: If you don't ship an image, this is needed. Otherwise, this just supplies information needed for
                        the templates.
         :param arch: The processor architecture to generate the pxefile for.
         :param image: If you want to be able to deploy an image, supply this parameter.
         :param metadata: Pass additional parameters to the ones being collected during the method.
         :param bootloader_format: Can be any of those returned by utils.get_supported_system_boot_loaders().
-        :return: The generated filecontent for the required item.
+        :return: The generated file-content for the required item.
         """
 
         if arch is None:
@@ -1233,6 +1233,7 @@ class TFTPGen:
             append_line = f"append initrd={metadata['initrd_path']}"
         else:
             append_line = "append "
+        # TODO if cloud-init then add nocloud-net to kernel options
         append_line = f"{append_line}{kernel_options}"
         if distro and distro.os_version.startswith("xenserver620"):
             append_line = f"{kernel_options}"
@@ -1555,7 +1556,9 @@ class TFTPGen:
                     append_line.append_key_value("netdevice", management_mac)
             elif distro.breed in ("debian", "ubuntu"):
                 # Cloud-Init
-                if enums.AutoinstallerType.PRESEED.value in autoinstall_tags:
+                if enums.AutoinstallerType.CLOUDINIT.value in autoinstall_tags:
+                    append_line.append_key_value("ds", f"nocloud;s={autoinstall_path}")
+                elif enums.AutoinstallerType.PRESEED.value in autoinstall_tags:
                     append_line.append_key_value("auto-install/enable", "true")
                     append_line.append_key_value("priority", "critical")
                     append_line.append_key_value("netcfg/choose_interface", "auto")
@@ -1888,9 +1891,7 @@ class TFTPGen:
                 distro.arch,  # type: ignore
             )
         elif what == "profile":
-            kopts = self.build_kernel_options(
-                None, obj, distro, None, distro.arch  # type: ignore
-            )
+            kopts = self.build_kernel_options(None, obj, distro, None, distro.arch)  # type: ignore
         # pylint: disable-next=possibly-used-before-assignment
         blended["kopts"] = kopts  # type: ignore
         blended["kernel_file"] = os.path.basename(distro.kernel)  # type: ignore

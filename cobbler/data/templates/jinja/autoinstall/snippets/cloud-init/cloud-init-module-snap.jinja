@@ -1,0 +1,42 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#snap -#}
+{%- if cloud_init_snap is defined %}
+snap:
+  {%- if cloud_init_snap.assertions is defined %}
+  assertions:
+    {%- if cloud_init_snap.assertions is mapping %}
+    {%- for key, val in cloud_init_snap.assertions.items() %}
+    {{ key }}: {{ val }}
+    {%- endfor %}
+    {%- else %}
+    {%- for a in cloud_init_snap.assertions %}
+    - {{ a }}
+    {%- endfor %}
+    {%- endif %}
+  {%- endif %}
+  {%- if cloud_init_snap.commands is defined %}
+  commands:
+    {%- if cloud_init_snap.commands is mapping %}
+    {%- for key, val in cloud_init_snap.commands.items() %}
+      {%- if val is string %}
+    {{ key }}: {{ val }}
+      {%- else %}
+    {{ key }}:
+      {%- for item in val %}
+      - {{ item }}
+      {%- endfor %}
+      {%- endif %}
+    {%- endfor %}
+    {%- else %}
+    {%- for c in cloud_init_snap.commands %}
+    {%- if c is string %}
+    - {{ c }}
+    {%- else %}
+    -
+      {%- for item in c %}
+      - {{ item }}
+      {%- endfor %}
+    {%- endif %}
+    {%- endfor %}
+    {%- endif %}
+  {%- endif %}
+{%- endif %}

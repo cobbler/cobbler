@@ -17,8 +17,7 @@ if TYPE_CHECKING:
 
 class Systems(collection.Collection[system.System]):
     """
-    Systems are hostnames/MACs/IP names and the associated profile
-    they belong to.
+    Systems are hostnames/MACs/IP names and the associated profile they belong to.
     """
 
     @staticmethod

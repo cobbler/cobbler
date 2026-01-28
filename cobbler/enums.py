@@ -350,7 +350,7 @@ class AutoinstallerType(ConvertableEnum):
     KICKSTART = "kickstart"
     AUTOYAST = "autoyast"
     AGAMA = "agama"
-    # CLOUDINIT = "cloud-init"
+    CLOUDINIT = "cloud-init"
     WINDOWS = "windows"
     XEN = "xen"
     # IGNITION = "ignition"
@@ -365,3 +365,14 @@ class AutoinstallValidationError(ConvertableEnum):
     NONE = 0
     TEMPLATING = 1
     KICKSTART = 2
+
+
+class CloudInitFileTypes(ConvertableEnum):
+    """
+    TODO
+    """
+
+    USER_DATA = "user-data"
+    VENDOR_DATA = "vendor-data"
+    META_DATA = "meta-data"
+    NETWORK_CONFIG = "network-config"

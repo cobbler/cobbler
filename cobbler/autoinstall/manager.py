@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, List, NamedTuple, Optional, Sequence, Uni
 from cobbler import enums, utils
 from cobbler.autoinstall.generate.agama import AgamaGenerator
 from cobbler.autoinstall.generate.autoyast import AutoYaSTGenerator
+from cobbler.autoinstall.generate.cloud_init import CloudInitGenerator
 from cobbler.autoinstall.generate.kickstart import KickstartGenerator
 from cobbler.autoinstall.generate.legacy import LegacyGenerator
 from cobbler.autoinstall.generate.preseed import PreseedGenerator
@@ -181,6 +182,8 @@ class AutoInstallationManager:
             return KickstartGenerator(api=self.api)
         elif autoinstaller_type == enums.AutoinstallerType.PRESEED:
             return PreseedGenerator(api=self.api)
+        elif autoinstaller_type == enums.AutoinstallerType.CLOUDINIT:
+            return CloudInitGenerator(api=self.api)
         elif autoinstaller_type == enums.AutoinstallerType.LEGACY:
             return LegacyGenerator(api=self.api)
         elif autoinstaller_type == enums.AutoinstallerType.AUTOYAST:

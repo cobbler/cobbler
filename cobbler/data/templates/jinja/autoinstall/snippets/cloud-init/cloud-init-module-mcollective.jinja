@@ -1,0 +1,13 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#mcollective -#}
+{%- if cloud_init_mcollective is defined and cloud_init_mcollective.conf is defined %}
+mcollective:
+  conf:
+    {%- for key, value in cloud_init_mcollective.conf.items() %}
+    {%- if key == 'public-cert' or key == 'private-cert' %}
+    {{ key }}: |
+      {{ value | indent(6) }}
+    {%- else %}
+    {{ key }}: {{ value }}
+    {%- endif %}
+    {%- endfor %}
+{%- endif %}

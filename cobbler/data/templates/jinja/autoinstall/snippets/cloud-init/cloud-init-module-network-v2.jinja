@@ -1,0 +1,207 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/network-config.html -#}
+{#- https://cloudinit.readthedocs.io/en/latest/reference/network-config-format-v2.html -#}
+
+{%- if cloud_init_network_v2 is defined %}
+network:
+  version: {{ cloud_init_network_v2.version|default(2) }}
+  {%- if cloud_init_network_v2.renderer is defined %}
+  renderer: {{ cloud_init_network_v2.renderer }}
+  {%- endif %}
+  {#- Render ethernets -#}
+  {%- if cloud_init_network_v2.ethernets is defined and cloud_init_network_v2.ethernets|length > 0 %}
+  ethernets:
+    {%- for ifname, mapping in cloud_init_network_v2.ethernets.items() %}
+    {{ ifname }}:
+      {%- if mapping.renderer is defined %}
+      renderer: {{ mapping.renderer }}
+      {%- endif %}
+      {%- if mapping.dhcp4 is defined %}
+      dhcp4: {{ mapping.dhcp4|lower }}
+      {%- endif %}
+      {%- if mapping.dhcp6 is defined %}
+      dhcp6: {{ mapping.dhcp6|lower }}
+      {%- endif %}
+      {%- if mapping['dhcp4-overrides'] is defined %}
+      dhcp4-overrides:
+        {%- for k,v in mapping['dhcp4-overrides'].items() %}
+        {{ k }}: {{ v }}
+        {%- endfor %}
+      {%- endif %}
+      {%- if mapping['dhcp6-overrides'] is defined %}
+      dhcp6-overrides:
+        {%- for k,v in mapping['dhcp6-overrides'].items() %}
+        {{ k }}: {{ v }}
+        {%- endfor %}
+      {%- endif %}
+      {%- if mapping.addresses is defined and mapping.addresses|length > 0 %}
+      addresses:
+        {%- for a in mapping.addresses %}
+        - {{ a }}
+        {%- endfor %}
+      {%- endif %}
+      {%- if mapping.gateway4 is defined %}
+      gateway4: {{ mapping.gateway4 }}
+      {%- endif %}
+      {%- if mapping.gateway6 is defined %}
+      gateway6: {{ mapping.gateway6 }}
+      {%- endif %}
+      {%- if mapping.optional is defined %}
+      optional: {{ mapping.optional }}
+      {%- endif %}
+      {%- if mapping.mtu is defined %}
+      mtu: {{ mapping.mtu }}
+      {%- endif %}
+      {%- if mapping.nameservers is defined %}
+      nameservers:
+        {%- if mapping.nameservers.search is defined and mapping.nameservers.search|length > 0 %}
+        search:
+          {%- for s in mapping.nameservers.search %}
+          - {{ s }}
+          {%- endfor %}
+        {%- endif %}
+        {%- if mapping.nameservers.addresses is defined and mapping.nameservers.addresses|length > 0 %}
+        addresses:
+          {%- for na in mapping.nameservers.addresses %}
+          - {{ na }}
+          {%- endfor %}
+        {%- endif %}
+      {%- endif %}
+      {%- if mapping.routes is defined and mapping.routes|length > 0 %}
+      routes:
+        {%- for r in mapping.routes %}
+        - to: {{ r.to }}
+          {%- if r.via is defined %}
+          via: {{ r.via }}
+          {%- endif %}
+          {%- if r.metric is defined %}
+          metric: {{ r.metric }}
+          {%- endif %}
+        {%- endfor %}
+      {%- endif %}
+      {%- if mapping.match is defined %}
+      match:
+        {%- for k,v in mapping.match.items() %}
+        {{ k }}: {{ v }}
+        {%- endfor %}
+      {%- endif %}
+      {%- if mapping['set-name'] is defined %}
+      set-name: {{ mapping['set-name'] }}
+      {%- endif %}
+      {%- if mapping.wakeonlan is defined %}
+      wakeonlan: {{ mapping.wakeonlan }}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+  {#- Render bonds -#}
+  {%- if cloud_init_network_v2.bonds is defined and cloud_init_network_v2.bonds|length > 0 %}
+  bonds:
+    {%- for bname, bm in cloud_init_network_v2.bonds.items() %}
+    {{ bname }}:
+      {%- if bm.renderer is defined %}
+      renderer: {{ bm.renderer }}
+      {%- endif %}
+      {%- if bm.dhcp4 is defined %}
+      dhcp4: {{ bm.dhcp4|lower }}
+      {%- endif %}
+      {%- if bm.dhcp6 is defined %}
+      dhcp6: {{ bm.dhcp6|lower }}
+      {%- endif %}
+      {%- if bm.interfaces is defined and bm.interfaces|length > 0 %}
+      interfaces:
+        {%- for s in bm.interfaces %}
+        - {{ s }}
+        {%- endfor %}
+      {%- endif %}
+      {%- if bm.parameters is defined %}
+      parameters:
+        {%- for pk, pv in bm.parameters.items() %}
+        {%- if pv is boolean %}
+        {{ pk }}: {{ pv|lower }}
+        {%- elif pv is number or pv is string %}
+        {{ pk }}: {{ pv }}
+        {%- elif pv is sequence %}
+        {{ pk }}:
+            {%- for item in pv %}
+            - {{ item }}
+            {%- endfor %}
+        {%- elif pv is mapping %}
+        {{ pk }}:
+            {%- for subk, subv in pv.items() %}
+            {{ subk }}: {{ subv }}
+            {%- endfor %}
+        {%- endif %}
+        {%- endfor %}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+  {#- Render bridges -#}
+  {%- if cloud_init_network_v2.bridges is defined and cloud_init_network_v2.bridges|length > 0 %}
+  bridges:
+    {%- for brname, br in cloud_init_network_v2.bridges.items() %}
+    {{ brname }}:
+      {%- if br.renderer is defined %}
+      renderer: {{ br.renderer }}
+      {%- endif %}
+      {%- if br.dhcp4 is defined %}
+      dhcp4: {{ br.dhcp4|lower }}
+      {%- endif %}
+      {%- if br.dhcp6 is defined %}
+      dhcp6: {{ br.dhcp6|lower }}
+      {%- endif %}
+      {%- if br.interfaces is defined and br.interfaces|length > 0 %}
+      interfaces:
+        {%- for s in br.interfaces %}
+        - {{ s }}
+        {%- endfor %}
+      {%- endif %}
+      {%- if br.parameters is defined %}
+      parameters:
+        {%- for pk, pv in br.parameters.items() %}
+        {%- if pv is boolean %}
+        {{ pk }}: {{ pv|lower }}
+        {%- elif pv is number or pv is string %}
+        {{ pk }}: {{ pv }}
+        {%- elif pv is sequence %}
+        {{ pk }}:
+            {%- for item in pv %}
+            - {{ item }}
+            {%- endfor %}
+        {%- elif pv is mapping %}
+        {{ pk }}:
+            {%- for subk, subv in pv.items() %}
+            {{ subk }}: {{ subv }}
+            {%- endfor %}
+        {%- endif %}
+        {%- endfor %}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+  {#- Render vlans -#}
+  {%- if cloud_init_network_v2.vlans is defined and cloud_init_network_v2.vlans|length > 0 %}
+  vlans:
+    {%- for vname, v in cloud_init_network_v2.vlans.items() %}
+    {{ vname }}:
+      {%- if v.renderer is defined %}
+      renderer: {{ v.renderer }}
+      {%- endif %}
+      {%- if v.id is defined %}
+      id: {{ v.id }}
+      {%- endif %}
+      {%- if v.link is defined %}
+      link: {{ v.link }}
+      {%- endif %}
+      {%- if v.dhcp4 is defined %}
+      dhcp4: {{ v.dhcp4 }}
+      {%- endif %}
+      {%- if v.dhcp6 is defined %}
+      dhcp6: {{ v.dhcp6 }}
+      {%- endif %}
+      {%- if v.addresses is defined and v.addresses|length > 0 %}
+      addresses:
+        {%- for a in v.addresses %}
+        - {{ a }}
+        {%- endfor %}
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+  {%- endif %}

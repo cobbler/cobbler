@@ -1,0 +1,56 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#ntp -#}
+{%- if cloud_init_ntp is defined %}
+ntp:
+  {%- if cloud_init_ntp.enabled is defined %}
+  enabled: {{ cloud_init_ntp.enabled|lower }}
+  {%- endif %}
+  {%- if cloud_init_ntp.ntp_client is defined %}
+  ntp_client: {{ cloud_init_ntp.ntp_client }}
+  {%- endif %}
+  {%- if cloud_init_ntp.pools is defined and cloud_init_ntp.pools|length > 0 %}
+  pools:
+    {%- for pool in cloud_init_ntp.pools %}
+    - {{ pool }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_ntp.servers is defined and cloud_init_ntp.servers|length > 0 %}
+  servers:
+    {%- for s in cloud_init_ntp.servers %}
+    - {{ s }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_ntp.peers is defined and cloud_init_ntp.peers|length > 0 %}
+  peers:
+    {%- for p in cloud_init_ntp.peers %}
+    - {{ p }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_ntp.allow is defined and cloud_init_ntp.allow|length > 0 %}
+  allow:
+    {%- for a in cloud_init_ntp.allow %}
+    - {{ a }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_ntp.config is defined %}
+  config:
+    {%- if cloud_init_ntp.config.confpath is defined %}
+    confpath: {{ cloud_init_ntp.config.confpath }}
+    {%- endif %}
+    {%- if cloud_init_ntp.config.check_exe is defined %}
+    check_exe: {{ cloud_init_ntp.config.check_exe }}
+    {%- endif %}
+    {%- if cloud_init_ntp.config.packages is defined and cloud_init_ntp.config.packages|length > 0 %}
+    packages:
+      {%- for pkg in cloud_init_ntp.config.packages %}
+      - {{ pkg }}
+      {%- endfor %}
+    {%- endif %}
+    {%- if cloud_init_ntp.config.service_name is defined %}
+    service_name: {{ cloud_init_ntp.config.service_name }}
+    {%- endif %}
+    {%- if cloud_init_ntp.config.template is defined %}
+    template: |
+      {{ cloud_init_ntp.config.template | trim | indent(6) }}
+    {%- endif %}
+  {%- endif %}
+{%- endif %}

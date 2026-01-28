@@ -1,0 +1,11 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#fan -#}
+{%- if cloud_init_fan_config is defined or cloud_init_fan_config_path is defined %}
+fan:
+{%- if cloud_init_fan_config is defined %}
+  config: |
+    {{ cloud_init_fan_config|indent(width=4) }}
+{%- endif %}
+{%- if cloud_init_fan_config_path is defined %}
+  config_path: "{{ cloud_init_fan_config_path }}"
+{%- endif %}
+{%- endif %}

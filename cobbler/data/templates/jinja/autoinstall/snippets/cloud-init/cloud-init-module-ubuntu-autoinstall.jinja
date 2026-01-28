@@ -1,0 +1,12 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#ubuntu-autoinstall -#}
+{#- TODO: Support nesting properties for Ubuntu Subiquity -#}
+{%- if cloud_init_ubuntu_autoinstall is defined %}
+autoinstall:
+  {%- if cloud_init_ubuntu_autoinstall.version is defined %}
+  version: {{ cloud_init_ubuntu_autoinstall.version }}
+  {%- endif %}
+  {%- if cloud_init_ubuntu_autoinstall.user_data is defined %}
+  user_data: |
+    {{ cloud_init_ubuntu_autoinstall.user_data|indent(4) }}
+  {%- endif %}
+{%- endif %}

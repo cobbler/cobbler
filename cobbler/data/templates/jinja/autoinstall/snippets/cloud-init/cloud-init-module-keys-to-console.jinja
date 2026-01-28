@@ -1,0 +1,22 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#keys-to-console -#}
+{#- TODO: Make compatible if SSH is used at the same time. -#}
+{%- if cloud_init_keys_to_console is defined %}
+{%- if cloud_init_keys_to_console.ssh is defined %}
+ssh:
+{%- if cloud_init_keys_to_console.ssh.emit_keys_to_console is defined %}
+  emit_keys_to_console: {{ cloud_init_keys_to_console.ssh.emit_keys_to_console | lower }}
+{%- endif %}
+{%- endif %}
+{%- if cloud_init_keys_to_console.ssh_key_console_blacklist is defined %}
+ssh_key_console_blacklist:
+  {%- for key in cloud_init_keys_to_console.ssh_key_console_blacklist %}
+  - {{ key }}
+  {%- endfor %}
+{%- endif %}
+{%- if cloud_init_keys_to_console.ssh_fp_console_blacklist is defined %}
+ssh_fp_console_blacklist:
+{%- for key in cloud_init_keys_to_console.ssh_fp_console_blacklist %}
+  - {{ key }}
+  {%- endfor %}
+{%- endif %}
+{%- endif %}

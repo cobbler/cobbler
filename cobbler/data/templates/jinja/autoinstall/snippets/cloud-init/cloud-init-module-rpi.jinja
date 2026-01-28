@@ -1,0 +1,33 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#raspberry-pi -#}
+{%- set config = cloud_init_rpi %}
+{%- if config is defined %}
+rpi:
+  {%- if config.interfaces is defined %}
+  interfaces:
+    {%- if config.interfaces.spi is defined %}
+    spi: {{ config.interfaces.spi|string|lower }}
+    {%- endif %}
+    {%- if config.interfaces.i2c is defined %}
+    i2c: {{ config.interfaces.i2c|string|lower }}
+    {%- endif %}
+    {%- if config.interfaces.onewire is defined %}
+    onewire: {{ config.interfaces.onewire|string|lower }}
+    {%- endif %}
+    {%- if config.interfaces.serial is defined %}
+      {%- if config.interfaces.serial is sameas false or config.interfaces.serial is sameas true %}
+    serial: {{ config.interfaces.serial|string|lower }}
+      {%- else %}
+    serial:
+        {%- if config.interfaces.serial.console is defined %}
+      console: {{ config.interfaces.serial.console|string|lower }}
+        {%- endif %}
+        {%- if config.interfaces.serial.hardware is defined %}
+      hardware: {{ config.interfaces.serial.hardware|string|lower }}
+        {%- endif %}
+      {%- endif %}
+    {%- endif %}
+  {%- endif %}
+  {%- if config.enable_usb_gadget is defined %}
+  enable_usb_gadget: {{ config.enable_usb_gadget|string|lower }}
+  {%- endif %}
+{%- endif %}

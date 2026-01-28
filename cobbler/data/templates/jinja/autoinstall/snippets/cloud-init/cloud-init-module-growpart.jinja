@@ -1,0 +1,16 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#growpart -#}
+{%- if cloud_init_growpart_mode is defined or cloud_init_growpart_devices is defined or cloud_init_growpart_ignore_growroot_disabled is defined %}
+growpart:
+{%- if cloud_init_growpart_mode is defined %}
+  mode: "{{ cloud_init_growpart_mode }}"
+{%- endif %}
+{%- if cloud_init_growpart_devices is defined %}
+  devices:
+  {%- for device in cloud_init_growpart_devices %}
+    - "{{ device }}"
+  {%- endfor %}
+{%- endif %}
+{%- if cloud_init_growpart_ignore_growroot_disabled is defined %}
+  ignore_growroot_disabled: {{ cloud_init_growpart_ignore_growroot_disabled|lower }}
+{%- endif %}
+{%- endif %}

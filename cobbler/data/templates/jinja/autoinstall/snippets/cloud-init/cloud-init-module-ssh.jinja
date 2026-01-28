@@ -1,0 +1,53 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#ssh -#}
+{%- if cloud_init_ssh is defined %}
+{%- if cloud_init_ssh.ssh_keys is defined and cloud_init_ssh.ssh_keys|length > 0 %}
+ssh_keys:
+  {%- for key, value in cloud_init_ssh.ssh_keys.items() %}
+    {%- if key.endswith('_private') or key.endswith('_certificate') %}
+  {{ key }}: |
+    {{ value }}
+    {%- else %}
+  {{ key }}: {{ value }}
+    {%- endif %}
+  {%- endfor %}
+{%- endif %}
+{%- if cloud_init_ssh.ssh_authorized_keys is defined and cloud_init_ssh.ssh_authorized_keys|length > 0 %}
+ssh_authorized_keys:
+  {%- for key in cloud_init_ssh.ssh_authorized_keys %}
+  - {{ key }}
+  {%- endfor %}
+{%- endif %}
+{%- if cloud_init_ssh.ssh_deletekeys is defined %}
+ssh_deletekeys: {{ cloud_init_ssh.ssh_deletekeys|lower }}
+{%- endif %}
+{%- if cloud_init_ssh.ssh_genkeytypes is defined and cloud_init_ssh.ssh_genkeytypes|length > 0 %}
+ssh_genkeytypes:
+  {%- for keytype in cloud_init_ssh.ssh_genkeytypes %}
+  - {{ keytype }}
+  {%- endfor %}
+{%- endif %}
+{%- if cloud_init_ssh.disable_root is defined %}
+disable_root: {{ cloud_init_ssh.disable_root|lower }}
+{%- endif %}
+{%- if cloud_init_ssh.disable_root_opts is defined %}
+disable_root_opts: "{{ cloud_init_ssh.disable_root_opts }}"
+{%- endif %}
+{%- if cloud_init_ssh.allow_public_ssh_keys is defined %}
+allow_public_ssh_keys: {{ cloud_init_ssh.allow_public_ssh_keys|lower }}
+{%- endif %}
+{%- if cloud_init_ssh.ssh_quiet_keygen is defined %}
+ssh_quiet_keygen: {{ cloud_init_ssh.ssh_quiet_keygen|lower }}
+{%- endif %}
+{%- if cloud_init_ssh.ssh_publish_hostkeys is defined %}
+ssh_publish_hostkeys:
+  {%- if cloud_init_ssh.ssh_publish_hostkeys.enabled is defined %}
+  enabled: {{ cloud_init_ssh.ssh_publish_hostkeys.enabled }}
+  {%- endif %}
+  {%- if cloud_init_ssh.ssh_publish_hostkeys.blacklist is defined %}
+  blacklist:
+    {%- for key in cloud_init_ssh.ssh_publish_hostkeys.blacklist|length > 0 %}
+    - {{ key }}
+    {%- endfor %}
+  {%- endif %}
+{%- endif %}
+{%- endif %}

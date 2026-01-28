@@ -1,0 +1,22 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#seed-random -#}
+{%- if cloud_init_seed_random is defined %}
+random_seed:
+  {%- if cloud_init_seed_random.file is defined %}
+  file: {{ cloud_init_seed_random.file }}
+  {%- endif %}
+  {%- if cloud_init_seed_random.data is defined %}
+  data: {{ cloud_init_seed_random.data }}
+  {%- endif %}
+  {%- if cloud_init_seed_random.encoding is defined %}
+  encoding: {{ cloud_init_seed_random.encoding }}
+  {%- endif %}
+  {%- if cloud_init_seed_random.command is defined and cloud_init_seed_random.command | length > 0 %}
+  command:
+    {%- for command in cloud_init_seed_random.command %}
+    - {{ command }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_seed_random.command_required is defined %}
+  command_required: {{ cloud_init_seed_random.command_required }}
+  {%- endif %}
+{%- endif %}

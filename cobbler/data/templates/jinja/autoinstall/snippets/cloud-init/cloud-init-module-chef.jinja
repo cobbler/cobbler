@@ -1,0 +1,95 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#chef -#}
+{%- if cloud_init_chef is defined %}
+chef:
+  {%- if cloud_init_chef.directories is defined and cloud_init_chef.directories|length > 0 %}
+  directories:
+    {%- for d in cloud_init_chef.directories %}
+    - {{ d }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_chef.config_path is defined %}
+  config_path: {{ cloud_init_chef.config_path }}
+  {%- endif %}
+  {%- if cloud_init_chef.validation_cert is defined %}
+  validation_cert: {{ cloud_init_chef.validation_cert }}
+  {%- endif %}
+  {%- if cloud_init_chef.validation_key is defined %}
+  validation_key: {{ cloud_init_chef.validation_key }}
+  {%- endif %}
+  {%- if cloud_init_chef.firstboot_path is defined %}
+  firstboot_path: {{ cloud_init_chef.firstboot_path }}
+  {%- endif %}
+  {%- if cloud_init_chef.exec is defined %}
+  exec: {{ cloud_init_chef.exec|lower }}
+  {%- endif %}
+  {%- if cloud_init_chef.client_key is defined %}
+  client_key: {{ cloud_init_chef.client_key }}
+  {%- endif %}
+  {%- if cloud_init_chef.encrypted_data_bag_secret is defined %}
+  encrypted_data_bag_secret: {{ cloud_init_chef.encrypted_data_bag_secret }}
+  {%- endif %}
+  {%- if cloud_init_chef.environment is defined %}
+  environment: {{ cloud_init_chef.environment }}
+  {%- endif %}
+  {%- if cloud_init_chef.file_backup_path is defined %}
+  file_backup_path: {{ cloud_init_chef.file_backup_path }}
+  {%- endif %}
+  {%- if cloud_init_chef.file_cache_path is defined %}
+  file_cache_path: {{ cloud_init_chef.file_cache_path }}
+  {%- endif %}
+  {%- if cloud_init_chef.json_attribs is defined %}
+  json_attribs: {{ cloud_init_chef.json_attribs }}
+  {%- endif %}
+  {%- if cloud_init_chef.log_level is defined %}
+  log_level: {{ cloud_init_chef.log_level }}
+  {%- endif %}
+  {%- if cloud_init_chef.log_location is defined %}
+  log_location: {{ cloud_init_chef.log_location }}
+  {%- endif %}
+  {%- if cloud_init_chef.node_name is defined %}
+  node_name: {{ cloud_init_chef.node_name }}
+  {%- endif %}
+  {%- if cloud_init_chef.omnibus_url is defined %}
+  omnibus_url: {{ cloud_init_chef.omnibus_url }}
+  {%- endif %}
+  {%- if cloud_init_chef.omnibus_url_retries is defined %}
+  omnibus_url_retries: {{ cloud_init_chef.omnibus_url_retries }}
+  {%- endif %}
+  {%- if cloud_init_chef.omnibus_version is defined %}
+  omnibus_version: {{ cloud_init_chef.omnibus_version }}
+  {%- endif %}
+  {%- if cloud_init_chef.pid_file is defined %}
+  pid_file: {{ cloud_init_chef.pid_file }}
+  {%- endif %}
+  {%- if cloud_init_chef.server_url is defined %}
+  server_url: {{ cloud_init_chef.server_url }}
+  {%- endif %}
+  {%- if cloud_init_chef.show_time is defined %}
+  show_time: {{ cloud_init_chef.show_time|lower }}
+  {%- endif %}
+  {%- if cloud_init_chef.ssl_verify_mode is defined %}
+  ssl_verify_mode: {{ cloud_init_chef.ssl_verify_mode }}
+  {%- endif %}
+  {%- if cloud_init_chef.validation_name is defined %}
+  validation_name: {{ cloud_init_chef.validation_name }}
+  {%- endif %}
+  {%- if cloud_init_chef.force_install is defined %}
+  force_install: {{ cloud_init_chef.force_install|lower }}
+  {%- endif %}
+  {%- if cloud_init_chef.initial_attributes is defined %}
+  initial_attributes:
+    {{ cloud_init_chef.initial_attributes | trim | indent(4) }}
+  {%- endif %}
+  {%- if cloud_init_chef.install_type is defined %}
+  install_type: {{ cloud_init_chef.install_type }}
+  {%- endif %}
+  {%- if cloud_init_chef.run_list is defined and cloud_init_chef.run_list|length > 0 %}
+  run_list:
+    {%- for item in cloud_init_chef.run_list %}
+    - {{ item }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if cloud_init_chef.chef_license is defined %}
+  chef_license: {{ cloud_init_chef.chef_license }}
+  {%- endif %}
+{%- endif %}

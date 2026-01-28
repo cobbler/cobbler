@@ -1,0 +1,11 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#bootcmd -#}
+{%- if cloud_init_bootcmd is defined %}
+bootcmd:
+{%- for element in cloud_init_bootcmd %}
+{%- if element is string %}
+  - "{{ element }}"
+{%- else %}
+  - [{% for subelement in element %}"{{ subelement }}"{{", " if not loop.last}}{% endfor %}]
+{%- endif %}
+{%- endfor %}
+{%- endif %}

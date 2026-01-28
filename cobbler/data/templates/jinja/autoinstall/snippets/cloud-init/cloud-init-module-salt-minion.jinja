@@ -1,0 +1,32 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#salt-minion -#}
+{%- if cloud_init_salt_minion is defined %}
+salt_minion:
+  {%- if cloud_init_salt_minion.pkg_name is defined %}
+  pkg_name: {{ cloud_init_salt_minion.pkg_name }}
+  {%- endif %}
+  {%- if cloud_init_salt_minion.service_name is defined %}
+  service_name: {{ cloud_init_salt_minion.service_name }}
+  {%- endif %}
+  {%- if cloud_init_salt_minion.config_dir is defined %}
+  config_dir: {{ cloud_init_salt_minion.config_dir }}
+  {%- endif %}
+  {%- if cloud_init_salt_minion.pki_dir is defined %}
+  pki_dir: {{ cloud_init_salt_minion.pki_dir }}
+  {%- endif %}
+  {%- if cloud_init_salt_minion.public_key is defined %}
+  public_key: |
+    {{ cloud_init_salt_minion.public_key | trim | indent(4) }}
+  {%- endif %}
+  {%- if cloud_init_salt_minion.private_key is defined %}
+  private_key: |
+    {{- cloud_init_salt_minion.private_key | trim | indent(4) }}
+  {%- endif %}
+  {%- if cloud_init_salt_minion.conf is defined and cloud_init_salt_minion.conf|length > 0 %}
+  conf:
+    {{ cloud_init_salt_minion.conf | trim | indent(4) }}
+  {%- endif %}
+  {%- if cloud_init_salt_minion.grains is defined and cloud_init_salt_minion.grains|length > 0 %}
+  grains:
+    {{ cloud_init_salt_minion.grains | trim | indent(4) }}
+  {%- endif %}
+{%- endif %}

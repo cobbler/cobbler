@@ -1,0 +1,93 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#puppet -#}
+{%- set config = cloud_init_puppet %}
+{%- if config is defined %}
+puppet:
+  {%- if config.install is defined %}
+  install: {{ config.install|string|lower }}
+  {%- endif %}
+  {%- if config.version is defined %}
+  version: {{ config.version }}
+  {%- endif %}
+  {%- if config.install_type is defined %}
+  install_type: {{ config.install_type }}
+  {%- endif %}
+  {%- if config.collection is defined %}
+  collection: {{ config.collection }}
+  {%- endif %}
+  {%- if config.aio_install_url is defined %}
+  aio_install_url: {{ config.aio_install_url }}
+  {%- endif %}
+  {%- if config.cleanup is defined %}
+  cleanup: {{ config.cleanup|string|lower }}
+  {%- endif %}
+  {%- if config.conf_file is defined %}
+  conf_file: {{ config.conf_file }}
+  {%- endif %}
+  {%- if config.ssl_dir is defined %}
+  ssl_dir: {{ config.ssl_dir }}
+  {%- endif %}
+  {%- if config.csr_attributes_path is defined %}
+  csr_attributes_path: {{ config.csr_attributes_path }}
+  {%- endif %}
+  {%- if config.package_name is defined %}
+  package_name: {{ config.package_name }}
+  {%- endif %}
+  {%- if config.exec is defined %}
+  exec: {{ config.exec|string|lower }}
+  {%- endif %}
+  {%- if config.exec_args is defined %}
+  exec_args:
+    {%- for arg in config.exec_args %}
+    - {{ arg }}
+    {%- endfor %}
+  {%- endif %}
+  {%- if config.start_service is defined %}
+  start_service: {{ config.start_service|string|lower }}
+  {%- endif %}
+  {%- if config.conf is defined %}
+  conf:
+    {%- if config.conf.ca_cert is defined %}
+    ca_cert: |
+      {{ config.conf.ca_cert | indent(6) }}
+    {%- endif %}
+    {%- if config.conf.main is defined %}
+    main:
+      {%- for key, value in config.conf.main.items() %}
+      {{ key }}: {{ value }}
+      {%- endfor %}
+    {%- endif %}
+    {%- if config.conf.server is defined %}
+    server:
+      {%- for key, value in config.conf.server.items() %}
+      {{ key }}: {{ value }}
+      {%- endfor %}
+    {%- endif %}
+    {%- if config.conf.agent is defined %}
+    agent:
+      {%- for key, value in config.conf.agent.items() %}
+      {{ key }}: {{ value }}
+      {%- endfor %}
+    {%- endif %}
+    {%- if config.conf.user is defined %}
+    user:
+      {%- for key, value in config.conf.user.items() %}
+      {{ key }}: {{ value }}
+      {%- endfor %}
+    {%- endif %}
+  {%- endif %}
+  {%- if config.csr_attributes is defined %}
+  csr_attributes:
+    {%- if config.csr_attributes.custom_attributes is defined %}
+    custom_attributes:
+      {%- for key, value in config.csr_attributes.custom_attributes.items() %}
+      {{ key }}: {{ value }}
+      {%- endfor %}
+    {%- endif %}
+    {%- if config.csr_attributes.extension_requests is defined %}
+    extension_requests:
+      {%- for key, value in config.csr_attributes.extension_requests.items() %}
+      {{ key }}: {{ value }}
+      {%- endfor %}
+    {%- endif %}
+  {%- endif %}
+{%- endif %}

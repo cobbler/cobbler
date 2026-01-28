@@ -1,0 +1,193 @@
+{#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#ansible -#}
+{%- if cloud_init_ansible is defined %}
+ansible:
+  {%- if cloud_init_ansible.install_method is defined %}
+  install_method: "{{ cloud_init_ansible.install_method }}"
+  {%- endif %}
+  {%- if cloud_init_ansible.run_user is defined %}
+  run_user: "{{ cloud_init_ansible.run_user }}"
+  {%- endif %}
+  {%- if cloud_init_ansible.ansible_config is defined %}
+  ansible_config: "{{ cloud_init_ansible.ansible_config }}"
+  {%- endif %}
+  {%- if cloud_init_ansible.setup_controller is defined %}
+  setup_controller:
+    {%- if cloud_init_ansible.setup_controller.repositories is defined and cloud_init_ansible.setup_controller.repositories|length > 0 %}
+    repositories:
+      {%- for repo in cloud_init_ansible.setup_controller.repositories %}
+      - {% if repo.path is defined %}path: "{{ repo.path }}"{%- endif %}
+        {%- if repo.source is defined %}
+        source: "{{ repo.source }}"
+        {%- endif %}
+      {%- endfor %}
+    {%- endif %}
+    {%- if cloud_init_ansible.setup_controller.run_ansible is defined and cloud_init_ansible.setup_controller.run_ansible|length > 0 %}
+    run_ansible:
+      {%- for run in cloud_init_ansible.setup_controller.run_ansible %}
+      - {% if run.playbook_name is defined %}playbook_name: "{{ run.playbook_name }}"{%- endif %}
+        {%- if run.playbook_dir is defined %}
+        playbook_dir: "{{ run.playbook_dir }}"
+        {%- endif %}
+        {%- if run.become_password_file is defined %}
+        become_password_file: "{{ run.become_password_file }}"
+        {%- endif %}
+        {%- if run.connection_password_file is defined %}
+        connection_password_file: "{{ run.connection_password_file }}"
+        {%- endif %}
+        {%- if run.list_hosts is defined %}
+        list_hosts: {{ run.list_hosts|lower }}
+        {%- endif %}
+        {%- if run.syntax_check is defined %}
+        syntax_check: {{ run.syntax_check|lower }}
+        {%- endif %}
+        {%- if run.timeout is defined %}
+        timeout: {{ run.timeout }}
+        {%- endif %}
+        {%- if run.vault_id is defined %}
+        vault_id: "{{ run.vault_id }}"
+        {%- endif %}
+        {%- if run.vault_password_file is defined %}
+        vault_password_file: "{{ run.vault_password_file }}"
+        {%- endif %}
+        {%- if run.background is defined %}
+        background: {{ run.background }}
+        {%- endif %}
+        {%- if run.check is defined %}
+        check: {{ run.check|lower }}
+        {%- endif %}
+        {%- if run.diff is defined %}
+        diff: {{ run.diff|lower }}
+        {%- endif %}
+        {%- if run.module_path is defined %}
+        module_path: "{{ run.module_path }}"
+        {%- endif %}
+        {%- if run.poll is defined %}
+        poll: {{ run.poll }}
+        {%- endif %}
+        {%- if run.args is defined %}
+        args: "{{ run.args }}"
+        {%- endif %}
+        {%- if run.extra_vars is defined %}
+        extra_vars: "{{ run.extra_vars }}"
+        {%- endif %}
+        {%- if run.forks is defined %}
+        forks: {{ run.forks }}
+        {%- endif %}
+        {%- if run.inventory is defined %}
+        inventory: "{{ run.inventory }}"
+        {%- endif %}
+        {%- if run.scp_extra_args is defined %}
+        scp_extra_args: "{{ run.scp_extra_args }}"
+        {%- endif %}
+        {%- if run.sftp_extra_args is defined %}
+        sftp_extra_args: "{{ run.sftp_extra_args }}"
+        {%- endif %}
+        {%- if run.private_key is defined %}
+        private_key: "{{ run.private_key }}"
+        {%- endif %}
+        {%- if run.connection is defined %}
+        connection: "{{ run.connection }}"
+        {%- endif %}
+        {%- if run.module_name is defined %}
+        module_name: "{{ run.module_name }}"
+        {%- endif %}
+        {%- if run.sleep is defined %}
+        sleep: "{{ run.sleep }}"
+        {%- endif %}
+        {%- if run.tags is defined %}
+        tags: "{{ run.tags }}"
+        {%- endif %}
+        {%- if run.skip_tags is defined %}
+        skip_tags: "{{ run.skip_tags }}"
+        {%- endif %}
+      {%- endfor %}
+    {%- endif %}
+  {%- endif %}
+  {%- if cloud_init_ansible.galaxy is defined %}
+  galaxy:
+    {%- if cloud_init_ansible.galaxy.actions is defined and cloud_init_ansible.galaxy.actions|length > 0 %}
+    actions:
+      {%- for action_list in cloud_init_ansible.galaxy.actions %}
+      -
+        {%- for action in action_list %}
+        - "{{ action }}"
+        {%- endfor %}
+      {%- endfor %}
+    {%- endif %}
+  {%- endif %}
+  {%- if cloud_init_ansible.package_name is defined %}
+  package_name: "{{ cloud_init_ansible.package_name }}"
+  {%- endif %}
+  {%- if cloud_init_ansible.pull is defined %}
+  pull:
+    {%- for p in cloud_init_ansible.pull %}
+    - {%- if p.accept_host_key is defined %}accept_host_key: {{ p.accept_host_key|lower }}{%- endif %}
+      {%- if p.clean is defined %}
+      clean: {{ p.clean|lower }}
+      {%- endif %}
+      {%- if p.full is defined %}
+      full: {{ p.full|lower }}
+      {%- endif %}
+      {%- if p.diff is defined %}
+      diff: {{ p.diff|lower }}
+      {%- endif %}
+      {%- if p.ssh_common_args is defined %}
+      ssh_common_args: "{{ p.ssh_common_args }}"
+      {%- endif %}
+      {%- if p.scp_extra_args is defined %}
+      scp_extra_args: "{{ p.scp_extra_args }}"
+      {%- endif %}
+      {%- if p.sftp_extra_args is defined %}
+      sftp_extra_args: "{{ p.sftp_extra_args }}"
+      {%- endif %}
+      {%- if p.private_key is defined %}
+      private_key: "{{ p.private_key }}"
+      {%- endif %}
+      {%- if p.checkout is defined %}
+      checkout: "{{ p.checkout }}"
+      {%- endif %}
+      {%- if p.module_path is defined %}
+      module_path: "{{ p.module_path }}"
+      {%- endif %}
+      {%- if p.timeout is defined %}
+      timeout: "{{ p.timeout }}"
+      {%- endif %}
+      {%- if p.url is defined %}
+      url: "{{ p.url }}"
+      {%- endif %}
+      {%- if p.connection is defined %}
+      connection: "{{ p.connection }}"
+      {%- endif %}
+      {%- if p.vault_id is defined %}
+      vault_id: "{{ p.vault_id }}"
+      {%- endif %}
+      {%- if p.vault_password_file is defined %}
+      vault_password_file: "{{ p.vault_password_file }}"
+      {%- endif %}
+      {%- if p.verify_commit is defined %}
+      verify_commit: {{ p.verify_commit|lower }}
+      {%- endif %}
+      {%- if p.inventory is defined %}
+      inventory: "{{ p.inventory }}"
+      {%- endif %}
+      {%- if p.module_name is defined %}
+      module_name: "{{ p.module_name }}"
+      {%- endif %}
+      {%- if p.sleep is defined %}
+      sleep: "{{ p.sleep }}"
+      {%- endif %}
+      {%- if p.tags is defined %}
+      tags: "{{ p.tags }}"
+      {%- endif %}
+      {%- if p.skip_tags is defined %}
+      skip_tags: "{{ p.skip_tags }}"
+      {%- endif %}
+      {%- if p.playbook_name is defined %}
+      playbook_name: "{{ p.playbook_name }}"
+      {%- endif %}
+      {%- if p.playbook_names is defined and p.playbook_names|length > 0 %}
+      playbook_names: [ {% for pn in p.playbook_names %}"{{ pn }}"{%- if not loop.last %}, {% endif %}{% endfor %} ]
+      {%- endif %}
+    {%- endfor %}
+  {%- endif %}
+{%- endif %}
