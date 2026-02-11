@@ -85,6 +85,12 @@ class MkLoaders:
             self.bootloaders_dir.joinpath(pathlib.Path("grub/shim.efi")),
             skip_existing=True,
         )
+        # compatibility symlink in case the firmware looks in the root directory
+        symlink(
+            self.bootloaders_dir.joinpath(pathlib.Path("grub/shim.efi")),
+            self.bootloaders_dir.joinpath(pathlib.Path("shim.efi")),
+            skip_existing=True,
+        )
 
     def make_ipxe(self) -> None:
         """
@@ -197,6 +203,13 @@ class MkLoaders:
                 symlink(
                     target_grub,
                     self.bootloaders_dir.joinpath("grub", binary_name),
+                    skip_existing=True,
+                )
+
+                # compatibility symlink in case shim looks in the root directory
+                symlink(
+                    self.bootloaders_dir.joinpath("grub", binary_name),
+                    self.bootloaders_dir.joinpath(binary_name),
                     skip_existing=True,
                 )
                 self.logger.info(
