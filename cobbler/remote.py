@@ -740,7 +740,7 @@ class CobblerXMLRPCInterface:
         token: str,
         role_name: str,
         name: str,
-        args: Dict[str, Any],
+        options: Dict[str, Any],
         on_done: Optional[Callable[["CobblerThread"], None]] = None,
     ):
         """
@@ -751,7 +751,7 @@ class CobblerXMLRPCInterface:
                       tasks require tokens.
         :param role_name: used to check token against authn/authz layers
         :param name: display name to show in logs/events
-        :param args: usually this is a single dict, containing options
+        :param options: usually this is a single dict, containing options
         :param on_done: an optional second function handle to run after success (and only success)
         :return: a task id.
         """
@@ -760,9 +760,9 @@ class CobblerXMLRPCInterface:
 
         self._log(f"create_task({name}); event_id({new_event.event_id})")
 
-        args["load_items_lock"] = self.load_items_lock
+        options["load_items_lock"] = self.load_items_lock
         thr_obj = CobblerThread(
-            new_event.event_id, self, args, role_name, self.api, thr_obj_fn, on_done
+            new_event.event_id, self, options, role_name, self.api, thr_obj_fn, on_done
         )
         thr_obj.start()
         return new_event.event_id
