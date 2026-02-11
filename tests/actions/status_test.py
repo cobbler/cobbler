@@ -2,6 +2,8 @@
 Test module to test the functionallity of generating the installation log summary.
 """
 
+import lzma
+
 import pytest
 from pytest_mock import MockerFixture
 
@@ -21,10 +23,14 @@ def test_collect_logfiles(mocker: MockerFixture):
             "/var/log/cobbler/install.log",
             "/var/log/cobbler/install.log1",
             "/var/log/cobbler/install.log.1",
+            "/var/log/cobbler/install.log.2.gz",
+            "/var/log/cobbler/install.log-20250101.xz",
         ],
     )
     expected_result = [
+        "/var/log/cobbler/install.log.2.gz",
         "/var/log/cobbler/install.log.1",
+        "/var/log/cobbler/install.log-20250101.xz",
         "/var/log/cobbler/install.log",
     ]
 
@@ -40,11 +46,29 @@ def test_scan_logfiles(mocker: MockerFixture, cobbler_api: CobblerAPI):
     Test that validates the scan_logfiles subroutine.
     """
     # Arrange
-    mocker.patch("gzip.open", mocker.mock_open(read_data="test test test test 0.0"))
+    mocker.patch(
+        "cobbler.actions.status.gzip.open",
+        mocker.mock_open(read_data="test test test test 0.0"),
+    )
+    mocker.patch(
+        "cobbler.actions.status.bz2.open",
+        mocker.mock_open(read_data="test test test test 0.0"),
+    )
+    mocker.patch(
+        "cobbler.actions.status.lzma.open",
+        mocker.mock_open(read_data="test test test test 0.0"),
+    )
     mocker.patch("builtins.open", mocker.mock_open(read_data="test test test test 0.0"))
     test_status = status.CobblerStatusReport(cobbler_api, "text")
     mocker.patch.object(
-        test_status, "collect_logfiles", return_value=["/test/test", "/test/test.gz"]
+        test_status,
+        "collect_logfiles",
+        return_value=[
+            "/test/test",
+            "/test/test.gz",
+            "/test/test.xz",
+            "/test/test.bz2",
+        ],
     )
     mock_catalog = mocker.patch.object(test_status, "catalog")
 
@@ -52,7 +76,46 @@ def test_scan_logfiles(mocker: MockerFixture, cobbler_api: CobblerAPI):
     test_status.scan_logfiles()
 
     # Assert
-    assert mock_catalog.call_count == 2
+    assert mock_catalog.call_count == 4
+
+
+def test_scan_logfiles_skips_unreadable_file(
+    mocker: MockerFixture, cobbler_api: CobblerAPI
+):
+    """
+    Test that scan_logfiles skips unreadable compressed files.
+    """
+
+    mocker.patch(
+        "cobbler.actions.status.gzip.open",
+        mocker.mock_open(read_data="test test test test 0.0"),
+    )
+    mocker.patch(
+        "cobbler.actions.status.bz2.open",
+        mocker.mock_open(read_data="test test test test 0.0"),
+    )
+    mocker.patch("builtins.open", mocker.mock_open(read_data="test test test test 0.0"))
+    mocker.patch(
+        "cobbler.actions.status.lzma.open",
+        side_effect=lzma.LZMAError("Corrupted data"),
+    )
+    mock_warning = mocker.patch("cobbler.actions.status.LOGGER.warning")
+    test_status = status.CobblerStatusReport(cobbler_api, "text")
+    mocker.patch.object(
+        test_status,
+        "collect_logfiles",
+        return_value=["/test/bad.xz", "/test/good"],
+    )
+    mock_catalog = mocker.patch.object(test_status, "catalog")
+
+    # Act
+    test_status.scan_logfiles()
+
+    # Assert
+    assert mock_catalog.call_count == 1
+    mock_warning.assert_called_once()
+    assert mock_warning.call_args[0][0] == "Skipping unreadable Cobbler log %s: %s"
+    assert mock_warning.call_args[0][1] == "/test/bad.xz"
 
 
 def test_catalog(cobbler_api: CobblerAPI):
