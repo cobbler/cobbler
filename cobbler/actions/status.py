@@ -7,14 +7,21 @@ Reports on automatic installation activity by examining the logs in
 # SPDX-FileCopyrightText: Copyright 2007-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
+import bz2
 import glob
 import gzip
+import logging
+import lzma
+import os
 import re
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, TextIO, Tuple, Union
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class InstallStatus:
@@ -73,49 +80,102 @@ class CobblerStatusReport:
         self.mode = mode
 
     @staticmethod
+    def _safe_getmtime(filename: str) -> float:
+        """
+        Retrieve the modification time of a log file while tolerating missing files.
+
+        :param filename: Path to the log file.
+        :return: Modification time as returned by ``os.path.getmtime`` or ``0.0`` if unavailable.
+        """
+        try:
+            return os.path.getmtime(filename)
+        except OSError:
+            return 0.0
+
+    @staticmethod
     def collect_logfiles() -> List[str]:
         """
-        Collects all installation logfiles from ``/var/log/cobbler/``. This will also collect gzipped logfiles.
+        Collects all installation logfiles from ``/var/log/cobbler/``.
 
-        :returns: List of absolute paths that are matching the filepattern ``install.log`` or ``install.log.x``, where
-                  x is a number equal or greater than zero.
+        :returns: Paths sorted from oldest to newest, with ``install.log`` last.
         """
-        unsorted_files = glob.glob("/var/log/cobbler/install.log*")
-        files_dict: Dict[int, str] = {}
-        log_id_re = re.compile(r"install.log.(\d+)")
+        base_log = os.path.join("/var/log/cobbler", "install.log")
+        unsorted_files = glob.glob(f"{base_log}*")
+        files_with_keys: List[Tuple[float, str]] = []
+        log_id_re = re.compile(r"install\.log\.(\d+)")
+
         for fname in unsorted_files:
+            if fname == base_log:
+                continue
+            base_name = os.path.basename(fname)
+            if not (
+                base_name.startswith("install.log.")
+                or base_name.startswith("install.log-")
+            ):
+                continue
             id_match = log_id_re.search(fname)
             if id_match:
-                files_dict[int(id_match.group(1))] = fname
+                sort_key = float(-int(id_match.group(1)))
+            else:
+                sort_key = CobblerStatusReport._safe_getmtime(fname)
+            files_with_keys.append((sort_key, fname))
 
-        files: List[str] = []
-        sorted_ids = sorted(files_dict.keys(), reverse=True)
-        for file_id in sorted_ids:
-            files.append(files_dict[file_id])
+        files_with_keys.sort()
+        files: List[str] = [fname for _, fname in files_with_keys]
         if "/var/log/cobbler/install.log" in unsorted_files:
-            files.append("/var/log/cobbler/install.log")
+            files.append(base_log)
 
         return files
+
+    @staticmethod
+    def _open_logfile(filename: str) -> TextIO:
+        """
+        Open a Cobbler installation log file with the appropriate decompressor.
+
+        :param filename: Path to the log file.
+        :return: File object opened in text mode.
+        """
+        encoding = "utf-8"
+        errors = "replace"
+        if filename.endswith(".gz"):
+            return gzip.open(filename, mode="rt", encoding=encoding, errors=errors)
+        if filename.endswith(".bz2"):
+            return bz2.open(filename, mode="rt", encoding=encoding, errors=errors)
+        if filename.endswith(".xz") or filename.endswith(".lzma"):
+            return lzma.open(filename, mode="rt", encoding=encoding, errors=errors)
+        return open(filename, mode="r", encoding=encoding, errors=errors)
 
     def scan_logfiles(self) -> None:
         """
         Scan the installation log-files - starting with the oldest file.
         """
         for fname in self.collect_logfiles():
-            if fname.endswith(".gz"):
-                logile_fd = gzip.open(fname, "rt")
-            else:
-                logile_fd = open(fname, "rt", encoding="UTF-8")
-            data = logile_fd.read()
-            for line in data.split("\n"):
-                tokens = line.split()
-                if len(tokens) == 0:
-                    continue
-                (profile_or_system, name, ip_address, start_or_stop, timestamp) = tokens
-                self.catalog(
-                    profile_or_system, name, ip_address, start_or_stop, float(timestamp)
+            try:
+                with self._open_logfile(fname) as logfile_fd:
+                    for line in logfile_fd:
+                        tokens = line.split()
+                        if len(tokens) == 0:
+                            continue
+                        (
+                            profile_or_system,
+                            name,
+                            ip_address,
+                            start_or_stop,
+                            timestamp,
+                        ) = tokens
+                        self.catalog(
+                            profile_or_system,
+                            name,
+                            ip_address,
+                            start_or_stop,
+                            float(timestamp),
+                        )
+            except (OSError, UnicodeError, lzma.LZMAError) as error:
+                LOGGER.warning(
+                    "Skipping unreadable Cobbler log %s: %s",
+                    fname,
+                    error,
                 )
-            logile_fd.close()
 
     def catalog(
         self,
