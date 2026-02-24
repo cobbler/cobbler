@@ -113,6 +113,25 @@ jobs:
           name: debs-debian12
           path: |
             deb-build/*.deb
+  build-debian13-debs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install System dependencies
+        run: sudo apt-get install -y rename
+      - name: Build a Debian 13 Package
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          ./docker/debs/build-and-install-debs.sh deb13 docker/debs/Debian_13/Debian13.dockerfile
+      - name: Rename DEB
+        run: |
+          sudo file-rename -v -d -e 's/(^cobbler.*)_(\d+\.\d+\.\d+)_all\.deb/$1_$2_all.deb13.deb/' deb-build/*.deb
+      - name: Archive DEBs
+        uses: actions/upload-artifact@v4
+        with:
+          name: debs-debian13
+          path: |
+            deb-build/*.deb
   build-wheel:
     name: Build Python Wheel
     runs-on: ubuntu-latest

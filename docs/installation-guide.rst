@@ -120,6 +120,7 @@ However we provide docker files for
 - Rocky Linux 10
 - Debian 11 Bullseye
 - Debian 12 Bookworm
+- Debian 13 Trixie
 
 which will give you packages which will work better then building from source yourself.
 
@@ -136,6 +137,7 @@ To build the packages you to need to execute the following in the root folder of
 - Rocky Linux 10: ``./docker/rpms/build-and-install-rpms.sh rl10 docker/rpms/Rocky_Linux_10/Rocky_Linux_10.dockerfile``
 - Debian 11: ``./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile``
 - Debian 12: ``./docker/debs/build-and-install-debs.sh deb12 docker/debs/Debian_12/Debian12.dockerfile``
+- Debian 13: ``./docker/debs/build-and-install-debs.sh deb13 docker/debs/Debian_13/Debian13.dockerfile``
 
 After executing the scripts you should have one folder owned by ``root`` which was created during the build. It is
 either called ``rpm-build`` or ``deb-build``. In these directories you should find the built packages. They are

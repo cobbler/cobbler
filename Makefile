@@ -99,6 +99,9 @@ test-debian11: ## Executes the testscript for testing cobbler in a docker contai
 test-debian12: ## Executes the testscript for testing cobbler in a docker container on Debian 12.
 	./docker/debs/build-and-install-debs.sh deb12 docker/debs/Debian_12/Debian12.dockerfile
 
+test-debian13: ## Executes the testscript for testing cobbler in a docker container on Debian 13.
+	./docker/debs/build-and-install-debs.sh deb13 docker/debs/Debian_13/Debian13.dockerfile
+
 system-test: ## Runs the system tests
 	${PYTHON} -m pytest -m integration -k ${SYSTESTS}
 
