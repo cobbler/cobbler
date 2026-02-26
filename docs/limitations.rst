@@ -16,6 +16,11 @@ Kernel options
 The user (so you) is responsible for generating the correct quoting of the Kernel Command Line. We manipulate the
 arguments you give us in a way that we add wrapping double quotes around them when the value contains a space.
 
+Kernel options are stored as a flat key/value mapping where each option name resolves to a single value, ``None`` or a
+list of values (when the option is provided multiple times). Nested dictionaries are not supported and will lead to
+unexpected behaviour later in the provisioning flow.
+Non-string scalar values such as integers or booleans are stringified when rendered onto the kernel command line.
+
 The Linux Kernel describes its quoting at:
 `The kernel’s command-line parameters <https://www.kernel.org/doc/html/v5.15/admin-guide/kernel-parameters.html#the-kernel-s-command-line-parameters>`_
 

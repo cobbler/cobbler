@@ -345,7 +345,9 @@ location.
 Kernel Options
 ==============
 
-Kernel options can be added to profiles and to systems. Systems will inherit their profile kernel options.
+Kernel options can be added to profiles and to systems. Systems will inherit their profile kernel options. The values
+are stored as a flat mapping (no nested dictionaries); specifying the same option multiple times produces a list of
+values for that option. Non-string scalars are stringified before they are written to the kernel command line.
 
 Example adding a kernel option to profile and system, and the generated boot.cfg file:
 
@@ -402,4 +404,3 @@ Useful links
 * `VMware ESXi 7 Network Boot Install <https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.esxi.install.doc/GUID-44535B01-38CF-4E6D-862A-95EF5ACA3F03.html>`_
 * `boot.cfg file description <https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.esxi.upgrade.doc/GUID-1DE4EC58-8665-4F14-9AB4-1C62297D866B.html>`_
 * `ESXi boot options <https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.esxi.upgrade.doc/GUID-9040F0B2-31B5-406C-9000-B02E8DA785D4.html>`_
-

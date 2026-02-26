@@ -154,8 +154,8 @@ V2.8.5:
         * ``profile``: str - Name of the profile
         * ``image``: str - Name of the image
         * ``status``: str - One of "", "development", "testing", "acceptance", "production"
-        * ``kernel_options``: Dict[str, Any]
-        * ``kernel_options_post``: Dict[str, Any]
+        * ``kernel_options``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
+        * ``kernel_options_post``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
         * ``ks_meta``: Dict[str, Any]
         * ``enable_gpxe``: bool - Inheritable
         * ``proxy``: str - Inheritable
@@ -209,7 +209,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
 from cobbler import enums, utils, validate
 from cobbler.cexceptions import CX
-from cobbler.items.abstract.bootable_item import BootableItem
+from cobbler.items.abstract.bootable_item import BootableItem, KernelOptionsDict
 from cobbler.items.network_interface import NetworkInterface
 from cobbler.items.options.dns import DNSOption
 from cobbler.items.options.power import PowerOption
@@ -274,8 +274,8 @@ class System(BootableItem):
         # Overwrite defaults from bootable_item.py
         self._owners = enums.VALUE_INHERITED
         self._autoinstall_meta = enums.VALUE_INHERITED
-        self._kernel_options = enums.VALUE_INHERITED
-        self._kernel_options_post = enums.VALUE_INHERITED
+        self._kernel_options: Union[KernelOptionsDict, str] = enums.VALUE_INHERITED
+        self._kernel_options_post: Union[KernelOptionsDict, str] = enums.VALUE_INHERITED
 
         if len(kwargs) > 0:
             self.from_dict(kwargs)
