@@ -38,47 +38,123 @@ a large number of ancillary packages, which we do not document here. The package
 these packages in and install them along with Cobbler, however it is always best to verify these requirements have been
 met prior to installing Cobbler or any of its components.
 
-First and foremost, Cobbler requires Python. Since 3.0.0 you will need Python 3. Cobbler also requires the installation
-of the following packages:
+First and foremost, Cobbler requires Python 3. When installing from distribution
+packages, the dependency solver pulls the required libraries automatically. The
+lists below document the packages so you can validate a manual or source based
+installation. Package names reflect the native repositories of each platform.
 
-- A webserver that can act as a proxy (like Apache, Nginx, ...)
-- wget and/or curl
-- createrepo_c
-- xorriso
-- Gunicorn
-- python-cheetah
-- python-dns
-- python-requests
-- python-distro
-- python-netaddr
-- python-librepo
-- python-schema
-- python-gunicorn
-- PyYAML / python-yaml
-- fence-agents
-- rsync
-- syslinux
-- tftp-server / atftpd
+DNF based distributions (Fedora, RHEL, CentOS Stream, Rocky, AlmaLinux)
+----------------------------------------------------------------------
 
-On dnf based systems please also install: ``dnf-plugins-core``
+**Required packages**
 
-If you decide to use the LDAP authentication, please also install manually in any case:
+- ``httpd`` (or another HTTP proxy supporting reverse proxy)
+- ``tftp-server``
+- ``createrepo_c``
+- ``dnf-plugins-core``
+- ``fence-agents`` (``fence-agents-all`` on RHEL 9 and newer)
+- ``rsync``
+- ``xorriso``
+- ``dosfstools``
+- ``mtools``
+- ``python3-cheetah``
+- ``python3-dns``
+- ``python3-netaddr``
+- ``python3-requests``
+- ``python3-distro``
+- ``python3-schema``
+- ``python3-systemd``
+- ``python3-gunicorn``
+- ``python3-file-magic``
+- ``python3-PyYAML``
 
-- python3-ldap (or via PyPi: ldap)
+**Recommended packages**
 
-If you decide to require Windows auto-installation support, please also install manually:
+- ``syslinux``
+- ``grub2-efi-x64`` and ``grub2-efi-ia32``
+- ``logrotate``
+- ``python3-librepo``
+- ``bash-completion``
 
-- python-hivex
-- python-pefile
+APT based distributions (Debian, Ubuntu)
+----------------------------------------
 
-If you are on an apt-based system our operation may be better for mirror detection if the ``aptsources`` Python module
-is available.
+**Required packages**
+
+- ``apache2`` (or a compatible HTTP proxy)
+- ``tftpd-hpa`` or ``atftpd``
+- ``systemd``
+- ``fence-agents``
+- ``rsync``
+- ``xorriso``
+- ``python3`` (>= 3.6)
+- ``python3-cheetah``
+- ``python3-dnspython``
+- ``python3-netaddr``
+- ``python3-requests``
+- ``python3-distro``
+- ``python3-schema``
+- ``python3-gunicorn``
+- ``python3-yaml``
+
+**Suggested packages**
+
+- ``createrepo-c`` (``createrepo`` on older releases)
+- ``logrotate``
+- ``python3-librepo``
+
+For mirror detection on apt based systems installing the ``python3-aptsources``
+module is strongly recommended.
+
+ZYpp based distributions (openSUSE Leap, openSUSE Tumbleweed, SLES)
+-------------------------------------------------------------------
+
+**Required packages**
+
+- ``apache2``
+- ``tftp``
+- ``createrepo_c``
+- ``fence-agents``
+- ``rsync``
+- ``xorriso``
+- ``dosfstools``
+- ``mtools``
+- ``python311-Cheetah3`` (``python3-Cheetah3`` on older SLES)
+- ``python311-dnspython``
+- ``python311-netaddr``
+- ``python311-requests``
+- ``python311-distro``
+- ``python311-schema``
+- ``python311-systemd``
+- ``python311-gunicorn``
+- ``python311-file-magic``
+- ``python311-PyYAML``
+
+**Recommended packages**
+
+- ``syslinux``
+- ``grub2-x86_64-efi`` and ``grub2-i386-efi``
+- ``logrotate``
+- ``python311-librepo`` (``python3-librepo`` on Leap 15)
+- ``bash-completion``
+
+Feature specific dependencies
+-----------------------------
+
+The following packages are only needed when enabling the respective feature:
+
+- ``python3-ldap`` (LDAP authentication; package name ``python311-ldap`` on
+  openSUSE/SLES)
+- ``python3-hivex`` and ``python3-pefile`` (Windows auto-installation support)
+- ``wget`` or ``curl`` for fetching external resources
+- ``koan`` when performing re-installs from existing systems
+
+.. note::
+   Not installing all required dependencies will lead to stacktraces in your
+   Cobbler installation.
 
 Koan can be installed apart from Cobbler. Please visit the
 `Koan documentation <https://koan.readthedocs.io/en/latest/>`_ for details.
-
-.. note::
-   Not installing all required dependencies will lead to stacktraces in your Cobbler installation.
 
 Source
 ======
