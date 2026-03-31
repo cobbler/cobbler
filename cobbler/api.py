@@ -160,25 +160,28 @@ from cobbler.autoinstall.manager import AutoInstallationManager
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import manager
 from cobbler.decorator import InheritableDictProperty, InheritableProperty
-from cobbler.items import distro
+from cobbler.items import distro, distro_group
 from cobbler.items import image as image_module
 from cobbler.items import menu, network_interface
 from cobbler.items import profile as profile_module
-from cobbler.items import repo
+from cobbler.items import profile_group, repo
 from cobbler.items import system as system_module
-from cobbler.items import template
+from cobbler.items import system_group, template
 from cobbler.items.abstract import bootable_item as item_base
 from cobbler.items.abstract.inheritable_item import InheritableItem
 from cobbler.utils import filesystem_helpers, input_converters, signatures
 
 if TYPE_CHECKING:
     from cobbler.cobbler_collections.collection import FIND_KWARGS, ITEM, Collection
+    from cobbler.cobbler_collections.distro_group import DistroGroups
     from cobbler.cobbler_collections.distros import Distros
     from cobbler.cobbler_collections.images import Images
     from cobbler.cobbler_collections.menus import Menus
     from cobbler.cobbler_collections.network_interfaces import NetworkInterfaces
+    from cobbler.cobbler_collections.profile_group import ProfileGroups
     from cobbler.cobbler_collections.profiles import Profiles
     from cobbler.cobbler_collections.repos import Repos
+    from cobbler.cobbler_collections.system_group import SystemGroups
     from cobbler.cobbler_collections.systems import Systems
     from cobbler.cobbler_collections.templates import Templates
     from cobbler.items.abstract.base_item import BaseItem
@@ -570,6 +573,24 @@ class CobblerAPI:
         """
         return self._collection_mgr.templates()
 
+    def distro_groups(self) -> "DistroGroups":
+        """
+        Return the current list of distro groups
+        """
+        return self._collection_mgr.distro_groups()
+
+    def profile_groups(self) -> "ProfileGroups":
+        """
+        Return the current list of profile groups
+        """
+        return self._collection_mgr.profile_groups()
+
+    def system_groups(self) -> "SystemGroups":
+        """
+        Return the current list of system groups
+        """
+        return self._collection_mgr.system_groups()
+
     # =======================================================================
 
     def __item_resolved_helper(
@@ -834,6 +855,35 @@ class CobblerAPI:
         """
         self._collection_mgr.templates().copy(ref, newname)
 
+    def copy_distro_group(self, ref: "distro_group.DistroGroup", newname: str) -> None:
+        """
+        This method copies a distro group which is just different in the name of the object.
+
+        :param ref: The object itself which gets copied.
+        :param newname: The new name of the newly created object.
+        """
+        self._collection_mgr.distro_groups().copy(ref, newname)
+
+    def copy_profile_group(
+        self, ref: "profile_group.ProfileGroup", newname: str
+    ) -> None:
+        """
+        This method copies a profile group which is just different in the name of the object.
+
+        :param ref: The object itself which gets copied.
+        :param newname: The new name of the newly created object.
+        """
+        self._collection_mgr.profile_groups().copy(ref, newname)
+
+    def copy_system_group(self, ref: "system_group.SystemGroup", newname: str) -> None:
+        """
+        This method copies a system group which is just different in the name of the object.
+
+        :param ref: The object itself which gets copied.
+        :param newname: The new name of the newly created object.
+        """
+        self._collection_mgr.system_groups().copy(ref, newname)
+
     # ==========================================================================
 
     def remove_item(
@@ -852,7 +902,7 @@ class CobblerAPI:
         :param what: The type of the item.
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
-        :param delete: Not known what this parameter does exactly.
+        :param delete: Additional condition that controls if with_triggers and with_sync should be executed.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
         :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
@@ -885,7 +935,7 @@ class CobblerAPI:
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
-        :param delete: Not known what this parameter does exactly.
+        :param delete: Additional condition that controls if with_triggers and with_sync should be executed.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
         :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
@@ -911,7 +961,7 @@ class CobblerAPI:
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
-        :param delete: Not known what this parameter does exactly.
+        :param delete: Additional condition that controls if with_triggers and with_sync should be executed.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
         :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
@@ -937,7 +987,7 @@ class CobblerAPI:
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
-        :param delete: Not known what this parameter does exactly.
+        :param delete: Additional condition that controls if with_triggers and with_sync should be executed.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
         :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
@@ -963,7 +1013,7 @@ class CobblerAPI:
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
-        :param delete: Not known what this parameter does exactly.
+        :param delete: Additional condition that controls if with_triggers and with_sync should be executed.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
         :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
@@ -989,7 +1039,7 @@ class CobblerAPI:
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
-        :param delete: Not known what this parameter does exactly.
+        :param delete: Additional condition that controls if with_triggers and with_sync should be executed.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
         :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
@@ -1015,7 +1065,7 @@ class CobblerAPI:
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
-        :param delete: Not known what this parameter does exactly.
+        :param delete: Additional condition that controls if with_triggers and with_sync should be executed.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
         :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
@@ -1041,7 +1091,7 @@ class CobblerAPI:
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
-        :param delete: Not known what this parameter does exactly.
+        :param delete: Additional condition that controls if with_triggers and with_sync should be executed.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
         :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
@@ -1067,12 +1117,90 @@ class CobblerAPI:
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
-        :param delete: Not known what this parameter does exactly.
+        :param delete: Additional condition that controls if with_triggers and with_sync should be executed.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
         :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.remove_item(
             "network_interface",
+            ref,
+            recursive=recursive,
+            delete=delete,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+        )
+
+    def remove_distro_group(
+        self,
+        ref: Union["distro_group.DistroGroup", str],
+        recursive: bool = False,
+        delete: bool = True,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+    ) -> None:
+        """
+        Remove a distro group from Cobbler.
+
+        :param ref: The internal unique handle for the item.
+        :param recursive: If the item should recursively should delete dependencies on itself.
+        :param delete: Additional condition that controls if with_triggers and with_sync should be executed.
+        :param with_triggers: Whether you would like to have the removal triggers executed or not.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        """
+        self.remove_item(
+            "distro_group",
+            ref,
+            recursive=recursive,
+            delete=delete,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+        )
+
+    def remove_profile_group(
+        self,
+        ref: Union["profile_group.ProfileGroup", str],
+        recursive: bool = False,
+        delete: bool = True,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+    ) -> None:
+        """
+        Remove a profile group from Cobbler.
+
+        :param ref: The internal unique handle for the item.
+        :param recursive: If the item should recursively should delete dependencies on itself.
+        :param delete: Additional condition that controls if with_triggers and with_sync should be executed.
+        :param with_triggers: Whether you would like to have the removal triggers executed or not.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        """
+        self.remove_item(
+            "profile_group",
+            ref,
+            recursive=recursive,
+            delete=delete,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+        )
+
+    def remove_system_group(
+        self,
+        ref: Union["system_group.SystemGroup", str],
+        recursive: bool = False,
+        delete: bool = True,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+    ) -> None:
+        """
+        Remove a system group from Cobbler.
+
+        :param ref: The internal unique handle for the item.
+        :param recursive: If the item should recursively should delete dependencies on itself.
+        :param delete: Additional condition that controls if with_triggers and with_sync should be executed.
+        :param with_triggers: Whether you would like to have the removal triggers executed or not.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        """
+        self.remove_item(
+            "system_group",
             ref,
             recursive=recursive,
             delete=delete,
@@ -1167,6 +1295,39 @@ class CobblerAPI:
         :param newname: The new name for the item.
         """
         self.rename_item("network_interface", ref, newname)
+
+    def rename_distro_group(
+        self, ref: "distro_group.DistroGroup", newname: str
+    ) -> None:
+        """
+        Rename a distro group to a new name.
+
+        :param ref: The internal unique handle for the item.
+        :param newname: The new name for the item.
+        """
+        self.rename_item("distro_group", ref, newname)
+
+    def rename_profile_group(
+        self, ref: "profile_group.ProfileGroup", newname: str
+    ) -> None:
+        """
+        Rename a profile group to a new name.
+
+        :param ref: The internal unique handle for the item.
+        :param newname: The new name for the item.
+        """
+        self.rename_item("profile_group", ref, newname)
+
+    def rename_system_group(
+        self, ref: "system_group.SystemGroup", newname: str
+    ) -> None:
+        """
+        Rename a system group to a new name.
+
+        :param ref: The internal unique handle for the item.
+        :param newname: The new name for the item.
+        """
+        self.rename_item("system_group", ref, newname)
 
     # ==========================================================================
 
@@ -1284,6 +1445,45 @@ class CobblerAPI:
         """
         self.log("new_network_interface", kwargs)
         return template.Template(self, **kwargs)
+
+    def new_distro_group(
+        self, is_subobject: bool = False, **kwargs: Any
+    ) -> "distro_group.DistroGroup":
+        """
+        Returns a new empty distro group object. This distro group is not automatically persisted. Persistence is achieved via
+        ``save()``.
+
+        :param is_subobject: If the object is a subobject of an already existing object or not.
+        :return: An empty DistroGroup object.
+        """
+        self.log("new_distro_group", kwargs)
+        return distro_group.DistroGroup(self, is_subobject, **kwargs)
+
+    def new_profile_group(
+        self, is_subobject: bool = False, **kwargs: Any
+    ) -> "profile_group.ProfileGroup":
+        """
+        Returns a new empty profile group object. This profile group is not automatically persisted. Persistence is achieved via
+        ``save()``.
+
+        :param is_subobject: If the object is a subobject of an already existing object or not.
+        :return: An empty ProfileGroup object.
+        """
+        self.log("new_profile_group", kwargs)
+        return profile_group.ProfileGroup(self, is_subobject, **kwargs)
+
+    def new_system_group(
+        self, is_subobject: bool = False, **kwargs: Any
+    ) -> "system_group.SystemGroup":
+        """
+        Returns a new empty system group object. This system group is not automatically persisted. Persistence is achieved via
+        ``save()``.
+
+        :param is_subobject: If the object is a subobject of an already existing object or not.
+        :return: An empty SystemGroup object.
+        """
+        self.log("new_system_group", kwargs)
+        return system_group.SystemGroup(self, is_subobject, **kwargs)
 
     # ==========================================================================
     def add_remove_items(self, items: List["TransactionTuple"]) -> None:
@@ -1588,6 +1788,84 @@ class CobblerAPI:
             with_sync=with_sync,
         )
 
+    def add_distro_group(
+        self,
+        ref: "distro_group.DistroGroup",
+        check_for_duplicate_names: bool = False,
+        save: bool = True,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+    ) -> None:
+        """
+        Add a distro group to Cobbler.
+
+        :param ref: The identifier for the object to add to a collection.
+        :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
+        :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        """
+        self.add_item(
+            "distro_group",
+            ref,
+            check_for_duplicate_names=check_for_duplicate_names,
+            save=save,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+        )
+
+    def add_profile_group(
+        self,
+        ref: "profile_group.ProfileGroup",
+        check_for_duplicate_names: bool = False,
+        save: bool = True,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+    ) -> None:
+        """
+        Add a profile group to Cobbler.
+
+        :param ref: The identifier for the object to add to a collection.
+        :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
+        :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        """
+        self.add_item(
+            "profile_group",
+            ref,
+            check_for_duplicate_names=check_for_duplicate_names,
+            save=save,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+        )
+
+    def add_system_group(
+        self,
+        ref: "system_group.SystemGroup",
+        check_for_duplicate_names: bool = False,
+        save: bool = True,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+    ) -> None:
+        """
+        Add a system group to Cobbler.
+
+        :param ref: The identifier for the object to add to a collection.
+        :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
+        :param save: If the item should be persisted.
+        :param with_triggers: If triggers should be run when the object is added.
+        :param with_sync: In case a Cobbler Sync should be executed after the action.
+        """
+        self.add_item(
+            "system_group",
+            ref,
+            check_for_duplicate_names=check_for_duplicate_names,
+            save=save,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+        )
+
     # ==========================================================================
 
     def find_items(
@@ -1823,6 +2101,62 @@ class CobblerAPI:
             return_list=return_list, no_errors=no_errors, **kwargs
         )
 
+    def find_distro_group(
+        self,
+        return_list: bool = False,
+        no_errors: bool = False,
+        **kwargs: "FIND_KWARGS",
+    ) -> Optional[Union[List["distro_group.DistroGroup"], "distro_group.DistroGroup"]]:
+        """
+        Find a distro group via a name or keys specified in the ``**kwargs``.
+
+        :param return_list: If only the first result or all results should be returned.
+        :param no_errors: Silence some errors which would raise if this turned to False.
+        :param kwargs: Key-value pairs which help in finding the desired objects.
+        :return: A single object or a list of all search results.
+        """
+        return self._collection_mgr.distro_groups().find(
+            return_list=return_list, no_errors=no_errors, **kwargs
+        )
+
+    def find_profile_group(
+        self,
+        return_list: bool = False,
+        no_errors: bool = False,
+        **kwargs: "FIND_KWARGS",
+    ) -> Optional[
+        Union[List["profile_group.ProfileGroup"], "profile_group.ProfileGroup"]
+    ]:
+        """
+        Find a profile group via a name or keys specified in the ``**kwargs``.
+
+        :param return_list: If only the first result or all results should be returned.
+        :param no_errors: Silence some errors which would raise if this turned to False.
+        :param kwargs: Key-value pairs which help in finding the desired objects.
+        :return: A single object or a list of all search results.
+        """
+        return self._collection_mgr.profile_groups().find(
+            return_list=return_list, no_errors=no_errors, **kwargs
+        )
+
+    def find_system_group(
+        self,
+        return_list: bool = False,
+        no_errors: bool = False,
+        **kwargs: "FIND_KWARGS",
+    ) -> Optional[Union[List["system_group.SystemGroup"], "system_group.SystemGroup"]]:
+        """
+        Find a system group via a name or keys specified in the ``**kwargs``.
+
+        :param return_list: If only the first result or all results should be returned.
+        :param no_errors: Silence some errors which would raise if this turned to False.
+        :param kwargs: Key-value pairs which help in finding the desired objects.
+        :return: A single object or a list of all search results.
+        """
+        return self._collection_mgr.system_groups().find(
+            return_list=return_list, no_errors=no_errors, **kwargs
+        )
+
     # ==========================================================================
 
     @staticmethod
@@ -1952,6 +2286,45 @@ class CobblerAPI:
         :return: The list of files which are newer then the given timestamp.
         """
         return self.__since(mtime, self.templates, collapse=collapse)
+
+    def get_distro_groups_since(
+        self, mtime: float, collapse: bool = False
+    ) -> List["distro_group.DistroGroup"]:
+        """
+        Return distro groups modified since a certain time (in seconds since Epoch)
+
+        :param mtime: The timestamp which marks the gate if an object is included or not.
+        :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
+                         objects.
+        :return: The list of distro groups which are newer then the given timestamp.
+        """
+        return self.__since(mtime, self.distro_groups, collapse=collapse)
+
+    def get_profile_groups_since(
+        self, mtime: float, collapse: bool = False
+    ) -> List["profile_group.ProfileGroup"]:
+        """
+        Return profile groups modified since a certain time (in seconds since Epoch)
+
+        :param mtime: The timestamp which marks the gate if an object is included or not.
+        :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
+                         objects.
+        :return: The list of profile groups which are newer then the given timestamp.
+        """
+        return self.__since(mtime, self.profile_groups, collapse=collapse)
+
+    def get_system_groups_since(
+        self, mtime: float, collapse: bool = False
+    ) -> List["system_group.SystemGroup"]:
+        """
+        Return system groups modified since a certain time (in seconds since Epoch)
+
+        :param mtime: The timestamp which marks the gate if an object is included or not.
+        :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
+                         objects.
+        :return: The list of system groups which are newer then the given timestamp.
+        """
+        return self.__since(mtime, self.system_groups, collapse=collapse)
 
     # ==========================================================================
 

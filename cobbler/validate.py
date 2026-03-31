@@ -624,6 +624,9 @@ def validate_obj_type(object_type: str) -> bool:
         "menu",
         "network_interface",
         "template",
+        "distro_group",
+        "profile_group",
+        "system_group",
     ]
 
 

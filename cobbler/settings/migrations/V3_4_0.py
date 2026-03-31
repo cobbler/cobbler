@@ -297,6 +297,27 @@ schema = Schema(
                     Optional("disabled"): bool,
                 },
             },
+            Optional("distro_group"): {
+                Optional("name"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+            },
+            Optional("profile_group"): {
+                Optional("name"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+            },
+            Optional("system_group"): {
+                Optional("name"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+            },
         },
     },  # type: ignore
     ignore_extra_keys=False,

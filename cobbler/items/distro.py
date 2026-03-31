@@ -134,6 +134,7 @@ from cobbler.utils import input_converters, signatures
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.items.abstract.inheritable_item import InheritableItem
+    from cobbler.items.distro_group import DistroGroup
     from cobbler.items.profile import Profile
 
     InheritableProperty = property
@@ -520,7 +521,7 @@ class Distro(BootableItem):
         old_arch = self._arch
         self._arch = enums.Archs.to_enum(arch)
         self.api.distros().update_index_value(self, "arch", old_arch, self._arch)
-        profiles: Optional[List[Profile]] = self.api.find_profile(  # type: ignore
+        profiles: Optional[List["Profile"]] = self.api.find_profile(  # type: ignore
             return_list=True,
             **{"distro": self._uid},  # type: ignore[reportArgumentType,arg-type]
         )
@@ -680,3 +681,16 @@ class Distro(BootableItem):
                 self.logger.warning(
                     "- symlink creation failed: %s, %s", base, dest_link
                 )
+
+    @property
+    def distro_groups(self) -> List["DistroGroup"]:
+        """
+        Finds all DistroGroups that this distro is a member of.
+        """
+        groups: List["DistroGroup"] = []
+        group_collection = self.api.distro_groups()
+
+        for group in group_collection.listing.values():
+            if self.uid in getattr(group, "members", []):
+                groups.append(group)
+        return groups

@@ -327,3 +327,114 @@ def test_find_template(
             assert result is None
         else:
             assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "return_list,no_errors,criteria,expected_exception,expected_result",
+    [
+        (False, False, {}, pytest.raises(ValueError), None),
+        (False, False, {"name": "test"}, does_not_raise(), None),
+        (False, False, None, pytest.raises(ValueError), None),
+        (False, False, {"name": "testdistro"}, does_not_raise(), None),
+    ],
+)
+def test_find_distro_group(
+    find_fillup: CobblerAPI,
+    return_list: bool,
+    no_errors: bool,
+    criteria: Optional[Dict[str, Any]],
+    expected_exception: Any,
+    expected_result: None,
+):
+    """
+    Test to verify that distro groups can be searched for.
+    """
+    # Arrange
+    test_api = find_fillup
+
+    # Act
+    with expected_exception:
+        if criteria is not None:
+            result = test_api.find_distro_group(return_list, no_errors, **criteria)
+        else:
+            result = test_api.find_distro_group(return_list, no_errors)
+
+        # Assert
+        if expected_result is None:
+            assert result is None
+        else:
+            assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "return_list,no_errors,criteria,expected_exception,expected_result",
+    [
+        (False, False, {}, pytest.raises(ValueError), None),
+        (False, False, {"name": "test"}, does_not_raise(), None),
+        (False, False, None, pytest.raises(ValueError), None),
+        (False, False, {"name": "testdistro"}, does_not_raise(), None),
+    ],
+)
+def test_find_profile_group(
+    find_fillup: CobblerAPI,
+    return_list: bool,
+    no_errors: bool,
+    criteria: Optional[Dict[str, Any]],
+    expected_exception: Any,
+    expected_result: None,
+):
+    """
+    Test to verify that profile groups can be searched for.
+    """
+    # Arrange
+    test_api = find_fillup
+
+    # Act
+    with expected_exception:
+        if criteria is not None:
+            result = test_api.find_profile_group(return_list, no_errors, **criteria)
+        else:
+            result = test_api.find_profile_group(return_list, no_errors)
+
+        # Assert
+        if expected_result is None:
+            assert result is None
+        else:
+            assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "return_list,no_errors,criteria,expected_exception,expected_result",
+    [
+        (False, False, {}, pytest.raises(ValueError), None),
+        (False, False, {"name": "test"}, does_not_raise(), None),
+        (False, False, None, pytest.raises(ValueError), None),
+        (False, False, {"name": "testdistro"}, does_not_raise(), None),
+    ],
+)
+def test_find_system_group(
+    find_fillup: CobblerAPI,
+    return_list: bool,
+    no_errors: bool,
+    criteria: Optional[Dict[str, Any]],
+    expected_exception: Any,
+    expected_result: None,
+):
+    """
+    Test to verify that system groups can be searched for.
+    """
+    # Arrange
+    test_api = find_fillup
+
+    # Act
+    with expected_exception:
+        if criteria is not None:
+            result = test_api.find_system_group(return_list, no_errors, **criteria)
+        else:
+            result = test_api.find_system_group(return_list, no_errors)
+
+        # Assert
+        if expected_result is None:
+            assert result is None
+        else:
+            assert result == expected_result

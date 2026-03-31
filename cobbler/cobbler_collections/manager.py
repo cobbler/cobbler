@@ -12,12 +12,15 @@ from typing import TYPE_CHECKING, Any, Dict, cast
 from cobbler import serializer, validate
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections.collection import Collection
+from cobbler.cobbler_collections.distro_group import DistroGroups
 from cobbler.cobbler_collections.distros import Distros
 from cobbler.cobbler_collections.images import Images
 from cobbler.cobbler_collections.menus import Menus
 from cobbler.cobbler_collections.network_interfaces import NetworkInterfaces
+from cobbler.cobbler_collections.profile_group import ProfileGroups
 from cobbler.cobbler_collections.profiles import Profiles
 from cobbler.cobbler_collections.repos import Repos
+from cobbler.cobbler_collections.system_group import SystemGroups
 from cobbler.cobbler_collections.systems import Systems
 from cobbler.cobbler_collections.templates import Templates
 from cobbler.settings import Settings
@@ -63,6 +66,9 @@ class CollectionManager:
         self._menus = Menus(weakref.proxy(self))
         self._network_interfaces = NetworkInterfaces(weakref.proxy(self))
         self._templates = Templates(weakref.proxy(self))
+        self._distro_groups = DistroGroups(weakref.proxy(self))
+        self._profile_groups = ProfileGroups(weakref.proxy(self))
+        self._system_groups = SystemGroups(weakref.proxy(self))
 
     def distros(self) -> Distros:
         """
@@ -118,6 +124,24 @@ class CollectionManager:
         """
         return self._templates
 
+    def distro_groups(self) -> DistroGroups:
+        """
+        Return the definitive copy of the DistroGroups collection
+        """
+        return self._distro_groups
+
+    def profile_groups(self) -> ProfileGroups:
+        """
+        Return the definitive copy of the ProfileGroups collection
+        """
+        return self._profile_groups
+
+    def system_groups(self) -> SystemGroups:
+        """
+        Return the definitive copy of the SystemGroups collection
+        """
+        return self._system_groups
+
     def serialize(self) -> None:
         """
         Save all cobbler_collections to disk
@@ -131,6 +155,9 @@ class CollectionManager:
         self.__serializer.serialize(self._menus)
         self.__serializer.serialize(self._network_interfaces)
         self.__serializer.serialize(self._templates)
+        self.__serializer.serialize(self._distro_groups)
+        self.__serializer.serialize(self._profile_groups)
+        self.__serializer.serialize(self._system_groups)
 
     def serialize_one_item(self, item: "BaseItem") -> None:
         """
@@ -186,6 +213,9 @@ class CollectionManager:
             (self._images, False),
             (self._systems, False),
             (self._network_interfaces, False),
+            (self._distro_groups, True),
+            (self._profile_groups, True),
+            (self._system_groups, True),
         ):
             try:
                 cast_collection = cast(Collection["BaseItem"], args[0])
@@ -212,7 +242,7 @@ class CollectionManager:
         Get a full collection of a single type.
 
         Valid Values vor ``collection_type`` are: "distro", "profile", "repo", "image", "menu", "network_interface",
-        "template" and "settings".
+        "template", "distro_group", "profile_group", "system_group" and "settings".
 
         :param collection_type: The type of collection to return.
         :return: The collection if ``collection_type`` is valid.

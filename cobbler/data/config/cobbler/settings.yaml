@@ -703,3 +703,15 @@ memory_indexes:
         dns.name:
             nonunique: *allow_duplicate_hostnames
             disabled: *allow_duplicate_hostnames
+    distro_group:
+      name:
+        nonunique: false
+        disabled: false
+    profile_group:
+      name:
+        nonunique: false
+        disabled: false
+    system_group:
+      name:
+        nonunique: false
+        disabled: false

@@ -220,6 +220,7 @@ from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.items.system_group import SystemGroup
     from cobbler.items.template import Template
 
     InheritableProperty = property
@@ -1038,3 +1039,16 @@ class System(BootableItem):
         :param display_name: The new display_name. If ``None`` the display_name will be set to an emtpy string.
         """
         self._display_name = display_name
+
+    @property
+    def system_groups(self) -> List["SystemGroup"]:
+        """
+        Finds all SystemGroups that this system is a member of.
+        """
+        groups: List["SystemGroup"] = []
+        group_collection = self.api.system_groups()
+
+        for group in group_collection.listing.values():
+            if self.uid in getattr(group, "members", []):
+                groups.append(group)
+        return groups

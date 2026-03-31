@@ -16,10 +16,13 @@ import pytest
 from cobbler.api import CobblerAPI
 from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items.distro import Distro
+from cobbler.items.distro_group import DistroGroup
 from cobbler.items.image import Image
 from cobbler.items.menu import Menu
 from cobbler.items.profile import Profile
+from cobbler.items.profile_group import ProfileGroup
 from cobbler.items.system import System
+from cobbler.items.system_group import SystemGroup
 
 logger = logging.getLogger()
 
@@ -147,6 +150,28 @@ def create_distro(
 
 
 @pytest.fixture(scope="function")
+def create_distro_group(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
+    """
+    Returns a function which has the distro group name as an argument. The function returns a distro group object.
+    """
+
+    def _create_distro_group(name: str = "", with_add: bool = True) -> DistroGroup:
+        test_distro_group = cobbler_api.new_distro_group()
+        test_distro_group.name = (  # type: ignore[method-assign]
+            request.node.originalname  # type: ignore
+            if request.node.originalname  # type: ignore
+            else request.node.name  # type: ignore
+        )
+        if name != "":
+            test_distro_group.name = name  # type: ignore[method-assign]
+        if with_add:
+            cobbler_api.add_distro_group(test_distro_group)
+        return test_distro_group
+
+    return _create_distro_group
+
+
+@pytest.fixture(scope="function")
 def create_profile(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     """
     Returns a function which has the distro or profile name as an argument. The function returns a profile object. The profile is
@@ -154,7 +179,10 @@ def create_profile(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     """
 
     def _create_profile(
-        distro_uid: str = "", profile_uid: str = "", name: str = ""
+        distro_uid: str = "",
+        profile_uid: str = "",
+        name: str = "",
+        with_add: bool = True,
     ) -> Profile:
         test_profile = cobbler_api.new_profile()
         test_profile.name = (  # type: ignore[method-assign]
@@ -168,10 +196,33 @@ def create_profile(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
             test_profile.distro = distro_uid  # type: ignore
         else:
             test_profile.parent = profile_uid  # type: ignore
-        cobbler_api.add_profile(test_profile)
+        if with_add:
+            cobbler_api.add_profile(test_profile)
         return test_profile
 
     return _create_profile
+
+
+@pytest.fixture(scope="function")
+def create_profile_group(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
+    """
+    Returns a function which has the profile group name as an argument. The function returns a profile group object.
+    """
+
+    def _create_profile_group(name: str = "", with_add: bool = True) -> ProfileGroup:
+        test_profile_group = cobbler_api.new_profile_group()
+        test_profile_group.name = (  # type: ignore[method-assign]
+            request.node.originalname  # type: ignore
+            if request.node.originalname  # type: ignore
+            else request.node.name  # type: ignore
+        )
+        if name != "":
+            test_profile_group.name = name  # type: ignore[method-assign]
+        if with_add:
+            cobbler_api.add_profile_group(test_profile_group)
+        return test_profile_group
+
+    return _create_profile_group
 
 
 @pytest.fixture(scope="function")
@@ -204,7 +255,10 @@ def create_system(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
     """
 
     def _create_system(
-        profile_uid: str = "", image_uid: str = "", name: str = ""
+        profile_uid: str = "",
+        image_uid: str = "",
+        name: str = "",
+        with_add: bool = True,
     ) -> System:
         test_system = cobbler_api.new_system()
         if name == "":
@@ -219,15 +273,41 @@ def create_system(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
             test_system.profile = profile_uid  # type: ignore
         if image_uid != "":
             test_system.image = image_uid  # type: ignore
-        cobbler_api.add_system(test_system)
+
         test_system_default_interface = cobbler_api.new_network_interface(
             system_uid=test_system.uid, name="default"
         )
         test_system_default_interface.name = "default"  # type: ignore[method-assign]
-        cobbler_api.add_network_interface(test_system_default_interface)
+
+        if with_add:
+            cobbler_api.add_system(test_system)
+            cobbler_api.add_network_interface(test_system_default_interface)
+
         return test_system
 
     return _create_system
+
+
+@pytest.fixture(scope="function")
+def create_system_group(request: "pytest.FixtureRequest", cobbler_api: CobblerAPI):
+    """
+    Returns a function which has the system group name as an argument. The function returns a system group object.
+    """
+
+    def _create_system_group(name: str = "", with_add: bool = True) -> SystemGroup:
+        test_system_group = cobbler_api.new_system_group()
+        test_system_group.name = (  # type: ignore[method-assign]
+            request.node.originalname  # type: ignore
+            if request.node.originalname  # type: ignore
+            else request.node.name  # type: ignore
+        )
+        if name != "":
+            test_system_group.name = name  # type: ignore[method-assign]
+        if with_add:
+            cobbler_api.add_system_group(test_system_group)
+        return test_system_group
+
+    return _create_system_group
 
 
 @pytest.fixture(scope="function")
@@ -270,6 +350,9 @@ def cleanup_leftover_items():
         "systems",
         "network_interfaces",
         "templates",
+        "distro_groups",
+        "profile_groups",
+        "system_groups",
     ]
     for collection in cobbler_collections:
         path = collection_path / collection

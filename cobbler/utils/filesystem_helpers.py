@@ -37,8 +37,8 @@ def is_safe_to_hardlink(src: str, dst: str, api: "CobblerAPI") -> bool:
              Otherwise returns False.
     """
     # FIXME: Calling this with emtpy strings returns True?!
-    (dev1, path1) = mtab.get_file_device_path(src)
-    (dev2, _) = mtab.get_file_device_path(dst)
+    dev1, path1 = mtab.get_file_device_path(src)
+    dev2, _ = mtab.get_file_device_path(dst)
     if dev1 != dev2:
         return False
     # Do not hardlink to a symbolic link! Chances are high the new link will be dangling.
@@ -510,6 +510,15 @@ def create_trigger_dirs(api: "CobblerAPI") -> None:
         trigger_directory / "add" / "template",
         trigger_directory / "add" / "template" / "pre",
         trigger_directory / "add" / "template" / "post",
+        trigger_directory / "add" / "distro_group",
+        trigger_directory / "add" / "distro_group" / "pre",
+        trigger_directory / "add" / "distro_group" / "post",
+        trigger_directory / "add" / "profile_group",
+        trigger_directory / "add" / "profile_group" / "pre",
+        trigger_directory / "add" / "profile_group" / "post",
+        trigger_directory / "add" / "system_group",
+        trigger_directory / "add" / "system_group" / "pre",
+        trigger_directory / "add" / "system_group" / "post",
         trigger_directory / "delete",
         trigger_directory / "delete" / "distro",
         trigger_directory / "delete" / "distro" / "pre",
@@ -532,6 +541,15 @@ def create_trigger_dirs(api: "CobblerAPI") -> None:
         trigger_directory / "delete" / "template",
         trigger_directory / "delete" / "template" / "pre",
         trigger_directory / "delete" / "template" / "post",
+        trigger_directory / "delete" / "distro_group",
+        trigger_directory / "delete" / "distro_group" / "pre",
+        trigger_directory / "delete" / "distro_group" / "post",
+        trigger_directory / "delete" / "profile_group",
+        trigger_directory / "delete" / "profile_group" / "pre",
+        trigger_directory / "delete" / "profile_group" / "post",
+        trigger_directory / "delete" / "system_group",
+        trigger_directory / "delete" / "system_group" / "pre",
+        trigger_directory / "delete" / "system_group" / "post",
         trigger_directory / "install",
         trigger_directory / "install" / "pre",
         trigger_directory / "install" / "post",
@@ -562,6 +580,15 @@ def create_trigger_dirs(api: "CobblerAPI") -> None:
         trigger_directory / "task" / "template",
         trigger_directory / "task" / "template" / "pre",
         trigger_directory / "task" / "template" / "post",
+        trigger_directory / "task" / "distro_group",
+        trigger_directory / "task" / "distro_group" / "pre",
+        trigger_directory / "task" / "distro_group" / "post",
+        trigger_directory / "task" / "profile_group",
+        trigger_directory / "task" / "profile_group" / "pre",
+        trigger_directory / "task" / "profile_group" / "post",
+        trigger_directory / "task" / "system_group",
+        trigger_directory / "task" / "system_group" / "pre",
+        trigger_directory / "task" / "system_group" / "post",
     ]
 
     for directory_path in trigger_directories:
@@ -586,6 +613,9 @@ def create_json_database_dirs(api: "CobblerAPI") -> None:
         libpath / "collections" / "menus",
         libpath / "collections" / "network_interfaces",
         libpath / "collections" / "templates",
+        libpath / "collections" / "distro_groups",
+        libpath / "collections" / "profile_groups",
+        libpath / "collections" / "system_groups",
     ]
 
     for directory_path in database_directories:

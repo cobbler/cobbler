@@ -68,6 +68,10 @@ class InheritableItem(BaseItem, ABC):
         ],
         "distro": [
             HierarchyItem("profile", "distro"),
+            HierarchyItem("distro_group", "members"),
+        ],
+        "distro_group": [
+            HierarchyItem("distro_group", "parent"),
         ],
         "menu": [
             HierarchyItem("menu", "parent"),
@@ -78,11 +82,21 @@ class InheritableItem(BaseItem, ABC):
         "profile": [
             HierarchyItem("profile", "parent"),
             HierarchyItem("system", "profile"),
+            HierarchyItem("profile_group", "members"),
+        ],
+        "profile_group": [
+            HierarchyItem("profile_group", "parent"),
         ],
         "image": [
             HierarchyItem("system", "image"),
         ],
-        "system": [HierarchyItem("network_interface", "system_uid")],
+        "system": [
+            HierarchyItem("network_interface", "system_uid"),
+            HierarchyItem("system_group", "members"),
+        ],
+        "system_group": [
+            HierarchyItem("system_group", "parent"),
+        ],
     }
 
     # Defines a logical hierarchy of Item Types.
@@ -95,12 +109,28 @@ class InheritableItem(BaseItem, ABC):
                 HierarchyItem("profile", "distro"),
             ],
         ),
+        "distro_group": LogicalHierarchy(
+            [
+                HierarchyItem("distro_group", "parent"),
+            ],
+            [
+                HierarchyItem("distro_group", "parent"),
+            ],
+        ),
         "profile": LogicalHierarchy(
             [
                 HierarchyItem("distro", "distro"),
             ],
             [
                 HierarchyItem("system", "profile"),
+            ],
+        ),
+        "profile_group": LogicalHierarchy(
+            [
+                HierarchyItem("profile_group", "parent"),
+            ],
+            [
+                HierarchyItem("profile_group", "parent"),
             ],
         ),
         "image": LogicalHierarchy(
@@ -110,8 +140,19 @@ class InheritableItem(BaseItem, ABC):
             ],
         ),
         "system": LogicalHierarchy(
-            [HierarchyItem("image", "image"), HierarchyItem("profile", "profile")],
+            [
+                HierarchyItem("image", "image"),
+                HierarchyItem("profile", "profile"),
+            ],
             [],
+        ),
+        "system_group": LogicalHierarchy(
+            [
+                HierarchyItem("system_group", "parent"),
+            ],
+            [
+                HierarchyItem("system_group", "parent"),
+            ],
         ),
     }
 
