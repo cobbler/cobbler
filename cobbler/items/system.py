@@ -784,7 +784,7 @@ class System(BootableItem):
         profile = None
         if isinstance(profile_uid, Profile):
             profile = profile_uid
-            profile_uid = profile.name
+            profile_uid = profile.uid
         elif not isinstance(profile_uid, str):  # type: ignore
             raise TypeError("The name of a profile needs to be of type str.")
 
