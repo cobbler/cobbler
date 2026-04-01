@@ -28,6 +28,14 @@ cobbler.autoinstall.generate.base module
    :undoc-members:
    :show-inheritance:
 
+cobbler.autoinstall.generate.cloud\_init module
+-----------------------------------------------
+
+.. automodule:: cobbler.autoinstall.generate.cloud_init
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 cobbler.autoinstall.generate.kickstart module
 ---------------------------------------------
 
