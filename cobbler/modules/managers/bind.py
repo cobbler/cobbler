@@ -247,9 +247,6 @@ class _BindManager(DnsManagerModule):
                         ip_address = ip_address.replace(best_match, "", 1)
                         if ip_address[0] == ".":  # strip leading '.' if it's there
                             ip_address = ip_address[1:]
-                        tokens = ip_address.split(".")
-                        tokens.reverse()
-                        ip_address = ".".join(tokens)
                         zones[best_match][ip_address] = host + "."
 
                 if ipv6 or ipv6_sec_addrs:
@@ -262,10 +259,7 @@ class _BindManager(DnsManagerModule):
                         # All IPv6 zones are forced to have the format xxxx:xxxx:xxxx:xxxx
                         zone = long_ipv6[:19]
                         ipv6_host_part = long_ipv6[20:]
-                        tokens = list(re.sub(":", "", ipv6_host_part))
-                        tokens.reverse()
-                        ip_address = ".".join(tokens)
-                        zones[zone][ip_address] = host + "."
+                        zones[zone][ipv6_host_part] = host + "."
 
         return zones
 
@@ -432,14 +426,23 @@ zone "{arpa}." {{
                         system.name,
                     )
 
-        names = list(hosts.keys())
-        if not names:
+        if not len(hosts):
             return ""  # zones with no hosts
 
         if rectype == "PTR":
-            names = self.__ip_sort(names)
+            def translate_ip(ip: str) -> str:
+                if ":" in ip:
+                    tokens = list(re.sub(":", "", ip))
+                else:
+                    tokens = ip.split(".")
+                tokens.reverse()
+                return ".".join(tokens)
+
+            names = self.__ip_sort(hosts.keys())
+            hosts = dict(map(lambda ip: (translate_ip(ip), hosts[ip]), names))
+            names = list(map(translate_ip, names))
         else:
-            names.sort()
+            names = sorted(hosts.keys())
 
         max_name = max([len(i) for i in names])
 
