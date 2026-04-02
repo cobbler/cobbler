@@ -4,7 +4,7 @@ Test to verify the functionallity of the isc bind module.
 
 import pathlib
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Dict, TextIO
 
 import pytest
 
@@ -15,12 +15,38 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
-@pytest.fixture(name="named_template", scope="function")
-def fixture_named_template() -> str:
+class MockFiles:
     """
-    This provides a minmal test templated for named that is close to the real one.
+    Implements a mock filesystem using MockerFixture.
     """
-    return """options {
+
+    def __init__(self, mocker: "MockerFixture", files: Dict[str, str]):
+        self.mocker = mocker
+        self.files = files
+        self.open_unknown = mocker.mock_open()
+        self.patch = mocker.patch("builtins.open", self.open)
+
+    def open(self, *args: Any, **kwargs: Any) -> TextIO:
+        """
+        Open a mock file.
+        """
+        path = args[0]
+        open_data = self.files.get(path, self.open_unknown)
+        if isinstance(open_data, str):
+            open_data = self.mocker.mock_open(read_data=open_data)
+            self.files[path] = open_data
+        return open_data(*args, **kwargs)
+
+
+@pytest.fixture(scope="function")
+def mock_config_files(mocker: "MockerFixture") -> MockFiles:
+    """
+    Provide BIND config files for testing.
+    """
+
+    files = {
+        "/etc/cobbler/named.template":
+        """options {
           listen-on port 53 { 127.0.0.1; };
           directory       "@@bind_zonefiles@@";
           dump-file       "@@bind_zonefiles@@/data/cache_dump.db";
@@ -44,7 +70,13 @@ zone "${arpa}." {
 };
 
 #end for
-"""
+""",
+        "/etc/cobbler/secondary.template": "garbage",
+        "/etc/cobbler/zone.template": "garbage 2",
+        "/etc/named.conf": "",
+        "/etc/secondary.conf": "",
+    }
+    return MockFiles(mocker, files)
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -90,34 +122,15 @@ def test_get_manager(cobbler_api: CobblerAPI):
 
 
 def test_write_configs(
-    mocker: "MockerFixture", cobbler_api: CobblerAPI, named_template: str
+    mocker: "MockerFixture", cobbler_api: CobblerAPI,
+    mock_config_files: MockFiles
 ):
     """
     Test if the manager is able to correctly write the configuration files.
     """
     # Arrange
-    open_mock = mocker.mock_open()
-    mock_named_template = mocker.mock_open(read_data=named_template)
-    mock_secondary_template = mocker.mock_open(read_data="garbage")
-    mock_zone_template = mocker.mock_open(read_data="garbage 2")
-    mock_etc_named_conf = mocker.mock_open()
-    mock_etc_secondary_conf = mocker.mock_open()
     mock_pathlib_path = mocker.patch.object(pathlib.Path, "write_text")
 
-    def mock_open(*args: Any, **kwargs: Any):
-        if args[0] == "/etc/cobbler/named.template":
-            return mock_named_template(*args, **kwargs)
-        if args[0] == "/etc/cobbler/secondary.template":
-            return mock_secondary_template(*args, **kwargs)
-        if args[0] == "/etc/cobbler/zone.template":
-            return mock_zone_template(*args, **kwargs)
-        if args[0] == "/etc/named.conf":
-            return mock_etc_named_conf(*args, **kwargs)
-        if args[0] == "/etc/secondary.conf":
-            return mock_etc_secondary_conf(*args, **kwargs)
-        return open_mock(*args, **kwargs)
-
-    mocker.patch("builtins.open", mock_open)
     manager = bind.get_manager(cobbler_api)
     # TODO Mock settings for manage_dns and forward/reverse zones
 
@@ -129,7 +142,7 @@ def test_write_configs(
     mock_pathlib_path.assert_called_once_with(
         time.strftime("%Y%m%d00"), encoding="UTF-8"
     )
-    open_mock.assert_not_called()
+    mock_config_files.open_unknown.assert_not_called()
 
 
 @pytest.mark.skip("Advanced complicated test scenario for now.")
