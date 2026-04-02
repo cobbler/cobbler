@@ -139,8 +139,6 @@ def test_write_configs(
     Test if the manager is able to correctly write the configuration files.
     """
     # Arrange
-    mock_pathlib_path = mocker.patch.object(pathlib.Path, "write_text")
-
     manager = bind.get_manager(cobbler_api)
     # TODO Mock settings for manage_dns and forward/reverse zones
 
@@ -149,9 +147,9 @@ def test_write_configs(
 
     # Assert
     # TODO: Extend assertions
-    mock_pathlib_path.assert_called_once_with(
-        time.strftime("%Y%m%d00"), encoding="UTF-8"
-    )
+    mocker.stopall()
+
+    assert open("/var/lib/cobbler/bind_serial").read() == time.strftime("%Y%m%d00")
     mock_config_files.open_unknown.assert_not_called()
 
 
