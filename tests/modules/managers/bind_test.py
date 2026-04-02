@@ -15,6 +15,15 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
+def _get_file_and_mode(file, mode='r', *args, **kwargs):
+    """
+    Helper to extract the file and mode arguments from a call to open(),
+    Because it is an actual callable function, it can handle the exact
+    same combinations of positional and keyword arguments as open().
+    """
+    return (file, mode)
+
+
 class MockFiles:
     """
     Implements a mock filesystem using MockerFixture.
@@ -24,13 +33,16 @@ class MockFiles:
         self.mocker = mocker
         self.files = files
         self.open_unknown = mocker.mock_open()
+        self._real_open = open
         self.patch = mocker.patch("builtins.open", self.open)
 
     def open(self, *args: Any, **kwargs: Any) -> TextIO:
         """
         Open a mock file.
         """
-        path = args[0]
+        path, mode = _get_file_and_mode(*args, **kwargs)
+        if 'r' not in mode:
+            return self._real_open(*args, **kwargs)
         open_data = self.files.get(path, self.open_unknown)
         if isinstance(open_data, str):
             open_data = self.mocker.mock_open(read_data=open_data)
@@ -73,8 +85,6 @@ zone "${arpa}." {
 """,
         "/etc/cobbler/secondary.template": "garbage",
         "/etc/cobbler/zone.template": "garbage 2",
-        "/etc/named.conf": "",
-        "/etc/secondary.conf": "",
     }
     return MockFiles(mocker, files)
 
