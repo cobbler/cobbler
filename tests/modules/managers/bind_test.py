@@ -94,9 +94,28 @@ zone "${arpa}." {
 #end for
 """,
         "/etc/cobbler/secondary.template": "garbage",
-        "/etc/cobbler/zone.template": "garbage 2",
+        "/etc/cobbler/zone.template":
+        """\\$TTL 3600
+@                       IN      SOA     $cobbler_server. nobody.example.com. (
+                                        $serial      ; Serial
+                                        86400        ; Refresh (1 day)
+                                        7200         ; Retry   (2 hours)
+                                        604800       ; Expire  (1 week)
+                                        3600         ; TTL     (1 hour)
+                                        )
+
+@                       IN      NS      $cobbler_server.
+
+;; CNAMEs
+$cname_record
+
+;; Hosts
+$host_record
+""",
     }
-    return MockFiles(mocker, files)
+    mock_files = MockFiles(mocker, files)
+    mock_files.real_patterns.append("/etc/cobbler/*")
+    return mock_files
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -149,8 +168,15 @@ def test_write_configs(
     Test if the manager is able to correctly write the configuration files.
     """
     # Arrange
+    settings = cobbler_api.settings()
+    settings.from_dict({
+        "server": "cobbler.example.com",
+        "manage_dns": True,
+        "manage_forward_zones": [ "example.com" ],
+        "manage_reverse_zones": [ "192.168.1", "2001:db8:0:1" ],
+    })
+
     manager = bind.get_manager(cobbler_api)
-    # TODO Mock settings for manage_dns and forward/reverse zones
 
     # Act
     manager.write_configs()
@@ -160,6 +186,30 @@ def test_write_configs(
     mocker.stopall()
 
     assert open("/var/lib/cobbler/bind_serial").read() == time.strftime("%Y%m%d00")
+
+    def assert_zone_has(path: str, *expect: List[str]) -> None:
+        parsed = list(map(
+            lambda line: line[:line.find(';')].split(),
+            open(path).readlines()))
+        for line in expect:
+            assert line in parsed
+
+    assert_zone_has(
+        "/var/lib/named/example.com",
+        ["@", "IN", "SOA", "cobbler.example.com.", "nobody.example.com.", "("],
+        ["IN", "NS", "cobbler.example.com."],
+    )
+    assert_zone_has(
+        "/var/lib/named/192.168.1",
+        ["@", "IN", "SOA", "cobbler.example.com.", "nobody.example.com.", "("],
+        ["IN", "NS", "cobbler.example.com."],
+    )
+    assert_zone_has(
+        "/var/lib/named/2001:0db8:0000:0001",
+        ["@", "IN", "SOA", "cobbler.example.com.", "nobody.example.com.", "("],
+        ["IN", "NS", "cobbler.example.com."],
+    )
+
     mock_config_files.open_unknown.assert_not_called()
 
 
