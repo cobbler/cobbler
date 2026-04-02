@@ -5,15 +5,17 @@ Test to verify the functionallity of the isc bind module.
 from fnmatch import fnmatch
 import pathlib
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, TextIO
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, TextIO
 
 import pytest
 
 from cobbler.api import CobblerAPI
+from cobbler.items import distro, profile
 from cobbler.modules.managers import bind
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
+    from pytest import TempPathFactory
 
 
 def _get_file_and_mode(file, mode='r', *args, **kwargs):
@@ -61,7 +63,10 @@ class MockFiles:
 
 
 @pytest.fixture(scope="function")
-def mock_config_files(mocker: "MockerFixture") -> MockFiles:
+def mock_config_files(
+    mocker: "MockerFixture",
+    tmp_path_factory: "TempPathFactory",
+) -> MockFiles:
     """
     Provide BIND config files for testing.
     """
@@ -114,7 +119,13 @@ $host_record
 """,
     }
     mock_files = MockFiles(mocker, files)
-    mock_files.real_patterns.append("/etc/cobbler/*")
+    mock_files.real_patterns.extend((
+        "/code/*",
+        "/etc/cobbler/*",
+        "/etc/mtab",
+        "/var/lib/cobbler/*",
+        str(tmp_path_factory.getbasetemp().joinpath("*")),
+    ))
     return mock_files
 
 
@@ -162,7 +173,9 @@ def test_get_manager(cobbler_api: CobblerAPI):
 
 def test_write_configs(
     mocker: "MockerFixture", cobbler_api: CobblerAPI,
-    mock_config_files: MockFiles
+    mock_config_files: MockFiles,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile]
 ):
     """
     Test if the manager is able to correctly write the configuration files.
@@ -174,7 +187,25 @@ def test_write_configs(
         "manage_dns": True,
         "manage_forward_zones": [ "example.com" ],
         "manage_reverse_zones": [ "192.168.1", "2001:db8:0:1" ],
+        "manage_dhcp_v4": False,
+        "manage_dhcp_v6": False,
     })
+
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_system = cobbler_api.new_system(
+        name = "test",
+        profile = test_profile.uid
+    )
+    cobbler_api.add_system(test_system)
+    test_interface = cobbler_api.new_network_interface(
+        system_uid=test_system.uid,
+        name="default",
+        ipv4={"address": "192.168.1.2"},
+        ipv6={"address": "2001:db8:0:1::2"},
+        dns={"name": "test.example.com"},
+    )
+    cobbler_api.add_network_interface(test_interface)
 
     manager = bind.get_manager(cobbler_api)
 
@@ -198,16 +229,20 @@ def test_write_configs(
         "/var/lib/named/example.com",
         ["@", "IN", "SOA", "cobbler.example.com.", "nobody.example.com.", "("],
         ["IN", "NS", "cobbler.example.com."],
+        ["test", "IN", "A", "192.168.1.2"],
+        ["test", "IN", "AAAA", "2001:db8:0:1::2"],
     )
     assert_zone_has(
         "/var/lib/named/192.168.1",
         ["@", "IN", "SOA", "cobbler.example.com.", "nobody.example.com.", "("],
         ["IN", "NS", "cobbler.example.com."],
+        ["2", "IN", "PTR", "test.example.com."],
     )
     assert_zone_has(
         "/var/lib/named/2001:0db8:0000:0001",
         ["@", "IN", "SOA", "cobbler.example.com.", "nobody.example.com.", "("],
         ["IN", "NS", "cobbler.example.com."],
+        ["2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0", "IN", "PTR", "test.example.com."],
     )
 
     mock_config_files.open_unknown.assert_not_called()
