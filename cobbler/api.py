@@ -1999,6 +1999,12 @@ class CobblerAPI:
         except Exception:
             utils.log_exc()
 
+    def signature_reload(self) -> None:
+        """
+        Reload all signatures from disk.
+        """
+        self.__load_signatures()
+
     # ==========================================================================
 
     def dump_vars(

@@ -544,6 +544,23 @@ class CobblerXMLRPCInterface:
             runner, token, "sigupdate", "Updating Signatures", options
         )
 
+    def background_signature_reload(self, options: Dict[str, Any], token: str) -> str:
+        """
+        Run a signature reload in the background.
+
+        :param options: No additional parameters needed.
+        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :return: The id of the task which was started.
+        """
+
+        def runner(self: "CobblerThread"):
+            self.remote.api.signature_reload()
+
+        self.check_access(token, "sigreload")
+        return self.__start_task(
+            runner, token, "sigreload", "Reloading Signatures", options
+        )
+
     def background_mkloaders(self, options: Dict[str, Any], token: str) -> str:
         """
         Create the bootloaders that Cobbler uses inside its TFTP-directory and stage them in the background.
@@ -1713,7 +1730,7 @@ class CobblerXMLRPCInterface:
         else:
             items = self.api.find_items(what, criteria=criteria)  # type: ignore[assignment]
         items = self.__sort(items, sort_field)  # type: ignore
-        (items, pageinfo) = self.__paginate(items, page, items_per_page)  # type: ignore
+        items, pageinfo = self.__paginate(items, page, items_per_page)  # type: ignore
         items = [x.to_dict(resolved=resolved) for x in items]  # type: ignore
         return self.xmlrpc_hacks({"items": items, "pageinfo": pageinfo})
 
@@ -4014,13 +4031,13 @@ class CobblerXMLRPCInterface:
         """
         timenow = time.time()
         for token in list(self.token_cache.keys()):
-            (tokentime, _) = self.token_cache[token]
+            tokentime, _ = self.token_cache[token]
             if timenow > tokentime + self.api.settings().auth_token_expiration:
                 self._log("expiring token", token=token, debug=True)
                 del self.token_cache[token]
         # and also expired objects
         for oid in list(self.unsaved_items.keys()):
-            (tokentime, _) = self.unsaved_items[oid]
+            tokentime, _ = self.unsaved_items[oid]
             if timenow > tokentime + CACHE_TIMEOUT:
                 del self.unsaved_items[oid]
         for tid in list(self.events.keys()):
