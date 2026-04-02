@@ -2,9 +2,10 @@
 Test to verify the functionallity of the isc bind module.
 """
 
+from fnmatch import fnmatch
 import pathlib
 import time
-from typing import TYPE_CHECKING, Any, Dict, TextIO
+from typing import TYPE_CHECKING, Any, Dict, List, TextIO
 
 import pytest
 
@@ -32,9 +33,16 @@ class MockFiles:
     def __init__(self, mocker: "MockerFixture", files: Dict[str, str]):
         self.mocker = mocker
         self.files = files
+        self.real_patterns: List[str] = list()
         self.open_unknown = mocker.mock_open()
         self._real_open = open
         self.patch = mocker.patch("builtins.open", self.open)
+
+    def _is_real(self, path: str) -> bool:
+        for pat in self.real_patterns:
+            if fnmatch(path, pat):
+                return True
+        return False
 
     def open(self, *args: Any, **kwargs: Any) -> TextIO:
         """
@@ -47,6 +55,8 @@ class MockFiles:
         if isinstance(open_data, str):
             open_data = self.mocker.mock_open(read_data=open_data)
             self.files[path] = open_data
+        elif open_data == self.open_unknown and self._is_real(path):
+            return self._real_open(*args, **kwargs)
         return open_data(*args, **kwargs)
 
 
