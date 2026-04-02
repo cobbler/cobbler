@@ -206,6 +206,14 @@ def test_write_configs(
         dns={"name": "test.example.com"},
     )
     cobbler_api.add_network_interface(test_interface)
+    test_interface = cobbler_api.new_network_interface(
+        system_uid=test_system.uid,
+        name="secondary",
+        ipv4={"address": "192.168.1.123"},
+        ipv6={"address": "2001:db8:0:1::abcd"},
+        dns={"name": "second.example.com"},
+    )
+    cobbler_api.add_network_interface(test_interface)
 
     manager = bind.get_manager(cobbler_api)
 
@@ -231,18 +239,22 @@ def test_write_configs(
         ["IN", "NS", "cobbler.example.com."],
         ["test", "IN", "A", "192.168.1.2"],
         ["test", "IN", "AAAA", "2001:db8:0:1::2"],
+        ["second", "IN", "A", "192.168.1.123"],
+        ["second", "IN", "AAAA", "2001:db8:0:1::abcd"],
     )
     assert_zone_has(
         "/var/lib/named/192.168.1",
         ["@", "IN", "SOA", "cobbler.example.com.", "nobody.example.com.", "("],
         ["IN", "NS", "cobbler.example.com."],
         ["2", "IN", "PTR", "test.example.com."],
+        ["123", "IN", "PTR", "second.example.com."],
     )
     assert_zone_has(
         "/var/lib/named/2001:0db8:0000:0001",
         ["@", "IN", "SOA", "cobbler.example.com.", "nobody.example.com.", "("],
         ["IN", "NS", "cobbler.example.com."],
         ["2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0", "IN", "PTR", "test.example.com."],
+        ["d.c.b.a.0.0.0.0.0.0.0.0.0.0.0.0", "IN", "PTR", "second.example.com."],
     )
 
     mock_config_files.open_unknown.assert_not_called()
