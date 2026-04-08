@@ -129,6 +129,27 @@ $host_record
     return mock_files
 
 
+def assert_zone_has(path: str, *expect: List[str]) -> None:
+    """
+    Test that a zone file contains the expected tokens in the given order.
+    """
+    parsed = list(map(
+        lambda line: line[:line.find(';')].split(),
+        open(path).readlines()))
+    it = iter(parsed)
+    for line in expect:
+        while True:
+            try:
+                actual = next(it)
+            except StopIteration:
+                if line in parsed:
+                    raise AssertionError(f"{line} misplaced in {parsed}")
+                else:
+                    raise AssertionError(f"{line} not found in {parsed}")
+            if line == actual:
+                break
+
+
 @pytest.fixture(scope="function", autouse=True)
 def reset_singleton():
     """
@@ -226,21 +247,14 @@ def test_write_configs(
 
     assert open("/var/lib/cobbler/bind_serial").read() == time.strftime("%Y%m%d00")
 
-    def assert_zone_has(path: str, *expect: List[str]) -> None:
-        parsed = list(map(
-            lambda line: line[:line.find(';')].split(),
-            open(path).readlines()))
-        for line in expect:
-            assert line in parsed
-
     assert_zone_has(
         "/var/lib/named/example.com",
         ["@", "IN", "SOA", "cobbler.example.com.", "nobody.example.com.", "("],
         ["IN", "NS", "cobbler.example.com."],
-        ["test", "IN", "A", "192.168.1.2"],
-        ["test", "IN", "AAAA", "2001:db8:0:1::2"],
         ["second", "IN", "A", "192.168.1.123"],
         ["second", "IN", "AAAA", "2001:db8:0:1::abcd"],
+        ["test", "IN", "A", "192.168.1.2"],
+        ["test", "IN", "AAAA", "2001:db8:0:1::2"],
     )
     assert_zone_has(
         "/var/lib/named/192.168.1",
@@ -255,6 +269,105 @@ def test_write_configs(
         ["IN", "NS", "cobbler.example.com."],
         ["2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0", "IN", "PTR", "test.example.com."],
         ["d.c.b.a.0.0.0.0.0.0.0.0.0.0.0.0", "IN", "PTR", "second.example.com."],
+    )
+
+    mock_config_files.open_unknown.assert_not_called()
+
+
+def test_sort_zones(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI,
+    mock_config_files: MockFiles,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile]
+):
+    """
+    Test if the RRs in a zone file are correctly sorted.
+    """
+    # Arrange
+    settings = cobbler_api.settings()
+    settings.from_dict({
+        "server": "cobbler.example.com",
+        "manage_dns": True,
+        "manage_forward_zones": [ "example.com" ],
+        "manage_reverse_zones": [ "192.168", "2001:db8:0:1" ],
+        "manage_dhcp_v4": False,
+        "manage_dhcp_v6": False,
+    })
+
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+
+    test_system = cobbler_api.new_system(
+        name = "alpha",
+        profile = test_profile.uid
+    )
+    cobbler_api.add_system(test_system)
+    test_interface = cobbler_api.new_network_interface(
+        system_uid=test_system.uid,
+        name="default",
+        ipv4={"address": "192.168.2.1"},
+        ipv6={"address": "2001:db8:0:1::21"},
+        dns={"name": "alpha.example.com"},
+    )
+    cobbler_api.add_network_interface(test_interface)
+
+    test_system = cobbler_api.new_system(
+        name = "beta",
+        profile = test_profile.uid
+    )
+    cobbler_api.add_system(test_system)
+    test_interface = cobbler_api.new_network_interface(
+        system_uid=test_system.uid,
+        name="default",
+        ipv4={"address": "192.168.1.1"},
+        ipv6={"address": "2001:db8:0:1::11"},
+        dns={"name": "beta.example.com"},
+    )
+    cobbler_api.add_network_interface(test_interface)
+
+    test_system = cobbler_api.new_system(
+        name = "gamma",
+        profile = test_profile.uid
+    )
+    cobbler_api.add_system(test_system)
+    test_interface = cobbler_api.new_network_interface(
+        system_uid=test_system.uid,
+        name="default",
+        ipv4={"address": "192.168.1.2"},
+        ipv6={"address": "2001:db8:0:1::12"},
+        dns={"name": "gamma.example.com"},
+    )
+    cobbler_api.add_network_interface(test_interface)
+
+    manager = bind.get_manager(cobbler_api)
+
+    # Act
+    manager.write_configs()
+
+    # Assert
+    # TODO: Extend assertions
+    mocker.stopall()
+
+    assert_zone_has(
+        "/var/lib/named/example.com",
+        ["alpha", "IN", "A", "192.168.2.1"],
+        ["alpha", "IN", "AAAA", "2001:db8:0:1::21"],
+        ["beta", "IN", "A", "192.168.1.1"],
+        ["beta", "IN", "AAAA", "2001:db8:0:1::11"],
+        ["gamma", "IN", "A", "192.168.1.2"],
+        ["gamma", "IN", "AAAA", "2001:db8:0:1::12"],
+    )
+    assert_zone_has(
+        "/var/lib/named/192.168",
+        ["1.1", "IN", "PTR", "beta.example.com."],
+        ["2.1", "IN", "PTR", "gamma.example.com."],
+        ["1.2", "IN", "PTR", "alpha.example.com."],
+    )
+    assert_zone_has(
+        "/var/lib/named/2001:0db8:0000:0001",
+        ["1.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0", "IN", "PTR", "beta.example.com."],
+        ["2.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0", "IN", "PTR", "gamma.example.com."],
+        ["1.2.0.0.0.0.0.0.0.0.0.0.0.0.0.0", "IN", "PTR", "alpha.example.com."],
     )
 
     mock_config_files.open_unknown.assert_not_called()
