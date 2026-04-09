@@ -46,8 +46,8 @@ def input_string_or_list(
 
 
 def input_string_or_dict(
-    options: Union[str, List[Any], Dict[Any, Any]], allow_multiples: bool = True
-) -> Union[str, Dict[Any, Any]]:
+    options: Union[str, List[Any], Dict[str, Any]], allow_multiples: bool = True
+) -> Union[str, Dict[str, Any]]:
     """
     Older Cobbler files stored configurations in a flat way, such that all values for strings. Newer versions of Cobbler
     allow dictionaries. This function is used to allow loading of older value formats so new users of Cobbler aren't
@@ -64,8 +64,8 @@ def input_string_or_dict(
 
 
 def input_string_or_dict_no_inherit(
-    options: Union[str, List[Any], Dict[Any, Any]], allow_multiples: bool = True
-) -> Dict[Any, Any]:
+    options: Union[str, List[Any], Dict[str, Any]], allow_multiples: bool = True
+) -> Dict[str, Any]:
     """
     See :meth:`~cobbler.utils.input_converters.input_string_or_dict`
     """

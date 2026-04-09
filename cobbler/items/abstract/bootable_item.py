@@ -127,6 +127,7 @@ else:
 
 
 T = TypeVar("T")
+KernelOptionsValueType = Optional[Union[str, int, float, List[Union[str, int, float]]]]
 
 
 class BootableItem(InheritableItem, ABC):
@@ -149,8 +150,8 @@ class BootableItem(InheritableItem, ABC):
         """
         super().__init__(api, *args, **kwargs)
 
-        self._kernel_options: Union[Dict[Any, Any], str] = {}
-        self._kernel_options_post: Union[Dict[Any, Any], str] = {}
+        self._kernel_options: Union[Dict[str, Any], str] = {}
+        self._kernel_options_post: Union[Dict[str, Any], str] = {}
         self._autoinstall_meta: Union[Dict[Any, Any], str] = {}
         self._template_files: Dict[str, str] = {}
         self._inmemory = True
@@ -423,9 +424,13 @@ class BootableItem(InheritableItem, ABC):
         return value
 
     @InheritableDictProperty
-    def kernel_options(self) -> Dict[Any, Any]:
+    def kernel_options(self) -> Dict[str, KernelOptionsValueType]:
         """
         Kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
+
+        The dict must have str keys and the values can be of type str, int or float. If a key is present multiple times
+        a List with a union of type str, int and float may be used. The conversion back to string is performed with the
+        function :func:`~cobbler.utils.dict_to_string`.
 
         .. note:: This property can be set to ``<<inherit>>``.
 
@@ -435,7 +440,7 @@ class BootableItem(InheritableItem, ABC):
         return self._resolve_dict(["kernel_options"])
 
     @kernel_options.setter
-    def kernel_options(self, options: Dict[str, Any]):
+    def kernel_options(self, options: Dict[str, KernelOptionsValueType]):
         """
         Setter for ``kernel_options``.
 
@@ -453,9 +458,10 @@ class BootableItem(InheritableItem, ABC):
             raise TypeError("invalid kernel value") from error
 
     @InheritableDictProperty
-    def kernel_options_post(self) -> Dict[str, Any]:
+    def kernel_options_post(self) -> Dict[str, KernelOptionsValueType]:
         """
-        Post kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
+        Post kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict. Has the same limitations
+        as kernel_options.
 
         .. note:: This property can be set to ``<<inherit>>``.
 
@@ -465,7 +471,9 @@ class BootableItem(InheritableItem, ABC):
         return self._resolve_dict(["kernel_options_post"])
 
     @kernel_options_post.setter
-    def kernel_options_post(self, options: Union[Dict[Any, Any], str]) -> None:
+    def kernel_options_post(
+        self, options: Union[Dict[str, KernelOptionsValueType], str]
+    ) -> None:
         """
         Setter for ``kernel_options_post``.
 
