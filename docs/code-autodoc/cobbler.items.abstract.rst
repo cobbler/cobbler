@@ -36,6 +36,14 @@ cobbler.items.abstract.item\_cache module
    :undoc-members:
    :show-inheritance:
 
+cobbler.items.abstract.item\_group module
+-----------------------------------------
+
+.. automodule:: cobbler.items.abstract.item_group
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

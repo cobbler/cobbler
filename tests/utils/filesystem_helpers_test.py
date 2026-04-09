@@ -6,16 +6,18 @@ import os
 import pathlib
 import shutil
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
-from pytest_mock import MockerFixture
 
 from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.utils import filesystem_helpers
 
 from tests.conftest import does_not_raise
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 @pytest.mark.parametrize(
@@ -292,7 +294,7 @@ def test_safe_filter(test_input: str, expected_exception: Any):
         filesystem_helpers.safe_filter(test_input)
 
 
-def test_create_web_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
+def test_create_web_dirs(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     """
     Test to verify the behavior of the create_web_dirs function.
     """
@@ -312,7 +314,7 @@ def test_create_web_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
     assert mock_copyfile.call_count == 2
 
 
-def test_create_tftpboot_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
+def test_create_tftpboot_dirs(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     """
     Test to verify the behavior of the create_tftpboot_dirs function.
     """
@@ -333,7 +335,7 @@ def test_create_tftpboot_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
     assert mock_path_symlink_to.call_count == 3
 
 
-def test_create_trigger_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
+def test_create_trigger_dirs(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     """
     Test to verify the behavior of the create_trigger_dirs function.
     """
@@ -345,10 +347,10 @@ def test_create_trigger_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
     filesystem_helpers.create_trigger_dirs(cobbler_api)
 
     # Assert
-    assert mock_mkdir.call_count == 75
+    assert mock_mkdir.call_count == 102
 
 
-def test_create_json_database_dirs(mocker: MockerFixture, cobbler_api: CobblerAPI):
+def test_create_json_database_dirs(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     """
     Test to verify the behavior of the create_json_database_dirs function.
     """
@@ -361,5 +363,5 @@ def test_create_json_database_dirs(mocker: MockerFixture, cobbler_api: CobblerAP
 
     # Assert
     mock_mkdir.assert_any_call("/var/lib/cobbler/collections")
-    # 1 collections parent directory + (1 child directory per item type * 9 item types atm)
-    assert mock_mkdir.call_count == 9
+    # 1 collections parent directory + (1 child directory per item type * 11 item types atm)
+    assert mock_mkdir.call_count == 12

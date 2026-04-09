@@ -175,6 +175,7 @@ from cobbler.utils import input_converters
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.items.profile_group import ProfileGroup
     from cobbler.items.template import Template
 
     InheritableProperty = property
@@ -776,3 +777,16 @@ class Profile(BootableItem):
         :param display_name: The new display_name. If ``None`` the display_name will be set to an emtpy string.
         """
         self._display_name = display_name
+
+    @property
+    def profile_groups(self) -> List["ProfileGroup"]:
+        """
+        Finds all ProfileGroups that this profile is a member of.
+        """
+        groups: List["ProfileGroup"] = []
+        group_collection = self.api.profile_groups()
+
+        for group in group_collection.listing.values():
+            if self.uid in getattr(group, "members", []):
+                groups.append(group)
+        return groups

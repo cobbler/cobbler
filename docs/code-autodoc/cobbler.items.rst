@@ -21,6 +21,14 @@ cobbler.items.distro module
    :undoc-members:
    :show-inheritance:
 
+cobbler.items.distro\_group module
+----------------------------------
+
+.. automodule:: cobbler.items.distro_group
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 cobbler.items.image module
 --------------------------
 
@@ -53,6 +61,14 @@ cobbler.items.profile module
    :undoc-members:
    :show-inheritance:
 
+cobbler.items.profile\_group module
+-----------------------------------
+
+.. automodule:: cobbler.items.profile_group
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 cobbler.items.repo module
 -------------------------
 
@@ -65,6 +81,14 @@ cobbler.items.system module
 ---------------------------
 
 .. automodule:: cobbler.items.system
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+cobbler.items.system\_group module
+----------------------------------
+
+.. automodule:: cobbler.items.system_group
    :members:
    :undoc-members:
    :show-inheritance:

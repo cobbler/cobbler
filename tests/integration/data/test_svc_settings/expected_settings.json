@@ -377,6 +377,24 @@
                 "nonunique": true,
                 "disabled": false
             }
+        },
+        "distro_group": {
+            "name": {
+                "nonunique": false,
+                "disabled": false
+            }
+        },
+        "profile_group": {
+            "name": {
+                "nonunique": false,
+                "disabled": false
+            }
+        },
+        "system_group": {
+            "name": {
+                "nonunique": false,
+                "disabled": false
+            }
         }
     }
 }

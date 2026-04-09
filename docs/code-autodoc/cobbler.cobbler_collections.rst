@@ -12,6 +12,14 @@ cobbler.cobbler\_collections.collection module
    :undoc-members:
    :show-inheritance:
 
+cobbler.cobbler\_collections.distro\_group module
+-------------------------------------------------
+
+.. automodule:: cobbler.cobbler_collections.distro_group
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 cobbler.cobbler\_collections.distros module
 -------------------------------------------
 
@@ -52,6 +60,14 @@ cobbler.cobbler\_collections.network\_interfaces module
    :undoc-members:
    :show-inheritance:
 
+cobbler.cobbler\_collections.profile\_group module
+--------------------------------------------------
+
+.. automodule:: cobbler.cobbler_collections.profile_group
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 cobbler.cobbler\_collections.profiles module
 --------------------------------------------
 
@@ -64,6 +80,14 @@ cobbler.cobbler\_collections.repos module
 -----------------------------------------
 
 .. automodule:: cobbler.cobbler_collections.repos
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+cobbler.cobbler\_collections.system\_group module
+-------------------------------------------------
+
+.. automodule:: cobbler.cobbler_collections.system_group
    :members:
    :undoc-members:
    :show-inheritance:

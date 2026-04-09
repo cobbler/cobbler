@@ -109,6 +109,18 @@ class ItemTypes(ConvertableEnum):
     """
     See :func:`~cobbler.items.template.Template`
     """
+    DISTRO_GROUP = "distro_group"
+    """
+    See :func:`~cobbler.items.distro_group.DistroGroup`
+    """
+    PROFILE_GROUP = "profile_group"
+    """
+    See :func:`~cobbler.items.profile_group.ProfileGroup`
+    """
+    SYSTEM_GROUP = "system_group"
+    """
+    See :func:`~cobbler.items.system_group.SystemGroup`
+    """
 
 
 class DHCP(enum.Enum):

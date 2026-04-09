@@ -345,6 +345,15 @@ class Settings:
                 "image": {"nonunique": True, "disabled": False},
                 "profile": {"nonunique": True, "disabled": False},
             },
+            "distro_group": {
+                "name": {"nonunique": False, "disabled": False},
+            },
+            "profile_group": {
+                "name": {"nonunique": False, "disabled": False},
+            },
+            "system_group": {
+                "name": {"nonunique": False, "disabled": False},
+            },
         }
 
     @property

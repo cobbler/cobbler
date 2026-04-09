@@ -1309,6 +1309,75 @@ class CobblerXMLRPCInterface:
             "template", name, flatten=flatten, resolved=resolved, token=token
         )
 
+    def get_distro_group(
+        self,
+        name: str,
+        flatten: bool = False,
+        resolved: bool = False,
+        token: Optional[str] = None,
+        **rest: Any,
+    ):
+        """
+        Get a distro group.
+
+        :param name: The name of the distro group to get.
+        :param flatten: If the item should be flattened.
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
+        :param token: The API-token obtained via the login() method.
+        :param rest: Not used with this method currently.
+        :return: The item or None.
+        """
+        return self.get_item(
+            "distro_group", name, flatten=flatten, resolved=resolved, token=token
+        )
+
+    def get_profile_group(
+        self,
+        name: str,
+        flatten: bool = False,
+        resolved: bool = False,
+        token: Optional[str] = None,
+        **rest: Any,
+    ):
+        """
+        Get a profile group.
+
+        :param name: The name of the profile group to get.
+        :param flatten: If the item should be flattened.
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
+        :param token: The API-token obtained via the login() method.
+        :param rest: Not used with this method currently.
+        :return: The item or None.
+        """
+        return self.get_item(
+            "profile_group", name, flatten=flatten, resolved=resolved, token=token
+        )
+
+    def get_system_group(
+        self,
+        name: str,
+        flatten: bool = False,
+        resolved: bool = False,
+        token: Optional[str] = None,
+        **rest: Any,
+    ):
+        """
+        Get a system group.
+
+        :param name: The name of the system group to get.
+        :param flatten: If the item should be flattened.
+        :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
+                         objects raw value.
+        :param token: The API-token obtained via the login() method.
+        :param rest: Not used with this method currently.
+        :return: The item or None.
+        """
+        return self.get_item(
+            "system_group", name, flatten=flatten, resolved=resolved, token=token
+        )
+
     def get_template_content(self, uid: str, token: Optional[str] = None) -> str:
         """
         Search for the given object and return the content of the template. Call
@@ -1488,6 +1557,60 @@ class CobblerXMLRPCInterface:
         :return: The list of all files.
         """
         return self.get_items("template")
+
+    def get_distro_groups(
+        self,
+        page: Any = None,
+        results_per_page: Any = None,
+        token: Optional[str] = None,
+        **rest: Any,
+    ) -> List[Dict[str, Any]]:
+        """
+        This returns all distro groups.
+
+        :param page: This parameter is not used currently.
+        :param results_per_page: This parameter is not used currently.
+        :param token: The API-token obtained via the login() method.
+        :param rest: This parameter is not used currently.
+        :return: The list of all distro groups.
+        """
+        return self.get_items("distro_group")
+
+    def get_profile_groups(
+        self,
+        page: Any = None,
+        results_per_page: Any = None,
+        token: Optional[str] = None,
+        **rest: Any,
+    ) -> List[Dict[str, Any]]:
+        """
+        This returns all profile groups.
+
+        :param page: This parameter is not used currently.
+        :param results_per_page: This parameter is not used currently.
+        :param token: The API-token obtained via the login() method.
+        :param rest: This parameter is not used currently.
+        :return: The list of all profile groups.
+        """
+        return self.get_items("profile_group")
+
+    def get_system_groups(
+        self,
+        page: Any = None,
+        results_per_page: Any = None,
+        token: Optional[str] = None,
+        **rest: Any,
+    ) -> List[Dict[str, Any]]:
+        """
+        This returns all system groups.
+
+        :param page: This parameter is not used currently.
+        :param results_per_page: This parameter is not used currently.
+        :param token: The API-token obtained via the login() method.
+        :param rest: This parameter is not used currently.
+        :return: The list of all system groups.
+        """
+        return self.get_items("system_group")
 
     def find_items(
         self,
@@ -1696,6 +1819,75 @@ class CobblerXMLRPCInterface:
         """
         return self.find_items("template", criteria, expand=expand, resolved=resolved)
 
+    def find_distro_group(
+        self,
+        criteria: Optional[Dict[str, Any]] = None,
+        expand: bool = False,
+        resolved: bool = False,
+        token: Optional[str] = None,
+        **rest: Any,
+    ) -> List[Any]:
+        """
+        Find a distro group matching certain criteria.
+
+        :param criteria: The criteria a distro group needs to match.
+        :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
+        :param token: The API-token obtained via the login() method.
+        :param rest: This parameter is not used currently.
+        :return: All distro groups which have matched the criteria.
+        """
+        return self.find_items(
+            "distro_group", criteria, expand=expand, resolved=resolved
+        )
+
+    def find_profile_group(
+        self,
+        criteria: Optional[Dict[str, Any]] = None,
+        expand: bool = False,
+        resolved: bool = False,
+        token: Optional[str] = None,
+        **rest: Any,
+    ) -> List[Any]:
+        """
+        Find a profile group matching certain criteria.
+
+        :param criteria: The criteria a profile group needs to match.
+        :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
+        :param token: The API-token obtained via the login() method.
+        :param rest: This parameter is not used currently.
+        :return: All profile groups which have matched the criteria.
+        """
+        return self.find_items(
+            "profile_group", criteria, expand=expand, resolved=resolved
+        )
+
+    def find_system_group(
+        self,
+        criteria: Optional[Dict[str, Any]] = None,
+        expand: bool = False,
+        resolved: bool = False,
+        token: Optional[str] = None,
+        **rest: Any,
+    ) -> List[Any]:
+        """
+        Find a system group matching certain criteria.
+
+        :param criteria: The criteria a system group needs to match.
+        :param expand: Not only get the names but also the complete object in form of a dict.
+        :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
+                         object instead of the raw data.
+        :param token: The API-token obtained via the login() method.
+        :param rest: This parameter is not used currently.
+        :return: All system groups which have matched the criteria.
+        """
+        return self.find_items(
+            "system_group", criteria, expand=expand, resolved=resolved
+        )
+
     def find_items_paged(
         self,
         what: str,
@@ -1863,6 +2055,33 @@ class CobblerXMLRPCInterface:
         :return: The handle of the desired object.
         """
         return self.get_item_handle("template", name)
+
+    def get_distro_group_handle(self, name: str):
+        """
+        Get a handle for a distro group which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
+
+        :param name: The name of the item.
+        :return: The handle of the desired object.
+        """
+        return self.get_item_handle("distro_group", name)
+
+    def get_profile_group_handle(self, name: str):
+        """
+        Get a handle for a profile group which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
+
+        :param name: The name of the item.
+        :return: The handle of the desired object.
+        """
+        return self.get_item_handle("profile_group", name)
+
+    def get_system_group_handle(self, name: str):
+        """
+        Get a handle for a system group which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
+
+        :param name: The name of the item.
+        :return: The handle of the desired object.
+        """
+        return self.get_item_handle("system_group", name)
 
     def _transaction_get_modified(self, token: str, obj: "InheritableItem"):
         """
@@ -2073,6 +2292,45 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("template", name, token, recursive)
 
+    def remove_distro_group(
+        self, name: str, token: str, recursive: bool = True
+    ) -> bool:
+        """
+        Deletes a distro group from Cobbler.
+
+        :param name: The name of the item to remove.
+        :param token: The API-token obtained via the login() method.
+        :param recursive: If items which are depending on this one should be erased too.
+        :return: True if the action was successful.
+        """
+        return self.remove_item("distro_group", name, token, recursive)
+
+    def remove_profile_group(
+        self, name: str, token: str, recursive: bool = True
+    ) -> bool:
+        """
+        Deletes a profile group from Cobbler.
+
+        :param name: The name of the item to remove.
+        :param token: The API-token obtained via the login() method.
+        :param recursive: If items which are depending on this one should be erased too.
+        :return: True if the action was successful.
+        """
+        return self.remove_item("profile_group", name, token, recursive)
+
+    def remove_system_group(
+        self, name: str, token: str, recursive: bool = True
+    ) -> bool:
+        """
+        Deletes a system group from Cobbler.
+
+        :param name: The name of the item to remove.
+        :param token: The API-token obtained via the login() method.
+        :param recursive: If items which are depending on this one should be erased too.
+        :return: True if the action was successful.
+        """
+        return self.remove_item("system_group", name, token, recursive)
+
     def copy_item(
         self, what: str, object_id: str, newname: str, token: Optional[str] = None
     ) -> bool:
@@ -2207,6 +2465,45 @@ class CobblerXMLRPCInterface:
         :return: True if the action succeeded.
         """
         return self.copy_item("template", object_id, newname, token)
+
+    def copy_distro_group(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
+        """
+        Copies a distro group and renames it afterwards.
+
+        :param object_id: The object id of the item in question.
+        :param newname: The new name for the copied object.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action succeeded.
+        """
+        return self.copy_item("distro_group", object_id, newname, token)
+
+    def copy_profile_group(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
+        """
+        Copies a profile group and renames it afterwards.
+
+        :param object_id: The object id of the item in question.
+        :param newname: The new name for the copied object.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action succeeded.
+        """
+        return self.copy_item("profile_group", object_id, newname, token)
+
+    def copy_system_group(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
+        """
+        Copies a system group and renames it afterwards.
+
+        :param object_id: The object id of the item in question.
+        :param newname: The new name for the copied object.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action succeeded.
+        """
+        return self.copy_item("system_group", object_id, newname, token)
 
     def rename_item(
         self, what: str, object_id: str, newname: str, token: Optional[str] = None
@@ -2360,6 +2657,45 @@ class CobblerXMLRPCInterface:
         """
         return self.rename_item("template", object_id, newname, token)
 
+    def rename_distro_group(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
+        """
+        Renames a distro group specified by object_id to a new name.
+
+        :param object_id: The id which refers to the object.
+        :param newname: The new name for the object.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action succeeded.
+        """
+        return self.rename_item("distro_group", object_id, newname, token)
+
+    def rename_profile_group(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
+        """
+        Renames a profile group specified by object_id to a new name.
+
+        :param object_id: The id which refers to the object.
+        :param newname: The new name for the object.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action succeeded.
+        """
+        return self.rename_item("profile_group", object_id, newname, token)
+
+    def rename_system_group(
+        self, object_id: str, newname: str, token: Optional[str] = None
+    ) -> bool:
+        """
+        Renames a system group specified by object_id to a new name.
+
+        :param object_id: The id which refers to the object.
+        :param newname: The new name for the object.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action succeeded.
+        """
+        return self.rename_item("system_group", object_id, newname, token)
+
     def new_item(
         self, what: str, token: str, is_subobject: bool = False, **kwargs: Any
     ) -> str:
@@ -2465,6 +2801,33 @@ class CobblerXMLRPCInterface:
         :return: The object id for the newly created object.
         """
         return self.new_item("template", token)
+
+    def new_distro_group(self, token: str) -> str:
+        """
+        See ``new_item()``.
+
+        :param token: The API-token obtained via the login() method.
+        :return: The object id for the newly created object.
+        """
+        return self.new_item("distro_group", token)
+
+    def new_profile_group(self, token: str) -> str:
+        """
+        See ``new_item()``.
+
+        :param token: The API-token obtained via the login() method.
+        :return: The object id for the newly created object.
+        """
+        return self.new_item("profile_group", token)
+
+    def new_system_group(self, token: str) -> str:
+        """
+        See ``new_item()``.
+
+        :param token: The API-token obtained via the login() method.
+        :return: The object id for the newly created object.
+        """
+        return self.new_item("system_group", token)
 
     def __get_raw_value(self, obj: Any, attribute_path: List[str]) -> Any:
         """
@@ -2680,6 +3043,48 @@ class CobblerXMLRPCInterface:
         """
         return self.modify_item("template", object_id, attribute, arg, token)
 
+    def modify_distro_group(
+        self, object_id: str, attribute: List[str], arg: Any, token: str
+    ) -> bool:
+        """
+        Modify a single attribute of a distro group.
+
+        :param object_id: The id of the object which shall be modified.
+        :param attribute: The attribute name which shall be edited.
+        :param arg: The new value for the argument.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action was successful. Otherwise False.
+        """
+        return self.modify_item("distro_group", object_id, attribute, arg, token)
+
+    def modify_profile_group(
+        self, object_id: str, attribute: List[str], arg: Any, token: str
+    ) -> bool:
+        """
+        Modify a single attribute of a profile group.
+
+        :param object_id: The id of the object which shall be modified.
+        :param attribute: The attribute name which shall be edited.
+        :param arg: The new value for the argument.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action was successful. Otherwise False.
+        """
+        return self.modify_item("profile_group", object_id, attribute, arg, token)
+
+    def modify_system_group(
+        self, object_id: str, attribute: List[str], arg: Any, token: str
+    ) -> bool:
+        """
+        Modify a single attribute of a system group.
+
+        :param object_id: The id of the object which shall be modified.
+        :param attribute: The attribute name which shall be edited.
+        :param arg: The new value for the argument.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action was successful. Otherwise False.
+        """
+        return self.modify_item("system_group", object_id, attribute, arg, token)
+
     def modify_setting(
         self,
         setting_name: str,
@@ -2871,6 +3276,48 @@ class CobblerXMLRPCInterface:
         :return: True if the action succeeded.
         """
         return self.save_item("template", object_id, token, editmode=editmode)
+
+    def save_distro_group(
+        self, object_id: str, token: str, editmode: str = "bypass"
+    ) -> bool:
+        """
+        Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
+
+        :param object_id: The id of the object to save.
+        :param token: The API-token obtained via the login() method.
+        :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
+                         supported.
+        :return: True if the action succeeded.
+        """
+        return self.save_item("distro_group", object_id, token, editmode=editmode)
+
+    def save_profile_group(
+        self, object_id: str, token: str, editmode: str = "bypass"
+    ) -> bool:
+        """
+        Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
+
+        :param object_id: The id of the object to save.
+        :param token: The API-token obtained via the login() method.
+        :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
+                         supported.
+        :return: True if the action succeeded.
+        """
+        return self.save_item("profile_group", object_id, token, editmode=editmode)
+
+    def save_system_group(
+        self, object_id: str, token: str, editmode: str = "bypass"
+    ) -> bool:
+        """
+        Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
+
+        :param object_id: The id of the object to save.
+        :param token: The API-token obtained via the login() method.
+        :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
+                         supported.
+        :return: True if the action succeeded.
+        """
+        return self.save_item("system_group", object_id, token, editmode=editmode)
 
     def is_autoinstall_in_use(
         self, ai: str, token: Optional[str] = None, **rest: Any
@@ -3714,6 +4161,42 @@ class CobblerXMLRPCInterface:
         data = self.api.get_templates_since(mtime, collapse=True)
         return self.xmlrpc_hacks(data)
 
+    def get_distro_groups_since(
+        self, mtime: float
+    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
+        """
+        See documentation for get_distros_since
+
+        :param mtime: The time after which all items should be included. Everything before this will be excluded.
+        :return: The list of items which were modified after ``mtime``.
+        """
+        data = self.api.get_distro_groups_since(mtime, collapse=True)
+        return self.xmlrpc_hacks(data)
+
+    def get_profile_groups_since(
+        self, mtime: float
+    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
+        """
+        See documentation for get_distros_since
+
+        :param mtime: The time after which all items should be included. Everything before this will be excluded.
+        :return: The list of items which were modified after ``mtime``.
+        """
+        data = self.api.get_profile_groups_since(mtime, collapse=True)
+        return self.xmlrpc_hacks(data)
+
+    def get_system_groups_since(
+        self, mtime: float
+    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
+        """
+        See documentation for get_distros_since
+
+        :param mtime: The time after which all items should be included. Everything before this will be excluded.
+        :return: The list of items which were modified after ``mtime``.
+        """
+        data = self.api.get_system_groups_since(mtime, collapse=True)
+        return self.xmlrpc_hacks(data)
+
     def get_repos_compatible_with_profile(
         self, profile: str, token: Optional[str] = None, **rest: Any
     ) -> List[Dict[Any, Any]]:
@@ -3943,6 +4426,60 @@ class CobblerXMLRPCInterface:
 
         self._log("get_network_interface_as_rendered", name=name, token=token)
         obj = self.api.find_network_interface(name=name)
+        if obj is not None and not isinstance(obj, list):
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
+        return self.xmlrpc_hacks({})
+
+    def get_distro_group_as_rendered(
+        self, name: str, token: Optional[str] = None, **rest: Any
+    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
+        """
+        Get distro group after passing through Cobbler's inheritance engine
+
+        :param name: DistroGroup name
+        :param token: Authentication token
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: Get a template rendered as a file.
+        """
+
+        self._log("get_distro_group_as_rendered", name=name, token=token)
+        obj = self.api.find_distro_group(name=name)
+        if obj is not None and not isinstance(obj, list):
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
+        return self.xmlrpc_hacks({})
+
+    def get_profile_group_as_rendered(
+        self, name: str, token: Optional[str] = None, **rest: Any
+    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
+        """
+        Get profile group after passing through Cobbler's inheritance engine
+
+        :param name: ProfileGroup name
+        :param token: Authentication token
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: Get a template rendered as a file.
+        """
+
+        self._log("get_profile_group_as_rendered", name=name, token=token)
+        obj = self.api.find_profile_group(name=name)
+        if obj is not None and not isinstance(obj, list):
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
+        return self.xmlrpc_hacks({})
+
+    def get_system_group_as_rendered(
+        self, name: str, token: Optional[str] = None, **rest: Any
+    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
+        """
+        Get system group after passing through Cobbler's inheritance engine
+
+        :param name: SystemGroup name
+        :param token: Authentication token
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: Get a template rendered as a file.
+        """
+
+        self._log("get_system_group_as_rendered", name=name, token=token)
+        obj = self.api.find_system_group(name=name)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
         return self.xmlrpc_hacks({})
