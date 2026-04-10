@@ -1,9 +1,11 @@
 import os
+from typing import Callable
 
 import pytest
 import time
 import re
 
+from cobbler.remote import CobblerXMLRPCInterface
 from tests.conftest import does_not_raise
 
 TEST_POWER_MANAGEMENT = True
@@ -69,7 +71,9 @@ def test_power_system(remote, token, wait_task_end):
     """
 
     if TEST_SYSTEM and TEST_POWER_MANAGEMENT:
-        tid = remote.background_power_system({"systems": [TEST_SYSTEM], "power": "reboot"}, token)
+        tid = remote.background_power_system(
+            {"systems": [TEST_SYSTEM], "power": "reboot"}, token
+        )
         wait_task_end(tid, remote)
 
 
@@ -114,6 +118,39 @@ def test_generate_autoinstall(remote):
 
     if TEST_SYSTEM:
         remote.generate_autoinstall(None, TEST_SYSTEM)
+
+
+def test_generate_autoinstall_empty_string_normalization(
+    create_kernel_initrd: Callable[[str, str], str],
+    create_distro: Callable[[str, str, str, str, str], str],
+    create_profile: Callable[[str, str, str], str],
+    create_autoinstall_template: Callable[[str, str], str],
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: generate autoinstall with empty string should normalize to None (issue #3807)
+    """
+    fk_kernel = "vmlinuz2"
+    fk_initrd = "initrd2.img"
+    name_distro = "testdistro_empty_normalization"
+    name_profile = "testprofile_empty_normalization"
+    name_template = "empty-test.ks"
+    _ = create_autoinstall_template(name_template, "# Test template\n")
+    basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+    path_kernel = os.path.join(basepath, fk_kernel)
+    path_initrd = os.path.join(basepath, fk_initrd)
+
+    _ = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
+    _ = create_profile(name_profile, name_distro, "")
+    profile_handle = remote.get_profile_handle(name_profile, token)
+    remote.modify_profile(profile_handle, "autoinstall", name_template, token)
+    remote.save_profile(profile_handle, token)
+
+    result = remote.generate_autoinstall(name_profile, "")
+
+    assert result != ""
+    assert not result.startswith("# This automatic OS installation file had errors")
 
 
 def test_generate_ipxe(remote):
@@ -184,7 +221,9 @@ def test_get_random_mac(remote, token):
 
     mac = remote.get_random_mac("xen", token)
     hexa = "[0-9A-Fa-f]{2}"
-    match_obj = re.match("%s:%s:%s:%s:%s:%s" % (hexa, hexa, hexa, hexa, hexa, hexa), mac)
+    match_obj = re.match(
+        "%s:%s:%s:%s:%s:%s" % (hexa, hexa, hexa, hexa, hexa, hexa), mac
+    )
     assert match_obj
 
 
