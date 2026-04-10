@@ -8,13 +8,11 @@ on:
 
 jobs:
   lint_docs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
       uses: actions/setup-python@v5
-      with:
-        python-version: 3.9
     - name: Install dependencies
       run:  pip install -U "rstcheck<6" doc8
     - name: Run rstcheck
@@ -22,7 +20,7 @@ jobs:
     - name: Run doc8
       run: doc8 --ignore D001 docs
   lint_shellscripts:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Run ShellCheck
