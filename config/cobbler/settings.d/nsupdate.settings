@@ -1,11 +1,21 @@
 # Set to "true" to enable Cobbler's dynamic DNS updates.
 nsupdate_enabled: false
 
+# Set to "false" if you want to disable the extra TXT records
+nsupdate_mgm_txt: true
+
 # define tsig key
-# please don't use this one, instead generate your own:
-#   dnssec-keygen -a HMAC-SHA512 -b 512 -n USER cobbler_update_key
-nsupdate_tsig_algorithm: "hmac-sha512"
-nsupdate_tsig_key: [ "cobbler_update_key.", "hvnK54HFJXFasHjzjEn09ASIkCOGYSnofRq4ejsiBHz3udVyGiuebFGAswSjKUxNuhmllPrkI0HRSSmM2qvZug==" ]
+# please don't use this one, instead generate your own (one per server that supports nsupdate):
+#   tsig-key -a hmac-sha512 cobbler_update_key
+nsupdate_tsig:
+  "ns1.example.com.": # <-- The FQDN of the Zone's Primary DNS server
+    algorithm: "hmac-sha512"
+    key: [ "cobbler_update_key", # <-- The key identifier, v-- The key
+           "hvnK54HFJXFasHjzjEn09ASIkCOGYSnofRq4ejsiBHz3udVyGiuebFGAswSjKUxNuhmllPrkI0HRSSmM2qvZug==" ]
+  "ns2.example.com.": # <-- The FQDN of the Zone's Primary DNS server
+    algorithm: "hmac-sha512"
+    key: [ "cobbler_update_key", # <-- The key identifier, v-- The key
+           "iaqduBQnH2zddbrMAGEjXoky/IicWFiE3b8eTLevMvpH4WS+YiVN/aR056tL9Ly9tRXksCmpmq8kY+bkKuXqog==" ]
 
 # if set, enables logging to that file
 nsupdate_log: "/var/log/cobbler/nsupdate.log"
