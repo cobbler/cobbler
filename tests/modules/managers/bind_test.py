@@ -2,10 +2,9 @@
 Test to verify the functionallity of the isc bind module.
 """
 
-from fnmatch import fnmatch
-import pathlib
 import time
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, TextIO
+from fnmatch import fnmatch
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, TextIO, Tuple
 
 import pytest
 
@@ -14,17 +13,19 @@ from cobbler.items import distro, profile
 from cobbler.modules.managers import bind
 
 if TYPE_CHECKING:
-    from pytest_mock import MockerFixture
     from pytest import TempPathFactory
+    from pytest_mock import MockerFixture
 
 
-def _get_file_and_mode(file, mode='r', *args, **kwargs):
+def _get_file_and_mode(
+    file: Any, mode: str = "r", *args: Any, **kwargs: Any
+) -> Tuple[Any, str]:
     """
     Helper to extract the file and mode arguments from a call to open(),
     Because it is an actual callable function, it can handle the exact
     same combinations of positional and keyword arguments as open().
     """
-    return (file, mode)
+    return file, mode
 
 
 class MockFiles:
@@ -51,7 +52,7 @@ class MockFiles:
         Open a mock file.
         """
         path, mode = _get_file_and_mode(*args, **kwargs)
-        if 'r' not in mode:
+        if "r" not in mode:
             return self._real_open(*args, **kwargs)
         open_data = self.files.get(path, self.open_unknown)
         if isinstance(open_data, str):
@@ -72,8 +73,7 @@ def mock_config_files(
     """
 
     files = {
-        "/etc/cobbler/named.template":
-        """options {
+        "/etc/cobbler/named.template": """options {
           listen-on port 53 { 127.0.0.1; };
           directory       "@@bind_zonefiles@@";
           dump-file       "@@bind_zonefiles@@/data/cache_dump.db";
@@ -99,8 +99,7 @@ zone "${arpa}." {
 #end for
 """,
         "/etc/cobbler/secondary.template": "garbage",
-        "/etc/cobbler/zone.template":
-        """\\$TTL 3600
+        "/etc/cobbler/zone.template": """\\$TTL 3600
 @                       IN      SOA     $cobbler_server. nobody.example.com. (
                                         $serial      ; Serial
                                         86400        ; Refresh (1 day)
@@ -119,13 +118,15 @@ $host_record
 """,
     }
     mock_files = MockFiles(mocker, files)
-    mock_files.real_patterns.extend((
-        "/code/*",
-        "/etc/cobbler/*",
-        "/etc/mtab",
-        "/var/lib/cobbler/*",
-        str(tmp_path_factory.getbasetemp().joinpath("*")),
-    ))
+    mock_files.real_patterns.extend(
+        (
+            "/code/*",
+            "/etc/cobbler/*",
+            "/etc/mtab",
+            "/var/lib/cobbler/*",
+            str(tmp_path_factory.getbasetemp().joinpath("*")),
+        )
+    )
     return mock_files
 
 
@@ -133,9 +134,9 @@ def assert_zone_has(path: str, *expect: List[str]) -> None:
     """
     Test that a zone file contains the expected tokens in the given order.
     """
-    parsed = list(map(
-        lambda line: line[:line.find(';')].split(),
-        open(path).readlines()))
+    parsed = list(
+        map(lambda line: line[: line.find(";")].split(), open(path).readlines())
+    )
     it = iter(parsed)
     for line in expect:
         while True:
@@ -193,31 +194,31 @@ def test_get_manager(cobbler_api: CobblerAPI):
 
 
 def test_write_configs(
-    mocker: "MockerFixture", cobbler_api: CobblerAPI,
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
     mock_config_files: MockFiles,
     create_distro: Callable[[], distro.Distro],
-    create_profile: Callable[[str], profile.Profile]
+    create_profile: Callable[[str], profile.Profile],
 ):
     """
     Test if the manager is able to correctly write the configuration files.
     """
     # Arrange
     settings = cobbler_api.settings()
-    settings.from_dict({
-        "server": "cobbler.example.com",
-        "manage_dns": True,
-        "manage_forward_zones": [ "example.com" ],
-        "manage_reverse_zones": [ "192.168.1", "2001:db8:0:1" ],
-        "manage_dhcp_v4": False,
-        "manage_dhcp_v6": False,
-    })
+    settings.from_dict(
+        {
+            "server": "cobbler.example.com",
+            "manage_dns": True,
+            "manage_forward_zones": ["example.com"],
+            "manage_reverse_zones": ["192.168.1", "2001:db8:0:1"],
+            "manage_dhcp_v4": False,
+            "manage_dhcp_v6": False,
+        }
+    )
 
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
-    test_system = cobbler_api.new_system(
-        name = "test",
-        profile = test_profile.uid
-    )
+    test_system = cobbler_api.new_system(name="test", profile=test_profile.uid)
     cobbler_api.add_system(test_system)
     test_interface = cobbler_api.new_network_interface(
         system_uid=test_system.uid,
@@ -242,7 +243,6 @@ def test_write_configs(
     manager.write_configs()
 
     # Assert
-    # TODO: Extend assertions
     mocker.stopall()
 
     assert open("/var/lib/cobbler/bind_serial").read() == time.strftime("%Y%m%d00")
@@ -275,32 +275,32 @@ def test_write_configs(
 
 
 def test_sort_zones(
-    mocker: "MockerFixture", cobbler_api: CobblerAPI,
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
     mock_config_files: MockFiles,
     create_distro: Callable[[], distro.Distro],
-    create_profile: Callable[[str], profile.Profile]
+    create_profile: Callable[[str], profile.Profile],
 ):
     """
     Test if the RRs in a zone file are correctly sorted.
     """
     # Arrange
     settings = cobbler_api.settings()
-    settings.from_dict({
-        "server": "cobbler.example.com",
-        "manage_dns": True,
-        "manage_forward_zones": [ "example.com" ],
-        "manage_reverse_zones": [ "192.168", "2001:db8:0:1" ],
-        "manage_dhcp_v4": False,
-        "manage_dhcp_v6": False,
-    })
+    settings.from_dict(
+        {
+            "server": "cobbler.example.com",
+            "manage_dns": True,
+            "manage_forward_zones": ["example.com"],
+            "manage_reverse_zones": ["192.168", "2001:db8:0:1"],
+            "manage_dhcp_v4": False,
+            "manage_dhcp_v6": False,
+        }
+    )
 
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
 
-    test_system = cobbler_api.new_system(
-        name = "alpha",
-        profile = test_profile.uid
-    )
+    test_system = cobbler_api.new_system(name="alpha", profile=test_profile.uid)
     cobbler_api.add_system(test_system)
     test_interface = cobbler_api.new_network_interface(
         system_uid=test_system.uid,
@@ -311,10 +311,7 @@ def test_sort_zones(
     )
     cobbler_api.add_network_interface(test_interface)
 
-    test_system = cobbler_api.new_system(
-        name = "beta",
-        profile = test_profile.uid
-    )
+    test_system = cobbler_api.new_system(name="beta", profile=test_profile.uid)
     cobbler_api.add_system(test_system)
     test_interface = cobbler_api.new_network_interface(
         system_uid=test_system.uid,
@@ -325,10 +322,7 @@ def test_sort_zones(
     )
     cobbler_api.add_network_interface(test_interface)
 
-    test_system = cobbler_api.new_system(
-        name = "gamma",
-        profile = test_profile.uid
-    )
+    test_system = cobbler_api.new_system(name="gamma", profile=test_profile.uid)
     cobbler_api.add_system(test_system)
     test_interface = cobbler_api.new_network_interface(
         system_uid=test_system.uid,
@@ -345,7 +339,6 @@ def test_sort_zones(
     manager.write_configs()
 
     # Assert
-    # TODO: Extend assertions
     mocker.stopall()
 
     assert_zone_has(
