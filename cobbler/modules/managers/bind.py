@@ -11,7 +11,7 @@ import pathlib
 import re
 import socket
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 
 from cobbler import enums, utils
 from cobbler.modules.managers import DnsManagerModule
@@ -197,7 +197,7 @@ class _BindManager(DnsManagerModule):
 
         return zones
 
-    def __reverse_zones(self) -> Dict[Any, Any]:
+    def __reverse_zones(self) -> Dict[str, Dict[str, Union[str, List[str]]]]:
         """
         Returns a map of zones and the records that belong in them
 
@@ -247,9 +247,6 @@ class _BindManager(DnsManagerModule):
                         ip_address = ip_address.replace(best_match, "", 1)
                         if ip_address[0] == ".":  # strip leading '.' if it's there
                             ip_address = ip_address[1:]
-                        tokens = ip_address.split(".")
-                        tokens.reverse()
-                        ip_address = ".".join(tokens)
                         zones[best_match][ip_address] = host + "."
 
                 if ipv6 or ipv6_sec_addrs:
@@ -262,10 +259,7 @@ class _BindManager(DnsManagerModule):
                         # All IPv6 zones are forced to have the format xxxx:xxxx:xxxx:xxxx
                         zone = long_ipv6[:19]
                         ipv6_host_part = long_ipv6[20:]
-                        tokens = list(re.sub(":", "", ipv6_host_part))
-                        tokens.reverse()
-                        ip_address = ".".join(tokens)
-                        zones[zone][ip_address] = host + "."
+                        zones[zone][ipv6_host_part] = host + "."
 
         return zones
 
@@ -410,7 +404,10 @@ zone "{arpa}." {{
         return [".".join(i) for i in octets_str] + [":".join(i) for i in quartets_str]
 
     def __pretty_print_host_records(
-        self, hosts: Dict[str, Any], rectype: str = "A", rclass: str = "IN"
+        self,
+        hosts: Dict[str, Union[str, List[str]]],
+        rectype: str = "A",
+        rclass: str = "IN",
     ) -> str:
         """
         Format host records by order and with consistent indentation
@@ -432,14 +429,24 @@ zone "{arpa}." {{
                         system.name,
                     )
 
-        names = list(hosts.keys())
-        if not names:
+        if not len(hosts):
             return ""  # zones with no hosts
 
         if rectype == "PTR":
-            names = self.__ip_sort(names)
+
+            def translate_ip(ip: str) -> str:
+                if ":" in ip:
+                    tokens = list(re.sub(":", "", ip))
+                else:
+                    tokens = ip.split(".")
+                tokens.reverse()
+                return ".".join(tokens)
+
+            names = self.__ip_sort(hosts.keys())
+            hosts = dict(map(lambda ip: (translate_ip(ip), hosts[ip]), names))
+            names = list(map(translate_ip, names))
         else:
-            names.sort()
+            names = sorted(hosts.keys())
 
         max_name = max([len(i) for i in names])
 
@@ -448,7 +455,6 @@ zone "{arpa}." {{
             spacing = " " * (max_name - len(name))
             my_name = f"{name}{spacing}"
             my_host_record = hosts[name]
-            my_host_list = []
             if isinstance(my_host_record, str):
                 my_host_list = [my_host_record]
             else:
@@ -463,14 +469,10 @@ zone "{arpa}." {{
                 result += f"{my_name}  {rclass}  {my_rectype}  {my_host};\n"
         return result
 
-    def __pretty_print_cname_records(
-        self, hosts: Dict[str, Any], rectype: str = "CNAME"
-    ) -> str:
+    def __pretty_print_cname_records(self) -> str:
         """
         Format CNAMEs and with consistent indentation
 
-        :param hosts: This parameter is currently unused.
-        :param rectype: The type of record which shall be pretty printed.
         :return: The pretty printed version of the cname records.
         """
         result = ""
@@ -486,7 +488,7 @@ zone "{arpa}." {{
                     if interface.dns.name != "":
                         dnsname = interface.dns.name.split(".")[0]
                         for cname in cnames:
-                            result += f"{cname.split('.')[0]}  {rectype}  {dnsname};\n"
+                            result += f"{cname.split('.')[0]}  CNAME  {dnsname};\n"
                     else:
                         self.logger.warning(
                             'CNAME generation for system "%s" was skipped due to a missing dns_name entry while writing'
@@ -573,7 +575,7 @@ zone "{arpa}." {{
                 else:
                     template_data = search_result.content
 
-            metadata["cname_record"] = self.__pretty_print_cname_records(hosts)
+            metadata["cname_record"] = self.__pretty_print_cname_records()
             metadata["host_record"] = self.__pretty_print_host_records(hosts)
 
             zonefilename = zonefileprefix + zone
@@ -605,7 +607,7 @@ zone "{arpa}." {{
             if not found_zone_specific_template:
                 template_data = search_result.content
 
-            metadata["cname_record"] = self.__pretty_print_cname_records(hosts)
+            metadata["cname_record"] = self.__pretty_print_cname_records()
             metadata["host_record"] = self.__pretty_print_host_records(
                 hosts, rectype="PTR"
             )
