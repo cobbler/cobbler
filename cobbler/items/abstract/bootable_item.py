@@ -51,10 +51,8 @@ V3.3.0:
         * ``ctime``: int -> float
         * ``mtime``: int -> float
         * ``uid``: str
-        * ``kernel_options``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
-          -> Union[flat dict, str]
-        * ``kernel_options_post``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
-          -> Union[flat dict, str]
+        * ``kernel_options``: dict -> Union[dict, str]
+        * ``kernel_options_post``: dict -> Union[dict, str]
         * ``autoinstall_meta``: dict -> Union[dict, str]
         * ``fetchable_files``: dict -> Union[dict, str]
         * ``boot_files``: dict -> Union[dict, str]
@@ -75,8 +73,8 @@ V3.0.1:
 V3.0.0:
     * Added:
         * ``collection_mgr``: collection_mgr
-        * ``kernel_options``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
-        * ``kernel_options_post``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
+        * ``kernel_options``: dict
+        * ``kernel_options_post``: dict
         * ``autoinstall_meta``: dict
         * ``fetchable_files``: dict
         * ``boot_files``: dict

@@ -154,8 +154,8 @@ V2.8.5:
         * ``profile``: str - Name of the profile
         * ``image``: str - Name of the image
         * ``status``: str - One of "", "development", "testing", "acceptance", "production"
-        * ``kernel_options``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
-        * ``kernel_options_post``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
+        * ``kernel_options``: Dict[str, Any]
+        * ``kernel_options_post``: Dict[str, Any]
         * ``ks_meta``: Dict[str, Any]
         * ``enable_gpxe``: bool - Inheritable
         * ``proxy``: str - Inheritable

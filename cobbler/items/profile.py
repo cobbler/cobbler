@@ -79,10 +79,8 @@ V3.3.0:
         * ``boot_files``: list/dict? -> enums.VALUE_INHERITED
         * ``fetchable_files``: dict -> enums.VALUE_INHERITED
         * ``autoinstall_meta``: dict -> enums.VALUE_INHERITED
-        * ``kernel_options``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
-          -> enums.VALUE_INHERITED
-        * ``kernel_options_post``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
-          -> enums.VALUE_INHERITED
+        * ``kernel_options``: dict -> enums.VALUE_INHERITED
+        * ``kernel_options_post``: dict -> enums.VALUE_INHERITED
         * mgmt_classes: list -> enums.VALUE_INHERITED
         * ``mgmt_parameters``: Union[str, inherit] -> enums.VALUE_INHERITED
         (``mgmt_classes`` parameter has a duplicate)
@@ -133,8 +131,8 @@ V2.8.5:
         * ``enable_gpxe``: Union[bool, SETTINGS:enable_gpxe]
         * ``enable_menu``: Union[bool, SETTINGS:enable_menu]
         * ``fetchable_files``: dict
-        * ``kernel_options``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
-        * ``kernel_options_post``: Flat dict[str, scalar (str/bool/int/float/None) | list[scalar]]
+        * ``kernel_options``: dict
+        * ``kernel_options_post``: dict
         * ``mgmt_classes``: list
         * ``mgmt_parameters``: Union[str, inherit]
         * ``name``: str
