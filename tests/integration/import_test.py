@@ -16,6 +16,7 @@ from tests.integration.conftest import WaitTaskEndType
 @pytest.mark.parametrize(
     "breed,version",
     [
+        ("debian", "trixie"),
         ("debian", "bookworm"),
         ("debian", "bullseye"),
         ("freebsd", "freebsd11.4"),
