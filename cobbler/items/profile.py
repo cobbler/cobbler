@@ -166,7 +166,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from cobbler import enums, validate
 from cobbler.cexceptions import CX
-from cobbler.items.abstract.bootable_item import BootableItem
+from cobbler.items.abstract.bootable_item import BootableItem, KernelOptionsDict
 from cobbler.items.distro import Distro
 from cobbler.items.options.dns import DNSOption
 from cobbler.items.options.tftp import TFTPOption
@@ -222,8 +222,8 @@ class Profile(BootableItem):
 
         # Overwrite defaults from bootable_item.py
         self._autoinstall_meta: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
-        self._kernel_options: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
-        self._kernel_options_post: Union[Dict[Any, Any], str] = enums.VALUE_INHERITED
+        self._kernel_options: Union[KernelOptionsDict, str] = enums.VALUE_INHERITED
+        self._kernel_options_post: Union[KernelOptionsDict, str] = enums.VALUE_INHERITED
 
         if self._is_subobject:
             self._filename = enums.VALUE_INHERITED
