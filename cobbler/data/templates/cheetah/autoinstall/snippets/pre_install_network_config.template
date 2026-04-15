@@ -40,7 +40,7 @@ get_ifname() {
     #for $iname in $ikeys
         #if $interfaces[$iname]["interface_type"] == "bond_slave"
             #set $this_master = $interfaces[$iname]["interface_master"]
-            #if $this_master and not $this_master in $bridge_slaves
+            #if $this_master and not $this_master in $bond_slaves
                 #set $bond_slaves[$this_master] = []
             #end if
             <% bond_slaves[this_master].append(iname) %>
@@ -127,7 +127,11 @@ touch /tmp/pre_install_network_config
             #set $opts = $idata["bonding_opts"]
             #if $iname in $bond_slaves
                 #set $slaves = ','.join($bond_slaves[$iname])
+                #if $iface_type == "bond"
 echo "network $netinfo --device=$iname --bondslaves=$slaves --bondopts=$opts --onboot=on" >> /tmp/pre_install_network_config
+                #else
+echo "network --device=$iname --bondslaves=$slaves --bondopts=$opts --onboot=on" >> /tmp/pre_install_network_config
+                #endif
             #else
 #    ERROR - no slaves for $iname
             #end if
