@@ -690,7 +690,7 @@ class TFTPGen:
         else:
             append_line = "append "
         append_line = "%s%s" % (append_line, kernel_options)
-        if distro and distro.os_version.startswith("xenserver620"):
+        if distro and distro.os_version.startswith(("xenserver620", "xcp")):
             append_line = "%s" % (kernel_options)
         metadata["append_line"] = append_line
 
@@ -774,6 +774,10 @@ class TFTPGen:
                     kernel_path = distro.remote_grub_kernel
                 if distro.remote_grub_initrd:
                     initrd_path = distro.remote_grub_initrd
+            elif boot_loader == "pxe":
+                if distro and distro.os_version.startswith("xcp"):
+                    metadata["kernel_path"] = "mboot.c32"
+                    kernel_path = metadata["kernel_path"]
 
             if 'http' in distro.kernel and 'http' in distro.initrd:
                 if not kernel_path:
@@ -957,6 +961,10 @@ class TFTPGen:
                     append_line = "append %s/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1," \
                                   "vga --- %s/vmlinuz xencons=hvc console=hvc0 console=tty0 install answerfile=%s ---" \
                                   " %s/install.img" % (img_path, img_path, autoinstall_path, img_path)
+                    return append_line
+                elif distro.os_version.startswith("xcp"):
+                    img_path = os.path.join("/images", distro.name)
+                    append_line = " %s install answerfile=%s" % (hkopts, autoinstall_path)
                     return append_line
             elif distro.breed == "powerkvm":
                 append_line += " kssendmac"
