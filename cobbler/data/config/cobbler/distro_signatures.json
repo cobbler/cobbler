@@ -984,6 +984,174 @@
         "boot_files": [],
         "boot_loaders": {}
       },
+      "fedora39": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(fedora)-release-39-(.*)\\.noarch\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample.ks",
+        "kernel_options": "repo=$tree",
+        "kernel_options_post": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "fedora40": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(fedora)-release-40-(.*)\\.noarch\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample.ks",
+        "kernel_options": "repo=$tree",
+        "kernel_options_post": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "fedora41": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(fedora)-release-41-(.*)\\.noarch\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample.ks",
+        "kernel_options": "repo=$tree",
+        "kernel_options_post": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "fedora42": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(fedora)-release-42-(.*)\\.noarch\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample.ks",
+        "kernel_options": "repo=$tree",
+        "kernel_options_post": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "fedora43": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(fedora)-release-43-(.*)\\.noarch\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample.ks",
+        "kernel_options": "repo=$tree",
+        "kernel_options_post": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "fedora44": {
+        "signatures": [
+          "Packages"
+        ],
+        "version_file": "(fedora)-release-44-(.*)\\.noarch\\.rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "ppc64le",
+          "s390x",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "rsync",
+          "rhn",
+          "yum"
+        ],
+        "kernel_file": "vmlinuz(.*)",
+        "initrd_file": "initrd(.*)\\.img",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample.ks",
+        "kernel_options": "repo=$tree",
+        "kernel_options_post": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
       "cloudlinux6": {
         "signatures": [
           "Packages"
@@ -1954,6 +2122,84 @@
         "boot_files": [],
         "boot_loaders": {}
       },
+      "oracular": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: oracular|Ubuntu 24.10",
+        "kernel_arch": "linux_headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "plucky": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: plucky|Ubuntu 25.04",
+        "kernel_arch": "linux_headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
+      "questing": {
+        "signatures": [
+          "dists",
+          ".disk"
+        ],
+        "version_file": "Release|info",
+        "version_file_regex": "Suite: questing|Ubuntu 25.10",
+        "kernel_arch": "linux_headers-(.*)\\.deb",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "i386",
+          "amd64"
+        ],
+        "supported_repo_breeds": [
+          "apt"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd($|.gz$|.lz$)",
+        "isolinux_ok": false,
+        "default_autoinstall": "",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "",
+        "boot_files": [],
+        "boot_loaders": {}
+      },
       "noble": {
         "signatures": [
           "dists",
@@ -2441,6 +2687,75 @@
           ""
         ],
         "version_file": "Leap-Micro-release-5.5(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd(.*)",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample_autoyast.xml",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "leapmicro6.0": {
+        "signatures": [
+          ""
+        ],
+        "version_file": "Leap-Micro-release-6.0(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd(.*)",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample_autoyast.xml",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "leapmicro6.1": {
+        "signatures": [
+          ""
+        ],
+        "version_file": "Leap-Micro-release-6.1(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "x86_64"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd(.*)",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample_autoyast.xml",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "leapmicro6.2": {
+        "signatures": [
+          ""
+        ],
+        "version_file": "Leap-Micro-release-6.2(.*).rpm",
         "version_file_regex": null,
         "kernel_arch": "kernel-(.*)\\.rpm",
         "kernel_arch_regex": null,
@@ -3034,6 +3349,78 @@
         "kernel_options_post": "",
         "boot_files": []
       },
+      "sles15sp7": {
+        "signatures": [
+          "suse"
+        ],
+        "version_file": "sles-release-15.7(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64",
+          "s390x",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "linux[64.gz]?",
+        "initrd_file": "initrd[64]?",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample_autoyast.xml",
+        "kernel_options": "install=$tree",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "sles16.0": {
+        "signatures": [
+          "suse"
+        ],
+        "version_file": "sles-release-16.0(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64",
+          "s390x",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "linux[64.gz]?",
+        "initrd_file": "initrd[64]?",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample_autoyast.xml",
+        "kernel_options": "install=$tree",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "sles16.1": {
+        "signatures": [
+          "suse"
+        ],
+        "version_file": "sles-release-16.1(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64",
+          "s390x",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "linux[64.gz]?",
+        "initrd_file": "initrd[64]?",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample_autoyast.xml",
+        "kernel_options": "install=$tree",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
       "slemicro5.3": {
         "signatures": [
           "suse"
@@ -3087,6 +3474,81 @@
           "suse"
         ],
         "version_file": "SLE-Micro-release-5.5(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64",
+          "s390x",
+          "aarch64",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "linux[64.gz]?",
+        "initrd_file": "initrd[64]?",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample_autoyast.xml",
+        "kernel_options": "install=$tree",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "slemicro6.0": {
+        "signatures": [
+          "suse"
+        ],
+        "version_file": "SLE-Micro-release-6.0(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64",
+          "s390x",
+          "aarch64",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "linux[64.gz]?",
+        "initrd_file": "initrd[64]?",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample_autoyast.xml",
+        "kernel_options": "install=$tree",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "slemicro6.1": {
+        "signatures": [
+          "suse"
+        ],
+        "version_file": "SLE-Micro-release-6.1(.*).rpm",
+        "version_file_regex": null,
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "x86_64",
+          "s390x",
+          "aarch64",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "linux[64.gz]?",
+        "initrd_file": "initrd[64]?",
+        "isolinux_ok": false,
+        "default_autoinstall": "built-in-sample_autoyast.xml",
+        "kernel_options": "install=$tree",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
+      "slemicro6.2": {
+        "signatures": [
+          "suse"
+        ],
+        "version_file": "SLE-Micro-release-6.2(.*).rpm",
         "version_file_regex": null,
         "kernel_arch": "kernel-(.*)\\.rpm",
         "kernel_arch_regex": null,
