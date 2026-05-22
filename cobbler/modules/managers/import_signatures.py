@@ -578,6 +578,8 @@ class _ImportSignatureManager(ManagerModule):
                     re_krn2 = re.compile(self.signature["kernel_arch_regex"])
                     krn_lines = self.get_file_lines(os.path.join(dirname, fname))
                     for line in krn_lines:
+                        if isinstance(line, bytes):
+                            line = line.decode("utf-8", "ignore")
                         match_obj = re_krn2.match(line)
                         if match_obj:
                             for group in match_obj.groups():
