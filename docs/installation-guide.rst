@@ -44,7 +44,7 @@ lists below document the packages so you can validate a manual or source based
 installation. Package names reflect the native repositories of each platform.
 
 DNF based distributions (Fedora, RHEL, CentOS Stream, Rocky, AlmaLinux)
-----------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 **Required packages**
 
