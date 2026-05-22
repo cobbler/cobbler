@@ -2,25 +2,78 @@
 Test to verify the functionallity of the isc bind module.
 """
 
-import pathlib
 import time
-from typing import TYPE_CHECKING, Any
+from fnmatch import fnmatch
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, TextIO, Tuple
 
 import pytest
 
 from cobbler.api import CobblerAPI
+from cobbler.items import distro, profile
 from cobbler.modules.managers import bind
 
 if TYPE_CHECKING:
+    from pytest import TempPathFactory
     from pytest_mock import MockerFixture
 
 
-@pytest.fixture(name="named_template", scope="function")
-def fixture_named_template() -> str:
+def _get_file_and_mode(
+    file: Any, mode: str = "r", *args: Any, **kwargs: Any
+) -> Tuple[Any, str]:
     """
-    This provides a minmal test templated for named that is close to the real one.
+    Helper to extract the file and mode arguments from a call to open(),
+    Because it is an actual callable function, it can handle the exact
+    same combinations of positional and keyword arguments as open().
     """
-    return """options {
+    return file, mode
+
+
+class MockFiles:
+    """
+    Implements a mock filesystem using MockerFixture.
+    """
+
+    def __init__(self, mocker: "MockerFixture", files: Dict[str, str]):
+        self.mocker = mocker
+        self.files = files
+        self.real_patterns: List[str] = list()
+        self.open_unknown = mocker.mock_open()
+        self._real_open = open
+        self.patch = mocker.patch("builtins.open", self.open)
+
+    def _is_real(self, path: str) -> bool:
+        for pat in self.real_patterns:
+            if fnmatch(path, pat):
+                return True
+        return False
+
+    def open(self, *args: Any, **kwargs: Any) -> TextIO:
+        """
+        Open a mock file.
+        """
+        path, mode = _get_file_and_mode(*args, **kwargs)
+        if "r" not in mode:
+            return self._real_open(*args, **kwargs)
+        open_data = self.files.get(path, self.open_unknown)
+        if isinstance(open_data, str):
+            open_data = self.mocker.mock_open(read_data=open_data)
+            self.files[path] = open_data
+        elif open_data == self.open_unknown and self._is_real(path):
+            return self._real_open(*args, **kwargs)
+        return open_data(*args, **kwargs)
+
+
+@pytest.fixture(scope="function")
+def mock_config_files(
+    mocker: "MockerFixture",
+    tmp_path_factory: "TempPathFactory",
+) -> MockFiles:
+    """
+    Provide BIND config files for testing.
+    """
+
+    files = {
+        "/etc/cobbler/named.template": """options {
           listen-on port 53 { 127.0.0.1; };
           directory       "@@bind_zonefiles@@";
           dump-file       "@@bind_zonefiles@@/data/cache_dump.db";
@@ -44,7 +97,58 @@ zone "${arpa}." {
 };
 
 #end for
-"""
+""",
+        "/etc/cobbler/secondary.template": "garbage",
+        "/etc/cobbler/zone.template": """\\$TTL 3600
+@                       IN      SOA     $cobbler_server. nobody.example.com. (
+                                        $serial      ; Serial
+                                        86400        ; Refresh (1 day)
+                                        7200         ; Retry   (2 hours)
+                                        604800       ; Expire  (1 week)
+                                        3600         ; TTL     (1 hour)
+                                        )
+
+@                       IN      NS      $cobbler_server.
+
+;; CNAMEs
+$cname_record
+
+;; Hosts
+$host_record
+""",
+    }
+    mock_files = MockFiles(mocker, files)
+    mock_files.real_patterns.extend(
+        (
+            "/code/*",
+            "/etc/cobbler/*",
+            "/etc/mtab",
+            "/var/lib/cobbler/*",
+            str(tmp_path_factory.getbasetemp().joinpath("*")),
+        )
+    )
+    return mock_files
+
+
+def assert_zone_has(path: str, *expect: List[str]) -> None:
+    """
+    Test that a zone file contains the expected tokens in the given order.
+    """
+    parsed = list(
+        map(lambda line: line[: line.find(";")].split(), open(path).readlines())
+    )
+    it = iter(parsed)
+    for line in expect:
+        while True:
+            try:
+                actual = next(it)
+            except StopIteration:
+                if line in parsed:
+                    raise AssertionError(f"{line} misplaced in {parsed}")
+                else:
+                    raise AssertionError(f"{line} not found in {parsed}")
+            if line == actual:
+                break
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -90,46 +194,176 @@ def test_get_manager(cobbler_api: CobblerAPI):
 
 
 def test_write_configs(
-    mocker: "MockerFixture", cobbler_api: CobblerAPI, named_template: str
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    mock_config_files: MockFiles,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
 ):
     """
     Test if the manager is able to correctly write the configuration files.
     """
     # Arrange
-    open_mock = mocker.mock_open()
-    mock_named_template = mocker.mock_open(read_data=named_template)
-    mock_secondary_template = mocker.mock_open(read_data="garbage")
-    mock_zone_template = mocker.mock_open(read_data="garbage 2")
-    mock_etc_named_conf = mocker.mock_open()
-    mock_etc_secondary_conf = mocker.mock_open()
-    mock_pathlib_path = mocker.patch.object(pathlib.Path, "write_text")
+    settings = cobbler_api.settings()
+    settings.from_dict(
+        {
+            "server": "cobbler.example.com",
+            "manage_dns": True,
+            "manage_forward_zones": ["example.com"],
+            "manage_reverse_zones": ["192.168.1", "2001:db8:0:1"],
+            "manage_dhcp_v4": False,
+            "manage_dhcp_v6": False,
+        }
+    )
 
-    def mock_open(*args: Any, **kwargs: Any):
-        if args[0] == "/etc/cobbler/named.template":
-            return mock_named_template(*args, **kwargs)
-        if args[0] == "/etc/cobbler/secondary.template":
-            return mock_secondary_template(*args, **kwargs)
-        if args[0] == "/etc/cobbler/zone.template":
-            return mock_zone_template(*args, **kwargs)
-        if args[0] == "/etc/named.conf":
-            return mock_etc_named_conf(*args, **kwargs)
-        if args[0] == "/etc/secondary.conf":
-            return mock_etc_secondary_conf(*args, **kwargs)
-        return open_mock(*args, **kwargs)
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_system = cobbler_api.new_system(name="test", profile=test_profile.uid)
+    cobbler_api.add_system(test_system)
+    test_interface = cobbler_api.new_network_interface(
+        system_uid=test_system.uid,
+        name="default",
+        ipv4={"address": "192.168.1.2"},
+        ipv6={"address": "2001:db8:0:1::2"},
+        dns={"name": "test.example.com"},
+    )
+    cobbler_api.add_network_interface(test_interface)
+    test_interface = cobbler_api.new_network_interface(
+        system_uid=test_system.uid,
+        name="secondary",
+        ipv4={"address": "192.168.1.123"},
+        ipv6={"address": "2001:db8:0:1::abcd"},
+        dns={"name": "second.example.com"},
+    )
+    cobbler_api.add_network_interface(test_interface)
 
-    mocker.patch("builtins.open", mock_open)
     manager = bind.get_manager(cobbler_api)
-    # TODO Mock settings for manage_dns and forward/reverse zones
 
     # Act
     manager.write_configs()
 
     # Assert
-    # TODO: Extend assertions
-    mock_pathlib_path.assert_called_once_with(
-        time.strftime("%Y%m%d00"), encoding="UTF-8"
+    mocker.stopall()
+
+    assert open("/var/lib/cobbler/bind_serial").read() == time.strftime("%Y%m%d00")
+
+    assert_zone_has(
+        "/var/lib/named/example.com",
+        ["@", "IN", "SOA", "cobbler.example.com.", "nobody.example.com.", "("],
+        ["IN", "NS", "cobbler.example.com."],
+        ["second", "IN", "A", "192.168.1.123"],
+        ["second", "IN", "AAAA", "2001:db8:0:1::abcd"],
+        ["test", "IN", "A", "192.168.1.2"],
+        ["test", "IN", "AAAA", "2001:db8:0:1::2"],
     )
-    open_mock.assert_not_called()
+    assert_zone_has(
+        "/var/lib/named/192.168.1",
+        ["@", "IN", "SOA", "cobbler.example.com.", "nobody.example.com.", "("],
+        ["IN", "NS", "cobbler.example.com."],
+        ["2", "IN", "PTR", "test.example.com."],
+        ["123", "IN", "PTR", "second.example.com."],
+    )
+    assert_zone_has(
+        "/var/lib/named/2001:0db8:0000:0001",
+        ["@", "IN", "SOA", "cobbler.example.com.", "nobody.example.com.", "("],
+        ["IN", "NS", "cobbler.example.com."],
+        ["2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0", "IN", "PTR", "test.example.com."],
+        ["d.c.b.a.0.0.0.0.0.0.0.0.0.0.0.0", "IN", "PTR", "second.example.com."],
+    )
+
+    mock_config_files.open_unknown.assert_not_called()
+
+
+def test_sort_zones(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    mock_config_files: MockFiles,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
+):
+    """
+    Test if the RRs in a zone file are correctly sorted.
+    """
+    # Arrange
+    settings = cobbler_api.settings()
+    settings.from_dict(
+        {
+            "server": "cobbler.example.com",
+            "manage_dns": True,
+            "manage_forward_zones": ["example.com"],
+            "manage_reverse_zones": ["192.168", "2001:db8:0:1"],
+            "manage_dhcp_v4": False,
+            "manage_dhcp_v6": False,
+        }
+    )
+
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+
+    test_system = cobbler_api.new_system(name="alpha", profile=test_profile.uid)
+    cobbler_api.add_system(test_system)
+    test_interface = cobbler_api.new_network_interface(
+        system_uid=test_system.uid,
+        name="default",
+        ipv4={"address": "192.168.2.1"},
+        ipv6={"address": "2001:db8:0:1::21"},
+        dns={"name": "alpha.example.com"},
+    )
+    cobbler_api.add_network_interface(test_interface)
+
+    test_system = cobbler_api.new_system(name="beta", profile=test_profile.uid)
+    cobbler_api.add_system(test_system)
+    test_interface = cobbler_api.new_network_interface(
+        system_uid=test_system.uid,
+        name="default",
+        ipv4={"address": "192.168.1.1"},
+        ipv6={"address": "2001:db8:0:1::11"},
+        dns={"name": "beta.example.com"},
+    )
+    cobbler_api.add_network_interface(test_interface)
+
+    test_system = cobbler_api.new_system(name="gamma", profile=test_profile.uid)
+    cobbler_api.add_system(test_system)
+    test_interface = cobbler_api.new_network_interface(
+        system_uid=test_system.uid,
+        name="default",
+        ipv4={"address": "192.168.1.2"},
+        ipv6={"address": "2001:db8:0:1::12"},
+        dns={"name": "gamma.example.com"},
+    )
+    cobbler_api.add_network_interface(test_interface)
+
+    manager = bind.get_manager(cobbler_api)
+
+    # Act
+    manager.write_configs()
+
+    # Assert
+    mocker.stopall()
+
+    assert_zone_has(
+        "/var/lib/named/example.com",
+        ["alpha", "IN", "A", "192.168.2.1"],
+        ["alpha", "IN", "AAAA", "2001:db8:0:1::21"],
+        ["beta", "IN", "A", "192.168.1.1"],
+        ["beta", "IN", "AAAA", "2001:db8:0:1::11"],
+        ["gamma", "IN", "A", "192.168.1.2"],
+        ["gamma", "IN", "AAAA", "2001:db8:0:1::12"],
+    )
+    assert_zone_has(
+        "/var/lib/named/192.168",
+        ["1.1", "IN", "PTR", "beta.example.com."],
+        ["2.1", "IN", "PTR", "gamma.example.com."],
+        ["1.2", "IN", "PTR", "alpha.example.com."],
+    )
+    assert_zone_has(
+        "/var/lib/named/2001:0db8:0000:0001",
+        ["1.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0", "IN", "PTR", "beta.example.com."],
+        ["2.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0", "IN", "PTR", "gamma.example.com."],
+        ["1.2.0.0.0.0.0.0.0.0.0.0.0.0.0.0", "IN", "PTR", "alpha.example.com."],
+    )
+
+    mock_config_files.open_unknown.assert_not_called()
 
 
 @pytest.mark.skip("Advanced complicated test scenario for now.")
