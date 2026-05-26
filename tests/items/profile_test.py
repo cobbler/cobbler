@@ -91,7 +91,7 @@ def test_to_dict(
     result = profile.to_dict()
 
     # Assert
-    assert len(result) == 33
+    assert len(result) == 36
     assert result["distro"] == distro.uid
     assert result.get("boot_loaders") == [enums.VALUE_INHERITED]
 
@@ -656,6 +656,48 @@ def test_redhat_management_key(cobbler_api: CobblerAPI):
 
     # Assert
     assert profile.redhat_management_key == ""
+
+
+def test_redhat_management_org(cobbler_api: CobblerAPI):
+    """
+    Assert that a Cobbler Profile can use the Getter and Setter of the redhat_management_org property correctly.
+    """
+    # Arrange
+    profile = Profile(cobbler_api)
+
+    # Act
+    profile.redhat_management_org = ""
+
+    # Assert
+    assert profile.redhat_management_org == ""
+
+
+def test_redhat_management_user(cobbler_api: CobblerAPI):
+    """
+    Assert that a Cobbler Profile can use the Getter and Setter of the redhat_management_user property correctly.
+    """
+    # Arrange
+    profile = Profile(cobbler_api)
+
+    # Act
+    profile.redhat_management_user = ""
+
+    # Assert
+    assert profile.redhat_management_user == ""
+
+
+def test_redhat_management_password(cobbler_api: CobblerAPI):
+    """
+    Assert that a Cobbler Profile can use the Getter and Setter of the redhat_management_password property correctly.
+    """
+    # Arrange
+    profile = Profile(cobbler_api)
+
+    # Act
+    profile.redhat_management_password = ""
+
+    # Assert
+    assert profile.redhat_management_password == ""
 
 
 @pytest.mark.parametrize(

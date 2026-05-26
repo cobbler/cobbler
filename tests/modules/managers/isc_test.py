@@ -45,6 +45,10 @@ def fixture_api_isc_mock(mocker: "MockerFixture"):
     settings_mock.virt_auto_boot = True
     settings_mock.default_name_servers = []
     settings_mock.default_name_servers_search = []
+    settings_mock.redhat_management_key = ""
+    settings_mock.redhat_management_org = ""
+    settings_mock.redhat_management_user = ""
+    settings_mock.redhat_management_password = ""
     settings_mock.manage_dhcp_v4 = True
     settings_mock.manage_dhcp_v6 = True
     settings_mock.default_virt_disk_driver = "raw"
