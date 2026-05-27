@@ -145,7 +145,7 @@ function restore_keys
  TEMPDIR=$2
  PATTERN=$3
  # Loop until the corresponding rpm is installed if the keys are saved
- if [ "$keys_found" = "yes" ] && ls /tmp/${TEMPDIR}/${PATTERN}*; then
+ if ls /tmp/${TEMPDIR}/${PATTERN}*; then
     while : ; do
         sleep 10
         if [ -d /mnt/sysimage${SEARCHDIR} ] ; then
@@ -160,17 +160,41 @@ function restore_keys
  fi
 }
 
+# Record whether preservable keys for 'ssh', 'cfengine', 'rhn' or 'puppet' have been found.
+# For most, there is a single directory, but 'puppet' has two directories.
+declare -A pkfound
+pkfound[ssh]="no"
+pkfound[cfengine]="no"
+pkfound[rhn]="no"
+pkfound[puppet-certs]="no"
+pkfound[puppet-keys]="no"
+
 for key in $preserve_files
 do
  if [ $key = 'ssh' ]; then
    search_for_keys '/etc/ssh' 'ssh' 'ssh_host_'
+   if [ "$keys_found" = "yes" ]; then
+     pkfound[ssh]="yes"
+   fi
  elif [ $key = 'cfengine' ]; then
    search_for_keys '/var/cfengine/ppkeys' 'cfengine' 'localhost'
+   if [ "$keys_found" = "yes" ]; then
+     pkfound[cfengine]="yes"
+   fi
  elif [ $key = 'rhn' ]; then
    search_for_keys '/etc/sysconfig/rhn', 'rhn', '*'
+   if [ "$keys_found" = "yes" ]; then
+     pkfound[rhn]="yes"
+   fi
  elif [ $key = 'puppet' ]; then
    search_for_keys '/etc/puppetlabs/puppet/ssl/certs' 'puppet-certs' '*.pem'
+   if [ "$keys_found" = "yes" ]; then
+     pkfound[puppet-certs]="yes"
+   fi
    search_for_keys '/etc/puppetlabs/puppet/ssl/private_keys' 'puppet-keys' '*.pem'
+   if [ "$keys_found" = "yes" ]; then
+     pkfound[puppet-keys]="yes"
+   fi
  else
    echo "No keys to save!" > /dev/ttyS0
  fi
@@ -180,14 +204,15 @@ done
 
 for key in $preserve_files
 do
- if [ $key = 'ssh' ]; then
+ if [ $key = 'ssh' && "${pkfound[ssh]}" = "yes" ]; then
    restore_keys '/etc/ssh' 'ssh' 'ssh_host_'
- elif [ $key = 'cfengine' ]; then
+ elif [ $key = 'cfengine' && "${pkfound[cfengine]}" = "yes" ]; then
    restore_keys '/var/cfengine/ppkeys' 'cfengine' 'localhost'
- elif [ $key = 'rhn' ]; then
+ elif [ $key = 'rhn' && "${pkfound[rhn]}" = "yes" ]; then
    restore_keys '/etc/sysconfig/rhn', 'rhn', '*'
- elif [ $key = 'puppet' ]; then
+ elif [ $key = 'puppet' && "${pkfound[puppet-certs]}" = "yes"]; then
    restore_keys '/etc/puppetlabs/puppet/ssl/certs' 'puppet-certs' '*.pem'
+ elif [ $key = 'puppet' && "${pkfound[puppet-keys]}" = "yes"]; then
    restore_keys '/etc/puppetlabs/puppet/ssl/private_keys' 'puppet-keys' '*.pem'
  else
    echo "Nothing to restore!" > /dev/ttyS0
