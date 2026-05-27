@@ -1,0 +1,75 @@
+{
+  "product": {
+    "id": "openSUSE_Leap"
+  },
+  "localization": {
+    "language": "en_US.UTF-8",
+    "keyboard": "us",
+    "timezone": "America/New_York"
+  },
+
+$SNIPPET('agama_hostname')
+$SNIPPET('agama_networking')
+
+  "user": {
+    "fullName": "susadmin",
+    "userName": "susadmin",
+    "hashedPassword": true,
+    "password": "$default_password_crypted"
+  },
+
+  "software": {
+    "patterns": ["basesystem"],
+    "packages": ["agama-scripts", "sudo"],
+    "onlyRequired": false
+  },
+
+  "bootloader": {
+#if $kernel_options_post != ""
+    "extraKernelParams": "$kernel_options_post",
+#end if
+    "timeout": 3
+  },
+
+  "storage": {
+    "drives": [
+      {
+        "partitions": [
+          {
+            "generate": {
+              "partitions": "default"
+            }
+          }
+        ]
+      }
+    ]
+  },
+
+## Figure out if we're automating OS installation for a system or a profile
+#if $getVar('system_name','') != ''
+#set $what = "system"
+#else
+#set $what = "profile"
+#end if
+  "scripts": {
+    "pre": [
+      {
+        "name": "pre-install",
+        "url": "http://$http_server/cblr/svc/op/script/$what/$name/?script=agama_early_default"
+      }
+    ],
+    "post": [
+      {
+        "name": "post-install",
+        "chroot": true,
+        "url": "http://$http_server/cblr/svc/op/script/$what/$name/?script=agama_late_default"
+      }
+    ],
+    "init": [
+      {
+        "name": "first-boot",
+        "url": "http://$http_server/cblr/svc/op/script/$what/$name/?script=agama_init_default"
+      }
+    ]
+  }
+}

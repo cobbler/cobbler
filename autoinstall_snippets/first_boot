@@ -1,0 +1,31 @@
+## Figure out if we're automating OS installation for a system or a profile
+#set system_name = $getVar('system_name','')
+#set profile_name = $getVar('profile_name','')
+#if $system_name != ''
+    #set object_type = 'system'
+    #set object_name = $system_name
+#else if $profile_name != ''
+    #set object_type = 'profile'
+    #set object_name = $profile_name
+#else
+    #set object_type = ''
+    #set object_name = ''
+#end if
+#set breed = $getVar('breed','')
+#set os_version = $getVar('os_version','')
+#set srv = $getVar('http_server','')
+#set run_install_triggers = $getVar('run_install_triggers','')
+#set runpost = ""
+#if $object_type != ''
+    ## RUN POST TRIGGER
+    #if $run_install_triggers
+        #if $breed == 'redhat'
+            #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/first_boot/%s/%s\" -o /dev/null" % (srv, object_type, object_name)
+        #else if $breed == 'vmware' and $os_version == 'esx4'
+            #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/first_boot/%s/%s\" -o /dev/null" % (srv, object_type, object_name)
+        #else
+            #set runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/first_boot/%s/%s\" -O /dev/null" % (srv, object_type, object_name)
+        #end if
+    #end if
+#end if
+#echo $runpost
