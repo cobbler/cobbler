@@ -17,10 +17,12 @@ Known packages by distros
 This is the most convenient way and should be the default for most people. Production usage is advised only from these
 four sources or from source with Git Tags.
 
-- `Fedora 37 <https://src.fedoraproject.org/rpms/cobbler>`_ - ``dnf install cobbler``
-- `CentOS 8 <https://src.fedoraproject.org/rpms/cobbler>`_:
+- `Fedora 37+ <https://src.fedoraproject.org/rpms/cobbler>`_ - ``dnf install cobbler``
+- `CentOS 9+ Stream <https://src.fedoraproject.org/rpms/cobbler>`_:
     - ``dnf install epel-release``
-    - ``dnf module enable cobbler``
+    - ``dnf install cobbler``
+- `Alma Linux/Rocky Linux/... <https://src.fedoraproject.org/rpms/cobbler>`_:
+    - ``dnf install epel-release``
     - ``dnf install cobbler``
 - `openSUSE Tumbleweed <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
 - `openSUSE Leap 15.x <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
