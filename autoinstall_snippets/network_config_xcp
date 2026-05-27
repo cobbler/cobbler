@@ -1,0 +1,59 @@
+## start of cobbler network_config generated code
+#if $getVar("system_name","") != ""
+    #set ikeys = $interfaces.keys()
+    #import re
+    #for $iname in $ikeys
+        #set $idata    = $interfaces[$iname]
+        #set $mac      = $idata["mac_address"]
+        #set $static   = $idata["static"]
+        #set $ip       = $idata["ip_address"]
+        #set $netmask  = $idata["netmask"]
+        #set $type     = $idata["interface_type"]
+        ## Ignore BMC interface
+        #if $type == "bmc"
+            #continue
+        #end if
+        #if $iname != "default":
+            #set $if_id = 'name="' + $iname + '"'
+        #elif $mac != "":
+            #set $if_id = 'hwaddr="' + $mac + '"'
+        #else
+            #set $if_id = 'name="*"'
+        #end if
+        #if $static == True:
+            #if $ip != "":
+  <admin-interface $if_id proto="static">
+   <ipaddr>$ip</ipaddr>
+                #if $netmask != "":
+   <subnet>$netmask</subnet>
+                #else
+   <subnet>255.255.255.0</subnet>
+                #end if
+                #if $gateway != "":
+   <gateway>$gateway</gateway>
+                #end if
+  </admin-interface>
+            #else
+  <admin-interface $if_id proto="dhcp" />
+            #end if
+        #else
+  <admin-interface $if_id proto="dhcp" />
+        #end if
+        #if $name_servers and $name_servers[0] != "":
+            #for $ns in $name_servers
+  <name-server>$ns</name-server>
+            #end for
+        #end if
+        #if $hostname != ""
+  <hostname>$hostname</hostname>
+        #else
+            #set $myhostname = $getVar('name','').replace("_","-")
+  <hostname>$myhostname</hostname>
+        #end if
+    #end for
+#else
+## profile based install so just provide one interface for starters
+#set $myhostname = $getVar('hostname',$getVar('name','cobbler')).replace("_","-")
+  <admin-interface name="*" proto="dhcp" />
+  <hostname>$myhostname</hostname>
+#end if
