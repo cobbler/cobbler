@@ -23,7 +23,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import logging
 import os
 import os.path
-import pipes
+try:
+    from shlex import quote as shell_quote
+except ImportError:
+    from pipes import quote as shell_quote
 import stat
 import shutil
 from typing import Optional, Union
@@ -272,7 +275,7 @@ class RepoSync:
             blended = utils.blender(self.api, False, repo)
             flags = blended.get("createrepo_flags", "(ERROR: FLAGS)")
             try:
-                cmd = "createrepo %s %s %s" % (" ".join(mdoptions), flags, pipes.quote(dirname))
+                cmd = "createrepo %s %s %s" % (" ".join(mdoptions), flags, shell_quote(dirname))
                 utils.subprocess_call(cmd)
             except:
                 utils.log_exc()
@@ -302,7 +305,7 @@ class RepoSync:
         dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
 
         # FIXME: wrapper for subprocess that logs to logger
-        cmd = ["wget", "-N", "-np", "-r", "-l", "inf", "-nd", "-P", pipes.quote(dest_path), pipes.quote(repo.mirror)]
+        cmd = ["wget", "-N", "-np", "-r", "-l", "inf", "-nd", "-P", shell_quote(dest_path), shell_quote(repo.mirror)]
         rc = utils.subprocess_call(cmd)
 
         if rc != 0:
@@ -348,7 +351,7 @@ class RepoSync:
             flags = self.settings.reposync_rsync_flags
 
         cmd = "rsync %s --delete-after %s --delete --exclude-from=/etc/cobbler/rsync.exclude %s %s" \
-              % (flags, spacer, pipes.quote(repo.mirror), pipes.quote(dest_path))
+              % (flags, spacer, shell_quote(repo.mirror), shell_quote(dest_path))
         rc = utils.subprocess_call(cmd)
 
         if rc != 0:
@@ -438,8 +441,8 @@ class RepoSync:
         rest = repo.mirror[6:]  # everything after rhn://
         cmd = "%s %s --repo=%s -p %s" % (cmd,
                                          self.rflags,
-                                         pipes.quote(rest),
-                                         pipes.quote(repos_path))
+                                         shell_quote(rest),
+                                         shell_quote(repos_path))
         if repo.name != rest:
             args = {"name": repo.name, "rest": rest}
             raise CX("ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository "
@@ -545,8 +548,8 @@ class RepoSync:
         if not has_rpm_list:
             # If we have not requested only certain RPMs, use reposync
             cmd = "%s %s --config=%s --repoid=%s -p %s" \
-                  % (cmd, self.rflags, temp_file, pipes.quote(repo.name),
-                     pipes.quote(repos_path))
+                  % (cmd, self.rflags, temp_file, shell_quote(repo.name),
+                     shell_quote(repos_path))
             if arch != "none":
                 cmd = "%s -a %s" % (cmd, arch)
 
@@ -563,7 +566,7 @@ class RepoSync:
             extra_flags = self.settings.yumdownloader_flags
             cmd = "/usr/bin/dnf download"
             cmd = "%s %s %s --disablerepo=* --enablerepo=%s -c %s --destdir=%s %s" \
-                  % (cmd, extra_flags, use_source, pipes.quote(repo.name), temp_file, pipes.quote(dest_path),
+                  % (cmd, extra_flags, use_source, shell_quote(repo.name), temp_file, shell_quote(dest_path),
                      " ".join(repo.rpm_list))
 
         # Now regardless of whether we're doing yumdownloader or reposync or whether the repo was http://, ftp://, or
@@ -670,8 +673,8 @@ class RepoSync:
             components = ",".join(repo.apt_components)
 
             mirror_data = "--method=%s --host=%s --root=%s --dist=%s --section=%s" \
-                          % (pipes.quote(method), pipes.quote(host), pipes.quote(mirror), pipes.quote(dists),
-                             pipes.quote(components))
+                          % (shell_quote(method), shell_quote(host), shell_quote(mirror), shell_quote(dists),
+                             shell_quote(components))
 
             rflags = "--nocleanup"
             for x in repo.yumopts:
@@ -679,7 +682,7 @@ class RepoSync:
                     rflags += " %s=%s" % (x, repo.yumopts[x])
                 else:
                     rflags += " %s" % x
-            cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, pipes.quote(dest_path))
+            cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, shell_quote(dest_path))
             if repo.arch == RepoArchs.SRC:
                 cmd = "%s --source" % cmd
             else:
