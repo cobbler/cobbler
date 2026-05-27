@@ -1,0 +1,2 @@
+#!/bin/bash
+$SNIPPET('first_boot')

@@ -33,6 +33,47 @@ from cobbler.enums import Archs
 from cobbler.validate import validate_autoinstall_script_name
 
 
+suse_yast = [
+    "opensuse11.2",
+    "opensuse11.3",
+    "opensuse11.4",
+    "opensuse12.1",
+    "opensuse12.2",
+    "opensuse12.3",
+    "opensuse13.1",
+    "opensuse13.2",
+    "opensuse15.0",
+    "opensuse15.1",
+    "opensuse15.2",
+    "opensuse15.3",
+    "opensuse15.4",
+    "opensuse15.5",
+    "opensuse15.6",
+    "leapmicro5.5",
+    "sles10generic",
+    "sles11",
+    "sles11sp1",
+    "sles11sp2",
+    "sles11sp3",
+    "sles11sp4",
+    "sles11generic",
+    "sles12",
+    "sles12generic",
+    "sles12sp1",
+    "sles12sp2",
+    "sles12sp3",
+    "sles12sp4",
+    "sles12sp5",
+    "sles15",
+    "sles15generic",
+    "sles15sp1",
+    "sles15sp2",
+    "sles15sp3",
+    "sles15sp4",
+    "sles15sp5",
+    "sles15sp6"
+]
+
 class TFTPGen:
     """
     Generate files provided by TFTP server
@@ -920,6 +961,8 @@ class TFTPGen:
                 ipxe = blended["enable_ipxe"]
                 if ipxe:
                     append_line = append_line.replace('ksdevice=bootif', 'ksdevice=${net0/mac}')
+            elif distro.breed == "suse" and distro.os_version not in suse_yast:
+                append_line = "%s inst.auto=%s" % (append_line, autoinstall_path)
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, autoinstall_path)
                 if management_mac and distro.arch not in (enums.Archs.S390, enums.Archs.S390X):
