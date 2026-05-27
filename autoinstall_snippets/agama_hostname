@@ -1,0 +1,15 @@
+  "hostname": {
+#if $getVar("system_name","") != ""
+    #if $hostname != ""
+    "static": "$hostname"
+    #else
+    #set $myhostname = $getVar('name','').replace("_","-")
+    "static": "$myhostname"
+    #end if
+#else
+## profile based install so just provide one interface for starters
+#set $myhostname = $getVar('hostname',$getVar('name','cobbler')).replace("_","-")
+    "static": "$myhostname"
+#end if
+  },
+

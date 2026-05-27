@@ -1,0 +1,111 @@
+  "network": {
+    "connections": [
+#if $getVar("system_name","") != ""
+  #import re
+  #set $ikeys = $interfaces.keys()
+  #set $ifaces = 0
+  #for $iface in $ikeys
+    #set $idata                = $interfaces[$iface]
+    #set $mac                  = $idata.get("mac_address", "").lower()
+    #set $static               = $idata.get("static", "")
+    #set $ip                   = $idata.get("ip_address", "")
+    #set $netmask              = $idata.get("netmask", "")
+    #set $static_routes        = $idata.get("static_routes", "")
+    #set $iface_type           = $idata.get("interface_type", "").lower()
+    #set $iface_master         = $idata.get("interface_master", "")
+    #set $bonding_opts         = $idata.get("bonding_opts", "").lower()
+    #set $ipv6_address         = $idata.get("ipv6_address", "")
+    #set $ipv6_secondaries     = $idata.get("ipv6_secondaries", "")
+    #set $ipv6_mtu             = $idata.get("ipv6_mtu", "")
+    #set $ipv6_default_gateway = $idata.get("ipv6_default_gateway", "")
+    #set $ipv6_static_routes   = $idata.get("ipv6_static_routes", "")
+    ## start of interface section
+    #if $iface_type in ("bmc","BMC")
+      ##Cobbler only sets DHCP reservations for BMC interfaces
+      #continue
+    #end if
+    #if $iface_type in ("","na")
+      #if $ifaces > 0
+      },
+      {
+      #else
+      {
+      #end if
+      #set $ifaces += 1
+      #if $static
+        #if $ip != ""
+        "method4": "manual",
+          #if $netmask != ""
+            #set $mask = sum([bin(int(x)).count('1') for x in $netmask.split('.')])
+          #else
+            #set $mask = 24
+          #end if
+        "addresses": ["$ip/$mask"],
+          #if $len($ikeys) == 1
+            #if $gateway != ""
+        "gateway4": "$gateway",
+            #elif $idata.get("if_gateway") != ""
+        "gateway4": "$idata.get("if_gateway")"
+            #end if
+          #elif $idata.get("if_gateway") != ""
+        "gateway4": "$idata.get("if_gateway")"
+          #end if
+        #else
+        "method4": "auto",
+        #end if
+      #else
+        "method4": "auto",
+      #end if
+      #if $mac != ""
+        "macAddress": "$mac",
+      #elif $iface not in ("default","")
+        "interface": "$iface",
+      #end if
+      #if $name_servers and $name_servers[0] != ""
+        #set $servers = 0
+        #for $ns in $name_servers
+          #if $servers > 0
+            #set $dns = $dns + ', "' + $ns + '"'
+          #else
+            #set $dns = '"' + $ns + '"'
+          #end if
+          #set $servers += 1
+        #end for
+        "nameservers": [$dns],
+      #end if
+      #if $getVar("name_servers_search",[]) != []
+        #set $domains = 0
+        #for $sd in $name_servers_search
+          #if $domains > 0
+            #set $dns = $dns + ', "' + $sd + '"'
+          #else
+            #set $dns = '"' + $sd + '"'
+          #end if
+          #set $domains += 1
+        #end for
+        "dnsSearchlist": [$dns]
+      #end if
+        "id": "$iface"
+    #elif $iface_type in ("bond","bridge","bond_slave","bridge_slave","bonded_bridge_slave")
+      #if $ifaces > 0
+      },
+      {
+      #else
+      {
+      #end if
+      #set $ifaces += 1
+##$SNIPPET('agama_networking_bridge')
+##$SNIPPET('agama_networking_bond')
+    #end if
+  #end for
+      }
+#else
+## profile based install so just provide one interface for starters
+      {
+        "id": "default",
+        "method4": "auto"
+      }
+#end if
+    ]
+  },
+

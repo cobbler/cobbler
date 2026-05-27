@@ -1962,6 +1962,30 @@
         "kernel_options_post": "",
         "boot_files": []
       },
+      "opensuse16.0": {
+        "signatures": [
+          ""
+        ],
+        "version_file": "\\.treeinfo",
+        "version_file_regex": "^name = openSUSE Leap 16\\.0$",
+        "kernel_arch": "kernel-(.*)\\.rpm",
+        "kernel_arch_regex": null,
+        "supported_arches": [
+          "aarch64",
+          "x86_64",
+          "ppc64le"
+        ],
+        "supported_repo_breeds": [
+          "yum"
+        ],
+        "kernel_file": "(linux|vmlinuz(.*))",
+        "initrd_file": "initrd(.*)",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample_agama.json",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "boot_files": []
+      },
       "leapmicro5.3": {
         "signatures": [
           ""
