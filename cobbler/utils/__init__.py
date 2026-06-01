@@ -1304,9 +1304,9 @@ def kopts_overwrite(
             kopts["textmode"] = ["1"]
         if system_name and cobbler_server_hostname:
             # only works if pxe_just_once is enabled in global settings
-            kopts["info"] = (
-                f"http://{cobbler_server_hostname}/cblr/svc/op/nopxe/system/{system_name}"
-            )
+            kopts[
+                "info"
+            ] = f"http://{cobbler_server_hostname}/cblr/svc/op/nopxe/system/{system_name}"
 
 
 def is_str_int(value: str) -> bool:
