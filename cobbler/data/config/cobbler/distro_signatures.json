@@ -1280,7 +1280,7 @@
         "kernel_file": "vmlinuz(.*)",
         "initrd_file": "initrd(.*)\\.gz",
         "isolinux_ok": false,
-        "default_autoinstall": "sample.seed",
+        "default_autoinstall": "built-in-sample.seed",
         "kernel_options": "",
         "kernel_options_post": "",
         "boot_files": []
