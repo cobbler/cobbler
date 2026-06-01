@@ -328,7 +328,7 @@ def test_write_all_system_files_s390(
     # Assert - ensure generated parm file has fixed 80 characters format
     open_mock().write.assert_called()
     open_mock().write.assert_any_call(
-        "foobar1=whatever \nautoyast=http://xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/this-is-a-\nlong-string-that-need-to-be-splitted/zzzzzzzzzzzzzzzzz \nfoobar2=woohooo\n"
+        "autoyast=http://xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/this-is-a-long-string-that-\nneed-to-be-splitted/zzzzzzzzzzzzzzzzz \nfoobar1=whatever \nfoobar2=woohooo\n"
     )
 
 
