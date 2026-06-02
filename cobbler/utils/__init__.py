@@ -100,7 +100,7 @@ def log_exc() -> None:
     """
     Log an exception.
     """
-    (exception_type, exception_value, exception_traceback) = sys.exc_info()
+    exception_type, exception_value, exception_traceback = sys.exc_info()
     logger.info("Exception occurred: %s", exception_type)
     logger.info("Exception value: %s", exception_value)
     logger.info(
@@ -117,7 +117,7 @@ def get_exc(exc: Exception, full: bool = True) -> str:
     :param full: If the full exception should be returned or only the most important information.
     :return: The exception which has been converted into a string which then can be logged easily.
     """
-    (exec_type, exec_value, trace) = sys.exc_info()
+    exec_type, exec_value, trace = sys.exc_info()
     buf = ""
     try:
         getattr(exc, "from_cobbler")
@@ -697,7 +697,7 @@ def dict_to_string(_dict: Dict[Any, Any]) -> str:
     return " ".join(tokens) + (" " if tokens else "")
 
 
-def kernel_options_to_string(options: Dict[Any, Any]) -> Union[str, Dict[Any, Any]]:
+def kernel_options_to_string(options: Dict[Any, Any]) -> str:
     """
     Convert kernel options to a deterministic string representation. Options that are not order-sensitive are sorted
     alphabetically by key, while order-sensitive keys are appended in a defined priority (currently ``dud`` followed by
@@ -984,7 +984,7 @@ def subprocess_sp(
             encoding="utf-8",
             close_fds=True,
         ) as subprocess_popen_obj:
-            (out, err) = subprocess_popen_obj.communicate(process_input)
+            out, err = subprocess_popen_obj.communicate(process_input)
             return_code = subprocess_popen_obj.returncode
     except OSError as os_error:
         log_exc()
@@ -1194,7 +1194,7 @@ def dhcpconf_location(protocol: enums.DHCP, filename: str = "dhcpd.conf") -> str
         raise AttributeError("DHCP must be version 4 or 6!")
     if protocol == enums.DHCP.V6 and filename == "dhcpd.conf":
         filename = "dhcpd6.conf"
-    (dist, version) = os_release()
+    dist, version = os_release()
     if (
         (dist in ("redhat", "centos") and version < 6)
         or (dist == "fedora" and version < 11)
@@ -1215,7 +1215,7 @@ def namedconf_location() -> str:
 
     :return: If the distro is Debian/Ubuntu then this returns "/etc/bind/named.conf". Otherwise "/etc/named.conf"
     """
-    (dist, _) = os_release()
+    dist, _ = os_release()
     if dist in ("debian", "ubuntu"):
         return "/etc/bind/named.conf"
     return "/etc/named.conf"
@@ -1227,7 +1227,7 @@ def dhcp_service_name() -> str:
 
     :return: This will return one of the following names: "dhcp3-server", "isc-dhcp-server", "dhcpd"
     """
-    (dist, version) = os_release()
+    dist, version = os_release()
     if dist == "debian" and int(version) < 6:
         return "dhcp3-server"
     if dist == "debian" and int(version) >= 6:
@@ -1245,7 +1245,7 @@ def named_service_name() -> str:
 
     :return: This will return for debian/ubuntu bind9 and on other distros named-chroot or named.
     """
-    (dist, _) = os_release()
+    dist, _ = os_release()
     if dist in ("debian", "ubuntu"):
         return "bind9"
     if process_management.is_systemd():

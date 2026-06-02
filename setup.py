@@ -152,6 +152,7 @@ if __name__ == "__main__":
             ],
             "extra": ["psutil"],  # debugging startup performance
             "lint": [
+                "importlib-resources",
                 # pyright is not written in Python and has to be installed differently.
                 "pyflakes",
                 "pycodestyle",
@@ -163,7 +164,8 @@ if __name__ == "__main__":
                 "types-netaddr",
                 "types-setuptools",
                 "types-dataclasses",
-                "types-mock",
+                # Due to https://github.com/python/typeshed/issues/15856
+                "types-mock==5.1.*",
                 "types-urllib3",
                 "isort",
                 "pre-commit",

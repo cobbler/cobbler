@@ -509,7 +509,6 @@ def run(api: "CobblerAPI", args: Any):
                     + bcd_name[1]
                     + b"\\g<5>"
                     + bcd_name[2],
-                    b"utf-8",
                 )
                 with open(tl_file_name, "rb") as file:
                     out = file.read()

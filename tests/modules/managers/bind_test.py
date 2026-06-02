@@ -51,16 +51,17 @@ class MockFiles:
         """
         Open a mock file.
         """
+        # We know what arguments are passed to open by the tests but the type checker has no way of knowing.
         path, mode = _get_file_and_mode(*args, **kwargs)
         if "r" not in mode:
-            return self._real_open(*args, **kwargs)
+            return self._real_open(*args, **kwargs)  # type: ignore[reportUnknownVariableType]
         open_data = self.files.get(path, self.open_unknown)
         if isinstance(open_data, str):
             open_data = self.mocker.mock_open(read_data=open_data)
             self.files[path] = open_data
         elif open_data == self.open_unknown and self._is_real(path):
-            return self._real_open(*args, **kwargs)
-        return open_data(*args, **kwargs)
+            return self._real_open(*args, **kwargs)  # type: ignore[reportUnknownVariableType]
+        return open_data(*args, **kwargs)  # type: ignore[reportOptionalCall]
 
 
 @pytest.fixture(scope="function")
