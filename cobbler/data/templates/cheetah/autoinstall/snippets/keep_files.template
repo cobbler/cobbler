@@ -210,9 +210,9 @@ do
    restore_keys '/var/cfengine/ppkeys' 'cfengine' 'localhost'
  elif [ $key = 'rhn' && "${pkfound[rhn]}" = "yes" ]; then
    restore_keys '/etc/sysconfig/rhn', 'rhn', '*'
- elif [ $key = 'puppet' && "${pkfound[puppet-certs]}" = "yes"]; then
+ elif [ $key = 'puppet' && "${pkfound[puppet-certs]}" = "yes" ]; then
    restore_keys '/etc/puppetlabs/puppet/ssl/certs' 'puppet-certs' '*.pem'
- elif [ $key = 'puppet' && "${pkfound[puppet-keys]}" = "yes"]; then
+ elif [ $key = 'puppet' && "${pkfound[puppet-keys]}" = "yes" ]; then
    restore_keys '/etc/puppetlabs/puppet/ssl/private_keys' 'puppet-keys' '*.pem'
  else
    echo "Nothing to restore!" > /dev/ttyS0

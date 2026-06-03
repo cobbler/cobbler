@@ -87,6 +87,9 @@ RUN zypper install --no-recommends -y \
     qemu-kvm                          \
     time
 
+# Create missing directories
+RUN ["mkdir", "-p", "/srv/www/htdocs", "/var/log/apache2/"]
+
 COPY ./docker/rpms/opensuse_leap/supervisord/supervisord.conf /etc/supervisord.conf
 COPY ./docker/rpms/opensuse_leap/supervisord/conf.d /etc/supervisord/conf.d
 

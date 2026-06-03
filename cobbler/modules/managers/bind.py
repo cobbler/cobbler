@@ -11,7 +11,7 @@ import pathlib
 import re
 import socket
 import time
-from typing import TYPE_CHECKING, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Dict, Iterable, List, Tuple, Union
 
 from cobbler import enums, utils
 from cobbler.modules.managers import DnsManagerModule
@@ -374,7 +374,7 @@ zone "{arpa}." {{
         self.logger.info("generating %s", settings_file)
         self.api.templar.render(search_result.content, metadata.__dict__, settings_file)
 
-    def __ip_sort(self, ips: List[str]) -> List[str]:
+    def __ip_sort(self, ips: Iterable[str]) -> List[str]:
         """
         Sorts IP addresses (or partial addresses) in a numerical fashion per-octet or quartet
 
@@ -405,7 +405,7 @@ zone "{arpa}." {{
 
     def __pretty_print_host_records(
         self,
-        hosts: Dict[str, Union[str, List[str]]],
+        hosts: Union[Dict[str, Union[str, List[str]]], Dict[str, List[str]]],
         rectype: str = "A",
         rclass: str = "IN",
     ) -> str:

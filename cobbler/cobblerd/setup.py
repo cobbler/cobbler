@@ -182,12 +182,14 @@ def setup_cobblerd(
     setup_cobblerd_log_directories(logpath, distro_options.httpd_user)
 
     # Files
-    resource_files = files("cobbler.data")
+    resource_files: "Traversable" = files("cobbler.data")  # type: ignore[reportAssignmentType]
     # Core
     copy_file(
         resource_files.joinpath("config").joinpath("version"), etc_path / "version"
     )
-    cobbler_config = resource_files.joinpath("config").joinpath("cobbler")
+    cobbler_config: "Traversable" = resource_files.joinpath("config").joinpath(
+        "cobbler"
+    )
     copy_directory(cobbler_config, etc_path)
     # Autoinstall Content
     autoinstall_templates_path = var_path / "templates"
@@ -207,7 +209,9 @@ def setup_cobblerd(
     # Create logrotate config
     setup_cobblerd_logrotate(base_path, resource_files)
     # Create rsync config
-    rsync_config_files = resource_files.joinpath("config").joinpath("rsync")
+    rsync_config_files: "Traversable" = resource_files.joinpath("config").joinpath(
+        "rsync"
+    )
     copy_directory(rsync_config_files, etc_path)
     # Create systemd service file
     systemdpath = get_prefixed_path(distro_options.systemd_dir, base_path)
@@ -218,7 +222,7 @@ def setup_cobblerd(
         manpath = get_prefixed_path(distro_options.docpath, base_path)
         setup_cobblerd_manpages(manpath, resource_files)
     # Web Root Files
-    web_root_misc_files = resource_files.joinpath("misc")
+    web_root_misc_files: "Traversable" = resource_files.joinpath("misc")
     web_root_misc_directory = var_path / "misc"
     web_root_misc_directory.mkdir(parents=True, exist_ok=True)
     copy_directory(web_root_misc_files, web_root_misc_directory)

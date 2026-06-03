@@ -247,9 +247,9 @@ def test_basic_inheritance(
 
     # Assert
     expected_result_testbed_1 = (
-        "['8.8.4.4', '8.8.8.8'] 10.0.0.1 foo=1 bar=3 not-wanted \n"
+        "['8.8.4.4', '8.8.8.8'] 10.0.0.1 bar=3 foo=1 not-wanted \n"
     )
-    expected_result_testbed_2 = "['8.8.4.4'] 10.0.0.1 foo=1 bar=2 baz=3 \n"
+    expected_result_testbed_2 = "['8.8.4.4'] 10.0.0.1 bar=2 baz=3 foo=1 \n"
 
     result_testbed_1 = remote.generate_autoinstall(
         "testbed-1", "system", "name", "system-tests.sh"

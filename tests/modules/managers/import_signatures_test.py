@@ -3,6 +3,7 @@ Tests that validate the functionality of the module that is responsible for mana
 """
 
 import os
+from typing import Any, Dict
 
 import pytest
 from pytest_mock import MockerFixture
@@ -58,7 +59,7 @@ def test_arch_walker_matches_kernel_arch_regex_from_bytes(
     get_file_lines = mocker.patch.object(
         manager, "get_file_lines", return_value=[b"architecture=x86_64\n"]
     )
-    result = {}
+    result: Dict[Any, Any] = {}
 
     # Act
     manager.arch_walker(result, "/tmp/esxi", ["tools.t00"])

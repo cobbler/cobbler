@@ -488,9 +488,9 @@ def run(api: "CobblerAPI", args: Any):
                     )
                     return 1
 
-                bcd_name = b"bcd"
+                bcd_name = "bcd"
                 if is_bcd:
-                    bcd_name = meta["bcd"]
+                    bcd_name: str = meta["bcd"]
                     if len(bcd_name) != 3:
                         logger.error("The BCD file name should be EXACTLY 3 character")
                         return 1
@@ -502,21 +502,20 @@ def run(api: "CobblerAPI", args: Any):
                 pat1 = re.compile(rb"bootmgr\.exe", re.IGNORECASE)
                 pat2 = re.compile(rb"(\\.B.o.o.t.\\.)(B)(.)(C)(.)(D)", re.IGNORECASE)
 
-                bcd_name = bytes(
-                    b"\\g<1>"
+                bcd_name = (
+                    "\\g<1>"
                     + bcd_name[0]
-                    + b"\\g<3>"
+                    + "\\g<3>"
                     + bcd_name[1]
-                    + b"\\g<5>"
-                    + bcd_name[2],
-                    b"utf-8",
+                    + "\\g<5>"
+                    + bcd_name[2]
                 )
                 with open(tl_file_name, "rb") as file:
                     out = file.read()
 
                 if not is_wimboot:
                     logger.info("Patching build Loader: %s", wl_file_name)
-                    out = pat2.sub(bcd_name, out)
+                    out = pat2.sub(bcd_name.encode("utf-8"), out)
 
             if tl_file_name != wl_file_name:
                 logger.info("Build Loader: %s from %s", wl_file_name, tl_file_name)

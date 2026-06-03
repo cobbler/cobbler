@@ -13,7 +13,7 @@ import os.path
 import pathlib
 import re
 import socket
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union, cast
 
 try:
     from importlib.resources import files  # type: ignore
@@ -28,6 +28,11 @@ from cobbler.validate import validate_autoinstall_script_name
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+
+    try:
+        from importlib.abc import Traversable
+    except ImportError:
+        from importlib_resources.abc import Traversable  # type: ignore
     from cobbler.items.abstract.bootable_item import BootableItem
     from cobbler.items.distro import Distro
     from cobbler.items.image import Image
@@ -63,7 +68,7 @@ class TFTPGen:
         exist.
         """
         bootloc = pathlib.Path(self.bootloc)
-        resource_files = files("cobbler.data.config.grub")
+        resource_files = cast("Traversable", files("cobbler.data.config.grub"))
         # Create grub folder
         (bootloc / "grub").mkdir(exist_ok=True)
         # Copy grub.cfg
