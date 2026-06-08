@@ -34,6 +34,10 @@ RE_HOSTNAME = re.compile(
     r"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])"
     r"(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$"
 )
+RE_HOSTNAME_WITH_DOT = re.compile(
+    r"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])"
+    r"(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*\.?$"
+)
 RE_URL_GRUB = re.compile(r"^\((?P<protocol>http|tftp),(?P<server>.*)\)/(?P<path>.*)$")
 RE_URL = re.compile(
     r"^[a-zA-Z\d-]{,63}(\.[a-zA-Z\d-]{,63})*$"
@@ -50,11 +54,12 @@ AUTOINSTALL_REPO_BLACKLIST = ["enabled", "gpgcheck", "gpgkey"]
 # FIXME: Allow the <<inherit>> magic string to be parsed correctly.
 
 
-def hostname(dnsname: str) -> str:
+def hostname(dnsname: str, allow_trailing_dot: bool = False) -> str:
     """
     Validate the DNS name.
 
     :param dnsname: Hostname or FQDN
+    :param allow_trailing_dot: If True, allows an optional trailing dot for absolute FQDNs
     :returns: Hostname or FQDN
     :raises TypeError: If the Hostname/FQDN is not a string or in an invalid format.
     """
@@ -66,7 +71,8 @@ def hostname(dnsname: str) -> str:
         # hostname is not required
         return dnsname
 
-    if not RE_HOSTNAME.match(dnsname):
+    pattern = RE_HOSTNAME_WITH_DOT if allow_trailing_dot else RE_HOSTNAME
+    if not pattern.match(dnsname):
         raise ValueError(f"Invalid hostname format ({dnsname})")
 
     return dnsname
@@ -219,6 +225,9 @@ def name_servers_search(
     """
     Validate nameservers search domains.
 
+    Allows trailing dots to specify absolute FQDNs that should not have additional
+    search domains appended by the resolver.
+
     :param search: One or more search domains to validate.
     :param for_item: enable/disable special handling for Item objects
     :return: The list of valid nameservers.
@@ -236,7 +245,7 @@ def name_servers_search(
 
     if isinstance(search, list):  # type: ignore
         for nameserver in search:
-            hostname(nameserver)
+            hostname(nameserver, allow_trailing_dot=True)
     else:
         raise TypeError(f'Invalid input type "{type(search)}", expected str or list')
 

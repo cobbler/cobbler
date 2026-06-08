@@ -339,3 +339,105 @@ def test_validate_uuid():
 
     # Arrange
     assert result is expected_result
+
+
+@pytest.mark.parametrize(
+    "input_dnsname,allow_trailing,expected_result,expected_exception",
+    [
+        ("", False, "", does_not_raise()),
+        ("host", False, "host", does_not_raise()),
+        ("host.cobbler.org", False, "host.cobbler.org", does_not_raise()),
+        (
+            "host.cobbler.org.",
+            False,
+            "",
+            pytest.raises(ValueError),
+        ),  # Trailing dot rejected
+        ("example..", False, "", pytest.raises(ValueError)),  # Double dot
+        (".example", False, "", pytest.raises(ValueError)),  # Leading dot
+        ("host-name", False, "host-name", does_not_raise()),  # Hyphens OK
+        (0, False, "", pytest.raises(TypeError)),  # Type check
+    ],
+)
+def test_hostname_trailing_dot_variants(
+    input_dnsname: Any,
+    allow_trailing: bool,
+    expected_result: str,
+    expected_exception: Any,
+):
+    """
+    Test hostname validation with default behavior (no trailing dots allowed).
+    """
+    # Arrange & Act
+    with expected_exception:
+        result = validate.hostname(input_dnsname, allow_trailing_dot=allow_trailing)
+        # Assert
+        assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "input_dnsname,expected_result,expected_exception",
+    [
+        ("host.cobbler.org.", "host.cobbler.org.", does_not_raise()),
+        ("example.com.", "example.com.", does_not_raise()),
+        ("sub.example.com.", "sub.example.com.", does_not_raise()),
+        ("example.com", "example.com", does_not_raise()),  # Still optional
+        (
+            "localhost.",
+            "localhost.",
+            does_not_raise(),
+        ),  # Single label with trailing dot
+        ("example..", "", pytest.raises(ValueError)),  # Double dot still fails
+        (".example", "", pytest.raises(ValueError)),  # Leading dot still fails
+        (".", "", pytest.raises(ValueError)),  # Just a dot is invalid
+    ],
+)
+def test_hostname_allow_trailing_dot(
+    input_dnsname: Any,
+    expected_result: str,
+    expected_exception: Any,
+):
+    """
+    Test hostname validation with trailing dots allowed.
+    """
+    # Arrange & Act
+    with expected_exception:
+        result = validate.hostname(input_dnsname, allow_trailing_dot=True)
+        # Assert
+        assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "input_search,expected_result,expected_exception",
+    [
+        ([], [], does_not_raise()),
+        (["example.com"], ["example.com"], does_not_raise()),
+        (["example.com."], ["example.com."], does_not_raise()),  # Trailing dot
+        (
+            ["example.com", "internal.local."],
+            ["example.com", "internal.local."],
+            does_not_raise(),
+        ),  # Mixed
+        (
+            "example.com example.org.",
+            ["example.com", "example.org."],
+            does_not_raise(),
+        ),  # String input
+        (["sub.domain.example.com."], ["sub.domain.example.com."], does_not_raise()),
+        (["example.."], [], pytest.raises(ValueError)),  # Malformed
+        ([".example"], [], pytest.raises(ValueError)),  # Leading dot
+    ],
+)
+def test_name_servers_search_trailing_dot(
+    input_search: Any,
+    expected_result: Any,
+    expected_exception: Any,
+):
+    """
+    Test name_servers_search validation with trailing dots allowed.
+    """
+    # Arrange & Act
+    with expected_exception:
+        result = validate.name_servers_search(input_search, for_item=False)
+        # Assert
+        assert result == expected_result
