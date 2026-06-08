@@ -1,4 +1,6 @@
-#set $mac = $interfaces['default']["mac_address"]
+## Only disable interfaces if 'default' interface exists (backward compatibility)
+#if "default" in $interfaces and $interfaces["default"].get("mac_address", "") != ""
+#set $mac = $interfaces["default"]["mac_address"]
 ## Disable all interfaces that is not used
 default_mac="$mac"
 #raw
@@ -8,3 +10,4 @@ for interface in $(find /sys/class/net -type l -not -lname '*virtual*' -printf '
   fi
 done
 #end raw
+#end if
