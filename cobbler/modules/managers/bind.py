@@ -125,7 +125,8 @@ class _BindManager(DnsManagerModule):
             zones[zone] = {}
 
         for system in self.systems:
-            for _, interface in system.interfaces.items():
+            # Use list() to avoid "dictionary changed size during iteration"
+            for _, interface in list(system.interfaces.items()):
                 host: str = interface.dns.name
                 ipv4: str = interface.ipv4.address
                 ipv6: str = interface.ipv6.address
@@ -217,7 +218,8 @@ class _BindManager(DnsManagerModule):
             zones[zone] = {}
 
         for system in self.systems:
-            for _, interface in system.interfaces.items():
+            # Use list() to avoid "dictionary changed size during iteration"
+            for _, interface in list(system.interfaces.items()):
                 host = interface.dns.name
                 ip_address = interface.ipv4.address
                 ipv6 = interface.ipv6.address
@@ -422,7 +424,8 @@ zone "{arpa}." {{
         # particular system
 
         for system in self.systems:
-            for name, interface in system.interfaces.items():
+            # Use list() to avoid "dictionary changed size during iteration"
+            for name, interface in list(system.interfaces.items()):
                 if interface.dns.name == "":
                     self.logger.info(
                         "Warning: dns_name unspecified in the system: %s, while writing host records",
@@ -481,7 +484,8 @@ zone "{arpa}." {{
         # Which results in empty records without any warning to the users
 
         for system in self.systems:
-            for _, interface in system.interfaces.items():
+            # Use list() to avoid "dictionary changed size during iteration"
+            for _, interface in list(system.interfaces.items()):
                 cnames = interface.dns.common_names
 
                 try:

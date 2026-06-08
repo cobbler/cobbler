@@ -128,7 +128,8 @@ class _IscManager(DhcpManagerModule):
             return {}
 
         profile: Optional["Profile"] = system_obj.get_conceptual_parent()  # type: ignore
-        for iface_name, iface_obj in system_obj.interfaces.items():
+        # Use list() to avoid "dictionary changed size during iteration"
+        for iface_name, iface_obj in list(system_obj.interfaces.items()):
             iface = iface_obj.to_dict()
             mac = iface_obj.mac_address
             if (
@@ -236,7 +237,8 @@ class _IscManager(DhcpManagerModule):
                 dhcp_tags[dhcp_tag][mac] = iface
 
         for macs in dhcp_tags.values():
-            for mac in macs:
+            # Use list() to avoid "dictionary changed size during iteration" when deleting
+            for mac in list(macs):
                 if mac in ignore_macs:
                     del macs[mac]
 

@@ -391,7 +391,8 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
             return ""
 
         output = ""
-        for _, interface in system_obj.interfaces.items():
+        # Use list() to avoid "dictionary changed size during iteration"
+        for _, interface in list(system_obj.interfaces.items()):
             mac = interface.mac_address
             host = interface.dns.name
             cnames = " ".join(interface.dns.common_names)
