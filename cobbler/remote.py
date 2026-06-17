@@ -3148,16 +3148,24 @@ class CobblerXMLRPCInterface:
         return True
 
     def save_item(
-        self, what: str, object_id: str, token: str, editmode: str = "bypass"
+        self,
+        what: str,
+        object_id: str,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+        editmode: str = "bypass",
+        token: str = "",
     ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
         :param what: The type of object which shall be saved. This corresponds to the collections.
         :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
+        :param with_triggers: If triggers should be run during save. Set to False to suppress per-save triggers.
+        :param with_sync: If a Cobbler sync should be executed after save. Set to False to suppress per-save syncs.
         :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
                          supported.
+        :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
         self._log(f"save_item({what})", object_id=object_id, token=token)
@@ -3168,156 +3176,328 @@ class CobblerXMLRPCInterface:
             # the object will be saved in commit_transaction()
             return True
         if editmode == "new":
-            self.api.add_item(what, obj, check_for_duplicate_names=True)
+            self.api.add_item(
+                what,
+                obj,
+                check_for_duplicate_names=True,
+                with_triggers=with_triggers,
+                with_sync=with_sync,
+            )
         else:
-            self.api.add_item(what, obj)
+            self.api.add_item(
+                what, obj, with_triggers=with_triggers, with_sync=with_sync
+            )
         if object_id in self.unsaved_items:
             del self.unsaved_items[object_id]
         return True
 
-    def save_distro(self, object_id: str, token: str, editmode: str = "bypass") -> bool:
+    def save_distro(
+        self,
+        object_id: str,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+        editmode: str = "bypass",
+        token: str = "",
+    ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
         :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
+        :param with_triggers: If triggers should be run during save. Set to False to suppress per-save triggers.
+        :param with_sync: If a Cobbler sync should be executed after save. Set to False to suppress per-save syncs.
         :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
                          supported.
+        :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        return self.save_item("distro", object_id, token, editmode=editmode)
+        return self.save_item(
+            "distro",
+            object_id,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+            editmode=editmode,
+            token=token,
+        )
 
     def save_profile(
-        self, object_id: str, token: str, editmode: str = "bypass"
+        self,
+        object_id: str,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+        editmode: str = "bypass",
+        token: str = "",
     ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
         :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
+        :param with_triggers: If triggers should be run during save. Set to False to suppress per-save triggers.
+        :param with_sync: If a Cobbler sync should be executed after save. Set to False to suppress per-save syncs.
         :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
                          supported.
+        :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        return self.save_item("profile", object_id, token, editmode=editmode)
+        return self.save_item(
+            "profile",
+            object_id,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+            editmode=editmode,
+            token=token,
+        )
 
-    def save_system(self, object_id: str, token: str, editmode: str = "bypass") -> bool:
+    def save_system(
+        self,
+        object_id: str,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+        editmode: str = "bypass",
+        token: str = "",
+    ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
         :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
+        :param with_triggers: If triggers should be run during save. Set to False to suppress per-save triggers.
+        :param with_sync: If a Cobbler sync should be executed after save. Set to False to suppress per-save syncs.
         :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
                          supported.
+        :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        return self.save_item("system", object_id, token, editmode=editmode)
+        return self.save_item(
+            "system",
+            object_id,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+            editmode=editmode,
+            token=token,
+        )
 
-    def save_image(self, object_id: str, token: str, editmode: str = "bypass") -> bool:
+    def save_image(
+        self,
+        object_id: str,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+        editmode: str = "bypass",
+        token: str = "",
+    ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
         :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
+        :param with_triggers: If triggers should be run during save. Set to False to suppress per-save triggers.
+        :param with_sync: If a Cobbler sync should be executed after save. Set to False to suppress per-save syncs.
         :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
                          supported.
+        :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        return self.save_item("image", object_id, token, editmode=editmode)
+        return self.save_item(
+            "image",
+            object_id,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+            editmode=editmode,
+            token=token,
+        )
 
-    def save_repo(self, object_id: str, token: str, editmode: str = "bypass") -> bool:
+    def save_repo(
+        self,
+        object_id: str,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+        editmode: str = "bypass",
+        token: str = "",
+    ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
         :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
+        :param with_triggers: If triggers should be run during save. Set to False to suppress per-save triggers.
+        :param with_sync: If a Cobbler sync should be executed after save. Set to False to suppress per-save syncs.
         :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
                          supported.
+        :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        return self.save_item("repo", object_id, token, editmode=editmode)
+        return self.save_item(
+            "repo",
+            object_id,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+            editmode=editmode,
+            token=token,
+        )
 
-    def save_menu(self, object_id: str, token: str, editmode: str = "bypass") -> bool:
+    def save_menu(
+        self,
+        object_id: str,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+        editmode: str = "bypass",
+        token: str = "",
+    ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
         :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
+        :param with_triggers: If triggers should be run during save. Set to False to suppress per-save triggers.
+        :param with_sync: If a Cobbler sync should be executed after save. Set to False to suppress per-save syncs.
         :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
                          supported.
+        :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        return self.save_item("menu", object_id, token, editmode=editmode)
+        return self.save_item(
+            "menu",
+            object_id,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+            editmode=editmode,
+            token=token,
+        )
 
     def save_network_interface(
-        self, object_id: str, token: str, editmode: str = "bypass"
+        self,
+        object_id: str,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+        editmode: str = "bypass",
+        token: str = "",
     ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
         :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
+        :param with_triggers: If triggers should be run during save. Set to False to suppress per-save triggers.
+        :param with_sync: If a Cobbler sync should be executed after save. Set to False to suppress per-save syncs.
         :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
                          supported.
+        :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        return self.save_item("network_interface", object_id, token, editmode=editmode)
+        return self.save_item(
+            "network_interface",
+            object_id,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+            editmode=editmode,
+            token=token,
+        )
 
     def save_template(
-        self, object_id: str, token: str, editmode: str = "bypass"
+        self,
+        object_id: str,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+        editmode: str = "bypass",
+        token: str = "",
     ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
         :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
+        :param with_triggers: If triggers should be run during save. Set to False to suppress per-save triggers.
+        :param with_sync: If a Cobbler sync should be executed after save. Set to False to suppress per-save syncs.
         :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
                          supported.
+        :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        return self.save_item("template", object_id, token, editmode=editmode)
+        return self.save_item(
+            "template",
+            object_id,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+            editmode=editmode,
+            token=token,
+        )
 
     def save_distro_group(
-        self, object_id: str, token: str, editmode: str = "bypass"
+        self,
+        object_id: str,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+        editmode: str = "bypass",
+        token: str = "",
     ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
         :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
+        :param with_triggers: If triggers should be run during save. Set to False to suppress per-save triggers.
+        :param with_sync: If a Cobbler sync should be executed after save. Set to False to suppress per-save syncs.
         :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
                          supported.
+        :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        return self.save_item("distro_group", object_id, token, editmode=editmode)
+        return self.save_item(
+            "distro_group",
+            object_id,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+            editmode=editmode,
+            token=token,
+        )
 
     def save_profile_group(
-        self, object_id: str, token: str, editmode: str = "bypass"
+        self,
+        object_id: str,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+        editmode: str = "bypass",
+        token: str = "",
     ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
         :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
+        :param with_triggers: If triggers should be run during save. Set to False to suppress per-save triggers.
+        :param with_sync: If a Cobbler sync should be executed after save. Set to False to suppress per-save syncs.
         :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
                          supported.
+        :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        return self.save_item("profile_group", object_id, token, editmode=editmode)
+        return self.save_item(
+            "profile_group",
+            object_id,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+            editmode=editmode,
+            token=token,
+        )
 
     def save_system_group(
-        self, object_id: str, token: str, editmode: str = "bypass"
+        self,
+        object_id: str,
+        with_triggers: bool = True,
+        with_sync: bool = True,
+        editmode: str = "bypass",
+        token: str = "",
     ) -> bool:
         """
         Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
 
         :param object_id: The id of the object to save.
-        :param token: The API-token obtained via the login() method.
+        :param with_triggers: If triggers should be run during save. Set to False to suppress per-save triggers.
+        :param with_sync: If a Cobbler sync should be executed after save. Set to False to suppress per-save syncs.
         :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
                          supported.
+        :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
-        return self.save_item("system_group", object_id, token, editmode=editmode)
+        return self.save_item(
+            "system_group",
+            object_id,
+            with_triggers=with_triggers,
+            with_sync=with_sync,
+            editmode=editmode,
+            token=token,
+        )
 
     def is_autoinstall_in_use(
         self, ai: str, token: Optional[str] = None, **rest: Any
