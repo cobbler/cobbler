@@ -99,7 +99,8 @@ def run(api: "CobblerAPI", args: List[Any]):
         raise ValueError("Search result was ambiguous!")
 
     # process all interfaces and perform dynamic update for those with --dns-name
-    for name, interface in system.interfaces.items():
+    # Use list() to avoid "dictionary changed size during iteration" when is_management_supported() accesses interfaces
+    for name, interface in list(system.interfaces.items()):
         host = interface.dns.name
         host_ip = interface.ipv4.address
 

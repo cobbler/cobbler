@@ -474,7 +474,8 @@ def blender(
 
     if root_obj.COLLECTION_TYPE == "system":  # type: ignore
         results["interfaces"] = {}
-        for name, interface in root_obj.interfaces.items():  # type: ignore
+        # Use list() to avoid "dictionary changed size during iteration"
+        for name, interface in list(root_obj.interfaces.items()):  # type: ignore
             interface_dict = interface.to_dict()  # type: ignore
             results["interfaces"][name] = interface_dict
             for key in interface_dict:  # type: ignore

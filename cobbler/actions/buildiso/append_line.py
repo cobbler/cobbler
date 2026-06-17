@@ -332,7 +332,8 @@ class AppendLineBuilder:
                 raise ValueError(
                     "Please give system to AppendLineBuilder.generate_system()!"
                 )
-            for iname, idata in self.system.interfaces.items():
+            # Use list() to avoid "dictionary changed size during iteration"
+            for iname, idata in list(self.system.interfaces.items()):
                 if idata.management and idata.interface_type in [
                     NetworkInterfaceType.BOND,
                     NetworkInterfaceType.BRIDGE,

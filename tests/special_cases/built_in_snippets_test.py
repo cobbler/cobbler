@@ -487,7 +487,8 @@ def test_built_in_network_config(cobbler_api: CobblerAPI):
     """
     # Arrange
     expected_result: List[str] = [
-        "network --bootproto=dhcp --device=eth0 --onboot=on",
+        "# Use configuration generated during %pre",
+        "%include /tmp/pre_install_network_config",
         "",
     ]
     target_template = cobbler_api.find_template(
@@ -734,8 +735,6 @@ def test_built_in_pre_install_network_config(cobbler_api: CobblerAPI):
         "    fi",
         "  fi",
         "}",
-        "",
-        "# Start of code to match cobbler system interfaces to physical interfaces by their mac addresses",
         "# End pre_install_network_config generated code",
         "",
     ]
