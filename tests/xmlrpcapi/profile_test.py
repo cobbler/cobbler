@@ -185,7 +185,7 @@ def test_create_subprofile(remote: CobblerXMLRPCInterface, token: str):
     assert remote.modify_profile(subprofile, ["name"], "testsubprofile0", token)
     assert remote.modify_profile(subprofile, ["parent"], profile_uid, token)
 
-    assert remote.save_profile(subprofile, token)
+    assert remote.save_profile(subprofile, True, True, "bypass", token)
 
     new_profiles = remote.get_profiles(token)
     assert len(new_profiles) == len(profiles) + 1

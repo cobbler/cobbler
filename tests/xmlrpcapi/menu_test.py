@@ -18,7 +18,7 @@ def create_menu(remote: CobblerXMLRPCInterface, token: str):
     menu = remote.new_menu(token)
     remote.modify_menu(menu, ["name"], "testmenu0", token)
     remote.modify_menu(menu, ["display_name"], "Test Menu0", token)
-    remote.save_menu(menu, token)
+    remote.save_menu(menu, True, True, "bypass", token)
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ class TestMenu:
         assert remote.modify_menu(submenu, ["name"], "testsubmenu0", token)
         assert remote.modify_menu(submenu, ["parent"], menu_uid, token)
 
-        assert remote.save_menu(submenu, token)
+        assert remote.save_menu(submenu, True, True, "bypass", token)
 
         new_menus = remote.get_menus(token)
         assert len(new_menus) == len(menus) + 1
@@ -70,7 +70,7 @@ class TestMenu:
         menu = remote.new_menu(token)
         assert remote.modify_menu(menu, ["name"], "testmenu0", token)
         assert remote.modify_menu(menu, ["display_name"], "Test Menu0", token)
-        assert remote.save_menu(menu, token)
+        assert remote.save_menu(menu, token=token)
 
     def test_get_menus(self, remote: CobblerXMLRPCInterface):
         """

@@ -298,9 +298,9 @@ def test_dns_name_servers_inheritance(
 
     # Act
     remote.modify_profile(profile_handle, ["dns", "name_servers"], "8.8.4.4", token)
-    remote.save_profile(profile_handle, token)
+    remote.save_profile(profile_handle, True, True, "bypass", token)
     remote.modify_system(system_handle, ["dns", "name_servers"], "8.8.8.8", token)
-    remote.save_system(system_handle, token)
+    remote.save_system(system_handle, True, True, "bypass", token)
 
     # Assert
     assert remote.get_item_resolved_value(system_handle, ["dns", "name_servers"]) == [

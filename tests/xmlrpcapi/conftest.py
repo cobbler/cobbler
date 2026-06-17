@@ -84,7 +84,7 @@ def create_distro(remote: CobblerXMLRPCInterface, token: str):
         remote.modify_distro(distro, ["breed"], breed, token)
         remote.modify_distro(distro, ["kernel"], path_kernel, token)
         remote.modify_distro(distro, ["initrd"], path_initrd, token)
-        remote.save_distro(distro, token)
+        remote.save_distro(distro, True, True, "bypass", token)
         return distro
 
     return _create_distro
@@ -115,7 +115,7 @@ def create_profile(remote: CobblerXMLRPCInterface, token: str):
         remote.modify_profile(profile, ["name"], name, token)
         remote.modify_profile(profile, ["distro"], distro, token)
         remote.modify_profile(profile, ["kernel_options"], kernel_options, token)
-        remote.save_profile(profile, token)
+        remote.save_profile(profile, True, True, "bypass", token)
         return profile
 
     return _create_profile
@@ -143,7 +143,7 @@ def create_system(remote: CobblerXMLRPCInterface, token: str):
         system = remote.new_system(token)
         remote.modify_system(system, ["name"], name, token)
         remote.modify_system(system, ["profile"], profile, token)
-        remote.save_system(system, token)
+        remote.save_system(system, True, True, "bypass", token)
         return system
 
     return _create_system
@@ -177,7 +177,7 @@ def fixture_create_autoinstall_template(
         remote.modify_template(template, ["template_type"], "cheetah", token)
         remote.modify_template(template, ["uri", "schema"], "file", token)
         remote.modify_template(template, ["uri", "path"], filename, token)
-        remote.save_template(template, token, "new")
+        remote.save_template(template, True, True, "new", token)
         return template
 
     return _create_autoinstall_template
@@ -196,7 +196,7 @@ def create_repo(
         remote.modify_repo(repo, ["name"], name, token)
         remote.modify_repo(repo, ["mirror"], mirror, token)
         remote.modify_repo(repo, ["mirror_locally"], mirror_locally, token)
-        remote.save_repo(repo, token)
+        remote.save_repo(repo, True, True, "bypass", token)
         return repo
 
     return _create_repo
@@ -226,7 +226,7 @@ def create_menu(remote: CobblerXMLRPCInterface, token: str):
         remote.modify_menu(menu_id, ["name"], name, token)
         remote.modify_menu(menu_id, ["display_name"], display_name, token)
 
-        remote.save_menu(menu_id, token)
+        remote.save_menu(menu_id, True, True, "bypass", token)
         return menu_id
 
     return _create_menu
@@ -258,7 +258,7 @@ def create_testprofile(remote: CobblerXMLRPCInterface, token: str):
     remote.modify_profile(profile, ["distro"], distro_uid, token)
     remote.modify_profile(profile, ["kernel_options"], "a=1 b=2 c=3 c=4 c=5 d e", token)
     remote.modify_profile(profile, ["menu"], menu_uid, token)
-    remote.save_profile(profile, token)
+    remote.save_profile(profile, True, True, "bypass", token)
 
 
 @pytest.fixture(scope="function")
@@ -284,7 +284,7 @@ def create_testdistro(
     remote.modify_distro(distro, ["breed"], "suse", token)
     remote.modify_distro(distro, ["kernel"], os.path.join(folder, fk_kernel), token)
     remote.modify_distro(distro, ["initrd"], os.path.join(folder, fk_initrd), token)
-    remote.save_distro(distro, token)
+    remote.save_distro(distro, True, True, "bypass", token)
 
 
 @pytest.fixture(scope="function")
@@ -298,7 +298,7 @@ def create_testsystem(remote: CobblerXMLRPCInterface, token: str):
     system = remote.new_system(token)
     remote.modify_system(system, ["name"], "testsystem0", token)
     remote.modify_system(system, ["profile"], profile_uid, token)
-    remote.save_system(system, token)
+    remote.save_system(system, True, True, "bypass", token)
 
 
 @pytest.fixture(scope="function")
@@ -312,7 +312,7 @@ def create_testrepo(remote: CobblerXMLRPCInterface, token: str):
     remote.modify_repo(repo, ["name"], "testrepo0", token)
     remote.modify_repo(repo, ["arch"], "x86_64", token)
     remote.modify_repo(repo, ["mirror"], "http://something", token)
-    remote.save_repo(repo, token)
+    remote.save_repo(repo, True, True, "bypass", token)
 
 
 @pytest.fixture(scope="function")
@@ -324,7 +324,7 @@ def create_testimage(remote: CobblerXMLRPCInterface, token: str):
     """
     image = remote.new_image(token)
     remote.modify_image(image, ["name"], "testimage0", token)
-    remote.save_image(image, token)
+    remote.save_image(image, True, True, "bypass", token)
 
 
 @pytest.fixture(scope="function")
@@ -337,7 +337,7 @@ def create_testmenu(remote: CobblerXMLRPCInterface, token: str):
 
     menu = remote.new_menu(token)
     remote.modify_menu(menu, ["name"], "testmenu0", token)
-    remote.save_menu(menu, token)
+    remote.save_menu(menu, True, True, "bypass", token)
 
 
 @pytest.fixture(scope="function")

@@ -23,7 +23,7 @@ def create_repo(remote: CobblerXMLRPCInterface, token: str):
         repo, ["mirror"], "http://www.sample.com/path/to/some/repo", token
     )
     remote.modify_repo(repo, ["mirror_locally"], False, token)
-    remote.save_repo(repo, token)
+    remote.save_repo(repo, True, True, "bypass", token)
 
 
 class TestRepo:
@@ -45,7 +45,7 @@ class TestRepo:
             repo, ["mirror"], "http://www.sample.com/path/to/some/repo", token
         )
         assert remote.modify_repo(repo, ["mirror_locally"], False, token)
-        assert remote.save_repo(repo, token)
+        assert remote.save_repo(repo, True, True, "bypass", token)
 
     def test_get_repos(self, remote: CobblerXMLRPCInterface):
         """

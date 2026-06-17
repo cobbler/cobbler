@@ -42,7 +42,7 @@ def test_modify_save_and_get_profile_group(remote: CobblerXMLRPCInterface, token
     # Arrange
     handle = remote.new_profile_group(token)
     remote.modify_profile_group(handle, ["name"], "test_profile_group", token)
-    remote.save_profile_group(handle, token, editmode="new")
+    remote.save_profile_group(handle, True, True, "new", token)
 
     # Act
     group = remote.get_profile_group("test_profile_group", token=token)
@@ -69,7 +69,7 @@ def test_find_profile_group(
     if create_item:
         handle = remote.new_profile_group(token)
         remote.modify_profile_group(handle, ["name"], "test_profile_group", token)
-        remote.save_profile_group(handle, token, editmode="new")
+        remote.save_profile_group(handle, True, True, "new", token)
 
     # Act
     result = remote.find_profile_group(
@@ -87,7 +87,7 @@ def test_copy_profile_group(remote: CobblerXMLRPCInterface, token: str):
     # Arrange
     handle = remote.new_profile_group(token)
     remote.modify_profile_group(handle, ["name"], "test_profile_group", token)
-    remote.save_profile_group(handle, token, editmode="new")
+    remote.save_profile_group(handle, True, True, "new", token)
     profile_group = remote.get_profile_group_handle("test_profile_group")
 
     # Act
@@ -104,7 +104,7 @@ def test_rename_profile_group(remote: CobblerXMLRPCInterface, token: str):
     # Arrange
     handle = remote.new_profile_group(token)
     remote.modify_profile_group(handle, ["name"], "test_profile_group", token)
-    remote.save_profile_group(handle, token, editmode="new")
+    remote.save_profile_group(handle, True, True, "new", token)
     profile_group = remote.get_profile_group_handle("test_profile_group")
 
     # Act
@@ -123,7 +123,7 @@ def test_remove_profile_group(remote: CobblerXMLRPCInterface, token: str):
     # Arrange
     handle = remote.new_profile_group(token)
     remote.modify_profile_group(handle, ["name"], "test_profile_group_to_remove", token)
-    remote.save_profile_group(handle, token, editmode="new")
+    remote.save_profile_group(handle, True, True, "new", token)
 
     # Act
     result = remote.remove_profile_group("test_profile_group_to_remove", token)
@@ -142,7 +142,7 @@ def test_get_profile_groups_since(remote: CobblerXMLRPCInterface, token: str):
     mtime = time.time()
     handle = remote.new_profile_group(token)
     remote.modify_profile_group(handle, ["name"], "test_profile_group_since", token)
-    remote.save_profile_group(handle, token, editmode="new")
+    remote.save_profile_group(handle, True, True, "new", token)
 
     # Act
     result = remote.get_profile_groups_since(mtime)
@@ -159,7 +159,7 @@ def test_get_profile_group_as_rendered(remote: CobblerXMLRPCInterface, token: st
     # Arrange
     handle = remote.new_profile_group(token)
     remote.modify_profile_group(handle, ["name"], "test_profile_group", token)
-    remote.save_profile_group(handle, token, editmode="new")
+    remote.save_profile_group(handle, True, True, "new", token)
 
     # Act
     result = remote.get_profile_group_as_rendered("test_profile_group", token)

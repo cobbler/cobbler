@@ -232,7 +232,7 @@ def test_svc_ipxe_image(
     # Arrange
     iid = remote.new_image(token)
     remote.modify_image(iid, ["name"], "fakeimage", token)
-    remote.save_image(iid, token, "new")
+    remote.save_image(iid, True, True, "new", token)
     create_system([(["name"], "testbed"), (["image"], iid)])
     # Prepare expected result
     expected_result = ""
@@ -260,7 +260,7 @@ def test_svc_ipxe_profile(
     # Arrange
     iid = remote.new_image(token)
     remote.modify_image(iid, ["name"], "fakeimage", token)
-    remote.save_image(iid, token, "new")
+    remote.save_image(iid, True, True, "new", token)
     did = create_distro(
         [
             (["name"], "fake"),
