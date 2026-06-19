@@ -33,7 +33,7 @@ def test_create_profile(
     remote.modify_profile(profile, ["name"], "testprofile0", token)
     remote.modify_profile(profile, ["distro"], distro_uid, token)
 
-    assert remote.save_profile(profile, token)
+    assert remote.save_profile(profile, True, True, "bypass", token)
 
     # uncommited profile is not visible without token
     assert remote.get_item_handle("profile", "testprofile0") == "~"
@@ -62,7 +62,7 @@ def test_modify_profile(
     profile = remote.get_profile_handle("testprofile0")
     remote.modify_profile(profile, ["comment"], "test comment", token)
 
-    assert remote.save_profile(profile, token)
+    assert remote.save_profile(profile, True, True, "bypass", token)
 
     assert remote.get_profile_handle("testprofile0") == profile
 
@@ -174,12 +174,12 @@ def test_remove_profile_recursive(remote: CobblerXMLRPCInterface, token: str):
     subprofile = remote.new_subprofile(token)
     assert remote.modify_profile(subprofile, ["name"], "testsubprofile0", token)
     assert remote.modify_profile(subprofile, ["parent"], profile_uid, token)
-    assert remote.save_profile(subprofile, token)
+    assert remote.save_profile(subprofile, True, True, "bypass", token)
 
     subprofile1 = remote.new_subprofile(token)
     assert remote.modify_profile(subprofile1, ["name"], "testsubprofile1", token)
     assert remote.modify_profile(subprofile1, ["parent"], subprofile, token)
-    assert remote.save_profile(subprofile1, token)
+    assert remote.save_profile(subprofile1, True, True, "bypass", token)
 
     assert remote.transaction_commit(token)
 
@@ -230,7 +230,7 @@ def test_create_profiles(
         profile = remote.new_profile(token)
         remote.modify_profile(profile, ["name"], f"testprofile{i}", token)
         remote.modify_profile(profile, ["distro"], distro_uid, token)
-        remote.save_profile(profile, token)
+        remote.save_profile(profile, True, True, "bypass", token)
     assert remote.transaction_commit(token)
 
     remote.transaction_begin(token)
@@ -254,17 +254,17 @@ def test_parent_profile_recursive(remote: CobblerXMLRPCInterface, token: str):
     profile1 = remote.new_subprofile(token)
     assert remote.modify_profile(profile1, ["name"], "testprofile1", token)
     assert remote.modify_profile(profile1, ["parent"], profile_uid, token)
-    assert remote.save_profile(profile1, token)
+    assert remote.save_profile(profile1, True, True, "bypass", token)
 
     profile2 = remote.new_subprofile(token)
     assert remote.modify_profile(profile2, ["name"], "testprofile2", token)
     assert remote.modify_profile(profile2, ["parent"], profile1, token)
-    assert remote.save_profile(profile2, token)
+    assert remote.save_profile(profile2, True, True, "bypass", token)
 
     profile3 = remote.new_subprofile(token)
     assert remote.modify_profile(profile3, ["name"], "testprofile3", token)
     assert remote.modify_profile(profile3, ["parent"], profile2, token)
-    assert remote.save_profile(profile3, token)
+    assert remote.save_profile(profile3, True, True, "bypass", token)
 
     # Act
     assert cast(Dict[Any, Any], remote.get_profile("testprofile0"))["depth"] == 1
@@ -273,7 +273,7 @@ def test_parent_profile_recursive(remote: CobblerXMLRPCInterface, token: str):
     assert cast(Dict[Any, Any], remote.get_profile("testprofile3"))["depth"] == 4
 
     assert remote.modify_profile(profile2, ["parent"], profile_uid, token)
-    assert remote.save_profile(profile2, token)
+    assert remote.save_profile(profile2, True, True, "bypass", token)
 
     assert cast(Dict[Any, Any], remote.get_profile("testprofile0"))["depth"] == 1
     assert cast(Dict[Any, Any], remote.get_profile("testprofile1"))["depth"] == 2
@@ -300,12 +300,12 @@ def test_reparent_and_delete_profile(remote: CobblerXMLRPCInterface, token: str)
     subprofile1 = remote.new_subprofile(token)
     assert remote.modify_profile(subprofile1, ["name"], "testsubprofile0", token)
     assert remote.modify_profile(subprofile1, ["parent"], profile_uid, token)
-    assert remote.save_profile(subprofile1, token)
+    assert remote.save_profile(subprofile1, True, True, "bypass", token)
 
     subprofile2 = remote.new_subprofile(token)
     assert remote.modify_profile(subprofile2, ["name"], "testsubprofile1", token)
     assert remote.modify_profile(subprofile2, ["parent"], profile_uid, token)
-    assert remote.save_profile(subprofile2, token)
+    assert remote.save_profile(subprofile2, True, True, "bypass", token)
 
     # Act
     remote.transaction_begin(token)
@@ -313,12 +313,12 @@ def test_reparent_and_delete_profile(remote: CobblerXMLRPCInterface, token: str)
     profile1 = remote.new_profile(token)
     assert remote.modify_profile(profile1, ["name"], "testprofile1", token)
     assert remote.modify_profile(profile1, ["distro"], distro_uid, token)
-    assert remote.save_profile(profile1, token)
+    assert remote.save_profile(profile1, True, True, "bypass", token)
 
     subprofile1 = remote.get_item_handle("profile", "testsubprofile0", token)
 
     assert remote.modify_profile(subprofile1, ["parent"], profile1, token)
-    assert remote.save_profile(subprofile1, token)
+    assert remote.save_profile(subprofile1, True, True, "bypass", token)
 
     assert remote.remove_profile("testprofile0", token)
 
@@ -436,13 +436,13 @@ def test_create_distro_profile(
     remote.modify_distro(distro, ["kernel"], path_kernel, token)
     remote.modify_distro(distro, ["initrd"], path_initrd, token)
 
-    assert remote.save_distro(distro, token)
+    assert remote.save_distro(distro, True, True, "bypass", token)
 
     profile = remote.new_profile(token)
     remote.modify_profile(profile, ["name"], "testprofile0", token)
     remote.modify_profile(profile, ["distro"], distro, token)
 
-    assert remote.save_profile(profile, token)
+    assert remote.save_profile(profile, True, True, "bypass", token)
 
     # uncommited profile is not visible without token
     assert remote.get_item_handle("profile", "testprofile0") == "~"
@@ -475,7 +475,7 @@ def test_modify_distro(
     distro = remote.get_distro_handle("testdistro0")
     remote.modify_distro(distro, ["comment"], "test comment", token)
 
-    assert remote.save_distro(distro, token)
+    assert remote.save_distro(distro, True, True, "bypass", token)
 
     assert remote.get_distro_handle("testdistro0") == distro
 
@@ -507,12 +507,12 @@ def test_remove_distro_recursive(remote: CobblerXMLRPCInterface, token: str):
     subprofile = remote.new_subprofile(token)
     assert remote.modify_profile(subprofile, ["name"], "testsubprofile0", token)
     assert remote.modify_profile(subprofile, ["parent"], profile_uid, token)
-    assert remote.save_profile(subprofile, token)
+    assert remote.save_profile(subprofile, True, True, "bypass", token)
 
     subprofile1 = remote.new_subprofile(token)
     assert remote.modify_profile(subprofile1, ["name"], "testsubprofile1", token)
     assert remote.modify_profile(subprofile1, ["parent"], subprofile, token)
-    assert remote.save_profile(subprofile1, token)
+    assert remote.save_profile(subprofile1, True, True, "bypass", token)
 
     assert remote.transaction_commit(token)
 
@@ -570,12 +570,12 @@ def test_reparent_and_remove_distro(
     subprofile = remote.new_subprofile(token)
     assert remote.modify_profile(subprofile, ["name"], "testsubprofile0", token)
     assert remote.modify_profile(subprofile, ["parent"], profile_uid, token)
-    assert remote.save_profile(subprofile, token, "new")
+    assert remote.save_profile(subprofile, True, True, "new", token)
 
     subprofile1 = remote.new_subprofile(token)
     assert remote.modify_profile(subprofile1, ["name"], "testsubprofile1", token)
     assert remote.modify_profile(subprofile1, ["parent"], subprofile, token)
-    assert remote.save_profile(subprofile1, token, "new")
+    assert remote.save_profile(subprofile1, True, True, "new", token)
 
     assert remote.transaction_commit(token)
 
@@ -595,11 +595,11 @@ def test_reparent_and_remove_distro(
     remote.modify_distro(distro, ["kernel"], path_kernel, token)
     remote.modify_distro(distro, ["initrd"], path_initrd, token)
 
-    assert remote.save_distro(distro, token, "new")
+    assert remote.save_distro(distro, True, True, "new", token)
 
     profile = remote.get_item_handle("profile", "testprofile0", token)
     assert remote.modify_profile(profile, ["distro"], distro, token)
-    assert remote.save_profile(profile, token, "new")
+    assert remote.save_profile(profile, True, True, "new", token)
     assert remote.remove_distro("testdistro0", token)
 
     # distro and profiles are visible outside of transaction until commit
@@ -643,7 +643,7 @@ def test_create_system_positive(remote: CobblerXMLRPCInterface, token: str):
     system = remote.new_system(token)
     remote.modify_system(system, ["name"], "testsystem0", token)
     remote.modify_system(system, ["profile"], profile_uid, token)
-    assert remote.save_system(system, token)
+    assert remote.save_system(system, True, True, "bypass", token)
 
     # without token, the new system is not visible
     assert remote.get_item_handle("system", "testsystem0") == "~"

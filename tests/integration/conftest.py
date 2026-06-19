@@ -113,7 +113,7 @@ def fixture_create_distro(remote: CobblerXMLRPCInterface, token: str):
         did = remote.new_distro(token)
         for key, value in args:
             remote.modify_distro(did, key, value, token)
-        remote.save_distro(did, token, "new")
+        remote.save_distro(did, True, True, "new", token)
         return did
 
     return _create_distro
@@ -131,7 +131,7 @@ def fixture_create_profile(
         pid = remote.new_profile(token)
         for key, value in args:
             remote.modify_profile(pid, key, value, token)
-        remote.save_profile(pid, token, "new")
+        remote.save_profile(pid, True, True, "new", token)
         return pid
 
     return _create_profile
@@ -149,7 +149,7 @@ def fixture_create_system(
         sid = remote.new_system(token)
         for key, value in args:
             remote.modify_system(sid, key, value, token)
-        remote.save_system(sid, token, "new")
+        remote.save_system(sid, True, True, "new", token)
         return sid
 
     return _create_system
@@ -167,7 +167,7 @@ def fixture_create_network_interface(
         nid = remote.new_network_interface(sid, token)
         for key, value in args:
             remote.modify_network_interface(nid, key, value, token)
-        remote.save_network_interface(nid, token, "new")
+        remote.save_network_interface(nid, True, True, "new", token)
         return nid
 
     return _create_network_interface
@@ -192,7 +192,7 @@ def fixture_create_autoinstall_template(
         remote.modify_template(template, ["uri", "schema"], "file", token)
         remote.modify_template(template, ["uri", "path"], filename, token)
         remote.modify_template(template, ["tags"], tags, token)
-        remote.save_template(template, token, "new")
+        remote.save_template(template, True, True, "new", token)
         return template
 
     return _create_autoinstall_template

@@ -37,11 +37,11 @@ def test_autoinstall_dummy_bios(
     remote.modify_distro(
         distro_id, ["initrd"], str(fake_directory / "initramfs.gz"), token
     )
-    remote.save_distro(distro_id, token, editmode="new")
+    remote.save_distro(distro_id, True, True, "new", token)
     profile_id = remote.new_profile(token)
     remote.modify_profile(profile_id, ["name"], profile_name, token)
     remote.modify_profile(profile_id, ["distro"], distro_id, token)
-    remote.save_profile(profile_id, token, "new")
+    remote.save_profile(profile_id, True, True, "new", token)
     system_id = remote.new_system(token)
     remote.modify_system(system_id, ["name"], "testbed", token)
     remote.modify_system(system_id, ["profile"], profile_id, token)
@@ -53,10 +53,10 @@ def test_autoinstall_dummy_bios(
         token,
     )
     remote.modify_system(system_id, ["netboot_enabled"], True, token)
-    remote.save_system(system_id, token, "new")
+    remote.save_system(system_id, True, True, "new", token)
     network_interface_id = remote.new_network_interface(system_id, token)
     remote.modify_network_interface(network_interface_id, ["name"], "default", token)
-    remote.save_network_interface(network_interface_id, token, "new")
+    remote.save_network_interface(network_interface_id, True, True, "new", token)
     remote.sync(token)
 
     # Act

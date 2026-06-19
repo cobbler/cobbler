@@ -53,7 +53,7 @@ def test_kickstart_vlan_configuration(
     remote.modify_profile(
         profile_id, ["kernel_options"], {"vlan": "em1.1301:em1"}, token
     )
-    remote.save_profile(profile_id, token, "new")
+    remote.save_profile(profile_id, True, True, "new", token)
 
     # Create system with VLAN interface
     system_id = remote.new_system(token)
@@ -73,9 +73,9 @@ def test_kickstart_vlan_configuration(
     remote.modify_network_interface(iface_id, ["static"], True, token)
     remote.modify_network_interface(iface_id, ["management"], True, token)
     remote.modify_network_interface(iface_id, ["if_gateway"], "10.13.1.1", token)
-    remote.save_network_interface(iface_id, token, "new")
+    remote.save_network_interface(iface_id, True, True, "new", token)
 
-    remote.save_system(system_id, token, "new")
+    remote.save_system(system_id, True, True, "new", token)
 
     # Act
     kickstart_data = remote.generate_autoinstall(system_name, "system")
@@ -124,7 +124,7 @@ def test_kickstart_no_duplicate_interfaces(
     remote.modify_profile(profile_id, ["name"], "test-simple-profile", token)
     remote.modify_profile(profile_id, ["distro"], distro_id, token)
     remote.modify_profile(profile_id, ["autoinstall"], "built-in-sample.ks", token)
-    remote.save_profile(profile_id, token, "new")
+    remote.save_profile(profile_id, True, True, "new", token)
 
     system_id = remote.new_system(token)
     remote.modify_system(system_id, ["name"], "test-simple-system", token)
@@ -142,9 +142,9 @@ def test_kickstart_no_duplicate_interfaces(
     remote.modify_network_interface(iface_id, ["netmask"], "255.255.255.0", token)
     remote.modify_network_interface(iface_id, ["static"], True, token)
     remote.modify_network_interface(iface_id, ["management"], True, token)
-    remote.save_network_interface(iface_id, token, "new")
+    remote.save_network_interface(iface_id, True, True, "new", token)
 
-    remote.save_system(system_id, token, "new")
+    remote.save_system(system_id, True, True, "new", token)
 
     # Act
     kickstart_data = remote.generate_autoinstall("test-simple-system", "system")
@@ -185,7 +185,7 @@ def test_kickstart_bridge_configuration(
     remote.modify_profile(profile_id, ["name"], "test-bridge-profile", token)
     remote.modify_profile(profile_id, ["distro"], distro_id, token)
     remote.modify_profile(profile_id, ["autoinstall"], "built-in-sample.ks", token)
-    remote.save_profile(profile_id, token, "new")
+    remote.save_profile(profile_id, True, True, "new", token)
 
     system_id = remote.new_system(token)
     remote.modify_system(system_id, ["name"], "test-bridge-system", token)
@@ -202,7 +202,7 @@ def test_kickstart_bridge_configuration(
     remote.modify_network_interface(br0_id, ["static"], True, token)
     remote.modify_network_interface(br0_id, ["management"], True, token)
     remote.modify_network_interface(br0_id, ["bridge_opts"], "stp=no", token)
-    remote.save_network_interface(br0_id, token, "new")
+    remote.save_network_interface(br0_id, True, True, "new", token)
 
     # Add bridge slave
     eth0_id = remote.new_network_interface(system_id, token)
@@ -212,9 +212,9 @@ def test_kickstart_bridge_configuration(
         eth0_id, ["mac_address"], "00:11:22:33:44:55", token
     )
     remote.modify_network_interface(eth0_id, ["interface_master"], "br0", token)
-    remote.save_network_interface(eth0_id, token, "new")
+    remote.save_network_interface(eth0_id, True, True, "new", token)
 
-    remote.save_system(system_id, token, "new")
+    remote.save_system(system_id, True, True, "new", token)
 
     # Act
     kickstart_data = remote.generate_autoinstall("test-bridge-system", "system")
@@ -255,7 +255,7 @@ def test_kickstart_bond_configuration(
     remote.modify_profile(profile_id, ["name"], "test-bond-profile", token)
     remote.modify_profile(profile_id, ["distro"], distro_id, token)
     remote.modify_profile(profile_id, ["autoinstall"], "built-in-sample.ks", token)
-    remote.save_profile(profile_id, token, "new")
+    remote.save_profile(profile_id, True, True, "new", token)
 
     system_id = remote.new_system(token)
     remote.modify_system(system_id, ["name"], "test-bond-system", token)
@@ -274,7 +274,7 @@ def test_kickstart_bond_configuration(
     remote.modify_network_interface(
         bond0_id, ["bonding_opts"], "mode=active-backup miimon=100", token
     )
-    remote.save_network_interface(bond0_id, token, "new")
+    remote.save_network_interface(bond0_id, True, True, "new", token)
 
     # Add bond slaves
     for iface in ["eth0", "eth1"]:
@@ -286,9 +286,9 @@ def test_kickstart_bond_configuration(
         mac = "00:11:22:33:44:55" if iface == "eth0" else "00:11:22:33:44:66"
         remote.modify_network_interface(iface_id, ["mac_address"], mac, token)
         remote.modify_network_interface(iface_id, ["interface_master"], "bond0", token)
-        remote.save_network_interface(iface_id, token, "new")
+        remote.save_network_interface(iface_id, True, True, "new", token)
 
-    remote.save_system(system_id, token, "new")
+    remote.save_system(system_id, True, True, "new", token)
 
     # Act
     kickstart_data = remote.generate_autoinstall("test-bond-system", "system")

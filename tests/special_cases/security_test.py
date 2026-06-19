@@ -61,12 +61,12 @@ def setup_profile(
     cobbler_api.modify_distro(distro, ["arch"], "x86_64", token)
     cobbler_api.modify_distro(distro, ["kernel"], str(kernel_path), token)
     cobbler_api.modify_distro(distro, ["initrd"], str(initrd_path), token)
-    cobbler_api.save_distro(distro, token)
+    cobbler_api.save_distro(distro, True, True, "bypass", token)
     # Create a test Profile
     profile = cobbler_api.new_profile(token)
     cobbler_api.modify_profile(profile, ["name"], "security_test_profile", token)
     cobbler_api.modify_profile(profile, ["distro"], distro, token)
-    cobbler_api.save_profile(profile, token)
+    cobbler_api.save_profile(profile, True, True, "bypass", token)
     return
 
 

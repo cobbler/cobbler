@@ -134,7 +134,7 @@ def test_buildiso_integration(
     else:
         pid = remote.get_profile_handle("leap-x86_64")
     remote.modify_system(sid, ["profile"], pid, token)
-    remote.save_system(sid, token, "new")
+    remote.save_system(sid, True, True, "new", token)
     print("Testsystem created")
 
     # Tmp: Create "/var/cache/cobbler" because it does not exist per default

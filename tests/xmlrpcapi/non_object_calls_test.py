@@ -282,7 +282,7 @@ def test_get_item_resolved_value(
     profile_uid = create_profile(name_profile, distro_uid, "a=1 b=2 c=3 c=4 c=5 d e")
     test_system_handle = create_system(name_system, profile_uid)
     remote.modify_system(test_system_handle, ["kernel_options"], "!c !e", token=token)
-    remote.save_system(test_system_handle, token)
+    remote.save_system(test_system_handle, True, True, "bypass", token)
     test_network_interface_handle = remote.new_network_interface(
         test_system_handle, token
     )
@@ -292,7 +292,9 @@ def test_get_item_resolved_value(
     remote.modify_network_interface(
         test_network_interface_handle, ["mac_address"], "aa:bb:cc:dd:ee:ff", token
     )
-    remote.save_network_interface(test_network_interface_handle, token, "new")
+    remote.save_network_interface(
+        test_network_interface_handle, True, True, "new", token
+    )
     if checked_object == "distro":
         test_item = remote.get_distro(name_distro, token=token)
     elif checked_object == "profile":

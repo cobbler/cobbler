@@ -46,11 +46,11 @@ def test_basic_buildiso(
     profile_id = remote.new_profile(token)
     remote.modify_profile(profile_id, ["name"], "fake", token)
     remote.modify_profile(profile_id, ["distro"], distro_id, token)
-    remote.save_profile(profile_id, token, "new")
+    remote.save_profile(profile_id, True, True, "new", token)
     system_id = remote.new_system(token)
     remote.modify_system(system_id, ["name"], "testbed", token)
     remote.modify_system(system_id, ["profile"], profile_id, token)
-    remote.save_system(system_id, token, "new")
+    remote.save_system(system_id, True, True, "new", token)
     buildisodir.mkdir(parents=True, exist_ok=True)
 
     # Act
@@ -94,7 +94,7 @@ def test_basic_distro_add_remove(
         remote.modify_distro(
             distro_id, ["initrd"], str(images_fake_path / "initramfs"), token
         )
-        remote.save_distro(distro_id, token, "new")
+        remote.save_distro(distro_id, True, True, "new", token)
     # 2. Assert distros are present
     assert len(remote.get_item_names("distro")) == len(distro_names)
     # 3. Remove distros
@@ -129,7 +129,7 @@ def test_basic_distro_rename(
     pid = remote.new_profile(token)
     remote.modify_profile(pid, ["name"], "fake", token)
     remote.modify_profile(pid, ["distro"], did, token)
-    remote.save_profile(pid, token, "new")
+    remote.save_profile(pid, True, True, "new", token)
 
     # Act
     remote.rename_distro(did, "fake-renamed", token)
@@ -466,12 +466,12 @@ def test_basic_system_ipxe_dhcpd_conf_update(
     nid = remote.new_network_interface(sid, token)
     remote.modify_network_interface(nid, ["name"], "default", token)
     remote.modify_network_interface(nid, ["mac_address"], "aa:bb:cc:dd:ee:ff", token)
-    remote.save_network_interface(nid, token)
+    remote.save_network_interface(nid, True, True, "bypass", token)
 
     # Act
     remote.modify_system(sid, ["netboot_enabled"], True, token)
     remote.modify_system(sid, ["enable_ipxe"], True, token)
-    remote.save_system(sid, token)
+    remote.save_system(sid, True, True, "bypass", token)
 
     # Assert
     # We assume that the existence of a single http URL is a successful iPXE group creation.
@@ -495,17 +495,17 @@ def test_basic_system_parent_image(
     # Arrange
     iid = remote.new_image(token)
     remote.modify_image(iid, ["name"], "fake", token)
-    remote.save_image(iid, token, "new")
+    remote.save_image(iid, True, True, "new", token)
 
     # Act
     sid = remote.new_system(token)
     remote.modify_system(sid, ["name"], "testbed", token)
     remote.modify_system(sid, ["image"], iid, token)
-    remote.save_system(sid, token)
+    remote.save_system(sid, True, True, "bypass", token)
     nid = remote.new_network_interface(sid, token)
     remote.modify_network_interface(nid, ["name"], "default", token)
     remote.modify_network_interface(nid, ["mac_address"], "aa:bb:cc:dd:ee:ff", token)
-    remote.save_network_interface(nid, token)
+    remote.save_network_interface(nid, True, True, "bypass", token)
     restart_cobbler()
 
     # Assert - If cobblerd is successfully restarted we should get the image and system loaded successfully.

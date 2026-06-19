@@ -22,7 +22,7 @@ class TestImage:
 
         # Assert
         assert remote.modify_image(image, ["name"], "testimage0", token)
-        assert remote.save_image(image, token)
+        assert remote.save_image(image, True, True, "bypass", token)
         image_list = remote.get_images(token)
         assert len(image_list) == 1
 

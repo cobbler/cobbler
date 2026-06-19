@@ -120,7 +120,7 @@ def cobbler_system_create(
     sid = cobbler_api.new_system(token)
     cobbler_api.modify_system(sid, ["name"], system_name, token)
     cobbler_api.modify_system(sid, ["profile"], profile_uid, token)
-    cobbler_api.save_system(sid, token, "new")
+    cobbler_api.save_system(sid, True, True, "new", token)
     return sid
 
 
@@ -150,7 +150,7 @@ def cobbler_network_interface_create(
     nid = cobbler_api.new_network_interface(system_uid, token)
     cobbler_api.modify_network_interface(nid, ["name"], interface_name, token)
     cobbler_api.modify_network_interface(nid, ["mac_address"], mac_address, token)
-    cobbler_api.save_network_interface(nid, token, "new")
+    cobbler_api.save_network_interface(nid, True, True, "new", token)
     return nid
 
 
@@ -258,7 +258,7 @@ def main() -> None:
             namespace.key,
             namespace.value,
         )
-        cobbler_api.save_system(namespace.system_uid, token)
+        cobbler_api.save_system(namespace.system_uid, True, True, "bypass", token)
     elif namespace.subparser_name == "create_network_interface":
         cobbler_network_interface_create(
             cobbler_api,
@@ -275,7 +275,9 @@ def main() -> None:
             namespace.key,
             namespace.value,
         )
-        cobbler_api.save_network_interface(namespace.network_interface_uid, token)
+        cobbler_api.save_network_interface(
+            namespace.network_interface_uid, True, True, "bypass", token
+        )
     elif namespace.subparser_name == "sync":
         cobbler_sync_full(cobbler_api, token)
     elif namespace.subparser_name == "mkloaders":
@@ -361,7 +363,7 @@ def main() -> None:
             token,
         )
         cobbler_api.modify_template(tid, ["tags"], ["dhcpv4"], token)
-        cobbler_api.save_template(tid, token, "new")
+        cobbler_api.save_template(tid, True, True, "new", token)
         # 7. Mkloaders
         logger.info("Generating bootloaders")
         cobbler_mkloaders(cobbler_api, token)

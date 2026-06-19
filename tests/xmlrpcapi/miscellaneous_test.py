@@ -167,7 +167,7 @@ def test_find_system_by_dns_name(
     create_profile(name_profile, name_distro, "text")
     system = create_system(name_system, name_profile)
     remote.modify_system(system, ["dns", "name"], dns_name, token)
-    remote.save_system(system, token)
+    remote.save_system(system, True, True, "bypass", token)
 
     # Act
     result = remote.find_system_by_dns_name(dns_name)
@@ -326,7 +326,7 @@ def test_get_config_data(
     profile_uid = create_profile(name_profile, distro_uid, "text")
     system = create_system(name_system, profile_uid)
     remote.modify_system(system, ["hostname"], system_hostname, token)
-    remote.save_system(system, token)
+    remote.save_system(system, True, True, "bypass", token)
 
     # Act
     result = remote.get_config_data(system_hostname)
@@ -361,9 +361,9 @@ def test_get_repos_compatible_with_profile(
     repo_compatible = create_repo(name_repo_compatible, "http://localhost", False)
     repo_incompatible = create_repo(name_repo_incompatible, "http://localhost", False)
     remote.modify_repo(repo_compatible, ["arch"], "x86_64", token)
-    remote.save_repo(repo_compatible, token)
+    remote.save_repo(repo_compatible, True, True, "bypass", token)
     remote.modify_repo(repo_incompatible, ["arch"], "ppc64le", token)
-    remote.save_repo(repo_incompatible, token)
+    remote.save_repo(repo_incompatible, True, True, "bypass", token)
 
     # Act
     result = remote.get_repos_compatible_with_profile(name_profile, token)
@@ -621,7 +621,7 @@ def test_render_vars(remote: CobblerXMLRPCInterface, token: str):
     # Act
     distro = remote.get_item_handle("distro", "testdistro0")
     remote.modify_distro(distro, ["kernel_options"], kernel_options, token)
-    remote.save_distro(distro, token)
+    remote.save_distro(distro, True, True, "bypass", token)
 
     # Assert --> Let the test pass if the call is okay.
     assert True
@@ -660,3 +660,61 @@ def test_templates_refresh_content(remote: CobblerXMLRPCInterface, token: str):
     # Assert
     # No exception should be enough for a basic smoke test.
     assert True
+
+
+@pytest.mark.integration
+def test_save_distro_with_triggers_false(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    create_kernel_initrd: Callable[[str, str], str],
+):
+    """
+    Test that save_distro with with_triggers=False succeeds and persists the object.
+    """
+    # Arrange
+    basepath = create_kernel_initrd("vmlinuz1", "initrd1.img")
+    path_kernel = os.path.join(basepath, "vmlinuz1")
+    path_initrd = os.path.join(basepath, "initrd1.img")
+    distro = remote.new_distro(token)
+    remote.modify_distro(distro, ["name"], "testdistro_notriggers", token)
+    remote.modify_distro(distro, ["kernel"], path_kernel, token)
+    remote.modify_distro(distro, ["initrd"], path_initrd, token)
+    remote.modify_distro(distro, ["arch"], "x86_64", token)
+    remote.modify_distro(distro, ["breed"], "suse", token)
+
+    # Act
+    result = remote.save_distro(distro, False, False, "bypass", token)
+
+    # Assert
+    assert result is True
+    assert remote.get_distro("testdistro_notriggers", False, False, token) is not None
+
+
+@pytest.mark.integration
+def test_save_distro_with_sync_false_forwarded(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    create_kernel_initrd: Callable[[str, str], str],
+):
+    """
+    Test that with_sync=False is correctly forwarded to api.add_item().
+    """
+    from unittest.mock import patch
+
+    # Arrange
+    basepath = create_kernel_initrd("vmlinuz2", "initrd2.img")
+    path_kernel = os.path.join(basepath, "vmlinuz2")
+    path_initrd = os.path.join(basepath, "initrd2.img")
+    distro = remote.new_distro(token)
+    remote.modify_distro(distro, ["name"], "testdistro_nosync", token)
+    remote.modify_distro(distro, ["kernel"], path_kernel, token)
+    remote.modify_distro(distro, ["initrd"], path_initrd, token)
+    remote.modify_distro(distro, ["arch"], "x86_64", token)
+    remote.modify_distro(distro, ["breed"], "suse", token)
+
+    # Act & Assert
+    with patch.object(remote.api, "add_item", wraps=remote.api.add_item) as mock_add:
+        result = remote.save_distro(distro, True, False, "bypass", token)
+        assert result is True
+        _, kwargs = mock_add.call_args
+        assert kwargs.get("with_sync") is False

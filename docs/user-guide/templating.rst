@@ -184,7 +184,7 @@ disk. The result of the script is that the built-in template is not used anymore
     )
 
     # 6. Save the Template object to make it available
-    server.save_template(template_obj, token)
+    server.save_template(template_obj, True, True, "bypass", token)
 
     # 7. Refresh templates cache
     server.background_templates_refresh_content({}, token)
