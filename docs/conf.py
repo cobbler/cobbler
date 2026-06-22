@@ -25,9 +25,9 @@ copyright = "2022, Enno Gotthold"
 author = "Enno Gotthold"
 
 # The short X.Y version
-version = "3.4"
+version = "4.0"
 # The full version, including alpha/beta/rc tags
-release = "3.4.0"
+release = "4.0.0"
 
 
 # -- General configuration ---------------------------------------------------

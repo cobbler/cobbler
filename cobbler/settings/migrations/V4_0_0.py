@@ -1,5 +1,5 @@
 """
-Migration from V3.3.3 to V3.4.0
+Migration from V3.3.3 to V4.0.0
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -329,7 +329,7 @@ schema = Schema(
 
 def validate(settings: Dict[str, Any]) -> bool:
     """
-    Checks that a given settings dict is valid according to the reference V3.4.0 schema ``schema``.
+    Checks that a given settings dict is valid according to the reference V4.0.0 schema ``schema``.
 
     :param settings: The settings dict to validate.
     :return: True if valid settings dict otherwise False.
@@ -355,7 +355,7 @@ def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
 
 def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Migration of the settings ``settings`` to version V3.4.0 settings
+    Migration of the settings ``settings`` to version V4.0.0 settings
 
     :param settings: The settings dict to migrate
     :return: The migrated dict

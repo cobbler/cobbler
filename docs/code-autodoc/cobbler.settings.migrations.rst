@@ -135,7 +135,7 @@ cobbler.settings.migrations.V3\_3\_7 module
 cobbler.settings.migrations.V3\_4\_0 module
 -------------------------------------------
 
-.. automodule:: cobbler.settings.migrations.V3_4_0
+.. automodule:: cobbler.settings.migrations.V4_0_0
    :members:
    :undoc-members:
    :show-inheritance:

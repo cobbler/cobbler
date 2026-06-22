@@ -2,7 +2,7 @@
 "InheritableItem" the entry point for items that have logical parents and children.
 
 Changelog:
-    * V3.4.0 (unreleased):
+    * V4.0.0 (unreleased):
         * Initial creation of the class
 """
 
@@ -184,7 +184,7 @@ class InheritableItem(BaseItem, ABC):
         use False for is_subobject and the parent object will (therefore) have a different type.
 
         The keyword arguments are used to seed the object. This is the preferred way over ``from_dict`` starting with
-        Cobbler version 3.4.0.
+        Cobbler version 4.0.0.
 
         :param api: The Cobbler API object which is used for resolving information.
         :param is_subobject: See above extensive description.

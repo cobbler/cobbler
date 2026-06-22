@@ -3,7 +3,7 @@ Cobbler module that contains the code for a Cobbler profile object.
 
 Changelog:
 
-V3.4.0 (unreleased):
+V4.0.0 (unreleased):
     * Changes:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``children``: The property was moved to the base class.

@@ -3,7 +3,7 @@ Cobbler module that contains the code for a Cobbler repo object.
 
 Changelog:
 
-V3.4.0 (unreleased):
+V4.0.0 (unreleased):
     * Changed:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``children``: The property was moved to the base class.
