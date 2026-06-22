@@ -8,6 +8,7 @@ from typing import Callable
 
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
+from cobbler.items.distro_group import DistroGroup
 from cobbler.items.image import Image
 from cobbler.items.menu import Menu
 from cobbler.items.network_interface import NetworkInterface
@@ -28,6 +29,7 @@ class CobblerTree:
     profiles_count = 300
     images_count = objs_default_count
     systems_count = 1000
+    distro_groups_count = objs_default_count
     test_rounds = int(os.environ.get("COBBLER_PERFORMANCE_TEST_ROUNDS", 1))
     test_iterations = int(os.environ.get("COBBLER_PERFORMANCE_TEST_ITERATIONS", -1))
     tree_levels = 3
@@ -211,6 +213,7 @@ class CobblerTree:
         CobblerTree.create_profiles(api, save, with_triggers, with_sync)
         CobblerTree.create_images(api, save, with_triggers, with_sync)
         CobblerTree.create_systems(api, save, with_triggers, with_sync)
+        CobblerTree.create_distro_groups(api, save, with_triggers, with_sync)
 
     @staticmethod
     def remove_repos(api: CobblerAPI):
@@ -271,6 +274,28 @@ class CobblerTree:
             api.systems().remove(test_item, with_triggers=False, with_sync=False)
 
     @staticmethod
+    def create_distro_groups(
+        api: CobblerAPI, save: bool, with_triggers: bool, with_sync: bool
+    ):
+        """
+        Create a number of distro groups for benchmark testing.
+        """
+        for i in range(CobblerTree.distro_groups_count):
+            test_item: DistroGroup = DistroGroup(api)
+            test_item.name = f"test_distro_group_{i}"
+            api.distro_groups().add(
+                test_item, save=save, with_triggers=with_triggers, with_sync=with_sync
+            )
+
+    @staticmethod
+    def remove_distro_groups(api: CobblerAPI):
+        """
+        Method that removes all distro groups.
+        """
+        for test_item in api.distro_groups():
+            api.distro_groups().remove(test_item, with_triggers=False, with_sync=False)
+
+    @staticmethod
     def create_network_interfaces(
         api: CobblerAPI, save: bool, with_triggers: bool, with_sync: bool
     ):
@@ -303,6 +328,7 @@ class CobblerTree:
         """
         Method that collectively removes all items at the same time.
         """
+        CobblerTree.remove_distro_groups(api)
         CobblerTree.remove_network_interfaces(api)
         CobblerTree.remove_systems(api)
         CobblerTree.remove_images(api)
