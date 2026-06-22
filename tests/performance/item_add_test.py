@@ -294,6 +294,62 @@ def test_systems_create(
         ),
     ],
 )
+def test_network_interfaces_create(
+    benchmark: BenchmarkFixture,
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[str, bool], Distro],
+    cache_enabled: bool,
+    enable_menu: bool,
+):
+    """
+    Test that asserts if creating network interfaces is running without a performance decrease.
+    """
+
+    def setup_func() -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
+        CobblerTree.remove_all_objs(cobbler_api)
+        CobblerTree.create_all_objs(cobbler_api, create_distro, False, False, False)
+        return (
+            cobbler_api,
+            True,
+            True,
+            False,
+        ), {}
+
+    # Arrange
+    cobbler_api.settings().cache_enabled = cache_enabled
+    cobbler_api.settings().enable_menu = enable_menu
+
+    # Act
+    result = benchmark.pedantic(  # type: ignore
+        CobblerTree.create_network_interfaces,
+        setup=setup_func,
+        rounds=CobblerTree.test_rounds,
+    )
+
+    # Assert
+
+
+@pytest.mark.parametrize(
+    "cache_enabled,enable_menu",
+    [
+        (
+            False,
+            False,
+        ),
+        (
+            True,
+            False,
+        ),
+        (
+            False,
+            True,
+        ),
+        (
+            True,
+            True,
+        ),
+    ],
+)
 def test_all_items_create(
     benchmark: BenchmarkFixture,
     cobbler_api: CobblerAPI,

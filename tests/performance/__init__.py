@@ -271,6 +271,24 @@ class CobblerTree:
             api.systems().remove(test_item, with_triggers=False, with_sync=False)
 
     @staticmethod
+    def create_network_interfaces(
+        api: CobblerAPI, save: bool, with_triggers: bool, with_sync: bool
+    ):
+        """
+        Create an additional network interface ("eth1") for each system in the collection.
+        """
+        for test_system in api.systems():
+            test_interface = NetworkInterface(
+                api=api, system_uid=test_system.uid, name="eth1"
+            )
+            api.network_interfaces().add(
+                test_interface,
+                save=save,
+                with_triggers=with_triggers,
+                with_sync=with_sync,
+            )
+
+    @staticmethod
     def remove_network_interfaces(api: CobblerAPI):
         """
         Method that removes all network interfaces.

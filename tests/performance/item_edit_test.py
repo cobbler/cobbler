@@ -32,6 +32,7 @@ from tests.performance import CobblerTree
         "profile",
         "image",
         "system",
+        "network_interface",
     ],
 )
 @pytest.mark.parametrize(
@@ -70,7 +71,7 @@ def test_item_edit(
 
     def item_edit(api: CobblerAPI, what: str):
         for test_item in api.get_items(what):
-            if inherit_property:
+            if inherit_property and hasattr(test_item, "owners"):
                 old_owners = test_item.owners
                 test_item.owners = "test owners"  # type: ignore[method-assign]
                 test_item.owners = old_owners
