@@ -24,6 +24,10 @@ from tests.performance import CobblerTree
         "profile",
         "image",
         "system",
+        "network_interface",
+        "distro_group",
+        "profile_group",
+        "system_group",
     ],
 )
 @pytest.mark.parametrize(
