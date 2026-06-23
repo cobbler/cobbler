@@ -4,7 +4,7 @@ All code belonging to network interfaces
 
 Changelog (NetworkInterface):
 
-V3.4.0 (unreleased):
+V4.0.0 (unreleased):
     * Changes:
         * The NetworkInterface class is now a dedicated item type.
         * Constructor: ``kwargs`` can now be used to seed the item during creation.

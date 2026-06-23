@@ -7,7 +7,7 @@ Schema: From -> To
 
 Current Schema: Please refer to the documentation visible of the individual methods.
 
-V3.4.0 (unreleased)
+V4.0.0 (unreleased)
     * No changes
 
 V3.3.4 (unreleased)

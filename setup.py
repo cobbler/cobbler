@@ -15,7 +15,7 @@ from configparser import ConfigParser
 from setuptools import find_namespace_packages, setup
 from setuptools.command.build_py import build_py
 
-VERSION = "3.4.0"
+VERSION = "4.0.0"
 
 
 def read_readme_file() -> str:

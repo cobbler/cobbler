@@ -3,7 +3,7 @@ All code belonging to Cobbler systems.
 
 Changelog (System):
 
-V3.4.0 (unreleased):
+V4.0.0 (unreleased):
     * Added:
         * ``display_name``: str
         * ``redhat_management_org``: enums.VALUE_INHERITED

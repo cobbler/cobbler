@@ -3,7 +3,7 @@ Cobbler module that contains the code for a Cobbler image object.
 
 Changelog:
 
-V3.4.0 (unreleased):
+V4.0.0 (unreleased):
     * Added:
         * ``display_name``
     * Changed:

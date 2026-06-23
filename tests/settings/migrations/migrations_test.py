@@ -30,7 +30,7 @@ from cobbler.settings.migrations import (
     V3_3_5,
     V3_3_6,
     V3_3_7,
-    V3_4_0,
+    V4_0_0,
 )
 
 modules_conf_location = "/etc/cobbler/modules.conf"
@@ -347,7 +347,7 @@ def test_migrate_v3_3_7():
 
 def test_migrate_v3_4_0():
     """
-    Test to validate that a migrations of the settings from Cobbler 3.3.7 to 3.4.0 is working as expected.
+    Test to validate that a migrations of the settings from Cobbler 3.3.7 to 4.0.0 is working as expected.
     """
     # Arrange
     with open(
@@ -364,11 +364,11 @@ def test_migrate_v3_4_0():
     )
 
     # Act
-    new_settings = V3_4_0.migrate(old_settings_dict)
+    new_settings = V4_0_0.migrate(old_settings_dict)
 
     # Assert
     # We cannot assert that the collection migration has succeeded as the code inside network_interface.py
-    # might change over time (aka we are not loading the 3.4.0 Network Interface model but the current one).
-    assert V3_4_0.validate(new_settings)
+    # might change over time (aka we are not loading the 4.0.0 Network Interface model but the current one).
+    assert V4_0_0.validate(new_settings)
     assert not pathlib.Path("/etc/cobbler/mongodb.conf").exists()
     assert not pathlib.Path(modules_conf_location).exists()

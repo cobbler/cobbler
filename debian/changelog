@@ -1,6 +1,6 @@
-cobbler (3.4.0) unstable; urgency=low
+cobbler (4.0.0) unstable; urgency=low
 
-  * Main Upgrade to Cobbler 3.4.0
+  * Main Upgrade to Cobbler 4.0.0
 
  --  Enno Gotthold <enno@4seul.de>  Wed, 21 Sep 2022 09:30:00 +0200
 

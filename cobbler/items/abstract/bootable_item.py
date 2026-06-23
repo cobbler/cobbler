@@ -3,7 +3,7 @@ Cobbler module that contains the code for a generic Cobbler item.
 
 Changelog:
 
-V3.4.0 (unreleased):
+V4.0.0 (unreleased):
     * Renamed to BootableItem
     * (Re-)Added Cache implementation with the following new methods and properties:
         * ``cache``
@@ -147,7 +147,7 @@ class BootableItem(InheritableItem, ABC):
         self, api: "CobblerAPI", *args: Any, is_subobject: bool = False, **kwargs: Any
     ):
         """
-        Constructor. This is a legacy class that will be phased out with the 3.4.0 release.
+        Constructor. This is a legacy class that will be phased out with the 4.0.0 release.
 
         :param api: The Cobbler API object which is used for resolving information.
         :param is_subobject: See above extensive description.

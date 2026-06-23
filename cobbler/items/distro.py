@@ -5,7 +5,7 @@ Changelog:
 
 Schema: From -> To
 
-V3.4.0 (unreleased):
+V4.0.0 (unreleased):
     * Added:
         * ``find_distro_path()``
         * ``link_distro()``

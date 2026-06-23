@@ -25,7 +25,7 @@ from cobbler.settings.migrations import (
     V3_3_5,
     V3_3_6,
     V3_3_7,
-    V3_4_0,
+    V4_0_0,
 )
 
 
@@ -245,7 +245,7 @@ def test_normalize_v3_4_0_empty():
     # Arrange
 
     # Act
-    settings = V3_4_0.normalize({})
+    settings = V4_0_0.normalize({})
 
     # Assert
     assert len(settings) == 0
@@ -256,7 +256,7 @@ def test_normalize_v3_4_0_partial():
     old_settings_dict = {"server": "192.168.0.1"}
 
     # Act
-    settings = V3_4_0.normalize(old_settings_dict)
+    settings = V4_0_0.normalize(old_settings_dict)
 
     # Assert
     assert old_settings_dict == settings
@@ -265,12 +265,12 @@ def test_normalize_v3_4_0_partial():
 def test_normalize_v3_4_0_full():
     # Arrange
     with open(
-        "/code/tests/test_data/V3_4_0/settings.yaml", encoding="UTF-8"
+        "/code/tests/test_data/V4_0_0/settings.yaml", encoding="UTF-8"
     ) as old_settings:
         old_settings_dict = yaml.safe_load(old_settings.read())
 
     # Act
-    new_settings = V3_4_0.normalize(old_settings_dict)
+    new_settings = V4_0_0.normalize(old_settings_dict)
 
     # Assert
     assert "mongodb" in new_settings
@@ -278,4 +278,4 @@ def test_normalize_v3_4_0_full():
     assert "cache_enabled" in new_settings
     assert new_settings["cache_enabled"] == False
     assert new_settings["lazy_start"] == False
-    assert len(V3_4_0.normalize(new_settings)) == 135
+    assert len(V4_0_0.normalize(new_settings)) == 135

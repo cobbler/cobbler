@@ -7,7 +7,7 @@ Schema: From -> To
 
 Current Schema: Please refer to the documentation visible of the individual methods.
 
-V3.4.0 (unreleased)
+V4.0.0 (unreleased)
     * Added:
         * Create, Read, Update & Delete methods for the NetworkInterface class
         * ``set_item_resolved_value``
@@ -3640,7 +3640,7 @@ class CobblerXMLRPCInterface:
         """
         Combine all data which is available from a profile and system together and return it.
 
-        .. deprecated:: 3.4.0
+        .. deprecated:: 4.0.0
            Please make use of the dump_vars endpoint.
 
         :param profile: The profile of the system.

@@ -3,7 +3,7 @@ All code blonging to Cobbler Templates.
 
 Changelog:
 
-V3.4.0 (unrelased):
+V4.0.0 (unrelased):
     * Initial add of datatype.
 """
 

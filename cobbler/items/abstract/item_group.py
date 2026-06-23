@@ -2,7 +2,7 @@
 "ItemGroup" is the abstract base class for groups of items.
 
 Changelog:
-    * V3.4.0 (unreleased):
+    * V4.0.0 (unreleased):
         * Initial creation of the class
 """
 

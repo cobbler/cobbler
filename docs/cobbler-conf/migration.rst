@@ -2,7 +2,7 @@
 Updates to the yaml-settings-file
 *********************************
 
-Starting with 3.4.0
+Starting with 4.0.0
 ###################
 
 - TBD
