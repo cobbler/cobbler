@@ -4,3 +4,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      dependabot:
+        applies-to: version-updates
+        patterns:
+          - "github/codeql-action/*"
+        update-types:
+          - "minor"
+          - "patch"

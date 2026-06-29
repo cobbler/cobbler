@@ -1,18 +1,24 @@
 Documentation:
-- docs/**/*
+- changed-files:
+  - any-glob-to-any-file: 'docs/*'
 
 Tests:
-- tests/**/*
-- system-tests/**/*
+- changed-files:
+  - any-glob-to-any-file: 'tests/*'
+  - any-glob-to-any-file: 'system-tests/*'
 
 CI:
-- .github/**/*
+- changed-files:
+  - any-glob-to-any-file: '.github/*'
 
 Packaging:
-- .obs/**/*
+- changed-files:
+  - any-glob-to-any-file: '.obs/*'
+  - any-glob-to-any-file: 'cobbler.spec'
+  - any-glob-to-any-file: 'debian/*'
 
 API:
-- cobbler/api.py
-- cobbler/remote.py
-- cobbler/services.py
-- svc/services.py
+- changed-files:
+  - any-glob-to-any-file: 'cobbler/api.py'
+  - any-glob-to-any-file: 'cobbler/remote.py'
+  - any-glob-to-any-file: 'services.py'

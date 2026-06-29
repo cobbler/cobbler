@@ -18,6 +18,7 @@ on:
 
 jobs:
   run_performance_tests:
+    if: github.actor != 'dependabot[bot]'
     runs-on: fireactions
     name: "Performance-Tests"
     timeout-minutes: 720
