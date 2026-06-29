@@ -22,7 +22,9 @@ jobs:
     name: "Performance-Tests"
     timeout-minutes: 720
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Disable Docker IPTables RAW requirement
         run: ./docker/develop/scripts/disable-docker-iptables-raw.sh
       - name: Pull Docker Test Container
@@ -58,9 +60,9 @@ jobs:
       - name: Stop and remove the container
         if: always()
         run: docker stop cobbler && docker rm cobbler
-      # https://github.com/actions/upload-artifact
       - name: Upload benchmark report to GH artifacts
-        uses: actions/upload-artifact@v4
+        # https://github.com/actions/upload-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: benchmark-report

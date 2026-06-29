@@ -12,13 +12,16 @@ jobs:
   build-rockylinux9-rpms:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Build a Rocky Linux 9 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/rpms/build-and-install-rpms.sh rl9 docker/rpms/Rocky_Linux_9/Rocky_Linux_9.dockerfile
       - name: Archive RPMs
-        uses: actions/upload-artifact@v4
+        # https://github.com/actions/upload-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rpms-rockylinux-9
           path: |
@@ -26,13 +29,16 @@ jobs:
   build-fedora41-rpms:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Build a Fedora 41 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/rpms/build-and-install-rpms.sh fc41 docker/rpms/Fedora_41/Fedora41.dockerfile
       - name: Archive RPMs
-        uses: actions/upload-artifact@v4
+        # https://github.com/actions/upload-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rpms-fedora-37
           path: |
@@ -40,7 +46,9 @@ jobs:
   build-opensuse-leap-rpms:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Install System dependencies
         run: sudo apt-get install -y rename
       - name: Build a openSUSE Leap 15 Package
@@ -51,7 +59,8 @@ jobs:
         run: |
           sudo file-rename -v -d -e 's/(^cobbler.*)-(\d+\.\d+\.\d+)-1\.(\w+)\.rpm/$1-$2-1.leap.$3.rpm/' rpm-build/RPMS/*.rpm
       - name: Archive RPMs
-        uses: actions/upload-artifact@v4
+        # https://github.com/actions/upload-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rpms-opensuse-leap
           path: |
@@ -59,7 +68,9 @@ jobs:
   build-opensuse-tumbleweed-rpms:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Install System dependencies
         run: sudo apt-get install -y rename
       - name: Build a openSUSE Tumbleweed Package
@@ -70,7 +81,8 @@ jobs:
         run: |
           sudo file-rename -v -d -e 's/(^cobbler.*)-(\d+\.\d+\.\d+)-1\.(\w+)\.rpm/$1-$2-1.tw.$3.rpm/' rpm-build/RPMS/*.rpm
       - name: Archive RPMs
-        uses: actions/upload-artifact@v4
+        # https://github.com/actions/upload-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rpms-opensuse-tumbleweed
           path: |
@@ -78,7 +90,9 @@ jobs:
   build-debian11-debs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Install System dependencies
         run: sudo apt-get install -y rename
       - name: Build a Debian 11 Package
@@ -89,7 +103,8 @@ jobs:
         run: |
           sudo file-rename -v -d -e 's/(^cobbler.*)_(\d+\.\d+\.\d+)_all\.deb/$1_$2_all.deb11.deb/' deb-build/*.deb
       - name: Archive DEBs
-        uses: actions/upload-artifact@v4
+        # https://github.com/actions/upload-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: debs-debian11
           path: |
@@ -97,7 +112,9 @@ jobs:
   build-debian12-debs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Install System dependencies
         run: sudo apt-get install -y rename
       - name: Build a Debian 12 Package
@@ -108,7 +125,8 @@ jobs:
         run: |
           sudo file-rename -v -d -e 's/(^cobbler.*)_(\d+\.\d+\.\d+)_all\.deb/$1_$2_all.deb12.deb/' deb-build/*.deb
       - name: Archive DEBs
-        uses: actions/upload-artifact@v4
+        # https://github.com/actions/upload-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: debs-debian12
           path: |
@@ -116,7 +134,9 @@ jobs:
   build-debian13-debs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Install System dependencies
         run: sudo apt-get install -y rename
       - name: Build a Debian 13 Package
@@ -127,7 +147,8 @@ jobs:
         run: |
           sudo file-rename -v -d -e 's/(^cobbler.*)_(\d+\.\d+\.\d+)_all\.deb/$1_$2_all.deb13.deb/' deb-build/*.deb
       - name: Archive DEBs
-        uses: actions/upload-artifact@v4
+        # https://github.com/actions/upload-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: debs-debian13
           path: |
@@ -136,10 +157,14 @@ jobs:
     name: Build Python Wheel
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Mark directory as safe for Git
         run: git config --global --add safe.directory /__w/cobbler/cobbler
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        # https://github.com/actions/setup-python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           cache: pip
           cache-dependency-path: "**/setup.py"
@@ -167,7 +192,8 @@ jobs:
       - name: Show tree
         run: tree
       - name: Archive Wheel
-        uses: actions/upload-artifact@v4
+        # https://github.com/actions/upload-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: wheel
           path: |
@@ -188,16 +214,19 @@ jobs:
         build-wheel,
       ]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        name: Download all built artifacts
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Download all built artifacts
+        # https://github.com/actions/download-artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           path: artifacts
       - name: Set env
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Release
         # https://github.com/softprops/action-gh-release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           name: Cobbler ${{ env.RELEASE_VERSION }}
