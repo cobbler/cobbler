@@ -14,7 +14,7 @@
 # published by the Open Source Initiative.
 #
 # Supported/tested build targets:
-# - Fedora: 37
+# - Fedora: 43
 # - CentOS + EPEL: 8
 # - SLE: 15sp1
 # - openSUSE: Leap 15.4, Tumbleweed
@@ -144,6 +144,7 @@ BuildRequires:  python-rpm-macros
 BuildRequires:  %{py3_module_coverage}
 BuildRequires:  python%{python3_pkgversion}-distro
 BuildRequires:  python%{python3_pkgversion}-setuptools
+BuildRequires:  python%{python3_pkgversion}-setuptools_scm
 BuildRequires:  python%{python3_pkgversion}-netaddr
 BuildRequires:  python%{python3_pkgversion}-schema
 BuildRequires:  python%{python3_pkgversion}-systemd
@@ -220,6 +221,11 @@ Recommends:     python%{python3_pkgversion}-librepo
 # No point in having this split out...
 Obsoletes:      cobbler-nsupdate < 3.0.99
 Provides:       cobbler-nsupdate = %{version}-%{release}
+%if 0%{?fedora} || 0%{?rhel}
+# https://docs.fedoraproject.org/en-US/packaging-guidelines/Python/#Automatically-generated-dependencies
+# Disable it because it trips over python3-cheetah
+%{?python_disable_dependency_generator}
+%endif
 
 %description
 Cobbler is a network install server. Cobbler supports PXE, ISO virtualized installs, and re-installing existing Linux
@@ -324,7 +330,6 @@ fi
 %attr(640, root, %{apache_group}) %config(noreplace) %{_sysconfdir}/cobbler/settings.yaml
 %attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/users.conf
 %attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/users.digest
-%config(noreplace) %{_sysconfdir}/cobbler/version
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
 %config(noreplace) %{apache_webconfigdir}/cobbler.conf
 %{_bindir}/cobblerd

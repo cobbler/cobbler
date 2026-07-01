@@ -26,6 +26,10 @@ jobs:
       - name: Checkout
         # https://github.com/actions/checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          # setuptools_scm needs the full history (incl. tags) to derive the
+          # version; a shallow checkout makes it guess a bogus version.
+          fetch-depth: 0
       - name: Disable Docker IPTables RAW requirement
         run: ./docker/develop/scripts/disable-docker-iptables-raw.sh
       - name: Pull Docker Test Container

@@ -41,6 +41,7 @@ RUN apt-get update -qq && \
     python3-pymongo \
     python3-pytest \
     python3-setuptools \
+    python3-setuptools-scm \
     python3-importlib-resources  \
     python3-simplejson  \
     python3-sphinx \
@@ -79,7 +80,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN echo "dash dash/sh boolean false" | debconf-set-selections && \
     dpkg-reconfigure dash
 
-COPY ./docker/debs/Debian_11/supervisord/conf.d /etc/supervisor/conf.d
+COPY ./docker/debs/Debian_13/supervisord/conf.d /etc/supervisor/conf.d
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler

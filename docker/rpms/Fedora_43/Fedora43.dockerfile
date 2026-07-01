@@ -1,6 +1,6 @@
 # vim: ft=dockerfile
 
-FROM fedora:41
+FROM fedora:43
 
 RUN dnf makecache
 
@@ -25,6 +25,7 @@ RUN dnf install -y           \
     python3-pyflakes         \
     python3-pycodestyle      \
     python3-setuptools       \
+    python3-setuptools_scm   \
     python3-sphinx           \
     python3-sphinx_rtd_theme \
     python3-pip              \
@@ -71,8 +72,8 @@ RUN dnf install -y          \
     time                    \
     iproute
 
-COPY ./docker/rpms/Fedora_41/supervisord/supervisord.conf /etc/supervisord.conf
-COPY ./docker/rpms/Fedora_41/supervisord/conf.d /etc/supervisord/conf.d
+COPY ./docker/rpms/Fedora_43/supervisord/supervisord.conf /etc/supervisord.conf
+COPY ./docker/rpms/Fedora_43/supervisord/conf.d /etc/supervisord/conf.d
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler

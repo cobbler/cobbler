@@ -35,6 +35,10 @@ jobs:
       - name: Checkout
         # https://github.com/actions/checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          # setuptools_scm needs the full history (incl. tags) to derive the
+          # version; a shallow checkout makes it guess a bogus version.
+          fetch-depth: 0
       - name: Set up Python 3.9
         # https://github.com/actions/setup-python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
@@ -69,7 +73,7 @@ jobs:
           libsasl2-dev
           libsystemd-dev
       - name: Install Deps for installing project
-        run: pip install Sphinx coverage wheel
+        run: pip install Sphinx coverage wheel setuptools_scm
       - name: Fetch date for version bump
         run: echo "new_version=$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
       - name: Replace version in setup.py
@@ -80,7 +84,7 @@ jobs:
       - name: Install pypa/build
         run: python -m pip install build --user
       - name: Build a binary wheel and a source tarball
-        run: python setup.py sdist bdist_wheel
+        run: python -m build
       - name: Publish distribution to Test PyPI
         if: github.ref == 'refs/heads/main'
         # https://github.com/pypa/gh-action-pypi-publish

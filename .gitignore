@@ -25,7 +25,7 @@ docs/*.html
 
 # Build output
 cobbler/webui/master.py
-cobbler/data/config/version
+cobbler/_version.py
 cobbler/data/man
 AUTHORS
 

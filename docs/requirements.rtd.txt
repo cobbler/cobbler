@@ -7,3 +7,4 @@ distro
 sphinx-rtd-theme
 file-magic
 schema
+setuptools_scm

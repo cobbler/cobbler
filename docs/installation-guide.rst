@@ -17,7 +17,7 @@ Known packages by distros
 This is the most convenient way and should be the default for most people. Production usage is advised only from these
 four sources or from source with Git Tags.
 
-- `Fedora 37+ <https://src.fedoraproject.org/rpms/cobbler>`_ - ``dnf install cobbler``
+- `Fedora 43+ <https://src.fedoraproject.org/rpms/cobbler>`_ - ``dnf install cobbler``
 - `CentOS 9+ Stream <https://src.fedoraproject.org/rpms/cobbler>`_:
     - ``dnf install epel-release``
     - ``dnf install cobbler``
@@ -191,7 +191,7 @@ Packages
 We leave packaging to downstream; this means you have to check the repositories provided by your distribution vendor.
 However we provide docker files for
 
-- Fedora 37
+- Fedora 43
 - openSUSE Leap 15.6
 - openSUSE Tumbleweed
 - Rocky Linux 9
@@ -209,12 +209,10 @@ which will give you packages which will work better then building from source yo
 
 To build the packages you to need to execute the following in the root folder of the cloned repository:
 
-- openSUSE Leap 15.6: ``./docker/rpms/build-and-install-rpms.sh opensuse-leap docker/rpms/opensuse_leap/openSUSE_Leap15.dockerfile``
-- Fedora 37: ``./docker/rpms/build-and-install-rpms.sh fc41 docker/rpms/Fedora_41/Fedora41.dockerfile``
+- openSUSE Leap 16.1: ``./docker/rpms/build-and-install-rpms.sh opensuse-leap docker/rpms/opensuse_leap/openSUSE_Leap16.dockerfile``
+- Fedora 43: ``./docker/rpms/build-and-install-rpms.sh fc43 docker/rpms/Fedora_43/Fedora43.dockerfile``
 - Rocky Linux 9: ``./docker/rpms/build-and-install-rpms.sh rl9 docker/rpms/Rocky_Linux_9/Rocky_Linux_9.dockerfile``
 - Rocky Linux 10: ``./docker/rpms/build-and-install-rpms.sh rl10 docker/rpms/Rocky_Linux_10/Rocky_Linux_10.dockerfile``
-- Debian 11: ``./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile``
-- Debian 12: ``./docker/debs/build-and-install-debs.sh deb12 docker/debs/Debian_12/Debian12.dockerfile``
 - Debian 13: ``./docker/debs/build-and-install-debs.sh deb13 docker/debs/Debian_13/Debian13.dockerfile``
 
 After executing the scripts you should have one folder owned by ``root`` which was created during the build. It is

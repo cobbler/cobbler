@@ -5,7 +5,7 @@ services:
     image: local/cobbler-test-opensuse-leap
     build:
       context: .
-      dockerfile: docker/rpms/opensuse_leap/openSUSE_Leap15.dockerfile
+      dockerfile: docker/rpms/opensuse_leap/openSUSE_Leap16.dockerfile
     container_name: cobbler-test-openSUSE-Leap
 
   opensuse-leap-build:
@@ -13,7 +13,7 @@ services:
     container_name: cobbler-opensuse-leap
     build:
       context: .
-      dockerfile: docker/rpms/opensuse_leap/openSUSE_Leap15.dockerfile
+      dockerfile: docker/rpms/opensuse_leap/openSUSE_Leap16.dockerfile
     volumes:
       - ./rpm-build/opensuse-leap:/usr/src/cobbler/rpm-build
 
@@ -26,29 +26,20 @@ services:
     volumes:
       - ./rpm-build/opensuse-tumbleweed:/usr/src/cobbler/rpm-build
 
-  rockylinux8-build:
-    image: local/cobbler-rockylinux8
-    container_name: cobbler-rockylinux8
+  rockylinux10-build:
+    image: local/cobbler-rockylinux10
+    container_name: cobbler-rockylinux10
     build:
       context: .
-      dockerfile: docker/rpms/Rocky_Linux_8/Rocky_Linux_8.dockerfile
+      dockerfile: docker/rpms/Rocky_Linux_10/Rocky_Linux_10.dockerfile
     volumes:
-      - ./rpm-build/rl8:/usr/src/cobbler/rpm-build
-
-  rockylinux9-build:
-    image: local/cobbler-rockylinux9
-    container_name: cobbler-rockylinux9
-    build:
-      context: .
-      dockerfile: docker/rpms/Rocky_Linux_9/Rocky_Linux_9.dockerfile
-    volumes:
-      - ./rpm-build/rl9:/usr/src/cobbler/rpm-build
+      - ./rpm-build/rl10:/usr/src/cobbler/rpm-build
 
   fedora41-build:
-    image: local/cobbler-fedora41
-    container_name: cobbler-fedora41
+    image: local/cobbler-fedora43
+    container_name: cobbler-fedora43
     build:
       context: .
-      dockerfile: docker/rpms/Fedora_41/Fedora37.dockerfile
+      dockerfile: docker/rpms/Fedora_43/Fedora43.dockerfile
     volumes:
-      - ./rpm-build/f41:/usr/src/cobbler/rpm-build
+      - ./rpm-build/f43:/usr/src/cobbler/rpm-build

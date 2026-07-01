@@ -5,8 +5,10 @@ file in the desired ways.
 
 import pathlib
 import shutil
-from configparser import ConfigParser
-from typing import Any, Callable, List, Tuple
+from typing import TYPE_CHECKING, Any, Callable, List, Tuple
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 import pytest
 
@@ -85,6 +87,7 @@ def test_settings_cli_migrate():
 
 @pytest.mark.integration
 def test_settings_cli_migrate_from_2_8_5(
+    mocker: "MockerFixture",
     create_distro: Callable[[List[Tuple[List[str], Any]]], str],
     images_fake_path: pathlib.Path,
     remote: CobblerXMLRPCInterface,
@@ -120,14 +123,7 @@ def test_settings_cli_migrate_from_2_8_5(
     shutil.move("/var/lib/cobbler/config/distros", "/var/lib/cobbler/config/distros.d")
 
     # Fake the current installed version
-    shutil.copy2("/etc/cobbler/version", "/etc/cobbler/version.bak")
-    version_file = "/etc/cobbler/version"
-    config = ConfigParser()
-    config.read(version_file)
-    config["cobbler"]["version"] = "3.3.0"
-    with open(version_file, "w", encoding="UTF-8") as version_file_fh:
-        config.write(version_file_fh)
-    # sed -i s'/version = .*/version = 3.3.0/g'
+    mocker.patch("cobbler.settings.migrations.__version__", new_version)
     pathlib.Path("/etc/cobbler/modules.conf").touch()
 
     # Act
@@ -136,10 +132,6 @@ def test_settings_cli_migrate_from_2_8_5(
     cobbler_settings.main(
         ["-c", str(old_config), "migrate", "-t", str(new_config), "--new", new_version]
     )
-
-    # Cleanup
-    # Remove faked Cobbler version
-    shutil.copy2("/etc/cobbler/version.bak", "/etc/cobbler/version")
 
     # Restart cobblerd after migration to reload migrated collections
     restart_cobbler()

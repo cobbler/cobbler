@@ -16,7 +16,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath(".."))
-
+import cobbler._version as version
 
 # -- Project information -----------------------------------------------------
 
@@ -24,10 +24,8 @@ project = "Cobbler"
 copyright = "2022, Enno Gotthold"
 author = "Enno Gotthold"
 
-# The short X.Y version
-version = "4.0"
-# The full version, including alpha/beta/rc tags
-release = "4.0.0"
+release = version.__version__
+version = ".".join(release.split(".")[:2])  # "4.0" from "4.0.0"
 
 
 # -- General configuration ---------------------------------------------------

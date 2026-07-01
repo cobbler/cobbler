@@ -16,15 +16,20 @@ The validation of the current version is in the file with the name of the versio
 # If this module needs to check the existence of a file, the path should be handed as an argument to the function.
 # Any migrations of modules.conf should be ignored for now.
 
-import configparser
 import glob
 import logging
 import os
+import re
 from importlib import import_module
 from inspect import signature
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
+
+try:
+    from cobbler._version import __version__
+except ImportError:
+    __version__ = None  # type: ignore[assignment]
 
 from schema import Schema  # type: ignore
 
@@ -204,29 +209,28 @@ def get_settings_file_version(
     return EMPTY_VERSION
 
 
-def get_installed_version(
-    filepath: Union[str, Path] = "/etc/cobbler/version"
-) -> CobblerVersion:
+def get_installed_version() -> CobblerVersion:
     """
-    Retrieve the current Cobbler version. Normally it can be read from /etc/cobbler/version
+    Retrieve the current Cobbler version from cobbler._version.
 
-    :param filepath: The filepath of the version file, defaults to "/etc/cobbler/version"
+    :return: The installed CobblerVersion, or EMPTY_VERSION on failure.
     """
-    # The format of the version file is the following:
-    # $ cat /etc/cobbler/version
-    # [cobbler]
-    # gitdate = Fri Aug 13 13:52:40 2021 +0200
-    # gitstamp = 610d30d1
-    # builddate = Mon Aug 16 07:22:38 2021
-    # version = 3.2.1
-    # version_tuple = [3, 2, 1]
-
-    config = configparser.ConfigParser()
-    if not config.read(filepath):
-        # filepath does not exists
+    if __version__ is None:
+        raise RuntimeError("Cobbler._version was not initialized during build!")
+    try:
+        base = __version__.split("+")[0]  # type: ignore[union-attr]  # strip local segment
+        # Extract the numeric prefix from each dot-separated segment (handles pre-release
+        # components like "0a2" or "dev1") and take only the first three numeric groups.
+        nums: List[int] = []
+        for segment in base.split("."):
+            match = re.match(r"^(\d+)", segment)
+            if match:
+                nums.append(int(match.group(1)))
+            if len(nums) == 3:
+                break
+        return CobblerVersion(nums[0], nums[1], nums[2])
+    except Exception:
         return EMPTY_VERSION
-    version = config["cobbler"]["version"].split(".")
-    return CobblerVersion(int(version[0]), int(version[1]), int(version[2]))
 
 
 def get_schema(version: CobblerVersion) -> Schema:
