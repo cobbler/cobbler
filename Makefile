@@ -69,6 +69,10 @@ man: ## Creates documentation and man pages using Sphinx
 		python3 setup.py --version > /dev/null 2>&1; \
 	fi
 	@cd docs; make man > /dev/null 2>&1
+	@mkdir -p cobbler/data/man/man1 cobbler/data/man/man5 cobbler/data/man/man8
+	@find docs/_build/man -name "*.1" -exec cp -f {} cobbler/data/man/man1/ \;
+	@find docs/_build/man -name "*.5" -exec cp -f {} cobbler/data/man/man5/ \;
+	@find docs/_build/man -name "*.8" -exec cp -f {} cobbler/data/man/man8/ \;
 
 qa: ## If black is found then it is run.
 ifeq ($(strip $(BLACK)),)
@@ -111,9 +115,7 @@ test-debian13: ## Executes the testscript for testing cobbler in a docker contai
 system-test: ## Runs the system tests
 	${PYTHON} -m pytest -m integration -k ${SYSTESTS}
 
-build: authors ## Runs the Python Build.
-	@echo "building: manpages"
-	@cd docs; make man > /dev/null 2>&1
+build: authors man ## Runs the Python Build.
 	@echo "building: Python package"
 	@git config --global --add safe.directory /code; \
 	${PYTHON} -m pip wheel --verbose --wheel-dir ./build .
