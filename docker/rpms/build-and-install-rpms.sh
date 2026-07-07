@@ -47,15 +47,15 @@ then
     # Build RPMs
     echo "==> Build RPMs ..."
     mkdir -p rpm-build
-    $EXECUTOR run -t -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "$IMAGE"
+    $EXECUTOR run -t -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build:z" "$IMAGE"
 fi
 
 # Launch container and install cobbler
 echo "==> Start container ..."
 $EXECUTOR run --cap-add=NET_ADMIN -t -d --name cobbler \
     -p 80:80 -p 443:443 \
-    -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" \
-    -v "$PWD/system-tests:/usr/src/cobbler/system-tests" \
+    -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build:z" \
+    -v "$PWD/system-tests:/usr/src/cobbler/system-tests:z" \
     "$IMAGE" /bin/bash
 
 echo "==> Install fresh RPMs ..."
