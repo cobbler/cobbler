@@ -1,5 +1,6 @@
 services:
   cobbler:
+    image: registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
     build:
       dockerfile: docker/develop/develop.dockerfile
       context: ../../

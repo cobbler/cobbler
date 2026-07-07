@@ -7,9 +7,35 @@ on:
     branches: [main, release*]
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    name: "Detect Docker changes"
+    outputs:
+      docker_changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+      - name: Check for docker/ changes
+        id: diff
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          if [ -z "$BASE_SHA" ] || ! git cat-file -e "$BASE_SHA" 2>/dev/null; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- docker/ | grep -q .; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
   unit-tests:
     runs-on: ubuntu-latest
     name: "Unit-Tests"
+    needs: detect-changes
     steps:
       - name: Checkout
         # https://github.com/actions/checkout
@@ -18,6 +44,15 @@ jobs:
           # setuptools_scm needs the full history (incl. tags) to derive the
           # version; a shallow checkout makes it guess a bogus version.
           fetch-depth: 0
+      # The published image is only rebuilt by OBS on push to main, so a PR changing docker/ needs to build fresh;
+      # otherwise reuse it so Compose doesn't rebuild it from scratch (image: in compose.yml matches this tag, so a
+      # present pull is reused as-is and a missing one is built).
+      - name: Pull Docker Test Container
+        if: needs.detect-changes.outputs.docker_changed != 'true'
+        run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
+      - name: Build Docker Test Container
+        if: needs.detect-changes.outputs.docker_changed == 'true'
+        run: docker compose -f docker/tests/compose.yml build
       - name: Run Docker Compose Stack
         run: docker compose -f docker/tests/compose.yml up -d
       - name: Setup Cobbler in the Container
@@ -44,6 +79,7 @@ jobs:
   integration-tests:
     runs-on: ubuntu-latest
     name: "Integration-Tests - ${{ matrix.test }}"
+    needs: detect-changes
     strategy:
       fail-fast: false
       matrix:
@@ -56,8 +92,13 @@ jobs:
           # setuptools_scm needs the full history (incl. tags) to derive the
           # version; a shallow checkout makes it guess a bogus version.
           fetch-depth: 0
+      # The published image is only rebuilt by OBS on push to main, so a PR changing docker/ would otherwise test against a stale image.
       - name: Pull Docker Test Container
+        if: needs.detect-changes.outputs.docker_changed != 'true'
         run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
+      - name: Build Docker Test Container locally (docker/ changed in this PR)
+        if: needs.detect-changes.outputs.docker_changed == 'true'
+        run: docker build -f docker/develop/develop.dockerfile -t registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main .
       - name: Run previously built Docker Container
         run: docker run --privileged -t -d -v $PWD:/code --name cobbler registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:main
       - name: Trust the git repository inside the container
