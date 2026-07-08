@@ -33,14 +33,14 @@ RUN touch /var/lib/rpm/* &&   \
     python3-wheel             \
     python3-distro            \
     python3-setuptools        \
+    python3-setuptools_scm    \
     python3-sphinx            \
     python3-sphinx_rtd_theme  \
+    python3-schema            \
     epel-rpm-macros           \
+    pyproject-rpm-macros      \
     rpm-build                 \
     which
-
-# python3-schema is not available as an RPM in RL 10.
-RUN pip install schema
 
 # Runtime dependencies
 RUN touch /var/lib/rpm/* &&   \
@@ -76,9 +76,10 @@ RUN touch /var/lib/rpm/* &&   \
     qemu-kvm                  \
     time
 RUN dnf --enablerepo=plus -y install openldap-servers
+RUN dnf --enablerepo=highavailability -y install fence-agents-all
 
-COPY ./docker/rpms/Fedora_41/supervisord/supervisord.conf /etc/supervisord.conf
-COPY ./docker/rpms/Fedora_41/supervisord/conf.d /etc/supervisord/conf.d
+COPY ./docker/rpms/Fedora_43/supervisord/supervisord.conf /etc/supervisord.conf
+COPY ./docker/rpms/Fedora_43/supervisord/conf.d /etc/supervisord/conf.d
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler

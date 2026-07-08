@@ -184,9 +184,6 @@ def setup_cobblerd(
     # Files
     resource_files: "Traversable" = files("cobbler.data")  # type: ignore[reportAssignmentType]
     # Core
-    copy_file(
-        resource_files.joinpath("config").joinpath("version"), etc_path / "version"
-    )
     cobbler_config: "Traversable" = resource_files.joinpath("config").joinpath(
         "cobbler"
     )

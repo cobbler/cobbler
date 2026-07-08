@@ -41,6 +41,10 @@ jobs:
       - name: Checkout
         # https://github.com/actions/checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          # setuptools_scm needs the full history (incl. tags) to derive the
+          # version; a shallow checkout makes it guess a bogus version.
+          fetch-depth: 0
       - name: Set up Python
         # https://github.com/actions/setup-python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
@@ -52,6 +56,10 @@ jobs:
           sudo apt-get update
       - name: Install system dependencies
         run: sudo apt-get install -y libldap2-dev libsasl2-dev libsystemd-dev
+      - name: Install installation dependencies
+        run: pip3 install setuptools_scm
+      - name: Generate Python Version
+        run: python3 -m setuptools_scm --force-write-version-file
       - name: Install Python dependencies
         run: pip install .[test,extra,docs,lint,mongodb,windows]
       - name: Run Pyright

@@ -36,7 +36,6 @@ RUN zypper install -y          \
     python3-Sphinx             \
     python3-sphinx_rtd_theme   \
     python3-gunicorn           \
-    python3-importlib_resources \
     python3-Cheetah3           \
     python3-Sphinx             \
     python3-dnspython          \
@@ -50,6 +49,7 @@ RUN zypper install -y          \
     python3-pycodestyle        \
     python3-schema             \
     python3-setuptools         \
+    python3-setuptools_scm     \
     python3-systemd            \
     python3-pip                \
     python3-PyYAML             \

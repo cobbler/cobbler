@@ -120,9 +120,9 @@ import logging
 import os
 import pathlib
 import random
+import re
 import tempfile
 import threading
-from configparser import ConfigParser
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
@@ -142,6 +142,7 @@ from cobbler import (
     validate,
     yumgen,
 )
+from cobbler._version import __builddate__, __gitdate__, __gitstamp__, __version__
 from cobbler.actions import (
     acl,
     check,
@@ -440,21 +441,16 @@ class CobblerAPI:
 
         :param extended: False returns a float, True a Dictionary.
         """
-        config = ConfigParser()
-        config.read("/etc/cobbler/version")
+        base = __version__.split("+")[0]  # strip any local segment
+        m = re.match(r"^(\d+)\.(\d+)\.(\d+)", base)
+        numeric = [int(m.group(i)) for i in (1, 2, 3)] if m else [0, 0, 0]
         data: Dict[str, Union[str, List[Any]]] = {
-            "gitdate": config.get("cobbler", "gitdate"),
-            "gitstamp": config.get("cobbler", "gitstamp"),
-            "builddate": config.get("cobbler", "builddate"),
-            "version": config.get("cobbler", "version"),
-            "version_tuple": [],
+            "version": base,
+            "version_tuple": numeric,
+            "gitstamp": __gitstamp__,
+            "gitdate": __gitdate__,
+            "builddate": __builddate__,
         }
-        # don't actually read the version_tuple from the version file
-        # mypy doesn't know that version the version key is controlled by us and we thus can safely assume that this
-        # is a str
-        for num in data["version"].split("."):  # type: ignore[union-attr]
-            data["version_tuple"].append(int(num))  # type: ignore[union-attr]
-
         if not extended:
             # for backwards compatibility and use with koan's comparisons
             elems = data["version_tuple"]

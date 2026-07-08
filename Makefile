@@ -15,7 +15,7 @@ APACHE2 = $(shell which apache2)
 SHELL = /bin/bash
 
 NAME=$(shell basename $(CURDIR))
-VERSION=$(shell grep -Po '(?<=VERSION = ")[0-9]+\.[0-9]+\.[0-9]+(?=")' setup.py)
+VERSION=$(shell python3 -m setuptools_scm | grep -Po '^[0-9]+\.[0-9]+\.[0-9]+')
 TOP_DIR:=$(shell pwd)
 DESTDIR=/
 SYSTESTS="basic_test or import_test or settings_cli_test or svc_test"
@@ -38,11 +38,12 @@ clean: ## Cleans Python bytecode, build artifacts and the temp files.
 	@rm -rf cobbler/__pycache__
 	@rm -rf cobbler/**/__pycache__
 	@echo "cleaning: build artifacts"
+	@rm -f cobbler/_version.py
+	@rm -rf cobbler/data/man
 	@rm -rf build release dist cobbler.egg-info
 	@rm -rf rpm-build/*
 	@rm -rf deb-build/*
 	@rm -f MANIFEST AUTHORS
-	@rm -f config/version
 	@rm -f docs/*.1.gz
 	@rm -rf docs/_build
 	@echo "cleaning: temp files"
@@ -62,7 +63,16 @@ doc: ## Creates the documentation with sphinx in html form.
 	@cd docs; make html > /dev/null 2>&1
 
 man: ## Creates documentation and man pages using Sphinx
+	@if python3 -c "from importlib.metadata import version; from sys import exit; exit(0 if tuple(int(p) for p in version('setuptools_scm').split('.')[:2]) >= (8, 2) else 1)" 2>/dev/null; then \
+		python3 -m setuptools_scm --force-write-version-files > /dev/null; \
+	else \
+		python3 setup.py --version > /dev/null 2>&1; \
+	fi
 	@cd docs; make man > /dev/null 2>&1
+	@mkdir -p cobbler/data/man/man1 cobbler/data/man/man5 cobbler/data/man/man8
+	@find docs/_build/man -name "*.1" -exec cp -f {} cobbler/data/man/man1/ \;
+	@find docs/_build/man -name "*.5" -exec cp -f {} cobbler/data/man/man5/ \;
+	@find docs/_build/man -name "*.8" -exec cp -f {} cobbler/data/man/man8/ \;
 
 qa: ## If black is found then it is run.
 ifeq ($(strip $(BLACK)),)
@@ -80,7 +90,7 @@ authors: ## Creates the AUTHORS file.
 
 release: clean qa authors ## Creates the full release.
 	@echo "creating: release artifacts"
-	@bash -c 'name=${NAME}; cd ..; tar --transform="s/${NAME}/${NAME}-${VERSION}/" --exclude ".idea" --exclude ".mypy_cache" --exclude="venv" --exclude "dist" --exclude "build" -czf "$$name.tar.gz" "$$name"'
+	@bash -c 'name=${NAME}; cd ..; tar --transform="s/${NAME}/${NAME}-${VERSION}/" --exclude ".idea" --exclude ".mypy_cache" --exclude="venv" --exclude "dist" --exclude "build" --exclude "rpm-build" --exclude "deb-build" -czf "$$name.tar.gz" "$$name"'
 	@mkdir release
 	@mv ../${NAME}.tar.gz ./release/${NAME}-${VERSION}.tar.gz
 
@@ -91,7 +101,7 @@ test-rocky10: ## Executes the testscript for testing cobbler in a docker contain
 	./docker/rpms/build-and-install-rpms.sh rl10 docker/rpms/Rocky_Linux_10/Rocky_Linux_10.dockerfile
 
 test-fedora41: ## Executes the testscript for testing cobbler in a docker container on Fedora 41.
-	./docker/rpms/build-and-install-rpms.sh fc41 docker/rpms/Fedora_41/Fedora41.dockerfile
+	./docker/rpms/build-and-install-rpms.sh fc41 docker/rpms/Fedora_43/Fedora43.dockerfile
 
 test-debian11: ## Executes the testscript for testing cobbler in a docker container on Debian 11.
 	./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile
@@ -105,9 +115,7 @@ test-debian13: ## Executes the testscript for testing cobbler in a docker contai
 system-test: ## Runs the system tests
 	${PYTHON} -m pytest -m integration -k ${SYSTESTS}
 
-build: authors ## Runs the Python Build.
-	@echo "building: manpages"
-	@cd docs; make man > /dev/null 2>&1
+build: authors man ## Runs the Python Build.
 	@echo "building: Python package"
 	@git config --global --add safe.directory /code; \
 	${PYTHON} -m pip wheel --verbose --wheel-dir ./build .

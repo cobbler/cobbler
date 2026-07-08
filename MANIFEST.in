@@ -1,2 +1,7 @@
 include COPYING AUTHORS cobbler.spec AUTHORS.in README.md Makefile
 recursive-include cobbler/data/ *
+recursive-exclude changelog/ *
+recursive-exclude debian/ *
+recursive-exclude docker/ *
+recursive-exclude docs/ *
+recursive-exclude patches/ *

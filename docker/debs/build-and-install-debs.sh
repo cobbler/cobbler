@@ -47,12 +47,14 @@ then
     # Build DEBs
     echo "==> Build packages ..."
     mkdir -p deb-build
-    $EXECUTOR run -ti -v "$PWD/deb-build:/usr/src/cobbler/deb-build" "$IMAGE"
+    $EXECUTOR run -ti -v "$PWD/deb-build:/usr/src/cobbler/deb-build:z" "$IMAGE"
 fi
 
 # Launch container and install cobbler
 echo "==> Start container ..."
-$EXECUTOR run --cap-add=NET_ADMIN -p 80:80 -p 443:443 -t -d --name cobbler -v "$PWD/deb-build:/usr/src/cobbler/deb-build" "$IMAGE" /bin/bash
+$EXECUTOR run --cap-add=NET_ADMIN -p 80:80 -p 443:443 -t -d --name cobbler \
+  -v "$PWD/deb-build:/usr/src/cobbler/deb-build:z" \
+  "$IMAGE" /bin/bash
 
 echo "==> Install fresh packages ..."
 $EXECUTOR exec -it cobbler bash -c 'dpkg -i deb-build/cobbler*.deb'

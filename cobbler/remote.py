@@ -684,7 +684,7 @@ class CobblerXMLRPCInterface:
 
     def templates_refresh_content(
         self, objects: List[str], token: Optional[str] = ""
-    ) -> None:
+    ) -> bool:
         """
         Calls :meth:`cobbler.api.CobblerAPI.templates_refresh_content` with the given list of templates.
 
@@ -696,6 +696,7 @@ class CobblerXMLRPCInterface:
 
         object_list = self._common_templates_refresh(objects=objects)
         self.api.templates_refresh_content(objects=object_list)
+        return True
 
     def get_events(self, for_user: str = "") -> Dict[str, List[Union[str, float]]]:
         """

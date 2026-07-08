@@ -8,6 +8,7 @@ Tests for the Cobbler settings migrations
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 import pathlib
 import shutil
+from typing import TYPE_CHECKING
 
 import pytest
 import yaml
@@ -32,6 +33,9 @@ from cobbler.settings.migrations import (
     V3_3_7,
     V4_0_0,
 )
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 modules_conf_location = "/etc/cobbler/modules.conf"
 
@@ -75,14 +79,47 @@ def test_discover_migrations():
     assert migrations.VERSION_LIST is not None  # type: ignore
 
 
-def test_get_installed_version():
-    # Arrange
-    # Act
-    version = migrations.get_installed_version()
+def test_get_installed_version(mocker: "MockerFixture"):
+    """get_installed_version reads __version__ from cobbler._version."""
+    mocker.patch(
+        "cobbler.settings.migrations.__version__",
+        "3.3.7",
+        create=True,
+    )
 
-    # Assert
-    assert isinstance(version, migrations.CobblerVersion)
-    assert version.major >= 3
+    result = migrations.get_installed_version()
+
+    assert isinstance(result, migrations.CobblerVersion)
+    assert result.major == 3
+    assert result.minor == 3
+    assert result.patch == 7
+
+
+def test_get_installed_version_dev_build(mocker: "MockerFixture"):
+    """get_installed_version strips the dev suffix and local segment."""
+    mocker.patch(
+        "cobbler.settings.migrations.__version__",
+        "4.0.0.dev3",
+        create=True,
+    )
+
+    result = migrations.get_installed_version()
+
+    assert result.major == 4
+    assert result.minor == 0
+    assert result.patch == 0
+
+
+def test_get_installed_version_fallback_on_import_error(mocker: "MockerFixture"):
+    """get_installed_version raises an error when cobbler._version is missing."""
+    mocker.patch(
+        "cobbler.settings.migrations.__version__",
+        None,
+        create=True,
+    )
+
+    with pytest.raises(RuntimeError):
+        migrations.get_installed_version()
 
 
 def test_get_settings_file_version():
@@ -345,7 +382,7 @@ def test_migrate_v3_3_7():
     assert V3_3_7.validate(new_settings)
 
 
-def test_migrate_v3_4_0():
+def test_migrate_v4_0_0():
     """
     Test to validate that a migrations of the settings from Cobbler 3.3.7 to 4.0.0 is working as expected.
     """

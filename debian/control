@@ -7,6 +7,7 @@ Build-Depends:
  python3 (>=3.6),
  python3-distro,
  python3-setuptools,
+ python3-setuptools-scm,
  python3-netaddr,
  python3-requests,
  python3-schema,
@@ -17,7 +18,6 @@ Build-Depends:
  dh-python,
  debhelper (>=12)
 Standards-Version: 4.5.1
-Version: 4.0.0
 Homepage: https://cobbler.github.io/
 
 Package: cobbler

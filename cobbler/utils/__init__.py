@@ -7,6 +7,7 @@ Misc heavy lifting functions for Cobbler
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import contextlib
+import enum
 import fcntl
 import glob
 import logging
@@ -1100,6 +1101,9 @@ def strip_none(
     """
     if data is None:
         data = "~"
+
+    elif isinstance(data, enum.Enum):
+        return data.value
 
     elif isinstance(data, list):
         data2: List[Any] = []

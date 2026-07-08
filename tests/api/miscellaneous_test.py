@@ -3,7 +3,7 @@ Tests that validate the functionality of the module that is responsible for prov
 """
 
 import logging
-from typing import TYPE_CHECKING, Any, Callable, List
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, cast
 from unittest.mock import create_autospec
 
 import pytest
@@ -319,3 +319,59 @@ def test_templates_refresh_content_objs(
     # Assert
     for spy in spy_list:
         spy.assert_called_once()
+
+
+def test_version_extended_false(mocker: "MockerFixture"):
+    """version(extended=False) returns a float for major.minor.patch."""
+    mocker.patch("cobbler.api.__version__", "3.2.1")
+    mocker.patch("cobbler.api.__gitstamp__", "abc1234")
+    mocker.patch("cobbler.api.__gitdate__", "2026-06-30")
+    mocker.patch("cobbler.api.__builddate__", "Mon Jan 01 00:00:00 2024")
+
+    import types
+
+    from cobbler.api import CobblerAPI
+
+    fake_self = cast(CobblerAPI, types.SimpleNamespace())
+    result = CobblerAPI.version(fake_self, extended=False)
+
+    assert result == pytest.approx(3.201)
+
+
+def test_version_extended_true(mocker: "MockerFixture"):
+    """version(extended=True) returns a dict with all five keys."""
+    mocker.patch("cobbler.api.__version__", "4.0.0")
+    mocker.patch("cobbler.api.__gitstamp__", "c07b4303a")
+    mocker.patch("cobbler.api.__gitdate__", "2026-06-30")
+    mocker.patch("cobbler.api.__builddate__", "2026-07-01T13:35:25.872704+00:00")
+
+    import types
+
+    from cobbler.api import CobblerAPI
+
+    fake_self = cast(CobblerAPI, types.SimpleNamespace())
+    result = cast(Dict[str, Any], CobblerAPI.version(fake_self, extended=True))
+
+    assert result["version"] == "4.0.0"
+    assert result["version_tuple"] == [4, 0, 0]
+    assert result["gitstamp"] == "c07b4303a"
+    assert result["gitdate"] == "2026-06-30"
+    assert result["builddate"] == "2026-07-01T13:35:25.872704+00:00"
+
+
+def test_version_pre_release(mocker: "MockerFixture"):
+    """version() correctly extracts [major, minor, patch] from PEP 440 pre-release strings."""
+    mocker.patch("cobbler.api.__version__", "4.0.0a2.dev1")
+    mocker.patch("cobbler.api.__gitstamp__", "abc1234")
+    mocker.patch("cobbler.api.__gitdate__", "")
+    mocker.patch("cobbler.api.__builddate__", "")
+
+    import types
+
+    from cobbler.api import CobblerAPI
+
+    fake_self = cast(CobblerAPI, types.SimpleNamespace())
+    result = cast(Dict[str, Any], CobblerAPI.version(fake_self, extended=True))
+
+    assert result["version_tuple"] == [4, 0, 0]
+    assert CobblerAPI.version(fake_self, extended=False) == pytest.approx(4.0)
