@@ -128,6 +128,8 @@ class NetworkInterface(BaseItem):
         self._interface_type = enums.NetworkInterfaceType.NA
         self._ipv4 = IPv4Option(api=api, item=self)
         self._ipv6 = IPv6Option(api=api, item=self)
+        self._ipv6_default_gateway = ""
+        self._ipv6_static_routes: List[str] = []
         self._mac_address = ""
         self._management = False
         self._static = False

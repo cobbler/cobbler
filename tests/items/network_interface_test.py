@@ -64,7 +64,7 @@ def test_network_interface_to_dict(cobbler_api: CobblerAPI):
     assert "logger" not in result
     assert "api" not in result
     assert result.get("virt_bridge") == enums.VALUE_INHERITED
-    assert len(result) == 21
+    assert len(result) == 23
 
 
 def test_network_interface_to_dict_resolved(cobbler_api: CobblerAPI):
