@@ -518,9 +518,7 @@ class CobblerXMLRPCInterface:
         :param system_id: system handle
         :param power: power operation (on/off/status/reboot)
         """
-        system_obj = self.api.find_system(
-            criteria={"uid": system_id}, return_list=False
-        )
+        system_obj = self.api.find_system(uid=system_id, return_list=False)
         if system_obj is None or isinstance(system_obj, list):
             raise ValueError(f'System with uid "{system_id}" not found')
         self.check_access(token, "power_system", system_obj.name)
