@@ -174,14 +174,14 @@ class Template(BaseItem):
         """
         if not self._uri.path:
             raise ValueError("Setting the content with an empty URI is not possible!")
-        if self._uri.schema == enums.TemplateSchema.IMPORTLIB:
+        if self._uri.schema == enums.TemplateSchema.IMPORTLIB.value:
             raise ValueError("The content of built-in templates cannot be updated.")
-        elif self._uri.schema == enums.TemplateSchema.ENVIRONMENT:
+        elif self._uri.schema == enums.TemplateSchema.ENVIRONMENT.value:
             os.environ[self.uri.path] = val
-        elif self._uri.schema == enums.TemplateSchema.FILE:
+        elif self._uri.schema == enums.TemplateSchema.FILE.value:
             pathlib.Path(self._uri.path).write_text(val, encoding="UTF-8")
         else:
-            raise ValueError("Unspported template type!")
+            raise ValueError("Unsupported template uri schema!")
         self.__content = val
 
     @property
