@@ -3776,7 +3776,6 @@ class CobblerXMLRPCInterface:
         :param image_name: The name of the image for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.
         """
-        # FIXME: Don't return enum values
         self._log("get_valid_image_boot_loaders", token=token)
         if image_name is None:
             return [value.value for value in utils.get_supported_system_boot_loaders()]
@@ -3795,7 +3794,6 @@ class CobblerXMLRPCInterface:
         :param profile_name: The name of the profile for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.
         """
-        # FIXME: Don't return enum values
         self._log("get_valid_profile_boot_loaders", token=token)
         if profile_name is None:
             return [value.value for value in utils.get_supported_system_boot_loaders()]
@@ -3815,7 +3813,6 @@ class CobblerXMLRPCInterface:
         :param system_name: The name of the system for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.get_valid_archs
         """
-        # FIXME: Don't return enum values
         self._log("get_valid_system_boot_loaders", token=token)
         if system_name is None:
             return [value.value for value in utils.get_supported_system_boot_loaders()]
@@ -3825,7 +3822,7 @@ class CobblerXMLRPCInterface:
         parent = obj.get_conceptual_parent()
 
         if parent and parent.COLLECTION_TYPE == "profile":  # type: ignore[reportUnnecessaryComparison]
-            return parent.boot_loaders  # type: ignore
+            return [value.value for value in parent.boot_loaders]  # type: ignore
         return [value.value for value in self.api.get_valid_obj_boot_loaders(parent)]  # type: ignore[arg-type]
 
     def get_repo_config_for_profile(self, profile_name: str, **rest: Any):
