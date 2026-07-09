@@ -1079,7 +1079,7 @@ class CobblerXMLRPCInterface:
         attribute: List[str],
         value: Any,
         token: Optional[str] = None,
-    ):
+    ) -> bool:
         """
         .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.set_item_resolved_value`
         """
@@ -1095,7 +1095,8 @@ class CobblerXMLRPCInterface:
         if obj is None or isinstance(obj, list):
             raise ValueError(f'Item with item_uuid "{item_uuid}" did not exist!')
         self.check_access(token, f"modify_{obj.COLLECTION_TYPE}", obj.name, attribute)
-        return self.api.set_item_resolved_value(item_uuid, attribute, value)
+        self.api.set_item_resolved_value(item_uuid, attribute, value)
+        return True
 
     def get_item(
         self,
