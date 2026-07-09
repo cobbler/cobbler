@@ -3776,6 +3776,7 @@ class CobblerXMLRPCInterface:
         :param image_name: The name of the image for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.
         """
+        # FIXME: Don't return enum values
         self._log("get_valid_image_boot_loaders", token=token)
         if image_name is None:
             return [value.value for value in utils.get_supported_system_boot_loaders()]
@@ -3794,6 +3795,7 @@ class CobblerXMLRPCInterface:
         :param profile_name: The name of the profile for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.
         """
+        # FIXME: Don't return enum values
         self._log("get_valid_profile_boot_loaders", token=token)
         if profile_name is None:
             return [value.value for value in utils.get_supported_system_boot_loaders()]
@@ -3813,6 +3815,7 @@ class CobblerXMLRPCInterface:
         :param system_name: The name of the system for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.get_valid_archs
         """
+        # FIXME: Don't return enum values
         self._log("get_valid_system_boot_loaders", token=token)
         if system_name is None:
             return [value.value for value in utils.get_supported_system_boot_loaders()]
@@ -4574,42 +4577,6 @@ class CobblerXMLRPCInterface:
         obj = self.api.find_menu(name=name)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
-        return self.xmlrpc_hacks({})
-
-    def get_network_interface_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
-    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
-        """
-        Get network interface after passing through Cobbler's inheritance engine
-
-        :param name: Network Interface name
-        :param token: Authentication token
-        :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a file.
-        """
-
-        self._log("get_network_interface_as_rendered", name=name, token=token)
-        obj = self.api.find_network_interface(name=name)
-        if obj is not None and not isinstance(obj, list):
-            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
-        return self.xmlrpc_hacks({})
-
-    def get_template_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
-    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
-        """
-        Get template after passing through Cobbler's inheritance engine
-
-        :param name: Template name
-        :param token: Authentication token
-        :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a file.
-        """
-
-        self._log("get_network_interface_as_rendered", name=name, token=token)
-        obj = self.api.find_network_interface(name=name)
-        if obj is not None and not isinstance(obj, list):
-            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
         return self.xmlrpc_hacks({})
 
     def get_distro_group_as_rendered(
