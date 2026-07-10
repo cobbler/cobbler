@@ -97,6 +97,7 @@ class InheritableItem(BaseItem, ABC):
         "system_group": [
             HierarchyItem("system_group", "parent"),
         ],
+        "template": [],
     }
 
     # Defines a logical hierarchy of Item Types.

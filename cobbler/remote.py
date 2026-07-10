@@ -518,9 +518,7 @@ class CobblerXMLRPCInterface:
         :param system_id: system handle
         :param power: power operation (on/off/status/reboot)
         """
-        system_obj = self.api.find_system(
-            criteria={"uid": system_id}, return_list=False
-        )
+        system_obj = self.api.find_system(uid=system_id, return_list=False)
         if system_obj is None or isinstance(system_obj, list):
             raise ValueError(f'System with uid "{system_id}" not found')
         self.check_access(token, "power_system", system_obj.name)
@@ -1079,7 +1077,7 @@ class CobblerXMLRPCInterface:
         attribute: List[str],
         value: Any,
         token: Optional[str] = None,
-    ):
+    ) -> bool:
         """
         .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.set_item_resolved_value`
         """
@@ -1095,7 +1093,8 @@ class CobblerXMLRPCInterface:
         if obj is None or isinstance(obj, list):
             raise ValueError(f'Item with item_uuid "{item_uuid}" did not exist!')
         self.check_access(token, f"modify_{obj.COLLECTION_TYPE}", obj.name, attribute)
-        return self.api.set_item_resolved_value(item_uuid, attribute, value)
+        self.api.set_item_resolved_value(item_uuid, attribute, value)
+        return True
 
     def get_item(
         self,
@@ -3821,7 +3820,7 @@ class CobblerXMLRPCInterface:
         parent = obj.get_conceptual_parent()
 
         if parent and parent.COLLECTION_TYPE == "profile":  # type: ignore[reportUnnecessaryComparison]
-            return parent.boot_loaders  # type: ignore
+            return [value.value for value in parent.boot_loaders]  # type: ignore
         return [value.value for value in self.api.get_valid_obj_boot_loaders(parent)]  # type: ignore[arg-type]
 
     def get_repo_config_for_profile(self, profile_name: str, **rest: Any):
@@ -4573,42 +4572,6 @@ class CobblerXMLRPCInterface:
         obj = self.api.find_menu(name=name)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
-        return self.xmlrpc_hacks({})
-
-    def get_network_interface_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
-    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
-        """
-        Get network interface after passing through Cobbler's inheritance engine
-
-        :param name: Network Interface name
-        :param token: Authentication token
-        :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a file.
-        """
-
-        self._log("get_network_interface_as_rendered", name=name, token=token)
-        obj = self.api.find_network_interface(name=name)
-        if obj is not None and not isinstance(obj, list):
-            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
-        return self.xmlrpc_hacks({})
-
-    def get_template_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
-    ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
-        """
-        Get template after passing through Cobbler's inheritance engine
-
-        :param name: Template name
-        :param token: Authentication token
-        :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a file.
-        """
-
-        self._log("get_network_interface_as_rendered", name=name, token=token)
-        obj = self.api.find_network_interface(name=name)
-        if obj is not None and not isinstance(obj, list):
-            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
         return self.xmlrpc_hacks({})
 
     def get_distro_group_as_rendered(

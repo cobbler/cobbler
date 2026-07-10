@@ -108,26 +108,26 @@ class PowerManager:
         :param system: Cobbler system
         """
 
-        if (system.power_pass or password) and system.power_identity_file:
+        if (system.power.password or password) and system.power.identity_file:
             self.logger.warning("Both password and identity-file are specified")
-        if system.power_identity_file:
-            ident_path = Path(system.power_identity_file)
+        if system.power.identity_file:
+            ident_path = Path(system.power.identity_file)
             if not ident_path.exists():
                 self.logger.warning(
-                    "identity-file %s does not exist", system.power_identity_file
+                    "identity-file %s does not exist", system.power.identity_file
                 )
             else:
                 ident_stat = stat.S_IMODE(ident_path.stat().st_mode)
                 if (ident_stat & stat.S_IRWXO) or (ident_stat & stat.S_IRWXG):
                     self.logger.warning(
                         "identity-file %s must not be read/write/exec by group or others",
-                        system.power_identity_file,
+                        system.power.identity_file,
                     )
-        if not system.power_address:
+        if not system.power.address:
             self.logger.warning("power-address is missing")
-        if not (system.power_user or user):
+        if not (system.power.user or user):
             self.logger.warning("power-user is missing")
-        if not (system.power_pass or password) and not system.power_identity_file:
+        if not (system.power.password or password) and not system.power.identity_file:
             self.logger.warning(
                 "neither power-identity-file nor power-password specified"
             )
@@ -155,18 +155,18 @@ class PowerManager:
         if not power_operation or power_operation not in ["on", "off", "status"]:
             raise CX("invalid power operation")
         power_input += "action=" + power_operation + "\n"
-        if system.power_address:
-            power_input += "ip=" + system.power_address + "\n"
-        if system.power_user:
-            power_input += "username=" + system.power_user + "\n"
-        if system.power_id:
-            power_input += "plug=" + system.power_id + "\n"
-        if system.power_pass:
-            power_input += "password=" + system.power_pass + "\n"
-        if system.power_identity_file:
-            power_input += "identity-file=" + system.power_identity_file + "\n"
-        if system.power_options:
-            power_input += system.power_options + "\n"
+        if system.power.address:
+            power_input += "ip=" + system.power.address + "\n"
+        if system.power.user:
+            power_input += "username=" + system.power.user + "\n"
+        if system.power.id:
+            power_input += "plug=" + system.power.id + "\n"
+        if system.power.password:
+            power_input += "password=" + system.power.password + "\n"
+        if system.power.identity_file:
+            power_input += "identity-file=" + system.power.identity_file + "\n"
+        if system.power.options:
+            power_input += system.power.options + "\n"
         return power_input
 
     def _power(
@@ -190,25 +190,25 @@ class PowerManager:
         :raise CX: if there are errors
         """
 
-        power_command = get_power_command(system.power_type)
+        power_command = get_power_command(system.power.type)
         if not power_command:
             raise ValueError("no power type set for system")
 
         power_info = {
-            "type": system.power_type,
-            "address": system.power_address,
-            "user": system.power_user,
-            "id": system.power_id,
-            "options": system.power_options,
-            "identity_file": system.power_identity_file,
+            "type": system.power.type,
+            "address": system.power.address,
+            "user": system.power.user,
+            "id": system.power.id,
+            "options": system.power.options,
+            "identity_file": system.power.identity_file,
         }
 
         self.logger.info("cobbler power configuration is: %s", json.dumps(power_info))
 
         # if no username/password data, check the environment, empty user/password could be valid
-        if not system.power_user and user is None:
+        if not system.power.user and user is None:
             user = os.environ.get("COBBLER_POWER_USER", "")
-        if not system.power_pass and password is None:
+        if not system.power.password and password is None:
             password = os.environ.get("COBBLER_POWER_PASS", "")
 
         power_input = self._get_power_input(system, power_operation, user, password)

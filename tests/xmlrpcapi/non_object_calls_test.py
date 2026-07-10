@@ -237,6 +237,8 @@ def test_get_random_mac(remote: CobblerXMLRPCInterface, token: str):
                         "secondaries": [],
                         "static_routes": [],
                     },
+                    "ipv6_default_gateway": "",
+                    "ipv6_static_routes": [],
                     "mac_address": "aa:bb:cc:dd:ee:ff",
                     "management": False,
                     "mtime": 0.0,

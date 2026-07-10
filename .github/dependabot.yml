@@ -9,6 +9,3 @@ updates:
         applies-to: version-updates
         patterns:
           - "github/codeql-action/*"
-        update-types:
-          - "minor"
-          - "patch"
