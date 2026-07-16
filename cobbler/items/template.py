@@ -179,7 +179,10 @@ class Template(BaseItem):
         elif self._uri.schema == enums.TemplateSchema.ENVIRONMENT.value:
             os.environ[self.uri.path] = val
         elif self._uri.schema == enums.TemplateSchema.FILE.value:
-            pathlib.Path(self._uri.path).write_text(val, encoding="UTF-8")
+            (
+                pathlib.Path(self.api.settings().autoinstall_templates_dir)
+                / self._uri.path
+            ).write_text(val, encoding="UTF-8")
         else:
             raise ValueError("Unsupported template uri schema!")
         self.__content = val
