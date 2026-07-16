@@ -2,6 +2,8 @@
 Test module to verify the functionality of the Template item class.
 """
 
+import pathlib
+
 from cobbler import enums
 from cobbler.api import CobblerAPI
 from cobbler.items.template import Template
@@ -64,3 +66,27 @@ def test_to_dict_resolved(cobbler_api: CobblerAPI):
 
     # Assert
     assert isinstance(result, dict)
+
+
+def test_content_setter_writes_under_autoinstall_templates_dir(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path
+):
+    """
+    Test that setting the content of a FILE schema template writes to the file resolved against
+    ``autoinstall_templates_dir``, the same location ``refresh_content()`` reads back from.
+    """
+    # Arrange
+    relative_path = "test_content_setter.j2"
+    cobbler_api.settings().autoinstall_templates_dir = str(tmp_path)
+    (tmp_path / relative_path).touch()
+    test_template = Template(
+        cobbler_api,
+        uri={"schema": enums.TemplateSchema.FILE.value, "path": relative_path},
+    )
+
+    # Act
+    test_template.content = "# test content\n"
+
+    # Assert
+    assert (tmp_path / relative_path).read_text(encoding="UTF-8") == "# test content\n"
+    assert test_template.content == "# test content\n"
