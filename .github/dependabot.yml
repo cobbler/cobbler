@@ -4,8 +4,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      - "dependencies"
+      - "no changelog"
     groups:
       dependabot:
         applies-to: version-updates
         patterns:
-          - "github/codeql-action/*"
+          - "*"
