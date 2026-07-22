@@ -12,7 +12,7 @@ jobs:
     steps:
     - name: Checkout
       # https://github.com/actions/checkout
-      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Set up Python
       # https://github.com/actions/setup-python
       uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
@@ -29,7 +29,7 @@ jobs:
     steps:
       - name: Checkout
         # https://github.com/actions/checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run ShellCheck
         # https://github.com/ludeeus/action-shellcheck
         uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
@@ -40,7 +40,7 @@ jobs:
     steps:
       - name: Checkout
         # https://github.com/actions/checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # setuptools_scm needs the full history (incl. tags) to derive the
           # version; a shallow checkout makes it guess a bogus version.
@@ -71,7 +71,7 @@ jobs:
     steps:
       - name: Checkout
         # https://github.com/actions/checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Black formatter check
         # https://github.com/psf/black
         uses: psf/black@87928e6d6761a4a6d22250e1fee5601b3998086e # 26.5.1
@@ -84,7 +84,7 @@ jobs:
     steps:
       - name: Checkout
         # https://github.com/actions/checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up Python
         # https://github.com/actions/setup-python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
