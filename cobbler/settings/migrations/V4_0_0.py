@@ -7,20 +7,65 @@ Migration from V3.3.3 to V4.0.0
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
 import configparser
+import datetime
 import glob
 import json
 import logging
 import os
 import pathlib
+import shutil
+import sqlite3
+import tempfile
 import uuid
 from configparser import ConfigParser
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Callable, Dict, List
+from typing import Optional as TOptional
+from typing import Tuple
 
 from schema import Optional, Schema, SchemaError  # type: ignore
 
 from cobbler.settings.migrations import V3_3_7, helper
 
+if TYPE_CHECKING:
+    from pymongo.database import Database
+    from pymongo.mongo_client import MongoClient
+
 logger = logging.getLogger()
+
+# Filenames from the legacy "iso_template_dir" (/etc/cobbler/iso) that are known to
+# correspond to a specific, well-known Template tag. Any other file present in that
+# directory is migrated as a plain, untagged Template record.
+ISO_TEMPLATE_TAGS = {
+    "buildiso.template": "iso_buildiso",
+    "grub_menuentry.template": "iso_grub_menuentry",
+    "bootinfo.template": "iso_bootinfo",
+    "isolinux_menuentry.template": "iso_isolinux_menuentry",
+}
+
+# Filenames from the legacy "boot_loader_conf_template_dir"
+# (/etc/cobbler/boot_loader_conf) that are known to correspond to a specific,
+# well-known Template tag. Any other file present in that directory is migrated as a
+# plain, untagged Template record.
+BOOT_LOADER_CONF_TEMPLATE_TAGS = {
+    "bootcfg.template": "bootcfg",
+    "grub.template": "grub",
+    "grub_menu.template": "grub_menu",
+    "grub_submenu.template": "grub_submenu",
+    "ipxe.template": "ipxe",
+    "ipxe_menu.template": "ipxe_menu",
+    "ipxe_submenu.template": "ipxe_submenu",
+    "pxe.template": "pxe",
+    "pxe_menu.template": "pxe_menu",
+    "pxe_submenu.template": "pxe_submenu",
+}
+
+# All collection types that can exist in a V3.3.7 install (i.e. before
+# network_interfaces/templates/*_groups were introduced in V4.0.0).
+LEGACY_COLLECTION_TYPES = ("distros", "profiles", "systems", "repos", "images", "menus")
+
+# Collection types the migration pipeline may create records in, in addition to the
+# legacy ones above.
+NEW_COLLECTION_TYPES = ("network_interfaces", "templates")
 
 schema = Schema(
     {
@@ -451,54 +496,23 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     if modules_config_path.exists():
         modules_config_path.unlink()
 
-    # Migrate Jinja include directory to new location
-    # TODO: Implement
-    _ = jinja2_includedir
-
-    # Migrate ISO template directory to new location
-    # TODO: Implement
-    _ = iso_template_dir
-
-    # Migrate boot-loader conf template directory to new location
-    # TODO: Implement
-    _ = boot_loader_conf_template_dir
-
-    # Migrate autoinstall snippets directory to new location
-    # TODO: Implement
-    _ = autoinstall_snippets_dir
-
-    collection_folder = pathlib.Path("/var/lib/cobbler/collections/")
-    # Back up the pristine collections tree once, before any of the following steps
-    # mutate it.
-    helper.backup_dir(str(collection_folder))
-    # Rewrite cross-item references (distro/profile/image/menu/repos/parent) from
-    # the old name-based values to the new uid-based ones.
-    migrate_cobbler_uid_references(str(collection_folder))
-    # Reshape flat legacy fields (power_*/virt_*/name_servers*/next_server_*/apt_*)
-    # into their new nested Option sub-object shape, and drop per-item
-    # mgmt_classes/mgmt_parameters (no longer supported at the item level).
-    migrate_cobbler_item_options(str(collection_folder))
-    # migrate stored cobbler collections
-    migrate_cobbler_collections(str(collection_folder))
-    # Create dedicated Template records for legacy autoinstall path references -
-    # both per-item and the global settings default - and rewrite those
-    # references to the new Template's uid. Must run before key_drop_if_default()/
-    # update_settings_file() below, since it mutates settings["autoinstall"] in
-    # place and that needs to reach the settings.yaml that gets written to disk.
-    migrate_cobbler_autoinstall_templates(
-        str(collection_folder),
+    # Migrate collection item data (distros/profiles/systems/etc.), plus the legacy
+    # iso_template_dir/boot_loader_conf_template_dir/jinja2_includedir/
+    # autoinstall_snippets_dir directories (all folded into the Template collection
+    # in V4.0.0). Determines which single backend (file/sqlite/mongodb) actually
+    # holds the data and migrates it - refuses to run if more than one appears
+    # populated. Must run before key_drop_if_default()/update_settings_file() below,
+    # since it mutates settings["autoinstall"] in place and that needs to reach the
+    # settings.yaml that gets written to disk.
+    determine_and_migrate_collections_data(
+        settings,
+        iso_template_dir,
+        boot_loader_conf_template_dir,
+        jinja2_includedir,
+        autoinstall_snippets_dir,
         autoinstall_templates_dir,
         default_template_type,
-        settings,
     )
-    # Migrate JSON filenames
-    migrate_cobbler_json_files(collection_folder)
-    # Migrate SQLite DB
-    # TODO
-    # Migrate MongoDB
-    # TODO
-    # Migrate Network Interfaces to dedicated collection
-    migrate_cobbler_network_interfaces(collection_folder)
 
     # Drop defaults
     # pylint: disable-next=import-outside-toplevel
@@ -582,7 +596,7 @@ def migrate_cobbler_network_interfaces(collection_folder: pathlib.Path) -> None:
         if not file.name.endswith(".json"):
             continue
         system_dict = json.loads(file.read_text(encoding="UTF-8"))
-        interfaces = system_dict.pop("interfaces")
+        interfaces = system_dict.pop("interfaces", {})
         for interface_name, interface_dict in interfaces.items():
             interface_uid = uuid.uuid4().hex
             interface_file = (
@@ -868,3 +882,572 @@ def migrate_cobbler_autoinstall_templates(
         settings["autoinstall"] = resolve_autoinstall(
             settings["autoinstall"], "settings.yaml default"
         )
+
+
+def _create_template_record(
+    templates_dir: str,
+    name: str,
+    template_type: str,
+    relative_path: str,
+    tags: TOptional[List[str]] = None,
+) -> None:
+    """
+    Write a new Template collection record to disk.
+
+    :param templates_dir: The "templates" collection directory to write into.
+    :param name: The name for the new Template record (must not contain "/").
+    :param template_type: The template engine ("cheetah"/"jinja") for the new record.
+    :param relative_path: The path of the template file, relative to autoinstall_templates_dir.
+    :param tags: The tags to assign to the new record, if any.
+    """
+    template_uid = uuid.uuid4().hex
+    template_record: Dict[str, Any] = {
+        "uid": template_uid,
+        "name": name,
+        "template_type": template_type,
+        "uri": {"schema": "file", "path": relative_path},
+    }
+    if tags:
+        template_record["tags"] = tags
+    os.makedirs(templates_dir, exist_ok=True)
+    with open(
+        os.path.join(templates_dir, f"{template_uid}.json"), "w", encoding="UTF-8"
+    ) as _f:
+        _f.write(json.dumps(template_record))
+
+
+def migrate_cobbler_iso_and_bootloader_templates(
+    collections_dir: str,
+    iso_template_dir: str,
+    boot_loader_conf_template_dir: str,
+    autoinstall_templates_dir: str,
+    default_template_type: str,
+) -> None:
+    """
+    Create dedicated Template collection records for the legacy
+    ``iso_template_dir``/``boot_loader_conf_template_dir`` directories, which V4.0.0
+    replaced with Template records looked up by tag (e.g. ``iso_buildiso``,
+    ``grub_menu``). Known legacy filenames are tagged with their well-known tag plus
+    "active" (so they take effect over the shipped built-in default - a template with
+    only the kind-tag and neither "active" nor "default" is never selected by any of
+    the lookups in cobbler/actions/buildiso/__init__.py or cobbler/tftpgen.py).
+    Unrecognized files are still migrated (content preserved) but left untagged.
+
+    Files are physically copied into a subdirectory of ``autoinstall_templates_dir``,
+    since that is the only directory Template's FILE-schema content resolves against.
+
+    :param collections_dir: The directory of Cobbler where the collections files are.
+    :param iso_template_dir: The legacy directory containing ISO build templates.
+    :param boot_loader_conf_template_dir: The legacy directory containing boot-loader
+                                           config generation templates.
+    :param autoinstall_templates_dir: The directory Template file paths are relative to.
+    :param default_template_type: The template engine for unrecognized/custom files.
+    """
+    templates_dir = os.path.join(collections_dir, "templates")
+    for source_dir, subdir, known_tags in (
+        (iso_template_dir, "iso", ISO_TEMPLATE_TAGS),
+        (
+            boot_loader_conf_template_dir,
+            "boot_loader_conf",
+            BOOT_LOADER_CONF_TEMPLATE_TAGS,
+        ),
+    ):
+        if not os.path.isdir(source_dir):
+            continue
+        target_dir = os.path.join(autoinstall_templates_dir, subdir)
+        os.makedirs(target_dir, exist_ok=True)
+        for filename in sorted(os.listdir(source_dir)):
+            source_file = os.path.join(source_dir, filename)
+            if not os.path.isfile(source_file):
+                continue
+            shutil.copy2(source_file, os.path.join(target_dir, filename))
+            relative_path = f"{subdir}/{filename}"
+            tag = known_tags.get(filename)
+            _create_template_record(
+                templates_dir,
+                name=relative_path.replace("/", ":"),
+                # Legacy files are always Cheetah, regardless of what template
+                # engine the current built-in default for the same tag uses.
+                template_type="cheetah" if tag else default_template_type,
+                relative_path=relative_path,
+                tags=[tag, "active"] if tag else None,
+            )
+
+
+def migrate_cobbler_snippets_and_jinja_includes(
+    collections_dir: str,
+    jinja2_includedir: str,
+    autoinstall_snippets_dir: str,
+    autoinstall_templates_dir: str,
+    default_template_type: str,
+) -> None:
+    """
+    Create dedicated, name-addressable Template collection records for every file
+    under the legacy ``jinja2_includedir``/``autoinstall_snippets_dir`` directories.
+    V4.0.0 resolves both Jinja2 ``{% include "x" %}`` and Cheetah ``SNIPPET::x``
+    directives via ``find_template(name="x")`` rather than a filesystem search path.
+
+    Files are physically copied into a subdirectory of ``autoinstall_templates_dir``.
+    Any ``SNIPPET::<old-path>``/``{% include "<old-path>" %}`` reference embedded in
+    other already-migrated template content is intentionally NOT rewritten (that
+    would mean parsing/rewriting arbitrary template syntax across two different
+    template languages, too risky for this migration to attempt automatically) - a
+    warning is logged listing every renamed path so an admin can update references
+    manually.
+
+    :param collections_dir: The directory of Cobbler where the collections files are.
+    :param jinja2_includedir: The legacy directory Jinja2 templates could include from.
+    :param autoinstall_snippets_dir: The legacy directory holding reusable autoinstall snippets.
+    :param autoinstall_templates_dir: The directory Template file paths are relative to.
+    :param default_template_type: The template engine to assign to the migrated records.
+    """
+    templates_dir = os.path.join(collections_dir, "templates")
+    renamed: List[Tuple[str, str]] = []
+    for source_dir, subdir in (
+        (jinja2_includedir, "jinja2"),
+        (autoinstall_snippets_dir, "snippets"),
+    ):
+        if not os.path.isdir(source_dir):
+            continue
+        target_dir = os.path.join(autoinstall_templates_dir, subdir)
+        for root, _dirs, files in os.walk(source_dir):
+            for filename in sorted(files):
+                source_file = os.path.join(root, filename)
+                relative_to_source = os.path.relpath(source_file, source_dir)
+                relative_path = f"{subdir}/{relative_to_source}"
+                target_file = os.path.join(target_dir, relative_to_source)
+                os.makedirs(os.path.dirname(target_file), exist_ok=True)
+                shutil.copy2(source_file, target_file)
+                new_name = relative_path.replace("/", ":").replace("\\", ":")
+                _create_template_record(
+                    templates_dir,
+                    name=new_name,
+                    template_type=default_template_type,
+                    relative_path=relative_path.replace("\\", "/"),
+                )
+                renamed.append((relative_to_source, new_name))
+
+    if renamed:
+        logger.warning(
+            "%d snippet/jinja2-include file(s) were migrated to named Template "
+            'records. Any SNIPPET::<old-path> or {%% include "<old-path>" %%} '
+            "reference to them inside OTHER templates must be updated manually to "
+            "use the new name (old path -> new name): %s",
+            len(renamed),
+            ", ".join(f"{old} -> {new}" for old, new in renamed),
+        )
+
+
+def _count_file_collection_items(collections_dir: str) -> int:
+    """
+    Count how many item JSON files exist across all legacy (V3.3.7-era) collection
+    types under ``collections_dir``.
+
+    :param collections_dir: The directory of Cobbler where the collections files are.
+    :return: The total number of item files found.
+    """
+    total = 0
+    for collection_type in LEGACY_COLLECTION_TYPES:
+        total += len(
+            glob.glob(os.path.join(collections_dir, collection_type, "*.json"))
+        )
+    return total
+
+
+def _count_sqlite_collection_items(db_path: str) -> int:
+    """
+    Count how many item rows exist across all legacy collection tables in a Cobbler
+    SQLite database.
+
+    :param db_path: The path to the "collections.db" SQLite database file.
+    :return: The total number of item rows found, or 0 if the database doesn't exist.
+    """
+    if not os.path.isfile(db_path):
+        return 0
+    connection = sqlite3.connect(db_path)
+    try:
+        total = 0
+        for collection_type in LEGACY_COLLECTION_TYPES:
+            try:
+                cursor = connection.execute(f"SELECT COUNT(*) FROM {collection_type}")
+                total += cursor.fetchone()[0]
+            except sqlite3.OperationalError:
+                # Table doesn't exist yet - no items of this type were ever stored.
+                continue
+        return total
+    finally:
+        connection.close()
+
+
+def _count_mongo_collection_items(host: str, port: int) -> Tuple[bool, int]:
+    """
+    Attempt to connect to a MongoDB server and count how many documents exist across
+    all legacy collections in the "cobbler" database.
+
+    :param host: The MongoDB host to connect to.
+    :param port: The MongoDB port to connect to.
+    :return: A tuple of (whether the server was reachable, the total document count).
+    """
+    try:
+        # pylint: disable-next=import-outside-toplevel
+        import pymongo
+    except ImportError:
+        return False, 0
+
+    try:
+        client: "MongoClient[Dict[str, Any]]" = pymongo.MongoClient(  # type: ignore
+            host, port, serverSelectionTimeoutMS=2000
+        )
+        client.admin.command("ping")
+    except Exception:  # pylint: disable=broad-except
+        return False, 0
+
+    database = client["cobbler"]
+    total = sum(
+        database[collection_type].count_documents({})
+        for collection_type in LEGACY_COLLECTION_TYPES
+    )
+    return True, total
+
+
+class AmbiguousDataSourceError(RuntimeError):
+    """
+    Raised when more than one of the file/sqlite/mongodb data sources appears to
+    hold real Cobbler collection data at once, making it unsafe to guess which one
+    is authoritative.
+    """
+
+
+def _run_collection_pipeline(
+    work_dir: str,
+    iso_template_dir: str,
+    boot_loader_conf_template_dir: str,
+    jinja2_includedir: str,
+    autoinstall_snippets_dir: str,
+    autoinstall_templates_dir: str,
+    default_template_type: str,
+    settings: Dict[str, Any],
+) -> None:
+    """
+    Run the full item-content migration pipeline against ``work_dir``, which must
+    already contain the legacy (V3.3.7-shaped) collection JSON files. Shared by the
+    file/sqlite/mongodb backends so the same, already-verified transform logic is
+    reused unchanged regardless of which storage backend the data came from.
+
+    :param work_dir: A directory shaped like a Cobbler "collections" directory.
+    """
+    for extra_dir in NEW_COLLECTION_TYPES:
+        os.makedirs(os.path.join(work_dir, extra_dir), exist_ok=True)
+
+    migrate_cobbler_uid_references(work_dir)
+    migrate_cobbler_item_options(work_dir)
+    migrate_cobbler_collections(work_dir)
+    migrate_cobbler_autoinstall_templates(
+        work_dir, autoinstall_templates_dir, default_template_type, settings
+    )
+    migrate_cobbler_iso_and_bootloader_templates(
+        work_dir,
+        iso_template_dir,
+        boot_loader_conf_template_dir,
+        autoinstall_templates_dir,
+        default_template_type,
+    )
+    migrate_cobbler_snippets_and_jinja_includes(
+        work_dir,
+        jinja2_includedir,
+        autoinstall_snippets_dir,
+        autoinstall_templates_dir,
+        default_template_type,
+    )
+    migrate_cobbler_json_files(pathlib.Path(work_dir))
+    migrate_cobbler_network_interfaces(pathlib.Path(work_dir))
+
+
+def _dump_dir_from_reader(
+    work_dir: str,
+    collection_types: Tuple[str, ...],
+    read_items: Callable[[str], List[Dict[str, Any]]],
+) -> None:
+    """
+    Populate ``work_dir`` with one ``<uid>.json`` file per item, for each collection
+    type, using ``read_items(collection_type)`` as the source.
+    """
+    for collection_type in collection_types:
+        collection_path = os.path.join(work_dir, collection_type)
+        os.makedirs(collection_path, exist_ok=True)
+        for item in read_items(collection_type):
+            with open(
+                os.path.join(collection_path, f"{item['uid']}.json"),
+                "w",
+                encoding="UTF-8",
+            ) as _f:
+                _f.write(json.dumps(item))
+
+
+def _load_dir_into_writer(
+    work_dir: str,
+    collection_types: Tuple[str, ...],
+    write_items: Callable[[str, List[Dict[str, Any]]], None],
+) -> None:
+    """
+    Read every ``*.json`` file for each collection type out of ``work_dir`` (after
+    the pipeline has transformed them) and hand them to ``write_items(collection_type,
+    items)`` to persist back into the real backend.
+    """
+    for collection_type in collection_types:
+        collection_path = os.path.join(work_dir, collection_type)
+        items: List[Dict[str, Any]] = []
+        for item_file in sorted(glob.glob(os.path.join(collection_path, "*.json"))):
+            with open(item_file, encoding="UTF-8") as _f:
+                items.append(json.loads(_f.read()))
+        write_items(collection_type, items)
+
+
+def _migrate_file_backend(
+    collections_dir: str,
+    iso_template_dir: str,
+    boot_loader_conf_template_dir: str,
+    jinja2_includedir: str,
+    autoinstall_snippets_dir: str,
+    autoinstall_templates_dir: str,
+    default_template_type: str,
+    settings: Dict[str, Any],
+) -> None:
+    """
+    Migrate a file-serializer-backed install: run the pipeline directly, in place,
+    against the real collections directory (after backing it up).
+    """
+    helper.backup_dir(collections_dir)
+    _run_collection_pipeline(
+        collections_dir,
+        iso_template_dir,
+        boot_loader_conf_template_dir,
+        jinja2_includedir,
+        autoinstall_snippets_dir,
+        autoinstall_templates_dir,
+        default_template_type,
+        settings,
+    )
+
+
+def _migrate_sqlite_backend(
+    db_path: str,
+    iso_template_dir: str,
+    boot_loader_conf_template_dir: str,
+    jinja2_includedir: str,
+    autoinstall_snippets_dir: str,
+    autoinstall_templates_dir: str,
+    default_template_type: str,
+    settings: Dict[str, Any],
+) -> None:
+    """
+    Migrate a SQLite-serializer-backed install: back up the database file, dump every
+    table's items into a throwaway directory, run the same pipeline used for the file
+    backend against it, then load the transformed items back into the database.
+    """
+    # The backup must NOT be placed inside the collections directory itself - that
+    # directory is also scanned by the file-backend migration functions (e.g.
+    # migrate_cobbler_json_files() iterates every entry expecting it to be a
+    # collection-type subdirectory), so a stray backup file left alongside it would
+    # break them.
+    timestamp = datetime.datetime.now().isoformat()
+    collections_dir = os.path.dirname(db_path)
+    backup_path = os.path.join(
+        os.path.dirname(collections_dir), f"collections.db.backup.{timestamp}"
+    )
+    shutil.copy2(db_path, backup_path)
+
+    connection = sqlite3.connect(db_path)
+    try:
+
+        def read_items(collection_type: str) -> List[Dict[str, Any]]:
+            try:
+                cursor = connection.execute(f"SELECT item FROM {collection_type}")
+            except sqlite3.OperationalError:
+                return []
+            return [json.loads(row[0]) for row in cursor.fetchall()]
+
+        def write_items(collection_type: str, items: List[Dict[str, Any]]) -> None:
+            connection.execute(
+                f"CREATE TABLE IF NOT EXISTS {collection_type}"
+                "(uid text primary key, item text)"
+            )
+            connection.execute(f"DELETE FROM {collection_type}")
+            for item in items:
+                connection.execute(
+                    f"INSERT INTO {collection_type}(uid, item) VALUES (?, ?)",
+                    (item["uid"], json.dumps(item)),
+                )
+            connection.commit()
+
+        with tempfile.TemporaryDirectory() as work_dir:
+            _dump_dir_from_reader(work_dir, LEGACY_COLLECTION_TYPES, read_items)
+            _run_collection_pipeline(
+                work_dir,
+                iso_template_dir,
+                boot_loader_conf_template_dir,
+                jinja2_includedir,
+                autoinstall_snippets_dir,
+                autoinstall_templates_dir,
+                default_template_type,
+                settings,
+            )
+            _load_dir_into_writer(
+                work_dir,
+                LEGACY_COLLECTION_TYPES + NEW_COLLECTION_TYPES,
+                write_items,
+            )
+    finally:
+        connection.close()
+
+
+def _migrate_mongodb_backend(
+    host: str,
+    port: int,
+    iso_template_dir: str,
+    boot_loader_conf_template_dir: str,
+    jinja2_includedir: str,
+    autoinstall_snippets_dir: str,
+    autoinstall_templates_dir: str,
+    default_template_type: str,
+    settings: Dict[str, Any],
+) -> None:
+    """
+    Migrate a MongoDB-serializer-backed install: connect directly via pymongo (not
+    through MongoDBSerializer, to keep this migration's own error handling), back up
+    every collection to a local JSON dump, dump every collection's items into a
+    throwaway directory, run the same pipeline used for the file backend against it,
+    then load the transformed items back into MongoDB.
+
+    :raises RuntimeError: If pymongo isn't available or the server can't be reached.
+    """
+    try:
+        # pylint: disable-next=import-outside-toplevel
+        import pymongo
+    except ImportError as import_error:
+        raise RuntimeError(
+            "Configured serializer is serializers.mongodb, but the pymongo package "
+            "is not installed - cannot migrate MongoDB-backed collections."
+        ) from import_error
+
+    try:
+        client: "MongoClient[Dict[str, Any]]" = pymongo.MongoClient(  # type: ignore
+            host, port, serverSelectionTimeoutMS=5000
+        )
+        client.admin.command("ping")
+    except Exception as connection_error:  # pylint: disable=broad-except
+        raise RuntimeError(
+            f"Configured serializer is serializers.mongodb, but no MongoDB server "
+            f"could be reached at {host}:{port} - cannot migrate MongoDB-backed "
+            "collections."
+        ) from connection_error
+
+    database: "Database[Dict[str, Any]]" = client["cobbler"]
+
+    def read_items(collection_type: str) -> List[Dict[str, Any]]:
+        return list(database[collection_type].find({}, {"_id": 0}))
+
+    def write_items(collection_type: str, items: List[Dict[str, Any]]) -> None:
+        database[collection_type].delete_many({})
+        if items:
+            database[collection_type].insert_many(items)
+
+    with tempfile.TemporaryDirectory() as work_dir:
+        _dump_dir_from_reader(work_dir, LEGACY_COLLECTION_TYPES, read_items)
+
+        timestamp = datetime.datetime.now().isoformat()
+        backup_dir = os.path.join(
+            tempfile.gettempdir(), f"mongodb-collections.backup.{timestamp}"
+        )
+        shutil.copytree(work_dir, backup_dir)
+        logger.info("Backed up MongoDB collections to %s before migrating.", backup_dir)
+
+        _run_collection_pipeline(
+            work_dir,
+            iso_template_dir,
+            boot_loader_conf_template_dir,
+            jinja2_includedir,
+            autoinstall_snippets_dir,
+            autoinstall_templates_dir,
+            default_template_type,
+            settings,
+        )
+        _load_dir_into_writer(
+            work_dir, LEGACY_COLLECTION_TYPES + NEW_COLLECTION_TYPES, write_items
+        )
+
+
+def determine_and_migrate_collections_data(
+    settings: Dict[str, Any],
+    iso_template_dir: str,
+    boot_loader_conf_template_dir: str,
+    jinja2_includedir: str,
+    autoinstall_snippets_dir: str,
+    autoinstall_templates_dir: str,
+    default_template_type: str,
+) -> None:
+    """
+    Determine which single backend (file/sqlite/mongodb) actually holds the install's
+    collection data, and migrate it. Refuses to run if more than one backend shows
+    real data present, since it would be unsafe to guess which one is authoritative.
+    If the declared serializer is serializers.mongodb, a working connection is
+    required - this is a hard requirement, not a best-effort skip.
+
+    :param settings: The settings dict being migrated (already contains "modules").
+    :raises RuntimeError: If multiple data sources are present, or if the declared
+                           MongoDB serializer can't actually be reached.
+    """
+    collections_dir = "/var/lib/cobbler/collections/"
+    db_path = os.path.join(collections_dir, "collections.db")
+    declared_serializer = (
+        settings.get("modules", {}).get("serializers", {}).get("module", "")
+    )
+    mongodb_settings = settings.get("mongodb", {})
+    mongo_host = mongodb_settings.get("host", "localhost")
+    mongo_port = mongodb_settings.get("port", 27017)
+
+    file_count = _count_file_collection_items(collections_dir)
+    sqlite_count = _count_sqlite_collection_items(db_path)
+    mongo_reachable, mongo_count = _count_mongo_collection_items(mongo_host, mongo_port)
+
+    if declared_serializer == "serializers.mongodb" and not mongo_reachable:
+        raise RuntimeError(
+            "Configured serializer is serializers.mongodb, but no MongoDB server "
+            f"could be reached at {mongo_host}:{mongo_port} - refusing to migrate."
+        )
+
+    present = [
+        name
+        for name, count in (
+            ("file", file_count),
+            ("sqlite", sqlite_count),
+            ("mongodb", mongo_count if mongo_reachable else 0),
+        )
+        if count > 0
+    ]
+
+    if len(present) > 1:
+        raise AmbiguousDataSourceError(
+            f"Multiple data sources detected ({', '.join(present)}) - refusing to "
+            "migrate. Exactly one of file/sqlite/mongodb collection storage may be "
+            "present; remove stale leftover data from unused backends first."
+        )
+
+    common_args = (
+        iso_template_dir,
+        boot_loader_conf_template_dir,
+        jinja2_includedir,
+        autoinstall_snippets_dir,
+        autoinstall_templates_dir,
+        default_template_type,
+        settings,
+    )
+
+    if not present:
+        return
+    if present[0] == "file":
+        _migrate_file_backend(collections_dir, *common_args)
+    elif present[0] == "sqlite":
+        _migrate_sqlite_backend(db_path, *common_args)
+    else:
+        _migrate_mongodb_backend(mongo_host, mongo_port, *common_args)

@@ -6,9 +6,12 @@ Tests for the Cobbler settings migrations
 # SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
+import glob
 import json
+import os
 import pathlib
 import shutil
+import sqlite3
 from typing import TYPE_CHECKING, Dict
 
 import pytest
@@ -481,7 +484,7 @@ def test_migrate_v4_0_0_modules_conf_propagation():
     )
     assert new_settings["modules"]["dns"]["module"] == "managers.dnsmasq"
     assert new_settings["modules"]["dhcp"]["module"] == "managers.dnsmasq"
-    assert new_settings["modules"]["serializers"]["module"] == "serializers.mongodb"
+    assert new_settings["modules"]["serializers"]["module"] == "serializers.sqlite"
     # "tftpd" is intentionally left at its default ("managers.in_tftpd" is the only
     # tftpd module implementation that exists) - key_drop_if_default() correctly
     # drops it entirely since every value in it matches the default.
@@ -1058,3 +1061,440 @@ def test_migrate_v4_0_0_autoinstall_templates_sanitizes_name(tmp_path: pathlib.P
     template_data = json.loads(template_files[0].read_text(encoding="UTF-8"))
     assert template_data["name"] == "subdir:custom.ks"
     assert template_data["uri"]["path"] == "subdir/custom.ks"
+
+
+def test_migrate_v4_0_0_iso_templates_known_files_tagged_active(tmp_path: pathlib.Path):
+    # Arrange
+    iso_dir = tmp_path / "iso"
+    iso_dir.mkdir()
+    (iso_dir / "buildiso.template").write_text("# buildiso", encoding="UTF-8")
+    (iso_dir / "grub_menuentry.template").write_text(
+        "# grub menuentry", encoding="UTF-8"
+    )
+    autoinstall_templates_dir = tmp_path / "autoinstall_templates"
+    collections_dir = tmp_path / "collections"
+
+    # Act
+    V4_0_0.migrate_cobbler_iso_and_bootloader_templates(
+        str(collections_dir),
+        str(iso_dir),
+        str(tmp_path / "nonexistent_boot_loader_conf"),
+        str(autoinstall_templates_dir),
+        "cheetah",
+    )
+
+    # Assert
+    template_files = list((collections_dir / "templates").glob("*.json"))
+    assert len(template_files) == 2
+    by_tags = {
+        tuple(sorted(json.loads(f.read_text(encoding="UTF-8"))["tags"])): json.loads(
+            f.read_text(encoding="UTF-8")
+        )
+        for f in template_files
+    }
+
+    buildiso = by_tags[("active", "iso_buildiso")]
+    assert buildiso["template_type"] == "cheetah"
+    assert buildiso["uri"] == {"schema": "file", "path": "iso/buildiso.template"}
+    assert buildiso["name"] == "iso:buildiso.template"
+    assert (autoinstall_templates_dir / "iso" / "buildiso.template").read_text(
+        encoding="UTF-8"
+    ) == "# buildiso"
+
+    grub = by_tags[("active", "iso_grub_menuentry")]
+    assert grub["uri"] == {"schema": "file", "path": "iso/grub_menuentry.template"}
+
+
+def test_migrate_v4_0_0_iso_templates_unknown_file_untagged(tmp_path: pathlib.Path):
+    # Arrange
+    iso_dir = tmp_path / "iso"
+    iso_dir.mkdir()
+    (iso_dir / "custom_extra.template").write_text("# custom", encoding="UTF-8")
+    autoinstall_templates_dir = tmp_path / "autoinstall_templates"
+    collections_dir = tmp_path / "collections"
+
+    # Act
+    V4_0_0.migrate_cobbler_iso_and_bootloader_templates(
+        str(collections_dir),
+        str(iso_dir),
+        str(tmp_path / "nonexistent_boot_loader_conf"),
+        str(autoinstall_templates_dir),
+        "cheetah",
+    )
+
+    # Assert
+    template_files = list((collections_dir / "templates").glob("*.json"))
+    assert len(template_files) == 1
+    data = json.loads(template_files[0].read_text(encoding="UTF-8"))
+    assert "tags" not in data
+    assert data["template_type"] == "cheetah"
+    assert data["uri"] == {"schema": "file", "path": "iso/custom_extra.template"}
+
+
+@pytest.mark.parametrize(
+    "filename,tag", list(V4_0_0.BOOT_LOADER_CONF_TEMPLATE_TAGS.items())
+)
+def test_migrate_v4_0_0_bootloader_conf_templates_tagged_active(
+    tmp_path: pathlib.Path, filename: str, tag: str
+):
+    # Arrange
+    boot_loader_conf_dir = tmp_path / "boot_loader_conf"
+    boot_loader_conf_dir.mkdir()
+    (boot_loader_conf_dir / filename).write_text("# content", encoding="UTF-8")
+    autoinstall_templates_dir = tmp_path / "autoinstall_templates"
+    collections_dir = tmp_path / "collections"
+
+    # Act
+    V4_0_0.migrate_cobbler_iso_and_bootloader_templates(
+        str(collections_dir),
+        str(tmp_path / "nonexistent_iso"),
+        str(boot_loader_conf_dir),
+        str(autoinstall_templates_dir),
+        "cheetah",
+    )
+
+    # Assert
+    template_files = list((collections_dir / "templates").glob("*.json"))
+    assert len(template_files) == 1
+    data = json.loads(template_files[0].read_text(encoding="UTF-8"))
+    assert sorted(data["tags"]) == sorted([tag, "active"])
+    assert data["uri"] == {"schema": "file", "path": f"boot_loader_conf/{filename}"}
+    assert data["template_type"] == "cheetah"
+
+
+def test_migrate_v4_0_0_missing_legacy_template_dirs_are_noop(tmp_path: pathlib.Path):
+    # Arrange
+    collections_dir = tmp_path / "collections"
+    collections_dir.mkdir()
+
+    # Act
+    V4_0_0.migrate_cobbler_iso_and_bootloader_templates(
+        str(collections_dir),
+        str(tmp_path / "no_iso"),
+        str(tmp_path / "no_boot_loader_conf"),
+        str(tmp_path / "autoinstall_templates"),
+        "cheetah",
+    )
+    V4_0_0.migrate_cobbler_snippets_and_jinja_includes(
+        str(collections_dir),
+        str(tmp_path / "no_jinja2"),
+        str(tmp_path / "no_snippets"),
+        str(tmp_path / "autoinstall_templates"),
+        "cheetah",
+    )
+
+    # Assert
+    templates_dir = collections_dir / "templates"
+    assert not templates_dir.exists() or list(templates_dir.glob("*.json")) == []
+
+
+def test_migrate_v4_0_0_snippets_and_jinja_includes_creates_named_templates(
+    tmp_path: pathlib.Path,
+):
+    # Arrange
+    snippets_dir = tmp_path / "snippets"
+    (snippets_dir / "kickstart").mkdir(parents=True)
+    (snippets_dir / "kickstart" / "log_ks_post.template").write_text(
+        "# snippet", encoding="UTF-8"
+    )
+    (snippets_dir / "network_config").write_text(
+        "# top-level snippet", encoding="UTF-8"
+    )
+    jinja_dir = tmp_path / "jinja2"
+    jinja_dir.mkdir()
+    (jinja_dir / "header.jinja").write_text("# header", encoding="UTF-8")
+    autoinstall_templates_dir = tmp_path / "autoinstall_templates"
+    collections_dir = tmp_path / "collections"
+
+    # Act
+    V4_0_0.migrate_cobbler_snippets_and_jinja_includes(
+        str(collections_dir),
+        str(jinja_dir),
+        str(snippets_dir),
+        str(autoinstall_templates_dir),
+        "cheetah",
+    )
+
+    # Assert
+    template_files = list((collections_dir / "templates").glob("*.json"))
+    assert len(template_files) == 3
+    names = {json.loads(f.read_text(encoding="UTF-8"))["name"] for f in template_files}
+    assert names == {
+        "snippets:kickstart:log_ks_post.template",
+        "snippets:network_config",
+        "jinja2:header.jinja",
+    }
+    assert (
+        autoinstall_templates_dir / "snippets" / "kickstart" / "log_ks_post.template"
+    ).read_text(encoding="UTF-8") == "# snippet"
+    assert (autoinstall_templates_dir / "jinja2" / "header.jinja").read_text(
+        encoding="UTF-8"
+    ) == "# header"
+    for f in template_files:
+        data = json.loads(f.read_text(encoding="UTF-8"))
+        assert "tags" not in data
+
+
+def test_migrate_v4_0_0_data_source_detection_file_only():
+    # Arrange
+    system_file = pathlib.Path("/var/lib/cobbler/collections/systems/fileonly.json")
+    system_file.write_text(
+        json.dumps({"uid": "s1", "name": "test", "mgmt_classes": "<<inherit>>"}),
+        encoding="UTF-8",
+    )
+    settings_dict = {"modules": {"serializers": {"module": "serializers.file"}}}
+
+    # Act
+    V4_0_0.determine_and_migrate_collections_data(
+        settings_dict,
+        "/nonexistent_iso",
+        "/nonexistent_boot_loader_conf",
+        "/nonexistent_jinja2",
+        "/nonexistent_snippets",
+        "/var/lib/cobbler/templates",
+        "cheetah",
+    )
+
+    # Assert
+    migrated = json.loads(
+        pathlib.Path("/var/lib/cobbler/collections/systems/s1.json").read_text(
+            encoding="UTF-8"
+        )
+    )
+    assert "mgmt_classes" not in migrated
+
+
+def _cleanup_sqlite_test_artifacts(db_path: str) -> None:
+    """
+    Remove a test-created sqlite db and any backup files V4_0_0.py's sqlite
+    backend may have created alongside it, so they don't leak into other tests.
+    """
+    if os.path.exists(db_path):
+        os.remove(db_path)
+    collections_dir = os.path.dirname(db_path)
+    for backup_file in glob.glob(
+        os.path.join(os.path.dirname(collections_dir), "collections.db.backup.*")
+    ):
+        os.remove(backup_file)
+
+
+def test_migrate_v4_0_0_data_source_detection_sqlite_only():
+    # Arrange
+    db_path = "/var/lib/cobbler/collections/collections.db"
+    connection = sqlite3.connect(db_path)
+    connection.execute("CREATE TABLE systems(uid text primary key, item text)")
+    connection.execute(
+        "INSERT INTO systems(uid, item) VALUES (?, ?)",
+        (
+            "s1",
+            json.dumps({"uid": "s1", "name": "test", "mgmt_classes": "<<inherit>>"}),
+        ),
+    )
+    connection.commit()
+    connection.close()
+    settings_dict = {"modules": {"serializers": {"module": "serializers.sqlite"}}}
+
+    try:
+        # Act
+        V4_0_0.determine_and_migrate_collections_data(
+            settings_dict,
+            "/nonexistent_iso",
+            "/nonexistent_boot_loader_conf",
+            "/nonexistent_jinja2",
+            "/nonexistent_snippets",
+            "/var/lib/cobbler/templates",
+            "cheetah",
+        )
+
+        # Assert
+        connection = sqlite3.connect(db_path)
+        row = connection.execute(
+            "SELECT item FROM systems WHERE uid = ?", ("s1",)
+        ).fetchone()
+        connection.close()
+        data = json.loads(row[0])
+        assert "mgmt_classes" not in data
+    finally:
+        _cleanup_sqlite_test_artifacts(db_path)
+
+
+def test_migrate_v4_0_0_data_source_detection_refuses_multiple_sources():
+    # Arrange
+    system_file = pathlib.Path("/var/lib/cobbler/collections/systems/fileonly.json")
+    system_file.write_text(json.dumps({"uid": "s1", "name": "test"}), encoding="UTF-8")
+    db_path = "/var/lib/cobbler/collections/collections.db"
+    connection = sqlite3.connect(db_path)
+    connection.execute("CREATE TABLE systems(uid text primary key, item text)")
+    connection.execute(
+        "INSERT INTO systems(uid, item) VALUES (?, ?)",
+        ("s2", json.dumps({"uid": "s2", "name": "test2"})),
+    )
+    connection.commit()
+    connection.close()
+    settings_dict = {"modules": {"serializers": {"module": "serializers.file"}}}
+
+    try:
+        # Act & Assert
+        with pytest.raises(V4_0_0.AmbiguousDataSourceError):
+            V4_0_0.determine_and_migrate_collections_data(
+                settings_dict,
+                "/nonexistent_iso",
+                "/nonexistent_boot_loader_conf",
+                "/nonexistent_jinja2",
+                "/nonexistent_snippets",
+                "/var/lib/cobbler/templates",
+                "cheetah",
+            )
+    finally:
+        _cleanup_sqlite_test_artifacts(db_path)
+
+
+def test_migrate_v4_0_0_mongodb_declared_but_unreachable_raises():
+    # Arrange
+    settings_dict = {
+        "modules": {"serializers": {"module": "serializers.mongodb"}},
+        "mongodb": {"host": "nonexistent-host-for-test.invalid", "port": 27099},
+    }
+
+    # Act & Assert
+    with pytest.raises(RuntimeError, match="MongoDB"):
+        V4_0_0.determine_and_migrate_collections_data(
+            settings_dict,
+            "/nonexistent_iso",
+            "/nonexistent_boot_loader_conf",
+            "/nonexistent_jinja2",
+            "/nonexistent_snippets",
+            "/var/lib/cobbler/templates",
+            "cheetah",
+        )
+
+
+def test_migrate_v4_0_0_sqlite_backend_full_pipeline():
+    # Arrange
+    db_path = "/var/lib/cobbler/collections/collections.db"
+    connection = sqlite3.connect(db_path)
+    connection.execute("CREATE TABLE distros(uid text primary key, item text)")
+    connection.execute("CREATE TABLE profiles(uid text primary key, item text)")
+    connection.execute(
+        "INSERT INTO distros(uid, item) VALUES (?, ?)",
+        ("d1", json.dumps({"uid": "d1", "name": "test-distro"})),
+    )
+    connection.execute(
+        "INSERT INTO profiles(uid, item) VALUES (?, ?)",
+        (
+            "p1",
+            json.dumps({"uid": "p1", "name": "test-profile", "distro": "test-distro"}),
+        ),
+    )
+    connection.commit()
+    connection.close()
+    settings_dict = {"modules": {"serializers": {"module": "serializers.sqlite"}}}
+
+    try:
+        # Act
+        V4_0_0.determine_and_migrate_collections_data(
+            settings_dict,
+            "/nonexistent_iso",
+            "/nonexistent_boot_loader_conf",
+            "/nonexistent_jinja2",
+            "/nonexistent_snippets",
+            "/var/lib/cobbler/templates",
+            "cheetah",
+        )
+
+        # Assert - the profile's "distro" reference was rewritten from name to uid,
+        # proving the full shared pipeline (not just a pass-through) ran against
+        # the sqlite-sourced data.
+        connection = sqlite3.connect(db_path)
+        profile_row = connection.execute(
+            "SELECT item FROM profiles WHERE uid = ?", ("p1",)
+        ).fetchone()
+        connection.close()
+        profile_data = json.loads(profile_row[0])
+        assert profile_data["distro"] == "d1"
+    finally:
+        _cleanup_sqlite_test_artifacts(db_path)
+
+
+@pytest.mark.mongodb
+def test_migrate_v4_0_0_mongodb_backend_full_pipeline():
+    """
+    Full round-trip against the real MongoDB service from docker/tests/compose.yml
+    (hostname "mongo"), matching the existing convention in
+    tests/modules/serializer/mongodb_test.py.
+    """
+    # pylint: disable-next=import-outside-toplevel
+    import pymongo
+
+    client = pymongo.MongoClient("mongo", 27017, serverSelectionTimeoutMS=3000)
+    database = client["cobbler"]
+    collection_types = V4_0_0.LEGACY_COLLECTION_TYPES + V4_0_0.NEW_COLLECTION_TYPES
+    try:
+        # Arrange
+        for collection_type in collection_types:
+            database[collection_type].delete_many({})
+        database["distros"].insert_one({"uid": "d1", "name": "test-distro"})
+        database["profiles"].insert_one(
+            {"uid": "p1", "name": "test-profile", "distro": "test-distro"}
+        )
+        settings_dict = {
+            "modules": {"serializers": {"module": "serializers.mongodb"}},
+            "mongodb": {"host": "mongo", "port": 27017},
+        }
+
+        # Act
+        V4_0_0.determine_and_migrate_collections_data(
+            settings_dict,
+            "/nonexistent_iso",
+            "/nonexistent_boot_loader_conf",
+            "/nonexistent_jinja2",
+            "/nonexistent_snippets",
+            "/var/lib/cobbler/templates",
+            "cheetah",
+        )
+
+        # Assert - the profile's "distro" reference was rewritten from name to
+        # uid, proving the full shared pipeline ran against the Mongo-sourced data.
+        profile_doc = database["profiles"].find_one({"uid": "p1"})
+        assert profile_doc["distro"] == "d1"
+    finally:
+        for collection_type in collection_types:
+            database[collection_type].delete_many({})
+        client.close()
+
+
+@pytest.mark.mongodb
+def test_migrate_v4_0_0_mongodb_declared_and_reachable_but_empty_is_noop():
+    """
+    If serializers.mongodb is declared and the server IS reachable, but holds no
+    actual collection data, the migration must not raise - there's simply nothing
+    to migrate (e.g. a fresh install that hasn't been used yet).
+    """
+    # pylint: disable-next=import-outside-toplevel
+    import pymongo
+
+    client = pymongo.MongoClient("mongo", 27017, serverSelectionTimeoutMS=3000)
+    database = client["cobbler"]
+    collection_types = V4_0_0.LEGACY_COLLECTION_TYPES + V4_0_0.NEW_COLLECTION_TYPES
+    try:
+        for collection_type in collection_types:
+            database[collection_type].delete_many({})
+        settings_dict = {
+            "modules": {"serializers": {"module": "serializers.mongodb"}},
+            "mongodb": {"host": "mongo", "port": 27017},
+        }
+
+        # Act & Assert - must not raise
+        V4_0_0.determine_and_migrate_collections_data(
+            settings_dict,
+            "/nonexistent_iso",
+            "/nonexistent_boot_loader_conf",
+            "/nonexistent_jinja2",
+            "/nonexistent_snippets",
+            "/var/lib/cobbler/templates",
+            "cheetah",
+        )
+    finally:
+        for collection_type in collection_types:
+            database[collection_type].delete_many({})
+        client.close()
