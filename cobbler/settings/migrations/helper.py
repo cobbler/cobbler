@@ -158,6 +158,10 @@ def key_drop_if_default(
     :param defaults: The full settings with default values
     """
     for key in list(settings.keys()):
+        if key not in defaults:
+            # No default to compare against (e.g. a nested key for a value that is no
+            # longer known, such as a removed bootloader architecture) - keep it as-is.
+            continue
         if isinstance(settings[key], dict):
             settings[key] = key_drop_if_default(settings[key], defaults[key])
             if len(settings[key]) == 0:

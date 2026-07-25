@@ -6,9 +6,10 @@ Tests for the Cobbler settings migrations
 # SPDX-FileCopyrightText: 2021 Dominik Gedon <dgedon@suse.de>
 # SPDX-FileCopyrightText: 2021 Enno Gotthold <egotthold@suse.de>
 # SPDX-FileCopyrightText: Copyright SUSE LLC
+import json
 import pathlib
 import shutil
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 import pytest
 import yaml
@@ -46,6 +47,9 @@ def delete_modules_conf():
     modules_conf_path = pathlib.Path(modules_conf_location)
     if modules_conf_path.exists():
         modules_conf_path.unlink()
+    mongodb_conf_path = pathlib.Path("/etc/cobbler/mongodb.conf")
+    if mongodb_conf_path.exists():
+        mongodb_conf_path.unlink()
 
 
 def test_cobbler_version_logic():
@@ -409,3 +413,251 @@ def test_migrate_v4_0_0():
     assert V4_0_0.validate(new_settings)
     assert not pathlib.Path("/etc/cobbler/mongodb.conf").exists()
     assert not pathlib.Path(modules_conf_location).exists()
+    # windows_template_dir was removed without replacement in V4.0.0.
+    assert "windows_template_dir" not in new_settings
+    # A bootloader architecture with no corresponding V4.0.0 default (arm-uboot) must survive
+    # key_drop_if_default() rather than being dropped or raising a KeyError.
+    assert new_settings["bootloaders_formats"]["arm-uboot"] == {
+        "binary_name": "arm-boot.efi"
+    }
+    # The system JSON should have been renamed to <uid>.json and lost its embedded interfaces.
+    migrated_system_file = pathlib.Path(
+        "/var/lib/cobbler/collections/systems/9c885c2d49bf477795858d58cc101b9e.json"
+    )
+    assert migrated_system_file.exists()
+    migrated_system = json.loads(migrated_system_file.read_text(encoding="UTF-8"))
+    assert "interfaces" not in migrated_system
+
+
+def test_migrate_v4_0_0_modules_conf_propagation():
+    """
+    Regression test: the modules.conf migration used to accidentally re-read the
+    mongodb.conf path, which silently discarded a real install's customized module
+    configuration and replaced it with the hardcoded fallback defaults.
+    """
+    # Arrange
+    with open(
+        "/code/tests/test_data/V3_3_7/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+    shutil.copy("/code/tests/test_data/V3_3_7/modules.conf", modules_conf_location)
+    shutil.copy(
+        "/code/tests/test_data/V3_3_7/mongodb.conf", "/etc/cobbler/mongodb.conf"
+    )
+    shutil.copy(
+        "/code/tests/test_data/V3_3_7/collections/systems/host.example.org.json",
+        "/var/lib/cobbler/collections/systems/host.example.org.json",
+    )
+
+    # Act
+    new_settings = V4_0_0.migrate(old_settings_dict)
+
+    # Assert
+    # Fixture values (see tests/test_data/V3_3_7/modules.conf) are intentionally different
+    # from V4_0_0.py's hardcoded fallback defaults so this assertion is not vacuous.
+    assert new_settings["modules"]["authentication"]["module"] == "authentication.ldap"
+    assert new_settings["modules"]["authentication"]["hash_algorithm"] == "sha2_256"
+    assert (
+        new_settings["modules"]["authorization"]["module"] == "authorization.ownership"
+    )
+    assert new_settings["modules"]["dns"]["module"] == "managers.dnsmasq"
+    assert new_settings["modules"]["dhcp"]["module"] == "managers.dnsmasq"
+    assert new_settings["modules"]["serializers"]["module"] == "serializers.mongodb"
+    # "tftpd" is intentionally left at its default ("managers.in_tftpd" is the only
+    # tftpd module implementation that exists) - key_drop_if_default() correctly
+    # drops it entirely since every value in it matches the default.
+    assert "tftpd" not in new_settings["modules"]
+
+
+def test_migrate_v4_0_0_mongodb_conf_propagation():
+    """
+    Regression test: mongodb.conf values must land in the migrated settings as-is,
+    not the hardcoded fallback defaults.
+    """
+    # Arrange
+    with open(
+        "/code/tests/test_data/V3_3_7/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+    shutil.copy("/code/tests/test_data/V3_3_7/modules.conf", modules_conf_location)
+    shutil.copy(
+        "/code/tests/test_data/V3_3_7/mongodb.conf", "/etc/cobbler/mongodb.conf"
+    )
+    shutil.copy(
+        "/code/tests/test_data/V3_3_7/collections/systems/host.example.org.json",
+        "/var/lib/cobbler/collections/systems/host.example.org.json",
+    )
+
+    # Act
+    new_settings = V4_0_0.migrate(old_settings_dict)
+
+    # Assert
+    assert new_settings["mongodb"] == {
+        "host": "mongo-test.example.com",
+        "port": 27018,
+    }
+
+
+def test_migrate_v4_0_0_interface_type_na(tmp_path: pathlib.Path):
+    # Arrange
+    systems_dir = tmp_path / "systems"
+    systems_dir.mkdir()
+    system_file = systems_dir / "system1.example.com.json"
+    shutil.copy(
+        "/code/tests/test_data/V3_3_7/collections_multi/systems/system1.example.com.json",
+        system_file,
+    )
+
+    # Act
+    V4_0_0.migrate_cobbler_collections(str(tmp_path))
+
+    # Assert
+    data = json.loads(system_file.read_text(encoding="UTF-8"))
+    assert data["interfaces"]["default"]["interface_type"] == "NA"
+
+
+def test_migrate_v4_0_0_boot_files_merge(tmp_path: pathlib.Path):
+    # Arrange
+    systems_dir = tmp_path / "systems"
+    systems_dir.mkdir()
+    system_file = systems_dir / "system3.example.com.json"
+    shutil.copy(
+        "/code/tests/test_data/V3_3_7/collections_multi/systems/system3.example.com.json",
+        system_file,
+    )
+
+    # Act
+    V4_0_0.migrate_cobbler_collections(str(tmp_path))
+
+    # Assert
+    data = json.loads(system_file.read_text(encoding="UTF-8"))
+    assert "boot_files" not in data
+    assert "fetchable_files" not in data
+    # template_files gains every boot_files key; on conflict, boot_files wins.
+    assert data["template_files"] == {
+        "foo": "bar",
+        "pxe": "pxe_file",
+        "shared_key": "from_boot_files",
+    }
+
+
+def test_migrate_v4_0_0_boot_files_inherit_not_merged(tmp_path: pathlib.Path):
+    """
+    A ``boot_files`` value of the literal string "<<inherit>>" must be dropped
+    without being merged into ``template_files``.
+    """
+    # Arrange
+    systems_dir = tmp_path / "systems"
+    systems_dir.mkdir()
+    system_file = systems_dir / "host.example.org.json"
+    shutil.copy(
+        "/code/tests/test_data/V3_3_7/collections/systems/host.example.org.json",
+        system_file,
+    )
+
+    # Act
+    V4_0_0.migrate_cobbler_collections(str(tmp_path))
+
+    # Assert
+    data = json.loads(system_file.read_text(encoding="UTF-8"))
+    assert "boot_files" not in data
+    assert data["template_files"] == {}
+
+
+@pytest.mark.parametrize(
+    "fetchable_files_value", [{"somefile": "/path/to/file"}, "<<inherit>>"]
+)
+def test_migrate_v4_0_0_fetchable_files_removed(
+    tmp_path: pathlib.Path, fetchable_files_value: object
+):
+    # Arrange
+    systems_dir = tmp_path / "systems"
+    systems_dir.mkdir()
+    system_file = systems_dir / "system.json"
+    system_file.write_text(
+        json.dumps({"uid": "abc", "fetchable_files": fetchable_files_value}),
+        encoding="UTF-8",
+    )
+
+    # Act
+    V4_0_0.migrate_cobbler_collections(str(tmp_path))
+
+    # Assert
+    data = json.loads(system_file.read_text(encoding="UTF-8"))
+    assert "fetchable_files" not in data
+
+
+def test_migrate_v4_0_0_network_interfaces_multi(tmp_path: pathlib.Path):
+    # Arrange
+    systems_dir = tmp_path / "systems"
+    systems_dir.mkdir()
+    for name in (
+        "system1.example.com",
+        "system2.example.com",
+        "system3.example.com",
+    ):
+        shutil.copy(
+            f"/code/tests/test_data/V3_3_7/collections_multi/systems/{name}.json",
+            systems_dir / f"{name}.json",
+        )
+    (tmp_path / "network_interfaces").mkdir()
+
+    # Act
+    V4_0_0.migrate_cobbler_json_files(tmp_path)
+    V4_0_0.migrate_cobbler_network_interfaces(tmp_path)
+
+    # Assert
+    system_files = list(systems_dir.glob("*.json"))
+    assert len(system_files) == 3
+    for system_file in system_files:
+        data = json.loads(system_file.read_text(encoding="UTF-8"))
+        assert "interfaces" not in data
+
+    interface_files = list((tmp_path / "network_interfaces").glob("*.json"))
+    expected_interface_counts = {
+        "11111111111111111111111111111111": 1,
+        "22222222222222222222222222222222": 2,
+        "33333333333333333333333333333333": 1,
+    }
+    counts: Dict[str, int] = {}
+    for interface_file in interface_files:
+        data = json.loads(interface_file.read_text(encoding="UTF-8"))
+        assert "uid" in data
+        assert "name" in data
+        assert "system_uid" in data
+        counts[data["system_uid"]] = counts.get(data["system_uid"], 0) + 1
+    assert counts == expected_interface_counts
+
+
+def test_migrate_v4_0_0_json_filename_migration_multi_collection(
+    tmp_path: pathlib.Path,
+):
+    # Arrange
+    systems_dir = tmp_path / "systems"
+    profiles_dir = tmp_path / "profiles"
+    systems_dir.mkdir()
+    profiles_dir.mkdir()
+    # These collection types were removed in V4.0.0 and are always empty on a real
+    # 3.3.x -> 4.0.0 upgrade - confirm they're left untouched, not a crash source.
+    for legacy in ("packages", "mgmtclasses", "files"):
+        (tmp_path / legacy).mkdir()
+
+    (systems_dir / "system1.example.com.json").write_text(
+        json.dumps({"uid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}), encoding="UTF-8"
+    )
+    (profiles_dir / "profile1.json").write_text(
+        json.dumps({"uid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}), encoding="UTF-8"
+    )
+
+    # Act
+    V4_0_0.migrate_cobbler_json_files(tmp_path)
+
+    # Assert
+    assert [f.name for f in systems_dir.glob("*.json")] == [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.json"
+    ]
+    assert [f.name for f in profiles_dir.glob("*.json")] == [
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.json"
+    ]
+    for legacy in ("packages", "mgmtclasses", "files"):
+        assert list((tmp_path / legacy).iterdir()) == []

@@ -373,6 +373,7 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     iso_template_dir = settings.pop("iso_template_dir")
     boot_loader_conf_template_dir = settings.pop("boot_loader_conf_template_dir")
     autoinstall_snippets_dir = settings.pop("autoinstall_snippets_dir")
+    settings.pop("windows_template_dir", None)
 
     # Do mongodb.conf migration
     mongodb_config = "/etc/cobbler/mongodb.conf"
@@ -391,11 +392,11 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     if mongodb_config_path.exists():
         mongodb_config_path.unlink()
 
-    # Do mongodb.conf migration
+    # Do modules.conf migration
     modules_config = "/etc/cobbler/modules.conf"
     modules_config_parser = ConfigParser()
     try:
-        modules_config_parser.read(mongodb_config)
+        modules_config_parser.read(modules_config)
     except configparser.Error as cp_error:
         raise configparser.Error(
             "Could not read Cobbler modules.conf config file!"
