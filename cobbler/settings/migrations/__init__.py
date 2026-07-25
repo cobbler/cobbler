@@ -203,8 +203,11 @@ def get_settings_file_version(
 
     # Extra settings and ignored keys are excluded from validation
     data, _ = filter_settings_to_validate(yaml_dict, ignore_keys)
-    for version, module_name in VERSION_LIST.items():
-        if module_name.validate(data):
+    # Several consecutive versions can share an identical schema (e.g. V3.3.5-V3.3.7),
+    # so more than one version may validate successfully. Check newest-first so the
+    # highest matching version wins instead of an arbitrary one based on dict order.
+    for version in sorted(VERSION_LIST.keys(), reverse=True):
+        if VERSION_LIST[version].validate(data):
             return version
     return EMPTY_VERSION
 

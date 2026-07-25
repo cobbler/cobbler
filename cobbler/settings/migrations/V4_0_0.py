@@ -9,6 +9,7 @@ Migration from V3.3.3 to V4.0.0
 import configparser
 import glob
 import json
+import logging
 import os
 import pathlib
 import uuid
@@ -18,6 +19,8 @@ from typing import Any, Dict
 from schema import Optional, Schema, SchemaError  # type: ignore
 
 from cobbler.settings.migrations import V3_3_7, helper
+
+logger = logging.getLogger()
 
 schema = Schema(
     {
@@ -375,6 +378,14 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     autoinstall_snippets_dir = settings.pop("autoinstall_snippets_dir")
     settings.pop("windows_template_dir", None)
 
+    # These two are not popped (they still exist in the V4.0.0 schema), but they may be
+    # dropped later on by key_drop_if_default() if they equal their defaults - capture
+    # them now for migrate_cobbler_autoinstall_templates() further down.
+    autoinstall_templates_dir = settings.get(
+        "autoinstall_templates_dir", "/var/lib/cobbler/templates"
+    )
+    default_template_type = settings.get("default_template_type", "cheetah")
+
     # Do mongodb.conf migration
     mongodb_config = "/etc/cobbler/mongodb.conf"
     modules_config_parser = ConfigParser()
@@ -456,6 +467,39 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     # TODO: Implement
     _ = autoinstall_snippets_dir
 
+    collection_folder = pathlib.Path("/var/lib/cobbler/collections/")
+    # Back up the pristine collections tree once, before any of the following steps
+    # mutate it.
+    helper.backup_dir(str(collection_folder))
+    # Rewrite cross-item references (distro/profile/image/menu/repos/parent) from
+    # the old name-based values to the new uid-based ones.
+    migrate_cobbler_uid_references(str(collection_folder))
+    # Reshape flat legacy fields (power_*/virt_*/name_servers*/next_server_*/apt_*)
+    # into their new nested Option sub-object shape, and drop per-item
+    # mgmt_classes/mgmt_parameters (no longer supported at the item level).
+    migrate_cobbler_item_options(str(collection_folder))
+    # migrate stored cobbler collections
+    migrate_cobbler_collections(str(collection_folder))
+    # Create dedicated Template records for legacy autoinstall path references -
+    # both per-item and the global settings default - and rewrite those
+    # references to the new Template's uid. Must run before key_drop_if_default()/
+    # update_settings_file() below, since it mutates settings["autoinstall"] in
+    # place and that needs to reach the settings.yaml that gets written to disk.
+    migrate_cobbler_autoinstall_templates(
+        str(collection_folder),
+        autoinstall_templates_dir,
+        default_template_type,
+        settings,
+    )
+    # Migrate JSON filenames
+    migrate_cobbler_json_files(collection_folder)
+    # Migrate SQLite DB
+    # TODO
+    # Migrate MongoDB
+    # TODO
+    # Migrate Network Interfaces to dedicated collection
+    migrate_cobbler_network_interfaces(collection_folder)
+
     # Drop defaults
     # pylint: disable-next=import-outside-toplevel
     from cobbler.settings import Settings
@@ -469,21 +513,11 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     update_settings_file(settings)
 
     for include_path in include:
-        include_directory = pathlib.Path(include_path)
-        if include_directory.is_dir() and include_directory.exists():
+        # "include" entries are glob patterns (e.g. "/etc/cobbler/settings.d/*.settings"),
+        # not literal directory paths, so the directory to clean up is the pattern's parent.
+        include_directory = pathlib.Path(include_path).parent
+        if include_directory.is_dir() and not any(include_directory.iterdir()):
             include_directory.rmdir()
-
-    collection_folder = pathlib.Path("/var/lib/cobbler/collections/")
-    # migrate stored cobbler collections
-    migrate_cobbler_collections(str(collection_folder))
-    # Migrate JSON filenames
-    migrate_cobbler_json_files(collection_folder)
-    # Migrate SQLite DB
-    # TODO
-    # Migrate MongoDB
-    # TODO
-    # Migrate Network Interfaces to dedicated collection
-    migrate_cobbler_network_interfaces(collection_folder)
 
     return normalize(settings)
 
@@ -496,7 +530,6 @@ def migrate_cobbler_collections(collections_dir: str) -> None:
     :param collections_dir: The directory of Cobbler where the collections files are.
     """
     # Migrate changed properties
-    helper.backup_dir(collections_dir)
     for collection_file in glob.glob(
         os.path.join(collections_dir, "**/*.json"), recursive=True
     ):
@@ -531,7 +564,6 @@ def migrate_cobbler_json_files(collection_folder: pathlib.Path) -> None:
 
     :param collection_folder: The directory of Cobbler where the collections files are.
     """
-    helper.backup_dir(str(collection_folder))
     for folder in pathlib.Path(collection_folder).iterdir():
         for file in folder.iterdir():
             if not file.name.endswith(".json"):
@@ -560,5 +592,279 @@ def migrate_cobbler_network_interfaces(collection_folder: pathlib.Path) -> None:
             interface_dict["uid"] = interface_uid
             interface_dict["name"] = interface_name
             interface_dict["system_uid"] = system_dict["uid"]
+            _reshape_interface_options(interface_dict)
             interface_file.write_text(json.dumps(interface_dict), encoding="UTF-8")
         file.write_text(json.dumps(system_dict), encoding="UTF-8")
+
+
+def _reshape_interface_options(interface_dict: Dict[str, Any]) -> None:
+    """
+    Reshape a V3.3.7 network interface's flat IPv4/IPv6/DNS fields into the nested
+    ipv4/ipv6/dns Option sub-object shape used by V4.0.0.
+
+    The legacy schema only tracked a single ``mtu`` value per interface; it is
+    assigned to ``ipv4.mtu`` since V3.3.x only supported one MTU setting per
+    interface and IPv4 was always configured. ``ipv6.mtu`` is left unset.
+
+    :param interface_dict: The interface dict to reshape, modified in place.
+    """
+    ipv4: Dict[str, Any] = {}
+    for old_key, new_key in (
+        ("ip_address", "address"),
+        ("netmask", "netmask"),
+        ("mtu", "mtu"),
+        ("static_routes", "static_routes"),
+    ):
+        if old_key in interface_dict:
+            ipv4[new_key] = interface_dict.pop(old_key)
+    if ipv4:
+        interface_dict["ipv4"] = ipv4
+
+    ipv6: Dict[str, Any] = {}
+    for old_key, new_key in (
+        ("ipv6_address", "address"),
+        ("ipv6_prefix", "prefix"),
+        ("ipv6_secondaries", "secondaries"),
+        ("ipv6_mtu", "mtu"),
+    ):
+        if old_key in interface_dict:
+            ipv6[new_key] = interface_dict.pop(old_key)
+    if ipv6:
+        interface_dict["ipv6"] = ipv6
+
+    dns: Dict[str, Any] = {}
+    for old_key, new_key in (
+        ("dns_name", "name"),
+        ("cnames", "common_names"),
+    ):
+        if old_key in interface_dict:
+            dns[new_key] = interface_dict.pop(old_key)
+    if dns:
+        interface_dict["dns"] = dns
+
+
+def migrate_cobbler_uid_references(collections_dir: str) -> None:
+    """
+    Rewrite cross-item reference fields that stored the referenced item's name in
+    V3.3.7 to use its uid instead, matching the V4.0.0 item model where items are
+    looked up by uid rather than name.
+
+    :param collections_dir: The directory of Cobbler where the collections files are.
+    """
+    # For each collection type, the fields it has that reference another item by
+    # name, mapped to the collection type they reference.
+    scalar_reference_fields = {
+        "distros": {"parent": "distros"},
+        "profiles": {"distro": "distros", "menu": "menus", "parent": "profiles"},
+        "systems": {"profile": "profiles", "image": "images", "parent": "systems"},
+        "images": {"menu": "menus", "parent": "images"},
+        "menus": {"parent": "menus"},
+        "repos": {"parent": "repos"},
+    }
+    list_reference_fields = {
+        "profiles": {"repos": "repos"},
+    }
+
+    referenced_collections = {
+        target
+        for fields in scalar_reference_fields.values()
+        for target in fields.values()
+    } | {
+        target
+        for fields in list_reference_fields.values()
+        for target in fields.values()
+    }
+
+    name_to_uid: Dict[str, Dict[str, str]] = {}
+    for collection_type in referenced_collections:
+        mapping: Dict[str, str] = {}
+        for collection_file in glob.glob(
+            os.path.join(collections_dir, collection_type, "*.json")
+        ):
+            with open(collection_file, encoding="UTF-8") as _f:
+                data = json.loads(_f.read())
+            if "name" in data and "uid" in data:
+                mapping[data["name"]] = data["uid"]
+        name_to_uid[collection_type] = mapping
+
+    def resolve(value: str, target_collection: str) -> str:
+        if value in ("", "<<inherit>>"):
+            return value
+        return name_to_uid.get(target_collection, {}).get(value, value)
+
+    for collection_type, fields in scalar_reference_fields.items():
+        for collection_file in glob.glob(
+            os.path.join(collections_dir, collection_type, "*.json")
+        ):
+            with open(collection_file, encoding="UTF-8") as _f:
+                data = json.loads(_f.read())
+            changed = False
+            for field, target_collection in fields.items():
+                if field in data and isinstance(data[field], str):
+                    new_value = resolve(data[field], target_collection)
+                    if new_value != data[field]:
+                        data[field] = new_value
+                        changed = True
+            for field, target_collection in list_reference_fields.get(
+                collection_type, {}
+            ).items():
+                if field in data and isinstance(data[field], list):
+                    new_values = [resolve(v, target_collection) for v in data[field]]
+                    if new_values != data[field]:
+                        data[field] = new_values
+                        changed = True
+            if changed:
+                with open(collection_file, "w", encoding="UTF-8") as _f:
+                    _f.write(json.dumps(data))
+
+
+def migrate_cobbler_item_options(collections_dir: str) -> None:
+    """
+    Reshape flat legacy item fields that were moved into nested "Option"
+    sub-objects in V4.0.0 (e.g. ``power_address`` -> ``power.address``), and drop
+    the per-item ``mgmt_classes``/``mgmt_parameters`` fields, which no longer exist
+    on any item class.
+
+    :param collections_dir: The directory of Cobbler where the collections files are.
+    """
+    option_field_maps = {
+        "power": {
+            "power_address": "address",
+            "power_id": "id",
+            "power_pass": "password",
+            "power_type": "type",
+            "power_user": "user",
+            "power_options": "options",
+            "power_identity_file": "identity_file",
+        },
+        "virt": {
+            "virt_auto_boot": "auto_boot",
+            "virt_cpus": "cpus",
+            "virt_disk_driver": "disk_driver",
+            "virt_file_size": "file_size",
+            "virt_path": "path",
+            "virt_pxe_boot": "pxe_boot",
+            "virt_ram": "ram",
+            "virt_type": "type",
+        },
+        "dns": {
+            "name_servers": "name_servers",
+            "name_servers_search": "name_servers_search",
+        },
+        "tftp": {
+            "next_server_v4": "next_server_v4",
+            "next_server_v6": "next_server_v6",
+        },
+        "apt": {
+            "apt_components": "components",
+            "apt_dists": "dists",
+        },
+    }
+
+    for collection_file in glob.glob(
+        os.path.join(collections_dir, "**/*.json"), recursive=True
+    ):
+        with open(collection_file, encoding="UTF-8") as _f:
+            data = json.loads(_f.read())
+
+        data.pop("mgmt_classes", None)
+        data.pop("mgmt_parameters", None)
+
+        for option_name, field_map in option_field_maps.items():
+            option_dict: Dict[str, Any] = {}
+            for old_key, new_key in field_map.items():
+                if old_key in data:
+                    option_dict[new_key] = data.pop(old_key)
+            if option_dict:
+                data[option_name] = option_dict
+
+        with open(collection_file, "w", encoding="UTF-8") as _f:
+            _f.write(json.dumps(data))
+
+
+def migrate_cobbler_autoinstall_templates(
+    collections_dir: str,
+    autoinstall_templates_dir: str,
+    default_template_type: str,
+    settings: Dict[str, Any],
+) -> None:
+    """
+    Create dedicated Template collection records for legacy ``autoinstall`` path
+    references - both per-item (profile/system/image) and the global
+    ``settings["autoinstall"]`` default, which items with an inherited/unset
+    autoinstall resolve to (V4.0.0 replaced the flat path string with a
+    reference to a Template item in both places) - and rewrite each reference to
+    the new Template's uid.
+
+    A legacy reference to a file that no longer exists under
+    ``autoinstall_templates_dir`` is dropped (with a warning) instead of causing
+    the whole referencing item to fail to load later.
+
+    :param collections_dir: The directory of Cobbler where the collections files are.
+    :param autoinstall_templates_dir: The directory autoinstall template paths are relative to.
+    :param default_template_type: The template engine to assign to synthesized Template records.
+    :param settings: The settings dict, whose "autoinstall" default is migrated in place if present.
+    """
+    templates_dir = os.path.join(collections_dir, "templates")
+    # Maps an old autoinstall path to the uid of the Template record created for it,
+    # so multiple items referencing the same path share a single Template record.
+    path_to_uid: Dict[str, str] = {}
+
+    def resolve_autoinstall(autoinstall: str, referenced_by: str) -> str:
+        if autoinstall in ("", "<<inherit>>"):
+            return autoinstall
+        if autoinstall not in path_to_uid:
+            template_file_path = os.path.join(autoinstall_templates_dir, autoinstall)
+            if not os.path.isfile(template_file_path):
+                logger.warning(
+                    'autoinstall template "%s" referenced by "%s" does not '
+                    "exist under autoinstall_templates_dir - dropping the "
+                    "reference instead of losing the whole item.",
+                    autoinstall,
+                    referenced_by,
+                )
+                path_to_uid[autoinstall] = ""
+            else:
+                template_uid = uuid.uuid4().hex
+                # Item names may only contain [a-zA-Z0-9_-.:] - legacy autoinstall
+                # paths can contain "/" for subdirectories, so replace it with the
+                # same ":" separator Cobbler already uses elsewhere (e.g. profile
+                # names like "x86_64:some-distro:install").
+                template_record = {
+                    "uid": template_uid,
+                    "name": autoinstall.replace("/", ":"),
+                    "template_type": default_template_type,
+                    "uri": {"schema": "file", "path": autoinstall},
+                }
+                os.makedirs(templates_dir, exist_ok=True)
+                with open(
+                    os.path.join(templates_dir, f"{template_uid}.json"),
+                    "w",
+                    encoding="UTF-8",
+                ) as _f:
+                    _f.write(json.dumps(template_record))
+                path_to_uid[autoinstall] = template_uid
+        return path_to_uid[autoinstall]
+
+    for collection_type in ("profiles", "systems", "images"):
+        for collection_file in glob.glob(
+            os.path.join(collections_dir, collection_type, "*.json")
+        ):
+            with open(collection_file, encoding="UTF-8") as _f:
+                data = json.loads(_f.read())
+
+            autoinstall = data.get("autoinstall", "")
+            new_autoinstall = resolve_autoinstall(
+                autoinstall, data.get("name", collection_file)
+            )
+            if new_autoinstall == autoinstall:
+                continue
+
+            data["autoinstall"] = new_autoinstall
+            with open(collection_file, "w", encoding="UTF-8") as _f:
+                _f.write(json.dumps(data))
+
+    if "autoinstall" in settings:
+        settings["autoinstall"] = resolve_autoinstall(
+            settings["autoinstall"], "settings.yaml default"
+        )

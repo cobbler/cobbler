@@ -140,6 +140,25 @@ def test_get_settings_file_version():
     assert result == v285
 
 
+def test_get_settings_file_version_prefers_newest_matching_version():
+    """
+    Regression test: V3.3.5/V3.3.6/V3.3.7 share an identical schema, so a
+    settings dict valid for one validates against all three. This must resolve
+    to the highest (newest) matching version, not whichever happens to be
+    first in VERSION_LIST's (unordered) iteration order.
+    """
+    # Arrange
+    old_settings_dict = settings.read_yaml_file(
+        "/code/tests/test_data/V3_3_6/settings.yaml"
+    )
+
+    # Act
+    result = migrations.get_settings_file_version(old_settings_dict)
+
+    # Assert
+    assert result == migrations.CobblerVersion(3, 3, 7)
+
+
 def test_migrate_v3_0_0():
     # Arrange
     with open(
@@ -661,3 +680,381 @@ def test_migrate_v4_0_0_json_filename_migration_multi_collection(
     ]
     for legacy in ("packages", "mgmtclasses", "files"):
         assert list((tmp_path / legacy).iterdir()) == []
+
+
+def test_migrate_v4_0_0_include_directory_cleanup(tmp_path: pathlib.Path):
+    """
+    Regression test: "include" holds glob patterns (e.g.
+    "/etc/cobbler/settings.d/*.settings"), not literal directory paths - the
+    settings.d directory itself (the pattern's parent) must actually be
+    removed once empty, not silently left behind.
+    """
+    # Arrange
+    with open(
+        "/code/tests/test_data/V3_3_7/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+    settings_d_dir = tmp_path / "settings.d"
+    settings_d_dir.mkdir()
+    old_settings_dict["include"] = [str(settings_d_dir / "*.settings")]
+    shutil.copy("/code/tests/test_data/V3_3_7/modules.conf", modules_conf_location)
+    shutil.copy(
+        "/code/tests/test_data/V3_3_7/mongodb.conf", "/etc/cobbler/mongodb.conf"
+    )
+    shutil.copy(
+        "/code/tests/test_data/V3_3_7/collections/systems/host.example.org.json",
+        "/var/lib/cobbler/collections/systems/host.example.org.json",
+    )
+
+    # Act
+    V4_0_0.migrate(old_settings_dict)
+
+    # Assert
+    assert not settings_d_dir.exists()
+
+
+def test_migrate_v4_0_0_include_directory_not_removed_if_not_empty(
+    tmp_path: pathlib.Path,
+):
+    # Arrange
+    with open(
+        "/code/tests/test_data/V3_3_7/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+    settings_d_dir = tmp_path / "settings.d"
+    settings_d_dir.mkdir()
+    (settings_d_dir / "leftover.settings").write_text("foo: bar", encoding="UTF-8")
+    old_settings_dict["include"] = [str(settings_d_dir / "*.settings")]
+    shutil.copy("/code/tests/test_data/V3_3_7/modules.conf", modules_conf_location)
+    shutil.copy(
+        "/code/tests/test_data/V3_3_7/mongodb.conf", "/etc/cobbler/mongodb.conf"
+    )
+    shutil.copy(
+        "/code/tests/test_data/V3_3_7/collections/systems/host.example.org.json",
+        "/var/lib/cobbler/collections/systems/host.example.org.json",
+    )
+
+    # Act
+    V4_0_0.migrate(old_settings_dict)
+
+    # Assert
+    assert settings_d_dir.exists()
+
+
+def test_migrate_v4_0_0_uid_references(tmp_path: pathlib.Path):
+    # Arrange
+    distros_dir = tmp_path / "distros"
+    profiles_dir = tmp_path / "profiles"
+    systems_dir = tmp_path / "systems"
+    menus_dir = tmp_path / "menus"
+    repos_dir = tmp_path / "repos"
+    for directory in (distros_dir, profiles_dir, systems_dir, menus_dir, repos_dir):
+        directory.mkdir()
+
+    (distros_dir / "distro1.json").write_text(
+        json.dumps({"uid": "d1", "name": "test-distro", "parent": ""}),
+        encoding="UTF-8",
+    )
+    (menus_dir / "menu1.json").write_text(
+        json.dumps({"uid": "m1", "name": "test-menu", "parent": ""}),
+        encoding="UTF-8",
+    )
+    (repos_dir / "repo1.json").write_text(
+        json.dumps({"uid": "r1", "name": "test-repo", "parent": ""}),
+        encoding="UTF-8",
+    )
+    (profiles_dir / "profile1.json").write_text(
+        json.dumps(
+            {
+                "uid": "p1",
+                "name": "test-profile",
+                "distro": "test-distro",
+                "menu": "test-menu",
+                "parent": "",
+                "repos": ["test-repo"],
+            }
+        ),
+        encoding="UTF-8",
+    )
+    (profiles_dir / "profile2.json").write_text(
+        json.dumps(
+            {
+                "uid": "p2",
+                "name": "child-profile",
+                "distro": "<<inherit>>",
+                "menu": "",
+                "parent": "test-profile",
+                "repos": [],
+            }
+        ),
+        encoding="UTF-8",
+    )
+    (systems_dir / "system1.json").write_text(
+        json.dumps(
+            {
+                "uid": "s1",
+                "name": "test-system",
+                "profile": "test-profile",
+                "image": "",
+                "parent": "",
+            }
+        ),
+        encoding="UTF-8",
+    )
+
+    # Act
+    V4_0_0.migrate_cobbler_uid_references(str(tmp_path))
+
+    # Assert
+    profile1 = json.loads((profiles_dir / "profile1.json").read_text(encoding="UTF-8"))
+    assert profile1["distro"] == "d1"
+    assert profile1["menu"] == "m1"
+    assert profile1["repos"] == ["r1"]
+
+    profile2 = json.loads((profiles_dir / "profile2.json").read_text(encoding="UTF-8"))
+    assert profile2["distro"] == "<<inherit>>"
+    assert profile2["menu"] == ""
+    assert profile2["parent"] == "p1"
+
+    system1 = json.loads((systems_dir / "system1.json").read_text(encoding="UTF-8"))
+    assert system1["profile"] == "p1"
+    assert system1["image"] == ""
+
+
+def test_migrate_v4_0_0_item_options_reshape(tmp_path: pathlib.Path):
+    # Arrange
+    systems_dir = tmp_path / "systems"
+    distros_dir = tmp_path / "distros"
+    repos_dir = tmp_path / "repos"
+    for directory in (systems_dir, distros_dir, repos_dir):
+        directory.mkdir()
+
+    system_file = systems_dir / "system1.json"
+    system_file.write_text(
+        json.dumps(
+            {
+                "uid": "s1",
+                "name": "test-system",
+                "power_address": "power.example.com",
+                "power_id": "1",
+                "power_pass": "secret",
+                "power_type": "ipmilanplus",
+                "power_user": "admin",
+                "power_options": "",
+                "power_identity_file": "",
+                "virt_auto_boot": True,
+                "virt_type": "kvm",
+                "name_servers": ["192.0.2.1"],
+                "name_servers_search": [],
+                "next_server_v4": "192.0.2.2",
+                "next_server_v6": "",
+                "mgmt_classes": "<<inherit>>",
+                "mgmt_parameters": {"from_cobbler": True},
+            }
+        ),
+        encoding="UTF-8",
+    )
+    # A distro has none of these fields - must be left completely untouched.
+    distro_file = distros_dir / "distro1.json"
+    distro_file.write_text(
+        json.dumps({"uid": "d1", "name": "test-distro"}), encoding="UTF-8"
+    )
+    repo_file = repos_dir / "repo1.json"
+    repo_file.write_text(
+        json.dumps(
+            {
+                "uid": "r1",
+                "name": "test-repo",
+                "apt_components": ["main"],
+                "apt_dists": ["stable"],
+            }
+        ),
+        encoding="UTF-8",
+    )
+
+    # Act
+    V4_0_0.migrate_cobbler_item_options(str(tmp_path))
+
+    # Assert
+    data = json.loads(system_file.read_text(encoding="UTF-8"))
+    assert "power_address" not in data
+    assert data["power"] == {
+        "address": "power.example.com",
+        "id": "1",
+        "password": "secret",
+        "type": "ipmilanplus",
+        "user": "admin",
+        "options": "",
+        "identity_file": "",
+    }
+    assert data["virt"] == {"auto_boot": True, "type": "kvm"}
+    assert data["dns"] == {"name_servers": ["192.0.2.1"], "name_servers_search": []}
+    assert data["tftp"] == {"next_server_v4": "192.0.2.2", "next_server_v6": ""}
+    assert "mgmt_classes" not in data
+    assert "mgmt_parameters" not in data
+
+    distro_data = json.loads(distro_file.read_text(encoding="UTF-8"))
+    assert "power" not in distro_data
+    assert "virt" not in distro_data
+
+    repo_data = json.loads(repo_file.read_text(encoding="UTF-8"))
+    assert repo_data["apt"] == {"components": ["main"], "dists": ["stable"]}
+
+
+def test_migrate_v4_0_0_network_interface_option_reshape(tmp_path: pathlib.Path):
+    # Arrange
+    systems_dir = tmp_path / "systems"
+    systems_dir.mkdir()
+    (tmp_path / "network_interfaces").mkdir()
+    (systems_dir / "system1.json").write_text(
+        json.dumps(
+            {
+                "uid": "s1",
+                "name": "test-system",
+                "interfaces": {
+                    "default": {
+                        "interface_type": "na",
+                        "ip_address": "192.0.2.10",
+                        "netmask": "255.255.255.0",
+                        "mtu": "1500",
+                        "static_routes": ["192.0.2.0/24"],
+                        "ipv6_address": "2001:db8::1",
+                        "ipv6_prefix": "64",
+                        "ipv6_secondaries": ["2001:db8::2"],
+                        "dns_name": "test-system.example.com",
+                        "cnames": ["alias.example.com"],
+                        "mac_address": "aa:bb:cc:dd:ee:ff",
+                    }
+                },
+            }
+        ),
+        encoding="UTF-8",
+    )
+
+    # Act
+    V4_0_0.migrate_cobbler_json_files(tmp_path)
+    V4_0_0.migrate_cobbler_network_interfaces(tmp_path)
+
+    # Assert
+    interface_files = list((tmp_path / "network_interfaces").glob("*.json"))
+    assert len(interface_files) == 1
+    data = json.loads(interface_files[0].read_text(encoding="UTF-8"))
+    assert data["ipv4"] == {
+        "address": "192.0.2.10",
+        "netmask": "255.255.255.0",
+        "mtu": "1500",
+        "static_routes": ["192.0.2.0/24"],
+    }
+    assert data["ipv6"] == {
+        "address": "2001:db8::1",
+        "prefix": "64",
+        "secondaries": ["2001:db8::2"],
+    }
+    assert data["dns"] == {
+        "name": "test-system.example.com",
+        "common_names": ["alias.example.com"],
+    }
+    assert data["mac_address"] == "aa:bb:cc:dd:ee:ff"
+    for old_key in (
+        "ip_address",
+        "netmask",
+        "mtu",
+        "static_routes",
+        "ipv6_address",
+        "ipv6_prefix",
+        "ipv6_secondaries",
+        "dns_name",
+        "cnames",
+    ):
+        assert old_key not in data
+
+
+def test_migrate_v4_0_0_autoinstall_templates_creates_and_rewrites(
+    tmp_path: pathlib.Path,
+):
+    # Arrange
+    templates_source_dir = tmp_path / "autoinstall_templates"
+    templates_source_dir.mkdir()
+    (templates_source_dir / "custom.ks").write_text("# kickstart", encoding="UTF-8")
+
+    collections_dir = tmp_path / "collections"
+    profiles_dir = collections_dir / "profiles"
+    systems_dir = collections_dir / "systems"
+    profiles_dir.mkdir(parents=True)
+    systems_dir.mkdir()
+
+    (profiles_dir / "profile1.json").write_text(
+        json.dumps({"uid": "p1", "name": "profile1", "autoinstall": "custom.ks"}),
+        encoding="UTF-8",
+    )
+    (systems_dir / "system1.json").write_text(
+        json.dumps({"uid": "s1", "name": "system1", "autoinstall": "custom.ks"}),
+        encoding="UTF-8",
+    )
+    (systems_dir / "system2.json").write_text(
+        json.dumps({"uid": "s2", "name": "system2", "autoinstall": "missing.ks"}),
+        encoding="UTF-8",
+    )
+    (systems_dir / "system3.json").write_text(
+        json.dumps({"uid": "s3", "name": "system3", "autoinstall": "<<inherit>>"}),
+        encoding="UTF-8",
+    )
+    settings_dict: Dict[str, str] = {"autoinstall": "custom.ks"}
+
+    # Act
+    V4_0_0.migrate_cobbler_autoinstall_templates(
+        str(collections_dir), str(templates_source_dir), "cheetah", settings_dict
+    )
+
+    # Assert
+    template_files = list((collections_dir / "templates").glob("*.json"))
+    assert len(template_files) == 1  # deduped across profile1/system1/settings
+    template_data = json.loads(template_files[0].read_text(encoding="UTF-8"))
+    assert template_data["uri"] == {"schema": "file", "path": "custom.ks"}
+    assert template_data["template_type"] == "cheetah"
+    assert template_data["name"] == "custom.ks"
+
+    profile1 = json.loads((profiles_dir / "profile1.json").read_text(encoding="UTF-8"))
+    system1 = json.loads((systems_dir / "system1.json").read_text(encoding="UTF-8"))
+    system2 = json.loads((systems_dir / "system2.json").read_text(encoding="UTF-8"))
+    system3 = json.loads((systems_dir / "system3.json").read_text(encoding="UTF-8"))
+
+    assert profile1["autoinstall"] == template_data["uid"]
+    assert system1["autoinstall"] == template_data["uid"]
+    assert system2["autoinstall"] == ""  # dangling reference dropped, not fatal
+    assert system3["autoinstall"] == "<<inherit>>"  # untouched
+    assert settings_dict["autoinstall"] == template_data["uid"]
+
+
+def test_migrate_v4_0_0_autoinstall_templates_sanitizes_name(tmp_path: pathlib.Path):
+    """
+    Item names may only contain [a-zA-Z0-9_-.:] - a legacy autoinstall path with
+    subdirectories (containing "/") must not be used verbatim as the
+    synthesized Template's name.
+    """
+    # Arrange
+    templates_source_dir = tmp_path / "autoinstall_templates"
+    (templates_source_dir / "subdir").mkdir(parents=True)
+    (templates_source_dir / "subdir" / "custom.ks").write_text("# ks", encoding="UTF-8")
+
+    collections_dir = tmp_path / "collections"
+    profiles_dir = collections_dir / "profiles"
+    profiles_dir.mkdir(parents=True)
+    (profiles_dir / "profile1.json").write_text(
+        json.dumps(
+            {"uid": "p1", "name": "profile1", "autoinstall": "subdir/custom.ks"}
+        ),
+        encoding="UTF-8",
+    )
+
+    # Act
+    V4_0_0.migrate_cobbler_autoinstall_templates(
+        str(collections_dir), str(templates_source_dir), "cheetah", {}
+    )
+
+    # Assert
+    template_files = list((collections_dir / "templates").glob("*.json"))
+    assert len(template_files) == 1
+    template_data = json.loads(template_files[0].read_text(encoding="UTF-8"))
+    assert template_data["name"] == "subdir:custom.ks"
+    assert template_data["uri"]["path"] == "subdir/custom.ks"
