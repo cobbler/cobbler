@@ -1,0 +1,29 @@
+{
+  "uid": "33333333333333333333333333333333",
+  "name": "system3.example.com",
+  "parent": "",
+  "depth": 2,
+  "profile": "x86_64:test-profile:install",
+  "fetchable_files": {
+    "somefile": "/path/to/file"
+  },
+  "boot_files": {
+    "pxe": "pxe_file",
+    "shared_key": "from_boot_files"
+  },
+  "template_files": {
+    "foo": "bar",
+    "shared_key": "from_template_files"
+  },
+  "interfaces": {
+    "default": {
+      "interface_type": "",
+      "dns_name": "system3.example.com",
+      "ip_address": "192.0.2.14",
+      "mac_address": "aa:bb:cc:dd:ee:04",
+      "management": true,
+      "static": false,
+      "netmask": ""
+    }
+  }
+}

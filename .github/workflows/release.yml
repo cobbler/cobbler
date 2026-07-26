@@ -74,11 +74,10 @@ jobs:
           libsystemd-dev
       - name: Install Deps for installing project
         run: pip install Sphinx coverage wheel setuptools_scm
-      - name: Fetch date for version bump
-        run: echo "new_version=$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
-      - name: Replace version in setup.py
-        if: startsWith(github.ref, 'refs/tags/v') != true && github.ref == 'refs/heads/main'
-        run: sed -i '/VERSION = "[0-9].[0-9].[0-9]/s/.$/.'${{ env.new_version }}'"/g' setup.py
+      - name: Pin version without local part
+        # PyPI/TestPyPI reject uploads whose version has a local segment
+        # (e.g. "+gabcdef"), which setuptools_scm appends for non-tag commits.
+        run: echo "SETUPTOOLS_SCM_PRETEND_VERSION=$(python -m setuptools_scm | cut -d'+' -f1)" >> $GITHUB_ENV
       - name: Install Deps with pip
         run: pip install .
       - name: Install pypa/build

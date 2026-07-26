@@ -1,0 +1,18 @@
+{
+  "uid": "11111111111111111111111111111111",
+  "name": "system1.example.com",
+  "parent": "",
+  "depth": 2,
+  "profile": "x86_64:test-profile:install",
+  "interfaces": {
+    "default": {
+      "interface_type": "",
+      "dns_name": "system1.example.com",
+      "ip_address": "192.0.2.11",
+      "mac_address": "aa:bb:cc:dd:ee:01",
+      "management": true,
+      "static": false,
+      "netmask": ""
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "uid": "22222222222222222222222222222222",
+  "name": "system2.example.com",
+  "parent": "",
+  "depth": 2,
+  "profile": "x86_64:test-profile:install",
+  "interfaces": {
+    "default": {
+      "interface_type": "na",
+      "dns_name": "system2.example.com",
+      "ip_address": "192.0.2.12",
+      "mac_address": "aa:bb:cc:dd:ee:02",
+      "management": true,
+      "static": false,
+      "netmask": ""
+    },
+    "bmc": {
+      "interface_type": "bmc",
+      "dns_name": "system2-sp.example.com",
+      "ip_address": "192.0.2.13",
+      "mac_address": "aa:bb:cc:dd:ee:03",
+      "management": false,
+      "static": false,
+      "netmask": ""
+    }
+  }
+}

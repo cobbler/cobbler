@@ -8,7 +8,7 @@ Tests for the Cobbler settings migration helpers
 # SPDX-FileCopyrightText: Copyright SUSE LLC
 
 import copy
-from typing import Dict, Union
+from typing import Any, Dict, Union
 
 import pytest
 
@@ -110,3 +110,40 @@ def test_key_drop_if_default_2(example_dict: ExampleDictType):
 
     # Assert
     assert result == {"a": {"r": 5}}
+
+
+def test_key_drop_if_default_missing_top_level_key_preserved(
+    example_dict: ExampleDictType,
+):
+    """
+    A settings key with no corresponding entry in ``defaults`` at all (e.g. a
+    setting the current codebase no longer declares) must be preserved rather than
+    raising a ``KeyError``, since there's no default to compare it against.
+    """
+    # Arrange
+    value_dict: Dict[str, Any] = copy.deepcopy(example_dict)
+    value_dict["removed_setting"] = "custom_value"
+
+    # Act
+    result = helper.key_drop_if_default(value_dict, example_dict)
+
+    # Assert
+    assert result == {"removed_setting": "custom_value"}
+
+
+def test_key_drop_if_default_missing_nested_key_preserved(
+    example_dict: ExampleDictType,
+):
+    """
+    Same as above, but for a key nested inside a dict that itself still exists in
+    ``defaults`` (e.g. a removed bootloader architecture inside bootloaders_formats).
+    """
+    # Arrange
+    value_dict: Dict[str, Any] = copy.deepcopy(example_dict)
+    value_dict["b"]["v"]["removed_nested_setting"] = "custom_value"
+
+    # Act
+    result = helper.key_drop_if_default(value_dict, example_dict)
+
+    # Assert
+    assert result == {"b": {"v": {"removed_nested_setting": "custom_value"}}}

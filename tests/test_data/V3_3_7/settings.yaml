@@ -51,6 +51,8 @@ bootloaders_formats:
     binary_name: grubaa64.efi
   arm:
     binary_name: bootarm.efi
+  arm-uboot:
+    binary_name: arm-boot.efi
   arm64-efi:
     binary_name: grubaa64.efi
     extra_modules:
@@ -582,3 +584,7 @@ lazy_start: false
 # Include other configuration snippets. Overwriting a key from this file in a childfile will overwrite the value from
 # this file.
 include: [ "/code/tests/test_data/V3_3_3/settings.d/*.settings" ]
+
+# Windows support settings (removed without replacement in V4.0.0 - real V3.3.x
+# installs always have this key with a schema default, see MIGRATION_4_0_0_VERIFICATION_LOG.md)
+windows_template_dir: "/etc/cobbler/windows"
