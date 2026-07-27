@@ -243,7 +243,7 @@ def test_indexes(
     # Arrange
 
     # Assert
-    assert len(system_group_collection.indexes) == 1
+    assert len(system_group_collection.indexes) == 2
     assert len(system_group_collection.indexes["name"]) == 0
 
 

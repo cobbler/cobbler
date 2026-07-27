@@ -24,9 +24,15 @@ if TYPE_CHECKING:
     from cobbler.items.system import System
     from cobbler.settings import Settings
 
+    InheritableDictProperty = property
+    InheritableProperty = property
     LazyProperty = property
 else:
-    from cobbler.decorator import LazyProperty
+    from cobbler.decorator import (
+        InheritableDictProperty,
+        InheritableProperty,
+        LazyProperty,
+    )
 
 
 class HierarchyItem(NamedTuple):
@@ -348,7 +354,7 @@ class InheritableItem(BaseItem, ABC):
 
         :getter: An empty list in case of items which don't have logical children.
         """
-        if self.COLLECTION_TYPE not in ["profile", "menu"]:
+        if "parent" not in self.api.get_items(self.COLLECTION_TYPE).indexes:
             return []
 
         results: Optional[List["InheritableItem"]] = self.api.find_items(  # type: ignore
@@ -376,6 +382,30 @@ class InheritableItem(BaseItem, ABC):
                 results.extend(child.tree_walk(attribute_name))
 
         return results
+
+    def _clean_dict_cache(self, name: Optional[str]):
+        """
+        Clearing the Item dict cache.
+
+        :param name: The name of Item attribute or None.
+        """
+        if not self.api.settings().cache_enabled:
+            return
+
+        if name is not None and self._inmemory:
+            attr = getattr(type(self), name[1:])
+            if (
+                isinstance(attr, (InheritableProperty, InheritableDictProperty))
+                and self.api.get_items(self.COLLECTION_TYPE).listing.get(self.uid)
+                is not None
+            ):
+                # Invalidating "resolved" caches
+                for dep_item in self.tree_walk(name):
+                    self.logger.info(dep_item.cache.get_dict_cache(True))
+                    dep_item.cache.set_dict_cache(None, True)
+
+        # Invalidating the cache of the object itself.
+        self.cache.clean_dict_cache()
 
     @property
     def descendants(self) -> List["InheritableItem"]:

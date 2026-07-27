@@ -350,12 +350,27 @@ class Settings:
             },
             "distro_group": {
                 "name": {"nonunique": False, "disabled": False},
+                "parent": {
+                    "property": "get_parent",
+                    "nonunique": True,
+                    "disabled": False,
+                },
             },
             "profile_group": {
                 "name": {"nonunique": False, "disabled": False},
+                "parent": {
+                    "property": "get_parent",
+                    "nonunique": True,
+                    "disabled": False,
+                },
             },
             "system_group": {
                 "name": {"nonunique": False, "disabled": False},
+                "parent": {
+                    "property": "get_parent",
+                    "nonunique": True,
+                    "disabled": False,
+                },
             },
             "template": {
                 "name": {"nonunique": False, "disabled": False},

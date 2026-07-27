@@ -354,6 +354,11 @@ schema = Schema(
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
                 },
+                Optional("parent"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
             },
             Optional("profile_group"): {
                 Optional("name"): {
@@ -361,9 +366,19 @@ schema = Schema(
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
                 },
+                Optional("parent"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
             },
             Optional("system_group"): {
                 Optional("name"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("parent"): {
                     Optional("property"): str,
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,

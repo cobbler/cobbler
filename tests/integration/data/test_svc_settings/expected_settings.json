@@ -385,17 +385,32 @@
             "name": {
                 "nonunique": false,
                 "disabled": false
+            },
+            "parent": {
+                "property": "get_parent",
+                "nonunique": true,
+                "disabled": false
             }
         },
         "profile_group": {
             "name": {
                 "nonunique": false,
                 "disabled": false
+            },
+            "parent": {
+                "property": "get_parent",
+                "nonunique": true,
+                "disabled": false
             }
         },
         "system_group": {
             "name": {
                 "nonunique": false,
+                "disabled": false
+            },
+            "parent": {
+                "property": "get_parent",
+                "nonunique": true,
                 "disabled": false
             }
         },
