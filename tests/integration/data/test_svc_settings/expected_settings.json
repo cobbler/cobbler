@@ -318,6 +318,10 @@
                 "nonunique": true,
                 "disabled": false
             },
+            "system_uid": {
+                "nonunique": true,
+                "disabled": false
+            },
             "mac_address": {
                 "nonunique": false,
                 "disabled": false

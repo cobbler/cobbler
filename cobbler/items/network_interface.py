@@ -612,7 +612,11 @@ class NetworkInterface(BaseItem):
 
         :param system_name: The new system_name.
         """
+        old_system_uid = self._system_uid
         self._system_uid = system_uid
+        self.api.network_interfaces().update_index_value(
+            self, "system_uid", old_system_uid, system_uid
+        )
 
     @property
     def system(self) -> "System":

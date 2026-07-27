@@ -271,6 +271,11 @@ schema = Schema(
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
                 },
+                Optional("system_uid"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
                 Optional("mac_address"): {
                     Optional("property"): str,
                     Optional("nonunique"): bool,

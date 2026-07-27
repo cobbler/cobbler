@@ -312,6 +312,7 @@ class Settings:
             },
             "network_interface": {
                 "name": {"nonunique": True, "disabled": False},
+                "system_uid": {"nonunique": True, "disabled": False},
                 "mac_address": {
                     "nonunique": self.allow_duplicate_macs,
                     "disabled": self.allow_duplicate_macs,

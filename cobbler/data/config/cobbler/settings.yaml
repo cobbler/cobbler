@@ -709,6 +709,9 @@ memory_indexes:
         name:
             nonunique: true
             disabled: false
+        system_uid:
+            nonunique: true
+            disabled: false
         mac_address:
             nonunique: *allow_duplicate_macs
             disabled: *allow_duplicate_macs
