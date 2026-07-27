@@ -356,6 +356,7 @@ class Settings:
                     "nonunique": True,
                     "disabled": False,
                 },
+                "members": {"nonunique": True, "disabled": False},
             },
             "profile_group": {
                 "name": {"nonunique": False, "disabled": False},
@@ -364,6 +365,7 @@ class Settings:
                     "nonunique": True,
                     "disabled": False,
                 },
+                "members": {"nonunique": True, "disabled": False},
             },
             "system_group": {
                 "name": {"nonunique": False, "disabled": False},
@@ -372,6 +374,7 @@ class Settings:
                     "nonunique": True,
                     "disabled": False,
                 },
+                "members": {"nonunique": True, "disabled": False},
             },
             "template": {
                 "name": {"nonunique": False, "disabled": False},

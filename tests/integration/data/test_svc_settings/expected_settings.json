@@ -394,6 +394,10 @@
                 "property": "get_parent",
                 "nonunique": true,
                 "disabled": false
+            },
+            "members": {
+                "nonunique": true,
+                "disabled": false
             }
         },
         "profile_group": {
@@ -405,6 +409,10 @@
                 "property": "get_parent",
                 "nonunique": true,
                 "disabled": false
+            },
+            "members": {
+                "nonunique": true,
+                "disabled": false
             }
         },
         "system_group": {
@@ -414,6 +422,10 @@
             },
             "parent": {
                 "property": "get_parent",
+                "nonunique": true,
+                "disabled": false
+            },
+            "members": {
                 "nonunique": true,
                 "disabled": false
             }
