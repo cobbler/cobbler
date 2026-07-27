@@ -369,6 +369,18 @@ schema = Schema(
                     Optional("disabled"): bool,
                 },
             },
+            Optional("template"): {
+                Optional("name"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("tags"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+            },
         },
     },  # type: ignore
     ignore_extra_keys=False,

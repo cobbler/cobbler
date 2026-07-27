@@ -733,3 +733,10 @@ memory_indexes:
       name:
         nonunique: false
         disabled: false
+    template:
+      name:
+        nonunique: false
+        disabled: false
+      tags:
+        nonunique: true
+        disabled: false

@@ -357,6 +357,10 @@ class Settings:
             "system_group": {
                 "name": {"nonunique": False, "disabled": False},
             },
+            "template": {
+                "name": {"nonunique": False, "disabled": False},
+                "tags": {"nonunique": True, "disabled": False},
+            },
         }
 
     @property
