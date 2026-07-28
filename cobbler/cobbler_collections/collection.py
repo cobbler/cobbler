@@ -906,12 +906,9 @@ class Collection(Generic[ITEM]):
                         add_result(key, indx_val, result)
                 else:
                     if result_len > 0:
-                        indx_set: Set[ITEM] = {self.listing[x] for x in indx_val}
-                        result_set = set(result) & indx_set
-                        if len(result_set) == 0:
+                        result = [item for item in result if item.uid in indx_val]
+                        if len(result) == 0:
                             found = False
-                        else:
-                            result = list(result_set)
                     elif found:
                         for obj_name in indx_val:
                             add_result(key, obj_name, result)
