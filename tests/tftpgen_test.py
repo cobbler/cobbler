@@ -209,6 +209,70 @@ def test_write_all_system_files(
     assert mock_os_symlink.call_count == expected_symlink
 
 
+def test_write_all_system_files_blender_call_count(
+    mocker: "MockerFixture",
+    setup_test_write_all_system_files: Tuple[System, tftpgen.TFTPGen],
+):
+    """
+    Test that write_all_system_files() computes utils.blender() exactly once for the whole system,
+    regardless of how many interfaces/boot loaders end up being written, and returns that result so
+    callers (e.g. write_templates()) can reuse it instead of recomputing it.
+    """
+    # Arrange
+    test_system, test_gen = setup_test_write_all_system_files
+    # is_management_supported() requires a MAC/IP on at least one interface; without one,
+    # write_all_system_files() never reaches the point where it needs blender() at all.
+    test_system.interfaces["default"].mac_address = "random"
+    blender_spy = mocker.spy(utils, "blender")
+
+    # Act
+    meta_blended = test_gen.write_all_system_files(test_system, {})
+
+    # Assert
+    assert blender_spy.call_count == 1
+    assert meta_blended is not None
+
+
+def test_write_templates_reuses_supplied_blended(
+    mocker: "MockerFixture",
+    setup_test_write_all_system_files: Tuple[System, tftpgen.TFTPGen],
+):
+    """
+    Test that write_templates() does not call utils.blender() again when a caller already supplies one,
+    even when the object has template_files to render.
+    """
+    # Arrange
+    test_system, test_gen = setup_test_write_all_system_files
+    test_system.template_files = {"/nonexistent/source": "/nonexistent/dest"}
+    blended = utils.blender(test_gen.api, False, test_system)
+    blender_spy = mocker.spy(utils, "blender")
+
+    # Act
+    test_gen.write_templates(test_system, blended=blended)
+
+    # Assert
+    assert blender_spy.call_count == 0
+
+
+def test_write_templates_skips_blender_without_templates(
+    mocker: "MockerFixture",
+    setup_test_write_all_system_files: Tuple[System, tftpgen.TFTPGen],
+):
+    """
+    Test that write_templates() does not call utils.blender() at all when the object has no
+    template_files to render.
+    """
+    # Arrange
+    test_system, test_gen = setup_test_write_all_system_files
+    blender_spy = mocker.spy(utils, "blender")
+
+    # Act
+    test_gen.write_templates(test_system)
+
+    # Assert
+    assert blender_spy.call_count == 0
+
+
 def test_write_all_system_files_removes_unused_pxe_files(
     mocker: "MockerFixture",
     setup_test_write_all_system_files: Tuple[System, tftpgen.TFTPGen],

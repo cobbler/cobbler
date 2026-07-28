@@ -324,8 +324,11 @@ class TFTPGen:
         )
 
     def write_all_system_files(
-        self, system: "System", menu_items: Dict[str, Union[str, Dict[str, str]]]
-    ) -> None:
+        self,
+        system: "System",
+        menu_items: Dict[str, Union[str, Dict[str, str]]],
+        meta_blended: Optional[Dict[str, Any]] = None,
+    ) -> Optional[Dict[str, Any]]:
         """
         Writes all files for tftp for a given system with the menu items handed to this method. The system must have a
         profile attached. Otherwise this method throws an error.
@@ -345,6 +348,11 @@ class TFTPGen:
 
         :param system: The system to generate files for.
         :param menu_items: The list of labels that are used for displaying the menu entry.
+        :param meta_blended: A pre-computed ``utils.blender(self.api, False, system)`` result to reuse
+                              instead of recomputing it, for callers that already have one.
+        :return: The ``utils.blender(self.api, False, system)`` result used to generate these files
+                 (``None`` for S390/S390x systems, which use a separate code path that doesn't need it),
+                 so callers that also need it (e.g. for :meth:`write_templates`) can reuse it.
         This method is also responsible for removing stale boot loader artefacts when support for PXE/GRUB is disabled
         or management is no longer supported for the system.
         """
@@ -372,7 +380,7 @@ class TFTPGen:
         # hack: s390 generates files per system not per interface
         if distro is not None and distro.arch in (enums.Archs.S390, enums.Archs.S390X):
             self._write_all_system_files_s390(distro, profile, image, system)  # type: ignore
-            return
+            return None
 
         boot_loaders = list(system.boot_loaders)
         pxe_enabled = enums.BootLoader.PXE in boot_loaders
@@ -441,6 +449,12 @@ class TFTPGen:
                     filesystem_helpers.rmfile(grub_path)
                 continue
 
+            # Computed lazily (once, on first actual need) rather than unconditionally above, so that
+            # systems skipped by the checks above (unsupported arch, management not supported) never
+            # pay for it.
+            if meta_blended is None:
+                meta_blended = utils.blender(self.api, False, system)
+
             if image is None:
                 if pxe_path:
                     if pxe_enabled:
@@ -451,6 +465,7 @@ class TFTPGen:
                             distro,
                             working_arch,
                             metadata=pxe_metadata,  # type: ignore
+                            meta_blended=meta_blended,
                         )
                     else:
                         filesystem_helpers.rmfile(pxe_path)
@@ -463,6 +478,7 @@ class TFTPGen:
                             distro,
                             working_arch,
                             bootloader_format=enums.BootLoader.GRUB,
+                            meta_blended=meta_blended,
                         )
                         if grub_name is not None:
                             grub_targets.append(grub_name)
@@ -479,6 +495,7 @@ class TFTPGen:
                             working_arch,
                             image=image,
                             metadata=pxe_metadata,  # type: ignore
+                            meta_blended=meta_blended,
                         )
                     else:
                         filesystem_helpers.rmfile(pxe_path)
@@ -495,6 +512,8 @@ class TFTPGen:
                     system.name,
                     os_error,
                 )
+
+        return meta_blended
 
     def _generate_system_file_s390x(
         self,
@@ -1197,6 +1216,7 @@ class TFTPGen:
         image: Optional["Image"] = None,
         metadata: Optional[Dict[str, Union[str, Dict[str, str]]]] = None,
         bootloader_format: enums.BootLoader = enums.BootLoader.PXE,
+        meta_blended: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Write a configuration file for the bootloader(s).
@@ -1215,6 +1235,8 @@ class TFTPGen:
         :param image: If you want to be able to deploy an image, supply this parameter.
         :param metadata: Pass additional parameters to the ones being collected during the method.
         :param bootloader_format: Can be any of those returned by utils.get_supported_system_boot_loaders().
+        :param meta_blended: A pre-computed ``utils.blender(self.api, False, system|profile|image)`` result
+                              to reuse instead of recomputing it, for callers that already have one.
         :return: The generated file-content for the required item.
         """
 
@@ -1256,11 +1278,11 @@ class TFTPGen:
         # just some random variables
         buffer = ""
 
-        self.build_kernel(metadata, system, profile, distro, image, bootloader_format)  # type: ignore
+        self.build_kernel(metadata, system, profile, distro, image, bootloader_format, meta_blended=meta_blended)  # type: ignore
 
         # generate the kernel options and append line:
         kernel_options = self.build_kernel_options(
-            system, profile, distro, image, arch  # type: ignore
+            system, profile, distro, image, arch, blended=meta_blended  # type: ignore
         )
         metadata["kernel_options"] = kernel_options
 
@@ -1361,6 +1383,7 @@ class TFTPGen:
         distro: "Distro",
         image: Optional["Image"] = None,
         boot_loader: str = "pxe",
+        meta_blended: Optional[Dict[str, Any]] = None,
     ):
         """
         Generates kernel and initrd metadata.
@@ -1372,6 +1395,8 @@ class TFTPGen:
                        the templates.
         :param image: If you want to be able to deploy an image, supply this parameter.
         :param boot_loader: Can be any of those returned by utils.get_supported_system_boot_loaders().
+        :param meta_blended: A pre-computed ``utils.blender(self.api, False, system|profile|image)`` result
+                              to reuse instead of recomputing it, for callers that already have one.
         """
         kernel_path: Optional[str] = None
         initrd_path: Optional[str] = None
@@ -1379,14 +1404,15 @@ class TFTPGen:
 
         # ---
 
-        if system:
-            meta_blended = utils.blender(self.api, False, system)
-        elif profile:
-            meta_blended = utils.blender(self.api, False, profile)
-        elif image:
-            meta_blended = utils.blender(self.api, False, image)
-        else:
-            meta_blended = {}
+        if meta_blended is None:
+            if system:
+                meta_blended = utils.blender(self.api, False, system)
+            elif profile:
+                meta_blended = utils.blender(self.api, False, profile)
+            elif image:
+                meta_blended = utils.blender(self.api, False, image)
+            else:
+                meta_blended = {}
         # Derive the flattened view from the already-computed tree instead of walking it again with
         # remove_dicts=True - the two blender() calls only ever differed in this final step. flatten()
         # only returns None for non-dict input, which dict(meta_blended) never is.
@@ -1458,6 +1484,7 @@ class TFTPGen:
         distro: Optional["Distro"],
         image: Optional["Image"],
         arch: enums.Archs,
+        blended: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Builds the full kernel options line.
@@ -1467,13 +1494,29 @@ class TFTPGen:
         :param distro: Although the profile contains the distribution please specify it explicitly here.
         :param image: The image to generate the kernel options for.
         :param arch: The processor architecture to generate the kernel options for.
+        :param blended: A pre-computed ``utils.blender(self.api, False, system|profile|image)`` result
+                        to reuse instead of recomputing it, for callers that already have one.
         :return: The generated kernel line options.
         """
 
         management_interface = None
         management_mac = None
+        if blended is None:
+            if system is not None:
+                blended = utils.blender(self.api, False, system)
+            elif profile is not None:
+                blended = utils.blender(self.api, False, profile)
+            elif image is not None:
+                blended = utils.blender(self.api, False, image)
+            else:
+                raise ValueError("Impossible to find object for kernel options")
+        else:
+            # Copy since append_line.render() below mutates its dict argument in place (flatten() +
+            # autoinstall_meta merge), and a caller-supplied dict may be shared with other consumers
+            # of the same blender() result.
+            blended = dict(blended)
+
         if system is not None:
-            blended = utils.blender(self.api, False, system)
             # find the first management interface
             try:
                 for intf in system.interfaces.keys():
@@ -1485,12 +1528,6 @@ class TFTPGen:
             except Exception:
                 # just skip this then
                 pass
-        elif profile is not None:
-            blended = utils.blender(self.api, False, profile)
-        elif image is not None:
-            blended = utils.blender(self.api, False, image)
-        else:
-            raise ValueError("Impossible to find object for kernel options")
 
         append_line = kernel_command_line.KernelCommandLine(self.api)
         kopts: Dict[str, Any] = blended.get("kernel_options", {})
@@ -1702,6 +1739,7 @@ class TFTPGen:
         obj: "BootableItem",
         write_file: bool = False,
         path: Optional[str] = None,
+        blended: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, str]:
         """
         A semi-generic function that will take an object with a template_files dict {source:destiation}, and generate a
@@ -1711,6 +1749,8 @@ class TFTPGen:
         :param obj: The object to write the template files for.
         :param write_file: If the generated template should be written to the disk.
         :param path: TODO: A useless parameter?
+        :param blended: A pre-computed ``utils.blender(self.api, False, obj)`` result to reuse instead
+                        of recomputing it, for callers that already have one for this same object.
         :return: A dict of the destination file names (after variable substitution is done) and the data in the file.
         """
         self.logger.info("Writing template files for %s", obj.name)
@@ -1722,7 +1762,15 @@ class TFTPGen:
         except Exception:
             return results
 
-        blended = utils.blender(self.api, False, obj)
+        if not templates:
+            return results
+
+        if blended is None:
+            blended = utils.blender(self.api, False, obj)
+        else:
+            # Copy since this function mutates `blended` (pop()/update() below) and a caller-supplied
+            # dict may be shared with other consumers of the same blender() result.
+            blended = dict(blended)
 
         if obj.COLLECTION_TYPE == "distro":  # type: ignore
             if re.search("esxi[567]", obj.os_version) is not None:  # type: ignore
