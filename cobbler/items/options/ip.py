@@ -3,7 +3,7 @@ This module provides option classes for managing IP-related settings for network
 """
 
 from ipaddress import AddressValueError
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING, Any, Dict, List
 
 from cobbler import utils, validate
 from cobbler.items.options.base import ItemOption
@@ -120,9 +120,8 @@ class IPv4Option(IPOption):
             return
         address = validate.ipv4_address(address)
         if address != "" and not self._api.settings().allow_duplicate_ips:
-            matched = self._api.find_network_interface(
-                return_list=True, ipv4=f"address={address}"
-            )
+            dedup_kwargs: Dict[str, Any] = {"ipv4.address": address}
+            matched = self._api.find_network_interface(return_list=True, **dedup_kwargs)
             if matched is None:
                 matched = []
             if not isinstance(matched, list):
@@ -203,9 +202,8 @@ class IPv6Option(IPOption):
             return
         address = validate.ipv6_address(address)
         if address != "" and not self._api.settings().allow_duplicate_ips:
-            matched = self._api.find_network_interface(
-                return_list=True, ipv6=f"address={address}"
-            )
+            dedup_kwargs: Dict[str, Any] = {"ipv6.address": address}
+            matched = self._api.find_network_interface(return_list=True, **dedup_kwargs)
             if matched is None:
                 matched = []
             if not isinstance(matched, list):
