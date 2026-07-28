@@ -401,7 +401,6 @@ class InheritableItem(BaseItem, ABC):
             ):
                 # Invalidating "resolved" caches
                 for dep_item in self.tree_walk(name):
-                    self.logger.info(dep_item.cache.get_dict_cache(True))
                     dep_item.cache.set_dict_cache(None, True)
 
         # Invalidating the cache of the object itself.

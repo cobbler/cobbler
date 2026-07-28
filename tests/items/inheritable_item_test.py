@@ -3,7 +3,7 @@ Test module that asserts that generic Cobbler InheritableItem functionality is w
 """
 
 import logging
-from typing import Any, Callable, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 import pytest
 
@@ -17,6 +17,9 @@ from cobbler.items.repo import Repo
 from cobbler.items.system import System
 
 from tests.conftest import does_not_raise
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 logger = logging.getLogger()
 
@@ -223,6 +226,35 @@ def test_tree_walk(cobbler_api: CobblerAPI):
 
     # Assert
     assert result == []
+
+
+def test_clean_dict_cache_does_not_log_resolved_descendant_cache(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Any,
+):
+    """
+    Assert that invalidating descendant "resolved" caches for an InheritableProperty edit does not log
+    each descendant's full resolved cache dict. That call served no diagnostic purpose (no message, just
+    the raw value) and unconditionally evaluates/formats a potentially large dict per descendant, on
+    every inheritable-property edit under cache_enabled=True - a real cost at scale that has nothing to
+    do with the cache invalidation itself.
+    """
+    # Arrange
+    cobbler_api.settings().cache_enabled = True
+    test_distro = create_distro()
+    parent_profile: Profile = create_profile(
+        distro_uid=test_distro.uid, name="test_clean_dict_cache_parent"
+    )
+    create_profile(profile_uid=parent_profile.uid, name="test_clean_dict_cache_child")
+    logger_info_spy = mocker.spy(logging.Logger, "info")
+
+    # Act
+    parent_profile.owners = ["test_owner"]
+
+    # Assert
+    logger_info_spy.assert_not_called()
 
 
 def test_grab_tree(cobbler_api: CobblerAPI):
