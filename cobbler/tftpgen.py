@@ -37,6 +37,7 @@ if TYPE_CHECKING:
     from cobbler.items.distro import Distro
     from cobbler.items.image import Image
     from cobbler.items.menu import Menu
+    from cobbler.items.network_interface import NetworkInterface
     from cobbler.items.profile import Profile
     from cobbler.items.system import System
     from cobbler.items.template import Template
@@ -2251,18 +2252,133 @@ class TFTPGen:
                 return self._read_chunk(initrd_path, offset, size)
         return None
 
+    def _systems_from_interfaces(
+        self, interfaces: Optional[Union[List["NetworkInterface"], "NetworkInterface"]]
+    ) -> List["System"]:
+        """
+        Resolve the systems owning the given network interface(s) via the already-indexed
+        ``system_uid`` -> item lookup (an O(1) dict-get per interface).
+        """
+        if interfaces is None:
+            return []
+        if not isinstance(interfaces, list):
+            interfaces = [interfaces]
+        systems: List["System"] = []
+        for interface in interfaces:
+            system = self.api.systems().listing.get(interface.system_uid)
+            if system is not None:
+                systems.append(system)
+        return systems
+
+    def _systems_by_mac(self, mac_address: str) -> List["System"]:
+        interfaces = self.api.find_network_interface(
+            return_list=True, mac_address=mac_address
+        )
+        return self._systems_from_interfaces(interfaces)
+
+    def _systems_by_ip(self, ip_address: str) -> List["System"]:
+        kwargs: Dict[str, Any] = {"ipv4.address": ip_address}
+        interfaces = self.api.find_network_interface(return_list=True, **kwargs)
+        return self._systems_from_interfaces(interfaces)
+
+    def _find_system_for_config_filename(
+        self, filename: str, loader: enums.BootLoader
+    ) -> Optional["System"]:
+        """
+        Best-effort O(1)/O(bucket-size) resolution of the system whose :meth:`System.get_config_filename`
+        would produce ``filename``, by reverse-parsing it into a candidate MAC/IP/literal name and doing a
+        targeted, already-indexed lookup - instead of scanning every system.
+
+        Every candidate is verified by recomputing ``get_config_filename()`` and comparing it against the
+        requested filename, so this can never return a wrong system. Returns ``None`` (letting the caller
+        fall back to a full scan) whenever no verified candidate can be found, e.g. when the relevant index
+        is disabled because ``allow_duplicate_macs``/``allow_duplicate_ips`` is enabled - this keeps the
+        function purely a fast path, never a source of incorrect results.
+        """
+        candidates: List["System"] = []
+
+        if filename == "default":
+            default_system = self.api.find_system(return_list=False, name="default")
+            if default_system is not None and not isinstance(default_system, list):
+                candidates.append(default_system)
+        elif loader == enums.BootLoader.PXE and filename.startswith("01-"):
+            candidates.extend(
+                self._systems_by_mac(filename[len("01-") :].replace("-", ":"))
+            )
+        elif loader == enums.BootLoader.GRUB and re.fullmatch(
+            r"[0-9a-f]{2}(:[0-9a-f]{2})+", filename
+        ):
+            candidates.extend(self._systems_by_mac(filename))
+        elif re.fullmatch(r"[0-9A-F]{8}", filename):
+            try:
+                candidates.extend(self._systems_by_ip(utils.hex_to_ip(filename)))
+            except ValueError:
+                pass
+
+        if not candidates:
+            # Either no shape matched, or a shape matched but had no owner (e.g. a system literally
+            # named like an IP-hex/MAC string) - a literal system name is always the final fallback in
+            # get_config_filename() itself, so try it here too before giving up.
+            literal = self.api.find_system(return_list=False, name=filename)
+            if literal is not None and not isinstance(literal, list):
+                candidates.append(literal)
+
+        for candidate in candidates:
+            for interface_name in candidate.interfaces:
+                if (
+                    candidate.get_config_filename(
+                        interface=interface_name, loader=loader
+                    )
+                    == filename
+                ):
+                    return candidate
+        return None
+
+    def _find_system_for_tftp_path(self, path: pathlib.Path) -> Optional["System"]:
+        """
+        Reverse-parse a requested TFTP config-file path into the loader/filename shapes
+        :meth:`generate_system_file` recognizes, and resolve the owning system via
+        :meth:`_find_system_for_config_filename`. Returns ``None`` for any path shape not recognized here
+        (e.g. the caller falls back to a full scan).
+        """
+        parts = path.parts
+        if len(parts) == 3 and parts[1] == "pxelinux.cfg":
+            return self._find_system_for_config_filename(parts[2], enums.BootLoader.PXE)
+        if len(parts) == 4 and parts[1] == "esxi" and parts[2] == "pxelinux.cfg":
+            return self._find_system_for_config_filename(parts[3], enums.BootLoader.PXE)
+        if len(parts) == 4 and parts[1] == "grub" and parts[2] == "system":
+            return self._find_system_for_config_filename(
+                parts[3], enums.BootLoader.GRUB
+            )
+        if (
+            len(parts) == 5
+            and parts[1] == "esxi"
+            and parts[2] == "system"
+            and parts[4] == "boot.cfg"
+        ):
+            candidate = self.api.find_system(return_list=False, name=parts[3])
+            if candidate is not None and not isinstance(candidate, list):
+                return candidate
+        return None
+
     def _generate_tftp_config_file(
         self, path: pathlib.Path, offset: int, size: int
     ) -> Optional[Tuple[bytes, int]]:
         metadata = self.get_menu_items()
-        # TODO: This iterates through all systems for each request. Can this be optimized?
         contents = None
-        for system in self.api.systems():
-            if not system.is_management_supported():
-                continue
-            contents = self.generate_system_file(system, path, metadata)
-            if contents is not None:
-                break
+        candidate = self._find_system_for_tftp_path(path)
+        if candidate is not None and candidate.is_management_supported():
+            contents = self.generate_system_file(candidate, path, metadata)
+        if contents is None:
+            # Fast path above found nothing (unrecognized path shape, no verified candidate, or the
+            # relevant index disabled by allow_duplicate_macs/allow_duplicate_ips) - fall back to the
+            # full scan. Correctness never depends on the fast path succeeding.
+            for system in self.api.systems():
+                if not system.is_management_supported():
+                    continue
+                contents = self.generate_system_file(system, path, metadata)
+                if contents is not None:
+                    break
         if contents is None:
             contents = self.generate_pxe_menu(path, metadata)
         if contents is not None:

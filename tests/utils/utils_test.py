@@ -74,6 +74,29 @@ def test_get_host_ip():
     assert result == "0A000001"
 
 
+def test_hex_to_ip():
+    # Arrange
+
+    # Act
+    result = utils.hex_to_ip("0A000001")
+
+    # Assert
+    assert result == "10.0.0.1"
+
+
+@pytest.mark.parametrize(
+    "ip_address", ["10.0.0.1", "192.168.1.254", "0.0.0.0", "255.255.255.255"]
+)
+def test_hex_to_ip_get_host_ip_roundtrip(ip_address: str):
+    # Arrange
+
+    # Act
+    result = utils.hex_to_ip(utils.get_host_ip(ip_address))
+
+    # Assert
+    assert result == ip_address
+
+
 @pytest.mark.parametrize(
     "testvalue,expected_result", [("10.0.0.1", True), ("Test", False)]
 )

@@ -908,3 +908,331 @@ def test_write_bootcfg_file(
     # Assert
     assert result == expected_result
     assert pathlib.Path("/srv/tftpboot/esxi/example.txt").is_file()
+
+
+@pytest.fixture(name="tftp_lookup_profile")
+def fixture_tftp_lookup_profile(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[str, bool], Distro],
+    create_profile: Callable[..., Profile],
+) -> Profile:
+    """
+    Setup fixture providing a shared distro/profile for building systems used in the
+    _find_system_for_config_filename()/_find_system_for_tftp_path() tests below.
+    """
+    test_distro = create_distro("test_tftp_lookup_distro", True)
+    return create_profile(distro_uid=test_distro.uid, name="test_tftp_lookup_profile")
+
+
+def _add_tftp_lookup_system(
+    cobbler_api: CobblerAPI,
+    profile: Profile,
+    name: str,
+    mac_address: Union[str, None] = None,
+    ipv4_address: Union[str, None] = None,
+) -> System:
+    """
+    Create+add a system (with a "default" interface) for the _find_system_for_config_filename() tests.
+    """
+    system = cobbler_api.new_system()
+    system.name = name  # type: ignore[method-assign]
+    system.profile = profile.uid  # type: ignore[method-assign]
+    cobbler_api.add_system(system)
+    interface = cobbler_api.new_network_interface(system_uid=system.uid, name="default")
+    cobbler_api.add_network_interface(interface)
+    if mac_address is not None:
+        interface.mac_address = mac_address  # type: ignore[method-assign]
+    if ipv4_address is not None:
+        interface.ipv4.address = ipv4_address  # type: ignore[method-assign]
+    return system
+
+
+def test_find_system_for_config_filename_pxe_mac(
+    cobbler_api: CobblerAPI, tftp_lookup_profile: Profile
+):
+    """
+    Test that a PXE-format MAC filename resolves to the system owning that MAC.
+    """
+    # Arrange
+    cobbler_api.settings().allow_duplicate_macs = False
+    system = _add_tftp_lookup_system(
+        cobbler_api,
+        tftp_lookup_profile,
+        "pxe_mac_system",
+        mac_address="AA:BB:CC:DD:EE:FF",
+    )
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    # pylint: disable-next=protected-access
+    result = test_gen._find_system_for_config_filename(  # type: ignore[reportPrivateUsage]
+        "01-aa-bb-cc-dd-ee-ff", enums.BootLoader.PXE
+    )
+
+    # Assert
+    assert result is not None
+    assert result.uid == system.uid
+
+
+def test_find_system_for_config_filename_grub_mac(
+    cobbler_api: CobblerAPI, tftp_lookup_profile: Profile
+):
+    """
+    Test that a GRUB-format MAC filename resolves to the system owning that MAC.
+    """
+    # Arrange
+    cobbler_api.settings().allow_duplicate_macs = False
+    system = _add_tftp_lookup_system(
+        cobbler_api,
+        tftp_lookup_profile,
+        "grub_mac_system",
+        mac_address="AA:BB:CC:DD:EE:00",
+    )
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    # pylint: disable-next=protected-access
+    result = test_gen._find_system_for_config_filename(  # type: ignore[reportPrivateUsage]
+        "aa:bb:cc:dd:ee:00", enums.BootLoader.GRUB
+    )
+
+    # Assert
+    assert result is not None
+    assert result.uid == system.uid
+
+
+def test_find_system_for_config_filename_ip_hex(
+    cobbler_api: CobblerAPI, tftp_lookup_profile: Profile
+):
+    """
+    Test that an IP-derived hex filename resolves to the system owning that IP.
+    """
+    # Arrange
+    cobbler_api.settings().allow_duplicate_ips = False
+    system = _add_tftp_lookup_system(
+        cobbler_api, tftp_lookup_profile, "ip_hex_system", ipv4_address="10.0.0.5"
+    )
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    # pylint: disable-next=protected-access
+    result = test_gen._find_system_for_config_filename(  # type: ignore[reportPrivateUsage]
+        utils.get_host_ip("10.0.0.5"), enums.BootLoader.PXE
+    )
+
+    # Assert
+    assert result is not None
+    assert result.uid == system.uid
+
+
+def test_find_system_for_config_filename_literal_name(
+    cobbler_api: CobblerAPI, tftp_lookup_profile: Profile
+):
+    """
+    Test that a system with neither MAC nor IP falls back to a literal name lookup.
+    """
+    # Arrange
+    system = _add_tftp_lookup_system(
+        cobbler_api, tftp_lookup_profile, "literal_name_system"
+    )
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    # pylint: disable-next=protected-access
+    result = test_gen._find_system_for_config_filename(  # type: ignore[reportPrivateUsage]
+        "literal_name_system", enums.BootLoader.PXE
+    )
+
+    # Assert
+    assert result is not None
+    assert result.uid == system.uid
+
+
+def test_find_system_for_config_filename_default(
+    cobbler_api: CobblerAPI, tftp_lookup_profile: Profile
+):
+    """
+    Test that the reserved "default" system name resolves via the literal "default" filename.
+    """
+    # Arrange
+    system = _add_tftp_lookup_system(cobbler_api, tftp_lookup_profile, "default")
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    # pylint: disable-next=protected-access
+    result = test_gen._find_system_for_config_filename(  # type: ignore[reportPrivateUsage]
+        "default", enums.BootLoader.PXE
+    )
+
+    # Assert
+    assert result is not None
+    assert result.uid == system.uid
+
+
+def test_find_system_for_config_filename_no_match(
+    cobbler_api: CobblerAPI, tftp_lookup_profile: Profile
+):
+    """
+    Test that a filename with no matching system returns None (letting the caller fall back to a
+    full scan), for each of the recognized filename shapes.
+    """
+    # Arrange
+    _add_tftp_lookup_system(
+        cobbler_api,
+        tftp_lookup_profile,
+        "unrelated_system",
+        mac_address="11:22:33:44:55:66",
+    )
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act / Assert
+    # pylint: disable=protected-access
+    assert (
+        test_gen._find_system_for_config_filename(  # type: ignore[reportPrivateUsage]
+            "01-de-ad-be-ef-00-00", enums.BootLoader.PXE
+        )
+        is None
+    )
+    assert (
+        test_gen._find_system_for_config_filename(  # type: ignore[reportPrivateUsage]
+            "DEADBEEF", enums.BootLoader.PXE
+        )
+        is None
+    )
+    assert (
+        test_gen._find_system_for_config_filename(  # type: ignore[reportPrivateUsage]
+            "nonexistent_system_name", enums.BootLoader.PXE
+        )
+        is None
+    )
+
+
+def test_find_system_for_config_filename_ambiguous_hex_name_not_misresolved(
+    cobbler_api: CobblerAPI, tftp_lookup_profile: Profile
+):
+    """
+    Test that a system literally named like an 8-hex-character IP filename (but with no matching IP)
+    is not incorrectly matched via the IP-hex branch - the round-trip verification must reject it.
+    """
+    # Arrange
+    _add_tftp_lookup_system(cobbler_api, tftp_lookup_profile, "DEADBEEF")
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    # pylint: disable-next=protected-access
+    result = test_gen._find_system_for_config_filename(  # type: ignore[reportPrivateUsage]
+        "DEADBEEF", enums.BootLoader.PXE
+    )
+
+    # Assert: falls through to the literal-name branch (uppercase hex doesn't match the lowercase-hex
+    # PXE-MAC/GRUB-MAC shapes, and the IP-hex branch decodes to an IP with no owner), not a false match.
+    assert result is not None
+    assert result.name == "DEADBEEF"
+
+
+@pytest.mark.parametrize("loader", [enums.BootLoader.PXE, enums.BootLoader.GRUB])
+def test_find_system_for_config_filename_roundtrip(
+    cobbler_api: CobblerAPI, tftp_lookup_profile: Profile, loader: enums.BootLoader
+):
+    """
+    Property test: for a representative set of systems, resolving the filename that
+    get_config_filename() itself produces must return that same system, for both loaders.
+    """
+    # Arrange
+    cobbler_api.settings().allow_duplicate_macs = False
+    cobbler_api.settings().allow_duplicate_ips = False
+    systems = [
+        _add_tftp_lookup_system(
+            cobbler_api,
+            tftp_lookup_profile,
+            "roundtrip_mac",
+            mac_address="AA:BB:CC:DD:EE:01",
+        ),
+        _add_tftp_lookup_system(
+            cobbler_api, tftp_lookup_profile, "roundtrip_ip", ipv4_address="10.0.0.6"
+        ),
+        _add_tftp_lookup_system(cobbler_api, tftp_lookup_profile, "roundtrip_literal"),
+    ]
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act / Assert
+    for system in systems:
+        filename = system.get_config_filename(interface="default", loader=loader)
+        if filename is None:
+            continue
+        # pylint: disable-next=protected-access
+        result = test_gen._find_system_for_config_filename(  # type: ignore[reportPrivateUsage]
+            filename, loader
+        )
+        assert result is not None
+        assert result.uid == system.uid
+
+
+def test_find_system_for_tftp_path_dispatch(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI
+):
+    """
+    Test that _find_system_for_tftp_path() dispatches each recognized path shape to
+    _find_system_for_config_filename() with the correct filename/loader, and returns None for anything
+    else (letting the caller fall back to a full scan).
+    """
+    # Arrange
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+    mock_lookup = mocker.patch.object(
+        test_gen, "_find_system_for_config_filename", return_value=None
+    )
+
+    # Act / Assert
+    test_gen._find_system_for_tftp_path(  # type: ignore[reportPrivateUsage]
+        pathlib.Path("/pxelinux.cfg/01-aa-bb-cc-dd-ee-ff")
+    )
+    mock_lookup.assert_called_with("01-aa-bb-cc-dd-ee-ff", enums.BootLoader.PXE)
+
+    test_gen._find_system_for_tftp_path(  # type: ignore[reportPrivateUsage]
+        pathlib.Path("/esxi/pxelinux.cfg/01-aa-bb-cc-dd-ee-ff")
+    )
+    mock_lookup.assert_called_with("01-aa-bb-cc-dd-ee-ff", enums.BootLoader.PXE)
+
+    test_gen._find_system_for_tftp_path(  # type: ignore[reportPrivateUsage]
+        pathlib.Path("/grub/system/aa:bb:cc:dd:ee:ff")
+    )
+    mock_lookup.assert_called_with("aa:bb:cc:dd:ee:ff", enums.BootLoader.GRUB)
+
+    assert (
+        test_gen._find_system_for_tftp_path(  # type: ignore[reportPrivateUsage]
+            pathlib.Path("/some/unrelated/path")
+        )
+        is None
+    )
+
+
+def test_generate_tftp_file_uses_fast_path(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI, tftp_lookup_profile: Profile
+):
+    """
+    Test that generate_tftp_file() resolves a PXE config request via the fast, indexed lookup instead
+    of iterating every system, and produces the same content generate_system_file() would directly.
+    """
+    # Arrange
+    cobbler_api.settings().allow_duplicate_macs = False
+    system = _add_tftp_lookup_system(
+        cobbler_api,
+        tftp_lookup_profile,
+        "fast_path_system",
+        mac_address="AA:BB:CC:DD:EE:02",
+    )
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+    path = pathlib.Path("/pxelinux.cfg/01-aa-bb-cc-dd-ee-02")
+    metadata = test_gen.get_menu_items()
+    expected = test_gen.generate_system_file(system, path, metadata)
+    generate_system_file_spy = mocker.spy(test_gen, "generate_system_file")
+
+    # Act
+    content, _length = test_gen.generate_tftp_file(path, 0, 10_000)
+
+    # Assert
+    assert expected is not None
+    assert content == expected.encode("UTF-8")
+    # Exactly one call (for the resolved candidate) - if the fast path had failed and fallen back to
+    # the full scan, this would be called once per system up to and including the match.
+    assert generate_system_file_spy.call_count == 1
