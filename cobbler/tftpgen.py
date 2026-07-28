@@ -1380,17 +1380,17 @@ class TFTPGen:
         # ---
 
         if system:
-            blended = utils.blender(self.api, True, system)
             meta_blended = utils.blender(self.api, False, system)
         elif profile:
-            blended = utils.blender(self.api, True, profile)
             meta_blended = utils.blender(self.api, False, profile)
         elif image:
-            blended = utils.blender(self.api, True, image)
             meta_blended = utils.blender(self.api, False, image)
         else:
-            blended = {}
             meta_blended = {}
+        # Derive the flattened view from the already-computed tree instead of walking it again with
+        # remove_dicts=True - the two blender() calls only ever differed in this final step. flatten()
+        # only returns None for non-dict input, which dict(meta_blended) never is.
+        blended = cast(Dict[str, Any], utils.flatten(dict(meta_blended)))
 
         autoinstall_meta = meta_blended.get("autoinstall_meta", {})
         metadata.update(blended)

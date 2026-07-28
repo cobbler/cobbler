@@ -11,7 +11,7 @@ from unittest.mock import PropertyMock
 
 import pytest
 
-from cobbler import enums, tftpgen
+from cobbler import enums, tftpgen, utils
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image
@@ -487,6 +487,31 @@ def test_build_kernel(mocker: "MockerFixture", cobbler_api: CobblerAPI):
 
     # Assert
     assert False
+
+
+def test_build_kernel_blender_call_count(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+):
+    """
+    Test that build_kernel() only walks the object tree once (a single utils.blender() call) instead
+    of once per remove_dicts value.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+    blender_spy = mocker.spy(utils, "blender")
+
+    # Act
+    test_gen.build_kernel({}, test_system, test_profile, test_distro, None, "pxe")
+
+    # Assert
+    assert blender_spy.call_count == 1
 
 
 def test_build_kernel_options_profile(
