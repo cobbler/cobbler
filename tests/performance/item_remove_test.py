@@ -68,10 +68,12 @@ def test_item_remove(
         return (cobbler_api, what), {}
 
     def item_remove(api: CobblerAPI, what: str):
-        while len(api.get_items(what)) > 0:
-            api.remove_item(
-                what, list(api.get_items(what))[0], recursive=True, with_sync=False
-            )
+        # Snapshot the listing once instead of calling list(api.get_items(what)) - which rebuilds
+        # the whole remaining listing - on every loop iteration (that was O(n^2) for n items).
+        # Items already cascaded away by an earlier recursive removal are skipped via the check.
+        for test_item in list(api.get_items(what)):
+            if test_item.uid in api.get_items(what).listing:
+                api.remove_item(what, test_item, recursive=True, with_sync=False)
 
     # Arrange
     cobbler_api.settings().cache_enabled = cache_enabled

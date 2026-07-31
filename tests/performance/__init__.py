@@ -242,26 +242,31 @@ class CobblerTree:
         """
         Method that removes all menus.
         """
-        while len(api.menus()) > 0:
-            api.menus().remove(
-                list(api.menus())[0],
-                recursive=True,
-                with_triggers=False,
-                with_sync=False,
-            )
+        # Snapshot the listing once instead of calling list(api.menus()) - which rebuilds the
+        # whole remaining listing - on every loop iteration (that was O(n^2) for n menus). Items
+        # already cascaded away by an earlier recursive removal are skipped via the listing check.
+        for test_item in list(api.menus()):
+            if test_item.uid in api.menus().listing:
+                api.menus().remove(
+                    test_item,
+                    recursive=True,
+                    with_triggers=False,
+                    with_sync=False,
+                )
 
     @staticmethod
     def remove_profiles(api: CobblerAPI):
         """
         Method that removes all profiles.
         """
-        while len(api.profiles()) > 0:
-            api.profiles().remove(
-                list(api.profiles())[0],
-                recursive=True,
-                with_triggers=False,
-                with_sync=False,
-            )
+        for test_item in list(api.profiles()):
+            if test_item.uid in api.profiles().listing:
+                api.profiles().remove(
+                    test_item,
+                    recursive=True,
+                    with_triggers=False,
+                    with_sync=False,
+                )
 
     @staticmethod
     def remove_images(api: CobblerAPI):
