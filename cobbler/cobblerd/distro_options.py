@@ -111,9 +111,9 @@ def get_distro_options() -> DistroOptions:
         distro_options.webrootconfig = pathlib.Path("/etc/httpd")
         distro_options.tftproot = pathlib.Path("/var/lib/tftpboot")
         distro_options.bind_zonefiles = pathlib.Path("/var/named")
-        distro_options.shim_folder = r"/boot/efi/EFI/*/"
+        distro_options.shim_folder = r"/usr/share/efi/*/"
         distro_options.shim_file = r"shim[a-zA-Z0-9]*\.efi"
-        distro_options.secure_grub_folder = r"/boot/efi/EFI/*/"
+        distro_options.secure_grub_folder = r"/usr/share/efi/*/"
         distro_options.secure_grub_file = r"grub\.efi"
         distro_options.grub_mod_folder = pathlib.Path("/usr/lib/grub")
     elif distro == "suse":
