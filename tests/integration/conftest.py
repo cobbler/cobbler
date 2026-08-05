@@ -54,6 +54,35 @@ def fixture_restart_cobbler() -> Callable[[], None]:
     return _restart_cobbler
 
 
+def wait_for_cobblerd(
+    remote: Any, timeout: float = 30.0, interval: float = 0.5
+) -> None:
+    """
+    Poll cobblerd's XML-RPC endpoint until it responds.
+
+    The process manager (e.g. supervisord) only guarantees that the cobblerd process didn't immediately die after a
+    restart, not that it has finished initializing and bound its XML-RPC listener. Callers that talk to cobblerd
+    right after restarting it can otherwise lose a race and see a 503 from the reverse proxy.
+
+    :param remote: An XML-RPC client pointed at cobblerd's endpoint.
+    :param timeout: How long to keep retrying before giving up, in seconds.
+    :param interval: How long to wait between retries, in seconds.
+    :raises TimeoutError: If cobblerd is still unreachable once ``timeout`` has elapsed.
+    """
+    deadline = time.monotonic() + timeout
+    last_error: BaseException = TimeoutError("no attempt was made")
+    while time.monotonic() < deadline:
+        try:
+            remote.ping()
+            return
+        except (OSError, xmlrpc.client.ProtocolError) as error:
+            last_error = error
+            time.sleep(interval)
+    raise TimeoutError(
+        f"cobblerd's XML-RPC endpoint did not become reachable within {timeout}s"
+    ) from last_error
+
+
 @pytest.fixture(name="reset_cobbler", autouse=True)
 def fixture_reset_cobbler(
     restart_cobbler: Callable[[], None],
@@ -62,6 +91,10 @@ def fixture_reset_cobbler(
     Fixture to reset Cobbler after each test.
     """
     restart_cobbler()
+    try:
+        wait_for_cobblerd(xmlrpc.client.ServerProxy("http://localhost/cobbler_api"))
+    except TimeoutError as error:
+        pytest.fail(str(error))
     yield
 
 
