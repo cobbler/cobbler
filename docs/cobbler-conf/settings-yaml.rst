@@ -1180,6 +1180,25 @@ Choices:
 
 default: ``managers.in_tftpd``
 
+httpd
+=====
+
+module
+------
+
+Chooses the mechanism used to serve a distro's source tree, at ``cobbler import``/``cobbler sync`` time.
+
+Choices:
+
+- managers.in_httpd -- default, ``cobbler import`` copies the source tree into ``webdir/distro_mirror/<name>`` as
+  it always has.
+- managers.dynamic_httpd -- when the import source is already a stable, local directory, skips that copy and
+  serves the tree on demand directly from its original location instead, via a new
+  ``/cblr/svc/tree/<name>/`` endpoint. See :ref:`the dynamic distro tree serving user guide <dynamic-httpd>` for
+  details.
+
+default: ``managers.in_httpd``
+
 serializers
 ===========
 

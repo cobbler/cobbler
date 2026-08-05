@@ -16,7 +16,9 @@ status code status message Description
 Http endpoints
 ##############
 
-All Http endpoints are found at ``http(s)://<fqdn>/cblr/svc/op/<endpoint>``
+All endpoints on this page except ``tree`` (documented near the end of this page) follow the pattern
+``http(s)://<fqdn>/cblr/svc/op/<endpoint>``. The ``tree`` endpoint has its own top-level path,
+``http(s)://<fqdn>/cblr/svc/tree/<distro_name>/<relative_path>``, and is not found under ``op/``.
 
 settings
 ========
@@ -520,6 +522,95 @@ Example Call:
 Example Output:
 
 .. warning:: This endpoint is currently broken.
+
+.. _dynamic-httpd:
+
+Dynamic (no-copy) distro tree serving
+######################################
+
+Everything documented above assumes the default ``managers.in_httpd`` module (see ``modules.httpd.module`` in
+:ref:`settings-ref`), under which ``cobbler import`` copies a distro's source tree into
+``webdir/distro_mirror/<name>`` so it can be served like any other file under ``webdir``.
+
+Cobbler also ships a second module, ``managers.dynamic_httpd``, for when the import source is already a stable,
+local, Cobbler-readable directory (for example a permanently mounted ISO, rather than a remote mirror or removable
+media). When it is selected and that precondition holds, ``cobbler import`` skips the copy into ``distro_mirror``
+entirely, and instead records the original location on the distro's ``source_tree_path`` property. The precondition
+matters: if the source is later removed or becomes unreadable (e.g. the ISO gets unmounted), any install relying on
+that distro's tree content will fail, since no copy was ever made to fall back on. ``cobbler check`` warns about
+exactly this -- see below.
+
+Tree content is then served from ``source_tree_path`` on demand, directly from disk, via a new endpoint:
+
+.. code-block:: text
+
+    http://<server>/cblr/svc/tree/<distro_name>/<relative_path>
+
+Unlike ``dynamic_tftp`` (which resolves every request by calling back into Cobbler's XML-RPC API), this endpoint
+reads file bytes straight from disk and never round-trips through XML-RPC per file. This is a deliberate
+difference in design: distro trees (``repodata/``, ``Packages/``, etc.) are typically much larger than TFTP
+payloads, so streaming every byte through XML-RPC would not scale the same way. XML-RPC is only used here for a
+single, briefly-cached lookup that resolves a distro name to its ``source_tree_path``. The endpoint supports HTTP
+``Range`` requests, so partial/resumable downloads work, and it returns a browsable directory listing when a
+requested path resolves to a directory.
+
+.. note:: Like every other ``/cblr/svc/`` endpoint documented on this page (autoinstall, ipxe, etc.), this endpoint
+          is unauthenticated. Anyone who can reach ``/cblr/svc/`` can read any file under a distro's
+          ``source_tree_path``. This is a deliberate design choice consistent with the rest of this API, not an
+          oversight, but it is worth weighing before opting in.
+
+tree
+====
+
+Serves a distro's tree content directly from its ``source_tree_path`` on disk (see
+:ref:`dynamic-httpd`). Only available for distros that have a ``source_tree_path`` set; it does not serve repo
+mirrors or any other ``/cblr/svc/`` content.
+
+File
+----
+
+Example Call:
+
+.. code-block:: console
+
+    curl http://localhost/cblr/svc/tree/example_distro/repodata/repomd.xml
+
+Example Output:
+
+The raw content of the requested file, streamed directly from disk (HTTP ``Range`` requests are honored).
+
+Directory listing
+-----------------
+
+Example Call:
+
+.. code-block:: console
+
+    curl http://localhost/cblr/svc/tree/example_distro/repodata/
+
+Example Output:
+
+.. code-block:: html
+
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"><title>Directory listing</title></head>
+    <body>
+    <h1>Directory listing</h1>
+    <ul>
+    <li><a href="primary.xml.gz">primary.xml.gz</a></li>
+    <li><a href="repomd.xml">repomd.xml</a></li>
+    </ul>
+    </body>
+    </html>
+
+.. note:: A request for a directory path without a trailing slash (e.g. ``.../repodata``) returns a ``301``
+          redirect to the same path with a trailing slash appended, the same way ``Options Indexes`` behaves on a
+          traditional web server.
+
+.. note:: Unlike a typical Apache ``Options Indexes`` listing, generated directory listings hide dotfile entries
+          (names starting with ``.``, e.g. ``.treeinfo``/``.discinfo``). This is deliberate. Dotfiles remain
+          directly fetchable by their exact path regardless -- only the generated listing omits them.
 
 Author
 ======

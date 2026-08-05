@@ -1,0 +1,1 @@
+Added an optional "dynamic_httpd" HTTP manager that serves a distro's source tree on demand directly from its original location instead of copying it into webdir/distro_mirror, for local, stable import sources
