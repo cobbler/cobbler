@@ -12,6 +12,7 @@ V4.0.0 (unreleased):
         * ``redhat_management_org``: enums.VALUE_INHERITED
         * ``redhat_management_user``: enums.VALUE_INHERITED
         * ``redhat_management_password``: enums.VALUE_INHERITED
+        * ``source_tree_path``: str
     * Changed:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``children``: The property was moved to the base class.
@@ -177,6 +178,7 @@ class Distro(BootableItem):
         self._redhat_management_user = enums.VALUE_INHERITED
         self._redhat_management_password = enums.VALUE_INHERITED
         self._source_repos: List[str] = []
+        self._source_tree_path: str = ""
         self._remote_boot_kernel = ""
         self._remote_grub_kernel = ""
         self._remote_boot_initrd = ""
@@ -500,6 +502,29 @@ class Distro(BootableItem):
                 "Field source_repos in object distro needs to be of type list."
             )
         self._source_repos = repos
+
+    @LazyProperty
+    def source_tree_path(self) -> str:
+        """
+        The original location of the distro's source tree on disk. This is only set when ``cobbler import`` was
+        told to not copy the source tree into the web directory, so a later HTTP-serving component can read tree
+        files (``repodata/``, ``Packages/``, etc.) directly from this path instead.
+
+        :getter: The path to the source tree, or an empty string if unset.
+        :setter: Raises a ``TypeError`` or ``cobbler.cexceptions.CX`` in case the provided value was not correct.
+        """
+        return self._source_tree_path
+
+    @source_tree_path.setter
+    def source_tree_path(self, source_tree_path: str):
+        """
+        Setter for the ``source_tree_path`` property.
+
+        :param source_tree_path: The new path to the original source tree.
+        :raises TypeError: Raised in case the value is not of type str.
+        :raises CX: Raised in case the value is not an absolute path to an existing directory.
+        """
+        self._source_tree_path = validate.validate_source_tree_path(source_tree_path)
 
     @LazyProperty
     def arch(self):

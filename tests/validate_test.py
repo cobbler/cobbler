@@ -3,6 +3,8 @@ Tests that validate the functionality of the module that is responsible for vali
 the application.
 """
 
+import os
+import pathlib
 import uuid
 from ipaddress import AddressValueError, NetmaskValueError
 from typing import Any
@@ -11,6 +13,7 @@ import pytest
 
 from cobbler import enums, validate
 from cobbler.api import CobblerAPI
+from cobbler.cexceptions import CX
 from cobbler.utils import signatures
 
 from tests.conftest import does_not_raise
@@ -295,6 +298,67 @@ def test_validate_boot_remote_file(test_value: Any, expected_result: bool):
 
     # Assert
     assert expected_result == result
+
+
+def test_validate_source_tree_path_valid(tmp_path: pathlib.Path):
+    """
+    Test to validate that a valid absolute, existing directory path is accepted and normalized.
+    """
+    # Arrange
+    test_value = str(tmp_path) + os.sep
+
+    # Act
+    result = validate.validate_source_tree_path(test_value)
+
+    # Assert
+    assert result == str(tmp_path)
+
+
+def test_validate_source_tree_path_empty():
+    """
+    Test to validate that the empty string is accepted as the "unset" value.
+    """
+    # Arrange
+
+    # Act
+    result = validate.validate_source_tree_path("")
+
+    # Assert
+    assert result == ""
+
+
+def test_validate_source_tree_path_wrong_type():
+    """
+    Test to validate that a non-str value raises a TypeError.
+    """
+    # Arrange
+
+    # Act & Assert
+    with pytest.raises(TypeError):
+        validate.validate_source_tree_path(1234)  # type: ignore[arg-type]
+
+
+def test_validate_source_tree_path_relative():
+    """
+    Test to validate that a relative path raises a CX.
+    """
+    # Arrange
+
+    # Act & Assert
+    with pytest.raises(CX):
+        validate.validate_source_tree_path("relative/path")
+
+
+def test_validate_source_tree_path_nonexistent(tmp_path: pathlib.Path):
+    """
+    Test to validate that an absolute path to a non-existing directory raises a CX.
+    """
+    # Arrange
+    nonexistent = tmp_path / "does-not-exist"
+
+    # Act & Assert
+    with pytest.raises(CX):
+        validate.validate_source_tree_path(str(nonexistent))
 
 
 @pytest.mark.parametrize(
