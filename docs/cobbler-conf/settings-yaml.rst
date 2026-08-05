@@ -1167,12 +1167,16 @@ tftpd
 module
 ------
 
-Chooses the TFTP management engine if ``manage_tftpd`` is enabled in ``/etc/cobbler/settings.yaml``, which is **on** by
-default.
+Chooses the TFTP management engine. For ``managers.in_tftpd`` this only takes effect if ``manage_tftpd`` is enabled
+in ``/etc/cobbler/settings.yaml``, which is **on** by default.
 
 Choices:
 
 - managers.in_tftpd -- default, uses the system's TFTP server
+- managers.dynamic_tftp -- serves all TFTP content on demand instead of copying it into the TFTP root, for use with
+  a separate dynamic TFTP server (e.g. `cobbler-tftp <https://github.com/cobbler/cobbler-tftp>`_) that calls back
+  into Cobbler's XML-RPC API for every request. Requires ``manage_tftpd`` to be **disabled**, since that separate
+  server manages its own service. See :ref:`the TFTP user guide <tftp-directory>` for details.
 
 default: ``managers.in_tftpd``
 

@@ -9,29 +9,29 @@ cobbler.modules.authorization.allowall module
 
 .. automodule:: cobbler.modules.authorization.allowall
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.modules.authorization.configfile module
 -----------------------------------------------
 
 .. automodule:: cobbler.modules.authorization.configfile
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.modules.authorization.ownership module
 ----------------------------------------------
 
 .. automodule:: cobbler.modules.authorization.ownership
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: cobbler.modules.authorization
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

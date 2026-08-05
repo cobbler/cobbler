@@ -21,45 +21,45 @@ cobbler.modules.nsupdate\_add\_system\_post module
 
 .. automodule:: cobbler.modules.nsupdate_add_system_post
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.modules.nsupdate\_delete\_system\_pre module
 ----------------------------------------------------
 
 .. automodule:: cobbler.modules.nsupdate_delete_system_pre
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.modules.scm\_track module
 ---------------------------------
 
 .. automodule:: cobbler.modules.scm_track
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.modules.sync\_post\_restart\_services module
 ----------------------------------------------------
 
 .. automodule:: cobbler.modules.sync_post_restart_services
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.modules.sync\_post\_wingen module
 -----------------------------------------
 
 .. automodule:: cobbler.modules.sync_post_wingen
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: cobbler.modules
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

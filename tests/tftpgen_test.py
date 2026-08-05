@@ -1236,3 +1236,130 @@ def test_generate_tftp_file_uses_fast_path(
     # Exactly one call (for the resolved candidate) - if the fast path had failed and fallen back to
     # the full scan, this would be called once per system up to and including the match.
     assert generate_system_file_spy.call_count == 1
+
+
+def test_get_bundled_grub_file_returns_default_grub_cfg(cobbler_api: CobblerAPI):
+    """
+    Test that _get_bundled_grub_file() serves Cobbler's embedded default grub.cfg straight from the package
+    resources, without anything needing to be copied to disk.
+    """
+    # Arrange
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+    expected = (
+        tftpgen.files("cobbler.data.config.grub").joinpath("grub.cfg").read_bytes()
+    )
+
+    # Act
+    content, length = test_gen._get_bundled_grub_file(  # type: ignore[reportPrivateUsage]
+        pathlib.Path("/grub.cfg"), 0, 10_000
+    )
+
+    # Assert
+    assert content == expected
+    assert length == len(expected)
+
+
+def test_get_bundled_grub_file_returns_default_grub_subfolder_file(
+    cobbler_api: CobblerAPI,
+):
+    """
+    Test that _get_bundled_grub_file() also serves files bundled under the "grub/" subfolder.
+    """
+    # Arrange
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+    expected = (
+        tftpgen.files("cobbler.data.config.grub")
+        .joinpath("grub")
+        .joinpath("local_efi.cfg")
+        .read_bytes()
+    )
+
+    # Act
+    content, length = test_gen._get_bundled_grub_file(  # type: ignore[reportPrivateUsage]
+        pathlib.Path("/grub/local_efi.cfg"), 0, 10_000
+    )
+
+    # Assert
+    assert content == expected
+    assert length == len(expected)
+
+
+def test_get_bundled_grub_file_returns_none_for_unrelated_path(
+    cobbler_api: CobblerAPI,
+):
+    """
+    Test that _get_bundled_grub_file() returns None for paths that aren't part of the bundled default GRUB
+    configuration, so the caller can continue its own fallback/error handling.
+    """
+    # Arrange
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act / Assert
+    assert (
+        test_gen._get_bundled_grub_file(  # type: ignore[reportPrivateUsage]
+            pathlib.Path("/pxelinux.0"), 0, 10_000
+        )
+        is None
+    )
+    assert (
+        test_gen._get_bundled_grub_file(  # type: ignore[reportPrivateUsage]
+            pathlib.Path("/grub/does_not_exist.cfg"), 0, 10_000
+        )
+        is None
+    )
+
+
+def test_get_static_tftp_file_falls_back_to_bundled_grub_cfg(
+    tmp_path: pathlib.Path, cobbler_api: CobblerAPI
+):
+    """
+    Test that _get_static_tftp_file() falls back to the bundled default grub.cfg when it's absent from both
+    bootloaders_dir and grubconfig_dir.
+    """
+    # Arrange
+    cobbler_api.settings().bootloaders_dir = str(tmp_path / "loaders")
+    cobbler_api.settings().grubconfig_dir = str(tmp_path / "grub_config")
+    os.makedirs(cobbler_api.settings().bootloaders_dir)
+    os.makedirs(cobbler_api.settings().grubconfig_dir)
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+    expected = (
+        tftpgen.files("cobbler.data.config.grub").joinpath("grub.cfg").read_bytes()
+    )
+
+    # Act
+    result = test_gen._get_static_tftp_file(  # type: ignore[reportPrivateUsage]
+        pathlib.Path("/grub.cfg"), 0, 10_000
+    )
+
+    # Assert
+    assert result is not None
+    content, length = result
+    assert content == expected
+    assert length == len(expected)
+
+
+def test_get_static_tftp_file_grubconfig_override_takes_precedence(
+    tmp_path: pathlib.Path, cobbler_api: CobblerAPI
+):
+    """
+    Test that a custom grub.cfg placed in grubconfig_dir is served instead of the bundled default.
+    """
+    # Arrange
+    cobbler_api.settings().bootloaders_dir = str(tmp_path / "loaders")
+    cobbler_api.settings().grubconfig_dir = str(tmp_path / "grub_config")
+    os.makedirs(cobbler_api.settings().bootloaders_dir)
+    os.makedirs(cobbler_api.settings().grubconfig_dir)
+    override_content = b"# custom override grub.cfg\n"
+    (tmp_path / "grub_config" / "grub.cfg").write_bytes(override_content)
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen._get_static_tftp_file(  # type: ignore[reportPrivateUsage]
+        pathlib.Path("/grub.cfg"), 0, 10_000
+    )
+
+    # Assert
+    assert result is not None
+    content, length = result
+    assert content == override_content
+    assert length == len(override_content)

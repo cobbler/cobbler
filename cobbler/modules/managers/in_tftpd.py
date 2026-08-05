@@ -17,6 +17,7 @@ from cobbler.utils import filesystem_helpers
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.items.distro import Distro
+    from cobbler.items.image import Image
     from cobbler.items.system import System
 
 
@@ -136,6 +137,14 @@ class _InTftpdManager(TftpManagerModule):
         """
         self.api.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
         self.write_boot_files_distro(distro)
+
+    def add_single_image(self, image: "Image") -> None:
+        """
+        Add a single image to the TFTP configuration.
+
+        :param image: The image object to add.
+        """
+        self.api.tftpgen.copy_single_image_files(image)
 
     def sync_systems(self, systems: List[str], verbose: bool = True) -> None:
         """

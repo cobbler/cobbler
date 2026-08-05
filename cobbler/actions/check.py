@@ -72,6 +72,11 @@ class CobblerCheck:
             self.check_tftpd_dir(status)
         elif mode == "tftpd_py":
             self.check_ctftpd_dir(status)
+        elif mode == "dynamic_tftp" and self.settings.manage_tftpd:
+            status.append(
+                "manage_tftpd is enabled but the 'dynamic_tftp' TFTP manager is selected; disable "
+                "manage_tftpd since cobbler-tftp manages its own service independently of Cobbler."
+            )
 
         self.check_service(status, "cobblerd")
 

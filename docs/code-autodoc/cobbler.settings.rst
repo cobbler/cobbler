@@ -17,13 +17,13 @@ cobbler.settings.cli module
 
 .. automodule:: cobbler.settings.cli
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: cobbler.settings
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
