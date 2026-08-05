@@ -28,6 +28,29 @@ class Importer:
         self.api = api
         self.logger = logging.getLogger()
 
+    @staticmethod
+    def _is_local_directory_source(mirror_url: str) -> bool:
+        """
+        Determine whether ``mirror_url`` refers to a local, existing, absolute directory that can be scanned in
+        place, i.e. it is not one of the remote protocols/syntaxes that require a network transfer.
+
+        :param mirror_url: The (not yet trailing-slash-normalized) mirror URL/path passed to :meth:`run`.
+        :return: ``True`` if ``mirror_url`` is a local directory suitable for a copy-free import.
+        """
+        if (
+            mirror_url.startswith("http://")
+            or mirror_url.startswith("https://")
+            or mirror_url.startswith("ftp://")
+            or mirror_url.startswith("nfs://")
+            or mirror_url.startswith("rsync://")
+        ):
+            return False
+        if not mirror_url.startswith("/"):
+            # Same proxy the existing rsync code uses to detect "needs SSH" syntax (e.g. user@host:/path): anything
+            # that isn't an absolute filesystem path is not a local directory we can scan in place.
+            return False
+        return os.path.isabs(mirror_url) and os.path.isdir(mirror_url)
+
     def run(
         self,
         mirror_url: str,
@@ -53,6 +76,10 @@ class Importer:
         :param arch: user-specified architecture
         :param breed: user-specified breed
         :param os_version: user-specified OS version
+
+        .. note:: When ``modules.httpd.module`` is set to ``managers.dynamic_httpd``, ``network_root`` is not set,
+                  and ``mirror_url`` is a local, existing, absolute directory, the rsync copy into
+                  ``webdir/distro_mirror/<name>`` is skipped entirely and the source tree is scanned in place.
         """
         self.api.log(
             "import_tree",
@@ -78,56 +105,90 @@ class Importer:
             if path.split("-")[-1] != arch:
                 path += f"-{arch}"
 
-        # We need to mirror (copy) the files.
-        self.logger.info(
-            "importing from a network location, running rsync to fetch the files first"
+        # Direct mode: when the admin has opted into "managers.dynamic_httpd" and the source is a local, stable
+        # filesystem path, skip the expensive rsync copy into webdir/distro_mirror/<name> entirely and scan the
+        # source tree in place instead. This is strictly orthogonal to --available-as (network_root): if both are
+        # somehow requested, network_root's existing behavior wins untouched.
+        direct_source = False
+        scan_path = path
+        httpd_module_name = self.api.get_module_name_from_file(
+            "httpd", "module", "managers.in_httpd"
         )
+        if httpd_module_name == "managers.dynamic_httpd":
+            if network_root is not None:
+                self.logger.info(
+                    "modules.httpd.module is set to managers.dynamic_httpd, but --available-as was also given; "
+                    "direct (copy-free) import only applies when --available-as is not used, falling back to the "
+                    "regular rsync copy"
+                )
+            elif not self._is_local_directory_source(mirror_url):
+                self.logger.info(
+                    "modules.httpd.module is set to managers.dynamic_httpd, but import source '%s' is not a "
+                    "local, existing, absolute directory; direct (copy-free) import is not possible, falling "
+                    "back to the regular rsync copy",
+                    mirror_url,
+                )
+            else:
+                direct_source = True
+                scan_path = mirror_url.rstrip("/")
+                self.logger.info(
+                    "modules.httpd.module is set to managers.dynamic_httpd and import source '%s' is a local "
+                    "directory; skipping the rsync copy and scanning the tree in place",
+                    scan_path,
+                )
 
-        filesystem_helpers.mkdir(path)
-
-        # Prevent rsync from creating the directory name twice if we are copying via rsync.
-
-        if not mirror_url.endswith("/"):
-            mirror_url = f"{mirror_url}/"
-
-        if (
-            mirror_url.startswith("http://")
-            or mirror_url.startswith("https://")
-            or mirror_url.startswith("ftp://")
-            or mirror_url.startswith("nfs://")
-        ):
-            # HTTP mirrors are kind of primitive. rsync is better. That's why this isn't documented in the manpage and
-            # we don't support them.
-            # TODO: how about adding recursive FTP as an option?
-            self.logger.info("unsupported protocol")
-            return False
-
-        # Good, we're going to use rsync.. We don't use SSH for public mirrors and local files.
-        # Presence of user@host syntax means use SSH
-        spacer = ""
-        if not mirror_url.startswith("rsync://") and not mirror_url.startswith("/"):
-            spacer = ' -e "ssh" '
-        # --archive but without -p to avoid copying read-only ISO permissions and making sure we have write access
-        rsync_cmd = ["rsync", "-rltgoD", "--chmod=ug=rwX"]
-        if spacer != "":
-            rsync_cmd.append(spacer)
-        rsync_cmd.append("--progress")
-        if rsync_flags:
-            rsync_cmd.append(rsync_flags)
-
-        # If --available-as was specified, limit the files we pull down via rsync to just those that are critical
-        # to detecting what the distro is
-        if network_root is not None:
-            rsync_cmd.append("--include-from=/etc/cobbler/import_rsync_whitelist")
-
-        rsync_cmd += [mirror_url, path]
-
-        # kick off the rsync now
-        rsync_return_code = utils.subprocess_call(rsync_cmd, shell=False)
-        if rsync_return_code != 0:
-            raise RuntimeError(
-                f"rsync import failed with return code {rsync_return_code}!"
+        if not direct_source:
+            # We need to mirror (copy) the files.
+            self.logger.info(
+                "importing from a network location, running rsync to fetch the files first"
             )
+
+            filesystem_helpers.mkdir(path)
+
+            # Prevent rsync from creating the directory name twice if we are copying via rsync.
+
+            if not mirror_url.endswith("/"):
+                mirror_url = f"{mirror_url}/"
+
+            if (
+                mirror_url.startswith("http://")
+                or mirror_url.startswith("https://")
+                or mirror_url.startswith("ftp://")
+                or mirror_url.startswith("nfs://")
+            ):
+                # HTTP mirrors are kind of primitive. rsync is better. That's why this isn't documented in the
+                # manpage and we don't support them.
+                # TODO: how about adding recursive FTP as an option?
+                self.logger.info("unsupported protocol")
+                return False
+
+            # Good, we're going to use rsync.. We don't use SSH for public mirrors and local files.
+            # Presence of user@host syntax means use SSH
+            spacer = ""
+            if not mirror_url.startswith("rsync://") and not mirror_url.startswith("/"):
+                spacer = ' -e "ssh" '
+            # --archive but without -p to avoid copying read-only ISO permissions and making sure we have write
+            # access
+            rsync_cmd = ["rsync", "-rltgoD", "--chmod=ug=rwX"]
+            if spacer != "":
+                rsync_cmd.append(spacer)
+            rsync_cmd.append("--progress")
+            if rsync_flags:
+                rsync_cmd.append(rsync_flags)
+
+            # If --available-as was specified, limit the files we pull down via rsync to just those that are
+            # critical to detecting what the distro is
+            if network_root is not None:
+                rsync_cmd.append("--include-from=/etc/cobbler/import_rsync_whitelist")
+
+            rsync_cmd += [mirror_url, path]
+
+            # kick off the rsync now
+            rsync_return_code = utils.subprocess_call(rsync_cmd, shell=False)
+            if rsync_return_code != 0:
+                raise RuntimeError(
+                    f"rsync import failed with return code {rsync_return_code}!"
+                )
 
         if network_root is not None:
             # In addition to mirroring, we're going to assume the path is available over http, ftp, and nfs, perhaps on
@@ -164,6 +225,13 @@ class Importer:
             raise ImportError("Could not retrieve import signatures module!")
         import_manager = import_module.get_import_manager(self.api)
         import_manager.run(
-            path, mirror_name, network_root, autoinstall_file, arch, breed, os_version
+            scan_path,
+            mirror_name,
+            network_root,
+            autoinstall_file,
+            arch,
+            breed,
+            os_version,
+            direct_source=direct_source,
         )
         return True
