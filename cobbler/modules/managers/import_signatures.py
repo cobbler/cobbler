@@ -616,7 +616,11 @@ class _ImportSignatureManager(ManagerModule):
         if self.name is None:
             raise ValueError("Name cannot be None!")
 
-        if self.network_root is not None:
+        if self.network_root is not None or self.direct_source:
+            # Neither an explicit network_root nor direct_source (dynamic_httpd direct mode) copies the
+            # source tree under webdir/distro_mirror/<name>/..., so the path-depth heuristic below (which
+            # assumes exactly that layout) does not apply. Fall back to the mirror name supplied by the
+            # caller instead, same as the network_root case.
             name = self.name
         else:
             # remove the part that says /var/www/cobbler/distro_mirror/name

@@ -178,6 +178,65 @@ def test_add_entry_without_direct_source_leaves_source_tree_path_unset(
     assert result[0].source_tree_path == ""
 
 
+def test_get_proposed_name_direct_source_uses_mirror_name_for_shallow_path(
+    cobbler_api: CobblerAPI,
+):
+    """
+    Regression guard: in direct-mode imports (``direct_source=True``) ``dirname`` is the admin's own local
+    source path (e.g. a shallow mount point like ``/mnt/rocky10``), not a path copied under
+    ``webdir/distro_mirror/<name>/...``. The path-depth heuristic (``"-".join(dirname.split("/")[5:])``)
+    assumes the latter layout and collapses to an empty string for realistic shallow local paths, which
+    would make every direct-mode import generate the same ``-<arch>`` name regardless of the real source
+    tree. ``get_proposed_name()`` must instead fall back to the caller-supplied mirror name (``self.name``),
+    exactly as it already does when an explicit ``network_root`` is given.
+    """
+    # Arrange
+    manager = import_signatures.get_import_manager(cobbler_api)
+    manager.name = "rocky10"
+    manager.network_root = None
+    manager.direct_source = True
+
+    # Act
+    result = manager.get_proposed_name("/mnt/rocky10")
+
+    # Assert
+    assert result == "rocky10"
+
+
+def test_add_entry_direct_source_shallow_path_names_correctly(
+    cobbler_api: CobblerAPI,
+    mocker: MockerFixture,
+    tmp_path: pathlib.Path,
+    create_kernel_initrd: Callable[[str, str], str],
+    fk_kernel: str,
+    fk_initrd: str,
+):
+    """
+    Regression test for the naming bug found in code review: in direct mode, ``dirname`` is the admin's own
+    shallow local source path (e.g. ``/mnt/rocky10``), not a path under ``webdir/distro_mirror/<name>/...``.
+    Previously ``get_proposed_name()``'s path-depth heuristic collapsed such shallow paths to an empty name,
+    so every direct-mode import produced just ``-<arch>``, causing distinct distros imported this way to
+    collide under the same generated name (with the second one silently dropped as "already exists"). Verify
+    ``add_entry()`` now derives the name from the configured mirror name instead.
+    """
+    # Arrange
+    test_folder = create_kernel_initrd(fk_kernel, fk_initrd)
+    kernel = os.path.join(test_folder, fk_kernel)
+    initrd = os.path.join(test_folder, fk_initrd)
+    manager = import_signatures.get_import_manager(cobbler_api)
+    _prepare_add_entry_manager(manager, mocker, str(tmp_path), direct_source=True)
+    manager.name = "rocky10"
+    # A realistic direct-mode dirname: a shallow local mount point, independent of the (deep) pytest tmp_path.
+    shallow_dirname = "/mnt/rocky10"
+
+    # Act
+    result = manager.add_entry(shallow_dirname, kernel, initrd)
+
+    # Assert
+    assert len(result) == 1
+    assert result[0].name == "rocky10-x86_64"
+
+
 def test_configure_tree_location_direct_source(
     cobbler_api: CobblerAPI, tmp_path: pathlib.Path, mocker: MockerFixture
 ):
