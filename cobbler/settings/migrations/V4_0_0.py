@@ -214,6 +214,7 @@ schema = Schema(
             Optional("dns"): {Optional("module"): str},
             Optional("dhcp"): {Optional("module"): str},
             Optional("tftpd"): {Optional("module"): str},
+            Optional("httpd"): {Optional("module"): str},
             Optional("serializers"): {Optional("module"): str},
         },
         Optional("mongodb"): {
@@ -531,6 +532,11 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
         "tftpd": {
             "module": modules_config_parser.get(
                 "tftpd", "module", fallback="managers.in_tftpd"
+            )
+        },
+        "httpd": {
+            "module": modules_config_parser.get(
+                "httpd", "module", fallback="managers.in_httpd"
             )
         },
         "serializers": {

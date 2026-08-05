@@ -617,6 +617,8 @@ modules:
     module: "managers.isc"
   tftpd:
     module: "managers.in_tftpd"
+  httpd:
+    module: "managers.in_httpd"
   serializers:
     module: "serializers.file"
 

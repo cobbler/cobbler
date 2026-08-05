@@ -9,6 +9,7 @@ import pytest
 
 import cobbler.actions.sync
 import cobbler.modules.managers.bind
+import cobbler.modules.managers.in_httpd
 import cobbler.modules.managers.isc
 from cobbler.api import CobblerAPI
 from cobbler.items.image import Image
@@ -137,9 +138,30 @@ def test_get_sync(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     result = cobbler_api.get_sync()
 
     # Assert
-    # has to be called 3 times by the method
-    assert stub.call_count == 3
+    # has to be called 4 times by the method
+    assert stub.call_count == 4
     assert isinstance(result, cobbler.actions.sync.CobblerSync)
+
+
+def test_get_sync_default_httpd_manager(cobbler_api: CobblerAPI):
+    """
+    Verify that with default settings (no "httpd" module configured), the "httpd" manager resolved and attached to
+    the returned CobblerSync object is a real "_InHttpdManager" instance -- i.e. that "get_sync()" wires the
+    fallback module name, the settings category and the "httpd=" keyword argument together correctly end-to-end,
+    without any part of the resolution chain being mocked out.
+    """
+    # Arrange -- nothing to mock: "cobbler_api" uses the default test settings, which (until the "httpd" settings
+    # module lands) do not contain a "modules.httpd" entry, so this exercises the "fallback_module_name" path that
+    # will be the production default for existing installations after upgrade.
+
+    # Act
+    result = cobbler_api.get_sync()
+
+    # Assert
+    assert isinstance(result, cobbler.actions.sync.CobblerSync)
+    assert isinstance(
+        result.httpd, cobbler.modules.managers.in_httpd._InHttpdManager  # type: ignore[reportPrivateUsage]
+    )
 
 
 @pytest.mark.parametrize(

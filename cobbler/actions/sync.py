@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from cobbler.modules.managers import (
         DhcpManagerModule,
         DnsManagerModule,
+        HttpdManagerModule,
         TftpManagerModule,
     )
 
@@ -43,6 +44,7 @@ class CobblerSync:
         dhcp: Optional["DhcpManagerModule"] = None,
         dns: Optional["DnsManagerModule"] = None,
         tftpd: Optional["TftpManagerModule"] = None,
+        httpd: Optional["HttpdManagerModule"] = None,
     ) -> None:
         """
         Constructor
@@ -52,6 +54,8 @@ class CobblerSync:
         :param dhcp: The DHCP manager which can update the DHCP config.
         :param dns: The DNS manager which can update the DNS config.
         :param tftpd: The TFTP manager which can update the TFTP config.
+        :param httpd: The HTTP-serving manager, used to determine whether the admin has selected the default or
+                      dynamic HTTP-serving mode.
         """
         self.logger = logging.getLogger()
 
@@ -72,6 +76,9 @@ class CobblerSync:
         if tftpd is None:
             raise ValueError("dns not optional")
         self.tftpd = tftpd
+        if httpd is None:
+            raise ValueError("httpd not optional")
+        self.httpd = httpd
         self.bootloc = self.settings.tftpboot_location
 
         self.pxelinux_dir = os.path.join(self.bootloc, "pxelinux.cfg")
