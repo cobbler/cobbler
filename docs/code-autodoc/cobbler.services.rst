@@ -4,6 +4,14 @@ cobbler.services package
 Submodules
 ----------
 
+cobbler.services.files module
+-----------------------------
+
+.. automodule:: cobbler.services.files
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 cobbler.services.svc module
 ---------------------------
 

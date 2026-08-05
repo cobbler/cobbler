@@ -7,9 +7,7 @@ Gunicorn entry point for Cobbler's WSGI service(s): ``gunicorn cobbler.services:
 
 from typing import Any, Callable, Dict, List
 
-from cobbler.services import svc
-
-# Placeholder for future dispatch logic between svc's XML-RPC backed app and a future direct-disk file-serving app.
+from cobbler.services import files, svc
 
 
 def application(
@@ -18,8 +16,18 @@ def application(
     """
     WSGI entrypoint for Gunicorn.
 
+    Dispatches requests for the direct-disk distro tree file server (client-facing
+    ``/cblr/svc/tree/...``, seen here -- after Apache's ``ProxyPass`` strips the ``/cblr/svc/``
+    prefix -- as ``/tree/...`` in ``environ["RAW_URI"]``) to :mod:`cobbler.services.files`.
+    Everything else falls through to the existing XML-RPC-backed :mod:`cobbler.services.svc` app,
+    unchanged.
+
     :param environ:
     :param start_response:
     :return:
     """
+    raw_uri = environ.get("RAW_URI", "")
+    path = raw_uri.partition("?")[0]
+    if path == "/tree" or path.startswith("/tree/"):
+        return files.application(environ, start_response)
     return svc.application(environ, start_response)
