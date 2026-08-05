@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.items.distro import Distro
+    from cobbler.items.image import Image
     from cobbler.items.system import System
 
 
@@ -195,4 +196,15 @@ class TftpManagerModule(ManagerModule):
         distribution.
 
         :param distro: The distribution object to add.
+        """
+
+    @abstractmethod
+    def add_single_image(self, image: "Image") -> None:
+        """
+        Add a single image to the TFTP configuration.
+
+        This method should be implemented by subclasses to update TFTP boot files and configuration for the specified
+        image.
+
+        :param image: The image object to add.
         """

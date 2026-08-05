@@ -184,6 +184,22 @@ def test_manager_add_single_distro(mocker: "MockerFixture", api_mock_tftp: Cobbl
     assert manager_obj.write_boot_files_distro.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
 
 
+def test_manager_add_single_image(api_mock_tftp: CobblerAPI):
+    """
+    Test to verify the add_single_image method of the InTftpdManager class.
+    """
+    # Arrange
+    manager_obj = in_tftpd.get_manager(api_mock_tftp)
+    tftpgen_mock = api_mock_tftp.tftpgen
+
+    # Act
+    manager_obj.add_single_image(None)  # type: ignore[reportArgumentType,arg-type]
+
+    # Assert
+    # pylint: disable=no-member
+    assert tftpgen_mock.copy_single_image_files.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
+
+
 @pytest.mark.parametrize(
     "input_systems, input_verbose, expected_output",
     [(["t1.example.org"], True, "t1.example.org")],

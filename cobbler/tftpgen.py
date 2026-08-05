@@ -2215,6 +2215,36 @@ class TFTPGen:
             file_size = fd.seek(0, os.SEEK_END)
             return data, file_size
 
+    def _get_bundled_grub_file(
+        self, path: pathlib.Path, offset: int, size: int
+    ) -> Optional[Tuple[bytes, int]]:
+        """
+        Serve Cobbler's embedded, hardcoded default GRUB configuration (the same files
+        :meth:`copy_static_grub_files` would otherwise write to the TFTP root) straight from the Python package
+        resources, without requiring anything to be copied to disk first.
+
+        :param path: Normalized absolute path to the file.
+        :param offset: Offset of the requested chunk in the file.
+        :param size: Size of the requested chunk in the file.
+        :return: The requested chunk and the length of the whole file, or ``None`` if ``path`` doesn't refer to one
+                 of the bundled default GRUB files.
+        """
+        relative_path = str(path).strip("/")
+        resource_files = cast("Traversable", files("cobbler.data.config.grub"))
+        if relative_path == "grub.cfg":
+            resource = resource_files.joinpath("grub.cfg")
+        elif relative_path.startswith("grub/"):
+            resource = resource_files.joinpath("grub").joinpath(
+                relative_path[len("grub/") :]
+            )
+        else:
+            return None
+        try:
+            content = resource.read_bytes()
+        except FileNotFoundError:
+            return None
+        return content[offset : offset + size], len(content)
+
     def _get_static_tftp_file(
         self, path: pathlib.Path, offset: int, size: int
     ) -> Optional[Tuple[bytes, int]]:
@@ -2231,7 +2261,7 @@ class TFTPGen:
                     size,
                 )
             except FileNotFoundError:
-                return None
+                return self._get_bundled_grub_file(path, offset, size)
 
     def _get_distro_tftp_file(
         self, path: pathlib.Path, offset: int, size: int

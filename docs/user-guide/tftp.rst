@@ -1,3 +1,5 @@
+.. _tftp-directory:
+
 ******************
 The TFTP Directory
 ******************
@@ -90,3 +92,29 @@ from. Those files should not be touched by Cobbler and should survive even a ``c
 
 .. note:: In case Cobbler is not able to find a MAC for the interface it tries to generate an entry for, it falls back
           first to the IP and finally uses the name if no IP is known to Cobbler.
+
+Dynamic (no-copy) TFTP serving
+###############################
+
+Everything described above is the behaviour of the default ``managers.in_tftpd`` module (see ``modules.tftpd.module``
+in :ref:`settings-ref`), which materializes the TFTP directory on disk so that a normal ``tftpd``/``in.tftpd``
+process can serve it statically.
+
+Cobbler also ships a second module, ``managers.dynamic_tftp``, for use with a separate, stateless TFTP server such as
+`cobbler-tftp <https://github.com/cobbler/cobbler-tftp>`_. Instead of materializing files on disk, that server calls
+back into Cobbler's XML-RPC API (``get_tftp_file``) for every request, and Cobbler resolves the requested path on the
+fly -- reading bootloaders/kernels/initrds/images straight from where they already live, and rendering PXE/GRUB/menu
+configuration in memory.
+
+When ``managers.dynamic_tftp`` is selected:
+
+* None of the "Behaviour" steps above happen. ``cobbler sync`` becomes a no-op with respect to the TFTP directory --
+  no directories are created, no bootloaders/kernels/initrds/images are copied, and no PXE/GRUB configuration files
+  are written to disk.
+* The default ``tftpboot/grub.cfg``/``tftpboot/grub/*`` content is served directly from Cobbler's bundled package
+  data instead of being copied anywhere. To override it with your own default GRUB configuration, drop the replacement
+  file(s) into ``grubconfig_dir`` (``/var/lib/cobbler/grub_config`` by default) -- this directory is always checked
+  before the bundled default, for both the classic and the dynamic module.
+* ``manage_tftpd`` must be set to ``False``. It only controls whether Cobbler manages a local ``in.tftpd``-style
+  service, which does not apply when a separate server like cobbler-tftp is responsible for TFTP. ``cobbler check``
+  warns if both are enabled at once.

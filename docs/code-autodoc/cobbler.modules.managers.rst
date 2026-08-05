@@ -20,6 +20,14 @@ cobbler.modules.managers.dnsmasq module
    :show-inheritance:
    :undoc-members:
 
+cobbler.modules.managers.dynamic\_tftp module
+---------------------------------------------
+
+.. automodule:: cobbler.modules.managers.dynamic_tftp
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 cobbler.modules.managers.genders module
 ---------------------------------------
 

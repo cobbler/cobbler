@@ -373,7 +373,7 @@ class CobblerSync:
 
         :param name: The name of the image.
         """
-        self.api.tftpgen.copy_single_image_files(image_obj)
+        self.tftpd.add_single_image(image_obj)
         kids = self.api.find_system(return_list=True, image=image_obj.name)
         if not isinstance(kids, list):
             raise ValueError("Expected to get list of profiles from search!")

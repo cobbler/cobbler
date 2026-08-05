@@ -1,0 +1,1 @@
+Added an optional "dynamic_tftp" TFTP manager that serves TFTP content on demand instead of copying it to the TFTP root, for use with a separate server such as cobbler-tftp

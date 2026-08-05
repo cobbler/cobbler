@@ -182,6 +182,7 @@ def test_get_module_from_file(
             [
                 "cobbler.modules.managers.bind",
                 "cobbler.modules.managers.dnsmasq",
+                "cobbler.modules.managers.dynamic_tftp",
                 "cobbler.modules.managers.in_tftpd",
                 "cobbler.modules.managers.isc",
                 "cobbler.modules.managers.ndjbdns",
