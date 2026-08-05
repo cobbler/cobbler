@@ -6,5 +6,5 @@ Module contents
 
 .. automodule:: cobbler.data
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

@@ -18,93 +18,93 @@ cobbler.items.distro module
 
 .. automodule:: cobbler.items.distro
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.items.distro\_group module
 ----------------------------------
 
 .. automodule:: cobbler.items.distro_group
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.items.image module
 --------------------------
 
 .. automodule:: cobbler.items.image
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.items.menu module
 -------------------------
 
 .. automodule:: cobbler.items.menu
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.items.network\_interface module
 ---------------------------------------
 
 .. automodule:: cobbler.items.network_interface
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.items.profile module
 ----------------------------
 
 .. automodule:: cobbler.items.profile
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.items.profile\_group module
 -----------------------------------
 
 .. automodule:: cobbler.items.profile_group
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.items.repo module
 -------------------------
 
 .. automodule:: cobbler.items.repo
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.items.system module
 ---------------------------
 
 .. automodule:: cobbler.items.system
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.items.system\_group module
 ----------------------------------
 
 .. automodule:: cobbler.items.system_group
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.items.template module
 -----------------------------
 
 .. automodule:: cobbler.items.template
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: cobbler.items
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

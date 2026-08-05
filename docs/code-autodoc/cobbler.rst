@@ -26,125 +26,125 @@ cobbler.api module
 
 .. automodule:: cobbler.api
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.cexceptions module
 --------------------------
 
 .. automodule:: cobbler.cexceptions
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.configgen module
 ------------------------
 
 .. automodule:: cobbler.configgen
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.decorator module
 ------------------------
 
 .. automodule:: cobbler.decorator
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.download\_manager module
 --------------------------------
 
 .. automodule:: cobbler.download_manager
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.enums module
 --------------------
 
 .. automodule:: cobbler.enums
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.grub module
 -------------------
 
 .. automodule:: cobbler.grub
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.module\_loader module
 -----------------------------
 
 .. automodule:: cobbler.module_loader
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.power\_manager module
 -----------------------------
 
 .. automodule:: cobbler.power_manager
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.remote module
 ---------------------
 
 .. automodule:: cobbler.remote
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.serializer module
 -------------------------
 
 .. automodule:: cobbler.serializer
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.services module
 -----------------------
 
 .. automodule:: cobbler.services
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.tftpgen module
 ----------------------
 
 .. automodule:: cobbler.tftpgen
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.validate module
 -----------------------
 
 .. automodule:: cobbler.validate
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cobbler.yumgen module
 ---------------------
 
 .. automodule:: cobbler.yumgen
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: cobbler
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
