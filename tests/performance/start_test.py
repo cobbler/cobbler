@@ -11,6 +11,7 @@ from pytest_benchmark.fixture import (  # type: ignore[reportMissingTypeStubs,im
 )
 
 from cobbler.api import CobblerAPI
+from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items.distro import Distro
 
 from tests.performance import CobblerTree
@@ -50,8 +51,10 @@ def test_start(
 
     def start_cobbler():
         # pylint: disable=protected-access,unused-variable
-        CobblerAPI.__shared_state = {}  # type: ignore[reportPrivateUsage]
-        CobblerAPI.__has_loaded = False  # type: ignore[reportPrivateUsage]
+        CollectionManager._CollectionManager__shared_state.clear()  # type: ignore[reportPrivateUsage]
+        CollectionManager.has_loaded = False
+        CobblerAPI._CobblerAPI__shared_state.clear()  # type: ignore[reportPrivateUsage]
+        CobblerAPI._CobblerAPI__has_loaded = False  # type: ignore[reportPrivateUsage]
         api = CobblerAPI()  # type: ignore[reportUnusedVariable]
 
     # Arrange

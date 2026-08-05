@@ -709,6 +709,9 @@ memory_indexes:
         name:
             nonunique: true
             disabled: false
+        system_uid:
+            nonunique: true
+            disabled: false
         mac_address:
             nonunique: *allow_duplicate_macs
             disabled: *allow_duplicate_macs
@@ -725,11 +728,39 @@ memory_indexes:
       name:
         nonunique: false
         disabled: false
+      parent:
+        property: "get_parent"
+        nonunique: true
+        disabled: false
+      members:
+        nonunique: true
+        disabled: false
     profile_group:
       name:
         nonunique: false
         disabled: false
+      parent:
+        property: "get_parent"
+        nonunique: true
+        disabled: false
+      members:
+        nonunique: true
+        disabled: false
     system_group:
       name:
         nonunique: false
+        disabled: false
+      parent:
+        property: "get_parent"
+        nonunique: true
+        disabled: false
+      members:
+        nonunique: true
+        disabled: false
+    template:
+      name:
+        nonunique: false
+        disabled: false
+      tags:
+        nonunique: true
         disabled: false

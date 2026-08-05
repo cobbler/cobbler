@@ -106,7 +106,7 @@ V2.8.5:
 
 import pprint
 from abc import ABC
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, List, Type, TypeVar, Union, cast
 
 from cobbler import enums, utils
 from cobbler.items.abstract.inheritable_item import InheritableItem
@@ -166,22 +166,6 @@ class BootableItem(InheritableItem, ABC):
 
         if not self._has_initialized:
             self._has_initialized = True
-
-    def __setattr__(self, name: str, value: Any):
-        """
-        Intercepting an attempt to assign a value to an attribute.
-
-        :name: The attribute name.
-        :value: The attribute value.
-        """
-        if (
-            BootableItem._is_dict_key(name)
-            and self._has_initialized
-            and hasattr(self, name)
-            and value != getattr(self, name)
-        ):
-            self.clean_cache(name)
-        super().__setattr__(name, value)
 
     def __common_resolve(self, property_name: List[str]):
         property_name_copy = property_name.copy()
@@ -607,27 +591,3 @@ class BootableItem(InheritableItem, ABC):
                             for ancestor_name in attr_val:
                                 deserialize_ancestor(ancestor_item_type, ancestor_name)
         self.from_dict(item_dict)
-
-    def _clean_dict_cache(self, name: Optional[str]):
-        """
-        Clearing the Item dict cache.
-
-        :param name: The name of Item attribute or None.
-        """
-        if not self.api.settings().cache_enabled:
-            return
-
-        if name is not None and self._inmemory:
-            attr = getattr(type(self), name[1:])
-            if (
-                isinstance(attr, (InheritableProperty, InheritableDictProperty))
-                and self.api.get_items(self.COLLECTION_TYPE).listing.get(self.uid)
-                is not None
-            ):
-                # Invalidating "resolved" caches
-                for dep_item in self.tree_walk(name):
-                    self.logger.info(dep_item.cache.get_dict_cache(True))
-                    dep_item.cache.set_dict_cache(None, True)
-
-        # Invalidating the cache of the object itself.
-        self.cache.clean_dict_cache()

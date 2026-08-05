@@ -17,6 +17,8 @@ class DummyItemGroup(ItemGroup):
     A concrete dummy class to instantiate the abstract ItemGroup class for testing.
     """
 
+    COLLECTION_TYPE = "distro_group"
+
     def __init__(self, api: CobblerAPI, **kwargs: Any):
         super().__init__(api, **kwargs)
 

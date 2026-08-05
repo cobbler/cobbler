@@ -271,6 +271,11 @@ schema = Schema(
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
                 },
+                Optional("system_uid"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
                 Optional("mac_address"): {
                     Optional("property"): str,
                     Optional("nonunique"): bool,
@@ -354,6 +359,16 @@ schema = Schema(
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
                 },
+                Optional("parent"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("members"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
             },
             Optional("profile_group"): {
                 Optional("name"): {
@@ -361,9 +376,41 @@ schema = Schema(
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,
                 },
+                Optional("parent"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("members"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
             },
             Optional("system_group"): {
                 Optional("name"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("parent"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("members"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+            },
+            Optional("template"): {
+                Optional("name"): {
+                    Optional("property"): str,
+                    Optional("nonunique"): bool,
+                    Optional("disabled"): bool,
+                },
+                Optional("tags"): {
                     Optional("property"): str,
                     Optional("nonunique"): bool,
                     Optional("disabled"): bool,

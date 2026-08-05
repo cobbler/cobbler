@@ -312,6 +312,7 @@ class Settings:
             },
             "network_interface": {
                 "name": {"nonunique": True, "disabled": False},
+                "system_uid": {"nonunique": True, "disabled": False},
                 "mac_address": {
                     "nonunique": self.allow_duplicate_macs,
                     "disabled": self.allow_duplicate_macs,
@@ -350,12 +351,34 @@ class Settings:
             },
             "distro_group": {
                 "name": {"nonunique": False, "disabled": False},
+                "parent": {
+                    "property": "get_parent",
+                    "nonunique": True,
+                    "disabled": False,
+                },
+                "members": {"nonunique": True, "disabled": False},
             },
             "profile_group": {
                 "name": {"nonunique": False, "disabled": False},
+                "parent": {
+                    "property": "get_parent",
+                    "nonunique": True,
+                    "disabled": False,
+                },
+                "members": {"nonunique": True, "disabled": False},
             },
             "system_group": {
                 "name": {"nonunique": False, "disabled": False},
+                "parent": {
+                    "property": "get_parent",
+                    "nonunique": True,
+                    "disabled": False,
+                },
+                "members": {"nonunique": True, "disabled": False},
+            },
+            "template": {
+                "name": {"nonunique": False, "disabled": False},
+                "tags": {"nonunique": True, "disabled": False},
             },
         }
 

@@ -43,9 +43,9 @@ pytest -m integration
 make system-test
 
 # Run specific distribution tests in Docker
-make test-rocky9
+make test-rocky10
 make test-fedora41
-make test-debian12
+make test-debian13
 ```
 
 ### Code Quality

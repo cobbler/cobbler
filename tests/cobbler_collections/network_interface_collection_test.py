@@ -362,8 +362,9 @@ def test_indexes(
     # Arrange
 
     # Assert
-    assert len(network_interface_collection.indexes) == 5
+    assert len(network_interface_collection.indexes) == 6
     assert len(network_interface_collection.indexes["name"]) == 0
+    assert len(network_interface_collection.indexes["system_uid"]) == 0
     assert len(network_interface_collection.indexes["dns.name"]) == 0
     assert len(network_interface_collection.indexes["ipv4.address"]) == 0
     assert len(network_interface_collection.indexes["ipv6.address"]) == 0

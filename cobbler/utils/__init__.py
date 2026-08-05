@@ -183,6 +183,19 @@ def get_host_ip(ip_address: str, shorten: bool = True) -> str:
     return pretty[0:-cutoff]
 
 
+def hex_to_ip(hex_str: str) -> str:
+    """
+    Inverse of ``get_host_ip()`` for the unshortened (single-address, i.e. non-CIDR) case: decode an
+    8-character hexadecimal string back into its dotted-quad IPv4 address.
+
+    :param hex_str: An 8-character hexadecimal string, as produced by ``get_host_ip()``/``pretty_hex()``
+                    for a bare (non-CIDR) IPv4 address.
+    :return: The decoded dotted-quad IPv4 address.
+    :raises ValueError: If ``hex_str`` is not a valid hexadecimal string.
+    """
+    return str(IPAddress(int(hex_str, 16)))
+
+
 def _IP(ip_address: Union[str, IPAddress]) -> IPAddress:
     """
     Returns a netaddr.IP object representing an ip.

@@ -150,6 +150,22 @@ class BaseItem(ABC):
         if self._uid == "":
             self._uid = uuid.uuid4().hex
 
+    def __setattr__(self, name: str, value: Any):
+        """
+        Intercepting an attempt to assign a value to an attribute.
+
+        :name: The attribute name.
+        :value: The attribute value.
+        """
+        if (
+            BaseItem._is_dict_key(name)
+            and self._has_initialized
+            and hasattr(self, name)
+            and value != getattr(self, name)
+        ):
+            self.clean_cache(name)
+        super().__setattr__(name, value)
+
     def __eq__(self, other: Any) -> bool:
         """
         Comparison based on the uid for our items.

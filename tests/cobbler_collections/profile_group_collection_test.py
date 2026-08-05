@@ -243,7 +243,7 @@ def test_indexes(
     # Arrange
 
     # Assert
-    assert len(profile_group_collection.indexes) == 1
+    assert len(profile_group_collection.indexes) == 3
     assert len(profile_group_collection.indexes["name"]) == 0
 
 

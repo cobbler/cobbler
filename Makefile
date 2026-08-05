@@ -94,20 +94,17 @@ release: clean qa authors ## Creates the full release.
 	@mkdir release
 	@mv ../${NAME}.tar.gz ./release/${NAME}-${VERSION}.tar.gz
 
-test-rocky9: ## Executes the testscript for testing cobbler in a docker container on Rocky Linux 9.
-	./docker/rpms/build-and-install-rpms.sh rl8 docker/rpms/Rocky_Linux_9/Rocky_Linux_9.dockerfile
-
 test-rocky10: ## Executes the testscript for testing cobbler in a docker container on Rocky Linux 10.
 	./docker/rpms/build-and-install-rpms.sh rl10 docker/rpms/Rocky_Linux_10/Rocky_Linux_10.dockerfile
 
 test-fedora41: ## Executes the testscript for testing cobbler in a docker container on Fedora 41.
 	./docker/rpms/build-and-install-rpms.sh fc41 docker/rpms/Fedora_43/Fedora43.dockerfile
 
-test-debian11: ## Executes the testscript for testing cobbler in a docker container on Debian 11.
-	./docker/debs/build-and-install-debs.sh deb11 docker/debs/Debian_11/Debian11.dockerfile
+test-opensuse-leap: ## Executes the testscript for testing cobbler in a docker container on openSUSE Leap.
+	./docker/rpms/build-and-install-rpms.sh opensuse-leap docker/rpms/opensuse_leap/openSUSE_Leap16.dockerfile
 
-test-debian12: ## Executes the testscript for testing cobbler in a docker container on Debian 12.
-	./docker/debs/build-and-install-debs.sh deb12 docker/debs/Debian_12/Debian12.dockerfile
+test-opensuse-tumbleweed: ## Executes the testscript for testing cobbler in a docker container on openSUSE Tumbleweed.
+	./docker/rpms/build-and-install-rpms.sh opensuse-tumbleweed docker/rpms/opensuse_tumbleweed/openSUSE_TW.dockerfile
 
 test-debian13: ## Executes the testscript for testing cobbler in a docker container on Debian 13.
 	./docker/debs/build-and-install-debs.sh deb13 docker/debs/Debian_13/Debian13.dockerfile

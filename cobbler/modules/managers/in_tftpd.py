@@ -123,9 +123,9 @@ class _InTftpdManager(TftpManagerModule):
         """
         if not menu_items:
             menu_items = self.api.tftpgen.get_menu_items()
-        self.api.tftpgen.write_all_system_files(system, menu_items)
+        meta_blended = self.api.tftpgen.write_all_system_files(system, menu_items)
         # generate any templates listed in the distro
-        self.api.tftpgen.write_templates(system)
+        self.api.tftpgen.write_templates(system, blended=meta_blended)
         return 0
 
     def add_single_distro(self, distro: "Distro") -> None:

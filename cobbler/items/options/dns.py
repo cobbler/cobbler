@@ -7,7 +7,7 @@ names (CNAMEs). The module ensures proper validation and uniqueness of DNS names
 inheritance and lazy property evaluation.
 """
 
-from typing import TYPE_CHECKING, Any, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 
 from cobbler import validate
 from cobbler.items.options.base import ItemOption
@@ -132,9 +132,8 @@ class DNSInterfaceOption(ItemOption["NetworkInterface"]):
         dns_name = validate.hostname(dns_name)
         if dns_name != "" and not self._api.settings().allow_duplicate_hostnames:
             # FIXME: Better querying for ItemOption structs
-            matched = self._api.find_network_interface(
-                return_list=True, dns=f"name={dns_name}"
-            )
+            dedup_kwargs: Dict[str, Any] = {"dns.name": dns_name}
+            matched = self._api.find_network_interface(return_list=True, **dedup_kwargs)
             if matched is None:
                 matched = []
             if not isinstance(matched, list):  # type: ignore

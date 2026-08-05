@@ -244,7 +244,7 @@ def test_indexes(
     # Arrange
 
     # Assert
-    assert len(distro_group_collection.indexes) == 1
+    assert len(distro_group_collection.indexes) == 3
     assert len(distro_group_collection.indexes["name"]) == 0
 
 

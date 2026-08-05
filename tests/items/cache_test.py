@@ -11,7 +11,9 @@ from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.items.abstract.base_item import BaseItem
 from cobbler.items.abstract.bootable_item import BootableItem
+from cobbler.items.abstract.inheritable_item import InheritableItem
 from cobbler.items.distro import Distro
+from cobbler.items.distro_group import DistroGroup
 from cobbler.items.image import Image
 from cobbler.items.menu import Menu
 from cobbler.items.profile import Profile
@@ -516,7 +518,7 @@ def test_dict_cache_edit_invalidate(
             obj.to_dict(resolved=False)
             obj.to_dict(resolved=True)
         remain_objs = set(objs) - set(dep)
-        if isinstance(obj_test, BootableItem):
+        if isinstance(obj_test, InheritableItem):
             remain_objs.remove(obj_test)
             obj_test.owners = "test"  # type: ignore[method-assign]
             if (
@@ -549,6 +551,7 @@ def test_dict_cache_edit_invalidate(
     objs.append(test_repo1)
     test_repo2 = Repo(cobbler_api)
     test_repo2.name = "test_repo2"  # type: ignore[method-assign]
+    test_repo2.parent = test_repo1.uid  # type: ignore[method-assign]
     cobbler_api.add_repo(test_repo2)
     objs.append(test_repo2)
     test_menu1 = Menu(cobbler_api)
@@ -650,6 +653,55 @@ def test_dict_cache_edit_invalidate(
     )
     with expected_exception:
         cobbler_api.clean_items_cache(True)  # type: ignore
+
+
+@pytest.mark.parametrize(
+    "cache_enabled,expected_exception,expected_output",
+    [
+        (True, does_not_raise(), True),
+        (False, does_not_raise(), False),
+    ],
+)
+def test_dict_cache_edit_invalidate_item_group_descendant(
+    cobbler_api: CobblerAPI,
+    cache_enabled: bool,
+    expected_exception: Any,
+    expected_output: bool,
+):
+    """
+    Test to verify that editing an inheritable property invalidates the resolved dict cache of
+    descendants for item types that extend InheritableItem directly rather than through
+    BootableItem (DistroGroup/ProfileGroup/SystemGroup, via ItemGroup). ``children()`` used to be
+    hardcoded to only support the "profile" and "menu" collection types, which silently made
+    ``tree_walk()``-based descendant cache invalidation a no-op for every other item type.
+    """
+    # Arrange
+    cobbler_api.settings().cache_enabled = cache_enabled
+    parent_group = DistroGroup(cobbler_api)
+    parent_group.name = "test_parent_distro_group"  # type: ignore[method-assign]
+    cobbler_api.add_distro_group(parent_group)
+    child_group = DistroGroup(cobbler_api)
+    child_group.name = "test_child_distro_group"  # type: ignore[method-assign]
+    child_group.parent = parent_group.uid  # type: ignore[method-assign]
+    cobbler_api.add_distro_group(child_group)
+
+    with expected_exception:
+        parent_group.to_dict(resolved=True)
+        parent_group.to_dict(resolved=False)
+        child_group.to_dict(resolved=True)
+        child_group.to_dict(resolved=False)
+
+        # Act
+        parent_group.owners = "test"  # type: ignore[method-assign]
+
+        # Assert
+        result = (
+            parent_group.cache.get_dict_cache(True) is None
+            and parent_group.cache.get_dict_cache(False) is None
+            and child_group.cache.get_dict_cache(True) is None
+            and child_group.cache.get_dict_cache(False) is not None
+        )
+        assert result == expected_output
 
 
 @pytest.mark.parametrize(

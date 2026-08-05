@@ -132,4 +132,8 @@ class ItemGroup(InheritableItem, ABC):
                 member, str
             ):  # pyright: ignore[reportUnnecessaryIsInstance]
                 raise TypeError("All members must be of type string")
+        old_members = self._members
         self._members = value
+        self.api.get_items(self.COLLECTION_TYPE).update_index_value(
+            self, "members", old_members, value
+        )
