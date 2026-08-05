@@ -62,6 +62,11 @@ doc: ## Creates the documentation with sphinx in html form.
 	@echo "creating: documentation"
 	@cd docs; make html > /dev/null 2>&1
 
+apidoc: ## Regenerates the docs/code-autodoc folder from the current source tree using sphinx-apidoc.
+	@echo "regenerating: code-autodoc"
+	@rm -f docs/code-autodoc/*
+	@cd docs; sphinx-apidoc --no-toc -o code-autodoc ../cobbler
+
 man: ## Creates documentation and man pages using Sphinx
 	@if python3 -c "from importlib.metadata import version; from sys import exit; exit(0 if tuple(int(p) for p in version('setuptools_scm').split('.')[:2]) >= (8, 2) else 1)" 2>/dev/null; then \
 		python3 -m setuptools_scm --force-write-version-files > /dev/null; \

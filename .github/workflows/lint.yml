@@ -24,6 +24,33 @@ jobs:
       run:  rstcheck -r docs
     - name: Run doc8
       run: doc8 --ignore D001 docs
+  apidoc:
+    name: code-autodoc up to date
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      # https://github.com/actions/checkout
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+    - name: Set up Python
+      # https://github.com/actions/setup-python
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      # Pinned to the exact version docs/code-autodoc/ was generated with - sphinx-apidoc's
+      # output formatting (e.g. automodule option order) isn't stable across versions, so an
+      # unpinned/newer Sphinx here would flag the committed files as stale for no real reason.
+      run: pip install sphinx==8.2.3
+    - name: Regenerate code-autodoc
+      run: make apidoc
+    - name: Check for uncommitted code-autodoc changes
+      run: |
+        if [ -n "$(git status --porcelain -- docs/code-autodoc/)" ]; then
+          echo "::error::docs/code-autodoc/ is out of date. Run 'make apidoc' locally and commit the changes."
+          git status --porcelain -- docs/code-autodoc/
+          git diff -- docs/code-autodoc/
+          exit 1
+        fi
   shellscripts:
     runs-on: ubuntu-latest
     steps:
