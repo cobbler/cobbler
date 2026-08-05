@@ -14,6 +14,7 @@ Subpackages
    cobbler.data
    cobbler.items
    cobbler.modules
+   cobbler.services
    cobbler.settings
    cobbler.templates
    cobbler.utils
@@ -105,14 +106,6 @@ cobbler.serializer module
 -------------------------
 
 .. automodule:: cobbler.serializer
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-cobbler.services module
------------------------
-
-.. automodule:: cobbler.services
    :members:
    :show-inheritance:
    :undoc-members:
