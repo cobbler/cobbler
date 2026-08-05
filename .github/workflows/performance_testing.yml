@@ -80,7 +80,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             docker exec -u 0 -it cobbler bash -c "pytest --benchmark-only --benchmark-autosave tests/performance"
           else
-            docker exec -u 0 -it cobbler bash -c "pytest --benchmark-only --benchmark-autosave --benchmark-compare=\"0002\" --benchmark-group-by=name --benchmark-compare-fail=\"mean:10%\" tests/performance"
+            docker exec -u 0 -it cobbler bash -c "pytest --benchmark-only --benchmark-autosave --benchmark-compare=\"0003\" --benchmark-group-by=name --benchmark-compare-fail=\"mean:10%\" tests/performance"
           fi
       - name: Stop and remove the container
         if: always()
