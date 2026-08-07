@@ -186,6 +186,7 @@ class _ImportSignatureManager(ManagerModule):
         arch: Optional[str] = None,
         breed: Optional[str] = None,
         os_version: Optional[str] = None,
+        direct_source: bool = False,
     ) -> None:
         """
         This is the main entry point in a manager. It is a required function for import modules.
@@ -197,6 +198,8 @@ class _ImportSignatureManager(ManagerModule):
         :param arch: user-specified architecture
         :param breed: user-specified breed
         :param os_version: user-specified OS version
+        :param direct_source: whether ``path`` is the original, uncopied source tree (dynamic_httpd direct mode)
+                               rather than a location that was just rsync-copied into the Cobbler webdir.
         :raises CX
         """
         self.name = name
@@ -205,6 +208,7 @@ class _ImportSignatureManager(ManagerModule):
         self.arch = arch
         self.breed = breed
         self.os_version = os_version
+        self.direct_source = direct_source
         self.file_version: Tuple[int, int] = self.get_file_version()
 
         self.path = path
@@ -461,6 +465,9 @@ class _ImportSignatureManager(ManagerModule):
                 template_files=self.signature.get("template_files", {}),
             )
 
+            if self.direct_source:
+                new_distro.source_tree_path = self.rootdir
+
             # This logic is temporary until https://github.com/cobbler/libcobblersignatures/issues/77 is implemented
             boot_files: Dict[str, str] = {}
             for boot_file in self.signature["boot_files"]:
@@ -609,7 +616,11 @@ class _ImportSignatureManager(ManagerModule):
         if self.name is None:
             raise ValueError("Name cannot be None!")
 
-        if self.network_root is not None:
+        if self.network_root is not None or self.direct_source:
+            # Neither an explicit network_root nor direct_source (dynamic_httpd direct mode) copies the
+            # source tree under webdir/distro_mirror/<name>/..., so the path-depth heuristic below (which
+            # assumes exactly that layout) does not apply. Fall back to the mirror name supplied by the
+            # caller instead, same as the network_root case.
             name = self.name
         else:
             # remove the part that says /var/www/cobbler/distro_mirror/name
@@ -677,23 +688,33 @@ class _ImportSignatureManager(ManagerModule):
 
         # how we set the tree depends on whether an explicit network_root was specified
         if self.network_root is None:
-            dest_link = os.path.join(self.settings.webdir, "links", distribution.name)
-            # create the links directory only if we are mirroring because with SELinux Apache can't symlink to NFS
-            # (without some doing)
-            if not os.path.exists(dest_link):
-                try:
-                    self.logger.info(
-                        "trying symlink: %s -> %s", str(base), str(dest_link)
-                    )
-                    os.symlink(base, dest_link)
-                except Exception:
-                    # FIXME: This shouldn't happen but I've seen it ... debug ...
-                    self.logger.warning(
-                        "symlink creation failed: %s, %s", base, dest_link
-                    )
             protocol = self.api.settings().autoinstall_scheme
-            tree = f"{protocol}://@@http_server@@/cblr/links/{distribution.name}"
-            self.set_install_tree(distribution, tree)
+            if self.direct_source:
+                # Nothing was copied into webdir, so there is no symlink target to create. The tree is served
+                # directly from its original location by a dynamic tree-serving endpoint instead.
+                tree = (
+                    f"{protocol}://@@http_server@@/cblr/svc/tree/{distribution.name}/"
+                )
+                self.set_install_tree(distribution, tree)
+            else:
+                dest_link = os.path.join(
+                    self.settings.webdir, "links", distribution.name
+                )
+                # create the links directory only if we are mirroring because with SELinux Apache can't symlink to
+                # NFS (without some doing)
+                if not os.path.exists(dest_link):
+                    try:
+                        self.logger.info(
+                            "trying symlink: %s -> %s", str(base), str(dest_link)
+                        )
+                        os.symlink(base, dest_link)
+                    except Exception:
+                        # FIXME: This shouldn't happen but I've seen it ... debug ...
+                        self.logger.warning(
+                            "symlink creation failed: %s, %s", base, dest_link
+                        )
+                tree = f"{protocol}://@@http_server@@/cblr/links/{distribution.name}"
+                self.set_install_tree(distribution, tree)
         else:
             # Where we assign the automated installation file source is relative to our current directory and the input
             # start directory in the crawl. We find the path segments between and tack them on the network source

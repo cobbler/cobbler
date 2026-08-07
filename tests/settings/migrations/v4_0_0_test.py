@@ -106,6 +106,11 @@ def test_migrate_v4_0_0_modules_conf_propagation():
     # tftpd module implementation that exists) - key_drop_if_default() correctly
     # drops it entirely since every value in it matches the default.
     assert "tftpd" not in new_settings["modules"]
+    # "httpd" did not exist as a modules.conf section in V3.3.7, so the fallback
+    # default is always used here. Unlike "tftpd", it is not dropped by
+    # key_drop_if_default() because the current Settings() defaults (see
+    # cobbler/settings/__init__.py) do not have a "httpd" key to compare against.
+    assert new_settings["modules"]["httpd"]["module"] == "managers.in_httpd"
 
 
 def test_migrate_v4_0_0_mongodb_conf_propagation():
@@ -1160,3 +1165,53 @@ def test_normalize_v4_0_0_full():
     assert new_settings["cache_enabled"] == False
     assert new_settings["lazy_start"] == False
     assert len(V4_0_0.normalize(new_settings)) == 135
+
+
+def test_schema_v4_0_0_modules_httpd_missing_is_valid():
+    """
+    "modules.httpd" is Optional, like every other "modules" sub-key - a settings
+    dict that omits it entirely must still validate.
+    """
+    # Arrange
+    settings = {"modules": {"tftpd": {"module": "managers.in_tftpd"}}}
+
+    # Act & Assert
+    assert V4_0_0.validate(settings)
+
+
+@pytest.mark.parametrize(
+    "httpd_module", ["managers.in_httpd", "managers.dynamic_httpd"]
+)
+def test_schema_v4_0_0_modules_httpd_module_values(httpd_module: str):
+    """
+    "modules.httpd.module" is an unrestricted str, like the other manager
+    categories - both the shipped default ("managers.in_httpd") and the
+    dynamic_httpd manager added alongside it must validate.
+    """
+    # Arrange
+    settings = {"modules": {"httpd": {"module": httpd_module}}}
+
+    # Act & Assert
+    assert V4_0_0.validate(settings)
+
+
+def test_schema_v4_0_0_default_settings_yaml_validates():
+    """
+    The shipped default settings.yaml must validate cleanly against the V4.0.0
+    schema, including its "modules.httpd" entry.
+
+    Reads the source file directly (not the installed /etc/cobbler/settings.yaml)
+    since several migration tests in this same module intentionally overwrite the
+    latter as a side effect of exercising update_settings_file()'s default
+    filepath - the source file is the one this task actually changed and is never
+    mutated by any test.
+    """
+    # Arrange
+    with open(
+        "/code/cobbler/data/config/cobbler/settings.yaml", encoding="UTF-8"
+    ) as settings_file:
+        shipped_settings = yaml.safe_load(settings_file.read())
+
+    # Act & Assert
+    assert V4_0_0.validate(shipped_settings)
+    assert shipped_settings["modules"]["httpd"]["module"] == "managers.in_httpd"

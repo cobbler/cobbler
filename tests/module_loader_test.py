@@ -78,6 +78,12 @@ def test_get_module_by_name(
         ("dns", "", "managers.bind", does_not_raise()),
         ("dhcp", "", "managers.isc", does_not_raise()),
         ("tftpd", "", "managers.in_tftpd", does_not_raise()),
+        (
+            "httpd",
+            "managers.in_httpd",
+            "managers.in_httpd",
+            does_not_raise(),
+        ),
         ("wrong_section", None, "", pytest.raises(CX)),
         (
             "wrong_section",
@@ -115,6 +121,7 @@ def test_get_module_name(
         ("dns", "", does_not_raise()),
         ("dhcp", "", does_not_raise()),
         ("tftpd", "", does_not_raise()),
+        ("httpd", "managers.in_httpd", does_not_raise()),
         ("wrong_section", "", pytest.raises(CX)),
         ("wrong_section", "authentication.configfile", does_not_raise()),
     ],
@@ -182,7 +189,9 @@ def test_get_module_from_file(
             [
                 "cobbler.modules.managers.bind",
                 "cobbler.modules.managers.dnsmasq",
+                "cobbler.modules.managers.dynamic_httpd",
                 "cobbler.modules.managers.dynamic_tftp",
+                "cobbler.modules.managers.in_httpd",
                 "cobbler.modules.managers.in_tftpd",
                 "cobbler.modules.managers.isc",
                 "cobbler.modules.managers.ndjbdns",

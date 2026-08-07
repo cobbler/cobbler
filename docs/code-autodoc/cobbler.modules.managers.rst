@@ -20,6 +20,14 @@ cobbler.modules.managers.dnsmasq module
    :show-inheritance:
    :undoc-members:
 
+cobbler.modules.managers.dynamic\_httpd module
+----------------------------------------------
+
+.. automodule:: cobbler.modules.managers.dynamic_httpd
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 cobbler.modules.managers.dynamic\_tftp module
 ---------------------------------------------
 
@@ -40,6 +48,14 @@ cobbler.modules.managers.import\_signatures module
 --------------------------------------------------
 
 .. automodule:: cobbler.modules.managers.import_signatures
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+cobbler.modules.managers.in\_httpd module
+-----------------------------------------
+
+.. automodule:: cobbler.modules.managers.in_httpd
    :members:
    :show-inheritance:
    :undoc-members:

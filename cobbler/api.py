@@ -2745,9 +2745,14 @@ class CobblerAPI:
             "module",
             "managers.in_tftpd",
         ).get_manager(self)
+        httpd = self.get_module_from_file(
+            "httpd",
+            "module",
+            "managers.in_httpd",
+        ).get_manager(self)
 
         return sync_module.CobblerSync(
-            self, dhcp=dhcp, dns=dns, tftpd=tftpd, verbose=verbose
+            self, dhcp=dhcp, dns=dns, tftpd=tftpd, httpd=httpd, verbose=verbose
         )
 
     # ==========================================================================

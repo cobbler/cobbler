@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from cobbler.modules.managers import (
         DhcpManagerModule,
         DnsManagerModule,
+        HttpdManagerModule,
         TftpManagerModule,
     )
 
@@ -43,6 +44,7 @@ class CobblerSync:
         dhcp: Optional["DhcpManagerModule"] = None,
         dns: Optional["DnsManagerModule"] = None,
         tftpd: Optional["TftpManagerModule"] = None,
+        httpd: Optional["HttpdManagerModule"] = None,
     ) -> None:
         """
         Constructor
@@ -52,6 +54,8 @@ class CobblerSync:
         :param dhcp: The DHCP manager which can update the DHCP config.
         :param dns: The DNS manager which can update the DNS config.
         :param tftpd: The TFTP manager which can update the TFTP config.
+        :param httpd: The HTTP-serving manager, used to determine whether the admin has selected the default or
+                      dynamic HTTP-serving mode.
         """
         self.logger = logging.getLogger()
 
@@ -72,6 +76,9 @@ class CobblerSync:
         if tftpd is None:
             raise ValueError("dns not optional")
         self.tftpd = tftpd
+        if httpd is None:
+            raise ValueError("httpd not optional")
+        self.httpd = httpd
         self.bootloc = self.settings.tftpboot_location
 
         self.pxelinux_dir = os.path.join(self.bootloc, "pxelinux.cfg")
@@ -84,8 +91,12 @@ class CobblerSync:
         self.distromirror_config = os.path.join(
             self.settings.webdir, "distro_mirror/config"
         )
-        filesystem_helpers.create_tftpboot_dirs(self.api)
-        filesystem_helpers.create_web_dirs(self.api)
+        # Dynamic serving modules materialize nothing on disk, so skip creating the directory
+        # skeletons they'd otherwise never populate.
+        if self.tftpd.what() != "dynamic_tftp":
+            filesystem_helpers.create_tftpboot_dirs(self.api)
+        if self.httpd.what() != "dynamic_httpd":
+            filesystem_helpers.create_web_dirs(self.api)
 
     def __common_run(self):
         """
@@ -146,18 +157,20 @@ class CobblerSync:
 
         # Have the tftpd module handle copying bootloaders, distros, images, and all_system_files
         self.tftpd.sync()
-        # Copy distros to the webdir
+        # Copy distros to the webdir. Dynamic HTTP serving reads distros straight from their
+        # original source location instead, so there is nothing to copy here.
         # Adding in the exception handling to not blow up if files have been moved (or the path references an NFS
         # directory that's no longer mounted)
-        for distro in self.distros:
-            try:
-                self.logger.info("copying files for distro: %s", distro.name)
-                self.api.tftpgen.copy_single_distro_files(
-                    distro, self.settings.webdir, True
-                )
-                self.api.tftpgen.write_templates(distro, write_file=True)
-            except CX as cobbler_exception:
-                self.logger.error(cobbler_exception.value)
+        if self.httpd.what() != "dynamic_httpd":
+            for distro in self.distros:
+                try:
+                    self.logger.info("copying files for distro: %s", distro.name)
+                    self.api.tftpgen.copy_single_distro_files(
+                        distro, self.settings.webdir, True
+                    )
+                    self.api.tftpgen.write_templates(distro, write_file=True)
+                except CX as cobbler_exception:
+                    self.logger.error(cobbler_exception.value)
 
         if self.settings.manage_dhcp:
             self.write_dhcp()
@@ -190,40 +203,50 @@ class CobblerSync:
         duplicated in both. This is because PXE needs tftp, and automatic installation and Virt operations need http.
         Only the kernel and initrd images are duplicated, which is unfortunate, though SELinux won't let me give them
         two contexts, so symlinks are not a solution. *Otherwise* duplication is minimal.
-        """
 
-        # clean out parts of webdir and all of /tftpboot/images and /tftpboot/pxelinux.cfg
-        for file_obj in os.listdir(self.settings.webdir):
-            path = os.path.join(self.settings.webdir, file_obj)
-            if os.path.isfile(path):
-                if not file_obj.endswith(".py"):
-                    filesystem_helpers.rmfile(path)
-            if os.path.isdir(path):
-                if file_obj not in self.settings.webdir_whitelist:
-                    # delete directories that shouldn't exist
-                    filesystem_helpers.rmtree(path)
-                if file_obj in [
-                    "templates",
-                    "images",
-                    "systems",
-                    "distros",
-                    "profiles",
-                    "repo_profile",
-                    "repo_system",
-                    "rendered",
-                ]:
-                    # clean out directory contents
-                    filesystem_helpers.rmtree_contents(path)
-        for file_obj in [
-            self.pxelinux_dir,
-            self.grub_dir,
-            self.images_dir,
-            self.ipxe_dir,
-            self.esxi_dir,
-            self.rendered_dir,
-        ]:
-            filesystem_helpers.rmtree(file_obj)
-        filesystem_helpers.create_tftpboot_dirs(self.api)
+        When a dynamic serving module is selected, its half of this cleanup is skipped entirely: dynamic modules
+        materialize nothing under ``webdir``/``tftpboot_location`` in the first place, so there is nothing to wipe
+        and re-create, and doing so would just be pointless disk I/O on every sync.
+        """
+        dynamic_httpd = self.httpd.what() == "dynamic_httpd"
+        dynamic_tftpd = self.tftpd.what() == "dynamic_tftp"
+
+        if not dynamic_httpd:
+            # clean out parts of webdir
+            for file_obj in os.listdir(self.settings.webdir):
+                path = os.path.join(self.settings.webdir, file_obj)
+                if os.path.isfile(path):
+                    if not file_obj.endswith(".py"):
+                        filesystem_helpers.rmfile(path)
+                if os.path.isdir(path):
+                    if file_obj not in self.settings.webdir_whitelist:
+                        # delete directories that shouldn't exist
+                        filesystem_helpers.rmtree(path)
+                    if file_obj in [
+                        "templates",
+                        "images",
+                        "systems",
+                        "distros",
+                        "profiles",
+                        "repo_profile",
+                        "repo_system",
+                        "rendered",
+                    ]:
+                        # clean out directory contents
+                        filesystem_helpers.rmtree_contents(path)
+            filesystem_helpers.rmtree(self.rendered_dir)
+
+        if not dynamic_tftpd:
+            # clean out all of /tftpboot/images and /tftpboot/pxelinux.cfg
+            for file_obj in [
+                self.pxelinux_dir,
+                self.grub_dir,
+                self.images_dir,
+                self.ipxe_dir,
+                self.esxi_dir,
+            ]:
+                filesystem_helpers.rmtree(file_obj)
+            filesystem_helpers.create_tftpboot_dirs(self.api)
 
     def write_dhcp(self):
         """

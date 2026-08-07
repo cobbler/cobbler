@@ -22,6 +22,7 @@ except ImportError:
 import netaddr
 
 from cobbler import enums, utils
+from cobbler.cexceptions import CX
 from cobbler.items.abstract import base_item
 from cobbler.utils import input_converters, signatures
 
@@ -556,6 +557,30 @@ def validate_boot_remote_file(value: str) -> bool:
     if RE_URL.match(host):
         return True
     return False
+
+
+def validate_source_tree_path(path: str) -> str:
+    """
+    This validates if the passed value is a valid value for ``source_tree_path``.
+
+    :param path: Must be an empty string (unset), or an absolute path to an existing directory.
+    :return: The normalized path, or an empty string if unset.
+    :raises TypeError: If ``path`` is not of type str.
+    :raises CX: If ``path`` is not an absolute path to an existing directory.
+    """
+    if not isinstance(path, str):  # type: ignore
+        raise TypeError("Field source_tree_path of distro needs to be of type str!")
+    if not path:
+        return path
+    if not os.path.isabs(path):
+        raise CX(
+            f"Field source_tree_path of distro needs to be an absolute path: {path!r}"
+        )
+    if not os.path.isdir(path):
+        raise CX(
+            f"Field source_tree_path of distro needs to point to an existing directory: {path!r}"
+        )
+    return os.path.normpath(path)
 
 
 def validate_grub_remote_file(value: str) -> bool:

@@ -157,6 +157,20 @@ class DnsManagerModule(ManagerModule):
         self.regen_hosts()
 
 
+class HttpdManagerModule(ManagerModule):
+    """
+    Abstract base class for HTTP-serving manager modules.
+
+    Deliberately minimal: unlike TFTP, there is no ongoing per-sync copy step for HTTP-serving to abstract here (the
+    copy-skip decision for the "skip webdir copy" feature lives entirely in the importer, not in a sync-time write
+    step). This class exists purely so that ``get_module_from_file("httpd", ...)`` returns something with a
+    ``what()`` method that later tasks (the importer, ``cobbler check``) can branch on to determine whether the
+    admin has selected the default (copying) or dynamic (non-copying) HTTP-serving mode. It adds no abstract methods
+    beyond what :class:`ManagerModule` already provides; the inherited no-op defaults for ``write_configs``,
+    ``restart_service``, and ``sync`` are correct here.
+    """
+
+
 class TftpManagerModule(ManagerModule):
     """
     Abstract base class for TFTP manager modules.

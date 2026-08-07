@@ -10,6 +10,7 @@ import pytest
 
 from cobbler import enums
 from cobbler.api import CobblerAPI
+from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 from cobbler.settings import Settings
 from cobbler.utils import signatures
@@ -475,6 +476,104 @@ def test_source_repos(cobbler_api: CobblerAPI, value: Any):
 
     # Assert
     assert distro.source_repos == value
+
+
+def test_source_tree_path(cobbler_api: CobblerAPI, tmp_path: pathlib.Path):
+    """
+    Test that verifies that a valid absolute existing directory can be set and retrieved.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+
+    # Act
+    distro.source_tree_path = str(tmp_path)  # type: ignore[method-assign]
+
+    # Assert
+    assert distro.source_tree_path == str(tmp_path)
+
+
+def test_source_tree_path_unset(cobbler_api: CobblerAPI):
+    """
+    Test that verifies that the empty string is accepted as the "unset" value.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+
+    # Act
+    distro.source_tree_path = ""  # type: ignore[method-assign]
+
+    # Assert
+    assert distro.source_tree_path == ""
+
+
+def test_source_tree_path_wrong_type(cobbler_api: CobblerAPI):
+    """
+    Test that verifies that a non-str value raises a TypeError.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+
+    # Act & Assert
+    with pytest.raises(TypeError):
+        distro.source_tree_path = 1234  # type: ignore[method-assign]
+
+
+def test_source_tree_path_relative(cobbler_api: CobblerAPI):
+    """
+    Test that verifies that a relative path raises a CX.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+
+    # Act & Assert
+    with pytest.raises(CX):
+        distro.source_tree_path = "relative/path"  # type: ignore[method-assign]
+
+
+def test_source_tree_path_nonexistent(cobbler_api: CobblerAPI, tmp_path: pathlib.Path):
+    """
+    Test that verifies that an absolute path to a non-existing directory raises a CX.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+    nonexistent = tmp_path / "does-not-exist"
+
+    # Act & Assert
+    with pytest.raises(CX):
+        distro.source_tree_path = str(nonexistent)  # type: ignore[method-assign]
+
+
+def test_source_tree_path_to_from_dict(cobbler_api: CobblerAPI, tmp_path: pathlib.Path):
+    """
+    Test that verifies that ``to_dict()``/``from_dict()`` round-trips the field correctly.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+    distro.source_tree_path = str(tmp_path)  # type: ignore[method-assign]
+
+    # Act
+    result = distro.to_dict()
+    new_distro = Distro(cobbler_api)
+    new_distro.from_dict({"source_tree_path": result["source_tree_path"]})
+
+    # Assert
+    assert result.get("source_tree_path") == str(tmp_path)
+    assert new_distro.source_tree_path == str(tmp_path)
+
+
+def test_source_tree_path_make_clone(cobbler_api: CobblerAPI, tmp_path: pathlib.Path):
+    """
+    Test that verifies that ``make_clone()`` preserves the field's value on the clone.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+    distro.source_tree_path = str(tmp_path)  # type: ignore[method-assign]
+
+    # Act
+    result = distro.make_clone()
+
+    # Assert
+    assert result.source_tree_path == str(tmp_path)
 
 
 @pytest.mark.parametrize(
