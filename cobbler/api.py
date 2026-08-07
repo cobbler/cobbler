@@ -121,12 +121,13 @@ import os
 import pathlib
 import random
 import re
-import tempfile
 import threading
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
+from libcobblersignatures import Signatures  # type: ignore
+from libcobblersignatures.enums import ImportTypes  # type: ignore
 from schema import SchemaError  # type: ignore
 
 from cobbler import (
@@ -2331,7 +2332,7 @@ class CobblerAPI:
 
         :return: The dict containing all signatures.
         """
-        return signatures.signature_cache
+        return signatures.get_raw_signatures()
 
     def signature_update(self) -> None:
         """
@@ -2340,22 +2341,14 @@ class CobblerAPI:
         try:
             url = self.settings().signature_url
             dlmgr = download_manager.DownloadManager()
-            # write temp json file
-            with tempfile.NamedTemporaryFile() as tmpfile:
-                sigjson = dlmgr.urlread(url)
-                tmpfile.write(sigjson.text.encode())
-                tmpfile.flush()
-                self.logger.debug(
-                    "Successfully got file from %s", self.settings().signature_url
-                )
-                # test the import without caching it
-                try:
-                    signatures.load_signatures(tmpfile.name, cache=False)
-                except Exception:
-                    self.logger.error(
-                        "Downloaded signatures failed test load (tempfile = %s)",
-                        tmpfile.name,
-                    )
+            sigjson = dlmgr.urlread(url)
+            self.logger.debug("Successfully got file from %s", url)
+
+            # test the import without caching it
+            try:
+                Signatures().importsignatures(ImportTypes.STRING, sigjson.text)
+            except Exception:
+                self.logger.error("Downloaded signatures from %s failed test load", url)
 
             # rewrite the real signature file and import it for real
             with open(

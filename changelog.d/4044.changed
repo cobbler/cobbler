@@ -1,0 +1,1 @@
+Switched distro signature handling to depend on the `libcobblersignatures` library instead of Cobbler's own hand-rolled JSON parsing. Cobbler no longer ships its own bundled `distro_signatures.json`; it is now seeded on first install from the library's built-in data and can still be refreshed via `signature_url`/`cobbler signature update`.

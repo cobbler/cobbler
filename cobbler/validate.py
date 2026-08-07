@@ -265,7 +265,6 @@ def validate_breed(breed: str) -> str:
         raise TypeError("breed must be of type str")
     if not breed:
         return ""
-    # FIXME: The following line will fail if load_signatures() from utils/signatures.py was not called!
     valid_breeds = signatures.get_valid_breeds()
     breed = breed.lower()
     if breed and breed in valid_breeds:
@@ -299,11 +298,10 @@ def validate_os_version(os_version: str, breed: str) -> str:
             "The breed supplied to the validation function of os_version was not valid."
         )
     # Now check the os_version
-    # FIXME: The following line will fail if load_signatures() from utils/signatures.py was not called!
-    matched = signatures.signature_cache["breeds"][breed]
+    valid_versions = signatures.get_valid_os_versions_for_breed(breed)
     os_version = os_version.lower()
-    if os_version not in matched:
-        nicer = ", ".join(matched)
+    if os_version not in valid_versions:
+        nicer = ", ".join(valid_versions)
         raise ValueError(
             f'os_version for breed "{breed}" must be one of {nicer}, given was "{os_version}"'
         )

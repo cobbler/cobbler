@@ -74,6 +74,7 @@ if __name__ == "__main__":
             "schema",
             "systemd-python",
             "gunicorn",
+            "libcobblersignatures>=0.3.2",
             "dataclasses; python_version < '3.7'",
             "importlib-resources; python_version < '3.7'",
         ],

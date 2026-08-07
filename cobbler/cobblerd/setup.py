@@ -7,8 +7,10 @@ components based on distribution options and installation scope.
 """
 
 import pathlib
-import shutil
 from typing import TYPE_CHECKING, List
+
+from libcobblersignatures import Signatures
+from libcobblersignatures.enums import ExportTypes, ImportTypes
 
 try:
     from importlib.resources import files  # type: ignore
@@ -191,12 +193,17 @@ def setup_cobblerd(
     # Autoinstall Content
     autoinstall_templates_path = var_path / "templates"
     autoinstall_templates_path.mkdir(parents=True, exist_ok=True)
-    # Move distro_signatures.json to /var/lib/cobbler
+    # Seed distro_signatures.json in /var/lib/cobbler from libcobblersignatures' built-in data, unless an admin
+    # already has one (e.g. a customized file surviving an upgrade)
     signatures_filename = "distro_signatures.json"
-    old_signatures_path = etc_path / signatures_filename
-    if old_signatures_path.exists():
-        # Can't use rename because may be cross-device
-        shutil.move(old_signatures_path, (var_path / signatures_filename))
+    new_signatures_path = var_path / signatures_filename
+    if not new_signatures_path.exists():
+        built_in_signatures = Signatures()
+        built_in_signatures.importsignatures(ImportTypes.BUILT_IN, "")
+        built_in_signatures.jsontomodels()
+        built_in_signatures.exportsignatures(
+            ExportTypes.FILE, target=str(new_signatures_path)
+        )
     # Create Apache & Nginx config
     webconfigpath = get_prefixed_path(distro_options.webconfig, base_path)
     if "apache" in scope or "full" in scope:
