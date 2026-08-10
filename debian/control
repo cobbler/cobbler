@@ -15,7 +15,7 @@ Build-Depends:
  python3-dns,
  python3-sphinx,
  python3-yaml,
- python3-libcobblersignatures,
+ libcobblersignatures,
  dh-python,
  debhelper (>=12)
 Standards-Version: 4.5.1

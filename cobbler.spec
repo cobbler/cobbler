@@ -147,7 +147,7 @@ BuildRequires:  python%{python3_pkgversion}-setuptools
 BuildRequires:  python%{python3_pkgversion}-setuptools_scm
 BuildRequires:  python%{python3_pkgversion}-netaddr
 BuildRequires:  python%{python3_pkgversion}-schema
-BuildRequires:  python%{python3_pkgversion}-libcobblersignatures
+BuildRequires:  libcobblersignatures
 BuildRequires:  python%{python3_pkgversion}-systemd
 BuildRequires:  %{py3_module_cheetah}
 BuildRequires:  %{py3_module_sphinx}
@@ -196,7 +196,7 @@ Requires:       python%{python3_pkgversion}-distro
 Requires:       python%{python3_pkgversion}-schema
 Requires:       python%{python3_pkgversion}-systemd
 Requires:       python%{python3_pkgversion}-gunicorn
-Requires:       python%{python3_pkgversion}-libcobblersignatures
+Requires:       libcobblersignatures
 Requires:       %{py3_module_file}
 %if 0%{?suse_version}
 Recommends:     python%{python3_pkgversion}-ldap

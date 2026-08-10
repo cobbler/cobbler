@@ -4,6 +4,11 @@ FROM fedora:43
 
 RUN dnf makecache
 
+# Add the Cobbler 4.0.x release repository from OBS, for packages not yet available in upstream distro
+# repositories (e.g. libcobblersignatures)
+RUN dnf install -y dnf-plugins-core && \
+    dnf config-manager addrepo --from-repofile https://download.opensuse.org/repositories/systemsmanagement:/cobbler:/release40/Fedora_43/systemsmanagement:cobbler:release40.repo
+
 # Dev dependencies
 RUN dnf install -y           \
     git                      \
@@ -47,6 +52,7 @@ RUN yum install -y          \
     python3-gunicorn        \
     python3-schema          \
     python3-systemd         \
+    libcobblersignatures    \
     createrepo_c            \
     dnf-plugins-core        \
     xorriso                 \

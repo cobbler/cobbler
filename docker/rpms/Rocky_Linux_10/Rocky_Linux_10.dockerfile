@@ -8,6 +8,11 @@ RUN dnf makecache && \
     dnf config-manager --set-enabled highavailability && \
     dnf makecache
 
+# Add the Cobbler 4.0.x release repository from OBS, for packages not yet available in upstream distro
+# repositories (e.g. libcobblersignatures)
+RUN dnf config-manager --add-repo https://download.opensuse.org/repositories/systemsmanagement:/cobbler:/release40/RockyLinux_10/systemsmanagement:cobbler:release40.repo && \
+    dnf makecache
+
 # overlay2 bug with yum/dnf
 #
 # OverlayFS only implements a subset of POSIX standards. This can cause RPM db corruption.
@@ -57,6 +62,7 @@ RUN touch /var/lib/rpm/* &&   \
     python3-librepo           \
     python3-pymongo           \
     python3-coverage          \
+    libcobblersignatures      \
     createrepo_c              \
     dnf-plugins-core          \
     xorriso                   \
