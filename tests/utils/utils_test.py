@@ -239,7 +239,7 @@ def test_read_file_contents():
     "remote_url,expected_result",
     [
         (
-            "https://cobbler.github.io/libcobblersignatures/data/v2/distro_signatures.json",
+            "https://cobbler.github.io/libcobblersignatures/data/v3/distro_signatures.json",
             True,
         ),
         ("https://cobbler.github.io/signatures/not_existing", False),

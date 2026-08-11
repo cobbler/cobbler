@@ -28,11 +28,12 @@ from typing import (
 )
 
 import magic  # type: ignore
+from libcobblersignatures.models.osversion import Osversion  # type: ignore
 
 from cobbler import enums, utils
 from cobbler.cexceptions import CX
 from cobbler.modules.managers import ManagerModule
-from cobbler.utils import filesystem_helpers
+from cobbler.utils import filesystem_helpers, signatures
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -113,7 +114,7 @@ class _ImportSignatureManager(ManagerModule):
     def __init__(self, api: "CobblerAPI") -> None:
         super().__init__(api)
 
-        self.signature: Any = None
+        self.signature: Optional[Osversion] = None
         self.found_repos: Dict[str, int] = {}
 
     def get_file_lines(self, filename: str) -> Union[List[str], List[bytes]]:
@@ -260,65 +261,57 @@ class _ImportSignatureManager(ManagerModule):
             # FIXME: this automagic is not possible (yet) without mirroring
             self.repo_finder(distros_added)
 
-    def scan_signatures(self) -> Optional[Any]:
+    def scan_signatures(self) -> Optional[Osversion]:
         """
         Loop through the signatures, looking for a match for both the signature directory and the version file.
         """
-        sigdata = self.api.get_signatures()
-        # self.logger.debug("signature cache: %s" % str(sigdata))
-        for breed in list(sigdata["breeds"].keys()):
-            if self.breed and self.breed != breed:  # type: ignore
+        for breed in signatures.get_breeds():
+            if self.breed and self.breed != breed.name:  # type: ignore
                 continue
-            for version in list(sigdata["breeds"][breed].keys()):
+            for version, osversion in breed.osversions.items():
                 if self.os_version and self.os_version != version:  # type: ignore
                     continue
-                for sig in sigdata["breeds"][breed][version].get("signatures", []):
+                for sig in osversion.signatures:
                     pkgdir = os.path.join(self.path, sig)
                     if os.path.exists(pkgdir):
                         self.logger.debug(
                             "Found a candidate signature: breed=%s, version=%s",
-                            breed,
+                            breed.name,
                             version,
                         )
-                        f_re = re.compile(
-                            sigdata["breeds"][breed][version]["version_file"]
-                        )
+                        f_re = re.compile(osversion.version_file)
                         for root, subdir, fnames in os.walk(self.path):
                             for fname in fnames + subdir:
                                 if f_re.match(fname):
                                     # if the version file regex exists, we use it to scan the contents of the target
                                     # version file to ensure it's the right version
-                                    if sigdata["breeds"][breed][version][
-                                        "version_file_regex"
-                                    ]:
-                                        vf_re = re.compile(
-                                            sigdata["breeds"][breed][version][
-                                                "version_file_regex"
-                                            ]
-                                        )
+                                    if osversion.version_file_regex:
+                                        vf_re = re.compile(osversion.version_file_regex)
                                         vf_lines = self.get_file_lines(
                                             os.path.join(root, fname)
                                         )
                                         for line in vf_lines:
+                                            if isinstance(line, bytes):
+                                                line = line.decode("utf-8", "ignore")
                                             if vf_re.match(line):
                                                 break
                                         else:
                                             continue
                                     self.logger.debug(
                                         "Found a matching signature: breed=%s, version=%s",
-                                        breed,
+                                        breed.name,
                                         version,
                                     )
                                     if not self.breed:  # type: ignore
-                                        self.breed = breed
+                                        self.breed = breed.name
                                     if not self.os_version:  # type: ignore
                                         self.os_version = version
                                     if not self.autoinstall_file:
-                                        self.autoinstall_file = sigdata["breeds"][
-                                            breed
-                                        ][version]["default_autoinstall"]
+                                        self.autoinstall_file = (
+                                            osversion.default_autoinstall
+                                        )
                                     self.pkgdir = pkgdir
-                                    return sigdata["breeds"][breed][version]
+                                    return osversion
         return None
 
     # required function for import modules
@@ -329,7 +322,7 @@ class _ImportSignatureManager(ManagerModule):
         :return: An empty list or all valid architectures.
         """
         if self.signature:
-            return sorted(self.signature["supported_arches"], key=lambda s: -1 * len(s))
+            return sorted(self.signature.supported_arches, key=lambda s: -1 * len(s))
         return []
 
     def get_valid_repo_breeds(self) -> List[Any]:
@@ -339,7 +332,7 @@ class _ImportSignatureManager(ManagerModule):
         :return: An empty list or all valid architectures.
         """
         if self.signature:
-            return self.signature["supported_repo_breeds"]
+            return list(self.signature.supported_repo_breeds)
         return []
 
     def distro_adder(
@@ -352,9 +345,11 @@ class _ImportSignatureManager(ManagerModule):
         :param dirname: Unknown what this currently does.
         :param filenames: Unknown what this currently does.
         """
+        if self.signature is None:
+            raise CX("No signature has been matched yet")
 
-        re_krn = re.compile(self.signature["kernel_file"])
-        re_img = re.compile(self.signature["initrd_file"])
+        re_krn = re.compile(self.signature.kernel_file)
+        re_img = re.compile(self.signature.initrd_file)
 
         # make sure we don't mismatch PAE and non-PAE types
         initrd = None
@@ -367,7 +362,7 @@ class _ImportSignatureManager(ManagerModule):
 
             # Most of the time we just want to ignore isolinux directories, unless this is one of the oddball distros
             # where we do want it.
-            if dirname.find("isolinux") != -1 and not self.signature["isolinux_ok"]:
+            if dirname.find("isolinux") != -1 and not self.signature.isolinux_ok:
                 continue
 
             fullname = os.path.join(dirname, filename)
@@ -390,7 +385,7 @@ class _ImportSignatureManager(ManagerModule):
                     kernel = os.path.join(dirname, filename)
                 else:
                     pae_kernel = os.path.join(dirname, filename)
-            elif self.breed == "windows" and "wimboot" in self.signature["kernel_file"]:  # type: ignore
+            elif self.breed == "windows" and "wimboot" in self.signature.kernel_file:  # type: ignore
                 kernel = os.path.join(self.settings.tftpboot_location, "wimboot")
 
             # if we've collected a matching kernel and initrd pair, turn them in and add them to the list
@@ -415,6 +410,8 @@ class _ImportSignatureManager(ManagerModule):
         :param initrd: Unkown what this currently does.
         :return: Unkown what this currently does.
         """
+        if self.signature is None:
+            raise CX("No signature has been matched yet")
 
         # build a proposed name based on the directory structure
         proposed_name = self.get_proposed_name(dirname, kernel)
@@ -460,9 +457,9 @@ class _ImportSignatureManager(ManagerModule):
                 arch=pxe_arch,
                 breed=self.breed,  # type: ignore
                 os_version=self.os_version,  # type: ignore
-                kernel_options=self.signature.get("kernel_options", {}),
-                kernel_options_post=self.signature.get("kernel_options_post", {}),
-                template_files=self.signature.get("template_files", {}),
+                kernel_options=self.signature.kernel_options,
+                kernel_options_post=self.signature.kernel_options_post,
+                template_files=self.signature.template_files,
             )
 
             if self.direct_source:
@@ -470,7 +467,7 @@ class _ImportSignatureManager(ManagerModule):
 
             # This logic is temporary until https://github.com/cobbler/libcobblersignatures/issues/77 is implemented
             boot_files: Dict[str, str] = {}
-            for boot_file in self.signature["boot_files"]:
+            for boot_file in self.signature.boot_files:
                 boot_files[f"$local_img_path/{boot_file}"] = f"{self.path}/{boot_file}"
             # template_files must be a dict because during creation of the distro we explicitly set it as such.
             # Also the property template_files is NOT inheritable.
@@ -575,14 +572,16 @@ class _ImportSignatureManager(ManagerModule):
         :param dirname: The directory name where the kernel can be found.
         :param fnames: This should be a list like object which will be looped over.
         """
+        if self.signature is None:
+            raise CX("No signature has been matched yet")
 
-        re_krn = re.compile(self.signature["kernel_arch"])
+        re_krn = re.compile(self.signature.kernel_arch)
 
         # try to find a kernel header RPM and then look at it's arch.
         for fname in fnames:
             if re_krn.match(fname):
-                if self.signature["kernel_arch_regex"]:
-                    re_krn2 = re.compile(self.signature["kernel_arch_regex"])
+                if self.signature.kernel_arch_regex:
+                    re_krn2 = re.compile(self.signature.kernel_arch_regex)
                     krn_lines = self.get_file_lines(os.path.join(dirname, fname))
                     for line in krn_lines:
                         if isinstance(line, bytes):
@@ -1005,6 +1004,9 @@ class _ImportSignatureManager(ManagerModule):
         """
         Preparing a Windows distro for network boot.
         """
+        if self.signature is None:
+            raise CX("No signature has been matched yet")
+
         winpe_path = self.extract_winpe(self.path)
 
         # For Windows, file paths are case-insensitive within a WinPE image, but for wimlib-utils
@@ -1029,7 +1031,7 @@ class _ImportSignatureManager(ManagerModule):
             file_dict["/windows/boot/efi/bootmgr.efi"],
             file_dict["/windows/system32/config/software"],
         ]
-        if "wimboot" not in self.signature["kernel_file"]:
+        if "wimboot" not in self.signature.kernel_file:
             file_list.extend(
                 [
                     file_dict["/windows/boot/pxe/pxeboot.n12"],

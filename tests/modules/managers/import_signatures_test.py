@@ -7,10 +7,21 @@ import pathlib
 from typing import Any, Callable, Dict, Generator
 
 import pytest
+from libcobblersignatures.models.osversion import Osversion
 from pytest_mock import MockerFixture
 
 from cobbler.api import CobblerAPI
 from cobbler.modules.managers import import_signatures
+
+
+def _make_signature(**overrides: Any) -> Osversion:
+    """
+    Build an Osversion DAO for test setup, with the library's own defaults unless overridden.
+    """
+    version = Osversion()
+    for key, value in overrides.items():
+        setattr(version, key, value)
+    return version
 
 
 @pytest.fixture(name="reset_import_manager", scope="function", autouse=True)
@@ -63,11 +74,11 @@ def test_arch_walker_matches_kernel_arch_regex_from_bytes(
 ):
     # Arrange
     manager = import_signatures.get_import_manager(cobbler_api)
-    manager.signature = {
-        "kernel_arch": "tools\\.t00",
-        "kernel_arch_regex": "^.*(x86_64).*$",
-        "supported_arches": ["x86_64"],
-    }
+    manager.signature = _make_signature(
+        kernel_arch="tools\\.t00",
+        kernel_arch_regex="^.*(x86_64).*$",
+        supported_arches={"x86_64"},
+    )
     get_file_lines = mocker.patch.object(
         manager, "get_file_lines", return_value=[b"architecture=x86_64\n"]
     )
@@ -100,12 +111,7 @@ def _prepare_add_entry_manager(
     manager.breed = "redhat"  # type: ignore[assignment]
     manager.os_version = ""
     manager.direct_source = direct_source
-    manager.signature = {
-        "kernel_options": {},
-        "kernel_options_post": {},
-        "template_files": {},
-        "boot_files": [],
-    }
+    manager.signature = _make_signature()
     mocker.patch.object(manager, "learn_arch_from_tree", return_value=["x86_64"])
     mocker.patch.object(manager, "configure_tree_location")
 

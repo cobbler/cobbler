@@ -6,6 +6,11 @@ FROM registry.opensuse.org/opensuse/tumbleweed:latest
 ENV container docker
 ENV DISTRO SUSE
 
+# Add the Cobbler 4.0.x release repository from OBS, for packages not yet available in upstream distro
+# repositories (e.g. libcobblersignatures)
+RUN zypper ar -f https://download.opensuse.org/repositories/systemsmanagement:/cobbler:/release40/openSUSE_Tumbleweed/ systemsmanagement:cobbler:release40 && \
+    zypper --gpg-auto-import-keys refresh
+
 # Runtime & dev dependencies
 RUN zypper install -y          \
     acl                        \
@@ -45,6 +50,7 @@ RUN zypper install -y          \
     python3-magic              \
     python3-ldap               \
     python3-netaddr            \
+    libcobblersignatures       \
     python3-pyflakes           \
     python3-pycodestyle        \
     python3-schema             \

@@ -19,6 +19,11 @@ ENV DISTRO SUSE
 # Add Developer scripts to PATH
 ENV PATH="/code/docker/develop/scripts:${PATH}"
 
+# Add the Cobbler 4.0.x release repository from OBS, for packages not yet available in upstream distro
+# repositories (e.g. libcobblersignatures)
+RUN zypper ar -f https://download.opensuse.org/repositories/systemsmanagement:/cobbler:/release40/openSUSE_Tumbleweed/ systemsmanagement:cobbler:release40 && \
+    zypper --gpg-auto-import-keys refresh
+
 # Runtime & dev dependencies
 RUN zypper install --no-recommends -y \
     gdb                        \
@@ -62,6 +67,7 @@ RUN zypper install --no-recommends -y \
     python3-PyYAML             \
     python3-pykickstart        \
     python3-netaddr            \
+    libcobblersignatures       \
     python3-pymongo            \
     python3-pytest-benchmark   \
     python3-black              \

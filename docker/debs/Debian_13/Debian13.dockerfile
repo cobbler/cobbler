@@ -75,6 +75,16 @@ RUN apt-get update -qq && \
     dosfstools && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# Add the Cobbler 4.0.x release repository from OBS, for packages not yet available in Debian
+# (e.g. libcobblersignatures)
+RUN curl -fsSL https://download.opensuse.org/repositories/systemsmanagement:/cobbler:/release40/Debian_13/Release.key \
+        | gpg --dearmor -o /usr/share/keyrings/systemsmanagement-cobbler-release40.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/systemsmanagement-cobbler-release40.gpg] https://download.opensuse.org/repositories/systemsmanagement:/cobbler:/release40/Debian_13/ /" \
+        > /etc/apt/sources.list.d/systemsmanagement-cobbler-release40.list && \
+    apt-get update -qq && \
+    apt-get install -qqy libcobblersignatures && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 # Make /bin/sh point to bash, not dash
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN echo "dash dash/sh boolean false" | debconf-set-selections && \
