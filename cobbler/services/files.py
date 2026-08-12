@@ -12,8 +12,8 @@ clients can fetch package/repo data from ``$tree`` URLs of the form::
 without cobblerd having to stream every byte through an XML-RPC round trip (XML-RPC is only used
 here for a single, briefly-cached metadata lookup: resolving a distro name to its
 ``source_tree_path``). This mirrors ``cobbler.services.svc``'s pattern for reaching cobblerd
-(same settings file, same ``xmlrpc_port`` key, same unauthenticated ``xmlrpc.client.Server``
-construction) but never uses XML-RPC for file bytes themselves.
+(same settings file, same ``xmlrpc_port``/``xmlrpc_host`` keys, same unauthenticated
+``xmlrpc.client.Server`` construction) but never uses XML-RPC for file bytes themselves.
 
 Security note: the path-resolution logic in this module (:func:`is_safe_path` /
 :func:`resolve_within_root`) is the only thing standing between an unauthenticated client and
@@ -72,16 +72,20 @@ _SETTINGS_PATH = "/etc/cobbler/settings.yaml"
 
 def _build_remote() -> xmlrpc.client.Server:
     """
-    Build an XML-RPC client pointed at the local cobblerd, mirroring
+    Build an XML-RPC client pointed at cobblerd, mirroring
     ``cobbler.services.svc.application``'s own construction exactly (same settings file, same
-    ``xmlrpc_port`` key/default, same unauthenticated, ``allow_none``-enabled server).
+    ``xmlrpc_port``/``xmlrpc_host`` keys/defaults and ``COBBLER_XMLRPC_HOST`` env var override,
+    same unauthenticated, ``allow_none``-enabled server).
 
     :return: A ready-to-use XML-RPC server proxy.
     """
     with open(_SETTINGS_PATH, encoding="UTF-8") as main_settingsfile:
         ydata = yaml.safe_load(main_settingsfile)
     xmlrpc_port = ydata.get("xmlrpc_port", 25151)
-    return xmlrpc.client.Server(f"http://127.0.0.1:{xmlrpc_port}", allow_none=True)
+    xmlrpc_host = os.environ.get(
+        "COBBLER_XMLRPC_HOST", ydata.get("xmlrpc_host", "127.0.0.1")
+    )
+    return xmlrpc.client.Server(f"http://{xmlrpc_host}:{xmlrpc_port}", allow_none=True)
 
 
 def resolve_source_tree_path(distro_name: str) -> Optional[str]:

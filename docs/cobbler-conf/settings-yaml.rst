@@ -1018,6 +1018,27 @@ default: ``DISTRO``
 
 For more information see :ref:`wingen`.
 
+xmlrpc_bind_address
+####################
+
+The address ``cobblerd``'s XML-RPC server binds to. Change this only if you need the XML-RPC server reachable from
+outside of localhost -- for example when ``cobblerd`` runs in its own container, separate from whatever serves
+``/cblr/svc``, ``/httpboot`` and ``/images`` (see :ref:`docker-deployment`), and needs to accept connections from
+that other container. Overridable via the ``COBBLER_XMLRPC_BIND_ADDRESS`` environment variable.
+
+default: ``"127.0.0.1"``
+
+xmlrpc_host
+###########
+
+The host/address used to reach ``cobblerd``'s XML-RPC server from ``cobbler/services/svc.py`` and
+``cobbler/services/files.py``. The Python-level default only ever means "this same host/container"; set this to
+``cobblerd``'s actual address (or, in a container deployment, its Compose/Kubernetes service name) when the web
+application and the daemon run in separate containers. Overridable via the ``COBBLER_XMLRPC_HOST`` environment
+variable.
+
+default: ``"127.0.0.1"``
+
 xmlrpc_port
 ###########
 

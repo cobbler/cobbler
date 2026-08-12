@@ -554,3 +554,83 @@ def test_parse_range_suffix_and_multirange_ignored() -> None:
 def test_parse_range_unsatisfiable() -> None:
     with pytest.raises(files.RangeUnsatisfiable):
         files.parse_range("bytes=1000-", 1000)
+
+
+# --------------------------------------------------------------------------------------------
+# _build_remote() xmlrpc_host resolution (split-container support)
+# --------------------------------------------------------------------------------------------
+
+
+def _write_settings(tmp_path: Path, **extra: Any) -> Path:
+    settings_path = tmp_path / "settings.yaml"
+    content: Dict[str, Any] = {"xmlrpc_port": 25151}
+    content.update(extra)
+    settings_path.write_text(
+        "\n".join(f"{key}: {value!r}" for key, value in content.items()),
+        encoding="UTF-8",
+    )
+    return settings_path
+
+
+@pytest.fixture
+def capture_server_url(monkeypatch: pytest.MonkeyPatch) -> Dict[str, Any]:
+    """
+    Replace ``xmlrpc.client.Server`` with a stub that records the URL it was constructed
+    with, instead of actually building a ``ServerProxy`` (whose target host is otherwise
+    only reachable via a name-mangled private attribute).
+    """
+    captured: Dict[str, Any] = {}
+
+    def fake_server(url: str, **kwargs: Any) -> MagicMock:
+        captured["url"] = url
+        captured["kwargs"] = kwargs
+        return MagicMock()
+
+    monkeypatch.setattr(xmlrpc.client, "Server", fake_server)
+    return captured
+
+
+def test_build_remote_defaults_to_localhost_when_unset(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capture_server_url: Dict[str, Any],
+) -> None:
+    """
+    Neither the settings file nor the environment variable set an xmlrpc_host - the
+    default must be "127.0.0.1", i.e. today's exact non-containerized behavior.
+    """
+    settings_path = _write_settings(tmp_path)
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+    monkeypatch.delenv("COBBLER_XMLRPC_HOST", raising=False)
+
+    files._build_remote()  # pylint: disable=protected-access  # type: ignore[reportPrivateUsage]
+
+    assert capture_server_url["url"] == "http://127.0.0.1:25151"
+
+
+def test_build_remote_uses_settings_value_when_env_var_unset(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capture_server_url: Dict[str, Any],
+) -> None:
+    settings_path = _write_settings(tmp_path, xmlrpc_host="cobblerd")
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+    monkeypatch.delenv("COBBLER_XMLRPC_HOST", raising=False)
+
+    files._build_remote()  # pylint: disable=protected-access  # type: ignore[reportPrivateUsage]
+
+    assert capture_server_url["url"] == "http://cobblerd:25151"
+
+
+def test_build_remote_env_var_takes_precedence_over_settings_value(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capture_server_url: Dict[str, Any],
+) -> None:
+    settings_path = _write_settings(tmp_path, xmlrpc_host="cobblerd")
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+    monkeypatch.setenv("COBBLER_XMLRPC_HOST", "from-env")
+
+    files._build_remote()  # pylint: disable=protected-access  # type: ignore[reportPrivateUsage]
+
+    assert capture_server_url["url"] == "http://from-env:25151"

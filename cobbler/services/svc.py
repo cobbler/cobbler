@@ -65,6 +65,7 @@ V2.8.5
 # SPDX-FileCopyrightText: additions: 2007-2009 Michael DeHaan <michael.dehaan AT gmail>
 
 import json
+import os
 import time
 import xmlrpc.client
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -519,7 +520,12 @@ def application(
         ydata = yaml.safe_load(main_settingsfile)
 
     # Instantiate a CobblerWeb object
-    http_api = CobblerSvc(server=f'http://127.0.0.1:{ydata.get("xmlrpc_port", 25151)}')
+    xmlrpc_host = os.environ.get(
+        "COBBLER_XMLRPC_HOST", ydata.get("xmlrpc_host", "127.0.0.1")
+    )
+    http_api = CobblerSvc(
+        server=f'http://{xmlrpc_host}:{ydata.get("xmlrpc_port", 25151)}'
+    )
 
     # Check for a valid path/mode; handle invalid paths gracefully
     mode = form.get("op", "index")

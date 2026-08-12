@@ -522,6 +522,14 @@ webdir_whitelist:
   - rendered
   - .link_cache
 
+# The address cobblerd binds its XMLRPC server to. Only change this for split-container
+# deployments where cobblerd must accept connections from outside its own network namespace.
+xmlrpc_bind_address: "127.0.0.1"
+
+# The host/address the web service (svc.py/files.py) dials to reach cobblerd's XMLRPC
+# server. Only change this for split-container deployments (e.g. a Compose service name).
+xmlrpc_host: "127.0.0.1"
+
 # Cobbler's public XMLRPC listens on this port.  Change this only
 # if absolutely needed, as you'll have to start supplying a new
 # port option to koan if it is not the default.

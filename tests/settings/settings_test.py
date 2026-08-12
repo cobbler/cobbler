@@ -28,6 +28,39 @@ def test_to_dict():
     assert result == test_settings.__dict__
 
 
+@pytest.mark.parametrize(
+    "attribute_name",
+    ["xmlrpc_bind_address", "xmlrpc_host"],
+)
+def test_xmlrpc_split_container_settings_default_to_localhost(attribute_name: str):
+    """
+    Both new split-container settings must default to "127.0.0.1" so that a plain,
+    non-containerized install keeps today's exact behavior.
+    """
+    # Arrange
+    test_settings = Settings()
+
+    # Act
+    result = getattr(test_settings, attribute_name)
+
+    # Assert
+    assert result == "127.0.0.1"
+
+
+@pytest.mark.parametrize(
+    "attribute_name",
+    ["xmlrpc_bind_address", "xmlrpc_host"],
+)
+def test_xmlrpc_split_container_settings_accept_custom_values(attribute_name: str):
+    # Arrange
+
+    # Act
+    result = settings.validate_settings({attribute_name: "cobblerd"})
+
+    # Assert
+    assert result[attribute_name] == "cobblerd"
+
+
 def test_is_valid():
     # Arrange
     test_settings = settings.Settings()

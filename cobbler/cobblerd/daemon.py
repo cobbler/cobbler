@@ -66,7 +66,11 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int) -> None:
     xinterface = remote.ProxiedXMLRPCInterface(
         cobbler_api, remote.CobblerXMLRPCInterface
     )
-    server = remote.CobblerXMLRPCServer(("127.0.0.1", port))
+    settings = cobbler_api.settings()
+    bind_address = os.environ.get(
+        "COBBLER_XMLRPC_BIND_ADDRESS", settings.xmlrpc_bind_address
+    )
+    server = remote.CobblerXMLRPCServer((bind_address, port))
     # don't log requests; ignore mypy due to multiple inheritance & protocols being 3.8+
     server.logRequests = False  # type: ignore[attr-defined]
     logger.debug("XMLRPC running on %s", port)

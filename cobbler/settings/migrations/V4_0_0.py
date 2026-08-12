@@ -198,6 +198,8 @@ schema = Schema(
         Optional("virt_auto_boot"): bool,
         Optional("webdir"): str,
         Optional("webdir_whitelist"): [str],
+        Optional("xmlrpc_bind_address"): str,
+        Optional("xmlrpc_host"): str,
         Optional("xmlrpc_port"): int,
         Optional("yum_distro_priority"): int,
         Optional("yum_post_install_mirror"): bool,
