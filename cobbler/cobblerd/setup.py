@@ -237,7 +237,7 @@ def setup_cobblerd(
     configure_files = [
         (etc_path / "settings.yaml"),
         (webconfigpath / "cobbler.conf"),
-        base_path / pathlib.Path("etc/nginx/cobbler.conf"),
+        base_path / pathlib.Path("etc/nginx/cobbler/cobbler.conf"),
         base_path / pathlib.Path("etc/systemd/system/cobblerd.service"),
     ]
     for file in configure_files:
