@@ -1,4 +1,5 @@
-etc/
+etc/cobbler/
+etc/logrotate.d/
 usr/bin/
 usr/lib/
 var/log/

@@ -138,7 +138,9 @@ debs: authors ## Creates native debs in a directory called deb-build. The releas
 	@debuild -us -uc
 	@mkdir -p deb-build; \
     cp ../cobbler_* deb-build/; \
-    cp ../cobbler-tests* deb-build/
+    cp ../cobbler-tests* deb-build/; \
+    cp ../cobbler-apache2_* deb-build/; \
+    cp ../cobbler-nginx_* deb-build/
 
 eraseconfig: ## Deletes the cobbler data jsons which are created when using the file provider.
 	-rm /var/lib/cobbler/cobbler_collections/distros/*
