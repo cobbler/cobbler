@@ -21,8 +21,10 @@ def application(
     prefix -- as ``/tree/...`` in ``environ["RAW_URI"]``) to :mod:`cobbler.services.files`.
     Requests for ``/httpboot/...`` and ``/images/...`` (UEFI HTTP(S) boot files, statically served
     by Apache's own ``Alias`` directives today -- not proxied, so no prefix-stripping happens for
-    them) are likewise dispatched straight to :mod:`cobbler.services.files`. Everything else falls
-    through to the existing XML-RPC-backed :mod:`cobbler.services.svc` app, unchanged.
+    them) are likewise dispatched straight to :mod:`cobbler.services.files`. ``/healthz`` (a
+    liveness check backed by an XML-RPC round trip against cobblerd, for Docker's ``HEALTHCHECK``
+    and orchestration tooling) is dispatched there too. Everything else falls through to the
+    existing XML-RPC-backed :mod:`cobbler.services.svc` app, unchanged.
 
     :param environ:
     :param start_response:
@@ -36,4 +38,6 @@ def application(
         return files.httpboot_application(environ, start_response)
     if path == "/images" or path.startswith("/images/"):
         return files.images_application(environ, start_response)
+    if path == "/healthz":
+        return files.healthz_application(environ, start_response)
     return svc.application(environ, start_response)

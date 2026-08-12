@@ -707,3 +707,55 @@ def images_application(
     return _dispatch_static(
         environ, start_response, "/images", _images_root(), is_head=(method == "HEAD")
     )
+
+
+# --------------------------------------------------------------------------------------------
+# /healthz: a lightweight, unauthenticated liveness check for the Gunicorn "web" service,
+# backed by an actual XML-RPC round trip against cobblerd. Reuses _build_remote() for host/port
+# resolution (same settings.yaml, same COBBLER_XMLRPC_HOST override) exactly like the routes
+# above, and CobblerXMLRPCInterface.ping() -- one of the very few XML-RPC methods that takes no
+# token and performs no check_access() call, i.e. it does no real work and needs no
+# authentication, which is exactly what a health check wants.
+# --------------------------------------------------------------------------------------------
+
+
+def healthz_application(
+    environ: Dict[str, Any], start_response: _WsgiStartResponse
+) -> Any:
+    """
+    WSGI entrypoint for ``/healthz``: reports whether cobblerd's XML-RPC endpoint is reachable
+    and responsive.
+
+    Only ``GET`` and ``HEAD`` are supported, exactly like :func:`application`. A successful XML-RPC
+    ``ping()`` round trip yields ``200 OK``; any failure to reach or get a response from cobblerd
+    (connection refused, timeout, an XML-RPC fault, or a malformed/missing settings file, all of
+    which surface as ``OSError``/``xmlrpc.client.Fault``/``xmlrpc.client.ProtocolError``) yields
+    ``503 Service Unavailable`` rather than propagating as an unhandled exception/500.
+
+    :param environ: The WSGI environ.
+    :param start_response: The WSGI ``start_response`` callable.
+    """
+    method = environ.get("REQUEST_METHOD", "GET")
+    is_head = method == "HEAD"
+    if method not in ("GET", "HEAD"):
+        return _error_response(
+            start_response, "405 Method Not Allowed", "Method Not Allowed", is_head
+        )
+
+    try:
+        remote = _build_remote()
+        remote.ping()
+    except (xmlrpc.client.Fault, xmlrpc.client.ProtocolError, OSError):
+        return _error_response(
+            start_response, "503 Service Unavailable", "Service Unavailable", is_head
+        )
+
+    content = b"OK"
+    start_response(
+        "200 OK",
+        [
+            ("Content-Type", "text/plain; charset=utf-8"),
+            ("Content-Length", str(len(content))),
+        ],
+    )
+    return [] if is_head else [content]

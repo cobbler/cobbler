@@ -120,6 +120,29 @@ def test_images_paths_dispatch_to_files_images_application(
     assert len(calls) == 1
 
 
+def test_healthz_path_dispatches_to_files_healthz_application(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    A request path of ``/healthz`` must be dispatched to
+    ``cobbler.services.files.healthz_application``, not the XML-RPC-backed ``svc`` app.
+    """
+    calls: List[Dict[str, Any]] = []
+
+    def fake_healthz_app(environ: Dict[str, Any], start_response: Any) -> List[bytes]:
+        calls.append(environ)
+        start_response("200 OK", [])
+        return [b"OK"]
+
+    monkeypatch.setattr(cobbler.services.files, "healthz_application", fake_healthz_app)
+
+    environ: Dict[str, Any] = {"RAW_URI": "/healthz", "QUERY_STRING": ""}
+    result = cobbler.services.application(environ, lambda status, headers: None)
+
+    assert result == [b"OK"]
+    assert len(calls) == 1
+
+
 def test_non_tree_paths_still_dispatch_to_svc_application(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

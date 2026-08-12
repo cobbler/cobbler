@@ -850,3 +850,99 @@ def test_httpboot_head_request_has_empty_body(
     assert resp.status == "200 OK"
     assert resp.header("Content-Length") == str(len(content))
     assert body == b""
+
+
+# --------------------------------------------------------------------------------------------
+# /healthz (Task 8): a lightweight, unauthenticated liveness check for the Gunicorn "web"
+# service, backed by an actual XML-RPC round trip against cobblerd (CobblerXMLRPCInterface.ping,
+# which -- unlike almost every other XML-RPC method -- takes no token and does no check_access
+# call, exactly what a health check needs). Reuses files._build_remote() for host/port
+# resolution, exactly like the /tree, /httpboot and /images routes above -- no new settings
+# resolution logic is introduced.
+# --------------------------------------------------------------------------------------------
+
+
+def test_healthz_returns_200_when_ping_succeeds(stub_remote: MagicMock) -> None:
+    stub_remote.ping.return_value = True
+
+    resp, body = _call(_environ("/healthz"), app=files.healthz_application)
+
+    assert resp.status == "200 OK"
+    assert body == b"OK"
+    stub_remote.ping.assert_called_once()
+
+
+def test_healthz_returns_503_when_connection_refused(
+    stub_remote: MagicMock,
+) -> None:
+    stub_remote.ping.side_effect = ConnectionRefusedError("refused")
+
+    resp, _ = _call(_environ("/healthz"), app=files.healthz_application)
+
+    assert resp.status == "503 Service Unavailable"
+
+
+def test_healthz_returns_503_on_xmlrpc_fault(stub_remote: MagicMock) -> None:
+    stub_remote.ping.side_effect = xmlrpc.client.Fault(1, "boom")
+
+    resp, _ = _call(_environ("/healthz"), app=files.healthz_application)
+
+    assert resp.status == "503 Service Unavailable"
+
+
+def test_healthz_returns_503_on_protocol_error(stub_remote: MagicMock) -> None:
+    stub_remote.ping.side_effect = xmlrpc.client.ProtocolError(
+        "http://cobblerd:25151", 500, "Internal Server Error", {}
+    )
+
+    resp, _ = _call(_environ("/healthz"), app=files.healthz_application)
+
+    assert resp.status == "503 Service Unavailable"
+
+
+def test_healthz_returns_503_on_timeout(stub_remote: MagicMock) -> None:
+    stub_remote.ping.side_effect = TimeoutError("timed out")
+
+    resp, _ = _call(_environ("/healthz"), app=files.healthz_application)
+
+    assert resp.status == "503 Service Unavailable"
+
+
+@pytest.mark.parametrize("method", ["POST", "PUT", "DELETE", "PATCH"])
+def test_healthz_unsupported_methods_are_rejected_with_405(
+    stub_remote: MagicMock, method: str
+) -> None:
+    stub_remote.ping.return_value = True
+
+    resp, _ = _call(
+        _environ("/healthz", REQUEST_METHOD=method), app=files.healthz_application
+    )
+
+    assert resp.status == "405 Method Not Allowed"
+    stub_remote.ping.assert_not_called()
+
+
+def test_healthz_head_request_has_empty_body(stub_remote: MagicMock) -> None:
+    stub_remote.ping.return_value = True
+
+    resp, body = _call(
+        _environ("/healthz", REQUEST_METHOD="HEAD"), app=files.healthz_application
+    )
+
+    assert resp.status == "200 OK"
+    assert body == b""
+
+
+def test_healthz_does_not_hit_the_filesystem_cache_or_traversal_logic(
+    stub_remote: MagicMock,
+) -> None:
+    """
+    ``/healthz`` must not go anywhere near ``resolve_source_tree_path``/the distro-name cache --
+    it is a pure liveness check, not a per-distro lookup.
+    """
+    stub_remote.get_distro.return_value = _distro_dict()
+    stub_remote.ping.return_value = True
+
+    _call(_environ("/healthz"), app=files.healthz_application)
+
+    stub_remote.get_distro.assert_not_called()
