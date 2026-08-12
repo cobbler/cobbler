@@ -375,3 +375,72 @@ def test_version_pre_release(mocker: "MockerFixture"):
 
     assert result["version_tuple"] == [4, 0, 0]
     assert CobblerAPI.version(fake_self, extended=False) == pytest.approx(4.0)
+
+
+def test_get_process_management_module_auto_resolves_to_docker_in_container(
+    cobbler_api: CobblerAPI, mocker: "MockerFixture"
+):
+    """
+    "auto" (the shipped default) must resolve to process_management.docker when cobblerd is running inside a
+    container.
+    """
+    # Arrange
+    cobbler_api.settings().modules["process_management"] = {"module": "auto"}
+    mocker.patch(
+        "cobbler.modules.process_management.detection.is_containerized",
+        autospec=True,
+        return_value=True,
+    )
+
+    # Act
+    result = cobbler_api.get_process_management_module()
+
+    # Assert
+    assert result.__name__ == "cobbler.modules.process_management.docker"
+
+
+def test_get_process_management_module_auto_resolves_to_service_outside_container(
+    cobbler_api: CobblerAPI, mocker: "MockerFixture"
+):
+    """
+    "auto" must resolve to process_management.service when cobblerd is not running inside a container -
+    reproducing today's traditional (non-containerized) behavior.
+    """
+    # Arrange
+    cobbler_api.settings().modules["process_management"] = {"module": "auto"}
+    mocker.patch(
+        "cobbler.modules.process_management.detection.is_containerized",
+        autospec=True,
+        return_value=False,
+    )
+
+    # Act
+    result = cobbler_api.get_process_management_module()
+
+    # Assert
+    assert result.__name__ == "cobbler.modules.process_management.service"
+
+
+def test_get_process_management_module_explicit_setting_survives_container_detection(
+    cobbler_api: CobblerAPI, mocker: "MockerFixture"
+):
+    """
+    Regression test (Global Constraint): an explicit "process_management.service" setting must never be
+    overridden by container detection - only "auto" is affected by it. Even when is_containerized() is mocked
+    True, the explicitly configured module must be returned unchanged.
+    """
+    # Arrange
+    cobbler_api.settings().modules["process_management"] = {
+        "module": "process_management.service"
+    }
+    mocker.patch(
+        "cobbler.modules.process_management.detection.is_containerized",
+        autospec=True,
+        return_value=True,
+    )
+
+    # Act
+    result = cobbler_api.get_process_management_module()
+
+    # Assert
+    assert result.__name__ == "cobbler.modules.process_management.service"

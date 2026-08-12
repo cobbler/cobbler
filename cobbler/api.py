@@ -2718,6 +2718,44 @@ class CobblerAPI:
 
     # ==========================================================================
 
+    def get_process_management_module(self) -> ModuleType:
+        """
+        Get the configured process management module, resolved fresh on every call so that a settings change takes
+        effect without requiring cobblerd to be restarted.
+
+        If ``modules.process_management.module`` is ``"auto"``, resolves to ``process_management.docker`` when
+        running inside a container (see ``process_management.detection.is_containerized()``), and to
+        ``process_management.service`` otherwise -- this applies only to ``"auto"`` itself; an explicit
+        ``"process_management.service"``/``"process_management.docker"`` setting is never overridden by container
+        detection.
+
+        :return: The process management module to restart services (DHCP, DNS, ...) through.
+        """
+        module_name = self.module_loader.get_module_name(
+            "process_management", "module", "process_management.service"
+        )
+        if module_name == "auto":
+            from cobbler.modules.process_management import (  # pylint: disable=import-outside-toplevel
+                detection,
+            )
+
+            resolved_name = (
+                "process_management.docker"
+                if detection.is_containerized()
+                else "process_management.service"
+            )
+            module = self.module_loader.get_module_by_name(resolved_name)
+            if module is None:
+                raise CX(
+                    f"Failed to load module for process_management.module (auto -> {resolved_name})"
+                )
+            return module
+        return self.get_module_from_file(
+            "process_management", "module", "process_management.service"
+        )
+
+    # ==========================================================================
+
     def get_sync(self, verbose: bool = False) -> "sync_module.CobblerSync":
         """
         Get a Cobbler Sync object which may be executed through the call of ``obj.run()``.

@@ -1220,6 +1220,63 @@ Choices:
 
 default: ``managers.in_httpd``
 
+process_management
+===================
+
+module
+------
+
+Chooses how Cobbler restarts DHCP/DNS services after a ``cobbler sync``.
+
+Choices:
+
+- auto -- default, auto-detects whether ``cobblerd`` is running inside a container and resolves to
+  process_management.docker if so, or process_management.service otherwise. Outside a container this reproduces
+  process_management.service's detection identically, so this is behavior-preserving for every existing
+  non-container install.
+- process_management.service -- restarts a local systemd/supervisord-managed process, unchanged from Cobbler's
+  traditional single-host behavior. Auto-detects between systemd, supervisord and SysV ``service``, delegating to
+  process_management.systemd/process_management.supervisor for the first two. An explicit setting here is never
+  overridden by container detection.
+- process_management.systemd -- always restarts via ``systemctl restart``, with no auto-detection. Select this
+  explicitly when you already know the host uses systemd.
+- process_management.supervisor -- always restarts through supervisord's XML-RPC API, with no auto-detection.
+  Select this explicitly when you already know the host manages services via supervisord.
+- process_management.docker -- restarts a DHCP/DNS sidecar **container**, chosen by Docker label, instead of a
+  local process. Requires the optional ``docker`` Python extra (``pip install cobbler[docker]``) and mounting the
+  host's Docker Engine API socket into the ``cobblerd`` container. See :ref:`docker-deployment` for the full
+  picture, including the security trade-offs of mounting the Docker socket. An explicit setting here is never
+  overridden by container detection.
+
+default: ``auto``
+
+docker_socket_path
+-------------------
+
+Only used when ``module`` above is ``process_management.docker``. The path, inside the ``cobblerd`` container, of
+the Docker Engine API Unix socket to connect to. This is always a local Unix socket -- this module never connects
+to a remote or TLS-secured Docker host.
+
+default: ``"/var/run/docker.sock"``
+
+docker_service_labels
+-----------------------
+
+Only used when ``module`` above is ``process_management.docker``. Maps Cobbler's internal service names
+(``dhcpd``, ``dhcpd4``, ``dhcpd6``, ``named``, ``dnsmasq``) to the ``cobbler.io/managed-service=<value>`` label
+value Cobbler looks for on sidecar containers. Exactly one running container must carry the matching label for a
+given restart request; zero or more than one is a hard error, never a silent no-op or a guess.
+
+default:
+
+.. code-block:: yaml
+
+    dhcpd: "dhcp"
+    dhcpd4: "dhcp"
+    dhcpd6: "dhcp"
+    named: "dns"
+    dnsmasq: "dnsmasq"
+
 serializers
 ===========
 

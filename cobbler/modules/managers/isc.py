@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Set
 from cobbler import enums, utils
 from cobbler.enums import Archs
 from cobbler.modules.managers import DhcpManagerModule
-from cobbler.utils import process_management
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -374,13 +373,14 @@ class _IscManager(DhcpManagerModule):
         )
         if return_code_service_restart != 0:
             self.logger.error("Testing config - %s -t failed", service_name)
+        process_management_module = self.api.get_process_management_module()
         if version == 4:
-            return_code_service_restart = process_management.service_restart(
-                service_name
+            return_code_service_restart = process_management_module.restart_service(
+                self.api, service_name
             )
         else:
-            return_code_service_restart = process_management.service_restart(
-                f"{service_name}{version}"
+            return_code_service_restart = process_management_module.restart_service(
+                self.api, f"{service_name}{version}"
             )
         if return_code_service_restart != 0:
             self.logger.error("%s service failed", service_name)

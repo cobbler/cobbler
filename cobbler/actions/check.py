@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, List
 from xmlrpc.client import ServerProxy
 
 from cobbler import utils
-from cobbler.utils import process_management
+from cobbler.modules.process_management import detection
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -136,7 +136,7 @@ class CobblerCheck:
         if notes != "":
             notes = f" (NOTE: {notes})"
         return_code = 0
-        if process_management.is_supervisord():
+        if detection.is_supervisord():
             with ServerProxy("http://localhost:9001/RPC2") as server:
                 process_info = server.supervisor.getProcessInfo(which)
                 if (
@@ -145,7 +145,7 @@ class CobblerCheck:
                 ):
                     status.append(f"service {which} is not running{notes}")
                     return
-        elif process_management.is_systemd():
+        elif detection.is_systemd():
             return_code = utils.subprocess_call(
                 ["systemctl", "is-active", "--quiet", which], shell=False
             )

@@ -61,6 +61,7 @@ RUN touch /var/lib/rpm/* &&   \
     python3-ldap              \
     python3-librepo           \
     python3-pymongo           \
+    python3-docker            \
     python3-coverage          \
     libcobblersignatures      \
     createrepo_c              \

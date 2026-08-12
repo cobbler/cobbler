@@ -409,8 +409,12 @@ def test_manager_restart_service(mocker: "MockerFixture", cobbler_api: CobblerAP
     mocked_service_name = mocker.patch(
         "cobbler.utils.named_service_name", autospec=True, return_value="named"
     )
-    mock_service_restart = mocker.patch(
-        "cobbler.utils.process_management.service_restart", return_value=0
+    mocked_process_management_module = mocker.MagicMock()
+    mocked_process_management_module.restart_service.return_value = 0
+    mocker.patch.object(
+        cobbler_api,
+        "get_process_management_module",
+        return_value=mocked_process_management_module,
     )
 
     # Act
@@ -418,5 +422,7 @@ def test_manager_restart_service(mocker: "MockerFixture", cobbler_api: CobblerAP
 
     # Assert
     assert mocked_service_name.call_count == 1
-    mock_service_restart.assert_called_with("named")
+    mocked_process_management_module.restart_service.assert_called_with(
+        cobbler_api, "named"
+    )
     assert result == 0

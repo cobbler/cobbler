@@ -41,7 +41,7 @@ from netaddr.ip import IPAddress, IPNetwork
 from cobbler import enums, settings
 from cobbler.cexceptions import CX
 from cobbler.items.options import base
-from cobbler.utils import process_management
+from cobbler.modules.process_management import detection
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -1266,7 +1266,7 @@ def named_service_name() -> str:
     dist, _ = os_release()
     if dist in ("debian", "ubuntu"):
         return "bind9"
-    if process_management.is_systemd():
+    if detection.is_systemd():
         return_code = subprocess_call(
             ["/usr/bin/systemctl", "is-active", "named-chroot"], shell=False
         )

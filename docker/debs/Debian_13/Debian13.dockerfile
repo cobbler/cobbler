@@ -39,6 +39,7 @@ RUN apt-get update -qq && \
     python3-pip \
     python3-pycodestyle \
     python3-pymongo \
+    python3-docker \
     python3-pytest \
     python3-setuptools \
     python3-setuptools-scm \

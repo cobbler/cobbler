@@ -4,6 +4,7 @@ Test to verify the functionality of the isc DHCP module.
 
 import time
 from typing import TYPE_CHECKING
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -216,11 +217,8 @@ def test_manager_restart_dhcp(mocker: "MockerFixture", api_isc_mock: CobblerAPI)
     mocked_subprocess = mocker.patch(
         "cobbler.utils.subprocess_call", autospec=True, return_value=0
     )
-    mocked_service_restart = mocker.patch(
-        "cobbler.utils.process_management.service_restart",
-        autospec=True,
-        return_value=0,
-    )
+    mocked_service_restart: MagicMock = api_isc_mock.get_process_management_module.return_value.restart_service  # type: ignore
+    mocked_service_restart.return_value = 0
     manager = isc.get_manager(api_isc_mock)
 
     # Act
@@ -231,8 +229,10 @@ def test_manager_restart_dhcp(mocker: "MockerFixture", api_isc_mock: CobblerAPI)
     mocked_subprocess.assert_called_with(
         ["/usr/sbin/dhcpd", "-4", "-t", "-q"], shell=False
     )
-    assert mocked_service_restart.call_count == 1
-    mocked_service_restart.assert_called_with("dhcpd")
+    assert mocked_service_restart.call_count == 1  # type: ignore[reportUnknownMemberType]
+    mocked_service_restart.assert_called_with(  # type: ignore[reportUnknownMemberType]
+        api_isc_mock, "dhcpd"
+    )
     assert result == 0
 
 

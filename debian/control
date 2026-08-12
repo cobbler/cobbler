@@ -36,7 +36,8 @@ Suggests:
  createrepo-c,
  createrepo,
  logrotate,
- python3-librepo
+ python3-librepo,
+ python3-docker
 Description: Install server
  Cobbler is a PXE based network install server.
  Cobbler's advanced features include importing distributions

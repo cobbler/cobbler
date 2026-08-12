@@ -6,12 +6,13 @@ import pathlib
 import time
 import xmlrpc.client
 from typing import Any, Callable, Generator, List, Tuple
+from unittest.mock import MagicMock
 
 import pytest
 
+from cobbler.modules.process_management.service import restart_service
 from cobbler.remote import CobblerXMLRPCInterface
 from cobbler.utils import get_shared_secret
-from cobbler.utils.process_management import service_restart
 
 WaitTaskEndType = Callable[[str, CobblerXMLRPCInterface], None]
 
@@ -47,7 +48,9 @@ def fixture_restart_cobbler() -> Callable[[], None]:
     """
 
     def _restart_cobbler() -> None:
-        result = service_restart("cobblerd")
+        # api_handle is unused by process_management.service.restart_service() - a MagicMock() avoids
+        # constructing a full CobblerAPI just to satisfy the type signature.
+        result = restart_service(MagicMock(), "cobblerd")
         if result != 0:
             pytest.fail("Failed to restart cobbler")
 

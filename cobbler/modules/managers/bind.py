@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Tuple, Union
 
 from cobbler import enums, utils
 from cobbler.modules.managers import DnsManagerModule
-from cobbler.utils import process_management
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -635,7 +634,9 @@ zone "{arpa}." {{
         Basically this restarts the service to apply the changes.
         """
         named_service_name = utils.named_service_name()
-        return process_management.service_restart(named_service_name)
+        return self.api.get_process_management_module().restart_service(
+            self.api, named_service_name
+        )
 
 
 def get_manager(api: "CobblerAPI") -> "_BindManager":

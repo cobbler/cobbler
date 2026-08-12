@@ -218,6 +218,9 @@ Recommends:     %{grub2_x64_efi_pkg}
 Recommends:     %{grub2_ia32_efi_pkg}
 Recommends:     logrotate
 Recommends:     python%{python3_pkgversion}-librepo
+# Only used by the optional modules.process_management.docker backend; not required for cobbler's
+# default process management behavior.
+Recommends:     python%{python3_pkgversion}-docker
 %endif
 # No point in having this split out...
 Obsoletes:      cobbler-nsupdate < 3.0.99

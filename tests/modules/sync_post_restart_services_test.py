@@ -22,11 +22,10 @@ def test_register():
 
 def test_run(mocker: "MockerFixture"):
     # Arrange
-    restart_mock = mocker.patch(
-        "cobbler.utils.process_management.service_restart", return_value=0
-    )
     api = mocker.MagicMock(spec=CobblerAPI)
     api.get_module_name_from_file.side_effect = ["managers.isc", "managers.bind"]  # type: ignore
+    restart_mock = api.get_process_management_module.return_value.restart_service  # type: ignore
+    restart_mock.return_value = 0
     args: List[str] = []
 
     # Act

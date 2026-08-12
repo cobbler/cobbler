@@ -196,6 +196,17 @@
         "tftpd": {
             "module": "managers.in_tftpd"
         },
+        "process_management": {
+            "module": "process_management.service",
+            "docker_socket_path": "/var/run/docker.sock",
+            "docker_service_labels": {
+                "dhcpd": "dhcp",
+                "dhcpd4": "dhcp",
+                "dhcpd6": "dhcp",
+                "named": "dns",
+                "dnsmasq": "dnsmasq"
+            }
+        },
         "serializers": {
             "module": "serializers.file"
         }
@@ -269,6 +280,8 @@
         "web",
         "webui"
     ],
+    "xmlrpc_bind_address": "127.0.0.1",
+    "xmlrpc_host": "127.0.0.1",
     "xmlrpc_port": 25151,
     "yum_distro_priority": 1,
     "yum_post_install_mirror": true,

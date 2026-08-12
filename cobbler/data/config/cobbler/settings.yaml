@@ -627,6 +627,15 @@ modules:
     module: "managers.in_tftpd"
   httpd:
     module: "managers.in_httpd"
+  process_management:
+    module: "auto"
+    docker_socket_path: "/var/run/docker.sock"
+    docker_service_labels:
+      dhcpd: "dhcp"
+      dhcpd4: "dhcp"
+      dhcpd6: "dhcp"
+      named: "dns"
+      dnsmasq: "dnsmasq"
   serializers:
     module: "serializers.file"
 

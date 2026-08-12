@@ -3,6 +3,7 @@ Test to verify the functionality of the dnsmasq DHCP & DNS module.
 """
 
 import time
+from unittest.mock import MagicMock
 
 import pytest
 from pytest_mock import MockerFixture
@@ -422,9 +423,8 @@ def test_manager_restart_service(mocker: "MockerFixture", cobbler_api: CobblerAP
     Test if the manager is able to correctly handle restarting the dnsmasq server on different distros.
     """
     # Arrange
-    mock_service_restart = mocker.patch(
-        "cobbler.utils.process_management.service_restart", return_value=0
-    )
+    mock_service_restart: MagicMock = cobbler_api.get_process_management_module.return_value.restart_service  # type: ignore
+    mock_service_restart.return_value = 0
     dnsmasq.MANAGER = None
     test_manager = dnsmasq.get_manager(cobbler_api)
 
@@ -432,6 +432,8 @@ def test_manager_restart_service(mocker: "MockerFixture", cobbler_api: CobblerAP
     result = test_manager.restart_service()
 
     # Assert
-    assert mock_service_restart.call_count == 1
-    mock_service_restart.assert_called_with("dnsmasq")
+    assert mock_service_restart.call_count == 1  # type: ignore[reportUnknownMemberType]
+    mock_service_restart.assert_called_with(  # type: ignore[reportUnknownMemberType]
+        cobbler_api, "dnsmasq"
+    )
     assert result == 0

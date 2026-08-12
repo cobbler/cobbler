@@ -8,3 +8,34 @@ mongodb:
 power_management_default_type: 'ipmilan'
 tftpboot_location: '/srv/tftpboot'
 webdir: '/srv/www/cobbler'
+# Settings.from_dict()/__dict__.update() replaces "modules" wholesale (no deep merge), so every category normally
+# provided by Settings()'s own defaults (see cobbler/settings/__init__.py) must be repeated here too - only
+# "process_management.module" actually differs from those defaults.
+modules:
+  authentication:
+    module: "authentication.configfile"
+    hash_algorithm: "sha3_512"
+  authorization:
+    module: "authorization.allowall"
+  dns:
+    module: "managers.bind"
+  dhcp:
+    module: "managers.isc"
+  tftpd:
+    module: "managers.in_tftpd"
+  process_management:
+    # The dev/CI test container is itself a Docker container, so process_management's "auto" default would
+    # (correctly, for its own purpose) auto-detect is_containerized() == True and pick process_management.docker.
+    # But this container manages dhcpd/named via supervisord *inside the same container*, not via Docker
+    # sidecars, so the traditional module is what's actually needed here. Pin it explicitly - Global Constraint 1
+    # guarantees an explicit setting like this is never overridden by container detection.
+    module: "process_management.service"
+    docker_socket_path: "/var/run/docker.sock"
+    docker_service_labels:
+      dhcpd: "dhcp"
+      dhcpd4: "dhcp"
+      dhcpd6: "dhcp"
+      named: "dns"
+      dnsmasq: "dnsmasq"
+  serializers:
+    module: "serializers.file"
