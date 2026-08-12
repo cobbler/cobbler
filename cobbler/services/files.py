@@ -499,8 +499,55 @@ def _dispatch(
     if not source_tree_path:
         return _error_response(start_response, "404 Not Found", "Not Found", is_head)
 
+    return _serve_path_under_root(
+        source_tree_path,
+        relative_path,
+        base_path,
+        query,
+        environ,
+        start_response,
+        is_head,
+        redirect_prefix=EXTERNAL_MOUNT_PREFIX,
+    )
+
+
+def _serve_path_under_root(
+    root: str,
+    relative_path: str,
+    base_path: str,
+    query: str,
+    environ: Dict[str, Any],
+    start_response: _WsgiStartResponse,
+    is_head: bool,
+    redirect_prefix: str = "",
+) -> Any:
+    """
+    Shared tail of request handling once a ``root`` directory and an untrusted ``relative_path``
+    within it are known: apply the path-traversal guard, then serve a file, a directory listing,
+    or a redirect to add a trailing slash, exactly as :func:`_dispatch` (the ``/tree/...`` route)
+    has always done. Used both by :func:`_dispatch` and by :func:`_dispatch_static` (the
+    ``/httpboot``/``/images`` routes), so the traversal guard and file-serving logic are never
+    duplicated between them.
+
+    :param root: The already-known, absolute on-disk directory to serve ``relative_path`` from.
+    :param relative_path: The untrusted, already-URL-decoded path requested by the client,
+                           relative to ``root``.
+    :param base_path: The internal request path (post any proxy-prefix-stripping), used to build
+                       a same-path-plus-trailing-slash redirect ``Location``.
+    :param query: The raw (still-encoded) query string, re-appended to a redirect ``Location`` if
+                  non-empty.
+    :param environ: The WSGI environ (passed through to :func:`_serve_file` for ``HTTP_RANGE``).
+    :param start_response: The WSGI ``start_response`` callable.
+    :param is_head: If ``True``, compute/send the same headers a ``GET`` would, but never return
+                     a body.
+    :param redirect_prefix: Prepended to ``base_path`` when building a trailing-slash redirect's
+                             ``Location`` header, for routes that sit behind a proxy prefix that
+                             was already stripped from ``base_path`` itself (see
+                             :data:`EXTERNAL_MOUNT_PREFIX`). Routes with no such stripped prefix
+                             (``/httpboot``, ``/images``) pass the default, empty string.
+    """
     try:
-        resolved_path = resolve_within_root(source_tree_path, relative_path)
+        resolved_path = resolve_within_root(root, relative_path)
     except (OSError, ValueError):
         # A malformed path (e.g. an embedded NUL byte from a decoded "%00") makes
         # os.path.realpath raise rather than return a comparable string. Fail closed as a
@@ -514,11 +561,12 @@ def _dispatch(
 
     if os.path.isdir(resolved_path):
         if not base_path.endswith("/"):
-            # Prefix with the external mount point: base_path is the internal, post-proxy-strip
-            # path, and Apache's ProxyPass for this endpoint has no ProxyPassReverse, so the
-            # Location header we send is what the client will literally request next.
+            # redirect_prefix is only non-empty for routes whose base_path is the internal,
+            # post-proxy-strip path (see EXTERNAL_MOUNT_PREFIX's own docstring for why that
+            # matters: no accompanying ProxyPassReverse, so the client gets our Location
+            # byte-for-byte).
             location = (
-                EXTERNAL_MOUNT_PREFIX + base_path + "/" + (f"?{query}" if query else "")
+                redirect_prefix + base_path + "/" + (f"?{query}" if query else "")
             )
             start_response(
                 "301 Moved Permanently",
@@ -533,3 +581,129 @@ def _dispatch(
         )
 
     return _error_response(start_response, "404 Not Found", "Not Found", is_head)
+
+
+# --------------------------------------------------------------------------------------------
+# /httpboot and /images: direct-disk serving of tftproot/grub content for UEFI HTTP(S) boot.
+#
+# These mirror Apache's ``Alias /httpboot @@tftproot@@/grub`` and
+# ``Alias /images @@tftproot@@/grub/images`` (cobbler/data/config/apache/cobbler.conf), which the
+# containerized Traefik proxy cannot replicate (it has no on-disk static file serving). Unlike the
+# ``/tree/<distro_name>/...`` route above, there is no per-distro XML-RPC metadata lookup: the
+# on-disk root is fixed and derived directly from the ``tftpboot_location`` setting, and the
+# client-facing URL prefix is served as-is (these routes are not proxied under a stripped prefix
+# like ``/cblr/svc/``, so ``base_path`` is already the correct external path for redirects).
+# --------------------------------------------------------------------------------------------
+
+
+def _tftpboot_location() -> str:
+    """
+    Read the ``tftpboot_location`` setting fresh from ``settings.yaml``.
+
+    Deliberately uncached and re-read on every call, mirroring
+    ``cobbler.services.svc.application``'s own settings read (which also happens once per
+    request): this is a cheap local file read, not an XML-RPC round trip like
+    :func:`resolve_source_tree_path`'s cached distro metadata lookup, so there is no latency here
+    worth amortizing with a cache.
+
+    :return: The configured ``tftpboot_location``, or its packaged default if unset.
+    """
+    with open(_SETTINGS_PATH, encoding="UTF-8") as main_settingsfile:
+        ydata = yaml.safe_load(main_settingsfile)
+    return ydata.get("tftpboot_location", "/var/lib/tftpboot")
+
+
+def _httpboot_root() -> str:
+    """The on-disk root ``/httpboot`` serves, i.e. ``<tftpboot_location>/grub``."""
+    return os.path.join(_tftpboot_location(), "grub")
+
+
+def _images_root() -> str:
+    """The on-disk root ``/images`` serves, i.e. ``<tftpboot_location>/grub/images``."""
+    return os.path.join(_tftpboot_location(), "grub", "images")
+
+
+def _dispatch_static(
+    environ: Dict[str, Any],
+    start_response: _WsgiStartResponse,
+    url_prefix: str,
+    root: str,
+    is_head: bool = False,
+) -> Any:
+    """
+    Resolve and serve a single ``GET``/``HEAD`` request for a fixed on-disk root mounted at a
+    fixed URL prefix. See :func:`httpboot_application`/:func:`images_application` for the public
+    entrypoints, which additionally handle HTTP method validation.
+
+    :param environ: The WSGI environ.
+    :param start_response: The WSGI ``start_response`` callable.
+    :param url_prefix: The fixed external URL prefix this route is mounted at (e.g.
+                        ``/httpboot``). ``environ["RAW_URI"]`` is expected to start with this
+                        prefix unmodified -- no proxy-prefix-stripping happens ahead of this
+                        route, unlike ``/cblr/svc/tree/...``.
+    :param root: The on-disk directory ``url_prefix`` maps to.
+    :param is_head: If ``True``, compute/send the same headers a ``GET`` would, but never return
+                     a body (and, for file responses, never open the file on disk at all).
+    """
+    raw_uri = environ.get("RAW_URI", "")
+    base_path, _, query = raw_uri.partition("?")
+    decoded_path = parse.unquote(base_path)
+
+    if decoded_path == url_prefix:
+        relative_path = ""
+    elif decoded_path.startswith(url_prefix + "/"):
+        relative_path = decoded_path[len(url_prefix) + 1 :]
+    else:
+        return _error_response(start_response, "404 Not Found", "Not Found", is_head)
+
+    return _serve_path_under_root(
+        root, relative_path, base_path, query, environ, start_response, is_head
+    )
+
+
+def httpboot_application(
+    environ: Dict[str, Any], start_response: _WsgiStartResponse
+) -> Any:
+    """
+    WSGI entrypoint for direct-disk serving of ``/httpboot`` (UEFI HTTP(S) boot files), the
+    Gunicorn equivalent of Apache's ``Alias /httpboot @@tftproot@@/grub``.
+
+    Only ``GET`` and ``HEAD`` are supported, exactly like :func:`application`.
+
+    :param environ: The WSGI environ.
+    :param start_response: The WSGI ``start_response`` callable.
+    """
+    method = environ.get("REQUEST_METHOD", "GET")
+    if method not in ("GET", "HEAD"):
+        return _error_response(
+            start_response, "405 Method Not Allowed", "Method Not Allowed"
+        )
+    return _dispatch_static(
+        environ,
+        start_response,
+        "/httpboot",
+        _httpboot_root(),
+        is_head=(method == "HEAD"),
+    )
+
+
+def images_application(
+    environ: Dict[str, Any], start_response: _WsgiStartResponse
+) -> Any:
+    """
+    WSGI entrypoint for direct-disk serving of ``/images`` (UEFI HTTP(S) boot files), the
+    Gunicorn equivalent of Apache's ``Alias /images @@tftproot@@/grub/images``.
+
+    Only ``GET`` and ``HEAD`` are supported, exactly like :func:`application`.
+
+    :param environ: The WSGI environ.
+    :param start_response: The WSGI ``start_response`` callable.
+    """
+    method = environ.get("REQUEST_METHOD", "GET")
+    if method not in ("GET", "HEAD"):
+        return _error_response(
+            start_response, "405 Method Not Allowed", "Method Not Allowed"
+        )
+    return _dispatch_static(
+        environ, start_response, "/images", _images_root(), is_head=(method == "HEAD")
+    )

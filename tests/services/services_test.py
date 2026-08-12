@@ -70,6 +70,56 @@ def test_tree_paths_dispatch_to_files_application(
     assert len(calls) == 1
 
 
+def test_httpboot_paths_dispatch_to_files_httpboot_application(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    A request path of the shape ``/httpboot/...`` (Traefik has no on-disk static serving, so this
+    is proxied straight to Gunicorn rather than served by a proxy ``Alias`` the way Apache's
+    ``cobbler.conf`` does today) must be dispatched to
+    ``cobbler.services.files.httpboot_application``.
+    """
+    calls: List[Dict[str, Any]] = []
+
+    def fake_httpboot_app(environ: Dict[str, Any], start_response: Any) -> List[bytes]:
+        calls.append(environ)
+        start_response("200 OK", [])
+        return [b"from httpboot app"]
+
+    monkeypatch.setattr(
+        cobbler.services.files, "httpboot_application", fake_httpboot_app
+    )
+
+    environ: Dict[str, Any] = {"RAW_URI": "/httpboot/grub.cfg", "QUERY_STRING": ""}
+    result = cobbler.services.application(environ, lambda status, headers: None)
+
+    assert result == [b"from httpboot app"]
+    assert len(calls) == 1
+
+
+def test_images_paths_dispatch_to_files_images_application(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    A request path of the shape ``/images/...`` must be dispatched to
+    ``cobbler.services.files.images_application``.
+    """
+    calls: List[Dict[str, Any]] = []
+
+    def fake_images_app(environ: Dict[str, Any], start_response: Any) -> List[bytes]:
+        calls.append(environ)
+        start_response("200 OK", [])
+        return [b"from images app"]
+
+    monkeypatch.setattr(cobbler.services.files, "images_application", fake_images_app)
+
+    environ: Dict[str, Any] = {"RAW_URI": "/images/boot.img", "QUERY_STRING": ""}
+    result = cobbler.services.application(environ, lambda status, headers: None)
+
+    assert result == [b"from images app"]
+    assert len(calls) == 1
+
+
 def test_non_tree_paths_still_dispatch_to_svc_application(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -19,8 +19,10 @@ def application(
     Dispatches requests for the direct-disk distro tree file server (client-facing
     ``/cblr/svc/tree/...``, seen here -- after Apache's ``ProxyPass`` strips the ``/cblr/svc/``
     prefix -- as ``/tree/...`` in ``environ["RAW_URI"]``) to :mod:`cobbler.services.files`.
-    Everything else falls through to the existing XML-RPC-backed :mod:`cobbler.services.svc` app,
-    unchanged.
+    Requests for ``/httpboot/...`` and ``/images/...`` (UEFI HTTP(S) boot files, statically served
+    by Apache's own ``Alias`` directives today -- not proxied, so no prefix-stripping happens for
+    them) are likewise dispatched straight to :mod:`cobbler.services.files`. Everything else falls
+    through to the existing XML-RPC-backed :mod:`cobbler.services.svc` app, unchanged.
 
     :param environ:
     :param start_response:
@@ -30,4 +32,8 @@ def application(
     path = raw_uri.partition("?")[0]
     if path == "/tree" or path.startswith("/tree/"):
         return files.application(environ, start_response)
+    if path == "/httpboot" or path.startswith("/httpboot/"):
+        return files.httpboot_application(environ, start_response)
+    if path == "/images" or path.startswith("/images/"):
+        return files.images_application(environ, start_response)
     return svc.application(environ, start_response)

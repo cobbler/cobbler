@@ -41,9 +41,9 @@ class _Response:
         return any(key.lower() == name.lower() for key, _ in self.headers)
 
 
-def _call(environ: Dict[str, Any]) -> Any:
+def _call(environ: Dict[str, Any], app: Any = files.application) -> Any:
     resp = _Response()
-    body_iter = files.application(environ, resp.start_response)
+    body_iter = app(environ, resp.start_response)
     body = b"".join(body_iter)
     if hasattr(body_iter, "close"):
         body_iter.close()
@@ -634,3 +634,219 @@ def test_build_remote_env_var_takes_precedence_over_settings_value(
     files._build_remote()  # pylint: disable=protected-access  # type: ignore[reportPrivateUsage]
 
     assert capture_server_url["url"] == "http://from-env:25151"
+
+
+# --------------------------------------------------------------------------------------------
+# /httpboot and /images static routes (Task 2): serve tftproot/grub content directly through
+# Gunicorn instead of Apache's ``Alias /httpboot @@tftproot@@/grub`` / ``Alias /images
+# @@tftproot@@/grub/images`` (cobbler/data/config/apache/cobbler.conf), which the containerized
+# Traefik proxy can't replicate off disk. These reuse the exact same
+# resolve_within_root/_serve_file/_list_directory guards as the /tree/... route above -- these
+# tests are deliberately shaped like their /tree/... twins.
+# --------------------------------------------------------------------------------------------
+
+
+def _write_tftpboot_settings(tmp_path: Path, tftpboot_location: str) -> Path:
+    settings_path = tmp_path / "settings.yaml"
+    settings_path.write_text(
+        f"tftpboot_location: {tftpboot_location!r}\n",
+        encoding="UTF-8",
+    )
+    return settings_path
+
+
+def test_httpboot_serves_file_from_grub_dir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    grub_dir = tftpboot_root / "grub"
+    grub_dir.mkdir(parents=True)
+    content = b"grub config content"
+    (grub_dir / "grub.cfg").write_bytes(content)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(_environ("/httpboot/grub.cfg"), app=files.httpboot_application)
+
+    assert resp.status == "200 OK"
+    assert body == content
+
+
+def test_images_serves_file_from_grub_images_dir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    images_dir = tftpboot_root / "grub" / "images"
+    images_dir.mkdir(parents=True)
+    content = b"fake iso bytes"
+    (images_dir / "boot.img").write_bytes(content)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(_environ("/images/boot.img"), app=files.images_application)
+
+    assert resp.status == "200 OK"
+    assert body == content
+
+
+def test_httpboot_range_get_returns_206(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    grub_dir = tftpboot_root / "grub"
+    grub_dir.mkdir(parents=True)
+    content = bytes(range(256))
+    (grub_dir / "big.bin").write_bytes(content)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(
+        _environ("/httpboot/big.bin", HTTP_RANGE="bytes=0-99"),
+        app=files.httpboot_application,
+    )
+
+    assert resp.status == "206 Partial Content"
+    assert resp.header("Content-Range") == f"bytes 0-99/{len(content)}"
+    assert body == content[0:100]
+
+
+def test_httpboot_textual_traversal_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    (tftpboot_root / "grub").mkdir(parents=True)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "secret.txt").write_text(SECRET_MARKER)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(
+        _environ("/httpboot/../../outside/secret.txt"), app=files.httpboot_application
+    )
+
+    assert resp.status == "403 Forbidden"
+    assert SECRET_MARKER.encode() not in body
+
+
+def test_images_textual_traversal_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    (tftpboot_root / "grub" / "images").mkdir(parents=True)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "secret.txt").write_text(SECRET_MARKER)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(
+        _environ("/images/../../../outside/secret.txt"), app=files.images_application
+    )
+
+    assert resp.status == "403 Forbidden"
+    assert SECRET_MARKER.encode() not in body
+
+
+def test_httpboot_symlink_escape_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    grub_dir = tftpboot_root / "grub"
+    grub_dir.mkdir(parents=True)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "secret.txt").write_text(SECRET_MARKER)
+    (grub_dir / "escape").symlink_to(outside, target_is_directory=True)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(
+        _environ("/httpboot/escape/secret.txt"), app=files.httpboot_application
+    )
+
+    assert resp.status == "403 Forbidden"
+    assert SECRET_MARKER.encode() not in body
+
+
+def test_httpboot_missing_file_is_404(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    (tftpboot_root / "grub").mkdir(parents=True)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, _ = _call(
+        _environ("/httpboot/does/not/exist"), app=files.httpboot_application
+    )
+
+    assert resp.status == "404 Not Found"
+
+
+def test_httpboot_directory_listing_with_trailing_slash(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    grub_dir = tftpboot_root / "grub"
+    (grub_dir / "themes").mkdir(parents=True)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(_environ("/httpboot/"), app=files.httpboot_application)
+
+    assert resp.status == "200 OK"
+    assert "themes/" in body.decode("utf-8")
+
+
+def test_httpboot_directory_without_trailing_slash_redirects(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    (tftpboot_root / "grub" / "themes").mkdir(parents=True)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(_environ("/httpboot/themes"), app=files.httpboot_application)
+
+    assert resp.status == "301 Moved Permanently"
+    assert resp.header("Location") == "/httpboot/themes/"
+    assert body == b""
+
+
+@pytest.mark.parametrize("method", ["POST", "PUT", "DELETE", "PATCH"])
+def test_httpboot_unsupported_methods_are_rejected_with_405(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, method: str
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    (tftpboot_root / "grub").mkdir(parents=True)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, _ = _call(
+        _environ("/httpboot/grub.cfg", REQUEST_METHOD=method),
+        app=files.httpboot_application,
+    )
+
+    assert resp.status == "405 Method Not Allowed"
+
+
+def test_httpboot_head_request_has_empty_body(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    grub_dir = tftpboot_root / "grub"
+    grub_dir.mkdir(parents=True)
+    content = b"grub config content"
+    (grub_dir / "grub.cfg").write_bytes(content)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(
+        _environ("/httpboot/grub.cfg", REQUEST_METHOD="HEAD"),
+        app=files.httpboot_application,
+    )
+
+    assert resp.status == "200 OK"
+    assert resp.header("Content-Length") == str(len(content))
+    assert body == b""
