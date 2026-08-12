@@ -1,0 +1,16 @@
+# docker/compose/dhcp.yml
+#
+# Optional production DHCP sidecar for modules.process_management.docker. See docker/compose/dhcp.dev.yml
+# for the development variant. Full walkthrough: docs/user-guide/docker-deployment.rst's "Process management
+# and DHCP/DNS sidecar containers" section.
+
+services:
+  dhcp:
+    image: ghcr.io/cobbler/cobbler-dhcp:latest
+    volumes:
+      - cobbler-dhcp-config:/etc/cobbler-dhcp:ro,z
+    network_mode: host
+    depends_on:
+      cobblerd:
+        condition: service_healthy
+    restart: unless-stopped

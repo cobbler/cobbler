@@ -1,0 +1,1 @@
+Added a reference Docker Compose stack to run Cobbler as separate cobblerd and web containers

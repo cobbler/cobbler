@@ -1,0 +1,27 @@
+# docker/compose/web.yml
+#
+# Optional Cobbler Web UI service, identical for production and development. Full walkthrough:
+# docs/user-guide/docker-deployment.rst's "Web UI" section.
+
+configs:
+  cobbler-web-app-config:
+    content: |
+      {"cobblerUrls": ["http://localhost/cobbler_api"]}
+
+services:
+  web:
+    image: ghcr.io/cobbler/cobbler-web:v1.0.0
+    configs:
+      - source: cobbler-web-app-config
+        target: /config/app-config.json
+    networks:
+      - cobbler
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cobbler-web.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.cobbler-web.priority=1"
+      - "traefik.http.services.cobbler-web.loadbalancer.server.port=8080"
+    depends_on:
+      cobblerd:
+        condition: service_healthy
+    restart: unless-stopped

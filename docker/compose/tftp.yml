@@ -1,0 +1,18 @@
+# docker/compose/tftp.yml
+#
+# Optional cobbler-tftp service, identical for production and development. Full walkthrough:
+# docs/user-guide/docker-deployment.rst's "Dynamic HTTP and TFTP serving" section.
+
+services:
+  cobbler-tftp:
+    image: ghcr.io/cobbler/cobbler-tftp:latest
+    environment:
+      COBBLER_XMLRPC_HOST: "cobblerd"
+    ports:
+      - "69:69/udp"
+    networks:
+      - cobbler
+    depends_on:
+      cobblerd:
+        condition: service_healthy
+    restart: unless-stopped
