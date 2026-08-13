@@ -48,6 +48,22 @@ RUN touch /var/lib/rpm/* &&   \
     which
 
 # Runtime dependencies
+#
+# python3-docker (present in every other distro's list here) is deliberately NOT installed: it's only built
+# for EPEL starting with EPEL 10.3 (see https://bugs.rockylinux.org and Fedora's package pages for
+# python3-docker), while this image is pinned to rockylinux/rockylinux:10, which resolves to 10.2 -- "dnf
+# install" for it fails outright with "No match for argument". This is safe to skip: cobbler.spec only lists
+# python3-docker as a Recommends (see cobbler.spec's process_management.docker comment), never a
+# BuildRequires, so "make rpms" (this image's only job -- see the CMD at the bottom) never needed it, and
+# cobbler/modules/process_management/docker.py already handles the "docker" Python SDK being absent by
+# opting the module out of the "process_management" category entirely (register() returns ""), rather than
+# failing to import. The only real effect of this omission is that this one container can't exercise
+# process_management.docker if a test suite is ever run inside it via
+# docker/rpms/build-and-install-rpms.sh's "--with-tests" flag (not used by either "make test-rocky10" or
+# .github/workflows/packaging.yml's "build-rockylinux10-rpms" job today). Revert once EPEL 10.3 ships
+# python3-docker for RockyLinux 10 -- verify with
+# "dnf --disablerepo='*' --enablerepo=epel repoquery python3-docker" inside a fresh
+# rockylinux/rockylinux:10 container.
 RUN touch /var/lib/rpm/* &&   \
     dnf install -y            \
     httpd                     \
@@ -61,7 +77,6 @@ RUN touch /var/lib/rpm/* &&   \
     python3-ldap              \
     python3-librepo           \
     python3-pymongo           \
-    python3-docker            \
     python3-coverage          \
     libcobblersignatures      \
     createrepo_c              \
