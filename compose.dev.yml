@@ -31,6 +31,9 @@ services:
       - source: cobbler-settings
         target: /etc/cobbler/settings.yaml
         mode: 0640
+      - source: cobbler-logging-config
+        target: /etc/cobbler/logging_config.conf
+        mode: 0644
     volumes:
       - cobbler-etc:/etc/cobbler:z
       - cobbler-var-lib:/var/lib/cobbler:z

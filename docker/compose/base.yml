@@ -49,6 +49,36 @@ configs:
         serializers:
           module: "serializers.file"
 
+  # Overrides the RPM-shipped /etc/cobbler/logging_config.conf for the "cobblerd" service: raises
+  # handler_stdout to DEBUG (root logger is already DEBUG) so debug-level output actually reaches
+  # "docker compose logs cobblerd" instead of being filtered out by the handler, and drops the FileHandler
+  # entirely -- containers log to stdout, not to a file that would silently accumulate inside the container
+  # (or need its own volume/rotation) at /var/log/cobbler/cobbler.log.
+  cobbler-logging-config:
+    content: |
+      [loggers]
+      keys=root
+
+      [handlers]
+      keys=stdout
+
+      [formatters]
+      keys=stdout
+
+      [logger_root]
+      level=DEBUG
+      handlers=stdout
+
+      [handler_stdout]
+      class=StreamHandler
+      level=DEBUG
+      formatter=stdout
+      args=(sys.stdout,)
+
+      [formatter_stdout]
+      format=%(levelname)s | %(message)s
+      class=logging.Formatter
+
 services:
   traefik:
     image: traefik:v3.6
