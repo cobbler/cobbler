@@ -15,6 +15,7 @@ volumes:
   cobbler-tftproot:
   cobbler-dhcp-config:
   cobbler-dns-config:
+  cobbler-dns-zones:
 
 configs:
   cobbler-settings:
@@ -22,6 +23,7 @@ configs:
       tftpboot_location: "/srv/tftpboot"
       webdir: "/srv/www/cobbler"
       manage_tftpd: false
+      bind_zonefile_path: "/var/lib/named"
 
       modules:
         authentication:

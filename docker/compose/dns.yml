@@ -9,6 +9,7 @@ services:
     image: ghcr.io/cobbler/cobbler-dns:latest
     volumes:
       - cobbler-dns-config:/etc/cobbler-dns:ro,z
+      - cobbler-dns-zones:/var/lib/named:ro,z
     networks:
       - cobbler
     depends_on:

@@ -41,6 +41,7 @@ services:
       - cobbler-tftproot:/srv/tftpboot:z
       - cobbler-dhcp-config:/etc/cobbler-dhcp:z
       - cobbler-dns-config:/etc/cobbler-dns:z
+      - cobbler-dns-zones:/var/lib/named:z
       - type: bind
         source: ${COBBLER_DISTRO_SOURCE_DIR:-./distro-sources}
         target: /srv/distro-sources
