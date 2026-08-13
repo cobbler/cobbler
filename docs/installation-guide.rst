@@ -297,12 +297,12 @@ Example with a minimal openSUSE Tumbleweed container:
 Multi-Build
 ###########
 
-In the repository root there is a file called ``docker-compose.yml``. If you have ``docker-compose`` installed you may
-use that to build packages for multiple distros on a single run. Just execute:
+In ``docker/compose.yml`` there is a file which orchestrates building packages for multiple distros - both RPM and DEB -
+on a single run. If you have ``docker compose`` installed you may use that. Just execute from the repository root:
 
 .. code-block:: shell
 
-   $ docker-compose up -d
+   $ docker compose -f docker/compose.yml up -d
 
 After some time all containers expect one should be exited and you should see two new folders owned by ``root`` called
 ``rpm-build`` and ``deb-build``. The leftover docker container is meant to be used for testing and playing, if you don't
@@ -310,7 +310,7 @@ require this playground you may just clean up with:
 
 .. code-block:: shell
 
-   $ docker-compose down
+   $ docker compose -f docker/compose.yml down
 
 Source
 ######

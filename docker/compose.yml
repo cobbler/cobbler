@@ -4,7 +4,7 @@ services:
   opensuse-leap-tests:
     image: local/cobbler-test-opensuse-leap
     build:
-      context: .
+      context: ..
       dockerfile: docker/rpms/opensuse_leap/openSUSE_Leap16.dockerfile
     container_name: cobbler-test-openSUSE-Leap
 
@@ -12,34 +12,43 @@ services:
     image: local/cobbler-opensuse-leap
     container_name: cobbler-opensuse-leap
     build:
-      context: .
+      context: ..
       dockerfile: docker/rpms/opensuse_leap/openSUSE_Leap16.dockerfile
     volumes:
-      - ./rpm-build/opensuse-leap:/usr/src/cobbler/rpm-build
+      - ../rpm-build/opensuse-leap:/usr/src/cobbler/rpm-build
 
   opensuse-tumbleweed-build:
     image: local/cobbler-opensuse-tumbleweed
     container_name: cobbler-opensuse-tumbleweed
     build:
-      context: .
+      context: ..
       dockerfile: docker/rpms/opensuse_tumbleweed/openSUSE_TW.dockerfile
     volumes:
-      - ./rpm-build/opensuse-tumbleweed:/usr/src/cobbler/rpm-build
+      - ../rpm-build/opensuse-tumbleweed:/usr/src/cobbler/rpm-build
 
   rockylinux10-build:
     image: local/cobbler-rockylinux10
     container_name: cobbler-rockylinux10
     build:
-      context: .
+      context: ..
       dockerfile: docker/rpms/Rocky_Linux_10/Rocky_Linux_10.dockerfile
     volumes:
-      - ./rpm-build/rl10:/usr/src/cobbler/rpm-build
+      - ../rpm-build/rl10:/usr/src/cobbler/rpm-build
 
   fedora41-build:
     image: local/cobbler-fedora43
     container_name: cobbler-fedora43
     build:
-      context: .
+      context: ..
       dockerfile: docker/rpms/Fedora_43/Fedora43.dockerfile
     volumes:
-      - ./rpm-build/f43:/usr/src/cobbler/rpm-build
+      - ../rpm-build/f43:/usr/src/cobbler/rpm-build
+
+  debian13-build:
+    image: local/cobbler-debian13
+    container_name: cobbler-debian13
+    build:
+      context: ..
+      dockerfile: docker/debs/Debian_13/Debian13.dockerfile
+    volumes:
+      - ../deb-build/debian13:/usr/src/cobbler/deb-build
