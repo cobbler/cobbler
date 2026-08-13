@@ -69,6 +69,7 @@ RUN zypper install --no-recommends -y \
     python3-netaddr            \
     libcobblersignatures       \
     python3-pymongo            \
+    python3-docker             \
     python3-pytest-benchmark   \
     python3-black              \
     python3-librepo            \

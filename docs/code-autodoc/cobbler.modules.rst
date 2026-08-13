@@ -11,6 +11,7 @@ Subpackages
    cobbler.modules.authorization
    cobbler.modules.installation
    cobbler.modules.managers
+   cobbler.modules.process_management
    cobbler.modules.serializers
 
 Submodules

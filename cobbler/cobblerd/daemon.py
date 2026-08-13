@@ -53,7 +53,20 @@ def regen_ss_file() -> None:
         http_user = "www-data"
     elif family == "suse":
         http_user = "wwwrun"
-    os.lchown(ssfile, pwd.getpwnam(http_user)[2], -1)
+    try:
+        http_user_gid = pwd.getpwnam(http_user)[2]
+    except KeyError:
+        # Kerberos-auth-over-Apache is not applicable when no Apache/web-server user exists on the system
+        # at all (e.g. the minimal, Apache-less container image) -- skip the chown rather than crashing the
+        # daemon at startup. Deployments where "http_user" legitimately exists (RPM/DEB/dev-stack, still
+        # running Apache) are unaffected and keep chown'ing exactly as before.
+        logger.debug(
+            'Not chowning "%s" to "%s": no such user found on this system.',
+            ssfile,
+            http_user,
+        )
+        return
+    os.lchown(ssfile, http_user_gid, -1)
 
 
 def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int) -> None:
@@ -66,7 +79,11 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int) -> None:
     xinterface = remote.ProxiedXMLRPCInterface(
         cobbler_api, remote.CobblerXMLRPCInterface
     )
-    server = remote.CobblerXMLRPCServer(("127.0.0.1", port))
+    settings = cobbler_api.settings()
+    bind_address = os.environ.get(
+        "COBBLER_XMLRPC_BIND_ADDRESS", settings.xmlrpc_bind_address
+    )
+    server = remote.CobblerXMLRPCServer((bind_address, port))
     # don't log requests; ignore mypy due to multiple inheritance & protocols being 3.8+
     server.logRequests = False  # type: ignore[attr-defined]
     logger.debug("XMLRPC running on %s", port)

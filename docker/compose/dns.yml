@@ -1,0 +1,17 @@
+# docker/compose/dns.yml
+#
+# Optional production DNS sidecar for modules.process_management.docker. See docker/compose/dns.dev.yml for
+# the development variant. Full walkthrough: docs/user-guide/docker-deployment.rst's "Process management and
+# DHCP/DNS sidecar containers" section.
+
+services:
+  dns:
+    image: ghcr.io/cobbler/cobbler-dns:latest
+    volumes:
+      - cobbler-dns-config:/etc/cobbler-dns:ro,z
+    networks:
+      - cobbler
+    depends_on:
+      cobblerd:
+        condition: service_healthy
+    restart: unless-stopped

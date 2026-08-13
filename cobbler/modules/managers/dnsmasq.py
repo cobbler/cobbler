@@ -456,8 +456,10 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
         """
         service_name = "dnsmasq"
         if self.settings.restart_dhcp:
-            return_code_service_restart = utils.process_management.service_restart(
-                service_name
+            return_code_service_restart = (
+                self.api.get_process_management_module().restart_service(
+                    self.api, service_name
+                )
             )
             if return_code_service_restart != 0:
                 self.logger.error("%s service failed", service_name)

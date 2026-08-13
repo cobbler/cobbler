@@ -60,3 +60,4 @@ docs/_build
 .dmypy.json
 supervisord.pid
 .claude
+.superpowers/

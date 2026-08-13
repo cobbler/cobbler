@@ -6,7 +6,6 @@ import logging
 from typing import TYPE_CHECKING, List
 
 from cobbler import utils
-from cobbler.utils import process_management
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -56,9 +55,13 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
     if settings.manage_dns and settings.restart_dns:
         if which_dns_module == "managers.bind":
             named_service_name = utils.named_service_name()
-            ret_code = process_management.service_restart(named_service_name)
+            ret_code = api.get_process_management_module().restart_service(
+                api, named_service_name
+            )
         elif which_dns_module == "managers.dnsmasq" and not has_restarted_dnsmasq:
-            ret_code = process_management.service_restart("dnsmasq")
+            ret_code = api.get_process_management_module().restart_service(
+                api, "dnsmasq"
+            )
         elif which_dns_module == "managers.dnsmasq" and has_restarted_dnsmasq:
             ret_code = 0
         elif which_dns_module == "managers.ndjbdns":

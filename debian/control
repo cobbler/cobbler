@@ -25,7 +25,6 @@ Package: cobbler
 Architecture: all
 Depends:
  systemd,
- apache2 | httpd,
  tftpd-hpa | atftpd,
  fence-agents,
  rsync,
@@ -37,7 +36,8 @@ Suggests:
  createrepo-c,
  createrepo,
  logrotate,
- python3-librepo
+ python3-librepo,
+ python3-docker
 Description: Install server
  Cobbler is a PXE based network install server.
  Cobbler's advanced features include importing distributions
@@ -63,3 +63,17 @@ Depends:
  ${misc:Depends}
 Description: Files to test Cobbler in containers
  Dockerfiles and scripts to setup testing containers
+
+Package: cobbler-apache2
+Architecture: all
+Depends: cobbler (= ${binary:Version}), apache2 | httpd, ${misc:Depends}
+Description: Apache/httpd virtual host configuration for Cobbler
+ Apache/httpd virtual host configuration exposing Cobbler's web-facing endpoints (auto-installation
+ templates, kickstart/preseed files, /cblr/svc, /cobbler_api) via a reverse proxy to cobblerd/Gunicorn.
+
+Package: cobbler-nginx
+Architecture: all
+Depends: cobbler (= ${binary:Version}), ${misc:Depends}
+Description: Nginx virtual host configuration for Cobbler
+ Nginx virtual host configuration exposing Cobbler's web-facing endpoints via a reverse proxy to
+ cobblerd/Gunicorn.

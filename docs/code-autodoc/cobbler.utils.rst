@@ -44,14 +44,6 @@ cobbler.utils.mtab module
    :show-inheritance:
    :undoc-members:
 
-cobbler.utils.process\_management module
-----------------------------------------
-
-.. automodule:: cobbler.utils.process_management
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
 cobbler.utils.signatures module
 -------------------------------
 

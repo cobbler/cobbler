@@ -147,10 +147,15 @@ class Serializer:
 
         :returns: A Python module.
         """
-        return self.api.get_module_from_file(
-            "serializers",
+        module_name = (
             self.api.settings()
             .modules.get("serializers", {})
-            .get("module", "serializers.file"),
+            .get("module", "serializers.file")
+        )
+        if not isinstance(module_name, str):
+            module_name = "serializers.file"
+        return self.api.get_module_from_file(
+            "serializers",
+            module_name,
             "serializers.file",
         )

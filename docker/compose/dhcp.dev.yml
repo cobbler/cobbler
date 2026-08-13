@@ -1,0 +1,18 @@
+# docker/compose/dhcp.dev.yml
+#
+# Development variant of docker/compose/dhcp.yml: builds the image from source instead of pulling it. Full
+# walkthrough: docs/user-guide/docker-deployment.rst's "Process management and DHCP/DNS sidecar containers"
+# section.
+
+services:
+  dhcp:
+    build:
+      context: ../..
+      dockerfile: docker/images/dhcp/Dockerfile
+    volumes:
+      - cobbler-dhcp-config:/etc/cobbler-dhcp:ro,z
+    network_mode: host
+    depends_on:
+      cobblerd:
+        condition: service_healthy
+    restart: unless-stopped

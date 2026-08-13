@@ -84,6 +84,7 @@ if __name__ == "__main__":
                 "pymongo>=4.2; python_version > '3.6'",
                 "pymongo<4.2; python_version <= '3.6'",
             ],
+            "docker": ["docker>=6.0"],
             "windows": [
                 # "hivex",
                 "pefile"

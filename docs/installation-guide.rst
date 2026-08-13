@@ -297,12 +297,12 @@ Example with a minimal openSUSE Tumbleweed container:
 Multi-Build
 ###########
 
-In the repository root there is a file called ``docker-compose.yml``. If you have ``docker-compose`` installed you may
-use that to build packages for multiple distros on a single run. Just execute:
+In ``docker/compose.yml`` there is a file which orchestrates building packages for multiple distros - both RPM and DEB -
+on a single run. If you have ``docker compose`` installed you may use that. Just execute from the repository root:
 
 .. code-block:: shell
 
-   $ docker-compose up -d
+   $ docker compose -f docker/compose.yml up -d
 
 After some time all containers expect one should be exited and you should see two new folders owned by ``root`` called
 ``rpm-build`` and ``deb-build``. The leftover docker container is meant to be used for testing and playing, if you don't
@@ -310,7 +310,7 @@ require this playground you may just clean up with:
 
 .. code-block:: shell
 
-   $ docker-compose down
+   $ docker compose -f docker/compose.yml down
 
 Source
 ######
@@ -383,6 +383,61 @@ Uninstallation
    #. ``/var/log/cobbler/``
 
 #. Do a ``systemctl daemon-reload``.
+
+Dynamic HTTP/TFTP Serving and Web Server Configuration
+######################################################
+
+The Apache and Nginx configuration files shipped in ``cobbler/data/config/apache/cobbler.conf`` and
+``cobbler/data/config/nginx/cobbler.conf`` serve ``/httpboot`` and ``/images`` as static file aliases pointing
+directly at ``@@tftproot@@/grub`` and ``@@tftproot@@/grub/images`` on disk. This is the right setup for the
+default ``managers.in_tftpd`` module (see ``modules.tftpd.module`` in :ref:`settings-ref`), which materializes
+boot files under ``tftpboot_location`` so a plain static Alias can serve them straight off the filesystem.
+
+If ``modules.httpd.module``/``modules.tftpd.module`` are instead set to ``managers.dynamic_httpd``/
+``managers.dynamic_tftp`` (see :ref:`dynamic-httpd` and :ref:`tftp-directory` for background on the dynamic
+TFTP module), nothing copies boot files into ``tftpboot_location`` any more -- Cobbler's own Gunicorn-backed
+``web`` application answers ``/httpboot`` and ``/images`` directly instead. Nothing in this codebase detects
+that choice automatically and rewrites the web server configuration for you: the ``@@webroot@@``/``@@tftproot@@``
+substitution in these files is a single, fixed templating pass performed once at install time, not
+settings-aware templating. The static ``Alias``/``alias`` directives are kept as the shipped default -- they are
+marginally faster and match today's common, non-dynamic case -- but if you select the dynamic managers you must
+manually replace them with a reverse proxy to Gunicorn, using the same pattern already used for ``/cblr/svc/``.
+
+For Apache, replace:
+
+.. code-block:: apache
+
+    Alias /httpboot @@tftproot@@/grub
+    Alias /images @@tftproot@@/grub/images
+
+with:
+
+.. code-block:: apache
+
+    ProxyPass /httpboot http://localhost:8000/httpboot
+    ProxyPass /images http://localhost:8000/images
+
+For Nginx, replace:
+
+.. code-block:: nginx
+
+    location /httpboot {
+      alias @@tftproot@@/grub;
+    }
+
+    location /images {
+      alias @@tftproot@@/grub/images;
+    }
+
+with:
+
+.. code-block:: nginx
+
+    location /httpboot { proxy_pass http://127.0.0.1:8000/httpboot; }
+    location /images { proxy_pass http://127.0.0.1:8000/images; }
+
+Forgetting this swap when running the dynamic managers means requests for ``/httpboot``/``/images`` will 404, or
+serve stale content, once nothing is populating the on-disk ``tftpboot_location`` tree any more.
 
 .. _relocating-your-installation:
 

@@ -216,6 +216,17 @@ class Settings:
             "dns": {"module": "managers.bind"},
             "dhcp": {"module": "managers.isc"},
             "tftpd": {"module": "managers.in_tftpd"},
+            "process_management": {
+                "module": "auto",
+                "docker_socket_path": "/var/run/docker.sock",
+                "docker_service_labels": {
+                    "dhcpd": "dhcp",
+                    "dhcpd4": "dhcp",
+                    "dhcpd6": "dhcp",
+                    "named": "dns",
+                    "dnsmasq": "dnsmasq",
+                },
+            },
             "serializers": {"module": "serializers.file"},
         }
         self.mongodb = {"host": "localhost", "port": 27017}
@@ -284,6 +295,8 @@ class Settings:
             "web",
             "webui",
         ]
+        self.xmlrpc_bind_address = "127.0.0.1"
+        self.xmlrpc_host = "127.0.0.1"
         self.xmlrpc_port = 25151
         self.yum_distro_priority = 1
         self.yum_post_install_mirror = True

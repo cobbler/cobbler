@@ -25,6 +25,7 @@ User Guide
    Advanced Networking <user-guide/advanced-networking>
    SELinux <user-guide/selinux>
    Templating <user-guide/templating>
+   Container Deployment (Docker) <user-guide/docker-deployment>
 
 
 API
@@ -157,8 +158,19 @@ install. To re-enable PXE for a specific system, run the following command:
 Containerization
 ################
 
-We have a test-image which you can find in the Cobbler repository and an old image made by the community:
-https://github.com/osism/docker-cobbler
+Cobbler can be run as a set of separate containers instead of a single traditional host install: a ``cobblerd``
+container (the daemon -- XML-RPC API, sync, templating, ...), an ``http-api`` container (Gunicorn serving
+``/cblr/svc``, ``/httpboot`` and ``/images``, sharing the *same* image as ``cobblerd`` via a different
+``command:`` override), and an optional ``web`` container running the separate, Angular-based Cobbler Web UI
+(unrelated to ``http-api`` despite the similarly web-facing role -- ``web`` was ``http-api``'s own name in an
+earlier revision of this stack, before being freed up for the real UI). A reference/example Compose stack is
+shipped at ``compose.yml`` (production, pulls published images) and ``compose.dev.yml`` (development, builds
+from source) in the repository root, both built around the single shared runtime image at
+``docker/images/cobblerd/Dockerfile``.
+
+See :ref:`docker-deployment` for the full walkthrough, including required volumes, the settings that make the
+split-container setup work, the optional Docker-based sidecar restart mechanism for DHCP/DNS, and this deployment
+model's known limitations.
 
 Web-Interface
 #############

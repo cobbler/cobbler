@@ -140,7 +140,7 @@ class ModuleLoader:
 
         try:
             value = self.api.settings().modules.get(category, {}).get("module")
-            if value is None:
+            if not isinstance(value, str):
                 raise ModuleNotFoundError("Requested module could not be retrieved")
         except Exception as exception:
             if fallback_module_name is None:

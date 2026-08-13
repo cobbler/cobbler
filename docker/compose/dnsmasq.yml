@@ -1,0 +1,17 @@
+# docker/compose/dnsmasq.yml
+#
+# Illustrative only -- no image is built for this in this repository. Full walkthrough:
+# docs/user-guide/docker-deployment.rst's "Known limitations and non-goals" section.
+
+volumes:
+  cobbler-dnsmasq-config:
+
+services:
+  dnsmasq:
+    image: your-registry/dnsmasq:latest
+    labels:
+      - "cobbler.io/managed-service=dnsmasq"
+    volumes:
+      - cobbler-dnsmasq-config:/etc/dnsmasq.d:ro
+    network_mode: host
+    restart: unless-stopped

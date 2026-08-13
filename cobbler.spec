@@ -173,7 +173,6 @@ Requires(preun): systemd
 Requires(postun): systemd
 
 
-Requires:       %{apache_pkg}
 Requires:       %{tftpsrv_pkg}
 Requires:       %{createrepo_pkg}
 %if 0%{?rhel} && 0%{?rhel} >= 9
@@ -219,6 +218,9 @@ Recommends:     %{grub2_x64_efi_pkg}
 Recommends:     %{grub2_ia32_efi_pkg}
 Recommends:     logrotate
 Recommends:     python%{python3_pkgversion}-librepo
+# Only used by the optional modules.process_management.docker backend; not required for cobbler's
+# default process management behavior.
+Recommends:     python%{python3_pkgversion}-docker
 %endif
 # No point in having this split out...
 Obsoletes:      cobbler-nsupdate < 3.0.99
@@ -249,6 +251,27 @@ Requires:       cobbler = %{version}-%{release}
 %description tests-containers
 Dockerfiles and scripts to setup testing containers
 
+%package apache2
+Summary:        Apache/httpd virtual host configuration for Cobbler
+Requires:       cobbler = %{version}-%{release}
+Requires:       %{apache_pkg}
+
+%description apache2
+Apache/httpd virtual host configuration exposing Cobbler's web-facing endpoints (auto-installation
+templates, kickstart/preseed files, /cblr/svc, /cobbler_api) via a reverse proxy to cobblerd/Gunicorn. If
+modules.httpd.module/modules.tftpd.module are set to "managers.dynamic_httpd"/"managers.dynamic_tftp", see
+/usr/share/doc/cobbler/installation-guide.rst's "Dynamic HTTP/TFTP Serving and Web Server Configuration"
+section for the required config change.
+
+%package nginx
+Summary:        Nginx virtual host configuration for Cobbler
+Requires:       cobbler = %{version}-%{release}
+
+%description nginx
+Nginx virtual host configuration exposing Cobbler's web-facing endpoints via a reverse proxy to
+cobblerd/Gunicorn. See /usr/share/doc/cobbler/installation-guide.rst's "Dynamic HTTP/TFTP Serving and Web
+Server Configuration" section if using managers.dynamic_httpd/managers.dynamic_tftp.
+
 
 %prep
 %setup
@@ -278,9 +301,6 @@ cp -r %{_builddir}/%{name}-%{version}/tests/* %{buildroot}%{_datadir}/cobbler/te
 mkdir -p %{buildroot}%{_datadir}/cobbler/docker
 cp -r %{_builddir}/%{name}-%{version}/docker/* %{buildroot}%{_datadir}/cobbler/docker/
 
-# Nginx
-rm %{buildroot}%{_sysconfdir}/nginx/cobbler/cobbler.conf
-
 %pre
 if [ $1 -ge 2 ]; then
     # package upgrade: backup configuration
@@ -305,12 +325,9 @@ fi
 chmod 640 %{_sysconfdir}/cobbler/settings.yaml
 chmod 640 %{_sysconfdir}/cobbler/users.conf
 chmod 640 %{_sysconfdir}/cobbler/users.digest
-chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml
-
-# enable required Apache module on install, but not on upgrade
-if [ $1 -eq 1 ]; then
-    a2enmod wsgi >/dev/null || :
-fi
+# %{apache_group} only exists if cobbler-apache2 (or apache2/httpd itself) is installed. Guard instead
+# of failing %post outright on a minimal, web-server-less install (Global Constraint 3).
+getent group %{apache_group} >/dev/null 2>&1 && chgrp %{apache_group} %{_sysconfdir}/cobbler/settings.yaml || :
 
 %preun
 %systemd_preun cobblerd.service
@@ -333,7 +350,6 @@ fi
 %attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/users.conf
 %attr(640, root, root) %config(noreplace) %{_sysconfdir}/cobbler/users.digest
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
-%config(noreplace) %{apache_webconfigdir}/cobbler.conf
 %{_bindir}/cobblerd
 %{_bindir}/cobbler-settings
 %{_mandir}/man5/cobbler.conf.5*
@@ -353,6 +369,13 @@ fi
 %files tests-containers
 %dir %{_datadir}/cobbler/docker
 %{_datadir}/cobbler/docker/*
+
+%files apache2
+%config(noreplace) %{apache_webconfigdir}/cobbler.conf
+
+%files nginx
+%dir %{_sysconfdir}/nginx/cobbler
+%config(noreplace) %{_sysconfdir}/nginx/cobbler/cobbler.conf
 
 %changelog
 * Thu Dec 19 2019 Neal Gompa <ngompa13@gmail.com>

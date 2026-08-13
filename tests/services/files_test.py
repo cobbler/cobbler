@@ -41,9 +41,9 @@ class _Response:
         return any(key.lower() == name.lower() for key, _ in self.headers)
 
 
-def _call(environ: Dict[str, Any]) -> Any:
+def _call(environ: Dict[str, Any], app: Any = files.application) -> Any:
     resp = _Response()
-    body_iter = files.application(environ, resp.start_response)
+    body_iter = app(environ, resp.start_response)
     body = b"".join(body_iter)
     if hasattr(body_iter, "close"):
         body_iter.close()
@@ -554,3 +554,395 @@ def test_parse_range_suffix_and_multirange_ignored() -> None:
 def test_parse_range_unsatisfiable() -> None:
     with pytest.raises(files.RangeUnsatisfiable):
         files.parse_range("bytes=1000-", 1000)
+
+
+# --------------------------------------------------------------------------------------------
+# _build_remote() xmlrpc_host resolution (split-container support)
+# --------------------------------------------------------------------------------------------
+
+
+def _write_settings(tmp_path: Path, **extra: Any) -> Path:
+    settings_path = tmp_path / "settings.yaml"
+    content: Dict[str, Any] = {"xmlrpc_port": 25151}
+    content.update(extra)
+    settings_path.write_text(
+        "\n".join(f"{key}: {value!r}" for key, value in content.items()),
+        encoding="UTF-8",
+    )
+    return settings_path
+
+
+@pytest.fixture
+def capture_server_url(monkeypatch: pytest.MonkeyPatch) -> Dict[str, Any]:
+    """
+    Replace ``xmlrpc.client.Server`` with a stub that records the URL it was constructed
+    with, instead of actually building a ``ServerProxy`` (whose target host is otherwise
+    only reachable via a name-mangled private attribute).
+    """
+    captured: Dict[str, Any] = {}
+
+    def fake_server(url: str, **kwargs: Any) -> MagicMock:
+        captured["url"] = url
+        captured["kwargs"] = kwargs
+        return MagicMock()
+
+    monkeypatch.setattr(xmlrpc.client, "Server", fake_server)
+    return captured
+
+
+def test_build_remote_defaults_to_localhost_when_unset(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capture_server_url: Dict[str, Any],
+) -> None:
+    """
+    Neither the settings file nor the environment variable set an xmlrpc_host - the
+    default must be "127.0.0.1", i.e. today's exact non-containerized behavior.
+    """
+    settings_path = _write_settings(tmp_path)
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+    monkeypatch.delenv("COBBLER_XMLRPC_HOST", raising=False)
+
+    files._build_remote()  # pylint: disable=protected-access  # type: ignore[reportPrivateUsage]
+
+    assert capture_server_url["url"] == "http://127.0.0.1:25151"
+
+
+def test_build_remote_uses_settings_value_when_env_var_unset(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capture_server_url: Dict[str, Any],
+) -> None:
+    settings_path = _write_settings(tmp_path, xmlrpc_host="cobblerd")
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+    monkeypatch.delenv("COBBLER_XMLRPC_HOST", raising=False)
+
+    files._build_remote()  # pylint: disable=protected-access  # type: ignore[reportPrivateUsage]
+
+    assert capture_server_url["url"] == "http://cobblerd:25151"
+
+
+def test_build_remote_env_var_takes_precedence_over_settings_value(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capture_server_url: Dict[str, Any],
+) -> None:
+    settings_path = _write_settings(tmp_path, xmlrpc_host="cobblerd")
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+    monkeypatch.setenv("COBBLER_XMLRPC_HOST", "from-env")
+
+    files._build_remote()  # pylint: disable=protected-access  # type: ignore[reportPrivateUsage]
+
+    assert capture_server_url["url"] == "http://from-env:25151"
+
+
+# --------------------------------------------------------------------------------------------
+# /httpboot and /images static routes (Task 2): serve tftproot/grub content directly through
+# Gunicorn instead of Apache's ``Alias /httpboot @@tftproot@@/grub`` / ``Alias /images
+# @@tftproot@@/grub/images`` (cobbler/data/config/apache/cobbler.conf), which the containerized
+# Traefik proxy can't replicate off disk. These reuse the exact same
+# resolve_within_root/_serve_file/_list_directory guards as the /tree/... route above -- these
+# tests are deliberately shaped like their /tree/... twins.
+# --------------------------------------------------------------------------------------------
+
+
+def _write_tftpboot_settings(tmp_path: Path, tftpboot_location: str) -> Path:
+    settings_path = tmp_path / "settings.yaml"
+    settings_path.write_text(
+        f"tftpboot_location: {tftpboot_location!r}\n",
+        encoding="UTF-8",
+    )
+    return settings_path
+
+
+def test_httpboot_serves_file_from_grub_dir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    grub_dir = tftpboot_root / "grub"
+    grub_dir.mkdir(parents=True)
+    content = b"grub config content"
+    (grub_dir / "grub.cfg").write_bytes(content)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(_environ("/httpboot/grub.cfg"), app=files.httpboot_application)
+
+    assert resp.status == "200 OK"
+    assert body == content
+
+
+def test_images_serves_file_from_grub_images_dir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    images_dir = tftpboot_root / "grub" / "images"
+    images_dir.mkdir(parents=True)
+    content = b"fake iso bytes"
+    (images_dir / "boot.img").write_bytes(content)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(_environ("/images/boot.img"), app=files.images_application)
+
+    assert resp.status == "200 OK"
+    assert body == content
+
+
+def test_httpboot_range_get_returns_206(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    grub_dir = tftpboot_root / "grub"
+    grub_dir.mkdir(parents=True)
+    content = bytes(range(256))
+    (grub_dir / "big.bin").write_bytes(content)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(
+        _environ("/httpboot/big.bin", HTTP_RANGE="bytes=0-99"),
+        app=files.httpboot_application,
+    )
+
+    assert resp.status == "206 Partial Content"
+    assert resp.header("Content-Range") == f"bytes 0-99/{len(content)}"
+    assert body == content[0:100]
+
+
+def test_httpboot_textual_traversal_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    (tftpboot_root / "grub").mkdir(parents=True)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "secret.txt").write_text(SECRET_MARKER)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(
+        _environ("/httpboot/../../outside/secret.txt"), app=files.httpboot_application
+    )
+
+    assert resp.status == "403 Forbidden"
+    assert SECRET_MARKER.encode() not in body
+
+
+def test_images_textual_traversal_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    (tftpboot_root / "grub" / "images").mkdir(parents=True)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "secret.txt").write_text(SECRET_MARKER)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(
+        _environ("/images/../../../outside/secret.txt"), app=files.images_application
+    )
+
+    assert resp.status == "403 Forbidden"
+    assert SECRET_MARKER.encode() not in body
+
+
+def test_httpboot_symlink_escape_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    grub_dir = tftpboot_root / "grub"
+    grub_dir.mkdir(parents=True)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "secret.txt").write_text(SECRET_MARKER)
+    (grub_dir / "escape").symlink_to(outside, target_is_directory=True)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(
+        _environ("/httpboot/escape/secret.txt"), app=files.httpboot_application
+    )
+
+    assert resp.status == "403 Forbidden"
+    assert SECRET_MARKER.encode() not in body
+
+
+def test_httpboot_missing_file_is_404(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    (tftpboot_root / "grub").mkdir(parents=True)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, _ = _call(
+        _environ("/httpboot/does/not/exist"), app=files.httpboot_application
+    )
+
+    assert resp.status == "404 Not Found"
+
+
+def test_httpboot_directory_listing_with_trailing_slash(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    grub_dir = tftpboot_root / "grub"
+    (grub_dir / "themes").mkdir(parents=True)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(_environ("/httpboot/"), app=files.httpboot_application)
+
+    assert resp.status == "200 OK"
+    assert "themes/" in body.decode("utf-8")
+
+
+def test_httpboot_directory_without_trailing_slash_redirects(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    (tftpboot_root / "grub" / "themes").mkdir(parents=True)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(_environ("/httpboot/themes"), app=files.httpboot_application)
+
+    assert resp.status == "301 Moved Permanently"
+    assert resp.header("Location") == "/httpboot/themes/"
+    assert body == b""
+
+
+@pytest.mark.parametrize("method", ["POST", "PUT", "DELETE", "PATCH"])
+def test_httpboot_unsupported_methods_are_rejected_with_405(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, method: str
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    (tftpboot_root / "grub").mkdir(parents=True)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, _ = _call(
+        _environ("/httpboot/grub.cfg", REQUEST_METHOD=method),
+        app=files.httpboot_application,
+    )
+
+    assert resp.status == "405 Method Not Allowed"
+
+
+def test_httpboot_head_request_has_empty_body(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tftpboot_root = tmp_path / "tftpboot"
+    grub_dir = tftpboot_root / "grub"
+    grub_dir.mkdir(parents=True)
+    content = b"grub config content"
+    (grub_dir / "grub.cfg").write_bytes(content)
+    settings_path = _write_tftpboot_settings(tmp_path, str(tftpboot_root))
+    monkeypatch.setattr(files, "_SETTINGS_PATH", str(settings_path))
+
+    resp, body = _call(
+        _environ("/httpboot/grub.cfg", REQUEST_METHOD="HEAD"),
+        app=files.httpboot_application,
+    )
+
+    assert resp.status == "200 OK"
+    assert resp.header("Content-Length") == str(len(content))
+    assert body == b""
+
+
+# --------------------------------------------------------------------------------------------
+# /healthz (Task 8): a lightweight, unauthenticated liveness check for the Gunicorn "web"
+# service, backed by an actual XML-RPC round trip against cobblerd (CobblerXMLRPCInterface.ping,
+# which -- unlike almost every other XML-RPC method -- takes no token and does no check_access
+# call, exactly what a health check needs). Reuses files._build_remote() for host/port
+# resolution, exactly like the /tree, /httpboot and /images routes above -- no new settings
+# resolution logic is introduced.
+# --------------------------------------------------------------------------------------------
+
+
+def test_healthz_returns_200_when_ping_succeeds(stub_remote: MagicMock) -> None:
+    stub_remote.ping.return_value = True
+
+    resp, body = _call(_environ("/healthz"), app=files.healthz_application)
+
+    assert resp.status == "200 OK"
+    assert body == b"OK"
+    stub_remote.ping.assert_called_once()
+
+
+def test_healthz_returns_503_when_connection_refused(
+    stub_remote: MagicMock,
+) -> None:
+    stub_remote.ping.side_effect = ConnectionRefusedError("refused")
+
+    resp, _ = _call(_environ("/healthz"), app=files.healthz_application)
+
+    assert resp.status == "503 Service Unavailable"
+
+
+def test_healthz_returns_503_on_xmlrpc_fault(stub_remote: MagicMock) -> None:
+    stub_remote.ping.side_effect = xmlrpc.client.Fault(1, "boom")
+
+    resp, _ = _call(_environ("/healthz"), app=files.healthz_application)
+
+    assert resp.status == "503 Service Unavailable"
+
+
+def test_healthz_returns_503_on_protocol_error(stub_remote: MagicMock) -> None:
+    stub_remote.ping.side_effect = xmlrpc.client.ProtocolError(
+        "http://cobblerd:25151", 500, "Internal Server Error", {}
+    )
+
+    resp, _ = _call(_environ("/healthz"), app=files.healthz_application)
+
+    assert resp.status == "503 Service Unavailable"
+
+
+def test_healthz_returns_503_on_timeout(stub_remote: MagicMock) -> None:
+    stub_remote.ping.side_effect = TimeoutError("timed out")
+
+    resp, _ = _call(_environ("/healthz"), app=files.healthz_application)
+
+    assert resp.status == "503 Service Unavailable"
+
+
+@pytest.mark.parametrize("method", ["POST", "PUT", "DELETE", "PATCH"])
+def test_healthz_unsupported_methods_are_rejected_with_405(
+    stub_remote: MagicMock, method: str
+) -> None:
+    stub_remote.ping.return_value = True
+
+    resp, _ = _call(
+        _environ("/healthz", REQUEST_METHOD=method), app=files.healthz_application
+    )
+
+    assert resp.status == "405 Method Not Allowed"
+    stub_remote.ping.assert_not_called()
+
+
+def test_healthz_head_request_has_empty_body(stub_remote: MagicMock) -> None:
+    stub_remote.ping.return_value = True
+
+    resp, body = _call(
+        _environ("/healthz", REQUEST_METHOD="HEAD"), app=files.healthz_application
+    )
+
+    assert resp.status == "200 OK"
+    assert body == b""
+
+
+def test_healthz_does_not_hit_the_filesystem_cache_or_traversal_logic(
+    stub_remote: MagicMock,
+) -> None:
+    """
+    ``/healthz`` must not go anywhere near ``resolve_source_tree_path``/the distro-name cache --
+    it is a pure liveness check, not a per-distro lookup.
+    """
+    stub_remote.get_distro.return_value = _distro_dict()
+    stub_remote.ping.return_value = True
+
+    _call(_environ("/healthz"), app=files.healthz_application)
+
+    stub_remote.get_distro.assert_not_called()

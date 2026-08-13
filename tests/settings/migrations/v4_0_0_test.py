@@ -111,6 +111,13 @@ def test_migrate_v4_0_0_modules_conf_propagation():
     # key_drop_if_default() because the current Settings() defaults (see
     # cobbler/settings/__init__.py) do not have a "httpd" key to compare against.
     assert new_settings["modules"]["httpd"]["module"] == "managers.in_httpd"
+    # "process_management" never existed as a modules.conf section (pre-4.0
+    # modules.conf predates this category entirely), so migrate() always uses the
+    # literal defaults below. Like "tftpd", it is dropped entirely by
+    # key_drop_if_default() since the current Settings() defaults (see
+    # cobbler/settings/__init__.py) already have an identical "process_management"
+    # key to compare against and every value matches.
+    assert "process_management" not in new_settings["modules"]
 
 
 def test_migrate_v4_0_0_mongodb_conf_propagation():
@@ -1195,10 +1202,68 @@ def test_schema_v4_0_0_modules_httpd_module_values(httpd_module: str):
     assert V4_0_0.validate(settings)
 
 
+def test_schema_v4_0_0_modules_process_management_missing_is_valid():
+    """
+    "modules.process_management" is Optional, like every other "modules" sub-key -
+    a settings dict that omits it entirely must still validate.
+    """
+    # Arrange
+    settings = {"modules": {"tftpd": {"module": "managers.in_tftpd"}}}
+
+    # Act & Assert
+    assert V4_0_0.validate(settings)
+
+
+def test_schema_v4_0_0_modules_process_management_values():
+    """
+    "modules.process_management" accepts the "module" str, the "docker_socket_path"
+    str, and the "docker_service_labels" dict together, matching the shape Task 4's
+    process_management.docker backend will read.
+    """
+    # Arrange
+    settings = {
+        "modules": {
+            "process_management": {
+                "module": "process_management.docker",
+                "docker_socket_path": "/var/run/docker.sock",
+                "docker_service_labels": {"dhcpd": "dhcp"},
+            }
+        }
+    }
+
+    # Act & Assert
+    assert V4_0_0.validate(settings)
+
+
+@pytest.mark.parametrize("setting_name", ["xmlrpc_bind_address", "xmlrpc_host"])
+def test_schema_v4_0_0_xmlrpc_split_container_settings_accept_str(setting_name: str):
+    """
+    Both new split-container settings (the daemon's bind address and the address the web
+    service dials to reach it) must validate as plain strings, matching how ``xmlrpc_port``
+    is already handled in this schema.
+    """
+    # Arrange
+    settings_dict = {setting_name: "cobblerd"}
+
+    # Act & Assert
+    assert V4_0_0.validate(settings_dict)
+
+
+@pytest.mark.parametrize("setting_name", ["xmlrpc_bind_address", "xmlrpc_host"])
+def test_schema_v4_0_0_xmlrpc_split_container_settings_reject_non_str(
+    setting_name: str,
+):
+    # Arrange
+    settings_dict = {setting_name: 25151}
+
+    # Act & Assert
+    assert not V4_0_0.validate(settings_dict)
+
+
 def test_schema_v4_0_0_default_settings_yaml_validates():
     """
     The shipped default settings.yaml must validate cleanly against the V4.0.0
-    schema, including its "modules.httpd" entry.
+    schema, including its "modules.httpd" and "modules.process_management" entries.
 
     Reads the source file directly (not the installed /etc/cobbler/settings.yaml)
     since several migration tests in this same module intentionally overwrite the
@@ -1215,3 +1280,8 @@ def test_schema_v4_0_0_default_settings_yaml_validates():
     # Act & Assert
     assert V4_0_0.validate(shipped_settings)
     assert shipped_settings["modules"]["httpd"]["module"] == "managers.in_httpd"
+    assert shipped_settings["modules"]["process_management"]["module"] == "auto"
+    # Both new split-container settings must default to today's exact non-containerized
+    # behavior - no default-behavior change is acceptable.
+    assert shipped_settings["xmlrpc_bind_address"] == "127.0.0.1"
+    assert shipped_settings["xmlrpc_host"] == "127.0.0.1"

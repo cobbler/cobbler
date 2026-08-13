@@ -198,6 +198,8 @@ schema = Schema(
         Optional("virt_auto_boot"): bool,
         Optional("webdir"): str,
         Optional("webdir_whitelist"): [str],
+        Optional("xmlrpc_bind_address"): str,
+        Optional("xmlrpc_host"): str,
         Optional("xmlrpc_port"): int,
         Optional("yum_distro_priority"): int,
         Optional("yum_post_install_mirror"): bool,
@@ -215,6 +217,13 @@ schema = Schema(
             Optional("dhcp"): {Optional("module"): str},
             Optional("tftpd"): {Optional("module"): str},
             Optional("httpd"): {Optional("module"): str},
+            # Valid values for "module": "process_management.service", "process_management.docker", or "auto"
+            # (auto-detects Docker vs. systemd/supervisord based on whether cobblerd is running in a container).
+            Optional("process_management"): {
+                Optional("module"): str,
+                Optional("docker_socket_path"): str,
+                Optional("docker_service_labels"): dict,
+            },
             Optional("serializers"): {Optional("module"): str},
         },
         Optional("mongodb"): {
@@ -538,6 +547,17 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
             "module": modules_config_parser.get(
                 "httpd", "module", fallback="managers.in_httpd"
             )
+        },
+        "process_management": {
+            "module": "auto",
+            "docker_socket_path": "/var/run/docker.sock",
+            "docker_service_labels": {
+                "dhcpd": "dhcp",
+                "dhcpd4": "dhcp",
+                "dhcpd6": "dhcp",
+                "named": "dns",
+                "dnsmasq": "dnsmasq",
+            },
         },
         "serializers": {
             "module": modules_config_parser.get(

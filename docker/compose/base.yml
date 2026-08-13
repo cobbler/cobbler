@@ -1,0 +1,67 @@
+# docker/compose/base.yml
+#
+# Shared resources included by both compose.yml and compose.dev.yml: the "cobbler" network, every named
+# volume, the shared "cobbler-settings" config, and the Traefik reverse proxy. Full walkthrough:
+# docs/user-guide/docker-deployment.rst.
+
+networks:
+  cobbler:
+    driver: bridge
+
+volumes:
+  cobbler-etc:
+  cobbler-var-lib:
+  cobbler-webdir:
+  cobbler-tftproot:
+  cobbler-dhcp-config:
+  cobbler-dns-config:
+
+configs:
+  cobbler-settings:
+    content: |
+      tftpboot_location: "/srv/tftpboot"
+      webdir: "/srv/www/cobbler"
+      manage_tftpd: false
+
+      modules:
+        authentication:
+          module: "authentication.configfile"
+          hash_algorithm: "sha3_512"
+        authorization:
+          module: "authorization.allowall"
+        dns:
+          module: "managers.bind"
+        dhcp:
+          module: "managers.isc"
+        httpd:
+          module: "managers.dynamic_httpd"
+        tftpd:
+          module: "managers.dynamic_tftp"
+        process_management:
+          module: "auto"
+          docker_socket_path: "/var/run/docker.sock"
+          docker_service_labels:
+            dhcpd: "dhcp"
+            dhcpd4: "dhcp"
+            dhcpd6: "dhcp"
+            named: "dns"
+            dnsmasq: "dnsmasq"
+        serializers:
+          module: "serializers.file"
+
+services:
+  traefik:
+    image: traefik:v3.6
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    networks:
+      - cobbler
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    security_opt:
+      - label:disable
+    restart: unless-stopped

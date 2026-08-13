@@ -1,0 +1,104 @@
+# compose.dev.yml
+#
+# Development variant of compose.yml: builds "cobblerd"/"http-api" from source instead of pulling
+# ghcr.io/cobbler/cobblerd. Everything else is identical. Full walkthrough:
+# docs/user-guide/docker-deployment.rst.
+#
+# Quick start:
+#   docker compose -f compose.dev.yml up --build -d
+#   curl http://localhost/cobbler_api        # -> routed to cobblerd's XMLRPC server
+#   curl http://localhost/httpboot/          # -> routed to http-api's Gunicorn app
+#   curl http://localhost/                   # -> routed to the "web" UI (if enabled)
+
+include:
+  - docker/compose/base.yml
+  - docker/compose/web.yml
+  - docker/compose/tftp.yml
+  # - docker/compose/dhcp.dev.yml
+  # - docker/compose/dns.dev.yml
+  # - docker/compose/dnsmasq.yml
+
+services:
+  cobblerd:
+    build:
+      context: .
+      dockerfile: docker/images/cobblerd/Dockerfile
+    image: cobbler-cobblerd:latest
+    command: ["cobblerd", "-F"]
+    environment:
+      COBBLER_XMLRPC_BIND_ADDRESS: "0.0.0.0"
+    configs:
+      - source: cobbler-settings
+        target: /etc/cobbler/settings.yaml
+        mode: 0640
+    volumes:
+      - cobbler-etc:/etc/cobbler:z
+      - cobbler-var-lib:/var/lib/cobbler:z
+      - cobbler-webdir:/srv/www/cobbler:z
+      - cobbler-tftproot:/srv/tftpboot:z
+      - cobbler-dhcp-config:/etc/cobbler-dhcp:z
+      - cobbler-dns-config:/etc/cobbler-dns:z
+      - type: bind
+        source: ${COBBLER_DISTRO_SOURCE_DIR:-./distro-sources}
+        target: /srv/distro-sources
+        read_only: true
+        bind:
+          create_host_path: true
+    networks:
+      - cobbler
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cobbler-api.rule=PathPrefix(`/cobbler_api`)"
+      - "traefik.http.routers.cobbler-api.entrypoints=web"
+      - "traefik.http.services.cobbler-api.loadbalancer.server.port=25151"
+      - "traefik.http.middlewares.cobbler-api-strip.stripprefix.prefixes=/cobbler_api"
+      - "traefik.http.middlewares.cobbler-api-cors.headers.accessControlAllowOriginList=*"
+      - "traefik.http.middlewares.cobbler-api-cors.headers.accessControlAllowMethods=GET,POST,OPTIONS"
+      - "traefik.http.middlewares.cobbler-api-cors.headers.accessControlAllowHeaders=content-type"
+      - "traefik.http.middlewares.cobbler-api-cors.headers.accessControlMaxAge=100"
+      - "traefik.http.routers.cobbler-api.middlewares=cobbler-api-strip,cobbler-api-cors"
+    restart: unless-stopped
+    # modules.process_management.docker -- see docs/user-guide/docker-deployment.rst.
+    # volumes:
+    #   - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  http-api:
+    build:
+      context: .
+      dockerfile: docker/images/cobblerd/Dockerfile
+    image: cobbler-cobblerd:latest
+    command: ["gunicorn", "cobbler.services:application", "--bind", "0.0.0.0:8000"]
+    environment:
+      COBBLER_XMLRPC_HOST: "cobblerd"
+    configs:
+      - source: cobbler-settings
+        target: /etc/cobbler/settings.yaml
+        mode: 0440
+    volumes:
+      - cobbler-webdir:/srv/www/cobbler:ro,z
+      - cobbler-tftproot:/srv/tftpboot:ro,z
+      - type: bind
+        source: ${COBBLER_DISTRO_SOURCE_DIR:-./distro-sources}
+        target: /srv/distro-sources
+        read_only: true
+        bind:
+          create_host_path: true
+    networks:
+      - cobbler
+    depends_on:
+      cobblerd:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cobbler-http-api.rule=PathPrefix(`/cblr`) || PathPrefix(`/httpboot`) || PathPrefix(`/images`)"
+      - "traefik.http.routers.cobbler-http-api.entrypoints=web"
+      - "traefik.http.services.cobbler-http-api.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.cobbler-svc-strip.stripprefix.prefixes=/cblr/svc"
+      - "traefik.http.routers.cobbler-http-api.middlewares=cobbler-svc-strip"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=5)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+    restart: unless-stopped

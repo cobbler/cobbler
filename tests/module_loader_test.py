@@ -84,6 +84,16 @@ def test_get_module_by_name(
             "managers.in_httpd",
             does_not_raise(),
         ),
+        # The shipped default for "process_management" is "auto", but tests/integration/data/settings.yaml
+        # (loaded for the duration of every test - see reset_settings_yaml in tests/conftest.py) pins it
+        # explicitly to "process_management.service", since the dev/CI test container's own supervisord-based
+        # topology would otherwise be misdetected as needing the Docker sidecar backend.
+        (
+            "process_management",
+            "",
+            "process_management.service",
+            does_not_raise(),
+        ),
         ("wrong_section", None, "", pytest.raises(CX)),
         (
             "wrong_section",
@@ -122,6 +132,9 @@ def test_get_module_name(
         ("dhcp", "", does_not_raise()),
         ("tftpd", "", does_not_raise()),
         ("httpd", "managers.in_httpd", does_not_raise()),
+        # See the comment on the equivalent case in test_get_module_name's parametrize list above: the test
+        # settings pin "process_management" to an explicit, real module name, so this does not raise here.
+        ("process_management", "", does_not_raise()),
         ("wrong_section", "", pytest.raises(CX)),
         ("wrong_section", "authentication.configfile", does_not_raise()),
     ],
@@ -198,6 +211,15 @@ def test_get_module_from_file(
             ],
         ),
         ("manage/import", ["cobbler.modules.managers.import_signatures"]),
+        (
+            "process_management",
+            [
+                "cobbler.modules.process_management.docker",
+                "cobbler.modules.process_management.service",
+                "cobbler.modules.process_management.supervisor",
+                "cobbler.modules.process_management.systemd",
+            ],
+        ),
         (
             "serializer",
             [

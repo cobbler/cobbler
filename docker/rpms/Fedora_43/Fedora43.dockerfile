@@ -49,6 +49,7 @@ RUN yum install -y          \
     python3-ldap            \
     python3-librepo         \
     python3-pymongo         \
+    python3-docker          \
     python3-gunicorn        \
     python3-schema          \
     python3-systemd         \

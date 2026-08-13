@@ -57,6 +57,7 @@ RUN zypper install -y          \
     python3-setuptools         \
     python3-setuptools_scm     \
     python3-systemd            \
+    python3-docker             \
     python3-pip                \
     python3-PyYAML             \
     python3-wheel              \

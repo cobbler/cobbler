@@ -1,0 +1,19 @@
+# docker/compose/dns.dev.yml
+#
+# Development variant of docker/compose/dns.yml: builds the image from source instead of pulling it. Full
+# walkthrough: docs/user-guide/docker-deployment.rst's "Process management and DHCP/DNS sidecar containers"
+# section.
+
+services:
+  dns:
+    build:
+      context: ../..
+      dockerfile: docker/images/dns/Dockerfile
+    volumes:
+      - cobbler-dns-config:/etc/cobbler-dns:ro,z
+    networks:
+      - cobbler
+    depends_on:
+      cobblerd:
+        condition: service_healthy
+    restart: unless-stopped

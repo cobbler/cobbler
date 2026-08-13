@@ -1,0 +1,289 @@
+name: Build and publish Docker images
+
+# ---------------------------------------------------------------------------------------------------------
+# Registry choice: GHCR (ghcr.io/cobbler/...), because it's the lowest-friction option that needs no project
+# setup beyond the ambient GITHUB_TOKEN. Cobbler's *existing* CI test image and RPM/DEB packages are built
+# via openSUSE's Open Build Service (OBS) instead (see the "systemsmanagement:cobbler:release40" OBS repo
+# referenced by docker/images/*/Dockerfile and docker/rpms|debs/*) -- building/publishing these container
+# images through OBS instead of GHCR is out of scope for now.
+# ---------------------------------------------------------------------------------------------------------
+
+# Mirrors release.yml's push trigger (push to main, or a "vX.Y.Z" tag) so image publishing tracks the same
+# events as the existing PyPI publish workflow, and additionally runs on every pull_request so PRs/forks
+# get build+smoke-test validation of the Docker images with no push/publish step (see the "publish" job's
+# own "if:" below, which is what actually keeps pull_request events from ever pushing anything).
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+
+# Minimal permissions: only what's needed to push to GHCR with the ambient GITHUB_TOKEN. No extra project
+# setup (no PATs, no org secrets) is required. Only the "publish" job actually uses "packages: write" (to
+# log in and push); "build"/"smoke-test" never authenticate to any registry.
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAMESPACE: cobbler
+
+jobs:
+  # Builds every image locally (push: false, load: true) so it ends up in the Docker daemon's local image
+  # store, then saves it to a tarball and uploads it as a workflow artifact for "smoke-test" to consume.
+  # This is the one and only build of the bits that (if this run is a "main"/tag push) later get published
+  # -- "smoke-test" loads this exact tarball instead of rebuilding, and "publish" re-invokes
+  # build-push-action against a warm GHA cache instead of pulling back from the registry, so the image that
+  # gets smoke-tested and the image that gets pushed are byte-identical to the one built here.
+  build:
+    name: Build ${{ matrix.name }} image
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: cobblerd
+            dockerfile: docker/images/cobblerd/Dockerfile
+            image: ghcr.io/cobbler/cobblerd
+          # Shares cobblerd's rendered DHCP config via a volume (see docker/compose/dhcp.yml); only used
+          # when modules.process_management.module is "process_management.docker" (opt-in, not included by
+          # default in compose.yml). Built/cached/published here for parity with cobblerd and dns, but
+          # deliberately NOT loaded into the smoke-test stack below -- see that job for why.
+          - name: dhcp
+            dockerfile: docker/images/dhcp/Dockerfile
+            image: ghcr.io/cobbler/cobbler-dhcp
+          # Same opt-in, commented-out-by-default sidecar story as "dhcp" above, for DNS.
+          - name: dns
+            dockerfile: docker/images/dns/Dockerfile
+            image: ghcr.io/cobbler/cobbler-dns
+    steps:
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          # All three Dockerfiles build via setuptools_scm (cobblerd directly; dhcp/dns install packages
+          # that depend on the same source tree via the shared OBS repo), which needs full git
+          # history/tags to compute a real version -- a shallow (default depth-1) checkout makes it fall
+          # back to a bogus dev version. See release.yml, which sets this same option for the same reason.
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        # https://github.com/docker/setup-buildx-action
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Build ${{ matrix.name }} (no push)
+        # https://github.com/docker/build-push-action
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: false
+          load: true
+          # Not a real publish tag -- just a handle to reference this exact build within this workflow run
+          # ("smoke-test" re-tags it to whatever compose.yml expects after loading it).
+          tags: ${{ matrix.image }}:ci
+          # GHA-hosted layer cache, scoped per image so cobblerd/dhcp/dns don't evict each other's layers.
+          # "publish" below reuses this exact scope so its build-push-action invocation reuses these same
+          # layers instead of rebuilding from scratch.
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+      - name: Save ${{ matrix.name }} image for downstream jobs
+        run: docker save ${{ matrix.image }}:ci -o /tmp/${{ matrix.name }}-image.tar
+
+      - name: Upload ${{ matrix.name }} image artifact
+        # https://github.com/actions/upload-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: docker-image-${{ matrix.name }}
+          path: /tmp/${{ matrix.name }}-image.tar
+          retention-days: 1
+
+  # Loads the exact image "build" produced (no rebuild, no registry pull-back -- pulling immediately after
+  # a push would risk registry propagation lag on a tag push, and this job needs no registry credentials at
+  # all this way) and smoke-tests it via compose.yml's default stack: traefik, cobblerd, http-api, and the
+  # two services that pull pre-built images (the real cobbler-web UI and cobbler-tftp).
+  #
+  # Only "cobblerd" is loaded/used here: docker/compose/dhcp.yml's and dns.yml's sidecars are not included
+  # by default in compose.yml (opt-in, only relevant when modules.process_management.module is
+  # "process_management.docker") and are not part of the default "docker compose up" topology this job
+  # stands up -- there is nothing running for their images to smoke-test against. They still go through
+  # "build" and "publish" for parity/availability, but their gate on "publish" is "build succeeded and the
+  # (cobblerd-based) default stack smoke-tested clean", not an independent smoke test of their own.
+  smoke-test:
+    needs: build
+    name: Smoke test compose.yml stack
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Download cobblerd image artifact
+        # https://github.com/actions/download-artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: docker-image-cobblerd
+          path: /tmp
+
+      - name: Load and tag the cobblerd image
+        # compose.yml's "cobblerd"/"http-api" services both pin "image: ghcr.io/cobbler/cobblerd:latest" --
+        # retag the just-built image to that same real registry ref (ahead of the actual "publish" job
+        # below actually pushing it there) so "docker compose up" below finds it locally instead of trying
+        # to pull it from GHCR.
+        run: |
+          docker load -i /tmp/cobblerd-image.tar
+          docker tag ghcr.io/cobbler/cobblerd:ci ghcr.io/cobbler/cobblerd:latest
+
+      - name: Start the stack
+        # --no-build: defensive/self-documenting only -- compose.yml has no "build:" key on any service
+        # (unlike compose.dev.yml), so this never actually skips a build; it just guards against silently
+        # falling back to one if that ever changes.
+        run: docker compose -f compose.yml up -d --no-build
+
+      - name: Wait for http-api's /healthz to report healthy
+        # compose.yml deliberately does not publish "http-api"'s port 8000 to the host -- only Traefik's
+        # port 80 is published, and Traefik's router for "http-api" only matches /cblr, /httpboot, /images
+        # (not /healthz) -- so /healthz can't be polled with a plain `curl` from the runner against a
+        # mapped host port here. Poll it from inside the "http-api" container instead via
+        # `docker compose exec`, reusing the exact same stdlib urllib.request one-liner as that service's
+        # own HEALTHCHECK (see compose.yml's "http-api" service) -- no curl/nc needed inside the
+        # (deliberately minimal) image, and this performs a real HTTP round trip against /healthz (which
+        # itself proxies an XML-RPC call to cobblerd), not just a check of Docker's cached health status.
+        #
+        # NOTE: "http-api" is this service's Round 2 name -- it used to be named "web" in an earlier
+        # revision of compose.yml, before that name was freed up for the real Cobbler Web UI (a separate,
+        # unrelated service also called "web" in the current compose file).
+        run: |
+          attempts=30
+          for i in $(seq 1 "${attempts}"); do
+            if docker compose -f compose.yml exec -T http-api \
+                python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=5)"; then
+              echo "http-api /healthz is healthy"
+              exit 0
+            fi
+            echo "http-api /healthz not ready yet (attempt ${i}/${attempts}), retrying in 10s..."
+            sleep 10
+          done
+          echo "::error::http-api /healthz did not become healthy within the timeout"
+          docker compose -f compose.yml logs
+          exit 1
+
+      # The two checks above only prove the containers themselves work -- they never send a request
+      # through Traefik's published host port 80, so on their own they cannot catch a broken Traefik
+      # router rule or a missing StripPrefix middleware (both of which happened on this branch: see
+      # compose.yml's Traefik labels). These two steps close that gap by actually traversing the proxy
+      # hop, exactly like a real client would.
+      - name: Verify /httpboot is reachable through Traefik
+        run: |
+          attempts=30
+          for i in $(seq 1 "${attempts}"); do
+            if curl -fsS http://localhost/httpboot/; then
+              echo
+              echo "Traefik-routed GET http://localhost/httpboot/ succeeded"
+              exit 0
+            fi
+            echo "Traefik /httpboot route not ready yet (attempt ${i}/${attempts}), retrying in 5s..."
+            sleep 5
+          done
+          echo "::error::http://localhost/httpboot/ never became reachable through Traefik (port 80)"
+          docker compose -f compose.yml logs
+          exit 1
+
+      - name: Verify /cobbler_api XML-RPC is reachable through Traefik
+        # A minimal, hand-built XML-RPC "ping" call (cobbler/remote.py's CobblerXMLRPCInterface.ping(),
+        # one of the few methods needing no token) -- POSTed through Traefik's port 80 at /cobbler_api,
+        # which Traefik must route to cobblerd's XML-RPC server *and* strip the "/cobbler_api" prefix
+        # from (cobblerd's SimpleXMLRPCRequestHandler only answers on "/"). A 404 or connection failure
+        # here means either the router rule or the StripPrefix middleware regressed.
+        run: |
+          request='<?xml version="1.0"?><methodCall><methodName>ping</methodName><params></params></methodCall>'
+          attempts=30
+          for i in $(seq 1 "${attempts}"); do
+            if response="$(curl -fsS -X POST -H 'Content-Type: text/xml' --data "${request}" http://localhost/cobbler_api)" \
+                && echo "${response}" | grep -q '<methodResponse>'; then
+              echo "Traefik-routed POST http://localhost/cobbler_api returned a real XML-RPC response:"
+              echo "${response}"
+              exit 0
+            fi
+            echo "Traefik /cobbler_api route not ready yet (attempt ${i}/${attempts}), retrying in 5s..."
+            sleep 5
+          done
+          echo "::error::POST http://localhost/cobbler_api never returned a real XML-RPC response through Traefik (port 80)"
+          docker compose -f compose.yml logs
+          exit 1
+
+      - name: Tear down the stack
+        if: always()
+        run: docker compose -f compose.yml down -v
+
+  # Re-runs build-push-action with push: true against the same GHA cache scope "build" populated above, so
+  # this reuses the exact same, already-smoke-tested layers (fast, byte-identical) instead of a from-scratch
+  # rebuild -- and instead of pulling back from the registry, which "smoke-test" avoids for the same
+  # propagation-lag reason. Guarded so this only ever runs for a real push to "main" or a "vX.Y.Z" tag, on
+  # the upstream repository -- never for a pull_request (a fork's GITHUB_TOKEN has no write access to the
+  # upstream "cobbler" GHCR namespace anyway, but this also skips the otherwise-failing push attempt
+  # entirely, matching the same guard release.yml/packaging.yml already use for PyPI/RPM publishing).
+  publish:
+    needs: [build, smoke-test]
+    if: github.event_name == 'push' && github.repository == 'cobbler/cobbler'
+    name: Publish ${{ matrix.name }} image
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: cobblerd
+            dockerfile: docker/images/cobblerd/Dockerfile
+            image: ghcr.io/cobbler/cobblerd
+          - name: dhcp
+            dockerfile: docker/images/dhcp/Dockerfile
+            image: ghcr.io/cobbler/cobbler-dhcp
+          - name: dns
+            dockerfile: docker/images/dns/Dockerfile
+            image: ghcr.io/cobbler/cobbler-dns
+    steps:
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          # Same setuptools_scm reasoning as the "build" job's checkout above.
+          fetch-depth: 0
+
+      - name: Determine image tag
+        # Branch pushes (to main) publish "latest"; tag pushes ("vX.Y.Z", matching release.yml's PyPI tag
+        # trigger) publish that exact version string, taken verbatim from github.ref_name (no "v" prefix
+        # stripped), as the tag instead. Since the "on:" block only triggers "push" for "branches: [main]"
+        # or "tags: [\"v*\"]", github.ref_type alone is sufficient to tell the two cases apart -- no
+        # separate branch-name check needed.
+        id: image-tag
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Docker Buildx
+        # https://github.com/docker/setup-buildx-action
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Log in to GHCR
+        # https://github.com/docker/login-action
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.name }}
+        # https://github.com/docker/build-push-action
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ matrix.image }}:${{ steps.image-tag.outputs.tag }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
