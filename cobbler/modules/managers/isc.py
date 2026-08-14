@@ -185,10 +185,7 @@ class _IscManager(DhcpManagerModule):
             if profile is not None:
                 iface["profile"] = profile.to_dict()  # type: ignore
             if host:
-                if iface_name == "eth0":
-                    iface["name"] = host
-                else:
-                    iface["name"] = f"{host}-{iface_name}"
+                iface["name"] = f"{host}-{iface_name}"
             else:
                 self.generic_entry_cnt += 1
                 iface["name"] = f"generic{self.generic_entry_cnt:d}"
