@@ -310,6 +310,15 @@ mounted directly onto a path that is a plain file in the image -- confirmed outr
 fails unconditionally) on at least one real Docker Engine build, regardless of whether that file is empty or has
 real content. Mounting onto a directory instead is the unambiguous, universally-supported case.
 
+``named.conf`` alone isn't enough for the ``dns`` sidecar to actually serve anything, though: ``bind.py`` also
+renders the zone files it references to ``bind_zonefile_path`` (``/var/lib/named`` by default), a directory
+separate from ``/etc/cobbler-dns``. The ``cobbler-dns-zones`` volume, mounted at ``/var/lib/named`` on both
+``cobblerd`` (read-write) and the ``dns`` sidecar (read-only), carries that zone data across -- the same
+plain-directory-volume approach as ``cobbler-dns-config``, without needing a symlink trick since
+``/var/lib/named`` is already a directory in both images, not a single file. ``docker/compose/base.yml`` also
+pins ``bind_zonefile_path: "/var/lib/named"`` explicitly in the ``cobbler-settings`` config so it can't silently
+drift out of sync with this mount path.
+
 The ``dhcp`` sidecar additionally runs with ``network_mode: host`` instead of joining the ``cobbler`` bridge
 network like everything else in the stack -- ISC ``dhcpd`` needs real L2 broadcast visibility to serve DHCP
 clients, which a NAT'd bridge network does not provide. The ``dns`` sidecar has no such requirement and stays

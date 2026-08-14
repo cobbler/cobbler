@@ -68,13 +68,13 @@ host $iface.name {
     #end if
     ##
     ## fixed-address6
-    fixed-address6 $iface.ipv6_address;
+    fixed-address6 $iface.ipv6.address;
     ##
     ## host-name
     #if $iface.hostname:
     option host-name "$iface.hostname";
-    #else if $iface.dns_name:
-    option host-name "$iface.dns_name";
+    #else if $iface.dns.name:
+    option host-name "$iface.dns.name";
     #end if
     ##
     ## dhcp6.bootfile-url

@@ -11,13 +11,14 @@ import pathlib
 import re
 import socket
 import time
-from typing import TYPE_CHECKING, Dict, Iterable, List, Tuple, Union
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
 
 from cobbler import enums, utils
 from cobbler.modules.managers import DnsManagerModule
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
+    from cobbler.items.template import Template
 
 
 MANAGER = None
@@ -68,6 +69,35 @@ class _BindManager(DnsManagerModule):
         """
         Not used.
         """
+
+    def __find_named_template(self, tag: str, error_message: str) -> "Template":
+        """
+        Find the active (falling back to default) template for the given tag.
+
+        Mirrors isc.py's "prefer active over default" tie-breaking
+        (cobbler/modules/managers/isc.py's ``_write_config()``) - a plain
+        ``find_template(False, ...)`` has no such preference: it just returns whichever
+        collection-insertion-order match happens to come first, which is always the
+        read-only built-in template rather than any custom, "active"-tagged one an admin
+        registers alongside it.
+
+        :param tag: The ``TemplateTag`` value to search for.
+        :param error_message: Error to raise if neither an active nor a default template
+                               is found.
+        """
+        search_result = self.api.find_template(True, False, tags=tag)
+        if search_result is None or not isinstance(search_result, list):
+            raise TypeError("Search result for named template must be of type list!")
+        named_template: Optional["Template"] = None
+        for template in search_result:
+            if enums.TemplateTag.ACTIVE.value in template.tags:
+                named_template = template
+                break
+            if enums.TemplateTag.DEFAULT.value in template.tags:
+                named_template = template
+        if named_template is None:
+            raise ValueError(error_message)
+        return named_template
 
     @staticmethod
     def __expand_ipv6(address: str) -> str:
@@ -308,11 +338,10 @@ zone "{arpa}." {{
 """
             metadata.zone_include = metadata.zone_include + txt
 
-        search_result = self.api.find_template(
-            False, False, tags=enums.TemplateTag.NAMED_PRIMARY.value
+        search_result = self.__find_named_template(
+            enums.TemplateTag.NAMED_PRIMARY.value,
+            "Could not location primary named template.",
         )
-        if search_result is None or isinstance(search_result, list):
-            raise ValueError("Could not location primary named template.")
 
         self.logger.info("generating %s", settings_file)
         self.api.templar.render(search_result.content, metadata.__dict__, settings_file)
@@ -366,11 +395,10 @@ zone "{arpa}." {{
             metadata.zone_include = metadata.zone_include + txt
             metadata.bind_master = self.settings.bind_master
 
-        search_result = self.api.find_template(
-            False, False, tags=enums.TemplateTag.NAMED_SECONDARY.value
+        search_result = self.__find_named_template(
+            enums.TemplateTag.NAMED_SECONDARY.value,
+            "Could not location secondary named template.",
         )
-        if search_result is None or isinstance(search_result, list):
-            raise ValueError("Could not location secondary named template.")
 
         self.logger.info("generating %s", settings_file)
         self.api.templar.render(search_result.content, metadata.__dict__, settings_file)
@@ -527,11 +555,10 @@ zone "{arpa}." {{
         forward = self.__forward_zones()
         reverse = self.__reverse_zones()
 
-        search_result = self.api.find_template(
-            False, False, tags=enums.TemplateTag.NAMED_ZONE_DEFAULT.value
+        search_result = self.__find_named_template(
+            enums.TemplateTag.NAMED_ZONE_DEFAULT.value,
+            "Could not locate default zone named template.",
         )
-        if search_result is None or isinstance(search_result, list):
-            raise ValueError("Could not locate default zone named template.")
 
         zonefileprefix = self.settings.bind_chroot_path + self.zonefile_base
 

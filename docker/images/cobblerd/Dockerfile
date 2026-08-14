@@ -74,11 +74,15 @@ RUN zypper --no-gpg-checks install --no-recommends -y /tmp/rpms/cobbler-[0-9]*.n
 # /srv/tftpboot: tftproot (openSUSE packaging convention for cobbler.spec's %tftpboot_dir; follow
 #   whatever "tftpboot_location" is set to in the mounted settings.yaml).
 RUN mkdir -p /etc/cobbler /srv/www/cobbler /var/lib/cobbler /srv/tftpboot
-# /etc/dhcpd.conf, /etc/named.conf: this image never installs dhcp-server/bind (DHCP/DNS run in the
-# separate "dhcp"/"dns" sidecar containers -- see docker/images/dhcp/Dockerfile, docker/images/dns/
-# Dockerfile), but cobbler/modules/managers/isc.py and bind.py still open() these exact, hardcoded paths
-# for writing whenever manage_dhcp/manage_dns is enabled -- and compose.yml/compose.dev.yml needs to
-# share whatever lands there with the "dhcp"/"dns" sidecars via a volume.
+# /etc/dhcpd.conf, /etc/dhcpd6.conf, /etc/named.conf: this image never installs dhcp-server/bind
+# (DHCP/DNS run in the separate "dhcp"/"dns" sidecar containers -- see docker/images/dhcp/Dockerfile,
+# docker/images/dns/Dockerfile), but cobbler/modules/managers/isc.py and bind.py still open() these
+# exact, hardcoded paths for writing whenever manage_dhcp_v4/manage_dhcp_v6/manage_dns is enabled --
+# and compose.yml/compose.dev.yml needs to share whatever lands there with the "dhcp"/"dns" sidecars
+# via a volume. dhcpconf_location() resolves protocol=V6 to "/etc/dhcpd6.conf" on this image's distro
+# family (see cobbler/utils/dhcpconf_location()'s "dist == \"suse\"" branch) -- without a symlink for
+# it too, a v6 sync silently writes straight to this container's own ephemeral filesystem instead of
+# the shared volume, never reaching the "dhcp" sidecar.
 #
 # Mounting a named volume directly onto a path that's a plain file (rather than a directory) relies on
 # Docker's "seed a fresh volume from the image's own content at that mount point" feature -- which is a
@@ -88,11 +92,12 @@ RUN mkdir -p /etc/cobbler /srv/www/cobbler /var/lib/cobbler /srv/tftpboot
 # works). Sidestep the whole class of problem: share a plain *directory* per service instead (Docker's
 # directory-volume case is unambiguous and robust everywhere) and symlink the exact file path isc.py/
 # bind.py expect into it. open() transparently follows symlinks, so no cobbler source changes are
-# needed -- dhcpconf_location()/namedconf_location() still resolve to "/etc/dhcpd.conf"/"/etc/named.conf"
-# exactly as before. The "dhcp"/"dns" sidecar images set up the identical symlink so both sides of each
-# shared volume agree on where the real file actually lives.
+# needed -- dhcpconf_location()/namedconf_location() still resolve to "/etc/dhcpd.conf"/
+# "/etc/dhcpd6.conf"/"/etc/named.conf" exactly as before. The "dhcp"/"dns" sidecar images set up the
+# identical symlink so both sides of each shared volume agree on where the real file actually lives.
 RUN mkdir -p /etc/cobbler-dhcp /etc/cobbler-dns && \
     ln -s /etc/cobbler-dhcp/dhcpd.conf /etc/dhcpd.conf && \
+    ln -s /etc/cobbler-dhcp/dhcpd6.conf /etc/dhcpd6.conf && \
     ln -s /etc/cobbler-dns/named.conf /etc/named.conf
 VOLUME ["/etc/cobbler", "/srv/www/cobbler", "/var/lib/cobbler", "/srv/tftpboot", "/etc/cobbler-dhcp", "/etc/cobbler-dns"]
 
