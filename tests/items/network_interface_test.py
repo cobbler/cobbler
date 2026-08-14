@@ -265,6 +265,42 @@ def test_management(
 
 
 @pytest.mark.parametrize(
+    "input_name,expected_result,expected_exception",
+    [
+        ("", "", does_not_raise()),
+        ("default", "default", does_not_raise()),
+        # A single colon is a common, opt-in "<system-name>:<label>" separator (see
+        # NetworkInterfaces.check_for_duplicate_names(), which only enforces uniqueness within the
+        # owning system) and must keep working.
+        ("host.example.org:default", "host.example.org:default", does_not_raise()),
+        ("host.example.org::default", "", pytest.raises(ValueError)),
+        ("::", "", pytest.raises(ValueError)),
+        (0, "", pytest.raises(TypeError)),
+    ],
+)
+def test_name(
+    cobbler_api: CobblerAPI,
+    input_name: Any,
+    expected_result: str,
+    expected_exception: Any,
+):
+    """
+    Test to verify that the name property of NetworkInterface rejects "::", while still allowing a
+    single colon (used as a "<system-name>:<label>" separator).
+    """
+    # Arrange
+    interface = NetworkInterface(cobbler_api, "")
+
+    # Act
+    with expected_exception:
+        interface.name = input_name
+
+        # Assert
+        assert isinstance(interface.name, str)
+        assert interface.name == expected_result
+
+
+@pytest.mark.parametrize(
     "input_dns_name,expected_result,expected_exception",
     [
         ("", "", does_not_raise()),

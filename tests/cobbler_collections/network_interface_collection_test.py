@@ -285,6 +285,42 @@ def test_duplicate_add(
         network_interface_collection.add(item2, check_for_duplicate_names=True)
 
 
+def test_duplicate_name_allowed_across_systems(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
+    create_system: Callable[..., system.System],
+    network_interface_collection: network_interfaces.NetworkInterfaces,
+):
+    """
+    Test that a Network Interface name only needs to be unique within its owning system, not
+    across the whole collection - two different systems may each have an interface with the same
+    name, even with check_for_duplicate_names explicitly enabled. Contrast with test_duplicate_add,
+    which rejects the same name reused *within* one system.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_system_1 = create_system(
+        test_profile.uid, name="test_duplicate_name_allowed_across_systems_1"
+    )
+    test_system_2 = create_system(
+        test_profile.uid, name="test_duplicate_name_allowed_across_systems_2"
+    )
+    name = "duplicate_name_across_systems"
+    item1 = cobbler_api.new_network_interface(system_uid=test_system_1.uid, name=name)
+    item2 = cobbler_api.new_network_interface(system_uid=test_system_2.uid, name=name)
+
+    # Act
+    network_interface_collection.add(item1, check_for_duplicate_names=True)
+    network_interface_collection.add(item2, check_for_duplicate_names=True)
+
+    # Assert
+    assert item1.uid in network_interface_collection.listing
+    assert item2.uid in network_interface_collection.listing
+    assert network_interface_collection.indexes["name"][name] == {item1.uid, item2.uid}
+
+
 def test_remove(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], distro.Distro],
