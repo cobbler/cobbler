@@ -265,6 +265,42 @@ def test_management(
 
 
 @pytest.mark.parametrize(
+    "input_name,expected_result,expected_exception",
+    [
+        ("", "", does_not_raise()),
+        ("default", "default", does_not_raise()),
+        # A single colon is a common, opt-in "<system-name>:<label>" separator (see
+        # NetworkInterfaces.check_for_duplicate_names(), which only enforces uniqueness within the
+        # owning system) and must keep working.
+        ("host.example.org:default", "host.example.org:default", does_not_raise()),
+        ("host.example.org::default", "", pytest.raises(ValueError)),
+        ("::", "", pytest.raises(ValueError)),
+        (0, "", pytest.raises(TypeError)),
+    ],
+)
+def test_name(
+    cobbler_api: CobblerAPI,
+    input_name: Any,
+    expected_result: str,
+    expected_exception: Any,
+):
+    """
+    Test to verify that the name property of NetworkInterface rejects "::", while still allowing a
+    single colon (used as a "<system-name>:<label>" separator).
+    """
+    # Arrange
+    interface = NetworkInterface(cobbler_api, "")
+
+    # Act
+    with expected_exception:
+        interface.name = input_name
+
+        # Assert
+        assert isinstance(interface.name, str)
+        assert interface.name == expected_result
+
+
+@pytest.mark.parametrize(
     "input_dns_name,expected_result,expected_exception",
     [
         ("", "", does_not_raise()),
@@ -350,6 +386,32 @@ def test_mac_address(
         # Assert
         assert isinstance(interface.mac_address, str)
         assert interface.mac_address == expected_result
+
+
+def test_mac_address_reset_same_value_different_case(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+):
+    """
+    Re-setting a network interface's mac_address to the value it already has
+    - just in a different case - must be a no-op, not a false "duplicate"
+    conflict against itself. Callers (e.g. Orthos2) may not send the address
+    in the same case Cobbler normalizes and stores it in.
+    """
+    # Arrange
+    distro = create_distro()
+    profile = create_profile(distro.uid)
+    system: System = create_system(profile.uid)
+    system.interfaces["default"].mac_address = "aa:bb:cc:dd:ee:ff"
+    cobbler_api.add_system(system)
+
+    # Act
+    system.interfaces["default"].mac_address = "AA:BB:CC:DD:EE:FF"
+
+    # Assert
+    assert system.interfaces["default"].mac_address == "aa:bb:cc:dd:ee:ff"
 
 
 def test_netmask(cobbler_api: CobblerAPI):

@@ -226,6 +226,44 @@ class NetworkInterface(BaseItem):
             )
 
     @property
+    def name(self) -> str:
+        """
+        The name of the network interface.
+
+        :getter: The name of the object.
+        :setter: See ``BaseItem.name`` - additionally rejects "::" in the name.
+        """
+        return BaseItem.name.fget(self)  # type: ignore[union-attr]
+
+    @name.setter
+    def name(self, name: str) -> None:
+        """
+        The network interface's name.
+
+        Interface names commonly embed a ":" as a separator (e.g. "<system-name>:default") to keep
+        them unique per-system - ``NetworkInterfaces.check_for_duplicate_names()`` only enforces
+        uniqueness within the owning system, not across the whole (global) collection, so this is
+        opt-in, not required. A second, adjacent colon has no such legitimate use and has been
+        observed to reach consumers - e.g. the "host" declaration names ISC dhcpd's
+        ``cobbler/modules/managers/isc.py`` builds from this name - that cannot parse a colon there
+        at all, turning into a hard config-file syntax error instead of a clear validation failure
+        at the source.
+
+        :param name: object name string.
+        :raises TypeError: In case ``name`` was not of type str.
+        :raises ValueError: In case there were disallowed characters in the name, including "::".
+        """
+        if (
+            isinstance(name, str)  # pyright: ignore[reportUnnecessaryIsInstance]
+            and "::" in name
+        ):
+            raise ValueError(
+                f'Invalid characters in name: "{name}" - network interface names must not contain'
+                ' "::"'
+            )
+        BaseItem.name.fset(self, name)  # type: ignore[union-attr]
+
+    @property
     def ipv4(self) -> IPv4Option:
         """
         Returns the IPv4 configuration option for this network interface.
@@ -337,9 +375,14 @@ class NetworkInterface(BaseItem):
         :param address: MAC address
         :raises CX: In case there a random mac can't be computed
         """
-        if self._mac_address == address:
-            return
         address = validate.mac_address(address)
+        if self._mac_address == address:
+            # Re-setting the address already stored (once normalized - e.g. a
+            # caller sending a different case) must be a no-op. Comparing
+            # against the raw, un-normalized input above would miss this and
+            # fall through to the duplicate check below, which then reports a
+            # false conflict against this very object.
+            return
         if address == "random":
             # FIXME: Pass virt_type of system
             address = utils.get_random_mac(self.api)
