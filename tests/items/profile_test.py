@@ -96,6 +96,36 @@ def test_to_dict(
     assert result.get("boot_loaders") == [enums.VALUE_INHERITED]
 
 
+def test_serialize_with_custom_autoinstall_template_stores_plain_uid(
+    cobbler_api: CobblerAPI, create_distro: Callable[[], Distro]
+):
+    """
+    Regression test: serialize() used to leave a non-built-in autoinstall template as
+    the full nested Template dict (an artifact of to_dict()'s internal
+    resolved-conversion, which ran unconditionally regardless of the requested
+    "resolved" mode). from_dict()/validate_template() cannot parse that nested dict
+    back on the next load, so the profile was silently dropped with "Value passed to
+    'autoinstall' wasn't a valid str or Template object." on every cobblerd restart.
+    autoinstall must persist as the plain uid string for non-built-in templates.
+    """
+    # Arrange
+    test_template = cobbler_api.new_template(
+        name="test_serialize_autoinstall", template_type="cheetah"
+    )
+    cobbler_api.add_template(test_template)
+    distro = create_distro()
+    profile = Profile(cobbler_api)
+    profile.name = "test_serialize_autoinstall_profile"
+    profile.distro = distro.uid  # type: ignore
+    profile.autoinstall = test_template  # type: ignore
+
+    # Act
+    result = profile.serialize()
+
+    # Assert
+    assert result["autoinstall"] == test_template.uid
+
+
 def test_to_dict_resolved(
     cobbler_api: CobblerAPI, create_distro: Callable[[str], Distro]
 ):
