@@ -244,6 +244,45 @@ for this purpose, so a large distro tree can be served without ever being copied
    route(s) and a way to actually serve that content, neither of which this plan provides -- stick with
    ``managers.dynamic_httpd``/``managers.dynamic_tftp`` (the defaults above) unless you build that yourself.
 
+Manually-created distros (bypassing ``cobbler import``)
+##########################################################
+
+Everything above happens automatically only inside ``cobbler import``: that is the only code path that sets a
+distro's ``source_tree_path`` for you. If you create ``Distro``/``Profile`` objects yourself -- for example
+directly through the XML-RPC API, without ever calling ``cobbler import`` -- ``source_tree_path`` stays empty
+unless you set it yourself, and ``/cblr/svc/tree/<distro_name>/...`` returns ``404 Not Found`` for that distro even
+though ``managers.dynamic_httpd`` is selected.
+
+To make ``/cblr/svc/tree`` work for a manually-created distro:
+
+1. Place the distro's extracted tree (or a mount of it) somewhere under the host directory bind-mounted at
+   ``/srv/distro-sources`` (``${COBBLER_DISTRO_SOURCE_DIR:-./distro-sources}``, see `Settings overrides`_ above).
+   This is the only location that resolves to the *same* path inside both the ``cobblerd`` and ``http-api``
+   containers. Content placed anywhere ``http-api`` doesn't also have mounted -- for example under
+   ``/var/lib/cobbler``, which is a volume only ``cobblerd`` has -- looks fine when ``cobblerd`` resolves the
+   distro's metadata over XML-RPC, but ``http-api`` still 404s when it tries to actually open the file, since the
+   path simply doesn't exist inside its own container.
+2. Set the distro's ``source_tree_path`` to that same path, as seen *inside the containers*
+   (``/srv/distro-sources/<something>``, not the host-side path you used to place the files there):
+
+   .. code-block:: python
+
+       import xmlrpc.client
+
+       remote = xmlrpc.client.Server("http://localhost/cobbler_api", allow_none=True)
+       token = remote.login("cobbler", "cobbler")
+       did = remote.get_distro_handle("example_distro")
+       remote.modify_distro(did, ["source_tree_path"], "/srv/distro-sources/example_distro", token)
+       remote.save_distro(did, True, True, "bypass", token)
+
+3. Verify: ``curl http://localhost/cblr/svc/tree/example_distro/`` should return a directory listing instead of
+   ``404 Not Found``.
+
+.. note:: ``http-api`` caches the distro-name-to-``source_tree_path`` lookup for up to 30 seconds (see
+          ``CACHE_TTL_SECONDS`` in ``cobbler/services/files.py``) to avoid an XML-RPC round trip per served file.
+          A ``source_tree_path`` you just set may not be picked up immediately -- no container restart is needed,
+          just retry after the cache entry expires.
+
 Process management and DHCP/DNS sidecar containers
 #####################################################
 
