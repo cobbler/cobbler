@@ -15,7 +15,7 @@
   $SNIPPET('built-in-hosts.xml')
   $SNIPPET('built-in-kdump.xml')
   <keyboard>
-    <keymap>english</keymap>
+    <keymap>us</keymap>
   </keyboard>
   <language>
     <language>en_US</language>
@@ -23,9 +23,26 @@
   </language>
   <login_settings/>
   $SNIPPET('built-in-networking.xml')
-  <runlevel>
-    <default>3</default>
-  </runlevel>
+  ## Let AutoYaST propose a reasonable partition layout on its own rather than
+  ## spelling out disklabel/partitions/sizes - "use all" is enough for it to create
+  ## a working layout. Modern kernels expose every disk bus (including IDE-bus-
+  ## emulated virtual disks) via libata/SCSI naming, so the guest always sees
+  ## /dev/sda, /dev/sdb, ... - never the legacy /dev/hda naming shown in a
+  ## hypervisor's own domain XML.
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/sda</device>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <software>
+    <install_recommended config:type="boolean">false</install_recommended>
+    ## Pattern names are product/version specific - check the target distro's
+    ## installation-images/*.pat.gz or `zypper patterns` for valid names.
+    <patterns config:type="list">
+      <pattern>base</pattern>
+    </patterns>
+  </software>
   <users config:type="list">
     <user>
       <encrypted config:type="boolean">true</encrypted>
