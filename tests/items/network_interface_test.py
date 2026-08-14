@@ -388,6 +388,32 @@ def test_mac_address(
         assert interface.mac_address == expected_result
 
 
+def test_mac_address_reset_same_value_different_case(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+):
+    """
+    Re-setting a network interface's mac_address to the value it already has
+    - just in a different case - must be a no-op, not a false "duplicate"
+    conflict against itself. Callers (e.g. Orthos2) may not send the address
+    in the same case Cobbler normalizes and stores it in.
+    """
+    # Arrange
+    distro = create_distro()
+    profile = create_profile(distro.uid)
+    system: System = create_system(profile.uid)
+    system.interfaces["default"].mac_address = "aa:bb:cc:dd:ee:ff"
+    cobbler_api.add_system(system)
+
+    # Act
+    system.interfaces["default"].mac_address = "AA:BB:CC:DD:EE:FF"
+
+    # Assert
+    assert system.interfaces["default"].mac_address == "aa:bb:cc:dd:ee:ff"
+
+
 def test_netmask(cobbler_api: CobblerAPI):
     """
     Test to verify that the netmask property of NetworkInterface works as expected.

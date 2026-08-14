@@ -375,9 +375,14 @@ class NetworkInterface(BaseItem):
         :param address: MAC address
         :raises CX: In case there a random mac can't be computed
         """
-        if self._mac_address == address:
-            return
         address = validate.mac_address(address)
+        if self._mac_address == address:
+            # Re-setting the address already stored (once normalized - e.g. a
+            # caller sending a different case) must be a no-op. Comparing
+            # against the raw, un-normalized input above would miss this and
+            # fall through to the duplicate check below, which then reports a
+            # false conflict against this very object.
+            return
         if address == "random":
             # FIXME: Pass virt_type of system
             address = utils.get_random_mac(self.api)
