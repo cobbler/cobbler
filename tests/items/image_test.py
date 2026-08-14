@@ -273,6 +273,20 @@ def test_virt_disk_driver(cobbler_api: CobblerAPI):
     assert image.virt.disk_driver == enums.VirtDiskDrivers.RAW
 
 
+def test_virt_uefi(cobbler_api: CobblerAPI):
+    """
+    Test the virtualization UEFI boot property.
+    """
+    # Arrange
+    image = Image(cobbler_api)
+
+    # Act
+    image.virt.uefi = True
+
+    # Assert
+    assert image.virt.uefi is True
+
+
 def test_virt_ram(cobbler_api: CobblerAPI):
     """
     Test the virtualization RAM property.

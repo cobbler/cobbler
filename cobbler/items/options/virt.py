@@ -41,6 +41,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
         self._pxe_boot = False
         self._ram: Union[int, str] = enums.VALUE_INHERITED
         self._type = enums.VirtType.INHERITED
+        self._uefi = False
 
         if len(kwargs) > 0:
             self.from_dict(kwargs)
@@ -202,6 +203,29 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
         :param vtype: The new virtual type.
         """
         self._type = enums.VirtType.to_enum(vtype)
+
+    @LazyProperty
+    def uefi(self) -> bool:
+        """
+        uefi property.
+
+        Whether the VM should boot via UEFI firmware instead of legacy BIOS. Needed for
+        guests/images that have no BIOS-compatible boot path at all (e.g. systemd-boot-based
+        appliance images).
+
+        :getter: Returns the value for ``uefi``.
+        :setter: Sets the value for the property ``uefi``.
+        """
+        return self._uefi
+
+    @uefi.setter
+    def uefi(self, value: bool):
+        """
+        Setter for the uefi of the System class.
+
+        :param value: Whether the VM should boot via UEFI firmware.
+        """
+        self._uefi = validate.validate_virt_uefi(value)
 
     @InheritableProperty
     def path(self) -> str:

@@ -399,6 +399,22 @@ def validate_virt_pxe_boot(value: bool) -> bool:
     return value
 
 
+def validate_virt_uefi(value: bool) -> bool:
+    """
+    For Virt only.
+    Specifies whether the VM should boot via UEFI firmware instead of legacy BIOS. Needed for
+    guests/images (e.g. systemd-boot-based appliance images) that have no BIOS-compatible boot
+    path at all.
+
+    :param value: May be True or False.
+    :return: True or False
+    """
+    value = input_converters.input_boolean(value)
+    if not isinstance(value, bool):  # type: ignore
+        raise TypeError("virt_uefi needs to be of type bool.")
+    return value
+
+
 def validate_virt_ram(value: Union[int, str]) -> Union[str, int]:
     """
     For Virt only.
