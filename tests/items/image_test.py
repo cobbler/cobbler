@@ -159,6 +159,36 @@ def test_image_type(cobbler_api: CobblerAPI):
     assert image.image_type == enums.ImageTypes.DIRECT
 
 
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        ("direct", enums.ImageTypes.DIRECT),
+        ("iso", enums.ImageTypes.ISO),
+        ("memdisk", enums.ImageTypes.MEMDISK),
+        ("virt-clone", enums.ImageTypes.VIRT_CLONE),
+        ("VIRT_CLONE", enums.ImageTypes.VIRT_CLONE),
+    ],
+)
+def test_image_type_from_value_string(
+    cobbler_api: CobblerAPI, value: str, expected: enums.ImageTypes
+):
+    """
+    Regression test: the setter used to look up a string exclusively by upper-cased enum
+    member *name* (``enums.ImageTypes[value.upper()]``). ImageTypes.VIRT_CLONE's member name
+    uses an underscore while its own documented value uses a hyphen ("virt-clone"), so setting
+    image_type to the value every caller is actually documented to use raised ValueError. Both
+    the enum's value string and its legacy member-name spelling must keep working.
+    """
+    # Arrange
+    image = Image(cobbler_api)
+
+    # Act
+    image.image_type = value  # type: ignore[assignment]
+
+    # Assert
+    assert image.image_type == expected
+
+
 def test_virt_cpus(cobbler_api: CobblerAPI):
     """
     Test the virtualization CPU count property.
