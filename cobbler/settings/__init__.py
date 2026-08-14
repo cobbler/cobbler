@@ -167,7 +167,7 @@ class Settings:
         self.default_name_servers: List[str] = []
         self.default_name_servers_search: List[str] = []
         self.default_ownership = ["admin"]
-        self.default_password_crypted = r"\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac."
+        self.default_password_crypted = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac."
         self.default_template_type = "cheetah"
         self.default_virt_bridge = "virbr0"
         self.default_virt_disk_driver = "raw"

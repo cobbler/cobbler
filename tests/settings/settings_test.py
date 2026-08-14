@@ -28,6 +28,27 @@ def test_to_dict():
     assert result == test_settings.__dict__
 
 
+def test_default_password_crypted_matches_shipped_settings_yaml():
+    """
+    Settings() provides the in-code fallback used whenever settings.yaml omits
+    default_password_crypted (e.g. minimal/containerized configs). It used to carry
+    escaped "\\$" characters, which are invalid inside a crypt(3) hash and silently
+    broke rootpw/user_password rendering in every autoinstall template whenever the
+    fallback was hit. It must stay a valid hash and match the shipped default.
+    """
+    # Arrange
+    test_settings = Settings()
+    with open("cobbler/data/config/cobbler/settings.yaml") as settings_file:
+        shipped_settings = yaml.safe_load(settings_file)
+
+    # Act
+    result = test_settings.default_password_crypted
+
+    # Assert
+    assert "\\" not in result
+    assert result == shipped_settings["default_password_crypted"]
+
+
 @pytest.mark.parametrize(
     "attribute_name",
     ["xmlrpc_bind_address", "xmlrpc_host"],

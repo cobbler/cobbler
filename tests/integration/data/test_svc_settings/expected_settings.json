@@ -139,7 +139,7 @@
     "default_ownership": [
         "admin"
     ],
-    "default_password_crypted": "\\$1\\$mF86/UHC\\$WvcIcX2t6crBz2onWxyac.",
+    "default_password_crypted": "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac.",
     "default_template_type": "cheetah",
     "default_virt_bridge": "virbr0",
     "default_virt_disk_driver": "raw",
