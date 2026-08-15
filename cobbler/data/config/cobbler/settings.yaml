@@ -654,6 +654,13 @@ cache_enabled: false
 # generated.
 autoinstall_scheme: "http"
 
+# Set to true to allow creating a new file-backed Template (autoinstall template or snippet) whose target file does
+# not exist yet on disk - e.g. through the Template item API used by the Web UI or a remote client. The file is
+# created the first time the template's content is set. Leave this false (the default) to require that the target
+# file already exists, which prevents remote clients from creating arbitrary new files under
+# "autoinstall_templates_dir".
+autoinstall_templates_allow_new_files: false
+
 # Set to true to speed up the start of the Cobbler. When storing collections as files, the directory with the names
 # of the collection elements will be scanned without reading and parsing the files themselves. In the case of storing
 # collections in the database, a projection query is made that includes only the names of the collection elements.

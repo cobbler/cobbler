@@ -66,6 +66,7 @@ class Settings:
         self.auth_token_expiration = 3600
         self.authn_pam_service = "login"
         self.autoinstall_templates_dir = "/var/lib/cobbler/templates"
+        self.autoinstall_templates_allow_new_files = False
         self.bind_chroot_path = ""
         self.bind_zonefile_path = "/var/lib/named"
         self.bind_master = "127.0.0.1"
