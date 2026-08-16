@@ -14,6 +14,21 @@ BUILDROOT = $(CURDIR)/debian/python3-cobbler
 SYSTEMDDIR = /usr/lib/systemd/system
 PY_VERSION = $(shell pybuild --print version --interpreter=python3)
 
+# setuptools_scm's git-describe based version detection can disagree with the
+# intended tag in some build roots (see cobbler.spec for the RPM-side
+# rationale -- same issue affects both), producing a mismatched dev/dirty
+# version in both cobbler/_version.py and the wheel's own *.dist-info/METADATA.
+# Pin it explicitly instead. dh-python only auto-injects this for its own
+# pybuild-managed steps; override_dh_auto_build's "make man" call bypasses
+# that, so it's exported here explicitly for the whole build.
+export SETUPTOOLS_SCM_PRETEND_VERSION := $(shell dpkg-parsechangelog -SVersion | sed -E 's/-[^-]+$$//')
+# dh_auto_build's pybuild step builds inside an isolated .pybuild/.../build/
+# copy that doesn't carry .git, so __gitstamp__/__gitdate__ always come out
+# "None" there regardless of the pretend-version override above. Compute them
+# directly instead, here in the real checkout where git is reachable.
+GIT_STAMP := g$(shell git rev-parse --short=9 HEAD 2>/dev/null)
+GIT_DATE := $(shell git log -1 --format=%cs HEAD 2>/dev/null)
+
 %:
 	dh $@ --with python3 --buildsystem pybuild
 
@@ -31,6 +46,13 @@ override_dh_auto_install:
 	mkdir -p $(BUILDROOT)/usr/share/cobbler/tests/ $(BUILDROOT)/usr/share/cobbler/docker/
 	cp -r $(CURDIR)/tests/* $(CURDIR)/debian/python3-cobbler/usr/share/cobbler/tests/
 	cp -r $(CURDIR)/docker/* $(CURDIR)/debian/python3-cobbler/usr/share/cobbler/docker/
+	# __version__ is already correct (see SETUPTOOLS_SCM_PRETEND_VERSION above);
+	# restore the real commit hash/date here -- exposed via the XML-RPC
+	# extended_version method -- computed directly via git above.
+	sed -i \
+		-e 's/^__gitstamp__ = .*/__gitstamp__ = "$(GIT_STAMP)"/' \
+		-e 's/^__gitdate__ = .*/__gitdate__ = "$(GIT_DATE)"/' \
+		$(BUILDROOT)/usr/lib/python${PY_VERSION}/dist-packages/cobbler/_version.py
 
 override_dh_install:
 	dh_install --sourcedir="debian/python3-cobbler"
