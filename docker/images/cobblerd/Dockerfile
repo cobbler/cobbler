@@ -27,7 +27,7 @@ RUN zypper ar -f https://download.opensuse.org/repositories/systemsmanagement:/c
 # openSUSE_Leap16.dockerfile's list) actually needs all three -- rpmbuild fails dependency resolution
 # without them, confirmed by a real build attempt.
 RUN zypper install -y \
-    git python-rpm-macros python3 python3-pip python3-devel python3-setuptools python3-setuptools_scm \
+    git nginx python-rpm-macros python3 python3-pip python3-devel python3-setuptools python3-setuptools_scm \
     python3-wheel rpm-build make gzip apache2 apache2-devel tftp systemd-devel cyrus-sasl-devel \
     python3-Cheetah3 python3-dnspython python3-distro python3-magic python3-ldap python3-netaddr \
     python3-schema python3-systemd python3-PyYAML python3-gunicorn libcobblersignatures \

@@ -39,6 +39,7 @@ RUN dnf install -y           \
 
 # Runtime dependencies
 RUN yum install -y          \
+    nginx                   \
     httpd                   \
     python3-PyYAML          \
     python3-cheetah         \

@@ -45,6 +45,7 @@
 
 # Packages
 %define apache_pkg apache2
+%define nginx_pkg nginx
 %define createrepo_pkg createrepo_c
 #ToDo: These packages differ on every arch. Hopefully not forever...
 %define grub2_x64_efi_pkg chaos
@@ -155,6 +156,7 @@ BuildRequires:  %{py3_module_sphinx}
 # Make post-build-checks happy by including these in the buildroot
 BuildRequires:  bash-completion
 BuildRequires:  %{apache_pkg}
+BuildRequires:  %{nginx_pkg}
 BuildRequires:  %{tftpsrv_pkg}
 %endif
 
@@ -266,6 +268,7 @@ section for the required config change.
 %package nginx
 Summary:        Nginx virtual host configuration for Cobbler
 Requires:       cobbler = %{version}-%{release}
+Requires:       %{nginx_pkg}
 
 %description nginx
 Nginx virtual host configuration exposing Cobbler's web-facing endpoints via a reverse proxy to
@@ -281,11 +284,34 @@ if [ -d "%{_sourcedir}/%{name}-%{version}/.git" ]; then
     cp -r %{_sourcedir}/%{name}-%{version}/.git %{_builddir}/%{name}-%{version}
 fi
 
+# setuptools_scm's git-describe based version detection can disagree with the
+# intended tag in some build roots (e.g. when a source service leaves the tree
+# "dirty" relative to HEAD), producing a mismatched dev/dirty version -- and
+# with it, a *.dist-info directory/METADATA that doesn't match this spec's own
+# %{version}. Pin it explicitly so every consumer (cobbler/_version.py's
+# __version__, the wheel's *.dist-info/METADATA, and the .dist-info directory
+# name itself) agrees with the known-correct %{version}, regardless of git
+# tree state. This also disables setuptools_scm's git querying entirely,
+# blanking __gitstamp__/__gitdate__ in _version.py -- restored in the install
+# step below from a direct, independent git query against the source tree.
+export SETUPTOOLS_SCM_PRETEND_VERSION=%{version}
 make man
 %pyproject_wheel
 
 %install
 %pyproject_install
+# __version__ is already correct (see SETUPTOOLS_SCM_PRETEND_VERSION above);
+# restore the real commit hash/date here -- exposed via the XML-RPC
+# extended_version method -- from a plain git query against the source tree's
+# own .git (copied above), independent of setuptools_scm's version resolution.
+if [ -d "%{_builddir}/%{name}-%{version}/.git" ]; then
+    GIT_STAMP="g$(git -C %{_builddir}/%{name}-%{version} rev-parse --short=9 HEAD 2>/dev/null)"
+    GIT_DATE="$(git -C %{_builddir}/%{name}-%{version} log -1 --format=%%cs HEAD 2>/dev/null)"
+    sed -i \
+        -e "s/^__gitstamp__ = .*/__gitstamp__ = \"${GIT_STAMP}\"/" \
+        -e "s/^__gitdate__ = .*/__gitdate__ = \"${GIT_DATE}\"/" \
+        %{buildroot}%{python_sitelib}/cobbler/_version.py
+fi
 export PYTHONPATH="%{buildroot}%{python_sitelib}/"
 %if 0%{?fedora} || 0%{?rhel}
 %{python3} %{buildroot}%{_bindir}/cobblerd setup --base-dir="%{buildroot}" --systemd-directory="%{_unitdir}"
