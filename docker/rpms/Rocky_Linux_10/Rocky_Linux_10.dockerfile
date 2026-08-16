@@ -66,6 +66,7 @@ RUN touch /var/lib/rpm/* &&   \
 # rockylinux/rockylinux:10 container.
 RUN touch /var/lib/rpm/* &&   \
     dnf install -y            \
+    nginx                     \
     httpd                     \
     python3-gunicorn          \
     python3-mod_wsgi          \

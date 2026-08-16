@@ -45,6 +45,7 @@
 
 # Packages
 %define apache_pkg apache2
+%define nginx_pkg nginx
 %define createrepo_pkg createrepo_c
 #ToDo: These packages differ on every arch. Hopefully not forever...
 %define grub2_x64_efi_pkg chaos
@@ -155,6 +156,7 @@ BuildRequires:  %{py3_module_sphinx}
 # Make post-build-checks happy by including these in the buildroot
 BuildRequires:  bash-completion
 BuildRequires:  %{apache_pkg}
+BuildRequires:  %{nginx_pkg}
 BuildRequires:  %{tftpsrv_pkg}
 %endif
 
@@ -266,6 +268,7 @@ section for the required config change.
 %package nginx
 Summary:        Nginx virtual host configuration for Cobbler
 Requires:       cobbler = %{version}-%{release}
+Requires:       %{nginx_pkg}
 
 %description nginx
 Nginx virtual host configuration exposing Cobbler's web-facing endpoints via a reverse proxy to

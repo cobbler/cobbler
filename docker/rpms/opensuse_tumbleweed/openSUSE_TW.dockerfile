@@ -14,6 +14,7 @@ RUN zypper ar -f https://download.opensuse.org/repositories/systemsmanagement:/c
 # Runtime & dev dependencies
 RUN zypper install -y          \
     acl                        \
+    nginx                      \
     apache2                    \
     apache2-devel              \
     bash-completion            \
