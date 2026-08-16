@@ -399,6 +399,22 @@ def validate_virt_pxe_boot(value: bool) -> bool:
     return value
 
 
+def validate_virt_uefi(value: bool) -> bool:
+    """
+    For Virt only.
+    Specifies whether the VM should boot via UEFI firmware instead of legacy BIOS. Needed for
+    guests/images (e.g. systemd-boot-based appliance images) that have no BIOS-compatible boot
+    path at all.
+
+    :param value: May be True or False.
+    :return: True or False
+    """
+    value = input_converters.input_boolean(value)
+    if not isinstance(value, bool):  # type: ignore
+        raise TypeError("virt_uefi needs to be of type bool.")
+    return value
+
+
 def validate_virt_ram(value: Union[int, str]) -> Union[str, int]:
     """
     For Virt only.
@@ -748,14 +764,27 @@ def validate_autoinstall_template_file_path(
             f"cobbler.data.templates.{template_language}"
         )
         autoinstall_path = pathlib.Path(str(template_base_traversable)) / autoinstall
-    else:
-        autoinstall_path = settings_base_path / autoinstall
+        # The file exists, is not a symlink, and both paths are identical
+        return (
+            autoinstall_path.is_file()
+            and not autoinstall_path.is_symlink()
+            and autoinstall_child_path == autoinstall_path
+        )
 
-    # The file exists, is not a symlink ...
-    common_checks = autoinstall_path.is_file() and not autoinstall_path.is_symlink()
-    if template_schema == enums.TemplateSchema.IMPORTLIB:
-        # and both paths are identical
-        return common_checks and autoinstall_child_path == autoinstall_path
-    else:
-        # and is inside the template directory
-        return common_checks and settings_base_path in autoinstall_path.parents
+    autoinstall_path = settings_base_path / autoinstall
+    if autoinstall_path.is_file() and not autoinstall_path.is_symlink():
+        # The file already exists and is inside the template directory
+        return settings_base_path in autoinstall_path.parents
+
+    if (
+        template_schema == enums.TemplateSchema.FILE
+        and api.settings().autoinstall_templates_allow_new_files
+        and not autoinstall_path.exists()
+    ):
+        # Opt-in: point a new Template at a path that doesn't exist yet, so that
+        # Template.content's setter can create it on disk. Requiring the path to not
+        # exist at all (rather than just not being a regular file) prevents silently
+        # adopting e.g. a directory of the same name.
+        return settings_base_path in autoinstall_path.parents
+
+    return False

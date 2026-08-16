@@ -408,11 +408,20 @@ class Image(BootableItem):
                 # FIXME: Add None Image type
                 self._image_type = enums.ImageTypes.DIRECT
             try:
-                image_type = enums.ImageTypes[image_type.upper()]
-            except KeyError as error:
-                raise ValueError(
-                    f"image_type choices include: {list(map(str, enums.ImageTypes))}"
-                ) from error
+                # Match by value first ("virt-clone") since that is what the enum's own
+                # docstring documents and what callers (e.g. XML-RPC clients) actually send;
+                # ImageTypes.VIRT_CLONE's member name uses an underscore while its value uses
+                # a hyphen, so a plain by-name lookup on the upper-cased string never matches
+                # it. Fall back to the historical by-name lookup (e.g. "DIRECT") for callers
+                # relying on that.
+                image_type = enums.ImageTypes(image_type.lower())
+            except ValueError:
+                try:
+                    image_type = enums.ImageTypes[image_type.upper()]
+                except KeyError as error:
+                    raise ValueError(
+                        f"image_type choices include: {list(map(str, enums.ImageTypes))}"
+                    ) from error
         # str was converted now it must be an enum.ImageTypes
         if not isinstance(image_type, enums.ImageTypes):  # type: ignore
             raise TypeError("image_type needs to be of type enums.ImageTypes")

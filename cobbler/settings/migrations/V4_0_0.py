@@ -79,6 +79,7 @@ schema = Schema(
         Optional("auth_token_expiration"): int,
         Optional("authn_pam_service"): str,
         Optional("autoinstall_templates_dir"): str,
+        Optional("autoinstall_templates_allow_new_files"): bool,
         Optional("bind_chroot_path"): str,
         Optional("bind_zonefile_path"): str,
         Optional("bind_master"): str,

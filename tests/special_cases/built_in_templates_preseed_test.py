@@ -217,7 +217,7 @@ def test_built_in_sample_seed(
         "",
         "# root account and password",
         "d-i passwd/root-login boolean true",
-        r"d-i passwd/root-password-crypted password \$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.",
+        "d-i passwd/root-password-crypted password $1$mF86/UHC$WvcIcX2t6crBz2onWxyac.",
         "",
         "# skip creation of a normal user account.",
         "d-i passwd/make-user boolean false",

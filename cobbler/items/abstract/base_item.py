@@ -520,19 +520,6 @@ class BaseItem(ABC):
         result = self.to_dict()
         for key in keys_to_drop:
             result.pop(key, "")
-        if (
-            "autoinstall" in result
-            and result["autoinstall"] != enums.VALUE_INHERITED
-            and result["autoinstall"] != ""
-        ):
-            # Built-In Templates must be saved by name!
-            search_result = self.api.find_template(
-                False, False, uid=result["autoinstall"]["uid"]
-            )
-            if search_result is None or isinstance(search_result, list):
-                raise ValueError("Search result for template empty or ambigous!")
-            if search_result.name.startswith("built-in"):
-                result["autoinstall"] = search_result.name
         return result
 
     def deserialize(self) -> None:
@@ -649,9 +636,10 @@ class BaseItem(ABC):
                 elif isinstance(key_value, BaseItem):
                     value[new_key] = key_value.to_dict(resolved=resolved)
                 else:
-                    if new_key == "autoinstall" and key_value not in (
-                        "",
-                        enums.VALUE_INHERITED,
+                    if (
+                        new_key == "autoinstall"
+                        and key_value not in ("", enums.VALUE_INHERITED)
+                        and resolved
                     ):
                         # Templates have to be serialized to dictionary
                         value[new_key] = getattr(self, key[1:]).to_dict(resolved=True)

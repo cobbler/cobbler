@@ -10,6 +10,7 @@
     "auth_token_expiration": 3600,
     "authn_pam_service": "login",
     "autoinstall_templates_dir": "/var/lib/cobbler/templates",
+    "autoinstall_templates_allow_new_files": false,
     "bind_chroot_path": "",
     "bind_zonefile_path": "/var/lib/named",
     "bind_master": "127.0.0.1",
@@ -139,7 +140,7 @@
     "default_ownership": [
         "admin"
     ],
-    "default_password_crypted": "\\$1\\$mF86/UHC\\$WvcIcX2t6crBz2onWxyac.",
+    "default_password_crypted": "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac.",
     "default_template_type": "cheetah",
     "default_virt_bridge": "virbr0",
     "default_virt_disk_driver": "raw",
