@@ -142,10 +142,14 @@ BuildRequires:  python%{python3_pkgversion}-pip
 %if 0%{?suse_version}
 BuildRequires:  python-rpm-macros
 %endif
+%if 0%{?fedora} || 0%{?rhel}
+BuildRequires:  pyproject-rpm-macros
+%endif
 BuildRequires:  %{py3_module_coverage}
 BuildRequires:  python%{python3_pkgversion}-distro
 BuildRequires:  python%{python3_pkgversion}-setuptools
 BuildRequires:  python%{python3_pkgversion}-setuptools_scm
+BuildRequires:  python%{python3_pkgversion}-wheel
 BuildRequires:  python%{python3_pkgversion}-netaddr
 BuildRequires:  python%{python3_pkgversion}-schema
 BuildRequires:  libcobblersignatures
