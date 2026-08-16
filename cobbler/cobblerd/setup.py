@@ -120,8 +120,6 @@ def setup_cobblerd_systemd(
     """
     Use the embedded systemd service file and install it into the system.
     """
-    # FIXME: Template systemd http service dependency
-    # FIXME: Cobblerd Binary Path
     systemd_service_files = resource_files.joinpath("config").joinpath("service")
     systemd_service_directory = base_path
     systemd_service_directory.mkdir(parents=True, exist_ok=True)
@@ -238,7 +236,7 @@ def setup_cobblerd(
         (etc_path / "settings.yaml"),
         (webconfigpath / "cobbler.conf"),
         base_path / pathlib.Path("etc/nginx/cobbler/cobbler.conf"),
-        base_path / pathlib.Path("etc/systemd/system/cobblerd.service"),
+        systemdpath / "cobblerd.service",
     ]
     for file in configure_files:
         if file.exists():
