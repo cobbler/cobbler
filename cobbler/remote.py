@@ -158,6 +158,7 @@ from cobbler.items import network_interface, system
 from cobbler.items.abstract import base_item
 from cobbler.items.abstract import bootable_item as item
 from cobbler.items.abstract.inheritable_item import InheritableItem
+from cobbler.items.options import base as options_base
 from cobbler.utils import signatures
 from cobbler.utils.event import CobblerEvent
 from cobbler.utils.thread import CobblerThread
@@ -1058,6 +1059,8 @@ class CobblerXMLRPCInterface:
                     ].to_dict(resolved=True)
                 return interface_return_value
             return self.xmlrpc_hacks(return_value)
+        if isinstance(return_value, options_base.ItemOption):
+            return self.xmlrpc_hacks(return_value.to_dict(resolved=True))
 
         if not isinstance(  # type: ignore
             return_value, (str, int, float, bool, tuple, bytes, bytearray, dict, list)

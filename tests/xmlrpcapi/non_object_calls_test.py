@@ -252,6 +252,20 @@ def test_get_random_mac(remote: CobblerXMLRPCInterface, token: str):
             },
             does_not_raise(),
         ),
+        (
+            ["power"],
+            "system",
+            {
+                "address": "",
+                "id": "",
+                "identity_file": "",
+                "options": "",
+                "password": "",
+                "type": "",
+                "user": "",
+            },
+            does_not_raise(),
+        ),
         (["doesnt_exist"], "system", {}, pytest.raises(AttributeError)),
     ],
 )
