@@ -126,7 +126,7 @@ class TestRepo:
         # Arrange --> Done in fixture
 
         # Act
-        result = remote.remove_repo("testrepo0", token)
+        result = remote.remove_repo(remote.get_repo_handle("testrepo0"), token)
 
         # Assert
         assert result

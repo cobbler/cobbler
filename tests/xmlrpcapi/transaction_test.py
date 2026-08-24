@@ -4,7 +4,7 @@ Tests that validate the functionality of XML-RPC API transactions.
 
 import logging
 import os
-from typing import Any, Callable, Dict, cast
+from typing import Any, Callable, Dict, List, cast
 
 import pytest
 
@@ -190,7 +190,7 @@ def test_remove_profile_recursive(remote: CobblerXMLRPCInterface, token: str):
     assert remote.get_item_handle("profile", "testsubprofile1") != "~"
 
     remote.transaction_begin(token)
-    assert remote.remove_profile("testprofile0", token)
+    assert remote.remove_profile(profile_uid, token)
 
     # profiles are visible outside of transaction until commit
     assert remote.get_item_handle("profile", "testprofile0") != "~"
@@ -226,16 +226,18 @@ def test_create_profiles(
 
     # Act
     remote.transaction_begin(token)
+    profile_uids: List[str] = []
     for i in range(50):
         profile = remote.new_profile(token)
         remote.modify_profile(profile, ["name"], f"testprofile{i}", token)
         remote.modify_profile(profile, ["distro"], distro_uid, token)
         remote.save_profile(profile, True, True, "bypass", token)
+        profile_uids.append(profile)
     assert remote.transaction_commit(token)
 
     remote.transaction_begin(token)
-    for i in range(50):
-        remote.remove_profile(f"testprofile{i}", token)
+    for profile_uid in profile_uids:
+        remote.remove_profile(profile_uid, token)
     assert remote.transaction_commit(token)
 
 
@@ -281,7 +283,7 @@ def test_parent_profile_recursive(remote: CobblerXMLRPCInterface, token: str):
     #   this seems to be a bug
     #   assert cast(Dict[Any, Any], remote.get_profile("testprofile3"))["depth"] == 3
 
-    assert remote.remove_profile("testprofile0", token)
+    assert remote.remove_profile(profile_uid, token)
 
 
 @pytest.mark.usefixtures(
@@ -320,7 +322,7 @@ def test_reparent_and_delete_profile(remote: CobblerXMLRPCInterface, token: str)
     assert remote.modify_profile(subprofile1, ["parent"], profile1, token)
     assert remote.save_profile(subprofile1, True, True, "bypass", token)
 
-    assert remote.remove_profile("testprofile0", token)
+    assert remote.remove_profile(profile_uid, token)
 
     # the transaction is not visible without the token
     assert remote.get_item_handle("profile", "testprofile0") != "~"
@@ -340,7 +342,7 @@ def test_reparent_and_delete_profile(remote: CobblerXMLRPCInterface, token: str)
     assert remote.get_item_handle("profile", "testsubprofile1") == "~"
 
     # cleanup
-    assert remote.remove_profile("testprofile1", token)
+    assert remote.remove_profile(profile1, token)
 
 
 @pytest.mark.usefixtures(
@@ -362,7 +364,7 @@ def test_conflict(remote: CobblerXMLRPCInterface, token: str, token2: str):
 
     # delete the original profile before the transaction is finished
     remote.transaction_begin(token2)
-    assert remote.remove_profile("testprofile0", token2)
+    assert remote.remove_profile(profile, token2)
 
     # the first commit is successful
     assert remote.transaction_commit(token2)
@@ -394,7 +396,7 @@ def test_conflict2(remote: CobblerXMLRPCInterface, token: str, token2: str):
 
     # delete the original profile before the transaction is finished
     remote.transaction_begin(token2)
-    assert remote.remove_profile("testprofile0", token2)
+    assert remote.remove_profile(profile, token2)
 
     # the first commit is successful
     assert remote.transaction_commit(token)
@@ -501,6 +503,7 @@ def test_remove_distro_recursive(remote: CobblerXMLRPCInterface, token: str):
     """
 
     # Arrange
+    distro_uid = remote.get_distro_handle("testdistro0")
     profile_uid = remote.get_profile_handle("testprofile0")
     remote.transaction_begin(token)
 
@@ -523,7 +526,7 @@ def test_remove_distro_recursive(remote: CobblerXMLRPCInterface, token: str):
     assert remote.get_item_handle("profile", "testsubprofile1") != "~"
 
     remote.transaction_begin(token)
-    assert remote.remove_distro("testdistro0", token)
+    assert remote.remove_distro(distro_uid, token)
 
     # distro and profiles are visible outside of transaction until commit
     assert remote.get_item_handle("distro", "testdistro0") != "~"
@@ -563,6 +566,7 @@ def test_reparent_and_remove_distro(
     """
 
     # Arrange
+    old_distro_uid = remote.get_distro_handle("testdistro0")
     remote.transaction_begin(token)
     profile_uid = remote.get_item_handle("profile", "testprofile0", token)
     logger.info("profile_uid: %s", profile_uid)
@@ -600,7 +604,7 @@ def test_reparent_and_remove_distro(
     profile = remote.get_item_handle("profile", "testprofile0", token)
     assert remote.modify_profile(profile, ["distro"], distro, token)
     assert remote.save_profile(profile, True, True, "new", token)
-    assert remote.remove_distro("testdistro0", token)
+    assert remote.remove_distro(old_distro_uid, token)
 
     # distro and profiles are visible outside of transaction until commit
     assert remote.get_item_handle("distro", "testdistro0") != "~"

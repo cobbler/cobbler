@@ -122,7 +122,7 @@ class TestImage:
         test_image = create_image()
 
         # Act
-        result = remote.remove_image(test_image.name, token)
+        result = remote.remove_image(test_image.uid, token)
 
         # Assert
         assert result

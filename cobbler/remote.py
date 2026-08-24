@@ -19,6 +19,9 @@ V4.0.0 (unreleased)
         * ``input_int``
     * Changed:
         * ```get_random_mac``: Change default `virt_type`` to ``kvm``
+        * ``remove_item`` and all ``remove_<type>`` methods: Require an item handle (object id) instead of the name
+          of the item, matching the contract of ``modify_item``. Clients that only know the name of an item have to
+          retrieve a handle via ``get_item_handle`` or ``get_<type>_handle`` first.
     * Removed:
         * ``xapi_object_edit``: Remove all-in-one edit method for the CLI
 
@@ -1948,7 +1951,7 @@ class CobblerXMLRPCInterface:
     def get_item_handle(self, what: str, name: str, token: Optional[str] = None) -> str:
         """
         Given the name of an object (or other search parameters), return a reference (object id) that can be used with
-        ``modify_*`` functions or ``save_*`` functions to manipulate that object.
+        ``modify_*``, ``save_*``, ``rename_*`` or ``remove_*`` functions to manipulate that object.
 
         :param what: The collection where the item is living in.
         :param name: The name of the item.
@@ -1987,8 +1990,8 @@ class CobblerXMLRPCInterface:
 
     def get_distro_handle(self, name: str):
         """
-        Get a handle for a distribution which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate
-        it.
+        Get a handle for a distribution which allows you to use the functions ``modify_*``,
+        ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
         :return: The handle of the desired object.
@@ -1997,7 +2000,8 @@ class CobblerXMLRPCInterface:
 
     def get_profile_handle(self, name: str):
         """
-        Get a handle for a profile which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
+        Get a handle for a profile which allows you to use the functions ``modify_*``,
+        ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
         :return: The handle of the desired object.
@@ -2006,7 +2010,8 @@ class CobblerXMLRPCInterface:
 
     def get_system_handle(self, name: str):
         """
-        Get a handle for a system which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
+        Get a handle for a system which allows you to use the functions ``modify_*``,
+        ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
         :return: The handle of the desired object.
@@ -2015,7 +2020,8 @@ class CobblerXMLRPCInterface:
 
     def get_repo_handle(self, name: str):
         """
-        Get a handle for a repository which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
+        Get a handle for a repository which allows you to use the functions ``modify_*``,
+        ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
         :return: The handle of the desired object.
@@ -2024,7 +2030,8 @@ class CobblerXMLRPCInterface:
 
     def get_image_handle(self, name: str):
         """
-        Get a handle for an image which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
+        Get a handle for an image which allows you to use the functions ``modify_*``,
+        ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
         :return: The handle of the desired object.
@@ -2033,7 +2040,8 @@ class CobblerXMLRPCInterface:
 
     def get_menu_handle(self, name: str):
         """
-        Get a handle for a menu which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
+        Get a handle for a menu which allows you to use the functions ``modify_*``,
+        ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
         :return: The handle of the desired object.
@@ -2042,8 +2050,8 @@ class CobblerXMLRPCInterface:
 
     def get_network_interface_handle(self, name: str):
         """
-        Get a handle for a network interface which allows you to use the functions ``modify_*`` or ``save_*`` to
-        manipulate it.
+        Get a handle for a network interface which allows you to use the functions ``modify_*``,
+        ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
         :return: The handle of the desired object.
@@ -2052,7 +2060,8 @@ class CobblerXMLRPCInterface:
 
     def get_template_handle(self, name: str):
         """
-        Get a handle for a template which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
+        Get a handle for a template which allows you to use the functions ``modify_*``,
+        ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
         :return: The handle of the desired object.
@@ -2061,7 +2070,8 @@ class CobblerXMLRPCInterface:
 
     def get_distro_group_handle(self, name: str):
         """
-        Get a handle for a distro group which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
+        Get a handle for a distro group which allows you to use the functions ``modify_*``,
+        ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
         :return: The handle of the desired object.
@@ -2070,7 +2080,8 @@ class CobblerXMLRPCInterface:
 
     def get_profile_group_handle(self, name: str):
         """
-        Get a handle for a profile group which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
+        Get a handle for a profile group which allows you to use the functions ``modify_*``,
+        ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
         :return: The handle of the desired object.
@@ -2079,7 +2090,8 @@ class CobblerXMLRPCInterface:
 
     def get_system_group_handle(self, name: str):
         """
-        Get a handle for a system group which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
+        Get a handle for a system group which allows you to use the functions ``modify_*``,
+        ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
         :return: The handle of the desired object.
@@ -2160,29 +2172,31 @@ class CobblerXMLRPCInterface:
         return list(results)
 
     def remove_item(
-        self, what: str, name: str, token: str, recursive: bool = True
+        self, what: str, object_id: str, token: str, recursive: bool = True
     ) -> bool:
         """
         Deletes an item from a collection.
-        Note that this requires the name of the distro, not an item handle.
+        Note that this requires an item handle (object id), not the name of the item. Callers that only know the name
+        of an item have to retrieve a handle via ``get_item_handle`` or the type specific ``get_<type>_handle`` first.
 
         :param what: The item type of the item to remove.
-        :param name: The name of the item to remove.
+        :param object_id: The id of the object which shall be removed.
         :param token: The API-token obtained via the login() method.
         :param recursive: If items which are depending on this one should be erased too.
         :return: True if the action was successful.
         """
         self._log(
-            f"remove_item ({what}, recursive={recursive})", name=name, token=token
+            f"remove_item ({what}, recursive={recursive})",
+            object_id=object_id,
+            token=token,
         )
-        obj_handle = self.get_item_handle(what, name, token)
         try:
-            obj = cast(InheritableItem, self.__get_object(obj_handle, token))
+            obj = cast(InheritableItem, self.__get_object(object_id, token))
         except ValueError:
             return False
         self.check_access(token, f"remove_{what}", obj.name)
         if token in self.transactions:
-            self.transactions[token][obj_handle] = TransactionTuple(
+            self.transactions[token][object_id] = TransactionTuple(
                 what, obj, True, obj.mtime, obj.uid, []
             )
             if recursive:
@@ -2197,142 +2211,146 @@ class CobblerXMLRPCInterface:
                     )
 
             return True
-        if obj_handle in self.unsaved_items:
-            self.unsaved_items.pop(obj_handle)
+        if object_id in self.unsaved_items:
+            self.unsaved_items.pop(object_id)
             return True
         self.api.remove_item(
-            what, name, delete=True, with_triggers=True, recursive=recursive
+            what, obj, delete=True, with_triggers=True, recursive=recursive
         )
         return True
 
-    def remove_distro(self, name: str, token: str, recursive: bool = True) -> bool:
+    def remove_distro(self, object_id: str, token: str, recursive: bool = True) -> bool:
         """
         Deletes a distribution from Cobbler.
 
-        :param name: The name of the item to remove.
+        :param object_id: The id of the item to remove.
         :param token: The API-token obtained via the login() method.
         :param recursive: If items which are depending on this one should be erased too.
         :return: True if the action was successful.
         """
-        return self.remove_item("distro", name, token, recursive)
+        return self.remove_item("distro", object_id, token, recursive)
 
-    def remove_profile(self, name: str, token: str, recursive: bool = True) -> bool:
+    def remove_profile(
+        self, object_id: str, token: str, recursive: bool = True
+    ) -> bool:
         """
         Deletes a profile from Cobbler.
 
-        :param name: The name of the item to remove.
+        :param object_id: The id of the item to remove.
         :param token: The API-token obtained via the login() method.
         :param recursive: If items which are depending on this one should be erased too.
         :return: True if the action was successful.
         """
-        return self.remove_item("profile", name, token, recursive)
+        return self.remove_item("profile", object_id, token, recursive)
 
-    def remove_system(self, name: str, token: str, recursive: bool = True) -> bool:
+    def remove_system(self, object_id: str, token: str, recursive: bool = True) -> bool:
         """
         Deletes a system from Cobbler.
 
-        :param name: The name of the item to remove.
+        :param object_id: The id of the item to remove.
         :param token: The API-token obtained via the login() method.
         :param recursive: If items which are depending on this one should be erased too.
         :return: True if the action was successful.
         """
-        return self.remove_item("system", name, token, recursive)
+        return self.remove_item("system", object_id, token, recursive)
 
-    def remove_repo(self, name: str, token: str, recursive: bool = True) -> bool:
+    def remove_repo(self, object_id: str, token: str, recursive: bool = True) -> bool:
         """
         Deletes a repository from Cobbler.
 
-        :param name: The name of the item to remove.
+        :param object_id: The id of the item to remove.
         :param token: The API-token obtained via the login() method.
         :param recursive: If items which are depending on this one should be erased too.
         :return: True if the action was successful.
         """
-        return self.remove_item("repo", name, token, recursive)
+        return self.remove_item("repo", object_id, token, recursive)
 
-    def remove_image(self, name: str, token: str, recursive: bool = True) -> bool:
+    def remove_image(self, object_id: str, token: str, recursive: bool = True) -> bool:
         """
         Deletes an image from Cobbler.
 
-        :param name: The name of the item to remove.
+        :param object_id: The id of the item to remove.
         :param token: The API-token obtained via the login() method.
         :param recursive: If items which are depending on this one should be erased too.
         :return: True if the action was successful.
         """
-        return self.remove_item("image", name, token, recursive)
+        return self.remove_item("image", object_id, token, recursive)
 
-    def remove_menu(self, name: str, token: str, recursive: bool = True) -> bool:
+    def remove_menu(self, object_id: str, token: str, recursive: bool = True) -> bool:
         """
         Deletes a menu from Cobbler.
 
-        :param name: The name of the item to remove.
+        :param object_id: The id of the item to remove.
         :param token: The API-token obtained via the login() method.
         :param recursive: If items which are depending on this one should be erased too.
         :return: True if the action was successful.
         """
-        return self.remove_item("menu", name, token, recursive)
+        return self.remove_item("menu", object_id, token, recursive)
 
     def remove_network_interface(
-        self, name: str, token: str, recursive: bool = True
+        self, object_id: str, token: str, recursive: bool = True
     ) -> bool:
         """
         Deletes a network interface from Cobbler.
 
-        :param name: The name of the item to remove.
+        :param object_id: The id of the item to remove.
         :param token: The API-token obtained via the login() method.
         :param recursive: If items which are depending on this one should be erased too.
         :return: True if the action was successful.
         """
-        return self.remove_item("network_interface", name, token, recursive)
+        return self.remove_item("network_interface", object_id, token, recursive)
 
-    def remove_template(self, name: str, token: str, recursive: bool = True) -> bool:
+    def remove_template(
+        self, object_id: str, token: str, recursive: bool = True
+    ) -> bool:
         """
         Deletes a template from Cobbler.
 
-        :param name: The name of the item to remove.
+        :param object_id: The id of the item to remove.
         :param token: The API-token obtained via the login() method.
         :param recursive: If items which are depending on this one should be erased too.
         :return: True if the action was successful.
         """
-        return self.remove_item("template", name, token, recursive)
+        return self.remove_item("template", object_id, token, recursive)
 
     def remove_distro_group(
-        self, name: str, token: str, recursive: bool = True
+        self, object_id: str, token: str, recursive: bool = True
     ) -> bool:
         """
         Deletes a distro group from Cobbler.
 
-        :param name: The name of the item to remove.
+        :param object_id: The id of the item to remove.
         :param token: The API-token obtained via the login() method.
         :param recursive: If items which are depending on this one should be erased too.
         :return: True if the action was successful.
         """
-        return self.remove_item("distro_group", name, token, recursive)
+        return self.remove_item("distro_group", object_id, token, recursive)
 
     def remove_profile_group(
-        self, name: str, token: str, recursive: bool = True
+        self, object_id: str, token: str, recursive: bool = True
     ) -> bool:
         """
         Deletes a profile group from Cobbler.
 
-        :param name: The name of the item to remove.
+        :param object_id: The id of the item to remove.
         :param token: The API-token obtained via the login() method.
         :param recursive: If items which are depending on this one should be erased too.
         :return: True if the action was successful.
         """
-        return self.remove_item("profile_group", name, token, recursive)
+        return self.remove_item("profile_group", object_id, token, recursive)
 
     def remove_system_group(
-        self, name: str, token: str, recursive: bool = True
+        self, object_id: str, token: str, recursive: bool = True
     ) -> bool:
         """
         Deletes a system group from Cobbler.
 
-        :param name: The name of the item to remove.
+        :param object_id: The id of the item to remove.
         :param token: The API-token obtained via the login() method.
         :param recursive: If items which are depending on this one should be erased too.
         :return: True if the action was successful.
         """
-        return self.remove_item("system_group", name, token, recursive)
+        return self.remove_item("system_group", object_id, token, recursive)
 
     def copy_item(
         self, what: str, object_id: str, newname: str, token: Optional[str] = None

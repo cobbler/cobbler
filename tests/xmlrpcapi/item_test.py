@@ -40,7 +40,7 @@ def test_remove_item(remote: CobblerXMLRPCInterface, token: str):
     remote.modify_menu(test_menu, ["display_name"], "testmenu0", token)
 
     # Act
-    result = remote.remove_menu("testmenu0", token, True)  # type: ignore
+    result = remote.remove_menu(test_menu, token, True)  # type: ignore
 
     # Assert
     assert result

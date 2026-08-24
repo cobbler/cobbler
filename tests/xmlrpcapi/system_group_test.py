@@ -126,7 +126,7 @@ def test_remove_system_group(remote: CobblerXMLRPCInterface, token: str):
     remote.save_system_group(handle, True, True, "new", token)
 
     # Act
-    result = remote.remove_system_group("test_system_group_to_remove", token)
+    result = remote.remove_system_group(handle, token)
 
     # Assert
     assert result is True

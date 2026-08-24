@@ -30,7 +30,7 @@ def remove_menu(remote: CobblerXMLRPCInterface, token: str):
     :param token: The token to authenticate against the remote object.
     """
     yield
-    remote.remove_menu("testmenu0", token)
+    remote.remove_menu(remote.get_menu_handle("testmenu0"), token)
 
 
 class TestMenu:
@@ -58,7 +58,7 @@ class TestMenu:
 
         new_menus = remote.get_menus(token)
         assert len(new_menus) == len(menus) + 1
-        remote.remove_menu("testsubmenu0", token, False)
+        remote.remove_menu(submenu, token, False)
 
     def test_create_menu(self, remote: CobblerXMLRPCInterface, token: str):
         """
@@ -127,7 +127,7 @@ class TestMenu:
         assert remote.copy_menu(menu, "testmenucopy", token)
 
         # Cleanup
-        remote.remove_menu("testmenucopy", token)
+        remote.remove_menu(remote.get_menu_handle("testmenucopy"), token)
 
     @pytest.mark.usefixtures("create_menu")
     def test_rename_menu(self, remote: CobblerXMLRPCInterface, token: str):
@@ -145,7 +145,7 @@ class TestMenu:
         assert result
 
         # Cleanup
-        remote.remove_menu("testmenu1", token)
+        remote.remove_menu(menu, token)
 
     @pytest.mark.usefixtures("create_menu")
     def test_remove_menu(self, remote: CobblerXMLRPCInterface, token: str):
@@ -156,7 +156,7 @@ class TestMenu:
         # Arrange --> Done in fixture
 
         # Act
-        result = remote.remove_menu("testmenu0", token)
+        result = remote.remove_menu(remote.get_menu_handle("testmenu0"), token)
 
         # Assert
         assert result

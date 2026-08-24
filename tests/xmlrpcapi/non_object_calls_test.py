@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, List, Union
 
 import pytest
 
+from cobbler.cexceptions import CX
 from cobbler.remote import CobblerXMLRPCInterface
 
 from tests.conftest import does_not_raise
@@ -344,3 +345,94 @@ def test_get_item_resolved_value(
             assert profile_uid == result
         else:
             assert expected_result == result
+
+
+def test_remove_item_with_duplicate_names(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    create_distro: Callable[[str, str, str, str, str], str],
+    create_profile: Callable[[str, str, str], str],
+    create_system: Callable[[str, str], str],
+    create_kernel_initrd: Callable[[str, str], str],
+):
+    """
+    Verify that an item can be removed via its handle even if its name is not globally unique.
+
+    Network interface names are only unique per system, so two systems may both own an interface called "eth0". Since
+    ``remove_network_interface`` takes an object id, the caller can address exactly one of them.
+    """
+    # Arrange
+    fk_kernel = "vmlinuz1"
+    fk_initrd = "initrd1.img"
+    basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+    path_kernel = os.path.join(basepath, fk_kernel)
+    path_initrd = os.path.join(basepath, fk_initrd)
+    distro_uid = create_distro(
+        "testdistro_duplicate_names", "x86_64", "suse", path_kernel, path_initrd
+    )
+    profile_uid = create_profile("testprofile_duplicate_names", distro_uid, "")
+    system_uids = [
+        create_system(f"testsystem_duplicate_names{i}", profile_uid) for i in range(2)
+    ]
+    for system_uid in system_uids:
+        interface_handle = remote.new_network_interface(system_uid, token)
+        remote.modify_network_interface(interface_handle, ["name"], "eth0", token)
+        remote.save_network_interface(interface_handle, True, True, "new", token)
+
+    # The name alone is ambiguous, so a handle has to be obtained via a more specific search.
+    with pytest.raises(CX):
+        remote.get_network_interface_handle("eth0")
+    interfaces = remote.find_network_interface(
+        {"system_uid": system_uids[0], "name": "eth0"}, expand=True, token=token
+    )
+    assert len(interfaces) == 1
+    interface_uid = interfaces[0]["uid"]
+
+    # Act
+    result = remote.remove_network_interface(interface_uid, token, False)
+
+    # Assert
+    assert result is True
+    assert (
+        remote.find_network_interface(
+            {"system_uid": system_uids[0], "name": "eth0"}, token=token
+        )
+        == []
+    )
+    assert (
+        len(
+            remote.find_network_interface(
+                {"system_uid": system_uids[1], "name": "eth0"}, token=token
+            )
+        )
+        == 1
+    )
+
+
+def test_remove_item_with_name_instead_of_handle(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    create_distro: Callable[[str, str, str, str, str], str],
+    create_kernel_initrd: Callable[[str, str], str],
+):
+    """
+    Verify that passing a name instead of an object id to ``remove_*`` does not remove anything.
+    """
+    # Arrange
+    fk_kernel = "vmlinuz1"
+    fk_initrd = "initrd1.img"
+    basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+    path_kernel = os.path.join(basepath, fk_kernel)
+    path_initrd = os.path.join(basepath, fk_initrd)
+    distro_name = "testdistro_name_instead_of_handle"
+    distro_uid = create_distro(distro_name, "x86_64", "suse", path_kernel, path_initrd)
+
+    # Act
+    result = remote.remove_distro(distro_name, token, False)
+
+    # Assert
+    assert result is False
+    assert remote.get_distro_handle(distro_name) == distro_uid
+
+    # Cleanup
+    assert remote.remove_distro(distro_uid, token, False) is True

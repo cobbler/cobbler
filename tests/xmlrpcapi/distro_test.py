@@ -167,7 +167,7 @@ def test_copy_distro(remote: CobblerXMLRPCInterface, token: str):
     assert result
 
     # Cleanup --> Plus fixture
-    remote.remove_distro("testdistrocopy", token)
+    remote.remove_distro(remote.get_distro_handle("testdistrocopy"), token)
 
 
 @pytest.mark.usefixtures("create_testdistro")
@@ -185,7 +185,7 @@ def test_rename_distro(remote: CobblerXMLRPCInterface, token: str):
     assert result
 
     # Cleanup
-    remote.remove_distro("testdistro1", token)
+    remote.remove_distro(distro, token)
 
 
 def test_remove_distro(
@@ -207,10 +207,10 @@ def test_remove_distro(
     folder = create_kernel_initrd(fk_kernel, fk_initrd)
     kernel_path = os.path.join(folder, fk_kernel)
     initrd_path = os.path.join(folder, fk_initrd)
-    create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
+    distro_handle = create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
 
     # Act
-    result = remote.remove_distro(distro_name, token)  # type: ignore
+    result = remote.remove_distro(distro_handle, token)  # type: ignore
 
     # Assert
     assert result

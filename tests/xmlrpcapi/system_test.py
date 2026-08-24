@@ -240,10 +240,10 @@ def test_remove_system(
     initrd_path = os.path.join(folder, fk_initrd)
     distro_handle = create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
     profile_handle = create_profile(profile_name, distro_handle, "")  # type: ignore
-    create_system(system_name, profile_handle)  # type: ignore
+    system_handle = create_system(system_name, profile_handle)  # type: ignore
 
     # Act
-    result = remote.remove_system(system_name, token)  # type: ignore
+    result = remote.remove_system(system_handle, token)  # type: ignore
 
     # Assert
     assert result
