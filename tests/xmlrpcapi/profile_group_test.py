@@ -126,7 +126,7 @@ def test_remove_profile_group(remote: CobblerXMLRPCInterface, token: str):
     remote.save_profile_group(handle, True, True, "new", token)
 
     # Act
-    result = remote.remove_profile_group("test_profile_group_to_remove", token)
+    result = remote.remove_profile_group(handle, token)
 
     # Assert
     assert result is True

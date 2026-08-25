@@ -97,7 +97,7 @@ def remove_distro(remote: CobblerXMLRPCInterface, token: str):
     """
 
     def _remove_distro(name: str):
-        remote.remove_distro(name, token)
+        remote.remove_distro(remote.get_distro_handle(name), token)
 
     return _remove_distro
 
@@ -128,7 +128,7 @@ def remove_profile(remote: CobblerXMLRPCInterface, token: str):
     """
 
     def _remove_profile(name: str):
-        remote.remove_profile(name, token)
+        remote.remove_profile(remote.get_profile_handle(name), token)
 
     return _remove_profile
 
@@ -156,7 +156,7 @@ def remove_system(remote: CobblerXMLRPCInterface, token: str):
     """
 
     def _remove_system(name: str):
-        remote.remove_system(name, token)
+        remote.remove_system(remote.get_system_handle(name), token)
 
     return _remove_system
 
@@ -209,7 +209,7 @@ def remove_repo(remote: CobblerXMLRPCInterface, token: str):
     """
 
     def _remove_repo(name: str):
-        remote.remove_repo(name, token)
+        remote.remove_repo(remote.get_repo_handle(name), token)
 
     return _remove_repo
 
@@ -239,7 +239,7 @@ def remove_menu(remote: CobblerXMLRPCInterface, token: str):
     """
 
     def _remove_menu(name: str):
-        remote.remove_menu(name, token)
+        remote.remove_menu(remote.get_menu_handle(name), token)
 
     return _remove_menu
 

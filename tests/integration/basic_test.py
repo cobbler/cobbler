@@ -99,7 +99,7 @@ def test_basic_distro_add_remove(
     assert len(remote.get_item_names("distro")) == len(distro_names)
     # 3. Remove distros
     for name in distro_names:
-        remote.remove_distro(name, token)
+        remote.remove_distro(remote.get_distro_handle(name), token)
 
     # Assert
     assert len(remote.get_item_names("distro")) == 0
@@ -334,7 +334,7 @@ def test_basic_profile_add_remove(
 
     # Act - Remove Profiles
     for i in range(1, 3):
-        remote.remove_profile(f"fake-{i}", token, True)
+        remote.remove_profile(remote.get_profile_handle(f"fake-{i}"), token, True)
 
     # Assert - Assert Profiles deleted
     profile_names = remote.get_item_names("profile")
@@ -423,7 +423,7 @@ def test_basic_system_add_remove(
 
     # Act - Remove systems
     for i in range(1, 4):
-        remote.remove_system(f"testbed-{i}", token)
+        remote.remove_system(remote.get_system_handle(f"testbed-{i}"), token)
 
     # Assert - No systems present
     assert len(remote.get_item_names("system")) == 0

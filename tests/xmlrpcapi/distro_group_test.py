@@ -126,7 +126,7 @@ def test_remove_distro_group(remote: CobblerXMLRPCInterface, token: str):
     remote.save_distro_group(handle, True, True, "new", token)
 
     # Act
-    result = remote.remove_distro_group("test_distro_group_to_remove", token)
+    result = remote.remove_distro_group(handle, token)
 
     # Assert
     assert result is True

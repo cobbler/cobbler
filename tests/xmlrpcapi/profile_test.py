@@ -276,7 +276,7 @@ def test_copy_profile(remote: CobblerXMLRPCInterface, token: str):
     assert result
 
     # Cleanup
-    remote.remove_profile("testprofilecopy", token)
+    remote.remove_profile(remote.get_profile_handle("testprofilecopy"), token)
 
 
 @pytest.mark.usefixtures(
@@ -299,7 +299,7 @@ def test_rename_profile(remote: CobblerXMLRPCInterface, token: str):
     assert result
 
     # Cleanup
-    remote.remove_profile("testprofile1", token)
+    remote.remove_profile(profile, token)
 
 
 def test_remove_profile(
@@ -327,10 +327,10 @@ def test_remove_profile(
     kernel_path = os.path.join(folder, fk_kernel)
     initrd_path = os.path.join(folder, fk_initrd)
     distro_handle = create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
-    create_profile(profile_name, distro_handle, "")  # type: ignore
+    profile_handle = create_profile(profile_name, distro_handle, "")  # type: ignore
 
     # Act
-    result_profile_remove = remote.remove_profile(profile_name, token)  # type: ignore
+    result_profile_remove = remote.remove_profile(profile_handle, token)  # type: ignore
 
     # Assert
     assert result_profile_remove
