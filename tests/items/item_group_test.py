@@ -2,7 +2,7 @@
 Tests for the ItemGroup abstract class.
 """
 
-from typing import Any, List, Type
+from typing import Any, Callable, List, Type
 
 import pytest
 
@@ -10,6 +10,7 @@ from cobbler import enums
 from cobbler.api import CobblerAPI
 from cobbler.items.abstract.base_item import BaseItem
 from cobbler.items.abstract.item_group import ItemGroup
+from cobbler.items.distro import Distro
 
 
 class DummyItemGroup(ItemGroup):
@@ -45,12 +46,16 @@ def test_members_initialization(cobbler_api: CobblerAPI):
     assert getattr(group, "members") == []
 
 
-def test_members_setter_valid(cobbler_api: CobblerAPI):
+def test_members_setter_valid(
+    cobbler_api: CobblerAPI, create_distro: Callable[[str], Distro]
+):
     """
     Test that the members setter works with a valid list of strings.
     """
     group = DummyItemGroup(api=cobbler_api)
-    valid_members = ["member1", "member2"]
+    distro1 = create_distro("test_members_setter_valid_1")
+    distro2 = create_distro("test_members_setter_valid_2")
+    valid_members = [distro1.uid, distro2.uid]
     setattr(group, "members", valid_members)
     assert getattr(group, "members") == valid_members
 
@@ -73,10 +78,36 @@ def test_members_setter_invalid_member_type(cobbler_api: CobblerAPI):
         setattr(group, "members", ["member1", 123])
 
 
-def test_from_dict_initialization(cobbler_api: CobblerAPI):
+def test_from_dict_initialization(
+    cobbler_api: CobblerAPI, create_distro: Callable[[str], Distro]
+):
     """
     Test that passing a dict to __init__ correctly sets members via from_dict.
     """
     # Note: In from_dict, the keys correspond to properties.
-    group = DummyItemGroup(api=cobbler_api, members=["m1", "m2"])
-    assert getattr(group, "members") == ["m1", "m2"]
+    distro1 = create_distro("test_from_dict_initialization_1")
+    distro2 = create_distro("test_from_dict_initialization_2")
+    group = DummyItemGroup(api=cobbler_api, members=[distro1.uid, distro2.uid])
+    assert getattr(group, "members") == [distro1.uid, distro2.uid]
+
+
+def test_members_setter_nonexistent_uid_raises(cobbler_api: CobblerAPI):
+    """
+    Test that the members setter raises a ValueError if a uid does not reference an
+    existing item.
+    """
+    group = DummyItemGroup(api=cobbler_api)
+    with pytest.raises(ValueError, match="not an existing"):
+        setattr(group, "members", ["does-not-exist"])
+
+
+def test_members_setter_existing_uid_succeeds(
+    cobbler_api: CobblerAPI, create_distro: Callable[[str], Distro]
+):
+    """
+    Test that the members setter accepts a uid that references an existing item.
+    """
+    group = DummyItemGroup(api=cobbler_api)
+    distro1 = create_distro("test_members_setter_existing_uid_succeeds")
+    setattr(group, "members", [distro1.uid])
+    assert getattr(group, "members") == [distro1.uid]
