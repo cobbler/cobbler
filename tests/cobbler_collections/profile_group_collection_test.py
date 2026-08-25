@@ -11,6 +11,8 @@ from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import profile_group
 from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items import profile_group as item_profile_group
+from cobbler.items.distro import Distro
+from cobbler.items.profile import Profile
 
 
 @pytest.fixture(name="profile_group_collection")
@@ -33,14 +35,19 @@ def test_obj_create(collection_mgr: CollectionManager):
 
 
 def test_profile_group_collection_factory_produce(
-    cobbler_api: CobblerAPI, collection_mgr: CollectionManager
+    cobbler_api: CobblerAPI,
+    collection_mgr: CollectionManager,
+    create_distro: Callable[[str], Distro],
+    create_profile: Callable[..., Profile],
 ):
     collection = profile_group.ProfileGroups(collection_mgr)
-    item_dict = {"name": "test_group", "members": ["profile1"]}
+    test_distro = create_distro("test_profile_group_collection_factory_produce")
+    test_profile = create_profile(distro_uid=test_distro.uid)
+    item_dict = {"name": "test_group", "members": [test_profile.uid]}
     item = collection.factory_produce(cobbler_api, item_dict)
     assert isinstance(item, item_profile_group.ProfileGroup)
     assert getattr(item, "name") == "test_group"
-    assert getattr(item, "members") == ["profile1"]
+    assert getattr(item, "members") == [test_profile.uid]
 
 
 def test_get(

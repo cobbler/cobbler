@@ -124,6 +124,8 @@ class ItemGroup(InheritableItem, ABC):
         Set the members of this item group.
 
         :param value: A list of string uids representing the members of the group.
+        :raises TypeError: In case ``value`` is not a list or one of its entries is not a string.
+        :raises ValueError: In case one of the given uids does not reference an existing item.
         """
         if not isinstance(value, list):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError("members must be a list")
@@ -132,6 +134,14 @@ class ItemGroup(InheritableItem, ABC):
                 member, str
             ):  # pyright: ignore[reportUnnecessaryIsInstance]
                 raise TypeError("All members must be of type string")
+        referenced_type = self.COLLECTION_TYPE.removesuffix("_group")
+        referenced_collection = self.api.get_items(referenced_type)
+        for member in value:
+            if referenced_collection.find(uid=member) is None:
+                raise ValueError(
+                    f'members references uid "{member}" which is not an existing '
+                    f'"{referenced_type}" item'
+                )
         old_members = self._members
         self._members = value
         self.api.get_items(self.COLLECTION_TYPE).update_index_value(
