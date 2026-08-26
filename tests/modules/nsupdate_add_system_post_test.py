@@ -317,35 +317,35 @@ def test_find_zone_apex_returns_soa_master(mocker: "MockerFixture"):
     assert zone == zone_name
 
 
-def test_find_zone_apex_arpa_zone_bailout_is_unreachable(mocker: "MockerFixture"):
+@pytest.mark.parametrize("zone_fqdn", ["in-addr.arpa.", "ip6.arpa.", "."])
+def test_find_zone_apex_bails_out_for_arpa_and_root_zones(
+    mocker: "MockerFixture", zone_fqdn: str
+):
     """
-    find_zone_apex() intends to bail out early for '', 'ip6.arpa' and 'in-addr.arpa' zones (``if zone in ("",
-    "ip6.arpa", "in-addr.arpa")``), but ``zone`` is a real ``dns.name.Name`` object, which is never equal to a
-    plain ``str`` (``dns.name.Name.__eq__`` only compares to other ``Name`` instances). This test documents that
-    the guard is currently unreachable dead code rather than asserting the (unimplemented) intended behavior.
+    find_zone_apex() must bail out (return ``None`` as the master nameserver) for the reverse-DNS parent zones
+    'in-addr.arpa'/'ip6.arpa' as well as the DNS root zone, none of which can be a real zone apex to update.
     """
     # Arrange
-    zone_name = dns.name.from_text("in-addr.arpa.")
-    mname = dns.name.from_text("ns1.example.com.")
+    zone_name = dns.name.from_text(zone_fqdn)
     authority_rrset = mocker.MagicMock()
     authority_rrset.name = zone_name
-    soa_rrset = mocker.MagicMock()
-    soa_rrset.__getitem__.return_value = mocker.MagicMock(mname=mname)
     response_mock = mocker.MagicMock()
     response_mock.authority = [authority_rrset]
-    response_mock.find_rrset.return_value = soa_rrset
     mocker.patch("dns.query.udp", return_value=response_mock)
     mocker.patch(
         "dns.resolver.Resolver",
         return_value=mocker.MagicMock(nameservers=["203.0.113.53"]),
     )
+    find_rrset_mock = response_mock.find_rrset
 
     # Act
     soa_mname, _, zone = nsupdate.find_zone_apex("10.2.0.192.in-addr.arpa")
 
     # Assert
+    assert soa_mname is None
     assert zone == zone_name
-    assert soa_mname == "ns1.example.com."
+    # the bailout must happen before ever looking for the SOA rrset
+    find_rrset_mock.assert_not_called()
 
 
 def test_find_zone_apex_returns_none_on_missing_soa_rrset(mocker: "MockerFixture"):

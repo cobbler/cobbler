@@ -70,11 +70,16 @@ def find_zone_apex(name: str) -> Tuple[Optional[str], str, str]:
     zone = response.authority[0].name  # type: ignore
     lhost = ".".join(name.split(".")[0 : len(name.split(".")) - len(zone.labels) + 1])  # type: ignore
 
-    if zone in ("", "ip6.arpa", "in-addr.arpa"):  # type: ignore
+    if zone == dns.name.root or zone.to_text(omit_final_dot=True) in (  # type: ignore
+        "ip6.arpa",
+        "in-addr.arpa",
+    ):
         nslog(f"lookup for '{name}' zone apex failed!\n")
         return None, lhost, zone  # type: ignore
 
-    nslog(f"lookup for lhost '{lhost}'\n       and zone '{zone}'\n       master nameserver...")
+    nslog(
+        f"lookup for lhost '{lhost}'\n       and zone '{zone}'\n       master nameserver..."
+    )
 
     try:
         rrset = response.find_rrset(response.authority, zone, dns.rdataclass.IN, dns.rdatatype.SOA)  # type: ignore
@@ -152,7 +157,9 @@ def run(api: "CobblerAPI", args: List[Any]):
             rhost = ""
 
         if soa_mname is not None:
-            nslog(f"{action.capitalize()} dns record for {lhost}.{zone} [{host_ip}] .. ")
+            nslog(
+                f"{action.capitalize()} dns record for {lhost}.{zone} [{host_ip}] .. "
+            )
 
             # Check to see if we have a TSIG key for the NS
             try:
@@ -229,7 +236,9 @@ def run(api: "CobblerAPI", args: List[Any]):
             nslog(f"Trying PTR {reverse}\n")
             soa_mname, lhost, zone = find_zone_apex(reverse)
             if soa_mname is not None:
-                nslog(f"{action.capitalize()} dns record for {lhost}.{zone} [{host}] .. ")
+                nslog(
+                    f"{action.capitalize()} dns record for {lhost}.{zone} [{host}] .. "
+                )
 
                 # Check to see if we have a TSIG key for the NS
                 try:
