@@ -7,7 +7,7 @@
     "static": "$myhostname"
     #end if
 #else
-## profile based install so just provide one interface for starters
+## profile based install
 #set $myhostname = $getVar('hostname',$getVar('name','cobbler')).replace("_","-")
     "static": "$myhostname"
 #end if
