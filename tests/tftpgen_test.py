@@ -216,3 +216,44 @@ def test_write_all_system_files_s390(
     open_mock().write.assert_any_call(
         "foobar1=whatever \nautoyast=http://xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/this-is-a-\nlong-string-that-need-to-be-splitted/zzzzzzzzzzzzzzzzz \nfoobar2=woohooo\n"
     )
+
+
+@pytest.mark.parametrize(
+    "os_version,expected_snippet",
+    [
+        # Versions on the legacy-installer denylist keep the historic "autoyast=" append option.
+        ("sles15generic", "autoyast=http://192.168.1.1/autoinstall"),
+        # Everything else (including future/unlisted versions) defaults to Agama's "inst.auto=".
+        ("opensuse16.0", "inst.auto=http://192.168.1.1/autoinstall"),
+    ],
+)
+def test_build_kernel_options_suse_installer_selection(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    os_version: str,
+    expected_snippet: str,
+):
+    """
+    Test that asserts that SUSE distro versions on the legacy-installer denylist get the AutoYaST
+    "autoyast=" append line, while unlisted (e.g. future) SUSE versions default to Agama's "inst.auto=".
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_distro.breed = "suse"
+    test_distro.os_version = os_version
+    test_profile = create_profile(test_distro.name)
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen.build_kernel_options(
+        None,
+        test_profile,
+        test_distro,
+        None,
+        test_distro.arch,
+        "http://192.168.1.1/autoinstall",
+    )
+
+    # Assert
+    assert expected_snippet in result

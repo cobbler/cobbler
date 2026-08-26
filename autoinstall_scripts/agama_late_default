@@ -1,0 +1,3 @@
+#!/bin/bash
+$SNIPPET('autoinstall_done')
+systemctl enable sshd.service
