@@ -257,3 +257,32 @@ def test_build_kernel_options_suse_installer_selection(
 
     # Assert
     assert expected_snippet in result
+
+
+def test_build_kernel_options_xcp(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
+    """
+    Test that asserts that XCP-ng distros get an "install answerfile=" append line.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_distro.breed = "xen"
+    test_distro.os_version = "xcp82"
+    test_profile = create_profile(test_distro.name)
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen.build_kernel_options(
+        None,
+        test_profile,
+        test_distro,
+        None,
+        test_distro.arch,
+        "http://192.168.1.1/autoinstall",
+    )
+
+    # Assert
+    assert "install answerfile=http://192.168.1.1/autoinstall" in result
