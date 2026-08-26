@@ -1007,7 +1007,6 @@ class TFTPGen:
                                   " %s/install.img" % (img_path, img_path, autoinstall_path, img_path)
                     return append_line
                 elif distro.os_version.startswith("xcp"):
-                    img_path = os.path.join("/images", distro.name)
                     append_line = " %s install answerfile=%s" % (hkopts, autoinstall_path)
                     return append_line
             elif distro.breed == "powerkvm":
