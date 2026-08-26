@@ -6,8 +6,7 @@ FROM registry.opensuse.org/opensuse/leap:15.6
 ENV container docker
 ENV DISTRO SUSE
 
-# Runtime & dev dependencies
-RUN zypper install -y          \
+RUN zypper install --no-recommends -y \
     acl                        \
     apache2                    \
     apache2-devel              \
@@ -29,7 +28,6 @@ RUN zypper install -y          \
     python3                    \
     python3-Sphinx             \
     python3-Cheetah3           \
-    python3-Sphinx             \
     python3-dnspython          \
     python3-coverage           \
     python3-devel              \
@@ -46,34 +44,22 @@ RUN zypper install -y          \
     python3-wheel              \
     rpm-build                  \
     which                      \
-    dosfstools
-
-# Add bootloader packages
-RUN zypper install --no-recommends -y \
-    syslinux \
-    shim \
-    ipxe-bootimgs \
-    grub2 \
-    grub2-i386-efi \
-    grub2-x86_64-efi \
-    grub2-arm64-efi
-
-# Required for dhcpd
-RUN zypper install --no-recommends -y \
-    system-user-nobody                \
-    sysvinit-tools
-
-# Required for ldap tests
-RUN zypper install --no-recommends -y \
-    openldap2                         \
-    openldap2-client                  \
-    hostname
-
-# Dependencies for system-tests
-RUN zypper install --no-recommends -y \
-    dhcp-server                       \
-    iproute2                          \
-    qemu-kvm                          \
+    dosfstools                 \
+    syslinux                   \
+    shim                       \
+    ipxe-bootimgs              \
+    grub2                      \
+    grub2-i386-efi             \
+    grub2-x86_64-efi           \
+    grub2-arm64-efi            \
+    system-user-nobody         \
+    sysvinit-tools             \
+    openldap2                  \
+    openldap2-client           \
+    hostname                   \
+    dhcp-server                \
+    iproute2                   \
+    qemu-kvm                   \
     time
 
 COPY ./docker/rpms/opensuse_leap/supervisord/supervisord.conf /etc/supervisord.conf
