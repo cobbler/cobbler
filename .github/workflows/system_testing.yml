@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Pull Docker Test Container
         run: docker pull registry.opensuse.org/systemsmanagement/cobbler/github-ci/containers/cobbler-test-github:release33
       - name: Run previously built Docker Container

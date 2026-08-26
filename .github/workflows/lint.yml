@@ -10,9 +10,12 @@ jobs:
   lint_docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      # https://github.com/actions/checkout
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
     - name: Set up Python
-      uses: actions/setup-python@v5
+      # https://github.com/actions/setup-python
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
     - name: Install dependencies
       run:  pip install -U "rstcheck<6" doc8
     - name: Run rstcheck
@@ -22,8 +25,11 @@ jobs:
   lint_shellscripts:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@master
+        # https://github.com/ludeeus/action-shellcheck
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
         with:
           scandir: './scripts'
