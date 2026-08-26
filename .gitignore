@@ -61,3 +61,6 @@ docs/_build
 supervisord.pid
 .claude
 .superpowers/
+
+# Node (commitlint tooling)
+node_modules/

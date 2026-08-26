@@ -12,3 +12,22 @@ updates:
         applies-to: version-updates
         patterns:
           - "*"
+    commit-message:
+      prefix: "build"
+      prefix-development: "chore"
+      include: "scope"
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "no changelog"
+    groups:
+      npm:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "build"
+      prefix-development: "chore"
+      include: "scope"
