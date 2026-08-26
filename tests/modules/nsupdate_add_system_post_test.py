@@ -19,22 +19,21 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
-@pytest.fixture(autouse=True)
-def reset_logf():
-    """
-    run() leaves the module-level LOGF handle assigned (and closed) after it returns, which would otherwise make
-    nslog() calls in a later test raise "I/O operation on closed file".
-    """
-    yield
-    nsupdate.LOGF = None
-
-
 def test_register():
     # Arrange & Act
     result = nsupdate.register()
 
     # Assert
     assert result == "/var/lib/cobbler/triggers/add/system/post/*"
+
+
+def test_logger_is_a_dedicated_named_logger():
+    """
+    The module must log through a dedicated "nsupdate" logger (configured with its own log file in
+    logging_config.conf) rather than the root logger or a hand-rolled file handle.
+    """
+    # Arrange & Act & Assert
+    assert nsupdate.logger.name == "nsupdate"
 
 
 @pytest.fixture(name="nsupdate_system")
@@ -92,7 +91,6 @@ def _make_api(
 ) -> Any:
     settings_mock = mocker.MagicMock()
     settings_mock.nsupdate_enabled = nsupdate_enabled
-    settings_mock.nsupdate_log = "/tmp/nsupdate_test.log"
     settings_mock.nsupdate_mgm_txt = nsupdate_mgm_txt
     settings_mock.nsupdate_tsig = nsupdate_tsig
     api = mocker.MagicMock(spec=CobblerAPI)

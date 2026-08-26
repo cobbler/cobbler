@@ -601,9 +601,6 @@ nsupdate_tsig:
     key: [ "cobbler_update_key", # <-- The key identifier, v-- The key
            "iaqduBQnH2zddbrMAGEjXoky/IicWFiE3b8eTLevMvpH4WS+YiVN/aR056tL9Ly9tRXksCmpmq8kY+bkKuXqog==" ]
 
-# if set, enables logging to that file
-nsupdate_log: "/var/log/cobbler/nsupdate.log"
-
 # Set to true to enable the generation of Windows boot files in Cobbler.
 windows_enabled: false
 

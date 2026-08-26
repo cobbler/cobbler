@@ -220,7 +220,6 @@
     "next_server_v6": "::1",
     "ndjbdns_data_file": "/etc/ndjbdns/data",
     "nsupdate_enabled": false,
-    "nsupdate_log": "/var/log/cobbler/nsupdate.log",
     "nsupdate_mgm_txt": true,
     "nsupdate_tsig": {},
     "power_management_default_type": "ipmilan",

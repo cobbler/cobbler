@@ -156,7 +156,6 @@ schema = Schema(
         Optional("next_server_v6"): str,
         Optional("ndjbdns_data_file"): str,
         Optional("nsupdate_enabled"): bool,
-        Optional("nsupdate_log"): str,
         Optional("nsupdate_mgm_txt"): bool,
         Optional("nsupdate_tsig"): dict,
         Optional("power_management_default_type"): str,

@@ -235,7 +235,6 @@ class Settings:
         self.next_server_v6 = "::1"
         self.ndjbdns_data_file = "/etc/ndjbdns/data"
         self.nsupdate_enabled = False
-        self.nsupdate_log = "/var/log/cobbler/nsupdate.log"
         self.nsupdate_mgm_txt = True
         self.nsupdate_tsig: Dict[str, Dict[str, Any]] = {}
         self.power_management_default_type = "ipmilanplus"

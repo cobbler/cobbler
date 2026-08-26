@@ -617,17 +617,6 @@ Cobbler.
 
 default: ``False``
 
-nsupdate_log
-############
-
-The logfile to document what records are added or removed in the DNS zone for systems.
-
-.. note:: The functionality this settings is related to is currently not tested due to tech-debt. Please use it with
-          caution. This note will be removed once we were able to look deeper into this functionality of Cobbler.
-
-- Required: No
-- Default: ``/var/log/cobbler/nsupdate.log``
-
 nsupdate_mgm_txt
 ################
 

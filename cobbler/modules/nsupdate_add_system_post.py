@@ -11,8 +11,9 @@ Replace (or remove) records in DNS zone for systems created (or removed) by Cobb
 #   - python-dns (RH/CentOS)
 
 import ipaddress
+import logging
 import time
-from typing import IO, TYPE_CHECKING, Any, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple
 
 import dns.message
 import dns.name
@@ -22,23 +23,11 @@ import dns.resolver
 import dns.tsigkeyring
 import dns.update
 
-from cobbler.cexceptions import CX
-
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
 
-LOGF: Optional[IO[str]] = None
-
-
-def nslog(msg: str) -> None:
-    """
-    Log a message to the logger.
-
-    :param msg: The message to log.
-    """
-    if LOGF is not None:
-        LOGF.write(msg)
+logger = logging.getLogger("nsupdate")
 
 
 def register() -> str:
@@ -74,34 +63,38 @@ def find_zone_apex(name: str) -> Tuple[Optional[str], str, str]:
         "ip6.arpa",
         "in-addr.arpa",
     ):
-        nslog(f"lookup for '{name}' zone apex failed!\n")
+        logger.warning(
+            "nsupdate: zone apex lookup for '%s' hit an unsupported zone '%s', skipping",
+            name,
+            zone,  # type: ignore
+        )
         return None, lhost, zone  # type: ignore
 
-    nslog(
-        f"lookup for lhost '{lhost}'\n       and zone '{zone}'\n       master nameserver..."
+    logger.debug(
+        "nsupdate: resolving master nameserver for lhost '%s' in zone '%s'", lhost, zone
     )
 
     try:
         rrset = response.find_rrset(response.authority, zone, dns.rdataclass.IN, dns.rdatatype.SOA)  # type: ignore
     except KeyError:
-        nslog(" failed\n")
+        logger.warning("nsupdate: no SOA rrset found for zone '%s', skipping", zone)
         return None, lhost, zone  # type: ignore
 
-    nslog(f" {rrset[0].mname}\n")  # type: ignore
+    logger.debug(
+        "nsupdate: master nameserver for zone '%s' is %s", zone, rrset[0].mname  # type: ignore
+    )
     return dns.name.Name.to_text(rrset[0].mname), lhost, zone  # type: ignore
 
 
-def run(api: "CobblerAPI", args: List[Any]):
+def run(api: "CobblerAPI", args: List[Any]) -> int:
     """
     This method executes the trigger, meaning in this case that it updates the dns configuration.
 
     :param api: The api to read metadata from.
     :param args: Metadata to log.
-    :return: "0" on success or a skipped task. If the task failed or problems occurred then an exception is raised.
+    :return: "0" on success or a skipped task. Individual records that could not be updated (unknown nameserver,
+             refused key, ...) are logged and skipped rather than raising.
     """
-    # Module level log file descriptor
-    global LOGF  # pylint: disable=global-statement
-
     action = None
     if __name__ == "cobbler.modules.nsupdate_add_system_post":
         action = "replace"
@@ -115,10 +108,7 @@ def run(api: "CobblerAPI", args: List[Any]):
     if not settings.nsupdate_enabled:
         return 0
 
-    # read our settings
-    if str(settings.nsupdate_log) is not None:  # type: ignore[reportUnnecessaryComparison]
-        LOGF = open(str(settings.nsupdate_log), "a", encoding="UTF-8")  # type: ignore
-        nslog(f">> starting {__name__} {args}\n")
+    logger.debug("nsupdate: starting for %s", args)
 
     nsupdate_tsig = settings.nsupdate_tsig
     nsupdate_mgm_txt = settings.nsupdate_mgm_txt
@@ -146,8 +136,10 @@ def run(api: "CobblerAPI", args: List[Any]):
         if host.find(".") == -1:
             continue
 
-        nslog(f"{action.capitalize()} processing interface {name}: {interface}\n")
-        nslog(f"Trying HOST {host}\n")
+        logger.debug(
+            "nsupdate: %s processing interface %s: %s", action, name, interface
+        )
+        logger.debug("nsupdate: trying host %s", host)
         soa_mname, lhost, zone = find_zone_apex(host)
 
         # This is to be used for the CNAME handling below
@@ -157,8 +149,8 @@ def run(api: "CobblerAPI", args: List[Any]):
             rhost = ""
 
         if soa_mname is not None:
-            nslog(
-                f"{action.capitalize()} dns record for {lhost}.{zone} [{host_ip}] .. "
+            logger.info(
+                "nsupdate: %s dns record for %s.%s [%s]", action, lhost, zone, host_ip
             )
 
             # Check to see if we have a TSIG key for the NS
@@ -172,7 +164,11 @@ def run(api: "CobblerAPI", args: List[Any]):
                     }
                 )
             except (IndexError, KeyError) as error:
-                nslog(f"TSIG not found ({error})\n")
+                logger.warning(
+                    "nsupdate: no TSIG key configured for nameserver %s, skipping (%s)",
+                    soa_mname,
+                    error,
+                )
             else:
                 # Setup the Query packet
                 update = dns.update.Update(zone, keyring=keyring, keyalgorithm=keyring_algo)  # type: ignore
@@ -207,21 +203,36 @@ def run(api: "CobblerAPI", args: List[Any]):
                     for answer in ns_ips:  # type: ignore
                         soa_mname_ip = answer.to_text()  # type: ignore
                 except Exception as error:  # pylint: disable=broad-except
-                    nslog(f"No IP found for {soa_mname} due to {error}\n")
+                    logger.warning(
+                        "nsupdate: no IP found for nameserver %s: %s", soa_mname, error
+                    )
                 else:
                     # Send the update packet
                     try:
                         response = dns.query.tcp(update, soa_mname_ip)  # type: ignore
                         rcode_txt = str(dns.rcode.to_text(response.rcode()))  # type: ignore
                     except dns.tsig.PeerBadKey:  # type: ignore
-                        nslog("failed (refused key)\n>> done\n")
+                        logger.warning(
+                            "nsupdate: update to %s failed, nameserver refused our TSIG key",
+                            soa_mname,
+                        )
                     else:
-                        nslog(f"response code: {rcode_txt}\n")
-
                         if response.rcode() != dns.rcode.NOERROR:  # type: ignore
-                            nslog(">> done\n")
+                            logger.warning(
+                                "nsupdate: update to %s failed with response code %s",
+                                soa_mname,
+                                rcode_txt,
+                            )
+                        else:
+                            logger.debug(
+                                "nsupdate: update to %s succeeded (%s)",
+                                soa_mname,
+                                rcode_txt,
+                            )
         else:
-            nslog(f"No soa_mname found for {host}\n")
+            logger.warning(
+                "nsupdate: could not determine master nameserver for %s, skipping", host
+            )
         # Done updating A, AAAA, CNAME and TXT for fwd zone
 
         rrset: List[str] = []
@@ -233,11 +244,11 @@ def run(api: "CobblerAPI", args: List[Any]):
         # Now iterate and update all PTR records in relevant zone(s)
         for each_rr in rrset + host_ipv6_sec_addrs:
             reverse = ipaddress.ip_address(each_rr).reverse_pointer
-            nslog(f"Trying PTR {reverse}\n")
+            logger.debug("nsupdate: trying PTR %s", reverse)
             soa_mname, lhost, zone = find_zone_apex(reverse)
             if soa_mname is not None:
-                nslog(
-                    f"{action.capitalize()} dns record for {lhost}.{zone} [{host}] .. "
+                logger.info(
+                    "nsupdate: %s dns record for %s.%s [%s]", action, lhost, zone, host
                 )
 
                 # Check to see if we have a TSIG key for the NS
@@ -251,7 +262,11 @@ def run(api: "CobblerAPI", args: List[Any]):
                         }
                     )
                 except (IndexError, KeyError) as error:
-                    nslog(f"TSIG not found ({error})\n")
+                    logger.warning(
+                        "nsupdate: no TSIG key configured for nameserver %s, skipping (%s)",
+                        soa_mname,
+                        error,
+                    )
                 else:
                     # Setup the Query packet
                     update = dns.update.Update(zone, keyring=keyring, keyalgorithm=keyring_algo)  # type: ignore
@@ -276,25 +291,41 @@ def run(api: "CobblerAPI", args: List[Any]):
                         for answer in ns_ips:  # type: ignore
                             soa_mname_ip = answer.to_text()  # type: ignore
                     except Exception as error:  # pylint: disable=broad-except
-                        nslog(f"No IP found for {soa_mname} due to {error}\n")
+                        logger.warning(
+                            "nsupdate: no IP found for nameserver %s: %s",
+                            soa_mname,
+                            error,
+                        )
                     else:
                         # Send the update packet
                         try:
                             response = dns.query.tcp(update, soa_mname_ip)  # type: ignore
                             rcode_txt = str(dns.rcode.to_text(response.rcode()))  # type: ignore
                         except dns.tsig.PeerBadKey:  # type: ignore
-                            nslog("failed (refused key)\n>> done\n")
+                            logger.warning(
+                                "nsupdate: update to %s failed, nameserver refused our TSIG key",
+                                soa_mname,
+                            )
                         else:
-                            nslog(f"response code: {rcode_txt}\n")
-
                             if response.rcode() != dns.rcode.NOERROR:  # type: ignore
-                                nslog(">> done\n")
+                                logger.warning(
+                                    "nsupdate: update to %s failed with response code %s",
+                                    soa_mname,
+                                    rcode_txt,
+                                )
+                            else:
+                                logger.debug(
+                                    "nsupdate: update to %s succeeded (%s)",
+                                    soa_mname,
+                                    rcode_txt,
+                                )
             else:
-                nslog(f"No soa_mname found for {reverse}\n")
+                logger.warning(
+                    "nsupdate: could not determine master nameserver for %s, skipping",
+                    reverse,
+                )
         # end for each_rr
     # end for name, interface
 
-    nslog(">> done\n")
-    if LOGF is not None:
-        LOGF.close()
+    logger.debug("nsupdate: finished processing %s", args)
     return 0
