@@ -76,6 +76,11 @@ RUN zypper install --no-recommends -y \
     qemu-kvm                          \
     time
 
+# apache2 only declares /srv/www/htdocs (and other runtime dirs) via tmpfiles.d, it no longer ships
+# them as literal package payload. Nothing in this image runs systemd-tmpfiles at boot, so httpd
+# would otherwise fail to start with "DocumentRoot '/srv/www/htdocs' is not a directory".
+RUN systemd-tmpfiles --create
+
 COPY ./docker/rpms/opensuse_leap/supervisord/supervisord.conf /etc/supervisord.conf
 COPY ./docker/rpms/opensuse_leap/supervisord/conf.d /etc/supervisord/conf.d
 
