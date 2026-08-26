@@ -832,3 +832,46 @@ def test_built_in_redhat_register(cobbler_api: CobblerAPI):
 
     # Assert
     assert result == "\n".join(expected_result)
+
+
+def test_built_in_network_config_xcp(cobbler_api: CobblerAPI):
+    """
+    Test to verify the functionality of the built-in network_config_xcp snippet.
+    """
+    # Arrange
+    expected_result: List[str] = [
+        '  <admin-interface hwaddr="aa:bb:cc:dd:ee:ff" proto="static">',
+        "   <ipaddr>192.168.1.10</ipaddr>",
+        "   <subnet>255.255.255.0</subnet>",
+        "  </admin-interface>",
+        "  <hostname></hostname>",
+        "",
+    ]
+    target_template = cobbler_api.find_template(
+        False, False, name="built-in-network_config_xcp"
+    )
+    if target_template is None or isinstance(target_template, list):
+        pytest.fail("Target template not found!")
+    meta: Dict[str, Any] = {
+        "system_name": "test_name",
+        "hostname": "",
+        "gateway": "",
+        "name_servers": [],
+        "interfaces": {
+            "default": {
+                "mac_address": "aa:bb:cc:dd:ee:ff",
+                "static": True,
+                "ipv4": {
+                    "address": "192.168.1.10",
+                    "netmask": "255.255.255.0",
+                },
+                "interface_type": "",
+            }
+        },
+    }
+
+    # Act
+    result = cobbler_api.templar.render(target_template.content, meta, None)
+
+    # Assert
+    assert result == "\n".join(expected_result)

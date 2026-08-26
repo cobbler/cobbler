@@ -27,6 +27,8 @@ LABEL $menu_name
 #end if
 #if $breed == "vmware"
 	append -c $bootcfg_path
+#elif $breed == "xen" and $os_version.startswith("xcp")
+	append $initrd_path dom0_max_vcpus=2 dom0_mem=max:2048M com1=115200,8n1 console=com1,vga --- $img_path/$os.path.basename($kernel) $append_line --- $img_path/install.img
 #elif $breed != "windows" or "wimboot" in $kernel_path
 	$append_line
 #end if

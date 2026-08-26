@@ -1293,7 +1293,7 @@ class TFTPGen:
             append_line = "append "
         # TODO if cloud-init then add nocloud-net to kernel options
         append_line = f"{append_line}{kernel_options}"
-        if distro and distro.os_version.startswith("xenserver620"):
+        if distro and distro.os_version.startswith(("xenserver620", "xcp")):
             append_line = f"{kernel_options}"
         metadata["append_line"] = append_line
 
@@ -1440,6 +1440,11 @@ class TFTPGen:
             # ESXi: for templating pxe/ipxe, kernel_path is bootloader mboot.c32
             if distro.breed == "vmware" and distro.os_version.startswith("esxi"):
                 kernel_path = os.path.join(img_path, "mboot.c32")
+
+            # XCP-ng: PXE boots via the syslinux mboot.c32 module (symlinked at the tftpboot root),
+            # not a per-distro kernel image.
+            if boot_loader == "pxe" and distro.os_version.startswith("xcp"):
+                kernel_path = "mboot.c32"
 
             if not kernel_path:
                 kernel_path = os.path.join(img_path, os.path.basename(distro.kernel))
@@ -1664,6 +1669,8 @@ class TFTPGen:
                         f"vga --- {img_path}/vmlinuz xencons=hvc console=hvc0 console=tty0 install"
                         f" answerfile={autoinstall_path} --- {img_path}/install.img"
                     )
+                if distro.os_version.startswith("xcp"):
+                    return f" {hkopts} install answerfile={autoinstall_path}"
             elif distro.breed == "powerkvm":
                 append_line.append_key("kssendmac")
                 append_line.append_key_value("kvmp.inst.auto", autoinstall_path)

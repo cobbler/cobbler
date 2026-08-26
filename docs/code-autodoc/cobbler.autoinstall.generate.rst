@@ -68,6 +68,14 @@ cobbler.autoinstall.generate.windows module
    :show-inheritance:
    :undoc-members:
 
+cobbler.autoinstall.generate.xen module
+---------------------------------------
+
+.. automodule:: cobbler.autoinstall.generate.xen
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Module contents
 ---------------
 

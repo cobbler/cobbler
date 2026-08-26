@@ -683,6 +683,12 @@ def test_build_kernel_options_system(
             "append /images/test_build_kernel_options_autoinstall/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1,vga --- /images/test_build_kernel_options_autoinstall/vmlinuz xencons=hvc console=hvc0 console=tty0 install answerfile=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-answerfile.xml --- /images/test_build_kernel_options_autoinstall/install.img",
         ),
         (
+            "xen",
+            "xcp82",
+            "built-in-xcp_answerfile.xml",
+            "  install answerfile=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-xcp_answerfile.xml",
+        ),
+        (
             "powerkvm",
             "",
             "built-in-powerkvm.ks",

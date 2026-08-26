@@ -2,7 +2,7 @@
 Test module for built-in scripts in Cobbler.
 """
 
-from typing import Callable
+from typing import Callable, List
 
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
@@ -96,6 +96,58 @@ def test_built_in_preseed_nochroot_late_default(
         "",
     ]
     template = "built-in-preseed_nochroot_late_default"
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+
+    # Act
+    result = cobbler_api.generate_script(test_profile.name, None, template)
+
+    # Assert
+    assert result == "\n".join(expected_result)
+
+
+def test_built_in_xcp_pre_install(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
+    """
+    Test to verify the built-in xcp_pre_install script generation.
+    """
+    # Arrange
+    expected_result: List[str] = [
+        "#!/bin/sh",
+        "",
+        'wget "http://192.168.1.1/cblr/svc/op/trig/mode/pre/profile/test_built_in_xcp_pre_install" -O /dev/null',
+        "",
+    ]
+    template = "built-in-xcp_pre_install"
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+
+    # Act
+    result = cobbler_api.generate_script(test_profile.name, None, template)
+
+    # Assert
+    assert result == "\n".join(expected_result)
+
+
+def test_built_in_xcp_post_install(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
+    """
+    Test to verify the built-in xcp_post_install script generation.
+    """
+    # Arrange
+    expected_result: List[str] = [
+        "#!/bin/bash",
+        "",
+        'wget "http://192.168.1.1/cblr/svc/op/trig/mode/post/profile/test_built_in_xcp_post_install" -O /dev/null',
+        "",
+    ]
+    template = "built-in-xcp_post_install"
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
 
