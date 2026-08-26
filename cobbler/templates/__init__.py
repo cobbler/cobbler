@@ -84,6 +84,7 @@ TEMPLATE_TAG_MAPPING: Dict[str, Set[enums.ConvertableEnum]] = {
     "sample_esxi6.ks.template": {enums.AutoinstallerType.KICKSTART},
     "sample_esxi7.ks.template": {enums.AutoinstallerType.KICKSTART},
     "sample_legacy.ks.template": {enums.AutoinstallerType.KICKSTART},
+    "xcp_answerfile.xml.template": {enums.AutoinstallerType.XEN},
     "sample_old.seed.template": {enums.AutoinstallerType.PRESEED},
     "sample.ks.template": {enums.AutoinstallerType.KICKSTART},
     "sample.seed.template": {enums.AutoinstallerType.PRESEED},

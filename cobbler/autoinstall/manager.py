@@ -14,6 +14,7 @@ from cobbler.autoinstall.generate.kickstart import KickstartGenerator
 from cobbler.autoinstall.generate.legacy import LegacyGenerator
 from cobbler.autoinstall.generate.preseed import PreseedGenerator
 from cobbler.autoinstall.generate.windows import WindowsGenerator
+from cobbler.autoinstall.generate.xen import XenGenerator
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -192,6 +193,8 @@ class AutoInstallationManager:
             return AgamaGenerator(api=self.api)
         elif autoinstaller_type == enums.AutoinstallerType.WINDOWS:
             return WindowsGenerator(api=self.api)
+        elif autoinstaller_type == enums.AutoinstallerType.XEN:
+            return XenGenerator(api=self.api)
         raise ValueError("Unknown template type selected!")
 
     def generate_autoinstall(
