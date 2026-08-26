@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from cobbler.api import CobblerAPI
+from cobbler.items.system import NetworkInterface, System
 from cobbler.modules.managers import bind
 
 if TYPE_CHECKING:
@@ -122,3 +123,51 @@ def test_manager_restart_service(mocker: "MockerFixture", cobbler_api: CobblerAP
     assert mocked_service_name.call_count == 1
     mock_service_restart.assert_called_with(["service", "named", "restart"], shell=False)
     assert result == 0
+
+
+def test_pretty_print_cname_records_without_any_cnames_does_not_crash(
+    cobbler_api: CobblerAPI,
+):
+    """
+    Regression test: a DNS-managed zone with zero CNAME records used to crash cobbler sync with
+    "ValueError: max() arg is an empty sequence" (#4070).
+    """
+    # Arrange
+    manager = bind.get_manager(cobbler_api)
+    mock_system = System(cobbler_api)
+    mock_system.name = "test_pretty_print_cname_records_without_any_cnames"
+    mock_system.interfaces = {
+        "default": NetworkInterface(cobbler_api, mock_system.name)
+    }
+    mock_system.interfaces["default"].dns_name = "host1.example.com"
+    manager.systems = [mock_system]
+
+    # Act
+    result = manager._BindManager__pretty_print_cname_records([])
+
+    # Assert
+    assert result == ""
+
+
+def test_pretty_print_cname_records_aligns_columns(cobbler_api: CobblerAPI):
+    # Arrange
+    manager = bind.get_manager(cobbler_api)
+    mock_system = System(cobbler_api)
+    mock_system.name = "test_pretty_print_cname_records_aligns_columns"
+    mock_system.interfaces = {
+        "default": NetworkInterface(cobbler_api, mock_system.name)
+    }
+    mock_system.interfaces["default"].dns_name = "host1.example.com"
+    mock_system.interfaces["default"].cnames = [
+        "aaaaaaalongalias.example.com",
+        "b.example.com",
+    ]
+    manager.systems = [mock_system]
+
+    # Act
+    result = manager._BindManager__pretty_print_cname_records([])
+
+    # Assert
+    assert result == (
+        "aaaaaaalongalias  IN  CNAME  host1;\n" "b                 IN  CNAME  host1;\n"
+    )
