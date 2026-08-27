@@ -8,10 +8,18 @@ updates:
       - "dependencies"
       - "no changelog"
     groups:
-      dependabot:
+      codeql:
         applies-to: version-updates
         patterns:
-          - "*"
+          - "github/codeql-action/*"
+      docker:
+        applies-to: version-updates
+        patterns:
+          - "docker/*"
+      actions:
+        applies-to: version-updates
+        patterns:
+          - "github/codeql-action/*"
     commit-message:
       prefix: "build"
       prefix-development: "chore"
