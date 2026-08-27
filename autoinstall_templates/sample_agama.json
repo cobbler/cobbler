@@ -11,15 +11,12 @@
 $SNIPPET('agama_hostname')
 $SNIPPET('agama_networking')
 
-  "user": {
-    "fullName": "susadmin",
-    "userName": "susadmin",
+  "root": {
     "hashedPassword": true,
     "password": "$default_password_crypted"
   },
 
   "software": {
-    "patterns": ["basesystem"],
     "packages": ["agama-scripts", "sudo"],
     "onlyRequired": false
   },
