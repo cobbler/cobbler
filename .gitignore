@@ -64,3 +64,4 @@ supervisord.pid
 
 # Node (commitlint tooling)
 node_modules/
+package-lock.json
