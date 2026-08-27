@@ -687,7 +687,7 @@ def test_save_distro_with_triggers_false(
 
     # Assert
     assert result is True
-    assert remote.get_distro("testdistro_notriggers", False, False, token) is not None
+    assert remote.get_distro(distro, False, False, token) is not None
 
 
 @pytest.mark.integration

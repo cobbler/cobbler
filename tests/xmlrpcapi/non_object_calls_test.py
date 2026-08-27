@@ -313,11 +313,11 @@ def test_get_item_resolved_value(
         test_network_interface_handle, True, True, "new", token
     )
     if checked_object == "distro":
-        test_item = remote.get_distro(name_distro, token=token)
+        test_item = remote.get_distro(distro_uid, token=token)
     elif checked_object == "profile":
-        test_item = remote.get_profile(name_profile, token=token)
+        test_item = remote.get_profile(profile_uid, token=token)
     elif checked_object == "system":
-        test_item = remote.get_system(name_system, token=token)
+        test_item = remote.get_system(test_system_handle, token=token)
     else:
         raise ValueError("checked_object has wrong value")
 
@@ -436,3 +436,79 @@ def test_remove_item_with_name_instead_of_handle(
 
     # Cleanup
     assert remote.remove_distro(distro_uid, token, False) is True
+
+
+def test_get_item_with_duplicate_names(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    create_distro: Callable[[str, str, str, str, str], str],
+    create_profile: Callable[[str, str, str], str],
+    create_system: Callable[[str, str], str],
+    create_kernel_initrd: Callable[[str, str], str],
+):
+    """
+    Verify that an item can be retrieved via its handle even if its name is not globally unique.
+
+    Network interface names are only unique per system, so two systems may both own an interface called "eth0". Since
+    ``get_network_interface`` takes an object id, the caller can address exactly one of them.
+    """
+    # Arrange
+    fk_kernel = "vmlinuz1"
+    fk_initrd = "initrd1.img"
+    basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+    path_kernel = os.path.join(basepath, fk_kernel)
+    path_initrd = os.path.join(basepath, fk_initrd)
+    distro_uid = create_distro(
+        "testdistro_get_duplicate_names", "x86_64", "suse", path_kernel, path_initrd
+    )
+    profile_uid = create_profile("testprofile_get_duplicate_names", distro_uid, "")
+    system_uids = [
+        create_system(f"testsystem_get_duplicate_names{i}", profile_uid)
+        for i in range(2)
+    ]
+    interface_uids: List[str] = []
+    for i, system_uid in enumerate(system_uids):
+        interface_handle = remote.new_network_interface(system_uid, token)
+        remote.modify_network_interface(interface_handle, ["name"], "eth0", token)
+        remote.modify_network_interface(
+            interface_handle, ["mac_address"], f"aa:bb:cc:dd:ee:0{i}", token
+        )
+        remote.save_network_interface(interface_handle, True, True, "new", token)
+        interface_uids.append(interface_handle)
+
+    # The name alone is ambiguous, so a handle has to be obtained via a more specific search.
+    with pytest.raises(CX):
+        remote.get_network_interface_handle("eth0")
+
+    # Act & Assert
+    first_interface = remote.get_network_interface(interface_uids[0], token=token)
+    assert isinstance(first_interface, dict)
+    assert first_interface.get("mac_address") == "aa:bb:cc:dd:ee:00"
+
+    second_interface = remote.get_network_interface(interface_uids[1], token=token)
+    assert isinstance(second_interface, dict)
+    assert second_interface.get("mac_address") == "aa:bb:cc:dd:ee:01"
+
+
+def test_get_item_with_name_instead_of_handle(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    create_distro: Callable[[str, str, str, str, str], str],
+    create_kernel_initrd: Callable[[str, str], str],
+):
+    """
+    Verify that passing a name instead of an object id to ``get_item``/``get_<type>`` does not return the object.
+    """
+    # Arrange
+    fk_kernel = "vmlinuz1"
+    fk_initrd = "initrd1.img"
+    basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+    path_kernel = os.path.join(basepath, fk_kernel)
+    path_initrd = os.path.join(basepath, fk_initrd)
+    distro_name = "testdistro_get_name_instead_of_handle"
+    distro_uid = create_distro(distro_name, "x86_64", "suse", path_kernel, path_initrd)
+
+    # Act & Assert
+    assert remote.get_distro(distro_name) == "~"
+    assert remote.get_item("distro", distro_name) == "~"
+    assert remote.get_distro(distro_uid).get("name") == distro_name  # type: ignore

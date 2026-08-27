@@ -216,7 +216,8 @@ class Replicate:
             for distro in self.must_include["distro"]:
                 if self.must_include["distro"][distro] == 1:
                     self.logger.info("Rsyncing distro %s", distro)
-                    target = self.remote.get_distro(distro)
+                    distro_handle = self.remote.get_distro_handle(distro)
+                    target = self.remote.get_distro(distro_handle)
                     if not isinstance(target, dict):
                         raise TypeError(
                             "Remote server passed unexpected data for distro"

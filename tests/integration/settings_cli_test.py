@@ -137,7 +137,8 @@ def test_settings_cli_migrate_from_2_8_5(
     restart_cobbler()
 
     # Assert - Boot loaders should be preserved after migration.
-    assert remote.get_distro("fake", False, False, token).get("boot_loaders") == [  # type: ignore
+    distro_handle = remote.get_distro_handle("fake")
+    assert remote.get_distro(distro_handle, False, False, token).get("boot_loaders") == [  # type: ignore
         "<<inherit>>"
     ]
 

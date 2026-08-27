@@ -69,7 +69,8 @@ class TestRepo:
         # Arrange --> Done in fixture
 
         # Act
-        repo = remote.get_repo("testrepo0")
+        repo_uid = remote.get_repo_handle("testrepo0")
+        repo = remote.get_repo(repo_uid)
 
         # Assert
         assert repo.get("name") == "testrepo0"  # type: ignore
