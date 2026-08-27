@@ -12,18 +12,34 @@ jobs:
     steps:
       # Based on: https://github.com/orgs/community/discussions/34652
       - name: 'Download artifact'
+        id: download
         # https://github.com/actions/github-script
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
+            const run = context.payload.workflow_run;
+
+            // pull_requests is empty for PRs from forks, so fall back to the branch name.
+            const pr = run.pull_requests[0];
+            const source = pr ? `PR #${pr.number} (${run.head_branch})` : run.head_branch;
+            core.setOutput('source', source);
+            core.setOutput('run_url', run.html_url);
+
             let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
                owner: context.repo.owner,
                repo: context.repo.repo,
-               run_id: context.payload.workflow_run.id,
+               run_id: run.id,
             });
-            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "coverage-report"
-            })[0];
+            let matchArtifact = allArtifacts.data.artifacts.find((artifact) => artifact.name == "coverage-report");
+
+            if (!matchArtifact) {
+              // The triggering job may have failed or been cancelled before it could
+              // upload a report - that's not a failure of this workflow, just nothing to do.
+              core.setOutput('found', 'false');
+              core.notice(`No "coverage-report" artifact found on ${run.html_url}; skipping upload.`);
+              return;
+            }
+
             let download = await github.rest.actions.downloadArtifact({
                owner: context.repo.owner,
                repo: context.repo.repo,
@@ -32,7 +48,9 @@ jobs:
             });
             let fs = require('fs');
             fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/coverage-report.zip`, Buffer.from(download.data));
+            core.setOutput('found', 'true');
       - name: 'Unzip artifact'
+        if: steps.download.outputs.found == 'true'
         run: unzip coverage-report.zip
       # https://github.com/actions/download-artifact
       # - name: Download artifact
@@ -47,9 +65,29 @@ jobs:
       #     project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
       #     coverage-reports: coverage.xml
       - name: Publish Code Coverage Results
+        if: steps.download.outputs.found == 'true'
         run: |
           auth="--project-token ${{ secrets.CODACY_PROJECT_TOKEN }}"
           commit_uuid="--commit-uuid ${{ github.event.workflow_run.head_sha }}"
 
           bash <(curl -Ls https://coverage.codacy.com/get.sh) report $auth $commit_uuid -r coverage.xml --partial &&\
           bash <(curl -Ls https://coverage.codacy.com/get.sh) final $auth $commit_uuid
+      - name: 'Job summary'
+        if: always()
+        env:
+          SOURCE: ${{ steps.download.outputs.source }}
+          RUN_URL: ${{ steps.download.outputs.run_url }}
+          FOUND: ${{ steps.download.outputs.found }}
+        run: |
+          if [ "$FOUND" = "true" ]; then
+            STATUS="✅ uploaded"
+          else
+            STATUS="⚠️ not found (triggering job likely failed or was skipped before it could generate one)"
+          fi
+          {
+            echo "### Coverage Upload"
+            echo ""
+            echo "| Source | Coverage report |"
+            echo "|---|---|"
+            echo "| [$SOURCE]($RUN_URL) | $STATUS |"
+          } >> "$GITHUB_STEP_SUMMARY"
