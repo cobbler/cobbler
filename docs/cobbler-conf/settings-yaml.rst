@@ -617,34 +617,27 @@ Cobbler.
 
 default: ``False``
 
-nsupdate_log
-############
+nsupdate_mgm_txt
+################
 
-The logfile to document what records are added or removed in the DNS zone for systems.
+Set to ``False`` if you want to disable the extra TXT records Cobbler adds alongside the managed DNS records.
+
+- Required: No
+- Default: ``True``
+
+nsupdate_tsig
+#############
+
+A per-nameserver mapping of TSIG keys, keyed by the FQDN of the zone's SOA master nameserver (as discovered at
+update time via a DNS lookup, not something you can look up in advance). Updates are only sent to nameservers that
+have a key configured here; unlisted nameservers are skipped. Please generate your own key per server, e.g. via
+``tsig-keygen -a hmac-sha512 cobbler_update_key``, rather than reusing the shipped example key.
 
 .. note:: The functionality this settings is related to is currently not tested due to tech-debt. Please use it with
           caution. This note will be removed once we were able to look deeper into this functionality of Cobbler.
 
 - Required: No
-- Default: ``/var/log/cobbler/nsupdate.log``
-
-nsupdate_tsig_algorithm
-#######################
-
-.. note:: The functionality this settings is related to is currently not tested due to tech-debt. Please use it with
-          caution. This note will be removed once we were able to look deeper into this functionality of Cobbler.
-
-- Required: No
-- Default: ``hmac-sha512``
-
-nsupdate_tsig_key
-#################
-
-.. note:: The functionality this settings is related to is currently not tested due to tech-debt. Please use it with
-          caution. This note will be removed once we were able to look deeper into this functionality of Cobbler.
-
-- Required: No
-- Default: ``[]``
+- Default: ``{"localhost.": {"algorithm": "hmac-sha512", "key": ["cobbler_update_key.", "..."]}}``
 
 power_management_default_type
 #############################

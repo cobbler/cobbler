@@ -1171,7 +1171,7 @@ def test_normalize_v4_0_0_full():
     assert "cache_enabled" in new_settings
     assert new_settings["cache_enabled"] == False
     assert new_settings["lazy_start"] == False
-    assert len(V4_0_0.normalize(new_settings)) == 135
+    assert len(V4_0_0.normalize(new_settings)) == 134
 
 
 def test_schema_v4_0_0_modules_httpd_missing_is_valid():

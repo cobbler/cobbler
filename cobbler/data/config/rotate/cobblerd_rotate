@@ -29,3 +29,18 @@
    rotate 4
    weekly
 }
+
+/var/log/cobbler/nsupdate.log {
+   compress
+   dateext
+   maxage 14
+   minsize 4M
+   missingok
+   notifempty
+   rotate 9
+   daily
+   create 644 root root
+   postrotate
+      /usr/bin/systemctl try-reload-or-restart cobblerd
+   endscript
+}
