@@ -23,6 +23,32 @@ from cobbler.items.profile import Profile
 from cobbler.items.profile_group import ProfileGroup
 from cobbler.items.system import System
 from cobbler.items.system_group import SystemGroup
+from cobbler.modules.managers import (
+    bind,
+    dnsmasq,
+    dynamic_httpd,
+    dynamic_tftp,
+    import_signatures,
+    in_httpd,
+    in_tftpd,
+    isc,
+    ndjbdns,
+)
+
+# Manager modules that memoize a module-level singleton the first time get_manager() is called, keyed to whichever
+# CobblerAPI/collections happened to exist at that point. Left alone, that singleton outlives the CobblerAPI/
+# CollectionManager reset below and keeps handing out items belonging to a long-torn-down test.
+_MANAGER_MODULES = (
+    bind,
+    dnsmasq,
+    dynamic_httpd,
+    dynamic_tftp,
+    import_signatures,
+    in_httpd,
+    in_tftpd,
+    isc,
+    ndjbdns,
+)
 
 logger = logging.getLogger()
 
@@ -70,6 +96,10 @@ def fixture_cobbler_api() -> CobblerAPI:
     CollectionManager.has_loaded = False
     CobblerAPI._CobblerAPI__shared_state.clear()  # type: ignore
     CobblerAPI._CobblerAPI__has_loaded = False  # type: ignore
+    for manager_module in _MANAGER_MODULES:
+        # Iterating over the tuple widens each module's synthesized type to the generic
+        # ModuleType, which pyright doesn't know has a MANAGER attribute.
+        setattr(manager_module, "MANAGER", None)
     return CobblerAPI()
 
 
