@@ -171,3 +171,54 @@ def test_pretty_print_cname_records_aligns_columns(cobbler_api: CobblerAPI):
     assert result == (
         "aaaaaaalongalias  IN  CNAME  host1;\n" "b                 IN  CNAME  host1;\n"
     )
+
+
+def test_ip_sort_sorts_ipv6_ptr_records_with_non_numeric_nibbles(
+    cobbler_api: CobblerAPI,
+):
+    """
+    Regression test: reverse zone PTR labels for IPv6 addresses are dot-separated hex
+    nibbles (e.g. "c.0.0.0.e.f...") rather than dotted decimal octets. Sorting them as
+    IPv4 used to crash with "ValueError: invalid literal for int() with base 10" as
+    soon as a nibble contained a-f (#3988/#4072).
+    """
+    # Arrange
+    manager = bind.get_manager(cobbler_api)
+    # PTR labels are already reversed nibble-by-nibble, as produced by __reverse_zones.
+    labels = [
+        "c.0.0.0.e.f.f.f.f.f.f.f.f.f.f.f",
+        "a.0.0.0.e.f.f.f.f.f.f.f.f.f.f.f",
+        "b.0.0.0.e.f.f.f.f.f.f.f.f.f.f.f",
+    ]
+
+    # Act
+    result = manager._BindManager__ip_sort(labels, protocol=6)
+
+    # Assert
+    assert result == [
+        "a.0.0.0.e.f.f.f.f.f.f.f.f.f.f.f",
+        "b.0.0.0.e.f.f.f.f.f.f.f.f.f.f.f",
+        "c.0.0.0.e.f.f.f.f.f.f.f.f.f.f.f",
+    ]
+
+
+def test_pretty_print_host_records_ptr_ipv6_non_numeric_does_not_crash(
+    cobbler_api: CobblerAPI,
+):
+    """
+    Regression test: writing a PTR record for an IPv6 reverse zone used to crash if the
+    address contained a non-numeric hex nibble (#3988/#4072).
+    """
+    # Arrange
+    manager = bind.get_manager(cobbler_api)
+    hosts = {"c.0.0.0.e.f.f.f.f.f.f.f.f.f.f.f": "brie.arch.prg3.suse.org."}
+
+    # Act
+    result = manager._BindManager__pretty_print_host_records(
+        hosts, rectype="PTR", protocol=6
+    )
+
+    # Assert
+    assert result == (
+        "c.0.0.0.e.f.f.f.f.f.f.f.f.f.f.f  IN  PTR  brie.arch.prg3.suse.org.;\n"
+    )
