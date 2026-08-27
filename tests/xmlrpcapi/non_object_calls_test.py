@@ -490,6 +490,53 @@ def test_get_item_with_duplicate_names(
     assert second_interface.get("mac_address") == "aa:bb:cc:dd:ee:01"
 
 
+def test_find_items_does_not_crash_on_fully_duplicate_names(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    create_distro: Callable[[str, str, str, str, str], str],
+    create_profile: Callable[[str, str, str], str],
+    create_system: Callable[[str, str], str],
+    create_kernel_initrd: Callable[[str, str], str],
+):
+    """
+    Verify that find_<type>/find_items doesn't crash when two or more items tie on every field
+    the results are sorted by.
+
+    Network interface names are only unique per system, so two systems may both own an interface
+    called "eth0" - an unscoped ``find_network_interface({"name": "eth0"})`` then legitimately
+    returns two items with an identical sort key. CobblerXMLRPCInterface.__sort() previously fell
+    back to comparing the ITEM objects themselves once their sort_key() values tied, and ITEM
+    doesn't implement rich comparison, raising "TypeError: '<' not supported between instances of
+    'NetworkInterface' and 'NetworkInterface'".
+    """
+    # Arrange
+    fk_kernel = "vmlinuz1"
+    fk_initrd = "initrd1.img"
+    basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+    path_kernel = os.path.join(basepath, fk_kernel)
+    path_initrd = os.path.join(basepath, fk_initrd)
+    distro_uid = create_distro(
+        "testdistro_find_duplicate_names", "x86_64", "suse", path_kernel, path_initrd
+    )
+    profile_uid = create_profile("testprofile_find_duplicate_names", distro_uid, "")
+    system_uids = [
+        create_system(f"testsystem_find_duplicate_names{i}", profile_uid)
+        for i in range(2)
+    ]
+    for system_uid in system_uids:
+        interface_handle = remote.new_network_interface(system_uid, token)
+        remote.modify_network_interface(interface_handle, ["name"], "eth0", token)
+        remote.save_network_interface(interface_handle, True, True, "new", token)
+
+    # Act
+    interfaces = remote.find_network_interface(
+        {"name": "eth0"}, expand=True, token=token
+    )
+
+    # Assert
+    assert len(interfaces) == 2
+
+
 def test_get_item_with_name_instead_of_handle(
     remote: CobblerXMLRPCInterface,
     token: str,

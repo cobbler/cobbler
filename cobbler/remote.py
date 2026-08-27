@@ -914,6 +914,9 @@ class CobblerXMLRPCInterface:
                 sort_field = sort_field[1:]
                 sort_rev = True
             sort_fields.insert(0, sort_field)
+        # "uid" is a tie-breaker: without it, two items tying on every requested field (e.g. NetworkInterfaces sharing
+        # a name, which is only unique per-system) fall through to comparing ITEM objects directly, raising TypeError.
+        sort_fields.append("uid")
         sortdata = [(x.sort_key(sort_fields), x) for x in data]
         if sort_rev:
             sortdata.sort(reverse=True)
