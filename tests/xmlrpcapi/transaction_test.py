@@ -68,19 +68,17 @@ def test_modify_profile(
 
     # changes are visible inside the transaction identified by the token
     assert (
-        cast(Dict[Any, Any], remote.get_profile("testprofile0", token=token))["comment"]
+        cast(Dict[Any, Any], remote.get_profile(profile, token=token))["comment"]
         == "test comment"
     )
 
     # changes are not visible until commit
     assert (
-        cast(Dict[Any, Any], remote.get_profile("testprofile0"))["comment"]
-        != "test comment"
+        cast(Dict[Any, Any], remote.get_profile(profile))["comment"] != "test comment"
     )
     assert remote.transaction_commit(token)
     assert (
-        cast(Dict[Any, Any], remote.get_profile("testprofile0"))["comment"]
-        == "test comment"
+        cast(Dict[Any, Any], remote.get_profile(profile))["comment"] == "test comment"
     )
 
 
@@ -269,19 +267,19 @@ def test_parent_profile_recursive(remote: CobblerXMLRPCInterface, token: str):
     assert remote.save_profile(profile3, True, True, "bypass", token)
 
     # Act
-    assert cast(Dict[Any, Any], remote.get_profile("testprofile0"))["depth"] == 1
-    assert cast(Dict[Any, Any], remote.get_profile("testprofile1"))["depth"] == 2
-    assert cast(Dict[Any, Any], remote.get_profile("testprofile2"))["depth"] == 3
-    assert cast(Dict[Any, Any], remote.get_profile("testprofile3"))["depth"] == 4
+    assert cast(Dict[Any, Any], remote.get_profile(profile_uid))["depth"] == 1
+    assert cast(Dict[Any, Any], remote.get_profile(profile1))["depth"] == 2
+    assert cast(Dict[Any, Any], remote.get_profile(profile2))["depth"] == 3
+    assert cast(Dict[Any, Any], remote.get_profile(profile3))["depth"] == 4
 
     assert remote.modify_profile(profile2, ["parent"], profile_uid, token)
     assert remote.save_profile(profile2, True, True, "bypass", token)
 
-    assert cast(Dict[Any, Any], remote.get_profile("testprofile0"))["depth"] == 1
-    assert cast(Dict[Any, Any], remote.get_profile("testprofile1"))["depth"] == 2
-    assert cast(Dict[Any, Any], remote.get_profile("testprofile2"))["depth"] == 2
+    assert cast(Dict[Any, Any], remote.get_profile(profile_uid))["depth"] == 1
+    assert cast(Dict[Any, Any], remote.get_profile(profile1))["depth"] == 2
+    assert cast(Dict[Any, Any], remote.get_profile(profile2))["depth"] == 2
     #   this seems to be a bug
-    #   assert cast(Dict[Any, Any], remote.get_profile("testprofile3"))["depth"] == 3
+    #   assert cast(Dict[Any, Any], remote.get_profile(profile3))["depth"] == 3
 
     assert remote.remove_profile(profile_uid, token)
 
@@ -407,8 +405,7 @@ def test_conflict2(remote: CobblerXMLRPCInterface, token: str, token2: str):
 
     # result of the successfully commited transaction - comment is set
     assert (
-        cast(Dict[Any, Any], remote.get_profile("testprofile0"))["comment"]
-        == "test comment"
+        cast(Dict[Any, Any], remote.get_profile(profile))["comment"] == "test comment"
     )
 
 
@@ -481,15 +478,9 @@ def test_modify_distro(
 
     assert remote.get_distro_handle("testdistro0") == distro
 
-    assert (
-        cast(Dict[Any, Any], remote.get_distro("testdistro0"))["comment"]
-        != "test comment"
-    )
+    assert cast(Dict[Any, Any], remote.get_distro(distro))["comment"] != "test comment"
     assert remote.transaction_commit(token)
-    assert (
-        cast(Dict[Any, Any], remote.get_distro("testdistro0"))["comment"]
-        == "test comment"
-    )
+    assert cast(Dict[Any, Any], remote.get_distro(distro))["comment"] == "test comment"
 
 
 @pytest.mark.usefixtures(
@@ -626,7 +617,7 @@ def test_reparent_and_remove_distro(
     assert remote.get_item_handle("distro", "testdistro0") == "~"
     assert remote.get_item_handle("distro", "testdistro1") != "~"
     assert remote.get_item_handle("profile", "testprofile0") != "~"
-    assert cast(Dict[Any, Any], remote.get_profile("testprofile0"))["distro"] == distro
+    assert cast(Dict[Any, Any], remote.get_profile(profile))["distro"] == distro
 
     assert remote.get_item_handle("profile", "testsubprofile0") != "~"
     assert remote.get_item_handle("profile", "testsubprofile1") != "~"

@@ -114,7 +114,8 @@ def test_get_distro(remote: CobblerXMLRPCInterface, fk_initrd: str, fk_kernel: s
     # Arrange --> Done in fixture
 
     # Act
-    distro = remote.get_distro("testdistro0")
+    distro_handle = remote.get_distro_handle("testdistro0")
+    distro = remote.get_distro(distro_handle)
 
     # Assert
     assert distro.get("name") == "testdistro0"  # type: ignore

@@ -205,7 +205,8 @@ def test_get_profile(remote: CobblerXMLRPCInterface):
     distro_uid = remote.get_distro_handle("testdistro0")
 
     # Act
-    profile = remote.get_profile("testprofile0")
+    profile_uid = remote.get_profile_handle("testprofile0")
+    profile = remote.get_profile(profile_uid)
 
     # Assert
     assert profile.get("name") == "testprofile0"  # type: ignore

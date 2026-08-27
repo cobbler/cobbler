@@ -18,7 +18,8 @@ def test_get_item_resolved(
     # Arrange --> Done in fixture
 
     # Act
-    distro = remote.get_item("distro", "testdistro0", resolved=True)
+    distro_handle = remote.get_distro_handle("testdistro0")
+    distro = remote.get_item("distro", distro_handle, resolved=True)
 
     # Assert
     assert distro.get("name") == "testdistro0"  # type: ignore

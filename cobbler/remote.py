@@ -22,6 +22,9 @@ V4.0.0 (unreleased)
         * ``remove_item`` and all ``remove_<type>`` methods: Require an item handle (object id) instead of the name
           of the item, matching the contract of ``modify_item``. Clients that only know the name of an item have to
           retrieve a handle via ``get_item_handle`` or ``get_<type>_handle`` first.
+        * ``get_item`` and all ``get_<type>`` methods: Require an item handle (object id) instead of the name
+          of the item, matching the contract of ``modify_item``. Clients that only know the name of an item have to
+          retrieve a handle via ``get_item_handle`` or ``get_<type>_handle`` first.
     * Removed:
         * ``xapi_object_edit``: Remove all-in-one edit method for the CLI
 
@@ -1105,25 +1108,26 @@ class CobblerXMLRPCInterface:
     def get_item(
         self,
         what: str,
-        name: str,
+        object_id: str,
         flatten: bool = False,
         resolved: bool = False,
         token: Optional[str] = None,
     ):
         """
         Returns a dict describing a given object.
+        Note that this requires an item handle (object id), not the name of the item. Callers that only know the name
+        of an item have to retrieve a handle via ``get_item_handle`` or the type specific ``get_<type>_handle`` first.
 
         :param what: "distro", "profile", "system", "image", "repo", etc
-        :param name: the object name to retrieve
+        :param object_id: The id of the object which shall be retrieved.
         :param flatten: reduce dicts to string representations (True/False)
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
         :return: The item or None.
         """
-        self._log(f"get_item({what},{name})")
-        item_handle = self.get_item_handle(what, name, token=token)
+        self._log(f"get_item({what})", object_id=object_id, token=token)
         try:
-            requested_item = self.__get_object(item_handle, token=token)
+            requested_item = self.__get_object(object_id, token=token)
         except ValueError:
             return self.xmlrpc_hacks(None)
         requested_item_dict = requested_item.to_dict(resolved=resolved)
@@ -1133,7 +1137,7 @@ class CobblerXMLRPCInterface:
 
     def get_distro(
         self,
-        name: str,
+        object_id: str,
         flatten: bool = False,
         resolved: bool = False,
         token: Optional[str] = None,
@@ -1142,7 +1146,7 @@ class CobblerXMLRPCInterface:
         """
         Get a distribution.
 
-        :param name: The name of the distribution to get.
+        :param object_id: The id of the distribution to get.
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
@@ -1151,12 +1155,12 @@ class CobblerXMLRPCInterface:
         :return: The item or None.
         """
         return self.get_item(
-            "distro", name, flatten=flatten, resolved=resolved, token=token
+            "distro", object_id, flatten=flatten, resolved=resolved, token=token
         )
 
     def get_profile(
         self,
-        name: str,
+        object_id: str,
         flatten: bool = False,
         resolved: bool = False,
         token: Optional[str] = None,
@@ -1165,7 +1169,7 @@ class CobblerXMLRPCInterface:
         """
         Get a profile.
 
-        :param name: The name of the profile to get.
+        :param object_id: The id of the profile to get.
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
@@ -1174,12 +1178,12 @@ class CobblerXMLRPCInterface:
         :return: The item or None.
         """
         return self.get_item(
-            "profile", name, flatten=flatten, resolved=resolved, token=token
+            "profile", object_id, flatten=flatten, resolved=resolved, token=token
         )
 
     def get_system(
         self,
-        name: str,
+        object_id: str,
         flatten: bool = False,
         resolved: bool = False,
         token: Optional[str] = None,
@@ -1188,7 +1192,7 @@ class CobblerXMLRPCInterface:
         """
         Get a system.
 
-        :param name: The name of the system to get.
+        :param object_id: The id of the system to get.
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
@@ -1197,12 +1201,12 @@ class CobblerXMLRPCInterface:
         :return: The item or None.
         """
         return self.get_item(
-            "system", name, flatten=flatten, resolved=resolved, token=token
+            "system", object_id, flatten=flatten, resolved=resolved, token=token
         )
 
     def get_repo(
         self,
-        name: str,
+        object_id: str,
         flatten: bool = False,
         resolved: bool = False,
         token: Optional[str] = None,
@@ -1211,7 +1215,7 @@ class CobblerXMLRPCInterface:
         """
         Get a repository.
 
-        :param name: The name of the repository to get.
+        :param object_id: The id of the repository to get.
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
@@ -1220,12 +1224,12 @@ class CobblerXMLRPCInterface:
         :return: The item or None.
         """
         return self.get_item(
-            "repo", name, flatten=flatten, resolved=resolved, token=token
+            "repo", object_id, flatten=flatten, resolved=resolved, token=token
         )
 
     def get_image(
         self,
-        name: str,
+        object_id: str,
         flatten: bool = False,
         resolved: bool = False,
         token: Optional[str] = None,
@@ -1234,7 +1238,7 @@ class CobblerXMLRPCInterface:
         """
         Get an image.
 
-        :param name: The name of the image to get.
+        :param object_id: The id of the image to get.
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
@@ -1243,12 +1247,12 @@ class CobblerXMLRPCInterface:
         :return: The item or None.
         """
         return self.get_item(
-            "image", name, flatten=flatten, resolved=resolved, token=token
+            "image", object_id, flatten=flatten, resolved=resolved, token=token
         )
 
     def get_menu(
         self,
-        name: str,
+        object_id: str,
         flatten: bool = False,
         resolved: bool = False,
         token: Optional[str] = None,
@@ -1257,7 +1261,7 @@ class CobblerXMLRPCInterface:
         """
         Get a menu.
 
-        :param name: The name of the file to get.
+        :param object_id: The id of the menu to get.
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
@@ -1266,12 +1270,12 @@ class CobblerXMLRPCInterface:
         :return: The item or None.
         """
         return self.get_item(
-            "menu", name, flatten=flatten, resolved=resolved, token=token
+            "menu", object_id, flatten=flatten, resolved=resolved, token=token
         )
 
     def get_network_interface(
         self,
-        name: str,
+        object_id: str,
         flatten: bool = False,
         resolved: bool = False,
         token: Optional[str] = None,
@@ -1280,7 +1284,7 @@ class CobblerXMLRPCInterface:
         """
         Get a network interface.
 
-        :param name: The name of the network interface to get.
+        :param object_id: The id of the network interface to get.
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
@@ -1289,12 +1293,16 @@ class CobblerXMLRPCInterface:
         :return: The item or None.
         """
         return self.get_item(
-            "network_interface", name, flatten=flatten, resolved=resolved, token=token
+            "network_interface",
+            object_id,
+            flatten=flatten,
+            resolved=resolved,
+            token=token,
         )
 
     def get_template(
         self,
-        name: str,
+        object_id: str,
         flatten: bool = False,
         resolved: bool = False,
         token: Optional[str] = None,
@@ -1303,7 +1311,7 @@ class CobblerXMLRPCInterface:
         """
         Get a template.
 
-        :param name: The name of the template to get.
+        :param object_id: The id of the template to get.
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
@@ -1312,12 +1320,12 @@ class CobblerXMLRPCInterface:
         :return: The item or None.
         """
         return self.get_item(
-            "template", name, flatten=flatten, resolved=resolved, token=token
+            "template", object_id, flatten=flatten, resolved=resolved, token=token
         )
 
     def get_distro_group(
         self,
-        name: str,
+        object_id: str,
         flatten: bool = False,
         resolved: bool = False,
         token: Optional[str] = None,
@@ -1326,7 +1334,7 @@ class CobblerXMLRPCInterface:
         """
         Get a distro group.
 
-        :param name: The name of the distro group to get.
+        :param object_id: The id of the distro group to get.
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
@@ -1335,12 +1343,12 @@ class CobblerXMLRPCInterface:
         :return: The item or None.
         """
         return self.get_item(
-            "distro_group", name, flatten=flatten, resolved=resolved, token=token
+            "distro_group", object_id, flatten=flatten, resolved=resolved, token=token
         )
 
     def get_profile_group(
         self,
-        name: str,
+        object_id: str,
         flatten: bool = False,
         resolved: bool = False,
         token: Optional[str] = None,
@@ -1349,7 +1357,7 @@ class CobblerXMLRPCInterface:
         """
         Get a profile group.
 
-        :param name: The name of the profile group to get.
+        :param object_id: The id of the profile group to get.
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
@@ -1358,12 +1366,16 @@ class CobblerXMLRPCInterface:
         :return: The item or None.
         """
         return self.get_item(
-            "profile_group", name, flatten=flatten, resolved=resolved, token=token
+            "profile_group",
+            object_id,
+            flatten=flatten,
+            resolved=resolved,
+            token=token,
         )
 
     def get_system_group(
         self,
-        name: str,
+        object_id: str,
         flatten: bool = False,
         resolved: bool = False,
         token: Optional[str] = None,
@@ -1372,7 +1384,7 @@ class CobblerXMLRPCInterface:
         """
         Get a system group.
 
-        :param name: The name of the system group to get.
+        :param object_id: The id of the system group to get.
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
@@ -1381,7 +1393,7 @@ class CobblerXMLRPCInterface:
         :return: The item or None.
         """
         return self.get_item(
-            "system_group", name, flatten=flatten, resolved=resolved, token=token
+            "system_group", object_id, flatten=flatten, resolved=resolved, token=token
         )
 
     def get_template_content(self, uid: str, token: Optional[str] = None) -> str:

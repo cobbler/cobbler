@@ -47,7 +47,7 @@ class TestImage:
         test_image = create_image()
 
         # Act
-        result_image = remote.get_image(test_image.name)
+        result_image = remote.get_image(test_image.uid)
 
         # Assert
         assert result_image.get("name") == test_image.name  # type: ignore[reportUnknownMemberType]

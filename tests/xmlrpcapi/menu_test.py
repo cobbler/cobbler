@@ -93,7 +93,8 @@ class TestMenu:
         # Arrange --> Done in fixture
 
         # Act
-        menu = remote.get_menu("testmenu0")
+        menu_uid = remote.get_menu_handle("testmenu0")
+        menu = remote.get_menu(menu_uid)
 
         # Assert
         assert menu.get("name") == "testmenu0"  # type: ignore[reportUnknownMemberType]

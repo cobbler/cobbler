@@ -436,9 +436,13 @@ def test_metadata_cache_reuses_lookup_within_ttl(
     root_b.mkdir()
     (root_b / "f.txt").write_text("b")
 
-    def fake_get_distro(name: str) -> Dict[str, Any]:
-        return _distro_dict(str(root_a) if name == "distro-a" else str(root_b))
+    def fake_get_distro(handle: str) -> Dict[str, Any]:
+        return _distro_dict(str(root_a) if handle == "distro-a" else str(root_b))
 
+    def fake_get_distro_handle(name: str) -> str:
+        return name
+
+    stub_remote.get_distro_handle.side_effect = fake_get_distro_handle
     stub_remote.get_distro.side_effect = fake_get_distro
 
     resp1, body1 = _call(_environ("/tree/distro-a/f.txt"))

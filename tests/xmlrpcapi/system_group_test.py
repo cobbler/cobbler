@@ -45,7 +45,7 @@ def test_modify_save_and_get_system_group(remote: CobblerXMLRPCInterface, token:
     remote.save_system_group(handle, True, True, "new", token)
 
     # Act
-    group = remote.get_system_group("test_system_group", token=token)
+    group = remote.get_system_group(handle, token=token)
 
     # Assert
     assert group is not None
@@ -130,7 +130,7 @@ def test_remove_system_group(remote: CobblerXMLRPCInterface, token: str):
 
     # Assert
     assert result is True
-    group = remote.get_system_group("test_system_group_to_remove", token=token)
+    group = remote.get_system_group(handle, token=token)
     assert group == "~"
 
 

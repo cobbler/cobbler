@@ -45,7 +45,7 @@ def test_modify_save_and_get_profile_group(remote: CobblerXMLRPCInterface, token
     remote.save_profile_group(handle, True, True, "new", token)
 
     # Act
-    group = remote.get_profile_group("test_profile_group", token=token)
+    group = remote.get_profile_group(handle, token=token)
 
     # Assert
     assert group is not None
@@ -130,7 +130,7 @@ def test_remove_profile_group(remote: CobblerXMLRPCInterface, token: str):
 
     # Assert
     assert result is True
-    group = remote.get_profile_group("test_profile_group_to_remove", token=token)
+    group = remote.get_profile_group(handle, token=token)
     assert group == "~"
 
 

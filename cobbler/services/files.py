@@ -103,7 +103,8 @@ def resolve_source_tree_path(distro_name: str) -> Optional[str]:
 
     remote = _build_remote()
     try:
-        data = remote.get_distro(distro_name)
+        distro_handle = remote.get_distro_handle(distro_name)
+        data = remote.get_distro(distro_handle)
     except (xmlrpc.client.Fault, xmlrpc.client.ProtocolError, OSError):
         data = None
 
