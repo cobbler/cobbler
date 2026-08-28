@@ -666,11 +666,9 @@ class NetworkInterface(BaseItem):
         """
         Return the system the network interface belongs to.
         """
-        result = self.api.find_system(name=self._system_uid, return_list=False)
+        result = self.api.systems().listing.get(self._system_uid)
         if result is None:
             raise ValueError(
                 f"System ({self._system_uid}) associated with interface ({self.uid}) not present!"
             )
-        if isinstance(result, list):
-            raise TypeError("Result must be a single item!")
         return result
