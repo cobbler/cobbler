@@ -3688,11 +3688,10 @@ class CobblerXMLRPCInterface:
 
         .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.dump_vars`
         """
-        obj = self.api.find_items(
-            "", {"uid": item_uuid}, return_list=False, no_errors=True
-        )
-        if obj is None or isinstance(obj, list):
-            raise ValueError(f'Item with uuid "{item_uuid}" does not exist!')
+        try:
+            obj = cast(item.BootableItem, self.__get_object(item_uuid))
+        except ValueError as error:
+            raise ValueError(f'Item with uuid "{item_uuid}" does not exist!') from error
         result = self.api.dump_vars(obj, formatted_output, remove_dicts)
         self._log(str(result))
         return result
