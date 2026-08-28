@@ -3783,76 +3783,76 @@ class CobblerXMLRPCInterface:
         return self.xmlrpc_hacks(results)  # type: ignore
 
     def get_valid_distro_boot_loaders(
-        self, distro_name: Optional[str], token: Optional[str] = None
+        self, distro_uid: Optional[str], token: Optional[str] = None
     ) -> List[str]:
         """
         Return the list of valid boot loaders for the distro
 
         :param token: The API-token obtained via the login() method.
-        :param distro_name: The name of the distro for which the boot loaders should be looked up.
+        :param distro_uid: The id of the distro for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.
         """
         self._log("get_valid_distro_boot_loaders", token=token)
-        if distro_name is None:
+        if distro_uid is None:
             return [value.value for value in utils.get_supported_system_boot_loaders()]
-        obj = self.api.find_distro(name=distro_name)
+        obj = self.api.find_distro(uid=distro_uid)
         if obj is None or isinstance(obj, list):
-            return [f"# object not found: {distro_name}"]
+            return [f"# object not found: {distro_uid}"]
         return [value.value for value in self.api.get_valid_obj_boot_loaders(obj)]  # type: ignore[arg-type]
 
     def get_valid_image_boot_loaders(
-        self, image_name: Optional[str], token: Optional[str] = None
+        self, image_uid: Optional[str], token: Optional[str] = None
     ) -> List[str]:
         """
         Return the list of valid boot loaders for the image
 
         :param token: The API-token obtained via the login() method.
-        :param image_name: The name of the image for which the boot loaders should be looked up.
+        :param image_uid: The id of the image for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.
         """
         self._log("get_valid_image_boot_loaders", token=token)
-        if image_name is None:
+        if image_uid is None:
             return [value.value for value in utils.get_supported_system_boot_loaders()]
-        obj = self.api.find_image(name=image_name)
+        obj = self.api.find_image(uid=image_uid)
         if obj is None:
-            return [f"# object not found: {image_name}"]
+            return [f"# object not found: {image_uid}"]
         return [value.value for value in self.api.get_valid_obj_boot_loaders(obj)]  # type: ignore[arg-type]
 
     def get_valid_profile_boot_loaders(
-        self, profile_name: Optional[str], token: Optional[str] = None
+        self, profile_uid: Optional[str], token: Optional[str] = None
     ) -> List[str]:
         """
         Return the list of valid boot loaders for the profile
 
         :param token: The API-token obtained via the login() method.
-        :param profile_name: The name of the profile for which the boot loaders should be looked up.
+        :param profile_uid: The id of the profile for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.
         """
         self._log("get_valid_profile_boot_loaders", token=token)
-        if profile_name is None:
+        if profile_uid is None:
             return [value.value for value in utils.get_supported_system_boot_loaders()]
-        obj = self.api.find_profile(name=profile_name)
+        obj = self.api.find_profile(uid=profile_uid)
         if obj is None or isinstance(obj, list):
-            return [f"# object not found: {profile_name}"]
+            return [f"# object not found: {profile_uid}"]
         distro = obj.get_conceptual_parent()
         return [value.value for value in self.api.get_valid_obj_boot_loaders(distro)]  # type: ignore[arg-type]
 
     def get_valid_system_boot_loaders(
-        self, system_name: Optional[str], token: Optional[str] = None
+        self, system_uid: Optional[str], token: Optional[str] = None
     ) -> List[str]:
         """
         Return the list of valid boot loaders for the system
 
         :param token: The API-token obtained via the login() method.
-        :param system_name: The name of the system for which the boot loaders should be looked up.
+        :param system_uid: The id of the system for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.get_valid_archs
         """
         self._log("get_valid_system_boot_loaders", token=token)
-        if system_name is None:
+        if system_uid is None:
             return [value.value for value in utils.get_supported_system_boot_loaders()]
-        obj = self.api.find_system(name=system_name)
+        obj = self.api.find_system(uid=system_uid)
         if obj is None or isinstance(obj, list):
-            return [f"# object not found: {system_name}"]
+            return [f"# object not found: {system_uid}"]
         parent = obj.get_conceptual_parent()
 
         if parent and parent.COLLECTION_TYPE == "profile":  # type: ignore[reportUnnecessaryComparison]

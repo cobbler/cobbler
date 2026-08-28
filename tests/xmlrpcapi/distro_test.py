@@ -215,3 +215,46 @@ def test_remove_distro(
 
     # Assert
     assert result
+
+
+def test_get_valid_distro_boot_loaders(
+    request: "pytest.FixtureRequest",
+    create_kernel_initrd: Callable[[str, str], str],
+    fk_kernel: str,
+    fk_initrd: str,
+    create_distro: Callable[[str, str, str, str, str], str],
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: get the valid boot loaders for a distro
+    """
+    # Arrange
+    distro_name = (  # type: ignore
+        request.node.originalname if request.node.originalname else request.node.name  # type: ignore
+    )
+    folder = create_kernel_initrd(fk_kernel, fk_initrd)
+    kernel_path = os.path.join(folder, fk_kernel)
+    initrd_path = os.path.join(folder, fk_initrd)
+    distro_uid = create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
+
+    # Act
+    result = remote.get_valid_distro_boot_loaders(distro_uid, token)
+
+    # Assert
+    assert isinstance(result, list)
+    assert result != []
+
+
+def test_get_valid_distro_boot_loaders_no_distro(
+    remote: CobblerXMLRPCInterface, token: str
+):
+    """
+    Test: get the valid boot loaders when no distro id is given returns all supported boot loaders
+    """
+    # Act
+    result = remote.get_valid_distro_boot_loaders(None, token)
+
+    # Assert
+    assert isinstance(result, list)
+    assert result != []

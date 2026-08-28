@@ -249,6 +249,59 @@ def test_remove_system(
     assert result
 
 
+def test_get_valid_system_boot_loaders(
+    request: "pytest.FixtureRequest",
+    create_kernel_initrd: Callable[[str, str], str],
+    fk_kernel: str,
+    fk_initrd: str,
+    create_distro: Callable[[str, str, str, str, str], str],
+    create_profile: Callable[[str, str, str], str],
+    create_system: Callable[[str, str], str],
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: get the valid boot loaders for a system
+    """
+    # Arrange
+    distro_name = (  # type: ignore
+        request.node.originalname if request.node.originalname else request.node.name  # type: ignore
+    )
+    profile_name = (  # type: ignore
+        request.node.originalname if request.node.originalname else request.node.name  # type: ignore
+    )
+    system_name = (  # type: ignore
+        request.node.originalname if request.node.originalname else request.node.name  # type: ignore
+    )
+    folder = create_kernel_initrd(fk_kernel, fk_initrd)
+    kernel_path = os.path.join(folder, fk_kernel)
+    initrd_path = os.path.join(folder, fk_initrd)
+    distro_handle = create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
+    profile_handle = create_profile(profile_name, distro_handle, "")  # type: ignore
+    system_handle = create_system(system_name, profile_handle)  # type: ignore
+
+    # Act
+    result = remote.get_valid_system_boot_loaders(system_handle, token)  # type: ignore
+
+    # Assert
+    assert isinstance(result, list)
+    assert result != []
+
+
+def test_get_valid_system_boot_loaders_no_system(
+    remote: CobblerXMLRPCInterface, token: str
+):
+    """
+    Test: get the valid boot loaders when no system id is given returns all supported boot loaders
+    """
+    # Act
+    result = remote.get_valid_system_boot_loaders(None, token)
+
+    # Assert
+    assert isinstance(result, list)
+    assert result != []
+
+
 def test_get_repo_config_for_system(remote: CobblerXMLRPCInterface):
     """
     Test: get repository configuration of a system

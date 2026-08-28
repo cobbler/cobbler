@@ -126,3 +126,35 @@ class TestImage:
 
         # Assert
         assert result
+
+    def test_get_valid_image_boot_loaders(
+        self,
+        remote: CobblerXMLRPCInterface,
+        token: str,
+        create_image: Callable[[], Image],
+    ):
+        """
+        Test: get the valid boot loaders for an image
+        """
+        # Arrange
+        test_image = create_image()
+
+        # Act
+        result = remote.get_valid_image_boot_loaders(test_image.uid, token)
+
+        # Assert
+        assert isinstance(result, list)
+        assert result != []
+
+    def test_get_valid_image_boot_loaders_no_image(
+        self, remote: CobblerXMLRPCInterface, token: str
+    ):
+        """
+        Test: get the valid boot loaders when no image id is given returns all supported boot loaders
+        """
+        # Act
+        result = remote.get_valid_image_boot_loaders(None, token)
+
+        # Assert
+        assert isinstance(result, list)
+        assert result != []
