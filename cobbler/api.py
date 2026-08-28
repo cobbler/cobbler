@@ -2846,20 +2846,23 @@ class CobblerAPI:
     # ==========================================================================
 
     def reposync(
-        self, name: Optional[str] = None, tries: int = 1, nofail: bool = False
+        self,
+        repo_obj: Optional["repo.Repo"] = None,
+        tries: int = 1,
+        nofail: bool = False,
     ) -> None:
         """
         Take the contents of ``/var/lib/cobbler/repos`` and update them -- or create the initial copy if no contents
         exist yet.
 
-        :param name: The name of the repository to run reposync for.
+        :param repo_obj: The repository to run reposync for.
         :param tries: How many tries should be executed before the action fails.
         :param nofail: If True then the action will fail, otherwise the action will just be skipped. This respects the
                        ``tries`` parameter.
         """
-        self.log("reposync", [name])
+        self.log("reposync", [repo_obj.name if repo_obj else None])
         action_reposync = reposync.RepoSync(self, tries=tries, nofail=nofail)
-        action_reposync.run(name)
+        action_reposync.run(repo_obj)
 
     # ==========================================================================
 

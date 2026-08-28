@@ -143,6 +143,65 @@ def test_run(mocker: "MockerFixture", reposync_object: reposync.RepoSync, repo: 
     assert len(env_vars) == 0
 
 
+def test_run_single_repo(
+    mocker: "MockerFixture", reposync_object: reposync.RepoSync, repo: Repo
+):
+    # Arrange
+    env_vars: Dict[str, Any] = {}
+    other_repo = Repo(reposync_object.api)
+    other_repo.name = "other_repo"
+    mocker.patch("os.makedirs")
+    mocker.patch("os.path.isdir", return_value=True)
+    mocker.patch(
+        "os.path.join",
+        side_effect=[
+            "/srv/www/cobbler/repo_mirror",
+            "/srv/www/cobbler/repo_mirror/%s" % repo.name,
+        ],
+    )
+    mocker.patch("os.environ", return_value=env_vars)
+    sync_mock = mocker.patch.object(reposync_object, "sync")
+    mocker.patch.object(reposync_object, "update_permissions")
+    reposync_object.repos = [other_repo, repo]  # type: ignore
+
+    # Act
+    reposync_object.run(repo)
+
+    # Assert
+    # Only the given repo is synced, the rest of self.repos is not consulted.
+    sync_mock.assert_called_once_with(repo)
+    # This has to be 0 since all env vars need to be removed after reposync has run.
+    assert len(env_vars) == 0
+
+
+def test_run_single_repo_nofail_reports_overall_failure(
+    mocker: "MockerFixture", reposync_object: reposync.RepoSync, repo: Repo
+):
+    """
+    A single-repo run that fails with nofail=True must still raise the "overall reposync failed" error, matching
+    the behavior of an all-repos run with at least one failure -- not just log-and-swallow the failure.
+    """
+    # Arrange
+    env_vars: Dict[str, Any] = {}
+    reposync_object.nofail = True
+    mocker.patch("os.makedirs")
+    mocker.patch("os.path.isdir", return_value=True)
+    mocker.patch(
+        "os.path.join",
+        side_effect=[
+            "/srv/www/cobbler/repo_mirror",
+            "/srv/www/cobbler/repo_mirror/%s" % repo.name,
+        ],
+    )
+    mocker.patch("os.environ", return_value=env_vars)
+    mocker.patch.object(reposync_object, "sync", side_effect=Exception("boom"))
+    mocker.patch.object(reposync_object, "update_permissions")
+
+    # Act & Assert
+    with pytest.raises(cexceptions.CX, match="overall reposync failed"):
+        reposync_object.run(repo)
+
+
 def test_gen_urlgrab_ssl_opts(reposync_object: reposync.RepoSync):
     # Arrange
     input_dict: Dict[str, Any] = {}

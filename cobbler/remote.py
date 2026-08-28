@@ -486,7 +486,8 @@ class CobblerXMLRPCInterface:
         """
         Run a reposync in the background.
 
-        :param options: Not known what this parameter does.
+        :param options: A dict with a "repos" key (list of repo uids) or an "only" key (a single repo uid), and
+                         optional "tries"/"nofail" keys.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
@@ -496,20 +497,26 @@ class CobblerXMLRPCInterface:
             if isinstance(self.options, list):
                 raise ValueError("options for background_reposync need to be dict!")
 
-            repos = options.get("repos", [])
+            repo_uids = options.get("repos", [])
             only = options.get("only", None)
             if only is not None:
-                repos = [only]
-            nofail = options.get("nofail", len(repos) > 0)
+                repo_uids = [only]
+            nofail = options.get("nofail", len(repo_uids) > 0)
 
-            if len(repos) > 0:
-                for name in repos:
+            if len(repo_uids) > 0:
+                for repo_uid in repo_uids:
+                    repo_obj = self.remote.api.find_repo(uid=repo_uid)
+                    if repo_obj is None or isinstance(repo_obj, list):
+                        self.logger.warning('"%s" is not a valid repo uid', repo_uid)
+                        continue
                     self.remote.api.reposync(
-                        tries=self.options.get("tries", 3), name=name, nofail=nofail
+                        tries=self.options.get("tries", 3),
+                        repo_obj=repo_obj,
+                        nofail=nofail,
                     )
             else:
                 self.remote.api.reposync(
-                    tries=self.options.get("tries", 3), name=None, nofail=nofail
+                    tries=self.options.get("tries", 3), repo_obj=None, nofail=nofail
                 )
 
         return self.__start_task(runner, token, "reposync", "Reposync", options)
