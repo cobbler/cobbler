@@ -1040,6 +1040,13 @@ class CobblerXMLRPCInterface:
     ) -> Union[str, int, float, List[Any], Dict[Any, Any]]:
         """
         .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.get_item_resolved_value`
+
+        .. note:: Unlike ``get_item``/``modify_item``/etc., this does not resolve ``item_uuid`` through
+                  ``__get_object`` and therefore does not see transaction-local or not-yet-saved items. That
+                  resolution happens inside ``CobblerAPI.get_item_resolved_value``, a public, uuid-based entry point
+                  meant for any Python caller, not just this XML-RPC session -- it cannot be made aware of this
+                  class's transaction/``unsaved_items`` cache without leaking that XML-RPC-only concept into the
+                  general Python API.
         """
         self._log(
             f"get_item_resolved_value({item_uuid})", attribute=".".join(attribute)
@@ -1108,6 +1115,9 @@ class CobblerXMLRPCInterface:
     ) -> bool:
         """
         .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.set_item_resolved_value`
+
+        .. note:: See the note on ``get_item_resolved_value`` above -- this does not resolve ``item_uuid`` through
+                  ``__get_object`` for the same reason.
         """
         self._log(
             f"get_item_resolved_value({item_uuid})", attribute=".".join(attribute)
