@@ -21,10 +21,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import bz2
 import glob
 import gzip
+import logging
+import lzma
 import re
 import time
+
+LOGGER = logging.getLogger(__name__)
 
 # ARRAY INDEXES
 MOST_RECENT_START = 0
@@ -51,6 +56,24 @@ class CobblerStatusReport:
 
     # -------------------------------------------------------
 
+    @staticmethod
+    def _open_logfile(filename: str):
+        """
+        Open a Cobbler installation log file with the appropriate decompressor.
+
+        :param filename: Path to the log file.
+        :return: File object opened in text mode.
+        """
+        encoding = "utf-8"
+        errors = "replace"
+        if filename.endswith(".gz"):
+            return gzip.open(filename, mode="rt", encoding=encoding, errors=errors)
+        if filename.endswith(".bz2"):
+            return bz2.open(filename, mode="rt", encoding=encoding, errors=errors)
+        if filename.endswith(".xz") or filename.endswith(".lzma"):
+            return lzma.open(filename, mode="rt", encoding=encoding, errors=errors)
+        return open(filename, mode="r", encoding=encoding, errors=errors)
+
     def scan_logfiles(self):
         """
         Scan the install log-files - starting with the oldest file.
@@ -71,18 +94,20 @@ class CobblerStatusReport:
             files.append('/var/log/cobbler/install.log')
 
         for fname in files:
-            if fname.endswith('.gz'):
-                fd = gzip.open(fname)
-            else:
-                fd = open(fname)
-            data = fd.read()
+            try:
+                with self._open_logfile(fname) as fd:
+                    data = fd.read()
+            except (OSError, UnicodeError, lzma.LZMAError) as error:
+                LOGGER.warning(
+                    "Skipping unreadable Cobbler log %s: %s", fname, error
+                )
+                continue
             for line in data.split("\n"):
                 tokens = line.split()
                 if len(tokens) == 0:
                     continue
                 (profile_or_system, name, ip, start_or_stop, ts) = tokens
                 self.catalog(profile_or_system, name, ip, start_or_stop, ts)
-            fd.close()
 
     # ------------------------------------------------------
 
