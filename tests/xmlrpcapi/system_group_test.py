@@ -162,7 +162,7 @@ def test_get_system_group_as_rendered(remote: CobblerXMLRPCInterface, token: str
     remote.save_system_group(handle, True, True, "new", token)
 
     # Act
-    result = remote.get_system_group_as_rendered("test_system_group", token)
+    result = remote.get_system_group_as_rendered(handle, token)
 
     # Assert
     assert result is not None

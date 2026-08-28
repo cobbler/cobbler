@@ -4475,58 +4475,58 @@ class CobblerXMLRPCInterface:
         system = self.api.find_system(dns_name=dns_name)
         if system is None or isinstance(system, list):
             return {}
-        return self.get_system_as_rendered(system.name)  # type: ignore
+        return self.get_system_as_rendered(system.uid)  # type: ignore
 
     def get_distro_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get distribution after passing through Cobbler's inheritance engine.
 
-        :param name: distro name
+        :param object_id: The id of the distro to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a distribution.
         """
 
-        self._log("get_distro_as_rendered", name=name, token=token)
-        obj = self.api.find_distro(name=name)
+        self._log("get_distro_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_distro(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
     def get_profile_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get profile after passing through Cobbler's inheritance engine.
 
-        :param name: profile name
+        :param object_id: The id of the profile to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a profile.
         """
 
-        self._log("get_profile_as_rendered", name=name, token=token)
-        obj = self.api.find_profile(name=name)
+        self._log("get_profile_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_profile(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
     def get_system_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get profile after passing through Cobbler's inheritance engine.
 
-        :param name: system name
+        :param object_id: The id of the system to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a system.
         """
 
-        self._log("get_system_as_rendered", name=name, token=token)
-        obj = self.api.find_system(name=name)
+        self._log("get_system_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_system(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             _dict = utils.blender(self.api, True, obj)
             # Generate a pxelinux.cfg?
@@ -4557,109 +4557,109 @@ class CobblerXMLRPCInterface:
         return self.xmlrpc_hacks({})
 
     def get_repo_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get repository after passing through Cobbler's inheritance engine.
 
-        :param name: repository name
+        :param object_id: The id of the repository to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a repository.
         """
 
-        self._log("get_repo_as_rendered", name=name, token=token)
-        obj = self.api.find_repo(name=name)
+        self._log("get_repo_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_repo(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
     def get_image_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get repository after passing through Cobbler's inheritance engine.
 
-        :param name: image name
+        :param object_id: The id of the image to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as an image.
         """
 
-        self._log("get_image_as_rendered", name=name, token=token)
-        obj = self.api.find_image(name=name)
+        self._log("get_image_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_image(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
     def get_menu_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get menu after passing through Cobbler's inheritance engine
 
-        :param name: Menu name
+        :param object_id: The id of the menu to get.
         :param token: Authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a file.
         """
 
-        self._log("get_menu_as_rendered", name=name, token=token)
-        obj = self.api.find_menu(name=name)
+        self._log("get_menu_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_menu(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
     def get_distro_group_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get distro group after passing through Cobbler's inheritance engine
 
-        :param name: DistroGroup name
+        :param object_id: The id of the DistroGroup to get.
         :param token: Authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a file.
         """
 
-        self._log("get_distro_group_as_rendered", name=name, token=token)
-        obj = self.api.find_distro_group(name=name)
+        self._log("get_distro_group_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_distro_group(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
         return self.xmlrpc_hacks({})
 
     def get_profile_group_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get profile group after passing through Cobbler's inheritance engine
 
-        :param name: ProfileGroup name
+        :param object_id: The id of the ProfileGroup to get.
         :param token: Authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a file.
         """
 
-        self._log("get_profile_group_as_rendered", name=name, token=token)
-        obj = self.api.find_profile_group(name=name)
+        self._log("get_profile_group_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_profile_group(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
         return self.xmlrpc_hacks({})
 
     def get_system_group_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get system group after passing through Cobbler's inheritance engine
 
-        :param name: SystemGroup name
+        :param object_id: The id of the SystemGroup to get.
         :param token: Authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a file.
         """
 
-        self._log("get_system_group_as_rendered", name=name, token=token)
-        obj = self.api.find_system_group(name=name)
+        self._log("get_system_group_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_system_group(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
         return self.xmlrpc_hacks({})

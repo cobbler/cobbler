@@ -221,10 +221,10 @@ def test_get_item_as_rendered(
     path_kernel = os.path.join(basepath, fk_kernel)
     path_initrd = os.path.join(basepath, fk_initrd)
     name = "test_item_as_rendered"
-    create_distro(name, "x86_64", "suse", path_kernel, path_initrd)
+    distro_uid = create_distro(name, "x86_64", "suse", path_kernel, path_initrd)
 
     # Act
-    result = remote.get_distro_as_rendered(name, token)
+    result = remote.get_distro_as_rendered(distro_uid, token)
 
     # Assert
     assert result
