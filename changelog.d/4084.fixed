@@ -1,1 +1,0 @@
-Fix UnicodeDecodeError in `cobbler status` when reading rotated/compressed install logs

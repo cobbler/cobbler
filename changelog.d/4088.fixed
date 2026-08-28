@@ -1,1 +1,0 @@
-Add missing root=live: kernel parameter for Agama PXE installs so the installer can find its live media over the network

@@ -1,1 +1,0 @@
-Fix crash while writing the bind reverse zone when a host's IPv6 address contains a non-numeric hex character
