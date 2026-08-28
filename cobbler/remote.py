@@ -483,7 +483,7 @@ class CobblerXMLRPCInterface:
         """
         Power a system asynchronously in the background.
 
-        :param options: Not known what this parameter does.
+        :param options: A dict with a "systems" key (list of system uids) and a "power" key (on/off/status/reboot).
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
@@ -492,17 +492,17 @@ class CobblerXMLRPCInterface:
             if isinstance(self.options, list):
                 raise ValueError("options for background_power_system need to be dict!")
 
-            for system_name in self.options.get("systems", []):
+            for system_uid in self.options.get("systems", []):
                 try:
-                    system_obj = self.remote.api.find_system(name=system_name)
+                    system_obj = self.remote.api.find_system(uid=system_uid)
                     if system_obj is None or isinstance(system_obj, list):
-                        raise ValueError(f'System with name "{system_name}" not found')
+                        raise ValueError(f'System with uid "{system_uid}" not found')
                     self.remote.api.power_system(
                         system_obj, self.options.get("power", "")
                     )
                 except Exception as error:
                     self.logger.warning(
-                        f"failed to execute power task on {str(system_name)}, exception: {str(error)}"
+                        f"failed to execute power task on {str(system_uid)}, exception: {str(error)}"
                     )
 
         self.check_access(token, "power_system")
