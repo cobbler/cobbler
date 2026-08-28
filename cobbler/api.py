@@ -3052,10 +3052,10 @@ class CobblerAPI:
     def build_iso(
         self,
         iso: str = "autoinst.iso",
-        profiles: Optional[List[str]] = None,
-        systems: Optional[List[str]] = None,
+        profiles: Optional[List["profile_module.Profile"]] = None,
+        systems: Optional[List["system_module.System"]] = None,
         buildisodir: str = "",
-        distro_name: Optional[str] = None,
+        distro: Optional["distro.Distro"] = None,
         standalone: bool = False,
         airgapped: bool = False,
         source: str = "",
@@ -3071,7 +3071,7 @@ class CobblerAPI:
         :param profiles: Use these profiles only
         :param systems: Use these systems only
         :param buildisodir: This overwrites the directory from the settings in which the iso is built in.
-        :param distro_name: Use this distro architecture. If not used, autodetected from profiles or systems.
+        :param distro: Use this distro architecture. If not used, autodetected from profiles or systems.
         :param standalone: This means that no network connection is needed to install the generated iso.
         :param airgapped: This option implies ``standalone=True``.
         :param source: If the iso should be offline available this is the path to the sources of the image.
@@ -3094,7 +3094,7 @@ class CobblerAPI:
             buildisodir=buildisodir,
             profiles=profiles,
             xorrisofs_opts=xorrisofs_opts,
-            distro_name=distro_name,
+            distro=distro,
             airgapped=airgapped,
             source=source,
             systems=systems,

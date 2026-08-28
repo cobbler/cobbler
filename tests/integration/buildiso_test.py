@@ -143,10 +143,11 @@ def test_buildiso_integration(
     # Act
     iso_path = str(tmp_path / "autoinst.iso")
     if flavor == "airgapped":
+        distro_uid = remote.get_distro_handle("leap-x86_64")
         tid = remote.background_buildiso(
             {
                 "airgapped": True,
-                "distro": "leap-x86_64",
+                "distro": distro_uid,
                 "source": str(mount_point),
                 "buildisodir": "/var/cache/cobbler/buildiso",
                 "iso": iso_path,
@@ -154,10 +155,11 @@ def test_buildiso_integration(
             token,
         )
     elif flavor == "full":
+        distro_uid = remote.get_distro_handle("leap-x86_64")
         tid = remote.background_buildiso(
             {
                 "standalone": True,
-                "distro": "leap-x86_64",
+                "distro": distro_uid,
                 "source": str(mount_point),
                 "buildisodir": "/var/cache/cobbler/buildiso",
                 "iso": iso_path,
@@ -165,9 +167,10 @@ def test_buildiso_integration(
             token,
         )
     elif flavor == "net":
+        distro_uid = remote.get_distro_handle("leap-x86_64")
         tid = remote.background_buildiso(
             {
-                "distro": "leap-x86_64",
+                "distro": distro_uid,
                 "buildisodir": "/var/cache/cobbler/buildiso",
                 "iso": iso_path,
             },
@@ -176,19 +179,21 @@ def test_buildiso_integration(
     elif flavor == "non-standard-directory":
         custom_mount_point = pathlib.Path("/var/cache/cobbler/buildiso-test")
         custom_mount_point.mkdir(exist_ok=True)
+        distro_uid = remote.get_distro_handle("leap-x86_64")
         tid = remote.background_buildiso(
             {
-                "distro": "leap-x86_64",
+                "distro": distro_uid,
                 "buildisodir": str(custom_mount_point),
                 "iso": iso_path,
             },
             token,
         )
     elif flavor == "ppc64le":
+        distro_uid = remote.get_distro_handle("leap-ppc64le")
         tid = remote.background_buildiso(
             {
                 "profile": "leap-ppc64le",
-                "distro": "leap-ppc64le",
+                "distro": distro_uid,
                 "source": str(mount_point),
                 "buildisodir": "/var/cache/cobbler/buildiso",
                 "iso": iso_path,

@@ -16,11 +16,10 @@ from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Tuple
 
 from cobbler import enums, utils
 from cobbler.enums import Archs
-from cobbler.utils import filesystem_helpers, input_converters
+from cobbler.utils import filesystem_helpers
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
-    from cobbler.cobbler_collections.collection import ITEM, Collection
     from cobbler.items.distro import Distro
     from cobbler.items.profile import Profile
     from cobbler.items.system import System
@@ -222,21 +221,20 @@ class BuildIso:
         filesystem_helpers.copyfile(str(initrd_source), initrd_dest)
 
     def filter_systems(
-        self, selected_items: Optional[List[str]] = None
+        self, selected_items: Optional[List["System"]] = None
     ) -> List["System"]:
         """
-        Return a list of valid system objects selected from all systems by name, or everything if ``selected_items`` is
-        empty.
+        Return a list of valid system objects, or everything if ``selected_items`` is empty.
 
-        :param selected_items: A list of names to include in the returned list.
-        :return: A list of valid systems. If an error occurred this is logged and an empty list is returned.
+        :param selected_items: The systems to include in the returned list. Everything is returned if empty/None.
+        :return: A list of valid systems.
         """
-        if selected_items is None:
-            selected_items = []
-        found_systems = self.filter_items(self.api.systems(), selected_items)
+        candidates: List["System"] = (
+            list(self.api.systems()) if not selected_items else list(selected_items)
+        )
         # Now filter all systems out that are image based as we don't know about their kernel and initrds
         return_systems: List["System"] = []
-        for system in found_systems:
+        for system in candidates:
             # All systems not underneath a profile should be skipped
             parent_obj = system.get_conceptual_parent()
             if (
@@ -248,87 +246,18 @@ class BuildIso:
         return return_systems
 
     def filter_profiles(
-        self, selected_items: Optional[List[str]] = None
+        self, selected_items: Optional[List["Profile"]] = None
     ) -> List["Profile"]:
         """
-        Return a list of valid profile objects selected from all profiles by name, or everything if ``selected_items``
-        is empty.
-        :param selected_items: A list of names to include in the returned list.
-        :return: A list of valid profiles. If an error occurred this is logged and an empty list is returned.
+        Return a list of valid profile objects, or everything if ``selected_items`` is empty.
+
+        :param selected_items: The profiles to include in the returned list. Everything is returned if empty/None.
+        :return: A list of valid profiles.
         """
-        if selected_items is None:
-            selected_items = []
-        return [
-            profile
-            for profile in self.filter_items(self.api.profiles(), selected_items)
-            if profile.enable_menu
-        ]
-
-    def filter_items(
-        self, all_objs: "Collection[ITEM]", selected_items: List[str]
-    ) -> List["ITEM"]:
-        """Return a list of valid profile or system objects selected from all profiles or systems by name, or everything
-        if selected_items is empty.
-
-        :param all_objs: The collection of items to filter.
-        :param selected_items: The list of names
-        :raises ValueError: Second option that this error is raised
-                            when the list of filtered systems or profiles is empty.
-        :return: A list of valid profiles OR systems. If an error occurred this is logged and an empty list is returned.
-        """
-        # No profiles/systems selection is made, let's return everything.
-        if len(selected_items) == 0:
-            return list(all_objs)
-
-        filtered_objects: List["ITEM"] = []
-        for name in selected_items:
-            item_object = all_objs.find(name=name)
-            if item_object is not None and not isinstance(item_object, list):
-                filtered_objects.append(item_object)
-                selected_items.remove(name)
-
-        for bad_name in selected_items:
-            self.logger.warning('"%s" is not a valid profile or system', bad_name)
-
-        if len(filtered_objects) == 0:
-            raise ValueError("No valid systems or profiles were specified.")
-
-        return filtered_objects
-
-    def parse_distro(self, distro_name: str) -> "Distro":
-        """
-        Find and return distro object.
-
-        :param distro_name: Name of the distribution to parse.
-        :raises ValueError: If the distro is not found.
-        """
-        distro_obj = self.api.find_distro(name=distro_name)
-        if distro_obj is None or isinstance(distro_obj, list):
-            raise ValueError(f"Distribution {distro_name} not found or ambigous.")
-        return distro_obj
-
-    def parse_profiles(
-        self, profiles: Optional[List[str]], distro_obj: "Distro"
-    ) -> List["Profile"]:
-        """
-        Parses and filters profile names for a given distro, ensuring all profiles are valid children of the distro.
-
-        :param profiles: The optional list of profile names. If no list is given, all profiles are used.
-        :param distro_obj: The distro object that acts as the parent.
-        """
-        profile_names = input_converters.input_string_or_list_no_inherit(profiles)
-        if profile_names:
-            orphans = set(profile_names) - set(distro_obj.children)
-            if len(orphans) > 0:
-                raise ValueError(
-                    "When building a standalone ISO, all --profiles must be"
-                    " under --distro. Extra --profiles: {}".format(
-                        ",".join(sorted(str(o for o in orphans)))
-                    )
-                )
-            return self.filter_profiles(profile_names)
-        else:
-            return self.filter_profiles(distro_obj.children)  # type: ignore[reportGeneralTypeIssues,arg-type]
+        candidates: List["Profile"] = (
+            list(self.api.profiles()) if not selected_items else list(selected_items)
+        )
+        return [profile for profile in candidates if profile.enable_menu]
 
     def _copy_isolinux_files(self):
         """
@@ -738,9 +667,9 @@ class BuildIso:
 
     def prepare_sources(
         self,
-        distro_name: Optional[str],
-        profiles: Optional[List[str]],
-        systems: Optional[List[str]],
+        distro: Optional["Distro"],
+        profiles: Optional[List["Profile"]],
+        systems: Optional[List["System"]],
         exclude_systems: bool,
     ) -> Tuple["Distro", List["Profile"], List["System"]]:
         """
@@ -749,30 +678,26 @@ class BuildIso:
         If distro is not provided, it is taken from first profile or system item.
         Profiles and systems are returned either as empty list or list of Profile, resp. System
 
-        :param distro_name: Name of the distribution to use or None
-        :param profiles: List of profile names or None to include all
-        :param systems: List of system names or None to include all
+        :param distro: The distribution to use, or None to autodetect from the given profiles/systems.
+        :param profiles: List of profiles to include, or None to include all.
+        :param systems: List of systems to include, or None to include all.
         :param exclude_systems: If set, do not include any system
 
         :raises ValueError: In case of unsupported distro architecture
         :return: Tuple with Distro, List of profiles and List of systems
         """
 
-        system_names = input_converters.input_string_or_list_no_inherit(systems)
-        profile_names = input_converters.input_string_or_list_no_inherit(profiles)
-
-        profile_list = list(self.filter_profiles(profile_names))
+        profile_list = self.filter_profiles(profiles)
         system_list: List["System"] = list()
         if not exclude_systems:
-            system_list = list(self.filter_systems(system_names))
+            system_list = self.filter_systems(systems)
 
-        distro_obj: Optional["Distro"] = None
-        if distro_name:
-            distro_obj = self.parse_distro(distro_name)
-        elif len(profile_list) > 0:
-            distro_obj = profile_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues,assignment]
-        elif len(system_list) > 0:
-            distro_obj = system_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues,assignment]
+        distro_obj: Optional["Distro"] = distro
+        if distro_obj is None:
+            if len(profile_list) > 0:
+                distro_obj = profile_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues,assignment]
+            elif len(system_list) > 0:
+                distro_obj = system_list[0].get_conceptual_parent()  # type: ignore[reportGeneralTypeIssues,assignment]
 
         if distro_obj is None:
             raise ValueError("Unable to find suitable distro and none set by caller")

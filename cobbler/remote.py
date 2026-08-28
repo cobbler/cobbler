@@ -267,18 +267,44 @@ class CobblerXMLRPCInterface:
         Generates an ISO in /var/www/cobbler/pub that can be used to install profiles without using PXE.
 
         :param options: This parameter does contain the options passed from the CLI or remote API who called this.
+                         "profiles"/"systems" are lists of uids, "distro" is a uid.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
         webdir = self.api.settings().webdir
 
         def runner(self: CobblerThread):
+            def resolve_uids(
+                find_method: Callable[..., Any], uids: Optional[List[str]]
+            ) -> Optional[List[Any]]:
+                if not uids:
+                    return None
+                resolved: List[Any] = []
+                for uid in uids:
+                    obj = find_method(uid=uid)
+                    if obj is None or isinstance(obj, list):
+                        self.logger.warning('"%s" is not a valid uid', uid)
+                        continue
+                    resolved.append(obj)
+                return resolved
+
+            distro_uid = self.options.get("distro", None)
+            distro_obj = None
+            if distro_uid:
+                distro_obj = self.remote.api.find_distro(uid=distro_uid)
+                if distro_obj is None or isinstance(distro_obj, list):
+                    raise ValueError(f'Distro with uid "{distro_uid}" not found')
+
             self.remote.api.build_iso(
                 self.options.get("iso", webdir + "/pub/generated.iso"),
-                self.options.get("profiles", None),
-                self.options.get("systems", None),
+                resolve_uids(
+                    self.remote.api.find_profile, self.options.get("profiles", None)
+                ),
+                resolve_uids(
+                    self.remote.api.find_system, self.options.get("systems", None)
+                ),
                 self.options.get("buildisodir", ""),
-                self.options.get("distro", None),
+                distro_obj,
                 self.options.get("standalone", False),
                 self.options.get("airgapped", False),
                 self.options.get("source", ""),
