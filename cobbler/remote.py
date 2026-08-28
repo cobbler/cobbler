@@ -4217,7 +4217,9 @@ class CobblerXMLRPCInterface:
 
         :param mode: The mode of the triggers. May be "pre", "post" or "firstboot".
         :param objtype: The type of object. This should correspond to the collection type.
-        :param name: The name of the object.
+        :param name: The name of the object. Intentionally a name rather than a uid, unlike most of the rest of this
+                     class: the value is forwarded verbatim to the trigger script and never looked up, so a uid would
+                     only add a resolution cost (see the comment below) without any correctness benefit.
         :param ip: The ip of the objet.
         :param token: The API-token obtained via the login() method.
         :param rest: This is dropped in this method since it is not needed here.
