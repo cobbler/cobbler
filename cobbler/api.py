@@ -2678,7 +2678,9 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def sync_systems(self, systems: List[str], verbose: bool = False) -> None:
+    def sync_systems(
+        self, systems: List["system_module.System"], verbose: bool = False
+    ) -> None:
         """
         Take the values currently written to the configuration files in /etc, and /var, and build out the information
         tree found in /tftpboot. Any operations done in the API that have not been saved with serialize() will NOT be
@@ -2691,14 +2693,14 @@ class CobblerAPI:
         if not (
             systems
             and isinstance(systems, list)  # type: ignore
-            and all(isinstance(sys_name, str) for sys_name in systems)  # type: ignore
+            and all(isinstance(sys_obj, system_module.System) for sys_obj in systems)  # type: ignore
         ):
             if len(systems) < 1:
                 self.logger.debug(
                     "sync_systems needs at least one system to do something. Bailing out early."
                 )
                 return
-            raise TypeError("Systems must be a list of one or more strings.")
+            raise TypeError("Systems must be a list of one or more System objects.")
         self.logger.info(
             "Waiting lock to be available to perform the sync action (this might take some time)"
         )

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Generator
 import pytest
 
 from cobbler.api import CobblerAPI
+from cobbler.items.system import System
 from cobbler.modules.managers import dynamic_tftp
 from cobbler.settings import Settings
 from cobbler.tftpgen import TFTPGen
@@ -152,7 +153,7 @@ def test_manager_sync_systems(api_mock_dynamic_tftp: CobblerAPI):
     tftpgen_mock = api_mock_dynamic_tftp.tftpgen
 
     # Act
-    manager_obj.sync_systems(["t1.example.org"], True)
+    manager_obj.sync_systems([System(api_mock_dynamic_tftp)], True)
 
     # Assert
     assert tftpgen_mock.method_calls == []  # type: ignore[reportUnknownMemberType,reportAttributeAccessIssue]

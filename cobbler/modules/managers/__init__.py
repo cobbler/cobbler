@@ -179,14 +179,14 @@ class TftpManagerModule(ManagerModule):
     """
 
     @abstractmethod
-    def sync_systems(self, systems: List[str], verbose: bool = True) -> None:
+    def sync_systems(self, systems: List["System"], verbose: bool = True) -> None:
         """
         Synchronize TFTP configuration for the specified systems.
 
         This method should be implemented by subclasses to update TFTP boot files and configuration for the given list
         of systems.
 
-        :param systems: List of system identifiers to synchronize.
+        :param systems: List of systems to synchronize.
         :param verbose: If True, provide detailed output during synchronization.
         """
 

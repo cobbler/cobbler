@@ -611,14 +611,11 @@ class Collection(Generic[ITEM]):
                 ref.enable_menu = False
             self.lite_sync.add_single_profile(ref, rebuild_menu=rebuild_menu)
             self.api.sync_systems(
-                systems=[
-                    x.uid  # type: ignore
-                    for x in self.api.find_system(  # type: ignore
-                        return_list=True,
-                        no_errors=False,
-                        **{"profile": ref.uid},
-                    )
-                ]  # type: ignore
+                systems=self.api.find_system(  # type: ignore
+                    return_list=True,
+                    no_errors=False,
+                    **{"profile": ref.uid},
+                )
             )
         elif isinstance(ref, distro.Distro):
             self.lite_sync.add_single_distro(ref, rebuild_menu=rebuild_menu)

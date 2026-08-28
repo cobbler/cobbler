@@ -343,7 +343,7 @@ class CobblerXMLRPCInterface:
         """
         Run a lite Cobbler sync in the background with only systems specified.
 
-        :param options: Unknown what this parameter does.
+        :param options: A dict with a "systems" key (list of system uids) and a "verbose" key.
         :param token: The API-token obtained via the login() method.
         :return: The id of the task that was started.
         """
@@ -351,8 +351,17 @@ class CobblerXMLRPCInterface:
         def runner(self: "CobblerThread"):
             if isinstance(self.options, list):
                 raise ValueError("options for background_syncsystems need to be dict!")
+            system_objs: List["system.System"] = []
+            for system_uid in self.options.get("systems", []):
+                system_obj = self.remote.api.find_system(uid=system_uid)
+                if system_obj is None or isinstance(system_obj, list):
+                    self.logger.info(
+                        'did not find any system with uid "%s"', system_uid
+                    )
+                    continue
+                system_objs.append(system_obj)
             self.remote.api.sync_systems(
-                self.options.get("systems", []), self.options.get("verbose", False)
+                system_objs, self.options.get("verbose", False)
             )
 
         return self.__start_task(runner, token, "syncsystems", "Syncsystems", options)
