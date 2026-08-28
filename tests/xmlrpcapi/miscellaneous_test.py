@@ -71,10 +71,10 @@ def test_disable_netboot(
 
     distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
     profile_uid = create_profile(name_profile, distro_uid, "text")
-    create_system(name_system, profile_uid)
+    system_uid = create_system(name_system, profile_uid)
 
     # Act
-    result = remote.disable_netboot(name_system, token)
+    result = remote.disable_netboot(system_uid, token)
 
     # Assert
     assert result

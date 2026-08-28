@@ -4009,43 +4009,23 @@ class CobblerXMLRPCInterface:
         return 0
 
     def disable_netboot(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> bool:
         """
-        This is a feature used by the ``pxe_just_once`` support, see manpage. Sets system named "name" to no-longer PXE.
+        This is a feature used by the ``pxe_just_once`` support, see manpage. Sets the given system to no-longer PXE.
         Disabled by default as this requires public API access and is technically a read-write operation.
 
-        :param name: The name of the system to disable netboot for.
+        :param object_id: The id of the system to disable netboot for.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is unused.
         :return: A boolean indicated the success of the action.
         """
-        self._log("disable_netboot", token=token, name=name)
-        # used by nopxe.cgi
-        if not self.api.settings().pxe_just_once:
-            # feature disabled!
-            return False
-        # triggers should be enabled when calling nopxe
-        triggers_enabled = self.api.settings().nopxe_with_triggers
-        obj = self.api.systems().find(name=name)
-        if obj is None:
+        self._log("disable_netboot", token=token, object_id=object_id)
+        obj = self.api.find_system(uid=object_id)
+        if obj is None or isinstance(obj, list):
             # system not found!
             return False
-        if isinstance(obj, list):
-            # Duplicate entries found - can't be but mypy requires this check
-            return False
-        obj.netboot_enabled = False
-        # disabling triggers and sync to make this extremely fast.
-        self.api.systems().add(
-            obj,
-            save=True,
-            with_triggers=triggers_enabled,
-            with_sync=False,
-            quick_pxe_update=True,
-        )
-        # re-generate dhcp configuration
-        self.api.sync_dhcp()
-        return True
+        return self.api.disable_netboot(obj)
 
     def upload_log_data(
         self,

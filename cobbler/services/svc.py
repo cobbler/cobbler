@@ -369,7 +369,12 @@ class CobblerSvc:
         :param kwargs: This parameter is unused.
         :return: A boolean status if the action succeed or not.
         """
-        return str(self.remote.disable_netboot(system))
+        if system is None:
+            return str(False)
+        system_uid = self.remote.get_system_handle(system)
+        if system_uid == "~":
+            return str(False)
+        return str(self.remote.disable_netboot(system_uid))
 
     def list(self, what: str = "systems", **kwargs: Any) -> str:
         """

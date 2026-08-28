@@ -3191,6 +3191,35 @@ class CobblerAPI:
 
     # ==========================================================================
 
+    def disable_netboot(self, system: "system_module.System") -> bool:
+        """
+        This is a feature used by the ``pxe_just_once`` support, see manpage. Sets the given system to no-longer PXE.
+        Disabled by default as this requires public API access and is technically a read-write operation.
+
+        :param system: The system to disable netboot for.
+        :return: A boolean indicated the success of the action.
+        """
+        # used by nopxe.cgi
+        if not self.settings().pxe_just_once:
+            # feature disabled!
+            return False
+        # triggers should be enabled when calling nopxe
+        triggers_enabled = self.settings().nopxe_with_triggers
+        system.netboot_enabled = False
+        # disabling triggers and sync to make this extremely fast.
+        self.systems().add(
+            system,
+            save=True,
+            with_triggers=triggers_enabled,
+            with_sync=False,
+            quick_pxe_update=True,
+        )
+        # re-generate dhcp configuration
+        self.sync_dhcp()
+        return True
+
+    # ==========================================================================
+
     def get_valid_obj_boot_loaders(
         self, obj: Union["distro.Distro", "image_module.Image"]
     ) -> List[enums.BootLoader]:
