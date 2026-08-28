@@ -2459,6 +2459,47 @@ class CobblerAPI:
 
     # ==========================================================================
 
+    def get_repos_compatible_with_profile(
+        self, profile: "profile_module.Profile"
+    ) -> List[Dict[str, Any]]:
+        """
+        Get repos that can be used with a given profile.
+
+        :param profile: The profile to check for compatibility.
+        :return: The list of compatible repositories.
+        """
+        results: List[Dict[str, Any]] = []
+        distro_obj: Optional["distro.Distro"] = profile.get_conceptual_parent()  # type: ignore[assignment]
+        if distro_obj is None:
+            raise ValueError("Distro not found!")
+        for current_repo in self.repos():
+            # There be dragons!
+            # Accept all repos that are src/noarch but otherwise filter what repos are compatible with the profile
+            # based on the arch of the distro.
+            # FIXME: Use the enum directly
+            if current_repo.arch.value in [
+                "",
+                "noarch",
+                "src",
+            ]:
+                results.append(current_repo.to_dict())
+            else:
+                # some backwards compatibility fuzz
+                # repo.arch is mostly a text field
+                # distro.arch is i386/x86_64
+                if current_repo.arch.value in ["i386", "x86", "i686"]:
+                    if distro_obj.arch.value in ["i386", "x86"]:
+                        results.append(current_repo.to_dict())
+                elif current_repo.arch.value in ["x86_64"]:
+                    if distro_obj.arch.value in ["x86_64"]:
+                        results.append(current_repo.to_dict())
+                else:
+                    if distro_obj.arch.value == current_repo.arch.value:
+                        results.append(current_repo.to_dict())
+        return results
+
+    # ==========================================================================
+
     def get_template_file_for_profile(self, obj: "BootableItem", path: str) -> str:
         """
         Get the template for the specified profile.

@@ -357,7 +357,7 @@ def test_get_repos_compatible_with_profile(
     name_repo_compatible = "test_repo_compatible_profile_1"
     name_repo_incompatible = "test_repo_compatible_profile_2"
     distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, distro_uid, "text")
+    profile_uid = create_profile(name_profile, distro_uid, "text")
     repo_compatible = create_repo(name_repo_compatible, "http://localhost", False)
     repo_incompatible = create_repo(name_repo_incompatible, "http://localhost", False)
     remote.modify_repo(repo_compatible, ["arch"], "x86_64", token)
@@ -366,7 +366,7 @@ def test_get_repos_compatible_with_profile(
     remote.save_repo(repo_incompatible, True, True, "bypass", token)
 
     # Act
-    result = remote.get_repos_compatible_with_profile(name_profile, token)
+    result = remote.get_repos_compatible_with_profile(profile_uid, token)
 
     # Assert
     assert result != []

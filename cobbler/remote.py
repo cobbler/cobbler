@@ -4416,54 +4416,26 @@ class CobblerXMLRPCInterface:
         return self.xmlrpc_hacks(data)
 
     def get_repos_compatible_with_profile(
-        self, profile: str, token: Optional[str] = None, **rest: Any
+        self, profile_uid: str, token: Optional[str] = None, **rest: Any
     ) -> List[Dict[Any, Any]]:
         """
-        Get repos that can be used with a given profile name.
+        Get repos that can be used with a given profile.
 
-        :param profile: The profile to check for compatibility.
+        :param profile_uid: The id of the profile to check for compatibility.
         :param token: The API-token obtained via the login() method.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The list of compatible repositories.
         """
         self._log("get_repos_compatible_with_profile", token=token)
-        profile_obj = self.api.find_profile(name=profile)
+        profile_obj = self.api.find_profile(uid=profile_uid)
         if profile_obj is None or isinstance(profile_obj, list):
             self.logger.info(
-                'The profile name supplied ("%s") for get_repos_compatible_with_profile was not'
+                'The profile id supplied ("%s") for get_repos_compatible_with_profile was not'
                 "existing",
-                profile,
+                profile_uid,
             )
             return []
-        results: List[Dict[Any, Any]] = []
-        distro: Optional["Distro"] = profile_obj.get_conceptual_parent()  # type: ignore
-        if distro is None:
-            raise ValueError("Distro not found!")
-        for current_repo in self.api.repos():
-            # There be dragons!
-            # Accept all repos that are src/noarch but otherwise filter what repos are compatible with the profile based
-            # on the arch of the distro.
-            # FIXME: Use the enum directly
-            if current_repo.arch.value in [
-                "",
-                "noarch",
-                "src",
-            ]:
-                results.append(current_repo.to_dict())
-            else:
-                # some backwards compatibility fuzz
-                # repo.arch is mostly a text field
-                # distro.arch is i386/x86_64
-                if current_repo.arch.value in ["i386", "x86", "i686"]:
-                    if distro.arch.value in ["i386", "x86"]:
-                        results.append(current_repo.to_dict())
-                elif current_repo.arch.value in ["x86_64"]:
-                    if distro.arch.value in ["x86_64"]:
-                        results.append(current_repo.to_dict())
-                else:
-                    if distro.arch.value == current_repo.arch.value:
-                        results.append(current_repo.to_dict())
-        return results
+        return self.api.get_repos_compatible_with_profile(profile_obj)  # type: ignore[arg-type]
 
     def find_system_by_dns_name(self, dns_name: str) -> Dict[str, Any]:
         """
