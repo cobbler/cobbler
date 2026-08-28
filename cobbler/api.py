@@ -2624,11 +2624,11 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def is_autoinstall_in_use(self, autoinstall: str):
+    def is_autoinstall_in_use(self, autoinstall: "template.Template"):
         """
         Check if the auto-installation template is referenced by at least one Profile or System.
 
-        :param ai: The name of the template.
+        :param autoinstall: The template to check for references.
         :return: True if this is the case, otherwise False.
         """
         return self.autoinstall_mgr.is_autoinstall_in_use(autoinstall)

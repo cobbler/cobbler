@@ -461,8 +461,11 @@ def test_is_autoinstall_in_use(remote: CobblerXMLRPCInterface, token: str):
     """
     Test to verify that it can be sucessfully check if a given autoinstall is currently in use.
     """
-    # Arrange & Act
-    result = remote.is_autoinstall_in_use("built-in-powerkvm.ks", token)
+    # Arrange
+    template_uid = remote.get_template_handle("built-in-powerkvm.ks")
+
+    # Act
+    result = remote.is_autoinstall_in_use(template_uid, token)
 
     # Assert
     assert not result

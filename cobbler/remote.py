@@ -3536,18 +3536,21 @@ class CobblerXMLRPCInterface:
         )
 
     def is_autoinstall_in_use(
-        self, ai: str, token: Optional[str] = None, **rest: Any
+        self, autoinstall_uid: str, token: Optional[str] = None, **rest: Any
     ) -> bool:
         """
-        Check if the auto-installation for a system is in use.
+        Check if the auto-installation template is referenced by at least one Profile or System.
 
-        :param ai: The name of the system which could potentially be in autoinstall mode.
+        :param autoinstall_uid: The id of the autoinstall template to check for references.
         :param token: The API-token obtained via the login() method.
         :param rest: This is dropped in this method since it is not needed here.
         :return: True if this is the case, otherwise False.
         """
         self._log("is_autoinstall_in_use", token=token)
-        return self.api.is_autoinstall_in_use(ai)
+        template_obj = self.api.find_template(False, False, uid=autoinstall_uid)
+        if template_obj is None or isinstance(template_obj, list):
+            raise ValueError("Requested autoinstall template not found!")
+        return self.api.is_autoinstall_in_use(template_obj)
 
     def generate_autoinstall(
         self,

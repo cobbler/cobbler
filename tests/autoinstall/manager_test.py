@@ -36,9 +36,11 @@ def test_is_autoinstall_in_use(cobbler_api: CobblerAPI):
     """
     # Arrange
     test_manager = manager.AutoInstallationManager(cobbler_api)
+    template = cobbler_api.find_template(False, False, name="built-in-legacy.ks")
+    assert isinstance(template, Template)
 
     # Act
-    result = test_manager.is_autoinstall_in_use("built-in-legacy.ks")
+    result = test_manager.is_autoinstall_in_use(template)
 
     # Assert
     assert not result
