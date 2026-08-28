@@ -307,9 +307,17 @@ class CobblerSvc:
         :return: The generated repository config.
         """
         if profile is not None:
-            data = self.remote.get_repo_config_for_profile(profile)
+            profile_uid = self.remote.get_profile_handle(profile)
+            if profile_uid == "~":
+                data = f"# object not found: {profile}"
+            else:
+                data = self.remote.get_repo_config_for_profile(profile_uid)
         elif system is not None:
-            data = self.remote.get_repo_config_for_system(system)
+            system_uid = self.remote.get_system_handle(system)
+            if system_uid == "~":
+                data = f"# object not found: {system}"
+            else:
+                data = self.remote.get_repo_config_for_system(system_uid)
         else:
             data = "# must specify profile or system name"
         if not isinstance(data, str):

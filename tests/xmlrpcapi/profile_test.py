@@ -385,14 +385,34 @@ def test_get_valid_profile_boot_loaders_no_profile(
     assert result != []
 
 
-def test_get_repo_config_for_profile(remote: CobblerXMLRPCInterface):
+def test_get_repo_config_for_profile(
+    request: "pytest.FixtureRequest",
+    create_kernel_initrd: Callable[[str, str], str],
+    fk_kernel: str,
+    fk_initrd: str,
+    create_distro: Callable[[str, str, str, str, str], str],
+    create_profile: Callable[[str, str, str], str],
+    remote: CobblerXMLRPCInterface,
+):
     """
     Test: get repository configuration of a profile
     """
-    # Arrange --> There is nothing to be arranged
+    # Arrange
+    distro_name = (  # type: ignore
+        request.node.originalname if request.node.originalname else request.node.name  # type: ignore
+    )
+    profile_name = (  # type: ignore
+        request.node.originalname if request.node.originalname else request.node.name  # type: ignore
+    )
+    folder = create_kernel_initrd(fk_kernel, fk_initrd)
+    kernel_path = os.path.join(folder, fk_kernel)
+    initrd_path = os.path.join(folder, fk_initrd)
+    distro_handle = create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
+    profile_handle = create_profile(profile_name, distro_handle, "")  # type: ignore
 
     # Act
-    result = remote.get_repo_config_for_profile("testprofile0")  # type: ignore
+    result = remote.get_repo_config_for_profile(profile_handle)  # type: ignore
 
-    # Assert --> Let the test pass if the call is okay.
-    assert True
+    # Assert
+    assert isinstance(result, str)
+    assert not result.startswith("# object not found")

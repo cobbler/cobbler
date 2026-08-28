@@ -3864,30 +3864,30 @@ class CobblerXMLRPCInterface:
             return [value.value for value in parent.boot_loaders]  # type: ignore
         return [value.value for value in self.api.get_valid_obj_boot_loaders(parent)]  # type: ignore[arg-type]
 
-    def get_repo_config_for_profile(self, profile_name: str, **rest: Any):
+    def get_repo_config_for_profile(self, profile_uid: str, **rest: Any):
         """
         Return the yum configuration a given profile should use to obtain all of it's Cobbler associated repos.
 
-        :param profile_name: The name of the profile for which the repository config should be looked up.
+        :param profile_uid: The id of the profile for which the repository config should be looked up.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The repository configuration for the profile.
         """
-        obj = self.api.find_profile(name=profile_name)
+        obj = self.api.find_profile(uid=profile_uid)
         if obj is None or isinstance(obj, list):
-            return f"# object not found: {profile_name}"
+            return f"# object not found: {profile_uid}"
         return self.api.get_repo_config_for_profile(obj)
 
-    def get_repo_config_for_system(self, system_name: str, **rest: Any):
+    def get_repo_config_for_system(self, system_uid: str, **rest: Any):
         """
         Return the yum configuration a given profile should use to obtain all of it's Cobbler associated repos.
 
-        :param system_name: The name of the system for which the repository config should be looked up.
+        :param system_uid: The id of the system for which the repository config should be looked up.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The repository configuration for the system.
         """
-        obj = self.api.find_system(name=system_name)
+        obj = self.api.find_system(uid=system_uid)
         if obj is None or isinstance(obj, list):
-            return f"# object not found: {system_name}"
+            return f"# object not found: {system_uid}"
         return self.api.get_repo_config_for_system(obj)
 
     def get_template_file_for_profile(self, profile_name: str, path: str, **rest: Any):
