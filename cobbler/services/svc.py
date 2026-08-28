@@ -195,7 +195,17 @@ class CobblerSvc:
             if found:
                 system = found[0]
 
-        data = self.remote.generate_ipxe(profile, image, system)
+        profile_uid = self.remote.get_profile_handle(profile) if profile else None
+        image_uid = self.remote.get_image_handle(image) if image else None
+        system_uid = self.remote.get_system_handle(system) if system else None
+        if profile_uid == "~":
+            profile_uid = None
+        if image_uid == "~":
+            image_uid = None
+        if system_uid == "~":
+            system_uid = None
+
+        data = self.remote.generate_ipxe(profile_uid, image_uid, system_uid)
         if isinstance(data, str):
             return data
         return "ERROR: Server returned unexpected data!"
@@ -211,7 +221,13 @@ class CobblerSvc:
         :param kwargs: This parameter is unused.
         :return:
         """
-        data = self.remote.generate_bootcfg(profile, system)
+        profile_uid = self.remote.get_profile_handle(profile) if profile else None
+        system_uid = self.remote.get_system_handle(system) if system else None
+        if profile_uid == "~":
+            profile_uid = None
+        if system_uid == "~":
+            system_uid = None
+        data = self.remote.generate_bootcfg(profile_uid, system_uid)
         if isinstance(data, str):
             return data
         return "ERROR: Server returned unexpected data!"
@@ -229,8 +245,14 @@ class CobblerSvc:
                      array. The element from position zero is taken.
         :return: The generated script.
         """
+        profile_uid = self.remote.get_profile_handle(profile) if profile else None
+        system_uid = self.remote.get_system_handle(system) if system else None
+        if profile_uid == "~":
+            profile_uid = None
+        if system_uid == "~":
+            system_uid = None
         data = self.remote.generate_script(
-            profile, system, kwargs["query_string"]["script"][0]
+            profile_uid, system_uid, kwargs["query_string"]["script"][0]
         )
         if isinstance(data, str):
             return data

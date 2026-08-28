@@ -23,6 +23,7 @@ except ImportError:
 from cobbler import enums, grub, utils
 from cobbler.cexceptions import CX
 from cobbler.enums import Archs, ImageTypes
+from cobbler.items.system import System
 from cobbler.utils import filesystem_helpers, input_converters, kernel_command_line
 from cobbler.validate import validate_autoinstall_script_name
 
@@ -39,7 +40,6 @@ if TYPE_CHECKING:
     from cobbler.items.menu import Menu
     from cobbler.items.network_interface import NetworkInterface
     from cobbler.items.profile import Profile
-    from cobbler.items.system import System
     from cobbler.items.template import Template
 
 
@@ -616,8 +616,7 @@ class TFTPGen:
                     bootloader_format=enums.BootLoader.GRUB,
                 )
             if path == pathlib.Path("/esxi/system", system.name, "boot.cfg"):
-                # FIXME: generate_bootcfg shouldn't waste time searching for the system again
-                return self.generate_bootcfg("system", system.name)
+                return self.generate_bootcfg(system=system)
 
         return None
 
@@ -1330,7 +1329,7 @@ class TFTPGen:
                     bootcfg_path = os.path.join("system", system.name, "boot.cfg")
                 # write the boot.cfg file in the bootcfg_path
                 if bootloader_format == enums.BootLoader.PXE:
-                    self._write_bootcfg_file("system", system.name, bootcfg_path)
+                    self._write_bootcfg_file(bootcfg_path, system=system)
                 # make bootcfg_path available for templating
                 metadata["bootcfg_path"] = bootcfg_path
             else:
@@ -1877,36 +1876,30 @@ class TFTPGen:
 
         return results
 
-    def generate_ipxe(self, what: str, name: str) -> str:
+    def generate_ipxe(
+        self,
+        profile: Optional["Profile"] = None,
+        image: Optional["Image"] = None,
+        system: Optional["System"] = None,
+    ) -> str:
         """
         Generate the ipxe files.
 
-        :param what: Either "profile" or "system". All other item types not valid.
-        :param name: The name of the profile or system.
+        :param profile: The profile to generate the ipxe config for.
+        :param image: The image to generate the ipxe config for.
+        :param system: The system to generate the ipxe config for.
         :return: The rendered template.
         """
-        if what.lower() not in ("profile", "image", "system"):
-            return "# ipxe is only valid for profiles, images and systems"
-
         distro: Optional["Distro"] = None
-        image: Optional["Image"] = None
-        profile: Optional["Profile"] = None
-        system: Optional["System"] = None
-        if what == "profile":
-            profile = self.api.find_profile(name=name)  # type: ignore
-            if profile:
-                distro = profile.get_conceptual_parent()  # type: ignore
-        elif what == "image":
-            image = self.api.find_image(name=name)  # type: ignore
-        else:
-            system = self.api.find_system(name=name)  # type: ignore
-            if system:
-                profile = system.get_conceptual_parent()  # type: ignore
+        if system:
+            profile = system.get_conceptual_parent()  # type: ignore
             if profile and profile.COLLECTION_TYPE == "profile":
                 distro = profile.get_conceptual_parent()  # type: ignore
             else:
                 image = profile  # type: ignore
                 profile = None
+        elif profile:
+            distro = profile.get_conceptual_parent()  # type: ignore
 
         if distro:
             arch = distro.arch
@@ -1930,25 +1923,28 @@ class TFTPGen:
         result_split[0] = "#!ipxe\n"
         return "".join(result_split)
 
-    def generate_bootcfg(self, what: str, name: str) -> str:
+    def generate_bootcfg(
+        self,
+        profile: Optional["Profile"] = None,
+        system: Optional["System"] = None,
+    ) -> str:
         """
-        Generate a bootcfg for a system of profile.
+        Generate a bootcfg for a system or profile.
 
-        :param what: The type for what the bootcfg is generated for. Must be "profile" or "system".
-        :param name: The name of the item which the bootcfg should be generated for.
+        :param profile: The profile to generate the bootcfg for.
+        :param system: The system to generate the bootcfg for.
         :return: The fully rendered bootcfg as a string.
         """
-        if what.lower() not in ("profile", "system"):
-            return "# bootcfg is only valid for profiles and systems"
-
-        obj: Optional[Union["Profile", "System"]]
-        if what == "profile":
-            obj = self.api.find_profile(name=name)  # type: ignore
-            distro = obj.get_conceptual_parent()  # type: ignore
-        else:
-            obj = self.api.find_system(name=name)  # type: ignore
-            profile = obj.get_conceptual_parent()  # type: ignore
+        obj: Union["Profile", "System"]
+        if system:
+            obj = system
+            profile = system.get_conceptual_parent()  # type: ignore
             distro = profile.get_conceptual_parent()  # type: ignore
+        elif profile:
+            obj = profile
+            distro = profile.get_conceptual_parent()  # type: ignore
+        else:
+            return "# bootcfg is only valid for profiles and systems"
 
         blended = utils.blender(self.api, False, obj)  # type: ignore
 
@@ -1973,17 +1969,16 @@ class TFTPGen:
             blended["img_path"] = os.path.join("/images", distro.name)  # type: ignore
 
         # generate the kernel options:
-        if what == "system":
+        if isinstance(obj, System):
             kopts = self.build_kernel_options(
-                obj,  # type: ignore
+                obj,
                 profile,  # type: ignore
                 distro,  # type: ignore
                 None,
                 distro.arch,  # type: ignore
             )
-        elif what == "profile":
+        else:
             kopts = self.build_kernel_options(None, obj, distro, None, distro.arch)  # type: ignore
-        # pylint: disable-next=possibly-used-before-assignment
         blended["kopts"] = kopts  # type: ignore
         blended["kernel_file"] = os.path.basename(distro.kernel)  # type: ignore
 
@@ -2007,28 +2002,27 @@ class TFTPGen:
 
         return self.api.templar.render(bootcfg_template.content, blended, None)
 
-    def generate_script(self, what: str, objname: str, script_name: str) -> str:
+    def generate_script(
+        self,
+        profile: Optional["Profile"] = None,
+        system: Optional["System"] = None,
+        script_name: str = "",
+    ) -> str:
         """
         Generate a script from a autoinstall script template for a given profile or system.
 
-        :param what: The type for what the bootcfg is generated for. Must be "profile" or "system".
-        :param objname: The name of the item which the bootcfg should be generated for.
+        :param profile: The profile to generate the script for.
+        :param system: The system to generate the script for.
         :param script_name: The name of the template which should be rendered for the system or profile.
         :return: The fully rendered script as a string.
         """
-        obj: Optional[Union["Profile", "System"]]
-        if what == "profile":
-            obj = self.api.find_profile(name=objname)  # type: ignore
-        elif what == "system":
-            obj = self.api.find_system(name=objname)  # type: ignore
-        else:
-            raise ValueError('"what" needs to be either "profile" or "system"!')
+        obj: Optional[Union["Profile", "System"]] = system or profile
 
         if not validate_autoinstall_script_name(script_name):
             raise ValueError('"script_name" handed to generate_script was not valid!')
 
-        if not obj or isinstance(obj, list):
-            return f'# "{what}" named "{objname}" not found'
+        if obj is None:
+            return f'# no profile or system given for script "{script_name}"'
 
         distro: Optional["Distro"] = obj.get_conceptual_parent()  # type: ignore
         if distro is None or isinstance(distro, list):
@@ -2153,7 +2147,12 @@ class TFTPGen:
 
         return initrd
 
-    def _write_bootcfg_file(self, what: str, name: str, filename: str) -> str:
+    def _write_bootcfg_file(
+        self,
+        filename: str,
+        profile: Optional["Profile"] = None,
+        system: Optional["System"] = None,
+    ) -> str:
         """
         Write a boot.cfg file for the ESXi boot loader(s), and create a symlink to
         esxi UEFI bootloaders (mboot.efi)
@@ -2170,16 +2169,16 @@ class TFTPGen:
                           boot.cfg
                           mboot.efi
 
-        :param what: Either "profile" or "system". Profiles are not currently used.
-        :param name: The name of the item which the file should be generated for.
         :param filename: relative boot.cfg path from tftp.
+        :param profile: The profile to generate the boot.cfg for. Not currently used by any caller.
+        :param system: The system to generate the boot.cfg for.
         :return: The generated filecontent for the required item.
         """
 
-        if what.lower() not in ("profile", "system"):
+        if profile is None and system is None:
             return "# only valid for profiles and systems"
 
-        buffer = self.generate_bootcfg(what, name)
+        buffer = self.generate_bootcfg(profile=profile, system=system)
         bootloc_esxi = os.path.join(self.bootloc, "esxi")
         bootcfg_path = os.path.join(bootloc_esxi, filename)
 

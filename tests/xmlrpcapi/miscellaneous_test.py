@@ -195,11 +195,11 @@ def test_generate_script(
     name_profile = "test_profile_template_for_system"
     name_autoinstall_script = "test_generate_script"
     distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, distro_uid, "text")
+    profile_uid = create_profile(name_profile, distro_uid, "text")
     # TODO: Create Autoinstall Script
 
     # Act
-    result = remote.generate_script(name_profile, None, name_autoinstall_script)
+    result = remote.generate_script(profile_uid, None, name_autoinstall_script)
 
     # Assert
     assert result

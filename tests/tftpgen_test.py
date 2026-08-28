@@ -773,7 +773,7 @@ def test_generate_ipxe(
     )
 
     # Act
-    result = test_gen.generate_ipxe("profile", test_profile.name)
+    result = test_gen.generate_ipxe(test_profile)
 
     # Assert
     mock_write_pxe_file.assert_called_with(
@@ -806,7 +806,7 @@ def test_generate_bootcfg(
     test_gen.api.templar = mocker.MagicMock(spec=Templar, autospec=True)
 
     # Act
-    result = test_gen.generate_bootcfg("profile", test_profile.name)
+    result = test_gen.generate_bootcfg(test_profile)
 
     # Assert
     assert isinstance(result, str)
@@ -835,7 +835,7 @@ def test_generate_script(
 
     # Act
     result = test_gen.generate_script(
-        "profile", test_profile.name, "built-in-preseed_early_default"
+        profile=test_profile, script_name="built-in-preseed_early_default"
     )
 
     # Assert
@@ -909,7 +909,7 @@ def test_write_bootcfg_file(
 
     # Act
     # pylint: disable-next=protected-access
-    result = test_gen._write_bootcfg_file("profile", "test", "example.txt")  # type: ignore[reportPrivateUsage]
+    result = test_gen._write_bootcfg_file("example.txt", profile=mocker.MagicMock())  # type: ignore[reportPrivateUsage]
 
     # Assert
     assert result == expected_result

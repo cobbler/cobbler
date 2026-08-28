@@ -1019,6 +1019,22 @@ class CobblerXMLRPCInterface:
             raise ValueError("Object not found or ambigous match!")
         return obj
 
+    def __resolve_optional_uid(
+        self, find_method: Callable[..., Any], uid: Optional[str]
+    ) -> Optional[Any]:
+        """
+        Helper function. Resolve an optional uid to its object via the given collection-specific find method,
+        returning None if the uid is None or no unambiguous match was found.
+
+        :param find_method: One of the ``self.api.find_<type>`` methods.
+        :param uid: The id to resolve, or None.
+        :return: The resolved object, or None.
+        """
+        if uid is None:
+            return None
+        result = find_method(uid=uid)
+        return None if isinstance(result, list) else result
+
     def get_item_resolved_value(
         self, item_uuid: str, attribute: List[str]
     ) -> Union[str, int, float, List[Any], Dict[Any, Any]]:
@@ -3601,51 +3617,57 @@ class CobblerXMLRPCInterface:
 
     def generate_ipxe(
         self,
-        profile: Optional[str] = None,
-        image: Optional[str] = None,
-        system: Optional[str] = None,
+        profile_uid: Optional[str] = None,
+        image_uid: Optional[str] = None,
+        system_uid: Optional[str] = None,
         **rest: Any,
     ) -> str:
         """
         Generate the ipxe configuration.
 
-        :param profile: The profile to generate iPXE config for.
-        :param image: The image to generate iPXE config for.
-        :param system: The system to generate iPXE config for.
+        :param profile_uid: The id of the profile to generate iPXE config for.
+        :param image_uid: The id of the image to generate iPXE config for.
+        :param system_uid: The id of the system to generate iPXE config for.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The configuration as a str representation.
         """
         self._log("generate_ipxe")
-        return self.api.generate_ipxe(profile, image, system)  # type: ignore
+        profile_obj = self.__resolve_optional_uid(self.api.find_profile, profile_uid)
+        image_obj = self.__resolve_optional_uid(self.api.find_image, image_uid)
+        system_obj = self.__resolve_optional_uid(self.api.find_system, system_uid)
+        return self.api.generate_ipxe(profile_obj, image_obj, system_obj)
 
     def generate_bootcfg(
-        self, profile: Optional[str] = None, system: Optional[str] = None, **rest: Any
+        self,
+        profile_uid: Optional[str] = None,
+        system_uid: Optional[str] = None,
+        **rest: Any,
     ) -> str:
         """
         This generates the bootcfg for a system which is related to a certain profile.
 
-        :param profile: The profile which is associated to the system.
-        :param system: The system which the bootcfg should be generated for.
+        :param profile_uid: The id of the profile which is associated to the system.
+        :param system_uid: The id of the system which the bootcfg should be generated for.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The generated bootcfg.
         """
         self._log("generate_bootcfg")
-        profile_name = "" if profile is None else profile
-        system_name = "" if system is None else system
-        return self.api.generate_bootcfg(profile_name, system_name)
+        profile_obj = self.__resolve_optional_uid(self.api.find_profile, profile_uid)
+        system_obj = self.__resolve_optional_uid(self.api.find_system, system_uid)
+        return self.api.generate_bootcfg(profile_obj, system_obj)
 
     def generate_script(
         self,
-        profile: Optional[str] = None,
-        system: Optional[str] = None,
+        profile_uid: Optional[str] = None,
+        system_uid: Optional[str] = None,
         name: str = "",
     ) -> str:
         """
         This generates the autoinstall script for a system or profile. Profile and System cannot be both given, if they
         are, Profile wins.
 
-        :param profile: The profile name to generate the script for.
-        :param system: The system name to generate the script for.
+        :param profile_uid: The id of the profile to generate the script for.
+        :param system_uid: The id of the system to generate the script for.
         :param name: Name of the generated script. Must only contain alphanumeric characters, dots and underscores.
         :return: Some generated script.
         """
@@ -3653,7 +3675,9 @@ class CobblerXMLRPCInterface:
         if not validate_autoinstall_script_name(name):
             raise ValueError('"name" handed to generate_script was not valid!')
         self._log(f'generate_script, name is "{name}"')
-        return self.api.generate_script(profile, system, name)
+        profile_obj = self.__resolve_optional_uid(self.api.find_profile, profile_uid)
+        system_obj = self.__resolve_optional_uid(self.api.find_system, system_uid)
+        return self.api.generate_script(profile_obj, system_obj, name)
 
     def dump_vars(
         self, item_uuid: str, formatted_output: bool = False, remove_dicts: bool = True

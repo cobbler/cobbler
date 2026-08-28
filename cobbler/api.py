@@ -2546,7 +2546,12 @@ class CobblerAPI:
             filename, system, profile, distro, arch, image, metadata, bootloader_format
         )
 
-    def generate_ipxe(self, profile: str, image: str, system: str) -> str:
+    def generate_ipxe(
+        self,
+        profile: Optional["profile_module.Profile"] = None,
+        image: Optional["image_module.Image"] = None,
+        system: Optional["system_module.System"] = None,
+    ) -> str:
         """
         Generate the ipxe configuration files. The system wins over the profile. Profile and System win over Image.
 
@@ -2557,23 +2562,27 @@ class CobblerAPI:
         """
         self.log("generate_ipxe")
         data = ""
-        if profile is None and image is None and system is None:  # type: ignore
+        if profile is None and image is None and system is None:
             boot_menu = self.tftpgen.make_pxe_menu()
             if "ipxe" in boot_menu:
                 data = boot_menu["ipxe"]
                 if not isinstance(data, str):
                     raise ValueError("ipxe boot menu didn't have right type!")
         elif system:
-            data = self.tftpgen.generate_ipxe("system", system)
+            data = self.tftpgen.generate_ipxe(system=system)
         elif profile:
-            data = self.tftpgen.generate_ipxe("profile", profile)
+            data = self.tftpgen.generate_ipxe(profile=profile)
         elif image:
-            data = self.tftpgen.generate_ipxe("image", image)
+            data = self.tftpgen.generate_ipxe(image=image)
         return data
 
     # ==========================================================================
 
-    def generate_bootcfg(self, profile: str = "", system: str = "") -> str:
+    def generate_bootcfg(
+        self,
+        profile: Optional["profile_module.Profile"] = None,
+        system: Optional["system_module.System"] = None,
+    ) -> str:
         """
         Generate a boot configuration. The system wins over the profile.
 
@@ -2583,28 +2592,33 @@ class CobblerAPI:
         """
         self.log("generate_bootcfg")
         if system:
-            return self.tftpgen.generate_bootcfg("system", system)
-        return self.tftpgen.generate_bootcfg("profile", profile)
+            return self.tftpgen.generate_bootcfg(system=system)
+        if profile:
+            return self.tftpgen.generate_bootcfg(profile=profile)
+        return ""
 
     # ==========================================================================
 
     def generate_script(
-        self, profile: Optional[str], system: Optional[str], name: str
+        self,
+        profile: Optional["profile_module.Profile"],
+        system: Optional["system_module.System"],
+        name: str,
     ) -> str:
         """
         Generate an autoinstall script for the specified profile or system. The system wins over the profile.
 
-        :param profile: The profile name to generate the script for.
-        :param system: The system name to generate the script for.
+        :param profile: The profile to generate the script for.
+        :param system: The system to generate the script for.
         :param name: The name of the script which should be generated. Must only contain alphanumeric characters, dots
                      and underscores.
         :return: The generated script or an error message.
         """
         self.log("generate_script")
         if system:
-            return self.tftpgen.generate_script("system", system, name)
+            return self.tftpgen.generate_script(system=system, script_name=name)
         if profile:
-            return self.tftpgen.generate_script("profile", profile, name)
+            return self.tftpgen.generate_script(profile=profile, script_name=name)
         return ""
 
     # ==========================================================================
