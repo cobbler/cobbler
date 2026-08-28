@@ -412,12 +412,12 @@ def test_get_template_file_for_profile(
     name_template = "test_template_for_profile"
     content_template = "# Testtemplate"
     distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, distro_uid, "text")
+    profile_uid = create_profile(name_profile, distro_uid, "text")
     create_autoinstall_template(name_template, content_template)
 
     # Act
     # TODO: Fix test & functionality!
-    result = remote.get_template_file_for_profile(name_profile, name_template)
+    result = remote.get_template_file_for_profile(profile_uid, name_template)
 
     # Assert
     assert result == content_template
@@ -447,11 +447,11 @@ def test_get_template_file_for_system(
     content_template = "# Testtemplate"
     distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
     profile_uid = create_profile(name_profile, distro_uid, "text")
-    create_system(name_system, profile_uid)
+    system_uid = create_system(name_system, profile_uid)
     create_autoinstall_template(name_template, content_template)
 
     # Act
-    result = remote.get_template_file_for_system(name_system, name_template)
+    result = remote.get_template_file_for_system(system_uid, name_template)
 
     # Assert
     assert result

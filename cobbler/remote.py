@@ -3890,32 +3890,32 @@ class CobblerXMLRPCInterface:
             return f"# object not found: {system_uid}"
         return self.api.get_repo_config_for_system(obj)
 
-    def get_template_file_for_profile(self, profile_name: str, path: str, **rest: Any):
+    def get_template_file_for_profile(self, profile_uid: str, path: str, **rest: Any):
         """
         Return the templated file requested for this profile
 
-        :param profile_name: The name of the profile to get the template file for.
+        :param profile_uid: The id of the profile to get the template file for.
         :param path: The path to the template which is requested.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The template file as a str representation.
         """
-        obj = self.api.find_profile(name=profile_name)
+        obj = self.api.find_profile(uid=profile_uid)
         if obj is None or isinstance(obj, list):
-            return f"# object not found: {profile_name}"
+            return f"# object not found: {profile_uid}"
         return self.api.get_template_file_for_profile(obj, path)
 
-    def get_template_file_for_system(self, system_name: str, path: str, **rest: Any):
+    def get_template_file_for_system(self, system_uid: str, path: str, **rest: Any):
         """
         Return the templated file requested for this system
 
-        :param system_name: The name of the system to get the template file for.
+        :param system_uid: The id of the system to get the template file for.
         :param path: The path to the template which is requested.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The template file as a str representation.
         """
-        obj = self.api.find_system(name=system_name)
+        obj = self.api.find_system(uid=system_uid)
         if obj is None or isinstance(obj, list):
-            return f"# object not found: {system_name}"
+            return f"# object not found: {system_uid}"
         return self.api.get_template_file_for_system(obj, path)
 
     def register_new_system(
