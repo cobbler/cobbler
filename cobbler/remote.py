@@ -4967,8 +4967,10 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: True if the operation succeeds.
         """
-        # We pass return_list=False, thus the return type is Optional[System]
-        obj: Optional["system.System"] = self.api.find_system(uid=object_id, return_list=False)  # type: ignore
+        try:
+            obj: Optional["system.System"] = self.__get_object(object_id, token)  # type: ignore
+        except ValueError:
+            obj = None
         self.check_access(
             token, "clear_system_logs", obj.name if obj else "object not found"
         )
