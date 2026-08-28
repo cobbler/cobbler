@@ -3671,7 +3671,9 @@ class CobblerXMLRPCInterface:
         return result
 
     def get_blended_data(
-        self, profile: Optional[str] = None, system: Optional[str] = None
+        self,
+        profile_uid: Optional[str] = None,
+        system_uid: Optional[str] = None,
     ):
         """
         Combine all data which is available from a profile and system together and return it.
@@ -3679,20 +3681,20 @@ class CobblerXMLRPCInterface:
         .. deprecated:: 4.0.0
            Please make use of the dump_vars endpoint.
 
-        :param profile: The profile of the system.
-        :param system: The system for which the data should be rendered.
+        :param profile_uid: The id of the profile of the system.
+        :param system_uid: The id of the system for which the data should be rendered.
         :return: All values which could be blended together through the inheritance chain.
         """
         obj: "BootableItem"
-        if profile is not None and profile != "":
-            search_result = self.api.find_profile(name=profile)
+        if profile_uid is not None and profile_uid != "":
+            search_result = self.api.find_profile(uid=profile_uid)
             if search_result is None or isinstance(search_result, list):
-                raise CX(f"profile not found: {profile}")
+                raise CX(f"profile not found: {profile_uid}")
             obj = search_result
-        elif system is not None and system != "":
-            search_result = self.api.find_system(name=system)  # type: ignore
+        elif system_uid is not None and system_uid != "":
+            search_result = self.api.find_system(uid=system_uid)  # type: ignore
             if search_result is None or isinstance(search_result, list):
-                raise CX(f"system not found: {system}")
+                raise CX(f"system not found: {system_uid}")
             obj = search_result
         else:
             raise CX("internal error, no system or profile specified")
