@@ -11,10 +11,11 @@ ENV OSCODENAME buster
 
 # Add repo for debbuild and install all packages required
 # hadolint ignore=DL3008,DL3015,DL4006
-RUN apt-get update -qq && \
+RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list && \
+    echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until && \
+    apt-get update -qq && \
     apt-get install -qqy gnupg curl && \
-    /bin/sh -c "echo 'deb http://download.opensuse.org/repositories/Debian:/debbuild/Debian_10/ /' > /etc/apt/sources.list.d/debbuild.list" && \
-    curl -sL http://download.opensuse.org/repositories/Debian:/debbuild/Debian_10/Release.key | apt-key add - && \
+    /bin/sh -c "echo 'deb [trusted=yes] http://download.opensuse.org/repositories/Debian:/debbuild/Debian_10/ /' > /etc/apt/sources.list.d/debbuild.list" && \
     apt-get update -qq && \
     apt-get install -qqy \
     debbuild \
