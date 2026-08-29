@@ -1,13 +1,8 @@
-import distutils.sysconfig
 import logging
-import sys
 import os
 import time
 from cobbler.templar import Templar
 
-plib = distutils.sysconfig.get_python_lib()
-mod_path = "%s/cobbler" % plib
-sys.path.insert(0, mod_path)
 template_file = "/etc/cobbler/genders.template"
 settings_file = "/etc/genders"
 
