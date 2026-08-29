@@ -5,7 +5,7 @@
 | Version | Supported                 |
 |---------|---------------------------|
 | 4.0.X   | Next API breaking Release |
-| 3.3.x   | Current Version: 3.3.8    |
+| 3.3.x   | Current Version: 3.3.9    |
 | 3.2.x   | EOL                       |
 | 3.1.x   | EOL                       |
 | 3.0.x   | EOL                       |
