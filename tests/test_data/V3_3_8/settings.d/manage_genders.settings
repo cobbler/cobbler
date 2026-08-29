@@ -1,0 +1,2 @@
+# manage_genders - Bool to enable/disable managing an /etc/genders file for use with pdsh and others.
+manage_genders: false

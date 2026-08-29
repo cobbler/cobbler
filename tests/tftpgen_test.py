@@ -259,6 +259,41 @@ def test_build_kernel_options_suse_installer_selection(
     assert expected_snippet in result
 
 
+def test_build_kernel_options_suse_agama_root_live(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
+    """
+    Test that asserts that Agama-installed SUSE distros get a "root=live:" append line pointing at the
+    distro's mirrored LiveOS squashfs image, so the installer can find its own live root filesystem when
+    PXE booted instead of only knowing the "inst.auto=" autoinstall profile URL.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_distro.breed = "suse"
+    test_distro.os_version = "opensuse16.0"
+    test_distro.autoinstall_meta = {"tree": "http://192.168.1.1/cblr/links/testdistro0"}
+    test_profile = create_profile(test_distro.name)
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen.build_kernel_options(
+        None,
+        test_profile,
+        test_distro,
+        None,
+        test_distro.arch,
+        "http://192.168.1.1/autoinstall",
+    )
+
+    # Assert
+    assert (
+        "root=live:http://192.168.1.1/cblr/links/testdistro0/LiveOS/squashfs.img"
+        in result
+    )
+
+
 def test_build_kernel_options_xcp(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], Distro],

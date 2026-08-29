@@ -13,8 +13,7 @@ ENV OSCODENAME bullseye
 # hadolint ignore=DL3008,DL3015,DL4006
 RUN apt-get update -qq && \
     apt-get install -qqy gnupg curl && \
-    /bin/sh -c "echo 'deb http://download.opensuse.org/repositories/Debian:/debbuild/Debian_11/ /' > /etc/apt/sources.list.d/debbuild.list" && \
-    curl -sL http://download.opensuse.org/repositories/Debian:/debbuild/Debian_11/Release.key | apt-key add - && \
+    /bin/sh -c "echo 'deb [trusted=yes] http://download.opensuse.org/repositories/Debian:/debbuild/Debian_11/ /' > /etc/apt/sources.list.d/debbuild.list" && \
     apt-get update -qq && \
     apt-get install -qqy \
     debbuild \
