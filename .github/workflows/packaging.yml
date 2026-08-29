@@ -3,6 +3,8 @@ name: Building Cobbler packages
 on:
   push:
     branches: [ main, release* ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ main, release* ]
 
