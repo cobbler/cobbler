@@ -1,1 +1,0 @@
-Fix pypa/gh-action-pypi-publish SHA-pin causing "manifest unknown" during PyPI release and packaging workflow not running on tag pushes
