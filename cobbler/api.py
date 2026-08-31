@@ -2459,6 +2459,47 @@ class CobblerAPI:
 
     # ==========================================================================
 
+    def get_repos_compatible_with_profile(
+        self, profile: "profile_module.Profile"
+    ) -> List[Dict[str, Any]]:
+        """
+        Get repos that can be used with a given profile.
+
+        :param profile: The profile to check for compatibility.
+        :return: The list of compatible repositories.
+        """
+        results: List[Dict[str, Any]] = []
+        distro_obj: Optional["distro.Distro"] = profile.get_conceptual_parent()  # type: ignore[assignment]
+        if distro_obj is None:
+            raise ValueError("Distro not found!")
+        for current_repo in self.repos():
+            # There be dragons!
+            # Accept all repos that are src/noarch but otherwise filter what repos are compatible with the profile
+            # based on the arch of the distro.
+            # FIXME: Use the enum directly
+            if current_repo.arch.value in [
+                "",
+                "noarch",
+                "src",
+            ]:
+                results.append(current_repo.to_dict())
+            else:
+                # some backwards compatibility fuzz
+                # repo.arch is mostly a text field
+                # distro.arch is i386/x86_64
+                if current_repo.arch.value in ["i386", "x86", "i686"]:
+                    if distro_obj.arch.value in ["i386", "x86"]:
+                        results.append(current_repo.to_dict())
+                elif current_repo.arch.value in ["x86_64"]:
+                    if distro_obj.arch.value in ["x86_64"]:
+                        results.append(current_repo.to_dict())
+                else:
+                    if distro_obj.arch.value == current_repo.arch.value:
+                        results.append(current_repo.to_dict())
+        return results
+
+    # ==========================================================================
+
     def get_template_file_for_profile(self, obj: "BootableItem", path: str) -> str:
         """
         Get the template for the specified profile.
@@ -2505,7 +2546,12 @@ class CobblerAPI:
             filename, system, profile, distro, arch, image, metadata, bootloader_format
         )
 
-    def generate_ipxe(self, profile: str, image: str, system: str) -> str:
+    def generate_ipxe(
+        self,
+        profile: Optional["profile_module.Profile"] = None,
+        image: Optional["image_module.Image"] = None,
+        system: Optional["system_module.System"] = None,
+    ) -> str:
         """
         Generate the ipxe configuration files. The system wins over the profile. Profile and System win over Image.
 
@@ -2516,23 +2562,27 @@ class CobblerAPI:
         """
         self.log("generate_ipxe")
         data = ""
-        if profile is None and image is None and system is None:  # type: ignore
+        if profile is None and image is None and system is None:
             boot_menu = self.tftpgen.make_pxe_menu()
             if "ipxe" in boot_menu:
                 data = boot_menu["ipxe"]
                 if not isinstance(data, str):
                     raise ValueError("ipxe boot menu didn't have right type!")
         elif system:
-            data = self.tftpgen.generate_ipxe("system", system)
+            data = self.tftpgen.generate_ipxe(system=system)
         elif profile:
-            data = self.tftpgen.generate_ipxe("profile", profile)
+            data = self.tftpgen.generate_ipxe(profile=profile)
         elif image:
-            data = self.tftpgen.generate_ipxe("image", image)
+            data = self.tftpgen.generate_ipxe(image=image)
         return data
 
     # ==========================================================================
 
-    def generate_bootcfg(self, profile: str = "", system: str = "") -> str:
+    def generate_bootcfg(
+        self,
+        profile: Optional["profile_module.Profile"] = None,
+        system: Optional["system_module.System"] = None,
+    ) -> str:
         """
         Generate a boot configuration. The system wins over the profile.
 
@@ -2542,28 +2592,33 @@ class CobblerAPI:
         """
         self.log("generate_bootcfg")
         if system:
-            return self.tftpgen.generate_bootcfg("system", system)
-        return self.tftpgen.generate_bootcfg("profile", profile)
+            return self.tftpgen.generate_bootcfg(system=system)
+        if profile:
+            return self.tftpgen.generate_bootcfg(profile=profile)
+        return ""
 
     # ==========================================================================
 
     def generate_script(
-        self, profile: Optional[str], system: Optional[str], name: str
+        self,
+        profile: Optional["profile_module.Profile"],
+        system: Optional["system_module.System"],
+        name: str,
     ) -> str:
         """
         Generate an autoinstall script for the specified profile or system. The system wins over the profile.
 
-        :param profile: The profile name to generate the script for.
-        :param system: The system name to generate the script for.
+        :param profile: The profile to generate the script for.
+        :param system: The system to generate the script for.
         :param name: The name of the script which should be generated. Must only contain alphanumeric characters, dots
                      and underscores.
         :return: The generated script or an error message.
         """
         self.log("generate_script")
         if system:
-            return self.tftpgen.generate_script("system", system, name)
+            return self.tftpgen.generate_script(system=system, script_name=name)
         if profile:
-            return self.tftpgen.generate_script("profile", profile, name)
+            return self.tftpgen.generate_script(profile=profile, script_name=name)
         return ""
 
     # ==========================================================================
@@ -2583,11 +2638,11 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def is_autoinstall_in_use(self, autoinstall: str):
+    def is_autoinstall_in_use(self, autoinstall: "template.Template"):
         """
         Check if the auto-installation template is referenced by at least one Profile or System.
 
-        :param ai: The name of the template.
+        :param autoinstall: The template to check for references.
         :return: True if this is the case, otherwise False.
         """
         return self.autoinstall_mgr.is_autoinstall_in_use(autoinstall)
@@ -2623,7 +2678,9 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def sync_systems(self, systems: List[str], verbose: bool = False) -> None:
+    def sync_systems(
+        self, systems: List["system_module.System"], verbose: bool = False
+    ) -> None:
         """
         Take the values currently written to the configuration files in /etc, and /var, and build out the information
         tree found in /tftpboot. Any operations done in the API that have not been saved with serialize() will NOT be
@@ -2636,14 +2693,14 @@ class CobblerAPI:
         if not (
             systems
             and isinstance(systems, list)  # type: ignore
-            and all(isinstance(sys_name, str) for sys_name in systems)  # type: ignore
+            and all(isinstance(sys_obj, system_module.System) for sys_obj in systems)  # type: ignore
         ):
             if len(systems) < 1:
                 self.logger.debug(
                     "sync_systems needs at least one system to do something. Bailing out early."
                 )
                 return
-            raise TypeError("Systems must be a list of one or more strings.")
+            raise TypeError("Systems must be a list of one or more System objects.")
         self.logger.info(
             "Waiting lock to be available to perform the sync action (this might take some time)"
         )
@@ -2789,20 +2846,23 @@ class CobblerAPI:
     # ==========================================================================
 
     def reposync(
-        self, name: Optional[str] = None, tries: int = 1, nofail: bool = False
+        self,
+        repo_obj: Optional["repo.Repo"] = None,
+        tries: int = 1,
+        nofail: bool = False,
     ) -> None:
         """
         Take the contents of ``/var/lib/cobbler/repos`` and update them -- or create the initial copy if no contents
         exist yet.
 
-        :param name: The name of the repository to run reposync for.
+        :param repo_obj: The repository to run reposync for.
         :param tries: How many tries should be executed before the action fails.
         :param nofail: If True then the action will fail, otherwise the action will just be skipped. This respects the
                        ``tries`` parameter.
         """
-        self.log("reposync", [name])
+        self.log("reposync", [repo_obj.name if repo_obj else None])
         action_reposync = reposync.RepoSync(self, tries=tries, nofail=nofail)
-        action_reposync.run(name)
+        action_reposync.run(repo_obj)
 
     # ==========================================================================
 
@@ -2995,10 +3055,10 @@ class CobblerAPI:
     def build_iso(
         self,
         iso: str = "autoinst.iso",
-        profiles: Optional[List[str]] = None,
-        systems: Optional[List[str]] = None,
+        profiles: Optional[List["profile_module.Profile"]] = None,
+        systems: Optional[List["system_module.System"]] = None,
         buildisodir: str = "",
-        distro_name: Optional[str] = None,
+        distro: Optional["distro.Distro"] = None,
         standalone: bool = False,
         airgapped: bool = False,
         source: str = "",
@@ -3014,7 +3074,7 @@ class CobblerAPI:
         :param profiles: Use these profiles only
         :param systems: Use these systems only
         :param buildisodir: This overwrites the directory from the settings in which the iso is built in.
-        :param distro_name: Use this distro architecture. If not used, autodetected from profiles or systems.
+        :param distro: Use this distro architecture. If not used, autodetected from profiles or systems.
         :param standalone: This means that no network connection is needed to install the generated iso.
         :param airgapped: This option implies ``standalone=True``.
         :param source: If the iso should be offline available this is the path to the sources of the image.
@@ -3037,7 +3097,7 @@ class CobblerAPI:
             buildisodir=buildisodir,
             profiles=profiles,
             xorrisofs_opts=xorrisofs_opts,
-            distro_name=distro_name,
+            distro=distro,
             airgapped=airgapped,
             source=source,
             systems=systems,
@@ -3147,6 +3207,35 @@ class CobblerAPI:
         :param system: The system to clear logs of.
         """
         log.LogTool(system, self).clear()
+
+    # ==========================================================================
+
+    def disable_netboot(self, system: "system_module.System") -> bool:
+        """
+        This is a feature used by the ``pxe_just_once`` support, see manpage. Sets the given system to no-longer PXE.
+        Disabled by default as this requires public API access and is technically a read-write operation.
+
+        :param system: The system to disable netboot for.
+        :return: A boolean indicated the success of the action.
+        """
+        # used by nopxe.cgi
+        if not self.settings().pxe_just_once:
+            # feature disabled!
+            return False
+        # triggers should be enabled when calling nopxe
+        triggers_enabled = self.settings().nopxe_with_triggers
+        system.netboot_enabled = False
+        # disabling triggers and sync to make this extremely fast.
+        self.systems().add(
+            system,
+            save=True,
+            with_triggers=triggers_enabled,
+            with_sync=False,
+            quick_pxe_update=True,
+        )
+        # re-generate dhcp configuration
+        self.sync_dhcp()
+        return True
 
     # ==========================================================================
 

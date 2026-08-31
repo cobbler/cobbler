@@ -116,9 +116,11 @@ class CobblerSync:
         self.settings = self.api.settings()
         self.repos = self.api.repos()
 
-    def run_sync_systems(self, systems: List[str]):
+    def run_sync_systems(self, systems: List["System"]):
         """
         Syncs the specific systems with the config tree.
+
+        :param systems: The systems to sync.
         """
         self.__common_run()
 

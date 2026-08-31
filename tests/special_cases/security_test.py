@@ -81,7 +81,7 @@ def test_arbitrary_file_disclosure_1(
 
     # Act
     profiles = cobbler_api.get_profiles()
-    target: str = profiles[0]["name"]  # type: ignore
+    target: str = profiles[0]["uid"]  # type: ignore
     try:
         result: str = cobbler_api.generate_script(target, "", "/etc/shadow")  # type: ignore
 
@@ -105,7 +105,7 @@ def test_template_injection_1(
 
     # Act
     profiles = cobbler_api.get_profiles()
-    target: str = profiles[0]["name"]  # type: ignore
+    target: str = profiles[0]["uid"]  # type: ignore
     try:
         print("[+] Stage 1 : Poisoning log with Cheetah template RCE")
         result_stage_1: str = cobbler_api.generate_script(

@@ -71,10 +71,10 @@ def test_disable_netboot(
 
     distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
     profile_uid = create_profile(name_profile, distro_uid, "text")
-    create_system(name_system, profile_uid)
+    system_uid = create_system(name_system, profile_uid)
 
     # Act
-    result = remote.disable_netboot(name_system, token)
+    result = remote.disable_netboot(system_uid, token)
 
     # Assert
     assert result
@@ -195,11 +195,11 @@ def test_generate_script(
     name_profile = "test_profile_template_for_system"
     name_autoinstall_script = "test_generate_script"
     distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, distro_uid, "text")
+    profile_uid = create_profile(name_profile, distro_uid, "text")
     # TODO: Create Autoinstall Script
 
     # Act
-    result = remote.generate_script(name_profile, None, name_autoinstall_script)
+    result = remote.generate_script(profile_uid, None, name_autoinstall_script)
 
     # Assert
     assert result
@@ -221,10 +221,10 @@ def test_get_item_as_rendered(
     path_kernel = os.path.join(basepath, fk_kernel)
     path_initrd = os.path.join(basepath, fk_initrd)
     name = "test_item_as_rendered"
-    create_distro(name, "x86_64", "suse", path_kernel, path_initrd)
+    distro_uid = create_distro(name, "x86_64", "suse", path_kernel, path_initrd)
 
     # Act
-    result = remote.get_distro_as_rendered(name, token)
+    result = remote.get_distro_as_rendered(distro_uid, token)
 
     # Assert
     assert result
@@ -292,10 +292,10 @@ def test_get_blended_data(
     name_system = "test_system_blended"
     distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
     profile_uid = create_profile(name_profile, distro_uid, "text")
-    create_system(name_system, profile_uid)
+    system_uid = create_system(name_system, profile_uid)
 
     # Act
-    result = remote.get_blended_data(name_profile, name_system)
+    result = remote.get_blended_data(profile_uid, system_uid)
 
     # Assert
     assert result
@@ -357,7 +357,7 @@ def test_get_repos_compatible_with_profile(
     name_repo_compatible = "test_repo_compatible_profile_1"
     name_repo_incompatible = "test_repo_compatible_profile_2"
     distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, distro_uid, "text")
+    profile_uid = create_profile(name_profile, distro_uid, "text")
     repo_compatible = create_repo(name_repo_compatible, "http://localhost", False)
     repo_incompatible = create_repo(name_repo_incompatible, "http://localhost", False)
     remote.modify_repo(repo_compatible, ["arch"], "x86_64", token)
@@ -366,7 +366,7 @@ def test_get_repos_compatible_with_profile(
     remote.save_repo(repo_incompatible, True, True, "bypass", token)
 
     # Act
-    result = remote.get_repos_compatible_with_profile(name_profile, token)
+    result = remote.get_repos_compatible_with_profile(profile_uid, token)
 
     # Assert
     assert result != []
@@ -412,12 +412,12 @@ def test_get_template_file_for_profile(
     name_template = "test_template_for_profile"
     content_template = "# Testtemplate"
     distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
-    create_profile(name_profile, distro_uid, "text")
+    profile_uid = create_profile(name_profile, distro_uid, "text")
     create_autoinstall_template(name_template, content_template)
 
     # Act
     # TODO: Fix test & functionality!
-    result = remote.get_template_file_for_profile(name_profile, name_template)
+    result = remote.get_template_file_for_profile(profile_uid, name_template)
 
     # Assert
     assert result == content_template
@@ -447,11 +447,11 @@ def test_get_template_file_for_system(
     content_template = "# Testtemplate"
     distro_uid = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
     profile_uid = create_profile(name_profile, distro_uid, "text")
-    create_system(name_system, profile_uid)
+    system_uid = create_system(name_system, profile_uid)
     create_autoinstall_template(name_template, content_template)
 
     # Act
-    result = remote.get_template_file_for_system(name_system, name_template)
+    result = remote.get_template_file_for_system(system_uid, name_template)
 
     # Assert
     assert result
@@ -461,8 +461,11 @@ def test_is_autoinstall_in_use(remote: CobblerXMLRPCInterface, token: str):
     """
     Test to verify that it can be sucessfully check if a given autoinstall is currently in use.
     """
-    # Arrange & Act
-    result = remote.is_autoinstall_in_use("built-in-powerkvm.ks", token)
+    # Arrange
+    template_uid = remote.get_template_handle("built-in-powerkvm.ks")
+
+    # Act
+    result = remote.is_autoinstall_in_use(template_uid, token)
 
     # Assert
     assert not result

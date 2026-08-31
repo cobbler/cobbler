@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from cobbler import utils
 from cobbler.cexceptions import CX
+from cobbler.items.system import System
 from cobbler.modules.managers import TftpManagerModule
 from cobbler.utils import filesystem_helpers
 
@@ -18,7 +19,6 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.items.distro import Distro
     from cobbler.items.image import Image
-    from cobbler.items.system import System
 
 
 MANAGER = None
@@ -146,7 +146,7 @@ class _InTftpdManager(TftpManagerModule):
         """
         self.api.tftpgen.copy_single_image_files(image)
 
-    def sync_systems(self, systems: List[str], verbose: bool = True) -> None:
+    def sync_systems(self, systems: List["System"], verbose: bool = True) -> None:
         """
         Write out specified systems as separate files to the TFTP server folder.
 
@@ -155,26 +155,15 @@ class _InTftpdManager(TftpManagerModule):
         """
         if not (
             isinstance(systems, list)  # type: ignore
-            and all(isinstance(sys_name, str) for sys_name in systems)  # type: ignore
+            and all(isinstance(sys_obj, System) for sys_obj in systems)  # type: ignore
         ):
-            raise TypeError("systems needs to be a list of strings")
+            raise TypeError("systems needs to be a list of System objects")
 
         if not isinstance(verbose, bool):  # type: ignore
             raise TypeError("verbose needs to be of type bool")
 
-        system_objs: List["System"] = []
-        for system_name in systems:
-            # get the system object:
-            system_obj = self.api.find_system(name=system_name)
-            if system_obj is None:
-                self.logger.info("did not find any system named %s", system_name)
-                continue
-            if isinstance(system_obj, list):
-                raise ValueError("Ambiguous match detected!")
-            system_objs.append(system_obj)
-
         menu_items = self.api.tftpgen.get_menu_items()
-        for system in system_objs:
+        for system in systems:
             self.sync_single_system(system, menu_items)
 
         self.logger.info("generating PXE menu structure")

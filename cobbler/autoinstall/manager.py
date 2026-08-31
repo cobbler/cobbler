@@ -49,19 +49,15 @@ class AutoInstallationManager:
         self.logger = logging.getLogger()
         self.api = api
 
-    def is_autoinstall_in_use(self, name: str) -> bool:
+    def is_autoinstall_in_use(self, template: "Template") -> bool:
         """
         Check if the auto-installation template is referenced by at least one Profile or System.
 
-        :param name: The name of the template.
+        :param template: The template to check for references.
         :returns: True if the template is referenced by at least a single object.
         """
-        search_result_template = self.api.find_template(False, False, name=name)
-        if search_result_template is None or isinstance(search_result_template, list):
-            raise ValueError("Requested autoinstall template not found!")
-
         search_result_profile = self.api.find_profile(
-            True, False, autoinstall=search_result_template.uid
+            True, False, autoinstall=template.uid
         )
         if search_result_profile is not None and not isinstance(
             search_result_profile, list
@@ -73,7 +69,7 @@ class AutoInstallationManager:
             return True
 
         search_result_system = self.api.find_system(
-            True, False, autoinstall=search_result_template.uid
+            True, False, autoinstall=template.uid
         )
         if search_result_system is not None and not isinstance(
             search_result_system, list

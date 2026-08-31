@@ -250,7 +250,7 @@ def test_filter_system(
     test_system_image: System = create_system(
         image_uid=test_image.uid, name="test_filter_system_image_image"
     )
-    itemlist = [test_system_profile.name, test_system_image.name]
+    itemlist = [test_system_profile, test_system_image]
     build_iso = NetbootBuildiso(cobbler_api)
     expected_result = [test_system_profile]
 
@@ -272,7 +272,7 @@ def test_filter_profile(
     # Arrange
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
-    itemlist = [test_profile.name]
+    itemlist = [test_profile]
     build_iso = buildiso.BuildIso(cobbler_api)
     expected_result = [test_profile]
 
@@ -295,7 +295,7 @@ def test_filter_profile_disabled(
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
     test_profile.enable_menu = False  # type: ignore
-    itemlist = [test_profile.name]
+    itemlist = [test_profile]
     build_iso = buildiso.BuildIso(cobbler_api)
     expected_result: List[Any] = []  # No enabled profiles
 
@@ -322,7 +322,7 @@ def test_netboot_run(
     iso_location = tmpdir.join("autoinst.iso")
 
     # Act
-    build_iso.run(iso=str(iso_location), distro_name=test_distro.name)
+    build_iso.run(iso=str(iso_location), distro=test_distro)
 
     # Assert
     assert iso_location.exists()
@@ -367,7 +367,7 @@ def test_standalone_run(
 
     # Act
     build_iso.run(
-        iso=str(iso_location), distro_name=test_distro.name, source=str(iso_source)  # type: ignore
+        iso=str(iso_location), distro=test_distro, source=str(iso_source)  # type: ignore
     )
 
     # Assert

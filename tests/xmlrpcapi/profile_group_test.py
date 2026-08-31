@@ -162,7 +162,7 @@ def test_get_profile_group_as_rendered(remote: CobblerXMLRPCInterface, token: st
     remote.save_profile_group(handle, True, True, "new", token)
 
     # Act
-    result = remote.get_profile_group_as_rendered("test_profile_group", token)
+    result = remote.get_profile_group_as_rendered(handle, token)
 
     # Assert
     assert result is not None

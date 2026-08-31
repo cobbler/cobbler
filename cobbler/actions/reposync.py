@@ -96,86 +96,106 @@ class RepoSync:
 
     # ===================================================================
 
-    def run(self, name: Optional[str] = None, verbose: bool = True) -> None:
+    def run(self, repo: Optional["Repo"] = None, verbose: bool = True) -> None:
         """
         Syncs the current repo configuration file with the filesystem.
 
-        :param name: The name of the repository to synchronize.
+        :param repo: The repository to synchronize. If not given, every repo marked to be kept updated is
+                     synchronized.
         :param verbose: If the action should be logged verbose or not.
         """
 
         self.logger.info("run, reposync, run!")
 
         self.verbose = verbose
+
+        if repo is not None:
+            # Invoked to sync only a specific repo
+            if not self.run_repo(repo):
+                raise CX(
+                    "overall reposync failed, at least one repo failed to synchronize"
+                )
+            return
+
         report_failure = False
-        for repo in self.repos:
-            if name is not None and repo.name != name:
-                # Invoked to sync only a specific repo, this is not the one
-                continue
-            if name is None and not repo.keep_updated:
+        for current_repo in self.repos:
+            if not current_repo.keep_updated:
                 # Invoked to run against all repos, but this one is off
-                self.logger.info("%s is set to not be updated", repo.name)
+                self.logger.info("%s is set to not be updated", current_repo.name)
                 continue
-
-            repo_mirror = os.path.join(self.settings.webdir, "repo_mirror")
-            repo_path = os.path.join(repo_mirror, repo.name)
-
-            if not os.path.isdir(repo_path) and not repo.mirror.lower().startswith(
-                "rhn://"
-            ):
-                os.makedirs(repo_path)
-
-            # Set the environment keys specified for this repo and save the old one if they modify an existing variable.
-
-            env = repo.environment
-            old_env: Dict[str, Any] = {}
-
-            for k in list(env.keys()):
-                self.logger.debug("setting repo environment: %s=%s", k, env[k])
-                if env[k] is not None:
-                    if os.getenv(k):
-                        old_env[k] = os.getenv(k)
-                    else:
-                        os.environ[k] = env[k]
-
-            # Which may actually NOT reposync if the repo is set to not mirror locally but that's a technicality.
-
-            success = False
-            for reposync_try in range(self.tries + 1, 1, -1):
-                try:
-                    self.sync(repo)
-                    success = True
-                    break
-                except Exception:
-                    success = False
-                    utils.log_exc()
-                    self.logger.warning(
-                        "reposync failed, tries left: %s", (reposync_try - 2)
-                    )
-
-            # Cleanup/restore any environment variables that were added or changed above.
-
-            for k in list(env.keys()):
-                if env[k] is not None:
-                    if k in old_env:
-                        self.logger.debug(
-                            "resetting repo environment: %s=%s", k, old_env[k]
-                        )
-                        os.environ[k] = old_env[k]
-                    else:
-                        self.logger.debug("removing repo environment: %s=%s", k, env[k])
-                        del os.environ[k]
-
-            if not success:
+            if not self.run_repo(current_repo):
                 report_failure = True
-                if not self.nofail:
-                    raise CX("reposync failed, retry limit reached, aborting")
-                self.logger.error("reposync failed, retry limit reached, skipping")
-
-            self.update_permissions(repo_path)
 
         if report_failure:
             raise CX("overall reposync failed, at least one repo failed to synchronize")
+
+    # ==================================================================================
+
+    def run_repo(self, repo: "Repo") -> bool:
+        """
+        Sync a single repo: prepare its mirror directory and environment, attempt :meth:`sync` (retrying up to
+        ``self.tries`` times), restore the environment, and update permissions on the mirror directory.
+
+        :param repo: The repo to synchronize.
+        :raises CX: If the sync ultimately failed and ``self.nofail`` is False.
+        :return: True if the repo synced successfully, otherwise False.
+        """
+        repo_mirror = os.path.join(self.settings.webdir, "repo_mirror")
+        repo_path = os.path.join(repo_mirror, repo.name)
+
+        if not os.path.isdir(repo_path) and not repo.mirror.lower().startswith(
+            "rhn://"
+        ):
+            os.makedirs(repo_path)
+
+        # Set the environment keys specified for this repo and save the old one if they modify an existing variable.
+
+        env = repo.environment
+        old_env: Dict[str, Any] = {}
+
+        for k in list(env.keys()):
+            self.logger.debug("setting repo environment: %s=%s", k, env[k])
+            if env[k] is not None:
+                if os.getenv(k):
+                    old_env[k] = os.getenv(k)
+                else:
+                    os.environ[k] = env[k]
+
+        # Which may actually NOT reposync if the repo is set to not mirror locally but that's a technicality.
+
+        success = False
+        for reposync_try in range(self.tries + 1, 1, -1):
+            try:
+                self.sync(repo)
+                success = True
+                break
+            except Exception:
+                success = False
+                utils.log_exc()
+                self.logger.warning(
+                    "reposync failed, tries left: %s", (reposync_try - 2)
+                )
+
+        # Cleanup/restore any environment variables that were added or changed above.
+
+        for k in list(env.keys()):
+            if env[k] is not None:
+                if k in old_env:
+                    self.logger.debug(
+                        "resetting repo environment: %s=%s", k, old_env[k]
+                    )
+                    os.environ[k] = old_env[k]
+                else:
+                    self.logger.debug("removing repo environment: %s=%s", k, env[k])
+                    del os.environ[k]
+
+        if not success:
+            if not self.nofail:
+                raise CX("reposync failed, retry limit reached, aborting")
+            self.logger.error("reposync failed, retry limit reached, skipping")
+
+        self.update_permissions(repo_path)
+        return success
 
     # ==================================================================================
 

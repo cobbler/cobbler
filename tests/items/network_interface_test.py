@@ -49,6 +49,40 @@ def test_network_interface_object_creation(cobbler_api: CobblerAPI):
     assert isinstance(interface, NetworkInterface)
 
 
+def test_system(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Callable[[str], System],
+):
+    """
+    Test to verify that the system property resolves the owning system by uid.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_system = create_system(test_profile.uid)
+    interface = NetworkInterface(cobbler_api, test_system.uid)
+
+    # Act
+    result = interface.system
+
+    # Assert
+    assert result is test_system
+
+
+def test_system_not_present(cobbler_api: CobblerAPI):
+    """
+    Test to verify that the system property raises when the referenced system does not exist.
+    """
+    # Arrange
+    interface = NetworkInterface(cobbler_api, "does-not-exist")
+
+    # Act & Assert
+    with pytest.raises(ValueError):
+        interface.system  # pylint: disable=pointless-statement
+
+
 def test_network_interface_to_dict(cobbler_api: CobblerAPI):
     """
     Test to verify that the to_dict method of NetworkInterface works as expected.

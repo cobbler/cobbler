@@ -32,7 +32,7 @@ def test_built_in_preseed_early_default(
     test_profile = create_profile(test_distro.uid)
 
     # Act
-    result = cobbler_api.generate_script(test_profile.name, None, template)
+    result = cobbler_api.generate_script(test_profile, None, template)
 
     # Assert
     assert result == "\n".join(expected_result)
@@ -73,7 +73,7 @@ def test_built_in_preseed_late_default(
     test_profile = create_profile(test_distro.uid)
 
     # Act
-    result = cobbler_api.generate_script(test_profile.name, None, template)
+    result = cobbler_api.generate_script(test_profile, None, template)
 
     # Assert
     assert result == "\n".join(expected_result)
@@ -100,7 +100,7 @@ def test_built_in_preseed_nochroot_late_default(
     test_profile = create_profile(test_distro.uid)
 
     # Act
-    result = cobbler_api.generate_script(test_profile.name, None, template)
+    result = cobbler_api.generate_script(test_profile, None, template)
 
     # Assert
     assert result == "\n".join(expected_result)
@@ -126,7 +126,7 @@ def test_built_in_xcp_pre_install(
     test_profile = create_profile(test_distro.uid)
 
     # Act
-    result = cobbler_api.generate_script(test_profile.name, None, template)
+    result = cobbler_api.generate_script(test_profile, None, template)
 
     # Assert
     assert result == "\n".join(expected_result)
@@ -152,7 +152,7 @@ def test_built_in_xcp_post_install(
     test_profile = create_profile(test_distro.uid)
 
     # Act
-    result = cobbler_api.generate_script(test_profile.name, None, template)
+    result = cobbler_api.generate_script(test_profile, None, template)
 
     # Assert
     assert result == "\n".join(expected_result)

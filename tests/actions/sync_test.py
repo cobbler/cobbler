@@ -11,6 +11,7 @@ import pytest
 
 from cobbler.actions import sync
 from cobbler.api import CobblerAPI
+from cobbler.items.system import System
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
@@ -217,7 +218,7 @@ def test_run_sync_systems(cobbler_api: CobblerAPI):
     test_sync = sync.CobblerSync(cobbler_api)
 
     # Act
-    test_sync.run_sync_systems(["t1.systems.de"])
+    test_sync.run_sync_systems([System(cobbler_api)])
     # Assert
     # correct order with correct parameters
     assert False

@@ -202,10 +202,10 @@ class NetbootBuildiso(buildiso.BuildIso):
         self,
         iso: str = "autoinst.iso",
         buildisodir: str = "",
-        profiles: Optional[List[str]] = None,
+        profiles: Optional[List["Profile"]] = None,
         xorrisofs_opts: str = "",
-        distro_name: Optional[str] = None,
-        systems: Optional[List[str]] = None,
+        distro: Optional["Distro"] = None,
+        systems: Optional[List["System"]] = None,
         exclude_dns: bool = False,
         esp: Optional[str] = None,
         exclude_systems: bool = False,
@@ -222,8 +222,8 @@ class NetbootBuildiso(buildiso.BuildIso):
         :param buildisodir: This overwrites the directory from the settings in which the iso is built in.
         :param profiles: The filter to generate the ISO only for selected profiles.
         :param xorrisofs_opts: ``xorrisofs`` options to include additionally.
-        :param distro_name: For detecting the architecture of the ISO.
-                            If not provided, taken from first profile or system item
+        :param distro: For detecting the architecture of the ISO.
+                       If not provided, taken from first profile or system item
         :param systems: The filter to generate the ISO only for selected systems.
         :param exclude_dns: Whether the repositories have to be locally available or the internet is reachable.
         :param exclude_systems: Whether system entries should not be exported.
@@ -231,7 +231,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         del kwargs  # just accepted for polymorphism
 
         distro_obj, profile_list, system_list = self.prepare_sources(
-            distro_name, profiles, systems, exclude_systems
+            distro, profiles, systems, exclude_systems
         )
 
         loader_config_parts = self._generate_boot_loader_configs(

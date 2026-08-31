@@ -222,10 +222,10 @@ class StandaloneBuildiso(buildiso.BuildIso):
         self,
         iso: str = "autoinst.iso",
         buildisodir: str = "",
-        profiles: Optional[List[str]] = None,
-        systems: Optional[List[str]] = None,
+        profiles: Optional[List["Profile"]] = None,
+        systems: Optional[List["System"]] = None,
         xorrisofs_opts: str = "",
-        distro_name: Optional[str] = None,
+        distro: Optional["Distro"] = None,
         airgapped: bool = False,
         source: str = "",
         esp: Optional[str] = None,
@@ -242,7 +242,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
         :param profiles: The filter to generate the ISO only for selected profiles. None means all.
         :param systems: The filter to generate the ISO only for selected systems. None means all.
         :param xorrisofs_opts: ``xorrisofs`` options to include additionally.
-        :param distro_name: For detecting the architecture of the ISO. If not provided, taken from first profile or
+        :param distro: For detecting the architecture of the ISO. If not provided, taken from first profile or
             system item.
         :param airgapped: This option implies ``standalone=True``.
         :param source: If the iso should be offline available this is the path to the sources of the image.
@@ -251,7 +251,7 @@ class StandaloneBuildiso(buildiso.BuildIso):
         del kwargs  # just accepted for polymorphism
 
         distro_obj, profile_objs, system_objs = self.prepare_sources(
-            distro_name, profiles, systems, exclude_systems
+            distro, profiles, systems, exclude_systems
         )
 
         filesource = source

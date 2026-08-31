@@ -2,7 +2,7 @@
 Testmodule to verify that the API for "cobbler sync" related operations is working successfully.
 """
 
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 from unittest.mock import MagicMock, Mock, PropertyMock, create_autospec
 
 import pytest
@@ -12,7 +12,10 @@ import cobbler.modules.managers.bind
 import cobbler.modules.managers.in_httpd
 import cobbler.modules.managers.isc
 from cobbler.api import CobblerAPI
+from cobbler.items.distro import Distro
 from cobbler.items.image import Image
+from cobbler.items.profile import Profile
+from cobbler.items.system import System
 
 from tests.conftest import does_not_raise
 
@@ -167,21 +170,43 @@ def test_get_sync_default_httpd_manager(cobbler_api: CobblerAPI):
 @pytest.mark.parametrize(
     "input_verbose,input_systems,expected_exception",
     [
-        (None, ["t1.systems.de"], does_not_raise()),
-        (True, ["t1.systems.de"], does_not_raise()),
-        (False, ["t1.systems.de"], does_not_raise()),
         (False, [], does_not_raise()),
         (False, [42], pytest.raises(TypeError)),
         (False, None, pytest.raises(TypeError)),
         (False, "t1.systems.de", pytest.raises(TypeError)),
     ],
 )
-def test_sync_systems(
+def test_sync_systems_invalid(
     cobbler_api: CobblerAPI,
     input_verbose: bool,
     input_systems: Any,
     expected_exception: Any,
     mocker: "MockerFixture",
+):
+    """
+    Verify that sync_systems validates the type of its "systems" argument.
+    """
+    # Arrange
+    stub = create_autospec(spec=cobbler.actions.sync.CobblerSync)
+    mocker.patch.object(cobbler_api, "get_sync", return_value=stub)
+    mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    with expected_exception:
+        cobbler_api.sync_systems(input_systems, input_verbose)
+
+    # Assert
+    assert stub.run_sync_systems.call_count == 0
+
+
+@pytest.mark.parametrize("input_verbose", [None, True, False])
+def test_sync_systems(
+    cobbler_api: CobblerAPI,
+    input_verbose: bool,
+    mocker: "MockerFixture",
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Callable[[str], System],
 ):
     """
     Verify that the main function dedicated to syncing systems is functional.
@@ -190,19 +215,16 @@ def test_sync_systems(
     stub = create_autospec(spec=cobbler.actions.sync.CobblerSync)
     mocker.patch.object(cobbler_api, "get_sync", return_value=stub)
     filelock_mock = mocker.patch("cobbler.utils.filelock")
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_system = create_system(test_profile.uid)
 
     # Act
-    with expected_exception:
-        cobbler_api.sync_systems(input_systems, input_verbose)
+    cobbler_api.sync_systems([test_system], input_verbose)  # type: ignore
 
-        # Assert
-        if len(input_systems) > 0:
-            filelock_mock.assert_called_once_with("/var/lib/cobbler/lock")
-        if len(input_systems) > 0:
-            stub.run_sync_systems.assert_called_once()
-            stub.run_sync_systems.assert_called_with(input_systems)
-        else:
-            assert stub.run_sync_systems.call_count == 0
+    # Assert
+    filelock_mock.assert_called_once_with("/var/lib/cobbler/lock")
+    stub.run_sync_systems.assert_called_once_with([test_system])
 
 
 def test_image_rename(cobbler_api: CobblerAPI):

@@ -97,7 +97,7 @@ class _DynamicTftpManager(TftpManagerModule):
             "image files are served on demand instead"
         )
 
-    def sync_systems(self, systems: List[str], verbose: bool = True) -> None:
+    def sync_systems(self, systems: List["System"], verbose: bool = True) -> None:
         """
         No-op: system configuration is rendered on demand by
         :meth:`cobbler.tftpgen.TFTPGen.generate_tftp_file`, so nothing needs to be written to the TFTP root.

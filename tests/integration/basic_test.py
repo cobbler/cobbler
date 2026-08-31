@@ -55,7 +55,7 @@ def test_basic_buildiso(
 
     # Act
     tid = remote.background_buildiso(
-        {"iso": str(iso_path), "distro": distro_name, "buildisodir": str(buildisodir)},
+        {"iso": str(iso_path), "distro": distro_id, "buildisodir": str(buildisodir)},
         token,
     )
     wait_task_end(tid, remote)

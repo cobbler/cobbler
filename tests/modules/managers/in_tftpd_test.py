@@ -3,7 +3,7 @@ Tests that validate the functionality of the module that is responsible for mana
 ISC DHCP server.
 """
 
-from typing import TYPE_CHECKING, Any, Generator, List
+from typing import TYPE_CHECKING, Any, Generator
 
 import pytest
 
@@ -200,16 +200,11 @@ def test_manager_add_single_image(api_mock_tftp: CobblerAPI):
     assert tftpgen_mock.copy_single_image_files.call_count == 1  # type: ignore[reportFunctionMemberAccess,attr-defined]
 
 
-@pytest.mark.parametrize(
-    "input_systems, input_verbose, expected_output",
-    [(["t1.example.org"], True, "t1.example.org")],
-)
+@pytest.mark.parametrize("input_verbose", [True, False])
 def test_sync_systems(
     mocker: "MockerFixture",
     api_mock_tftp: CobblerAPI,
-    input_systems: List[str],
     input_verbose: bool,
-    expected_output: str,
 ):
     """
     Test to verify the sync_systems method of the InTftpdManager class.
@@ -218,6 +213,7 @@ def test_sync_systems(
     manager_obj = in_tftpd.get_manager(api_mock_tftp)
     tftpgen_mock = api_mock_tftp.tftpgen
     single_system_mock = mocker.patch.object(manager_obj, "sync_single_system")
+    input_systems = [System(api_mock_tftp)]
 
     # Act
     manager_obj.sync_systems(input_systems, input_verbose)

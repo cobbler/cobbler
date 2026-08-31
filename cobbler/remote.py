@@ -267,18 +267,44 @@ class CobblerXMLRPCInterface:
         Generates an ISO in /var/www/cobbler/pub that can be used to install profiles without using PXE.
 
         :param options: This parameter does contain the options passed from the CLI or remote API who called this.
+                         "profiles"/"systems" are lists of uids, "distro" is a uid.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
         webdir = self.api.settings().webdir
 
         def runner(self: CobblerThread):
+            def resolve_uids(
+                find_method: Callable[..., Any], uids: Optional[List[str]]
+            ) -> Optional[List[Any]]:
+                if not uids:
+                    return None
+                resolved: List[Any] = []
+                for uid in uids:
+                    obj = find_method(uid=uid)
+                    if obj is None or isinstance(obj, list):
+                        self.logger.warning('"%s" is not a valid uid', uid)
+                        continue
+                    resolved.append(obj)
+                return resolved
+
+            distro_uid = self.options.get("distro", None)
+            distro_obj = None
+            if distro_uid:
+                distro_obj = self.remote.api.find_distro(uid=distro_uid)
+                if distro_obj is None or isinstance(distro_obj, list):
+                    raise ValueError(f'Distro with uid "{distro_uid}" not found')
+
             self.remote.api.build_iso(
                 self.options.get("iso", webdir + "/pub/generated.iso"),
-                self.options.get("profiles", None),
-                self.options.get("systems", None),
+                resolve_uids(
+                    self.remote.api.find_profile, self.options.get("profiles", None)
+                ),
+                resolve_uids(
+                    self.remote.api.find_system, self.options.get("systems", None)
+                ),
                 self.options.get("buildisodir", ""),
-                self.options.get("distro", None),
+                distro_obj,
                 self.options.get("standalone", False),
                 self.options.get("airgapped", False),
                 self.options.get("source", ""),
@@ -343,7 +369,7 @@ class CobblerXMLRPCInterface:
         """
         Run a lite Cobbler sync in the background with only systems specified.
 
-        :param options: Unknown what this parameter does.
+        :param options: A dict with a "systems" key (list of system uids) and a "verbose" key.
         :param token: The API-token obtained via the login() method.
         :return: The id of the task that was started.
         """
@@ -351,8 +377,17 @@ class CobblerXMLRPCInterface:
         def runner(self: "CobblerThread"):
             if isinstance(self.options, list):
                 raise ValueError("options for background_syncsystems need to be dict!")
+            system_objs: List["system.System"] = []
+            for system_uid in self.options.get("systems", []):
+                system_obj = self.remote.api.find_system(uid=system_uid)
+                if system_obj is None or isinstance(system_obj, list):
+                    self.logger.info(
+                        'did not find any system with uid "%s"', system_uid
+                    )
+                    continue
+                system_objs.append(system_obj)
             self.remote.api.sync_systems(
-                self.options.get("systems", []), self.options.get("verbose", False)
+                system_objs, self.options.get("verbose", False)
             )
 
         return self.__start_task(runner, token, "syncsystems", "Syncsystems", options)
@@ -451,7 +486,8 @@ class CobblerXMLRPCInterface:
         """
         Run a reposync in the background.
 
-        :param options: Not known what this parameter does.
+        :param options: A dict with a "repos" key (list of repo uids) or an "only" key (a single repo uid), and
+                         optional "tries"/"nofail" keys.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
@@ -461,20 +497,26 @@ class CobblerXMLRPCInterface:
             if isinstance(self.options, list):
                 raise ValueError("options for background_reposync need to be dict!")
 
-            repos = options.get("repos", [])
+            repo_uids = options.get("repos", [])
             only = options.get("only", None)
             if only is not None:
-                repos = [only]
-            nofail = options.get("nofail", len(repos) > 0)
+                repo_uids = [only]
+            nofail = options.get("nofail", len(repo_uids) > 0)
 
-            if len(repos) > 0:
-                for name in repos:
+            if len(repo_uids) > 0:
+                for repo_uid in repo_uids:
+                    repo_obj = self.remote.api.find_repo(uid=repo_uid)
+                    if repo_obj is None or isinstance(repo_obj, list):
+                        self.logger.warning('"%s" is not a valid repo uid', repo_uid)
+                        continue
                     self.remote.api.reposync(
-                        tries=self.options.get("tries", 3), name=name, nofail=nofail
+                        tries=self.options.get("tries", 3),
+                        repo_obj=repo_obj,
+                        nofail=nofail,
                     )
             else:
                 self.remote.api.reposync(
-                    tries=self.options.get("tries", 3), name=None, nofail=nofail
+                    tries=self.options.get("tries", 3), repo_obj=None, nofail=nofail
                 )
 
         return self.__start_task(runner, token, "reposync", "Reposync", options)
@@ -483,7 +525,7 @@ class CobblerXMLRPCInterface:
         """
         Power a system asynchronously in the background.
 
-        :param options: Not known what this parameter does.
+        :param options: A dict with a "systems" key (list of system uids) and a "power" key (on/off/status/reboot).
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
@@ -492,17 +534,17 @@ class CobblerXMLRPCInterface:
             if isinstance(self.options, list):
                 raise ValueError("options for background_power_system need to be dict!")
 
-            for system_name in self.options.get("systems", []):
+            for system_uid in self.options.get("systems", []):
                 try:
-                    system_obj = self.remote.api.find_system(name=system_name)
+                    system_obj = self.remote.api.find_system(uid=system_uid)
                     if system_obj is None or isinstance(system_obj, list):
-                        raise ValueError(f'System with name "{system_name}" not found')
+                        raise ValueError(f'System with uid "{system_uid}" not found')
                     self.remote.api.power_system(
                         system_obj, self.options.get("power", "")
                     )
                 except Exception as error:
                     self.logger.warning(
-                        f"failed to execute power task on {str(system_name)}, exception: {str(error)}"
+                        f"failed to execute power task on {str(system_uid)}, exception: {str(error)}"
                     )
 
         self.check_access(token, "power_system")
@@ -1019,11 +1061,34 @@ class CobblerXMLRPCInterface:
             raise ValueError("Object not found or ambigous match!")
         return obj
 
+    def __resolve_optional_uid(
+        self, find_method: Callable[..., Any], uid: Optional[str]
+    ) -> Optional[Any]:
+        """
+        Helper function. Resolve an optional uid to its object via the given collection-specific find method,
+        returning None if the uid is None or no unambiguous match was found.
+
+        :param find_method: One of the ``self.api.find_<type>`` methods.
+        :param uid: The id to resolve, or None.
+        :return: The resolved object, or None.
+        """
+        if uid is None:
+            return None
+        result = find_method(uid=uid)
+        return None if isinstance(result, list) else result
+
     def get_item_resolved_value(
         self, item_uuid: str, attribute: List[str]
     ) -> Union[str, int, float, List[Any], Dict[Any, Any]]:
         """
         .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.get_item_resolved_value`
+
+        .. note:: Unlike ``get_item``/``modify_item``/etc., this does not resolve ``item_uuid`` through
+                  ``__get_object`` and therefore does not see transaction-local or not-yet-saved items. That
+                  resolution happens inside ``CobblerAPI.get_item_resolved_value``, a public, uuid-based entry point
+                  meant for any Python caller, not just this XML-RPC session -- it cannot be made aware of this
+                  class's transaction/``unsaved_items`` cache without leaking that XML-RPC-only concept into the
+                  general Python API.
         """
         self._log(
             f"get_item_resolved_value({item_uuid})", attribute=".".join(attribute)
@@ -1092,6 +1157,9 @@ class CobblerXMLRPCInterface:
     ) -> bool:
         """
         .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.set_item_resolved_value`
+
+        .. note:: See the note on ``get_item_resolved_value`` above -- this does not resolve ``item_uuid`` through
+                  ``__get_object`` for the same reason.
         """
         self._log(
             f"get_item_resolved_value({item_uuid})", attribute=".".join(attribute)
@@ -3536,18 +3604,21 @@ class CobblerXMLRPCInterface:
         )
 
     def is_autoinstall_in_use(
-        self, ai: str, token: Optional[str] = None, **rest: Any
+        self, autoinstall_uid: str, token: Optional[str] = None, **rest: Any
     ) -> bool:
         """
-        Check if the auto-installation for a system is in use.
+        Check if the auto-installation template is referenced by at least one Profile or System.
 
-        :param ai: The name of the system which could potentially be in autoinstall mode.
+        :param autoinstall_uid: The id of the autoinstall template to check for references.
         :param token: The API-token obtained via the login() method.
         :param rest: This is dropped in this method since it is not needed here.
         :return: True if this is the case, otherwise False.
         """
         self._log("is_autoinstall_in_use", token=token)
-        return self.api.is_autoinstall_in_use(ai)
+        template_obj = self.api.find_template(False, False, uid=autoinstall_uid)
+        if template_obj is None or isinstance(template_obj, list):
+            raise ValueError("Requested autoinstall template not found!")
+        return self.api.is_autoinstall_in_use(template_obj)
 
     def generate_autoinstall(
         self,
@@ -3598,51 +3669,57 @@ class CobblerXMLRPCInterface:
 
     def generate_ipxe(
         self,
-        profile: Optional[str] = None,
-        image: Optional[str] = None,
-        system: Optional[str] = None,
+        profile_uid: Optional[str] = None,
+        image_uid: Optional[str] = None,
+        system_uid: Optional[str] = None,
         **rest: Any,
     ) -> str:
         """
         Generate the ipxe configuration.
 
-        :param profile: The profile to generate iPXE config for.
-        :param image: The image to generate iPXE config for.
-        :param system: The system to generate iPXE config for.
+        :param profile_uid: The id of the profile to generate iPXE config for.
+        :param image_uid: The id of the image to generate iPXE config for.
+        :param system_uid: The id of the system to generate iPXE config for.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The configuration as a str representation.
         """
         self._log("generate_ipxe")
-        return self.api.generate_ipxe(profile, image, system)  # type: ignore
+        profile_obj = self.__resolve_optional_uid(self.api.find_profile, profile_uid)
+        image_obj = self.__resolve_optional_uid(self.api.find_image, image_uid)
+        system_obj = self.__resolve_optional_uid(self.api.find_system, system_uid)
+        return self.api.generate_ipxe(profile_obj, image_obj, system_obj)
 
     def generate_bootcfg(
-        self, profile: Optional[str] = None, system: Optional[str] = None, **rest: Any
+        self,
+        profile_uid: Optional[str] = None,
+        system_uid: Optional[str] = None,
+        **rest: Any,
     ) -> str:
         """
         This generates the bootcfg for a system which is related to a certain profile.
 
-        :param profile: The profile which is associated to the system.
-        :param system: The system which the bootcfg should be generated for.
+        :param profile_uid: The id of the profile which is associated to the system.
+        :param system_uid: The id of the system which the bootcfg should be generated for.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The generated bootcfg.
         """
         self._log("generate_bootcfg")
-        profile_name = "" if profile is None else profile
-        system_name = "" if system is None else system
-        return self.api.generate_bootcfg(profile_name, system_name)
+        profile_obj = self.__resolve_optional_uid(self.api.find_profile, profile_uid)
+        system_obj = self.__resolve_optional_uid(self.api.find_system, system_uid)
+        return self.api.generate_bootcfg(profile_obj, system_obj)
 
     def generate_script(
         self,
-        profile: Optional[str] = None,
-        system: Optional[str] = None,
+        profile_uid: Optional[str] = None,
+        system_uid: Optional[str] = None,
         name: str = "",
     ) -> str:
         """
         This generates the autoinstall script for a system or profile. Profile and System cannot be both given, if they
         are, Profile wins.
 
-        :param profile: The profile name to generate the script for.
-        :param system: The system name to generate the script for.
+        :param profile_uid: The id of the profile to generate the script for.
+        :param system_uid: The id of the system to generate the script for.
         :param name: Name of the generated script. Must only contain alphanumeric characters, dots and underscores.
         :return: Some generated script.
         """
@@ -3650,7 +3727,9 @@ class CobblerXMLRPCInterface:
         if not validate_autoinstall_script_name(name):
             raise ValueError('"name" handed to generate_script was not valid!')
         self._log(f'generate_script, name is "{name}"')
-        return self.api.generate_script(profile, system, name)
+        profile_obj = self.__resolve_optional_uid(self.api.find_profile, profile_uid)
+        system_obj = self.__resolve_optional_uid(self.api.find_system, system_uid)
+        return self.api.generate_script(profile_obj, system_obj, name)
 
     def dump_vars(
         self, item_uuid: str, formatted_output: bool = False, remove_dicts: bool = True
@@ -3661,17 +3740,18 @@ class CobblerXMLRPCInterface:
 
         .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.dump_vars`
         """
-        obj = self.api.find_items(
-            "", {"uid": item_uuid}, return_list=False, no_errors=True
-        )
-        if obj is None or isinstance(obj, list):
-            raise ValueError(f'Item with uuid "{item_uuid}" does not exist!')
+        try:
+            obj = cast(item.BootableItem, self.__get_object(item_uuid))
+        except ValueError as error:
+            raise ValueError(f'Item with uuid "{item_uuid}" does not exist!') from error
         result = self.api.dump_vars(obj, formatted_output, remove_dicts)
         self._log(str(result))
         return result
 
     def get_blended_data(
-        self, profile: Optional[str] = None, system: Optional[str] = None
+        self,
+        profile_uid: Optional[str] = None,
+        system_uid: Optional[str] = None,
     ):
         """
         Combine all data which is available from a profile and system together and return it.
@@ -3679,20 +3759,20 @@ class CobblerXMLRPCInterface:
         .. deprecated:: 4.0.0
            Please make use of the dump_vars endpoint.
 
-        :param profile: The profile of the system.
-        :param system: The system for which the data should be rendered.
+        :param profile_uid: The id of the profile of the system.
+        :param system_uid: The id of the system for which the data should be rendered.
         :return: All values which could be blended together through the inheritance chain.
         """
         obj: "BootableItem"
-        if profile is not None and profile != "":
-            search_result = self.api.find_profile(name=profile)
+        if profile_uid is not None and profile_uid != "":
+            search_result = self.api.find_profile(uid=profile_uid)
             if search_result is None or isinstance(search_result, list):
-                raise CX(f"profile not found: {profile}")
+                raise CX(f"profile not found: {profile_uid}")
             obj = search_result
-        elif system is not None and system != "":
-            search_result = self.api.find_system(name=system)  # type: ignore
+        elif system_uid is not None and system_uid != "":
+            search_result = self.api.find_system(uid=system_uid)  # type: ignore
             if search_result is None or isinstance(search_result, list):
-                raise CX(f"system not found: {system}")
+                raise CX(f"system not found: {system_uid}")
             obj = search_result
         else:
             raise CX("internal error, no system or profile specified")
@@ -3783,134 +3863,134 @@ class CobblerXMLRPCInterface:
         return self.xmlrpc_hacks(results)  # type: ignore
 
     def get_valid_distro_boot_loaders(
-        self, distro_name: Optional[str], token: Optional[str] = None
+        self, distro_uid: Optional[str], token: Optional[str] = None
     ) -> List[str]:
         """
         Return the list of valid boot loaders for the distro
 
         :param token: The API-token obtained via the login() method.
-        :param distro_name: The name of the distro for which the boot loaders should be looked up.
+        :param distro_uid: The id of the distro for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.
         """
         self._log("get_valid_distro_boot_loaders", token=token)
-        if distro_name is None:
+        if distro_uid is None:
             return [value.value for value in utils.get_supported_system_boot_loaders()]
-        obj = self.api.find_distro(name=distro_name)
+        obj = self.api.find_distro(uid=distro_uid)
         if obj is None or isinstance(obj, list):
-            return [f"# object not found: {distro_name}"]
+            return [f"# object not found: {distro_uid}"]
         return [value.value for value in self.api.get_valid_obj_boot_loaders(obj)]  # type: ignore[arg-type]
 
     def get_valid_image_boot_loaders(
-        self, image_name: Optional[str], token: Optional[str] = None
+        self, image_uid: Optional[str], token: Optional[str] = None
     ) -> List[str]:
         """
         Return the list of valid boot loaders for the image
 
         :param token: The API-token obtained via the login() method.
-        :param image_name: The name of the image for which the boot loaders should be looked up.
+        :param image_uid: The id of the image for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.
         """
         self._log("get_valid_image_boot_loaders", token=token)
-        if image_name is None:
+        if image_uid is None:
             return [value.value for value in utils.get_supported_system_boot_loaders()]
-        obj = self.api.find_image(name=image_name)
+        obj = self.api.find_image(uid=image_uid)
         if obj is None:
-            return [f"# object not found: {image_name}"]
+            return [f"# object not found: {image_uid}"]
         return [value.value for value in self.api.get_valid_obj_boot_loaders(obj)]  # type: ignore[arg-type]
 
     def get_valid_profile_boot_loaders(
-        self, profile_name: Optional[str], token: Optional[str] = None
+        self, profile_uid: Optional[str], token: Optional[str] = None
     ) -> List[str]:
         """
         Return the list of valid boot loaders for the profile
 
         :param token: The API-token obtained via the login() method.
-        :param profile_name: The name of the profile for which the boot loaders should be looked up.
+        :param profile_uid: The id of the profile for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.
         """
         self._log("get_valid_profile_boot_loaders", token=token)
-        if profile_name is None:
+        if profile_uid is None:
             return [value.value for value in utils.get_supported_system_boot_loaders()]
-        obj = self.api.find_profile(name=profile_name)
+        obj = self.api.find_profile(uid=profile_uid)
         if obj is None or isinstance(obj, list):
-            return [f"# object not found: {profile_name}"]
+            return [f"# object not found: {profile_uid}"]
         distro = obj.get_conceptual_parent()
         return [value.value for value in self.api.get_valid_obj_boot_loaders(distro)]  # type: ignore[arg-type]
 
     def get_valid_system_boot_loaders(
-        self, system_name: Optional[str], token: Optional[str] = None
+        self, system_uid: Optional[str], token: Optional[str] = None
     ) -> List[str]:
         """
         Return the list of valid boot loaders for the system
 
         :param token: The API-token obtained via the login() method.
-        :param system_name: The name of the system for which the boot loaders should be looked up.
+        :param system_uid: The id of the system for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.get_valid_archs
         """
         self._log("get_valid_system_boot_loaders", token=token)
-        if system_name is None:
+        if system_uid is None:
             return [value.value for value in utils.get_supported_system_boot_loaders()]
-        obj = self.api.find_system(name=system_name)
+        obj = self.api.find_system(uid=system_uid)
         if obj is None or isinstance(obj, list):
-            return [f"# object not found: {system_name}"]
+            return [f"# object not found: {system_uid}"]
         parent = obj.get_conceptual_parent()
 
         if parent and parent.COLLECTION_TYPE == "profile":  # type: ignore[reportUnnecessaryComparison]
             return [value.value for value in parent.boot_loaders]  # type: ignore
         return [value.value for value in self.api.get_valid_obj_boot_loaders(parent)]  # type: ignore[arg-type]
 
-    def get_repo_config_for_profile(self, profile_name: str, **rest: Any):
+    def get_repo_config_for_profile(self, profile_uid: str, **rest: Any):
         """
         Return the yum configuration a given profile should use to obtain all of it's Cobbler associated repos.
 
-        :param profile_name: The name of the profile for which the repository config should be looked up.
+        :param profile_uid: The id of the profile for which the repository config should be looked up.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The repository configuration for the profile.
         """
-        obj = self.api.find_profile(name=profile_name)
+        obj = self.api.find_profile(uid=profile_uid)
         if obj is None or isinstance(obj, list):
-            return f"# object not found: {profile_name}"
+            return f"# object not found: {profile_uid}"
         return self.api.get_repo_config_for_profile(obj)
 
-    def get_repo_config_for_system(self, system_name: str, **rest: Any):
+    def get_repo_config_for_system(self, system_uid: str, **rest: Any):
         """
         Return the yum configuration a given profile should use to obtain all of it's Cobbler associated repos.
 
-        :param system_name: The name of the system for which the repository config should be looked up.
+        :param system_uid: The id of the system for which the repository config should be looked up.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The repository configuration for the system.
         """
-        obj = self.api.find_system(name=system_name)
+        obj = self.api.find_system(uid=system_uid)
         if obj is None or isinstance(obj, list):
-            return f"# object not found: {system_name}"
+            return f"# object not found: {system_uid}"
         return self.api.get_repo_config_for_system(obj)
 
-    def get_template_file_for_profile(self, profile_name: str, path: str, **rest: Any):
+    def get_template_file_for_profile(self, profile_uid: str, path: str, **rest: Any):
         """
         Return the templated file requested for this profile
 
-        :param profile_name: The name of the profile to get the template file for.
+        :param profile_uid: The id of the profile to get the template file for.
         :param path: The path to the template which is requested.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The template file as a str representation.
         """
-        obj = self.api.find_profile(name=profile_name)
+        obj = self.api.find_profile(uid=profile_uid)
         if obj is None or isinstance(obj, list):
-            return f"# object not found: {profile_name}"
+            return f"# object not found: {profile_uid}"
         return self.api.get_template_file_for_profile(obj, path)
 
-    def get_template_file_for_system(self, system_name: str, path: str, **rest: Any):
+    def get_template_file_for_system(self, system_uid: str, path: str, **rest: Any):
         """
         Return the templated file requested for this system
 
-        :param system_name: The name of the system to get the template file for.
+        :param system_uid: The id of the system to get the template file for.
         :param path: The path to the template which is requested.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The template file as a str representation.
         """
-        obj = self.api.find_system(name=system_name)
+        obj = self.api.find_system(uid=system_uid)
         if obj is None or isinstance(obj, list):
-            return f"# object not found: {system_name}"
+            return f"# object not found: {system_uid}"
         return self.api.get_template_file_for_system(obj, path)
 
     def register_new_system(
@@ -4004,43 +4084,23 @@ class CobblerXMLRPCInterface:
         return 0
 
     def disable_netboot(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> bool:
         """
-        This is a feature used by the ``pxe_just_once`` support, see manpage. Sets system named "name" to no-longer PXE.
+        This is a feature used by the ``pxe_just_once`` support, see manpage. Sets the given system to no-longer PXE.
         Disabled by default as this requires public API access and is technically a read-write operation.
 
-        :param name: The name of the system to disable netboot for.
+        :param object_id: The id of the system to disable netboot for.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is unused.
         :return: A boolean indicated the success of the action.
         """
-        self._log("disable_netboot", token=token, name=name)
-        # used by nopxe.cgi
-        if not self.api.settings().pxe_just_once:
-            # feature disabled!
-            return False
-        # triggers should be enabled when calling nopxe
-        triggers_enabled = self.api.settings().nopxe_with_triggers
-        obj = self.api.systems().find(name=name)
-        if obj is None:
+        self._log("disable_netboot", token=token, object_id=object_id)
+        obj = self.api.find_system(uid=object_id)
+        if obj is None or isinstance(obj, list):
             # system not found!
             return False
-        if isinstance(obj, list):
-            # Duplicate entries found - can't be but mypy requires this check
-            return False
-        obj.netboot_enabled = False
-        # disabling triggers and sync to make this extremely fast.
-        self.api.systems().add(
-            obj,
-            save=True,
-            with_triggers=triggers_enabled,
-            with_sync=False,
-            quick_pxe_update=True,
-        )
-        # re-generate dhcp configuration
-        self.api.sync_dhcp()
-        return True
+        return self.api.disable_netboot(obj)
 
     def upload_log_data(
         self,
@@ -4232,7 +4292,9 @@ class CobblerXMLRPCInterface:
 
         :param mode: The mode of the triggers. May be "pre", "post" or "firstboot".
         :param objtype: The type of object. This should correspond to the collection type.
-        :param name: The name of the object.
+        :param name: The name of the object. Intentionally a name rather than a uid, unlike most of the rest of this
+                     class: the value is forwarded verbatim to the trigger script and never looked up, so a uid would
+                     only add a resolution cost (see the comment below) without any correctness benefit.
         :param ip: The ip of the objet.
         :param token: The API-token obtained via the login() method.
         :param rest: This is dropped in this method since it is not needed here.
@@ -4414,54 +4476,26 @@ class CobblerXMLRPCInterface:
         return self.xmlrpc_hacks(data)
 
     def get_repos_compatible_with_profile(
-        self, profile: str, token: Optional[str] = None, **rest: Any
+        self, profile_uid: str, token: Optional[str] = None, **rest: Any
     ) -> List[Dict[Any, Any]]:
         """
-        Get repos that can be used with a given profile name.
+        Get repos that can be used with a given profile.
 
-        :param profile: The profile to check for compatibility.
+        :param profile_uid: The id of the profile to check for compatibility.
         :param token: The API-token obtained via the login() method.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The list of compatible repositories.
         """
         self._log("get_repos_compatible_with_profile", token=token)
-        profile_obj = self.api.find_profile(name=profile)
+        profile_obj = self.api.find_profile(uid=profile_uid)
         if profile_obj is None or isinstance(profile_obj, list):
             self.logger.info(
-                'The profile name supplied ("%s") for get_repos_compatible_with_profile was not'
+                'The profile id supplied ("%s") for get_repos_compatible_with_profile was not'
                 "existing",
-                profile,
+                profile_uid,
             )
             return []
-        results: List[Dict[Any, Any]] = []
-        distro: Optional["Distro"] = profile_obj.get_conceptual_parent()  # type: ignore
-        if distro is None:
-            raise ValueError("Distro not found!")
-        for current_repo in self.api.repos():
-            # There be dragons!
-            # Accept all repos that are src/noarch but otherwise filter what repos are compatible with the profile based
-            # on the arch of the distro.
-            # FIXME: Use the enum directly
-            if current_repo.arch.value in [
-                "",
-                "noarch",
-                "src",
-            ]:
-                results.append(current_repo.to_dict())
-            else:
-                # some backwards compatibility fuzz
-                # repo.arch is mostly a text field
-                # distro.arch is i386/x86_64
-                if current_repo.arch.value in ["i386", "x86", "i686"]:
-                    if distro.arch.value in ["i386", "x86"]:
-                        results.append(current_repo.to_dict())
-                elif current_repo.arch.value in ["x86_64"]:
-                    if distro.arch.value in ["x86_64"]:
-                        results.append(current_repo.to_dict())
-                else:
-                    if distro.arch.value == current_repo.arch.value:
-                        results.append(current_repo.to_dict())
-        return results
+        return self.api.get_repos_compatible_with_profile(profile_obj)  # type: ignore[arg-type]
 
     def find_system_by_dns_name(self, dns_name: str) -> Dict[str, Any]:
         """
@@ -4475,58 +4509,58 @@ class CobblerXMLRPCInterface:
         system = self.api.find_system(dns_name=dns_name)
         if system is None or isinstance(system, list):
             return {}
-        return self.get_system_as_rendered(system.name)  # type: ignore
+        return self.get_system_as_rendered(system.uid)  # type: ignore
 
     def get_distro_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get distribution after passing through Cobbler's inheritance engine.
 
-        :param name: distro name
+        :param object_id: The id of the distro to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a distribution.
         """
 
-        self._log("get_distro_as_rendered", name=name, token=token)
-        obj = self.api.find_distro(name=name)
+        self._log("get_distro_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_distro(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
     def get_profile_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get profile after passing through Cobbler's inheritance engine.
 
-        :param name: profile name
+        :param object_id: The id of the profile to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a profile.
         """
 
-        self._log("get_profile_as_rendered", name=name, token=token)
-        obj = self.api.find_profile(name=name)
+        self._log("get_profile_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_profile(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
     def get_system_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get profile after passing through Cobbler's inheritance engine.
 
-        :param name: system name
+        :param object_id: The id of the system to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a system.
         """
 
-        self._log("get_system_as_rendered", name=name, token=token)
-        obj = self.api.find_system(name=name)
+        self._log("get_system_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_system(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             _dict = utils.blender(self.api, True, obj)
             # Generate a pxelinux.cfg?
@@ -4557,109 +4591,109 @@ class CobblerXMLRPCInterface:
         return self.xmlrpc_hacks({})
 
     def get_repo_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get repository after passing through Cobbler's inheritance engine.
 
-        :param name: repository name
+        :param object_id: The id of the repository to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a repository.
         """
 
-        self._log("get_repo_as_rendered", name=name, token=token)
-        obj = self.api.find_repo(name=name)
+        self._log("get_repo_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_repo(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
     def get_image_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get repository after passing through Cobbler's inheritance engine.
 
-        :param name: image name
+        :param object_id: The id of the image to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as an image.
         """
 
-        self._log("get_image_as_rendered", name=name, token=token)
-        obj = self.api.find_image(name=name)
+        self._log("get_image_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_image(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
     def get_menu_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get menu after passing through Cobbler's inheritance engine
 
-        :param name: Menu name
+        :param object_id: The id of the menu to get.
         :param token: Authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a file.
         """
 
-        self._log("get_menu_as_rendered", name=name, token=token)
-        obj = self.api.find_menu(name=name)
+        self._log("get_menu_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_menu(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
     def get_distro_group_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get distro group after passing through Cobbler's inheritance engine
 
-        :param name: DistroGroup name
+        :param object_id: The id of the DistroGroup to get.
         :param token: Authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a file.
         """
 
-        self._log("get_distro_group_as_rendered", name=name, token=token)
-        obj = self.api.find_distro_group(name=name)
+        self._log("get_distro_group_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_distro_group(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
         return self.xmlrpc_hacks({})
 
     def get_profile_group_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get profile group after passing through Cobbler's inheritance engine
 
-        :param name: ProfileGroup name
+        :param object_id: The id of the ProfileGroup to get.
         :param token: Authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a file.
         """
 
-        self._log("get_profile_group_as_rendered", name=name, token=token)
-        obj = self.api.find_profile_group(name=name)
+        self._log("get_profile_group_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_profile_group(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
         return self.xmlrpc_hacks({})
 
     def get_system_group_as_rendered(
-        self, name: str, token: Optional[str] = None, **rest: Any
+        self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
         Get system group after passing through Cobbler's inheritance engine
 
-        :param name: SystemGroup name
+        :param object_id: The id of the SystemGroup to get.
         :param token: Authentication token
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a file.
         """
 
-        self._log("get_system_group_as_rendered", name=name, token=token)
-        obj = self.api.find_system_group(name=name)
+        self._log("get_system_group_as_rendered", object_id=object_id, token=token)
+        obj = self.api.find_system_group(uid=object_id)
         if obj is not None and not isinstance(obj, list):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))  # type: ignore
         return self.xmlrpc_hacks({})
@@ -4984,8 +5018,10 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: True if the operation succeeds.
         """
-        # We pass return_list=False, thus the return type is Optional[System]
-        obj: Optional["system.System"] = self.api.find_system(uid=object_id, return_list=False)  # type: ignore
+        try:
+            obj: Optional["system.System"] = self.__get_object(object_id, token)  # type: ignore
+        except ValueError:
+            obj = None
         self.check_access(
             token, "clear_system_logs", obj.name if obj else "object not found"
         )
