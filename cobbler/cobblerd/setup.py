@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, List
 from libcobblersignatures import Signatures
 from libcobblersignatures.enums import ExportTypes, ImportTypes
 
+from cobbler.utils import filesystem_helpers
+
 try:
     from importlib.resources import files  # type: ignore
 except ImportError:
@@ -228,6 +230,9 @@ def setup_cobblerd(
     web_root_misc_directory = var_path / "misc"
     web_root_misc_directory.mkdir(parents=True, exist_ok=True)
     copy_directory(web_root_misc_files, web_root_misc_directory)
+    # Trigger & collection database directories (so packages own these standard, empty directories too)
+    filesystem_helpers.create_trigger_dirs(var_path)
+    filesystem_helpers.create_json_database_dirs(var_path)
     # TFTP Root Files
     # TODO: Copy GRUB files into TFTP-root
 
