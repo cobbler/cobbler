@@ -335,7 +335,7 @@ def test_create_tftpboot_dirs(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     assert mock_path_symlink_to.call_count == 4
 
 
-def test_create_trigger_dirs(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+def test_create_trigger_dirs(mocker: "MockerFixture"):
     """
     Test to verify the behavior of the create_trigger_dirs function.
     """
@@ -344,13 +344,13 @@ def test_create_trigger_dirs(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     mocker.patch("pathlib.Path.exists", return_value=False)
 
     # Act
-    filesystem_helpers.create_trigger_dirs(cobbler_api)
+    filesystem_helpers.create_trigger_dirs(pathlib.Path("/var/lib/cobbler"))
 
     # Assert
     assert mock_mkdir.call_count == 102
 
 
-def test_create_json_database_dirs(mocker: "MockerFixture", cobbler_api: CobblerAPI):
+def test_create_json_database_dirs(mocker: "MockerFixture"):
     """
     Test to verify the behavior of the create_json_database_dirs function.
     """
@@ -359,7 +359,7 @@ def test_create_json_database_dirs(mocker: "MockerFixture", cobbler_api: Cobbler
     mocker.patch("pathlib.Path.exists", return_value=False)
 
     # Act
-    filesystem_helpers.create_json_database_dirs(cobbler_api)
+    filesystem_helpers.create_json_database_dirs(pathlib.Path("/var/lib/cobbler"))
 
     # Assert
     mock_mkdir.assert_any_call("/var/lib/cobbler/collections")

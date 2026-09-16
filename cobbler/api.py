@@ -299,8 +299,8 @@ class CobblerAPI:
                 self.logger.info('Created required directory: "%s"', str(directory))
         filesystem_helpers.create_tftpboot_dirs(self)
         filesystem_helpers.create_web_dirs(self)
-        filesystem_helpers.create_trigger_dirs(self)
-        filesystem_helpers.create_json_database_dirs(self)
+        filesystem_helpers.create_trigger_dirs(pathlib.Path("/var/lib/cobbler"))
+        filesystem_helpers.create_json_database_dirs(pathlib.Path("/var/lib/cobbler"))
 
     def __load_signatures(self) -> None:
         try:

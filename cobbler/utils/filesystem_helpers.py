@@ -478,14 +478,13 @@ def create_tftpboot_dirs(api: "CobblerAPI") -> None:
     __symlink_if_not_exists(pathlib.Path("."), boot_link)
 
 
-def create_trigger_dirs(api: "CobblerAPI") -> None:
+def create_trigger_dirs(libpath: pathlib.Path) -> None:
     """
     Creates the directories that the user/admin can fill with dynamically executed scripts.
 
-    :param api: CobblerAPI
+    :param libpath: The Cobbler data directory (normally ``/var/lib/cobbler``, optionally prefixed with a base
+                     directory during packaging).
     """
-    # This is not yet a setting
-    libpath = pathlib.Path("/var/lib/cobbler")
     trigger_directory = libpath / "triggers"
     trigger_directories = [
         trigger_directory,
@@ -596,14 +595,13 @@ def create_trigger_dirs(api: "CobblerAPI") -> None:
         __create_if_not_exists(directory_path)
 
 
-def create_json_database_dirs(api: "CobblerAPI") -> None:
+def create_json_database_dirs(libpath: pathlib.Path) -> None:
     """
     Creates the database directories for the file serializer
 
-    :param api: CobblerAPI
+    :param libpath: The Cobbler data directory (normally ``/var/lib/cobbler``, optionally prefixed with a base
+                     directory during packaging).
     """
-    # This is not yet a setting
-    libpath = pathlib.Path("/var/lib/cobbler")
     database_directories = [
         libpath / "collections",
         libpath / "collections" / "distros",
