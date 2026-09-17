@@ -390,6 +390,7 @@ getent group %{apache_group} >/dev/null 2>&1 && chgrp %{apache_group} %{_sysconf
 %{_unitdir}/cobblerd.service
 %{_unitdir}/cobblerd-gunicorn.service
 %{_sharedstatedir}/cobbler
+%ghost %{_sharedstatedir}/cobbler/web.ss
 %{_localstatedir}/log/cobbler
 
 %files tests
