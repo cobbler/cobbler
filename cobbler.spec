@@ -338,7 +338,7 @@ if [ $1 -ge 2 ]; then
     if [ ! -d "%{_sharedstatedir}/cobbler/backup/upgrade-${DATE}" ]; then
         mkdir -p "%{_sharedstatedir}/cobbler/backup/upgrade-${DATE}"
     fi
-    for i in "config" "snippets" "templates" "triggers" "scripts"; do
+    for i in "collections" "templates" "triggers" "loaders" "misc"; do
         if [ -d "%{_sharedstatedir}/cobbler/${i}" ]; then
             cp -r "%{_sharedstatedir}/cobbler/${i}" "%{_sharedstatedir}/cobbler/backup/upgrade-${DATE}"
         fi
@@ -390,6 +390,7 @@ getent group %{apache_group} >/dev/null 2>&1 && chgrp %{apache_group} %{_sysconf
 %{_unitdir}/cobblerd.service
 %{_unitdir}/cobblerd-gunicorn.service
 %{_sharedstatedir}/cobbler
+%ghost %{_sharedstatedir}/cobbler/web.ss
 %{_localstatedir}/log/cobbler
 
 %files tests
