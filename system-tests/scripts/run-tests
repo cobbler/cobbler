@@ -24,6 +24,11 @@ export SYSTESTS_ROOT=${topdir}
 export SYSTESTS_PRELUDE=${topdir}/prelude
 export SYSTESTS_TMP=${topdir}/workspace
 
+# Bound how long a single test may run. Without this, a single hung test
+# (e.g. due to CI-runner resource pressure) blocks the entire suite until
+# the CI job's own timeout kills it hours later.
+: ${SYSTESTS_TIMEOUT:=300}
+
 rm -rf ${SYSTESTS_TMP}
 
 echo
@@ -38,9 +43,14 @@ for test in $(list_selected_tests); do
 	test_dir=${SYSTESTS_TMP}/${test}
 	printf '  %s... ' ${test}
 	mkdir -p ${test_dir}
-	env TEST_NAME=${test} ${topdir}/tests/${test} >${test_dir}/_output 2>&1
-	if [ ${?} -eq 0 ]; then
+	timeout ${SYSTESTS_TIMEOUT} env TEST_NAME=${test} ${topdir}/tests/${test} >${test_dir}/_output 2>&1
+	rc=${?}
+	if [ ${rc} -eq 0 ]; then
 		echo ok
+	elif [ ${rc} -eq 124 ]; then
+		echo "timeout (>${SYSTESTS_TIMEOUT}s)"
+		failed_tests+=(${test})
+		touch ${test_dir}/_failed
 	else
 		echo fail
 		failed_tests+=(${test})

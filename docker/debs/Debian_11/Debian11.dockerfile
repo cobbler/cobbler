@@ -11,7 +11,9 @@ ENV OSCODENAME bullseye
 
 # Add repo for debbuild and install all packages required
 # hadolint ignore=DL3008,DL3015,DL4006
-RUN apt-get update -qq && \
+RUN sed -i -e '/^deb http:\/\/deb\.debian\.org/ s/^/# /' -e '/^# deb http:\/\/snapshot\.debian\.org/ s/^# //' /etc/apt/sources.list && \
+    echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until && \
+    apt-get update -qq && \
     apt-get install -qqy gnupg curl && \
     /bin/sh -c "echo 'deb [trusted=yes] http://download.opensuse.org/repositories/Debian:/debbuild/Debian_11/ /' > /etc/apt/sources.list.d/debbuild.list" && \
     apt-get update -qq && \

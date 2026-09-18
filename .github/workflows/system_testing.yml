@@ -9,6 +9,9 @@ on:
 jobs:
   run_system_test:
     runs-on: ubuntu-latest
+    # Without this, a single hung system test blocks the job until GitHub's
+    # default 360-minute timeout, instead of failing in a reasonable time.
+    timeout-minutes: 60
     steps:
       - name: Checkout repository
         # https://github.com/actions/checkout
