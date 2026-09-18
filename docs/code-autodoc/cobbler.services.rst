@@ -12,6 +12,14 @@ cobbler.services.files module
    :show-inheritance:
    :undoc-members:
 
+cobbler.services.sso module
+---------------------------
+
+.. automodule:: cobbler.services.sso
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 cobbler.services.svc module
 ---------------------------
 

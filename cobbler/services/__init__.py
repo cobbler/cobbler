@@ -7,7 +7,7 @@ Gunicorn entry point for Cobbler's WSGI service(s): ``gunicorn cobbler.services:
 
 from typing import Any, Callable, Dict, List
 
-from cobbler.services import files, svc
+from cobbler.services import files, sso, svc
 
 
 def application(
@@ -23,8 +23,10 @@ def application(
     by Apache's own ``Alias`` directives today -- not proxied, so no prefix-stripping happens for
     them) are likewise dispatched straight to :mod:`cobbler.services.files`. ``/healthz`` (a
     liveness check backed by an XML-RPC round trip against cobblerd, for Docker's ``HEALTHCHECK``
-    and orchestration tooling) is dispatched there too. Everything else falls through to the
-    existing XML-RPC-backed :mod:`cobbler.services.svc` app, unchanged.
+    and orchestration tooling) is dispatched there too. ``/sso_login`` (native Kerberos/GSSAPI
+    SPNEGO negotiation, for deployments with no Apache/nginx in front of Gunicorn to terminate it)
+    is dispatched to :mod:`cobbler.services.sso`. Everything else falls through to the existing
+    XML-RPC-backed :mod:`cobbler.services.svc` app, unchanged.
 
     :param environ:
     :param start_response:
@@ -40,4 +42,6 @@ def application(
         return files.images_application(environ, start_response)
     if path == "/healthz":
         return files.healthz_application(environ, start_response)
+    if path == "/sso_login":
+        return sso.application(environ, start_response)
     return svc.application(environ, start_response)
