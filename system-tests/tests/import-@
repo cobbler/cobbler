@@ -11,7 +11,7 @@ distro=$(echo "$TEST_NAME" | cut -d- -f3)
 for iso in ${SYSTESTS_ROOT}/listings/${breed}/${distro}/*; do
 	root=${tmp}/$(basename ${iso})
 	mkdir -p ${root}
-	cat ${iso}/index | xargs -I {} -P 64 install -D -m 0644 /dev/null ${root}/{}
+	cat ${iso}/index | xargs -I {} -P 64 bash -c 'mkdir -p "$(dirname "$0")" && touch "$0" && chmod 0644 "$0"' ${root}/{}
 	cp -a ${iso}/. ${root}
 	cobbler import --name imported --path ${root}
 done
