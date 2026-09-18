@@ -413,7 +413,7 @@ def read_file_contents(
             with open(file_location, encoding="UTF-8") as file_fd:
                 data = file_fd.read()
             return data
-        except:
+        except Exception:
             log_exc()
             raise
 
