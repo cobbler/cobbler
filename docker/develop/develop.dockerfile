@@ -32,8 +32,11 @@ RUN zypper install --no-recommends -y \
     acl                        \
     apache2                    \
     apache2-devel              \
+    apache2-mod_auth_gssapi    \
     apache2-mod_wsgi-python3   \
     bash-completion            \
+    krb5-client                \
+    krb5-server                \
     createrepo_c               \
     fence-agents               \
     genders                    \

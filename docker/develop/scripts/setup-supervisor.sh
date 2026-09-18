@@ -10,6 +10,9 @@ echo "Setup openLDAP"
 echo "Setup MongoDB"
 /code/docker/develop/scripts/setup-mongodb.sh
 
+echo "Setup Kerberos"
+/code/docker/develop/scripts/setup-kerberos.sh
+
 echo "Install Cobbler"
 git config --global --add safe.directory /code
 cd /code || exit
