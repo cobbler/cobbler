@@ -227,6 +227,8 @@ Recommends:     python%{python3_pkgversion}-librepo
 # Only used by the optional modules.process_management.docker backend; not required for cobbler's
 # default process management behavior.
 Recommends:     python%{python3_pkgversion}-docker
+# Optional Kerberos/GSSAPI SSO support
+Recommends:     python%{python3_pkgversion}-gssapi
 %endif
 # No point in having this split out...
 Obsoletes:      cobbler-nsupdate < 3.0.99

@@ -90,6 +90,7 @@ if __name__ == "__main__":
                 "pefile"
             ],
             "extra": ["psutil"],  # debugging startup performance
+            "kerberos": ["gssapi"],
             "lint": [
                 "importlib-resources",
                 # pyright is not written in Python and has to be installed differently.
