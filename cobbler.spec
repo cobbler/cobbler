@@ -266,6 +266,14 @@ Recommends:     %{grub2_ia32_efi_pkg}
 Recommends:     logrotate
 Recommends:     python%{python3_pkgversion}-librepo
 %endif
+# Kerberos/SPNEGO SSO bridge (svc/sso_login.py) needs mod_auth_gssapi to be present in Apache
+# for the feature to be usable; unconditional (not gated behind the python dependency
+# generator conditional above) so it is Recommended on every distro flavor.
+%if 0%{?suse_version}
+Recommends:     apache2-mod_auth_gssapi
+%else
+Recommends:     mod_auth_gssapi
+%endif
 # https://github.com/cobbler/cobbler/issues/1685
 %if "%{_vendor}" == "debbuild"
 Requires:       init-system-helpers
